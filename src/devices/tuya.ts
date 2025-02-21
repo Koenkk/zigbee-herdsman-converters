@@ -9673,6 +9673,13 @@ export const definitions: DefinitionWithExtend[] = [
             e.produced_energy().withDescription('Total reverse active energy'),
             e.power_factor().withUnit('%'),
             e.ac_frequency(),
+            e
+                .numeric('data_report_duration', ea.SET)
+                .withValueMin(5)
+                .withValueMax(3600)
+                .withDescription(
+                    'WARNING: You must update device firmware to V3.1.3 before changing this setting! Use Tuya gateway/app to update firmware. Data report duration set (Threshold value range 5~3600 seconds)',
+                ),
         ],
         meta: {
             tuyaDatapoints: [
@@ -9681,6 +9688,46 @@ export const definitions: DefinitionWithExtend[] = [
                 // [6, null, tuya.valueConverter.phaseVariant3],
                 [15, 'power_factor', tuya.valueConverter.raw],
                 // [16, 'clear_energy', tuya.valueConverter.onOff],
+                [
+                    18,
+                    'data_report_duration',
+                    {
+                        to: (v: number) => {
+                            const value = Math.max(5, Math.min(3600, Math.round(v)));
+                            const byte1 = (value >> 8) & 0xff;
+                            const byte2 = value & 0xff;
+                            return [
+                                // Unknown what these bytes mean, possibly configures other settings of the device
+                                0x01,
+                                0x01,
+                                0x00,
+                                0x3c,
+                                0x03,
+                                0x01,
+                                0x00,
+                                0xfd,
+                                0x04,
+                                0x00,
+                                0x00,
+                                0xb4,
+                                0x07,
+                                0x01,
+                                0x00,
+                                0x00,
+                                0x08,
+                                0x01,
+                                // Report duration
+                                byte1,
+                                byte2,
+                                // Unknown what these bytes mean, possibly configures other settings of the device
+                                0x09,
+                                0x00,
+                                0x00,
+                                0x00,
+                            ];
+                        },
+                    },
+                ],
                 [101, 'ac_frequency', tuya.valueConverter.divideBy100],
                 [102, 'voltage', tuya.valueConverter.divideBy10],
                 [103, 'current', tuya.valueConverter.divideBy1000],
@@ -12276,6 +12323,121 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
         whiteLabel: [{vendor: 'ELECTSMART', model: 'EST-120Z'}],
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE284_khah2lkr']),
+        model: 'TE-1Z',
+        vendor: 'Tuya',
+        description: 'Floor heating thermostat',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEventSetTime,
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            // e.binary('system_mode', ea.STATE_SET, 'ON', 'OFF')
+            // .withDescription('Turn system on or standby mode'),
+            e.binary('state', ea.STATE_SET, 'ON', 'OFF').withDescription('Turn system on or standby mode'),
+            e
+                .climate()
+                .withSetpoint('current_heating_setpoint', 5, 35, 0.5, ea.STATE_SET)
+                .withRunningState(['idle', 'heat'], ea.STATE)
+
+                // you can change preset, but can't make auto back remotely so I would set this readonly
+                .withPreset(['auto', 'manual', 'mixed'])
+                .withLocalTemperatureCalibration(-9, 9, 1, ea.STATE_SET)
+                .withLocalTemperature(ea.STATE),
+            e.child_lock(),
+            // you can change it to IN remotely but can not set it back, so I set it read only
+            e
+                .enum('sensor_mode', ea.STATE, ['IN', 'OU', 'AL'])
+                .withDescription(
+                    'IN - internal sensor, no heat protection. OU - external sensor, no heat protection. AL - internal sensor for room temperature, external for heat protection',
+                ),
+            e
+                .binary('high_temperature_protection_state', ea.STATE_SET, 'ON', 'OFF')
+                .withDescription(
+                    'If temperature hit the HIGH temperature limit, it ' +
+                        'will turn off heating until it drops for amount of deadzone/hysteresis ' +
+                        'degrees',
+                ),
+            e.binary('low_temperature_protection_state', ea.STATE_SET, 'ON', 'OFF'),
+            e
+                .numeric('high_temperature_protection_setting', ea.STATE_SET)
+                .withUnit('°C')
+                .withValueMin(20)
+                .withValueMax(70)
+                .withDescription('Alarm temperature max')
+                .withPreset('default', 45, 'Default value'),
+            e
+                .numeric('low_temperature_protection_setting', ea.STATE_SET)
+                .withUnit('°C')
+                .withValueMin(1)
+                .withValueMax(10)
+                .withDescription('Alarm temperature min')
+                .withPreset('default', 5, 'Default value'),
+            e.numeric('temperature_sensor', ea.STATE).withUnit('°C').withDescription('Floor temperature from external sensor'),
+            e
+                .deadzone_temperature()
+                .withValueMin(1)
+                .withValueMax(9)
+                .withValueStep(1)
+                .withUnit('°C')
+                .withDescription('Hysteresis')
+                .withPreset('default', 1, 'Default value'),
+            e.max_temperature().withValueMin(20).withValueMax(70).withPreset('default', 35, 'Default value'),
+            // @todo not tested
+            tuya.exposes.errorStatus(),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                // internal sensor temperature
+                [16, 'local_temperature', tuya.valueConverter.divideBy10],
+                [50, 'current_heating_setpoint', tuya.valueConverter.divideBy10],
+                // data type 1
+                [102, 'running_state', tuya.valueConverterBasic.lookup({idle: false, heat: true})],
+                [103, 'temperature_sensor', tuya.valueConverter.divideBy10],
+                // can be changed by setting 112 below 20, data type 1
+                [106, 'high_temperature_protection_state', tuya.valueConverter.onOff],
+                // can be changed by setting 113 over 10, data type 1
+                [107, 'low_temperature_protection_state', tuya.valueConverter.onOff],
+                // range -9 to +9, data type 2, affects shown room temperature (even tho sensors detect its 19, you can make it show 21 by setting this to 2)
+                [109, 'local_temperature_calibration', tuya.valueConverter.localTempCalibration3],
+                // according to manual settable betwwen 0.5 and 2.5 degree.
+                // staring with 5 as 0.5 degree, and 25 as 2.5 degree (data type 2)
+                [110, 'temperature_return_difference', tuya.valueConverter.raw],
+                // range 1-9. How far should temperature drop to turn back heating, if hight temp protection kicked in
+                [111, 'deadzone_temperature', tuya.valueConverter.raw],
+                // High temperature protection
+                // range 20-70, trying to turn below 20 keeps this datapoint at 20 but turns 106 to 0
+                [112, 'high_temperature_protection_setting', tuya.valueConverter.raw],
+                // range 1-10, trying to turn over 10 keeps this datapoint at 10, but turns 107 to 0
+                [113, 'low_temperature_protection_setting', tuya.valueConverter.raw],
+                [114, 'max_temperature', tuya.valueConverter.raw],
+                // choose_sensor
+                // 0: device sensor. Switches "higsyht_temperature_protection_state" off
+                // 1: external sensor / hight temperature protection off
+                // 2: internal for room + external for high temperature protection. Switches "hight_temperature_protection_state" on
+                [116, 'sensor_mode', tuya.valueConverterBasic.lookup({IN: 0, OU: 1, AL: 2})],
+                // once every 24h it provides an array of numbers, maybe device fingerprint or something
+                // [119, 'unknown_119', tuya.valueConverter.raw],
+                // [120, 'unknown_120', tuya.valueConverter.raw],
+                // [121, 'unknown_121', tuya.valueConverter.raw],
+                // [122, 'unknown_122', tuya.valueConverter.raw],
+                // device state
+                // 0: standby mode - displays temperature but will not turn heating. Manual configuration is accessible only in this state
+                // 1: fully functional, can turn on heating
+                [125, 'system_mode', tuya.valueConverter.onOff],
+                [125, 'state', tuya.valueConverter.onOff],
+                // manual_mode
+                // 1: automatically turns heating when protection levels hit
+                // 2: you can turn off heating if it heats. You can set up target temperature
+                // 3: you can set up target temperature and it will automatically try to maintain it
+                [128, 'preset', tuya.valueConverterBasic.lookup({auto: 1, manual: 0, mixed: 3})],
+                [129, 'child_lock', tuya.valueConverter.lockUnlock],
+                // data type 5. Was [0] but went [16] when high temperature protection went into alert mode
+                [130, 'error_status', tuya.valueConverter.raw],
+            ],
+        },
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE204_tagezcph']),
