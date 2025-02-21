@@ -1,7 +1,8 @@
 import {forcePowerSource, light} from '../lib/modernExtend';
 import {bind, onOff} from '../lib/reporting';
+import {DefinitionWithExtend} from '../lib/types';
 
-const definitions = [
+const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['ZDM150'],
         model: 'ZDM150',
@@ -10,8 +11,6 @@ const definitions = [
         extend: [light({powerOnBehavior: false, effect: false, configureReporting: true}), forcePowerSource({powerSource: 'Mains (single phase)'})],
 
         configure: async (device, coordinatorEndpoint) => {
-            device.powerSource = 'Mains (single phase)';
-
             const endpoint = device.getEndpoint(1);
             await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             await onOff(endpoint, {min: 0, max: 0xfffe});
