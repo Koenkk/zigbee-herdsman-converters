@@ -1,8 +1,7 @@
-import {light, forcePowerSource} from '../lib/modernExtend';
+import {forcePowerSource, light} from '../lib/modernExtend';
 import {bind, onOff} from '../lib/reporting';
-import {DefinitionWithExtend} from '../lib/types';
 
-const definitions: DefinitionWithExtend[] = [
+const definitions = [
     {
         zigbeeModel: ['ZDM150'],
         model: 'ZDM150',
@@ -25,7 +24,6 @@ const definitions: DefinitionWithExtend[] = [
             ]);
 
             device.save();
-
         },
         meta: {},
     },
@@ -33,4 +31,3 @@ const definitions: DefinitionWithExtend[] = [
 
 export default definitions;
 module.exports = definitions;
-
