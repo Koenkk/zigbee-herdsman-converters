@@ -2,7 +2,7 @@ import {forcePowerSource, light} from '../lib/modernExtend';
 import {bind, onOff} from '../lib/reporting';
 import {DefinitionWithExtend} from '../lib/types';
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['ZDM150'],
         model: 'ZDM150',
@@ -15,9 +15,6 @@ const definitions: DefinitionWithExtend[] = [
             await bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genLevelCtrl']);
             await onOff(endpoint, {min: 0, max: 0xfffe});
 
-            await endpoint.configureReporting('genOnOff', [
-                {attribute: 'onOff', minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 1},
-            ]);
             await endpoint.configureReporting('genLevelCtrl', [
                 {attribute: 'currentLevel', minimumReportInterval: 3, maximumReportInterval: 3600, reportableChange: 1},
             ]);
@@ -27,6 +24,3 @@ const definitions: DefinitionWithExtend[] = [
         meta: {},
     },
 ];
-
-export default definitions;
-module.exports = definitions;
