@@ -828,6 +828,43 @@ const converters1 = {
             return payload;
         },
     } satisfies Fz.Converter,
+    gas_metering: {
+        cluster: 'seMetering',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+                if (utils.hasAlreadyProcessedMessage(msg, model)) return;
+                const payload: KeyValueAny = {};
+                const multiplier = msg.endpoint.getClusterAttributeValue('seMetering', 'multiplier') as number;
+                const divisor = msg.endpoint.getClusterAttributeValue('seMetering', 'divisor') as number;
+                const factor = multiplier && divisor ? multiplier / divisor : null;
+    
+                if (msg.data.instantaneousDemand !== undefined) {
+                        const power = msg.data['instantaneousDemand'];
+                        const property = utils.postfixWithEndpointName('power', msg, model, meta);
+                        payload[property] = utils.precisionRound(power * (factor ?? 1),2);
+                }
+    
+                if (msg.data.currentSummDelivered !== undefined) {
+                        const value = msg.data['currentSummDelivered'];
+                        const property = utils.postfixWithEndpointName('energy', msg, model, meta);
+                        payload[property] = utils.precisionRound(value * (factor ?? 1), 2);
+                }
+    
+                if (msg.data.status !== undefined) {
+                    const value = msg.data['status'];
+                    const property = utils.postfixWithEndpointName('status', msg, model, meta);
+                    payload[property] = value;
+                }
+    
+                if (msg.data.extendedStatus !== undefined) {
+                    const value = msg.data['extendedStatus'];
+                    const property = utils.postfixWithEndpointName('extended_status', msg, model, meta);
+                    payload[property] = value;
+                }
+    
+                return payload;
+        }
+    } satisfies Fz.Converter,
     on_off: {
         cluster: 'genOnOff',
         type: ['attributeReport', 'readResponse'],

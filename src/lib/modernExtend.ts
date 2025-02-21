@@ -1971,6 +1971,134 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
     return result;
 }
 
+// Uses Metering to measure volume of gas consumed
+export interface GasMeterArgs {
+    power?: false | (MultiplierDivisor & Partial<ReportingConfigWithoutAttribute>);
+    energy?: false | (MultiplierDivisor & Partial<ReportingConfigWithoutAttribute>);
+    status?: false;
+    extendedStatus?: false;
+    configureReporting?: boolean;
+    endpointNames?: string[];
+    fzMetering?: Fz.Converter;
+}
+export function gasMeter(args?: GasMeterArgs): ModernExtend {
+	args = {
+        configureReporting: true,
+        ...args,
+    };
+
+    let exposes: Numeric[] = [];
+
+    const configureLookup = {
+        seMetering: {
+            // Report change with every m³/h change
+            power: {
+                attribute: 'instantaneousDemand', 
+                divisor: 'divisor', 
+                multiplier: 'multiplier', 
+                forced: args.power, 
+                change: 0.005
+            },
+            // Report change with every m³ change
+            energy: {
+                attribute: 'currentSummDelivered', 
+                divisor: 'divisor', 
+                multiplier: 'multiplier', 
+                forced: args.energy, 
+                change: 0.1
+            },
+            status: {
+                attribute: 'status', 
+                change: 1
+            },
+            extended_status: {
+                attribute: 'extendedStatus', 
+                change: 1
+            }
+        },
+    };
+
+    if (args.power === false) {
+        delete configureLookup.seMetering.power;
+    } else {
+        exposes.push(e.numeric('power', ea.STATE_GET).withUnit('m³/h').withDescription('Instantaneous gas flow in m³/h'));
+    }
+    if (args.energy === false) {
+        delete configureLookup.seMetering.energy;
+    } else {
+        exposes.push(e.numeric('energy', ea.ALL).withUnit('m³').withDescription('Total gas consumption in m³'));
+    }
+    if (args.status === false) {
+        delete configureLookup.seMetering.status;
+    }
+    if (args.extendedStatus === false) {
+        delete configureLookup.seMetering.extended_status;
+    }
+    const fromZigbee = [fz.gas_metering, fz.battery];
+    const toZigbee = [tz.currentsummdelivered, tz.metering_power, tz.metering_status, tz.metering_extended_status];
+
+    if (args.endpointNames) {
+        exposes = flatten(exposes.map((expose) => args.endpointNames.map((endpoint) => expose.clone().withEndpoint(endpoint))));
+    }
+
+    const result: ModernExtend = {exposes, fromZigbee, toZigbee, isModernExtend: true};
+
+    if (args.configureReporting) {
+        result.configure = [
+            async (device, coordinatorEndpoint) => {
+                for (const [cluster, properties] of Object.entries(configureLookup)) {
+                    for (const endpoint of getEndpointsWithCluster(device, cluster, 'input')) {
+                        const items: ReportingConfig[] = [];
+                        for (const property of Object.values(properties)) {
+                            let change = property.change;
+                            let min: ReportingConfigTime = '10_SECONDS';
+                            let max: ReportingConfigTime = 'MAX';
+
+                            // Check if this property has a divisor and multiplier
+                            if ('divisor' in property) {
+                                // In case multiplier or divisor was provided, use that instead of reading from device.
+                                if (property.forced && (property.forced.divisor || property.forced.multiplier)) {
+                                    endpoint.saveClusterAttributeKeyValue(cluster, {
+                                        [property.divisor]: property.forced.divisor ?? 1,
+                                        [property.multiplier]: property.forced.multiplier ?? 1,
+                                    });
+                                    endpoint.save();
+                                } else {
+                                    await endpoint.read(cluster, [property.divisor, property.multiplier]);
+                                }
+
+                                const divisor = endpoint.getClusterAttributeValue(cluster, property.divisor);
+                                assertNumber(divisor, property.divisor);
+                                const multiplier = endpoint.getClusterAttributeValue(cluster, property.multiplier);
+                                assertNumber(multiplier, property.multiplier);
+                                change = property.change * (divisor / multiplier);
+                            }
+
+                            if ('forced' in property && property.forced) {
+                                if ('min' in property.forced) {
+                                    min = property.forced.min;
+                                }
+                                if ('max' in property.forced) {
+                                    max = property.forced.max;
+                                }
+                                if ('change' in property.forced) {
+                                    change = property.forced.change;
+                                }
+                            }
+
+                            items.push({attribute: property.attribute, min, max, change});
+                        }
+                        if (items.length) {
+                            await setupAttributes(endpoint, coordinatorEndpoint, cluster, items);
+                        }
+                    }
+                }
+            }
+        ];
+    }
+
+    return result;
+}
 // #endregion
 
 // #region Other extends

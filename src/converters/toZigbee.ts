@@ -1829,12 +1829,31 @@ const converters2 = {
             await ep.read('seMetering', ['instantaneousDemand']);
         },
     } satisfies Tz.Converter,
+    metering_status: {
+        key: ['status'],
+        convertGet: async (entity, key, meta) => {
+                utils.assertEndpoint(entity);
+                await utils.enforceEndpoint(entity, key, meta).read('seMetering', ['status']);
+        },    
+    } satisfies Tz.Converter,
+    metering_extended_status: {
+        key: ['extended_status'],
+        convertGet: async (entity, key, meta) => {
+                utils.assertEndpoint(entity);
+                await utils.enforceEndpoint(entity, key, meta).read('seMetering', ['extendedStatus']);
+        },    
+    } satisfies Tz.Converter,
     currentsummdelivered: {
         key: ['energy'],
         convertGet: async (entity, key, meta) => {
             utils.assertEndpoint(entity);
             const ep = determineEndpoint(entity, meta, 'seMetering');
             await ep.read('seMetering', ['currentSummDelivered']);
+        },
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertNumber(value, key);
+            await entity.write('seMetering', {currentSummDelivered: Math.round(value * 100)});
+            return {state: {energy: value}};
         },
     } satisfies Tz.Converter,
     currentsummreceived: {
