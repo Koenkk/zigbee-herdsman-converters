@@ -317,7 +317,7 @@ export class ColorXY {
 /**
  * Class representing color in HSV space
  */
-class ColorHSV {
+export class ColorHSV {
     /** hue component (0..360) */
     hue: number;
     /** saturation component (0..100) */
@@ -792,9 +792,3 @@ export function syncColorState(newState: KeyValueAny, oldState: KeyValueAny, end
 
     return result;
 }
-
-exports.ColorRGB = ColorRGB;
-exports.ColorXY = ColorXY;
-exports.ColorHSV = ColorHSV;
-exports.Color = Color;
-exports.syncColorState = syncColorState;

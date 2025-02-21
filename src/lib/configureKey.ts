@@ -939,5 +939,3 @@ const legacyKeys: {[s: string]: number} = {
     'Zen-01-W_-942356398': 1,
     'rgbw2.zbee27_88764544': 2,
 };
-
-exports.getConfigureKey = getConfigureKey;

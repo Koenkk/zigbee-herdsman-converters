@@ -268,7 +268,3 @@ export const presetsZosung = {
     learned_ir_code: () => e.text('learned_ir_code', ea.STATE).withDescription('The IR code learned by device'),
     ir_code_to_send: () => e.text('ir_code_to_send', ea.SET).withDescription('The IR code to send by device'),
 };
-
-exports.fzZosung = fzZosung;
-exports.tzZosung = tzZosung;
-exports.presetsZosung = presetsZosung;

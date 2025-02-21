@@ -91,7 +91,7 @@ export const definitions: DefinitionWithExtend[] = [
         onEvent: (type, data, device, options) => tuya.onEventMeasurementPoll(type, data, device, options),
     },
     {
-        fingerprint: tuya.fingerprint('TS011F', ['_TZ3000_c7nc9w3c']),
+        fingerprint: tuya.fingerprint('TS011F', ['_TZ3000_c7nc9w3c', '_TZ3210_c7nc9w3c']),
         model: 'WP30-EU',
         description: 'Power cord 4 sockets EU (with power monitoring)',
         vendor: 'LELLKI',

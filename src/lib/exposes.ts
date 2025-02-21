@@ -560,11 +560,29 @@ export class Fan extends Base {
     constructor() {
         super();
         this.type = 'fan';
-        this.addFeature(new Binary('state', access.ALL, 'ON', 'OFF').withDescription('On/off state of this fan').withProperty('fan_state'));
+    }
+
+    // For historical reasons (the first fan added also had a light on the same
+    // endpoint) the fan state property was called `fan_state` instead of state
+    // like most other devices. For compatibility reasons existing fans kept
+    // that property name, add new ones without an argument to this function,
+    // which defaults to the new property name.
+    withState(name = 'state', access = a.ALL) {
+        this.addFeature(new Binary('state', access, 'ON', 'OFF').withDescription('On/off state of this fan').withProperty(name));
+        return this;
     }
 
     withModes(modes: string[], access = a.ALL) {
+        assert(this.features.findIndex((f) => f.name === 'speed') === -1, 'Fan can only be either mode or speed-controlled, not both');
         this.addFeature(new Enum('mode', access, modes).withProperty('fan_mode').withDescription('Mode of this fan'));
+        return this;
+    }
+
+    withSpeed(minSpeed = 1, maxSpeed = 254, access = a.ALL) {
+        assert(this.features.findIndex((f) => f.name === 'mode') === -1, 'Fan can only be either mode or speed-controlled, not both');
+        this.addFeature(
+            new Numeric('speed', access).withProperty('speed').withValueMin(minSpeed).withValueMax(maxSpeed).withDescription('Speed of this fan'),
+        );
         return this;
     }
 
@@ -1338,14 +1356,28 @@ export const presets = {
     max_brightness: () => new Numeric('max_brightness', access.ALL).withValueMin(1).withValueMax(255).withDescription('Maximum light brightness'),
 };
 
-exports.binary = (name: string, access: number, valueOn: string, valueOff: string) => new Binary(name, access, valueOn, valueOff);
-exports.climate = () => new Climate();
-exports.composite = (name: string, property: string, access: number) => new Composite(name, property, access);
-exports.cover = () => new Cover();
-exports.enum = (name: string, access: number, values: string[]) => new Enum(name, access, values);
-exports.light = () => new Light();
-exports.numeric = (name: string, access: number) => new Numeric(name, access);
-exports.switch = () => new Switch();
-exports.text = (name: string, access: number) => new Text(name, access);
-exports.list = (name: string, access: number, itemType: Feature) => new List(name, access, itemType);
-exports.lock = () => new Lock();
+const _binary = (name: string, access: number, valueOn: string, valueOff: string) => new Binary(name, access, valueOn, valueOff);
+const _climate = () => new Climate();
+const _composite = (name: string, property: string, access: number) => new Composite(name, property, access);
+const _cover = () => new Cover();
+const _enum = (name: string, access: number, values: string[]) => new Enum(name, access, values);
+const _light = () => new Light();
+const _numeric = (name: string, access: number) => new Numeric(name, access);
+const _switch = () => new Switch();
+const _text = (name: string, access: number) => new Text(name, access);
+const _list = (name: string, access: number, itemType: Feature) => new List(name, access, itemType);
+const _lock = () => new Lock();
+
+export {
+    _binary as binary,
+    _climate as climate,
+    _composite as composite,
+    _cover as cover,
+    _enum as enum,
+    _light as light,
+    _numeric as numeric,
+    _switch as switch,
+    _text as text,
+    _list as list,
+    _lock as lock,
+};
