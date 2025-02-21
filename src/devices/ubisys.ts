@@ -1334,6 +1334,7 @@ export const definitions: DefinitionWithExtend[] = [
                 await reporting.onOff(endpoint);
             }
         },
+        ota: true,
     },
     {
         zigbeeModel: ['R0 (5501)'],

@@ -213,7 +213,7 @@ export function ikeaConfigureRemote(): ModernExtend {
 
 export function ikeaAirPurifier(): ModernExtend {
     const exposes: Expose[] = [
-        presets.fan().withModes(['off', 'auto', '1', '2', '3', '4', '5', '6', '7', '8', '9']),
+        presets.fan().withState('fan_state').withModes(['off', 'auto', '1', '2', '3', '4', '5', '6', '7', '8', '9']),
         presets.numeric('fan_speed', access.STATE_GET).withValueMin(0).withValueMax(9).withDescription('Current fan speed'),
         presets
             .numeric('pm25', access.STATE_GET)

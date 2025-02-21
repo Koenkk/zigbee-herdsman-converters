@@ -4944,15 +4944,15 @@ export const definitions: DefinitionWithExtend[] = [
             e.battery_low(),
             e
                 .climate()
-                .withSetpoint('current_heating_setpoint', 5, 35, 0.5, ea.STATE_SET)
+                .withSetpoint('current_heating_setpoint', 5, 45, 0.5, ea.STATE_SET)
                 .withLocalTemperature(ea.STATE)
                 .withPreset(['schedule', 'holiday', 'manual', 'comfort', 'eco'])
                 .withSystemMode(['off', 'heat'], ea.STATE)
-                .withLocalTemperatureCalibration(-3, 3, 1, ea.STATE_SET),
+                .withLocalTemperatureCalibration(-12, 12, 0.5, ea.STATE_SET),
             ...tuya.exposes.scheduleAllDays(ea.STATE_SET, 'HH:MM/C HH:MM/C HH:MM/C HH:MM/C HH:MM/C HH:MM/C'),
-            e.holiday_temperature().withValueMin(5).withValueMax(30),
-            e.comfort_temperature().withValueMin(5).withValueMax(30),
-            e.eco_temperature().withValueMin(5).withValueMax(30),
+            e.holiday_temperature().withValueMin(5).withValueMax(45),
+            e.comfort_temperature().withValueMin(5).withValueMax(45),
+            e.eco_temperature().withValueMin(5).withValueMax(45),
             e
                 .binary('scale_protection', ea.STATE_SET, 'ON', 'OFF')
                 .withDescription(
@@ -5787,7 +5787,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.smoke(),
             e.battery(),
             tuya.exposes.silence(),
-            e.test(),
+            tuya.exposes.selfTest(),
             e.numeric('smoke_concentration', ea.STATE).withUnit('ppm').withDescription('Parts per million of smoke detected'),
             e.binary('device_fault', ea.STATE, true, false).withDescription('Indicates a fault with the device'),
         ],
@@ -7412,7 +7412,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint('TS011F', ['_TZ3000_qeuvnohg', '_TZ3000_6l1pjfqe']),
+        fingerprint: tuya.fingerprint('TS011F', ['_TZ3000_qeuvnohg', '_TZ3000_6l1pjfqe', '_TZ3000_2iiimqs9']),
         model: 'TS011F_din_smart_relay_polling',
         description: 'Din smart relay (with power monitoring via polling)',
         vendor: 'Tuya',
@@ -7428,6 +7428,7 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [
             tuya.whitelabel('Tongou', 'TO-Q-SY1-JZT', 'Din smart relay (with power monitoring via polling)', ['_TZ3000_qeuvnohg']),
             tuya.whitelabel('TOMZN', 'TOB9Z-63M', 'Din smart relay (with power monitoring via polling)', ['_TZ3000_6l1pjfqe']),
+            tuya.whitelabel('Nous', 'D2Z', 'Din smart relay (with power monitoring via polling)', ['_TZ3000_2iiimqs9']),
         ],
         ota: true,
         configure: async (device, coordinatorEndpoint) => {
