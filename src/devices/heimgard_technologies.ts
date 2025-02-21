@@ -1,11 +1,13 @@
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
+import * as h from '../lib/heimgard';
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import type {DefinitionWithExtend} from "../lib/types";
 
 const e = exposes.presets;
+const ea = exposes.access;
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -46,8 +48,16 @@ export const definitions: DefinitionWithExtend[] = [
         model: "HT-SLM-2",
         vendor: "Heimgard Technologies",
         description: "Doorlock with fingerprint",
-        fromZigbee: [fz.lock, fz.battery, fz.lock_pin_code_response, fz.lock_user_status_response],
-        toZigbee: [tz.lock, tz.lock_sound_volume, tz.identify, tz.pincode_lock, tz.lock_userstatus],
+        fromZigbee: [
+            fz.lock,
+            fz.battery,
+            fz.lock_pin_code_response,
+            fz.lock_user_status_response,
+            h.fromZigbee.heimgard_slm_2_battery_volt,
+            h.fromZigbee.heimgard_slm_2_lock,
+            h.fromZigbee.heimgard_slm_2_lockState,
+        ],
+        toZigbee: [tz.lock, h.toZigbee.antiBogus, tz.identify, tz.pincode_lock, tz.lock_userstatus],
         meta: {pinCodeCount: 39},
         ota: true,
         configure: async (device, coordinatorEndpoint) => {
@@ -56,8 +66,25 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.lockState(endpoint);
             await reporting.batteryPercentageRemaining(endpoint);
             await endpoint.read("closuresDoorLock", ["lockState", "soundVolume"]);
+            device.powerSource = 'Battery';
+            device.save();
         },
-        exposes: [e.lock(), e.pincode(), e.battery(), e.sound_volume()],
+        extend: [h.slm_2.soundVolume()],
+        exposes: [
+            e.lock(),
+            e
+                .enum('last_unlock_source', ea.STATE, ['pin', 'remote', 'function_key', 'rfid_tag', 'fingerprint', 'self'])
+                .withDescription('Physical override key will not be reported'),
+            e.text('last_unlock_by_user', ea.STATE).withDescription('Last user that opened the lock'),
+            e.enum('inner_lock_state', ea.STATE, ['LOCK', 'UNLOCK', 'UNKNOWN']),
+            e
+                .binary('safety_locking', ea.ALL, 'Enabled', 'Disabled')
+                .withLabel('Enforced locking')
+                .withDescription("Enforcing locking of the device if the state is bogus and can't safely be determined."),
+            e.pincode(),
+            e.battery(),
+            e.voltage(),
+        ],
     },
     {
         zigbeeModel: ["HC-IWDIM-1"],
