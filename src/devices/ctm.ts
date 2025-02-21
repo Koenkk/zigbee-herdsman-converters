@@ -769,7 +769,7 @@ const tzLocal = {
     } satisfies Tz.Converter,
 };
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['mTouch Dim', 'DimmerPille'],
         model: 'mTouch_Dim',
@@ -1365,6 +1365,3 @@ const definitions: DefinitionWithExtend[] = [
         meta: {},
     },
 ];
-
-export default definitions;
-module.exports = definitions;

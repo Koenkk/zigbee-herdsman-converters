@@ -43,7 +43,7 @@ const COLOR_MODE_COLOR_TEMP = '0f00';
 const COLOR_MODE_EFFECT = 'ab00';
 const COLOR_MODE_BRIGHTNESS = '0300';
 
-const knownEffects = {
+export const knownEffects = {
     '0180': 'candle',
     '0280': 'fireplace',
     '0380': 'colorloop',
@@ -282,7 +282,7 @@ export {philipsTz as tz};
 
 const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V};
 
-const gradientScenes = {
+export const gradientScenes = {
     blossom: '50010400135000000039d553d2955ba5287a9f697e25fb802800',
     crocus: '50010400135000000050389322f97f2b597343764cc664282800',
     precious: '5001040013500000007fa8838bb9789a786d7577499a773f2800',
@@ -360,7 +360,7 @@ const gradientScenes = {
     crystalline: '5001040013500000006ea96a92a85e58074e18543d9cf3332800',
 };
 
-const hueEffects = {
+export const hueEffects = {
     candle: '21000101',
     fireplace: '21000102',
     colorloop: '21000103',
@@ -388,6 +388,7 @@ export const philipsFz = {
         type: 'commandHueNotification',
         options: [exposes.options.simulated_brightness()],
         convert: (model, msg, publish, options, meta) => {
+            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
             const buttonLookup: KeyValue = {1: 'button_1', 2: 'button_2', 3: 'button_3', 4: 'button_4', 20: 'dial'};
             const button = buttonLookup[msg.data['button']];
             const direction = msg.data['unknown2'] < 127 ? 'right' : 'left';
@@ -445,9 +446,10 @@ export const philipsFz = {
         },
     } satisfies Fz.Converter,
 };
+export {philipsFz as fz};
 
 // decoder for manuSpecificPhilips2.state
-function decodeGradientColors(input: string, opts: KeyValue) {
+export function decodeGradientColors(input: string, opts: KeyValue) {
     // Gradient mode (4b01)
     // Example: 4b010164fb74346b1350000000f3297fda7d55da7d55f3297fda7d552800
     // 4b01 - mode? (4) (0b00 single color?, 4b01 gradient?)
@@ -604,7 +606,7 @@ function decodeGradientColors(input: string, opts: KeyValue) {
 }
 
 // Value is a list of RGB HEX colors
-function encodeGradientColors(value: string[], opts: KeyValueAny) {
+export function encodeGradientColors(value: string[], opts: KeyValueAny) {
     if (value.length > 9) {
         throw new Error(`Expected up to 9 colors, got ${value.length}`);
     }
@@ -653,10 +655,3 @@ function encodeGradientColors(value: string[], opts: KeyValueAny) {
 
     return scene;
 }
-
-exports.tz = philipsTz;
-exports.fz = philipsFz;
-exports.decodeGradientColors = decodeGradientColors;
-exports.encodeGradientColors = encodeGradientColors;
-exports.gradientScenes = gradientScenes;
-exports.knownEffects = knownEffects;

@@ -1083,28 +1083,6 @@ function getMetaValue(entity: any, definition: any, key: string, groupStrategy =
     return undefined;
 }
 
-const tuyaGetDataValue = (dataType: any, data: any) => {
-    let dataString = '';
-    switch (dataType) {
-        case dataTypes.raw:
-            return data;
-        case dataTypes.bool:
-            return data[0] === 1;
-        case dataTypes.value:
-            return convertMultiByteNumberPayloadToSingleDecimalNumber(data);
-        case dataTypes.string:
-            // Don't use .map here, doesn't work: https://github.com/Koenkk/zigbee-herdsman-converters/pull/1799/files#r530377091
-            for (let i = 0; i < data.length; ++i) {
-                dataString += String.fromCharCode(data[i]);
-            }
-            return dataString;
-        case dataTypes.enum:
-            return data[0];
-        case dataTypes.bitmap:
-            return convertMultiByteNumberPayloadToSingleDecimalNumber(data);
-    }
-};
-
 const SAFETY_MIN_SECS = 10;
 const CAPACITY = 'capacity';
 const DURATION = 'duration';
@@ -6637,15 +6615,6 @@ const toZigbee2 = {
     } satisfies Tz.Converter,
 };
 
-const thermostatControlSequenceOfOperations: {[s: number]: string} = {
-    0: 'cooling only',
-    1: 'cooling with reheat',
-    2: 'heating only',
-    3: 'heating with reheat',
-    4: 'cooling and heating 4-pipes',
-    5: 'cooling and heating 4-pipes with reheat',
-};
-
 const thermostatSystemModes: {[s: number]: string} = {
     0: 'off',
     1: 'auto',
@@ -6665,7 +6634,6 @@ export {
     fromZigbee,
     toZigbee as tz,
     toZigbee,
-    thermostatControlSequenceOfOperations,
     thermostatSystemModes,
     tuyaHPSCheckingResult,
     thermostatSystemModes2,
@@ -6675,39 +6643,6 @@ export {
     giexWaterValve,
     msLookups,
     ZMLookups,
-    firstDpValue,
-    dpValueFromEnum,
     dataPoints,
-    dpValueFromBool,
-    dpValueFromIntValue,
-    dpValueFromRaw,
-    dpValueFromBitmap,
-    dpValueFromStringBuffer,
     moesSwitch,
-    getDataValue,
-    getTypeName,
-    logUnexpectedDataPoint,
-    logUnexpectedDataType,
-    getDataPointNames,
-    getCoverStateEnums,
-    convertDecimalValueTo4ByteHexArray,
-    sendDataPoints,
-    convertStringToHexArray,
-    sendDataPoint,
-    sendDataPointValue,
-    sendDataPointBool,
-    sendDataPointEnum,
-    sendDataPointRaw,
-    sendDataPointBitmap,
-    sendDataPointStringBuffer,
-    convertRawToCycleTimer,
-    logDataPoint,
-    convertWeekdaysTo1ByteHexArray,
-    convertRawToTimer,
-    logUnexpectedDataValue,
-    isCoverInverted,
-    convertDecimalValueTo2ByteHexArray,
-    convertTimeTo2ByteHexArray,
-    getMetaValue,
-    tuyaGetDataValue,
 };

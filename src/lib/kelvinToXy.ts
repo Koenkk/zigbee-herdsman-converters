@@ -1910,4 +1910,3 @@ for (const [kelvin, xy] of Object.entries(lookup)) {
 }
 
 export default lookup;
-module.exports = lookup;

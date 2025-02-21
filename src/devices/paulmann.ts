@@ -6,7 +6,7 @@ import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['501.37'],
         model: '501.37',
@@ -291,13 +291,10 @@ const definitions: DefinitionWithExtend[] = [
         extend: [m.light({colorTemp: {range: [153, 454]}, color: {modes: ['xy', 'hs']}})],
     },
     {
-        fingerprint: tuya.fingerprint('TS000F', ['_TZ3210_hjxqqofs']),
+        fingerprint: tuya.fingerprint('TS000F', ['_TZ3210_hjxqqofs\u0000']),
         model: '501.39',
         vendor: 'Paulmann',
         description: 'Universal-switch white',
         extend: [m.onOff({powerOnBehavior: false})],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

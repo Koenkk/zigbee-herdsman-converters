@@ -7,7 +7,7 @@ import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: tuya.fingerprint('TS011F', ['_TZ3210_yvxjawlt']),
         model: 'SPP04G',
@@ -170,7 +170,7 @@ const definitions: DefinitionWithExtend[] = [
         description: 'AC fan controller',
         fromZigbee: [fz.on_off, fz.fan],
         toZigbee: [tz.fan_mode, tz.on_off],
-        exposes: [e.switch(), e.fan().withModes(['off', 'low', 'medium', 'high', 'on'])],
+        exposes: [e.switch(), e.fan().withState('fan_state').withModes(['off', 'low', 'medium', 'high', 'on'])],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic', 'genOta', 'genTime', 'genGroups', 'genScenes']);
@@ -212,6 +212,3 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
 ];
-
-export default definitions;
-module.exports = definitions;

@@ -31,7 +31,7 @@ const fzLocal = {
     } satisfies Fz.Converter,
 };
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: [{modelID: 'GreenPower_2', ieeeAddr: /^0x00000000427.....$/}],
         model: '9133',
@@ -49,7 +49,7 @@ const definitions: DefinitionWithExtend[] = [
         extend: [m.light({configureReporting: true})],
     },
     {
-        zigbeeModel: ['HK-LN-SOCKET-A'],
+        zigbeeModel: ['HK-LN-SOCKET-A', 'HK-LN-SOCKET-EU-5'],
         model: '9134',
         vendor: 'LED-Trading',
         description: 'Powerstrip with 4 sockets and USB',
@@ -71,6 +71,3 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
 ];
-
-export default definitions;
-module.exports = definitions;

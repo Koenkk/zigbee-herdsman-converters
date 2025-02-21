@@ -1,7 +1,7 @@
 import * as m from '../lib/modernExtend';
 import {DefinitionWithExtend} from '../lib/types';
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: [{modelID: 'Dimmer-Switch-ZB3.0', manufacturerName: 'HZC'}],
         model: 'ID-UK21FW09',
@@ -11,6 +11,3 @@ const definitions: DefinitionWithExtend[] = [
         whiteLabel: [{vendor: 'Iolloi', model: 'ID-EU20FW09'}],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

@@ -4,7 +4,7 @@ import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['qlwz.letv8key.10'],
         model: 'LeTV.8KEY',
@@ -50,6 +50,3 @@ const definitions: DefinitionWithExtend[] = [
         toZigbee: [],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

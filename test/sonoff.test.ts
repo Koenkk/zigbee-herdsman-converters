@@ -2,8 +2,9 @@ import type {Mock} from 'vitest';
 
 import {Models as ZHModels} from 'zigbee-herdsman';
 
-import * as index from '../src/index';
+import {findByDevice} from '../src/index';
 import {Definition, Fz, KeyValueAny, Tz, Zh} from '../src/lib/types';
+import {mockDevice} from './utils';
 
 interface State {
     readonly weekly_schedule: {
@@ -20,8 +21,10 @@ interface State {
 describe('Sonoff TRVZB', () => {
     let trv: Definition;
 
-    beforeEach(() => {
-        trv = index.findByModel('TRVZB');
+    beforeEach(async () => {
+        const device = mockDevice({modelID: 'TRVZB', endpoints: []});
+
+        trv = await findByDevice(device);
     });
 
     describe('weekly schedule', () => {

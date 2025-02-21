@@ -115,7 +115,7 @@ const tzLocal = {
     } satisfies Tz.Converter,
 };
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['3308431'],
         model: '3308431',
@@ -896,7 +896,7 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        zigbeeModel: ['5401392', '5401396', '5401393', '5401397', '5401394', '5401398', '5401395', '5401399', '5401395'],
+        zigbeeModel: ['5401392', '5401396', '5401393', '5401397', '5401394', '5401398', '5401395', '5401399'],
         model: '540139X',
         vendor: 'Namron',
         description: 'Panel heater 400/600/800/1000 W',
@@ -1335,33 +1335,11 @@ const definitions: DefinitionWithExtend[] = [
         model: '4512768',
         vendor: 'Namron',
         description: 'Zigbee 2 channel switch',
-        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.power_on_behavior, fz.ignore_genOta],
-        toZigbee: [tz.on_off, tz.power_on_behavior],
-        exposes: [
-            e.switch().withEndpoint('l1'),
-            e.switch().withEndpoint('l2'),
-            e.power_on_behavior(['off', 'on', 'previous']),
-            e.energy(),
-            e.numeric('voltage_l1', ea.STATE).withUnit('V').withDescription('Phase 1 voltage'),
-            e.numeric('voltage_l2', ea.STATE).withUnit('V').withDescription('Phase 2 voltage'),
-            e.numeric('current_l1', ea.STATE).withUnit('A').withDescription('Phase 1 current'),
-            e.numeric('current_l2', ea.STATE).withUnit('A').withDescription('Phase 2 current'),
-            e.numeric('power_l1', ea.STATE).withUnit('W').withDescription('Phase 1 power'),
-            e.numeric('power_l2', ea.STATE).withUnit('W').withDescription('Phase 2 power'),
+        extend: [
+            m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
+            m.onOff({endpointNames: ['l1', 'l2']}),
+            m.electricityMeter({endpointNames: ['l1', 'l2']}),
         ],
-        endpoint: (device) => {
-            return {l1: 1, l2: 2};
-        },
-        meta: {multiEndpoint: true, publishDuplicateTransaction: true, multiEndpointSkip: ['power', 'energy']},
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint1 = device.getEndpoint(1);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint1);
-            await reporting.onOff(endpoint2);
-            await reporting.currentSummDelivered(endpoint1);
-        },
     },
     {
         zigbeeModel: ['4512761'],
@@ -1600,7 +1578,7 @@ const definitions: DefinitionWithExtend[] = [
             await endpoint.read('hvacThermostat', ['systemMode', 'runningMode', 'occupiedHeatingSetpoint']);
             await endpoint.read(
                 'hvacThermostat',
-                [0x8000, 0x8001, 0x8002, 0x8003, 0x8004, 0x801e, 0x8006, 0x8005, 0x8006, 0x8029, 0x8022, 0x8023, 0x8024],
+                [0x8000, 0x8001, 0x8002, 0x8003, 0x8004, 0x801e, 0x8006, 0x8005, 0x8006, 0x8029, 0x8022, 0x8023, 0x8024, 0x8013],
             );
 
             device.powerSource = 'Mains (single phase)';
@@ -1609,6 +1587,7 @@ const definitions: DefinitionWithExtend[] = [
         extend: [
             m.electricityMeter({voltage: false}),
             m.onOff({powerOnBehavior: false}),
+            namron.edgeThermostat.systemMode(),
             namron.edgeThermostat.windowOpenDetection(),
             namron.edgeThermostat.antiFrost(),
             namron.edgeThermostat.summerWinterSwitch(),
@@ -1622,7 +1601,6 @@ const definitions: DefinitionWithExtend[] = [
             namron.edgeThermostat.sensorMode(),
             namron.edgeThermostat.boostTime(),
             namron.edgeThermostat.readOnly.boostTimeRemaining(),
-            namron.edgeThermostat.systemMode(),
             namron.edgeThermostat.deviceTime(),
             namron.edgeThermostat.readOnly.windowState(),
             namron.edgeThermostat.readOnly.deviceFault(),
@@ -1634,7 +1612,6 @@ const definitions: DefinitionWithExtend[] = [
                 .climate()
                 .withLocalTemperature()
                 .withSetpoint('occupied_heating_setpoint', 15, 35, 0.5)
-                .withSystemMode(['off', 'auto', 'cool', 'heat'], ea.ALL)
                 .withRunningState(['idle', 'heat', 'cool'])
                 .withLocalTemperatureCalibration(-10, 10, 0.5),
             e.enum('temperature_display_mode', ea.ALL, ['celsius', 'fahrenheit']).withLabel('Temperature Unit').withDescription('Select Unit'),
@@ -1656,6 +1633,3 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

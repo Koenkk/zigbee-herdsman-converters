@@ -9,7 +9,7 @@ import {DefinitionWithExtend} from '../lib/types';
 const e = exposes.presets;
 const ea = exposes.access;
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['7377019'],
         model: '7377019',
@@ -22,6 +22,15 @@ const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['7637435'],
         model: 'ZK03839',
+        vendor: 'Viessmann',
+        description: 'ViCare climate sensor',
+        fromZigbee: [fz.temperature, fz.humidity, fz.battery],
+        toZigbee: [],
+        exposes: [e.battery(), e.temperature(), e.humidity()],
+    },
+    {
+        zigbeeModel: ['7963223'],
+        model: '7963223',
         vendor: 'Viessmann',
         description: 'ViCare climate sensor',
         fromZigbee: [fz.temperature, fz.humidity, fz.battery],
@@ -84,6 +93,3 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
 ];
-
-export default definitions;
-module.exports = definitions;

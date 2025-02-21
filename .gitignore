@@ -10,7 +10,7 @@ tmp
 # Eclipse project files
 .project
 .settings/
-/index.*
+/index*
 /converters/
 /devices/
 /lib/
@@ -18,3 +18,5 @@ tsconfig.tsbuildinfo
 coverage/
 .jest-tmp/
 dist/
+.pnpm-store/
+models-index.json

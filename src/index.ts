@@ -4,8 +4,6 @@ import {Zcl} from 'zigbee-herdsman';
 
 import fromZigbee from './converters/fromZigbee';
 import toZigbee from './converters/toZigbee';
-import allDefinitions from './devices';
-import * as configureKey from './lib/configureKey';
 import {
     access,
     Binary,
@@ -25,7 +23,7 @@ import {
 } from './lib/exposes';
 import * as exposesLib from './lib/exposes';
 import {generateDefinition} from './lib/generateDefinition';
-import * as logger from './lib/logger';
+import {logger} from './lib/logger';
 import {
     Configure,
     Definition,
@@ -33,6 +31,7 @@ import {
     DefinitionExposesFunction,
     DefinitionWithExtend,
     Expose,
+    ExternalDefinitionWithExtend,
     Fingerprint,
     KeyValue,
     OnEvent,
@@ -44,11 +43,19 @@ import {
     Zh,
 } from './lib/types';
 import * as utils from './lib/utils';
+// @ts-expect-error dynamically built
+import modelsIndexJson from './models-index.json';
 
 const NS = 'zhc';
 
+type ModelIndex = [module: string, index: number];
+
+const MODELS_INDEX = modelsIndexJson as Record<string, ModelIndex[]>;
+
 export type {Ota} from './lib/types';
 export {
+    DefinitionWithExtend as DefinitionWithExtend,
+    ExternalDefinitionWithExtend as ExternalDefinitionWithExtend,
     access as access,
     Definition as Definition,
     OnEventType as OnEventType,
@@ -72,12 +79,12 @@ export {
     Tz as Tz,
 };
 export * as ota from './lib/ota';
-
-export const getConfigureKey = configureKey.getConfigureKey;
+export {setLogger} from './lib/logger';
+export {getConfigureKey} from './lib/configureKey';
 
 // key: zigbeeModel, value: array of definitions (most of the times 1)
-const lookup = new Map<string, Definition[]>();
-export const definitions: Definition[] = [];
+const externalDefinitionsLookup = new Map<string, DefinitionWithExtend[]>();
+export const externalDefinitions: DefinitionWithExtend[] = [];
 
 // expected to be at the beginning of `definitions` array
 let externalDefinitionsCount = 0;
@@ -96,43 +103,128 @@ function arrayEquals<T>(as: T[], bs: T[]): boolean {
     return true;
 }
 
-function addToLookup(zigbeeModel: string | undefined, definition: Definition): void {
+function addToExternalDefinitionsLookup(zigbeeModel: string | undefined, definition: DefinitionWithExtend): void {
     const lookupModel = zigbeeModel ? zigbeeModel.toLowerCase() : 'null';
 
-    if (!lookup.has(lookupModel)) {
-        lookup.set(lookupModel, []);
+    if (!externalDefinitionsLookup.has(lookupModel)) {
+        externalDefinitionsLookup.set(lookupModel, []);
     }
 
-    // key created above as needed
-    if (!lookup.get(lookupModel)!.includes(definition)) {
-        lookup.get(lookupModel)!.splice(0, 0, definition);
+    // key created above
+    if (!externalDefinitionsLookup.get(lookupModel)!.includes(definition)) {
+        externalDefinitionsLookup.get(lookupModel)!.splice(0, 0, definition);
     }
 }
 
-function removeFromLookup(zigbeeModel: string | undefined, definition: Definition): void {
+function removeFromExternalDefinitionsLookup(zigbeeModel: string | undefined, definition: DefinitionWithExtend): void {
     const lookupModel = zigbeeModel ? zigbeeModel.toLowerCase() : 'null';
 
-    if (lookup.has(lookupModel)) {
-        const i = lookup.get(lookupModel)!.indexOf(definition);
+    if (externalDefinitionsLookup.has(lookupModel)) {
+        const i = externalDefinitionsLookup.get(lookupModel)!.indexOf(definition);
 
         if (i > -1) {
-            lookup.get(lookupModel)!.splice(i, 1);
+            externalDefinitionsLookup.get(lookupModel)!.splice(i, 1);
         }
 
-        if (lookup.get(lookupModel)!.length === 0) {
-            lookup.delete(lookupModel);
+        if (externalDefinitionsLookup.get(lookupModel)!.length === 0) {
+            externalDefinitionsLookup.delete(lookupModel);
         }
     }
 }
 
-function getFromLookup(zigbeeModel: string | undefined): Definition[] | undefined {
+function getFromExternalDefinitionsLookup(zigbeeModel: string | undefined): DefinitionWithExtend[] | undefined {
     const lookupModel = zigbeeModel ? zigbeeModel.toLowerCase() : 'null';
 
-    if (lookup.has(lookupModel)) {
-        return lookup.get(lookupModel);
+    if (externalDefinitionsLookup.has(lookupModel)) {
+        return externalDefinitionsLookup.get(lookupModel);
     }
 
-    return lookup.get(lookupModel.replace(/\0(.|\n)*$/g, '').trim());
+    return externalDefinitionsLookup.get(lookupModel.replace(/\0(.|\n)*$/g, '').trim());
+}
+
+export function removeExternalDefinitions(converterName?: string): void {
+    for (let i = 0; i < externalDefinitionsCount; i++) {
+        const definition = externalDefinitions[i];
+
+        if (converterName && definition.externalConverterName !== converterName) {
+            continue;
+        }
+
+        if (definition.zigbeeModel) {
+            for (const zigbeeModel of definition.zigbeeModel) {
+                removeFromExternalDefinitionsLookup(zigbeeModel, definition);
+            }
+        }
+
+        if (definition.fingerprint) {
+            for (const fingerprint of definition.fingerprint) {
+                removeFromExternalDefinitionsLookup(fingerprint.modelID, definition);
+            }
+        }
+
+        externalDefinitions.splice(i, 1);
+
+        externalDefinitionsCount--;
+        i--;
+    }
+}
+
+export function addExternalDefinition(definition: ExternalDefinitionWithExtend): void {
+    externalDefinitions.splice(0, 0, definition);
+    externalDefinitionsCount++;
+
+    if (definition.fingerprint) {
+        for (const fingerprint of definition.fingerprint) {
+            addToExternalDefinitionsLookup(fingerprint.modelID, definition);
+        }
+    }
+
+    if (definition.zigbeeModel) {
+        for (const zigbeeModel of definition.zigbeeModel) {
+            addToExternalDefinitionsLookup(zigbeeModel, definition);
+        }
+    }
+}
+
+async function getDefinitions(indexes: ModelIndex[]): Promise<DefinitionWithExtend[]> {
+    const indexedDefs: DefinitionWithExtend[] = [];
+    // local cache for models with lots of matches (tuya...)
+    const defs: Record<string, DefinitionWithExtend[]> = {};
+
+    for (const [moduleName, index] of indexes) {
+        if (!defs[moduleName]) {
+            logger.debug(`Loading module ${moduleName}`, NS);
+
+            // NOTE: modules are cached by nodejs until process is stopped
+            // currently using `commonjs`, so strip `.js` file extension, XXX: creates a warning with vitest (expects static `.js`)
+            const {definitions} = (await import(`./devices/${moduleName.slice(0, -3)}`)) as {definitions: DefinitionWithExtend[]};
+
+            defs[moduleName] = definitions;
+        }
+
+        indexedDefs.push(defs[moduleName][index]);
+    }
+
+    return indexedDefs;
+}
+
+async function getFromIndex(zigbeeModel: string | undefined): Promise<DefinitionWithExtend[] | undefined> {
+    const lookupModel = zigbeeModel ? zigbeeModel.toLowerCase() : 'null';
+    let indexes = MODELS_INDEX[lookupModel];
+
+    if (indexes) {
+        logger.debug(`Getting definitions for: ${indexes}`, NS);
+
+        return await getDefinitions(indexes);
+    }
+
+    indexes = MODELS_INDEX[lookupModel.replace(/\0(.|\n)*$/g, '').trim()];
+
+    if (indexes) {
+        logger.debug(`Getting definitions for: ${indexes}`, NS);
+
+        return await getDefinitions(indexes);
+    }
 }
 
 const converterRequiredFields = {
@@ -305,16 +397,16 @@ function processExtensions(definition: DefinitionWithExtend): Definition {
             };
         }
 
-        definition = {toZigbee, fromZigbee, exposes, meta, configure, endpoint, onEvent, ota, ...definitionWithoutExtend};
+        return {toZigbee, fromZigbee, exposes, meta, configure, endpoint, onEvent, ota, ...definitionWithoutExtend};
     }
 
     return definition;
 }
 
-function prepareDefinition(definition: DefinitionWithExtend): Definition {
-    definition = processExtensions(definition);
+export function prepareDefinition(definition: DefinitionWithExtend): Definition {
+    const finalDefinition = processExtensions(definition);
 
-    definition.toZigbee.push(
+    finalDefinition.toZigbee.push(
         toZigbee.scene_store,
         toZigbee.scene_recall,
         toZigbee.scene_add,
@@ -329,18 +421,18 @@ function prepareDefinition(definition: DefinitionWithExtend): Definition {
     );
 
     if (definition.externalConverterName) {
-        validateDefinition(definition);
+        validateDefinition(finalDefinition);
     }
 
     // Add all the options
-    if (!definition.options) {
-        definition.options = [];
+    if (!finalDefinition.options) {
+        finalDefinition.options = [];
     }
 
-    const optionKeys = definition.options.map((o) => o.name);
+    const optionKeys = finalDefinition.options.map((o) => o.name);
 
     // Add calibration/precision options based on expose
-    for (const expose of Array.isArray(definition.exposes) ? definition.exposes : definition.exposes(undefined, undefined)) {
+    for (const expose of Array.isArray(finalDefinition.exposes) ? finalDefinition.exposes : finalDefinition.exposes(undefined, undefined)) {
         if (
             !optionKeys.includes(expose.name) &&
             utils.isNumericExpose(expose) &&
@@ -353,30 +445,30 @@ function prepareDefinition(definition: DefinitionWithExtend): Definition {
 
             const type = utils.calibrateAndPrecisionRoundOptionsIsPercentual(expose.name) ? 'percentual' : 'absolute';
 
-            definition.options.push(exposesLib.options.calibration(expose.name, type));
+            finalDefinition.options.push(exposesLib.options.calibration(expose.name, type));
 
             if (utils.calibrateAndPrecisionRoundOptionsDefaultPrecision[expose.name] !== 0) {
-                definition.options.push(exposesLib.options.precision(expose.name));
+                finalDefinition.options.push(exposesLib.options.precision(expose.name));
             }
 
             optionKeys.push(expose.name);
         }
     }
 
-    for (const converter of [...definition.toZigbee, ...definition.fromZigbee]) {
+    for (const converter of [...finalDefinition.toZigbee, ...finalDefinition.fromZigbee]) {
         if (converter.options) {
-            const options = typeof converter.options === 'function' ? converter.options(definition) : converter.options;
+            const options = typeof converter.options === 'function' ? converter.options(finalDefinition) : converter.options;
 
             for (const option of options) {
                 if (!optionKeys.includes(option.name)) {
-                    definition.options.push(option);
+                    finalDefinition.options.push(option);
                     optionKeys.push(option.name);
                 }
             }
         }
     }
 
-    return definition;
+    return finalDefinition;
 }
 
 export function postProcessConvertedFromZigbeeMessage(definition: Definition, payload: KeyValue, options: KeyValue): void {
@@ -389,109 +481,66 @@ export function postProcessConvertedFromZigbeeMessage(definition: Definition, pa
             try {
                 payload[key] = utils.calibrateAndPrecisionRoundOptions(value, options, expose.name);
             } catch (error) {
-                logger.logger.error(`Failed to apply calibration to '${expose.name}': ${(error as Error).message}`, NS);
+                logger.error(`Failed to apply calibration to '${expose.name}': ${(error as Error).message}`, NS);
             }
         }
     }
-}
-
-export function removeExternalDefinitions(converterName?: string): void {
-    for (let i = 0; i < externalDefinitionsCount; i++) {
-        const definition = definitions[i];
-
-        if (converterName && definition.externalConverterName !== converterName) {
-            continue;
-        }
-
-        if ('zigbeeModel' in definition && definition.zigbeeModel) {
-            for (const zigbeeModel of definition.zigbeeModel) {
-                removeFromLookup(zigbeeModel, definition);
-            }
-        }
-
-        if ('fingerprint' in definition && definition.fingerprint) {
-            for (const fingerprint of definition.fingerprint) {
-                removeFromLookup(fingerprint.modelID, definition);
-            }
-        }
-
-        definitions.splice(i, 1);
-
-        externalDefinitionsCount--;
-        i--;
-    }
-}
-
-export function addDefinition(definition: DefinitionWithExtend): void {
-    definition = prepareDefinition(definition);
-
-    definitions.splice(0, 0, definition);
-
-    if (definition.externalConverterName) {
-        externalDefinitionsCount++;
-    }
-
-    if ('fingerprint' in definition && definition.fingerprint) {
-        for (const fingerprint of definition.fingerprint) {
-            addToLookup(fingerprint.modelID, definition);
-        }
-    }
-
-    if ('zigbeeModel' in definition && definition.zigbeeModel) {
-        for (const zigbeeModel of definition.zigbeeModel) {
-            addToLookup(zigbeeModel, definition);
-        }
-    }
-}
-
-for (const definition of allDefinitions) {
-    addDefinition(definition as DefinitionWithExtend);
 }
 
 export async function findByDevice(device: Zh.Device, generateForUnknown: boolean = false): Promise<Definition | undefined> {
     let definition = await findDefinition(device, generateForUnknown);
 
-    if (definition && definition.whiteLabel) {
-        const match = definition.whiteLabel.find((w) => 'fingerprint' in w && w.fingerprint.find((f) => isFingerprintMatch(f, device)));
+    if (definition) {
+        if (definition.whiteLabel) {
+            const match = definition.whiteLabel.find((w) => 'fingerprint' in w && w.fingerprint.find((f) => isFingerprintMatch(f, device)));
 
-        if (match) {
-            definition = {
-                ...definition,
-                model: match.model,
-                vendor: match.vendor,
-                description: match.description || definition.description,
-            };
+            if (match) {
+                definition = {
+                    ...definition,
+                    model: match.model,
+                    vendor: match.vendor,
+                    description: match.description || definition.description,
+                };
+            }
         }
-    }
 
-    return definition;
+        return prepareDefinition(definition);
+    }
 }
 
-export async function findDefinition(device: Zh.Device, generateForUnknown: boolean = false): Promise<Definition | undefined> {
+export async function findDefinition(device: Zh.Device, generateForUnknown: boolean = false): Promise<DefinitionWithExtend | undefined> {
     if (!device) {
         return undefined;
     }
 
-    const candidates = getFromLookup(device.modelID);
+    // hot path when no external converters present
+    const candidates =
+        externalDefinitionsCount > 0
+            ? getFromExternalDefinitionsLookup(device.modelID) || (await getFromIndex(device.modelID))
+            : await getFromIndex(device.modelID);
 
     if (!candidates) {
         if (!generateForUnknown || device.type === 'Coordinator') {
             return undefined;
         }
 
-        // Do not add this definition to cache,
-        // as device configuration might change.
-        return prepareDefinition((await generateDefinition(device)).definition);
+        // Do not add this definition to cache, as device configuration might change.
+        const {definition} = await generateDefinition(device);
+
+        return definition;
     } else if (candidates.length === 1 && candidates[0].zigbeeModel) {
         return candidates[0];
     } else {
+        logger.debug(() => `Candidates for ${device.ieeeAddr}/${device.modelID}: ${candidates.map((c) => `${c.model}/${c.vendor}`)}`, NS);
+
         // First try to match based on fingerprint, return the first matching one.
-        const fingerprintMatch: {priority?: number; definition?: Definition} = {priority: undefined, definition: undefined};
+        const fingerprintMatch: {priority?: number; definition?: DefinitionWithExtend} = {priority: undefined, definition: undefined};
 
         for (const candidate of candidates) {
             if (candidate.fingerprint) {
                 for (const fingerprint of candidate.fingerprint) {
                     const priority = fingerprint.priority ?? 0;
+
                     if (
                         isFingerprintMatch(fingerprint, device) &&
                         (fingerprintMatch.priority === undefined || priority > fingerprintMatch.priority)
@@ -522,19 +571,25 @@ export async function generateExternalDefinitionSource(device: Zh.Device): Promi
     return (await generateDefinition(device)).externalDefinitionSource;
 }
 
+export async function generateExternalDefinition(device: Zh.Device): Promise<Definition> {
+    const {definition} = await generateDefinition(device);
+
+    return prepareDefinition(definition);
+}
+
 function isFingerprintMatch(fingerprint: Fingerprint, device: Zh.Device): boolean {
     let match =
-        (!fingerprint.applicationVersion || device.applicationVersion === fingerprint.applicationVersion) &&
-        (!fingerprint.manufacturerID || device.manufacturerID === fingerprint.manufacturerID) &&
+        (fingerprint.applicationVersion === undefined || device.applicationVersion === fingerprint.applicationVersion) &&
+        (fingerprint.manufacturerID === undefined || device.manufacturerID === fingerprint.manufacturerID) &&
         (!fingerprint.type || device.type === fingerprint.type) &&
         (!fingerprint.dateCode || device.dateCode === fingerprint.dateCode) &&
-        (!fingerprint.hardwareVersion || device.hardwareVersion === fingerprint.hardwareVersion) &&
+        (fingerprint.hardwareVersion === undefined || device.hardwareVersion === fingerprint.hardwareVersion) &&
         (!fingerprint.manufacturerName || device.manufacturerName === fingerprint.manufacturerName) &&
         (!fingerprint.modelID || device.modelID === fingerprint.modelID) &&
         (!fingerprint.powerSource || device.powerSource === fingerprint.powerSource) &&
         (!fingerprint.softwareBuildID || device.softwareBuildID === fingerprint.softwareBuildID) &&
-        (!fingerprint.stackVersion || device.stackVersion === fingerprint.stackVersion) &&
-        (!fingerprint.zclVersion || device.zclVersion === fingerprint.zclVersion) &&
+        (fingerprint.stackVersion === undefined || device.stackVersion === fingerprint.stackVersion) &&
+        (fingerprint.zclVersion === undefined || device.zclVersion === fingerprint.zclVersion) &&
         (!fingerprint.ieeeAddr || device.ieeeAddr.match(fingerprint.ieeeAddr) !== null) &&
         (!fingerprint.endpoints ||
             arrayEquals(
@@ -547,8 +602,10 @@ function isFingerprintMatch(fingerprint: Fingerprint, device: Zh.Device): boolea
             const deviceEndpoint = fingerprintEndpoint.ID !== undefined ? device.getEndpoint(fingerprintEndpoint.ID) : undefined;
             match =
                 match &&
-                (!fingerprintEndpoint.deviceID || (deviceEndpoint !== undefined && deviceEndpoint.deviceID === fingerprintEndpoint.deviceID)) &&
-                (!fingerprintEndpoint.profileID || (deviceEndpoint !== undefined && deviceEndpoint.profileID === fingerprintEndpoint.profileID)) &&
+                (fingerprintEndpoint.deviceID === undefined ||
+                    (deviceEndpoint !== undefined && deviceEndpoint.deviceID === fingerprintEndpoint.deviceID)) &&
+                (fingerprintEndpoint.profileID === undefined ||
+                    (deviceEndpoint !== undefined && deviceEndpoint.profileID === fingerprintEndpoint.profileID)) &&
                 (!fingerprintEndpoint.inputClusters ||
                     (deviceEndpoint !== undefined && arrayEquals(deviceEndpoint.inputClusters, fingerprintEndpoint.inputClusters))) &&
                 (!fingerprintEndpoint.outputClusters ||
@@ -557,21 +614,6 @@ function isFingerprintMatch(fingerprint: Fingerprint, device: Zh.Device): boolea
     }
 
     return match;
-}
-
-export function findByModel(model: string): Definition | undefined {
-    /*
-    Search device description by definition model name.
-    Useful when redefining, expanding device descriptions in external converters.
-    */
-    model = model.toLowerCase();
-
-    return definitions.find((definition) => {
-        return (
-            definition.model.toLowerCase() == model ||
-            (definition.whiteLabel && definition.whiteLabel.find((dwl) => dwl.model.toLowerCase() === model))
-        );
-    });
 }
 
 // Can be used to handle events for devices which are not fully paired yet (no modelID).
@@ -589,7 +631,7 @@ export async function onEvent(type: OnEventType, data: OnEventData, device: Zh.D
                 const payload = {0xf000: {value: 23, type: 35}};
 
                 endpoint.readResponse('genBasic', frame.header.transactionSequenceNumber, payload, options).catch((e) => {
-                    logger.logger.warning(`Legrand security read response failed: ${e}`, NS);
+                    logger.warning(`Legrand security read response failed: ${e}`, NS);
                 });
 
                 return true;
@@ -609,7 +651,7 @@ export async function onEvent(type: OnEventType, data: OnEventData, device: Zh.D
                 const secondsLocal = secondsUTC - new Date().getTimezoneOffset() * 60;
 
                 endpoint.readResponse('genTime', frame.header.transactionSequenceNumber, {time: secondsLocal}).catch((e) => {
-                    logger.logger.warning(`ZNCWWSQ01LM custom time response failed: ${e}`, NS);
+                    logger.warning(`ZNCWWSQ01LM custom time response failed: ${e}`, NS);
                 });
 
                 return true;
@@ -619,5 +661,3 @@ export async function onEvent(type: OnEventType, data: OnEventData, device: Zh.D
         };
     }
 }
-
-export const setLogger = logger.setLogger;

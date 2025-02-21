@@ -8,7 +8,7 @@ import {access, options, presets} from '../lib/exposes';
 import * as m from '../lib/modernExtend';
 import * as reporting from '../lib/reporting';
 import * as globalStore from '../lib/store';
-import {Configure, Expose, Fz, KeyValue, KeyValueAny, ModernExtend, OnEvent, Range, Tz} from '../lib/types';
+import {Configure, Expose, Fz, KeyValue, KeyValueAny, LevelConfigFeatures, ModernExtend, OnEvent, Range, Tz} from '../lib/types';
 import {
     assertString,
     configureSetPowerSourceWhenUnknown,
@@ -80,7 +80,7 @@ const bulbOnEvent: OnEvent = async (type, data, device, options, state: KeyValue
 
 export function ikeaLight(args?: Omit<m.LightArgs, 'colorTemp'> & {colorTemp?: true | {range: Range; viaColor: true}}) {
     const colorTemp: {range: Range} = args?.colorTemp ? (args.colorTemp === true ? {range: [250, 454]} : args.colorTemp) : undefined;
-    const levelConfig: {disabledFeatures?: string[]} = args?.levelConfig
+    const levelConfig: {disabledFeatures?: LevelConfigFeatures} = args?.levelConfig
         ? args.levelConfig
         : {disabledFeatures: ['on_off_transition_time', 'on_transition_time', 'off_transition_time', 'on_level']};
     const result = m.light({...args, colorTemp, levelConfig});
@@ -213,7 +213,7 @@ export function ikeaConfigureRemote(): ModernExtend {
 
 export function ikeaAirPurifier(): ModernExtend {
     const exposes: Expose[] = [
-        presets.fan().withModes(['off', 'auto', '1', '2', '3', '4', '5', '6', '7', '8', '9']),
+        presets.fan().withState('fan_state').withModes(['off', 'auto', '1', '2', '3', '4', '5', '6', '7', '8', '9']),
         presets.numeric('fan_speed', access.STATE_GET).withValueMin(0).withValueMax(9).withDescription('Current fan speed'),
         presets
             .numeric('pm25', access.STATE_GET)
@@ -555,6 +555,7 @@ export function tradfriCommandsOnOff(): ModernExtend {
             cluster: 'genOnOff',
             type: 'commandToggle',
             convert: (model, msg, publish, options, meta) => {
+                if (hasAlreadyProcessedMessage(msg, model)) return;
                 return {action: postfixWithEndpointName('toggle', msg, model, meta)};
             },
         },
@@ -589,6 +590,7 @@ export function tradfriCommandsLevelCtrl(): ModernExtend {
                 'commandMoveToLevelWithOnOff',
             ],
             convert: (model, msg, publish, options, meta) => {
+                if (hasAlreadyProcessedMessage(msg, model)) return;
                 return {action: actionLookup[msg.type]};
             },
         },

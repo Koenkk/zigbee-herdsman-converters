@@ -58,7 +58,7 @@ const bitron = {
     },
 };
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['AV2010/14', '902010/14'],
         model: 'AV2010/14',
@@ -329,6 +329,3 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [e.water_leak(), e.battery_low()],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

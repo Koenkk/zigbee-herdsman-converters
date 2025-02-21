@@ -5,7 +5,7 @@ import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['EC-Z3.0-CCT'],
         model: '421786',
@@ -51,6 +51,3 @@ const definitions: DefinitionWithExtend[] = [
         meta: {disableActionGroup: true},
     },
 ];
-
-export default definitions;
-module.exports = definitions;

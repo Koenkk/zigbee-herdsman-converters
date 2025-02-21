@@ -266,14 +266,17 @@ type DefinitionBase = {
     vendor: string;
     description: string;
     whiteLabel?: WhiteLabel[];
+    generated?: true;
+    externalConverterName?: string;
+};
+
+type DefinitionConfig = {
     endpoint?: (device: Zh.Device) => {[s: string]: number};
     configure?: Configure;
     options?: Option[];
     meta?: DefinitionMeta;
     onEvent?: OnEvent;
     ota?: true | Ota.ExtraMetas;
-    generated?: true;
-    externalConverterName?: string;
 };
 
 type DefinitionFeatures = {
@@ -282,11 +285,14 @@ type DefinitionFeatures = {
     exposes: DefinitionExposes;
 };
 
-export type Definition = DefinitionMatcher & DefinitionBase & DefinitionFeatures;
+export type Definition = DefinitionMatcher & DefinitionBase & DefinitionConfig & DefinitionFeatures;
 
 export type DefinitionWithExtend = DefinitionMatcher &
     DefinitionBase &
+    DefinitionConfig &
     (({extend: ModernExtend[]} & Partial<DefinitionFeatures>) | DefinitionFeatures);
+
+export type ExternalDefinitionWithExtend = DefinitionWithExtend & {externalConverterName: string};
 
 export namespace Fz {
     export interface Message {
@@ -443,6 +449,7 @@ export namespace Ota {
         suppressElementImageParseFailure?: boolean;
     };
 }
+
 export namespace Reporting {
     export interface Override {
         min?: number;
@@ -450,3 +457,12 @@ export namespace Reporting {
         change?: number;
     }
 }
+
+export type LevelConfigFeatures = (
+    | 'on_off_transition_time'
+    | 'on_transition_time'
+    | 'off_transition_time'
+    | 'execute_if_off'
+    | 'on_level'
+    | 'current_level_startup'
+)[];

@@ -1,7 +1,7 @@
 import * as m from '../lib/modernExtend';
 import {DefinitionWithExtend} from '../lib/types';
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['VIYU-A60-806-RGBW-10011725'],
         model: '10011725',
@@ -93,7 +93,11 @@ const definitions: DefinitionWithExtend[] = [
         description: 'FLAIR Viyu smart GU10 CCT lamp',
         extend: [m.light({colorTemp: {range: [200, 454]}})],
     },
+    {
+        zigbeeModel: ['VIYU_MUSICA_CCT_10447293'],
+        model: '10447293',
+        vendor: 'HORNBACH',
+        description: '10445606 FLAIR Viyu Smart LED Ceiling Luminaire',
+        extend: [m.light({colorTemp: {range: [153, 370]}})],
+    },
 ];
-
-export default definitions;
-module.exports = definitions;

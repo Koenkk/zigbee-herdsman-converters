@@ -11,7 +11,7 @@ import {DefinitionWithExtend} from '../lib/types';
 const e = exposes.presets;
 const ea = exposes.access;
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['929002297503'],
         model: '929002297503',
@@ -896,7 +896,7 @@ const definitions: DefinitionWithExtend[] = [
         extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true, gradient: true})],
     },
     {
-        zigbeeModel: ['LCG002', '929003047701', '929003047701', '929003526202_01', '929003526202_02', '929003526202_03', '929003526101'],
+        zigbeeModel: ['LCG002', '929003047701', '929003526202_01', '929003526202_02', '929003526202_03', '929003526101'],
         model: '929001953101',
         vendor: 'Philips',
         description: 'Hue White and Color Ambiance GU10',
@@ -2596,6 +2596,7 @@ const definitions: DefinitionWithExtend[] = [
             await endpoint.read('msOccupancySensing', ['pirOToUDelay']);
             await endpoint.read('msOccupancySensing', [48], {manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V});
         },
+        ota: true,
     },
     {
         zigbeeModel: ['SML004'],
@@ -2624,8 +2625,7 @@ const definitions: DefinitionWithExtend[] = [
             await endpoint.read('msOccupancySensing', ['pirOToUDelay']);
             await endpoint.read('msOccupancySensing', [48], {manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V});
         },
-        // Temporary disable until OTA is available: https://github.com/Koenkk/zigbee2mqtt/issues/14923
-        // ota: true,
+        ota: true,
     },
     {
         zigbeeModel: ['LOM001'],
@@ -3092,7 +3092,7 @@ const definitions: DefinitionWithExtend[] = [
         extend: [philipsLight({colorTemp: {range: [153, 454]}})],
     },
     {
-        zigbeeModel: ['5047230P6', '5047230P6'],
+        zigbeeModel: ['5047230P6'],
         model: '5047230P6',
         vendor: 'Philips',
         description: 'Hue White ambiance Buckram double spotlight',
@@ -3146,6 +3146,13 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Philips',
         description: 'Hue White and Color Ambiance A19 1100 lumen',
         extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true})],
+    },
+    {
+        zigbeeModel: ['929003809601'],
+        model: '929003809601',
+        vendor: 'Philips',
+        description: 'Hue Centura White and Color (with Bluetooth)',
+        extend: [philipsLight({colorTemp: {range: [153, 500]}, color: {modes: ['xy', 'hs'], enhancedHue: true}})],
     },
     {
         zigbeeModel: ['RDM002'],
@@ -3914,6 +3921,13 @@ const definitions: DefinitionWithExtend[] = [
         extend: [philipsLight({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
+        zigbeeModel: ['929003822901'],
+        model: '929003822901',
+        vendor: 'Philips',
+        description: 'Hue Tento white ambiance 29,1cm',
+        extend: [philipsLight({colorTemp: {range: [153, 438]}})],
+    },
+    {
         zigbeeModel: ['929003823001'],
         model: '929003823001',
         vendor: 'Philips',
@@ -4007,5 +4021,3 @@ const definitions: DefinitionWithExtend[] = [
         extend: [philipsLight({colorTemp: {range: [153, 500]}, color: {modes: ['xy', 'hs'], enhancedHue: true}})],
     },
 ];
-
-export default definitions;

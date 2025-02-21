@@ -1,7 +1,7 @@
 import * as m from '../lib/modernExtend';
 import {DefinitionWithExtend} from '../lib/types';
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['ZB-ERSM-01'],
         model: 'ZB-ERSM-01',
@@ -12,7 +12,11 @@ const definitions: DefinitionWithExtend[] = [
             m.commandsWindowCovering({commands: ['open', 'close', 'stop']}),
         ],
     },
+    {
+        zigbeeModel: ['ZB-PM-01'],
+        model: 'ZB-PM-01',
+        vendor: 'Chacon',
+        description: 'On/Off lighting module',
+        extend: [m.onOff({powerOnBehavior: false})],
+    },
 ];
-
-export default definitions;
-module.exports = definitions;

@@ -7,7 +7,7 @@ import * as utils from '../lib/utils';
 
 const e = exposes.presets;
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: [' Remote'],
         model: 'InstaRemote',
@@ -148,6 +148,3 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
 ];
-
-export default definitions;
-module.exports = definitions;

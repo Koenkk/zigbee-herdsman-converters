@@ -1,6 +1,6 @@
 import {Color, ColorHSV, ColorRGB, ColorXY} from '../src/lib/color';
 
-describe('lib/color.js', () => {
+describe('lib/color', () => {
     describe('ColorRGB', () => {
         test.each([[{red: 0.5, green: 0.5, blue: 0.5}]])('.{from,to}Object() - %j', (color) => {
             expect(ColorRGB.fromObject(color).toObject()).toEqual(color);

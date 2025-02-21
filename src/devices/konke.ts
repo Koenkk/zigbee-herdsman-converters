@@ -23,7 +23,7 @@ const fzLocal = {
     } satisfies Fz.Converter,
 };
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['3AFE170100510001', '3AFE280100510001'],
         model: '2AJZ4KPKEY',
@@ -172,6 +172,3 @@ const definitions: DefinitionWithExtend[] = [
         extend: [m.light({colorTemp: {range: [153, 370]}})],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

@@ -127,7 +127,7 @@ const tzLocal = {
     } satisfies Tz.Converter,
 };
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['WSP402'],
         model: 'WSP402',
@@ -200,7 +200,7 @@ const definitions: DefinitionWithExtend[] = [
                 .withSetpoint('occupied_cooling_setpoint', 8, 30, 1)
                 .withAcLouverPosition(['fully_open', 'fully_closed', 'half_open', 'quarter_open', 'three_quarters_open'])
                 .withLocalTemperature(),
-            e.fan().withModes(['low', 'medium', 'high', 'on', 'auto']),
+            e.fan().withState('fan_state').withModes(['low', 'medium', 'high', 'on', 'auto']),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -334,7 +334,7 @@ const definitions: DefinitionWithExtend[] = [
                 .withSetpoint('unoccupied_heating_setpoint', 5, 30, 0.5)
                 .withSetpoint('occupied_cooling_setpoint', 7, 35, 0.5)
                 .withSetpoint('unoccupied_cooling_setpoint', 7, 35, 0.5),
-            e.fan().withModes(['low', 'medium', 'high', 'on', 'auto']),
+            e.fan().withState('fan_state').withModes(['low', 'medium', 'high', 'on', 'auto']),
             e.programming_operation_mode(['setpoint', 'eco']),
             e.keypad_lockout(),
             e.max_heat_setpoint_limit(5, 30, 0.5),
@@ -441,6 +441,3 @@ const definitions: DefinitionWithExtend[] = [
         extend: [m.battery(), m.iasZoneAlarm({zoneType: 'contact', zoneAttributes: ['alarm_1', 'battery_low', 'tamper']})],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

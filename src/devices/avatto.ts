@@ -5,7 +5,7 @@ import {DefinitionWithExtend} from '../lib/types';
 const e = exposes.presets;
 const ea = exposes.access;
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE204_s139roas']),
         model: 'ZWSH16',
@@ -31,12 +31,13 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_ybsqljjg']),
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_ybsqljjg', '_TZE200_cxakecfo']),
         model: 'ME168',
         vendor: 'AVATTO',
         description: 'Thermostatic radiator valve',
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
+        whiteLabel: [tuya.whitelabel('Girier', 'ME168', 'Thermostatic radiator valve', ['_TZE200_cxakecfo'])],
         onEvent: tuya.onEventSetTime,
         configure: tuya.configureMagicPacket,
         ota: true,
@@ -189,16 +190,54 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'AVATTO',
         description: 'Zigbee smart energy meter',
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
-        exposes: [e.power(), e.voltage(), e.current()],
+        exposes: [
+            e.power(),
+            e.voltage(),
+            e.current(),
+            e.energy(),
+            e.numeric('daily_energy', ea.STATE).withUnit('kWh').withDescription('Daily energy'),
+        ],
         meta: {
             tuyaDatapoints: [
                 [18, 'current', tuya.valueConverter.divideBy1000],
                 [19, 'power', tuya.valueConverter.divideBy10],
                 [20, 'voltage', tuya.valueConverter.divideBy10],
+                [104, 'energy', tuya.valueConverter.divideBy1000],
+                [105, 'daily_energy', tuya.valueConverter.divideBy1000],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_jrcfsaa3']),
+        model: 'ZWPM16-2',
+        vendor: 'AVATTO',
+        description: 'Zigbee smart energy meter 80A/2CH',
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            tuya.exposes.voltageWithPhase('l1'),
+            tuya.exposes.powerWithPhase('l1'),
+            tuya.exposes.currentWithPhase('l1'),
+            tuya.exposes.energyWithPhase('l1'),
+            e.numeric('daily_energy_l1', ea.STATE).withUnit('kWh').withDescription('Daily energy L1'),
+            tuya.exposes.voltageWithPhase('l2'),
+            tuya.exposes.powerWithPhase('l2'),
+            tuya.exposes.currentWithPhase('l2'),
+            tuya.exposes.energyWithPhase('l2'),
+            e.numeric('daily_energy_l2', ea.STATE).withUnit('kWh').withDescription('Daily energy L2'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [105, 'power_l1', tuya.valueConverter.divideBy10],
+                [106, 'current_l1', tuya.valueConverter.divideBy1000],
+                [107, 'voltage_l1', tuya.valueConverter.divideBy10],
+                [108, 'energy_l1', tuya.valueConverter.divideBy1000],
+                [109, 'daily_energy_l1', tuya.valueConverter.divideBy1000],
+                [115, 'power_l2', tuya.valueConverter.divideBy10],
+                [116, 'current_l2', tuya.valueConverter.divideBy1000],
+                [117, 'voltage_l2', tuya.valueConverter.divideBy10],
+                [118, 'energy_l2', tuya.valueConverter.divideBy1000],
+                [119, 'daily_energy_l2', tuya.valueConverter.divideBy1000],
             ],
         },
     },
 ];
-
-export default definitions;
-module.exports = definitions;

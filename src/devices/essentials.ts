@@ -65,7 +65,7 @@ const localValueConverters = {
     },
 };
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_i48qyn9s']),
         model: '_TZE200_i48qyn9s',
@@ -131,6 +131,3 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
 ];
-
-export default definitions;
-module.exports = definitions;

@@ -31,7 +31,7 @@ const tzLocal = {
     } satisfies Tz.Converter,
 };
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['PM-C140-ZB'],
         model: 'PM-C140-ZB',
@@ -280,6 +280,3 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [e.battery(), e.temperature(), e.humidity()],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

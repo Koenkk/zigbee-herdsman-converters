@@ -7,7 +7,21 @@ import {DefinitionWithExtend} from '../lib/types';
 
 const e = exposes.presets;
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
+    {
+        zigbeeModel: ['Sonesse 28 WF Li-Ion Roller'],
+        model: '1241755',
+        vendor: 'SOMFY',
+        description: 'Sonesse 28 WF Li-Ion roller shades',
+        extend: [m.battery(), m.windowCovering({controls: ['lift']})],
+    },
+    {
+        zigbeeModel: ['Sonesse2 28 WF Roller'],
+        model: '1003296',
+        vendor: 'SOMFY',
+        description: 'Sonesse2 28 WF roller shades',
+        extend: [m.battery(), m.windowCovering({controls: ['lift']})],
+    },
     {
         zigbeeModel: ['Sonesse Ultra 30 WF Li-Ion Rolle'],
         model: 'SOMFY-1241752',
@@ -48,6 +62,3 @@ const definitions: DefinitionWithExtend[] = [
         extend: [m.identify(), m.iasZoneAlarm({zoneType: 'occupancy', zoneAttributes: ['alarm_1', 'battery_low']}), m.battery()],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

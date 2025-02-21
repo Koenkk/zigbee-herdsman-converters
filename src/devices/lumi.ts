@@ -49,6 +49,8 @@ const {
     lumiSetEventMode,
     lumiSwitchMode,
     lumiVibration,
+    lumiReportInterval,
+    lumiSensitivityAdjustment,
     lumiKnobRotation,
     lumiCommandMode,
     lumiBattery,
@@ -60,7 +62,7 @@ const {
 const NS = 'zhc:lumi';
 const {manufacturerCode} = lumi;
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['lumi.flood.acn001'],
         model: 'SJCGQ13LM',
@@ -199,7 +201,7 @@ const definitions: DefinitionWithExtend[] = [
         vendor: 'Aqara',
         description: 'Opple MX480',
         meta: {turnsOffAtBrightness1: true},
-        extend: [lumiLight({colorTemp: true, powerOutageMemory: 'switch'}), lumiZigbeeOTA()],
+        extend: [lumiLight({colorTemp: true, powerOutageMemory: 'switch', colorTempRange: [175, 370]}), lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ['lumi.light.cwjwcn01'],
@@ -2372,10 +2374,10 @@ const definitions: DefinitionWithExtend[] = [
         description: 'Vibration sensor T1',
         extend: [
             lumiVibration(),
-            // Doesn't seem to be working at all
-            // https://github.com/Koenkk/zigbee2mqtt/issues/21731
             // lumiMiscellaneous(),
-            m.battery({voltageToPercentage: {min: 2850, max: 3000}, voltage: true}),
+            lumiReportInterval(),
+            lumiSensitivityAdjustment(),
+            lumiBattery({voltageToPercentage: {min: 2850, max: 3000}}),
             lumiZigbeeOTA(),
             m.quirkCheckinInterval('1_HOUR'),
         ],
@@ -4517,6 +4519,3 @@ const definitions: DefinitionWithExtend[] = [
         ],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

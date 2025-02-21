@@ -20,6 +20,7 @@ import {
     KeyValue,
     KeyValueAny,
     KeyValueString,
+    LevelConfigFeatures,
     ModernExtend,
     OnEvent,
     Range,
@@ -291,17 +292,11 @@ export interface LinkQualityArgs {
     reportingConfig?: ReportingConfigWithoutAttribute;
 }
 export function linkQuality(args?: LinkQualityArgs): ModernExtend {
-    args = {reporting: false, attribute: 'modelId', reportingConfig: {min: '1_HOUR', max: '4_HOURS', change: 0}, ...args};
+    args = {reporting: false, attribute: 'zclVersion', reportingConfig: {min: '1_HOUR', max: '4_HOURS', change: 0}, ...args};
 
-    const exposes: Expose[] = [
-        e
-            .numeric('linkquality', ea.STATE)
-            .withUnit('lqi')
-            .withDescription('Link quality (signal strength)')
-            .withValueMin(0)
-            .withValueMax(255)
-            .withCategory('diagnostic'),
-    ];
+    // Exposes is empty because the application (e.g. Z2M) adds a linkquality sensor
+    // for every device already.
+    const exposes: Expose[] = [];
 
     const fromZigbee: Fz.Converter[] = [
         {
@@ -941,18 +936,15 @@ export function occupancy(args?: OccupancyArgs): ModernExtend {
 }
 
 export function co2(args?: Partial<NumericArgs>) {
-    const fractionOf1: ScaleFunction = (value: number, type: 'from' | 'to') => {
-        return 1 / value;
-    };
     return numeric({
         name: 'co2',
         cluster: 'msCO2',
         label: 'CO2',
         attribute: 'measuredValue',
-        reporting: {min: '10_SECONDS', max: '1_HOUR', change: fractionOf1(50 /*ppm*/, 'to')},
+        reporting: {min: '10_SECONDS', max: '1_HOUR', change: 0.00005}, // 50 ppm change
         description: 'Measured value',
         unit: 'ppm',
-        scale: fractionOf1,
+        scale: 0.000001,
         access: 'STATE_GET',
         ...args,
     });
@@ -984,7 +976,7 @@ export interface LightArgs {
     configureReporting?: boolean;
     endpointNames?: string[];
     ota?: ModernExtend['ota'];
-    levelConfig?: {disabledFeatures?: string[]};
+    levelConfig?: {disabledFeatures?: LevelConfigFeatures};
 }
 export function light(args?: LightArgs): ModernExtend {
     args = {effect: true, powerOnBehavior: true, configureReporting: false, ...args};

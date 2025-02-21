@@ -30,7 +30,7 @@ const fzLocal = {
     } satisfies Fz.Converter,
 };
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['CK-BL702-SWP-01(7020)'],
         model: 'BSD29/BSD59',
@@ -48,6 +48,3 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [e.power(), e.current(), e.voltage(), e.switch()],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

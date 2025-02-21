@@ -314,7 +314,7 @@ function validateSilabsEbl(data: Buffer): void {
 function validateSilabsGbl(data: Buffer): void {
     assert(data.indexOf(GBL_HEADER_TAG) === 0, `Not a valid GBL image`);
 
-    const gblEndTagIndex = data.indexOf(GBL_END_TAG);
+    const gblEndTagIndex = data.lastIndexOf(GBL_END_TAG);
 
     assert(gblEndTagIndex > 16, `Not a valid GBL image`); // after HEADER, just because...
 

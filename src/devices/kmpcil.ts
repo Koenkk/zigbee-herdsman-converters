@@ -79,7 +79,7 @@ const kmpcilConverters = {
     } satisfies Fz.Converter,
 };
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ['RES005'],
         model: 'KMPCIL_RES005',
@@ -187,6 +187,3 @@ const definitions: DefinitionWithExtend[] = [
         },
     },
 ];
-
-export default definitions;
-module.exports = definitions;
