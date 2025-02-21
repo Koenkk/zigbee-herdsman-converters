@@ -808,17 +808,11 @@ const sunricherExtend = {
                         action = pressTypeLookup[msg.data.pressType] || 'unknown';
 
                         const buttonMask = (msg.data.button2 << 8) | msg.data.button1;
-                        const getButtonNumber = (input: number) => {
-                            const row = Math.floor((input - 1) / 4);
-                            const col = (input - 1) % 4;
-                            return col * 4 + row + 1;
-                        };
-
                         const actionButtons: string[] = [];
                         for (let i = 0; i < 16; i++) {
                             if ((buttonMask >> i) & 1) {
                                 const button = i + 1;
-                                actionButtons.push(`k${getButtonNumber(button)}`);
+                                actionButtons.push(`k${button}`);
                             }
                         }
                         return {action, action_buttons: actionButtons};
