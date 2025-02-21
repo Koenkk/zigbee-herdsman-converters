@@ -1,12 +1,12 @@
-import type {DeviceType} from 'zigbee-herdsman/dist/controller/tstype';
+import type {DeviceType} from "zigbee-herdsman/dist/controller/tstype";
 
-import {Device} from 'zigbee-herdsman/dist/controller/model';
-import {Clusters} from 'zigbee-herdsman/dist/zspec/zcl/definition/cluster';
+import type {Device} from "zigbee-herdsman/dist/controller/model";
+import {Clusters} from "zigbee-herdsman/dist/zspec/zcl/definition/cluster";
 
-import tz from '../src/converters/toZigbee';
-import {findByDevice} from '../src/index';
-import {Definition, DefinitionMeta, Fz, Zh} from '../src/lib/types';
-import * as utils from '../src/lib/utils';
+import tz from "../src/converters/toZigbee";
+import {findByDevice} from "../src/index";
+import type {Definition, DefinitionMeta, Fz, Zh} from "../src/lib/types";
+import * as utils from "../src/lib/utils";
 
 interface MockEndpointArgs {
     ID?: number;
@@ -25,13 +25,13 @@ export function reportingItem(attribute: string, min: number, max: number, chang
 
 export function mockDevice(
     args: {modelID: string; manufacturerID?: number; manufacturerName?: string; endpoints: MockEndpointArgs[]},
-    type: DeviceType = 'Router',
+    type: DeviceType = "Router",
     extraArgs: Record<string, unknown> = {},
 ): Zh.Device {
-    const ieeeAddr = '0x12345678';
+    const ieeeAddr = "0x12345678";
     const device: Zh.Device = {
         // @ts-expect-error ignore
-        constructor: {name: 'Device'},
+        constructor: {name: "Device"},
         ieeeAddr,
         save: vi.fn(),
         type,
@@ -51,7 +51,7 @@ export function mockDevice(
 }
 
 function getCluster(ID: string | number) {
-    const cluster = Object.entries(Clusters).find((c) => (typeof ID === 'number' ? c[1].ID === ID : c[0] === ID));
+    const cluster = Object.entries(Clusters).find((c) => (typeof ID === "number" ? c[1].ID === ID : c[0] === ID));
     if (!cluster) throw new Error(`Cluster '${ID}' does not exist`);
     return {name: cluster[0], ID: cluster[1].ID};
 }
@@ -65,7 +65,7 @@ function mockEndpoint(args: MockEndpointArgs, device: Zh.Device | undefined): Zh
         profileID: args.profileID ?? 1,
         deviceID: args.deviceID ?? 1,
         // @ts-expect-error ignore
-        constructor: {name: 'Endpoint'},
+        constructor: {name: "Endpoint"},
         bind: vi.fn(),
         configureReporting: vi.fn(),
         read: vi.fn(),
@@ -118,7 +118,7 @@ export async function assertDefintion(args: AssertDefinitionArgs) {
 
     const logIfNotEqual = (expected: string[], actual: string[]) => {
         if (JSON.stringify(expected) !== JSON.stringify(actual)) {
-            console.log(`[${expected?.map((c) => `'${c}'`).join(', ')}]`);
+            console.log(`[${expected?.map((c) => `'${c}'`).join(", ")}]`);
         }
     };
 
@@ -132,7 +132,7 @@ export async function assertDefintion(args: AssertDefinitionArgs) {
 
     utils.assertArray(definition.exposes);
     const expectedExposes = definition.exposes
-        ?.map((e) => e.name ?? `${e.type}${e.endpoint ? '_' + e.endpoint : ''}(${e.features?.map((f) => f.name).join(',')})`)
+        ?.map((e) => e.name ?? `${e.type}${e.endpoint ? "_" + e.endpoint : ""}(${e.features?.map((f) => f.name).join(",")})`)
         .sort();
     logIfNotEqual(expectedExposes, args.exposes);
     expect(expectedExposes).toEqual(args.exposes);

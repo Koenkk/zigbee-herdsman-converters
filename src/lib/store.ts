@@ -1,5 +1,5 @@
-import {Zh} from './types';
-import {isDevice, isEndpoint, isGroup} from './utils';
+import type {Zh} from "./types";
+import {isDevice, isEndpoint, isGroup} from "./utils";
 
 let store = new Map();
 

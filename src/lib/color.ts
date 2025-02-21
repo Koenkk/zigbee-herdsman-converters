@@ -1,7 +1,7 @@
-import kelvinToXyLookup from './kelvinToXy';
-import {clampColorTemp, findColorTempRange} from './light';
-import {KeyValue, KeyValueAny, Tz, Zh} from './types';
-import {precisionRound} from './utils';
+import kelvinToXyLookup from "./kelvinToXy";
+import {clampColorTemp, findColorTempRange} from "./light";
+import type {KeyValue, KeyValueAny, Tz, Zh} from "./types";
+import {precisionRound} from "./utils";
 
 /**
  * Converts color temp mireds to Kelvins
@@ -70,8 +70,8 @@ export class ColorRGB {
      * @returns new ColoRGB object
      */
     static fromHex(hex: string): ColorRGB {
-        hex = hex.replace('#', '');
-        const bigint = parseInt(hex, 16);
+        hex = hex.replace("#", "");
+        const bigint = Number.parseInt(hex, 16);
         return new ColorRGB(((bigint >> 16) & 255) / 255, ((bigint >> 8) & 255) / 255, (bigint & 255) / 255);
     }
 
@@ -180,16 +180,16 @@ export class ColorRGB {
      */
     toHEX(): string {
         return (
-            '#' +
-            parseInt((this.red * 255).toFixed(0))
+            "#" +
+            Number.parseInt((this.red * 255).toFixed(0))
                 .toString(16)
-                .padStart(2, '0') +
-            parseInt((this.green * 255).toFixed(0))
+                .padStart(2, "0") +
+            Number.parseInt((this.green * 255).toFixed(0))
                 .toString(16)
-                .padStart(2, '0') +
-            parseInt((this.blue * 255).toFixed(0))
+                .padStart(2, "0") +
+            Number.parseInt((this.blue * 255).toFixed(0))
                 .toString(16)
-                .padStart(2, '0')
+                .padStart(2, "0")
         );
     }
 }
@@ -342,7 +342,7 @@ export class ColorHSV {
      */
     static fromObject(hsv: {hue?: number; saturation?: number; value: number}): ColorHSV {
         if (hsv.hue === undefined && hsv.saturation === undefined) {
-            throw new Error('HSV color must specify at least hue or saturation.');
+            throw new Error("HSV color must specify at least hue or saturation.");
         }
         return new ColorHSV(hsv.hue === undefined ? null : hsv.hue, hsv.saturation, hsv.value);
     }
@@ -379,10 +379,7 @@ export class ColorHSV {
      * @param short - return h, s, v instead of hue, saturation, value
      * @param includeValue - omit v(alue) from return
      */
-    toObject(
-        short: boolean = false,
-        includeValue: boolean = true,
-    ): {h?: number; hue?: number; s?: number; saturation?: number; v?: number; value?: number} {
+    toObject(short = false, includeValue = true): {h?: number; hue?: number; s?: number; saturation?: number; v?: number; value?: number} {
         const ret: {h?: number; hue?: number; s?: number; saturation?: number; v?: number; value?: number} = {};
         if (this.hue !== null) {
             if (short) {
@@ -559,18 +556,18 @@ export class Color {
     constructor(hsv: ColorHSV, rgb: ColorRGB, xy: ColorXY) {
         // @ts-expect-error ignore
         if ((hsv !== null) + (rgb !== null) + (xy !== null) != 1) {
-            throw new Error('Color object should have exactly only one of hsv, rgb or xy properties');
+            throw new Error("Color object should have exactly only one of hsv, rgb or xy properties");
         } else if (hsv !== null) {
             if (!(hsv instanceof ColorHSV)) {
-                throw new Error('hsv argument must be an instance of ColorHSV class');
+                throw new Error("hsv argument must be an instance of ColorHSV class");
             }
         } else if (rgb !== null) {
             if (!(rgb instanceof ColorRGB)) {
-                throw new Error('rgb argument must be an instance of ColorRGB class');
+                throw new Error("rgb argument must be an instance of ColorRGB class");
             }
         } /* if (xy !== null) */ else {
             if (!(xy instanceof ColorXY)) {
-                throw new Error('xy argument must be an instance of ColorXY class');
+                throw new Error("xy argument must be an instance of ColorXY class");
             }
         }
         this.hsv = hsv;
@@ -592,34 +589,34 @@ export class Color {
             const rgb = new ColorRGB(value.r / 255, value.g / 255, value.b / 255);
             return new Color(null, rgb, null);
         } else if (value.rgb !== undefined) {
-            const [r, g, b] = value.rgb.split(',').map((i: string) => parseInt(i));
+            const [r, g, b] = value.rgb.split(",").map((i: string) => Number.parseInt(i));
             const rgb = new ColorRGB(r / 255, g / 255, b / 255);
             return new Color(null, rgb, null);
         } else if (value.hex !== undefined) {
             const rgb = ColorRGB.fromHex(value.hex);
             return new Color(null, rgb, null);
-        } else if (typeof value === 'string' && value.startsWith('#')) {
+        } else if (typeof value === "string" && value.startsWith("#")) {
             const rgb = ColorRGB.fromHex(value);
             return new Color(null, rgb, null);
         } else if (value.h !== undefined && value.s !== undefined && value.l !== undefined) {
             const hsv = ColorHSV.fromHSL({hue: value.h, saturation: value.s, lightness: value.l});
             return new Color(hsv, null, null);
         } else if (value.hsl !== undefined) {
-            const [h, s, l] = value.hsl.split(',').map((i: string) => parseInt(i));
+            const [h, s, l] = value.hsl.split(",").map((i: string) => Number.parseInt(i));
             const hsv = ColorHSV.fromHSL({hue: h, saturation: s, lightness: l});
             return new Color(hsv, null, null);
         } else if (value.h !== undefined && value.s !== undefined && value.b !== undefined) {
             const hsv = new ColorHSV(value.h, value.s, value.b);
             return new Color(hsv, null, null);
         } else if (value.hsb !== undefined) {
-            const [h, s, b] = value.hsb.split(',').map((i: string) => parseInt(i));
+            const [h, s, b] = value.hsb.split(",").map((i: string) => Number.parseInt(i));
             const hsv = new ColorHSV(h, s, b);
             return new Color(hsv, null, null);
         } else if (value.h !== undefined && value.s !== undefined && value.v !== undefined) {
             const hsv = new ColorHSV(value.h, value.s, value.v);
             return new Color(hsv, null, null);
         } else if (value.hsv !== undefined) {
-            const [h, s, v] = value.hsv.split(',').map((i: string) => parseInt(i));
+            const [h, s, v] = value.hsv.split(",").map((i: string) => Number.parseInt(i));
             const hsv = new ColorHSV(h, s, v);
             return new Color(hsv, null, null);
         } else if (value.h !== undefined && value.s !== undefined) {
@@ -635,7 +632,7 @@ export class Color {
             const hsv = ColorHSV.fromObject(value);
             return new Color(hsv, null, null);
         } else {
-            throw new Error('Value does not contain valid color definition');
+            throw new Error("Value does not contain valid color definition");
         }
     }
 
@@ -697,34 +694,34 @@ export function syncColorState(newState: KeyValueAny, oldState: KeyValueAny, end
         result.color_mode = oldState.color_mode;
     } else {
         if (newState.color_temp !== undefined) {
-            result.color_mode = 'color_temp';
+            result.color_mode = "color_temp";
         }
         if (newState.color !== undefined) {
-            result.color_mode = newState.color.hue !== undefined ? 'hs' : 'xy';
+            result.color_mode = newState.color.hue !== undefined ? "hs" : "xy";
         }
     }
 
     // figure out target attributes
     if (oldState.color_temp !== undefined || newState.color_temp !== undefined) {
-        colorTargets.push('color_temp');
+        colorTargets.push("color_temp");
     }
     if (
         (oldState.color !== undefined && oldState.color.hue !== undefined && oldState.color.saturation !== undefined) ||
         (newState.color !== undefined && newState.color.hue !== undefined && newState.color.saturation !== undefined)
     ) {
-        colorTargets.push('hs');
+        colorTargets.push("hs");
     }
     if (
         (oldState.color !== undefined && oldState.color.x !== undefined && oldState.color.y !== undefined) ||
         (newState.color !== undefined && newState.color.x !== undefined && newState.color.y !== undefined)
     ) {
-        colorTargets.push('xy');
+        colorTargets.push("xy");
     }
 
     // sync color attributes
     result.color = {};
     switch (result.color_mode) {
-        case 'hs':
+        case "hs":
             if (newState.color !== undefined && newState.color.hue !== undefined) {
                 Object.assign(result.color, {hue: newState.color.hue});
             } else if (oldState.color !== undefined && oldState.color.hue !== undefined) {
@@ -738,15 +735,15 @@ export function syncColorState(newState: KeyValueAny, oldState: KeyValueAny, end
 
             if (result.color.hue !== undefined && result.color.saturation !== undefined) {
                 const hsv = new ColorHSV(result.color.hue, result.color.saturation);
-                if (colorTargets.includes('color_temp')) {
+                if (colorTargets.includes("color_temp")) {
                     result.color_temp = clampColorTemp(precisionRound(hsv.toMireds(), 0), colorTempMin, colorTempMax);
                 }
-                if (colorTargets.includes('xy')) {
+                if (colorTargets.includes("xy")) {
                     Object.assign(result.color, hsv.toXY().rounded(4).toObject());
                 }
             }
             break;
-        case 'xy':
+        case "xy":
             if (newState.color !== undefined && newState.color.x !== undefined) {
                 Object.assign(result.color, {x: newState.color.x});
             } else if (oldState.color !== undefined && oldState.color.x !== undefined) {
@@ -760,15 +757,15 @@ export function syncColorState(newState: KeyValueAny, oldState: KeyValueAny, end
 
             if (result.color.x !== undefined && result.color.y !== undefined) {
                 const xy = new ColorXY(result.color.x, result.color.y);
-                if (colorTargets.includes('color_temp')) {
+                if (colorTargets.includes("color_temp")) {
                     result.color_temp = clampColorTemp(precisionRound(xy.toMireds(), 0), colorTempMin, colorTempMax);
                 }
-                if (colorTargets.includes('hs')) {
+                if (colorTargets.includes("hs")) {
                     Object.assign(result.color, xy.toHSV().rounded(0).toObject(false, false));
                 }
             }
             break;
-        case 'color_temp':
+        case "color_temp":
             if (newState.color_temp !== undefined) {
                 result.color_temp = newState.color_temp;
             } else if (oldState.color_temp !== undefined) {
@@ -777,10 +774,10 @@ export function syncColorState(newState: KeyValueAny, oldState: KeyValueAny, end
 
             if (result.color_temp !== undefined) {
                 const xy = ColorXY.fromMireds(result.color_temp);
-                if (colorTargets.includes('xy')) {
+                if (colorTargets.includes("xy")) {
                     Object.assign(result.color, xy.rounded(4).toObject());
                 }
-                if (colorTargets.includes('hs')) {
+                if (colorTargets.includes("hs")) {
                     Object.assign(result.color, xy.toHSV().rounded(0).toObject(false, false));
                 }
             }

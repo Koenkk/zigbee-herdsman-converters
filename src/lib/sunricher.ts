@@ -1,10 +1,10 @@
-import {Tz} from './types';
+import type {Tz} from "./types";
 
 const tz = {
     setModel: {
-        key: ['model'],
+        key: ["model"],
         convertSet: async (entity, key, value, meta) => {
-            await entity.write('genBasic', {modelId: value});
+            await entity.write("genBasic", {modelId: value});
             return {state: {model: value}};
         },
     } satisfies Tz.Converter,

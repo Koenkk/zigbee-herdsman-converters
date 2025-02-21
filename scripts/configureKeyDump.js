@@ -1,4 +1,4 @@
-const index = require('../index');
+const index = require("../index");
 
 const lookup = {};
 for (const definition of index.definitions) {
@@ -7,7 +7,7 @@ for (const definition of index.definitions) {
         const oldKey = definition.meta.configureKey;
 
         if (key in lookup && lookup[key] != oldKey) {
-            throw new Error('Should never happen');
+            throw new Error("Should never happen");
         }
 
         lookup[key] = oldKey;

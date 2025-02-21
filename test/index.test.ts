@@ -1,61 +1,61 @@
 import {
-    Definition,
+    type Definition,
     addExternalDefinition,
     findByDevice,
     getConfigureKey,
     postProcessConvertedFromZigbeeMessage,
     removeExternalDefinitions,
-} from '../src/index';
-import {Composite, Enum, List, Numeric, access, presets} from '../src/lib/exposes';
-import {mockDevice} from './utils';
+} from "../src/index";
+import {Composite, Enum, List, Numeric, access, presets} from "../src/lib/exposes";
+import {mockDevice} from "./utils";
 
-describe('ZHC', () => {
+describe("ZHC", () => {
     // TODO: generateExternalDefinition
     // TODO: onEvent
 
-    it('cannot find definition without enough data points', async () => {
+    it("cannot find definition without enough data points", async () => {
         const device = mockDevice(
             {
                 modelID: undefined,
                 endpoints: [{ID: 1, profileID: undefined, deviceID: undefined, inputClusters: [], outputClusters: []}],
             },
-            'Router',
+            "Router",
         );
 
         const definition = await findByDevice(device);
         expect(definition).toBeUndefined();
     });
 
-    it('generates definition for unknown', async () => {
+    it("generates definition for unknown", async () => {
         const device = mockDevice(
             {
-                modelID: 'test_generate',
+                modelID: "test_generate",
                 endpoints: [{ID: 1, profileID: undefined, deviceID: undefined, inputClusters: [], outputClusters: []}],
             },
-            'Router',
+            "Router",
         );
 
         const definition = await findByDevice(device, true);
-        expect(definition.model).toStrictEqual('test_generate');
-        expect(definition.vendor).toStrictEqual('');
-        expect(definition.description).toStrictEqual('Automatically generated definition');
+        expect(definition.model).toStrictEqual("test_generate");
+        expect(definition.vendor).toStrictEqual("");
+        expect(definition.description).toStrictEqual("Automatically generated definition");
         expect(definition.generated).toStrictEqual(true);
     });
 
-    it('finds definition by model ID', async () => {
+    it("finds definition by model ID", async () => {
         const device = mockDevice(
             {
-                modelID: 'lumi.sensor_motion',
+                modelID: "lumi.sensor_motion",
                 endpoints: [{ID: 1, profileID: undefined, deviceID: undefined, inputClusters: [], outputClusters: []}],
             },
-            'Unknown',
+            "Unknown",
         );
         const definition = await findByDevice(device);
 
-        expect(definition.model).toStrictEqual('RTCGQ01LM');
+        expect(definition.model).toStrictEqual("RTCGQ01LM");
     });
 
-    it('finds definition by fingerprint', async () => {
+    it("finds definition by fingerprint", async () => {
         const device = mockDevice(
             {
                 modelID: undefined,
@@ -65,72 +65,72 @@ describe('ZHC', () => {
                     {ID: 232, profileID: 49413, deviceID: 1, inputClusters: [], outputClusters: []},
                 ],
             },
-            'Router',
+            "Router",
         );
         const definition = await findByDevice(device);
 
-        expect(definition.model).toStrictEqual('XBee');
+        expect(definition.model).toStrictEqual("XBee");
     });
 
-    it('finds definition with white label by fingerprint', async () => {
+    it("finds definition with white label by fingerprint", async () => {
         const device1 = mockDevice(
             {
-                modelID: 'TS0502A',
-                manufacturerName: '_TZ3000_oborybow',
+                modelID: "TS0502A",
+                manufacturerName: "_TZ3000_oborybow",
                 endpoints: [],
             },
-            'Router',
+            "Router",
         );
         const definition1 = await findByDevice(device1);
         const device2 = mockDevice(
             {
-                modelID: 'TS0502A',
-                manufacturerName: 'JUST_A_RANDOM_MANUFACTURER_NAME',
+                modelID: "TS0502A",
+                manufacturerName: "JUST_A_RANDOM_MANUFACTURER_NAME",
                 endpoints: [],
             },
-            'Router',
+            "Router",
         );
         const definition2 = await findByDevice(device2);
 
-        expect(definition1.model).toBe('HG06492B/HG08130B');
-        expect(definition1.description).toBe('Livarno Home E14 candle CCT');
-        expect(definition1.vendor).toBe('Lidl');
+        expect(definition1.model).toBe("HG06492B/HG08130B");
+        expect(definition1.description).toBe("Livarno Home E14 candle CCT");
+        expect(definition1.vendor).toBe("Lidl");
 
-        expect(definition2.model).toBe('TS0502A');
-        expect(definition2.description).toBe('Light controller');
-        expect(definition2.vendor).toBe('Tuya');
+        expect(definition2.model).toBe("TS0502A");
+        expect(definition2.description).toBe("Light controller");
+        expect(definition2.vendor).toBe("Tuya");
     });
 
-    it('finds definition by prioritized fingerprints', async () => {
+    it("finds definition by prioritized fingerprints", async () => {
         const device1 = mockDevice(
             {
-                modelID: 'TS011F',
-                manufacturerName: '_TZ3000_vzopcetz',
+                modelID: "TS011F",
+                manufacturerName: "_TZ3000_vzopcetz",
                 endpoints: [],
             },
-            'Router',
+            "Router",
             {
                 applicationVersion: 69,
             },
         );
         const device2 = mockDevice(
             {
-                modelID: 'TS011F',
-                manufacturerName: '_TZ3000_vzopcetz_random',
+                modelID: "TS011F",
+                manufacturerName: "_TZ3000_vzopcetz_random",
                 endpoints: [],
             },
-            'Router',
+            "Router",
             {
                 applicationVersion: 69,
             },
         );
         const device3 = mockDevice(
             {
-                modelID: 'TS011F',
-                manufacturerName: '_TZ3000_vzopcetz_random',
+                modelID: "TS011F",
+                manufacturerName: "_TZ3000_vzopcetz_random",
                 endpoints: [],
             },
-            'Router',
+            "Router",
             {
                 applicationVersion: 1,
             },
@@ -139,308 +139,308 @@ describe('ZHC', () => {
         const definition2 = await findByDevice(device2);
         const definition3 = await findByDevice(device3);
 
-        expect(definition1.model).toStrictEqual('HG06338');
-        expect(definition2.model).toStrictEqual('TS011F_plug_3');
-        expect(definition3.model).toStrictEqual('TS011F_plug_1');
+        expect(definition1.model).toStrictEqual("HG06338");
+        expect(definition2.model).toStrictEqual("TS011F_plug_3");
+        expect(definition3.model).toStrictEqual("TS011F_plug_1");
     });
 
-    it('finds definition by fingerprint over zigbeeModel', async () => {
+    it("finds definition by fingerprint over zigbeeModel", async () => {
         const device1 = mockDevice(
             {
-                modelID: 'CCT Lighting',
+                modelID: "CCT Lighting",
                 manufacturerID: 4635,
-                manufacturerName: 'MLI',
+                manufacturerName: "MLI",
                 endpoints: [
                     {ID: 1, profileID: 49246, deviceID: 544, inputClusterIDs: [0, 3, 4, 5, 6, 8, 768, 2821, 4096], outputClusterIDs: [25]},
                     {ID: 242, profileID: 41440, deviceID: 102, inputClusterIDs: [33], outputClusterIDs: [33]},
                 ],
             },
-            'Router',
+            "Router",
             {
-                powerSource: 'Mains (single phase)',
+                powerSource: "Mains (single phase)",
             },
         );
         const device2 = mockDevice(
             {
-                modelID: 'CCT Lighting',
+                modelID: "CCT Lighting",
                 manufacturerID: 9999,
-                manufacturerName: 'SunRicher',
+                manufacturerName: "SunRicher",
                 endpoints: [],
             },
-            'Router',
+            "Router",
             {
-                powerSource: 'Mains (single phase)',
+                powerSource: "Mains (single phase)",
             },
         );
         const definition1 = await findByDevice(device1);
         const definition2 = await findByDevice(device2);
 
-        expect(definition1.model).toStrictEqual('404031');
-        expect(definition2.model).toStrictEqual('ZG192910-4');
+        expect(definition1.model).toStrictEqual("404031");
+        expect(definition2.model).toStrictEqual("ZG192910-4");
     });
 
-    it('finds definition by fingerprint for mismatching zigbeeModel in firmware', async () => {
+    it("finds definition by fingerprint for mismatching zigbeeModel in firmware", async () => {
         // https://github.com/Koenkk/zigbee-herdsman-converters/issues/1449
         const device1 = mockDevice(
             {
-                modelID: 'TH01',
+                modelID: "TH01",
                 manufacturerID: 0,
-                manufacturerName: 'eWeLink',
+                manufacturerName: "eWeLink",
                 endpoints: [{ID: 1, profileID: 260, deviceID: 1026, inputClusterIDs: [0, 3, 1280, 1], outputClusterIDs: [3]}],
             },
-            'EndDevice',
+            "EndDevice",
             {
-                powerSource: 'Battery',
+                powerSource: "Battery",
             },
         );
         const definition1 = await findByDevice(device1);
         const device2 = mockDevice(
             {
-                modelID: 'TH01',
+                modelID: "TH01",
                 manufacturerID: 0,
-                manufacturerName: 'eWeLink',
+                manufacturerName: "eWeLink",
                 endpoints: [{ID: 1, profileID: 260, deviceID: 770, inputClusterIDs: [0, 3, 1026, 1029, 1], outputClusterIDs: [3]}],
             },
-            'EndDevice',
+            "EndDevice",
             {
-                powerSource: 'Battery',
+                powerSource: "Battery",
             },
         );
         const definition2 = await findByDevice(device2);
 
-        expect(definition1.model).toStrictEqual('SNZB-04');
-        expect(definition2.model).toStrictEqual('SNZB-02');
+        expect(definition1.model).toStrictEqual("SNZB-04");
+        expect(definition2.model).toStrictEqual("SNZB-02");
     });
 
-    it('finds definition by fingerprint - index of size 10+', async () => {
+    it("finds definition by fingerprint - index of size 10+", async () => {
         const device = mockDevice(
             {
-                modelID: 'Dimmer-Switch-ZB3.0',
-                manufacturerName: 'Light Solutions',
+                modelID: "Dimmer-Switch-ZB3.0",
+                manufacturerName: "Light Solutions",
                 endpoints: [],
             },
-            'Router',
+            "Router",
         );
         const definition = await findByDevice(device);
 
-        expect(definition.vendor).toStrictEqual('Light Solutions');
-        expect(definition.model).toStrictEqual('3004482/3137308/3137309');
+        expect(definition.vendor).toStrictEqual("Light Solutions");
+        expect(definition.model).toStrictEqual("3004482/3137308/3137309");
     });
 
-    it('finds definition by fingerprint - index of size 35+', async () => {
+    it("finds definition by fingerprint - index of size 35+", async () => {
         const device = mockDevice(
             {
-                modelID: 'TS011F',
+                modelID: "TS011F",
                 endpoints: [],
             },
-            'Router',
+            "Router",
             {
-                softwareBuildID: '1.0.5\u0000',
+                softwareBuildID: "1.0.5\u0000",
             },
         );
         const definition = await findByDevice(device);
 
-        expect(definition.vendor).toStrictEqual('Tuya');
-        expect(definition.model).toStrictEqual('TS011F_plug_3');
+        expect(definition.vendor).toStrictEqual("Tuya");
+        expect(definition.model).toStrictEqual("TS011F_plug_3");
     });
 
-    it('finds definition by fingerprint - index of size 250+', async () => {
+    it("finds definition by fingerprint - index of size 250+", async () => {
         const device = mockDevice(
             {
-                modelID: 'TS0601',
-                manufacturerName: '_TZE204_aoclfnxz',
+                modelID: "TS0601",
+                manufacturerName: "_TZE204_aoclfnxz",
                 endpoints: [],
             },
-            'EndDevice',
+            "EndDevice",
         );
         const definition = await findByDevice(device);
 
-        expect(definition.vendor).toStrictEqual('Moes');
-        expect(definition.model).toStrictEqual('BHT-002/BHT-006');
+        expect(definition.vendor).toStrictEqual("Moes");
+        expect(definition.model).toStrictEqual("BHT-002/BHT-006");
     });
 
-    it('allows definition with both modern extend and exposes as function', async () => {
-        const device = mockDevice({modelID: 'MOSZB-140', endpoints: []});
+    it("allows definition with both modern extend and exposes as function", async () => {
+        const device = mockDevice({modelID: "MOSZB-140", endpoints: []});
         const MOSZB140 = await findByDevice(device);
 
-        if (typeof MOSZB140.exposes === 'function') {
+        if (typeof MOSZB140.exposes === "function") {
             const exposes = MOSZB140.exposes(device, undefined);
             expect(exposes.map((e) => e.name)).toStrictEqual([
-                'occupancy',
-                'tamper',
-                'battery_low',
-                'temperature',
-                'illuminance',
-                'battery',
-                'voltage',
+                "occupancy",
+                "tamper",
+                "battery_low",
+                "temperature",
+                "illuminance",
+                "battery",
+                "voltage",
             ]);
         } else {
-            throw new Error('invalid test');
+            throw new Error("invalid test");
         }
     });
 
-    it('adds & removes external converter', async () => {
-        const device = mockDevice({modelID: 'my-mock-device', endpoints: []}, 'Router');
+    it("adds & removes external converter", async () => {
+        const device = mockDevice({modelID: "my-mock-device", endpoints: []}, "Router");
         const definitionUndef = await findByDevice(device);
 
         expect(definitionUndef).toStrictEqual(undefined);
         addExternalDefinition({
-            zigbeeModel: ['my-mock-device'],
-            model: 'mock-model',
-            vendor: 'dummy',
-            description: 'dummy',
+            zigbeeModel: ["my-mock-device"],
+            model: "mock-model",
+            vendor: "dummy",
+            description: "dummy",
             fromZigbee: [],
             toZigbee: [],
             exposes: [],
-            externalConverterName: 'mock-model.js',
+            externalConverterName: "mock-model.js",
         });
 
         const definition = await findByDevice(device);
 
-        expect(definition.model).toStrictEqual('mock-model');
-        removeExternalDefinitions('mock-model.js');
+        expect(definition.model).toStrictEqual("mock-model");
+        removeExternalDefinitions("mock-model.js");
 
         const definitionUndef2 = await findByDevice(device);
 
         expect(definitionUndef2).toStrictEqual(undefined);
     });
 
-    it('adds & removes override external converter', async () => {
-        const device = mockDevice({modelID: 'lumi.light.aqcn02', endpoints: []}, 'Router');
+    it("adds & removes override external converter", async () => {
+        const device = mockDevice({modelID: "lumi.light.aqcn02", endpoints: []}, "Router");
 
-        expect((await findByDevice(device)).vendor).toStrictEqual('Aqara');
+        expect((await findByDevice(device)).vendor).toStrictEqual("Aqara");
 
         addExternalDefinition({
-            model: 'mock-model',
-            vendor: 'other-vendor',
-            zigbeeModel: ['lumi.light.aqcn02'],
-            description: '',
+            model: "mock-model",
+            vendor: "other-vendor",
+            zigbeeModel: ["lumi.light.aqcn02"],
+            description: "",
             fromZigbee: [],
             toZigbee: [],
             exposes: [],
-            externalConverterName: 'mock-model.js',
+            externalConverterName: "mock-model.js",
         });
 
-        expect((await findByDevice(device)).vendor).toStrictEqual('other-vendor');
-        removeExternalDefinitions('mock-model.js');
-        expect((await findByDevice(device)).vendor).toStrictEqual('Aqara');
+        expect((await findByDevice(device)).vendor).toStrictEqual("other-vendor");
+        removeExternalDefinitions("mock-model.js");
+        expect((await findByDevice(device)).vendor).toStrictEqual("Aqara");
     });
 
-    it('exposes light with endpoint', () => {
+    it("exposes light with endpoint", () => {
         const expected = {
-            type: 'light',
+            type: "light",
             features: [
                 {
-                    type: 'binary',
-                    name: 'state',
-                    label: 'State',
-                    description: 'On/off state of this light',
-                    property: 'state_rgb',
+                    type: "binary",
+                    name: "state",
+                    label: "State",
+                    description: "On/off state of this light",
+                    property: "state_rgb",
                     access: 7,
-                    value_on: 'ON',
-                    value_off: 'OFF',
-                    value_toggle: 'TOGGLE',
-                    endpoint: 'rgb',
+                    value_on: "ON",
+                    value_off: "OFF",
+                    value_toggle: "TOGGLE",
+                    endpoint: "rgb",
                 },
                 {
-                    type: 'numeric',
-                    name: 'brightness',
-                    label: 'Brightness',
-                    description: 'Brightness of this light',
-                    property: 'brightness_rgb',
+                    type: "numeric",
+                    name: "brightness",
+                    label: "Brightness",
+                    description: "Brightness of this light",
+                    property: "brightness_rgb",
                     access: 7,
                     value_min: 0,
                     value_max: 254,
-                    endpoint: 'rgb',
+                    endpoint: "rgb",
                 },
                 {
-                    type: 'composite',
-                    property: 'color_rgb',
-                    name: 'color_xy',
-                    label: 'Color (X/Y)',
-                    description: 'Color of this light in the CIE 1931 color space (x/y)',
+                    type: "composite",
+                    property: "color_rgb",
+                    name: "color_xy",
+                    label: "Color (X/Y)",
+                    description: "Color of this light in the CIE 1931 color space (x/y)",
                     access: 7,
                     features: [
                         {
-                            type: 'numeric',
-                            name: 'x',
-                            label: 'X',
-                            property: 'x',
+                            type: "numeric",
+                            name: "x",
+                            label: "X",
+                            property: "x",
                             access: 7,
                         },
                         {
-                            type: 'numeric',
-                            name: 'y',
-                            label: 'Y',
-                            property: 'y',
+                            type: "numeric",
+                            name: "y",
+                            label: "Y",
+                            property: "y",
                             access: 7,
                         },
                     ],
-                    endpoint: 'rgb',
+                    endpoint: "rgb",
                 },
             ],
-            endpoint: 'rgb',
+            endpoint: "rgb",
         };
-        const actual = presets.light_brightness_colorxy().withEndpoint('rgb');
+        const actual = presets.light_brightness_colorxy().withEndpoint("rgb");
         expect(expected).toStrictEqual(JSON.parse(JSON.stringify(actual)));
     });
 
-    describe('configure key', () => {
-        const mockDefinition = (configure: Definition['configure']): Definition => ({
-            zigbeeModel: ['abcd'],
-            model: 'abcd',
-            vendor: 'efg',
-            description: 'abcd efg',
+    describe("configure key", () => {
+        const mockDefinition = (configure: Definition["configure"]): Definition => ({
+            zigbeeModel: ["abcd"],
+            model: "abcd",
+            vendor: "efg",
+            description: "abcd efg",
             fromZigbee: [],
             toZigbee: [],
             exposes: [],
             configure,
         });
 
-        it('calculates', () => {
+        it("calculates", () => {
             expect(
                 getConfigureKey(
                     mockDefinition(async () => {
-                        console.log('hello world');
-                        console.log('bye world');
+                        console.log("hello world");
+                        console.log("bye world");
                     }),
                 ),
             ).toStrictEqual(-1526019382);
         });
 
-        it('calculates diff', () => {
+        it("calculates diff", () => {
             expect(
                 getConfigureKey(
                     mockDefinition(async () => {
-                        console.log('hello world');
-                        console.log('bye world');
+                        console.log("hello world");
+                        console.log("bye world");
                     }),
                 ),
             ).not.toStrictEqual(
                 getConfigureKey(
                     mockDefinition(async () => {
-                        console.log('hello world');
-                        console.log('bye mars');
+                        console.log("hello world");
+                        console.log("bye mars");
                     }),
                 ),
             );
         });
     });
 
-    it('verifies options filter', async () => {
-        const ZNCLDJ12LM = await findByDevice(mockDevice({modelID: 'lumi.curtain.hagl04', endpoints: []}));
+    it("verifies options filter", async () => {
+        const ZNCLDJ12LM = await findByDevice(mockDevice({modelID: "lumi.curtain.hagl04", endpoints: []}));
         expect(ZNCLDJ12LM.options.length).toBe(1);
-        const ZNCZ04LM = await findByDevice(mockDevice({modelID: 'lumi.plug.mmeu01', endpoints: []}));
+        const ZNCZ04LM = await findByDevice(mockDevice({modelID: "lumi.plug.mmeu01", endpoints: []}));
         expect(ZNCZ04LM.options.length).toBe(10);
     });
 
-    it('computes calibration/precision', async () => {
-        const TS0601_soil = await findByDevice(mockDevice({modelID: 'TS0601', manufacturerName: '_TZE200_myd45weu', endpoints: []}));
+    it("computes calibration/precision", async () => {
+        const TS0601_soil = await findByDevice(mockDevice({modelID: "TS0601", manufacturerName: "_TZE200_myd45weu", endpoints: []}));
         expect(TS0601_soil.options.map((t) => t.name)).toStrictEqual([
-            'temperature_calibration',
-            'temperature_precision',
-            'soil_moisture_calibration',
-            'soil_moisture_precision',
+            "temperature_calibration",
+            "temperature_precision",
+            "soil_moisture_calibration",
+            "soil_moisture_precision",
         ]);
         const payload1 = {temperature: 1.193};
         const options1 = {temperature_calibration: 2.5, temperature_precision: 1};
@@ -448,24 +448,24 @@ describe('ZHC', () => {
         expect(payload1).toStrictEqual({temperature: 3.7});
 
         // For multi endpoint property
-        const AUA1ZBDSS = await findByDevice(mockDevice({modelID: 'DoubleSocket50AU', endpoints: []}));
-        expect(AUA1ZBDSS.options.map((t) => t.name)).toStrictEqual(['power_calibration', 'power_precision', 'transition', 'state_action']);
+        const AUA1ZBDSS = await findByDevice(mockDevice({modelID: "DoubleSocket50AU", endpoints: []}));
+        expect(AUA1ZBDSS.options.map((t) => t.name)).toStrictEqual(["power_calibration", "power_precision", "transition", "state_action"]);
         const payload2 = {power_left: 5.31};
         const options2 = {power_calibration: 100, power_precision: 0}; // calibration for power is percentual
         postProcessConvertedFromZigbeeMessage(AUA1ZBDSS, payload2, options2);
         expect(payload2).toStrictEqual({power_left: 11});
 
-        const TS011F_plug_1 = await findByDevice(mockDevice({modelID: 'TS011F', endpoints: []}));
+        const TS011F_plug_1 = await findByDevice(mockDevice({modelID: "TS011F", endpoints: []}));
         expect(TS011F_plug_1.options.map((t) => t.name)).toStrictEqual([
-            'power_calibration',
-            'power_precision',
-            'current_calibration',
-            'current_precision',
-            'voltage_calibration',
-            'voltage_precision',
-            'energy_calibration',
-            'energy_precision',
-            'state_action',
+            "power_calibration",
+            "power_precision",
+            "current_calibration",
+            "current_precision",
+            "voltage_calibration",
+            "voltage_precision",
+            "energy_calibration",
+            "energy_precision",
+            "state_action",
         ]);
         const payload3 = {current: 0.0585};
         const options3 = {current_calibration: -50};
@@ -473,64 +473,64 @@ describe('ZHC', () => {
         expect(payload3).toStrictEqual({current: 0.03});
     });
 
-    it('instantiates list expose of number type', () => {
+    it("instantiates list expose of number type", () => {
         // Example payload:
         // {"temperatures": [19,21,30]}
-        const itemType = new Numeric('temperature', access.STATE_SET);
-        const list = new List('temperatures', access.STATE_SET, itemType);
+        const itemType = new Numeric("temperature", access.STATE_SET);
+        const list = new List("temperatures", access.STATE_SET, itemType);
         expect(JSON.parse(JSON.stringify(list))).toStrictEqual({
             access: 3,
-            item_type: {access: 3, name: 'temperature', label: 'Temperature', type: 'numeric'},
-            name: 'temperatures',
-            label: 'Temperatures',
-            property: 'temperatures',
-            type: 'list',
+            item_type: {access: 3, name: "temperature", label: "Temperature", type: "numeric"},
+            name: "temperatures",
+            label: "Temperatures",
+            property: "temperatures",
+            type: "list",
         });
     });
 
-    it('instantiates list expose of composite type', () => {
+    it("instantiates list expose of composite type", () => {
         // Example payload:
         // {"schedule": [{"day":"monday","hour":13,"minute":37}, {"day":"tuesday","hour":14,"minute":59}]}
 
-        const itemType = new Composite('dayTime', 'dayTime', access.STATE_SET)
-            .withFeature(new Enum('day', access.STATE_SET, ['monday', 'tuesday', 'wednesday']))
-            .withFeature(new Numeric('hour', access.STATE_SET))
-            .withFeature(new Numeric('minute', access.STATE_SET));
+        const itemType = new Composite("dayTime", "dayTime", access.STATE_SET)
+            .withFeature(new Enum("day", access.STATE_SET, ["monday", "tuesday", "wednesday"]))
+            .withFeature(new Numeric("hour", access.STATE_SET))
+            .withFeature(new Numeric("minute", access.STATE_SET));
 
-        const list = new List('schedule', access.STATE_SET, itemType);
+        const list = new List("schedule", access.STATE_SET, itemType);
         expect(JSON.parse(JSON.stringify(list))).toStrictEqual({
-            type: 'list',
-            name: 'schedule',
-            label: 'Schedule',
-            property: 'schedule',
+            type: "list",
+            name: "schedule",
+            label: "Schedule",
+            property: "schedule",
             access: 3,
             item_type: {
                 access: 3,
-                type: 'composite',
-                name: 'dayTime',
-                label: 'DayTime',
+                type: "composite",
+                name: "dayTime",
+                label: "DayTime",
                 features: [
                     {
                         access: 3,
-                        name: 'day',
-                        label: 'Day',
-                        property: 'day',
-                        type: 'enum',
-                        values: ['monday', 'tuesday', 'wednesday'],
+                        name: "day",
+                        label: "Day",
+                        property: "day",
+                        type: "enum",
+                        values: ["monday", "tuesday", "wednesday"],
                     },
                     {
                         access: 3,
-                        name: 'hour',
-                        label: 'Hour',
-                        property: 'hour',
-                        type: 'numeric',
+                        name: "hour",
+                        label: "Hour",
+                        property: "hour",
+                        type: "numeric",
                     },
                     {
                         access: 3,
-                        name: 'minute',
-                        label: 'Minute',
-                        property: 'minute',
-                        type: 'numeric',
+                        name: "minute",
+                        label: "Minute",
+                        property: "minute",
+                        type: "numeric",
                     },
                 ],
             },

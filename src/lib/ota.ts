@@ -1,14 +1,14 @@
-import assert from 'assert';
-import crypto from 'crypto';
-import {readFileSync} from 'fs';
-import path from 'path';
+import assert from "assert";
+import crypto from "crypto";
+import {readFileSync} from "fs";
+import path from "path";
 
-import crc32 from 'buffer-crc32';
+import crc32 from "buffer-crc32";
 
-import {Zcl} from 'zigbee-herdsman';
+import {Zcl} from "zigbee-herdsman";
 
-import {logger} from './logger';
-import {Ota, Zh} from './types';
+import {logger} from "./logger";
+import type {Ota, Zh} from "./types";
 
 // #region 'genOta' commands
 
@@ -91,10 +91,10 @@ interface Waiters {
     upgradeEndRequest?: Request<UpdateEndRequestPayload>;
 }
 
-const NS = 'zhc:ota';
+const NS = "zhc:ota";
 
-export const ZIGBEE_OTA_LATEST_URL = 'https://raw.githubusercontent.com/Koenkk/zigbee-OTA/master/index.json';
-export const ZIGBEE_OTA_PREVIOUS_URL = 'https://raw.githubusercontent.com/Koenkk/zigbee-OTA/master/index1.json';
+export const ZIGBEE_OTA_LATEST_URL = "https://raw.githubusercontent.com/Koenkk/zigbee-OTA/master/index.json";
+export const ZIGBEE_OTA_PREVIOUS_URL = "https://raw.githubusercontent.com/Koenkk/zigbee-OTA/master/index1.json";
 
 /** +- 24 days */
 const MAX_TIMEOUT = 2147483647;
@@ -140,7 +140,7 @@ export function isValidUrl(url: string): boolean {
     try {
         const parsed = new URL(url);
 
-        return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+        return parsed.protocol === "http:" || parsed.protocol === "https:";
     } catch {
         return false;
     }
@@ -198,7 +198,7 @@ function parseSubElement(buffer: Buffer, position: number): Ota.ImageElement {
     return {tagID, length, data};
 }
 
-export function parseImage(buffer: Buffer, suppressElementImageParseFailure: boolean = false): Ota.Image {
+export function parseImage(buffer: Buffer, suppressElementImageParseFailure = false): Ota.Image {
     const header: Ota.ImageHeader = {
         otaUpgradeFileIdentifier: buffer.subarray(0, 4),
         otaHeaderVersion: buffer.readUInt16LE(4),
@@ -208,7 +208,7 @@ export function parseImage(buffer: Buffer, suppressElementImageParseFailure: boo
         imageType: buffer.readUInt16LE(12),
         fileVersion: buffer.readUInt32LE(14),
         zigbeeStackVersion: buffer.readUInt16LE(18),
-        otaHeaderString: buffer.toString('utf8', 20, 52),
+        otaHeaderString: buffer.toString("utf8", 20, 52),
         totalImageSize: buffer.readUInt32LE(52),
     };
     let headerPos = 56;
@@ -254,7 +254,7 @@ export function parseImage(buffer: Buffer, suppressElementImageParseFailure: boo
 
         didSuppressElementImageParseFailure = true;
 
-        logger.error('Partially failed to parse the image, continuing anyway...', NS);
+        logger.error("Partially failed to parse the image, continuing anyway...", NS);
     }
 
     if (!didSuppressElementImageParseFailure) {
@@ -374,7 +374,7 @@ async function getIndex(previous: boolean): Promise<Ota.ZigbeeOTAImageMeta[]> {
 
         const localIndex = isValidUrl(overrideIndexFileName)
             ? await getJson<Ota.ZigbeeOTAImageMeta[]>(overrideIndexFileName)
-            : (JSON.parse(readFileSync(overrideIndexFileName, 'utf-8')) as Ota.ZigbeeOTAImageMeta[]);
+            : (JSON.parse(readFileSync(overrideIndexFileName, "utf-8")) as Ota.ZigbeeOTAImageMeta[]);
 
         // Resulting index will have overridden items first
         return localIndex.map((image) => fillImageInfo(image)).concat(mainIndex);
@@ -396,7 +396,7 @@ function cancelWaiters(waiters: Waiters): void {
 }
 
 function getOTAEndpoint(device: Zh.Device): Zh.Endpoint | undefined {
-    return device.endpoints.find((e) => e.supportsOutputCluster('genOta'));
+    return device.endpoints.find((e) => e.supportsOutputCluster("genOta"));
 }
 
 async function sendQueryNextImageResponse(
@@ -414,21 +414,21 @@ async function sendQueryNextImageResponse(
     };
 
     try {
-        await endpoint.commandResponse('genOta', 'queryNextImageResponse', payload, undefined, requestTransactionSequenceNumber);
+        await endpoint.commandResponse("genOta", "queryNextImageResponse", payload, undefined, requestTransactionSequenceNumber);
     } catch (error) {
         logger.debug(() => `${deviceLogString(device)} Failed to send queryNextImageResponse: ${(error as Error).message}`, NS);
     }
 }
 
 async function imageNotify(endpoint: Zh.Endpoint): Promise<void> {
-    await endpoint.commandResponse('genOta', 'imageNotify', {payloadType: 0, queryJitter: 100} as ImageNotifyPayload, {sendPolicy: 'immediate'});
+    await endpoint.commandResponse("genOta", "imageNotify", {payloadType: 0, queryJitter: 100} as ImageNotifyPayload, {sendPolicy: "immediate"});
 }
 
 async function requestOTA(endpoint: Zh.Endpoint): Promise<[transNum: number, Ota.ImageInfo]> {
     // Some devices (e.g. Insta) take very long trying to discover the correct coordinator EP for OTA.
     const queryNextImageRequest = endpoint.waitForCommand(
-        'genOta',
-        'queryNextImageRequest',
+        "genOta",
+        "queryNextImageRequest",
         undefined,
         60000,
     ) as Request<QueryNextImageRequestPayload>;
@@ -453,7 +453,7 @@ function getInitialMaximumDataSize(imageBlockRequest: CommandResult<ImageBlockRe
         return 40;
     } else if (imageBlockRequest.payload.manufacturerCode === Zcl.ManufacturerCode.LEGRAND_GROUP) {
         // Legrand devices (newer firmware) require up to 64 bytes (= manufacturerCode 4129).
-        return Infinity;
+        return Number.POSITIVE_INFINITY;
     }
 
     return initialMaximumDataSize;
@@ -529,7 +529,7 @@ function callOnProgress(
         percentage = Math.round(percentage * 10000) / 100;
 
         logger.debug(() => `${deviceLogString(device)} Update at ${percentage}%, remaining ${remaining} seconds`, NS);
-        onProgress(percentage, remaining === Infinity ? undefined : remaining);
+        onProgress(percentage, remaining === Number.POSITIVE_INFINITY ? undefined : remaining);
 
         return now;
     } else {
@@ -575,12 +575,12 @@ async function isImageAvailable(
     device: Zh.Device,
     extraMetas: Ota.ExtraMetas,
     previous: boolean,
-): Promise<Omit<Ota.UpdateAvailableResult, 'available'> & {available: number}> {
-    const imageSet = previous ? 'previous' : 'latest';
+): Promise<Omit<Ota.UpdateAvailableResult, "available"> & {available: number}> {
+    const imageSet = previous ? "previous" : "latest";
 
     logger.debug(() => `${deviceLogString(device)} Checking ${imageSet} image availability, current: ${JSON.stringify(current)}`, NS);
 
-    if (['lumi.airrtc.agl001', 'lumi.curtain.acn003', 'lumi.curtain.agl001'].includes(device.modelID!)) {
+    if (["lumi.airrtc.agl001", "lumi.curtain.acn003", "lumi.curtain.agl001"].includes(device.modelID!)) {
         // The current.fileVersion which comes from the device is wrong.
         // Use the `lumiFileVersion` which comes from the manuSpecificLumi.attributeReport instead.
         // https://github.com/Koenkk/zigbee2mqtt/issues/16345#issuecomment-1454835056
@@ -608,7 +608,7 @@ async function isImageAvailable(
 
     /* istanbul ignore next */
     if (meta.releaseNotes) {
-        logger.info(() => `${deviceLogString(device)} Firmware release notes: ${meta.releaseNotes!.replace(/[\r\n]/g, '')}`, NS);
+        logger.info(() => `${deviceLogString(device)} Firmware release notes: ${meta.releaseNotes!.replace(/[\r\n]/g, "")}`, NS);
     }
 
     // Negative number means the firmware is 'newer' than current one
@@ -627,7 +627,7 @@ async function getImage(current: Ota.ImageInfo, device: Zh.Device, extraMetas: O
         throw new Error(`${deviceLogString(device)} No image currently available`);
     }
 
-    const imageSet = previous ? 'previous' : 'latest';
+    const imageSet = previous ? "previous" : "latest";
 
     logger.info(() => `${deviceLogString(device)} Getting ${imageSet} image, meta: ${JSON.stringify(meta)}`, NS);
 
@@ -640,10 +640,10 @@ async function getImage(current: Ota.ImageInfo, device: Zh.Device, extraMetas: O
     const downloadedFile = await getFirmwareFile(meta);
 
     if (meta.sha512) {
-        const hash = crypto.createHash('sha512');
+        const hash = crypto.createHash("sha512");
         hash.update(downloadedFile);
 
-        assert(hash.digest('hex') === meta.sha512, `File checksum validation failed`);
+        assert(hash.digest("hex") === meta.sha512, `File checksum validation failed`);
         logger.debug(() => `${deviceLogString(device)} Image checksum validation succeeded.`, NS);
     }
 
@@ -662,12 +662,12 @@ async function getImage(current: Ota.ImageInfo, device: Zh.Device, extraMetas: O
 
     // this is only reachable if manifest is missing hardwareVersionMin/Max
     if (
-        'minimumHardwareVersion' in image.header &&
+        "minimumHardwareVersion" in image.header &&
         image.header.minimumHardwareVersion !== undefined &&
-        'maximumHardwareVersion' in image.header &&
+        "maximumHardwareVersion" in image.header &&
         image.header.maximumHardwareVersion !== undefined
     ) {
-        assert(device.hardwareVersion != undefined, 'Hardware version required');
+        assert(device.hardwareVersion != undefined, "Hardware version required");
         assert(
             image.header.minimumHardwareVersion <= device.hardwareVersion && device.hardwareVersion <= image.header.maximumHardwareVersion,
             `Hardware version mismatch`,
@@ -687,12 +687,12 @@ export async function isUpdateAvailable(
 ): Promise<Ota.UpdateAvailableResult> {
     logger.debug(() => `${deviceLogString(device)} Checking if an update is available`, NS);
 
-    if (device.modelID === 'PP-WHT-US') {
+    if (device.modelID === "PP-WHT-US") {
         // see https://github.com/Koenkk/zigbee-OTA/pull/14
-        const scenesEndpoint = device.endpoints.find((e) => e.supportsOutputCluster('genScenes'));
+        const scenesEndpoint = device.endpoints.find((e) => e.supportsOutputCluster("genScenes"));
 
         if (scenesEndpoint) {
-            await scenesEndpoint.write('genScenes', {currentGroup: 49502});
+            await scenesEndpoint.write("genScenes", {currentGroup: 49502});
         }
     }
 
@@ -710,16 +710,16 @@ export async function isUpdateAvailable(
     }
 
     const availableResult = await isImageAvailable(requestPayload, device, extraMetas, previous);
-    let available: boolean = false;
+    let available = false;
 
     if (previous) {
         available = availableResult.available > 0;
 
-        logger.debug(() => `${deviceLogString(device)} Downgrade available: ${available ? 'YES' : 'NO'}`, NS);
+        logger.debug(() => `${deviceLogString(device)} Downgrade available: ${available ? "YES" : "NO"}`, NS);
     } else {
         available = availableResult.available < 0;
 
-        logger.debug(() => `${deviceLogString(device)} Upgrade available: ${available ? 'YES' : 'NO'}`, NS);
+        logger.debug(() => `${deviceLogString(device)} Upgrade available: ${available ? "YES" : "NO"}`, NS);
 
         if (availableResult.available > 0) {
             logger.warning(() => `${deviceLogString(device)} Firmware is newer than latest available firmware.`, NS);
@@ -758,7 +758,7 @@ function getImageBlockOrPageRequestTimeoutMs(requestPayload: Ota.ImageInfo): num
  * @see https://zigbeealliance.org/wp-content/uploads/2021/10/07-5123-08-Zigbee-Cluster-Library.pdf 11.12
  */
 export async function update(device: Zh.Device, extraMetas: Ota.ExtraMetas, previous: boolean, onProgress: Ota.OnProgress): Promise<number> {
-    const imageSet = previous ? 'previous' : 'latest';
+    const imageSet = previous ? "previous" : "latest";
 
     logger.debug(() => `${deviceLogString(device)} Updating to ${imageSet}`, NS);
 
@@ -767,12 +767,12 @@ export async function update(device: Zh.Device, extraMetas: Ota.ExtraMetas, prev
 
     logger.debug(() => `${deviceLogString(device)} Using endpoint '${endpoint.ID}'`, NS);
 
-    if (device.modelID === 'PP-WHT-US') {
+    if (device.modelID === "PP-WHT-US") {
         // see https://github.com/Koenkk/zigbee-OTA/pull/14
-        const scenesEndpoint = device.endpoints.find((e) => e.supportsOutputCluster('genScenes'));
+        const scenesEndpoint = device.endpoints.find((e) => e.supportsOutputCluster("genScenes"));
 
         if (scenesEndpoint) {
-            await scenesEndpoint.write('genScenes', {currentGroup: 49502});
+            await scenesEndpoint.write("genScenes", {currentGroup: 49502});
         }
     }
 
@@ -789,7 +789,7 @@ export async function update(device: Zh.Device, extraMetas: Ota.ExtraMetas, prev
     await sendQueryNextImageResponse(device, endpoint, image, transNum);
 
     const waiters: Waiters = {};
-    let lastBlockResponseTime: number = 0;
+    let lastBlockResponseTime = 0;
     let lastBlockTimeout: NodeJS.Timeout;
     let lastUpdate: number | undefined = undefined;
     const startTime = Date.now();
@@ -823,8 +823,8 @@ export async function update(device: Zh.Device, extraMetas: Ota.ExtraMetas, prev
             const blockPayload = getImageBlockResponsePayload(device, image, imageBlockRequest, pageOffset, pageSize);
 
             await endpoint.commandResponse(
-                'genOta',
-                'imageBlockResponse',
+                "genOta",
+                "imageBlockResponse",
                 blockPayload,
                 undefined,
                 imageBlockRequest.header.transactionSequenceNumber,
@@ -841,22 +841,22 @@ export async function update(device: Zh.Device, extraMetas: Ota.ExtraMetas, prev
         return pageOffset;
     };
 
-    let done: boolean = false;
+    let done = false;
     const imageBlockOrPageRequestTimeoutMs = getImageBlockOrPageRequestTimeoutMs(requestPayload);
 
     /** recursive, endless (expects `upgradeEndRequest` to stop it, or anything that sets done=true) */
     const sendImageChunks = async (): Promise<void> => {
         while (!done) {
             const imageBlockRequest = endpoint.waitForCommand(
-                'genOta',
-                'imageBlockRequest',
+                "genOta",
+                "imageBlockRequest",
                 undefined,
                 imageBlockOrPageRequestTimeoutMs,
             ) as Request<ImageBlockRequestPayload>;
 
             const imagePageRequest = endpoint.waitForCommand(
-                'genOta',
-                'imagePageRequest',
+                "genOta",
+                "imagePageRequest",
                 undefined,
                 imageBlockOrPageRequestTimeoutMs,
             ) as Request<ImagePageRequestPayload>;
@@ -874,7 +874,7 @@ export async function update(device: Zh.Device, extraMetas: Ota.ExtraMetas, prev
                 let pageSize = 0;
                 let pageOffset = 0;
 
-                if ('pageSize' in result.payload) {
+                if ("pageSize" in result.payload) {
                     // TODO: `result.payload.responseSpacing` support?
                     // imagePageRequest
                     pageSize = result.payload.pageSize;
@@ -902,7 +902,7 @@ export async function update(device: Zh.Device, extraMetas: Ota.ExtraMetas, prev
 
     logger.debug(() => `${deviceLogString(device)} Starting update`, NS);
 
-    waiters.upgradeEndRequest = endpoint.waitForCommand('genOta', 'upgradeEndRequest', undefined, MAX_TIMEOUT) as Request<UpdateEndRequestPayload>;
+    waiters.upgradeEndRequest = endpoint.waitForCommand("genOta", "upgradeEndRequest", undefined, MAX_TIMEOUT) as Request<UpdateEndRequestPayload>;
 
     await Promise.race([
         sendImageChunks(),
@@ -930,7 +930,7 @@ export async function update(device: Zh.Device, extraMetas: Ota.ExtraMetas, prev
         };
 
         try {
-            await endpoint.commandResponse('genOta', 'upgradeEndResponse', payload, undefined, endResult.header.transactionSequenceNumber);
+            await endpoint.commandResponse("genOta", "upgradeEndResponse", payload, undefined, endResult.header.transactionSequenceNumber);
 
             logger.debug(() => `${deviceLogString(device)} Update successful. Waiting for device announce...`, NS);
 
@@ -949,12 +949,12 @@ export async function update(device: Zh.Device, extraMetas: Ota.ExtraMetas, prev
 
                 // force "finished" after given time
                 timer = setTimeout(() => {
-                    device.removeListener('deviceAnnounce', onDeviceAnnounce);
+                    device.removeListener("deviceAnnounce", onDeviceAnnounce);
                     logger.debug(() => `${deviceLogString(device)} Timed out waiting for device announce, update considered finished.`, NS);
                     resolve(image.header.fileVersion);
                 }, UPDATE_END_FORCE_RESOLVE_TIME);
 
-                device.once('deviceAnnounce', onDeviceAnnounce);
+                device.once("deviceAnnounce", onDeviceAnnounce);
             });
         } catch (error) {
             throw new Error(`Upgrade end response failed: ${(error as Error).message}`);

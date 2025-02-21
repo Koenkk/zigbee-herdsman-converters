@@ -1,14 +1,14 @@
-import {Zcl} from 'zigbee-herdsman';
+import {Zcl} from "zigbee-herdsman";
 
-import fz from '../converters/fromZigbee';
-import tz from '../converters/toZigbee';
-import * as constants from '../lib/constants';
-import * as exposes from '../lib/exposes';
-import * as m from '../lib/modernExtend';
-import * as reporting from '../lib/reporting';
-import * as globalStore from '../lib/store';
-import {DefinitionWithExtend, Fz, KeyValue, Publish} from '../lib/types';
-import * as utils from '../lib/utils';
+import fz from "../converters/fromZigbee";
+import tz from "../converters/toZigbee";
+import * as constants from "../lib/constants";
+import * as exposes from "../lib/exposes";
+import * as m from "../lib/modernExtend";
+import * as reporting from "../lib/reporting";
+import * as globalStore from "../lib/store";
+import type {DefinitionWithExtend, Fz, KeyValue, Publish} from "../lib/types";
+import * as utils from "../lib/utils";
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -16,15 +16,15 @@ const ea = exposes.access;
 const kmpcilOptions = {
     presence_timeout_dc: () => {
         return e
-            .numeric('presence_timeout_dc', ea.STATE)
+            .numeric("presence_timeout_dc", ea.STATE)
             .withValueMin(60)
-            .withDescription('Time in seconds after which presence is cleared after detecting it (default 60 seconds) while in DC.');
+            .withDescription("Time in seconds after which presence is cleared after detecting it (default 60 seconds) while in DC.");
     },
     presence_timeout_battery: () => {
         return e
-            .numeric('presence_timeout_battery', ea.STATE)
+            .numeric("presence_timeout_battery", ea.STATE)
             .withValueMin(120)
-            .withDescription('Time in seconds after which presence is cleared after detecting it (default 420 seconds) while in Battery.');
+            .withDescription("Time in seconds after which presence is cleared after detecting it (default 420 seconds) while in Battery.");
     },
 };
 
@@ -35,25 +35,25 @@ function handleKmpcilPresence(model: DefinitionWithExtend, msg: Fz.Message, publ
     const useOptionsTimeoutDc = options && options.presence_timeout_dc !== undefined;
     const timeoutDc = useOptionsTimeoutDc ? options.presence_timeout_dc : 60;
 
-    const mode = meta.state ? meta.state['power_state'] : false;
+    const mode = meta.state ? meta.state["power_state"] : false;
 
     const timeout = Number(mode ? timeoutDc : timeoutBattery);
     // Stop existing timer because motion is detected and set a new one.
-    clearTimeout(globalStore.getValue(msg.endpoint, 'timer'));
+    clearTimeout(globalStore.getValue(msg.endpoint, "timer"));
     const timer = setTimeout(() => publish({presence: false}), timeout * 1000);
-    globalStore.putValue(msg.endpoint, 'timer', timer);
+    globalStore.putValue(msg.endpoint, "timer", timer);
 
     return {presence: true};
 }
 
 const kmpcilConverters = {
     presence_binary_input: {
-        cluster: 'genBinaryInput',
-        type: ['attributeReport', 'readResponse'],
+        cluster: "genBinaryInput",
+        type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             const payload = handleKmpcilPresence(model, msg, publish, options, meta);
             if (msg.data.presentValue !== undefined) {
-                const presentValue = msg.data['presentValue'];
+                const presentValue = msg.data["presentValue"];
                 payload.power_state = (presentValue & 0x01) > 0;
                 payload.occupancy = (presentValue & 0x04) > 0;
                 payload.vibration = (presentValue & 0x02) > 0;
@@ -62,13 +62,13 @@ const kmpcilConverters = {
         },
     } satisfies Fz.Converter,
     presence_power: {
-        cluster: 'genPowerCfg',
-        type: ['attributeReport', 'readResponse'],
+        cluster: "genPowerCfg",
+        type: ["attributeReport", "readResponse"],
         options: [kmpcilOptions.presence_timeout_dc(), kmpcilOptions.presence_timeout_battery()],
         convert: (model, msg, publish, options, meta) => {
             const payload = handleKmpcilPresence(model, msg, publish, options, meta);
             if (msg.data.batteryVoltage !== undefined) {
-                payload.voltage = msg.data['batteryVoltage'] * 100;
+                payload.voltage = msg.data["batteryVoltage"] * 100;
                 if (model.meta && model.meta.battery && model.meta.battery.voltageToPercentage) {
                     // @ts-expect-error ignore
                     payload.battery = utils.batteryVoltageToPercentage(payload.voltage, model.meta.battery.voltageToPercentage);
@@ -81,35 +81,35 @@ const kmpcilConverters = {
 
 export const definitions: DefinitionWithExtend[] = [
     {
-        zigbeeModel: ['RES005'],
-        model: 'KMPCIL_RES005',
-        vendor: 'KMPCIL',
-        description: 'Environment sensor',
+        zigbeeModel: ["RES005"],
+        model: "KMPCIL_RES005",
+        vendor: "KMPCIL",
+        description: "Environment sensor",
         exposes: [e.battery(), e.temperature(), e.humidity(), e.pressure(), e.occupancy(), e.switch()],
         fromZigbee: [fz.battery, fz.temperature, fz.humidity, fz.pressure, fz.kmpcil_res005_occupancy, fz.kmpcil_res005_on_off],
         toZigbee: [tz.kmpcil_res005_on_off],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(8);
             const binds = [
-                'genPowerCfg',
-                'msTemperatureMeasurement',
-                'msRelativeHumidity',
-                'msPressureMeasurement',
-                'genBinaryInput',
-                'genBinaryOutput',
+                "genPowerCfg",
+                "msTemperatureMeasurement",
+                "msRelativeHumidity",
+                "msPressureMeasurement",
+                "genBinaryInput",
+                "genBinaryOutput",
             ];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
             await reporting.temperature(endpoint);
             await reporting.humidity(endpoint);
             const payloadBattery = [
                 {
-                    attribute: 'batteryPercentageRemaining',
+                    attribute: "batteryPercentageRemaining",
                     minimumReportInterval: 1,
                     maximumReportInterval: 120,
                     reportableChange: 1,
                 },
             ];
-            await endpoint.configureReporting('genPowerCfg', payloadBattery);
+            await endpoint.configureReporting("genPowerCfg", payloadBattery);
             const payloadPressure = [
                 {
                     // 0 = measuredValue, override dataType from int16 to uint16
@@ -120,51 +120,51 @@ export const definitions: DefinitionWithExtend[] = [
                     reportableChange: 3,
                 },
             ];
-            await endpoint.configureReporting('msPressureMeasurement', payloadPressure);
+            await endpoint.configureReporting("msPressureMeasurement", payloadPressure);
             const options = {disableDefaultResponse: true};
-            await endpoint.write('genBinaryInput', {0x0051: {value: 0x01, type: 0x10}}, options);
-            await endpoint.write('genBinaryInput', {0x0101: {value: 25, type: 0x23}}, options);
+            await endpoint.write("genBinaryInput", {81: {value: 0x01, type: 0x10}}, options);
+            await endpoint.write("genBinaryInput", {257: {value: 25, type: 0x23}}, options);
             const payloadBinaryInput = [
                 {
-                    attribute: 'presentValue',
+                    attribute: "presentValue",
                     minimumReportInterval: 0,
                     maximumReportInterval: 30,
                     reportableChange: 1,
                 },
             ];
-            await endpoint.configureReporting('genBinaryInput', payloadBinaryInput);
-            await endpoint.write('genBinaryOutput', {0x0051: {value: 0x01, type: 0x10}}, options);
+            await endpoint.configureReporting("genBinaryInput", payloadBinaryInput);
+            await endpoint.write("genBinaryOutput", {81: {value: 0x01, type: 0x10}}, options);
             const payloadBinaryOutput = [
                 {
-                    attribute: 'presentValue',
+                    attribute: "presentValue",
                     minimumReportInterval: 0,
                     maximumReportInterval: 30,
                     reportableChange: 1,
                 },
             ];
-            await endpoint.configureReporting('genBinaryOutput', payloadBinaryOutput);
+            await endpoint.configureReporting("genBinaryOutput", payloadBinaryOutput);
         },
         extend: [m.illuminance()],
     },
     {
-        zigbeeModel: ['tagv1'],
-        model: 'KMPCIL-tag-001',
-        vendor: 'KMPCIL',
-        description: 'Arrival sensor',
+        zigbeeModel: ["tagv1"],
+        model: "KMPCIL-tag-001",
+        vendor: "KMPCIL",
+        description: "Arrival sensor",
         fromZigbee: [kmpcilConverters.presence_binary_input, kmpcilConverters.presence_power, fz.temperature],
         exposes: [
             e.battery(),
             e.presence(),
-            e.binary('power_state', exposes.access.STATE, true, false),
+            e.binary("power_state", exposes.access.STATE, true, false),
             e.occupancy(),
             e.vibration(),
             e.temperature(),
         ],
         toZigbee: [],
-        meta: {battery: {voltageToPercentage: '3V_1500_2800'}},
+        meta: {battery: {voltageToPercentage: "3V_1500_2800"}},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            for (const cluster of ['msTemperatureMeasurement', 'genPowerCfg', 'genBinaryInput']) {
+            for (const cluster of ["msTemperatureMeasurement", "genPowerCfg", "genBinaryInput"]) {
                 // This sleep here(and the sleep) after is to allow the command to be
                 // fully sent to coordinator.  In case repeater involved and the repeater
                 // is litted in resources,  we may want to give some time so that the sequence of
@@ -174,16 +174,16 @@ export const definitions: DefinitionWithExtend[] = [
             }
 
             await utils.sleep(1000);
-            const p = reporting.payload('batteryVoltage', 0, 10, 1);
-            await endpoint.configureReporting('genPowerCfg', p);
+            const p = reporting.payload("batteryVoltage", 0, 10, 1);
+            await endpoint.configureReporting("genPowerCfg", p);
 
             await utils.sleep(1000);
-            const p2 = reporting.payload('presentValue', 0, 300, 1);
-            await endpoint.configureReporting('genBinaryInput', p2);
+            const p2 = reporting.payload("presentValue", 0, 300, 1);
+            await endpoint.configureReporting("genBinaryInput", p2);
 
             await utils.sleep(1000);
             await reporting.temperature(endpoint);
-            await endpoint.read('genBinaryInput', ['presentValue']);
+            await endpoint.read("genBinaryInput", ["presentValue"]);
         },
     },
 ];

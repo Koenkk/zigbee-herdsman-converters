@@ -1,9 +1,9 @@
-import {Zcl} from 'zigbee-herdsman';
+import {Zcl} from "zigbee-herdsman";
 
-import {Light, Numeric} from './exposes';
-import {logger} from './logger';
-import * as globalStore from './store';
-import {
+import type {Light, Numeric} from "./exposes";
+import {logger} from "./logger";
+import * as globalStore from "./store";
+import type {
     BatteryLinearVoltage,
     BatteryNonLinearVoltage,
     Configure,
@@ -17,9 +17,9 @@ import {
     Publish,
     Tz,
     Zh,
-} from './types';
+} from "./types";
 
-const NS = 'zhc:utils';
+const NS = "zhc:utils";
 
 export function flatten<Type>(arr: Type[][]): Type[] {
     return [].concat(...arr);
@@ -34,7 +34,7 @@ export function onEventPoll(
     defaultIntervalSeconds: number,
     poll: () => Promise<void>,
 ) {
-    if (type === 'stop') {
+    if (type === "stop") {
         clearTimeout(globalStore.getValue(device, key));
         globalStore.clearValue(device, key);
     } else if (!globalStore.hasValue(device, key)) {
@@ -61,10 +61,10 @@ export function onEventPoll(
 }
 
 export function precisionRound(number: number, precision: number): number {
-    if (typeof precision === 'number') {
+    if (typeof precision === "number") {
         const factor = Math.pow(10, precision);
         return Math.round(number * factor) / factor;
-    } else if (typeof precision === 'object') {
+    } else if (typeof precision === "object") {
         const thresholds = Object.keys(precision)
             .map(Number)
             .sort((a, b) => b - a);
@@ -79,27 +79,27 @@ export function precisionRound(number: number, precision: number): number {
 
 export function toLocalISOString(dDate: Date) {
     const tzOffset = -dDate.getTimezoneOffset();
-    const plusOrMinus = tzOffset >= 0 ? '+' : '-';
-    const pad = function (num: number) {
+    const plusOrMinus = tzOffset >= 0 ? "+" : "-";
+    const pad = (num: number) => {
         const norm = Math.floor(Math.abs(num));
-        return (norm < 10 ? '0' : '') + norm;
+        return (norm < 10 ? "0" : "") + norm;
     };
 
     return (
         dDate.getFullYear() +
-        '-' +
+        "-" +
         pad(dDate.getMonth() + 1) +
-        '-' +
+        "-" +
         pad(dDate.getDate()) +
-        'T' +
+        "T" +
         pad(dDate.getHours()) +
-        ':' +
+        ":" +
         pad(dDate.getMinutes()) +
-        ':' +
+        ":" +
         pad(dDate.getSeconds()) +
         plusOrMinus +
         pad(tzOffset / 60) +
-        ':' +
+        ":" +
         pad(tzOffset % 60)
     );
 }
@@ -134,7 +134,7 @@ const transactionStore: {[s: string]: number[]} = {};
 export function hasAlreadyProcessedMessage(msg: Fz.Message, model: Definition, ID: number = null, key: string = null) {
     if (model.meta && model.meta.publishDuplicateTransaction) return false;
     const currentID = ID !== null ? ID : msg.meta.zclTransactionSequenceNumber;
-    key = key || msg.device.ieeeAddr + '-' + msg.endpoint.ID;
+    key = key || msg.device.ieeeAddr + "-" + msg.endpoint.ID;
     if (transactionStore[key]?.includes(currentID)) return true;
     // Keep last 5, as they might come in different order: https://github.com/Koenkk/zigbee2mqtt/issues/20024
     transactionStore[key] = [currentID, ...(transactionStore[key] ?? [])].slice(0, 5);
@@ -167,11 +167,11 @@ export const calibrateAndPrecisionRoundOptionsDefaultPrecision: KeyValue = {
 };
 export function calibrateAndPrecisionRoundOptionsIsPercentual(type: string) {
     return (
-        type.startsWith('current') ||
-        type.startsWith('energy') ||
-        type.startsWith('voltage') ||
-        type.startsWith('power') ||
-        type.startsWith('illuminance')
+        type.startsWith("current") ||
+        type.startsWith("energy") ||
+        type.startsWith("voltage") ||
+        type.startsWith("power") ||
+        type.startsWith("illuminance")
     );
 }
 export function calibrateAndPrecisionRoundOptions(number: number, options: KeyValue, type: string) {
@@ -245,7 +245,7 @@ export function exposeEndpoints<T extends Expose>(expose: T, endpointNames?: str
 
 export function enforceEndpoint(entity: Zh.Endpoint, key: string, meta: Tz.Meta) {
     // @ts-expect-error ignore
-    const multiEndpointEnforce: {[s: string]: number} = getMetaValue(entity, meta.mapped, 'multiEndpointEnforce', 'allEqual', []);
+    const multiEndpointEnforce: {[s: string]: number} = getMetaValue(entity, meta.mapped, "multiEndpointEnforce", "allEqual", []);
     if (multiEndpointEnforce && isObject(multiEndpointEnforce) && multiEndpointEnforce[key] !== undefined) {
         const endpoint = entity.getDevice().getEndpoint(multiEndpointEnforce[key]);
         if (endpoint) return endpoint;
@@ -265,8 +265,8 @@ export function getKey<T>(object: {[s: string]: T} | {[s: number]: T}, value: T,
 }
 
 export function batteryVoltageToPercentage(voltage: number, option: BatteryNonLinearVoltage | BatteryLinearVoltage): number {
-    if (option === '3V_2100') {
-        let percentage: number = 100; // >= 3000
+    if (option === "3V_2100") {
+        let percentage = 100; // >= 3000
 
         if (voltage < 2100) {
             percentage = 0;
@@ -281,11 +281,11 @@ export function batteryVoltageToPercentage(voltage: number, option: BatteryNonLi
         }
 
         return Math.round(percentage);
-    } else if (option === '3V_1500_2800') {
+    } else if (option === "3V_1500_2800") {
         const percentage = 235 - 370000 / (voltage + 1);
 
         return Math.round(Math.min(Math.max(percentage, 0), 100));
-    } else if (typeof option === 'object') {
+    } else if (typeof option === "object") {
         // Generic converter that expects an option object with min and max values
         // I.E. meta: {battery: {voltageToPercentage: {min: 1900, max: 3000}}}
         return toPercentage(voltage + (option.vOffset ?? 0), option.min, option.max);
@@ -302,7 +302,7 @@ export function getMetaValue<T>(
     entity: Zh.Group | Zh.Endpoint,
     definition: Definition | Definition[],
     key: string,
-    groupStrategy: 'allEqual' | 'first' | {atLeastOnce: T} = 'first',
+    groupStrategy: "allEqual" | "first" | {atLeastOnce: T} = "first",
     defaultValue: T = undefined,
 ): T {
     // In case meta is a function, the first argument should be a `Zh.Entity`.
@@ -311,10 +311,10 @@ export function getMetaValue<T>(
         for (let i = 0; i < entity.members.length; i++) {
             const memberMetaMeta = getMetaValues((definition as Definition[])[i], entity.members[i]);
             if (memberMetaMeta?.[key] !== undefined) {
-                const value = typeof memberMetaMeta[key] === 'function' ? memberMetaMeta[key](entity.members[i]) : memberMetaMeta[key];
-                if (groupStrategy === 'first') {
+                const value = typeof memberMetaMeta[key] === "function" ? memberMetaMeta[key](entity.members[i]) : memberMetaMeta[key];
+                if (groupStrategy === "first") {
                     return value;
-                } else if (typeof groupStrategy === 'object' && value === groupStrategy.atLeastOnce) {
+                } else if (typeof groupStrategy === "object" && value === groupStrategy.atLeastOnce) {
                     return groupStrategy.atLeastOnce;
                 }
 
@@ -324,13 +324,13 @@ export function getMetaValue<T>(
             }
         }
 
-        if (groupStrategy === 'allEqual' && new Set(values).size === 1) {
+        if (groupStrategy === "allEqual" && new Set(values).size === 1) {
             return values[0];
         }
     } else {
         const definitionMeta = getMetaValues(definition, entity);
         if (definitionMeta?.[key] !== undefined) {
-            return typeof definitionMeta[key] === 'function' ? definitionMeta[key](entity) : definitionMeta[key];
+            return typeof definitionMeta[key] === "function" ? definitionMeta[key](entity) : definitionMeta[key];
         }
     }
 
@@ -365,7 +365,7 @@ export function replaceToZigbeeConvertersInArray(
             clone[index] = newElements[i];
         } else {
             if (errorIfNotInArray) {
-                throw new Error('Element not in array');
+                throw new Error("Element not in array");
             }
         }
     }
@@ -388,7 +388,7 @@ export async function sleep(ms: number) {
 }
 
 export function toSnakeCase(value: string | KeyValueAny) {
-    if (typeof value === 'object') {
+    if (typeof value === "object") {
         for (const key of Object.keys(value)) {
             const keySnakeCase = toSnakeCase(key);
             if (key !== keySnakeCase) {
@@ -400,14 +400,14 @@ export function toSnakeCase(value: string | KeyValueAny) {
         return value;
     } else {
         return value
-            .replace(/\.?([A-Z])/g, (x, y) => '_' + y.toLowerCase())
-            .replace(/^_/, '')
-            .replace('_i_d', '_id');
+            .replace(/\.?([A-Z])/g, (x, y) => "_" + y.toLowerCase())
+            .replace(/^_/, "")
+            .replace("_i_d", "_id");
     }
 }
 
 export function toCamelCase(value: KeyValueAny | string) {
-    if (typeof value === 'object') {
+    if (typeof value === "object") {
         for (const key of Object.keys(value)) {
             const keyCamelCase = toCamelCase(key);
             if (key !== keyCamelCase) {
@@ -423,12 +423,12 @@ export function toCamelCase(value: KeyValueAny | string) {
 }
 
 export function getLabelFromName(name: string) {
-    const label = name.replace(/_/g, ' ');
+    const label = name.replace(/_/g, " ");
     return label[0].toUpperCase() + label.slice(1);
 }
 
 export function saveSceneState(entity: Zh.Endpoint, sceneID: number, groupID: number, state: KeyValue, name: string) {
-    const attributes = ['state', 'brightness', 'color', 'color_temp', 'color_mode'];
+    const attributes = ["state", "brightness", "color", "color_temp", "color_mode"];
     if (entity.meta.scenes === undefined) entity.meta.scenes = {};
     const metaKey = `${sceneID}_${groupID}`;
     entity.meta.scenes[metaKey] = {name, state: filterObject(state, attributes)};
@@ -483,16 +483,16 @@ export function getTransition(entity: Zh.Endpoint | Zh.Group, key: string, meta:
          * To workaround this we skip the transition for the brightness as it is applied first.
          * https://github.com/Koenkk/zigbee2mqtt/issues/1810
          */
-        if (key === 'brightness' && (message.color !== undefined || message.color_temp !== undefined)) {
+        if (key === "brightness" && (message.color !== undefined || message.color_temp !== undefined)) {
             return {time: 0, specified: false};
         }
     }
 
     if (message.transition !== undefined) {
-        const time = toNumber(message.transition, 'transition');
+        const time = toNumber(message.transition, "transition");
         return {time: time * 10, specified: true};
-    } else if (options.transition !== undefined && options.transition !== '') {
-        const transition = toNumber(options.transition, 'transition');
+    } else if (options.transition !== undefined && options.transition !== "") {
+        const transition = toNumber(options.transition, "transition");
         return {time: transition * 10, specified: true};
     } else {
         return {time: 0, specified: false};
@@ -500,7 +500,7 @@ export function getTransition(entity: Zh.Endpoint | Zh.Group, key: string, meta:
 }
 
 export function getOptions(definition: Definition | Definition[], entity: Zh.Endpoint | Zh.Group, options = {}) {
-    const allowed = ['disableDefaultResponse', 'timeout'];
+    const allowed = ["disableDefaultResponse", "timeout"];
     return getMetaValues(definition, entity, allowed, options);
 }
 
@@ -512,7 +512,7 @@ export function getMetaValues(definitions: Definition | Definition[], entity: Zh
                 if (allowed == null || allowed.includes(key)) {
                     // @ts-expect-error ignore
                     const value = definition.meta[key];
-                    if (typeof value === 'function') {
+                    if (typeof value === "function") {
                         if (isEndpoint(entity)) {
                             result[key] = value(entity);
                         }
@@ -554,21 +554,21 @@ export function normalizeCelsiusVersionOfFahrenheit(value: number) {
     return Number(((roundedFahrenheit - 32) / 1.8).toFixed(2));
 }
 
-export function noOccupancySince(endpoint: Zh.Endpoint, options: KeyValueAny, publish: Publish, action: 'start' | 'stop') {
+export function noOccupancySince(endpoint: Zh.Endpoint, options: KeyValueAny, publish: Publish, action: "start" | "stop") {
     if (options && options.no_occupancy_since) {
-        if (action == 'start') {
-            globalStore.getValue(endpoint, 'no_occupancy_since_timers', []).forEach((t: ReturnType<typeof setInterval>) => clearTimeout(t));
-            globalStore.putValue(endpoint, 'no_occupancy_since_timers', []);
+        if (action == "start") {
+            globalStore.getValue(endpoint, "no_occupancy_since_timers", []).forEach((t: ReturnType<typeof setInterval>) => clearTimeout(t));
+            globalStore.putValue(endpoint, "no_occupancy_since_timers", []);
 
             options.no_occupancy_since.forEach((since: number) => {
                 const timer = setTimeout(() => {
                     publish({no_occupancy_since: since});
                 }, since * 1000);
-                globalStore.getValue(endpoint, 'no_occupancy_since_timers').push(timer);
+                globalStore.getValue(endpoint, "no_occupancy_since_timers").push(timer);
             });
-        } else if (action === 'stop') {
-            globalStore.getValue(endpoint, 'no_occupancy_since_timers', []).forEach((t: ReturnType<typeof setInterval>) => clearTimeout(t));
-            globalStore.putValue(endpoint, 'no_occupancy_since_timers', []);
+        } else if (action === "stop") {
+            globalStore.getValue(endpoint, "no_occupancy_since_timers", []).forEach((t: ReturnType<typeof setInterval>) => clearTimeout(t));
+            globalStore.putValue(endpoint, "no_occupancy_since_timers", []);
         }
     }
 }
@@ -584,73 +584,73 @@ export function attachOutputCluster(device: Zh.Device, clusterKey: string) {
 }
 
 export function printNumberAsHex(value: number, hexLength: number): string {
-    const hexValue = value.toString(16).padStart(hexLength, '0');
+    const hexValue = value.toString(16).padStart(hexLength, "0");
     return `0x${hexValue}`;
 }
 
 export function printNumbersAsHexSequence(numbers: number[], hexLength: number): string {
-    return numbers.map((v) => v.toString(16).padStart(hexLength, '0')).join(':');
+    return numbers.map((v) => v.toString(16).padStart(hexLength, "0")).join(":");
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function assertObject(value: unknown, property?: string): asserts value is {[s: string]: any} {
-    const isObject = typeof value === 'object' && !Array.isArray(value) && value !== null;
+    const isObject = typeof value === "object" && !Array.isArray(value) && value !== null;
     if (!isObject) {
         throw new Error(`${property} is not a object, got ${typeof value} (${JSON.stringify(value)})`);
     }
 }
 
 export function assertArray(value: unknown, property?: string): asserts value is Array<unknown> {
-    property = property ? `'${property}'` : 'Value';
+    property = property ? `'${property}'` : "Value";
     if (!Array.isArray(value)) throw new Error(`${property} is not an array, got ${typeof value} (${value.toString()})`);
 }
 
 export function assertString(value: unknown, property?: string): asserts value is string {
-    property = property ? `'${property}'` : 'Value';
-    if (typeof value !== 'string') throw new Error(`${property} is not a string, got ${typeof value} (${value.toString()})`);
+    property = property ? `'${property}'` : "Value";
+    if (typeof value !== "string") throw new Error(`${property} is not a string, got ${typeof value} (${value.toString()})`);
 }
 
 export function isNumber(value: unknown): value is number {
-    return typeof value === 'number';
+    return typeof value === "number";
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function isObject(value: unknown): value is {[s: string]: any} {
-    return typeof value === 'object' && !Array.isArray(value);
+    return typeof value === "object" && !Array.isArray(value);
 }
 
 export function isString(value: unknown): value is string {
-    return typeof value === 'string';
+    return typeof value === "string";
 }
 
 export function isBoolean(value: unknown): value is boolean {
-    return typeof value === 'boolean';
+    return typeof value === "boolean";
 }
 
 export function assertNumber(value: unknown, property?: string): asserts value is number {
-    property = property ? `'${property}'` : 'Value';
-    if (typeof value !== 'number' || Number.isNaN(value)) throw new Error(`${property} is not a number, got ${typeof value} (${value?.toString()})`);
+    property = property ? `'${property}'` : "Value";
+    if (typeof value !== "number" || Number.isNaN(value)) throw new Error(`${property} is not a number, got ${typeof value} (${value?.toString()})`);
 }
 
 export function toNumber(value: unknown, property?: string): number {
-    property = property ? `'${property}'` : 'Value';
+    property = property ? `'${property}'` : "Value";
     // @ts-expect-error ignore
-    const result = parseFloat(value);
+    const result = Number.parseFloat(value);
     if (Number.isNaN(result)) {
         throw new Error(`${property} is not a number, got ${typeof value} (${value.toString()})`);
     }
     return result;
 }
 
-export function getFromLookup<V>(value: unknown, lookup: {[s: number | string]: V}, defaultValue: V = undefined, keyIsBool: boolean = false): V {
+export function getFromLookup<V>(value: unknown, lookup: {[s: number | string]: V}, defaultValue: V = undefined, keyIsBool = false): V {
     if (!keyIsBool) {
-        if (typeof value === 'string') {
+        if (typeof value === "string") {
             for (const key of [value, value.toLowerCase(), value.toUpperCase()]) {
                 if (lookup[key] !== undefined) {
                     return lookup[key];
                 }
             }
-        } else if (typeof value === 'number') {
+        } else if (typeof value === "number") {
             if (lookup[value] !== undefined) {
                 return lookup[value];
             }
@@ -659,7 +659,7 @@ export function getFromLookup<V>(value: unknown, lookup: {[s: number | string]: 
         }
     } else {
         // Silly hack, but boolean is not supported as index
-        if (typeof value === 'boolean') {
+        if (typeof value === "boolean") {
             const stringValue = value.toString();
             for (const key of [stringValue, stringValue.toLowerCase(), stringValue.toUpperCase()]) {
                 if (lookup[key] !== undefined) {
@@ -671,7 +671,7 @@ export function getFromLookup<V>(value: unknown, lookup: {[s: number | string]: 
         }
     }
     if (defaultValue === undefined) {
-        throw new Error(`Value: '${value}' not found in: [${Object.keys(lookup).join(', ')}]`);
+        throw new Error(`Value: '${value}' not found in: [${Object.keys(lookup).join(", ")}]`);
     }
     return defaultValue;
 }
@@ -683,14 +683,14 @@ export function getFromLookupByValue(value: unknown, lookup: {[s: string]: unkno
         }
     }
     if (defaultValue === undefined) {
-        throw new Error(`Expected one of: ${Object.values(lookup).join(', ')}, got: '${value}'`);
+        throw new Error(`Expected one of: ${Object.values(lookup).join(", ")}, got: '${value}'`);
     }
     return defaultValue;
 }
 
-export function configureSetPowerSourceWhenUnknown(powerSource: 'Battery' | 'Mains (single phase)'): Configure {
+export function configureSetPowerSourceWhenUnknown(powerSource: "Battery" | "Mains (single phase)"): Configure {
     return async (device: Zh.Device): Promise<void> => {
-        if (!device.powerSource || device.powerSource === 'Unknown') {
+        if (!device.powerSource || device.powerSource === "Unknown") {
             logger.debug(`Device has no power source, forcing to '${powerSource}'`, NS);
             device.powerSource = powerSource;
             device.save();
@@ -699,31 +699,31 @@ export function configureSetPowerSourceWhenUnknown(powerSource: 'Battery' | 'Mai
 }
 
 export function assertEndpoint(obj: unknown): asserts obj is Zh.Endpoint {
-    if (obj?.constructor?.name?.toLowerCase() !== 'endpoint') throw new Error('Not an endpoint');
+    if (obj?.constructor?.name?.toLowerCase() !== "endpoint") throw new Error("Not an endpoint");
 }
 
 export function assertGroup(obj: unknown): asserts obj is Zh.Group {
-    if (obj?.constructor?.name?.toLowerCase() !== 'group') throw new Error('Not a group');
+    if (obj?.constructor?.name?.toLowerCase() !== "group") throw new Error("Not a group");
 }
 
 export function isEndpoint(obj: Zh.Endpoint | Zh.Group | Zh.Device): obj is Zh.Endpoint {
-    return obj.constructor.name.toLowerCase() === 'endpoint';
+    return obj.constructor.name.toLowerCase() === "endpoint";
 }
 
 export function isDevice(obj: Zh.Endpoint | Zh.Group | Zh.Device): obj is Zh.Device {
-    return obj.constructor.name.toLowerCase() === 'device';
+    return obj.constructor.name.toLowerCase() === "device";
 }
 
 export function isGroup(obj: Zh.Endpoint | Zh.Group | Zh.Device): obj is Zh.Group {
-    return obj.constructor.name.toLowerCase() === 'group';
+    return obj.constructor.name.toLowerCase() === "group";
 }
 
 export function isNumericExpose(expose: Expose): expose is Numeric {
-    return expose?.type === 'numeric';
+    return expose?.type === "numeric";
 }
 
 export function isLightExpose(expose: Expose): expose is Light {
-    return expose?.type === 'light';
+    return expose?.type === "light";
 }
 
 export function splitArrayIntoChunks<T>(arr: T[], chunkSize: number): T[][] {
