@@ -22,7 +22,7 @@
     },
     "keywords": ["aqara", "tradfri", "hue", "wemo", "zigbee", "zigbee-shepherd"],
     "scripts": {
-        "biome:check": "biome check",
+        "check": "biome check",
         "test": "vitest run --config ./test/vitest.config.mts",
         "test:coverage": "vitest run --config ./test/vitest.config.mts",
         "test:watch": "vitest watch --config ./test/vitest.config.mts",

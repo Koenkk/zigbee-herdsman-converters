@@ -21,9 +21,9 @@ jobs:
               run: pnpm i --frozen-lockfile
             - name: Build
               run: pnpm run build
-            - name: Biome
+            - name: Check
               run: |
-                  pnpm run biome:check
+                  pnpm run check
             - name: Test
               run: pnpm test:coverage
             - name: Bench
