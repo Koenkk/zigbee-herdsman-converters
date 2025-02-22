@@ -406,7 +406,7 @@ const definition = {
     model: 'combo',
     vendor: '',
     description: 'Automatically generated definition',
-    extend: [philips.philipsLight({"colorTemp":{"range":[100,500]},"color":{"enhancedHue":true}})],
+    extend: [philips.m.light({"colorTemp":{"range":[100,500]},"color":{"enhancedHue":true}})],
     meta: {},
 };
 

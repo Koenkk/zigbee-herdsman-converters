@@ -40,25 +40,27 @@ function electricityMeterPoll(): ModernExtend {
         m.setupConfigureForReporting("seMetering", "currentSummDelivered", {min: "5_SECONDS", max: "1_HOUR", change: 257}, exposes.access.STATE_GET),
     ];
 
-    const onEvent: OnEvent = async (type, data, device) => {
-        // This device doesn't support reporting correctly.
-        // https://github.com/Koenkk/zigbee-herdsman-converters/pull/1270
-        const endpoint = device.getEndpoint(1);
-        if (type === "stop") {
-            clearInterval(globalStore.getValue(device, "interval"));
-            globalStore.clearValue(device, "interval");
-        } else if (!globalStore.hasValue(device, "interval")) {
-            const interval = setInterval(async () => {
-                try {
-                    await endpoint.read("haElectricalMeasurement", ["rmsVoltage", "rmsCurrent", "activePower"]);
-                    await endpoint.read("seMetering", ["currentSummDelivered", "multiplier", "divisor"]);
-                } catch {
-                    // Do nothing
-                }
-            }, 10 * 1000); // Every 10 seconds
-            globalStore.putValue(device, "interval", interval);
-        }
-    };
+    const onEvent: OnEvent[] = [
+        async (type, data, device) => {
+            // This device doesn't support reporting correctly.
+            // https://github.com/Koenkk/zigbee-herdsman-converters/pull/1270
+            const endpoint = device.getEndpoint(1);
+            if (type === "stop") {
+                clearInterval(globalStore.getValue(device, "interval"));
+                globalStore.clearValue(device, "interval");
+            } else if (!globalStore.hasValue(device, "interval")) {
+                const interval = setInterval(async () => {
+                    try {
+                        await endpoint.read("haElectricalMeasurement", ["rmsVoltage", "rmsCurrent", "activePower"]);
+                        await endpoint.read("seMetering", ["currentSummDelivered", "multiplier", "divisor"]);
+                    } catch {
+                        // Do nothing
+                    }
+                }, 10 * 1000); // Every 10 seconds
+                globalStore.putValue(device, "interval", interval);
+            }
+        },
+    ];
 
     return {configure, onEvent, isModernExtend: true};
 }

@@ -133,24 +133,26 @@ function gledoptoLight(args?: m.LightArgs) {
 
 function gledoptoOnOff(args?: m.OnOffArgs) {
     const result = m.onOff({powerOnBehavior: false, ...args});
-    result.onEvent = async (type: OnEventType, data: KeyValue, device: Zh.Device) => {
-        // This device doesn't support reporting.
-        // Therefore we read the on/off state every 5 seconds.
-        // This is the same way as the Hue bridge does it.
-        if (type === "stop") {
-            clearInterval(globalStore.getValue(device, "interval"));
-            globalStore.clearValue(device, "interval");
-        } else if (!globalStore.hasValue(device, "interval")) {
-            const interval = setInterval(async () => {
-                try {
-                    await device.endpoints[0].read("genOnOff", ["onOff"]);
-                } catch {
-                    // Do nothing
-                }
-            }, 5000);
-            globalStore.putValue(device, "interval", interval);
-        }
-    };
+    result.onEvent = [
+        async (type: OnEventType, data: KeyValue, device: Zh.Device) => {
+            // This device doesn't support reporting.
+            // Therefore we read the on/off state every 5 seconds.
+            // This is the same way as the Hue bridge does it.
+            if (type === "stop") {
+                clearInterval(globalStore.getValue(device, "interval"));
+                globalStore.clearValue(device, "interval");
+            } else if (!globalStore.hasValue(device, "interval")) {
+                const interval = setInterval(async () => {
+                    try {
+                        await device.endpoints[0].read("genOnOff", ["onOff"]);
+                    } catch {
+                        // Do nothing
+                    }
+                }, 5000);
+                globalStore.putValue(device, "interval", interval);
+            }
+        },
+    ];
     return result;
 }
 

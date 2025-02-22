@@ -85,7 +85,7 @@ export function ikeaLight(args?: Omit<m.LightArgs, "colorTemp"> & {colorTemp?: t
         : {disabledFeatures: ["on_off_transition_time", "on_transition_time", "off_transition_time", "on_level"]};
     const result = m.light({...args, colorTemp, levelConfig});
     result.ota = true;
-    result.onEvent = bulbOnEvent;
+    result.onEvent = [bulbOnEvent];
     if (isObject(args?.colorTemp) && args.colorTemp.viaColor) {
         result.toZigbee = replaceToZigbeeConvertersInArray(result.toZigbee, [tz.light_color_colortemp], [tz.light_color_and_colortemp_via_color]);
     }

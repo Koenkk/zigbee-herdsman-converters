@@ -242,7 +242,7 @@ export interface ModernExtend {
     configure?: Definition["configure"][];
     meta?: Definition["meta"];
     ota?: Definition["ota"];
-    onEvent?: Definition["onEvent"];
+    onEvent?: Definition["onEvent"][];
     endpoint?: Definition["endpoint"];
     isModernExtend: true;
 }

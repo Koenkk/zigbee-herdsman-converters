@@ -315,7 +315,7 @@ function processExtensions(definition: DefinitionWithExtend): Definition {
             }
 
             if (ext.onEvent) {
-                onEvents.push(ext.onEvent);
+                onEvents.push(...ext.onEvent.filter((c) => c !== undefined));
             }
 
             if (ext.ota) {

@@ -5,7 +5,7 @@ import type {Cluster} from "zigbee-herdsman/dist/zspec/zcl/definition/tstype";
 
 import {logger} from "./logger";
 import * as m from "./modernExtend";
-import {philipsLight} from "./philips";
+import * as philips from "./philips";
 import type {DefinitionWithExtend, ModernExtend, Zh} from "./types";
 import {getClusterAttributeValue} from "./utils";
 
@@ -300,7 +300,7 @@ async function extenderOnOffLight(device: Zh.Device, endpoints: Zh.Endpoint[]): 
         }
 
         if (endpoint.getDevice().manufacturerID === Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V) {
-            generated.push(new ExtendGenerator({extend: philipsLight, args, source: "philipsLight", lib: "philips"}));
+            generated.push(new ExtendGenerator({extend: philips.m.light, args, source: "m.light", lib: "philips"}));
         } else {
             generated.push(new ExtendGenerator({extend: m.light, args, source: "light"}));
         }
