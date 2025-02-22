@@ -519,7 +519,7 @@ export function validateValue(value: unknown, allowed: unknown[]) {
 export async function getClusterAttributeValue<T>(endpoint: Zh.Endpoint, cluster: string, attribute: string, fallback: T = undefined): Promise<T> {
     try {
         if (endpoint.getClusterAttributeValue(cluster, attribute) == null) {
-            await endpoint.read(cluster, [attribute]);
+            await endpoint.read(cluster, [attribute], {sendPolicy: "immediate", disableRecovery: true});
         }
         return endpoint.getClusterAttributeValue(cluster, attribute) as T;
     } catch (error) {

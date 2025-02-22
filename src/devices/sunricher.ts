@@ -67,7 +67,9 @@ const sunricherExtend = {
                     return {state: {external_switch_type: value}};
                 },
                 convertGet: async (entity, key, meta) => {
-                    await entity.read("genBasic", [attribute], {manufacturerCode: sunricherManufacturerCode});
+                    await entity.read("genBasic", [attribute], {
+                        manufacturerCode: sunricherManufacturerCode,
+                    });
                 },
             } satisfies Tz.Converter,
         ];
@@ -80,7 +82,9 @@ const sunricherExtend = {
             async (device, coordinatorEndpoint, definition) => {
                 const endpoint = device.getEndpoint(1);
                 try {
-                    await endpoint.read("genBasic", [attribute], {manufacturerCode: sunricherManufacturerCode});
+                    await endpoint.read("genBasic", [attribute], {
+                        manufacturerCode: sunricherManufacturerCode,
+                    });
                 } catch (error) {
                     console.warn(`Failed to read external switch type attribute: ${error}`);
                 }
@@ -128,7 +132,9 @@ const sunricherExtend = {
                     return {state: {minimum_pwm: numValue}};
                 },
                 convertGet: async (entity: Zh.Endpoint, key: string, meta) => {
-                    await entity.read("genBasic", [attribute], {manufacturerCode: sunricherManufacturerCode});
+                    await entity.read("genBasic", [attribute], {
+                        manufacturerCode: sunricherManufacturerCode,
+                    });
                 },
             },
         ];
@@ -148,7 +154,9 @@ const sunricherExtend = {
             async (device, coordinatorEndpoint, definition) => {
                 const endpoint = device.getEndpoint(1);
                 try {
-                    await endpoint.read("genBasic", [attribute], {manufacturerCode: sunricherManufacturerCode});
+                    await endpoint.read("genBasic", [attribute], {
+                        manufacturerCode: sunricherManufacturerCode,
+                    });
                 } catch (error) {
                     console.warn(`Failed to read external switch type attribute: ${error}`);
                 }
@@ -563,7 +571,9 @@ const sunricherExtend = {
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
                     if (Object.hasOwn(msg.data, "keypadLockout")) {
-                        return {child_lock: msg.data.keypadLockout === 0 ? "UNLOCK" : "LOCK"};
+                        return {
+                            child_lock: msg.data.keypadLockout === 0 ? "UNLOCK" : "LOCK",
+                        };
                     }
                     return {};
                 },
@@ -790,6 +800,55 @@ const sunricherExtend = {
 
         return {fromZigbee, toZigbee, configure, isModernExtend: true};
     },
+
+    SRZG2856Pro: (): ModernExtend => {
+        const fromZigbee: Fz.Converter[] = [
+            {
+                cluster: "sunricherRemote",
+                type: ["commandPress"],
+                convert: (model, msg, publish, options, meta) => {
+                    let action = "unknown";
+
+                    if (msg.data.messageType === 0x01) {
+                        const pressTypeLookup: {[key: number]: string} = {
+                            1: "short_press",
+                            2: "double_press",
+                            3: "hold",
+                            4: "hold_released",
+                        };
+                        action = pressTypeLookup[msg.data.pressType] || "unknown";
+
+                        const buttonMask = (msg.data.button2 << 8) | msg.data.button1;
+                        const actionButtons: string[] = [];
+                        for (let i = 0; i < 16; i++) {
+                            if ((buttonMask >> i) & 1) {
+                                const button = i + 1;
+                                actionButtons.push(`k${button}`);
+                            }
+                        }
+                        return {action, action_buttons: actionButtons};
+                    }
+                    return {action};
+                },
+            },
+        ];
+
+        const exposes: Expose[] = [e.action(["short_press", "double_press", "hold", "hold_released"])];
+
+        const configure: [Configure] = [
+            async (device, coordinatorEndpoint, definition) => {
+                const endpoint = device.getEndpoint(1);
+                await endpoint.bind("sunricherRemote", coordinatorEndpoint);
+            },
+        ];
+
+        return {
+            fromZigbee,
+            exposes,
+            configure,
+            isModernExtend: true,
+        };
+    },
 };
 
 const fzLocal = {
@@ -841,6 +900,32 @@ async function syncTimeWithTimeZone(endpoint: Zh.Endpoint) {
 }
 
 export const definitions: DefinitionWithExtend[] = [
+    {
+        zigbeeModel: ["HK-ZRC-K10N-E"],
+        model: "SR-ZG2856-Pro",
+        vendor: "Sunricher",
+        description: "Zigbee smart remote",
+        extend: [
+            m.battery(),
+            m.deviceAddCustomCluster("sunricherRemote", {
+                ID: 0xff03,
+                attributes: {},
+                commands: {
+                    press: {
+                        ID: 0x01,
+                        parameters: [
+                            {name: "messageType", type: Zcl.DataType.UINT8},
+                            {name: "button2", type: Zcl.DataType.UINT8},
+                            {name: "button1", type: Zcl.DataType.UINT8},
+                            {name: "pressType", type: Zcl.DataType.UINT8},
+                        ],
+                    },
+                },
+                commandsResponse: {},
+            }),
+            sunricherExtend.SRZG2856Pro(),
+        ],
+    },
     {
         zigbeeModel: ["ZG9340"],
         model: "SR-ZG9093TRV",
@@ -1107,7 +1192,14 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SR-ZG9070A-SS",
         vendor: "Sunricher",
         description: "Smart photoelectric smoke alarm",
-        extend: [m.battery(), m.iasZoneAlarm({zoneType: "smoke", zoneAttributes: ["alarm_1", "alarm_2", "tamper", "battery_low"]}), m.iasWarning()],
+        extend: [
+            m.battery(),
+            m.iasZoneAlarm({
+                zoneType: "smoke",
+                zoneAttributes: ["alarm_1", "alarm_2", "tamper", "battery_low"],
+            }),
+            m.iasWarning(),
+        ],
     },
     {
         zigbeeModel: ["HK-SENSOR-PRE"],
@@ -1161,7 +1253,13 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SR-ZG9060A-GS",
         vendor: "Sunricher",
         description: "Smart combustible gas sensor",
-        extend: [m.iasZoneAlarm({zoneType: "gas", zoneAttributes: ["alarm_1", "alarm_2", "tamper", "battery_low"]}), m.iasWarning()],
+        extend: [
+            m.iasZoneAlarm({
+                zoneType: "gas",
+                zoneAttributes: ["alarm_1", "alarm_2", "tamper", "battery_low"],
+            }),
+            m.iasWarning(),
+        ],
     },
     {
         zigbeeModel: ["HK-SENSOR-CO"],
@@ -1170,7 +1268,10 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Smart carbon monoxide alarm",
         extend: [
             m.battery(),
-            m.iasZoneAlarm({zoneType: "carbon_monoxide", zoneAttributes: ["alarm_1", "alarm_2", "tamper", "battery_low"]}),
+            m.iasZoneAlarm({
+                zoneType: "carbon_monoxide",
+                zoneAttributes: ["alarm_1", "alarm_2", "tamper", "battery_low"],
+            }),
             m.iasWarning(),
         ],
     },
@@ -1179,7 +1280,13 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SR-ZG9050C-WS",
         vendor: "Sunricher",
         description: "Smart water leakage sensor",
-        extend: [m.battery(), m.iasZoneAlarm({zoneType: "water_leak", zoneAttributes: ["alarm_1", "alarm_2", "tamper", "battery_low"]})],
+        extend: [
+            m.battery(),
+            m.iasZoneAlarm({
+                zoneType: "water_leak",
+                zoneAttributes: ["alarm_1", "alarm_2", "tamper", "battery_low"],
+            }),
+        ],
     },
     {
         zigbeeModel: ["HK-SENSOR-WT2"],
@@ -1189,7 +1296,10 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.battery(),
             m.temperature(),
-            m.iasZoneAlarm({zoneType: "water_leak", zoneAttributes: ["alarm_1", "alarm_2", "tamper", "battery_low"]}),
+            m.iasZoneAlarm({
+                zoneType: "water_leak",
+                zoneAttributes: ["alarm_1", "alarm_2", "tamper", "battery_low"],
+            }),
             m.iasWarning(),
         ],
     },
@@ -1522,7 +1632,13 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SR-ZG9011A-DS",
         vendor: "Sunricher",
         description: "Door/window sensor",
-        extend: [m.battery(), m.iasZoneAlarm({zoneType: "contact", zoneAttributes: ["alarm_1", "battery_low"]})],
+        extend: [
+            m.battery(),
+            m.iasZoneAlarm({
+                zoneType: "contact",
+                zoneAttributes: ["alarm_1", "battery_low"],
+            }),
+        ],
     },
     {
         zigbeeModel: ["ZG2858A"],
@@ -1586,7 +1702,10 @@ export const definitions: DefinitionWithExtend[] = [
         endpoint: (device) => {
             return {l1: 1, l2: 2};
         },
-        meta: {multiEndpoint: true, multiEndpointSkip: ["power", "energy", "voltage", "current"]},
+        meta: {
+            multiEndpoint: true,
+            multiEndpointSkip: ["power", "energy", "voltage", "current"],
+        },
         configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
             const endpoint2 = device.getEndpoint(2);
@@ -2098,7 +2217,9 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.currentSummDelivered(endpoint);
 
             // Custom attributes
-            const options = {manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_SUNRICHER_TECHNOLOGY_LTD};
+            const options = {
+                manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_SUNRICHER_TECHNOLOGY_LTD,
+            };
 
             // OperateDisplayLcdBrightnesss
             await endpoint.configureReporting(
