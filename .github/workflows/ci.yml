@@ -24,7 +24,7 @@ jobs:
       - name: Check
         run: pnpm run check
       - name: Test
-        run: pnpm test:coverage
+        run: pnpm test
       - name: Bench
         run: pnpm bench
       - name: Publish new release

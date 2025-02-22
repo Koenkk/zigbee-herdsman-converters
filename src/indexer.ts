@@ -45,7 +45,7 @@ export async function buildIndex(fromSrc = false): Promise<void> {
     const addedFingerprints = [];
     const addedZigbeeModels: string[] = [];
     const addedModels: string[] = [];
-    const devicesDir = fromSrc ? path.join("src", "devices") : "devices";
+    const devicesDir = fromSrc ? path.join("src", "devices") : path.join("dist", "devices");
 
     for (const moduleName of readdirSync(devicesDir)) {
         if (moduleName === (fromSrc ? "index.ts" : "index.js") || !moduleName.endsWith(fromSrc ? ".ts" : ".js")) {
@@ -108,7 +108,8 @@ export async function buildIndex(fromSrc = false): Promise<void> {
         totalDefinitions += definitions.length;
     }
 
-    writeFileSync("models-index.json", JSON.stringify(lookup), "utf8");
+    const target = fromSrc ? "models-index.json" : path.join("dist", "models-index.json");
+    writeFileSync(target, JSON.stringify(lookup), "utf8");
     console.log(`\nProcessed ${totalDefinitions} definitions`);
 }
 

@@ -2,20 +2,10 @@
     "name": "zigbee-herdsman-converters",
     "version": "22.2.0",
     "description": "Collection of device converters to be used with zigbee-herdsman",
-    "main": "index.js",
-    "types": "index.d.ts",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
     "packageManager": "pnpm@9.15.4",
-    "files": [
-        "/index.js",
-        "/index.js.map",
-        "/index.d.ts",
-        "/index.d.ts.map",
-        "/models-index.json",
-        "/converters",
-        "/lib",
-        "/devices",
-        "CHANGELOG.md"
-    ],
+    "files": ["dist"],
     "repository": {
         "type": "git",
         "url": "git+https://github.com/Koenkk/zigbee-herdsman-converters.git"
@@ -24,12 +14,12 @@
     "scripts": {
         "check": "biome check",
         "test": "vitest run --config ./test/vitest.config.mts",
-        "test:coverage": "vitest run --config ./test/vitest.config.mts",
+        "test:coverage": "vitest run --config ./test/vitest.config.mts --coverage",
         "test:watch": "vitest watch --config ./test/vitest.config.mts",
         "bench": "vitest bench --run --config ./test/vitest.config.mts",
-        "clean": "rimraf --glob index* coverage dist devices lib converters tsconfig.tsbuildinfo models-index.json",
-        "build": "rimraf --glob index* coverage devices lib converters && tsc && cp -R dist/* . && node indexer.js",
-        "build:watch": "tsc --watch",
+        "clean": "rimraf coverage dist tsconfig.tsbuildinfo models-index.json",
+        "build": "tsc && node dist/indexer.js",
+        "build:watch": "tsc-watch --onSuccess 'node dist/indexer.js'",
         "prepack": "pnpm run clean && pnpm run build",
         "prepare": "husky"
     },
@@ -55,6 +45,7 @@
         "husky": "^9.1.7",
         "rimraf": "^6.0.1",
         "ts-morph": "^25.0.1",
+        "tsc-watch": "^6.2.1",
         "typescript": "^5.7.3",
         "vitest": "^3.0.5"
     }
