@@ -19,7 +19,7 @@
         "bench": "vitest bench --run --config ./test/vitest.config.mts",
         "clean": "rimraf coverage dist tsconfig.tsbuildinfo models-index.json",
         "build": "tsc && node dist/indexer.js",
-        "build:watch": "tsc --watch",
+        "build:watch": "tsc-watch --onSuccess 'node dist/indexer.js'",
         "prepack": "pnpm run clean && pnpm run build",
         "prepare": "husky"
     },
@@ -45,6 +45,7 @@
         "husky": "^9.1.7",
         "rimraf": "^6.0.1",
         "ts-morph": "^25.0.1",
+        "tsc-watch": "^6.2.1",
         "typescript": "^5.7.3",
         "vitest": "^3.0.5"
     }
