@@ -1653,10 +1653,10 @@ export function iasWarning(args?: IasWarningArgs): ModernExtend {
 
 // Uses Electrical Measurement and/or Gas Metering, but for simplicity was put here.
 type MultiplierDivisor = {multiplier?: number; divisor?: number};
-type MeterType = 'electricity' | 'gas'; // water, etc
+type MeterType = "electricity" | "gas"; // water, etc
 interface MeterArgs {
     type?: MeterType;
-    cluster?: 'both' | 'metering' | 'electrical';
+    cluster?: "both" | "metering" | "electrical";
     power?: false | (MultiplierDivisor & Partial<ReportingConfigWithoutAttribute>);
     energy?: false | (MultiplierDivisor & Partial<ReportingConfigWithoutAttribute>);
     status?: boolean;
@@ -1665,7 +1665,7 @@ interface MeterArgs {
     endpointNames?: string[];
     fzMetering?: Fz.Converter;
     // applies only to electrical
-    electricalMeasurementType?: 'both' | 'ac' | 'dc';
+    electricalMeasurementType?: "both" | "ac" | "dc";
     voltage?: false | (MultiplierDivisor & Partial<ReportingConfigWithoutAttribute>);
     current?: false | (MultiplierDivisor & Partial<ReportingConfigWithoutAttribute>);
     threePhase?: boolean;
@@ -1675,7 +1675,7 @@ interface MeterArgs {
     fzElectricalMeasurement?: Fz.Converter;
 }
 function genericMeter(args?: MeterArgs) {
-    if (args.cluster !== 'electrical') {
+    if (args.cluster !== "electrical") {
         const divisors = new Set([
             args.cluster === "metering" && isObject(args.power) ? args.power?.divisor : false,
             isObject(args.energy) ? args.energy?.divisor : false,
@@ -1783,33 +1783,33 @@ function genericMeter(args?: MeterArgs) {
         seMetering: {
             // Report change with every 5W change
             power: {
-                attribute: 'instantaneousDemand',
-                divisor: 'divisor',
-                multiplier: 'multiplier',
+                attribute: "instantaneousDemand",
+                divisor: "divisor",
+                multiplier: "multiplier",
                 forced: args.power,
-                change: changeLookup[args.type]['power'],
+                change: changeLookup[args.type].power,
             },
             // Report change with every 0.1kWh change
             energy: {
-                attribute: 'currentSummDelivered',
-                divisor: 'divisor',
-                multiplier: 'multiplier',
+                attribute: "currentSummDelivered",
+                divisor: "divisor",
+                multiplier: "multiplier",
                 forced: args.energy,
-                change: changeLookup[args.type]['energy'],
+                change: changeLookup[args.type].energy,
             },
             produced_energy: {
-                attribute: 'currentSummReceived',
-                divisor: 'divisor',
-                multiplier: 'multiplier',
+                attribute: "currentSummReceived",
+                divisor: "divisor",
+                multiplier: "multiplier",
                 forced: isObject(args.producedEnergy) ? args.producedEnergy : (false as const),
                 change: 0.1,
             },
             status: {
-                attribute: 'status',
+                attribute: "status",
                 change: 1,
             },
             extended_status: {
-                attribute: 'extendedStatus',
+                attribute: "extendedStatus",
                 change: 1,
             },
         },
@@ -1882,7 +1882,7 @@ function genericMeter(args?: MeterArgs) {
         delete configureLookup.seMetering.extended_status;
     }
 
-    if (args.cluster === 'both') {
+    if (args.cluster === "both") {
         if (args.power !== false) exposes.push(e.power().withAccess(ea.STATE_GET));
         if (args.voltage !== false) exposes.push(e.voltage().withAccess(ea.STATE_GET));
         if (args.acFrequency !== false) exposes.push(e.ac_frequency().withAccess(ea.STATE_GET));
@@ -1901,26 +1901,26 @@ function genericMeter(args?: MeterArgs) {
             tz.powerfactor,
         ];
         delete configureLookup.seMetering.power;
-    } else if (args.cluster === 'metering' && args.type === 'electricity') {
+    } else if (args.cluster === "metering" && args.type === "electricity") {
         if (args.power !== false) exposes.push(e.power().withAccess(ea.STATE_GET));
         if (args.energy !== false) exposes.push(e.energy().withAccess(ea.STATE_GET));
         if (args.producedEnergy !== false) exposes.push(e.produced_energy().withAccess(ea.STATE_GET));
         fromZigbee = [args.fzMetering ?? fz.metering];
         toZigbee = [tz.metering_power, tz.currentsummdelivered, tz.currentsummreceived];
         delete configureLookup.haElectricalMeasurement;
-    } else if (args.cluster === 'metering' && args.type === 'gas') {
-        if (args.power !== false) exposes.push(e.numeric('power', ea.STATE_GET).withUnit('m³/h').withDescription('Instantaneous gas flow in m³/h'));
-        if (args.energy !== false) exposes.push(e.numeric('energy', ea.ALL).withUnit('m³').withDescription('Total gas consumption in m³'));
+    } else if (args.cluster === "metering" && args.type === "gas") {
+        if (args.power !== false) exposes.push(e.numeric("power", ea.STATE_GET).withUnit("m³/h").withDescription("Instantaneous gas flow in m³/h"));
+        if (args.energy !== false) exposes.push(e.numeric("energy", ea.ALL).withUnit("m³").withDescription("Total gas consumption in m³"));
         fromZigbee = [args.fzMetering ?? fz.gas_metering];
         toZigbee = [
             {
-                key: ['energy'],
+                key: ["energy"],
                 convertGet: async (entity, key, meta) => {
-                    const ep = determineEndpoint(entity, meta, 'seMetering');
-                    await ep.read('seMetering', ['currentSummDelivered']);
+                    const ep = determineEndpoint(entity, meta, "seMetering");
+                    await ep.read("seMetering", ["currentSummDelivered"]);
                 },
                 convertSet: async (entity, key, value: number, meta) => {
-                    await entity.write('seMetering', {currentSummDelivered: Math.round(value * 100)});
+                    await entity.write("seMetering", {currentSummDelivered: Math.round(value * 100)});
                     return {state: {energy: value}};
                 },
             } satisfies Tz.Converter,
@@ -1929,7 +1929,7 @@ function genericMeter(args?: MeterArgs) {
             tz.metering_extended_status,
         ];
         delete configureLookup.haElectricalMeasurement;
-    } else if (args.cluster === 'electrical') {
+    } else if (args.cluster === "electrical") {
         if (args.power !== false) exposes.push(e.power().withAccess(ea.STATE_GET));
         if (args.voltage !== false) exposes.push(e.voltage().withAccess(ea.STATE_GET));
         if (args.current !== false) exposes.push(e.current().withAccess(ea.STATE_GET));
@@ -2022,13 +2022,13 @@ function genericMeter(args?: MeterArgs) {
     return result;
 }
 export interface ElectricityMeterArgs extends MeterArgs {
-    type?: 'electricity';
+    type?: "electricity";
 }
 export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
     args = {
-        type: 'electricity',
-        cluster: 'both',
-        electricalMeasurementType: 'ac',
+        type: "electricity",
+        cluster: "both",
+        electricalMeasurementType: "ac",
         configureReporting: true,
         threePhase: false,
         producedEnergy: false,
@@ -2043,12 +2043,12 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
 
 // Uses Metering to measure volume of gas consumed
 export interface GasMeterArgs extends MeterArgs {
-    type?: 'gas';
+    type?: "gas";
 }
 export function gasMeter(args?: GasMeterArgs): ModernExtend {
     args = {
-        type: 'gas',
-        cluster: 'metering',
+        type: "gas",
+        cluster: "metering",
         configureReporting: true,
         status: true,
         extendedStatus: true,

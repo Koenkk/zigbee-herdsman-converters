@@ -1825,17 +1825,17 @@ const converters2 = {
         },
     } satisfies Tz.Converter,
     metering_status: {
-        key: ['status'],
+        key: ["status"],
         convertGet: async (entity, key, meta) => {
             utils.assertEndpoint(entity);
-            await utils.enforceEndpoint(entity, key, meta).read('seMetering', ['status']);
+            await utils.enforceEndpoint(entity, key, meta).read("seMetering", ["status"]);
         },
     } satisfies Tz.Converter,
     metering_extended_status: {
-        key: ['extended_status'],
+        key: ["extended_status"],
         convertGet: async (entity, key, meta) => {
             utils.assertEndpoint(entity);
-            await utils.enforceEndpoint(entity, key, meta).read('seMetering', ['extendedStatus']);
+            await utils.enforceEndpoint(entity, key, meta).read("seMetering", ["extendedStatus"]);
         },
     } satisfies Tz.Converter,
     currentsummdelivered: {
