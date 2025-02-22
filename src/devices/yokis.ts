@@ -726,7 +726,6 @@ const yokisExtendChecks = {
     },
     parseDimMinMax: (input: KeyValueAny) => {
         let _ul_TransitionTime;
-        let _action;
 
         if (!input || typeof input !== "object") {
             throw new Error("NOT_OBJECT");
@@ -739,10 +738,9 @@ const yokisExtendChecks = {
         if (!("action" in input)) {
             throw new Error("MISSING_ACTION");
         }
-        _action = input.action;
 
         return {
-            action: _action,
+            action: input.action,
             payload: {
                 ul_TransitionTime: _ul_TransitionTime,
             },

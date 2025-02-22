@@ -42,7 +42,7 @@ type CommandResult = {
     payload: KeyValueAny;
 };
 
-// https://github.com/jestjs/jest/issues/6028#issuecomment-567669082
+// biome-ignore lint/suspicious/noExportsInTest: https://github.com/jestjs/jest/issues/6028#issuecomment-567669082
 export function defuseRejection<T>(promise: Promise<T>): Promise<T> {
     promise.catch(() => {});
 

@@ -10,10 +10,19 @@
     "linter": {
         "rules": {
             "style": {
-                "noNonNullAssertion": "off"
+                "noNonNullAssertion": "off",
+                "noParameterAssign": "off"
+            },
+            "complexity": {
+                "noForEach": "off"
             },
             "performance": {
-                "noDelete": "off"
+                "noDelete": "off",
+                "noAccumulatingSpread": "off"
+            },
+            "suspicious": {
+                "noImplicitAnyLet": "off",
+                "noExplicitAny": "off"
             }
         }
     }

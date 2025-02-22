@@ -77,7 +77,9 @@ function mockEndpoint(args: MockEndpointArgs, device: Zh.Device | undefined): Zh
         // @ts-expect-error ignore
         getOutputClusters: () => outputClusters.map((c) => getCluster(c)),
         supportsInputCluster: (key) => !!inputClusters.find((ID) => ID === getCluster(key).ID),
-        saveClusterAttributeKeyValue: vi.fn().mockImplementation((cluster, values) => (attributes[cluster] = {...attributes[cluster], ...values})),
+        saveClusterAttributeKeyValue: vi.fn().mockImplementation((cluster, values) => {
+            attributes[cluster] = {...attributes[cluster], ...values};
+        }),
         save: vi.fn(),
         getClusterAttributeValue: vi.fn().mockImplementation((cluster, attribute) => attributes?.[cluster]?.[attribute]),
     };

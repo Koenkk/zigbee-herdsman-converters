@@ -223,27 +223,27 @@ export const fzLegrand = {
         convert: (model, msg, publish, options, meta) => {
             const payload: KeyValueAny = {};
             if (msg.data.tuyaMovingState !== undefined) {
-                if ((0, utils.hasAlreadyProcessedMessage)(msg, model)) return;
+                if (utils.hasAlreadyProcessedMessage(msg, model)) return;
                 if (msg.data.tuyaMovingState === 0) {
                     // return {
                     // action: 'open',
                     // };
-                    payload.action = (0, utils.postfixWithEndpointName)("OPEN", msg, model, meta);
-                    (0, utils.addActionGroup)(payload, msg, model);
+                    payload.action = utils.postfixWithEndpointName("OPEN", msg, model, meta);
+                    utils.addActionGroup(payload, msg, model);
                 }
                 if (msg.data.tuyaMovingState === 100) {
                     // return {
                     // action: 'closed',
                     // };
-                    payload.action = (0, utils.postfixWithEndpointName)("CLOSE", msg, model, meta);
-                    (0, utils.addActionGroup)(payload, msg, model);
+                    payload.action = utils.postfixWithEndpointName("CLOSE", msg, model, meta);
+                    utils.addActionGroup(payload, msg, model);
                 }
                 if (msg.data.tuyaMovingState >= 1 && msg.data.tuyaMovingState < 100) {
                     // return {
                     // action: 'stop',
                     // };
-                    payload.action = (0, utils.postfixWithEndpointName)("STOP", msg, model, meta);
-                    (0, utils.addActionGroup)(payload, msg, model);
+                    payload.action = utils.postfixWithEndpointName("STOP", msg, model, meta);
+                    utils.addActionGroup(payload, msg, model);
                 }
             }
             return payload;

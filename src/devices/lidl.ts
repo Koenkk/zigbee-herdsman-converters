@@ -94,19 +94,19 @@ const valueConverterLocal = {
                     ts.iteration_start_timestamp = Date.now();
                     if (ts.timer > 1) {
                         // report every minute
-                        const interval = (ts.iteration_inverval = setInterval(() => {
+                        ts.iteration_inverval = setInterval(() => {
                             const now = Date.now();
                             const wateringEndTime = ts.iteration_start_timestamp + ts.timer * 60 * 1000;
                             const timeLeftInMinutes = Math.round((wateringEndTime - now) / 1000 / 60);
                             if (timeLeftInMinutes > 0) {
                                 if (timeLeftInMinutes === 1) {
-                                    clearInterval(interval);
+                                    clearInterval(ts.iteration_inverval);
                                 }
                                 publish({
                                     time_left: timeLeftInMinutes,
                                 });
                             }
-                        }, 60 * 1000));
+                        }, 60 * 1000);
                     }
                     // initial reporting
                     result.time_left = ts.timer;
