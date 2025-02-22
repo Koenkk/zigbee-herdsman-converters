@@ -1651,7 +1651,7 @@ export function iasWarning(args?: IasWarningArgs): ModernExtend {
 
 // #region Smart Energy
 
-// Uses Electrical Measurement and/or Metering, but for simplicity was put here.
+// Uses Electrical Measurement and/or Gas Metering, but for simplicity was put here.
 type MultiplierDivisor = {multiplier?: number; divisor?: number};
 type MeterType = 'electricity' | 'gas'; // water, etc
 interface MeterArgs {
