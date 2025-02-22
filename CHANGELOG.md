@@ -1,5 +1,21 @@
 # Changelog
 
+## [22.2.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v22.1.0...v22.2.0) (2025-02-22)
+
+
+### Features
+
+* **add:** 046677584719 ([#8866](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8866)) ([d59f6a3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d59f6a36f650acc522b85941c192fd2514584b74))
+* **add:** SR-ZG2856-Pro ([#8856](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8856)) ([8ee754b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8ee754bb5773e2411db81a3f778138a0d9ac53f1))
+* **add:** TE-1Z ([#8784](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8784)) ([d1d710b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d1d710b8188a86f8087f8efc7d1d1eaab9bbe273))
+* Support `data_report_duration` for Tuya SPM01V2 ([#8843](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8843)) ([fbe5296](https://github.com/Koenkk/zigbee-herdsman-converters/commit/fbe5296910735766877066df2e1a199d4cc255ea))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZE284_yjjdcqsq` as Tuya ZTH01 https://github.com/Koenkk/zigbee2mqtt/issues/26412 ([92f0403](https://github.com/Koenkk/zigbee-herdsman-converters/commit/92f040391a13fbd7582d872a1764df3f22c10792))
+* Fix definition generator hanging https://github.com/Koenkk/zigbee2mqtt/issues/26430 ([c074866](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c074866ddf187d6160b2ce4028645e36eecfeb44))
+
 ## [22.1.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v22.0.1...v22.1.0) (2025-02-20)
 
 
