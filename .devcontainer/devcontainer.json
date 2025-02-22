@@ -5,7 +5,7 @@
 
     "customizations": {
         "vscode": {
-            "extensions": ["dbaeumer.vscode-eslint"]
+            "extensions": ["biomejs.biome", "vitest.explorer"]
         }
     }
 }

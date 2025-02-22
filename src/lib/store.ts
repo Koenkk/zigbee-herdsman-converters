@@ -1,18 +1,19 @@
-import {Zh} from './types';
-import {isDevice, isEndpoint, isGroup} from './utils';
+import type {Zh} from "./types";
+import {isDevice, isEndpoint, isGroup} from "./utils";
 
 let store = new Map();
 
 function getEntityKey(entity: Zh.Endpoint | Zh.Group | Zh.Device) {
     if (isGroup(entity)) {
         return entity.groupID;
-    } else if (isEndpoint(entity)) {
-        return `${entity.deviceIeeeAddress}_${entity.ID}`;
-    } else if (isDevice(entity)) {
-        return `${entity.ieeeAddr}`;
-    } else {
-        throw new Error(`Invalid entity type`);
     }
+    if (isEndpoint(entity)) {
+        return `${entity.deviceIeeeAddress}_${entity.ID}`;
+    }
+    if (isDevice(entity)) {
+        return `${entity.ieeeAddr}`;
+    }
+    throw new Error("Invalid entity type");
 }
 
 export function hasValue(entity: Zh.Endpoint | Zh.Group | Zh.Device, key: string) {

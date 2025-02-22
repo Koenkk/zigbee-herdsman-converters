@@ -1,13 +1,13 @@
-import {fromZigbee} from '../src/index';
+import {fromZigbee} from "../src/index";
 
-describe('converters/fromZigbee', () => {
-    it('Message with no properties does not error converting battery percentages', () => {
+describe("converters/fromZigbee", () => {
+    it("Message with no properties does not error converting battery percentages", () => {
         const payload = fromZigbee.battery.convert(
             // @ts-expect-error mock
             {
                 meta: {},
             },
-            {data: {}, endpoint: null, device: null, meta: null, groupID: null, type: 'attributeReport', cluster: 'genPowerCfg', linkquality: 0},
+            {data: {}, endpoint: null, device: null, meta: null, groupID: null, type: "attributeReport", cluster: "genPowerCfg", linkquality: 0},
             null,
             {},
             {
@@ -17,13 +17,13 @@ describe('converters/fromZigbee', () => {
         expect(payload).toStrictEqual({});
     });
 
-    it('Device specifying voltageToPercentage ignores reported percentage', () => {
+    it("Device specifying voltageToPercentage ignores reported percentage", () => {
         const payload = fromZigbee.battery.convert(
             // @ts-expect-error mock
             {
                 meta: {
                     battery: {
-                        voltageToPercentage: '3V_1500_2800',
+                        voltageToPercentage: "3V_1500_2800",
                     },
                 },
             },
@@ -36,8 +36,8 @@ describe('converters/fromZigbee', () => {
                 device: null,
                 meta: null,
                 groupID: null,
-                type: 'attributeReport',
-                cluster: 'genPowerCfg',
+                type: "attributeReport",
+                cluster: "genPowerCfg",
                 linkquality: 0,
             },
             null,
@@ -52,7 +52,7 @@ describe('converters/fromZigbee', () => {
         });
     });
 
-    it('Device uses reported percentage', () => {
+    it("Device uses reported percentage", () => {
         const payload = fromZigbee.battery.convert(
             // @ts-expect-error mock
             {
@@ -67,8 +67,8 @@ describe('converters/fromZigbee', () => {
                 device: null,
                 meta: null,
                 groupID: null,
-                type: 'attributeReport',
-                cluster: 'genPowerCfg',
+                type: "attributeReport",
+                cluster: "genPowerCfg",
                 linkquality: 0,
             },
             null,

@@ -2,12 +2,12 @@
  * This module's only purpose is to build the models index for zigbee-herdsman-converters.
  */
 
-import {readdirSync, writeFileSync} from 'fs';
-import path from 'path';
+import {readdirSync, writeFileSync} from "node:fs";
+import path from "node:path";
 
-import equal from 'fast-deep-equal';
+import equal from "fast-deep-equal";
 
-import {DefinitionWithExtend} from './lib/types';
+import type {DefinitionWithExtend} from "./lib/types";
 
 type LookupEntry = [moduleName: string, index: number];
 
@@ -39,16 +39,16 @@ function addToLookup(zigbeeModel: string | undefined, index: LookupEntry) {
     }
 }
 
-export async function buildIndex(fromSrc: boolean = false): Promise<void> {
+export async function buildIndex(fromSrc = false): Promise<void> {
     let totalDefinitions = 0;
     // keep track of added stuff to check for dupes
     const addedFingerprints = [];
     const addedZigbeeModels: string[] = [];
     const addedModels: string[] = [];
-    const devicesDir = fromSrc ? path.join('src', 'devices') : 'devices';
+    const devicesDir = fromSrc ? path.join("src", "devices") : "devices";
 
     for (const moduleName of readdirSync(devicesDir)) {
-        if (moduleName === (fromSrc ? 'index.ts' : 'index.js') || !moduleName.endsWith(fromSrc ? '.ts' : '.js')) {
+        if (moduleName === (fromSrc ? "index.ts" : "index.js") || !moduleName.endsWith(fromSrc ? ".ts" : ".js")) {
             continue;
         }
 
@@ -67,7 +67,7 @@ export async function buildIndex(fromSrc: boolean = false): Promise<void> {
 
             if (definition.whiteLabel) {
                 for (const whiteLabel of definition.whiteLabel) {
-                    if ('fingerprint' in whiteLabel) {
+                    if ("fingerprint" in whiteLabel) {
                         if (addedModels.includes(whiteLabel.model.toLowerCase())) {
                             if (whiteLabel.vendor === definition.vendor) {
                                 throw new Error(`Duplicate whitelabel model ${whiteLabel.model}`);
@@ -108,7 +108,7 @@ export async function buildIndex(fromSrc: boolean = false): Promise<void> {
         totalDefinitions += definitions.length;
     }
 
-    writeFileSync('models-index.json', JSON.stringify(lookup), 'utf8');
+    writeFileSync("models-index.json", JSON.stringify(lookup), "utf8");
     console.log(`\nProcessed ${totalDefinitions} definitions`);
 }
 

@@ -1,14 +1,14 @@
-import fz from '../converters/fromZigbee';
-import * as exposes from '../lib/exposes';
-import * as reporting from '../lib/reporting';
-import {DefinitionWithExtend, Fz} from '../lib/types';
+import fz from "../converters/fromZigbee";
+import * as exposes from "../lib/exposes";
+import * as reporting from "../lib/reporting";
+import type {DefinitionWithExtend, Fz} from "../lib/types";
 
 const e = exposes.presets;
 
 const fzLocal = {
     DCH_B112: {
-        cluster: 'ssIasZone',
-        type: 'commandStatusChangeNotification',
+        cluster: "ssIasZone",
+        type: "commandStatusChangeNotification",
         convert: (model, msg, publish, options, meta) => {
             const zoneStatus = msg.data.zonestatus;
             return {
@@ -23,16 +23,16 @@ const fzLocal = {
 
 export const definitions: DefinitionWithExtend[] = [
     {
-        zigbeeModel: ['DCH-B112'],
-        model: 'DCH-B112',
-        vendor: 'D-Link',
-        description: 'Wireless smart door window sensor with vibration',
+        zigbeeModel: ["DCH-B112"],
+        model: "DCH-B112",
+        vendor: "D-Link",
+        description: "Wireless smart door window sensor with vibration",
         fromZigbee: [fzLocal.DCH_B112, fz.battery],
         toZigbee: [],
         exposes: [e.battery_low(), e.contact(), e.vibration(), e.tamper(), e.battery()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg"]);
             await reporting.batteryPercentageRemaining(endpoint);
         },
     },
