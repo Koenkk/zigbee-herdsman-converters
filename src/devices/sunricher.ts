@@ -789,6 +789,55 @@ const sunricherExtend = {
 
         return {fromZigbee, toZigbee, configure, isModernExtend: true};
     },
+
+    SRZG2856Pro: (): ModernExtend => {
+        const fromZigbee: Fz.Converter[] = [
+            {
+                cluster: 'sunricherRemote',
+                type: ['commandPress'],
+                convert: (model, msg, publish, options, meta) => {
+                    let action = 'unknown';
+
+                    if (msg.data.messageType === 0x01) {
+                        const pressTypeLookup: {[key: number]: string} = {
+                            0x01: 'short_press',
+                            0x02: 'double_press',
+                            0x03: 'hold',
+                            0x04: 'hold_released',
+                        };
+                        action = pressTypeLookup[msg.data.pressType] || 'unknown';
+
+                        const buttonMask = (msg.data.button2 << 8) | msg.data.button1;
+                        const actionButtons: string[] = [];
+                        for (let i = 0; i < 16; i++) {
+                            if ((buttonMask >> i) & 1) {
+                                const button = i + 1;
+                                actionButtons.push(`k${button}`);
+                            }
+                        }
+                        return {action, action_buttons: actionButtons};
+                    }
+                    return {action};
+                },
+            },
+        ];
+
+        const exposes: Expose[] = [e.action(['short_press', 'double_press', 'hold', 'hold_released'])];
+
+        const configure: [Configure] = [
+            async (device, coordinatorEndpoint, definition) => {
+                const endpoint = device.getEndpoint(1);
+                await endpoint.bind('sunricherRemote', coordinatorEndpoint);
+            },
+        ];
+
+        return {
+            fromZigbee,
+            exposes,
+            configure,
+            isModernExtend: true,
+        };
+    },
 };
 
 const fzLocal = {
@@ -840,6 +889,32 @@ async function syncTimeWithTimeZone(endpoint: Zh.Endpoint) {
 }
 
 export const definitions: DefinitionWithExtend[] = [
+    {
+        zigbeeModel: ['HK-ZRC-K10N-E'],
+        model: 'SR-ZG2856-Pro',
+        vendor: 'Sunricher',
+        description: 'Zigbee smart remote',
+        extend: [
+            m.battery(),
+            m.deviceAddCustomCluster('sunricherRemote', {
+                ID: 0xff03,
+                attributes: {},
+                commands: {
+                    press: {
+                        ID: 0x01,
+                        parameters: [
+                            {name: 'messageType', type: Zcl.DataType.UINT8},
+                            {name: 'button2', type: Zcl.DataType.UINT8},
+                            {name: 'button1', type: Zcl.DataType.UINT8},
+                            {name: 'pressType', type: Zcl.DataType.UINT8},
+                        ],
+                    },
+                },
+                commandsResponse: {},
+            }),
+            sunricherExtend.SRZG2856Pro(),
+        ],
+    },
     {
         zigbeeModel: ['ZG9340'],
         model: 'SR-ZG9093TRV',
