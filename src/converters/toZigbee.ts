@@ -243,8 +243,18 @@ const converters2 = {
             utils.assertObject(value, key);
             const payload = value.payload !== undefined ? value.payload : {};
             utils.assertEndpoint(entity);
-            await entity.zclCommand(value.cluster, value.command, payload, value.options !== undefined ? value.options : {});
-            logger.info(`Invoked ZCL command ${value.cluster}.${value.command} with payload '${JSON.stringify(payload)}'`, NS);
+            await entity.zclCommand(
+                value.cluster,
+                value.command,
+                payload,
+                value.options !== undefined ? value.options : {},
+                value.log_payload ?? {},
+                value.check_status ?? false,
+                value.frametype ?? Zcl.FrameType.SPECIFIC,
+            );
+            if (value.logging ?? false) {
+                logger.info(`Invoked ZCL command ${value.cluster}.${value.command} with payload '${JSON.stringify(payload)}'`, NS);
+            }
         },
     } satisfies Tz.Converter,
     arm_mode: {
