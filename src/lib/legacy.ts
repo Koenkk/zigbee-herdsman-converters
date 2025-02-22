@@ -6275,7 +6275,6 @@ const toZigbee2 = {
                     cool: 250,
                     coolest: colorTempMin,
                 };
-                // @ts-expect-error ignore
                 if (typeof value === "string" && Number.isNaN(value)) {
                     const presetName = value.toLowerCase();
                     if (presetName in preset) {

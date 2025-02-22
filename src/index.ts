@@ -255,20 +255,15 @@ function processExtensions(definition: DefinitionWithExtend): Definition {
 
         // Modern extend, merges properties, e.g. when both extend and definition has toZigbee, toZigbee will be combined
         let {
-            // eslint-disable-next-line prefer-const
             extend,
             toZigbee,
             fromZigbee,
-            // eslint-disable-next-line prefer-const
             exposes: definitionExposes,
             meta,
             endpoint,
             ota,
-            // eslint-disable-next-line prefer-const
             configure: definitionConfigure,
-            // eslint-disable-next-line prefer-const
             onEvent: definitionOnEvent,
-            // eslint-disable-next-line prefer-const
             ...definitionWithoutExtend
         } = definition;
 
