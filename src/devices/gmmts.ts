@@ -1,59 +1,59 @@
-import type {Models as ZHModels} from 'zigbee-herdsman';
+import type {Models as ZHModels} from "zigbee-herdsman";
 
-import {Buffer} from 'buffer';
+import {Buffer} from "node:buffer";
 
-import {Zcl} from 'zigbee-herdsman';
+import {Zcl} from "zigbee-herdsman";
 
-import fz from '../converters/fromZigbee';
-import {repInterval} from '../lib/constants';
-import * as exposes from '../lib/exposes';
-import {logger} from '../lib/logger';
-import * as reporting from '../lib/reporting';
-import * as globalStore from '../lib/store';
-import {DefinitionWithExtend, Expose, Fz, KeyValue, Tz, Zh} from '../lib/types';
+import fz from "../converters/fromZigbee";
+import {repInterval} from "../lib/constants";
+import * as exposes from "../lib/exposes";
+import {logger} from "../lib/logger";
+import * as reporting from "../lib/reporting";
+import * as globalStore from "../lib/store";
+import type {DefinitionWithExtend, Expose, Fz, KeyValue, Tz, Zh} from "../lib/types";
 
 const ea = exposes.access;
 const e = exposes.presets;
 
-const METER_ID_CLUSTER = 'haMeterIdentification'; // 0x0B01
-const CLUSTER_ELE = 'haElectricalMeasurement'; // 0x0B04
-const CLUSTER_MET = 'seMetering'; // 0x0702
-const CLUSTER_TIC = 'manuSpecificGmmts'; // 0xFF42
+const METER_ID_CLUSTER = "haMeterIdentification"; // 0x0B01
+const CLUSTER_ELE = "haElectricalMeasurement"; // 0x0B04
+const CLUSTER_MET = "seMetering"; // 0x0702
+const CLUSTER_TIC = "manuSpecificGmmts"; // 0xFF42
 
-const STRING = 'string';
-const NUMBER = 'numeric';
-const NUM_RW = 'read/write numeric';
-const ENUM = 'enum';
-const TIME = 'date';
+const STRING = "string";
+const NUMBER = "numeric";
+const NUM_RW = "read/write numeric";
+const ENUM = "enum";
+const TIME = "date";
 
-const TRANSLATION_EN = 'ENGLISH';
-const TRANSLATION_FR = 'FRANCAIS';
+const TRANSLATION_EN = "ENGLISH";
+const TRANSLATION_FR = "FRANCAIS";
 
 const DEFAULT_POLL_INTERVAL = 120;
 
 const C = {
-    ANY: 'AUTO',
-    BASE: 'BASE',
-    HCHP: 'HCHP',
-    EJP: 'EJP',
-    TEMPO: 'TEMPO',
+    ANY: "AUTO",
+    BASE: "BASE",
+    HCHP: "HCHP",
+    EJP: "EJP",
+    TEMPO: "TEMPO",
 };
 
 const E = {
-    ANY: 'AUTO',
-    MONO: 'MONOPHASE',
-    TRI: 'TRIPHASE',
+    ANY: "AUTO",
+    MONO: "MONOPHASE",
+    TRI: "TRIPHASE",
 };
 
 const T = {
-    ANY: 'AUTO',
-    HIST: 'HISTORIQUE',
-    STD: 'STANDARD',
+    ANY: "AUTO",
+    HIST: "HISTORIQUE",
+    STD: "STANDARD",
 };
 
-const modeTICEnum = ['HISTORIQUE', 'STANDARD', 'AUTO'];
-const modeElecEnum = ['MONOPHASE', 'TRIPHASE', 'AUTO'];
-const modeContractEnum = ['AUTO', 'BASE', 'HCHP', 'EJP', 'TEMPO', 'PRODUCTEUR'];
+const modeTICEnum = ["HISTORIQUE", "STANDARD", "AUTO"];
+const modeElecEnum = ["MONOPHASE", "TRIPHASE", "AUTO"];
+const modeContractEnum = ["AUTO", "BASE", "HCHP", "EJP", "TEMPO", "PRODUCTEUR"];
 
 interface TICMeterData {
     id: number;
@@ -89,155 +89,155 @@ const ticmeterOptionsFRTr: Translations = {
         descFR: `Temps d'actualisation des valeurs statiques (celles qui possèdent des boutons refresh). Par défaut: ${DEFAULT_POLL_INTERVAL} s`,
     },
     1: {
-        descEN: 'Linky TIC communication mode. Defaults to AUTO mode. To be used in case of problem',
-        descFR: 'Mode de communication TIC du Linky. Par défaut en mode AUTO. À utiliser en cas de problème',
+        descEN: "Linky TIC communication mode. Defaults to AUTO mode. To be used in case of problem",
+        descFR: "Mode de communication TIC du Linky. Par défaut en mode AUTO. À utiliser en cas de problème",
     },
     2: {
-        descEN: 'Current electricity contract on Linky. Defaults to AUTO mode. Displays the correct entities. To be used in case of problem',
+        descEN: "Current electricity contract on Linky. Defaults to AUTO mode. Displays the correct entities. To be used in case of problem",
         descFR: "Contrat électrique actuel sur le Linky. Par défaut en mode AUTO. Permet d'afficher les bonnes entités. À utiliser en cas de problème",
     },
     3: {
-        descEN: 'Linky electrical mode. Defaults to AUTO mode. To be used in case of problem',
-        descFR: 'Mode électrique du Linky. Par défaut en mode AUTO. À utiliser en cas de problème',
+        descEN: "Linky electrical mode. Defaults to AUTO mode. To be used in case of problem",
+        descFR: "Mode électrique du Linky. Par défaut en mode AUTO. À utiliser en cas de problème",
     },
     4: {
-        descEN: 'Producer mode: displays electricity production indexes. Default: OFF',
-        descFR: 'Mode producteur: affiche les index de production électrique. Par défaut: OFF',
+        descEN: "Producer mode: displays electricity production indexes. Default: OFF",
+        descFR: "Mode producteur: affiche les index de production électrique. Par défaut: OFF",
     },
     5: {
-        descEN: 'Displays all meter data. For advanced use. Default: OFF',
-        descFR: 'Affiche toutes les données du compteur. Pour un usage avancé. Par défaut: OFF',
+        descEN: "Displays all meter data. For advanced use. Default: OFF",
+        descFR: "Affiche toutes les données du compteur. Pour un usage avancé. Par défaut: OFF",
     },
-    6: {descEN: 'Language: Default French', descFR: 'Langue. Par défaut Francais'},
+    6: {descEN: "Language: Default French", descFR: "Langue. Par défaut Francais"},
 };
 
 const ticmeterOptions = [
-    e.numeric(`refresh_rate`, ea.SET).withValueMin(60).withDescription(ticmeterOptionsFRTr[0].descEN).withValueMin(60).withValueMax(3600),
-    e.enum('tic_mode', ea.SET, modeTICEnum).withDescription(ticmeterOptionsFRTr[1].descEN),
-    e.enum('contract_type', ea.SET, modeContractEnum).withDescription(ticmeterOptionsFRTr[2].descEN),
-    e.enum('linky_elec', ea.SET, modeElecEnum).withDescription(ticmeterOptionsFRTr[3].descEN),
-    e.binary('producer', ea.SET, 'ON', 'OFF').withDescription(ticmeterOptionsFRTr[4].descEN),
-    e.binary('advanced', ea.SET, 'ON', 'OFF').withDescription(ticmeterOptionsFRTr[5].descEN),
-    e.enum('translation', ea.SET, [TRANSLATION_FR, TRANSLATION_EN]).withDescription(ticmeterOptionsFRTr[6].descEN),
+    e.numeric("refresh_rate", ea.SET).withValueMin(60).withDescription(ticmeterOptionsFRTr[0].descEN).withValueMin(60).withValueMax(3600),
+    e.enum("tic_mode", ea.SET, modeTICEnum).withDescription(ticmeterOptionsFRTr[1].descEN),
+    e.enum("contract_type", ea.SET, modeContractEnum).withDescription(ticmeterOptionsFRTr[2].descEN),
+    e.enum("linky_elec", ea.SET, modeElecEnum).withDescription(ticmeterOptionsFRTr[3].descEN),
+    e.binary("producer", ea.SET, "ON", "OFF").withDescription(ticmeterOptionsFRTr[4].descEN),
+    e.binary("advanced", ea.SET, "ON", "OFF").withDescription(ticmeterOptionsFRTr[5].descEN),
+    e.enum("translation", ea.SET, [TRANSLATION_FR, TRANSLATION_EN]).withDescription(ticmeterOptionsFRTr[6].descEN),
 ];
 
 const ticmeterDatasFRTranslation: Translations = {
-    0: {nameFR: 'Mode_TIC', descFR: 'Mode_de_communication_TIC'},
-    1: {nameFR: 'Mode_electrique', descFR: 'Mode_de_electrique_du_compteur'},
-    2: {nameFR: 'Option_tarifaire', descFR: 'Option_tarifaire'},
-    3: {nameFR: 'Duree_de_fonctionnement', descFR: 'Duree_depuis_le_dernier_redemarrage'},
-    4: {nameFR: 'Duree_actualisation', descFR: 'Duree_entre_les_actualisations'},
-    5: {nameFR: 'Identifiant', descFR: 'Numero_de_serie_du_compteur'},
-    6: {nameFR: 'Puissance_Max_contrat', descFR: 'Puissance_Max_contrat'},
-    7: {nameFR: 'Index_total', descFR: 'Somme_de_tous_les_index'},
-    8: {nameFR: 'Index_BASE', descFR: 'Index_Tarif_Base'},
-    9: {nameFR: 'Index_HC', descFR: 'Index_Tarif_Heures_Creuses'},
-    10: {nameFR: 'Index_HP', descFR: 'Index_Tarif_Heures_Pleines'},
-    11: {nameFR: 'Index_EJP_HN', descFR: 'Index_Tarif_EJP_Heures_Normales'},
-    12: {nameFR: 'Index_EJP_HPM', descFR: 'Index_Tarif_EJP_Heures_de_Pointe_Mobile'},
-    13: {nameFR: 'Preavis_EJP', descFR: 'Preavis_EJP'},
-    14: {nameFR: 'Index_BBRHCJB', descFR: 'Index_Tarif_Heures_Creuses_Jours_Bleus'},
-    15: {nameFR: 'Index_BBRHPJB', descFR: 'Index_Tarif_Heures_Pleines_Jours_Bleus'},
-    16: {nameFR: 'Index_BBRHCJW', descFR: 'Index_Tarif_Heures_Creuses_Jours_Blancs'},
-    17: {nameFR: 'Index_BBRHPJW', descFR: 'Index_Tarif_Heures_Pleines_Jours_Blancs'},
-    18: {nameFR: 'Index_BBRHCJR', descFR: 'Index_Tarif_Heures_Creuses_Jours_Rouges'},
-    19: {nameFR: 'Index_BBRHPJR', descFR: 'Index_Tarif_Heures_Pleines_Jours_Rouges'},
-    20: {nameFR: 'Index_7', descFR: 'Index_7'},
-    21: {nameFR: 'Index_8', descFR: 'Index_8'},
-    22: {nameFR: 'Index_9', descFR: 'Index_9'},
-    23: {nameFR: 'Index_10', descFR: 'Index_10'},
-    24: {nameFR: 'Tarif_en_cours', descFR: 'Option_tarifaire_en_cours'},
-    25: {nameFR: 'Couleur_demain', descFR: 'Couleur_demain'},
-    26: {nameFR: 'Intensite_instantanee', descFR: 'Intensite_instantanee'},
-    27: {nameFR: 'Intensite_instantanee_Ph_A', descFR: 'Intensite_instantanee_Phase_A'},
-    28: {nameFR: 'Intensite_instantanee_Ph_B', descFR: 'Intensite_instantanee_Phase_B'},
-    29: {nameFR: 'Intensite_instantanee_Ph_C', descFR: 'Intensite_instantanee_Phase_C'},
-    30: {nameFR: 'Intensite_maximale', descFR: 'Intensite_maximale'},
-    31: {nameFR: 'Intensite_maximale_Ph_A', descFR: 'Intensite_maximale_Phase_A'},
-    32: {nameFR: 'Intensite_maximale_Ph_B', descFR: 'Intensite_maximale_Phase_B'},
-    33: {nameFR: 'Intensite_maximale_Ph_C', descFR: 'Intensite_maximale_Phase_C'},
-    34: {nameFR: 'Depassement_de_puissance', descFR: 'Depassement_de_puissance'},
-    35: {nameFR: 'Depassement_Itensite_Ph_A', descFR: 'Depassement_de_puissance_Phase_A'},
-    36: {nameFR: 'Depassement_Itensite_Ph_B', descFR: 'Depassement_de_puissance_Phase_B'},
-    37: {nameFR: 'Depassement_Itensite_Ph_C', descFR: 'Depassement_de_puissance_Phase_C'},
-    38: {nameFR: 'Puissance_Apparente', descFR: 'Puissance_Apparente'},
-    39: {nameFR: 'Puissance_Apparente_Ph_A', descFR: 'Puissance_Apparente_Phase_A'},
-    40: {nameFR: 'Puissance_Apparente_Ph_B', descFR: 'Puissance_Apparente_Phase_B'},
-    41: {nameFR: 'Puissance_Apparente_Ph_C', descFR: 'Puissance_Apparente_Phase_C'},
-    42: {nameFR: 'Index_energie_injectee', descFR: 'Index_energie_injectee'},
-    43: {nameFR: 'Puissance_injectee', descFR: 'Puissance_injectee'},
-    44: {nameFR: 'Puissance_max_injectee_Auj.', descFR: 'Puissance_max_injectee_Aujourdhui'},
-    45: {nameFR: 'Heure_PMAX_injectee_Auj.', descFR: 'Date_et_Heure_puissance_max_injectee_aujourdhui'},
-    46: {nameFR: 'Puissance_max_injectee_Hier', descFR: 'Puissance_max_injectee_Hier'},
-    47: {nameFR: 'Heure_PMAX_injectee_Hier', descFR: 'Date_et_Heure_puissance_max_injectee_hier'},
-    48: {nameFR: 'Presence_de_potentiels', descFR: 'Presence_de_potentiels'},
-    49: {nameFR: 'Horaire_Heures_Creuses', descFR: 'Horaire_Heures_Creuses'},
-    50: {nameFR: 'Registre_de_Status', descFR: 'Registre_de_status_du_compteur'},
-    51: {nameFR: 'Index_1_Distributeur', descFR: 'Index_1_Energie_soutiree_Distributeur'},
-    52: {nameFR: 'Index_2_Distributeur', descFR: 'Index_2_Energie_soutiree_Distributeur'},
-    53: {nameFR: 'Index_3_Distributeur', descFR: 'Index_3_Energie_soutiree_Distributeur'},
-    54: {nameFR: 'Index_4_Distributeur', descFR: 'Index_4_Energie_soutiree_Distributeur'},
-    55: {nameFR: 'Tension_instantanee', descFR: 'Tension_instantanee_efficace'},
-    56: {nameFR: 'Tension_instantanee_Ph_A', descFR: 'Tension_instantanee_efficace_Phase_A'},
-    57: {nameFR: 'Tension_instantanee_Ph_B', descFR: 'Tension_instantanee_efficace_Phase_B'},
-    58: {nameFR: 'Tension_instantanee_Ph_C', descFR: 'Tension_instantanee_efficace_Phase_C'},
-    59: {nameFR: 'Tension_moyenne', descFR: 'Tension_moyenne'},
-    60: {nameFR: 'Tension_moyenne_Ph_A', descFR: 'Tension_moyenne_Phase_A'},
-    61: {nameFR: 'Tension_moyenne_Ph_B', descFR: 'Tension_moyenne_Phase_B'},
-    62: {nameFR: 'Tension_moyenne_Ph_C', descFR: 'Tension_moyenne_Phase_C'},
-    63: {nameFR: 'Puissance_max_Auj', descFR: 'Puissance_max_Aujourdhui'},
-    64: {nameFR: 'Heure_Puissance_max_Auj', descFR: 'Date_et_Heure_de_la_puissance_max_aujourdhui'},
-    65: {nameFR: 'Puissance_max_Auj_Ph_A', descFR: 'Puissance_max_Aujourdhui_Phase_A'},
-    66: {nameFR: 'Heure_Puissance_max_Auj_Ph_A', descFR: 'Date_et_Heure_de_la_puissance_max_aujourdhui_Ph_A'},
-    67: {nameFR: 'Puissance_max_Auj_Ph_B', descFR: 'Puissance_max_Aujourdhui_Phase_B'},
-    68: {nameFR: 'Heure_Puissance_max_Auj_Ph_B', descFR: 'Date_et_Heure_de_la_puissance_max_aujourdhui_Ph_B'},
-    69: {nameFR: 'Puissance_max_Auj_Ph_C', descFR: 'Puissance_max_Aujourdhui_Phase_C'},
-    70: {nameFR: 'Heure_Puissance_max_Auj_Ph_C', descFR: 'Date_et_Heure_de_la_puissance_max_aujourdhui_Ph_C'},
-    71: {nameFR: 'Puissance_maximale_triphasee', descFR: 'Puissance_maximale_triphasee'},
-    72: {nameFR: 'Puissance_max_Hier', descFR: 'Puissance_max_Hier'},
-    73: {nameFR: 'Heure_Puissance_max_Hier', descFR: 'Date_et_Heure_de_la_puissance_max_hier'},
-    74: {nameFR: 'Puissance_max_Hier_Ph_A', descFR: 'Puissance_max_Hier_Phase_A'},
-    75: {nameFR: 'Heure_Puissance_max_Hier_Ph_A', descFR: 'Date_et_Heure_de_la_puissance_max_hier_Ph_A'},
-    76: {nameFR: 'Puissance_max_Hier_Ph_B', descFR: 'Puissance_max_Hier_Phase_B'},
-    77: {nameFR: 'Heure_Puissance_max_Hier_Ph_B', descFR: 'Date_et_Heure_de_la_puissance_max_hier_Ph_B'},
-    78: {nameFR: 'Puissance_max_Hier_Ph_C', descFR: 'Puissance_max_Hier_Phase_C'},
-    79: {nameFR: 'Heure_Puissance_max_Hier_Ph_C', descFR: 'Date_et_Heure_de_la_puissance_max_hier_Ph_C'},
-    80: {nameFR: 'Index_en_cours', descFR: 'Numereo_de_lindex_tarifaire_en_cours'},
-    81: {nameFR: 'N_jours_en_cours', descFR: 'N_jours_en_cours_fournisseur'},
-    82: {nameFR: 'N_prochain_jour', descFR: 'N_prochain_jour_fournisseur'},
-    83: {nameFR: 'Relais', descFR: 'Relais_virtuel_du_compteur'},
-    84: {nameFR: 'PMR', descFR: 'Identifiant_Point_Reference_Mesure'},
-    85: {nameFR: 'Message_court', descFR: 'Message_court'},
-    86: {nameFR: 'Message_ultra_court', descFR: 'Message_ultra_court'},
-    87: {nameFR: 'Version_de_la_TIC', descFR: 'Version_de_la_TIC'},
-    88: {nameFR: 'Date_et_heure_Compteur', descFR: 'Date_et_heure_du_compteur'},
-    89: {nameFR: 'Profil_prochain_jour', descFR: 'Profil_du_prochain_jour'},
-    90: {nameFR: 'Profil_prochain_jour_pointe', descFR: 'Profil_du_prochain_jour_pointe'},
-    91: {nameFR: 'Point_n_courbe_soutiree', descFR: 'Point_n_de_la_courbe_de_charge_active_soutiree'},
-    92: {nameFR: 'Point_n-1_courbe_soutiree', descFR: 'Point_n-1_de_la_courbe_de_charge_active_soutiree'},
-    93: {nameFR: 'Point_n_courbe_injectee', descFR: 'Point_n_de_la_courbe_de_charge_active_injectee'},
-    94: {nameFR: 'Point_n-1_courbe_injectee', descFR: 'Point_n-1_de_la_courbe_de_charge_active_injectee'},
-    95: {nameFR: 'Energie_reactive_Q1_totale', descFR: 'Energie_reactive_Q1_totale'},
-    96: {nameFR: 'Energie_reactive_Q2_totale', descFR: 'Energie_reactive_Q2_totale'},
-    97: {nameFR: 'Energie_reactive_Q3_totale', descFR: 'Energie_reactive_Q3_totale'},
-    98: {nameFR: 'Energie_reactive_Q4_totale', descFR: 'Energie_reactive_Q4_totale'},
-    99: {nameFR: 'Debut_Pointe_Mobile_1', descFR: 'Debut_Pointe_Mobile_1'},
-    100: {nameFR: 'Fin_Pointe_Mobile_1', descFR: 'Fin_Pointe_Mobile_1'},
-    101: {nameFR: 'Debut_Pointe_Mobile_2', descFR: 'Debut_Pointe_Mobile_2'},
-    102: {nameFR: 'Fin_Pointe_Mobile_2', descFR: 'Fin_Pointe_Mobile_2'},
-    103: {nameFR: 'Debut_Pointe_Mobile_3', descFR: 'Debut_Pointe_Mobile_3'},
-    104: {nameFR: 'Fin_Pointe_Mobile_3', descFR: 'Fin_Pointe_Mobile_3'},
+    0: {nameFR: "Mode_TIC", descFR: "Mode_de_communication_TIC"},
+    1: {nameFR: "Mode_electrique", descFR: "Mode_de_electrique_du_compteur"},
+    2: {nameFR: "Option_tarifaire", descFR: "Option_tarifaire"},
+    3: {nameFR: "Duree_de_fonctionnement", descFR: "Duree_depuis_le_dernier_redemarrage"},
+    4: {nameFR: "Duree_actualisation", descFR: "Duree_entre_les_actualisations"},
+    5: {nameFR: "Identifiant", descFR: "Numero_de_serie_du_compteur"},
+    6: {nameFR: "Puissance_Max_contrat", descFR: "Puissance_Max_contrat"},
+    7: {nameFR: "Index_total", descFR: "Somme_de_tous_les_index"},
+    8: {nameFR: "Index_BASE", descFR: "Index_Tarif_Base"},
+    9: {nameFR: "Index_HC", descFR: "Index_Tarif_Heures_Creuses"},
+    10: {nameFR: "Index_HP", descFR: "Index_Tarif_Heures_Pleines"},
+    11: {nameFR: "Index_EJP_HN", descFR: "Index_Tarif_EJP_Heures_Normales"},
+    12: {nameFR: "Index_EJP_HPM", descFR: "Index_Tarif_EJP_Heures_de_Pointe_Mobile"},
+    13: {nameFR: "Preavis_EJP", descFR: "Preavis_EJP"},
+    14: {nameFR: "Index_BBRHCJB", descFR: "Index_Tarif_Heures_Creuses_Jours_Bleus"},
+    15: {nameFR: "Index_BBRHPJB", descFR: "Index_Tarif_Heures_Pleines_Jours_Bleus"},
+    16: {nameFR: "Index_BBRHCJW", descFR: "Index_Tarif_Heures_Creuses_Jours_Blancs"},
+    17: {nameFR: "Index_BBRHPJW", descFR: "Index_Tarif_Heures_Pleines_Jours_Blancs"},
+    18: {nameFR: "Index_BBRHCJR", descFR: "Index_Tarif_Heures_Creuses_Jours_Rouges"},
+    19: {nameFR: "Index_BBRHPJR", descFR: "Index_Tarif_Heures_Pleines_Jours_Rouges"},
+    20: {nameFR: "Index_7", descFR: "Index_7"},
+    21: {nameFR: "Index_8", descFR: "Index_8"},
+    22: {nameFR: "Index_9", descFR: "Index_9"},
+    23: {nameFR: "Index_10", descFR: "Index_10"},
+    24: {nameFR: "Tarif_en_cours", descFR: "Option_tarifaire_en_cours"},
+    25: {nameFR: "Couleur_demain", descFR: "Couleur_demain"},
+    26: {nameFR: "Intensite_instantanee", descFR: "Intensite_instantanee"},
+    27: {nameFR: "Intensite_instantanee_Ph_A", descFR: "Intensite_instantanee_Phase_A"},
+    28: {nameFR: "Intensite_instantanee_Ph_B", descFR: "Intensite_instantanee_Phase_B"},
+    29: {nameFR: "Intensite_instantanee_Ph_C", descFR: "Intensite_instantanee_Phase_C"},
+    30: {nameFR: "Intensite_maximale", descFR: "Intensite_maximale"},
+    31: {nameFR: "Intensite_maximale_Ph_A", descFR: "Intensite_maximale_Phase_A"},
+    32: {nameFR: "Intensite_maximale_Ph_B", descFR: "Intensite_maximale_Phase_B"},
+    33: {nameFR: "Intensite_maximale_Ph_C", descFR: "Intensite_maximale_Phase_C"},
+    34: {nameFR: "Depassement_de_puissance", descFR: "Depassement_de_puissance"},
+    35: {nameFR: "Depassement_Itensite_Ph_A", descFR: "Depassement_de_puissance_Phase_A"},
+    36: {nameFR: "Depassement_Itensite_Ph_B", descFR: "Depassement_de_puissance_Phase_B"},
+    37: {nameFR: "Depassement_Itensite_Ph_C", descFR: "Depassement_de_puissance_Phase_C"},
+    38: {nameFR: "Puissance_Apparente", descFR: "Puissance_Apparente"},
+    39: {nameFR: "Puissance_Apparente_Ph_A", descFR: "Puissance_Apparente_Phase_A"},
+    40: {nameFR: "Puissance_Apparente_Ph_B", descFR: "Puissance_Apparente_Phase_B"},
+    41: {nameFR: "Puissance_Apparente_Ph_C", descFR: "Puissance_Apparente_Phase_C"},
+    42: {nameFR: "Index_energie_injectee", descFR: "Index_energie_injectee"},
+    43: {nameFR: "Puissance_injectee", descFR: "Puissance_injectee"},
+    44: {nameFR: "Puissance_max_injectee_Auj.", descFR: "Puissance_max_injectee_Aujourdhui"},
+    45: {nameFR: "Heure_PMAX_injectee_Auj.", descFR: "Date_et_Heure_puissance_max_injectee_aujourdhui"},
+    46: {nameFR: "Puissance_max_injectee_Hier", descFR: "Puissance_max_injectee_Hier"},
+    47: {nameFR: "Heure_PMAX_injectee_Hier", descFR: "Date_et_Heure_puissance_max_injectee_hier"},
+    48: {nameFR: "Presence_de_potentiels", descFR: "Presence_de_potentiels"},
+    49: {nameFR: "Horaire_Heures_Creuses", descFR: "Horaire_Heures_Creuses"},
+    50: {nameFR: "Registre_de_Status", descFR: "Registre_de_status_du_compteur"},
+    51: {nameFR: "Index_1_Distributeur", descFR: "Index_1_Energie_soutiree_Distributeur"},
+    52: {nameFR: "Index_2_Distributeur", descFR: "Index_2_Energie_soutiree_Distributeur"},
+    53: {nameFR: "Index_3_Distributeur", descFR: "Index_3_Energie_soutiree_Distributeur"},
+    54: {nameFR: "Index_4_Distributeur", descFR: "Index_4_Energie_soutiree_Distributeur"},
+    55: {nameFR: "Tension_instantanee", descFR: "Tension_instantanee_efficace"},
+    56: {nameFR: "Tension_instantanee_Ph_A", descFR: "Tension_instantanee_efficace_Phase_A"},
+    57: {nameFR: "Tension_instantanee_Ph_B", descFR: "Tension_instantanee_efficace_Phase_B"},
+    58: {nameFR: "Tension_instantanee_Ph_C", descFR: "Tension_instantanee_efficace_Phase_C"},
+    59: {nameFR: "Tension_moyenne", descFR: "Tension_moyenne"},
+    60: {nameFR: "Tension_moyenne_Ph_A", descFR: "Tension_moyenne_Phase_A"},
+    61: {nameFR: "Tension_moyenne_Ph_B", descFR: "Tension_moyenne_Phase_B"},
+    62: {nameFR: "Tension_moyenne_Ph_C", descFR: "Tension_moyenne_Phase_C"},
+    63: {nameFR: "Puissance_max_Auj", descFR: "Puissance_max_Aujourdhui"},
+    64: {nameFR: "Heure_Puissance_max_Auj", descFR: "Date_et_Heure_de_la_puissance_max_aujourdhui"},
+    65: {nameFR: "Puissance_max_Auj_Ph_A", descFR: "Puissance_max_Aujourdhui_Phase_A"},
+    66: {nameFR: "Heure_Puissance_max_Auj_Ph_A", descFR: "Date_et_Heure_de_la_puissance_max_aujourdhui_Ph_A"},
+    67: {nameFR: "Puissance_max_Auj_Ph_B", descFR: "Puissance_max_Aujourdhui_Phase_B"},
+    68: {nameFR: "Heure_Puissance_max_Auj_Ph_B", descFR: "Date_et_Heure_de_la_puissance_max_aujourdhui_Ph_B"},
+    69: {nameFR: "Puissance_max_Auj_Ph_C", descFR: "Puissance_max_Aujourdhui_Phase_C"},
+    70: {nameFR: "Heure_Puissance_max_Auj_Ph_C", descFR: "Date_et_Heure_de_la_puissance_max_aujourdhui_Ph_C"},
+    71: {nameFR: "Puissance_maximale_triphasee", descFR: "Puissance_maximale_triphasee"},
+    72: {nameFR: "Puissance_max_Hier", descFR: "Puissance_max_Hier"},
+    73: {nameFR: "Heure_Puissance_max_Hier", descFR: "Date_et_Heure_de_la_puissance_max_hier"},
+    74: {nameFR: "Puissance_max_Hier_Ph_A", descFR: "Puissance_max_Hier_Phase_A"},
+    75: {nameFR: "Heure_Puissance_max_Hier_Ph_A", descFR: "Date_et_Heure_de_la_puissance_max_hier_Ph_A"},
+    76: {nameFR: "Puissance_max_Hier_Ph_B", descFR: "Puissance_max_Hier_Phase_B"},
+    77: {nameFR: "Heure_Puissance_max_Hier_Ph_B", descFR: "Date_et_Heure_de_la_puissance_max_hier_Ph_B"},
+    78: {nameFR: "Puissance_max_Hier_Ph_C", descFR: "Puissance_max_Hier_Phase_C"},
+    79: {nameFR: "Heure_Puissance_max_Hier_Ph_C", descFR: "Date_et_Heure_de_la_puissance_max_hier_Ph_C"},
+    80: {nameFR: "Index_en_cours", descFR: "Numereo_de_lindex_tarifaire_en_cours"},
+    81: {nameFR: "N_jours_en_cours", descFR: "N_jours_en_cours_fournisseur"},
+    82: {nameFR: "N_prochain_jour", descFR: "N_prochain_jour_fournisseur"},
+    83: {nameFR: "Relais", descFR: "Relais_virtuel_du_compteur"},
+    84: {nameFR: "PMR", descFR: "Identifiant_Point_Reference_Mesure"},
+    85: {nameFR: "Message_court", descFR: "Message_court"},
+    86: {nameFR: "Message_ultra_court", descFR: "Message_ultra_court"},
+    87: {nameFR: "Version_de_la_TIC", descFR: "Version_de_la_TIC"},
+    88: {nameFR: "Date_et_heure_Compteur", descFR: "Date_et_heure_du_compteur"},
+    89: {nameFR: "Profil_prochain_jour", descFR: "Profil_du_prochain_jour"},
+    90: {nameFR: "Profil_prochain_jour_pointe", descFR: "Profil_du_prochain_jour_pointe"},
+    91: {nameFR: "Point_n_courbe_soutiree", descFR: "Point_n_de_la_courbe_de_charge_active_soutiree"},
+    92: {nameFR: "Point_n-1_courbe_soutiree", descFR: "Point_n-1_de_la_courbe_de_charge_active_soutiree"},
+    93: {nameFR: "Point_n_courbe_injectee", descFR: "Point_n_de_la_courbe_de_charge_active_injectee"},
+    94: {nameFR: "Point_n-1_courbe_injectee", descFR: "Point_n-1_de_la_courbe_de_charge_active_injectee"},
+    95: {nameFR: "Energie_reactive_Q1_totale", descFR: "Energie_reactive_Q1_totale"},
+    96: {nameFR: "Energie_reactive_Q2_totale", descFR: "Energie_reactive_Q2_totale"},
+    97: {nameFR: "Energie_reactive_Q3_totale", descFR: "Energie_reactive_Q3_totale"},
+    98: {nameFR: "Energie_reactive_Q4_totale", descFR: "Energie_reactive_Q4_totale"},
+    99: {nameFR: "Debut_Pointe_Mobile_1", descFR: "Debut_Pointe_Mobile_1"},
+    100: {nameFR: "Fin_Pointe_Mobile_1", descFR: "Fin_Pointe_Mobile_1"},
+    101: {nameFR: "Debut_Pointe_Mobile_2", descFR: "Debut_Pointe_Mobile_2"},
+    102: {nameFR: "Fin_Pointe_Mobile_2", descFR: "Fin_Pointe_Mobile_2"},
+    103: {nameFR: "Debut_Pointe_Mobile_3", descFR: "Debut_Pointe_Mobile_3"},
+    104: {nameFR: "Fin_Pointe_Mobile_3", descFR: "Fin_Pointe_Mobile_3"},
 };
 
 const ticmeterDatas: TICMeterData[] = [
     {
         id: 0,
-        name: 'TIC_Mode',
-        desc: 'TIC_Communication_Mode',
+        name: "TIC_Mode",
+        desc: "TIC_Communication_Mode",
         clust: CLUSTER_TIC,
-        attr: 'ticMode',
+        attr: "ticMode",
         type: ENUM,
-        unit: '',
+        unit: "",
         poll: true,
         tic: T.ANY,
         contract: C.ANY,
@@ -247,12 +247,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 1,
-        name: 'Electric_Mode',
-        desc: 'Meter_Electric_Mode',
+        name: "Electric_Mode",
+        desc: "Meter_Electric_Mode",
         clust: CLUSTER_TIC,
-        attr: 'elecMode',
+        attr: "elecMode",
         type: ENUM,
-        unit: '',
+        unit: "",
         poll: true,
         tic: T.ANY,
         contract: C.ANY,
@@ -262,12 +262,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 2,
-        name: 'Tariff_Option',
-        desc: 'Tariff_Option',
+        name: "Tariff_Option",
+        desc: "Tariff_Option",
         clust: CLUSTER_TIC,
-        attr: 'contractType',
+        attr: "contractType",
         type: STRING,
-        unit: '',
+        unit: "",
         poll: true,
         tic: T.ANY,
         contract: C.ANY,
@@ -276,12 +276,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 3,
-        name: 'Uptime',
-        desc: 'Duration_since_last_restart',
+        name: "Uptime",
+        desc: "Duration_since_last_restart",
         clust: CLUSTER_TIC,
-        attr: 'uptime',
+        attr: "uptime",
         type: NUMBER,
-        unit: 's',
+        unit: "s",
         poll: true,
         tic: T.ANY,
         contract: C.ANY,
@@ -290,12 +290,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 4,
-        name: 'Refresh_Rate',
-        desc: 'Time_between_refreshes',
+        name: "Refresh_Rate",
+        desc: "Time_between_refreshes",
         clust: CLUSTER_TIC,
-        attr: 'refreshRate',
+        attr: "refreshRate",
         type: NUM_RW,
-        unit: 's',
+        unit: "s",
         poll: true,
         tic: T.ANY,
         contract: C.ANY,
@@ -306,12 +306,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 5,
-        name: 'Identifier',
-        desc: 'Meter_serial_number',
+        name: "Identifier",
+        desc: "Meter_serial_number",
         clust: CLUSTER_MET,
-        attr: 'meterSerialNumber',
+        attr: "meterSerialNumber",
         type: STRING,
-        unit: '',
+        unit: "",
         poll: true,
         tic: T.ANY,
         contract: C.ANY,
@@ -320,12 +320,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 6,
-        name: 'Max_Contract_Power',
-        desc: 'Max_Contract_Power',
+        name: "Max_Contract_Power",
+        desc: "Max_Contract_Power",
         clust: CLUSTER_TIC,
-        attr: 'maxContractPower',
+        attr: "maxContractPower",
         type: NUMBER,
-        unit: 'kVA',
+        unit: "kVA",
         poll: true,
         tic: T.ANY,
         contract: C.ANY,
@@ -334,12 +334,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 7,
-        name: 'Total_Index',
-        desc: 'Sum_of_all_Index',
+        name: "Total_Index",
+        desc: "Sum_of_all_Index",
         clust: CLUSTER_MET,
-        attr: 'currentSummDelivered',
+        attr: "currentSummDelivered",
         type: NUMBER,
-        unit: 'Wh',
+        unit: "Wh",
         poll: false,
         tic: T.ANY,
         contract: C.ANY,
@@ -348,12 +348,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 8,
-        name: 'BASE_Index',
-        desc: 'Base_Tariff_Index',
+        name: "BASE_Index",
+        desc: "Base_Tariff_Index",
         clust: CLUSTER_MET,
-        attr: 'currentTier1SummDelivered',
+        attr: "currentTier1SummDelivered",
         type: NUMBER,
-        unit: 'Wh',
+        unit: "Wh",
         poll: false,
         tic: T.ANY,
         contract: C.BASE,
@@ -362,12 +362,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 9,
-        name: 'Off-Peak_Index',
-        desc: 'Off-Peak_Tariff_Index',
+        name: "Off-Peak_Index",
+        desc: "Off-Peak_Tariff_Index",
         clust: CLUSTER_MET,
-        attr: 'currentTier1SummDelivered',
+        attr: "currentTier1SummDelivered",
         type: NUMBER,
-        unit: 'Wh',
+        unit: "Wh",
         poll: false,
         tic: T.ANY,
         contract: C.HCHP,
@@ -376,12 +376,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 10,
-        name: 'Peak_Index',
-        desc: 'Peak_Tariff_Index',
+        name: "Peak_Index",
+        desc: "Peak_Tariff_Index",
         clust: CLUSTER_MET,
-        attr: 'currentTier2SummDelivered',
+        attr: "currentTier2SummDelivered",
         type: NUMBER,
-        unit: 'Wh',
+        unit: "Wh",
         poll: false,
         tic: T.ANY,
         contract: C.HCHP,
@@ -390,12 +390,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 11,
-        name: 'EJP_Normal_Hours_Index',
-        desc: 'EJP_Normal_Hours_Tariff_Index',
+        name: "EJP_Normal_Hours_Index",
+        desc: "EJP_Normal_Hours_Tariff_Index",
         clust: CLUSTER_MET,
-        attr: 'currentTier1SummDelivered',
+        attr: "currentTier1SummDelivered",
         type: NUMBER,
-        unit: 'Wh',
+        unit: "Wh",
         poll: false,
         tic: T.ANY,
         contract: C.EJP,
@@ -404,12 +404,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 12,
-        name: 'EJP_Mobile_Peak_Hours_Index',
-        desc: 'EJP_Mobile_Peak_Hours_Tariff_Index',
+        name: "EJP_Mobile_Peak_Hours_Index",
+        desc: "EJP_Mobile_Peak_Hours_Tariff_Index",
         clust: CLUSTER_MET,
-        attr: 'currentTier2SummDelivered',
+        attr: "currentTier2SummDelivered",
         type: NUMBER,
-        unit: 'Wh',
+        unit: "Wh",
         poll: false,
         tic: T.ANY,
         contract: C.EJP,
@@ -418,12 +418,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 13,
-        name: 'EJP_Notice',
-        desc: 'EJP_Notice',
+        name: "EJP_Notice",
+        desc: "EJP_Notice",
         clust: CLUSTER_TIC,
-        attr: 'startEJP',
+        attr: "startEJP",
         type: STRING,
-        unit: '',
+        unit: "",
         poll: false,
         tic: T.ANY,
         contract: C.EJP,
@@ -432,12 +432,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 14,
-        name: 'BBRHCJB_Index',
-        desc: 'Blue_Days_Off-Peak_Tariff_Index',
+        name: "BBRHCJB_Index",
+        desc: "Blue_Days_Off-Peak_Tariff_Index",
         clust: CLUSTER_MET,
-        attr: 'currentTier1SummDelivered',
+        attr: "currentTier1SummDelivered",
         type: NUMBER,
-        unit: 'Wh',
+        unit: "Wh",
         poll: false,
         tic: T.ANY,
         contract: C.TEMPO,
@@ -446,12 +446,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 15,
-        name: 'BBRHPJB_Index',
-        desc: 'Blue_Days_Peak_Tariff_Index',
+        name: "BBRHPJB_Index",
+        desc: "Blue_Days_Peak_Tariff_Index",
         clust: CLUSTER_MET,
-        attr: 'currentTier2SummDelivered',
+        attr: "currentTier2SummDelivered",
         type: NUMBER,
-        unit: 'Wh',
+        unit: "Wh",
         poll: false,
         tic: T.ANY,
         contract: C.TEMPO,
@@ -460,12 +460,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 16,
-        name: 'BBRHCJW_Index',
-        desc: 'White_Days_Off-Peak_Tariff_Index',
+        name: "BBRHCJW_Index",
+        desc: "White_Days_Off-Peak_Tariff_Index",
         clust: CLUSTER_MET,
-        attr: 'currentTier3SummDelivered',
+        attr: "currentTier3SummDelivered",
         type: NUMBER,
-        unit: 'Wh',
+        unit: "Wh",
         poll: false,
         tic: T.ANY,
         contract: C.TEMPO,
@@ -474,12 +474,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 17,
-        name: 'BBRHPJW_Index',
-        desc: 'White_Days_Peak_Tariff_Index',
+        name: "BBRHPJW_Index",
+        desc: "White_Days_Peak_Tariff_Index",
         clust: CLUSTER_MET,
-        attr: 'currentTier4SummDelivered',
+        attr: "currentTier4SummDelivered",
         type: NUMBER,
-        unit: 'Wh',
+        unit: "Wh",
         poll: false,
         tic: T.ANY,
         contract: C.TEMPO,
@@ -488,12 +488,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 18,
-        name: 'BBRHCJR_Index',
-        desc: 'Red_Days_Off-Peak_Tariff_Index',
+        name: "BBRHCJR_Index",
+        desc: "Red_Days_Off-Peak_Tariff_Index",
         clust: CLUSTER_MET,
-        attr: 'currentTier5SummDelivered',
+        attr: "currentTier5SummDelivered",
         type: NUMBER,
-        unit: 'Wh',
+        unit: "Wh",
         poll: false,
         tic: T.ANY,
         contract: C.TEMPO,
@@ -502,12 +502,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 19,
-        name: 'BBRHPJR_Index',
-        desc: 'Red_Days_Peak_Tariff_Index',
+        name: "BBRHPJR_Index",
+        desc: "Red_Days_Peak_Tariff_Index",
         clust: CLUSTER_MET,
-        attr: 'currentTier6SummDelivered',
+        attr: "currentTier6SummDelivered",
         type: NUMBER,
-        unit: 'Wh',
+        unit: "Wh",
         poll: false,
         tic: T.ANY,
         contract: C.TEMPO,
@@ -516,12 +516,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 20,
-        name: 'Index_7',
-        desc: 'Index_7',
+        name: "Index_7",
+        desc: "Index_7",
         clust: CLUSTER_MET,
-        attr: 'currentTier7SummDelivered',
+        attr: "currentTier7SummDelivered",
         type: NUMBER,
-        unit: 'Wh',
+        unit: "Wh",
         poll: false,
         tic: T.STD,
         contract: C.ANY,
@@ -530,12 +530,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 21,
-        name: 'Index_8',
-        desc: 'Index_8',
+        name: "Index_8",
+        desc: "Index_8",
         clust: CLUSTER_MET,
-        attr: 'currentTier8SummDelivered',
+        attr: "currentTier8SummDelivered",
         type: NUMBER,
-        unit: 'Wh',
+        unit: "Wh",
         poll: false,
         tic: T.STD,
         contract: C.ANY,
@@ -544,12 +544,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 22,
-        name: 'Index_9',
-        desc: 'Index_9',
+        name: "Index_9",
+        desc: "Index_9",
         clust: CLUSTER_MET,
-        attr: 'currentTier9SummDelivered',
+        attr: "currentTier9SummDelivered",
         type: NUMBER,
-        unit: 'Wh',
+        unit: "Wh",
         poll: false,
         tic: T.STD,
         contract: C.ANY,
@@ -558,12 +558,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 23,
-        name: 'Index_10',
-        desc: 'Index_10',
+        name: "Index_10",
+        desc: "Index_10",
         clust: CLUSTER_MET,
-        attr: 'currentTier10SummDelivered',
+        attr: "currentTier10SummDelivered",
         type: NUMBER,
-        unit: 'Wh',
+        unit: "Wh",
         poll: false,
         tic: T.STD,
         contract: C.ANY,
@@ -572,12 +572,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 24,
-        name: 'Current_Tariff',
-        desc: 'Current_Tariff_Option',
+        name: "Current_Tariff",
+        desc: "Current_Tariff_Option",
         clust: CLUSTER_TIC,
-        attr: 'currentTarif',
+        attr: "currentTarif",
         type: STRING,
-        unit: '',
+        unit: "",
         poll: false,
         tic: T.ANY,
         contract: C.ANY,
@@ -586,12 +586,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 25,
-        name: 'Tomorrow_Color',
-        desc: 'Tomorrow_Color',
+        name: "Tomorrow_Color",
+        desc: "Tomorrow_Color",
         clust: CLUSTER_TIC,
-        attr: 'tomorowColor',
+        attr: "tomorowColor",
         type: STRING,
-        unit: '',
+        unit: "",
         poll: false,
         tic: T.ANY,
         contract: C.TEMPO,
@@ -600,12 +600,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 26,
-        name: 'Instant_Intensity',
-        desc: 'Instant_Intensity',
+        name: "Instant_Intensity",
+        desc: "Instant_Intensity",
         clust: CLUSTER_ELE,
-        attr: 'rmsCurrent',
+        attr: "rmsCurrent",
         type: NUMBER,
-        unit: 'A',
+        unit: "A",
         poll: false,
         tic: T.ANY,
         contract: C.ANY,
@@ -614,12 +614,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 27,
-        name: 'Instant_Intensity_Phase_A',
-        desc: 'Instant_Intensity_Phase_A',
+        name: "Instant_Intensity_Phase_A",
+        desc: "Instant_Intensity_Phase_A",
         clust: CLUSTER_ELE,
-        attr: 'rmsCurrent',
+        attr: "rmsCurrent",
         type: NUMBER,
-        unit: 'A',
+        unit: "A",
         poll: false,
         tic: T.ANY,
         contract: C.ANY,
@@ -628,12 +628,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 28,
-        name: 'Instant_Intensity_Phase_B',
-        desc: 'Instant_Intensity_Phase_B',
+        name: "Instant_Intensity_Phase_B",
+        desc: "Instant_Intensity_Phase_B",
         clust: CLUSTER_ELE,
-        attr: 'rmsCurrentPhB',
+        attr: "rmsCurrentPhB",
         type: NUMBER,
-        unit: 'A',
+        unit: "A",
         poll: false,
         tic: T.ANY,
         contract: C.ANY,
@@ -642,12 +642,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 29,
-        name: 'Instant_Intensity_Phase_C',
-        desc: 'Instant_Intensity_Phase_C',
+        name: "Instant_Intensity_Phase_C",
+        desc: "Instant_Intensity_Phase_C",
         clust: CLUSTER_ELE,
-        attr: 'rmsCurrentPhC',
+        attr: "rmsCurrentPhC",
         type: NUMBER,
-        unit: 'A',
+        unit: "A",
         poll: false,
         tic: T.ANY,
         contract: C.ANY,
@@ -656,12 +656,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 30,
-        name: 'Max_Intensity',
-        desc: 'Max_Intensity',
+        name: "Max_Intensity",
+        desc: "Max_Intensity",
         clust: CLUSTER_ELE,
-        attr: 'rmsCurrentMax',
+        attr: "rmsCurrentMax",
         type: NUMBER,
-        unit: 'A',
+        unit: "A",
         poll: true,
         tic: T.HIST,
         contract: C.ANY,
@@ -670,12 +670,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 31,
-        name: 'Max_Intensity_Phase_A',
-        desc: 'Max_Intensity_Phase_A',
+        name: "Max_Intensity_Phase_A",
+        desc: "Max_Intensity_Phase_A",
         clust: CLUSTER_ELE,
-        attr: 'rmsCurrentMax',
+        attr: "rmsCurrentMax",
         type: NUMBER,
-        unit: 'A',
+        unit: "A",
         poll: true,
         tic: T.HIST,
         contract: C.ANY,
@@ -684,12 +684,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 32,
-        name: 'Max_Intensity_Phase_B',
-        desc: 'Max_Intensity_Phase_B',
+        name: "Max_Intensity_Phase_B",
+        desc: "Max_Intensity_Phase_B",
         clust: CLUSTER_ELE,
-        attr: 'rmsCurrentMaxPhB',
+        attr: "rmsCurrentMaxPhB",
         type: NUMBER,
-        unit: 'A',
+        unit: "A",
         poll: true,
         tic: T.HIST,
         contract: C.ANY,
@@ -698,12 +698,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 33,
-        name: 'Max_Intensity_Phase_C',
-        desc: 'Max_Intensity_Phase_C',
+        name: "Max_Intensity_Phase_C",
+        desc: "Max_Intensity_Phase_C",
         clust: CLUSTER_ELE,
-        attr: 'rmsCurrentMaxPhC',
+        attr: "rmsCurrentMaxPhC",
         type: NUMBER,
-        unit: 'A',
+        unit: "A",
         poll: true,
         tic: T.HIST,
         contract: C.ANY,
@@ -712,12 +712,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 34,
-        name: 'Power_Exceedance',
-        desc: 'Power_Exceedance',
+        name: "Power_Exceedance",
+        desc: "Power_Exceedance",
         clust: CLUSTER_TIC,
-        attr: 'powerOverrun',
+        attr: "powerOverrun",
         type: NUMBER,
-        unit: 'A',
+        unit: "A",
         poll: false,
         tic: T.ANY,
         contract: C.ANY,
@@ -726,12 +726,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 35,
-        name: 'Power_Exceedance_Phase_A',
-        desc: 'Power_Exceedance_Phase_A',
+        name: "Power_Exceedance_Phase_A",
+        desc: "Power_Exceedance_Phase_A",
         clust: CLUSTER_TIC,
-        attr: 'powerOverrunA',
+        attr: "powerOverrunA",
         type: NUMBER,
-        unit: 'A',
+        unit: "A",
         poll: false,
         tic: T.ANY,
         contract: C.ANY,
@@ -740,12 +740,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 36,
-        name: 'Power_Exceedance_Phase_B',
-        desc: 'Power_Exceedance_Phase_B',
+        name: "Power_Exceedance_Phase_B",
+        desc: "Power_Exceedance_Phase_B",
         clust: CLUSTER_TIC,
-        attr: 'powerOverrunB',
+        attr: "powerOverrunB",
         type: NUMBER,
-        unit: 'A',
+        unit: "A",
         poll: false,
         tic: T.ANY,
         contract: C.ANY,
@@ -754,12 +754,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 37,
-        name: 'Power_Exceedance_Phase_C',
-        desc: 'Power_Exceedance_Phase_C',
+        name: "Power_Exceedance_Phase_C",
+        desc: "Power_Exceedance_Phase_C",
         clust: CLUSTER_TIC,
-        attr: 'powerOverrunC',
+        attr: "powerOverrunC",
         type: NUMBER,
-        unit: 'A',
+        unit: "A",
         poll: false,
         tic: T.ANY,
         contract: C.ANY,
@@ -768,12 +768,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 38,
-        name: 'Apparent_Power',
-        desc: 'Apparent_Power',
+        name: "Apparent_Power",
+        desc: "Apparent_Power",
         clust: CLUSTER_ELE,
-        attr: 'apparentPower',
+        attr: "apparentPower",
         type: NUMBER,
-        unit: 'VA',
+        unit: "VA",
         poll: false,
         tic: T.ANY,
         contract: C.ANY,
@@ -782,12 +782,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 39,
-        name: 'Apparent_Power_Phase_A',
-        desc: 'Apparent_Power_Phase_A',
+        name: "Apparent_Power_Phase_A",
+        desc: "Apparent_Power_Phase_A",
         clust: CLUSTER_ELE,
-        attr: 'apparentPower',
+        attr: "apparentPower",
         type: NUMBER,
-        unit: 'VA',
+        unit: "VA",
         poll: false,
         tic: T.STD,
         contract: C.ANY,
@@ -796,12 +796,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 40,
-        name: 'Apparent_Power_Phase_B',
-        desc: 'Apparent_Power_Phase_B',
+        name: "Apparent_Power_Phase_B",
+        desc: "Apparent_Power_Phase_B",
         clust: CLUSTER_ELE,
-        attr: 'apparentPowerPhB',
+        attr: "apparentPowerPhB",
         type: NUMBER,
-        unit: 'VA',
+        unit: "VA",
         poll: false,
         tic: T.STD,
         contract: C.ANY,
@@ -810,12 +810,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 41,
-        name: 'Apparent_Power_Phase_C',
-        desc: 'Apparent_Power_Phase_C',
+        name: "Apparent_Power_Phase_C",
+        desc: "Apparent_Power_Phase_C",
         clust: CLUSTER_ELE,
-        attr: 'apparentPowerPhC',
+        attr: "apparentPowerPhC",
         type: NUMBER,
-        unit: 'VA',
+        unit: "VA",
         poll: false,
         tic: T.STD,
         contract: C.ANY,
@@ -824,12 +824,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 42,
-        name: 'Injected_Energy_Index',
-        desc: 'Injected_Energy_Index',
+        name: "Injected_Energy_Index",
+        desc: "Injected_Energy_Index",
         clust: CLUSTER_MET,
-        attr: 'currentSummReceived',
+        attr: "currentSummReceived",
         type: NUMBER,
-        unit: 'Wh',
+        unit: "Wh",
         poll: false,
         tic: T.STD,
         contract: C.ANY,
@@ -838,12 +838,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 43,
-        name: 'Injected_Power',
-        desc: 'Injected_Power',
+        name: "Injected_Power",
+        desc: "Injected_Power",
         clust: CLUSTER_TIC,
-        attr: 'powerInjected',
+        attr: "powerInjected",
         type: NUMBER,
-        unit: 'VA',
+        unit: "VA",
         poll: false,
         tic: T.STD,
         contract: C.ANY,
@@ -852,12 +852,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 44,
-        name: 'Today_Max_Injected_Power',
-        desc: 'Max_Injected_Power_Today',
+        name: "Today_Max_Injected_Power",
+        desc: "Max_Injected_Power_Today",
         clust: CLUSTER_TIC,
-        attr: 'powerMaxInjected',
+        attr: "powerMaxInjected",
         type: NUMBER,
-        unit: 'VA',
+        unit: "VA",
         poll: true,
         tic: T.STD,
         contract: C.ANY,
@@ -866,12 +866,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 45,
-        name: 'Today_Time_Max_Injected_Power',
-        desc: 'Date_and_Time_of_Today_Max_Injected',
+        name: "Today_Time_Max_Injected_Power",
+        desc: "Date_and_Time_of_Today_Max_Injected",
         clust: CLUSTER_TIC,
-        attr: 'powerMaxInjectedTime',
+        attr: "powerMaxInjectedTime",
         type: TIME,
-        unit: '',
+        unit: "",
         poll: true,
         tic: T.STD,
         contract: C.ANY,
@@ -880,12 +880,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 46,
-        name: 'Yesterday_Max_Injected_Power',
-        desc: 'Max_Injected_Power_Yesterday',
+        name: "Yesterday_Max_Injected_Power",
+        desc: "Max_Injected_Power_Yesterday",
         clust: CLUSTER_TIC,
-        attr: 'powerMaxInjectedYesterday',
+        attr: "powerMaxInjectedYesterday",
         type: NUMBER,
-        unit: 'VA',
+        unit: "VA",
         poll: true,
         tic: T.STD,
         contract: C.ANY,
@@ -894,12 +894,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 47,
-        name: 'Yesterday_Time_Max_Injected_Power',
-        desc: 'Date_and_Time_of_Yesterday_Max_Injected',
+        name: "Yesterday_Time_Max_Injected_Power",
+        desc: "Date_and_Time_of_Yesterday_Max_Injected",
         clust: CLUSTER_TIC,
-        attr: 'powerMaxInjectedYesterdayTime',
+        attr: "powerMaxInjectedYesterdayTime",
         type: TIME,
-        unit: '',
+        unit: "",
         poll: true,
         tic: T.STD,
         contract: C.ANY,
@@ -908,12 +908,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 48,
-        name: 'Potential_Presence',
-        desc: 'Potential_Presence',
+        name: "Potential_Presence",
+        desc: "Potential_Presence",
         clust: CLUSTER_TIC,
-        attr: 'potentialPresence',
+        attr: "potentialPresence",
         type: NUMBER,
-        unit: '',
+        unit: "",
         poll: true,
         tic: T.HIST,
         contract: C.ANY,
@@ -922,12 +922,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 49,
-        name: 'Off-Peak_Hours_Schedule',
-        desc: 'Off-Peak_Hours_Schedule',
+        name: "Off-Peak_Hours_Schedule",
+        desc: "Off-Peak_Hours_Schedule",
         clust: CLUSTER_TIC,
-        attr: 'hcHours',
+        attr: "hcHours",
         type: STRING,
-        unit: '',
+        unit: "",
         poll: false,
         tic: T.ANY,
         contract: C.HCHP,
@@ -936,12 +936,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 50,
-        name: 'Status_Register',
-        desc: 'Meter_Status_Register',
+        name: "Status_Register",
+        desc: "Meter_Status_Register",
         clust: CLUSTER_TIC,
-        attr: 'motdetat',
+        attr: "motdetat",
         type: STRING,
-        unit: '',
+        unit: "",
         poll: true,
         tic: T.ANY,
         contract: C.ANY,
@@ -950,12 +950,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 51,
-        name: 'Distributor_Index_1',
-        desc: 'Distributor_Drawn_Energy_Index_1',
+        name: "Distributor_Index_1",
+        desc: "Distributor_Drawn_Energy_Index_1",
         clust: CLUSTER_TIC,
-        attr: 'index1Dist',
+        attr: "index1Dist",
         type: NUMBER,
-        unit: 'Wh',
+        unit: "Wh",
         poll: false,
         tic: T.STD,
         contract: C.ANY,
@@ -964,12 +964,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 52,
-        name: 'Distributor_Index_2',
-        desc: 'Distributor_Drawn_Energy_Index_2',
+        name: "Distributor_Index_2",
+        desc: "Distributor_Drawn_Energy_Index_2",
         clust: CLUSTER_TIC,
-        attr: 'index2Dist',
+        attr: "index2Dist",
         type: NUMBER,
-        unit: 'Wh',
+        unit: "Wh",
         poll: false,
         tic: T.STD,
         contract: C.ANY,
@@ -978,12 +978,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 53,
-        name: 'Distributor_Index_3',
-        desc: 'Distributor_Drawn_Energy_Index_3',
+        name: "Distributor_Index_3",
+        desc: "Distributor_Drawn_Energy_Index_3",
         clust: CLUSTER_TIC,
-        attr: 'index3Dist',
+        attr: "index3Dist",
         type: NUMBER,
-        unit: 'Wh',
+        unit: "Wh",
         poll: false,
         tic: T.STD,
         contract: C.ANY,
@@ -992,12 +992,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 54,
-        name: 'Distributor_Index_4',
-        desc: 'Distributor_Drawn_Energy_Index_4',
+        name: "Distributor_Index_4",
+        desc: "Distributor_Drawn_Energy_Index_4",
         clust: CLUSTER_TIC,
-        attr: 'index4Dist',
+        attr: "index4Dist",
         type: NUMBER,
-        unit: 'Wh',
+        unit: "Wh",
         poll: false,
         tic: T.STD,
         contract: C.ANY,
@@ -1006,12 +1006,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 55,
-        name: 'Instantaneous_Voltage',
-        desc: 'Instantaneous_Effective_Voltage',
+        name: "Instantaneous_Voltage",
+        desc: "Instantaneous_Effective_Voltage",
         clust: CLUSTER_ELE,
-        attr: 'rmsVoltage',
+        attr: "rmsVoltage",
         type: NUMBER,
-        unit: 'V',
+        unit: "V",
         poll: false,
         tic: T.STD,
         contract: C.ANY,
@@ -1020,12 +1020,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 56,
-        name: 'Instantaneous_Voltage_Phase_A',
-        desc: 'Instantaneous_Effective_Voltage_Phase_A',
+        name: "Instantaneous_Voltage_Phase_A",
+        desc: "Instantaneous_Effective_Voltage_Phase_A",
         clust: CLUSTER_ELE,
-        attr: 'rmsVoltage',
+        attr: "rmsVoltage",
         type: NUMBER,
-        unit: 'V',
+        unit: "V",
         poll: false,
         tic: T.STD,
         contract: C.ANY,
@@ -1034,12 +1034,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 57,
-        name: 'Instantaneous_Voltage_Phase_B',
-        desc: 'Instantaneous_Effective_Voltage_Phase_B',
+        name: "Instantaneous_Voltage_Phase_B",
+        desc: "Instantaneous_Effective_Voltage_Phase_B",
         clust: CLUSTER_ELE,
-        attr: 'rmsVoltagePhB',
+        attr: "rmsVoltagePhB",
         type: NUMBER,
-        unit: 'V',
+        unit: "V",
         poll: false,
         tic: T.STD,
         contract: C.ANY,
@@ -1048,12 +1048,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 58,
-        name: 'Instantaneous_Voltage_Phase_C',
-        desc: 'Instantaneous_Effective_Voltage_Phase_C',
+        name: "Instantaneous_Voltage_Phase_C",
+        desc: "Instantaneous_Effective_Voltage_Phase_C",
         clust: CLUSTER_ELE,
-        attr: 'rmsVoltagePhC',
+        attr: "rmsVoltagePhC",
         type: NUMBER,
-        unit: 'V',
+        unit: "V",
         poll: false,
         tic: T.STD,
         contract: C.ANY,
@@ -1062,12 +1062,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 59,
-        name: 'Average_Voltage',
-        desc: 'Average_Voltage',
+        name: "Average_Voltage",
+        desc: "Average_Voltage",
         clust: CLUSTER_ELE,
-        attr: 'averageRmsVoltageMeasPeriod',
+        attr: "averageRmsVoltageMeasPeriod",
         type: NUMBER,
-        unit: 'V',
+        unit: "V",
         poll: true,
         tic: T.STD,
         contract: C.ANY,
@@ -1076,12 +1076,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 60,
-        name: 'Average_Voltage_Phase_A',
-        desc: 'Average_Voltage_Phase_A',
+        name: "Average_Voltage_Phase_A",
+        desc: "Average_Voltage_Phase_A",
         clust: CLUSTER_ELE,
-        attr: 'averageRmsVoltageMeasPeriod',
+        attr: "averageRmsVoltageMeasPeriod",
         type: NUMBER,
-        unit: 'V',
+        unit: "V",
         poll: true,
         tic: T.STD,
         contract: C.ANY,
@@ -1090,12 +1090,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 61,
-        name: 'Average_Voltage_Phase_B',
-        desc: 'Average_Voltage_Phase_B',
+        name: "Average_Voltage_Phase_B",
+        desc: "Average_Voltage_Phase_B",
         clust: CLUSTER_ELE,
-        attr: 'averageRmsVoltageMeasurePeriodPhB',
+        attr: "averageRmsVoltageMeasurePeriodPhB",
         type: NUMBER,
-        unit: 'V',
+        unit: "V",
         poll: true,
         tic: T.STD,
         contract: C.ANY,
@@ -1104,12 +1104,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 62,
-        name: 'Average_Voltage_Phase_C',
-        desc: 'Average_Voltage_Phase_C',
+        name: "Average_Voltage_Phase_C",
+        desc: "Average_Voltage_Phase_C",
         clust: CLUSTER_ELE,
-        attr: 'averageRmsVoltageMeasPeriodPhC',
+        attr: "averageRmsVoltageMeasPeriodPhC",
         type: NUMBER,
-        unit: 'V',
+        unit: "V",
         poll: true,
         tic: T.STD,
         contract: C.ANY,
@@ -1118,12 +1118,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 63,
-        name: 'Today_Max_Power',
-        desc: 'Max_Power_Today',
+        name: "Today_Max_Power",
+        desc: "Max_Power_Today",
         clust: CLUSTER_ELE,
-        attr: 'activePowerMax',
+        attr: "activePowerMax",
         type: NUMBER,
-        unit: 'VA',
+        unit: "VA",
         poll: true,
         tic: T.STD,
         contract: C.ANY,
@@ -1132,12 +1132,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 64,
-        name: 'Time_Today_Max_Power',
-        desc: 'Date_and_Time_of_Max_Power_Today',
+        name: "Time_Today_Max_Power",
+        desc: "Date_and_Time_of_Max_Power_Today",
         clust: CLUSTER_TIC,
-        attr: 'powerMaxTodayTime',
+        attr: "powerMaxTodayTime",
         type: TIME,
-        unit: '',
+        unit: "",
         poll: true,
         tic: T.STD,
         contract: C.ANY,
@@ -1146,12 +1146,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 65,
-        name: 'Today_Max_Power_Phase_A',
-        desc: 'Max_Power_Today_Phase_A',
+        name: "Today_Max_Power_Phase_A",
+        desc: "Max_Power_Today_Phase_A",
         clust: CLUSTER_ELE,
-        attr: 'activePowerMax',
+        attr: "activePowerMax",
         type: NUMBER,
-        unit: 'VA',
+        unit: "VA",
         poll: true,
         tic: T.STD,
         contract: C.ANY,
@@ -1160,12 +1160,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 66,
-        name: 'Time_Today_Max_Power_Phase_A',
-        desc: 'Date_and_Time_of_Today_Max Power_Phase_A',
+        name: "Time_Today_Max_Power_Phase_A",
+        desc: "Date_and_Time_of_Today_Max Power_Phase_A",
         clust: CLUSTER_TIC,
-        attr: 'powerMaxToday1Time',
+        attr: "powerMaxToday1Time",
         type: TIME,
-        unit: '',
+        unit: "",
         poll: true,
         tic: T.STD,
         contract: C.ANY,
@@ -1174,12 +1174,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 67,
-        name: 'Today_Max_Power_Phase_B',
-        desc: 'Max_Power_Today_Phase_B',
+        name: "Today_Max_Power_Phase_B",
+        desc: "Max_Power_Today_Phase_B",
         clust: CLUSTER_ELE,
-        attr: 'activePowerMaxPhB',
+        attr: "activePowerMaxPhB",
         type: NUMBER,
-        unit: 'VA',
+        unit: "VA",
         poll: true,
         tic: T.STD,
         contract: C.ANY,
@@ -1188,12 +1188,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 68,
-        name: 'Time_Today_Max_Power_Phase_B',
-        desc: 'Date_and_Time_of_Max_Power_Today_Phase_B',
+        name: "Time_Today_Max_Power_Phase_B",
+        desc: "Date_and_Time_of_Max_Power_Today_Phase_B",
         clust: CLUSTER_TIC,
-        attr: 'powerMaxToday2Time',
+        attr: "powerMaxToday2Time",
         type: TIME,
-        unit: '',
+        unit: "",
         poll: true,
         tic: T.STD,
         contract: C.ANY,
@@ -1202,12 +1202,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 69,
-        name: 'Today_Max_Power_Phase_C',
-        desc: 'Max_Power_Today_Phase_C',
+        name: "Today_Max_Power_Phase_C",
+        desc: "Max_Power_Today_Phase_C",
         clust: CLUSTER_ELE,
-        attr: 'activePowerMaxPhC',
+        attr: "activePowerMaxPhC",
         type: NUMBER,
-        unit: 'VA',
+        unit: "VA",
         poll: true,
         tic: T.STD,
         contract: C.ANY,
@@ -1216,12 +1216,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 70,
-        name: 'Time_Today_Max_Power_Phase_C',
-        desc: 'Date_and_Time_of_Max_Power_Today_Phase_C',
+        name: "Time_Today_Max_Power_Phase_C",
+        desc: "Date_and_Time_of_Max_Power_Today_Phase_C",
         clust: CLUSTER_TIC,
-        attr: 'powerMaxToday3Time',
+        attr: "powerMaxToday3Time",
         type: TIME,
-        unit: '',
+        unit: "",
         poll: true,
         tic: T.STD,
         contract: C.ANY,
@@ -1230,12 +1230,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 71,
-        name: 'Three-Phase_Max_Power',
-        desc: 'Three-Phase_Max_Power',
+        name: "Three-Phase_Max_Power",
+        desc: "Three-Phase_Max_Power",
         clust: CLUSTER_ELE,
-        attr: 'activePowerMax',
+        attr: "activePowerMax",
         type: NUMBER,
-        unit: 'W',
+        unit: "W",
         poll: true,
         tic: T.HIST,
         contract: C.ANY,
@@ -1244,12 +1244,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 72,
-        name: 'Yesterday_Max_Power',
-        desc: 'Max_Power_Yesterday',
+        name: "Yesterday_Max_Power",
+        desc: "Max_Power_Yesterday",
         clust: CLUSTER_TIC,
-        attr: 'powerMaxYesterday',
+        attr: "powerMaxYesterday",
         type: NUMBER,
-        unit: 'VA',
+        unit: "VA",
         poll: true,
         tic: T.STD,
         contract: C.ANY,
@@ -1258,12 +1258,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 73,
-        name: 'Time_Yesterday_Max_Power',
-        desc: 'Date_and_Time_of_Max_Power_Yesterday',
+        name: "Time_Yesterday_Max_Power",
+        desc: "Date_and_Time_of_Max_Power_Yesterday",
         clust: CLUSTER_TIC,
-        attr: 'powerMaxYesterdayTime',
+        attr: "powerMaxYesterdayTime",
         type: TIME,
-        unit: '',
+        unit: "",
         poll: true,
         tic: T.STD,
         contract: C.ANY,
@@ -1272,12 +1272,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 74,
-        name: 'Max_Yesterday_Power_Phase_A',
-        desc: 'Max_Power_Yesterday_Phase_A',
+        name: "Max_Yesterday_Power_Phase_A",
+        desc: "Max_Power_Yesterday_Phase_A",
         clust: CLUSTER_TIC,
-        attr: 'powerMaxYesterday1',
+        attr: "powerMaxYesterday1",
         type: NUMBER,
-        unit: 'VA',
+        unit: "VA",
         poll: true,
         tic: T.STD,
         contract: C.ANY,
@@ -1286,12 +1286,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 75,
-        name: 'Time_Yesterday_Max_Power_Phase_A',
-        desc: 'DateTime_of_Max_Power_Yesterday_Phase_A',
+        name: "Time_Yesterday_Max_Power_Phase_A",
+        desc: "DateTime_of_Max_Power_Yesterday_Phase_A",
         clust: CLUSTER_TIC,
-        attr: 'powerMaxYesterday1Time',
+        attr: "powerMaxYesterday1Time",
         type: TIME,
-        unit: '',
+        unit: "",
         poll: true,
         tic: T.STD,
         contract: C.ANY,
@@ -1300,12 +1300,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 76,
-        name: 'Max_Yesterday_Power_Phase_B',
-        desc: 'Max_Power_Yesterday_Phase_B',
+        name: "Max_Yesterday_Power_Phase_B",
+        desc: "Max_Power_Yesterday_Phase_B",
         clust: CLUSTER_TIC,
-        attr: 'powerMaxYesterday2',
+        attr: "powerMaxYesterday2",
         type: NUMBER,
-        unit: 'VA',
+        unit: "VA",
         poll: true,
         tic: T.STD,
         contract: C.ANY,
@@ -1314,12 +1314,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 77,
-        name: 'Time_Yesterday_Max_Power_Phase_B',
-        desc: 'DateTime_of_Max_Power_Yesterday_Phase_B',
+        name: "Time_Yesterday_Max_Power_Phase_B",
+        desc: "DateTime_of_Max_Power_Yesterday_Phase_B",
         clust: CLUSTER_TIC,
-        attr: 'powerMaxYesterday2Time',
+        attr: "powerMaxYesterday2Time",
         type: TIME,
-        unit: '',
+        unit: "",
         poll: true,
         tic: T.STD,
         contract: C.ANY,
@@ -1328,12 +1328,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 78,
-        name: 'Max_Yesterday_Power_Phase_C',
-        desc: 'Max_Power_Yesterday_Phase_C',
+        name: "Max_Yesterday_Power_Phase_C",
+        desc: "Max_Power_Yesterday_Phase_C",
         clust: CLUSTER_TIC,
-        attr: 'powerMaxYesterday3',
+        attr: "powerMaxYesterday3",
         type: NUMBER,
-        unit: 'VA',
+        unit: "VA",
         poll: true,
         tic: T.STD,
         contract: C.ANY,
@@ -1342,12 +1342,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 79,
-        name: 'Time_Yesterday_Max_Power_Phase_C',
-        desc: 'DateTime_of_Max_Power_Yesterday_Phase_C',
+        name: "Time_Yesterday_Max_Power_Phase_C",
+        desc: "DateTime_of_Max_Power_Yesterday_Phase_C",
         clust: CLUSTER_TIC,
-        attr: 'powerMaxYesterday3Time',
+        attr: "powerMaxYesterday3Time",
         type: TIME,
-        unit: '',
+        unit: "",
         poll: true,
         tic: T.STD,
         contract: C.ANY,
@@ -1356,12 +1356,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 80,
-        name: 'Current_Index',
-        desc: 'Current_Tariff_Index_Number',
+        name: "Current_Index",
+        desc: "Current_Tariff_Index_Number",
         clust: CLUSTER_TIC,
-        attr: 'currentIndex',
+        attr: "currentIndex",
         type: NUMBER,
-        unit: '',
+        unit: "",
         poll: true,
         tic: T.STD,
         contract: C.ANY,
@@ -1370,12 +1370,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 81,
-        name: 'Current_Days_Number',
-        desc: 'Current_Supplier_Days_Number',
+        name: "Current_Days_Number",
+        desc: "Current_Supplier_Days_Number",
         clust: CLUSTER_TIC,
-        attr: 'calendarSupplierDay',
+        attr: "calendarSupplierDay",
         type: NUMBER,
-        unit: '',
+        unit: "",
         poll: true,
         tic: T.STD,
         contract: C.ANY,
@@ -1384,12 +1384,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 82,
-        name: 'Next_Day_Number',
-        desc: 'Next_Supplier_Day_Number',
+        name: "Next_Day_Number",
+        desc: "Next_Supplier_Day_Number",
         clust: CLUSTER_TIC,
-        attr: 'nextSupplierCalendarDay',
+        attr: "nextSupplierCalendarDay",
         type: NUMBER,
-        unit: '',
+        unit: "",
         poll: true,
         tic: T.STD,
         contract: C.ANY,
@@ -1398,12 +1398,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 83,
-        name: 'Relay',
-        desc: 'Meter_Virtual_Relay',
+        name: "Relay",
+        desc: "Meter_Virtual_Relay",
         clust: CLUSTER_TIC,
-        attr: 'relays',
+        attr: "relays",
         type: STRING,
-        unit: '',
+        unit: "",
         poll: true,
         tic: T.STD,
         contract: C.ANY,
@@ -1412,12 +1412,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 84,
-        name: 'PMR',
-        desc: 'Measurement_Reference_Point_Identifier',
+        name: "PMR",
+        desc: "Measurement_Reference_Point_Identifier",
         clust: CLUSTER_MET,
-        attr: 'siteId',
+        attr: "siteId",
         type: STRING,
-        unit: '',
+        unit: "",
         poll: true,
         tic: T.STD,
         contract: C.ANY,
@@ -1426,12 +1426,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 85,
-        name: 'Short_Message',
-        desc: 'Short_Message',
+        name: "Short_Message",
+        desc: "Short_Message",
         clust: CLUSTER_TIC,
-        attr: 'shortMsg',
+        attr: "shortMsg",
         type: STRING,
-        unit: '',
+        unit: "",
         poll: true,
         tic: T.STD,
         contract: C.ANY,
@@ -1440,12 +1440,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 86,
-        name: 'Ultra-Short_Message',
-        desc: 'Ultra-Short_Message',
+        name: "Ultra-Short_Message",
+        desc: "Ultra-Short_Message",
         clust: CLUSTER_TIC,
-        attr: 'ultraShortMsg',
+        attr: "ultraShortMsg",
         type: STRING,
-        unit: '',
+        unit: "",
         poll: true,
         tic: T.STD,
         contract: C.ANY,
@@ -1454,12 +1454,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 87,
-        name: 'TIC_Version',
-        desc: 'TIC_Version',
+        name: "TIC_Version",
+        desc: "TIC_Version",
         clust: CLUSTER_TIC,
-        attr: 'ticVersion',
+        attr: "ticVersion",
         type: STRING,
-        unit: '',
+        unit: "",
         poll: true,
         tic: T.STD,
         contract: C.ANY,
@@ -1468,12 +1468,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 88,
-        name: 'Meter_Date_and_Time',
-        desc: 'Meter_Date_and_Time',
+        name: "Meter_Date_and_Time",
+        desc: "Meter_Date_and_Time",
         clust: CLUSTER_TIC,
-        attr: 'date',
+        attr: "date",
         type: TIME,
-        unit: '',
+        unit: "",
         poll: true,
         tic: T.STD,
         contract: C.ANY,
@@ -1482,12 +1482,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 89,
-        name: 'Next_Day_Profile',
-        desc: 'Next_Day_Profile',
+        name: "Next_Day_Profile",
+        desc: "Next_Day_Profile",
         clust: CLUSTER_TIC,
-        attr: 'calendarDay',
+        attr: "calendarDay",
         type: STRING,
-        unit: '',
+        unit: "",
         poll: true,
         tic: T.STD,
         contract: C.ANY,
@@ -1496,12 +1496,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 90,
-        name: 'Next_Day_Peak_Profile',
-        desc: 'Next_Day_Peak_Profile',
+        name: "Next_Day_Peak_Profile",
+        desc: "Next_Day_Peak_Profile",
         clust: CLUSTER_TIC,
-        attr: 'calendarDayPointe',
+        attr: "calendarDayPointe",
         type: STRING,
-        unit: '',
+        unit: "",
         poll: true,
         tic: T.STD,
         contract: C.ANY,
@@ -1510,12 +1510,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 91,
-        name: 'Current_Drawn_Curve_Point',
-        desc: 'Current_Drawn_Active_Load_Curve_Point',
+        name: "Current_Drawn_Curve_Point",
+        desc: "Current_Drawn_Active_Load_Curve_Point",
         clust: CLUSTER_ELE,
-        attr: 'activePower',
+        attr: "activePower",
         type: NUMBER,
-        unit: 'VA',
+        unit: "VA",
         poll: true,
         tic: T.STD,
         contract: C.ANY,
@@ -1524,12 +1524,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 92,
-        name: 'Previous_Drawn_Curve_Point',
-        desc: 'Previous_Drawn_Active_Load_Curve_Point',
+        name: "Previous_Drawn_Curve_Point",
+        desc: "Previous_Drawn_Active_Load_Curve_Point",
         clust: CLUSTER_ELE,
-        attr: 'activePowerPhB',
+        attr: "activePowerPhB",
         type: NUMBER,
-        unit: 'VA',
+        unit: "VA",
         poll: true,
         tic: T.STD,
         contract: C.ANY,
@@ -1538,12 +1538,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 93,
-        name: 'Current_Injected_Curve_Point',
-        desc: 'Current_Injected_Active_Load_Curve_Point',
+        name: "Current_Injected_Curve_Point",
+        desc: "Current_Injected_Active_Load_Curve_Point",
         clust: CLUSTER_TIC,
-        attr: 'injectedLoadN',
+        attr: "injectedLoadN",
         type: NUMBER,
-        unit: 'VA',
+        unit: "VA",
         poll: true,
         tic: T.STD,
         contract: C.ANY,
@@ -1552,12 +1552,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 94,
-        name: 'Previous_Injected_Curve_Point',
-        desc: 'Previous_Injected_Active_Load_Curve_Point',
+        name: "Previous_Injected_Curve_Point",
+        desc: "Previous_Injected_Active_Load_Curve_Point",
         clust: CLUSTER_TIC,
-        attr: 'injectedLoadN_1',
+        attr: "injectedLoadN_1",
         type: NUMBER,
-        unit: 'VA',
+        unit: "VA",
         poll: true,
         tic: T.STD,
         contract: C.ANY,
@@ -1566,12 +1566,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 95,
-        name: 'Total_Reactive_Energy_Q1',
-        desc: 'Total_Reactive_Energy_Q1',
+        name: "Total_Reactive_Energy_Q1",
+        desc: "Total_Reactive_Energy_Q1",
         clust: CLUSTER_ELE,
-        attr: 'totalReactivePower',
+        attr: "totalReactivePower",
         type: NUMBER,
-        unit: 'VARh',
+        unit: "VARh",
         poll: false,
         tic: T.STD,
         contract: C.ANY,
@@ -1580,12 +1580,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 96,
-        name: 'Total_Reactive_Energy_Q2',
-        desc: 'Total_Reactive_Energy_Q2',
+        name: "Total_Reactive_Energy_Q2",
+        desc: "Total_Reactive_Energy_Q2",
         clust: CLUSTER_ELE,
-        attr: 'reactivePower',
+        attr: "reactivePower",
         type: NUMBER,
-        unit: 'VARh',
+        unit: "VARh",
         poll: false,
         tic: T.STD,
         contract: C.ANY,
@@ -1594,12 +1594,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 97,
-        name: 'Total_Reactive_Energy_Q3',
-        desc: 'Total_Reactive_Energy_Q3',
+        name: "Total_Reactive_Energy_Q3",
+        desc: "Total_Reactive_Energy_Q3",
         clust: CLUSTER_ELE,
-        attr: 'reactivePowerPhB',
+        attr: "reactivePowerPhB",
         type: NUMBER,
-        unit: 'VARh',
+        unit: "VARh",
         poll: false,
         tic: T.STD,
         contract: C.ANY,
@@ -1608,12 +1608,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 98,
-        name: 'Total_Reactive_Energy_Q4',
-        desc: 'Total_Reactive_Energy_Q4',
+        name: "Total_Reactive_Energy_Q4",
+        desc: "Total_Reactive_Energy_Q4",
         clust: CLUSTER_ELE,
-        attr: 'reactivePowerPhC',
+        attr: "reactivePowerPhC",
         type: NUMBER,
-        unit: 'VARh',
+        unit: "VARh",
         poll: false,
         tic: T.STD,
         contract: C.ANY,
@@ -1622,12 +1622,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 99,
-        name: 'Start_Mobile_Peak_1',
-        desc: 'Start_Mobile_Peak_1',
+        name: "Start_Mobile_Peak_1",
+        desc: "Start_Mobile_Peak_1",
         clust: CLUSTER_TIC,
-        attr: 'startEJP1',
+        attr: "startEJP1",
         type: TIME,
-        unit: '',
+        unit: "",
         poll: true,
         tic: T.ANY,
         contract: C.EJP,
@@ -1636,12 +1636,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 100,
-        name: 'End_Mobile_Peak_1',
-        desc: 'End_Mobile_Peak_1',
+        name: "End_Mobile_Peak_1",
+        desc: "End_Mobile_Peak_1",
         clust: CLUSTER_TIC,
-        attr: 'stopEJP1',
+        attr: "stopEJP1",
         type: TIME,
-        unit: '',
+        unit: "",
         poll: true,
         tic: T.ANY,
         contract: C.EJP,
@@ -1650,12 +1650,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 101,
-        name: 'Start_Mobile_Peak_2',
-        desc: 'Start_Mobile_Peak_2',
+        name: "Start_Mobile_Peak_2",
+        desc: "Start_Mobile_Peak_2",
         clust: CLUSTER_TIC,
-        attr: 'startEJP2',
+        attr: "startEJP2",
         type: TIME,
-        unit: '',
+        unit: "",
         poll: true,
         tic: T.ANY,
         contract: C.EJP,
@@ -1664,12 +1664,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 102,
-        name: 'End_Mobile_Peak_2',
-        desc: 'End_Mobile_Peak_2',
+        name: "End_Mobile_Peak_2",
+        desc: "End_Mobile_Peak_2",
         clust: CLUSTER_TIC,
-        attr: 'stopEJP2',
+        attr: "stopEJP2",
         type: TIME,
-        unit: '',
+        unit: "",
         poll: true,
         tic: T.ANY,
         contract: C.EJP,
@@ -1678,12 +1678,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 103,
-        name: 'Start_Mobile_Peak_3',
-        desc: 'Start_Mobile_Peak_3',
+        name: "Start_Mobile_Peak_3",
+        desc: "Start_Mobile_Peak_3",
         clust: CLUSTER_TIC,
-        attr: 'startEJP3',
+        attr: "startEJP3",
         type: TIME,
-        unit: '',
+        unit: "",
         poll: true,
         tic: T.ANY,
         contract: C.EJP,
@@ -1692,12 +1692,12 @@ const ticmeterDatas: TICMeterData[] = [
     },
     {
         id: 104,
-        name: 'End_Mobile_Peak_3',
-        desc: 'End_Mobile_Peak_3',
+        name: "End_Mobile_Peak_3",
+        desc: "End_Mobile_Peak_3",
         clust: CLUSTER_TIC,
-        attr: 'stopEJP3',
+        attr: "stopEJP3",
         type: TIME,
-        unit: '',
+        unit: "",
         poll: true,
         tic: T.ANY,
         contract: C.EJP,
@@ -1785,17 +1785,17 @@ const ticmeterCustomCluster = {
     commands: {
         refreshRate: {
             ID: 0,
-            parameters: [{name: 'refreshRate', type: Zcl.DataType.UINT16}],
+            parameters: [{name: "refreshRate", type: Zcl.DataType.UINT16}],
         },
         reboot: {
             ID: 1,
-            parameters: [{name: 'seq', type: Zcl.DataType.UINT16}],
+            parameters: [{name: "seq", type: Zcl.DataType.UINT16}],
         },
     },
     commandsResponse: {
         refreshRate: {
             ID: 1,
-            parameters: [{name: 'seq', type: Zcl.DataType.UINT16}],
+            parameters: [{name: "seq", type: Zcl.DataType.UINT16}],
         },
     },
 };
@@ -1803,7 +1803,7 @@ const ticmeterCustomCluster = {
 function toSnakeCase(str: string) {
     return str
         .split(/(?=[A-Z])/)
-        .join('_')
+        .join("_")
         .toLowerCase();
 }
 
@@ -1811,7 +1811,7 @@ function ticmeterConverter(msg: Fz.Message) {
     const result: KeyValue = {};
     const keys = Object.keys(msg.data);
     keys.forEach((key) => {
-        const found = ticmeterDatas.find((x) => x.attr == key);
+        const found = ticmeterDatas.find((x) => x.attr === key);
         if (found) {
             let value;
             switch (found.type) {
@@ -1830,17 +1830,17 @@ function ticmeterConverter(msg: Fz.Message) {
                     value = found.values[msg.data[key]];
                     break;
                 case TIME:
-                    value = new Date(msg.data[key] * 1000).toLocaleString('fr-FR', {timeZone: 'Europe/Paris'});
+                    value = new Date(msg.data[key] * 1000).toLocaleString("fr-FR", {timeZone: "Europe/Paris"});
                     break;
             }
 
-            if (found.attr == 'uptime') {
+            if (found.attr === "uptime") {
                 value = value / 1000; // convert ms to s
             }
 
             result[toSnakeCase(found.attr)] = value;
         } else {
-            logger.warning(`Key not found: ${key}`, 'TICMeter');
+            logger.warning(`Key not found: ${key}`, "TICMeter");
         }
     });
     return result;
@@ -1848,8 +1848,8 @@ function ticmeterConverter(msg: Fz.Message) {
 
 const fzLocal = {
     ticmeter_ha_electrical_measurement: {
-        cluster: 'haElectricalMeasurement',
-        type: ['attributeReport', 'readResponse'],
+        cluster: "haElectricalMeasurement",
+        type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             return ticmeterConverter(msg);
         },
@@ -1857,15 +1857,15 @@ const fzLocal = {
 
     ticmeter_cluster_fz: {
         cluster: CLUSTER_TIC,
-        type: ['attributeReport', 'readResponse'],
+        type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             return ticmeterConverter(msg);
         },
     } satisfies Fz.Converter,
 
     ticmeter_metering: {
-        cluster: 'seMetering',
-        type: ['attributeReport', 'readResponse'],
+        cluster: "seMetering",
+        type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             return ticmeterConverter(msg);
         },
@@ -1882,10 +1882,10 @@ function genereateTzLocal() {
                 await entity.read(item.clust, [item.attr]);
             },
         } satisfies Tz.Converter;
-        if (item.type == NUM_RW) {
+        if (item.type === NUM_RW) {
             tz.convertSet = async (entity, key, value: unknown, meta) => {
                 if (Number(value) < 0 || Number(value) > 65535) {
-                    throw new Error('Value must be between 0 and 65535');
+                    throw new Error("Value must be between 0 and 65535");
                 }
                 await entity.write(item.clust, {[item.attr]: value}, {manufacturerCode: null});
             };
@@ -1906,21 +1906,21 @@ function splitTab(tab: string[], size: number): string[][] {
 }
 
 async function poll(endpoint: Zh.Endpoint, device: ZHModels.Device) {
-    const currentContract = globalStore.getValue(device, 'contract_type');
-    const currentElec = globalStore.getValue(device, 'elec_mode');
-    const currentTIC = globalStore.getValue(device, 'tic_mode');
-    const currentProducer = globalStore.getValue(device, 'producer');
-    logger.debug(`Polling: ${currentContract} ${currentElec} ${currentTIC} ${currentProducer}`, 'TICMeter');
+    const currentContract = globalStore.getValue(device, "contract_type");
+    const currentElec = globalStore.getValue(device, "elec_mode");
+    const currentTIC = globalStore.getValue(device, "tic_mode");
+    const currentProducer = globalStore.getValue(device, "producer");
+    logger.debug(`Polling: ${currentContract} ${currentElec} ${currentTIC} ${currentProducer}`, "TICMeter");
     const start: Date = new Date();
 
     let toRead = [];
     for (const item of ticmeterDatas) {
         if (
             item.poll &&
-            (item.tic == currentTIC || item.tic == T.ANY) &&
-            (item.contract == currentContract || item.contract == C.ANY) &&
-            (item.elec == currentElec || item.elec == E.ANY) &&
-            (item.prod == currentProducer || item.prod == false)
+            (item.tic === currentTIC || item.tic === T.ANY) &&
+            (item.contract === currentContract || item.contract === C.ANY) &&
+            (item.elec === currentElec || item.elec === E.ANY) &&
+            (item.prod === currentProducer || item.prod === false)
         ) {
             toRead.push(item);
         }
@@ -1950,19 +1950,19 @@ async function poll(endpoint: Zh.Endpoint, device: ZHModels.Device) {
                 .catch((e) => {
                     if (e.message.includes(`Cannot read properties of undefined (reading 'manufacturerID')`)) {
                         // if we remove the device, we stop the polling
-                        clearInterval(globalStore.getValue(device, 'interval'));
-                        globalStore.clearValue(device, 'interval');
-                    } else if (e.message.includes('UNSUPPORTED_ATTRIBUTE')) {
+                        clearInterval(globalStore.getValue(device, "interval"));
+                        globalStore.clearValue(device, "interval");
+                    } else if (e.message.includes("UNSUPPORTED_ATTRIBUTE")) {
                         // ignore
                     } else {
-                        logger.warning(`Polling Error: ${attr} ${e}`, 'TICMeter');
+                        logger.warning(`Polling Error: ${attr} ${e}`, "TICMeter");
                     }
                 })
                 .then((result) => {});
         }
     }
     const end: Date = new Date();
-    logger.debug(`Polling Duration: ${end.getTime() - start.getTime()} ms`, 'TICMeter');
+    logger.debug(`Polling Duration: ${end.getTime() - start.getTime()} ms`, "TICMeter");
 }
 
 function initConfig(device: ZHModels.Device, name: string, value: unknown) {
@@ -1974,21 +1974,21 @@ function initConfig(device: ZHModels.Device, name: string, value: unknown) {
 
 export const definitions: DefinitionWithExtend[] = [
     {
-        zigbeeModel: ['TICMeter'],
-        model: 'TICMeter',
-        vendor: 'GammaTroniques',
-        description: 'TICMeter pour Linky',
+        zigbeeModel: ["TICMeter"],
+        model: "TICMeter",
+        vendor: "GammaTroniques",
+        description: "TICMeter pour Linky",
         fromZigbee: [fz.meter_identification, fzLocal.ticmeter_cluster_fz, fzLocal.ticmeter_ha_electrical_measurement, fzLocal.ticmeter_metering],
         toZigbee: tzLocal,
         exposes: (device, options) => {
             let endpoint: Zh.Endpoint;
             const exposes: Expose[] = [];
 
-            let currentContract: string = '';
-            let currentElec: string = '';
-            let currentTIC: string = '';
-            let currentProducer: string = '';
-            let translation: string = '';
+            let currentContract = "";
+            let currentElec = "";
+            let currentTIC = "";
+            let currentProducer = "";
+            let translation = "";
 
             if (device == null) {
                 return exposes;
@@ -1997,89 +1997,89 @@ export const definitions: DefinitionWithExtend[] = [
             try {
                 endpoint = device.getEndpoint(1);
             } catch {
-                logger.warning('Exposes: No endpoint', 'TICMeter');
+                logger.warning("Exposes: No endpoint", "TICMeter");
             }
 
-            if (endpoint != null && endpoint.clusters !== undefined && endpoint.clusters[CLUSTER_TIC] != undefined) {
-                if (endpoint.clusters[CLUSTER_TIC].attributes !== undefined && endpoint.clusters[CLUSTER_TIC].attributes != undefined) {
+            if (endpoint != null && endpoint.clusters !== undefined && endpoint.clusters[CLUSTER_TIC] !== undefined) {
+                if (endpoint.clusters[CLUSTER_TIC].attributes !== undefined && endpoint.clusters[CLUSTER_TIC].attributes !== undefined) {
                     const attr = endpoint.clusters[CLUSTER_TIC].attributes;
 
-                    if (globalStore.getValue(device, 'tic_mode') == undefined) {
+                    if (globalStore.getValue(device, "tic_mode") === undefined) {
                         if (attr.ticMode !== undefined && attr.ticMode != null) {
-                            logger.debug(`Load ticMode: ${attr.ticMode}`, 'TICMeter');
-                            globalStore.putValue(device, 'tic_mode', modeTICEnum[Number(attr.ticMode)]);
+                            logger.debug(`Load ticMode: ${attr.ticMode}`, "TICMeter");
+                            globalStore.putValue(device, "tic_mode", modeTICEnum[Number(attr.ticMode)]);
                         }
                     }
 
-                    if (globalStore.getValue(device, 'elec_mode') == undefined) {
+                    if (globalStore.getValue(device, "elec_mode") === undefined) {
                         if (attr.elecMode !== undefined && attr.elecMode != null) {
-                            logger.debug(`Load elecMode: ${attr.elecMode}`, 'TICMeter');
-                            globalStore.putValue(device, 'elec_mode', modeElecEnum[Number(attr.elecMode)]);
+                            logger.debug(`Load elecMode: ${attr.elecMode}`, "TICMeter");
+                            globalStore.putValue(device, "elec_mode", modeElecEnum[Number(attr.elecMode)]);
                         }
                     }
 
-                    if (globalStore.getValue(device, 'contract_type') == undefined) {
+                    if (globalStore.getValue(device, "contract_type") === undefined) {
                         if (attr.contractType !== undefined && attr.contractType != null) {
                             let string = attr.contractType;
                             if (Buffer.isBuffer(string)) {
                                 string = string.toString();
                             }
-                            logger.debug(`Load contractType: ${string}`, 'TICMeter');
-                            globalStore.putValue(device, 'contract_type', string);
+                            logger.debug(`Load contractType: ${string}`, "TICMeter");
+                            globalStore.putValue(device, "contract_type", string);
                         }
                     }
 
                     if (attr.powerInjected !== undefined && attr.powerInjected != null) {
-                        logger.debug(`Load powerInjected: ${attr.powerInjected}`, 'TICMeter');
-                        globalStore.putValue(device, 'producer', 'ON');
+                        logger.debug(`Load powerInjected: ${attr.powerInjected}`, "TICMeter");
+                        globalStore.putValue(device, "producer", "ON");
                     }
                 }
             }
 
-            if (options && options.contract_type !== undefined && options.contract_type != 'AUTO') {
+            if (options && options.contract_type !== undefined && options.contract_type !== "AUTO") {
                 currentContract = String(options.contract_type);
-                logger.debug(`contract: ${currentContract}`, 'TICMeter');
+                logger.debug(`contract: ${currentContract}`, "TICMeter");
             } else {
-                currentContract = globalStore.getValue(device, 'contract_type');
-                logger.debug(`contract: ${currentContract}`, 'TICMeter');
-                if (currentContract == undefined) {
-                    logger.debug('TICMeter: Force contract to AUTO', 'TICMeter');
-                    currentContract = 'AUTO';
+                currentContract = globalStore.getValue(device, "contract_type");
+                logger.debug(`contract: ${currentContract}`, "TICMeter");
+                if (currentContract === undefined) {
+                    logger.debug("TICMeter: Force contract to AUTO", "TICMeter");
+                    currentContract = "AUTO";
                 }
             }
 
-            if (options && options.linky_elec !== undefined && options.linky_elec != 'AUTO') {
+            if (options && options.linky_elec !== undefined && options.linky_elec !== "AUTO") {
                 currentElec = String(options.linky_elec);
-                logger.debug(`Manual elec: ${currentElec}`, 'TICMeter');
+                logger.debug(`Manual elec: ${currentElec}`, "TICMeter");
             } else {
-                currentElec = globalStore.getValue(device, 'elec_mode');
-                logger.debug(`AUTO elec: ${currentElec}`, 'TICMeter');
-                if (currentElec == undefined) {
-                    logger.debug('TICMeter: Force elec to AUTO', 'TICMeter');
-                    currentElec = 'AUTO';
+                currentElec = globalStore.getValue(device, "elec_mode");
+                logger.debug(`AUTO elec: ${currentElec}`, "TICMeter");
+                if (currentElec === undefined) {
+                    logger.debug("TICMeter: Force elec to AUTO", "TICMeter");
+                    currentElec = "AUTO";
                 }
             }
 
-            if (options && options.tic_mode !== undefined && options.tic_mode != 'AUTO') {
+            if (options && options.tic_mode !== undefined && options.tic_mode !== "AUTO") {
                 currentTIC = String(options.tic_mode);
-                logger.debug(`Manual tic: ${currentTIC}`, 'TICMeter');
+                logger.debug(`Manual tic: ${currentTIC}`, "TICMeter");
             } else {
-                currentTIC = globalStore.getValue(device, 'tic_mode', 'TICMeter');
-                logger.debug(`TIC: ${currentTIC}`, 'TICMeter');
-                if (currentTIC == undefined) {
-                    logger.debug('TICMeter: Force TIC to AUTO', 'TICMeter');
-                    currentTIC = 'AUTO';
+                currentTIC = globalStore.getValue(device, "tic_mode", "TICMeter");
+                logger.debug(`TIC: ${currentTIC}`, "TICMeter");
+                if (currentTIC === undefined) {
+                    logger.debug("TICMeter: Force TIC to AUTO", "TICMeter");
+                    currentTIC = "AUTO";
                 }
             }
 
-            if (options && options.producer !== undefined && options.producer != 'AUTO') {
+            if (options && options.producer !== undefined && options.producer !== "AUTO") {
                 currentProducer = String(options.producer);
-                logger.debug(`Manual producer: ${currentProducer}`, 'TICMeter');
+                logger.debug(`Manual producer: ${currentProducer}`, "TICMeter");
             } else {
-                currentProducer = globalStore.getValue(device, 'producer');
-                if (currentProducer == undefined) {
-                    logger.debug('Force producer to AUTO', 'TICMeter');
-                    currentProducer = 'OFF';
+                currentProducer = globalStore.getValue(device, "producer");
+                if (currentProducer === undefined) {
+                    logger.debug("Force producer to AUTO", "TICMeter");
+                    currentProducer = "OFF";
                 }
             }
 
@@ -2089,11 +2089,11 @@ export const definitions: DefinitionWithExtend[] = [
                 translation = TRANSLATION_FR;
             }
 
-            globalStore.putValue(device, 'contract_type', currentContract);
-            globalStore.putValue(device, 'elec_mode', currentElec);
-            globalStore.putValue(device, 'tic_mode', currentTIC);
-            globalStore.putValue(device, 'producer', currentProducer);
-            globalStore.putValue(device, 'translation', translation);
+            globalStore.putValue(device, "contract_type", currentContract);
+            globalStore.putValue(device, "elec_mode", currentElec);
+            globalStore.putValue(device, "tic_mode", currentTIC);
+            globalStore.putValue(device, "producer", currentProducer);
+            globalStore.putValue(device, "translation", translation);
 
             ticmeterDatas.forEach((item) => {
                 let contractOK = false;
@@ -2101,35 +2101,35 @@ export const definitions: DefinitionWithExtend[] = [
                 let ticOK = false;
                 let producerOK = true;
                 if (item.contract !== undefined) {
-                    if (item['contract'] == currentContract || item['contract'] == C.ANY) {
+                    if (item.contract === currentContract || item.contract === C.ANY) {
                         contractOK = true;
                     }
                 } else {
-                    logger.warning(`No contract for ${item.name}`, 'TICMeter');
+                    logger.warning(`No contract for ${item.name}`, "TICMeter");
                 }
 
                 if (item.elec !== undefined) {
-                    if (item['elec'] == currentElec || item['elec'] == E.ANY) {
+                    if (item.elec === currentElec || item.elec === E.ANY) {
                         elecOK = true;
                     }
                 } else {
-                    logger.warning(`No elec for ${item.name}`, 'TICMeter');
+                    logger.warning(`No elec for ${item.name}`, "TICMeter");
                 }
 
                 if (item.tic !== undefined) {
-                    if (item['tic'] == currentTIC || item['tic'] == T.ANY) {
+                    if (item.tic === currentTIC || item.tic === T.ANY) {
                         ticOK = true;
                     }
                 } else {
-                    logger.warning(`No tic for ${item.name}`, 'TICMeter');
+                    logger.warning(`No tic for ${item.name}`, "TICMeter");
                 }
 
                 if (item.prod !== undefined) {
-                    if (item['prod'] == true && currentProducer == 'OFF') {
+                    if (item.prod === true && currentProducer === "OFF") {
                         producerOK = false;
                     }
                 } else {
-                    logger.warning(`No producer for ${item.name}`, 'TICMeter');
+                    logger.warning(`No producer for ${item.name}`, "TICMeter");
                 }
 
                 if (contractOK && elecOK && ticOK && producerOK) {
@@ -2139,7 +2139,7 @@ export const definitions: DefinitionWithExtend[] = [
                     }
                     let name = item.name;
                     let desc = item.desc;
-                    if (translation == TRANSLATION_FR) {
+                    if (translation === TRANSLATION_FR) {
                         name = ticmeterDatasFRTranslation[item.id].nameFR;
                         desc = ticmeterDatasFRTranslation[item.id].descFR;
                     }
@@ -2170,7 +2170,7 @@ export const definitions: DefinitionWithExtend[] = [
                     }
                 }
             });
-            logger.debug(`Exposes ${exposes.length} attributes`, 'TICMeter');
+            logger.debug(`Exposes ${exposes.length} attributes`, "TICMeter");
 
             if (options.translation !== undefined) {
                 switch (options.translation) {
@@ -2185,26 +2185,26 @@ export const definitions: DefinitionWithExtend[] = [
                         }
                         break;
                     default:
-                        logger.warning(`Unknown translation: ${options.translation}`, 'TICMeter');
+                        logger.warning(`Unknown translation: ${options.translation}`, "TICMeter");
                 }
             }
             return exposes;
         },
         configure: async (device, coordinatorEndpoint) => {
-            logger.debug('TICMeter: Configure', 'TICMeter');
-            device.powerSource = 'Mains (single phase)';
+            logger.debug("TICMeter: Configure", "TICMeter");
+            device.powerSource = "Mains (single phase)";
             device.save();
             const endpoint = device.getEndpoint(1);
 
-            const TICMode = initConfig(device, 'tic_mode', 'AUTO');
-            const contractType = initConfig(device, 'contract_type', 'AUTO');
-            const elecMode = initConfig(device, 'elec_mode', 'AUTO');
-            const producer = initConfig(device, 'producer', false);
-            initConfig(device, 'refresh_rate', DEFAULT_POLL_INTERVAL);
+            const TICMode = initConfig(device, "tic_mode", "AUTO");
+            const contractType = initConfig(device, "contract_type", "AUTO");
+            const elecMode = initConfig(device, "elec_mode", "AUTO");
+            const producer = initConfig(device, "producer", false);
+            initConfig(device, "refresh_rate", DEFAULT_POLL_INTERVAL);
 
-            logger.debug(`Configure: ${TICMode} ${contractType} ${elecMode} ${producer}`, 'TICMeter');
-            endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {acCurrentDivisor: 1, acCurrentMultiplier: 1});
-            endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 1, multiplier: 1});
+            logger.debug(`Configure: ${TICMode} ${contractType} ${elecMode} ${producer}`, "TICMeter");
+            endpoint.saveClusterAttributeKeyValue("haElectricalMeasurement", {acCurrentDivisor: 1, acCurrentMultiplier: 1});
+            endpoint.saveClusterAttributeKeyValue("seMetering", {divisor: 1, multiplier: 1});
 
             await reporting.bind(endpoint, coordinatorEndpoint, [CLUSTER_TIC, CLUSTER_ELE, CLUSTER_MET, METER_ID_CLUSTER]);
 
@@ -2214,16 +2214,16 @@ export const definitions: DefinitionWithExtend[] = [
             for (const item of ticmeterDatas) {
                 if (
                     !item.poll &&
-                    (item.tic == TICMode || item.tic == T.ANY) &&
-                    (item.contract == contractType || item.contract == C.ANY) &&
-                    (item.elec == elecMode || item.elec == E.ANY) &&
-                    (item.prod == producer || item.prod == false)
+                    (item.tic === TICMode || item.tic === T.ANY) &&
+                    (item.contract === contractType || item.contract === C.ANY) &&
+                    (item.elec === elecMode || item.elec === E.ANY) &&
+                    (item.prod === producer || item.prod === false)
                 ) {
                     wanted.push(item);
                 }
             }
 
-            logger.debug(`Configure wanted ${wanted.length}`, 'TICMeter');
+            logger.debug(`Configure wanted ${wanted.length}`, "TICMeter");
 
             endpoint.configuredReportings.forEach(async (r) => {
                 await endpoint.configureReporting(
@@ -2241,7 +2241,7 @@ export const definitions: DefinitionWithExtend[] = [
                     max: repInterval.MINUTES_10,
                 };
 
-                logger.debug(`Configure ${item.name} ${item.clust} ${item.attr} ${conf.min} ${conf.max} ${conf.change}`, 'TICMeter');
+                logger.debug(`Configure ${item.name} ${item.clust} ${item.attr} ${conf.min} ${conf.max} ${conf.change}`, "TICMeter");
                 reportingConfig.push(
                     endpoint.configureReporting(item.clust, reporting.payload(item.attr, conf.min, conf.max, conf.change), {manufacturerCode: null}),
                 );
@@ -2252,10 +2252,10 @@ export const definitions: DefinitionWithExtend[] = [
                     try {
                         await config;
                     } catch (error) {
-                        if (error.message.includes('UNSUPPORTED_ATTRIBUTE')) {
+                        if (error.message.includes("UNSUPPORTED_ATTRIBUTE")) {
                             // ignore: sometimes the attribute is not supported
                         } else {
-                            logger.warning(`Configure failed: ${error}`, 'TICMeter');
+                            logger.warning(`Configure failed: ${error}`, "TICMeter");
                         }
                     }
                 }),
@@ -2268,16 +2268,16 @@ export const definitions: DefinitionWithExtend[] = [
                 device.addCustomCluster(CLUSTER_TIC, ticmeterCustomCluster);
             }
 
-            const intervalDefined = globalStore.hasValue(device, 'interval');
+            const intervalDefined = globalStore.hasValue(device, "interval");
             if (data.data) {
                 if (data.data.ticMode !== undefined) {
                     const ticMode = modeTICEnum[data.data.ticMode];
-                    globalStore.putValue(device, 'tic_mode', ticMode);
+                    globalStore.putValue(device, "tic_mode", ticMode);
                     // settings.changeEntityOptions(device, { tic_mode: ticMode });
                 }
                 if (data.data.elecMode !== undefined) {
                     const elecMode = modeElecEnum[data.data.elecMode];
-                    globalStore.putValue(device, 'elec_mode', elecMode);
+                    globalStore.putValue(device, "elec_mode", elecMode);
                 }
                 if (data.data.contractType !== undefined) {
                     let contractType;
@@ -2286,16 +2286,16 @@ export const definitions: DefinitionWithExtend[] = [
                     } else {
                         contractType = data.data.contractType;
                     }
-                    globalStore.putValue(device, 'contract_type', contractType);
+                    globalStore.putValue(device, "contract_type", contractType);
                 }
             }
 
-            if (type === 'stop') {
-                clearInterval(globalStore.getValue(device, 'interval'));
-                globalStore.clearValue(device, 'interval');
+            if (type === "stop") {
+                clearInterval(globalStore.getValue(device, "interval"));
+                globalStore.clearValue(device, "interval");
             } else if (!intervalDefined) {
                 // periodic scan for non-reportable attributs
-                const seconds: number = options && options.refresh_rate ? Number(options.refresh_rate) : DEFAULT_POLL_INTERVAL;
+                const seconds: number = options?.refresh_rate ? Number(options.refresh_rate) : DEFAULT_POLL_INTERVAL;
                 const interval = setInterval(async () => {
                     try {
                         await poll(endpoint, device);
@@ -2303,8 +2303,8 @@ export const definitions: DefinitionWithExtend[] = [
                         /* Do nothing*/
                     }
                 }, seconds * 1000);
-                globalStore.putValue(device, 'interval', interval);
-                globalStore.putValue(device, 'refresh_rate', seconds);
+                globalStore.putValue(device, "interval", interval);
+                globalStore.putValue(device, "refresh_rate", seconds);
                 try {
                     await poll(endpoint, device);
                 } catch {
@@ -2312,10 +2312,10 @@ export const definitions: DefinitionWithExtend[] = [
                 }
             } else {
                 if (intervalDefined) {
-                    const seconds: number = options && options.refresh_rate ? Number(options.refresh_rate) : DEFAULT_POLL_INTERVAL;
-                    const definedSeconds = globalStore.getValue(device, 'refresh_rate');
-                    if (seconds != definedSeconds) {
-                        clearInterval(globalStore.getValue(device, 'interval'));
+                    const seconds: number = options?.refresh_rate ? Number(options.refresh_rate) : DEFAULT_POLL_INTERVAL;
+                    const definedSeconds = globalStore.getValue(device, "refresh_rate");
+                    if (seconds !== definedSeconds) {
+                        clearInterval(globalStore.getValue(device, "interval"));
                         const interval = setInterval(async () => {
                             try {
                                 await poll(endpoint, device);
@@ -2323,12 +2323,12 @@ export const definitions: DefinitionWithExtend[] = [
                                 /* Do nothing*/
                             }
                         }, seconds * 1000);
-                        globalStore.putValue(device, 'interval', interval);
-                        globalStore.putValue(device, 'refresh_rate', seconds);
+                        globalStore.putValue(device, "interval", interval);
+                        globalStore.putValue(device, "refresh_rate", seconds);
                     }
                 }
             }
         },
-        ota: {manufacturerName: 'GammaTroniques'}, // TODO: not sure if it's set properly in device
+        ota: {manufacturerName: "GammaTroniques"}, // TODO: not sure if it's set properly in device
     },
 ];

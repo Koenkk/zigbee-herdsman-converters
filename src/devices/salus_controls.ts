@@ -1,110 +1,110 @@
-import {Zcl} from 'zigbee-herdsman';
+import {Zcl} from "zigbee-herdsman";
 
-import fz from '../converters/fromZigbee';
-import tz from '../converters/toZigbee';
-import * as exposes from '../lib/exposes';
-import * as m from '../lib/modernExtend';
-import * as reporting from '../lib/reporting';
-import {DefinitionWithExtend} from '../lib/types';
+import fz from "../converters/fromZigbee";
+import tz from "../converters/toZigbee";
+import * as exposes from "../lib/exposes";
+import * as m from "../lib/modernExtend";
+import * as reporting from "../lib/reporting";
+import type {DefinitionWithExtend} from "../lib/types";
 
 const e = exposes.presets;
 
 export const definitions: DefinitionWithExtend[] = [
     {
-        zigbeeModel: ['SPE600'],
-        model: 'SPE600',
-        vendor: 'Salus Controls',
-        description: 'Smart plug (EU socket)',
-        extend: [m.onOff(), m.electricityMeter({cluster: 'metering'})],
-        ota: {manufacturerName: 'SalusControls'},
+        zigbeeModel: ["SPE600"],
+        model: "SPE600",
+        vendor: "Salus Controls",
+        description: "Smart plug (EU socket)",
+        extend: [m.onOff(), m.electricityMeter({cluster: "metering"})],
+        ota: {manufacturerName: "SalusControls"},
     },
     {
-        zigbeeModel: ['SP600'],
-        model: 'SP600',
-        vendor: 'Salus Controls',
-        description: 'Smart plug (UK socket)',
-        extend: [m.onOff(), m.electricityMeter({cluster: 'metering', fzMetering: fz.SP600_power})],
-        ota: {manufacturerName: 'SalusControls'},
+        zigbeeModel: ["SP600"],
+        model: "SP600",
+        vendor: "Salus Controls",
+        description: "Smart plug (UK socket)",
+        extend: [m.onOff(), m.electricityMeter({cluster: "metering", fzMetering: fz.SP600_power})],
+        ota: {manufacturerName: "SalusControls"},
     },
     {
-        zigbeeModel: ['SX885ZB'],
-        model: 'SX885ZB',
-        vendor: 'Salus Controls',
-        description: 'miniSmartPlug',
-        extend: [m.onOff(), m.electricityMeter({cluster: 'metering'})],
-        ota: {manufacturerName: 'SalusControls'},
+        zigbeeModel: ["SX885ZB"],
+        model: "SX885ZB",
+        vendor: "Salus Controls",
+        description: "miniSmartPlug",
+        extend: [m.onOff(), m.electricityMeter({cluster: "metering"})],
+        ota: {manufacturerName: "SalusControls"},
     },
     {
-        zigbeeModel: ['SR600'],
-        model: 'SR600',
-        vendor: 'Salus Controls',
-        description: 'Relay switch',
-        extend: [m.onOff({ota: {manufacturerName: 'SalusControls'}})],
+        zigbeeModel: ["SR600"],
+        model: "SR600",
+        vendor: "Salus Controls",
+        description: "Relay switch",
+        extend: [m.onOff({ota: {manufacturerName: "SalusControls"}})],
     },
     {
-        zigbeeModel: ['SW600'],
-        model: 'SW600',
-        vendor: 'Salus Controls',
-        description: 'Door or window contact sensor',
+        zigbeeModel: ["SW600"],
+        model: "SW600",
+        vendor: "Salus Controls",
+        description: "Door or window contact sensor",
         fromZigbee: [fz.ias_contact_alarm_1],
         toZigbee: [],
         exposes: [e.contact(), e.battery_low(), e.tamper()],
-        ota: {manufacturerName: 'SalusControls'},
+        ota: {manufacturerName: "SalusControls"},
     },
     {
-        zigbeeModel: ['WLS600'],
-        model: 'WLS600',
-        vendor: 'Salus Controls',
-        description: 'Water leakage sensor',
+        zigbeeModel: ["WLS600"],
+        model: "WLS600",
+        vendor: "Salus Controls",
+        description: "Water leakage sensor",
         fromZigbee: [fz.ias_water_leak_alarm_1],
         toZigbee: [],
         exposes: [e.water_leak(), e.battery_low(), e.tamper()],
-        ota: {manufacturerName: 'SalusControls'},
+        ota: {manufacturerName: "SalusControls"},
     },
     {
-        zigbeeModel: ['OS600'],
-        model: 'OS600',
-        vendor: 'Salus Controls',
-        description: 'Door or window contact sensor',
+        zigbeeModel: ["OS600"],
+        model: "OS600",
+        vendor: "Salus Controls",
+        description: "Door or window contact sensor",
         fromZigbee: [fz.ias_contact_alarm_1],
         toZigbee: [],
         exposes: [e.contact(), e.battery_low(), e.tamper()],
-        ota: {manufacturerName: 'SalusControls'},
+        ota: {manufacturerName: "SalusControls"},
     },
     {
-        zigbeeModel: ['SS909ZB', 'PS600'],
-        model: 'PS600',
-        vendor: 'Salus Controls',
-        description: 'Pipe temperature sensor',
+        zigbeeModel: ["SS909ZB", "PS600"],
+        model: "PS600",
+        vendor: "Salus Controls",
+        description: "Pipe temperature sensor",
         fromZigbee: [fz.temperature, fz.battery],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
         exposes: [e.battery(), e.temperature()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(9);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["msTemperatureMeasurement", "genPowerCfg"]);
             await reporting.temperature(endpoint);
             await reporting.batteryVoltage(endpoint);
         },
-        ota: {manufacturerName: 'SalusControls'},
+        ota: {manufacturerName: "SalusControls"},
     },
     {
-        zigbeeModel: ['RE600'],
-        model: 'RE600',
-        vendor: 'Salus Controls',
-        description: 'Router Zigbee',
+        zigbeeModel: ["RE600"],
+        model: "RE600",
+        vendor: "Salus Controls",
+        description: "Router Zigbee",
         fromZigbee: [],
         toZigbee: [],
         exposes: [],
-        ota: {manufacturerName: 'SalusControls'},
+        ota: {manufacturerName: "SalusControls"},
     },
     {
-        zigbeeModel: ['FC600'],
-        model: 'FC600',
-        vendor: 'Salus Controls',
-        description: 'Fan coil thermostat',
+        zigbeeModel: ["FC600"],
+        model: "FC600",
+        vendor: "Salus Controls",
+        description: "Fan coil thermostat",
         extend: [
-            m.deviceAddCustomCluster('manuSpecificSalus', {
+            m.deviceAddCustomCluster("manuSpecificSalus", {
                 ID: 0xfc04,
                 manufacturerCode: Zcl.ManufacturerCode.COMPUTIME,
                 attributes: {
@@ -134,11 +134,11 @@ export const definitions: DefinitionWithExtend[] = [
                 commandsResponse: {},
             }),
             m.enumLookup({
-                name: 'preset',
+                name: "preset",
                 lookup: {schedule: 0, temporary_override: 1, permanent_override: 2, standby: 7, eco: 10},
-                cluster: 'manuSpecificSalus',
-                attribute: 'holdType',
-                description: 'Operation mode',
+                cluster: "manuSpecificSalus",
+                attribute: "holdType",
+                description: "Operation mode",
                 reporting: {min: 0, max: 3600, change: 0},
             }),
         ],
@@ -163,18 +163,18 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [
             e
                 .climate()
-                .withSetpoint('occupied_heating_setpoint', 5, 40, 0.5)
+                .withSetpoint("occupied_heating_setpoint", 5, 40, 0.5)
                 .withLocalTemperature()
-                .withSystemMode(['off', 'heat', 'cool', 'auto'])
-                .withRunningMode(['off', 'cool', 'heat'])
-                .withRunningState(['idle', 'heat', 'cool'])
+                .withSystemMode(["off", "heat", "cool", "auto"])
+                .withRunningMode(["off", "cool", "heat"])
+                .withRunningState(["idle", "heat", "cool"])
                 .withLocalTemperatureCalibration(-3, 3, 0.5)
-                .withFanMode(['off', 'low', 'medium', 'high', 'auto']),
+                .withFanMode(["off", "low", "medium", "high", "auto"]),
             e.keypad_lockout(),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(9);
-            const binds = ['genBasic', 'genTime', 'hvacThermostat', 'hvacFanCtrl', 'hvacUserInterfaceCfg'];
+            const binds = ["genBasic", "genTime", "hvacThermostat", "hvacFanCtrl", "hvacUserInterfaceCfg"];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
             await reporting.thermostatTemperature(endpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
@@ -183,6 +183,6 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.thermostatRunningMode(endpoint);
             await reporting.thermostatRunningState(endpoint);
         },
-        ota: {manufacturerName: 'SalusControls'},
+        ota: {manufacturerName: "SalusControls"},
     },
 ];

@@ -1,8 +1,8 @@
 // In the root of this repo, execute: `npx ts-node scripts/refactor.ts`
 
-import {assert} from 'console';
+import {assert} from "node:console";
 
-import {ArrayLiteralExpression, Project, QuoteKind, SyntaxKind} from 'ts-morph';
+import {ArrayLiteralExpression, Project, QuoteKind, SyntaxKind} from "ts-morph";
 
 const project = new Project({
     manipulationSettings: {
@@ -10,25 +10,25 @@ const project = new Project({
         insertSpaceAfterOpeningAndBeforeClosingNonemptyBraces: false,
     },
 });
-project.addSourceFilesAtPaths('src/devices/*.ts');
+project.addSourceFilesAtPaths("src/devices/*.ts");
 
 //#region Refactor modernExtend temperature() to m.temperature()
 project.getSourceFiles().forEach((sourceFile) => {
-    if (sourceFile.getBaseName() === 'index.ts') return;
+    if (sourceFile.getBaseName() === "index.ts") return;
     console.log(`Handling ${sourceFile.getBaseName()}`);
 
     let save = false;
 
     const definitions = sourceFile
-        .getVariableStatementOrThrow('definitions')
+        .getVariableStatementOrThrow("definitions")
         .getDeclarations()[0]
         .getInitializerOrThrow()
         .asKindOrThrow(SyntaxKind.ArrayLiteralExpression);
 
     for (const definition of definitions.getElements()) {
         const childs = definition.getChildrenOfKind(SyntaxKind.PropertyAssignment);
-        const fingerprint = childs.find((c) => c.getFirstChildByKind(SyntaxKind.Identifier)?.getText() === 'fingerprint');
-        const model = childs.find((c) => c.getFirstChildByKind(SyntaxKind.Identifier)?.getText() === 'model');
+        const fingerprint = childs.find((c) => c.getFirstChildByKind(SyntaxKind.Identifier)?.getText() === "fingerprint");
+        const model = childs.find((c) => c.getFirstChildByKind(SyntaxKind.Identifier)?.getText() === "model");
         const fingerprintArray = fingerprint?.getFirstChildByKind(SyntaxKind.ArrayLiteralExpression);
         if (fingerprintArray) {
             const lookup: {[s: string]: Set<string>} = {};
@@ -37,35 +37,35 @@ project.getSourceFiles().forEach((sourceFile) => {
                 let modelID: string | undefined;
                 let manufacturerName: string | undefined;
                 for (const p of f.getChildrenOfKind(SyntaxKind.PropertyAssignment)) {
-                    if (p.getName() === 'modelID') {
+                    if (p.getName() === "modelID") {
                         modelID = p.getInitializer()?.getText();
-                    } else if (p.getName() === 'manufacturerName') {
+                    } else if (p.getName() === "manufacturerName") {
                         manufacturerName = p.getInitializer()?.getText();
                     } else {
                         match = false;
                     }
                 }
 
-                if (modelID && manufacturerName && manufacturerName.includes('_T')) {
+                if (modelID && manufacturerName && manufacturerName.includes("_T")) {
                     if (!(modelID in lookup)) lookup[modelID] = new Set();
                     lookup[modelID].add(manufacturerName);
                 } else {
                     match = false;
-                    console.log(`skip ${model?.getText()} (${modelID}, ${manufacturerName} ${manufacturerName?.includes('_T')})`);
+                    console.log(`skip ${model?.getText()} (${modelID}, ${manufacturerName} ${manufacturerName?.includes("_T")})`);
                     break;
                 }
             }
 
             if (match) {
-                if (Object.keys(lookup).length == 1) {
+                if (Object.keys(lookup).length === 1) {
                     const key = Object.keys(lookup)[0];
                     fingerprintArray.replaceWithText(`tuya.fingerprint(${key}, [${[...lookup[key]]}])`);
                 } else {
-                    let txt: string[] = [];
+                    const txt: string[] = [];
                     for (const [modelID, manufacturers] of Object.entries(lookup)) {
                         txt.push(`...tuya.fingerprint(${modelID}, [${[...manufacturers]}])`);
                     }
-                    fingerprintArray.replaceWithText(`[` + txt.join(', ') + `]`);
+                    fingerprintArray.replaceWithText(`[${txt.join(", ")}]`);
                 }
                 save = true;
             }
@@ -73,7 +73,7 @@ project.getSourceFiles().forEach((sourceFile) => {
     }
 
     if (save) {
-        const modernExtendImport = sourceFile.getImportDeclarations().filter((d) => d.getModuleSpecifierSourceFile()?.getBaseName() === 'tuya.ts');
+        const modernExtendImport = sourceFile.getImportDeclarations().filter((d) => d.getModuleSpecifierSourceFile()?.getBaseName() === "tuya.ts");
         let match = false;
         for (const i of modernExtendImport) {
             match = true;
@@ -81,8 +81,8 @@ project.getSourceFiles().forEach((sourceFile) => {
         }
 
         sourceFile.addImportDeclaration({
-            moduleSpecifier: '../lib/tuya',
-            namespaceImport: 'tuya',
+            moduleSpecifier: "../lib/tuya",
+            namespaceImport: "tuya",
         });
         sourceFile.saveSync();
     }

@@ -1,11 +1,11 @@
-import {Zcl} from 'zigbee-herdsman';
+import {Zcl} from "zigbee-herdsman";
 
-import fz from '../converters/fromZigbee';
-import tz from '../converters/toZigbee';
-import * as exposes from '../lib/exposes';
-import * as m from '../lib/modernExtend';
-import * as reporting from '../lib/reporting';
-import {DefinitionWithExtend, Fz, KeyValueAny, Tz} from '../lib/types';
+import fz from "../converters/fromZigbee";
+import tz from "../converters/toZigbee";
+import * as exposes from "../lib/exposes";
+import * as m from "../lib/modernExtend";
+import * as reporting from "../lib/reporting";
+import type {DefinitionWithExtend, Fz, KeyValueAny, Tz} from "../lib/types";
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -15,8 +15,8 @@ const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.ASTREL_GROUP
 const bitron = {
     fz: {
         thermostat_hysteresis: {
-            cluster: 'hvacThermostat',
-            type: ['attributeReport', 'readResponse'],
+            cluster: "hvacThermostat",
+            type: ["attributeReport", "readResponse"],
             convert: (model, msg, publish, options, meta) => {
                 const result: KeyValueAny = {};
 
@@ -36,23 +36,23 @@ const bitron = {
     },
     tz: {
         thermostat_hysteresis: {
-            key: ['hysteresis', 'hysteresis'],
+            key: ["hysteresis", "hysteresis"],
             convertSet: async (entity, key, value: KeyValueAny, meta) => {
                 const result: KeyValueAny = {state: {hysteresis: {}}};
                 if (value.high !== undefined) {
-                    await entity.write('hvacThermostat', {fourNoksHysteresisHigh: value.high}, manufacturerOptions);
+                    await entity.write("hvacThermostat", {fourNoksHysteresisHigh: value.high}, manufacturerOptions);
                     result.state.hysteresis.high = value.high;
                 }
 
                 if (value.low !== undefined) {
-                    await entity.write('hvacThermostat', {fourNoksHysteresisLow: value.low}, manufacturerOptions);
+                    await entity.write("hvacThermostat", {fourNoksHysteresisLow: value.low}, manufacturerOptions);
                     result.state.hysteresis.low = value.low;
                 }
 
                 return result;
             },
             convertGet: async (entity, key, meta) => {
-                await entity.read('hvacThermostat', ['fourNoksHysteresisHigh', 'fourNoksHysteresisLow'], manufacturerOptions);
+                await entity.read("hvacThermostat", ["fourNoksHysteresisHigh", "fourNoksHysteresisLow"], manufacturerOptions);
             },
         } satisfies Tz.Converter,
     },
@@ -60,125 +60,125 @@ const bitron = {
 
 export const definitions: DefinitionWithExtend[] = [
     {
-        zigbeeModel: ['AV2010/14', '902010/14'],
-        model: 'AV2010/14',
-        vendor: 'SMaBiT (Bitron Video)',
-        description: 'Curtain motion detector',
+        zigbeeModel: ["AV2010/14", "902010/14"],
+        model: "AV2010/14",
+        vendor: "SMaBiT (Bitron Video)",
+        description: "Curtain motion detector",
         fromZigbee: [fz.ias_occupancy_alarm_1_with_timeout],
         toZigbee: [],
         exposes: [e.occupancy(), e.battery_low()],
     },
     {
-        zigbeeModel: ['AV2010/16', '902010/16'],
-        model: 'AV2010/16',
-        vendor: 'SMaBiT (Bitron Video)',
-        description: 'Wall-mount relay with dimmer',
+        zigbeeModel: ["AV2010/16", "902010/16"],
+        model: "AV2010/16",
+        vendor: "SMaBiT (Bitron Video)",
+        description: "Wall-mount relay with dimmer",
         extend: [m.light({configureReporting: true})],
     },
     {
-        zigbeeModel: ['AV2010/18', '902010/18'],
-        model: 'AV2010/18',
-        vendor: 'SMaBiT (Bitron Video)',
-        description: 'Wall-mount relay',
+        zigbeeModel: ["AV2010/18", "902010/18"],
+        model: "AV2010/18",
+        vendor: "SMaBiT (Bitron Video)",
+        description: "Wall-mount relay",
         extend: [m.onOff()],
     },
     {
-        zigbeeModel: ['AV2010/21A', '902010/21A'],
-        model: 'AV2010/21A',
-        vendor: 'SMaBiT (Bitron Video)',
-        description: 'Compact magnetic contact sensor',
+        zigbeeModel: ["AV2010/21A", "902010/21A"],
+        model: "AV2010/21A",
+        vendor: "SMaBiT (Bitron Video)",
+        description: "Compact magnetic contact sensor",
         fromZigbee: [fz.ias_contact_alarm_1],
         toZigbee: [],
         exposes: [e.contact(), e.battery_low(), e.tamper()],
     },
     {
-        zigbeeModel: ['AV2010/21B', '902010/21B'],
-        model: 'AV2010/21B',
-        vendor: 'SMaBiT (Bitron Video)',
-        description: 'Magnetic contact sensor with additional input for wired sensors',
+        zigbeeModel: ["AV2010/21B", "902010/21B"],
+        model: "AV2010/21B",
+        vendor: "SMaBiT (Bitron Video)",
+        description: "Magnetic contact sensor with additional input for wired sensors",
         fromZigbee: [fz.ias_contact_alarm_1],
         toZigbee: [],
         exposes: [e.contact(), e.battery_low(), e.tamper()],
     },
     {
-        zigbeeModel: ['AV2010/21C', '902010/21C'],
-        model: 'AV2010/21C',
-        vendor: 'SMaBiT (Bitron Video)',
-        description: 'Ultra-flat magnetic contact sensor',
+        zigbeeModel: ["AV2010/21C", "902010/21C"],
+        model: "AV2010/21C",
+        vendor: "SMaBiT (Bitron Video)",
+        description: "Ultra-flat magnetic contact sensor",
         fromZigbee: [fz.ias_contact_alarm_1],
         toZigbee: [],
         exposes: [e.contact(), e.battery_low()],
     },
     {
-        zigbeeModel: ['AV2010/22', '902010/22', 'IR_00.00.03.12TC'],
-        model: 'AV2010/22',
-        vendor: 'SMaBiT (Bitron Video)',
-        description: 'Professional motion detector',
+        zigbeeModel: ["AV2010/22", "902010/22", "IR_00.00.03.12TC"],
+        model: "AV2010/22",
+        vendor: "SMaBiT (Bitron Video)",
+        description: "Professional motion detector",
         fromZigbee: [fz.ias_occupancy_alarm_1_with_timeout],
         toZigbee: [],
         exposes: [e.occupancy(), e.battery_low(), e.tamper()],
-        whiteLabel: [{vendor: 'ClimaxTechnology', model: 'IR-9ZBS-SL'}],
+        whiteLabel: [{vendor: "ClimaxTechnology", model: "IR-9ZBS-SL"}],
     },
     {
-        zigbeeModel: ['AV2010/22A', '902010/22A'],
-        model: 'AV2010/22A',
-        vendor: 'SMaBiT (Bitron Video)',
-        description: 'Design motion detector',
+        zigbeeModel: ["AV2010/22A", "902010/22A"],
+        model: "AV2010/22A",
+        vendor: "SMaBiT (Bitron Video)",
+        description: "Design motion detector",
         fromZigbee: [fz.ias_occupancy_alarm_1_with_timeout],
         toZigbee: [],
         exposes: [e.occupancy(), e.battery_low()],
     },
     {
-        zigbeeModel: ['AV2010/22B', '902010/22B'],
-        model: 'AV2010/22B',
-        vendor: 'SMaBiT (Bitron Video)',
-        description: 'Outdoor motion detector',
+        zigbeeModel: ["AV2010/22B", "902010/22B"],
+        model: "AV2010/22B",
+        vendor: "SMaBiT (Bitron Video)",
+        description: "Outdoor motion detector",
         fromZigbee: [fz.ias_occupancy_alarm_1_with_timeout],
         toZigbee: [],
         exposes: [e.occupancy(), e.battery_low(), e.tamper()],
     },
     {
-        zigbeeModel: ['AV2010/23', '902010/23'],
-        model: 'AV2010/23',
-        vendor: 'SMaBiT (Bitron Video)',
-        description: '4 button Zigbee remote control',
+        zigbeeModel: ["AV2010/23", "902010/23"],
+        model: "AV2010/23",
+        vendor: "SMaBiT (Bitron Video)",
+        description: "4 button Zigbee remote control",
         fromZigbee: [fz.ias_no_alarm, fz.command_on, fz.command_off, fz.command_step, fz.command_recall],
         toZigbee: [],
-        exposes: [e.action(['on', 'off', 'brightness_step_up', 'brightness_step_down', 'recall_*']), e.battery_low()],
+        exposes: [e.action(["on", "off", "brightness_step_up", "brightness_step_down", "recall_*"]), e.battery_low()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genBasic', 'genOnOff', 'genLevelCtrl']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg", "genBasic", "genOnOff", "genLevelCtrl"]);
         },
     },
     {
-        zigbeeModel: ['AV2010/24', '902010/24'],
-        model: 'AV2010/24',
-        vendor: 'SMaBiT (Bitron Video)',
-        description: 'Optical smoke detector (hardware version v1)',
+        zigbeeModel: ["AV2010/24", "902010/24"],
+        model: "AV2010/24",
+        vendor: "SMaBiT (Bitron Video)",
+        description: "Optical smoke detector (hardware version v1)",
         fromZigbee: [fz.ias_smoke_alarm_1],
         toZigbee: [tz.warning],
         exposes: [e.smoke(), e.battery_low(), e.tamper(), e.warning()],
     },
     {
-        zigbeeModel: ['AV2010/24A', '902010/24A'],
-        model: 'AV2010/24A',
-        vendor: 'SMaBiT (Bitron Video)',
-        description: 'Optical smoke detector (hardware version v2)',
+        zigbeeModel: ["AV2010/24A", "902010/24A"],
+        model: "AV2010/24A",
+        vendor: "SMaBiT (Bitron Video)",
+        description: "Optical smoke detector (hardware version v2)",
         fromZigbee: [fz.ias_smoke_alarm_1],
         toZigbee: [tz.warning],
         exposes: [e.smoke(), e.battery_low(), e.tamper(), e.warning()],
     },
     {
-        zigbeeModel: ['AV2010/25', '902010/25'],
-        model: 'AV2010/25',
-        vendor: 'SMaBiT (Bitron Video)',
-        description: 'Wireless socket with metering',
+        zigbeeModel: ["AV2010/25", "902010/25"],
+        model: "AV2010/25",
+        vendor: "SMaBiT (Bitron Video)",
+        description: "Wireless socket with metering",
         fromZigbee: [fz.on_off, fz.metering],
         toZigbee: [tz.on_off],
         exposes: [e.switch(), e.power(), e.energy()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "seMetering"]);
             await reporting.instantaneousDemand(endpoint);
             await reporting.currentSummDelivered(endpoint);
             try {
@@ -186,46 +186,46 @@ export const definitions: DefinitionWithExtend[] = [
             } catch {
                 /* fails for some: https://github.com/Koenkk/zigbee2mqtt/issues/13258 */
             }
-            endpoint.saveClusterAttributeKeyValue('seMetering', {divisor: 10000, multiplier: 1});
+            endpoint.saveClusterAttributeKeyValue("seMetering", {divisor: 10000, multiplier: 1});
         },
     },
     {
-        zigbeeModel: ['AV2010/26', '902010/26'],
-        model: 'AV2010/26',
-        vendor: 'SMaBiT (Bitron Video)',
-        description: 'Wireless socket with dimmer',
+        zigbeeModel: ["AV2010/26", "902010/26"],
+        model: "AV2010/26",
+        vendor: "SMaBiT (Bitron Video)",
+        description: "Wireless socket with dimmer",
         extend: [m.light({configureReporting: true})],
     },
     {
-        zigbeeModel: ['AV2010/28', '902010/28'],
-        model: 'AV2010/28',
-        vendor: 'SMaBiT (Bitron Video)',
-        description: 'Wireless socket',
+        zigbeeModel: ["AV2010/28", "902010/28"],
+        model: "AV2010/28",
+        vendor: "SMaBiT (Bitron Video)",
+        description: "Wireless socket",
         extend: [m.onOff()],
     },
     {
-        zigbeeModel: ['AV2010/29', '902010/29'],
-        model: 'AV2010/29',
-        vendor: 'SMaBiT (Bitron Video)',
-        description: 'Outdoor siren',
+        zigbeeModel: ["AV2010/29", "902010/29"],
+        model: "AV2010/29",
+        vendor: "SMaBiT (Bitron Video)",
+        description: "Outdoor siren",
         fromZigbee: [fz.battery],
         toZigbee: [tz.warning],
         exposes: [e.battery_low(), e.tamper(), e.warning()],
     },
     {
-        zigbeeModel: ['AV2010/29A', '902010/29A'],
-        model: 'AV2010/29A',
-        vendor: 'SMaBiT (Bitron Video)',
-        description: 'Outdoor siren',
+        zigbeeModel: ["AV2010/29A", "902010/29A"],
+        model: "AV2010/29A",
+        vendor: "SMaBiT (Bitron Video)",
+        description: "Outdoor siren",
         fromZigbee: [fz.ias_siren],
         toZigbee: [tz.warning, tz.squawk],
         exposes: [e.warning(), e.squawk(), e.battery_low(), e.tamper()],
     },
     {
-        zigbeeModel: ['AV2010/32', '902010/32'],
-        model: 'AV2010/32',
-        vendor: 'SMaBiT (Bitron Video)',
-        description: 'Wireless wall thermostat with relay',
+        zigbeeModel: ["AV2010/32", "902010/32"],
+        model: "AV2010/32",
+        vendor: "SMaBiT (Bitron Video)",
+        description: "Wireless wall thermostat with relay",
         fromZigbee: [fz.thermostat, fz.battery, fz.hvac_user_interface, bitron.fz.thermostat_hysteresis],
         toZigbee: [
             tz.thermostat_control_sequence_of_operation,
@@ -242,38 +242,38 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         exposes: (device, options) => {
             const dynExposes = [];
-            let ctrlSeqeOfOper = device?.getEndpoint(1).getClusterAttributeValue('hvacThermostat', 'ctrlSeqeOfOper') ?? null;
+            let ctrlSeqeOfOper = device?.getEndpoint(1).getClusterAttributeValue("hvacThermostat", "ctrlSeqeOfOper") ?? null;
             const modes = [];
 
-            if (typeof ctrlSeqeOfOper === 'string') ctrlSeqeOfOper = parseInt(ctrlSeqeOfOper) ?? null;
+            if (typeof ctrlSeqeOfOper === "string") ctrlSeqeOfOper = Number.parseInt(ctrlSeqeOfOper) ?? null;
 
             // NOTE: ctrlSeqeOfOper defaults to 2 for this device (according to the manual)
-            if (ctrlSeqeOfOper === null || isNaN(ctrlSeqeOfOper)) ctrlSeqeOfOper = 2;
+            if (ctrlSeqeOfOper === null || Number.isNaN(ctrlSeqeOfOper)) ctrlSeqeOfOper = 2;
 
             // NOTE: set cool and/or heat support based on ctrlSeqeOfOper (see lib/constants -> thermostatControlSequenceOfOperations)
             // WARN: a restart of zigbee2mqtt is required after changing ctrlSeqeOfOper for expose data to be re-calculated
             if (ctrlSeqeOfOper >= 2) {
-                modes.push('heat');
+                modes.push("heat");
             }
             if (ctrlSeqeOfOper < 2 || ctrlSeqeOfOper > 3) {
-                modes.push('cool');
+                modes.push("cool");
             }
 
             const hysteresisExposes = e
-                .composite('hysteresis', 'hysteresis', ea.ALL)
-                .withFeature(e.numeric('low', ea.SET))
-                .withFeature(e.numeric('high', ea.SET))
-                .withDescription('Set thermostat hysteresis low and high trigger values. (1 = 0.01ºC)');
+                .composite("hysteresis", "hysteresis", ea.ALL)
+                .withFeature(e.numeric("low", ea.SET))
+                .withFeature(e.numeric("high", ea.SET))
+                .withDescription("Set thermostat hysteresis low and high trigger values. (1 = 0.01ºC)");
 
             dynExposes.push(
                 e
                     .climate()
-                    .withSetpoint('occupied_heating_setpoint', 7, 30, 0.5)
+                    .withSetpoint("occupied_heating_setpoint", 7, 30, 0.5)
                     .withLocalTemperature()
-                    .withSystemMode(['off'].concat(modes))
-                    .withRunningState(['idle'].concat(modes))
+                    .withSystemMode(["off"].concat(modes))
+                    .withRunningState(["idle"].concat(modes))
                     .withLocalTemperatureCalibration()
-                    .withControlSequenceOfOperation(['heating_only', 'cooling_only'], ea.ALL),
+                    .withControlSequenceOfOperation(["heating_only", "cooling_only"], ea.ALL),
             );
             dynExposes.push(e.keypad_lockout());
             dynExposes.push(hysteresisExposes);
@@ -285,7 +285,7 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            const binds = ['genBasic', 'genPowerCfg', 'genIdentify', 'genPollCtrl', 'hvacThermostat', 'hvacUserInterfaceCfg'];
+            const binds = ["genBasic", "genPowerCfg", "genIdentify", "genPollCtrl", "hvacThermostat", "hvacUserInterfaceCfg"];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
             await reporting.thermostatTemperature(endpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
@@ -293,37 +293,37 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.thermostatRunningState(endpoint);
             await reporting.batteryAlarmState(endpoint);
             await reporting.batteryVoltage(endpoint);
-            await endpoint.read('hvacThermostat', ['ctrlSeqeOfOper', 'localTemperatureCalibration']);
-            await endpoint.read('hvacThermostat', ['fourNoksHysteresisHigh', 'fourNoksHysteresisLow'], manufacturerOptions);
+            await endpoint.read("hvacThermostat", ["ctrlSeqeOfOper", "localTemperatureCalibration"]);
+            await endpoint.read("hvacThermostat", ["fourNoksHysteresisHigh", "fourNoksHysteresisLow"], manufacturerOptions);
         },
     },
     {
-        zigbeeModel: ['AV2010/33', '902010/33'],
-        model: 'AV2010/33',
-        vendor: 'SMaBiT (Bitron Video)',
-        description: 'Vibration sensor',
+        zigbeeModel: ["AV2010/33", "902010/33"],
+        model: "AV2010/33",
+        vendor: "SMaBiT (Bitron Video)",
+        description: "Vibration sensor",
         fromZigbee: [fz.ias_occupancy_alarm_2],
         toZigbee: [],
         exposes: [e.occupancy(), e.battery_low()],
     },
     {
-        zigbeeModel: ['AV2010/34', '902010/34'],
-        model: 'AV2010/34',
-        vendor: 'SMaBiT (Bitron Video)',
-        description: 'Wall switch with 4 buttons',
+        zigbeeModel: ["AV2010/34", "902010/34"],
+        model: "AV2010/34",
+        vendor: "SMaBiT (Bitron Video)",
+        description: "Wall switch with 4 buttons",
         fromZigbee: [fz.command_recall],
         toZigbee: [],
-        exposes: [e.action(['recall_*'])],
+        exposes: [e.action(["recall_*"])],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genScenes']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "genScenes"]);
         },
     },
     {
-        zigbeeModel: ['AV2010/37', '902010/37'],
-        model: 'AV2010/37',
-        vendor: 'SMaBiT (Bitron Video)',
-        description: 'Water detector with siren',
+        zigbeeModel: ["AV2010/37", "902010/37"],
+        model: "AV2010/37",
+        vendor: "SMaBiT (Bitron Video)",
+        description: "Water detector with siren",
         fromZigbee: [fz.ias_water_leak_alarm_1],
         toZigbee: [],
         exposes: [e.water_leak(), e.battery_low()],
