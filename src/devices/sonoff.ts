@@ -1239,7 +1239,7 @@ export const definitions: DefinitionWithExtend[] = [
                         ID: 0x600d,
                         type: Zcl.DataType.INT16,
                     },
-                    externalTemperatureSensorEnabled: {
+                    externalTemperatureSensor: {
                         ID: 0x600e,
                         type: Zcl.DataType.UINT8,
                     },
@@ -1280,7 +1280,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.binary({
                 name: "external_temperature_sensor",
                 cluster: "customSonoffTrvzb",
-                attribute: "externalTemperatureSensorEnabled",
+                attribute: "externalTemperatureSensor",
                 entityCategory: "config",
                 description:
                     "Enables/disables use of an external temperature sensor. When enabled, the device uses the external temperature sensor value as the local temperature to make heating decisions.",
