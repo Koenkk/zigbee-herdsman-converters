@@ -1653,34 +1653,29 @@ export function iasWarning(args?: IasWarningArgs): ModernExtend {
 
 // Uses Electrical Measurement and/or Metering, but for simplicity was put here.
 type MultiplierDivisor = {multiplier?: number; divisor?: number};
-export interface ElectricityMeterArgs {
-    cluster?: "both" | "metering" | "electrical";
-    electricalMeasurementType?: "both" | "ac" | "dc";
-    current?: false | (MultiplierDivisor & Partial<ReportingConfigWithoutAttribute>);
+type MeterType = 'electricity' | 'gas'; // water, etc
+interface MeterArgs {
+    type?: MeterType;
+    cluster?: 'both' | 'metering' | 'electrical';
     power?: false | (MultiplierDivisor & Partial<ReportingConfigWithoutAttribute>);
-    voltage?: false | (MultiplierDivisor & Partial<ReportingConfigWithoutAttribute>);
     energy?: false | (MultiplierDivisor & Partial<ReportingConfigWithoutAttribute>);
-    producedEnergy?: false | true | (MultiplierDivisor & Partial<ReportingConfigWithoutAttribute>);
-    acFrequency?: false | true | (MultiplierDivisor & Partial<ReportingConfigWithoutAttribute>);
-    threePhase?: boolean;
+    status?: boolean;
+    extendedStatus?: boolean;
     configureReporting?: boolean;
-    powerFactor?: boolean;
     endpointNames?: string[];
     fzMetering?: Fz.Converter;
+    // applies only to electrical
+    electricalMeasurementType?: 'both' | 'ac' | 'dc';
+    voltage?: false | (MultiplierDivisor & Partial<ReportingConfigWithoutAttribute>);
+    current?: false | (MultiplierDivisor & Partial<ReportingConfigWithoutAttribute>);
+    threePhase?: boolean;
+    producedEnergy?: false | true | (MultiplierDivisor & Partial<ReportingConfigWithoutAttribute>);
+    acFrequency?: false | true | (MultiplierDivisor & Partial<ReportingConfigWithoutAttribute>);
+    powerFactor?: boolean;
     fzElectricalMeasurement?: Fz.Converter;
 }
-export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
-    args = {
-        cluster: "both",
-        electricalMeasurementType: "ac",
-        configureReporting: true,
-        threePhase: false,
-        producedEnergy: false,
-        acFrequency: false,
-        powerFactor: false,
-        ...args,
-    };
-    if (args.cluster !== "electrical") {
+function genericMeter(args?: MeterArgs) {
+    if (args.cluster !== 'electrical') {
         const divisors = new Set([
             args.cluster === "metering" && isObject(args.power) ? args.power?.divisor : false,
             isObject(args.energy) ? args.energy?.divisor : false,
@@ -1716,6 +1711,17 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
     let exposes: Numeric[] = [];
     let fromZigbee: Fz.Converter[];
     let toZigbee: Tz.Converter[];
+
+    const changeLookup: Record<MeterType, {power: number; energy: number}> = {
+        gas: {
+            power: 0.01,
+            energy: 0.1,
+        },
+        electricity: {
+            power: 0.005,
+            energy: 0.1,
+        },
+    };
 
     const configureLookup = {
         haElectricalMeasurement: {
@@ -1776,15 +1782,35 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
         },
         seMetering: {
             // Report change with every 5W change
-            power: {attribute: "instantaneousDemand", divisor: "divisor", multiplier: "multiplier", forced: args.power, change: 0.005},
+            power: {
+                attribute: 'instantaneousDemand',
+                divisor: 'divisor',
+                multiplier: 'multiplier',
+                forced: args.power,
+                change: changeLookup[args.type]['power'],
+            },
             // Report change with every 0.1kWh change
-            energy: {attribute: "currentSummDelivered", divisor: "divisor", multiplier: "multiplier", forced: args.energy, change: 0.1},
+            energy: {
+                attribute: 'currentSummDelivered',
+                divisor: 'divisor',
+                multiplier: 'multiplier',
+                forced: args.energy,
+                change: changeLookup[args.type]['energy'],
+            },
             produced_energy: {
-                attribute: "currentSummReceived",
-                divisor: "divisor",
-                multiplier: "multiplier",
+                attribute: 'currentSummReceived',
+                divisor: 'divisor',
+                multiplier: 'multiplier',
                 forced: isObject(args.producedEnergy) ? args.producedEnergy : (false as const),
                 change: 0.1,
+            },
+            status: {
+                attribute: 'status',
+                change: 1,
+            },
+            extended_status: {
+                attribute: 'extendedStatus',
+                change: 1,
             },
         },
     };
@@ -1849,7 +1875,14 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
         delete configureLookup.haElectricalMeasurement.dc_current;
     }
 
-    if (args.cluster === "both") {
+    if (args.status === false) {
+        delete configureLookup.seMetering.status;
+    }
+    if (args.extendedStatus === false) {
+        delete configureLookup.seMetering.extended_status;
+    }
+
+    if (args.cluster === 'both') {
         if (args.power !== false) exposes.push(e.power().withAccess(ea.STATE_GET));
         if (args.voltage !== false) exposes.push(e.voltage().withAccess(ea.STATE_GET));
         if (args.acFrequency !== false) exposes.push(e.ac_frequency().withAccess(ea.STATE_GET));
@@ -1868,14 +1901,35 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
             tz.powerfactor,
         ];
         delete configureLookup.seMetering.power;
-    } else if (args.cluster === "metering") {
+    } else if (args.cluster === 'metering' && args.type === 'electricity') {
         if (args.power !== false) exposes.push(e.power().withAccess(ea.STATE_GET));
         if (args.energy !== false) exposes.push(e.energy().withAccess(ea.STATE_GET));
         if (args.producedEnergy !== false) exposes.push(e.produced_energy().withAccess(ea.STATE_GET));
         fromZigbee = [args.fzMetering ?? fz.metering];
         toZigbee = [tz.metering_power, tz.currentsummdelivered, tz.currentsummreceived];
         delete configureLookup.haElectricalMeasurement;
-    } else if (args.cluster === "electrical") {
+    } else if (args.cluster === 'metering' && args.type === 'gas') {
+        if (args.power !== false) exposes.push(e.numeric('power', ea.STATE_GET).withUnit('m³/h').withDescription('Instantaneous gas flow in m³/h'));
+        if (args.energy !== false) exposes.push(e.numeric('energy', ea.ALL).withUnit('m³').withDescription('Total gas consumption in m³'));
+        fromZigbee = [args.fzMetering ?? fz.gas_metering];
+        toZigbee = [
+            {
+                key: ['energy'],
+                convertGet: async (entity, key, meta) => {
+                    const ep = determineEndpoint(entity, meta, 'seMetering');
+                    await ep.read('seMetering', ['currentSummDelivered']);
+                },
+                convertSet: async (entity, key, value: number, meta) => {
+                    await entity.write('seMetering', {currentSummDelivered: Math.round(value * 100)});
+                    return {state: {energy: value}};
+                },
+            } satisfies Tz.Converter,
+            tz.metering_power,
+            tz.metering_status,
+            tz.metering_extended_status,
+        ];
+        delete configureLookup.haElectricalMeasurement;
+    } else if (args.cluster === 'electrical') {
         if (args.power !== false) exposes.push(e.power().withAccess(ea.STATE_GET));
         if (args.voltage !== false) exposes.push(e.voltage().withAccess(ea.STATE_GET));
         if (args.current !== false) exposes.push(e.current().withAccess(ea.STATE_GET));
@@ -1967,149 +2021,40 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
 
     return result;
 }
+export interface ElectricityMeterArgs extends MeterArgs {
+    type?: 'electricity';
+}
+export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
+    args = {
+        type: 'electricity',
+        cluster: 'both',
+        electricalMeasurementType: 'ac',
+        configureReporting: true,
+        threePhase: false,
+        producedEnergy: false,
+        acFrequency: false,
+        powerFactor: false,
+        status: false,
+        extendedStatus: false,
+        ...args,
+    };
+    return genericMeter(args);
+}
 
 // Uses Metering to measure volume of gas consumed
-export interface GasMeterArgs {
-    power?: false | (MultiplierDivisor & Partial<ReportingConfigWithoutAttribute>);
-    energy?: false | (MultiplierDivisor & Partial<ReportingConfigWithoutAttribute>);
-    status?: false;
-    extendedStatus?: false;
-    configureReporting?: boolean;
-    endpointNames?: string[];
-    fzMetering?: Fz.Converter;
+export interface GasMeterArgs extends MeterArgs {
+    type?: 'gas';
 }
 export function gasMeter(args?: GasMeterArgs): ModernExtend {
     args = {
+        type: 'gas',
+        cluster: 'metering',
         configureReporting: true,
+        status: true,
+        extendedStatus: true,
         ...args,
     };
-
-    let exposes: Numeric[] = [];
-
-    const configureLookup = {
-        seMetering: {
-            // Report change with every m³/h change
-            power: {
-                attribute: 'instantaneousDemand',
-                divisor: 'divisor',
-                multiplier: 'multiplier',
-                forced: args.power,
-                change: 0.005,
-            },
-            // Report change with every m³ change
-            energy: {
-                attribute: 'currentSummDelivered',
-                divisor: 'divisor',
-                multiplier: 'multiplier',
-                forced: args.energy,
-                change: 0.1,
-            },
-            status: {
-                attribute: 'status',
-                change: 1,
-            },
-            extended_status: {
-                attribute: 'extendedStatus',
-                change: 1,
-            },
-        },
-    };
-
-    if (args.power === false) {
-        delete configureLookup.seMetering.power;
-    } else {
-        exposes.push(e.numeric('power', ea.STATE_GET).withUnit('m³/h').withDescription('Instantaneous gas flow in m³/h'));
-    }
-    if (args.energy === false) {
-        delete configureLookup.seMetering.energy;
-    } else {
-        exposes.push(e.numeric('energy', ea.ALL).withUnit('m³').withDescription('Total gas consumption in m³'));
-    }
-    if (args.status === false) {
-        delete configureLookup.seMetering.status;
-    }
-    if (args.extendedStatus === false) {
-        delete configureLookup.seMetering.extended_status;
-    }
-    const fromZigbee = [fz.gas_metering, fz.battery];
-    const toZigbee = [
-        {
-            key: ['energy'],
-            convertGet: async (entity, key, meta) => {
-                const ep = determineEndpoint(entity, meta, 'seMetering');
-                await ep.read('seMetering', ['currentSummDelivered']);
-            },
-            convertSet: async (entity, key, value: number, meta) => {
-                await entity.write('seMetering', {currentSummDelivered: Math.round(value * 100)});
-                return {state: {energy: value}};
-            },
-        } satisfies Tz.Converter,
-        tz.metering_power,
-        tz.metering_status,
-        tz.metering_extended_status,
-    ];
-
-    if (args.endpointNames) {
-        exposes = flatten(exposes.map((expose) => args.endpointNames.map((endpoint) => expose.clone().withEndpoint(endpoint))));
-    }
-
-    const result: ModernExtend = {exposes, fromZigbee, toZigbee, isModernExtend: true};
-
-    if (args.configureReporting) {
-        result.configure = [
-            async (device, coordinatorEndpoint) => {
-                for (const [cluster, properties] of Object.entries(configureLookup)) {
-                    for (const endpoint of getEndpointsWithCluster(device, cluster, 'input')) {
-                        const items: ReportingConfig[] = [];
-                        for (const property of Object.values(properties)) {
-                            let change = property.change;
-                            let min: ReportingConfigTime = '10_SECONDS';
-                            let max: ReportingConfigTime = 'MAX';
-
-                            // Check if this property has a divisor and multiplier
-                            if ('divisor' in property) {
-                                // In case multiplier or divisor was provided, use that instead of reading from device.
-                                if (property.forced && (property.forced.divisor || property.forced.multiplier)) {
-                                    endpoint.saveClusterAttributeKeyValue(cluster, {
-                                        [property.divisor]: property.forced.divisor ?? 1,
-                                        [property.multiplier]: property.forced.multiplier ?? 1,
-                                    });
-                                    endpoint.save();
-                                } else {
-                                    await endpoint.read(cluster, [property.divisor, property.multiplier]);
-                                }
-
-                                const divisor = endpoint.getClusterAttributeValue(cluster, property.divisor);
-                                assertNumber(divisor, property.divisor);
-                                const multiplier = endpoint.getClusterAttributeValue(cluster, property.multiplier);
-                                assertNumber(multiplier, property.multiplier);
-                                change = property.change * (divisor / multiplier);
-                            }
-
-                            if ('forced' in property && property.forced) {
-                                if ('min' in property.forced) {
-                                    min = property.forced.min;
-                                }
-                                if ('max' in property.forced) {
-                                    max = property.forced.max;
-                                }
-                                if ('change' in property.forced) {
-                                    change = property.forced.change;
-                                }
-                            }
-
-                            items.push({attribute: property.attribute, min, max, change});
-                        }
-                        if (items.length) {
-                            await setupAttributes(endpoint, coordinatorEndpoint, cluster, items);
-                        }
-                    }
-                }
-            },
-        ];
-    }
-
-    return result;
+    return genericMeter(args);
 }
 // #endregion
 
