@@ -4020,4 +4020,11 @@ export const definitions: DefinitionWithExtend[] = [
         description: 'Hue Lightguide E26 Globe Large G40 500lm',
         extend: [philipsLight({colorTemp: {range: [153, 500]}, color: {modes: ['xy', 'hs'], enhancedHue: true}})],
     },
+    {
+        zigbeeModel: ['LTG006'],
+        model: '046677584719',
+        vendor: 'Philips',
+        description: 'Hue White ambiance GU10 - smart spotlight ',
+        extend: [philipsLight({colorTemp: {range: [153, 454]}})],
+    },
 ];
