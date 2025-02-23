@@ -328,6 +328,7 @@ export namespace Tz {
         state: KeyValue;
         endpoint_name: string | undefined;
         membersState?: {[s: string]: KeyValue};
+        publish?: Publish;
     }
     // biome-ignore lint/suspicious/noConfusingVoidType: allow for converters
     export type ConvertSetResult = {state?: KeyValue; membersState?: {[s: string]: KeyValue}} | void;
