@@ -1283,7 +1283,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "customSonoffTrvzb",
                 attribute: "temperatureSensorSelect",
                 description:
-                    "Whether to use the value of the internal temperature sensor or an external temperature sensor as the local temperature.",
+                    "Whether to use the value of the internal temperature sensor or an external temperature sensor for the local temperature.",
             }),
             m.numeric({
                 name: "external_temperature_input",
