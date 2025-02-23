@@ -149,44 +149,46 @@ const orviboSwitchRewiring = (args: OrviboSwitchRewiringArgs): ModernExtend => {
         },
     ];
 
-    const onEvent: OnEvent = async (type, data, device, settings, state, meta) => {
-        if (type !== "deviceOptionsChanged") {
-            return;
-        }
-        const endpointsOptionsFrom = (data as KeyValueAny)?.from?.switch_actions ?? {};
-        const endpointsOptionsTo = (data as KeyValueAny)?.to?.switch_actions ?? {};
-        if (!endpointsOptionsTo) {
-            return;
-        }
-        const forceUpdate = endpointsOptionsTo.forceupdate;
-        for (const endpointName of args.endpointNames) {
-            let from = endpointsOptionsFrom[endpointName];
-            let to = endpointsOptionsTo[endpointName];
-            if (!to && !from && !forceUpdate) {
+    const onEvent: OnEvent[] = [
+        async (type, data, device, settings, state, meta) => {
+            if (type !== "deviceOptionsChanged") {
                 return;
             }
-
-            to = to ?? {};
-            to.sceneid = to.sceneid ? to.sceneid : 0;
-            to.relaynumber = to.relaynumber ? to.relaynumber : 0;
-            to.relayaction = to.relayaction ? to.relayaction : 0;
-            from = from ?? {};
-            if (from.sceneid !== to.sceneid || from.relaynumber !== to.relaynumber || from.relayaction !== to.relayaction || forceUpdate) {
-                const switchId = args.endpoints[endpointName];
-                await device.getEndpoint(7).command("manuSpecificOrvibo", "clearSwitchAction", {data: [switchId, 0, 0]});
-                const {sceneid, relaynumber, relayaction} = to;
-                if (sceneid) {
-                    await device.getEndpoint(7).command("manuSpecificOrvibo", "setSwitchScene", {data: [switchId, 0, 0, 0, 0, sceneid]});
+            const endpointsOptionsFrom = (data as KeyValueAny)?.from?.switch_actions ?? {};
+            const endpointsOptionsTo = (data as KeyValueAny)?.to?.switch_actions ?? {};
+            if (!endpointsOptionsTo) {
+                return;
+            }
+            const forceUpdate = endpointsOptionsTo.forceupdate;
+            for (const endpointName of args.endpointNames) {
+                let from = endpointsOptionsFrom[endpointName];
+                let to = endpointsOptionsTo[endpointName];
+                if (!to && !from && !forceUpdate) {
+                    return;
                 }
-                if (relaynumber && device.ieeeAddr.length > 3) {
-                    const invertedAddress = hexToBytes(device.ieeeAddr).reverse();
-                    await device.getEndpoint(7).command("manuSpecificOrvibo", "setSwitchRelay", {
-                        data: [switchId, 0, 0, ...invertedAddress, relaynumber, 4, 1, 6, 0, 1, relayaction],
-                    });
+
+                to = to ?? {};
+                to.sceneid = to.sceneid ? to.sceneid : 0;
+                to.relaynumber = to.relaynumber ? to.relaynumber : 0;
+                to.relayaction = to.relayaction ? to.relayaction : 0;
+                from = from ?? {};
+                if (from.sceneid !== to.sceneid || from.relaynumber !== to.relaynumber || from.relayaction !== to.relayaction || forceUpdate) {
+                    const switchId = args.endpoints[endpointName];
+                    await device.getEndpoint(7).command("manuSpecificOrvibo", "clearSwitchAction", {data: [switchId, 0, 0]});
+                    const {sceneid, relaynumber, relayaction} = to;
+                    if (sceneid) {
+                        await device.getEndpoint(7).command("manuSpecificOrvibo", "setSwitchScene", {data: [switchId, 0, 0, 0, 0, sceneid]});
+                    }
+                    if (relaynumber && device.ieeeAddr.length > 3) {
+                        const invertedAddress = hexToBytes(device.ieeeAddr).reverse();
+                        await device.getEndpoint(7).command("manuSpecificOrvibo", "setSwitchRelay", {
+                            data: [switchId, 0, 0, ...invertedAddress, relaynumber, 4, 1, 6, 0, 1, relayaction],
+                        });
+                    }
                 }
             }
-        }
-    };
+        },
+    ];
 
     return {
         onEvent,

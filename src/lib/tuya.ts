@@ -2063,7 +2063,7 @@ const tuyaModernExtend = {
     tuyaBase(args?: {onEvent?: OnEventArgs; dp: true}): ModernExtend {
         const result: ModernExtend = {
             configure: [configureMagicPacket],
-            onEvent: onEvent(args.onEvent),
+            onEvent: [onEvent(args.onEvent)],
             isModernExtend: true,
         };
 

@@ -2,6 +2,7 @@ import {Zcl} from "zigbee-herdsman";
 
 import fz from "../converters/fromZigbee";
 import tz from "../converters/toZigbee";
+import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import {ColorRGB, ColorXY} from "./color";
 import * as libColor from "./color";
@@ -53,80 +54,113 @@ export const knownEffects = {
     "0c80": "glisten",
 };
 
-export function philipsLight(args?: modernExtend.LightArgs & {hueEffect?: boolean; gradient?: true | {extraEffects: string[]}}) {
-    args = {hueEffect: true, turnsOffAtBrightness1: true, ota: true, ...args};
-    if (args.hueEffect || args.gradient) args.effect = false;
-    if (args.color) args.color = {modes: ["xy", "hs"], ...(isObject(args.color) ? args.color : {})};
-    const result = modernExtend.light(args);
-    result.toZigbee.push(philipsTz.hue_power_on_behavior, philipsTz.hue_power_on_error);
-    if (args.hueEffect || args.gradient) {
-        result.toZigbee.push(philipsTz.effect);
-        const effects = ["blink", "breathe", "okay", "channel_change", "candle"];
-        if (args.color) effects.push("fireplace", "colorloop");
-        if (args.gradient) {
-            result.toZigbee.push(philipsTz.gradient_scene, philipsTz.gradient({reverse: true}));
-            result.fromZigbee.push(philipsFz.gradient);
-            effects.push("sunrise");
-            if (args.gradient !== true) {
-                effects.push(...args.gradient.extraEffects);
-            }
-            result.exposes.push(
-                // gradient_scene is deprecated, use gradient instead
-                ...exposeEndpoints(e.enum("gradient_scene", ea.SET, Object.keys(gradientScenes)), args.endpointNames),
-                ...exposeEndpoints(
-                    e
-                        .list("gradient", ea.ALL, e.text("hex", ea.ALL).withDescription("Color in RGB HEX format (eg #663399)"))
-                        .withLengthMin(1)
-                        .withLengthMax(9)
-                        .withDescription("List of RGB HEX colors"),
-                    args.endpointNames,
-                ),
-            );
-            result.configure.push(async (device, coordinatorEndpoint, definition) => {
-                for (const ep of device.endpoints.filter((ep) => ep.supportsInputCluster("manuSpecificPhilips2"))) {
-                    await ep.bind("manuSpecificPhilips2", coordinatorEndpoint);
+const philipsModernExtend = {
+    light: (args?: modernExtend.LightArgs & {hueEffect?: boolean; gradient?: true | {extraEffects: string[]}}) => {
+        args = {hueEffect: true, turnsOffAtBrightness1: true, ota: true, ...args};
+        if (args.hueEffect || args.gradient) args.effect = false;
+        if (args.color) args.color = {modes: ["xy", "hs"], ...(isObject(args.color) ? args.color : {})};
+        const result = modernExtend.light(args);
+        result.toZigbee.push(philipsTz.hue_power_on_behavior, philipsTz.hue_power_on_error);
+        if (args.hueEffect || args.gradient) {
+            result.toZigbee.push(philipsTz.effect);
+            const effects = ["blink", "breathe", "okay", "channel_change", "candle"];
+            if (args.color) effects.push("fireplace", "colorloop");
+            if (args.gradient) {
+                result.toZigbee.push(philipsTz.gradient_scene, philipsTz.gradient({reverse: true}));
+                result.fromZigbee.push(philipsFz.gradient);
+                effects.push("sunrise");
+                if (args.gradient !== true) {
+                    effects.push(...args.gradient.extraEffects);
                 }
-            });
+                result.exposes.push(
+                    // gradient_scene is deprecated, use gradient instead
+                    ...exposeEndpoints(e.enum("gradient_scene", ea.SET, Object.keys(gradientScenes)), args.endpointNames),
+                    ...exposeEndpoints(
+                        e
+                            .list("gradient", ea.ALL, e.text("hex", ea.ALL).withDescription("Color in RGB HEX format (eg #663399)"))
+                            .withLengthMin(1)
+                            .withLengthMax(9)
+                            .withDescription("List of RGB HEX colors"),
+                        args.endpointNames,
+                    ),
+                );
+                result.configure.push(async (device, coordinatorEndpoint, definition) => {
+                    for (const ep of device.endpoints.filter((ep) => ep.supportsInputCluster("manuSpecificPhilips2"))) {
+                        await ep.bind("manuSpecificPhilips2", coordinatorEndpoint);
+                    }
+                });
+            }
+            effects.push("finish_effect", "stop_effect", "stop_hue_effect");
+            result.exposes.push(...exposeEndpoints(e.enum("effect", ea.SET, effects), args.endpointNames));
         }
-        effects.push("finish_effect", "stop_effect", "stop_hue_effect");
-        result.exposes.push(...exposeEndpoints(e.enum("effect", ea.SET, effects), args.endpointNames));
-    }
-    return result;
-}
 
-export function philipsOnOff(args?: modernExtend.OnOffArgs) {
-    args = {powerOnBehavior: false, ota: true, ...args};
-    const result = modernExtend.onOff(args);
-    result.toZigbee.push(philipsTz.hue_power_on_behavior, philipsTz.hue_power_on_error);
-    return result;
-}
+        const customCluster = m.deviceAddCustomCluster("manuSpecificPhilips3", {
+            ID: 0xfc01,
+            manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V,
+            attributes: {},
+            commands: {
+                command1: {
+                    ID: 1,
+                    parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}],
+                },
+                command2: {
+                    ID: 2,
+                    parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}],
+                },
+                command3: {
+                    ID: 3,
+                    parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}],
+                },
+                command4: {
+                    ID: 4,
+                    parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}],
+                },
+                command7: {
+                    ID: 7,
+                    parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}],
+                },
+            },
+            commandsResponse: {},
+        });
+        result.onEvent = [...(result.onEvent ?? []), ...customCluster.onEvent];
+        result.configure = [...(result.configure ?? []), ...customCluster.configure];
 
-export function philipsTwilightOnOff() {
-    const fromZigbee = [fz.ignore_command_on, fz.ignore_command_off, fz.hue_twilight];
-    const exposes = [
-        e.action([
-            "dot_press",
-            "dot_hold",
-            "dot_press_release",
-            "dot_hold_release",
-            "hue_press",
-            "hue_hold",
-            "hue_press_release",
-            "hue_hold_release",
-        ]),
-    ];
-    const toZigbee: Tz.Converter[] = [];
-    const configure: Configure[] = [
-        async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "manuSpecificPhilips"]);
-        },
-    ];
-    const result: ModernExtend = {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
-    return result;
-}
+        return result;
+    },
+    onOff: (args?: modernExtend.OnOffArgs) => {
+        args = {powerOnBehavior: false, ota: true, ...args};
+        const result = modernExtend.onOff(args);
+        result.toZigbee.push(philipsTz.hue_power_on_behavior, philipsTz.hue_power_on_error);
+        return result;
+    },
+    twilightOnOff: () => {
+        const fromZigbee = [fz.ignore_command_on, fz.ignore_command_off, fz.hue_twilight];
+        const exposes = [
+            e.action([
+                "dot_press",
+                "dot_hold",
+                "dot_press_release",
+                "dot_hold_release",
+                "hue_press",
+                "hue_hold",
+                "hue_press_release",
+                "hue_hold_release",
+            ]),
+        ];
+        const toZigbee: Tz.Converter[] = [];
+        const configure: Configure[] = [
+            async (device, coordinatorEndpoint) => {
+                const endpoint = device.getEndpoint(1);
+                await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "manuSpecificPhilips"]);
+            },
+        ];
+        const result: ModernExtend = {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
+        return result;
+    },
+};
+export {philipsModernExtend as m};
 
-export const philipsTz = {
+const philipsTz = {
     gradient_scene: {
         key: ["gradient_scene"],
         convertSet: async (entity, key, value, meta) => {
@@ -371,7 +405,7 @@ export const hueEffects = {
     stop_hue_effect: "200000",
 };
 
-export const philipsFz = {
+const philipsFz = {
     philips_contact: {
         cluster: "genOnOff",
         type: ["attributeReport", "readResponse", "commandOff", "commandOn"],
