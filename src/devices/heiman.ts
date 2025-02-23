@@ -63,6 +63,7 @@ const tzlocal = {
                 const timer = setTimeout(() => {
                     // How to publish a state from here ?
                     logger.debug('Siren should be OFF ', NS);
+		    meta?.publish({siren_state: 'OFF'});
                 }, duration * 1000);
                 globalStore.putValue(entity, 'state_timer', timer);
             }
