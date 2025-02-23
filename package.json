@@ -5,21 +5,12 @@
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
     "packageManager": "pnpm@10.4.1",
-    "files": [
-        "dist"
-    ],
+    "files": ["dist"],
     "repository": {
         "type": "git",
         "url": "git+https://github.com/Koenkk/zigbee-herdsman-converters.git"
     },
-    "keywords": [
-        "aqara",
-        "tradfri",
-        "hue",
-        "wemo",
-        "zigbee",
-        "zigbee-shepherd"
-    ],
+    "keywords": ["aqara", "tradfri", "hue", "wemo", "zigbee", "zigbee-shepherd"],
     "scripts": {
         "check": "biome check",
         "test": "vitest run --config ./test/vitest.config.mts",
