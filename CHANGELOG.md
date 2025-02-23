@@ -1,5 +1,25 @@
 # Changelog
 
+## [23.0.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v22.2.0...v23.0.0) (2025-02-23)
+
+
+### ⚠ BREAKING CHANGES
+
+* **ignore:** Update breaking changes
+
+### Features
+
+* Added gas_meter to modernExtend ([#8863](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8863)) ([0a35289](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0a352899ca5653f9b63f0bd6814152b9f4d4bc6e))
+* Extend support for custom zigbee frames with `zcl_command` ([#8867](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8867)) ([8dc1719](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8dc1719896a1f12a532c2497f06d1059bfb1c06c))
+
+
+### Bug Fixes
+
+* Add `manuSpecificPhilips3` to every Philips light ([#8872](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8872)) ([bc2abbc](https://github.com/Koenkk/zigbee-herdsman-converters/commit/bc2abbcadaed3c1d01ce700b3b501419dfa7757c))
+* **ignore:** Update breaking changes ([a8bb45f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a8bb45f06c1ad986a93a9a0caf0e49bce2fd16e1))
+* Migrate from eslint/prettier to Biome ([#8859](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8859)) ([009890b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/009890b0d5cce8ff27ac1f2770ec31543e96b185))
+* Publish `dist` folder instead of root ([#8869](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8869)) ([f13e121](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f13e12191754514c331625ca8c279c920dab0948))
+
 ## [22.2.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v22.1.0...v22.2.0) (2025-02-22)
 
 
