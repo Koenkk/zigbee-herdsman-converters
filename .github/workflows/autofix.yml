@@ -1,13 +1,13 @@
-name: Auto format/lint
+name: Autofix
 
-on: [pull_request_target]
+on:
+  pull_request:
 
 permissions:
-  contents: write
-  pull-requests: write
+  contents: read
 
 jobs:
-  auto-format-lint:
+  autofix:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -21,8 +21,4 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Check --fix
         run: pnpm run check --fix
-        continue-on-error: true
-      - uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: "fix(ignore): auto format/lint"
-          commit_options: --no-verify
+      - uses: autofix-ci/action@551dded8c6cc8a1054039c8bc0b8b48c51dfc6ef
