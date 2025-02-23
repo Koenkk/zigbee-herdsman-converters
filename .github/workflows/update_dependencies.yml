@@ -22,7 +22,6 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm up --latest
-      - run: pnpm run check --fix
       - uses: peter-evans/create-pull-request@v7
         id: cpr
         env:
