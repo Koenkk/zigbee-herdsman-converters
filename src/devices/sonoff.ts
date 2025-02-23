@@ -1279,14 +1279,16 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.enumLookup({
                 name: "temperature_sensor_select",
+                label: "Temperature sensor",
                 lookup: {internal: 0, external: 1},
                 cluster: "customSonoffTrvzb",
                 attribute: "temperatureSensorSelect",
                 description:
-                    "Whether to use the value of the internal temperature sensor or an external temperature sensor for the local temperature.",
+                    "Whether to use the value of the internal temperature sensor or an external temperature sensor for the perceived local temperature. Using an external sensor does not require local temperature calibration.",
             }),
             m.numeric({
                 name: "external_temperature_input",
+                label: "External temperature",
                 cluster: "customSonoffTrvzb",
                 attribute: "externalTemperatureInput",
                 entityCategory: "config",
