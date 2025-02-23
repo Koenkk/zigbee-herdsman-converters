@@ -1,15 +1,21 @@
-import {Device} from 'zigbee-herdsman/dist/controller/model';
-import {Clusters} from 'zigbee-herdsman/dist/zspec/zcl/definition/cluster';
+import type {DeviceType} from "zigbee-herdsman/dist/controller/tstype";
 
-import tz from '../src/converters/toZigbee';
-import {findByDevice} from '../src/index';
-import {Definition, DefinitionMeta, Fz, Zh} from '../src/lib/types';
-import * as utils from '../src/lib/utils';
+import type {Device} from "zigbee-herdsman/dist/controller/model";
+import {Clusters} from "zigbee-herdsman/dist/zspec/zcl/definition/cluster";
+
+import tz from "../src/converters/toZigbee";
+import {findByDevice} from "../src/index";
+import type {Definition, DefinitionMeta, Fz, Zh} from "../src/lib/types";
+import * as utils from "../src/lib/utils";
 
 interface MockEndpointArgs {
     ID?: number;
+    profileID?: number;
+    deviceID?: number;
     inputClusters?: string[];
     outputClusters?: string[];
+    inputClusterIDs?: number[];
+    outputClusterIDs?: number[];
     attributes?: {[s: string]: {[s: string]: unknown}};
 }
 
@@ -17,14 +23,22 @@ export function reportingItem(attribute: string, min: number, max: number, chang
     return {attribute: attribute, minimumReportInterval: min, maximumReportInterval: max, reportableChange: change};
 }
 
-export function mockDevice(args: {modelID: string; manufacturerID?: number; manufacturerName?: string; endpoints: MockEndpointArgs[]}): Zh.Device {
-    const ieeeAddr = '0x12345678';
+export function mockDevice(
+    args: {modelID: string; manufacturerID?: number; manufacturerName?: string; endpoints: MockEndpointArgs[]},
+    type: DeviceType = "Router",
+    extraArgs: Record<string, unknown> = {},
+): Zh.Device {
+    const ieeeAddr = "0x12345678";
     const device: Zh.Device = {
         // @ts-expect-error ignore
-        constructor: {name: 'Device'},
+        constructor: {name: "Device"},
         ieeeAddr,
         save: vi.fn(),
+        customClusters: {},
+        addCustomCluster: vi.fn(),
+        type,
         ...args,
+        ...extraArgs,
     };
 
     const endpoints = args.endpoints.map((e) => mockEndpoint(e, device));
@@ -39,19 +53,21 @@ export function mockDevice(args: {modelID: string; manufacturerID?: number; manu
 }
 
 function getCluster(ID: string | number) {
-    const cluster = Object.entries(Clusters).find((c) => (typeof ID === 'number' ? c[1].ID === ID : c[0] === ID));
+    const cluster = Object.entries(Clusters).find((c) => (typeof ID === "number" ? c[1].ID === ID : c[0] === ID));
     if (!cluster) throw new Error(`Cluster '${ID}' does not exist`);
     return {name: cluster[0], ID: cluster[1].ID};
 }
 
 function mockEndpoint(args: MockEndpointArgs, device: Zh.Device | undefined): Zh.Endpoint {
     const attributes = args.attributes ?? {};
-    const inputClusters = (args.inputClusters ?? []).map((c) => getCluster(c).ID);
-    const outputClusters = (args.outputClusters ?? []).map((c) => getCluster(c).ID);
+    const inputClusters = args.inputClusterIDs ?? (args.inputClusters ?? []).map((c) => getCluster(c).ID);
+    const outputClusters = args.outputClusterIDs ?? (args.outputClusters ?? []).map((c) => getCluster(c).ID);
     return {
-        ID: args?.ID ?? 1,
+        ID: args.ID ?? 1,
+        profileID: args.profileID ?? 1,
+        deviceID: args.deviceID ?? 1,
         // @ts-expect-error ignore
-        constructor: {name: 'Endpoint'},
+        constructor: {name: "Endpoint"},
         bind: vi.fn(),
         configureReporting: vi.fn(),
         read: vi.fn(),
@@ -63,7 +79,9 @@ function mockEndpoint(args: MockEndpointArgs, device: Zh.Device | undefined): Zh
         // @ts-expect-error ignore
         getOutputClusters: () => outputClusters.map((c) => getCluster(c)),
         supportsInputCluster: (key) => !!inputClusters.find((ID) => ID === getCluster(key).ID),
-        saveClusterAttributeKeyValue: vi.fn().mockImplementation((cluster, values) => (attributes[cluster] = {...attributes[cluster], ...values})),
+        saveClusterAttributeKeyValue: vi.fn().mockImplementation((cluster, values) => {
+            attributes[cluster] = {...attributes[cluster], ...values};
+        }),
         save: vi.fn(),
         getClusterAttributeValue: vi.fn().mockImplementation((cluster, attribute) => attributes?.[cluster]?.[attribute]),
     };
@@ -104,7 +122,7 @@ export async function assertDefintion(args: AssertDefinitionArgs) {
 
     const logIfNotEqual = (expected: string[], actual: string[]) => {
         if (JSON.stringify(expected) !== JSON.stringify(actual)) {
-            console.log(`[${expected?.map((c) => `'${c}'`).join(', ')}]`);
+            console.log(`[${expected?.map((c) => `'${c}'`).join(", ")}]`);
         }
     };
 
@@ -118,7 +136,7 @@ export async function assertDefintion(args: AssertDefinitionArgs) {
 
     utils.assertArray(definition.exposes);
     const expectedExposes = definition.exposes
-        ?.map((e) => e.name ?? `${e.type}${e.endpoint ? '_' + e.endpoint : ''}(${e.features?.map((f) => f.name).join(',')})`)
+        ?.map((e) => e.name ?? `${e.type}${e.endpoint ? `_${e.endpoint}` : ""}(${e.features?.map((f) => f.name).join(",")})`)
         .sort();
     logIfNotEqual(expectedExposes, args.exposes);
     expect(expectedExposes).toEqual(args.exposes);

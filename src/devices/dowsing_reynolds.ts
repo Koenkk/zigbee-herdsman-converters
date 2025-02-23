@@ -1,15 +1,12 @@
-import {light} from '../lib/modernExtend';
-import {DefinitionWithExtend} from '../lib/types';
+import * as m from "../lib/modernExtend";
+import type {DefinitionWithExtend} from "../lib/types";
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
-        zigbeeModel: ['DR3000'],
-        model: 'DR3000',
-        vendor: 'Dowsing & Reynolds',
-        description: 'Antique brass double dimmer switch',
-        extend: [light()],
+        zigbeeModel: ["DR3000"],
+        model: "DR3000",
+        vendor: "Dowsing & Reynolds",
+        description: "Antique brass double dimmer switch",
+        extend: [m.light()],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

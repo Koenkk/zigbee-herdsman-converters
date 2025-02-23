@@ -1,26 +1,26 @@
-import fz from '../converters/fromZigbee';
-import tz from '../converters/toZigbee';
-import * as exposes from '../lib/exposes';
-import {logger} from '../lib/logger';
-import * as reporting from '../lib/reporting';
-import {DefinitionWithExtend} from '../lib/types';
+import fz from "../converters/fromZigbee";
+import tz from "../converters/toZigbee";
+import * as exposes from "../lib/exposes";
+import {logger} from "../lib/logger";
+import * as reporting from "../lib/reporting";
+import type {DefinitionWithExtend} from "../lib/types";
 
-const NS = 'zhc:profalux';
+const NS = "zhc:profalux";
 const e = exposes.presets;
 const ea = exposes.access;
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
-        zigbeeModel: ['MAI-ZTS'],
+        zigbeeModel: ["MAI-ZTS"],
         fingerprint: [
             {
                 manufacturerID: 4368,
                 endpoints: [{ID: 1, profileID: 260, deviceID: 513, inputClusters: [0, 3, 21], outputClusters: [3, 4, 5, 6, 8, 256, 64544, 64545]}],
             },
         ],
-        model: 'NB102',
-        vendor: 'Profalux',
-        description: 'Cover remote',
+        model: "NB102",
+        vendor: "Profalux",
+        description: "Cover remote",
         fromZigbee: [],
         toZigbee: [],
         exposes: [],
@@ -33,18 +33,18 @@ const definitions: DefinitionWithExtend[] = [
         // and E have not been seen in the while. I suspect A is the earlier
         // model covered below, NSAV061.
         zigbeeModel: [
-            'MOT-C1Z06C\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000',
-            'MOT-C1Z10C\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000',
-            'MOT-C1Z20C\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000',
-            'MOT-C1Z30C\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000',
-            'MOT-C1Z06F\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000',
-            'MOT-C1Z10F\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000',
-            'MOT-C1Z20F\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000',
-            'MOT-C1Z30F\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000',
+            "MOT-C1Z06C\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
+            "MOT-C1Z10C\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
+            "MOT-C1Z20C\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
+            "MOT-C1Z30C\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
+            "MOT-C1Z06F\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
+            "MOT-C1Z10F\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
+            "MOT-C1Z20F\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
+            "MOT-C1Z30F\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
         ],
-        model: 'MOT-C1ZxxC/F',
-        vendor: 'Profalux',
-        description: 'Cover',
+        model: "MOT-C1ZxxC/F",
+        vendor: "Profalux",
+        description: "Cover",
         fromZigbee: [fz.command_cover_close, fz.command_cover_open, fz.cover_position_tilt],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
         options: [],
@@ -55,22 +55,21 @@ const definitions: DefinitionWithExtend[] = [
             //  1: cover using tilt (aka BSO) : 2xF Stop + Up
             //  2: soft cover (aka store)     : 2xF Stop + Down
 
-            if ((device == null && options == null) || endpoint.getClusterAttributeValue('manuSpecificProfalux1', 'motorCoverType') == 1) {
-                return [e.cover_position_tilt(), e.linkquality()];
-            } else {
-                return [e.cover_position(), e.linkquality()];
+            if ((device == null && options == null) || endpoint.getClusterAttributeValue("manuSpecificProfalux1", "motorCoverType") === 1) {
+                return [e.cover_position_tilt()];
             }
+            return [e.cover_position()];
         },
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(2);
-            await endpoint.read('manuSpecificProfalux1', ['motorCoverType']).catch((e) => {
+            await endpoint.read("manuSpecificProfalux1", ["motorCoverType"]).catch((e) => {
                 logger.warning(`Failed to read zigbee attributes: ${e}`, NS);
             });
-            const coverType = endpoint.getClusterAttributeValue('manuSpecificProfalux1', 'motorCoverType');
+            const coverType = endpoint.getClusterAttributeValue("manuSpecificProfalux1", "motorCoverType");
             // logger.debug(`Profalux '${device.ieeeAddr}' setup as cover type '${coverType)}'`, NS);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['closuresWindowCovering']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["closuresWindowCovering"]);
             await reporting.currentPositionLiftPercentage(endpoint);
-            if (coverType == 1) {
+            if (coverType === 1) {
                 await reporting.currentPositionTiltPercentage(endpoint);
             }
         },
@@ -91,15 +90,15 @@ const definitions: DefinitionWithExtend[] = [
                 ],
             },
         ],
-        model: 'NSAV061',
-        vendor: 'Profalux',
-        description: 'Cover',
+        model: "NSAV061",
+        vendor: "Profalux",
+        description: "Cover",
         fromZigbee: [fz.cover_position_via_brightness, fz.cover_state_via_onoff],
         toZigbee: [tz.cover_via_brightness],
-        exposes: [e.cover_position().setAccess('state', ea.ALL)],
+        exposes: [e.cover_position().setAccess("state", ea.ALL)],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genLevelCtrl']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genLevelCtrl"]);
             await reporting.brightness(endpoint);
         },
     },
@@ -107,10 +106,10 @@ const definitions: DefinitionWithExtend[] = [
         // Newer remotes. These expose a bunch of things but they are bound to
         // the cover and don't seem to communicate with the coordinator, so
         // nothing is likely to be doable in Z2M.
-        zigbeeModel: ['MAI-ZTP20F', 'MAI-ZTP20C'],
-        model: 'MAI-ZTP20',
-        vendor: 'Profalux',
-        description: 'Cover remote',
+        zigbeeModel: ["MAI-ZTP20F", "MAI-ZTP20C"],
+        model: "MAI-ZTP20",
+        vendor: "Profalux",
+        description: "Cover remote",
         fromZigbee: [],
         toZigbee: [],
         exposes: [],
@@ -121,9 +120,9 @@ const definitions: DefinitionWithExtend[] = [
         // nothing is likely to be doable in Z2M.
         fingerprint: [
             {
-                type: 'EndDevice',
-                manufacturerName: 'Profalux',
-                modelID: 'MAI-ZTS',
+                type: "EndDevice",
+                manufacturerName: "Profalux",
+                modelID: "MAI-ZTS",
                 manufacturerID: 4368,
                 endpoints: [
                     {
@@ -143,14 +142,11 @@ const definitions: DefinitionWithExtend[] = [
                 ],
             },
         ],
-        model: 'MAI-ZTM20C',
-        vendor: 'Profalux',
-        description: 'Cover remote',
+        model: "MAI-ZTM20C",
+        vendor: "Profalux",
+        description: "Cover remote",
         fromZigbee: [],
         toZigbee: [],
         exposes: [],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

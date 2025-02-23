@@ -1,24 +1,24 @@
-import fz from '../converters/fromZigbee';
-import tz from '../converters/toZigbee';
-import * as exposes from '../lib/exposes';
-import * as reporting from '../lib/reporting';
-import {DefinitionWithExtend} from '../lib/types';
+import fz from "../converters/fromZigbee";
+import tz from "../converters/toZigbee";
+import * as exposes from "../lib/exposes";
+import * as reporting from "../lib/reporting";
+import type {DefinitionWithExtend} from "../lib/types";
 
 const e = exposes.presets;
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
-        zigbeeModel: ['PP-WHT-US'],
-        model: 'PP-WHT-US',
-        vendor: 'Securifi',
-        description: 'Peanut Smart Plug',
+        zigbeeModel: ["PP-WHT-US"],
+        model: "PP-WHT-US",
+        vendor: "Securifi",
+        description: "Peanut Smart Plug",
         fromZigbee: [fz.on_off, fz.electrical_measurement],
         toZigbee: [tz.on_off],
         ota: true,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
-            endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "haElectricalMeasurement"]);
+            endpoint.saveClusterAttributeKeyValue("haElectricalMeasurement", {
                 acVoltageMultiplier: 180,
                 acVoltageDivisor: 39321,
                 acCurrentMultiplier: 72,
@@ -34,15 +34,12 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [e.switch(), e.power(), e.current(), e.voltage()],
     },
     {
-        zigbeeModel: ['ZB2-BU01'],
-        model: 'B01M7Y8BP9',
-        vendor: 'Securifi',
-        description: 'Almond Click multi-function button',
+        zigbeeModel: ["ZB2-BU01"],
+        model: "B01M7Y8BP9",
+        vendor: "Securifi",
+        description: "Almond Click multi-function button",
         fromZigbee: [fz.almond_click],
-        exposes: [e.action(['single', 'double', 'long'])],
+        exposes: [e.action(["single", "double", "long"])],
         toZigbee: [],
     },
 ];
-
-export default definitions;
-module.exports = definitions;
