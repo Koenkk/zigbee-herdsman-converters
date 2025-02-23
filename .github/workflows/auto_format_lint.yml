@@ -1,6 +1,6 @@
 name: Auto format/lint
 
-on: [pull_request]
+on: [pull_request_target]
 
 permissions:
   contents: write
@@ -11,9 +11,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          ref: ${{ github.head_ref }}
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
@@ -29,4 +26,3 @@ jobs:
         with:
           commit_message: "fix(ignore): auto format/lint"
           commit_options: --no-verify
-          branch: ${{ github.head_ref }}
