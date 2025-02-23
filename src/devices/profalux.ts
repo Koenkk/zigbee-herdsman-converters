@@ -13,9 +13,11 @@ const ea = exposes.access;
 
 const DAY = 86400000;
 
+// Poll Battery voltage at most once a day
+// as the Profalux remotes do not report on battery
 async function onEventBatteryPoll(type: OnEventType, data: OnEventData, device: Zh.Device, options: KeyValue) {
     if (type === "message" && Date.now() > globalStore.getValue(device, "battery_nextpoll", 0)) {
-        const endpoint = device.getEndpoint(2);
+        const endpoint = device.endpoints.find((e) => e.supportsInputCluster("genPowerCfg"));
         logger.debug(`${device.ieeeAddr}: polling battery`, NS);
         globalStore.putValue(device, "battery_nextpoll", Date.now() + DAY);
         await endpoint.read("genPowerCfg", ["batteryVoltage"]);
@@ -123,13 +125,11 @@ export const definitions: DefinitionWithExtend[] = [
         model: "MAI-ZTP20",
         vendor: "Profalux",
         description: "Cover remote",
-        fromZigbee: [],
-        toZigbee: [],
-        exposes: [],
         extend: [
             m.battery({voltage: true, voltageToPercentage: {min: 2200, max: 3100}, percentageReporting: false}),
             m.forcePowerSource({powerSource: "Battery"}),
         ],
+        // Poll battery voltage as reporting doesn't work
         onEvent: onEventBatteryPoll,
     },
     {
@@ -163,13 +163,11 @@ export const definitions: DefinitionWithExtend[] = [
         model: "MAI-ZTM20C",
         vendor: "Profalux",
         description: "Cover remote",
-        fromZigbee: [],
-        toZigbee: [],
-        exposes: [],
         extend: [
             m.battery({voltage: true, voltageToPercentage: {min: 2200, max: 3100}, percentageReporting: false}),
             m.forcePowerSource({powerSource: "Battery"}),
         ],
+        // Poll battery voltage as reporting doesn't work
         onEvent: onEventBatteryPoll,
     },
 ];
