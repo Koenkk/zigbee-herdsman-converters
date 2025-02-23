@@ -604,29 +604,31 @@ export function customTimeResponse(start: "1970_UTC" | "2000_LOCAL"): ModernExte
     // 1970_UTC: number of seconds since the Unix Epoch (1st Jan 1970 00:00:00 UTC)
     // 2000_LOCAL: seconds since 1 January in the local time zone.
     // Disable the responses of zigbee-herdsman and respond here instead.
-    const onEvent: OnEvent = async (type, data, device, options, state: KeyValue) => {
-        if (!device.customReadResponse) {
-            device.customReadResponse = (frame, endpoint) => {
-                if (frame.isCluster("genTime")) {
-                    const payload: KeyValue = {};
-                    if (start === "1970_UTC") {
-                        const time = Math.round(new Date().getTime() / 1000);
-                        payload.time = time;
-                        payload.localTime = time - new Date().getTimezoneOffset() * 60;
-                    } else if (start === "2000_LOCAL") {
-                        const oneJanuary2000 = new Date("January 01, 2000 00:00:00 UTC+00:00").getTime();
-                        const secondsUTC = Math.round((new Date().getTime() - oneJanuary2000) / 1000);
-                        payload.time = secondsUTC - new Date().getTimezoneOffset() * 60;
+    const onEvent: OnEvent[] = [
+        async (type, data, device, options, state: KeyValue) => {
+            if (!device.customReadResponse) {
+                device.customReadResponse = (frame, endpoint) => {
+                    if (frame.isCluster("genTime")) {
+                        const payload: KeyValue = {};
+                        if (start === "1970_UTC") {
+                            const time = Math.round(new Date().getTime() / 1000);
+                            payload.time = time;
+                            payload.localTime = time - new Date().getTimezoneOffset() * 60;
+                        } else if (start === "2000_LOCAL") {
+                            const oneJanuary2000 = new Date("January 01, 2000 00:00:00 UTC+00:00").getTime();
+                            const secondsUTC = Math.round((new Date().getTime() - oneJanuary2000) / 1000);
+                            payload.time = secondsUTC - new Date().getTimezoneOffset() * 60;
+                        }
+                        endpoint.readResponse("genTime", frame.header.transactionSequenceNumber, payload).catch((e) => {
+                            logger.warning(`Custom time response failed for '${device.ieeeAddr}': ${e}`, "zhc:customtimeresponse");
+                        });
+                        return true;
                     }
-                    endpoint.readResponse("genTime", frame.header.transactionSequenceNumber, payload).catch((e) => {
-                        logger.warning(`Custom time response failed for '${device.ieeeAddr}': ${e}`, "zhc:customtimeresponse");
-                    });
-                    return true;
-                }
-                return false;
-            };
-        }
-    };
+                    return false;
+                };
+            }
+        },
+    ];
 
     return {onEvent, isModernExtend: true};
 }
@@ -2118,15 +2120,17 @@ export interface EnumLookupArgs {
     endpointName?: string;
     reporting?: ReportingConfigWithoutAttribute;
     entityCategory?: "config" | "diagnostic";
+    label?: string;
 }
 export function enumLookup(args: EnumLookupArgs): ModernExtend {
-    const {name, lookup, cluster, attribute, description, zigbeeCommandOptions, endpointName, reporting, entityCategory} = args;
+    const {name, lookup, cluster, attribute, description, zigbeeCommandOptions, endpointName, reporting, entityCategory, label} = args;
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
     const access = ea[args.access ?? "ALL"];
 
     let expose = e.enum(name, access, Object.keys(lookup)).withDescription(description);
     if (endpointName) expose = expose.withEndpoint(endpointName);
     if (entityCategory) expose = expose.withCategory(entityCategory);
+    if (label !== undefined) expose = expose.withLabel(label);
 
     const fromZigbee: Fz.Converter[] = [
         {
@@ -2527,22 +2531,24 @@ export function quirkCheckinInterval(timeout: number | keyof typeof TIME_LOOKUP)
 }
 
 export function reconfigureReportingsOnDeviceAnnounce(): ModernExtend {
-    const onEvent: OnEvent = async (type, data, device, options, state: KeyValue) => {
-        if (type === "deviceAnnounce") {
-            for (const endpoint of device.endpoints) {
-                for (const c of endpoint.configuredReportings) {
-                    await endpoint.configureReporting(c.cluster.name, [
-                        {
-                            attribute: c.attribute.name,
-                            minimumReportInterval: c.minimumReportInterval,
-                            maximumReportInterval: c.maximumReportInterval,
-                            reportableChange: c.reportableChange,
-                        },
-                    ]);
+    const onEvent: OnEvent[] = [
+        async (type, data, device, options, state: KeyValue) => {
+            if (type === "deviceAnnounce") {
+                for (const endpoint of device.endpoints) {
+                    for (const c of endpoint.configuredReportings) {
+                        await endpoint.configureReporting(c.cluster.name, [
+                            {
+                                attribute: c.attribute.name,
+                                minimumReportInterval: c.minimumReportInterval,
+                                maximumReportInterval: c.maximumReportInterval,
+                                reportableChange: c.reportableChange,
+                            },
+                        ]);
+                    }
                 }
             }
-        }
-    };
+        },
+    ];
 
     return {onEvent, isModernExtend: true};
 }
@@ -2566,7 +2572,7 @@ export function deviceAddCustomCluster(clusterName: string, clusterDefinition: C
         }
     };
 
-    const onEvent: OnEvent = async (type, data, device, options, state: KeyValue) => addCluster(device);
+    const onEvent: OnEvent[] = [async (type, data, device, options, state: KeyValue) => addCluster(device)];
     const configure: Configure[] = [async (device) => addCluster(device)];
 
     return {onEvent, configure, isModernExtend: true};

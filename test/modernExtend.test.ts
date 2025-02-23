@@ -2,7 +2,7 @@ import fz from "../src/converters/fromZigbee";
 import {repInterval} from "../src/lib/constants";
 import {fromZigbee as lumiFz} from "../src/lib/lumi";
 import {setupAttributes} from "../src/lib/modernExtend";
-import {philipsFz} from "../src/lib/philips";
+import * as philips from "../src/lib/philips";
 import {assertDefintion, mockDevice, reportingItem} from "./utils";
 
 describe("ModernExtend", () => {
@@ -223,7 +223,7 @@ describe("ModernExtend", () => {
                 fz.level_config,
                 fz.color_colortemp,
                 fz.power_on_behavior,
-                philipsFz.gradient,
+                philips.fz.gradient,
             ],
             toZigbee: [
                 "state",

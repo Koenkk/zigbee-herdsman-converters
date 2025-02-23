@@ -34,6 +34,8 @@ export function mockDevice(
         constructor: {name: "Device"},
         ieeeAddr,
         save: vi.fn(),
+        customClusters: {},
+        addCustomCluster: vi.fn(),
         type,
         ...args,
         ...extraArgs,

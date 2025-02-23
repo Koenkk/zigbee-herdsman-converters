@@ -125,25 +125,27 @@ function reinterview(): ModernExtend {
             coordEnd = coordinatorEndpoint;
         },
     ];
-    const onEvent: OnEvent = async (type, data, device, settings, state, meta) => {
-        if (type === "deviceAnnounce") {
-            // reinterview
-            try {
-                await device.interview(true);
-                logger.info(`Succesfully interviewed '${device.ieeeAddr}'`, NS);
-                // bind extended endpoint to coordinator
-                for (const endpoint of device.endpoints) {
-                    if (endpoint.supportsOutputCluster("genOnOff")) {
-                        await endpoint.bind("genOnOff", coordEnd);
+    const onEvent: OnEvent[] = [
+        async (type, data, device, settings, state, meta) => {
+            if (type === "deviceAnnounce") {
+                // reinterview
+                try {
+                    await device.interview(true);
+                    logger.info(`Succesfully interviewed '${device.ieeeAddr}'`, NS);
+                    // bind extended endpoint to coordinator
+                    for (const endpoint of device.endpoints) {
+                        if (endpoint.supportsOutputCluster("genOnOff")) {
+                            await endpoint.bind("genOnOff", coordEnd);
+                        }
                     }
+                    // send updates to clients
+                    if (meta) meta.deviceExposesChanged();
+                } catch (error) {
+                    logger.error(`Reinterview failed for '${device.ieeeAddr} with error '${error}'`, NS);
                 }
-                // send updates to clients
-                if (meta) meta.deviceExposesChanged();
-            } catch (error) {
-                logger.error(`Reinterview failed for '${device.ieeeAddr} with error '${error}'`, NS);
             }
-        }
-    };
+        },
+    ];
 
     return {onEvent, configure, isModernExtend: true};
 }

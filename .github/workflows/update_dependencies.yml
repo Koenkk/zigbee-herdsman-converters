@@ -23,6 +23,7 @@ jobs:
           cache: pnpm
       - run: pnpm up --latest
       - uses: peter-evans/create-pull-request@v7
+        id: cpr
         env:
           HUSKY: "0"
         with:
@@ -30,3 +31,10 @@ jobs:
           branch: "deps/all"
           title: "fix(ignore): update dependencies"
           token: ${{ secrets.GH_TOKEN }}
+      - uses: peter-evans/create-or-update-comment@v3
+        if: ${{ steps.cpr.outputs.pull-request-number }}
+        with:
+          issue-number: ${{ steps.cpr.outputs.pull-request-number }}
+          body: |
+            CC: @Koenkk
+

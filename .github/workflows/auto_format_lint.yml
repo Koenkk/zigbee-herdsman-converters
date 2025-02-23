@@ -1,6 +1,6 @@
 name: Auto format/lint
 
-on: [pull_request]
+on: [pull_request_target]
 
 permissions:
   contents: write
@@ -25,3 +25,4 @@ jobs:
       - uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "fix(ignore): auto format/lint"
+          commit_options: --no-verify
