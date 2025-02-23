@@ -1,11 +1,11 @@
-import fz from '../converters/fromZigbee';
-import tz from '../converters/toZigbee';
-import * as exposes from '../lib/exposes';
-import {logger} from '../lib/logger';
-import * as m from '../lib/modernExtend';
-import * as reporting from '../lib/reporting';
-import * as globalStore from '../lib/store';
-import {DefinitionWithExtend, KeyValue, OnEventData, OnEventType, Zh} from '../lib/types';
+import fz from "../converters/fromZigbee";
+import tz from "../converters/toZigbee";
+import * as exposes from "../lib/exposes";
+import {logger} from "../lib/logger";
+import * as m from "../lib/modernExtend";
+import * as reporting from "../lib/reporting";
+import * as globalStore from "../lib/store";
+import type {DefinitionWithExtend, KeyValue, OnEventData, OnEventType, Zh} from "../lib/types";
 
 const NS = "zhc:profalux";
 const e = exposes.presets;
@@ -14,11 +14,11 @@ const ea = exposes.access;
 const DAY = 86400000;
 
 async function onEventBatteryPoll(type: OnEventType, data: OnEventData, device: Zh.Device, options: KeyValue) {
-    if (type === 'message' && Date.now() > globalStore.getValue(device, 'battery_nextpoll', 0)) {
+    if (type === "message" && Date.now() > globalStore.getValue(device, "battery_nextpoll", 0)) {
         const endpoint = device.getEndpoint(2);
         logger.debug(`${device.ieeeAddr}: polling battery`, NS);
-        globalStore.putValue(device, 'battery_nextpoll', Date.now() + DAY);
-        await endpoint.read('genPowerCfg', ['batteryVoltage']);
+        globalStore.putValue(device, "battery_nextpoll", Date.now() + DAY);
+        await endpoint.read("genPowerCfg", ["batteryVoltage"]);
     }
 }
 
@@ -128,7 +128,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [],
         extend: [
             m.battery({voltage: true, voltageToPercentage: {min: 2200, max: 3100}, percentageReporting: false}),
-            m.forcePowerSource({powerSource: 'Battery'}),
+            m.forcePowerSource({powerSource: "Battery"}),
         ],
         onEvent: onEventBatteryPoll,
     },
@@ -168,7 +168,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [],
         extend: [
             m.battery({voltage: true, voltageToPercentage: {min: 2200, max: 3100}, percentageReporting: false}),
-            m.forcePowerSource({powerSource: 'Battery'}),
+            m.forcePowerSource({powerSource: "Battery"}),
         ],
         onEvent: onEventBatteryPoll,
     },
