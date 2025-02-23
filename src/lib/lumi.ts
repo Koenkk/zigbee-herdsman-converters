@@ -3691,7 +3691,7 @@ export const toZigbee = {
     lumi_power: {
         key: ["power"],
         convertGet: async (entity, key, meta) => {
-            const endpoint = meta.device.endpoints.find((e) => e.supportsInputCluster("genAnalogInput"));
+            const endpoint = meta.device.endpoints.find((e) => e.supportsInputCluster("genAnalogInput")) ?? entity;
             await endpoint.read("genAnalogInput", ["presentValue"]);
         },
     } satisfies Tz.Converter,
