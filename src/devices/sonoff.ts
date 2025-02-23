@@ -1235,6 +1235,14 @@ export const definitions: DefinitionWithExtend[] = [
                     valveMotorRunningVoltage: {ID: 0x6007, type: Zcl.DataType.UINT16},
                     valveOpeningDegree: {ID: 0x600b, type: Zcl.DataType.UINT8},
                     valveClosingDegree: {ID: 0x600c, type: Zcl.DataType.UINT8},
+                    externalTemperatureInput: {
+                        ID: 0x600d,
+                        type: Zcl.DataType.INT16,
+                    },
+                    temperatureSensorSelect: {
+                        ID: 0x600e,
+                        type: Zcl.DataType.UINT8,
+                    },
                 },
                 commands: {},
                 commandsResponse: {},
@@ -1266,6 +1274,29 @@ export const definitions: DefinitionWithExtend[] = [
                 valueMin: 4.0,
                 valueMax: 35.0,
                 valueStep: 0.5,
+                unit: "°C",
+                scale: 100,
+            }),
+            m.enumLookup({
+                name: "temperature_sensor_select",
+                label: "Temperature sensor",
+                lookup: {internal: 0, external: 1},
+                cluster: "customSonoffTrvzb",
+                attribute: "temperatureSensorSelect",
+                description:
+                    "Whether to use the value of the internal temperature sensor or an external temperature sensor for the perceived local temperature. Using an external sensor does not require local temperature calibration.",
+            }),
+            m.numeric({
+                name: "external_temperature_input",
+                label: "External temperature",
+                cluster: "customSonoffTrvzb",
+                attribute: "externalTemperatureInput",
+                entityCategory: "config",
+                description:
+                    "The value of an external temperature sensor. Note: synchronisation of this value with the external temperature sensor needs to happen outside of Zigbee2MQTT.",
+                valueMin: 0.0,
+                valueMax: 99.9,
+                valueStep: 0.1,
                 unit: "°C",
                 scale: 100,
             }),
@@ -1355,7 +1386,7 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
             await reporting.thermostatSystemMode(endpoint);
             await endpoint.read("hvacThermostat", ["localTemperatureCalibration"]);
-            await endpoint.read(0xfc11, [0x0000, 0x6000, 0x6002, 0x6003, 0x6004, 0x6005, 0x6006, 0x6007]);
+            await endpoint.read(0xfc11, [0x0000, 0x6000, 0x6002, 0x6003, 0x6004, 0x6005, 0x6006, 0x6007, 0x600e]);
         },
     },
     {

@@ -604,29 +604,31 @@ export function customTimeResponse(start: "1970_UTC" | "2000_LOCAL"): ModernExte
     // 1970_UTC: number of seconds since the Unix Epoch (1st Jan 1970 00:00:00 UTC)
     // 2000_LOCAL: seconds since 1 January in the local time zone.
     // Disable the responses of zigbee-herdsman and respond here instead.
-    const onEvent: OnEvent = async (type, data, device, options, state: KeyValue) => {
-        if (!device.customReadResponse) {
-            device.customReadResponse = (frame, endpoint) => {
-                if (frame.isCluster("genTime")) {
-                    const payload: KeyValue = {};
-                    if (start === "1970_UTC") {
-                        const time = Math.round(new Date().getTime() / 1000);
-                        payload.time = time;
-                        payload.localTime = time - new Date().getTimezoneOffset() * 60;
-                    } else if (start === "2000_LOCAL") {
-                        const oneJanuary2000 = new Date("January 01, 2000 00:00:00 UTC+00:00").getTime();
-                        const secondsUTC = Math.round((new Date().getTime() - oneJanuary2000) / 1000);
-                        payload.time = secondsUTC - new Date().getTimezoneOffset() * 60;
+    const onEvent: OnEvent[] = [
+        async (type, data, device, options, state: KeyValue) => {
+            if (!device.customReadResponse) {
+                device.customReadResponse = (frame, endpoint) => {
+                    if (frame.isCluster("genTime")) {
+                        const payload: KeyValue = {};
+                        if (start === "1970_UTC") {
+                            const time = Math.round(new Date().getTime() / 1000);
+                            payload.time = time;
+                            payload.localTime = time - new Date().getTimezoneOffset() * 60;
+                        } else if (start === "2000_LOCAL") {
+                            const oneJanuary2000 = new Date("January 01, 2000 00:00:00 UTC+00:00").getTime();
+                            const secondsUTC = Math.round((new Date().getTime() - oneJanuary2000) / 1000);
+                            payload.time = secondsUTC - new Date().getTimezoneOffset() * 60;
+                        }
+                        endpoint.readResponse("genTime", frame.header.transactionSequenceNumber, payload).catch((e) => {
+                            logger.warning(`Custom time response failed for '${device.ieeeAddr}': ${e}`, "zhc:customtimeresponse");
+                        });
+                        return true;
                     }
-                    endpoint.readResponse("genTime", frame.header.transactionSequenceNumber, payload).catch((e) => {
-                        logger.warning(`Custom time response failed for '${device.ieeeAddr}': ${e}`, "zhc:customtimeresponse");
-                    });
-                    return true;
-                }
-                return false;
-            };
-        }
-    };
+                    return false;
+                };
+            }
+        },
+    ];
 
     return {onEvent, isModernExtend: true};
 }
@@ -1651,35 +1653,30 @@ export function iasWarning(args?: IasWarningArgs): ModernExtend {
 
 // #region Smart Energy
 
-// Uses Electrical Measurement and/or Metering, but for simplicity was put here.
+// Uses Electrical Measurement and/or Gas Metering, but for simplicity was put here.
 type MultiplierDivisor = {multiplier?: number; divisor?: number};
-export interface ElectricityMeterArgs {
+type MeterType = "electricity" | "gas"; // water, etc
+interface MeterArgs {
+    type?: MeterType;
     cluster?: "both" | "metering" | "electrical";
-    electricalMeasurementType?: "both" | "ac" | "dc";
-    current?: false | (MultiplierDivisor & Partial<ReportingConfigWithoutAttribute>);
     power?: false | (MultiplierDivisor & Partial<ReportingConfigWithoutAttribute>);
-    voltage?: false | (MultiplierDivisor & Partial<ReportingConfigWithoutAttribute>);
     energy?: false | (MultiplierDivisor & Partial<ReportingConfigWithoutAttribute>);
-    producedEnergy?: false | true | (MultiplierDivisor & Partial<ReportingConfigWithoutAttribute>);
-    acFrequency?: false | true | (MultiplierDivisor & Partial<ReportingConfigWithoutAttribute>);
-    threePhase?: boolean;
+    status?: boolean;
+    extendedStatus?: boolean;
     configureReporting?: boolean;
-    powerFactor?: boolean;
     endpointNames?: string[];
     fzMetering?: Fz.Converter;
+    // applies only to electrical
+    electricalMeasurementType?: "both" | "ac" | "dc";
+    voltage?: false | (MultiplierDivisor & Partial<ReportingConfigWithoutAttribute>);
+    current?: false | (MultiplierDivisor & Partial<ReportingConfigWithoutAttribute>);
+    threePhase?: boolean;
+    producedEnergy?: false | true | (MultiplierDivisor & Partial<ReportingConfigWithoutAttribute>);
+    acFrequency?: false | true | (MultiplierDivisor & Partial<ReportingConfigWithoutAttribute>);
+    powerFactor?: boolean;
     fzElectricalMeasurement?: Fz.Converter;
 }
-export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
-    args = {
-        cluster: "both",
-        electricalMeasurementType: "ac",
-        configureReporting: true,
-        threePhase: false,
-        producedEnergy: false,
-        acFrequency: false,
-        powerFactor: false,
-        ...args,
-    };
+function genericMeter(args?: MeterArgs) {
     if (args.cluster !== "electrical") {
         const divisors = new Set([
             args.cluster === "metering" && isObject(args.power) ? args.power?.divisor : false,
@@ -1716,6 +1713,17 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
     let exposes: Numeric[] = [];
     let fromZigbee: Fz.Converter[];
     let toZigbee: Tz.Converter[];
+
+    const changeLookup: Record<MeterType, {power: number; energy: number}> = {
+        gas: {
+            power: 0.01,
+            energy: 0.1,
+        },
+        electricity: {
+            power: 0.005,
+            energy: 0.1,
+        },
+    };
 
     const configureLookup = {
         haElectricalMeasurement: {
@@ -1776,15 +1784,35 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
         },
         seMetering: {
             // Report change with every 5W change
-            power: {attribute: "instantaneousDemand", divisor: "divisor", multiplier: "multiplier", forced: args.power, change: 0.005},
+            power: {
+                attribute: "instantaneousDemand",
+                divisor: "divisor",
+                multiplier: "multiplier",
+                forced: args.power,
+                change: changeLookup[args.type].power,
+            },
             // Report change with every 0.1kWh change
-            energy: {attribute: "currentSummDelivered", divisor: "divisor", multiplier: "multiplier", forced: args.energy, change: 0.1},
+            energy: {
+                attribute: "currentSummDelivered",
+                divisor: "divisor",
+                multiplier: "multiplier",
+                forced: args.energy,
+                change: changeLookup[args.type].energy,
+            },
             produced_energy: {
                 attribute: "currentSummReceived",
                 divisor: "divisor",
                 multiplier: "multiplier",
                 forced: isObject(args.producedEnergy) ? args.producedEnergy : (false as const),
                 change: 0.1,
+            },
+            status: {
+                attribute: "status",
+                change: 1,
+            },
+            extended_status: {
+                attribute: "extendedStatus",
+                change: 1,
             },
         },
     };
@@ -1849,6 +1877,13 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
         delete configureLookup.haElectricalMeasurement.dc_current;
     }
 
+    if (args.status === false) {
+        delete configureLookup.seMetering.status;
+    }
+    if (args.extendedStatus === false) {
+        delete configureLookup.seMetering.extended_status;
+    }
+
     if (args.cluster === "both") {
         if (args.power !== false) exposes.push(e.power().withAccess(ea.STATE_GET));
         if (args.voltage !== false) exposes.push(e.voltage().withAccess(ea.STATE_GET));
@@ -1868,12 +1903,33 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
             tz.powerfactor,
         ];
         delete configureLookup.seMetering.power;
-    } else if (args.cluster === "metering") {
+    } else if (args.cluster === "metering" && args.type === "electricity") {
         if (args.power !== false) exposes.push(e.power().withAccess(ea.STATE_GET));
         if (args.energy !== false) exposes.push(e.energy().withAccess(ea.STATE_GET));
         if (args.producedEnergy !== false) exposes.push(e.produced_energy().withAccess(ea.STATE_GET));
         fromZigbee = [args.fzMetering ?? fz.metering];
         toZigbee = [tz.metering_power, tz.currentsummdelivered, tz.currentsummreceived];
+        delete configureLookup.haElectricalMeasurement;
+    } else if (args.cluster === "metering" && args.type === "gas") {
+        if (args.power !== false) exposes.push(e.numeric("power", ea.STATE_GET).withUnit("m³/h").withDescription("Instantaneous gas flow in m³/h"));
+        if (args.energy !== false) exposes.push(e.numeric("energy", ea.ALL).withUnit("m³").withDescription("Total gas consumption in m³"));
+        fromZigbee = [args.fzMetering ?? fz.gas_metering];
+        toZigbee = [
+            {
+                key: ["energy"],
+                convertGet: async (entity, key, meta) => {
+                    const ep = determineEndpoint(entity, meta, "seMetering");
+                    await ep.read("seMetering", ["currentSummDelivered"]);
+                },
+                convertSet: async (entity, key, value: number, meta) => {
+                    await entity.write("seMetering", {currentSummDelivered: Math.round(value * 100)});
+                    return {state: {energy: value}};
+                },
+            } satisfies Tz.Converter,
+            tz.metering_power,
+            tz.metering_status,
+            tz.metering_extended_status,
+        ];
         delete configureLookup.haElectricalMeasurement;
     } else if (args.cluster === "electrical") {
         if (args.power !== false) exposes.push(e.power().withAccess(ea.STATE_GET));
@@ -1967,7 +2023,41 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
 
     return result;
 }
+export interface ElectricityMeterArgs extends MeterArgs {
+    type?: "electricity";
+}
+export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
+    args = {
+        type: "electricity",
+        cluster: "both",
+        electricalMeasurementType: "ac",
+        configureReporting: true,
+        threePhase: false,
+        producedEnergy: false,
+        acFrequency: false,
+        powerFactor: false,
+        status: false,
+        extendedStatus: false,
+        ...args,
+    };
+    return genericMeter(args);
+}
 
+// Uses Metering to measure volume of gas consumed
+export interface GasMeterArgs extends MeterArgs {
+    type?: "gas";
+}
+export function gasMeter(args?: GasMeterArgs): ModernExtend {
+    args = {
+        type: "gas",
+        cluster: "metering",
+        configureReporting: true,
+        status: true,
+        extendedStatus: true,
+        ...args,
+    };
+    return genericMeter(args);
+}
 // #endregion
 
 // #region Other extends
@@ -2030,15 +2120,17 @@ export interface EnumLookupArgs {
     endpointName?: string;
     reporting?: ReportingConfigWithoutAttribute;
     entityCategory?: "config" | "diagnostic";
+    label?: string;
 }
 export function enumLookup(args: EnumLookupArgs): ModernExtend {
-    const {name, lookup, cluster, attribute, description, zigbeeCommandOptions, endpointName, reporting, entityCategory} = args;
+    const {name, lookup, cluster, attribute, description, zigbeeCommandOptions, endpointName, reporting, entityCategory, label} = args;
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
     const access = ea[args.access ?? "ALL"];
 
     let expose = e.enum(name, access, Object.keys(lookup)).withDescription(description);
     if (endpointName) expose = expose.withEndpoint(endpointName);
     if (entityCategory) expose = expose.withCategory(entityCategory);
+    if (label !== undefined) expose = expose.withLabel(label);
 
     const fromZigbee: Fz.Converter[] = [
         {
@@ -2439,22 +2531,24 @@ export function quirkCheckinInterval(timeout: number | keyof typeof TIME_LOOKUP)
 }
 
 export function reconfigureReportingsOnDeviceAnnounce(): ModernExtend {
-    const onEvent: OnEvent = async (type, data, device, options, state: KeyValue) => {
-        if (type === "deviceAnnounce") {
-            for (const endpoint of device.endpoints) {
-                for (const c of endpoint.configuredReportings) {
-                    await endpoint.configureReporting(c.cluster.name, [
-                        {
-                            attribute: c.attribute.name,
-                            minimumReportInterval: c.minimumReportInterval,
-                            maximumReportInterval: c.maximumReportInterval,
-                            reportableChange: c.reportableChange,
-                        },
-                    ]);
+    const onEvent: OnEvent[] = [
+        async (type, data, device, options, state: KeyValue) => {
+            if (type === "deviceAnnounce") {
+                for (const endpoint of device.endpoints) {
+                    for (const c of endpoint.configuredReportings) {
+                        await endpoint.configureReporting(c.cluster.name, [
+                            {
+                                attribute: c.attribute.name,
+                                minimumReportInterval: c.minimumReportInterval,
+                                maximumReportInterval: c.maximumReportInterval,
+                                reportableChange: c.reportableChange,
+                            },
+                        ]);
+                    }
                 }
             }
-        }
-    };
+        },
+    ];
 
     return {onEvent, isModernExtend: true};
 }
@@ -2478,7 +2572,7 @@ export function deviceAddCustomCluster(clusterName: string, clusterDefinition: C
         }
     };
 
-    const onEvent: OnEvent = async (type, data, device, options, state: KeyValue) => addCluster(device);
+    const onEvent: OnEvent[] = [async (type, data, device, options, state: KeyValue) => addCluster(device)];
     const configure: Configure[] = [async (device) => addCluster(device)];
 
     return {onEvent, configure, isModernExtend: true};

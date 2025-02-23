@@ -2,7 +2,6 @@ import fz from "../converters/fromZigbee";
 import tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
-import {philipsLight} from "../lib/philips";
 import * as reporting from "../lib/reporting";
 import type {DefinitionWithExtend} from "../lib/types";
 
@@ -270,14 +269,14 @@ export const definitions: DefinitionWithExtend[] = [
         model: "FZCWF2LW-BW",
         vendor: "Feibit",
         description: "Smart LED Retrofit Light",
-        extend: [m.identify(), philipsLight({colorTemp: {range: [153, 370]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+        extend: [m.identify(), m.light({colorTemp: {range: [153, 370]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
     {
         zigbeeModel: ["FZT56-ZCW2HYH1.3"],
         model: "FZCWD2HW-YH",
         vendor: "Feibit",
         description: "Smart LED Recessed Light",
-        extend: [m.identify(), philipsLight({colorTemp: {range: [153, 370]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+        extend: [m.identify(), m.light({colorTemp: {range: [153, 370]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
     {
         zigbeeModel: ["FNB56-ZSN21YM1.0"],
