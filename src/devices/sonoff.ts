@@ -1235,11 +1235,11 @@ export const definitions: DefinitionWithExtend[] = [
                     valveMotorRunningVoltage: {ID: 0x6007, type: Zcl.DataType.UINT16},
                     valveOpeningDegree: {ID: 0x600b, type: Zcl.DataType.UINT8},
                     valveClosingDegree: {ID: 0x600c, type: Zcl.DataType.UINT8},
-                    externalTemperatureSensorValue: {
+                    externalTemperatureInput: {
                         ID: 0x600d,
                         type: Zcl.DataType.INT16,
                     },
-                    externalTemperatureSensor: {
+                    temperatureSensorSelect: {
                         ID: 0x600e,
                         type: Zcl.DataType.UINT8,
                     },
@@ -1277,23 +1277,21 @@ export const definitions: DefinitionWithExtend[] = [
                 unit: "°C",
                 scale: 100,
             }),
-            m.binary({
-                name: "external_temperature_sensor",
+            m.enumLookup({
+                name: "temperature_sensor_select",
+                lookup: {internal: 0, external: 1},
                 cluster: "customSonoffTrvzb",
-                attribute: "externalTemperatureSensor",
-                entityCategory: "config",
+                attribute: "temperatureSensorSelect",
                 description:
-                    "Enables/disables use of an external temperature sensor. When enabled, the device uses the external temperature sensor value as the local temperature to make heating decisions.",
-                valueOn: ["ON", 0x01],
-                valueOff: ["OFF", 0x00],
+                    "Whether to use the value of the internal temperature sensor or an external temperature sensor as the local temperature.",
             }),
             m.numeric({
-                name: "external_temperature_sensor_value",
+                name: "external_temperature_input",
                 cluster: "customSonoffTrvzb",
-                attribute: "externalTemperatureSensorValue",
+                attribute: "externalTemperatureInput",
                 entityCategory: "config",
                 description:
-                    "The current temperature reported by an external sensor. Note: synchronisation of this value with the external temperature sensor needs to happen outside of Zigbee2MQTT.",
+                    "The value of an external temperature sensor. Note: synchronisation of this value with the external temperature sensor needs to happen outside of Zigbee2MQTT.",
                 valueMin: 0.0,
                 valueMax: 99.9,
                 valueStep: 0.1,
