@@ -2120,15 +2120,17 @@ export interface EnumLookupArgs {
     endpointName?: string;
     reporting?: ReportingConfigWithoutAttribute;
     entityCategory?: "config" | "diagnostic";
+    label?: string;
 }
 export function enumLookup(args: EnumLookupArgs): ModernExtend {
-    const {name, lookup, cluster, attribute, description, zigbeeCommandOptions, endpointName, reporting, entityCategory} = args;
+    const {name, lookup, cluster, attribute, description, zigbeeCommandOptions, endpointName, reporting, entityCategory, label} = args;
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
     const access = ea[args.access ?? "ALL"];
 
     let expose = e.enum(name, access, Object.keys(lookup)).withDescription(description);
     if (endpointName) expose = expose.withEndpoint(endpointName);
     if (entityCategory) expose = expose.withCategory(entityCategory);
+    if (label !== undefined) expose = expose.withLabel(label);
 
     const fromZigbee: Fz.Converter[] = [
         {
