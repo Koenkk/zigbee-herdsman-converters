@@ -94,8 +94,12 @@ const tzLocal = {
             if (key === "color") {
                 const result = await tzLocal1.gledopto_light_color.convertSet(entity, key, value, meta);
                 utils.assertObject(result);
-                if (result.state && result.state.color.x !== undefined && result.state.color.y !== undefined) {
-                    result.state.color_temp = Math.round(libColor.ColorXY.fromObject(result.state.color).toMireds());
+                if (result.state && typeof result.state.color === "object") {
+                    const color = result.state.color as {x: number | undefined; y: number | undefined};
+
+                    if (color.x !== undefined && color.y !== undefined) {
+                        result.state.color_temp = Math.round(libColor.ColorXY.fromObject(color).toMireds());
+                    }
                 }
 
                 return result;
@@ -103,7 +107,9 @@ const tzLocal = {
             if (key === "color_temp" || key === "color_temp_percent") {
                 const result = await tzLocal1.gledopto_light_colortemp.convertSet(entity, key, value, meta);
                 utils.assertObject(result);
-                result.state.color = libColor.ColorXY.fromMireds(result.state.color_temp).rounded(4).toObject();
+                result.state.color = libColor.ColorXY.fromMireds(result.state.color_temp as number)
+                    .rounded(4)
+                    .toObject();
                 return result;
             }
         },

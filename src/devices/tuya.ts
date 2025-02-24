@@ -562,7 +562,7 @@ const fzLocal = {
     TS0222_humidity: {
         ...fz.humidity,
         convert: async (model, msg, publish, options, meta) => {
-            const result = fz.humidity.convert(model, msg, publish, options, meta);
+            const result = fz.humidity.convert(model, msg, publish, options, meta) as KeyValueAny;
             if (result) result.humidity *= 10;
             return result;
         },
@@ -638,7 +638,7 @@ const fzLocal = {
     TS011F_electrical_measurement: {
         ...fz.electrical_measurement,
         convert: async (model, msg, publish, options, meta) => {
-            const result = fz.electrical_measurement.convert(model, msg, publish, options, meta) ?? {};
+            const result = (fz.electrical_measurement.convert(model, msg, publish, options, meta) as KeyValueAny) ?? {};
             const lookup: KeyValueString = {
                 power: "activePower",
                 current: "rmsCurrent",
