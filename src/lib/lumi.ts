@@ -1,6 +1,6 @@
 import {Buffer} from "node:buffer";
 
-import fz from "../converters/fromZigbee";
+import * as fz from "../converters/fromZigbee";
 import * as exposes from "./exposes";
 import {logger} from "./logger";
 import * as modernExtend from "./modernExtend";

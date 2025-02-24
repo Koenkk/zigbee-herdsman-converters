@@ -2,8 +2,8 @@ import assert from "node:assert";
 
 import {Zcl} from "zigbee-herdsman";
 
-import fromZigbee from "./converters/fromZigbee";
-import toZigbee from "./converters/toZigbee";
+import * as fromZigbee from "./converters/fromZigbee";
+import * as toZigbee from "./converters/toZigbee";
 import {
     Binary,
     Climate,

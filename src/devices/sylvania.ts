@@ -1,4 +1,4 @@
-import fz from "../converters/fromZigbee";
+import * as fz from "../converters/fromZigbee";
 import * as exposes from "../lib/exposes";
 import {ledvanceLight, ledvanceOnOff} from "../lib/ledvance";
 import * as reporting from "../lib/reporting";

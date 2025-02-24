@@ -1,5 +1,5 @@
-import fz from "../converters/fromZigbee";
-import tz from "../converters/toZigbee";
+import * as fz from "../converters/fromZigbee";
+import * as tz from "../converters/toZigbee";
 import * as libColor from "../lib/color";
 import {ColorMode, colorModeLookup} from "../lib/constants";
 import * as exposes from "../lib/exposes";

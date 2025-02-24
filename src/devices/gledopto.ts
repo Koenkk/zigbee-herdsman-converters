@@ -1,4 +1,4 @@
-import tz from "../converters/toZigbee";
+import * as tz from "../converters/toZigbee";
 import * as libColor from "../lib/color";
 import * as exposes from "../lib/exposes";
 import {logger} from "../lib/logger";
