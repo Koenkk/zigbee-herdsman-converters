@@ -94,7 +94,44 @@ const philipsModernExtend = {
             result.exposes.push(...exposeEndpoints(e.enum("effect", ea.SET, effects), args.endpointNames));
         }
 
-        const customCluster = m.deviceAddCustomCluster("manuSpecificPhilips3", {
+        const customCluster = m.deviceAddCustomCluster("manuSpecificPhilips", {
+            ID: 0xfc00,
+            manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V,
+            attributes: {
+                config: {ID: 49, type: Zcl.DataType.BITMAP16},
+            },
+            commands: {},
+            commandsResponse: {
+                hueNotification: {
+                    ID: 0,
+                    parameters: [
+                        {name: 'button', type: Zcl.DataType.UINT8},
+                        {name: 'unknown1', type: Zcl.DataType.UINT24},
+                        {name: 'type', type: Zcl.DataType.UINT8},
+                        {name: 'unknown2', type: Zcl.DataType.UINT8},
+                        {name: 'time', type: Zcl.DataType.UINT8},
+                        {name: 'unknown2', type: Zcl.DataType.UINT8},
+                    ],
+                },
+            },
+        });
+
+        const customCluster2 = m.deviceAddCustomCluster("manuSpecificPhilips2", {
+            ID: 0xfc03,
+            manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V,
+            attributes: {
+                state: {ID: 0x0002, type: Zcl.DataType.OCTET_STR},
+            },
+            commands: {
+                multiColor: {
+                    ID: 0,
+                    parameters: [{name: 'data', type: Zcl.BuffaloZclDataType.BUFFER}],
+                },
+            },
+            commandsResponse: {},
+        });
+
+        const customCluster3 = m.deviceAddCustomCluster("manuSpecificPhilips3", {
             ID: 0xfc01,
             manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V,
             attributes: {},
@@ -122,8 +159,18 @@ const philipsModernExtend = {
             },
             commandsResponse: {},
         });
-        result.onEvent = [...(result.onEvent ?? []), ...customCluster.onEvent];
-        result.configure = [...(result.configure ?? []), ...customCluster.configure];
+        result.onEvent = [
+            ...(result.onEvent ?? []),
+            ...customCluster.onEvent,
+            ...customCluster2.onEvent,
+            ...customCluster3.onEvent
+        ];
+        result.configure = [
+            ...(result.configure ?? []),
+            ...customCluster.configure,
+            ...customCluster2.configure,
+            ...customCluster3.configure
+        ];
 
         return result;
     },
@@ -158,7 +205,7 @@ const philipsModernExtend = {
         return result;
     },
 };
-export {philipsModernExtend as m};
+export {philipsModernExtend as m};.edw
 
 const philipsTz = {
     gradient_scene: {
