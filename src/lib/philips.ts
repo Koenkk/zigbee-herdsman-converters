@@ -94,7 +94,7 @@ const philipsModernExtend = {
             result.exposes.push(...exposeEndpoints(e.enum("effect", ea.SET, effects), args.endpointNames));
         }
 
-        const customCluster = m.deviceAddCustomCluster("manuSpecificPhilips", {
+        const customClusterFC00 = m.deviceAddCustomCluster("manuSpecificPhilips", {
             ID: 0xfc00,
             manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V,
             attributes: {
@@ -116,7 +116,7 @@ const philipsModernExtend = {
             },
         });
 
-        const customCluster2 = m.deviceAddCustomCluster("manuSpecificPhilips2", {
+        const customClusterFC03 = m.deviceAddCustomCluster("manuSpecificPhilips2", {
             ID: 0xfc03,
             manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V,
             attributes: {
@@ -131,7 +131,7 @@ const philipsModernExtend = {
             commandsResponse: {},
         });
 
-        const customCluster3 = m.deviceAddCustomCluster("manuSpecificPhilips3", {
+        const customClusterFC01 = m.deviceAddCustomCluster("manuSpecificPhilips3", {
             ID: 0xfc01,
             manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V,
             attributes: {},
@@ -161,15 +161,15 @@ const philipsModernExtend = {
         });
         result.onEvent = [
             ...(result.onEvent ?? []),
-            ...customCluster.onEvent,
-            ...customCluster2.onEvent,
-            ...customCluster3.onEvent
+            ...customClusterFC00.onEvent,
+            ...customClusterFC03.onEvent,
+            ...customClusterFC01.onEvent
         ];
         result.configure = [
             ...(result.configure ?? []),
-            ...customCluster.configure,
-            ...customCluster2.configure,
-            ...customCluster3.configure
+            ...customClusterFC00.configure,
+            ...customClusterFC03.configure,
+            ...customClusterFC01.configure
         ];
 
         return result;
