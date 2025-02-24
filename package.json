@@ -35,6 +35,13 @@
         "semver": "^7.7.1",
         "zigbee-herdsman": "^3.2.6"
     },
+    "exports": {
+        ".": "./dist/index.js",
+        "./converters/*": "./dist/converters/*.js",
+        "./devices/*": "./dist/devices/*.js",
+        "./lib/*": "./dist/lib/*.js",
+        "./package.json": "./package.json"
+    },
     "devDependencies": {
         "@biomejs/biome": "^1.9.4",
         "@types/buffer-crc32": "^0.2.4",

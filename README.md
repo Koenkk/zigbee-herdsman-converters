@@ -8,7 +8,7 @@ Collection of device converters to be used with zigbee-herdsman.
 
 23.0.0
 
-- Importing specific files changed, e.g. `require('zigbee-herdsman-converters/devices/index')` is now `require('zigbee-herdsman-converters/dist/devices/index')`.
+- A `Publish` now has to be passed to toZigbee converters (#8875)
 
 22.0.0
 
