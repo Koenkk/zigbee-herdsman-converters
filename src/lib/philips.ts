@@ -205,7 +205,7 @@ const philipsModernExtend = {
         return result;
     },
 };
-export {philipsModernExtend as m};.edw
+export {philipsModernExtend as m};
 
 const philipsTz = {
     gradient_scene: {
