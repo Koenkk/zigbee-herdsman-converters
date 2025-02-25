@@ -511,7 +511,7 @@ export async function findDefinition(device: Zh.Device, generateForUnknown = fal
     // hot path when no external converters present
     const candidates =
         externalDefinitionsCount > 0
-            ? getFromExternalDefinitionsLookup(device.modelID) || (await getFromIndex(device.modelID))
+            ? [].concat(getFromExternalDefinitionsLookup(device.modelID) ?? [], (await getFromIndex(device.modelID)) ?? [])
             : await getFromIndex(device.modelID);
 
     if (!candidates) {
