@@ -1,4 +1,4 @@
-import fz from "../converters/fromZigbee";
+import * as fz from "../converters/fromZigbee";
 import * as reporting from "../lib/reporting";
 import type {DefinitionWithExtend} from "../lib/types";
 

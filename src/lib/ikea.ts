@@ -2,7 +2,7 @@ import * as semver from "semver";
 
 import {Zcl} from "zigbee-herdsman";
 
-import tz from "../converters/toZigbee";
+import * as tz from "../converters/toZigbee";
 import * as constants from "../lib/constants";
 import {access, options, presets} from "../lib/exposes";
 import * as m from "../lib/modernExtend";

@@ -1,5 +1,5 @@
-import fz from "../converters/fromZigbee";
-import tz from "../converters/toZigbee";
+import * as fz from "../converters/fromZigbee";
+import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
 import {eLegrand, fzLegrand, legrandOptions, readInitialBatteryState, tzLegrand} from "../lib/legrand";
 import * as m from "../lib/modernExtend";
