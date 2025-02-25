@@ -193,8 +193,6 @@ async function getDefinitions(indexes: ModelIndex[]): Promise<DefinitionWithExte
 
     for (const [moduleName, index] of indexes) {
         if (!defs[moduleName]) {
-            logger.debug(`Loading module ${moduleName}`, NS);
-
             // NOTE: modules are cached by nodejs until process is stopped
             // currently using `commonjs`, so strip `.js` file extension, XXX: creates a warning with vitest (expects static `.js`)
             const {definitions} = (await import(`./devices/${moduleName.slice(0, -3)}`)) as {definitions: DefinitionWithExtend[]};
@@ -509,7 +507,7 @@ export async function findDefinition(device: Zh.Device, generateForUnknown = fal
     }
 
     // hot path when no external converters present
-    let candidates: DefinitionWithExtend[];
+    let candidates: DefinitionWithExtend[] | undefined;
     if (externalDefinitionsCount > 0) {
         candidates = getFromExternalDefinitionsLookup(device.modelID);
 
