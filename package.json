@@ -6,7 +6,8 @@
     "types": "dist/index.d.ts",
     "packageManager": "pnpm@10.4.1",
     "files": [
-        "dist"
+        "dist",
+        "CHANGELOG.md"
     ],
     "repository": {
         "type": "git",
