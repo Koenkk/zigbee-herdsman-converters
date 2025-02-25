@@ -1,0 +1,42 @@
+name: Requires external review
+
+on: [pull_request]
+
+jobs:
+  requires-external-review:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Check for files that require external review
+      run: |
+        # Get list of changed files
+        CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }} origin/${{ github.head_ref }})
+        
+        # List of files that require review
+        FILES=(
+          # @martyn-vesternet
+          "src/devices/vesternet.ts"
+          # @candeodevelopment / @dhc25
+          "src/devices/candeo.ts"
+          # @InovelliUSA
+          "src/devices/inovelli.ts"
+        )
+        
+        # Flag to track if forbidden files were modified
+        MATCH=false
+        
+        # Check each changed file against forbidden list
+        for file in $CHANGED_FILES; do
+          for forbidden in "${FORBIDDEN_FILES[@]}"; do
+            if [[ $file == $forbidden || $file == $forbidden* ]]; then
+              echo "::error::Forbidden file modified: $file"
+              MATCH=true
+            fi
+          done
+        done
+        
+        # Fail the workflow if forbidden files were changed
+        if [ "$MATCH" = true ]; then
+          exit 1
+        fi
