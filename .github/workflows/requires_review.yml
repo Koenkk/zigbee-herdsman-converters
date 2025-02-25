@@ -1,0 +1,53 @@
+name: Requires external review
+
+on: [pull_request]
+
+jobs:
+  requires-external-review:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Check for files that require external review
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        PR_NUMBER: ${{ github.event.pull_request.number }}
+      run: |
+        # Check if PR has external-reviewer-approved label
+        LABELS=$(gh pr view $PR_NUMBER --json labels --jq '.labels[].name')
+        for label in $LABELS; do
+          if [[ "$label" == "external-reviewer-approved" ]]; then
+            exit 0
+          fi
+        done
+
+        # No external-reviewer-approved label, check if files that require
+        # external review have been modified
+
+        # Get list of changed files
+        CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }} origin/${{ github.head_ref }})
+        
+        # List of files that require review
+        declare -A FILE_REVIEWERS=(
+          ["src/devices/vesternet.ts"]="@martyn-vesternet"
+          ["src/devices/candeo.ts"]="@candeodevelopment / @dhc25"
+          ["src/devices/inovelli.ts"]="@InovelliUSA"
+        )
+        
+        # Flag to track if forbidden files were modified
+        MATCH=false
+        
+        # Check each changed file against requires review list
+        for file in $CHANGED_FILES; do
+          for pattern in "${!FILE_REVIEWERS[@]}"; do
+            if [[ $file == $pattern || $file == $pattern* ]]; then
+              echo "::error::Review required for '$file' by '${FILE_REVIEWERS[$pattern]}'"
+              MATCH=true
+            fi
+          done
+        done
+        
+        # Fail the workflow if forbidden files were changed
+        if [ "$MATCH" = true ]; then
+          exit 1
+        fi
