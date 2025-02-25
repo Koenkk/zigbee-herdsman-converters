@@ -10648,7 +10648,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_ves1ycwx", "_TZE200_ves1ycwx"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_ves1ycwx", "_TZE284_ves1ycwx", "_TZE200_ves1ycwx"]),
         model: "SPM02",
         vendor: "Tuya",
         description: "Smart energy monitor for 3P+N system",
@@ -10683,7 +10683,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_qhlxve78", "_TZE204_qhlxve78"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_qhlxve78", "_TZE284_qhlxve78", "_TZE204_qhlxve78"]),
         model: "SPM01V2",
         vendor: "Tuya",
         description: "Smart energy monitor for 1P+N system",
@@ -10761,7 +10761,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_v9hkz2yn", "_TZE200_v9hkz2yn"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_v9hkz2yn", "_TZE284_v9hkz2yn", "_TZE200_v9hkz2yn"]),
         model: "SPM02V2",
         vendor: "Tuya",
         description: "Smart energy monitor for 3P+N system",
@@ -11095,7 +11095,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_gomuk3dc", "_TZE200_gomuk3dc"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_gomuk3dc", "_TZE284_gomuk3dc", "_TZE200_gomuk3dc"]),
         model: "SDM01V1.5",
         vendor: "Tuya",
         description: "Smart energy monitor for 3P+N system",
@@ -11164,7 +11164,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_78ioiaml", "_TZE200_78ioiaml"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_78ioiaml", "_TZE284_78ioiaml", "_TZE200_78ioiaml"]),
         model: "SDM02V1",
         vendor: "Tuya",
         description: "Smart energy monitor for 2P+N system",
