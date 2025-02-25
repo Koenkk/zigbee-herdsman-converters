@@ -187,7 +187,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.deviceEndpoints({endpoints: {ep1: 1, ep2: 2, ep3: 3, ep4: 4}}),
             m.battery(),
-            m.identify(),
+            m.identify({isSleepy: true}),
             m.commandsOnOff({
                 commands: ["on", "off"],
             }),
