@@ -105,12 +105,12 @@ const philipsModernExtend = {
                 hueNotification: {
                     ID: 0,
                     parameters: [
-                        {name: 'button', type: Zcl.DataType.UINT8},
-                        {name: 'unknown1', type: Zcl.DataType.UINT24},
-                        {name: 'type', type: Zcl.DataType.UINT8},
-                        {name: 'unknown2', type: Zcl.DataType.UINT8},
-                        {name: 'time', type: Zcl.DataType.UINT8},
-                        {name: 'unknown2', type: Zcl.DataType.UINT8},
+                        {name: "button", type: Zcl.DataType.UINT8},
+                        {name: "unknown1", type: Zcl.DataType.UINT24},
+                        {name: "type", type: Zcl.DataType.UINT8},
+                        {name: "unknown2", type: Zcl.DataType.UINT8},
+                        {name: "time", type: Zcl.DataType.UINT8},
+                        {name: "unknown2", type: Zcl.DataType.UINT8},
                     ],
                 },
             },
@@ -125,7 +125,7 @@ const philipsModernExtend = {
             commands: {
                 multiColor: {
                     ID: 0,
-                    parameters: [{name: 'data', type: Zcl.BuffaloZclDataType.BUFFER}],
+                    parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}],
                 },
             },
             commandsResponse: {},
@@ -159,17 +159,12 @@ const philipsModernExtend = {
             },
             commandsResponse: {},
         });
-        result.onEvent = [
-            ...(result.onEvent ?? []),
-            ...customClusterFC00.onEvent,
-            ...customClusterFC03.onEvent,
-            ...customClusterFC01.onEvent
-        ];
+        result.onEvent = [...(result.onEvent ?? []), ...customClusterFC00.onEvent, ...customClusterFC01.onEvent, ...customClusterFC03.onEvent];
         result.configure = [
             ...(result.configure ?? []),
             ...customClusterFC00.configure,
+            ...customClusterFC01.configure,
             ...customClusterFC03.configure,
-            ...customClusterFC01.configure
         ];
 
         return result;
