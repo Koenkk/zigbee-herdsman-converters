@@ -1454,6 +1454,7 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [
             tuya.whitelabel("DYGSM", "DY-RQ500A", "Gas sensor", ["_TZE204_zougpkpy"]),
             tuya.whitelabel("DYGSM", "DY-RQ500A", "Gas sensor", ["_TZE204_chbyv06x"]),
+            tuya.whitelabel("DYGSM", "DY-RQ500A", "Gas sensor", ["_TZE284_chbyv06x"]),
         ],
         meta: {
             tuyaDatapoints: [
