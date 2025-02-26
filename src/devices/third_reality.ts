@@ -283,7 +283,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Smart button",
         fromZigbee: [fz.itcmdr_clicks],
         ota: true,
-        exposes: [e.action(["single", "double", "long"])],
+        exposes: [e.action(["single", "double", "hold", "release"])],
         extend: [
             m.battery(),
             m.deviceAddCustomCluster("3rButtonSpecialCluster", {
