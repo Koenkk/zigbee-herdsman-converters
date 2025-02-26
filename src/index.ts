@@ -506,21 +506,17 @@ export async function findDefinition(device: Zh.Device, generateForUnknown = fal
         return undefined;
     }
 
-    // hot path when no external converters present
-    let candidates: DefinitionWithExtend[] | undefined;
+    let candidates = await getFromIndex(device.modelID);
     if (externalDefinitionsCount > 0) {
-        candidates = getFromExternalDefinitionsLookup(device.modelID);
+        const extCandidates = getFromExternalDefinitionsLookup(device.modelID);
 
-        if (candidates) {
-            const builtins = await getFromIndex(device.modelID);
-            if (builtins) {
-                candidates.push(...builtins);
+        if (extCandidates) {
+            if (candidates) {
+                candidates.unshift(...extCandidates);
+            } else {
+                candidates = extCandidates;
             }
-        } else {
-            candidates = await getFromIndex(device.modelID);
         }
-    } else {
-        candidates = await getFromIndex(device.modelID);
     }
 
     if (!candidates) {

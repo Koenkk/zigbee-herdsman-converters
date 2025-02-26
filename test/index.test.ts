@@ -101,41 +101,6 @@ describe("ZHC", () => {
         expect(definition2.vendor).toBe("Tuya");
     });
 
-    it("finds definition when there is also an external converter with the same modelID but different manufacturerName", async () => {
-        addExternalDefinition({
-            fingerprint: [{modelID: "TS0601", manufacturerName: "JUST_A_RANDOM_MANUFACTURER_NAME"}],
-            model: "mock-model",
-            vendor: "dummy",
-            description: "dummy",
-            fromZigbee: [],
-            toZigbee: [],
-            exposes: [],
-            externalConverterName: "mock-model.js",
-        });
-
-        const device1 = mockDevice(
-            {
-                modelID: "TS0601",
-                manufacturerName: "_TZE204_sxm7l9xa",
-                endpoints: [],
-            },
-            "Router",
-        );
-        const definition1 = await findByDevice(device1);
-        const device2 = mockDevice(
-            {
-                modelID: "TS0601",
-                manufacturerName: "JUST_A_RANDOM_MANUFACTURER_NAME",
-                endpoints: [],
-            },
-            "Router",
-        );
-        const definition2 = await findByDevice(device2);
-
-        expect(definition1.model).toBe("ZY-M100-S_1");
-        expect(definition2.model).toBe("mock-model");
-    });
-
     it("finds definition by prioritized fingerprints", async () => {
         const device1 = mockDevice(
             {
@@ -359,6 +324,32 @@ describe("ZHC", () => {
         expect((await findByDevice(device)).vendor).toStrictEqual("other-vendor");
         removeExternalDefinitions("mock-model.js");
         expect((await findByDevice(device)).vendor).toStrictEqual("Aqara");
+    });
+
+    it("adds external converter with same model built-in", async () => {
+        const device = mockDevice({modelID: "TS0601", manufacturerName: "_TZE204_sxm7l9xa", endpoints: []}, "EndDevice");
+        const extDevice = mockDevice({modelID: "TS0601", manufacturerName: "_TZE204_unknown", endpoints: []}, "EndDevice");
+        const definition = await findByDevice(device);
+        const extDefinitionUndef = await findByDevice(extDevice);
+
+        expect(definition.model).toStrictEqual("ZY-M100-S_1");
+        expect(extDefinitionUndef).toStrictEqual(undefined);
+        addExternalDefinition({
+            fingerprint: [{modelID: "TS0601", manufacturerName: "_TZE204_unknown"}],
+            model: "mock-model",
+            vendor: "dummy",
+            description: "dummy",
+            fromZigbee: [],
+            toZigbee: [],
+            exposes: [],
+            externalConverterName: "mock-model.js",
+        });
+
+        const extDefinition = await findByDevice(extDevice);
+        const definitionWithExtPresent = await findByDevice(device);
+
+        expect(extDefinition.model).toStrictEqual("mock-model");
+        expect(definitionWithExtPresent.model).toStrictEqual("ZY-M100-S_1");
     });
 
     it("exposes light with endpoint", () => {
