@@ -13443,13 +13443,13 @@ export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: [
             {
-                modelID: 'TS0601',
-                manufacturerName: '_TZE284_6ocnqlhn',
+                modelID: "TS0601",
+                manufacturerName: "_TZE284_6ocnqlhn",
             },
         ],
-        model: 'TO-Q-SYS-J2T',
-        vendor: 'Tongou',
-        description: 'DIN Rail Smart Meter',
+        model: "TO-Q-SYS-J2T",
+        vendor: "Tongou",
+        description: "DIN Rail Smart Meter",
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         onEvent: tuya.onEventSetLocalTime,
@@ -13472,15 +13472,14 @@ export const definitions: DefinitionWithExtend[] = [
             tuyaDatapoints: [
                 [1, "energy", tuya.valueConverter.divideBy100], // Total. energy Work.
                 [6, null, tuya.valueConverter.phaseVariant2], // Phase A voltage and current. Work?
-                [13, 'test1', tuya.valueConverter.raw], // ?
+                [13, "test1", tuya.valueConverter.raw], // ?
                 [16, "test2", tuya.valueConverter.raw], // ?
                 [32, "ac_frequency", tuya.valueConverter.divideBy100], //ac_frequency. Work
                 [50, "power_factor", tuya.valueConverter.raw], //power_factor. Work
-                [103, "test3", tuya.valueConverter.raw],// ?
-                [110, "test4", tuya.valueConverter.raw],// ?
-                [125, 'test5', tuya.valueConverter.raw], // energy ?
-                [131, 'temperature', tuya.valueConverter.divideBy10], // temperature. Work
-                
+                [103, "test3", tuya.valueConverter.raw], // ?
+                [110, "test4", tuya.valueConverter.raw], // ?
+                [125, "test5", tuya.valueConverter.raw], // energy ?
+                [131, "temperature", tuya.valueConverter.divideBy10], // temperature. Work
             ],
         },
         extend: [
