@@ -1,5 +1,13 @@
 # Changelog
 
+## [23.1.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.1.0...v23.1.1) (2025-02-26)
+
+
+### Bug Fixes
+
+* **ignore:** Fix definition resolving ([#8892](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8892)) ([27fb004](https://github.com/Koenkk/zigbee-herdsman-converters/commit/27fb0047b3ec1458646c2db28ab7ee5e5d817c3c))
+* Update 3R button action ([#8893](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8893)) ([bdd038e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/bdd038e52296f370e8a7417466cedf84e508d3d6))
+
 ## [23.1.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.0.0...v23.1.0) (2025-02-25)
 
 
