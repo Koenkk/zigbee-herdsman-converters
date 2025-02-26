@@ -1,44 +1,44 @@
-import fz from '../converters/fromZigbee';
-import tz from '../converters/toZigbee';
-import * as exposes from '../lib/exposes';
-import * as m from '../lib/modernExtend';
-import * as reporting from '../lib/reporting';
-import {DefinitionWithExtend} from '../lib/types';
+import * as fz from "../converters/fromZigbee";
+import * as tz from "../converters/toZigbee";
+import * as exposes from "../lib/exposes";
+import * as m from "../lib/modernExtend";
+import * as reporting from "../lib/reporting";
+import type {DefinitionWithExtend} from "../lib/types";
 
 const e = exposes.presets;
 
 export const definitions: DefinitionWithExtend[] = [
     {
-        zigbeeModel: ['1116-S'],
-        model: 'IL06_1',
-        vendor: 'Iris',
-        description: 'Contact and temperature sensor',
+        zigbeeModel: ["1116-S"],
+        model: "IL06_1",
+        vendor: "Iris",
+        description: "Contact and temperature sensor",
         fromZigbee: [fz.ias_contact_alarm_1, fz.temperature, fz.battery],
         toZigbee: [],
-        meta: {battery: {voltageToPercentage: '3V_2100'}},
+        meta: {battery: {voltageToPercentage: "3V_2100"}},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["msTemperatureMeasurement", "genPowerCfg"]);
             await reporting.temperature(endpoint);
             await reporting.batteryVoltage(endpoint);
-            device.powerSource = 'Battery';
+            device.powerSource = "Battery";
             device.save();
         },
         exposes: [e.contact(), e.battery_low(), e.tamper(), e.temperature(), e.battery()],
     },
     {
-        zigbeeModel: ['3210-L'],
-        model: '3210-L',
-        vendor: 'Iris',
-        description: 'Smart plug',
+        zigbeeModel: ["3210-L"],
+        model: "3210-L",
+        vendor: "Iris",
+        description: "Smart plug",
         fromZigbee: [fz.on_off, fz.electrical_measurement],
         toZigbee: [tz.on_off],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "haElectricalMeasurement"]);
             // 3210-L doesn't support reading 'acVoltageMultiplier' or 'acVoltageDivisor'
-            await endpoint.read('haElectricalMeasurement', ['acCurrentMultiplier', 'acCurrentDivisor']);
-            await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
+            await endpoint.read("haElectricalMeasurement", ["acCurrentMultiplier", "acCurrentDivisor"]);
+            await endpoint.read("haElectricalMeasurement", ["acPowerMultiplier", "acPowerDivisor"]);
             await reporting.onOff(endpoint);
             await reporting.rmsVoltage(endpoint, {change: 2}); // Voltage reports in V
             await reporting.rmsCurrent(endpoint, {change: 10}); // Current reports in mA
@@ -47,125 +47,125 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.switch(), e.power(), e.current(), e.voltage()],
     },
     {
-        zigbeeModel: ['3326-L'],
-        model: '3326-L',
-        vendor: 'Iris',
-        description: 'Motion and temperature sensor',
+        zigbeeModel: ["3326-L"],
+        model: "3326-L",
+        vendor: "Iris",
+        description: "Motion and temperature sensor",
         fromZigbee: [fz.ias_occupancy_alarm_2, fz.temperature, fz.battery],
         toZigbee: [],
-        meta: {battery: {voltageToPercentage: '3V_2100'}},
+        meta: {battery: {voltageToPercentage: "3V_2100"}},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["msTemperatureMeasurement", "genPowerCfg"]);
             await reporting.temperature(endpoint);
             await reporting.batteryVoltage(endpoint);
         },
         exposes: [e.occupancy(), e.battery_low(), e.temperature(), e.battery()],
     },
     {
-        zigbeeModel: ['3320-L'],
-        model: '3320-L',
-        vendor: 'Iris',
-        description: 'Contact and temperature sensor',
+        zigbeeModel: ["3320-L"],
+        model: "3320-L",
+        vendor: "Iris",
+        description: "Contact and temperature sensor",
         fromZigbee: [fz.ias_contact_alarm_1, fz.temperature, fz.battery],
         toZigbee: [],
-        meta: {battery: {voltageToPercentage: '3V_2100'}},
+        meta: {battery: {voltageToPercentage: "3V_2100"}},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["msTemperatureMeasurement", "genPowerCfg"]);
             await reporting.temperature(endpoint);
             await reporting.batteryVoltage(endpoint);
         },
         exposes: [e.contact(), e.battery_low(), e.temperature(), e.battery()],
     },
     {
-        zigbeeModel: ['3450-L', '3450-L2', '3450-Geu'],
-        model: '3450-L',
-        vendor: 'Iris',
-        description: 'Smart fob',
+        zigbeeModel: ["3450-L", "3450-L2", "3450-Geu"],
+        model: "3450-L",
+        vendor: "Iris",
+        description: "Smart fob",
         fromZigbee: [fz.command_on_presence, fz.command_off, fz.battery, fz.checkin_presence],
         toZigbee: [],
-        exposes: [e.action(['on_1', 'off_1', 'on_2', 'off_2', 'on_3', 'off_3', 'on_4', 'off_4']), e.battery(), e.presence()],
-        meta: {battery: {voltageToPercentage: '3V_2100'}, multiEndpoint: true},
+        exposes: [e.action(["on_1", "off_1", "on_2", "off_2", "on_3", "off_3", "on_4", "off_4"]), e.battery(), e.presence()],
+        meta: {battery: {voltageToPercentage: "3V_2100"}, multiEndpoint: true},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff', 'genPowerCfg', 'genPollCtrl']);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ["genOnOff", "genPowerCfg", "genPollCtrl"]);
             await reporting.batteryVoltage(endpoint1);
             const interval = 100 - 10; // 100 seconds is default timeout so set interval to 10 seconds before
-            await endpoint1.write('genPollCtrl', {checkinInterval: interval * 4});
+            await endpoint1.write("genPollCtrl", {checkinInterval: interval * 4});
             const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ["genOnOff"]);
             const endpoint3 = device.getEndpoint(3);
-            await reporting.bind(endpoint3, coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(endpoint3, coordinatorEndpoint, ["genOnOff"]);
             const endpoint4 = device.getEndpoint(4);
-            await reporting.bind(endpoint4, coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(endpoint4, coordinatorEndpoint, ["genOnOff"]);
         },
     },
     {
-        zigbeeModel: ['3460-L'],
-        model: '3460-L',
-        vendor: 'Iris',
-        description: 'Smart button',
+        zigbeeModel: ["3460-L"],
+        model: "3460-L",
+        vendor: "Iris",
+        description: "Smart button",
         fromZigbee: [fz.command_on, fz.command_off, fz.battery, fz.temperature],
         toZigbee: [],
-        exposes: [e.battery(), e.temperature(), e.action(['on', 'off'])],
-        meta: {battery: {voltageToPercentage: '3V_1500_2800'}},
+        exposes: [e.battery(), e.temperature(), e.action(["on", "off"])],
+        meta: {battery: {voltageToPercentage: "3V_1500_2800"}},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genPowerCfg', 'msTemperatureMeasurement']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "genPowerCfg", "msTemperatureMeasurement"]);
             await reporting.batteryVoltage(endpoint);
             await reporting.temperature(endpoint);
         },
     },
     {
-        zigbeeModel: ['1117-S'],
-        model: 'iL07_1',
-        vendor: 'Iris',
-        description: 'Motion Sensor',
+        zigbeeModel: ["1117-S"],
+        model: "iL07_1",
+        vendor: "Iris",
+        description: "Motion Sensor",
         fromZigbee: [fz.ias_occupancy_alarm_2, fz.temperature, fz.humidity],
         toZigbee: [],
         exposes: [e.occupancy(), e.battery_low(), e.temperature(), e.humidity()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'msRelativeHumidity']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["msTemperatureMeasurement", "msRelativeHumidity"]);
             await reporting.temperature(endpoint);
             await reporting.humidity(endpoint);
         },
     },
     {
-        zigbeeModel: ['HT8-ZB'],
-        model: '27087-03',
-        vendor: 'Iris',
-        description: 'Hose faucet water timer',
+        zigbeeModel: ["HT8-ZB"],
+        model: "27087-03",
+        vendor: "Iris",
+        description: "Hose faucet water timer",
         fromZigbee: [fz.on_off, fz.battery, fz.ignore_time_read],
         toZigbee: [tz.on_off],
         meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'genPowerCfg']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "genPowerCfg"]);
             await reporting.batteryVoltage(endpoint);
         },
         exposes: [e.switch(), e.battery()],
     },
     {
-        zigbeeModel: ['1113-S'],
-        model: 'iL03_1',
-        vendor: 'Iris',
-        description: 'Smart plug',
-        extend: [m.onOff(), m.forcePowerSource({powerSource: 'Mains (single phase)'})],
+        zigbeeModel: ["1113-S"],
+        model: "iL03_1",
+        vendor: "Iris",
+        description: "Smart plug",
+        extend: [m.onOff(), m.forcePowerSource({powerSource: "Mains (single phase)"})],
     },
     {
-        zigbeeModel: ['3315-L'],
-        model: '3315-L',
-        vendor: 'Iris',
-        description: 'Water sensor',
+        zigbeeModel: ["3315-L"],
+        model: "3315-L",
+        vendor: "Iris",
+        description: "Water sensor",
         fromZigbee: [fz.temperature, fz.ias_water_leak_alarm_1, fz.battery],
         exposes: [e.temperature(), e.water_leak(), e.battery_low(), e.tamper(), e.battery()],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["msTemperatureMeasurement", "genPowerCfg"]);
             await reporting.temperature(endpoint);
             await reporting.batteryVoltage(endpoint);
         },

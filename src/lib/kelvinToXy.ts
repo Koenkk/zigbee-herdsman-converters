@@ -1905,9 +1905,8 @@ const lookup: {[k: number]: {x: number; y: number}} = {
 // Fill remaining values of lookup
 for (const [kelvin, xy] of Object.entries(lookup)) {
     for (let i = 1; i < 10; i++) {
-        lookup[parseInt(kelvin) + i] = xy;
+        lookup[Number.parseInt(kelvin) + i] = xy;
     }
 }
 
 export default lookup;
-module.exports = lookup;

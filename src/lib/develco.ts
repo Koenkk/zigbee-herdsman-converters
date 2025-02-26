@@ -1,14 +1,14 @@
-import {Zcl} from 'zigbee-herdsman';
+import {Zcl} from "zigbee-herdsman";
 
-import {presets as e, access as ea} from './exposes';
-import {deviceAddCustomCluster, deviceTemperature, numeric, NumericArgs, temperature} from './modernExtend';
-import {Configure, Fz, ModernExtend} from './types';
+import {presets as e, access as ea} from "./exposes";
+import {type NumericArgs, deviceAddCustomCluster, deviceTemperature, numeric, temperature} from "./modernExtend";
+import type {Configure, Fz, ModernExtend} from "./types";
 
 const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.DEVELCO};
 
 export const develcoModernExtend = {
     addCustomClusterManuSpecificDevelcoGenBasic: () =>
-        deviceAddCustomCluster('genBasic', {
+        deviceAddCustomCluster("genBasic", {
             ID: 0x0000,
             attributes: {
                 develcoPrimarySwVersion: {ID: 0x8000, type: Zcl.DataType.OCTET_STR, manufacturerCode: Zcl.ManufacturerCode.DEVELCO},
@@ -19,7 +19,7 @@ export const develcoModernExtend = {
             commandsResponse: {},
         }),
     addCustomClusterManuSpecificDevelcoAirQuality: () =>
-        deviceAddCustomCluster('manuSpecificDevelcoAirQuality', {
+        deviceAddCustomCluster("manuSpecificDevelcoAirQuality", {
             ID: 0xfc03,
             manufacturerCode: Zcl.ManufacturerCode.DEVELCO,
             attributes: {
@@ -39,16 +39,16 @@ export const develcoModernExtend = {
         const configure: Configure[] = [
             async (device, coordinatorEndpoint, definition) => {
                 for (const ep of device.endpoints) {
-                    if (ep.supportsInputCluster('genBasic')) {
+                    if (ep.supportsInputCluster("genBasic")) {
                         try {
-                            const data = await ep.read('genBasic', ['develcoPrimarySwVersion', 'develcoPrimaryHwVersion'], manufacturerOptions);
+                            const data = await ep.read("genBasic", ["develcoPrimarySwVersion", "develcoPrimaryHwVersion"], manufacturerOptions);
 
                             if (data.develcoPrimarySwVersion !== undefined) {
-                                device.softwareBuildID = data.develcoPrimarySwVersion.join('.');
+                                device.softwareBuildID = data.develcoPrimarySwVersion.join(".");
                             }
 
                             if (data.develcoPrimaryHwVersion !== undefined) {
-                                device.hardwareVersion = data.develcoPrimaryHwVersion.join('.');
+                                device.hardwareVersion = data.develcoPrimaryHwVersion.join(".");
                             }
 
                             device.save();
@@ -64,61 +64,61 @@ export const develcoModernExtend = {
     },
     voc: (args?: Partial<NumericArgs>) =>
         numeric({
-            name: 'voc',
-            cluster: 'manuSpecificDevelcoAirQuality',
-            attribute: 'measuredValue',
-            reporting: {min: '1_MINUTE', max: '1_HOUR', change: 10},
-            description: 'Measured VOC value',
+            name: "voc",
+            cluster: "manuSpecificDevelcoAirQuality",
+            attribute: "measuredValue",
+            reporting: {min: "1_MINUTE", max: "1_HOUR", change: 10},
+            description: "Measured VOC value",
             // from Sensirion_Gas_Sensors_SGP3x_TVOC_Concept.pdf
             // "The mean molar mass of this mixture is 110 g/mol and hence,
             // 1 ppb TVOC corresponds to 4.5 μg/m3."
-            scale: (value: number, type: 'from' | 'to') => {
-                if (type === 'from') {
+            scale: (value: number, type: "from" | "to") => {
+                if (type === "from") {
                     return value * 4.5;
                 }
                 return value;
             },
-            unit: 'µg/m³',
-            access: 'STATE_GET',
+            unit: "µg/m³",
+            access: "STATE_GET",
             ...args,
         }),
     airQuality: (): ModernExtend => {
         // NOTE: do not setup reporting, this is hanled by the voc() modernExtend
 
-        const clusterName = 'manuSpecificDevelcoAirQuality';
-        const attributeName = 'measuredValue';
-        const propertyName = 'air_quality';
+        const clusterName = "manuSpecificDevelcoAirQuality";
+        const attributeName = "measuredValue";
+        const propertyName = "air_quality";
         const access = ea.STATE;
 
         const expose = e
-            .enum('air_quality', access, ['excellent', 'good', 'moderate', 'poor', 'unhealthy', 'out_of_range', 'unknown'])
-            .withDescription('Measured air quality');
+            .enum("air_quality", access, ["excellent", "good", "moderate", "poor", "unhealthy", "out_of_range", "unknown"])
+            .withDescription("Measured air quality");
 
         const fromZigbee: Fz.Converter[] = [
             {
                 cluster: clusterName,
-                type: ['attributeReport', 'readResponse'],
+                type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
                     if (msg.data[attributeName] !== undefined) {
-                        const vocPpb = parseFloat(msg.data[attributeName]);
+                        const vocPpb = Number.parseFloat(msg.data[attributeName]);
 
                         // from aqszb-110-technical-manual-air-quality-sensor-04-08-20.pdf page 6, section 2.2 voc
                         // this contains a ppb to level mapping table.
                         let airQuality;
                         if (vocPpb <= 65) {
-                            airQuality = 'excellent';
+                            airQuality = "excellent";
                         } else if (vocPpb <= 220) {
-                            airQuality = 'good';
+                            airQuality = "good";
                         } else if (vocPpb <= 660) {
-                            airQuality = 'moderate';
+                            airQuality = "moderate";
                         } else if (vocPpb <= 2200) {
-                            airQuality = 'poor';
+                            airQuality = "poor";
                         } else if (vocPpb <= 5500) {
-                            airQuality = 'unhealthy';
+                            airQuality = "unhealthy";
                         } else if (vocPpb > 5500) {
-                            airQuality = 'out_of_range';
+                            airQuality = "out_of_range";
                         } else {
-                            airQuality = 'unknown';
+                            airQuality = "unknown";
                         }
 
                         return {[propertyName]: airQuality};
@@ -138,19 +138,19 @@ export const develcoModernExtend = {
          *
          * Similar notes found in other 2x AA powered Develco devices like HMSZB-110 and MOSZB-140
          */
-        const clusterName = 'genPowerCfg';
-        const attributeName = 'BatteryVoltage';
-        const propertyName = 'battery_low';
+        const clusterName = "genPowerCfg";
+        const attributeName = "BatteryVoltage";
+        const propertyName = "battery_low";
 
         const expose = e.battery_low();
 
         const fromZigbee: Fz.Converter[] = [
             {
                 cluster: clusterName,
-                type: ['attributeReport', 'readResponse'],
+                type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
                     if (msg.data[attributeName] !== undefined && msg.data[attributeName] < 255) {
-                        const voltage = parseInt(msg.data[attributeName]);
+                        const voltage = Number.parseInt(msg.data[attributeName]);
                         return {[propertyName]: voltage <= 25};
                     }
                 },
@@ -166,28 +166,28 @@ export const develcoModernExtend = {
         }),
     deviceTemperature: (args?: Partial<NumericArgs>) =>
         deviceTemperature({
-            reporting: {min: '5_MINUTES', max: '1_HOUR', change: 2}, // Device temperature reports with 2 degree change
+            reporting: {min: "5_MINUTES", max: "1_HOUR", change: 2}, // Device temperature reports with 2 degree change
             valueIgnore: [0xffff, -0x8000],
             ...args,
         }),
     currentSummation: (args?: Partial<NumericArgs>) =>
         numeric({
-            name: 'current_summation',
-            cluster: 'seMetering',
-            attribute: 'develcoCurrentSummation',
-            description: 'Current summation value sent to the display. e.g. 570 = 0,570 kWh',
-            access: 'SET',
+            name: "current_summation",
+            cluster: "seMetering",
+            attribute: "develcoCurrentSummation",
+            description: "Current summation value sent to the display. e.g. 570 = 0,570 kWh",
+            access: "SET",
             valueMin: 0,
             valueMax: 268435455,
             ...args,
         }),
     pulseConfiguration: (args?: Partial<NumericArgs>) =>
         numeric({
-            name: 'pulse_configuration',
-            cluster: 'seMetering',
-            attribute: 'develcoPulseConfiguration',
-            description: 'Pulses per kwh. Default 1000 imp/kWh. Range 0 to 65535',
-            access: 'ALL',
+            name: "pulse_configuration",
+            cluster: "seMetering",
+            attribute: "develcoPulseConfiguration",
+            description: "Pulses per kwh. Default 1000 imp/kWh. Range 0 to 65535",
+            access: "ALL",
             valueMin: 0,
             valueMax: 65535,
             ...args,

@@ -1,10 +1,10 @@
-import {DefinitionWithExtend} from '../lib/types';
+import type {DefinitionWithExtend} from "../lib/types";
 
 export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: [
             {
-                type: 'Router',
+                type: "Router",
                 manufacturerID: 4126,
                 endpoints: [
                     {ID: 230, profileID: 49413, deviceID: 1, inputClusters: [], outputClusters: []},
@@ -12,9 +12,9 @@ export const definitions: DefinitionWithExtend[] = [
                 ],
             },
         ],
-        model: 'XBee',
-        description: 'Router',
-        vendor: 'Digi',
+        model: "XBee",
+        description: "Router",
+        vendor: "Digi",
         fromZigbee: [],
         toZigbee: [],
         exposes: [],

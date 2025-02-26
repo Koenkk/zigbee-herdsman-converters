@@ -1,7 +1,7 @@
-import {access, options, presets} from './exposes';
-import {battery, setupConfigureForBinding} from './modernExtend';
-import {Configure, Expose, Fz, KeyValueAny, ModernExtend, Tz, Zh} from './types';
-import * as utils from './utils';
+import {access, options, presets} from "./exposes";
+import {battery, setupConfigureForBinding} from "./modernExtend";
+import type {Configure, Expose, Fz, KeyValueAny, ModernExtend, Tz, Zh} from "./types";
+import * as utils from "./utils";
 
 const e = presets;
 const ea = access;
@@ -16,15 +16,15 @@ const findKeyByValue = (object: object, value: number | string) => {
 // ======================= Custom TZ =====================================
 export const ewelinkToZigbee = {
     motor_direction: {
-        key: ['motor_direction'],
+        key: ["motor_direction"],
         convertSet: async (entity, key, value, meta) => {
             let windowCoveringMode;
-            if (value == 'forward') {
+            if (value === "forward") {
                 windowCoveringMode = 0x00;
-            } else if (value == 'reverse') {
+            } else if (value === "reverse") {
                 windowCoveringMode = 0x01;
             }
-            await entity.write('closuresWindowCovering', {windowCoveringMode}, utils.getOptions(meta.mapped, entity));
+            await entity.write("closuresWindowCovering", {windowCoveringMode}, utils.getOptions(meta.mapped, entity));
             return {state: {motor_direction: value}};
         },
     } satisfies Tz.Converter,
@@ -33,13 +33,13 @@ export const ewelinkToZigbee = {
 // ======================= Custom FZ =====================================
 export const ewelinkFromZigbee = {
     motor_direction: {
-        cluster: 'closuresWindowCovering',
-        type: ['attributeReport', 'readResponse'],
+        cluster: "closuresWindowCovering",
+        type: ["attributeReport", "readResponse"],
         options: [options.invert_cover()],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValueAny = {};
-            if (typeof msg.data === 'object' && Object.prototype.hasOwnProperty.call(msg.data, 'windowCoveringMode')) {
-                result['motor_direction'] = (msg.data.windowCoveringMode & (1 << 0)) > 0 == true ? 'reverse' : 'forward';
+            if (typeof msg.data === "object" && Object.prototype.hasOwnProperty.call(msg.data, "windowCoveringMode")) {
+                result.motor_direction = (msg.data.windowCoveringMode & (1 << 0)) > 0 === true ? "reverse" : "forward";
             }
             return result;
         },
@@ -50,7 +50,7 @@ export const ewelinkFromZigbee = {
 function privateMotorClbByPosition(clusterName: string, writeCommand: string): ModernExtend {
     const protocol = {
         dooya: {
-            supportModel: ['CK-MG22-Z310EE07DOOYA-01(7015)', 'MYDY25Z-1', 'CK-MG22-JLDJ-01(7015)'],
+            supportModel: ["CK-MG22-Z310EE07DOOYA-01(7015)", "MYDY25Z-1", "CK-MG22-JLDJ-01(7015)"],
             mapping: {
                 open: 0x01,
                 close: 0x02,
@@ -75,7 +75,7 @@ function privateMotorClbByPosition(clusterName: string, writeCommand: string): M
             },
         },
         raex: {
-            supportModel: ['MYRX25Z-1'],
+            supportModel: ["MYRX25Z-1"],
             mapping: {
                 open: 0x01,
                 close: 0x02,
@@ -93,7 +93,7 @@ function privateMotorClbByPosition(clusterName: string, writeCommand: string): M
             },
         },
         ak: {
-            supportModel: ['AM25B-1-25-ES-E-Z', 'ZM25-EAZ', 'AM25C-1-25-ES-E-Z'],
+            supportModel: ["AM25B-1-25-ES-E-Z", "ZM25-EAZ", "AM25C-1-25-ES-E-Z"],
             mapping: {
                 open: 0x00,
                 close: 0x01,
@@ -114,16 +114,16 @@ function privateMotorClbByPosition(clusterName: string, writeCommand: string): M
         },
     };
     const exposes = [];
-    exposes.push(e.enum('motor_clb_position', ea.SET, ['open', 'close', 'other', 'clear']).withDescription('Motor Calibration By Position'));
+    exposes.push(e.enum("motor_clb_position", ea.SET, ["open", "close", "other", "clear"]).withDescription("Motor Calibration By Position"));
 
-    exposes.push(e.text('motor_clb_position_result', ea.STATE).withDescription('Motor Calibration Result'));
+    exposes.push(e.text("motor_clb_position_result", ea.STATE).withDescription("Motor Calibration Result"));
 
     const fromZigbee: Fz.Converter[] = [
         {
             cluster: clusterName,
-            type: ['raw'],
+            type: ["raw"],
             convert: (model, msg, publish, otions, meta) => {
-                if (msg.type === 'raw' && msg.data instanceof Buffer) {
+                if (msg.type === "raw" && msg.data instanceof Buffer) {
                     // Raex Protocol，updated Report only through 'motor_info'.
                     if (protocol.dooya.supportModel.includes(model.model)) {
                         const bufferObj = msg.data.subarray(3, msg.data.length).toJSON(); // The first five bytes belong to the ZCL frame header, which are not of interest here; only the payload is extracted.
@@ -136,7 +136,7 @@ function privateMotorClbByPosition(clusterName: string, writeCommand: string): M
                             const motor_clb_position_result: {[key: string]: string} = {};
                             for (const entity of entities) {
                                 if (entity[1] === payload[2]) {
-                                    motor_clb_position_result[entity[0] as string] = 'calibrated';
+                                    motor_clb_position_result[entity[0] as string] = "calibrated";
                                     break;
                                 }
                             }
@@ -144,12 +144,13 @@ function privateMotorClbByPosition(clusterName: string, writeCommand: string): M
                             return {
                                 motor_clb_position_result,
                             };
-                        } else if (payload[0] === deletedPrivateCmd && payload[1] === deletedPrivateSubCmd) {
+                        }
+                        if (payload[0] === deletedPrivateCmd && payload[1] === deletedPrivateSubCmd) {
                             if (payload[2] === protocol.dooya.mapping.clear) {
                                 const motor_clb_position_result = {
-                                    open: 'uncalibrated',
-                                    close: 'uncalibrated',
-                                    other: 'uncalibrated',
+                                    open: "uncalibrated",
+                                    close: "uncalibrated",
+                                    other: "uncalibrated",
                                 };
                                 return {
                                     motor_clb_position_result,
@@ -163,26 +164,25 @@ function privateMotorClbByPosition(clusterName: string, writeCommand: string): M
                         if (payload[0] === cmdType && payload[2] === privateCmd && payload[3] === dataType) {
                             if (payload[6] === protocol.ak.mapping.clear) {
                                 const motor_clb_position_result = {
-                                    open: 'uncalibrated',
-                                    close: 'uncalibrated',
-                                    other: 'uncalibrated',
+                                    open: "uncalibrated",
+                                    close: "uncalibrated",
+                                    other: "uncalibrated",
                                 };
-                                return {
-                                    motor_clb_position_result,
-                                };
-                            } else {
-                                const entities = Object.entries(protocol.ak.mapping);
-                                const motor_clb_position_result: {[key: string]: string} = {};
-                                for (const entity of entities) {
-                                    if (entity[1] === payload[6]) {
-                                        motor_clb_position_result[entity[0] as string] = 'calibrated';
-                                        break;
-                                    }
-                                }
                                 return {
                                     motor_clb_position_result,
                                 };
                             }
+                            const entities = Object.entries(protocol.ak.mapping);
+                            const motor_clb_position_result: {[key: string]: string} = {};
+                            for (const entity of entities) {
+                                if (entity[1] === payload[6]) {
+                                    motor_clb_position_result[entity[0] as string] = "calibrated";
+                                    break;
+                                }
+                            }
+                            return {
+                                motor_clb_position_result,
+                            };
                         }
                     }
                 }
@@ -192,7 +192,7 @@ function privateMotorClbByPosition(clusterName: string, writeCommand: string): M
 
     const toZigbee: Tz.Converter[] = [
         {
-            key: ['motor_clb_position'],
+            key: ["motor_clb_position"],
             convertSet: async (entity: Zh.Endpoint, key, value, meta) => {
                 const device: Zh.Device = entity.getDevice();
                 const modelID = device.modelID;
@@ -201,12 +201,12 @@ function privateMotorClbByPosition(clusterName: string, writeCommand: string): M
                     const {deleteMotorClbCommand, updateMotorClbCommand, mapping} = protocol.dooya;
                     // Dooya Protocol
                     const payloadValue = [];
-                    if (value === 'clear') {
+                    if (value === "clear") {
                         // Clear limit postion
                         payloadValue[0] = deleteMotorClbCommand.privateCmd;
                         payloadValue[1] = deleteMotorClbCommand.subCmd;
                         payloadValue[2] = mapping[value as keyof typeof mapping];
-                    } else if (['open', 'close', 'other'].includes(value as string)) {
+                    } else if (["open", "close", "other"].includes(value as string)) {
                         // Set limit postion
                         payloadValue[0] = updateMotorClbCommand.privateCmd;
                         payloadValue[1] = updateMotorClbCommand.subCmd;
@@ -218,13 +218,13 @@ function privateMotorClbByPosition(clusterName: string, writeCommand: string): M
                     const {deleteMotorClbCommand, updateMotorClbCommand, mapping} = protocol.raex;
                     // Raex Protocol
                     const payloadValue = [];
-                    if (value === 'clear') {
+                    if (value === "clear") {
                         // Clear limit postion
                         payloadValue[0] = deleteMotorClbCommand.privateCmd;
                         payloadValue[1] = deleteMotorClbCommand.dataLength;
                         payloadValue[2] = deleteMotorClbCommand.subCmd;
                         payloadValue[3] = mapping[value as keyof typeof mapping];
-                    } else if (['open', 'close', 'other'].includes(value as string)) {
+                    } else if (["open", "close", "other"].includes(value as string)) {
                         // Set limit postion
                         payloadValue[0] = updateMotorClbCommand.privateCmd;
                         payloadValue[1] = updateMotorClbCommand.dataLength;
@@ -254,10 +254,10 @@ function privateMotorClbByPosition(clusterName: string, writeCommand: string): M
 }
 
 function privateMotorMode(clusterName: string, writeCommand: string): ModernExtend {
-    const mode = ['inching', 'continuou'];
+    const mode = ["inching", "continuou"];
     const protocol = {
         dooya: {
-            supportModel: ['CK-MG22-Z310EE07DOOYA-01(7015)', 'MYDY25Z-1', 'CK-MG22-JLDJ-01(7015)'],
+            supportModel: ["CK-MG22-Z310EE07DOOYA-01(7015)", "MYDY25Z-1", "CK-MG22-JLDJ-01(7015)"],
             mapping: {
                 continuou: 0x20,
                 inching: 0x30,
@@ -272,7 +272,7 @@ function privateMotorMode(clusterName: string, writeCommand: string): ModernExte
             },
         },
         raex: {
-            supportModel: ['MYRX25Z-1'],
+            supportModel: ["MYRX25Z-1"],
             mapping: {
                 continuou: 0x01,
                 inching: 0x02,
@@ -284,7 +284,7 @@ function privateMotorMode(clusterName: string, writeCommand: string): ModernExte
             },
         },
         ak: {
-            supportModel: ['AM25B-1-25-ES-E-Z', 'ZM25-EAZ', 'AM25C-1-25-ES-E-Z'],
+            supportModel: ["AM25B-1-25-ES-E-Z", "ZM25-EAZ", "AM25C-1-25-ES-E-Z"],
             mapping: {
                 continuou: 0x00,
                 inching: 0x01,
@@ -302,13 +302,13 @@ function privateMotorMode(clusterName: string, writeCommand: string): ModernExte
             },
         },
     };
-    const expose = e.enum('motor_mode', ea.STATE_SET, mode).withDescription('Motor Mode');
+    const expose = e.enum("motor_mode", ea.STATE_SET, mode).withDescription("Motor Mode");
     const fromZigbee: Fz.Converter[] = [
         {
             cluster: clusterName,
-            type: ['raw'],
+            type: ["raw"],
             convert: (model, msg, publish, otions, meta) => {
-                if (msg.type === 'raw' && msg.data instanceof Buffer) {
+                if (msg.type === "raw" && msg.data instanceof Buffer) {
                     if (protocol.dooya.supportModel.includes(model.model)) {
                         const bufferObj = msg.data.subarray(3, msg.data.length).toJSON();
                         const payload = bufferObj.data;
@@ -352,7 +352,7 @@ function privateMotorMode(clusterName: string, writeCommand: string): ModernExte
 
     const toZigbee: Tz.Converter[] = [
         {
-            key: ['motor_mode'],
+            key: ["motor_mode"],
             convertSet: async (entity: Zh.Endpoint, key, value, meta) => {
                 const device: Zh.Device = entity.getDevice();
                 const modelID = device.modelID;
@@ -398,7 +398,7 @@ function privateMotorMode(clusterName: string, writeCommand: string): ModernExte
 function privateReportMotorInfo(clusterName: string): ModernExtend {
     const protocol = {
         dooya: {
-            supportModel: ['CK-MG22-Z310EE07DOOYA-01(7015)', 'MYDY25Z-1', 'CK-MG22-JLDJ-01(7015)', 'Grandekor Smart Curtain Grandekor'],
+            supportModel: ["CK-MG22-Z310EE07DOOYA-01(7015)", "MYDY25Z-1", "CK-MG22-JLDJ-01(7015)", "Grandekor Smart Curtain Grandekor"],
             mapping: {
                 status: {
                     open: 0x01,
@@ -444,12 +444,12 @@ function privateReportMotorInfo(clusterName: string): ModernExtend {
             },
         },
         raex: {
-            supportModel: ['MYRX25Z-1'],
+            supportModel: ["MYRX25Z-1"],
             mapping: {
                 status: {
-                    open: '01',
-                    close: '10',
-                    stop: '00',
+                    open: "01",
+                    close: "10",
+                    stop: "00",
                 },
                 itinerary: {
                     none: 0x00,
@@ -464,12 +464,12 @@ function privateReportMotorInfo(clusterName: string): ModernExtend {
                     T3: 0x03,
                 },
                 motorDirection: {
-                    forward: '0',
-                    reverse: '1',
+                    forward: "0",
+                    reverse: "1",
                 },
                 motorMode: {
-                    continuou: '0',
-                    inching: '1',
+                    continuou: "0",
+                    inching: "1",
                 },
             },
             updatedMotorInfoCommand: {
@@ -479,13 +479,13 @@ function privateReportMotorInfo(clusterName: string): ModernExtend {
         },
     };
 
-    const expose = e.text('motor_info', ea.STATE).withDescription('Motor Updated Info');
+    const expose = e.text("motor_info", ea.STATE).withDescription("Motor Updated Info");
     const fromZigbee: Fz.Converter[] = [
         {
             cluster: clusterName,
-            type: ['raw'],
+            type: ["raw"],
             convert: (model, msg, publish, otions, meta) => {
-                if (msg.type === 'raw' && msg.data instanceof Buffer) {
+                if (msg.type === "raw" && msg.data instanceof Buffer) {
                     if (protocol.dooya.supportModel.includes(model.model)) {
                         // Dooya Protocol
                         const bufferObj = msg.data.subarray(3, msg.data.length).toJSON();
@@ -523,16 +523,16 @@ function privateReportMotorInfo(clusterName: string): ModernExtend {
                         const {privateCmd, subCmd} = raexProtocol.updatedMotorInfoCommand;
 
                         if (payload[0] === privateCmd && payload[1] === subCmd) {
-                            const motor_status_binary = payload[2].toString(2).padStart(8, '0').slice(6, 8);
+                            const motor_status_binary = payload[2].toString(2).padStart(8, "0").slice(6, 8);
                             const motor_status = findKeyByValue(raexProtocol.mapping.status, motor_status_binary);
                             const motor_percentage = payload[3]; // 255 indicates that the motor cannot find the percentage.
                             const motor_angle = payload[4]; // 255 indicates that the motor cannot find the angle
                             const battery = payload[5];
                             const motor_itinerary = findKeyByValue(raexProtocol.mapping.itinerary, payload[11]);
                             const motor_speed = payload[9];
-                            const motor_direction_binary = payload[8].toString(2).padStart(8, '0').slice(6, 7);
+                            const motor_direction_binary = payload[8].toString(2).padStart(8, "0").slice(6, 7);
                             const motor_direction = findKeyByValue(raexProtocol.mapping.motorDirection, motor_direction_binary);
-                            const motor_mode_binary = payload[8].toString(2).padStart(8, '0').slice(5, 6);
+                            const motor_mode_binary = payload[8].toString(2).padStart(8, "0").slice(5, 6);
                             const motor_mode = findKeyByValue(raexProtocol.mapping.motorMode, motor_mode_binary);
                             return {
                                 [expose.property]: {
@@ -558,7 +558,7 @@ function privateReportMotorInfo(clusterName: string): ModernExtend {
 function privateMotorSpeed(clusterName: string, writeCommand: string, minSpeed: number, maxSpeed: number): ModernExtend {
     const protocol = {
         dooya: {
-            supportModel: ['CK-MG22-Z310EE07DOOYA-01(7015)', 'MYDY25Z-1', 'CK-MG22-JLDJ-01(7015)', 'Grandekor Smart Curtain Grandekor'],
+            supportModel: ["CK-MG22-Z310EE07DOOYA-01(7015)", "MYDY25Z-1", "CK-MG22-JLDJ-01(7015)", "Grandekor Smart Curtain Grandekor"],
             updateMotorSpeedCommand: {
                 privateCmd: 0x01,
                 subCmd: 0xd1,
@@ -573,7 +573,7 @@ function privateMotorSpeed(clusterName: string, writeCommand: string, minSpeed: 
             },
         },
         raex: {
-            supportModel: ['MYRX25Z-1'],
+            supportModel: ["MYRX25Z-1"],
             updateMotorSpeedCommand: {
                 privateCmd: 0x11,
                 dataLength: 0x02,
@@ -583,15 +583,15 @@ function privateMotorSpeed(clusterName: string, writeCommand: string, minSpeed: 
     };
 
     const exposes = [];
-    exposes.push(e.numeric('motor_speed', ea.STATE_SET).withDescription('Set the motor speed').withValueMin(minSpeed).withValueMax(maxSpeed));
-    exposes.push(e.numeric('supported_max_motor_speed', ea.STATE).withDescription('Supported max motor speed'));
+    exposes.push(e.numeric("motor_speed", ea.STATE_SET).withDescription("Set the motor speed").withValueMin(minSpeed).withValueMax(maxSpeed));
+    exposes.push(e.numeric("supported_max_motor_speed", ea.STATE).withDescription("Supported max motor speed"));
 
     const fromZigbee: Fz.Converter[] = [
         {
             cluster: clusterName,
-            type: ['raw'],
+            type: ["raw"],
             convert: (model, msg, publish, otions, meta) => {
-                if (msg.type === 'raw' && msg.data instanceof Buffer) {
+                if (msg.type === "raw" && msg.data instanceof Buffer) {
                     if (protocol.dooya.supportModel.includes(model.model)) {
                         const bufferObj = msg.data.subarray(3, msg.data.length).toJSON();
                         const payload = bufferObj.data;
@@ -601,7 +601,8 @@ function privateMotorSpeed(clusterName: string, writeCommand: string, minSpeed: 
                             return {
                                 motor_speed: payload[2], // If the gear position is 255, it means the device does not support speed adjustment.
                             };
-                        } else if (payload[0] === updatedMaxMotorSpeedCommand.privateCmd && payload[1] === updatedMaxMotorSpeedCommand.subCmd) {
+                        }
+                        if (payload[0] === updatedMaxMotorSpeedCommand.privateCmd && payload[1] === updatedMaxMotorSpeedCommand.subCmd) {
                             const supportedMax = payload[2];
                             if (supportedMax === 0 || supportedMax === undefined) {
                                 return {
@@ -618,7 +619,7 @@ function privateMotorSpeed(clusterName: string, writeCommand: string, minSpeed: 
 
     const toZigbee: Tz.Converter[] = [
         {
-            key: ['motor_speed'],
+            key: ["motor_speed"],
             convertSet: async (entity: Zh.Endpoint, key, value, meta) => {
                 const device: Zh.Device = entity.getDevice();
                 const modelID = device.modelID;
@@ -650,20 +651,20 @@ function privateMotorSpeed(clusterName: string, writeCommand: string, minSpeed: 
 
 export const ewelinkModernExtend = {
     ewelinkAction: (): ModernExtend => {
-        const exposes: Expose[] = [presets.action(['single', 'double', 'long'])];
+        const exposes: Expose[] = [presets.action(["single", "double", "long"])];
 
         const fromZigbee: Fz.Converter[] = [
             {
-                cluster: 'genOnOff',
-                type: ['commandOn', 'commandOff', 'commandToggle'],
+                cluster: "genOnOff",
+                type: ["commandOn", "commandOff", "commandToggle"],
                 convert: (model, msg, publish, options, meta) => {
-                    const lookup: KeyValueAny = {commandToggle: 'single', commandOn: 'double', commandOff: 'long'};
+                    const lookup: KeyValueAny = {commandToggle: "single", commandOn: "double", commandOff: "long"};
                     return {action: lookup[msg.type]};
                 },
             },
         ];
 
-        const configure: Configure[] = [setupConfigureForBinding('genOnOff', 'output')];
+        const configure: Configure[] = [setupConfigureForBinding("genOnOff", "output")];
 
         return {exposes, fromZigbee, configure, isModernExtend: true};
     },
@@ -678,7 +679,7 @@ export const ewelinkModernExtend = {
         });
     },
     ewelinkMotorReverse: (): ModernExtend => {
-        const exposes = [e.enum('motor_direction', ea.STATE_SET, ['forward', 'reverse']).withDescription('Set the motor direction')];
+        const exposes = [e.enum("motor_direction", ea.STATE_SET, ["forward", "reverse"]).withDescription("Set the motor direction")];
         const toZigbee: Tz.Converter[] = [ewelinkToZigbee.motor_direction];
         const fromZigbee: Fz.Converter[] = [ewelinkFromZigbee.motor_direction];
 

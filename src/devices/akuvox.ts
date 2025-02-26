@@ -1,27 +1,27 @@
-import fz from '../converters/fromZigbee';
-import * as exposes from '../lib/exposes';
-import * as reporting from '../lib/reporting';
-import * as tuya from '../lib/tuya';
-import {DefinitionWithExtend} from '../lib/types';
+import * as fz from "../converters/fromZigbee";
+import * as exposes from "../lib/exposes";
+import * as reporting from "../lib/reporting";
+import * as tuya from "../lib/tuya";
+import type {DefinitionWithExtend} from "../lib/types";
 
 const e = exposes.presets;
 
 export const definitions: DefinitionWithExtend[] = [
     {
-        fingerprint: tuya.fingerprint('TS0201', ['_TYZB01_ujfk3xd9']),
-        model: 'M423-9E',
-        vendor: 'Akuvox',
-        description: 'Smart temperature & humidity Sensor',
+        fingerprint: tuya.fingerprint("TS0201", ["_TYZB01_ujfk3xd9"]),
+        model: "M423-9E",
+        vendor: "Akuvox",
+        description: "Smart temperature & humidity Sensor",
         exposes: [e.battery(), e.temperature(), e.humidity()],
         fromZigbee: [fz.temperature, fz.humidity, fz.battery],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
-            await endpoint1.read('genPowerCfg', ['batteryPercentageRemaining']);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ["msTemperatureMeasurement", "genPowerCfg"]);
+            await endpoint1.read("genPowerCfg", ["batteryPercentageRemaining"]);
             const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ['msRelativeHumidity']);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ["msRelativeHumidity"]);
             await reporting.temperature(endpoint1);
             await reporting.humidity(endpoint2);
             await reporting.batteryVoltage(endpoint1);
