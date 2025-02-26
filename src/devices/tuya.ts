@@ -13441,6 +13441,53 @@ export const definitions: DefinitionWithExtend[] = [
         }),
     },
     {
+        fingerprint: [
+            {
+                modelID: 'TS0601',
+                manufacturerName: '_TZE284_6ocnqlhn',
+            },
+        ],
+        model: 'TO-Q-SYS-J2T',
+        vendor: 'Tongou',
+        description: 'DIN Rail Smart Meter',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEventSetLocalTime,
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.power(),
+            e.current(),
+            e.voltage(),
+            e.energy(),
+            e.ac_frequency(),
+            e.power_factor().withUnit("%"),
+            e.numeric("temperature", ea.STATE).withUnit("°C").withDescription("Current temperature"),
+            e.numeric("test1", ea.STATE),
+            e.numeric("test2", ea.STATE),
+            e.numeric("test3", ea.STATE),
+            e.numeric("test4", ea.STATE),
+            e.numeric("test5", ea.STATE),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "energy", tuya.valueConverter.divideBy100], // Total. energy Work.
+                [6, null, tuya.valueConverter.phaseVariant2], // Phase A voltage and current. Work?
+                [13, 'test1', tuya.valueConverter.raw], // ?
+                [16, "test2", tuya.valueConverter.raw], // ?
+                [32, "ac_frequency", tuya.valueConverter.divideBy100], //ac_frequency. Work
+                [50, "power_factor", tuya.valueConverter.raw], //power_factor. Work
+                [103, "test3", tuya.valueConverter.raw],// ?
+                [110, "test4", tuya.valueConverter.raw],// ?
+                [125, 'test5', tuya.valueConverter.raw], // energy ?
+                [131, 'temperature', tuya.valueConverter.divideBy10], // temperature. Work
+                
+            ],
+        },
+        extend: [
+            // A preferred new way of extending functionality.
+        ],
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_l6llgoxq"]),
         model: "EA4161C-BI",
         vendor: "Tuya",
