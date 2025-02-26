@@ -158,7 +158,7 @@ const philipsModernExtend = {
                 },
             },
             commandsResponse: {},
-        });        
+        });
 
         result.onEvent = [...(result.onEvent ?? []), ...customClusterFC00.onEvent, ...customClusterFC01.onEvent, ...customClusterFC03.onEvent];
         result.configure = [
