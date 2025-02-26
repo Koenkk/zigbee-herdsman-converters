@@ -496,11 +496,11 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
                 // Consumption is deprecated
                 payload.consumption = payload.energy;
                 break;
-            case '150':
-                if (['KD-R01D'].includes(model.model)) {
+            case "150":
+                if (["KD-R01D"].includes(model.model)) {
                     assertNumber(value);
                     payload.voltage = value * 0.01;
-                } else if (!['JTYJ-GD-01LM/BW'].includes(model.model)) {
+                } else if (!["JTYJ-GD-01LM/BW"].includes(model.model)) {
                     assertNumber(value);
                     payload.voltage = value * 0.1; // 0x96
                 }
@@ -2132,18 +2132,19 @@ export const lumiModernExtend = {
     lumiKnobRotation: (args?: {withButtonState: boolean}): ModernExtend => {
         const withButtonState = args?.withButtonState || true;
         const exposes: Expose[] = [
-            e.action(['start_rotating', 'rotation', 'stop_rotating']),
-            e.numeric('action_rotation_angle', ea.STATE).withUnit('*').withDescription('Rotation angle').withCategory('diagnostic'),
-            e.numeric('action_rotation_angle_speed', ea.STATE).withUnit('*').withDescription('Rotation angle speed').withCategory('diagnostic'),
-            e.numeric('action_rotation_percent', ea.STATE).withUnit('%').withDescription('Rotation percent').withCategory('diagnostic'),
-            e.numeric('action_rotation_percent_speed', ea.STATE).withUnit('%').withDescription('Rotation percent speed').withCategory('diagnostic'),
-            e.numeric('action_rotation_time', ea.STATE).withUnit('ms').withDescription('Rotation time').withCategory('diagnostic'),
+            e.action(["start_rotating", "rotation", "stop_rotating"]),
+            e.numeric("action_rotation_angle", ea.STATE).withUnit("*").withDescription("Rotation angle").withCategory("diagnostic"),
+            e.numeric("action_rotation_angle_speed", ea.STATE).withUnit("*").withDescription("Rotation angle speed").withCategory("diagnostic"),
+            e.numeric("action_rotation_percent", ea.STATE).withUnit("%").withDescription("Rotation percent").withCategory("diagnostic"),
+            e.numeric("action_rotation_percent_speed", ea.STATE).withUnit("%").withDescription("Rotation percent speed").withCategory("diagnostic"),
+            e.numeric("action_rotation_time", ea.STATE).withUnit("ms").withDescription("Rotation time").withCategory("diagnostic"),
         ];
         if (withButtonState) {
-            exposes.push(e
-                .enum('action_rotation_button_state', ea.STATE, ['released', 'pressed'])
-                .withDescription('Button state during rotation')
-                .withCategory('diagnostic')
+            exposes.push(
+                e
+                    .enum("action_rotation_button_state", ea.STATE, ["released", "pressed"])
+                    .withDescription("Button state during rotation")
+                    .withCategory("diagnostic"),
             );
         }
 
