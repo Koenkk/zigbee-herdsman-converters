@@ -13460,7 +13460,7 @@ export const definitions: DefinitionWithExtend[] = [
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
             // Required to get the device to start reporting
             await device.getEndpoint(1).command("manuSpecificTuya", "dataQuery", {});
-            },
+        },
         exposes: [
             tuya.exposes.switch(),
             e.power(),
