@@ -1,4 +1,4 @@
-import fz from "../src/converters/fromZigbee";
+import * as fz from "../src/converters/fromZigbee";
 import {repInterval} from "../src/lib/constants";
 import {fromZigbee as lumiFz} from "../src/lib/lumi";
 import {setupAttributes} from "../src/lib/modernExtend";

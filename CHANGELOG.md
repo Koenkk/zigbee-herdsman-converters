@@ -1,5 +1,29 @@
 # Changelog
 
+## [23.1.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.1.0...v23.1.1) (2025-02-26)
+
+
+### Bug Fixes
+
+* **ignore:** Fix definition resolving ([#8892](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8892)) ([27fb004](https://github.com/Koenkk/zigbee-herdsman-converters/commit/27fb0047b3ec1458646c2db28ab7ee5e5d817c3c))
+* Update 3R button action ([#8893](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8893)) ([bdd038e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/bdd038e52296f370e8a7417466cedf84e508d3d6))
+
+## [23.1.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.0.0...v23.1.0) (2025-02-25)
+
+
+### Features
+
+* **add:** EFEKTA_AQ_Smart_Monitor ([#8887](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8887)) ([4ad8787](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4ad8787a43b8db7a0935c3754f7ed0f023595f09))
+
+
+### Bug Fixes
+
+* Add various `_TZE284_*` models ([#8886](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8886)) ([3325f29](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3325f29e0da78a34ae226dd9b78394b35c2228d5))
+* Cleanup exports in fz/tz ([#8885](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8885)) ([89ab46f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/89ab46f435273bee930cec78e2f2d050e6fa5af8))
+* **detect:** Detect `_TZE284_vawy74yh` as Moes ZM-SSD01 https://github.com/Koenkk/zigbee-herdsman-converters/issues/8884 ([3444a1c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3444a1cecef494ce006e3bb61a5d23160d4d6b28))
+* **ignore:** include changelog in package (required by chagnelog generator) ([365f0cc](https://github.com/Koenkk/zigbee-herdsman-converters/commit/365f0cc316cc07ea3730bba360e4f2bb5e16202d))
+* Iluminze 511.344: mark identify as sleepy ([#8883](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8883)) ([a4126e5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a4126e553a14613b2c3cfd55e66ec602aae71300))
+
 ## [23.0.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v22.2.0...v23.0.0) (2025-02-24)
 
 

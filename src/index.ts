@@ -2,8 +2,8 @@ import assert from "node:assert";
 
 import {Zcl} from "zigbee-herdsman";
 
-import fromZigbee from "./converters/fromZigbee";
-import toZigbee from "./converters/toZigbee";
+import * as fromZigbee from "./converters/fromZigbee";
+import * as toZigbee from "./converters/toZigbee";
 import {
     Binary,
     Climate,
@@ -193,8 +193,6 @@ async function getDefinitions(indexes: ModelIndex[]): Promise<DefinitionWithExte
 
     for (const [moduleName, index] of indexes) {
         if (!defs[moduleName]) {
-            logger.debug(`Loading module ${moduleName}`, NS);
-
             // NOTE: modules are cached by nodejs until process is stopped
             // currently using `commonjs`, so strip `.js` file extension, XXX: creates a warning with vitest (expects static `.js`)
             const {definitions} = (await import(`./devices/${moduleName.slice(0, -3)}`)) as {definitions: DefinitionWithExtend[]};
@@ -508,11 +506,18 @@ export async function findDefinition(device: Zh.Device, generateForUnknown = fal
         return undefined;
     }
 
-    // hot path when no external converters present
-    const candidates =
-        externalDefinitionsCount > 0
-            ? getFromExternalDefinitionsLookup(device.modelID) || (await getFromIndex(device.modelID))
-            : await getFromIndex(device.modelID);
+    let candidates = await getFromIndex(device.modelID);
+    if (externalDefinitionsCount > 0) {
+        const extCandidates = getFromExternalDefinitionsLookup(device.modelID);
+
+        if (extCandidates) {
+            if (candidates) {
+                candidates.unshift(...extCandidates);
+            } else {
+                candidates = extCandidates;
+            }
+        }
+    }
 
     if (!candidates) {
         if (!generateForUnknown || device.type === "Coordinator") {

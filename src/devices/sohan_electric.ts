@@ -1,4 +1,4 @@
-import fz from "../converters/fromZigbee";
+import * as fz from "../converters/fromZigbee";
 import * as m from "../lib/modernExtend";
 import * as tuya from "../lib/tuya";
 import type {DefinitionWithExtend} from "../lib/types";

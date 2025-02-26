@@ -2,8 +2,8 @@ import assert from "node:assert";
 
 import {Zcl} from "zigbee-herdsman";
 
-import fz from "../converters/fromZigbee";
-import tz from "../converters/toZigbee";
+import * as fz from "../converters/fromZigbee";
+import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
 import * as reporting from "../lib/reporting";
 import type {DefinitionWithExtend, KeyValue, Tz} from "../lib/types";
