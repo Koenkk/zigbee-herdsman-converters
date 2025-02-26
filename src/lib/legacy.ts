@@ -2,7 +2,7 @@
 
 import fs from "node:fs";
 
-import fromZigbeeConverters from "../converters/fromZigbee";
+import {occupancy_with_timeout} from "../converters/fromZigbee";
 import * as constants from "./constants";
 import * as exposes from "./exposes";
 import * as light from "./light";
@@ -1713,7 +1713,7 @@ const fromZigbee = {
         convert: (model, msg, publish, options, meta) => {
             const dpValue = firstDpValue(msg, meta, "blitzwolf_occupancy_with_timeout");
             msg.data.occupancy = dpValue.dp === dataPoints.occupancy ? 1 : 0;
-            return fromZigbeeConverters.occupancy_with_timeout.convert(model, msg, publish, options, meta) as KeyValueAny;
+            return occupancy_with_timeout.convert(model, msg, publish, options, meta) as KeyValueAny;
         },
     } satisfies Fz.Converter,
     moes_thermostat: {

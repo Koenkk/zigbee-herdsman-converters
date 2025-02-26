@@ -1,13 +1,28 @@
-import fz from "../converters/fromZigbee";
-import tz from "../converters/toZigbee";
+import * as fz from "../converters/fromZigbee";
+import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
 import {logger} from "../lib/logger";
+import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import type {DefinitionWithExtend} from "../lib/types";
+import * as globalStore from "../lib/store";
+import type {DefinitionWithExtend, KeyValue, OnEventData, OnEventType, Zh} from "../lib/types";
 
 const NS = "zhc:profalux";
 const e = exposes.presets;
 const ea = exposes.access;
+
+const DAY = 86400000;
+
+// Poll Battery voltage at most once a day
+// as the Profalux remotes do not report on battery
+async function onEventBatteryPoll(type: OnEventType, data: OnEventData, device: Zh.Device, options: KeyValue) {
+    if (type === "message" && Date.now() > globalStore.getValue(device, "battery_nextpoll", 0)) {
+        const endpoint = device.endpoints.find((e) => e.supportsInputCluster("genPowerCfg"));
+        logger.debug(`${device.ieeeAddr}: polling battery`, NS);
+        globalStore.putValue(device, "battery_nextpoll", Date.now() + DAY);
+        await endpoint.read("genPowerCfg", ["batteryVoltage"]);
+    }
+}
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -30,7 +45,7 @@ export const definitions: DefinitionWithExtend[] = [
         // using cluster 0x102 "closuresWindowCovering", so use that.
         // 06/10/20/30 is the torque in Nm. 20/30 have not been seen but
         // extracted from Profalux documentation. C/F seems to be a version. D
-        // and E have not been seen in the while. I suspect A is the earlier
+        // and E have not been seen in the wild. I suspect A is the earlier
         // model covered below, NSAV061.
         zigbeeModel: [
             "MOT-C1Z06C\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
@@ -110,9 +125,12 @@ export const definitions: DefinitionWithExtend[] = [
         model: "MAI-ZTP20",
         vendor: "Profalux",
         description: "Cover remote",
-        fromZigbee: [],
-        toZigbee: [],
-        exposes: [],
+        extend: [
+            m.battery({voltage: true, voltageToPercentage: {min: 2200, max: 3100}, percentageReporting: false}),
+            m.forcePowerSource({powerSource: "Battery"}),
+        ],
+        // Poll battery voltage as reporting doesn't work
+        onEvent: onEventBatteryPoll,
     },
     {
         // Newer remotes. These expose a bunch of things but they are bound to
@@ -145,8 +163,11 @@ export const definitions: DefinitionWithExtend[] = [
         model: "MAI-ZTM20C",
         vendor: "Profalux",
         description: "Cover remote",
-        fromZigbee: [],
-        toZigbee: [],
-        exposes: [],
+        extend: [
+            m.battery({voltage: true, voltageToPercentage: {min: 2200, max: 3100}, percentageReporting: false}),
+            m.forcePowerSource({powerSource: "Battery"}),
+        ],
+        // Poll battery voltage as reporting doesn't work
+        onEvent: onEventBatteryPoll,
     },
 ];

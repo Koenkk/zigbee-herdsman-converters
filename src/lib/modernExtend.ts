@@ -1,8 +1,8 @@
 import {Zcl} from "zigbee-herdsman";
 import type {ClusterDefinition} from "zigbee-herdsman/dist/zspec/zcl/definition/tstype";
 
-import fz from "../converters/fromZigbee";
-import tz from "../converters/toZigbee";
+import * as fz from "../converters/fromZigbee";
+import * as tz from "../converters/toZigbee";
 import {logger} from "../lib/logger";
 import * as globalStore from "../lib/store";
 import {type Cover, Numeric, presets as e, access as ea, options as opt} from "./exposes";

@@ -1,4 +1,4 @@
-import tz from "../converters/toZigbee";
+import * as tz from "../converters/toZigbee";
 import * as m from "../lib/modernExtend";
 import type {DefinitionWithExtend} from "../lib/types";
 

@@ -1,7 +1,7 @@
 import {Zcl} from "zigbee-herdsman";
 
-import fz from "../converters/fromZigbee";
-import tz from "../converters/toZigbee";
+import * as fz from "../converters/fromZigbee";
+import * as tz from "../converters/toZigbee";
 import * as constants from "../lib/constants";
 import {modernExtend as ewelinkModernExtend} from "../lib/ewelink";
 import * as exposes from "../lib/exposes";

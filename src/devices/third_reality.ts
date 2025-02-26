@@ -1,7 +1,7 @@
 import {Zcl} from "zigbee-herdsman";
 
-import fz from "../converters/fromZigbee";
-import tz from "../converters/toZigbee";
+import * as fz from "../converters/fromZigbee";
+import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
@@ -283,7 +283,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Smart button",
         fromZigbee: [fz.itcmdr_clicks],
         ota: true,
-        exposes: [e.action(["single", "double", "long"])],
+        exposes: [e.action(["single", "double", "hold", "release"])],
         extend: [
             m.battery(),
             m.deviceAddCustomCluster("3rButtonSpecialCluster", {

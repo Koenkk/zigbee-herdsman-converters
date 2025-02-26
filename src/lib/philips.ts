@@ -1,7 +1,7 @@
 import {Zcl} from "zigbee-herdsman";
 
-import fz from "../converters/fromZigbee";
-import tz from "../converters/toZigbee";
+import * as fz from "../converters/fromZigbee";
+import * as tz from "../converters/toZigbee";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import {ColorRGB, ColorXY} from "./color";

@@ -1,16 +1,26 @@
 {
     "name": "zigbee-herdsman-converters",
-    "version": "22.2.0",
+    "version": "23.1.1",
     "description": "Collection of device converters to be used with zigbee-herdsman",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
     "packageManager": "pnpm@10.4.1",
-    "files": ["dist"],
+    "files": [
+        "dist",
+        "CHANGELOG.md"
+    ],
     "repository": {
         "type": "git",
         "url": "git+https://github.com/Koenkk/zigbee-herdsman-converters.git"
     },
-    "keywords": ["aqara", "tradfri", "hue", "wemo", "zigbee", "zigbee-shepherd"],
+    "keywords": [
+        "aqara",
+        "tradfri",
+        "hue",
+        "wemo",
+        "zigbee",
+        "zigbee-shepherd"
+    ],
     "scripts": {
         "check": "biome check",
         "test": "vitest run --config ./test/vitest.config.mts",
@@ -34,6 +44,13 @@
         "iconv-lite": "^0.6.3",
         "semver": "^7.7.1",
         "zigbee-herdsman": "^3.2.6"
+    },
+    "exports": {
+        ".": "./dist/index.js",
+        "./converters/*": "./dist/converters/*.js",
+        "./devices/*": "./dist/devices/*.js",
+        "./lib/*": "./dist/lib/*.js",
+        "./package.json": "./package.json"
     },
     "devDependencies": {
         "@biomejs/biome": "^1.9.4",

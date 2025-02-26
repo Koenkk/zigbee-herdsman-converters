@@ -1,8 +1,8 @@
 import {Zcl} from "zigbee-herdsman";
 import type {Endpoint, Group} from "zigbee-herdsman/dist/controller/model";
 
-import fz from "../converters/fromZigbee";
-import tz from "../converters/toZigbee";
+import * as fz from "../converters/fromZigbee";
+import * as tz from "../converters/toZigbee";
 import * as constants from "../lib/constants";
 import {repInterval} from "../lib/constants";
 import * as exposes from "../lib/exposes";
