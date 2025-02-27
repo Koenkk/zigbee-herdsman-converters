@@ -2845,12 +2845,12 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        zigbeeModel: ['EFEKTA_Smart_AQ_Box_R3'],
-        model: 'EFEKTA_Smart_AQ_Box_R3',
-        vendor: 'EFEKTA',
-        description: 'EFEKTA Smart Air Quality Box, can control the relay, binding on some other devices',
+        zigbeeModel: ["EFEKTA_Smart_AQ_Box_R3"],
+        model: "EFEKTA_Smart_AQ_Box_R3",
+        vendor: "EFEKTA",
+        description: "EFEKTA Smart Air Quality Box, can control the relay, binding on some other devices",
         extend: [
-			  m.numeric({
+            m.numeric({
                 name: "pm1",
                 unit: "µg/m³",
                 cluster: "pm25Measurement",
@@ -2860,13 +2860,13 @@ export const definitions: DefinitionWithExtend[] = [
                 reporting: pmReporting,
                 precision: 1,
             }),
-             m.pm25({
+            m.pm25({
                 reporting: pmReporting,
                 access: "STATE",
                 description: "Measured PM2.5 (particulate matter) concentration",
                 precision: 1,
             }),
-             m.numeric({
+            m.numeric({
                 name: "pm4",
                 unit: "µg/m³",
                 cluster: "pm25Measurement",
@@ -2876,7 +2876,7 @@ export const definitions: DefinitionWithExtend[] = [
                 reporting: pmReporting,
                 precision: 1,
             }),
-             m.numeric({
+            m.numeric({
                 name: "pm10",
                 unit: "µg/m³",
                 cluster: "pm25Measurement",
@@ -2886,7 +2886,7 @@ export const definitions: DefinitionWithExtend[] = [
                 reporting: pmReporting,
                 precision: 1,
             }),
-             m.numeric({
+            m.numeric({
                 name: "pm_size",
                 unit: "µm",
                 cluster: "pm25Measurement",
@@ -2896,7 +2896,7 @@ export const definitions: DefinitionWithExtend[] = [
                 reporting: pm2Reporting,
                 precision: 2,
             }),
-             m.numeric({
+            m.numeric({
                 name: "aqi_25_index",
                 unit: "PM2.5 Index",
                 cluster: "pm25Measurement",
@@ -2905,11 +2905,11 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE",
                 reporting: pmReporting,
             }),
-			 m.co2({
-				reporting: co2Reporting,
-				access: "STATE",
+            m.co2({
+                reporting: co2Reporting,
+                access: "STATE",
             }),
-             m.numeric({
+            m.numeric({
                 name: "voc_index",
                 unit: "VOC Index points",
                 cluster: "genAnalogInput",
@@ -2918,19 +2918,19 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE",
                 reporting: threeReporting,
             }),
-             m.pressure({
+            m.pressure({
                 reporting: threeReporting,
-                access: 'STATE',
+                access: "STATE",
             }),
-             m.temperature({
+            m.temperature({
                 reporting: fourReporting,
-                access: 'STATE',
+                access: "STATE",
             }),
-			 m.humidity({
+            m.humidity({
                 reporting: fourReporting,
-				access: 'STATE',
+                access: "STATE",
             }),
-             m.numeric({
+            m.numeric({
                 name: "reading_delay",
                 unit: "sec",
                 valueMin: 6,
@@ -2940,25 +2940,25 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Setting the sensor reading delay.",
                 access: "STATE_SET",
             }),
-			 m.binary({
+            m.binary({
                 name: "alarm",
-				valueOn: ["ON", 1],
+                valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
                 cluster: "msCO2",
                 attribute: {ID: 0x0240, type: Zcl.DataType.BOOLEAN},
                 description: "Alarm",
                 access: "STATE_SET",
             }),
-			 m.binary({
+            m.binary({
                 name: "light_indicator",
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
                 cluster: "msCO2",
                 attribute: {ID: 0x0211, type: Zcl.DataType.BOOLEAN},
                 description: "Enable or Disable light indicator",
-				access: "STATE_SET",
+                access: "STATE_SET",
             }),
-             m.numeric({
+            m.numeric({
                 name: "light_indicator_level",
                 unit: "%",
                 valueMin: 0,
@@ -2966,9 +2966,9 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msCO2",
                 attribute: {ID: 0x0209, type: Zcl.DataType.UINT8},
                 description: "Light indicator level",
-				access: "STATE_SET",
+                access: "STATE_SET",
             }),
-			 m.numeric({
+            m.numeric({
                 name: "temperature_offset",
                 unit: "°C",
                 valueMin: -50,
@@ -2980,7 +2980,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Adjust temperature",
                 access: "STATE_SET",
             }),
-             m.numeric({
+            m.numeric({
                 name: "humidity_offset",
                 unit: "%",
                 valueMin: -50,
@@ -2991,7 +2991,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Adjust humidity",
                 access: "STATE_SET",
             }),
-			 m.numeric({
+            m.numeric({
                 name: "auto_clean_interval",
                 unit: "day",
                 valueMin: 0,
@@ -3002,7 +3002,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Auto clean interval PM2.5 sensor",
                 access: "STATE_SET",
             }),
-             m.binary({
+            m.binary({
                 name: "manual_clean",
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
@@ -3011,7 +3011,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Manual clean PM2.5 sensor",
                 access: "STATE_SET",
             }),
-			 m.binary({
+            m.binary({
                 name: "forced_recalibration",
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
@@ -3020,7 +3020,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Start FRC (Perform Forced Recalibration of the CO2 Sensor)",
                 access: "STATE_SET",
             }),
-             m.numeric({
+            m.numeric({
                 name: "manual_forced_recalibration",
                 unit: "ppm",
                 valueMin: 0,
@@ -3030,7 +3030,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Start Manual FRC (Perform Forced Recalibration of the CO2 Sensor)",
                 access: "STATE_SET",
             }),
-             m.binary({
+            m.binary({
                 name: "automatic_self_calibration",
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
@@ -3039,7 +3039,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Automatic self calibration",
                 access: "STATE_SET",
             }),
-             m.binary({
+            m.binary({
                 name: "factory_reset_co2",
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
@@ -3048,16 +3048,16 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Factory Reset CO2 sensor",
                 access: "STATE_SET",
             }),
-			 m.binary({
+            m.binary({
                 name: "enable_pm25",
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
                 cluster: "pm25Measurement",
                 attribute: {ID: 0x0220, type: Zcl.DataType.BOOLEAN},
                 description: "Enable PM2.5 Control",
-				access: "STATE_SET",
+                access: "STATE_SET",
             }),
-             m.numeric({
+            m.numeric({
                 name: "high_pm25",
                 unit: "µg/m³",
                 valueMin: 0,
@@ -3065,9 +3065,9 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "pm25Measurement",
                 attribute: {ID: 0x0221, type: Zcl.DataType.UINT16},
                 description: "Setting High PM2.5 Border",
-				access: "STATE_SET",
+                access: "STATE_SET",
             }),
-             m.numeric({
+            m.numeric({
                 name: "low_pm25",
                 unit: "µg/m³",
                 valueMin: 0,
@@ -3075,18 +3075,18 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "pm25Measurement",
                 attribute: {ID: 0x0222, type: Zcl.DataType.UINT16},
                 description: "Setting Low PM2.5 Border",
-				access: "STATE_SET",
+                access: "STATE_SET",
             }),
-			 m.binary({
+            m.binary({
                 name: "enable_co2_gas",
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
                 cluster: "msCO2",
                 attribute: {ID: 0x0220, type: Zcl.DataType.BOOLEAN},
                 description: "Enable CO2 Gas Control",
-				access: "STATE_SET",
+                access: "STATE_SET",
             }),
-             m.numeric({
+            m.numeric({
                 name: "high_co2_gas",
                 unit: "ppm",
                 valueMin: 400,
@@ -3094,9 +3094,9 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msCO2",
                 attribute: {ID: 0x0221, type: Zcl.DataType.BOOLEAN},
                 description: "Setting High CO2 Gas Border",
-				access: "STATE_SET",
+                access: "STATE_SET",
             }),
-             m.numeric({
+            m.numeric({
                 name: "low_co2_gas",
                 unit: "ppm",
                 valueMin: 400,
@@ -3104,18 +3104,18 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msCO2",
                 attribute: {ID: 0x0222, type: Zcl.DataType.UINT16},
                 description: "Setting Low CO2 Gas Border",
-				access: "STATE_SET",
+                access: "STATE_SET",
             }),
-             m.binary({
+            m.binary({
                 name: "enable_voc",
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
                 cluster: "genAnalogInput",
                 attribute: {ID: 0x0220, type: Zcl.DataType.BOOLEAN},
                 description: "Enable VOC Control",
-				access: "STATE_SET",
+                access: "STATE_SET",
             }),
-             m.numeric({
+            m.numeric({
                 name: "high_voc",
                 unit: "VOC Index points",
                 valueMin: 0,
@@ -3123,9 +3123,9 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "genAnalogInput",
                 attribute: {ID: 0x0221, type: Zcl.DataType.UINT16},
                 description: "Setting High VOC Border",
-				access: "STATE_SET",
+                access: "STATE_SET",
             }),
-             m.numeric({
+            m.numeric({
                 name: "low_voc",
                 unit: "VOC Index points",
                 valueMin: 0,
@@ -3133,7 +3133,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "genAnalogInput",
                 attribute: {ID: 0x0222, type: Zcl.DataType.UINT16},
                 description: "Setting Low VOC Border",
-				access: "STATE_SET",
+                access: "STATE_SET",
             }),
         ],
     },
