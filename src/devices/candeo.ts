@@ -12,11 +12,11 @@ const ea = exposes.access;
 const manufacturerSpecificClusterCode = 0x1224;
 const switch_type_attribute = 0x8803;
 const data_type = 0x20;
-const value_map = {
+const value_map: {[key: number]: string} = {
     0: "momentary",
     1: "toggle",
 };
-const value_lookup = {
+const value_lookup: {[key: string]: number} = {
     momentary: 0,
     toggle: 1,
 };
@@ -41,7 +41,7 @@ const fzLocal = {
 const tzLocal = {
     switch_type: {
         key: ["external_switch_type"],
-        convertSet: async (entity, key, value, meta) => {
+        convertSet: async (entity, key, value: string, meta) => {
             const numericValue = value_lookup[value] ?? Number.parseInt(value, 10);
             await entity.write(
                 "genBasic",
