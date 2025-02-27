@@ -1939,7 +1939,9 @@ const fromZigbee = {
                 case dataPoints.tuyaSabCO2:
                     if (["_TZE200_dwcarsat", "_TZE204_dwcarsat"].includes(meta.device.manufacturerName)) {
                         // Ignore: https://github.com/Koenkk/zigbee2mqtt/issues/11033#issuecomment-1109808552
-                        if (value === 0xaaac || value === 0xaaab) return;
+                        // There are a lot of "strange" big values, so if the value is bigger than the range of the sensor, discard
+                        // According to the manual of the device, the valid range is 0-1000 ug/m3
+                        if (value > 1000) return;
                         return {pm25: value};
                     }
                     if (meta.device.manufacturerName === "_TZE200_ryfmq5rl") {
