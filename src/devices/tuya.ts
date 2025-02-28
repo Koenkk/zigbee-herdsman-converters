@@ -10035,7 +10035,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_eaet5qt5", "_TZE284_8zizsafo"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_eaet5qt5"]),
         model: "TS0601_water_switch",
         vendor: "Tuya",
         description: "Dual water valve",
