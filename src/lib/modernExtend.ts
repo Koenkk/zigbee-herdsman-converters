@@ -1666,6 +1666,7 @@ interface MeterArgs {
     configureReporting?: boolean;
     endpointNames?: string[];
     fzMetering?: Fz.Converter;
+    reportingPowerType?: "metering" | "electrical";
     // applies only to electrical
     electricalMeasurementType?: "both" | "ac" | "dc";
     voltage?: false | (MultiplierDivisor & Partial<ReportingConfigWithoutAttribute>);
@@ -1894,7 +1895,7 @@ function genericMeter(args?: MeterArgs) {
         if (args.producedEnergy !== false) exposes.push(e.produced_energy().withAccess(ea.STATE_GET));
         fromZigbee = [args.fzElectricalMeasurement ?? fz.electrical_measurement, args.fzMetering ?? fz.metering];
         toZigbee = [
-            tz.electrical_measurement_power,
+            args.reportingPowerType === "electrical" ? tz.electrical_measurement_power : tz.metering_power,
             tz.acvoltage,
             tz.accurrent,
             tz.currentsummdelivered,
@@ -1902,7 +1903,8 @@ function genericMeter(args?: MeterArgs) {
             tz.frequency,
             tz.powerfactor,
         ];
-        delete configureLookup.seMetering.power;
+        if(args.reportingPowerType === "electrical") delete configureLookup.seMetering.power;
+        else delete configureLookup.haElectricalMeasurement.power;
     } else if (args.cluster === "metering" && args.type === "electricity") {
         if (args.power !== false) exposes.push(e.power().withAccess(ea.STATE_GET));
         if (args.energy !== false) exposes.push(e.energy().withAccess(ea.STATE_GET));
@@ -2038,6 +2040,7 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
         powerFactor: false,
         status: false,
         extendedStatus: false,
+        reportingPowerType: "electrical",
         ...args,
     };
     return genericMeter(args);
