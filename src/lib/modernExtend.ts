@@ -1903,7 +1903,7 @@ function genericMeter(args?: MeterArgs) {
             tz.frequency,
             tz.powerfactor,
         ];
-        if(args.reportingPowerType === "electrical") delete configureLookup.seMetering.power;
+        if (args.reportingPowerType === "electrical") delete configureLookup.seMetering.power;
         else delete configureLookup.haElectricalMeasurement.power;
     } else if (args.cluster === "metering" && args.type === "electricity") {
         if (args.power !== false) exposes.push(e.power().withAccess(ea.STATE_GET));
