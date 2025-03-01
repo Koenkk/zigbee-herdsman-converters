@@ -8,11 +8,11 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Brun Holding",
         description: "Stove guard for safe cooking",
         extend: [
-            m.deviceEndpoints({endpoints: {mainSwitch: 1, shortOverride: 2, ota: 10}}),
-            m.onOff({powerOnBehavior: false, endpointNames: ["mainSwitch"], description: "Main relay switch"}),
-            m.onOff({powerOnBehavior: false, endpointNames: ["shortOverride"], description: "Short override switch"}),
+            m.deviceEndpoints({endpoints: {main_switch: 1, short_override: 2}}),
+            m.onOff({powerOnBehavior: false, endpointNames: ["main_switch"], description: "Main relay switch"}),
+            m.onOff({powerOnBehavior: false, endpointNames: ["short_override"], description: "Short override switch"}),
             m.electricityMeter({
-                endpointNames: ["mainSwitch"],
+                endpointNames: ["main_switch"],
                 power: {multiplier: 1, divisor: 1},
                 voltage: false,
                 current: false,
