@@ -10,13 +10,13 @@ const e = exposes.presets;
 const ea = exposes.access;
 
 const manufacturerSpecificClusterCode = 0x1224;
-const switch_type_attribute = 0x8803;
-const data_type = 0x20;
-const value_map: {[key: number]: string} = {
+const switchTypeAttribute = 0x8803;
+const dataType = 0x20;
+const valueMap: {[key: number]: string} = {
     0: "momentary",
     1: "toggle",
 };
-const value_lookup: {[key: string]: number} = {
+const valueLookup: {[key: string]: number} = {
     momentary: 0,
     toggle: 1,
 };
@@ -26,10 +26,10 @@ const fzLocal = {
         cluster: "genBasic",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
-            if (Object.prototype.hasOwnProperty.call(msg.data, switch_type_attribute)) {
-                const value = msg.data[switch_type_attribute];
+            if (Object.prototype.hasOwnProperty.call(msg.data, switchTypeAttribute)) {
+                const value = msg.data[switchTypeAttribute];
                 return {
-                    external_switch_type: value_map[value] || "unknown",
+                    external_switch_type: valueMap[value] || "unknown",
                     external_switch_type_numeric: value,
                 };
             }
@@ -42,16 +42,16 @@ const tzLocal = {
     switch_type: {
         key: ["external_switch_type"],
         convertSet: async (entity, key, value: string, meta) => {
-            const numericValue = value_lookup[value] ?? Number.parseInt(value, 10);
+            const numericValue = valueLookup[value] ?? Number.parseInt(value, 10);
             await entity.write(
                 "genBasic",
-                {[switch_type_attribute]: {value: numericValue, type: data_type}},
+                {[switchTypeAttribute]: {value: numericValue, type: dataType}},
                 {manufacturerCode: manufacturerSpecificClusterCode},
             );
             return {state: {external_switch_type: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read("genBasic", [switch_type_attribute], {manufacturerCode: manufacturerSpecificClusterCode});
+            await entity.read("genBasic", [switchTypeAttribute], {manufacturerCode: manufacturerSpecificClusterCode});
         },
     } satisfies Tz.Converter,
 };
@@ -266,7 +266,7 @@ export const definitions: DefinitionWithExtend[] = [
             await endpoint1.read("genLevelCtrl", ["onOffTransitionTime"]);
             await endpoint1.write("genLevelCtrl", {16384: {value: 0xff, type: 0x20}});
             await endpoint1.read("genLevelCtrl", ["startUpCurrentLevel"]);
-            await endpoint1.read("genBasic", [switch_type_attribute], {manufacturerCode: manufacturerSpecificClusterCode});
+            await endpoint1.read("genBasic", [switchTypeAttribute], {manufacturerCode: manufacturerSpecificClusterCode});
         },
     },
 ];
