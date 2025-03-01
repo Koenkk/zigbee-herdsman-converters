@@ -76,6 +76,7 @@ import {definitions as efekta} from "./efekta";
 import {definitions as eglo} from "./eglo";
 import {definitions as elko} from "./elko";
 import {definitions as enbrighten} from "./enbrighten";
+import {definitions as enkin} from "./enkin";
 import {definitions as enocean} from "./enocean";
 import {definitions as envilar} from "./envilar";
 import {definitions as essentialb} from "./essentialb";
@@ -400,6 +401,7 @@ export default [
     ...elko,
     ...enbrighten,
     ...enocean,
+    ...enkin,
     ...envilar,
     ...essentialb,
     ...essentials,
