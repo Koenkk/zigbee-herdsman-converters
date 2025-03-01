@@ -1,4 +1,5 @@
 const m = require("zigbee-herdsman-converters/lib/modernExtend");
+import type {DefinitionWithExtend} from "../lib/types";
 
 export const definitions: DefinitionWithExtend[] = [{
     zigbeeModel: ["dqhome.re4"],
