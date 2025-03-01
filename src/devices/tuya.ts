@@ -1452,9 +1452,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.binary("preheat", ea.STATE, true, false).withDescription("Indicates sensor preheat is active"),
         ],
         whiteLabel: [
-            tuya.whitelabel("DYGSM", "DY-RQ500A", "Gas sensor", ["_TZE204_zougpkpy"]),
-            tuya.whitelabel("DYGSM", "DY-RQ500A", "Gas sensor", ["_TZE204_chbyv06x"]),
-            tuya.whitelabel("DYGSM", "DY-RQ500A", "Gas sensor", ["_TZE284_chbyv06x"]),
+            tuya.whitelabel("DYGSM", "DY-RQ500A", "Gas sensor", ["_TZE204_zougpkpy", "_TZE204_chbyv06x", "_TZE284_chbyv06x"]),
         ],
         meta: {
             tuyaDatapoints: [
