@@ -306,6 +306,7 @@ import {definitions as weiser} from "./weiser";
 import {definitions as weten} from "./weten";
 import {definitions as wirenboard} from "./wirenboard";
 import {definitions as wisdom} from "./wisdom";
+import {definitions as wmun} from "./wmun";
 import {definitions as woolley} from "./woolley";
 import {definitions as woox} from "./woox";
 import {definitions as wyze} from "./wyze";
@@ -633,6 +634,7 @@ export default [
     ...wisdom,
     ...woolley,
     ...woox,
+    ...wmun,
     ...wyze,
     ...xal,
     ...xinghuoyuan,
