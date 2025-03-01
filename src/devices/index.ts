@@ -62,6 +62,7 @@ import {definitions as diyruz} from "./diyruz";
 import {definitions as dlink} from "./dlink";
 import {definitions as dnake} from "./dnake";
 import {definitions as dowsing_reynolds} from "./dowsing_reynolds";
+import {definitions as dqsmart} from "./dqsmart";
 import {definitions as dresden_elektronik} from "./dresden_elektronik";
 import {definitions as easyaccess} from "./easyaccess";
 import {definitions as easyiot} from "./easyiot";
@@ -387,6 +388,7 @@ export default [
     ...dnake,
     ...dowsing_reynolds,
     ...dresden_elektronik,
+    ...dqsmart,
     ...easyaccess,
     ...easyiot,
     ...eatonhalo_led,
