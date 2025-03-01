@@ -13441,21 +13441,13 @@ export const definitions: DefinitionWithExtend[] = [
         }),
     },
     {
-        fingerprint: [
-            {
-                modelID: "TS0601",
-                manufacturerName: "_TZE284_6ocnqlhn",
-            },
-        ],
+        fingerprint: [{modelID: "TS0601", manufacturerName: "_TZE284_6ocnqlhn"}],
         model: "TO-Q-SYS-J2T",
         vendor: "Tongou",
-        description: "Din Rail Smart Meter",
+        description: "Din rail smart meter",
         fromZigbee: [tuya.fz.datapoints, tuya.fz.gateway_connection_status],
         toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEvent({
-            respondToMcuVersionResponse: false,
-            queryIntervalSeconds: 10,
-        }),
+        onEvent: tuya.onEvent({respondToMcuVersionResponse: false, queryIntervalSeconds: 10}),
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
             // Required to get the device to start reporting
