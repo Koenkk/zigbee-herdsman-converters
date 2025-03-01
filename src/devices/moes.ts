@@ -102,7 +102,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE204_u9bfwha0",
             "_TZE204_xalsoe3m",
         ]),
-        model: "BHT-002-GCLZB",
+        model: "BHT-002",
         vendor: "Moes",
         description: "Moes BHT series Thermostat",
         fromZigbee: [legacy.fz.moes_thermostat],
