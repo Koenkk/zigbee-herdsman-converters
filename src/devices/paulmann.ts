@@ -189,8 +189,8 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["500.43"],
         model: "500.43",
-        vendor: "Paulmann Licht",
-        description: "SmartHome Contoller (Relay)",
+        vendor: "Paulmann",
+        description: "SmartHome contoller (Relay)",
         extend: [m.onOff({powerOnBehavior: false})],
     },
     {
