@@ -13,7 +13,6 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Universal smart IR remote control on batteries",
         exposes: [ez.learn_ir_code(), ez.learned_ir_code(), ez.ir_code_to_send()],
         extend: [m.battery()],
-        meta: {},
         fromZigbee: [
             fzZosung.zosung_send_ir_code_00,
             fzZosung.zosung_send_ir_code_01,
