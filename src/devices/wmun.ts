@@ -8,7 +8,6 @@ import type {DefinitionWithExtend} from "../lib/types";
 export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: [{modelID: "TS1201", manufacturerName: "_TZ3290_u9xac5rv"}],
-        zigbeeModel: ["TS1201"],
         model: "ZS05",
         vendor: "WMUN",
         description: "Universal smart IR remote control on batteries",
