@@ -187,6 +187,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.light({colorTemp: {range: [153, 350]}, color: {modes: ["xy", "hs"]}})],
     },
     {
+        zigbeeModel: ["500.43"],
+        model: "500.43",
+        vendor: "Paulmann",
+        description: "SmartHome contoller (Relay)",
+        extend: [m.onOff({powerOnBehavior: false})],
+    },
+    {
         zigbeeModel: ["500.44"],
         model: "500.44",
         vendor: "Paulmann",
