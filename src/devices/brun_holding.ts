@@ -20,6 +20,5 @@ export const definitions: DefinitionWithExtend[] = [
             m.battery(),
             m.temperature({reporting: undefined}),
         ],
-        meta: {multiEndpoint: true},
     },
 ];
