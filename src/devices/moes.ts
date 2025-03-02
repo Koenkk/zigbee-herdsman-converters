@@ -655,7 +655,7 @@ export const definitions: DefinitionWithExtend[] = [
             )
                 .withDescription("Screen on time")
                 .withCategory("config"),
-            e.binary("rgb_light", exposes.access.STATE_SET, 'ON', 'OFF'),
+            e.binary("rgb_light", exposes.access.STATE_SET, "ON", "OFF"),
         ],
         meta: {
             tuyaDatapoints: [
