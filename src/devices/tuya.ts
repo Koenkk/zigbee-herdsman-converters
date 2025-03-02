@@ -12156,6 +12156,67 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
+	{
+	    fingerprint: tuya.fingerprint("TS0601", ["_TZE200_zaydjiac"]),
+	    model: "ZY-PIR",
+	    vendor: "Tuya",
+	    description: "24G MmWave radar human presence motion sensor",
+	    fromZigbee: [tuya.fz.datapoints],
+	    toZigbee: [tuya.tz.datapoints],
+	    configure: tuya.configureMagicPacket,
+	    exposes: [
+			e.battery(),
+	        e.enum("state", ea.STATE, ["pir", "none"]).withDescription("Presence state sensor"),
+	        e.occupancy().withDescription("Occupancy"),
+	        e.illuminance().withDescription("Illuminance sensor"),
+	        e.numeric("move_sensitivity", ea.STATE_SET).withValueMin(1).withValueMax(10).withValueStep(1).withDescription("Motion Sensitivity"),
+	        e.numeric("presence_sensitivity", ea.STATE_SET).withValueMin(1).withValueMax(10).withValueStep(1).withDescription("Presence Sensitivity"),
+			e
+	            .numeric("detection_distance_max", ea.STATE_SET)
+	            .withValueMax(9.0)
+	            .withValueStep(0.5)
+	            .withUnit("m")
+	            .withDescription("Maximum range"),
+	        e
+	            .numeric("presence_timeout", ea.STATE_SET)
+	            .withValueMax(120)
+	            .withValueStep(1)
+	            .withUnit("s")
+	            .withDescription("Fade time"),
+	    ],
+	    meta: {
+	        tuyaDatapoints: [
+				[1, null, {
+					from: function(v, meta) {
+				
+						if (v == 0) {
+							return {
+								state: 'pir',
+								occupancy: true,
+							}
+						} else if (v == 1) {
+							return {
+								state: 'none',
+								presence: false,
+							}
+						} else {
+							return {
+								state: 'none',
+								presence: false,
+							}
+						}
+				
+					}
+				}],
+	            [105, "move_sensitivity", tuya.valueConverter.raw],
+	            [102, "presence_sensitivity", tuya.valueConverter.raw],
+	            [101, "detection_distance_max", tuya.valueConverter.divideBy100],
+	            [103, "presence_timeout", tuya.valueConverter.raw],
+			    [4, 'battery', tuya.valueConverter.raw],
+	            [12, "illuminance", tuya.valueConverter.raw],
+	        ],
+	    },
+	},
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_7gclukjs"]),
         model: "ZY-M100-24GV2",
