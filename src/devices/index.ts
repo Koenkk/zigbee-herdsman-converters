@@ -31,6 +31,7 @@ import {definitions as blitzwolf} from "./blitzwolf";
 import {definitions as bosch} from "./bosch";
 import {definitions as bouffalo_lab} from "./bouffalo_lab";
 import {definitions as brimate} from "./brimate";
+import {definitions as brun_holding} from "./brun_holding";
 import {definitions as bseed} from "./bseed";
 import {definitions as bticino} from "./bticino";
 import {definitions as busch_jaeger} from "./busch_jaeger";
@@ -357,6 +358,7 @@ export default [
     ...bosch,
     ...bouffalo_lab,
     ...brimate,
+    ...brun_holding,
     ...bseed,
     ...bticino,
     ...busch_jaeger,
