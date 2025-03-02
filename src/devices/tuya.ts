@@ -12160,7 +12160,7 @@ export const definitions: DefinitionWithExtend[] = [
 	    fingerprint: tuya.fingerprint("TS0601", ["_TZE200_zaydjiac"]),
 	    model: "ZY-PIR",
 	    vendor: "Tuya",
-	    description: "24G MmWave radar human presence motion sensor",
+	    description: "Long-lasting infrared human body sensor",
 	    fromZigbee: [tuya.fz.datapoints],
 	    toZigbee: [tuya.tz.datapoints],
 	    configure: tuya.configureMagicPacket,
