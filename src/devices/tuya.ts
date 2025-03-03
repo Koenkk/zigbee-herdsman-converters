@@ -5468,7 +5468,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withLocalTemperature(ea.STATE)
                 .withPreset(["schedule", "holiday", "manual", "comfort", "eco"])
                 .withSystemMode(["off", "heat"], ea.STATE)
-                .withLocalTemperatureCalibration(-12, 12, 0.5, ea.STATE_SET),
+                .withLocalTemperatureCalibration(-12, 12, 1, ea.STATE_SET),
             ...tuya.exposes.scheduleAllDays(ea.STATE_SET, "HH:MM/C HH:MM/C HH:MM/C HH:MM/C HH:MM/C HH:MM/C"),
             e.holiday_temperature().withValueMin(5).withValueMax(45),
             e.comfort_temperature().withValueMin(5).withValueMax(45),
