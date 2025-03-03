@@ -31,6 +31,7 @@ import {definitions as blitzwolf} from "./blitzwolf";
 import {definitions as bosch} from "./bosch";
 import {definitions as bouffalo_lab} from "./bouffalo_lab";
 import {definitions as brimate} from "./brimate";
+import {definitions as brun_holding} from "./brun_holding";
 import {definitions as bseed} from "./bseed";
 import {definitions as bticino} from "./bticino";
 import {definitions as busch_jaeger} from "./busch_jaeger";
@@ -306,6 +307,7 @@ import {definitions as weiser} from "./weiser";
 import {definitions as weten} from "./weten";
 import {definitions as wirenboard} from "./wirenboard";
 import {definitions as wisdom} from "./wisdom";
+import {definitions as wmun} from "./wmun";
 import {definitions as woolley} from "./woolley";
 import {definitions as woox} from "./woox";
 import {definitions as wyze} from "./wyze";
@@ -356,6 +358,7 @@ export default [
     ...bosch,
     ...bouffalo_lab,
     ...brimate,
+    ...brun_holding,
     ...bseed,
     ...bticino,
     ...busch_jaeger,
@@ -633,6 +636,7 @@ export default [
     ...wisdom,
     ...woolley,
     ...woox,
+    ...wmun,
     ...wyze,
     ...xal,
     ...xinghuoyuan,
