@@ -18,6 +18,7 @@ export const ewelinkToZigbee = {
     motor_direction: {
         key: ["motor_direction"],
         convertSet: async (entity, key, value, meta) => {
+            // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
             let windowCoveringMode;
             if (value === "forward") {
                 windowCoveringMode = 0x00;
@@ -38,7 +39,7 @@ export const ewelinkFromZigbee = {
         options: [options.invert_cover()],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValueAny = {};
-            if (typeof msg.data === "object" && Object.prototype.hasOwnProperty.call(msg.data, "windowCoveringMode")) {
+            if (typeof msg.data === "object" && Object.hasOwn(msg.data, "windowCoveringMode")) {
                 result.motor_direction = (msg.data.windowCoveringMode & (1 << 0)) > 0 === true ? "reverse" : "forward";
             }
             return result;
@@ -316,6 +317,7 @@ function privateMotorMode(clusterName: string, writeCommand: string): ModernExte
 
                         if (payload[0] === privateCmd && payload[1] === subCmd) {
                             const entities = Object.entries(protocol.dooya.mapping);
+                            // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
                             let motor_mode;
                             for (const entity of entities) {
                                 if (entity[1] === payload[2]) {
@@ -333,6 +335,7 @@ function privateMotorMode(clusterName: string, writeCommand: string): ModernExte
                         const {cmdType, privateCmd, dataType} = protocol.ak.updatedMotorModeCommand;
                         if (payload[0] === cmdType && payload[2] === privateCmd && payload[3] === dataType) {
                             const entities = Object.entries(protocol.ak.mapping);
+                            // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
                             let motor_mode;
                             for (const entity of entities) {
                                 if (entity[1] === payload[6]) {

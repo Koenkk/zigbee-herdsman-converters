@@ -702,7 +702,9 @@ const yokisExtendChecks = {
         };
     },
     parseDim: (input: KeyValueAny) => {
+        // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
         let _ul_RampContinuousDuration;
+        // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
         let _uc_StepContinuous;
 
         if (!input || typeof input !== "object") {
@@ -725,6 +727,7 @@ const yokisExtendChecks = {
         };
     },
     parseDimMinMax: (input: KeyValueAny) => {
+        // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
         let _ul_TransitionTime;
 
         if (!input || typeof input !== "object") {
@@ -747,11 +750,17 @@ const yokisExtendChecks = {
         };
     },
     parseStartNightLightMode: (input: KeyValueAny) => {
+        // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
         let _ul_ChildModeStartingDelay;
+        // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
         let _uc_ChildModeBrightnessStart;
+        // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
         let _uc_ChildModeBrightnessEnd;
+        // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
         let _ul_ChildModeRampDuration;
+        // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
         let _ul_ChildModeOnDuration;
+        // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
         let _uc_ChildStep;
 
         if (!input || typeof input !== "object") {

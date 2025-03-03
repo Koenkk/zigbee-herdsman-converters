@@ -60,6 +60,7 @@ function getSortedList(source: {[key: string]: number}): string[] {
     });
 
     const result: string[] = [];
+    // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
     keysSorted.forEach((item) => {
         result.push(item[0]);
     });
@@ -82,7 +83,9 @@ const tzLocal = {
             await entity.read("genOnOffSwitchCfg", ["buttonMode", 0x4001, 0x4002]);
         },
         convertSet: async (entity, key, value, meta) => {
+            // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
             let payload;
+            // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
             let data;
             switch (key) {
                 case "button_mode":
@@ -181,7 +184,9 @@ const tzLocal = {
             await entity.read("genOnOffSwitchCfg", ["switchType", "switchActions", 0x4001, 0x4002]);
         },
         convertSet: async (entity, key, value, meta) => {
+            // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
             let payload;
+            // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
             let data;
             switch (key) {
                 case "switch_type":

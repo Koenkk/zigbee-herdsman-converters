@@ -195,6 +195,7 @@ describe("OTA", () => {
                     return await Promise.resolve();
                 }
 
+                // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
                 transactionSequenceNumber = transactionSequenceNumber || ZclTransactionSequenceNumber.next();
 
                 switch (commandKey) {
@@ -378,6 +379,7 @@ describe("OTA", () => {
 
     const getImage = async (manifestUrl: string): Promise<Ota.Image> => {
         const newImageRsp = fetchOverride(manifestUrl);
+        // biome-ignore lint/style/noNonNullAssertion: ignored using `--suppress`
         const newImage = newImageRsp.arrayBuffer!();
 
         return parseImage(newImage.subarray(newImage.indexOf(UPGRADE_FILE_IDENTIFIER)));
@@ -490,8 +492,10 @@ describe("OTA", () => {
         expect(existsSync(TEST_PREV_MANIFEST_INDEX_FILEPATH)).toStrictEqual(true);
 
         const baseManifestRsp = fetchOverride(ZIGBEE_OTA_LATEST_URL);
+        // biome-ignore lint/style/noNonNullAssertion: ignored using `--suppress`
         const baseManifest = baseManifestRsp.json!() as Ota.ZigbeeOTAImageMeta[];
         const prevManifestRsp = fetchOverride(ZIGBEE_OTA_PREVIOUS_URL);
+        // biome-ignore lint/style/noNonNullAssertion: ignored using `--suppress`
         const prevManifest = prevManifestRsp.json!() as Ota.ZigbeeOTAImageMeta[];
 
         for (const meta of baseManifest.concat(prevManifest)) {
@@ -587,6 +591,7 @@ describe("OTA", () => {
 
         it("finds an image by minFileVersion with specific request payload", async () => {
             const [device, image] = await getInovelliDevice(-1);
+            // biome-ignore lint/style/noNonNullAssertion: ignored using `--suppress`
             const metas = getMetas(INOVELLI_BASE_URL, mockGetLatestManifest())!;
             metas.minFileVersion = 16908810;
 
@@ -608,6 +613,7 @@ describe("OTA", () => {
 
         it("finds no image by minFileVersion with specific request payload", async () => {
             const [device, image] = await getInovelliDevice(-1);
+            // biome-ignore lint/style/noNonNullAssertion: ignored using `--suppress`
             const metas = getMetas(INOVELLI_BASE_URL, mockGetLatestManifest())!;
             metas.minFileVersion = 16908810;
 
@@ -630,6 +636,7 @@ describe("OTA", () => {
 
         it("finds an image by maxFileVersion with specific request payload", async () => {
             const [device, image] = await getInovelliDevice(-1);
+            // biome-ignore lint/style/noNonNullAssertion: ignored using `--suppress`
             const metas = getMetas(INOVELLI_BASE_URL, mockGetLatestManifest())!;
             metas.maxFileVersion = 16908815;
 
@@ -651,6 +658,7 @@ describe("OTA", () => {
 
         it("finds no image by maxFileVersion with specific request payload", async () => {
             const [device, image] = await getInovelliDevice(-1);
+            // biome-ignore lint/style/noNonNullAssertion: ignored using `--suppress`
             const metas = getMetas(INOVELLI_BASE_URL, mockGetLatestManifest())!;
             metas.maxFileVersion = 16908815;
 
@@ -871,6 +879,7 @@ describe("OTA", () => {
 
         it("finds an image with extra meta force and ignores higher fileVersion", async () => {
             const [device, image] = await getInovelliDevice(-1);
+            // biome-ignore lint/style/noNonNullAssertion: ignored using `--suppress`
             const metas = getMetas(INOVELLI_BASE_URL, mockGetLatestManifest())!;
             metas.force = true;
 
@@ -900,6 +909,7 @@ describe("OTA", () => {
 
         it("finds a downgrade image with specific request payload", async () => {
             const [device, image] = await getInovelliDevice(0);
+            // biome-ignore lint/style/noNonNullAssertion: ignored using `--suppress`
             const prevMetas = getMetas(INOVELLI_PREV_URL, mockGetPreviousManifest())!;
 
             const result = await isUpdateAvailable(device as unknown as Zh.Device, {}, getRequestPayloadFromImage(image, 0), true);
@@ -982,6 +992,7 @@ describe("OTA", () => {
         describe("with local override index", () => {
             it("matches from override first using local file", async () => {
                 const [device, image] = await getInovelliDevice(-1);
+                // biome-ignore lint/style/noNonNullAssertion: ignored using `--suppress`
                 const prevMetas = getMetas(INOVELLI_PREV_URL, mockGetPreviousManifest())!;
 
                 // previous index has a downgrade image, lower version, but is being overridden
@@ -1003,6 +1014,7 @@ describe("OTA", () => {
 
             it("matches from override first using URL", async () => {
                 const [device, image] = await getInovelliDevice(-1);
+                // biome-ignore lint/style/noNonNullAssertion: ignored using `--suppress`
                 const prevMetas = getMetas(INOVELLI_PREV_URL, mockGetPreviousManifest())!;
 
                 // previous index has a downgrade image, lower version, but is being overridden
@@ -1024,12 +1036,16 @@ describe("OTA", () => {
 
             it("fills missing image info when needed", async () => {
                 const [device, image] = await getInovelliDevice(-1);
+                // biome-ignore lint/style/noNonNullAssertion: ignored using `--suppress`
                 const prevMetas = getMetas(INOVELLI_PREV_URL, mockGetPreviousManifest())!;
                 const incompletePrevMetas = structuredClone(prevMetas);
                 incompletePrevMetas.url = path.join(TEST_PREV_IMAGES_DIRNAME, ...getLocalPath(incompletePrevMetas.url));
                 // TODO: set @ts-expect-error when "strict": true enabled
+                // biome-ignore lint/performance/noDelete: ignored using `--suppress`
                 delete incompletePrevMetas.imageType;
+                // biome-ignore lint/performance/noDelete: ignored using `--suppress`
                 delete incompletePrevMetas.manufacturerCode;
+                // biome-ignore lint/performance/noDelete: ignored using `--suppress`
                 delete incompletePrevMetas.fileVersion;
 
                 mockGetPreviousManifest.mockReturnValueOnce([incompletePrevMetas]);
@@ -1052,6 +1068,7 @@ describe("OTA", () => {
 
             it("does not fill missing image info when not needed", async () => {
                 const [device, image] = await getInovelliDevice(-1);
+                // biome-ignore lint/style/noNonNullAssertion: ignored using `--suppress`
                 const prevMetas = getMetas(INOVELLI_PREV_URL, mockGetPreviousManifest())!;
                 prevMetas.url = path.join(TEST_PREV_IMAGES_DIRNAME, ...getLocalPath(prevMetas.url));
 
@@ -1235,6 +1252,7 @@ describe("OTA", () => {
 
             it("upgrades with local firmware file", async () => {
                 const [device, image] = await getInovelliDevice(-10); // go before the version in prev for below mocks to work
+                // biome-ignore lint/style/noNonNullAssertion: ignored using `--suppress`
                 const prevMetas = getMetas(INOVELLI_PREV_URL, mockGetPreviousManifest())!;
                 const prevImage = await getImage(INOVELLI_PREV_URL);
                 prevMetas.url = path.join(TEST_PREV_IMAGES_DIRNAME, ...getLocalPath(prevMetas.url));
@@ -1406,6 +1424,7 @@ describe("OTA", () => {
 
             it("continues on OTA file element parse failure with extra meta", async () => {
                 const [device, image] = await getInovelliDevice(-1);
+                // biome-ignore lint/style/noNonNullAssertion: ignored using `--suppress`
                 const metas = getMetas(INOVELLI_BASE_URL, mockGetLatestManifest())!;
                 const filePaths = getLocalPath(INOVELLI_BASE_URL);
                 const filePath = path.join(TEST_BASE_IMAGES_DIRPATH, ...filePaths);
@@ -1431,6 +1450,7 @@ describe("OTA", () => {
 
             it("fails on OTA file element parse failure without extra meta", async () => {
                 const [device, image] = await getInovelliDevice(-1);
+                // biome-ignore lint/style/noNonNullAssertion: ignored using `--suppress`
                 const metas = getMetas(INOVELLI_BASE_URL, mockGetLatestManifest())!;
                 const filePaths = getLocalPath(INOVELLI_BASE_URL);
                 const filePath = path.join(TEST_BASE_IMAGES_DIRPATH, ...filePaths);
@@ -1507,10 +1527,13 @@ describe("OTA", () => {
             it("fails due to hardware version restrictions unmet - with manifest missing info", async () => {
                 const [device, image] = await getUbisysDevice(-1);
                 device.hardwareVersion = 100;
+                // biome-ignore lint/style/noNonNullAssertion: ignored using `--suppress`
                 const metas = getMetas(UBISYS_BASE_URL, mockGetLatestManifest())!;
                 // workaround to reach the proper file
                 metas.url = metas.url.replace(`${PREV_IMAGES_DIRNAME}/`, `${BASE_IMAGES_DIRNAME}/`);
+                // biome-ignore lint/performance/noDelete: ignored using `--suppress`
                 delete metas.hardwareVersionMin;
+                // biome-ignore lint/performance/noDelete: ignored using `--suppress`
                 delete metas.hardwareVersionMax;
 
                 mockGetPreviousManifest.mockReturnValueOnce([metas]);

@@ -260,6 +260,7 @@ const speedToInt = (speedIn: string): number => {
 
 // Create Expose list with Inovelli Parameters definitions
 const attributesToExposeList = (ATTRIBUTES: {[s: string]: Attribute}, exposesList: Expose[]) => {
+    // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
     Object.keys(ATTRIBUTES).forEach((key) => {
         if (ATTRIBUTES[key].displayType === "enum") {
             const enumE = e
@@ -290,6 +291,7 @@ const attributesToExposeList = (ATTRIBUTES: {[s: string]: Attribute}, exposesLis
                 .withValueMax(ATTRIBUTES[key].max);
 
             if (ATTRIBUTES[key].values) {
+                // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
                 Object.keys(ATTRIBUTES[key].values).forEach((value) => {
                     numeric.withPreset(value, ATTRIBUTES[key].values[value], "");
                 });
@@ -1713,10 +1715,12 @@ const fzLocal = {
                         const key = splitValuesByEndpoint ? `${c}_${msg.endpoint.ID}` : c;
                         if (ATTRIBUTES[key] && ATTRIBUTES[key].displayType === "enum") {
                             return {
+                                // biome-ignore lint/performance/noAccumulatingSpread: ignored using `--suppress`
                                 ...p,
                                 [key]: Object.keys(ATTRIBUTES[key].values).find((k) => ATTRIBUTES[key].values[k] === msg.data[c]),
                             };
                         }
+                        // biome-ignore lint/performance/noAccumulatingSpread: ignored using `--suppress`
                         return {...p, [key]: msg.data[c]};
                     }, {});
                 }

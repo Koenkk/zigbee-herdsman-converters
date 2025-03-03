@@ -359,6 +359,7 @@ export const definitions: DefinitionWithExtend[] = [
                 const deviceConfigArray = deviceConfig.split(/[\r\n]+/);
                 const allEndpoints: {[key: number]: string} = {};
                 const allEndpointsSorted = [];
+                // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
                 let epConfig;
                 for (let i = 0; i < deviceConfigArray.length; i++) {
                     epConfig = deviceConfigArray[i];
@@ -535,7 +536,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
         meta: {multiEndpoint: true, tuyaThermostatPreset: legacy.fz /* for subclassed custom converters */},
         endpoint: (device) => {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            // biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
             const endpointList: any = [];
             const deviceConfig = ptvoGetMetaOption(device, "device_config", "");
             if (deviceConfig === "") {

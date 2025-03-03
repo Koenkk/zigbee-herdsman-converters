@@ -417,6 +417,7 @@ const tzLocal = {
                 const lookup: KeyValue = {mute: 0, low: 10, medium: 30, high: 50};
                 utils.assertString(value, "volume");
                 const lookupValue = lookup[value];
+                // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
                 value = value.toLowerCase();
                 utils.validateValue(value, Object.keys(lookup));
                 await entity.write("ssIasWd", {2: {value: lookupValue, type: 0x0a}}, utils.getOptions(meta.mapped, entity));
@@ -3747,6 +3748,7 @@ export const definitions: DefinitionWithExtend[] = [
                                 return v === true ? "ON" : "OFF";
                             }
 
+                            // biome-ignore lint/performance/noDelete: ignored using `--suppress`
                             delete meta.state.state;
                         },
                     },
@@ -12782,6 +12784,7 @@ export const definitions: DefinitionWithExtend[] = [
                                 return v === true ? "ON" : "OFF";
                             }
 
+                            // biome-ignore lint/performance/noDelete: ignored using `--suppress`
                             delete meta.state.state;
                         },
                     },

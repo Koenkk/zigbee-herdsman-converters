@@ -1637,11 +1637,11 @@ function getCurrentConfig(device: Zh.Device, options: KeyValue) {
             return options[targetOption];
         }
 
+        // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
         let lMode;
         try {
             lMode = endpoint.clusters[clustersDef._0xFF66].attributes.linkyMode;
             // @ts-expect-error ignore
-            // eslint-disable-next-line @typescript-eslint/no-unused-expressions
             lMode.raiseError; // raise if undefined
             // @ts-expect-error ignore
             return ((lMode >> bitLinkyMode) & 1) === 1 ? valueTrue : valueFalse;
@@ -1675,7 +1675,6 @@ function getCurrentConfig(device: Zh.Device, options: KeyValue) {
     } else {
         try {
             const lixAtts = endpoint.clusters[clustersDef._0xFF66].attributes;
-            // eslint-disable-next-line @typescript-eslint/no-unused-expressions
             lixAtts.raiseIfEmpty;
             // @ts-expect-error ignore
             currentTarf = fzLocal.lixee_private_fz.convert({}, {data: lixAtts}).current_tarif;
@@ -1751,6 +1750,7 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: [],
         exposes: (device, options) => {
             // docs generation
+            // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
             let exposes;
             if (device == null && options == null) {
                 exposes = exposedData
@@ -1817,6 +1817,7 @@ export const definitions: DefinitionWithExtend[] = [
                 (e) => !suscribeNew.some((r) => e.cluster.name === r.cluster && e.attribute.name === r.att),
             );
             // Unsuscribe reports that doesn't correspond with the current config
+            // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
             (
                 await Promise.allSettled(
                     unsuscribe.map((e) =>
@@ -1852,6 +1853,7 @@ export const definitions: DefinitionWithExtend[] = [
                     }),
                 );
             }
+            // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
             (await Promise.allSettled(configReportings))
                 .filter((e) => e.status === "rejected")
                 .forEach((e) => {
@@ -1883,12 +1885,14 @@ export const definitions: DefinitionWithExtend[] = [
                             );
 
                             for (const key in clustersDef) {
-                                if (Object.hasOwnProperty.call(clustersDef, key)) {
+                                if (Object.hasOwn(clustersDef, key)) {
                                     // @ts-expect-error ignore
                                     const cluster = clustersDef[key];
                                     const targ = currentExposes.filter((e) => e.cluster === cluster).map((e) => e.att);
                                     if (targ.length) {
+                                        // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
                                         let i;
+                                        // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
                                         let j;
                                         // Split array by chunks
                                         for (i = 0, j = targ.length; i < j; i += measurement_poll_chunk) {

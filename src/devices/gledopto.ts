@@ -120,6 +120,7 @@ const tzLocal = {
 };
 
 function gledoptoLight(args?: m.LightArgs) {
+    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
     args = {powerOnBehavior: false, ...args};
     if (args.color) args.color = {modes: ["xy", "hs"], ...(utils.isObject(args.color) ? args.color : {})};
     const result = m.light(args);

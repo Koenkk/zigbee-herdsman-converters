@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-namespace */
-
 import type {Models as ZHModels} from "zigbee-herdsman";
 import type {Header as ZHZclHeader} from "zigbee-herdsman/dist/zspec/zcl";
 import type {FrameControl} from "zigbee-herdsman/dist/zspec/zcl/definition/tstype";
@@ -24,7 +22,7 @@ export interface KeyValueNumberString {
     [s: number]: string;
 }
 export interface KeyValueAny {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
     [s: string]: any;
 }
 export type Publish = (payload: KeyValue) => void;
@@ -296,7 +294,7 @@ export type ExternalDefinitionWithExtend = DefinitionWithExtend & {externalConve
 
 export namespace Fz {
     export interface Message {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        // biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
         data: any;
         endpoint: Zh.Endpoint;
         device: Zh.Device;
@@ -330,7 +328,7 @@ export namespace Tz {
         membersState?: {[s: string]: KeyValue};
         publish: Publish;
     }
-    // biome-ignore lint/suspicious/noConfusingVoidType: allow for converters
+    // biome-ignore lint/suspicious/noConfusingVoidType: ignored using `--suppress`
     export type ConvertSetResult = {state?: KeyValue; membersState?: {[s: string]: KeyValue}} | void;
     export interface Converter {
         key?: string[];

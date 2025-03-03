@@ -1810,9 +1810,11 @@ function toSnakeCase(str: string) {
 function ticmeterConverter(msg: Fz.Message) {
     const result: KeyValue = {};
     const keys = Object.keys(msg.data);
+    // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
     keys.forEach((key) => {
         const found = ticmeterDatas.find((x) => x.attr === key);
         if (found) {
+            // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
             let value;
             switch (found.type) {
                 case STRING:
@@ -1928,6 +1930,7 @@ async function poll(endpoint: Zh.Endpoint, device: ZHModels.Device) {
 
     toRead = toRead.sort((a, b) => a.clust.localeCompare(b.clust));
     const groupedByCluster: {[key: string]: TICMeterData[]} = {};
+    // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
     toRead.forEach((item) => {
         if (!groupedByCluster[item.clust]) {
             groupedByCluster[item.clust] = [];
@@ -2095,6 +2098,7 @@ export const definitions: DefinitionWithExtend[] = [
             globalStore.putValue(device, "producer", currentProducer);
             globalStore.putValue(device, "translation", translation);
 
+            // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
             ticmeterDatas.forEach((item) => {
                 let contractOK = false;
                 let elecOK = false;
@@ -2225,6 +2229,7 @@ export const definitions: DefinitionWithExtend[] = [
 
             logger.debug(`Configure wanted ${wanted.length}`, "TICMeter");
 
+            // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
             endpoint.configuredReportings.forEach(async (r) => {
                 await endpoint.configureReporting(
                     r.cluster.name,
@@ -2280,6 +2285,7 @@ export const definitions: DefinitionWithExtend[] = [
                     globalStore.putValue(device, "elec_mode", elecMode);
                 }
                 if (data.data.contractType !== undefined) {
+                    // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
                     let contractType;
                     if (Buffer.isBuffer(data.data.contractType)) {
                         contractType = data.data.contractType.toString();

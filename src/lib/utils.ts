@@ -119,6 +119,7 @@ const transactionStore: {[s: string]: number[]} = {};
 export function hasAlreadyProcessedMessage(msg: Fz.Message, model: Definition, ID: number = null, key: string = null) {
     if (model.meta?.publishDuplicateTransaction) return false;
     const currentID = ID !== null ? ID : msg.meta.zclTransactionSequenceNumber;
+    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
     key = key || `${msg.device.ieeeAddr}-${msg.endpoint.ID}`;
     if (transactionStore[key]?.includes(currentID)) return true;
     // Keep last 5, as they might come in different order: https://github.com/Koenkk/zigbee2mqtt/issues/20024
@@ -168,6 +169,7 @@ export function calibrateAndPrecisionRoundOptions(number: number, options: KeyVa
         // +/- percent
         calibrationOffset = (number * calibrationOffset) / 100;
     }
+    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
     number = number + calibrationOffset;
 
     // Precision round
@@ -179,8 +181,10 @@ export function calibrateAndPrecisionRoundOptions(number: number, options: KeyVa
 
 export function toPercentage(value: number, min: number, max: number) {
     if (value > max) {
+        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         value = max;
     } else if (value < min) {
+        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         value = min;
     }
 
@@ -207,6 +211,7 @@ export function postfixWithEndpointName(value: string, msg: Fz.Message, definiti
     if (!meta) {
         logger.warning("No meta passed to postfixWithEndpointName, update your external converter!", NS);
         // @ts-expect-error ignore
+        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         meta = {device: null};
     }
 
@@ -537,9 +542,11 @@ export function normalizeCelsiusVersionOfFahrenheit(value: number) {
 export function noOccupancySince(endpoint: Zh.Endpoint, options: KeyValueAny, publish: Publish, action: "start" | "stop") {
     if (options?.no_occupancy_since) {
         if (action === "start") {
+            // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
             globalStore.getValue(endpoint, "no_occupancy_since_timers", []).forEach((t: ReturnType<typeof setInterval>) => clearTimeout(t));
             globalStore.putValue(endpoint, "no_occupancy_since_timers", []);
 
+            // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
             options.no_occupancy_since.forEach((since: number) => {
                 const timer = setTimeout(() => {
                     publish({no_occupancy_since: since});
@@ -547,6 +554,7 @@ export function noOccupancySince(endpoint: Zh.Endpoint, options: KeyValueAny, pu
                 globalStore.getValue(endpoint, "no_occupancy_since_timers").push(timer);
             });
         } else if (action === "stop") {
+            // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
             globalStore.getValue(endpoint, "no_occupancy_since_timers", []).forEach((t: ReturnType<typeof setInterval>) => clearTimeout(t));
             globalStore.putValue(endpoint, "no_occupancy_since_timers", []);
         }
@@ -572,7 +580,7 @@ export function printNumbersAsHexSequence(numbers: number[], hexLength: number):
     return numbers.map((v) => v.toString(16).padStart(hexLength, "0")).join(":");
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
 export function assertObject(value: unknown, property?: string): asserts value is {[s: string]: any} {
     const isObject = typeof value === "object" && !Array.isArray(value) && value !== null;
     if (!isObject) {
@@ -581,11 +589,13 @@ export function assertObject(value: unknown, property?: string): asserts value i
 }
 
 export function assertArray(value: unknown, property?: string): asserts value is Array<unknown> {
+    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
     property = property ? `'${property}'` : "Value";
     if (!Array.isArray(value)) throw new Error(`${property} is not an array, got ${typeof value} (${value.toString()})`);
 }
 
 export function assertString(value: unknown, property?: string): asserts value is string {
+    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
     property = property ? `'${property}'` : "Value";
     if (typeof value !== "string") throw new Error(`${property} is not a string, got ${typeof value} (${value.toString()})`);
 }
@@ -594,7 +604,7 @@ export function isNumber(value: unknown): value is number {
     return typeof value === "number";
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
 export function isObject(value: unknown): value is {[s: string]: any} {
     return typeof value === "object" && !Array.isArray(value);
 }
@@ -608,11 +618,13 @@ export function isBoolean(value: unknown): value is boolean {
 }
 
 export function assertNumber(value: unknown, property?: string): asserts value is number {
+    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
     property = property ? `'${property}'` : "Value";
     if (typeof value !== "number" || Number.isNaN(value)) throw new Error(`${property} is not a number, got ${typeof value} (${value?.toString()})`);
 }
 
 export function toNumber(value: unknown, property?: string): number {
+    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
     property = property ? `'${property}'` : "Value";
     // @ts-expect-error ignore
     const result = Number.parseFloat(value);

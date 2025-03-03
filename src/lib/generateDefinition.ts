@@ -119,6 +119,7 @@ export async function generateDefinition(device: Zh.Device): Promise<{externalDe
 
     const extenders = generatedExtend.map((e) => e.getExtend());
     // Generated definition below will provide this.
+    // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
     extenders.forEach((extender) => {
         extender.endpoint = undefined;
     });

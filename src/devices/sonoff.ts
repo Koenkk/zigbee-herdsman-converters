@@ -518,6 +518,7 @@ const sonoffExtend = {
                 key: ["external_trigger_mode"],
                 convertSet: async (entity, key, value, meta) => {
                     utils.assertString(value, key);
+                    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
                     value = value.toLowerCase();
                     const lookup = {edge: 0, pulse: 1, "following(off)": 2, "following(on)": 130};
                     const tmpValue = utils.getFromLookup(value, lookup);

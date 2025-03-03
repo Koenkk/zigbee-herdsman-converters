@@ -1003,6 +1003,7 @@ export const ias_vibration_alarm_1_with_timeout: Fz.Converter = {
         const timeout = options && options.vibration_timeout !== undefined ? Number(options.vibration_timeout) : 90;
 
         // Stop existing timers because vibration is detected and set a new one.
+        // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
         globalStore.getValue(msg.endpoint, "timers", []).forEach((t: NodeJS.Timeout) => clearTimeout(t));
         globalStore.putValue(msg.endpoint, "timers", []);
 
@@ -2676,7 +2677,9 @@ export const ptvo_switch_uart: Fz.Converter = {
         let data = msg.data.stateText;
         if (typeof data === "object") {
             let bHex = false;
+            // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
             let code;
+            // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
             let index;
             for (index = 0; index < data.length; index += 1) {
                 code = data[index];
@@ -4740,6 +4743,7 @@ export const tuya_multi_action: Fz.Converter = {
     convert: (model, msg, publish, options, meta) => {
         if (hasAlreadyProcessedMessage(msg, model)) return;
 
+        // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
         let action;
         if (msg.type === "commandTuyaAction") {
             const lookup: KeyValueAny = {0: "single", 1: "double", 2: "hold"};
@@ -5038,6 +5042,7 @@ export const metering_datek: Fz.Converter = {
         // Filter incorrect 0 energy values reported by the device:
         // https://github.com/Koenkk/zigbee2mqtt/issues/7852
         if (result && result.energy === 0) {
+            // biome-ignore lint/performance/noDelete: ignored using `--suppress`
             delete result.energy;
         }
         return result;
@@ -5124,6 +5129,7 @@ export const viessmann_thermostat: Fz.Converter = {
             // NOTE: remove the result for now, but leave it configure for reporting
             //       it will show up in the debug log still to help try and figure out
             //       what this value potentially means.
+            // biome-ignore lint/performance/noDelete: ignored using `--suppress`
             delete result.pi_heating_demand;
 
             // viessmannWindowOpenInternal

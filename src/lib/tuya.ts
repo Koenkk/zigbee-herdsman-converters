@@ -72,6 +72,7 @@ interface OnEventArgs {
 
 export function onEvent(args?: OnEventArgs): OnEvent {
     return async (type, data, device, settings, state) => {
+        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         args = {queryOnDeviceAnnounce: false, timeStart: "1970", respondToMcuVersionResponse: true, ...args};
 
         const endpoint = device.endpoints[0];
@@ -247,6 +248,7 @@ export async function onEventSetLocalTime(type: OnEventType, data: KeyValue, dev
 // Return `seq` - transaction ID for handling concrete response
 async function sendDataPoints(entity: Zh.Endpoint | Zh.Group, dpValues: Tuya.DpValue[], cmd = "dataRequest", seq?: number) {
     if (seq === undefined) {
+        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         seq = globalStore.getValue(entity, "sequence", 0);
         globalStore.putValue(entity, "sequence", (seq + 1) % 0xffff);
     }
@@ -766,7 +768,7 @@ export const valueConverter = {
             const len = data.length;
             let i = 0;
             while (i < len) {
-                if (Object.prototype.hasOwnProperty.call(alarmLookup, data[i])) {
+                if (Object.hasOwn(alarmLookup, data[i])) {
                     const alarm = alarmLookup[data[i]];
                     const state = lookup[data[i + 1]];
                     const threshold = data[i + 3] | (data[i + 2] << 8);
@@ -855,7 +857,7 @@ export const valueConverter = {
             const len = data.length;
             let i = 0;
             while (i < len) {
-                if (Object.prototype.hasOwnProperty.call(alarmLookup, data[i])) {
+                if (Object.hasOwn(alarmLookup, data[i])) {
                     const alarm = alarmLookup[data[i]];
                     const state = lookup[data[i + 1]];
                     const threshold = data[i + 3] | (data[i + 2] << 8);
@@ -871,6 +873,7 @@ export const valueConverter = {
     lockUnlock: valueConverterBasic.lookup({LOCK: true, UNLOCK: false}),
     localTempCalibration1: {
         from: (v: number) => {
+            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             if (v > 55) v -= 0x100000000;
             return v / 10;
         },
@@ -889,6 +892,7 @@ export const valueConverter = {
     },
     localTempCalibration3: {
         from: (v: number) => {
+            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             if (v > 0x7fffffff) v -= 0x100000000;
             return v / 10;
         },
@@ -995,6 +999,7 @@ export const valueConverter = {
             const schedulePeriods = schedule.length;
             if (schedulePeriods > 10) throw new Error(`There cannot be more than 10 periods in the schedule: ${v}`);
             if (schedulePeriods < 2) throw new Error(`There cannot be less than 2 periods in the schedule: ${v}`);
+            // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
             let prevHour;
 
             for (const period of schedule) {
@@ -1257,6 +1262,7 @@ export const valueConverter = {
             };
 
             const items = v.split(" / ");
+            // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
             items.forEach((item) => {
                 if (Object.keys(modeMapping).includes(item)) {
                     payload.push(modeMapping[item]);
@@ -2137,6 +2143,7 @@ const tuyaModernExtend = {
         if (valueMax !== undefined) exp = exp.withValueMax(valueMax);
         if (valueStep !== undefined) exp = exp.withValueStep(valueStep);
 
+        // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
         let converter;
         if (scale === undefined) {
             converter = valueConverterBasic.raw();
@@ -2305,6 +2312,7 @@ const tuyaModernExtend = {
         });
     },
     tuyaLight(args?: modernExtend.LightArgs & {minBrightness?: "none" | "attribute" | "command"; switchType?: boolean}) {
+        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         args = {minBrightness: "none", powerOnBehavior: false, switchType: false, ...args};
         if (args.colorTemp) {
             args.colorTemp = {startup: false, ...args.colorTemp};
@@ -2447,6 +2455,7 @@ const tuyaModernExtend = {
 
         if (args.switchMode) {
             if (args.endpoints) {
+                // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
                 args.endpoints.forEach((ep) => {
                     const epExtend = tuyaModernExtend.tuyaSwitchMode({
                         description: `Switch mode ${ep}`,
