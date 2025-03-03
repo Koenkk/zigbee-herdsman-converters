@@ -1,6 +1,6 @@
 {
     "name": "zigbee-herdsman-converters",
-    "version": "23.1.0",
+    "version": "23.2.0",
     "description": "Collection of device converters to be used with zigbee-herdsman",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
@@ -65,5 +65,12 @@
         "tsc-watch": "^6.2.1",
         "typescript": "^5.7.3",
         "vitest": "^3.0.6"
+    },
+    "pnpm": {
+        "onlyBuiltDependencies": [
+            "@biomejs/biome",
+            "@serialport/bindings-cpp",
+            "esbuild"
+        ]
     }
 }
