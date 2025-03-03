@@ -1,5 +1,30 @@
 # Changelog
 
+## [23.3.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.2.0...v23.3.0) (2025-03-03)
+
+
+### Features
+
+* **add:** 1871154 ([#8928](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8928)) ([ae8c770](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ae8c77005b1b09fd8224e02bb5b48987aaf0f727))
+* **add:** 500.43 ([#8921](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8921)) ([a32df66](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a32df6625f31f9e2d9cc6305971b6f5b022cd166))
+* **add:** A9Z ([#8916](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8916)) ([bb50060](https://github.com/Koenkk/zigbee-herdsman-converters/commit/bb500608aff7562621dd255bdaf5c17594632e12))
+* **add:** Fire Fence ([#8910](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8910)) ([6ac5946](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6ac5946cf432086a6b646266a8c23ea426478913))
+* **add:** ZS05 ([#8912](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8912)) ([2f2fae1](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2f2fae14d0b5ab109a4979bdffb74b4a5661b05c))
+* SONOFF SNZB-02D: support OTA https://github.com/Koenkk/zigbee-OTA/pull/711 ([05cf125](https://github.com/Koenkk/zigbee-herdsman-converters/commit/05cf125f1b42e14fc3ecc00aad063cedf2cd3e62))
+* SONOFF TRVZB: support `temperature_accuracy` ([#8837](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8837)) ([cb76a40](https://github.com/Koenkk/zigbee-herdsman-converters/commit/cb76a40e7a9a67e594dd7e518ad34970c036a7ba))
+
+
+### Bug Fixes
+
+* Aqara SJCGQ11LM: read status when pairing https://github.com/Koenkk/zigbee2mqtt.io/pull/3549 ([846cdd9](https://github.com/Koenkk/zigbee-herdsman-converters/commit/846cdd9e2d4bd76de33bd8a891f7a534603c2ed6))
+* **detect:** Detect `FLS-PP3 White\u0000` as Dresden Elektronik Mega23M12 ([#8918](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8918)) ([4ed7846](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4ed784654f12d173c8bddcc1a80c8d21cd8d4afa))
+* Eurotronic COZB0001 : add new dateCode ([#8914](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8914)) ([bab91ea](https://github.com/Koenkk/zigbee-herdsman-converters/commit/bab91eaba8760a94d558faa8e88f0d4ba71bc5af))
+* **ignore:** update dependencies ([#8924](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8924)) ([e545832](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e545832c54ea6b69f0d1fc4367cad2820ae31ef3))
+* Moes ZHT-SR: fix sensor select and backlight switch ([#8920](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8920)) ([7b27dca](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7b27dca5b93d988292d8778eb61aab8942147f65))
+* Nous D2Z: rename to DZ ([#8917](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8917)) ([f7551d1](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f7551d1285bf448af6a9ef6cdb097ce88b9853df))
+* Tuya TS0601_smart_air_house_keeper: filter more strange values for PM2.5 ([#8905](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8905)) ([abb6bd8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/abb6bd87b7392cb53e05818ad42bb16db6e2d969))
+* Tuya TS0601_thermostat_4: fix local temperature calibration precision ([#8927](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8927)) ([1bd7318](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1bd73182ebbe9adbe7215e04588490f227ad9ecf))
+
 ## [23.2.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.1.1...v23.2.0) (2025-03-01)
 
 
