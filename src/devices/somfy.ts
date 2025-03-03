@@ -35,11 +35,11 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "SOMFY",
         description: "Ysia 5 channel blinds remote",
         extend: [
-            m.deviceEndpoints({"endpoints":{"1":1,"2":2,"3":3,"4":4,"5":5,"232":232}}), 
-            m.battery(), 
-            m.commandsOnOff({"endpointNames":["1","2","3","4","5"]}), 
-            m.commandsWindowCovering({"endpointNames":["1","2","3","4","5"]})
-        ]
+            m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3, "4": 4, "5": 5, "232": 232}}),
+            m.battery(),
+            m.commandsOnOff({endpointNames: ["1", "2", "3", "4", "5"]}),
+            m.commandsWindowCovering({endpointNames: ["1", "2", "3", "4", "5"]}),
+        ],
     },
     {
         zigbeeModel: ["1822647"],
