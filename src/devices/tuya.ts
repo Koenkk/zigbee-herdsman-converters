@@ -12198,12 +12198,12 @@ export const definitions: DefinitionWithExtend[] = [
 						} else if (v == 1) {
 							return {
 								state: 'none',
-								presence: false,
+								occupancy: false,
 							}
 						} else {
 							return {
 								state: 'none',
-								presence: false,
+								occupancy: false,
 							}
 						}
 				
