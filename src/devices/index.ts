@@ -31,6 +31,7 @@ import {definitions as blitzwolf} from "./blitzwolf";
 import {definitions as bosch} from "./bosch";
 import {definitions as bouffalo_lab} from "./bouffalo_lab";
 import {definitions as brimate} from "./brimate";
+import {definitions as brun_holding} from "./brun_holding";
 import {definitions as bseed} from "./bseed";
 import {definitions as bticino} from "./bticino";
 import {definitions as busch_jaeger} from "./busch_jaeger";
@@ -62,6 +63,7 @@ import {definitions as diyruz} from "./diyruz";
 import {definitions as dlink} from "./dlink";
 import {definitions as dnake} from "./dnake";
 import {definitions as dowsing_reynolds} from "./dowsing_reynolds";
+import {definitions as dqsmart} from "./dqsmart";
 import {definitions as dresden_elektronik} from "./dresden_elektronik";
 import {definitions as easyaccess} from "./easyaccess";
 import {definitions as easyiot} from "./easyiot";
@@ -76,6 +78,7 @@ import {definitions as efekta} from "./efekta";
 import {definitions as eglo} from "./eglo";
 import {definitions as elko} from "./elko";
 import {definitions as enbrighten} from "./enbrighten";
+import {definitions as enkin} from "./enkin";
 import {definitions as enocean} from "./enocean";
 import {definitions as envilar} from "./envilar";
 import {definitions as essentialb} from "./essentialb";
@@ -304,6 +307,7 @@ import {definitions as weiser} from "./weiser";
 import {definitions as weten} from "./weten";
 import {definitions as wirenboard} from "./wirenboard";
 import {definitions as wisdom} from "./wisdom";
+import {definitions as wmun} from "./wmun";
 import {definitions as woolley} from "./woolley";
 import {definitions as woox} from "./woox";
 import {definitions as wyze} from "./wyze";
@@ -354,6 +358,7 @@ export default [
     ...bosch,
     ...bouffalo_lab,
     ...brimate,
+    ...brun_holding,
     ...bseed,
     ...bticino,
     ...busch_jaeger,
@@ -386,6 +391,7 @@ export default [
     ...dnake,
     ...dowsing_reynolds,
     ...dresden_elektronik,
+    ...dqsmart,
     ...easyaccess,
     ...easyiot,
     ...eatonhalo_led,
@@ -400,6 +406,7 @@ export default [
     ...elko,
     ...enbrighten,
     ...enocean,
+    ...enkin,
     ...envilar,
     ...essentialb,
     ...essentials,
@@ -629,6 +636,7 @@ export default [
     ...wisdom,
     ...woolley,
     ...woox,
+    ...wmun,
     ...wyze,
     ...xal,
     ...xinghuoyuan,

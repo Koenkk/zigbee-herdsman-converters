@@ -497,7 +497,10 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
                 payload.consumption = payload.energy;
                 break;
             case "150":
-                if (!["JTYJ-GD-01LM/BW"].includes(model.model)) {
+                if (["KD-R01D"].includes(model.model)) {
+                    assertNumber(value);
+                    payload.voltage = value * 0.01;
+                } else if (!["JTYJ-GD-01LM/BW"].includes(model.model)) {
                     assertNumber(value);
                     payload.voltage = value * 0.1; // 0x96
                 }
@@ -2126,19 +2129,24 @@ export const lumiModernExtend = {
 
         return {exposes, fromZigbee, isModernExtend: true};
     },
-    lumiKnobRotation: (): ModernExtend => {
+    lumiKnobRotation: (args?: {withButtonState: boolean}): ModernExtend => {
+        const withButtonState = args?.withButtonState || true;
         const exposes: Expose[] = [
             e.action(["start_rotating", "rotation", "stop_rotating"]),
-            e
-                .enum("action_rotation_button_state", ea.STATE, ["released", "pressed"])
-                .withDescription("Button state during rotation")
-                .withCategory("diagnostic"),
             e.numeric("action_rotation_angle", ea.STATE).withUnit("*").withDescription("Rotation angle").withCategory("diagnostic"),
             e.numeric("action_rotation_angle_speed", ea.STATE).withUnit("*").withDescription("Rotation angle speed").withCategory("diagnostic"),
             e.numeric("action_rotation_percent", ea.STATE).withUnit("%").withDescription("Rotation percent").withCategory("diagnostic"),
             e.numeric("action_rotation_percent_speed", ea.STATE).withUnit("%").withDescription("Rotation percent speed").withCategory("diagnostic"),
             e.numeric("action_rotation_time", ea.STATE).withUnit("ms").withDescription("Rotation time").withCategory("diagnostic"),
         ];
+        if (withButtonState) {
+            exposes.push(
+                e
+                    .enum("action_rotation_button_state", ea.STATE, ["released", "pressed"])
+                    .withDescription("Button state during rotation")
+                    .withCategory("diagnostic"),
+            );
+        }
 
         const fromZigbee: Fz.Converter[] = [
             {
