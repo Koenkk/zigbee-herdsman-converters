@@ -1320,7 +1320,7 @@ export const definitions: DefinitionWithExtend[] = [
                 unit: '%',
             }),
             m.numeric({
-                name: 'temp_accuracy',
+                name: 'temperature_accuracy',
                 cluster: 'customSonoffTrvzb',
                 attribute: 'tempAccuracy',
                 entityCategory: 'config',
