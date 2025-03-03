@@ -313,7 +313,7 @@ export function getMetaValue<T>(
     } else {
         const definitionMeta = getMetaValues(definition, entity);
         if (definitionMeta?.[key] !== undefined) {
-            return typeof definitionMeta[key] === "function" ? definitionMeta[key](entity) : definitionMeta[key];
+            return typeof definitionMeta[key] === "function" ? definitionMeta[key](entity) : (definitionMeta[key] as T);
         }
     }
 
