@@ -2158,7 +2158,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMax(60)
                 .withDescription("Room temperature alarm threshold, between 20 and 60 in °C.  0 means disabled.  Default: 45."),
         ],
-        onEvent: async (type, data, device, options) => {
+        onEvent: (type, data, device, options) => {
             if (type === "stop") {
                 clearInterval(globalStore.getValue(device, "time"));
                 globalStore.clearValue(device, "time");

@@ -29,7 +29,7 @@ const manufacturerOptions = {
     ubisysNull: {manufacturerCode: null},
 };
 
-const ubisysPollCurrentSummDelivered = async (type: OnEventType, data: OnEventData, device: Zh.Device, endpointId: number, options: KeyValue) => {
+const ubisysPollCurrentSummDelivered = (type: OnEventType, data: OnEventData, device: Zh.Device, endpointId: number, options: KeyValue) => {
     const endpoint = device.getEndpoint(endpointId);
     const poll = async () => {
         await endpoint.read("seMetering", ["currentSummDelivered"]);

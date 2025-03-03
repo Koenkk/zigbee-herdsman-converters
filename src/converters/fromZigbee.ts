@@ -5027,7 +5027,7 @@ export const ignore_electrical_measurement: Fz.Converter = {
 export const command_arm_with_transaction: Fz.Converter = {
     cluster: "ssIasAce",
     type: "commandArm",
-    convert: async (model, msg, publish, options, meta) => {
+    convert: (model, msg, publish, options, meta) => {
         const payload = command_arm.convert(model, msg, publish, options, meta) as KeyValueAny;
         if (!payload) return;
         payload.action_transaction = msg.meta.zclTransactionSequenceNumber;
@@ -5037,7 +5037,7 @@ export const command_arm_with_transaction: Fz.Converter = {
 export const metering_datek: Fz.Converter = {
     cluster: "seMetering",
     type: ["attributeReport", "readResponse"],
-    convert: async (model, msg, publish, options, meta) => {
+    convert: (model, msg, publish, options, meta) => {
         const result = metering.convert(model, msg, publish, options, meta) as KeyValueAny;
         // Filter incorrect 0 energy values reported by the device:
         // https://github.com/Koenkk/zigbee2mqtt/issues/7852
@@ -5054,7 +5054,7 @@ export const EKO09738_metering: Fz.Converter = {
      */
     cluster: "seMetering",
     type: ["attributeReport", "readResponse"],
-    convert: async (model, msg, publish, options, meta) => {
+    convert: (model, msg, publish, options, meta) => {
         const result = metering.convert(model, msg, publish, options, meta) as KeyValueAny;
         if (result && result.power !== undefined) {
             result.power /= 1000;
@@ -5065,7 +5065,7 @@ export const EKO09738_metering: Fz.Converter = {
 export const command_on_presence: Fz.Converter = {
     cluster: "genOnOff",
     type: "commandOn",
-    convert: async (model, msg, publish, options, meta) => {
+    convert: (model, msg, publish, options, meta) => {
         const payload1 = checkin_presence.convert(model, msg, publish, options, meta);
         const payload2 = command_on.convert(model, msg, publish, options, meta);
         return {...payload1, ...payload2};
@@ -5106,7 +5106,7 @@ export const SP600_power: Fz.Converter = {
 export const stelpro_thermostat: Fz.Converter = {
     cluster: "hvacThermostat",
     type: ["attributeReport", "readResponse"],
-    convert: async (model, msg, publish, options, meta) => {
+    convert: (model, msg, publish, options, meta) => {
         const result = thermostat.convert(model, msg, publish, options, meta) as KeyValueAny;
         if (result && msg.data.StelproSystemMode === 5) {
             // 'Eco' mode is translated into 'auto' here
@@ -5121,7 +5121,7 @@ export const stelpro_thermostat: Fz.Converter = {
 export const viessmann_thermostat: Fz.Converter = {
     cluster: "hvacThermostat",
     type: ["attributeReport", "readResponse"],
-    convert: async (model, msg, publish, options, meta) => {
+    convert: (model, msg, publish, options, meta) => {
         const result = thermostat.convert(model, msg, publish, options, meta) as KeyValueAny;
 
         if (result) {
@@ -5159,7 +5159,7 @@ export const viessmann_thermostat: Fz.Converter = {
 export const eurotronic_thermostat: Fz.Converter = {
     cluster: "hvacThermostat",
     type: ["attributeReport", "readResponse"],
-    convert: async (model, msg, publish, options, meta) => {
+    convert: (model, msg, publish, options, meta) => {
         const result = thermostat.convert(model, msg, publish, options, meta) as KeyValueAny;
         if (result) {
             if (typeof msg.data[0x4003] === "number") {
@@ -5203,7 +5203,7 @@ export const eurotronic_thermostat: Fz.Converter = {
 export const terncy_raw: Fz.Converter = {
     cluster: "manuSpecificClusterAduroSmart",
     type: "raw",
-    convert: async (model, msg, publish, options, meta) => {
+    convert: (model, msg, publish, options, meta) => {
         // 13,40,18,104, 0,8,1 - single
         // 13,40,18,22,  0,17,1
         // 13,40,18,32,  0,18,1
@@ -5249,7 +5249,7 @@ export const terncy_raw: Fz.Converter = {
 export const ZM35HQ_attr: Fz.Converter = {
     cluster: "ssIasZone",
     type: ["attributeReport", "readResponse"],
-    convert: async (model, msg, publish, options, meta) => {
+    convert: (model, msg, publish, options, meta) => {
         let result: KeyValueAny = {};
         const data = msg.data;
         if (data && data.zoneStatus !== undefined) {
@@ -5270,7 +5270,7 @@ export const ZM35HQ_attr: Fz.Converter = {
 export const schneider_lighting_ballast_configuration: Fz.Converter = {
     cluster: "lightingBallastCfg",
     type: ["attributeReport", "readResponse"],
-    convert: async (model, msg, publish, options, meta) => {
+    convert: (model, msg, publish, options, meta) => {
         const result = lighting_ballast_configuration.convert(model, msg, publish, options, meta) as KeyValueAny;
         const lookup: KeyValueAny = {1: "RC", 2: "RL"};
         if (result && msg.data[0xe000] !== undefined) {
@@ -5282,7 +5282,7 @@ export const schneider_lighting_ballast_configuration: Fz.Converter = {
 export const wiser_lighting_ballast_configuration: Fz.Converter = {
     cluster: "lightingBallastCfg",
     type: ["attributeReport", "readResponse"],
-    convert: async (model, msg, publish, options, meta) => {
+    convert: (model, msg, publish, options, meta) => {
         const result = lighting_ballast_configuration.convert(model, msg, publish, options, meta) as KeyValueAny;
         if (result && msg.data.wiserControlMode !== undefined) {
             result.dimmer_mode = constants.wiserDimmerControlMode[msg.data.wiserControlMode];

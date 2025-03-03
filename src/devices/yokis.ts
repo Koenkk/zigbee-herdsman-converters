@@ -1029,7 +1029,7 @@ const yokisCommandsExtend = {
         const toZigbee: Tz.Converter[] = [
             {
                 key: ["pulse_prop"],
-                convertSet: async (entity, key, value, meta) => {
+                convertSet: (entity, key, value, meta) => {
                     const commandWrapper = yokisExtendChecks.parsePulseInput(value);
 
                     yokisExtendChecks.log(key, value, commandWrapper.payload);

@@ -265,7 +265,7 @@ export function determineEndpoint(entity: Zh.Endpoint | Zh.Group, meta: Tz.Meta,
 
 export function forceDeviceType(args: {type: "EndDevice" | "Router"}): ModernExtend {
     const configure: Configure[] = [
-        async (device, coordinatorEndpoint, definition) => {
+        (device, coordinatorEndpoint, definition) => {
             device.type = args.type;
             device.save();
         },
@@ -275,7 +275,7 @@ export function forceDeviceType(args: {type: "EndDevice" | "Router"}): ModernExt
 
 export function forcePowerSource(args: {powerSource: "Mains (single phase)" | "Battery"}): ModernExtend {
     const configure: Configure[] = [
-        async (device, coordinatorEndpoint, definition) => {
+        (device, coordinatorEndpoint, definition) => {
             device.powerSource = args.powerSource;
             device.save();
         },
@@ -2587,7 +2587,7 @@ export function quirkAddEndpointCluster(args: QuirkAddEndpointClusterArgs): Mode
 
 export function quirkCheckinInterval(timeout: number | keyof typeof TIME_LOOKUP): ModernExtend {
     const configure: Configure[] = [
-        async (device, coordinatorEndpoint, definition) => {
+        (device, coordinatorEndpoint, definition) => {
             device.checkinInterval = typeof timeout === "number" ? timeout : TIME_LOOKUP[timeout];
             device.save();
         },
@@ -2613,6 +2613,16 @@ export function reconfigureReportingsOnDeviceAnnounce(): ModernExtend {
                     }
                 }
             }
+        },
+    ];
+
+    return {onEvent, isModernExtend: true};
+}
+
+export function skipDefaultResponse(): ModernExtend {
+    const onEvent: OnEvent[] = [
+        (type, data, device, options, state: KeyValue) => {
+            device.skipDefaultResponse = true;
         },
     ];
 

@@ -681,7 +681,7 @@ export function getFromLookupByValue(value: unknown, lookup: {[s: string]: unkno
 }
 
 export function configureSetPowerSourceWhenUnknown(powerSource: "Battery" | "Mains (single phase)"): Configure {
-    return async (device: Zh.Device): Promise<void> => {
+    return (device: Zh.Device): void => {
         if (!device.powerSource || device.powerSource === "Unknown") {
             logger.debug(`Device has no power source, forcing to '${powerSource}'`, NS);
             device.powerSource = powerSource;

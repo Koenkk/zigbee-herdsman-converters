@@ -218,7 +218,7 @@ export interface DefinitionMeta {
     noOffTransitionWhenOff?: boolean | ((entity: Zh.Endpoint) => boolean);
 }
 
-export type Configure = (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint, definition: Definition) => Promise<void>;
+export type Configure = (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint, definition: Definition) => Promise<void> | void;
 
 export interface OnEventMeta {
     deviceExposesChanged: () => void;
@@ -231,7 +231,7 @@ export type OnEvent = (
     settings: KeyValue,
     state: KeyValue,
     meta?: OnEventMeta,
-) => Promise<void>;
+) => Promise<void> | void;
 
 export interface ModernExtend {
     fromZigbee?: Definition["fromZigbee"];
@@ -334,7 +334,7 @@ export namespace Tz {
         key?: string[];
         options?: Option[] | ((definition: Definition) => Option[]);
         endpoints?: string[];
-        convertSet?: (entity: Zh.Endpoint | Zh.Group, key: string, value: unknown, meta: Tz.Meta) => Promise<ConvertSetResult>;
+        convertSet?: (entity: Zh.Endpoint | Zh.Group, key: string, value: unknown, meta: Tz.Meta) => Promise<ConvertSetResult> | ConvertSetResult;
         convertGet?: (entity: Zh.Endpoint | Zh.Group, key: string, meta: Tz.Meta) => Promise<void>;
     }
 }

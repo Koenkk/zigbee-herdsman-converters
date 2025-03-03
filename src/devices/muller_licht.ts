@@ -229,11 +229,7 @@ export const definitions: DefinitionWithExtend[] = [
             ]),
             e.action_group(),
         ],
-        toZigbee: [],
-        configure: async (device, coordinatorEndpoint) => {
-            device.powerSource = "Battery";
-            device.save();
-        },
+        extend: [m.forcePowerSource({powerSource: "Battery"})],
         whiteLabel: [
             {
                 vendor: "Müller Licht",

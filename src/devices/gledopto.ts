@@ -141,7 +141,7 @@ function gledoptoLight(args?: m.LightArgs) {
 function gledoptoOnOff(args?: m.OnOffArgs) {
     const result = m.onOff({powerOnBehavior: false, ...args});
     result.onEvent = [
-        async (type: OnEventType, data: KeyValue, device: Zh.Device) => {
+        (type: OnEventType, data: KeyValue, device: Zh.Device) => {
             // This device doesn't support reporting.
             // Therefore we read the on/off state every 5 seconds.
             // This is the same way as the Hue bridge does it.

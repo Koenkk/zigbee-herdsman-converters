@@ -1,13 +1,20 @@
 {
-  "$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
-  "vcs": { "enabled": true, "clientKind": "git", "useIgnoreFile": true },
-  "formatter": {
-    "indentStyle": "space",
-    "indentWidth": 4,
-    "lineWidth": 150,
-    "bracketSpacing": false
-  },
-  "files": {
-    "ignore": ["package.json"]
-  }
+    "$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
+    "vcs": { "enabled": true, "clientKind": "git", "useIgnoreFile": true },
+    "formatter": {
+        "indentStyle": "space",
+        "indentWidth": 4,
+        "lineWidth": 150,
+        "bracketSpacing": false
+    },
+    "files": {
+        "ignore": ["package.json"]
+    },
+    "linter": {
+        "rules": {
+            "suspicious": {
+                "useAwait": "error"
+            }
+        }
+    }
 }

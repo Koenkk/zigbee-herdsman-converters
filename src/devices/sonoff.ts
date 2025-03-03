@@ -1055,10 +1055,7 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.linkquality_from_basic, fzLocal.router_config],
         toZigbee: [],
         exposes: [e.numeric("light_indicator_level", ea.STATE).withDescription("Brightness of the indicator light").withAccess(ea.STATE)],
-        configure: async (device, coordinatorEndpoint) => {
-            device.powerSource = "Mains (single phase)";
-            device.save();
-        },
+        extend: [m.forcePowerSource({powerSource: "Mains (single phase)"})],
     },
     {
         zigbeeModel: ["ZBCurtain"],

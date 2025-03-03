@@ -284,7 +284,7 @@ const philipsTz = {
     } satisfies Tz.Converter,
     hue_power_on_error: {
         key: ["hue_power_on_brightness", "hue_power_on_color_temperature", "hue_power_on_color"],
-        convertSet: async (entity, key, value, meta) => {
+        convertSet: (entity, key, value, meta) => {
             if (meta.message.hue_power_on_behavior === undefined) {
                 throw new Error(`Provide a value for 'hue_power_on_behavior'`);
             }

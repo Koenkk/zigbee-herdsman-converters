@@ -377,7 +377,7 @@ describe("OTA", () => {
         }
     }
 
-    const getImage = async (manifestUrl: string): Promise<Ota.Image> => {
+    const getImage = (manifestUrl: string): Ota.Image => {
         const newImageRsp = fetchOverride(manifestUrl);
         // biome-ignore lint/style/noNonNullAssertion: ignored using `--suppress`
         const newImage = newImageRsp.arrayBuffer!();

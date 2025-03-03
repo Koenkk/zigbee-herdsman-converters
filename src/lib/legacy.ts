@@ -4785,7 +4785,7 @@ const toZigbee2 = {
     } satisfies Tz.Converter,
     moesS_thermostat_system_mode: {
         key: ["system_mode"],
-        convertSet: async (entity, key, value, meta) => {
+        convertSet: (entity, key, value, meta) => {
             return {state: {system_mode: "heat"}};
         },
     } satisfies Tz.Converter,

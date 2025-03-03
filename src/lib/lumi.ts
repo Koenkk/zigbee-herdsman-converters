@@ -2685,7 +2685,7 @@ export const fromZigbee = {
     lumi_pressure: {
         cluster: "msPressureMeasurement",
         type: ["attributeReport", "readResponse"],
-        convert: async (model, msg, publish, options, meta) => {
+        convert: (model, msg, publish, options, meta) => {
             const result = fz.pressure.convert(model, msg, publish, options, meta) as KeyValueAny;
             if (result && result.pressure > 500 && result.pressure < 2000) {
                 return result;
@@ -4256,7 +4256,7 @@ export const toZigbee = {
     } satisfies Tz.Converter,
     lumi_cube_operation_mode: {
         key: ["operation_mode"],
-        convertSet: async (entity, key, value, meta) => {
+        convertSet: (entity, key, value, meta) => {
             const lookup = {action_mode: 0, scene_mode: 1};
             /**
              * schedule the callback to run when the configuration window comes

@@ -16,7 +16,7 @@ const fzLocal = {
     FB20002_on: {
         cluster: "genOnOff",
         type: "commandTuyaAction",
-        convert: async (model, msg, publish, options, meta) => {
+        convert: (model, msg, publish, options, meta) => {
             return {action: "on"};
         },
     } satisfies Fz.Converter,
@@ -372,7 +372,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Lidl",
         description: "Livarno smart LED ceiling light",
         extend: [tuya.modernExtend.tuyaLight({colorTemp: {range: [153, 500]}, color: true})],
-        configure: async (device, coordinatorEndpoint) => {
+        configure: (device, coordinatorEndpoint) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue("lightingColorCtrl", {colorCapabilities: 29});
         },
     },

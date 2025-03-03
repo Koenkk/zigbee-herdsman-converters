@@ -426,25 +426,25 @@ describe("ZHC", () => {
         it("calculates", () => {
             expect(
                 getConfigureKey(
-                    mockDefinition(async () => {
+                    mockDefinition(() => {
                         console.log("hello world");
                         console.log("bye world");
                     }),
                 ),
-            ).toStrictEqual(-1526019382);
+            ).toStrictEqual(1320643662);
         });
 
         it("calculates diff", () => {
             expect(
                 getConfigureKey(
-                    mockDefinition(async () => {
+                    mockDefinition(() => {
                         console.log("hello world");
                         console.log("bye world");
                     }),
                 ),
             ).not.toStrictEqual(
                 getConfigureKey(
-                    mockDefinition(async () => {
+                    mockDefinition(() => {
                         console.log("hello world");
                         console.log("bye mars");
                     }),

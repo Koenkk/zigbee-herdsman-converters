@@ -169,7 +169,7 @@ function convertDecimalValueTo2ByteHexArray(value: number) {
     return [chunk1, chunk2].map((hexVal) => Number.parseInt(hexVal, 16));
 }
 
-export async function onEventMeasurementPoll(
+export function onEventMeasurementPoll(
     type: OnEventType,
     data: OnEventData,
     device: Zh.Device,
@@ -611,7 +611,7 @@ export const valueConverter = {
         from: (v: number) => v,
     },
     coverPosition: {
-        to: async (v: number, meta: Tz.Meta) => {
+        to: (v: number, meta: Tz.Meta) => {
             return meta.options.invert_cover ? 100 - v : v;
         },
         from: (v: number, meta: Fz.Meta, options: KeyValue, publish: Publish) => {
@@ -621,7 +621,7 @@ export const valueConverter = {
         },
     },
     coverPositionInverted: {
-        to: async (v: number, meta: Tz.Meta) => {
+        to: (v: number, meta: Tz.Meta) => {
             return meta.options.invert_cover ? v : 100 - v;
         },
         from: (v: number, meta: Fz.Meta, options: KeyValue, publish: Publish) => {

@@ -562,7 +562,7 @@ const fzLocal = {
     } satisfies Fz.Converter,
     TS0222_humidity: {
         ...fz.humidity,
-        convert: async (model, msg, publish, options, meta) => {
+        convert: (model, msg, publish, options, meta) => {
             const result = fz.humidity.convert(model, msg, publish, options, meta) as KeyValueAny;
             if (result) result.humidity *= 10;
             return result;
@@ -1739,7 +1739,7 @@ export const definitions: DefinitionWithExtend[] = [
                 color: true,
             }),
         ],
-        configure: async (device, coordinatorEndpoint) => {
+        configure: (device, coordinatorEndpoint) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue("lightingColorCtrl", {
                 colorCapabilities: 29,
             });
@@ -1757,7 +1757,7 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: [tz.on_off, tzLocal.led_control, tuya.tz.do_not_disturb],
         fromZigbee: [fz.on_off, fz.tuya_led_controller, fz.brightness, fz.ignore_basic_report],
         exposes: [e.light_brightness_colortemp_colorhs([143, 500]).removeFeature("color_temp_startup"), tuya.exposes.doNotDisturb()],
-        configure: async (device, coordinatorEndpoint) => {
+        configure: (device, coordinatorEndpoint) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue("lightingColorCtrl", {
                 colorCapabilities: 29,
             });
@@ -1778,7 +1778,7 @@ export const definitions: DefinitionWithExtend[] = [
                 color: {modes: ["hs"], applyRedFix: true, enhancedHue: false},
             }),
         ],
-        configure: async (device, coordinatorEndpoint) => {
+        configure: (device, coordinatorEndpoint) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue("lightingColorCtrl", {
                 colorCapabilities: 29,
             });
@@ -1793,7 +1793,7 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: [tz.on_off, tzLocal.led_control, tuya.tz.do_not_disturb],
         fromZigbee: [fz.on_off, fz.tuya_led_controller, fz.brightness, fz.ignore_basic_report],
         exposes: [e.light_brightness_colortemp_colorhs([50, 1000]).removeFeature("color_temp_startup"), tuya.exposes.doNotDisturb()],
-        configure: async (device, coordinatorEndpoint) => {
+        configure: (device, coordinatorEndpoint) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue("lightingColorCtrl", {
                 colorCapabilities: 29,
             });
@@ -3196,7 +3196,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Lidl", "14147206L", "Livarno Lux ceiling light", ["_TZ3000_rylaozuc", "_TZ3000_5fkufhn1"]),
             tuya.whitelabel("Lidl", "14153905L", "Livarno Home LED floor lamp", ["_TZ3000_8uaoilu9"]),
         ],
-        configure: async (device, coordinatorEndpoint) => {
+        configure: (device, coordinatorEndpoint) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue("lightingColorCtrl", {
                 colorCapabilities: 16,
             });
@@ -3279,7 +3279,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Mycket", "MS-SP-LE27WRGB", "E27 RGBW bulb", ["_TZ3000_evag0pvn"]),
             tuya.whitelabel("Lidl", "HG06104A", "Livarno Home RGB+CCT LED light strip 2m", ["_TZ3000_riwp3k79", "_TZ3000_riwp3k79"]),
         ],
-        configure: async (device, coordinatorEndpoint) => {
+        configure: (device, coordinatorEndpoint) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue("lightingColorCtrl", {
                 colorCapabilities: 29,
             });
@@ -5113,7 +5113,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.binary("factory_reset", ea.SET, true, false).withDescription("Factory reset the device"),
         ],
         whiteLabel: [tuya.whitelabel("Moes", "AM43-0.45/40-ES-EB", "Roller blind/shades drive motor", ["_TZE200_zah67ekd", "_TZE200_icka1clh"])],
-        configure: async (device, coordinatorEndpoint) => {
+        configure: (device, coordinatorEndpoint) => {
             device.powerSource = "Mains (single phase)";
             device.save();
         },

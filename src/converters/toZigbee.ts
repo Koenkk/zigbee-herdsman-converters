@@ -3914,7 +3914,7 @@ export const scene_remove_all: Tz.Converter = {
 };
 export const scene_rename: Tz.Converter = {
     key: ["scene_rename"],
-    convertSet: async (entity, key, value, meta) => {
+    convertSet: (entity, key, value, meta) => {
         utils.assertObject(value);
         const isGroup = utils.isGroup(entity);
         const sceneid = value.ID;
@@ -4235,7 +4235,7 @@ export const schneider_temperature_measured_value: Tz.Converter = {
 };
 export const schneider_thermostat_system_mode: Tz.Converter = {
     key: ["system_mode"],
-    convertSet: async (entity, key, value, meta) => {
+    convertSet: (entity, key, value, meta) => {
         utils.assertEndpoint(entity);
         const systemMode = utils.getKey(constants.thermostatSystemModes, value, undefined, Number);
         entity.saveClusterAttributeKeyValue("hvacThermostat", {systemMode: systemMode});
@@ -4244,7 +4244,7 @@ export const schneider_thermostat_system_mode: Tz.Converter = {
 };
 export const schneider_thermostat_occupied_heating_setpoint: Tz.Converter = {
     key: ["occupied_heating_setpoint"],
-    convertSet: async (entity, key, value, meta) => {
+    convertSet: (entity, key, value, meta) => {
         utils.assertNumber(value, key);
         utils.assertEndpoint(entity);
         const occupiedHeatingSetpoint = Number((Math.round(Number((value * 2).toFixed(1))) / 2).toFixed(1)) * 100;
@@ -4254,7 +4254,7 @@ export const schneider_thermostat_occupied_heating_setpoint: Tz.Converter = {
 };
 export const schneider_thermostat_control_sequence_of_operation: Tz.Converter = {
     key: ["control_sequence_of_operation"],
-    convertSet: async (entity, key, value, meta) => {
+    convertSet: (entity, key, value, meta) => {
         utils.assertEndpoint(entity);
         const val = utils.getKey(constants.thermostatControlSequenceOfOperations, value, value, Number);
         entity.saveClusterAttributeKeyValue("hvacThermostat", {ctrlSeqeOfOper: val});
@@ -4263,7 +4263,7 @@ export const schneider_thermostat_control_sequence_of_operation: Tz.Converter = 
 };
 export const schneider_thermostat_pi_heating_demand: Tz.Converter = {
     key: ["pi_heating_demand"],
-    convertSet: async (entity, key, value, meta) => {
+    convertSet: (entity, key, value, meta) => {
         utils.assertEndpoint(entity);
         entity.saveClusterAttributeKeyValue("hvacThermostat", {pIHeatingDemand: value});
         return {state: {pi_heating_demand: value}};
@@ -4341,13 +4341,13 @@ export const wiser_vact_calibrate_valve: Tz.Converter = {
 };
 export const wiser_sed_zone_mode: Tz.Converter = {
     key: ["zone_mode"],
-    convertSet: async (entity, key, value, meta) => {
+    convertSet: (entity, key, value, meta) => {
         return {state: {zone_mode: value}};
     },
 };
 export const wiser_sed_occupied_heating_setpoint: Tz.Converter = {
     key: ["occupied_heating_setpoint"],
-    convertSet: async (entity, key, value, meta) => {
+    convertSet: (entity, key, value, meta) => {
         utils.assertNumber(value, key);
         utils.assertEndpoint(entity);
         const occupiedHeatingSetpoint = Number((Math.round(Number((value * 2).toFixed(1))) / 2).toFixed(1)) * 100;
