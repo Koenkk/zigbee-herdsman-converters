@@ -1,17 +1,17 @@
-import fz from '../converters/fromZigbee';
-import tz from '../converters/toZigbee';
-import * as exposes from '../lib/exposes';
-import * as reporting from '../lib/reporting';
-import {DefinitionWithExtend} from '../lib/types';
+import * as fz from "../converters/fromZigbee";
+import * as tz from "../converters/toZigbee";
+import * as exposes from "../lib/exposes";
+import * as reporting from "../lib/reporting";
+import type {DefinitionWithExtend} from "../lib/types";
 
 const e = exposes.presets;
 
 export const definitions: DefinitionWithExtend[] = [
     {
-        zigbeeModel: ['Zen-01'],
-        model: 'Zen-01-W',
-        vendor: 'Zen',
-        description: 'Thermostat',
+        zigbeeModel: ["Zen-01"],
+        model: "Zen-01-W",
+        vendor: "Zen",
+        description: "Thermostat",
         fromZigbee: [fz.battery, fz.thermostat],
         toZigbee: [
             tz.thermostat_local_temperature,
@@ -35,17 +35,17 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [
             e
                 .climate()
-                .withSetpoint('occupied_heating_setpoint', 10, 30, 0.5)
-                .withSetpoint('occupied_cooling_setpoint', 10, 31, 0.5)
+                .withSetpoint("occupied_heating_setpoint", 10, 30, 0.5)
+                .withSetpoint("occupied_cooling_setpoint", 10, 31, 0.5)
                 .withLocalTemperature()
-                .withSystemMode(['off', 'auto', 'heat', 'cool', 'emergency_heating'])
-                .withRunningState(['idle', 'heat', 'cool'])
+                .withSystemMode(["off", "auto", "heat", "cool", "emergency_heating"])
+                .withRunningState(["idle", "heat", "cool"])
                 .withLocalTemperatureCalibration()
-                .withFanMode(['auto', 'on']),
+                .withFanMode(["auto", "on"]),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(3) || device.getEndpoint(1);
-            const binds = ['genBasic', 'genIdentify', 'genPowerCfg', 'genTime', 'hvacThermostat', 'hvacUserInterfaceCfg', 'hvacFanCtrl'];
+            const binds = ["genBasic", "genIdentify", "genPowerCfg", "genTime", "hvacThermostat", "hvacUserInterfaceCfg", "hvacFanCtrl"];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
 
             await reporting.thermostatSystemMode(endpoint);

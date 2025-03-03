@@ -1,24 +1,24 @@
-import {DefinitionWithExtend, Fz, KeyValue} from 'src/lib/types';
+import type {DefinitionWithExtend, Fz, KeyValue} from "src/lib/types";
 
-import fz from '../converters/fromZigbee';
-import tz from '../converters/toZigbee';
-import * as exposes from '../lib/exposes';
-import * as reporting from '../lib/reporting';
+import * as fz from "../converters/fromZigbee";
+import * as tz from "../converters/toZigbee";
+import * as exposes from "../lib/exposes";
+import * as reporting from "../lib/reporting";
 
 const e = exposes.presets;
 const ea = exposes.access;
 
 const fzLocal = {
     nimly_pro_lock_actions: {
-        cluster: 'closuresDoorLock',
-        type: ['attributeReport', 'readResponse'],
+        cluster: "closuresDoorLock",
+        type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
             const attributes: KeyValue = {};
             // Handle attribute 257
-            if (msg.data['257'] !== undefined) {
-                const buffer = Buffer.from(msg.data['257']);
-                let pincode = '';
+            if (msg.data["257"] !== undefined) {
+                const buffer = Buffer.from(msg.data["257"]);
+                let pincode = "";
                 for (const byte of buffer) {
                     pincode += byte.toString(16);
                 }
@@ -26,24 +26,24 @@ const fzLocal = {
             }
 
             // Handle attribute 256
-            if (msg.data['256'] !== undefined) {
-                const hex = msg.data['256'].toString(16).padStart(8, '0');
+            if (msg.data["256"] !== undefined) {
+                const hex = msg.data["256"].toString(16).padStart(8, "0");
                 const firstOctet = String(hex.substring(0, 2));
                 const lookup: {[key: string]: string} = {
-                    '00': 'zigbee',
-                    '02': 'keypad',
-                    '03': 'fingerprintsensor',
-                    '04': 'rfid',
-                    '0a': 'self',
+                    "00": "zigbee",
+                    "02": "keypad",
+                    "03": "fingerprintsensor",
+                    "04": "rfid",
+                    "0a": "self",
                 };
-                result.last_action_source = lookup[firstOctet] || 'unknown';
+                result.last_action_source = lookup[firstOctet] || "unknown";
                 const secondOctet = hex.substring(2, 4);
                 const thirdOctet = hex.substring(4, 8);
-                result.last_action_user = parseInt(thirdOctet, 16);
-                if (secondOctet == '01') {
+                result.last_action_user = Number.parseInt(thirdOctet, 16);
+                if (secondOctet === "01") {
                     attributes.last_lock_user = result.last_action_user;
                     attributes.last_lock_source = result.last_action_source;
-                } else if (secondOctet == '02') {
+                } else if (secondOctet === "02") {
                     attributes.last_unlock_user = result.last_action_user;
                     attributes.last_unlock_source = result.last_action_source;
                 }
@@ -59,10 +59,10 @@ const fzLocal = {
 
 export const definitions: DefinitionWithExtend[] = [
     {
-        zigbeeModel: ['easyCodeTouch_v1', 'EasyCodeTouch', 'EasyFingerTouch'],
-        model: 'easyCodeTouch_v1',
-        vendor: 'Onesti Products AS',
-        description: 'Zigbee module for EasyAccess code touch series',
+        zigbeeModel: ["easyCodeTouch_v1", "EasyCodeTouch", "EasyFingerTouch"],
+        model: "easyCodeTouch_v1",
+        vendor: "Onesti Products AS",
+        description: "Zigbee module for EasyAccess code touch series",
         fromZigbee: [
             fzLocal.nimly_pro_lock_actions,
             fz.lock,
@@ -75,11 +75,11 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {pinCodeCount: 1000},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(11);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["closuresDoorLock", "genPowerCfg"]);
             await reporting.lockState(endpoint);
             await reporting.batteryPercentageRemaining(endpoint);
-            await endpoint.read('closuresDoorLock', ['lockState', 'soundVolume']);
-            device.powerSource = 'Battery';
+            await endpoint.read("closuresDoorLock", ["lockState", "soundVolume"]);
+            device.powerSource = "Battery";
             device.save();
         },
         exposes: [
@@ -87,23 +87,23 @@ export const definitions: DefinitionWithExtend[] = [
             e.battery(),
             e.sound_volume(),
             e
-                .enum('last_unlock_source', ea.STATE, ['zigbee', 'keypad', 'fingerprintsensor', 'rfid', 'self', 'unknown'])
-                .withDescription('Last unlock source'),
-            e.text('last_unlock_user', ea.STATE).withDescription('Last unlock user').withDescription('Last unlock user'),
+                .enum("last_unlock_source", ea.STATE, ["zigbee", "keypad", "fingerprintsensor", "rfid", "self", "unknown"])
+                .withDescription("Last unlock source"),
+            e.text("last_unlock_user", ea.STATE).withDescription("Last unlock user").withDescription("Last unlock user"),
             e
-                .enum('last_lock_source', ea.STATE, ['zigbee', 'keypad', 'fingerprintsensor', 'rfid', 'self', 'unknown'])
-                .withDescription('Last lock source'),
-            e.text('last_lock_user', ea.STATE).withDescription('Last lock user'),
-            e.text('last_used_pin_code', ea.STATE).withDescription('Last used pin code'),
-            e.binary('auto_relock', ea.STATE_SET, true, false).withDescription('Auto relock after 7 seconds.'),
+                .enum("last_lock_source", ea.STATE, ["zigbee", "keypad", "fingerprintsensor", "rfid", "self", "unknown"])
+                .withDescription("Last lock source"),
+            e.text("last_lock_user", ea.STATE).withDescription("Last lock user"),
+            e.text("last_used_pin_code", ea.STATE).withDescription("Last used pin code"),
+            e.binary("auto_relock", ea.STATE_SET, true, false).withDescription("Auto relock after 7 seconds."),
             e.pincode(),
         ],
     },
     {
-        zigbeeModel: ['NimlyPRO', 'NimlyCode', 'NimlyTouch', 'NimlyIn'],
-        model: 'Nimly',
-        vendor: 'Onesti Products AS',
-        description: 'Zigbee module for Nimly Doorlock series',
+        zigbeeModel: ["NimlyPRO", "NimlyCode", "NimlyTouch", "NimlyIn"],
+        model: "Nimly",
+        vendor: "Onesti Products AS",
+        description: "Zigbee module for Nimly Doorlock series",
         fromZigbee: [
             fzLocal.nimly_pro_lock_actions,
             fz.lock,
@@ -116,11 +116,11 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {pinCodeCount: 1000, battery: {dontDividePercentage: true}},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(11);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["closuresDoorLock", "genPowerCfg"]);
             await reporting.lockState(endpoint);
             await reporting.batteryPercentageRemaining(endpoint);
-            await endpoint.read('closuresDoorLock', ['lockState', 'soundVolume']);
-            device.powerSource = 'Battery';
+            await endpoint.read("closuresDoorLock", ["lockState", "soundVolume"]);
+            device.powerSource = "Battery";
             device.save();
         },
         exposes: [
@@ -128,34 +128,34 @@ export const definitions: DefinitionWithExtend[] = [
             e.battery(),
             e.sound_volume(),
             e
-                .enum('last_unlock_source', ea.STATE, ['zigbee', 'keypad', 'fingerprintsensor', 'rfid', 'self', 'unknown'])
-                .withDescription('Last unlock source'),
-            e.text('last_unlock_user', ea.STATE).withDescription('Last unlock user').withDescription('Last unlock user'),
+                .enum("last_unlock_source", ea.STATE, ["zigbee", "keypad", "fingerprintsensor", "rfid", "self", "unknown"])
+                .withDescription("Last unlock source"),
+            e.text("last_unlock_user", ea.STATE).withDescription("Last unlock user").withDescription("Last unlock user"),
             e
-                .enum('last_lock_source', ea.STATE, ['zigbee', 'keypad', 'fingerprintsensor', 'rfid', 'self', 'unknown'])
-                .withDescription('Last lock source'),
-            e.text('last_lock_user', ea.STATE).withDescription('Last lock user'),
-            e.text('last_used_pin_code', ea.STATE).withDescription('Last used pin code'),
-            e.binary('auto_relock', ea.STATE_SET, true, false).withDescription('Auto relock after 7 seconds.'),
+                .enum("last_lock_source", ea.STATE, ["zigbee", "keypad", "fingerprintsensor", "rfid", "self", "unknown"])
+                .withDescription("Last lock source"),
+            e.text("last_lock_user", ea.STATE).withDescription("Last lock user"),
+            e.text("last_used_pin_code", ea.STATE).withDescription("Last used pin code"),
+            e.binary("auto_relock", ea.STATE_SET, true, false).withDescription("Auto relock after 7 seconds."),
             e.pincode(),
         ],
     },
     {
-        zigbeeModel: ['S4RX-110'],
-        model: 'S4RX-110',
-        vendor: 'Onesti Products AS',
-        description: 'Relax smart plug',
+        zigbeeModel: ["S4RX-110"],
+        model: "S4RX-110",
+        vendor: "Onesti Products AS",
+        description: "Relax smart plug",
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.device_temperature, fz.identify],
         toZigbee: [tz.on_off],
         exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy(), e.device_temperature()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(2);
             await reporting.bind(endpoint, coordinatorEndpoint, [
-                'genIdentify',
-                'genOnOff',
-                'genDeviceTempCfg',
-                'haElectricalMeasurement',
-                'seMetering',
+                "genIdentify",
+                "genOnOff",
+                "genDeviceTempCfg",
+                "haElectricalMeasurement",
+                "seMetering",
             ]);
             await reporting.onOff(endpoint);
             await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);

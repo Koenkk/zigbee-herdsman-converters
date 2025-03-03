@@ -1,18 +1,18 @@
-import fz from '../converters/fromZigbee';
-import tz from '../converters/toZigbee';
-import * as exposes from '../lib/exposes';
-import * as reporting from '../lib/reporting';
-import {DefinitionWithExtend} from '../lib/types';
+import * as fz from "../converters/fromZigbee";
+import * as tz from "../converters/toZigbee";
+import * as exposes from "../lib/exposes";
+import * as reporting from "../lib/reporting";
+import type {DefinitionWithExtend} from "../lib/types";
 
 const e = exposes.presets;
 const ea = exposes.access;
 
 export const definitions: DefinitionWithExtend[] = [
     {
-        zigbeeModel: ['Thermostat'],
-        model: '1TST-EU',
-        vendor: 'eCozy',
-        description: 'Smart heating thermostat',
+        zigbeeModel: ["Thermostat"],
+        model: "1TST-EU",
+        vendor: "eCozy",
+        description: "Smart heating thermostat",
         fromZigbee: [fz.battery, fz.thermostat],
         toZigbee: [
             tz.thermostat_local_temperature,
@@ -34,16 +34,16 @@ export const definitions: DefinitionWithExtend[] = [
             e.battery(),
             e
                 .climate()
-                .withSetpoint('occupied_heating_setpoint', 7, 30, 1)
+                .withSetpoint("occupied_heating_setpoint", 7, 30, 1)
                 .withLocalTemperature()
-                .withSystemMode(['off', 'auto', 'heat'])
-                .withRunningState(['idle', 'heat'])
+                .withSystemMode(["off", "auto", "heat"])
+                .withRunningState(["idle", "heat"])
                 .withLocalTemperatureCalibration()
                 .withPiHeatingDemand(ea.STATE_GET),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(3);
-            const binds = ['genBasic', 'genPowerCfg', 'genIdentify', 'genTime', 'genPollCtrl', 'hvacThermostat', 'hvacUserInterfaceCfg'];
+            const binds = ["genBasic", "genPowerCfg", "genIdentify", "genTime", "genPollCtrl", "hvacThermostat", "hvacUserInterfaceCfg"];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
             await reporting.thermostatTemperature(endpoint);
         },

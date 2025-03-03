@@ -1,36 +1,36 @@
-import fz from '../converters/fromZigbee';
-import tz from '../converters/toZigbee';
-import * as exposes from '../lib/exposes';
-import * as reporting from '../lib/reporting';
-import {DefinitionWithExtend} from '../lib/types';
-import * as utils from '../lib/utils';
+import * as fz from "../converters/fromZigbee";
+import * as tz from "../converters/toZigbee";
+import * as exposes from "../lib/exposes";
+import * as reporting from "../lib/reporting";
+import type {DefinitionWithExtend} from "../lib/types";
+import * as utils from "../lib/utils";
 
 const e = exposes.presets;
 
 export const definitions: DefinitionWithExtend[] = [
     {
-        zigbeeModel: [' Remote'],
-        model: 'InstaRemote',
-        vendor: 'Insta',
-        description: 'ZigBee Light Link wall/handheld transmitter',
+        zigbeeModel: [" Remote"],
+        model: "InstaRemote",
+        vendor: "Insta",
+        description: "ZigBee Light Link wall/handheld transmitter",
         whiteLabel: [
-            {vendor: 'Gira', model: '2430-100'},
-            {vendor: 'Gira', model: '2435-10'},
-            {vendor: 'Jung', model: 'ZLLCD5004M'},
-            {vendor: 'Jung', model: 'ZLLLS5004M'},
-            {vendor: 'Jung', model: 'ZLLA5004M'},
-            {vendor: 'Jung', model: 'ZLLHS4'},
+            {vendor: "Gira", model: "2430-100"},
+            {vendor: "Gira", model: "2435-10"},
+            {vendor: "Jung", model: "ZLLCD5004M"},
+            {vendor: "Jung", model: "ZLLLS5004M"},
+            {vendor: "Jung", model: "ZLLA5004M"},
+            {vendor: "Jung", model: "ZLLHS4"},
         ],
         fromZigbee: [fz.command_recall, fz.command_on, fz.command_off_with_effect, fz.command_step, fz.command_step, fz.command_stop],
-        exposes: [e.action(['select_0', 'select_1', 'select_2', 'select_3', 'select_4', 'select_5', 'on', 'off', 'down', 'up', 'stop'])],
+        exposes: [e.action(["select_0", "select_1", "select_2", "select_3", "select_4", "select_5", "on", "off", "down", "up", "stop"])],
         toZigbee: [],
         ota: true,
     },
     {
-        zigbeeModel: ['NEXENTRO Blinds Actuator', 'Generic UP Device'],
-        model: '57008000',
-        vendor: 'Insta',
-        description: 'Blinds actor with lift/tilt calibration & with with inputs for wall switches',
+        zigbeeModel: ["NEXENTRO Blinds Actuator", "Generic UP Device"],
+        model: "57008000",
+        vendor: "Insta",
+        description: "Blinds actor with lift/tilt calibration & with with inputs for wall switches",
         fromZigbee: [fz.cover_position_tilt, fz.command_cover_open, fz.command_cover_close, fz.command_cover_stop],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
         exposes: [e.cover_position_tilt()],
@@ -39,13 +39,13 @@ export const definitions: DefinitionWithExtend[] = [
         },
         configure: async (device, coordinatorEndpoint) => {
             await utils.sleep(10000); // https://github.com/Koenkk/zigbee-herdsman-converters/issues/2493
-            await reporting.bind(device.getEndpoint(6), coordinatorEndpoint, ['closuresWindowCovering']);
-            await reporting.bind(device.getEndpoint(7), coordinatorEndpoint, ['closuresWindowCovering']);
+            await reporting.bind(device.getEndpoint(6), coordinatorEndpoint, ["closuresWindowCovering"]);
+            await reporting.bind(device.getEndpoint(7), coordinatorEndpoint, ["closuresWindowCovering"]);
             await reporting.currentPositionLiftPercentage(device.getEndpoint(6));
             await reporting.currentPositionTiltPercentage(device.getEndpoint(6));
 
             // Has Unknown power source, force it here.
-            device.powerSource = 'Mains (single phase)';
+            device.powerSource = "Mains (single phase)";
             device.save();
         },
         ota: true,
@@ -55,8 +55,8 @@ export const definitions: DefinitionWithExtend[] = [
             // It seems several Insta devices use the same ModelID with a different endpoint configuration
             // This is the single "Switching Actuator Mini"
             {
-                manufacturerName: 'Insta GmbH',
-                modelID: 'Generic UP Device',
+                manufacturerName: "Insta GmbH",
+                modelID: "Generic UP Device",
                 endpoints: [
                     {ID: 1, profileID: 260, deviceID: 256, inputClusters: [0, 3, 4, 5, 6, 4096], outputClusters: [25]},
                     {ID: 4, profileID: 260, deviceID: 261, inputClusters: [0, 3], outputClusters: [3, 4, 5, 6, 8, 25, 768]},
@@ -64,10 +64,10 @@ export const definitions: DefinitionWithExtend[] = [
                 ],
             },
         ],
-        zigbeeModel: ['NEXENTRO Switching Actuator', '57005000'],
-        model: '57005000',
-        vendor: 'Insta',
-        description: 'Switching Actuator Mini with input for wall switch',
+        zigbeeModel: ["NEXENTRO Switching Actuator", "57005000"],
+        model: "57005000",
+        vendor: "Insta",
+        description: "Switching Actuator Mini with input for wall switch",
         fromZigbee: [fz.on_off, fz.command_on, fz.command_off],
         toZigbee: [tz.on_off],
         exposes: [e.switch()],
@@ -75,11 +75,11 @@ export const definitions: DefinitionWithExtend[] = [
         // when the device is controlled manually through the button on it.
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff"]);
             await reporting.onOff(endpoint);
 
             // Has Unknown power source, force it here.
-            device.powerSource = 'Mains (single phase)';
+            device.powerSource = "Mains (single phase)";
             device.save();
         },
     },
@@ -88,8 +88,8 @@ export const definitions: DefinitionWithExtend[] = [
             // It seems several Insta devices use the same ModelID with a different endpoint configuration
             // This is the "Pushbutton Interface 2-gang"
             {
-                manufacturerName: 'Insta GmbH',
-                modelID: 'Generic UP Device',
+                manufacturerName: "Insta GmbH",
+                modelID: "Generic UP Device",
                 endpoints: [
                     {ID: 4, profileID: 260, deviceID: 261, inputClusters: [0, 3], outputClusters: [3, 4, 5, 6, 8, 25, 768]},
                     {ID: 5, profileID: 260, deviceID: 261, inputClusters: [0, 3], outputClusters: [3, 4, 5, 6, 8, 25, 768]},
@@ -98,10 +98,10 @@ export const definitions: DefinitionWithExtend[] = [
                 ],
             },
         ],
-        zigbeeModel: ['NEXENTRO Pushbutton Interface', '57004000'],
-        model: '57004000',
-        vendor: 'Insta',
-        description: 'Pushbutton Interface 2-gang 230V',
+        zigbeeModel: ["NEXENTRO Pushbutton Interface", "57004000"],
+        model: "57004000",
+        vendor: "Insta",
+        description: "Pushbutton Interface 2-gang 230V",
         fromZigbee: [
             fz.command_on,
             fz.command_off,
@@ -116,26 +116,26 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: [],
         exposes: [
             e.action([
-                'on_e1',
-                'off_e1',
-                'toggle_e1',
-                'recall_*_e1',
-                'brightness_stop_e1',
-                'brightness_move_*_e1',
-                'on_e2',
-                'off_e2',
-                'toggle_e2',
-                'recall_*_e2',
-                'brightness_stop_e2',
-                'brightness_move_*_e2',
-                'close_cover',
-                'open_cover',
-                'stop_cover',
+                "on_e1",
+                "off_e1",
+                "toggle_e1",
+                "recall_*_e1",
+                "brightness_stop_e1",
+                "brightness_move_*_e1",
+                "on_e2",
+                "off_e2",
+                "toggle_e2",
+                "recall_*_e2",
+                "brightness_stop_e2",
+                "brightness_move_*_e2",
+                "close_cover",
+                "open_cover",
+                "stop_cover",
             ]),
         ],
         configure: async (device, coordinatorEndpoint) => {
             // Has Unknown power source, force it here.
-            device.powerSource = 'Mains (single phase)';
+            device.powerSource = "Mains (single phase)";
             device.save();
         },
         meta: {multiEndpoint: true},

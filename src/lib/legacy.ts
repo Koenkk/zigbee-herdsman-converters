@@ -1,15 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import fs from 'fs';
+import fs from "node:fs";
 
-import fromZigbeeConverters from '../converters/fromZigbee';
-import * as constants from './constants';
-import * as exposes from './exposes';
-import * as light from './light';
-import {logger} from './logger';
-import * as globalStore from './store';
-import {Definition, Fz, KeyValueNumberString, Publish, Tz, Zh} from './types';
-import * as utils from './utils';
+import {occupancy_with_timeout} from "../converters/fromZigbee";
+import * as constants from "./constants";
+import * as exposes from "./exposes";
+import * as light from "./light";
+import {logger} from "./logger";
+import * as globalStore from "./store";
+import type {Definition, Fz, KeyValueNumberString, Publish, Tz, Zh} from "./types";
+import * as utils from "./utils";
 
 interface KeyValueAny {
     [s: string]: any;
@@ -36,7 +36,7 @@ const convertMultiByteNumberPayloadToSingleDecimalNumber = (chunks: any) => {
 };
 
 function getDataValue(dpValue: any) {
-    let dataString = '';
+    let dataString = "";
     switch (dpValue.datatype) {
         case dataTypes.raw:
             return dpValue.data;
@@ -59,7 +59,7 @@ function getDataValue(dpValue: any) {
 
 function getTypeName(dpValue: any) {
     const entry = Object.entries(dataTypes).find(([typeName, typeId]) => typeId === dpValue.datatype);
-    return entry ? entry[0] : 'unknown';
+    return entry ? entry[0] : "unknown";
 }
 
 function logUnexpectedDataPoint(where: string, msg: KeyValueAny, dpValue: any, meta: Fz.Meta) {
@@ -99,22 +99,21 @@ const coverStateOverride: KeyValueAny = {
 function getCoverStateEnums(manufacturerName: string) {
     if (manufacturerName in coverStateOverride) {
         return coverStateOverride[manufacturerName];
-    } else {
-        return {close: 2, open: 0, stop: 1}; // defaults
     }
+    return {close: 2, open: 0, stop: 1}; // defaults
 }
 
 function convertDecimalValueTo4ByteHexArray(value: number) {
-    const hexValue = Number(value).toString(16).padStart(8, '0');
+    const hexValue = Number(value).toString(16).padStart(8, "0");
     const chunk1 = hexValue.substring(0, 2);
     const chunk2 = hexValue.substring(2, 4);
     const chunk3 = hexValue.substring(4, 6);
     const chunk4 = hexValue.substring(6);
-    return [chunk1, chunk2, chunk3, chunk4].map((hexVal) => parseInt(hexVal, 16));
+    return [chunk1, chunk2, chunk3, chunk4].map((hexVal) => Number.parseInt(hexVal, 16));
 }
 
 let gSec: number = undefined;
-async function sendDataPoints(entity: Zh.Endpoint | Zh.Group, dpValues: any, cmd = 'dataRequest', seq: number = undefined) {
+async function sendDataPoints(entity: Zh.Endpoint | Zh.Group, dpValues: any, cmd = "dataRequest", seq: number = undefined) {
     if (seq === undefined) {
         if (gSec === undefined) {
             gSec = 0;
@@ -126,8 +125,8 @@ async function sendDataPoints(entity: Zh.Endpoint | Zh.Group, dpValues: any, cmd
     }
 
     await entity.command(
-        'manuSpecificTuya',
-        cmd || 'dataRequest',
+        "manuSpecificTuya",
+        cmd || "dataRequest",
         {
             seq,
             dpValues,
@@ -200,33 +199,33 @@ async function sendDataPointStringBuffer(entity: Zh.Endpoint | Zh.Group, dp: num
 
 function convertRawToCycleTimer(value: any) {
     let timernr = 0;
-    let starttime = '00:00';
-    let endtime = '00:00';
+    let starttime = "00:00";
+    let endtime = "00:00";
     let irrigationDuration = 0;
     let pauseDuration = 0;
-    let weekdays = 'once';
+    let weekdays = "once";
     let timeractive = 0;
     if (value.length > 11) {
         timernr = value[1];
         timeractive = value[2];
         if (value[3] > 0) {
             weekdays =
-                (value[3] & 0x01 ? 'Su' : '') +
-                (value[3] & 0x02 ? 'Mo' : '') +
-                (value[3] & 0x04 ? 'Tu' : '') +
-                (value[3] & 0x08 ? 'We' : '') +
-                (value[3] & 0x10 ? 'Th' : '') +
-                (value[3] & 0x20 ? 'Fr' : '') +
-                (value[3] & 0x40 ? 'Sa' : '');
+                (value[3] & 0x01 ? "Su" : "") +
+                (value[3] & 0x02 ? "Mo" : "") +
+                (value[3] & 0x04 ? "Tu" : "") +
+                (value[3] & 0x08 ? "We" : "") +
+                (value[3] & 0x10 ? "Th" : "") +
+                (value[3] & 0x20 ? "Fr" : "") +
+                (value[3] & 0x40 ? "Sa" : "");
         } else {
-            weekdays = 'once';
+            weekdays = "once";
         }
         let minsincemidnight: any = value[4] * 256 + value[5];
         // @ts-expect-error ignore
-        starttime = String(parseInt(minsincemidnight / 60)).padStart(2, '0') + ':' + String(minsincemidnight % 60).padStart(2, '0');
+        starttime = `${String(Number.parseInt(minsincemidnight / 60)).padStart(2, "0")}:${String(minsincemidnight % 60).padStart(2, "0")}`;
         minsincemidnight = value[6] * 256 + value[7];
         // @ts-expect-error ignore
-        endtime = String(parseInt(minsincemidnight / 60)).padStart(2, '0') + ':' + String(minsincemidnight % 60).padStart(2, '0');
+        endtime = `${String(Number.parseInt(minsincemidnight / 60)).padStart(2, "0")}:${String(minsincemidnight % 60).padStart(2, "0")}`;
         irrigationDuration = value[8] * 256 + value[9];
         pauseDuration = value[10] * 256 + value[11];
     }
@@ -251,52 +250,52 @@ function logDataPoint(where: string, msg: KeyValueAny, dpValue: any, meta: any) 
 }
 
 const thermostatSystemModes2: KeyValueAny = {
-    0: 'auto',
-    1: 'cool',
-    2: 'heat',
-    3: 'dry',
-    4: 'fan',
+    0: "auto",
+    1: "cool",
+    2: "heat",
+    3: "dry",
+    4: "fan",
 };
 
 const thermostatSystemModes3: KeyValueAny = {
-    0: 'auto',
-    1: 'heat',
-    2: 'off',
+    0: "auto",
+    1: "heat",
+    2: "off",
 };
 
 const thermostatSystemModes4: KeyValueNumberString = {
-    0: 'off',
-    1: 'auto',
-    2: 'heat',
+    0: "off",
+    1: "auto",
+    2: "heat",
 };
 
 const thermostatWeekFormat: KeyValueAny = {
-    0: '5+2',
-    1: '6+1',
-    2: '7',
+    0: "5+2",
+    1: "6+1",
+    2: "7",
 };
 
 const thermostatForceMode: KeyValueAny = {
-    0: 'normal',
-    1: 'open',
-    2: 'close',
+    0: "normal",
+    1: "open",
+    2: "close",
 };
 
 const thermostatPresets: KeyValueNumberString = {
-    0: 'away',
-    1: 'schedule',
-    2: 'manual',
-    3: 'comfort',
-    4: 'eco',
-    5: 'boost',
-    6: 'complex',
+    0: "away",
+    1: "schedule",
+    2: "manual",
+    3: "comfort",
+    4: "eco",
+    5: "boost",
+    6: "complex",
 };
 
 const thermostatScheduleMode: KeyValueAny = {
-    1: 'single', // One schedule for all days
-    2: 'weekday/weekend', // Weekdays(2-5) and Holidays(6-1)
-    3: 'weekday/sat/sun', // Weekdays(2-6), Saturday(7), Sunday(1)
-    4: '7day', // 7 day schedule
+    1: "single", // One schedule for all days
+    2: "weekday/weekend", // Weekdays(2-5) and Holidays(6-1)
+    3: "weekday/sat/sun", // Weekdays(2-6), Saturday(7), Sunday(1)
+    4: "7day", // 7 day schedule
 };
 
 const silvercrestModes: KeyValueAny = {
@@ -306,144 +305,144 @@ const silvercrestModes: KeyValueAny = {
 };
 
 const silvercrestEffects: KeyValueAny = {
-    steady: '00',
-    snow: '01',
-    rainbow: '02',
-    snake: '03',
-    twinkle: '04',
-    firework: '05',
-    horizontal_flag: '06',
-    waves: '07',
-    updown: '08',
-    vintage: '09',
-    fading: '0a',
-    collide: '0b',
-    strobe: '0c',
-    sparkles: '0d',
-    carnaval: '0e',
-    glow: '0f',
+    steady: "00",
+    snow: "01",
+    rainbow: "02",
+    snake: "03",
+    twinkle: "04",
+    firework: "05",
+    horizontal_flag: "06",
+    waves: "07",
+    updown: "08",
+    vintage: "09",
+    fading: "0a",
+    collide: "0b",
+    strobe: "0c",
+    sparkles: "0d",
+    carnaval: "0e",
+    glow: "0f",
 };
 
 const fanModes: KeyValueAny = {
-    0: 'low',
-    1: 'medium',
-    2: 'high',
-    3: 'auto',
+    0: "low",
+    1: "medium",
+    2: "high",
+    3: "auto",
 };
 
 // Motion sensor lookups
 const msLookups: KeyValueAny = {
     OSensitivity: {
-        0: 'sensitive',
-        1: 'normal',
-        2: 'cautious',
+        0: "sensitive",
+        1: "normal",
+        2: "cautious",
     },
     VSensitivity: {
-        0: 'speed_priority',
-        1: 'normal_priority',
-        2: 'accuracy_priority',
+        0: "speed_priority",
+        1: "normal_priority",
+        2: "accuracy_priority",
     },
     Mode: {
-        0: 'general_model',
-        1: 'temporaty_stay',
-        2: 'basic_detection',
-        3: 'sensor_test',
+        0: "general_model",
+        1: "temporaty_stay",
+        2: "basic_detection",
+        3: "sensor_test",
     },
 };
 
 const tvThermostatMode: KeyValueAny = {
-    0: 'off',
-    1: 'heat',
-    2: 'auto',
+    0: "off",
+    1: "heat",
+    2: "auto",
 };
 
 const tvThermostatPreset: KeyValueAny = {
-    0: 'auto',
-    1: 'manual',
-    2: 'holiday',
-    3: 'holiday',
+    0: "auto",
+    1: "manual",
+    2: "holiday",
+    3: "holiday",
 };
 // Zemismart ZM_AM02 Roller Shade Converter
 const ZMLookups: KeyValueAny = {
     AM02Mode: {
-        0: 'morning',
-        1: 'night',
+        0: "morning",
+        1: "night",
     },
     AM02Control: {
-        0: 'open',
-        1: 'stop',
-        2: 'close',
-        3: 'continue',
+        0: "open",
+        1: "stop",
+        2: "close",
+        3: "continue",
     },
     AM02Direction: {
-        0: 'forward',
-        1: 'back',
+        0: "forward",
+        1: "back",
     },
     AM02WorkState: {
-        0: 'opening',
-        1: 'closing',
+        0: "opening",
+        1: "closing",
     },
     AM02Border: {
-        0: 'up',
-        1: 'down',
-        2: 'down_delete',
+        0: "up",
+        1: "down",
+        2: "down_delete",
     },
     AM02Situation: {
-        0: 'fully_open',
-        1: 'fully_close',
+        0: "fully_open",
+        1: "fully_close",
     },
     AM02MotorWorkingMode: {
-        0: 'continuous',
-        1: 'intermittently',
+        0: "continuous",
+        1: "intermittently",
     },
 };
 
 const moesSwitch: KeyValueAny = {
     powerOnBehavior: {
-        0: 'off',
-        1: 'on',
-        2: 'previous',
+        0: "off",
+        1: "on",
+        2: "previous",
     },
     indicateLight: {
-        0: 'off',
-        1: 'switch',
-        2: 'position',
-        3: 'freeze',
+        0: "off",
+        1: "switch",
+        2: "position",
+        3: "freeze",
     },
 };
 const tuyaHPSCheckingResult: KeyValueAny = {
-    0: 'checking',
-    1: 'check_success',
-    2: 'check_failure',
-    3: 'others',
-    4: 'comm_fault',
-    5: 'radar_fault',
+    0: "checking",
+    1: "check_success",
+    2: "check_failure",
+    3: "others",
+    4: "comm_fault",
+    5: "radar_fault",
 };
 
 function convertWeekdaysTo1ByteHexArray(weekdays: string) {
     let nr = 0;
-    if (weekdays == 'once') {
+    if (weekdays === "once") {
         return nr;
     }
-    if (weekdays.includes('Mo')) {
+    if (weekdays.includes("Mo")) {
         nr |= 0x40;
     }
-    if (weekdays.includes('Tu')) {
+    if (weekdays.includes("Tu")) {
         nr |= 0x20;
     }
-    if (weekdays.includes('We')) {
+    if (weekdays.includes("We")) {
         nr |= 0x10;
     }
-    if (weekdays.includes('Th')) {
+    if (weekdays.includes("Th")) {
         nr |= 0x08;
     }
-    if (weekdays.includes('Fr')) {
+    if (weekdays.includes("Fr")) {
         nr |= 0x04;
     }
-    if (weekdays.includes('Sa')) {
+    if (weekdays.includes("Sa")) {
         nr |= 0x02;
     }
-    if (weekdays.includes('Su')) {
+    if (weekdays.includes("Su")) {
         nr |= 0x01;
     }
     return [nr];
@@ -451,27 +450,27 @@ function convertWeekdaysTo1ByteHexArray(weekdays: string) {
 
 function convertRawToTimer(value: any) {
     let timernr = 0;
-    let starttime = '00:00';
+    let starttime = "00:00";
     let duration = 0;
-    let weekdays = 'once';
-    let timeractive = '';
+    let weekdays = "once";
+    let timeractive = "";
     if (value.length > 12) {
         timernr = value[1];
         const minsincemidnight = value[2] * 256 + value[3];
         // @ts-expect-error ignore
-        starttime = String(parseInt(minsincemidnight / 60)).padStart(2, '0') + ':' + String(minsincemidnight % 60).padStart(2, '0');
+        starttime = `${String(Number.parseInt(minsincemidnight / 60)).padStart(2, "0")}:${String(minsincemidnight % 60).padStart(2, "0")}`;
         duration = value[4] * 256 + value[5];
         if (value[6] > 0) {
             weekdays =
-                (value[6] & 0x01 ? 'Su' : '') +
-                (value[6] & 0x02 ? 'Mo' : '') +
-                (value[6] & 0x04 ? 'Tu' : '') +
-                (value[6] & 0x08 ? 'We' : '') +
-                (value[6] & 0x10 ? 'Th' : '') +
-                (value[6] & 0x20 ? 'Fr' : '') +
-                (value[6] & 0x40 ? 'Sa' : '');
+                (value[6] & 0x01 ? "Su" : "") +
+                (value[6] & 0x02 ? "Mo" : "") +
+                (value[6] & 0x04 ? "Tu" : "") +
+                (value[6] & 0x08 ? "We" : "") +
+                (value[6] & 0x10 ? "Th" : "") +
+                (value[6] & 0x20 ? "Fr" : "") +
+                (value[6] & 0x40 ? "Sa" : "");
         } else {
-            weekdays = 'once';
+            weekdays = "once";
         }
         timeractive = value[8];
     }
@@ -523,13 +522,13 @@ function logUnexpectedDataValue(
 // Use manufacturerName to identify device!
 // Don't invert _TZE200_cowvfni3: https://github.com/Koenkk/zigbee2mqtt/issues/6043
 const coverPositionInvert = [
-    '_TZE200_wmcdj3aq',
-    '_TZE200_nogaemzt',
-    '_TZE200_xuzcvlku',
-    '_TZE200_xaabybja',
-    '_TZE200_rmymn92d',
-    '_TZE200_gubdgai2',
-    '_TZE200_r0jdjrvi',
+    "_TZE200_wmcdj3aq",
+    "_TZE200_nogaemzt",
+    "_TZE200_xuzcvlku",
+    "_TZE200_xaabybja",
+    "_TZE200_rmymn92d",
+    "_TZE200_gubdgai2",
+    "_TZE200_r0jdjrvi",
 ];
 
 // Gets a boolean indicating whether the cover by this manufacturerName needs reversed positions
@@ -540,22 +539,22 @@ function isCoverInverted(manufacturerName: string) {
 }
 
 function convertDecimalValueTo2ByteHexArray(value: any) {
-    const hexValue = Number(value).toString(16).padStart(4, '0');
+    const hexValue = Number(value).toString(16).padStart(4, "0");
     const chunk1 = hexValue.substr(0, 2);
     const chunk2 = hexValue.substr(2);
-    return [chunk1, chunk2].map((hexVal) => parseInt(hexVal, 16));
+    return [chunk1, chunk2].map((hexVal) => Number.parseInt(hexVal, 16));
 }
 
 function convertTimeTo2ByteHexArray(time: string) {
-    const timeArray = time.split(':');
-    if (timeArray.length != 2) {
-        throw new Error('Time format incorrect');
+    const timeArray = time.split(":");
+    if (timeArray.length !== 2) {
+        throw new Error("Time format incorrect");
     }
-    const timeHour = parseInt(timeArray[0]);
-    const timeMinute = parseInt(timeArray[1]);
+    const timeHour = Number.parseInt(timeArray[0]);
+    const timeMinute = Number.parseInt(timeArray[1]);
 
     if (timeHour > 23 || timeMinute > 59) {
-        throw new Error('Time incorrect');
+        throw new Error("Time incorrect");
     }
     return convertDecimalValueTo2ByteHexArray(timeHour * 60 + timeMinute);
 }
@@ -1058,12 +1057,12 @@ function firstDpValue(msg: any, meta: any, converterName: any) {
     return dpValues[0];
 }
 
-function getMetaValue(entity: any, definition: any, key: string, groupStrategy = 'first') {
-    if (entity.constructor.name === 'Group' && entity.members.length > 0) {
+function getMetaValue(entity: any, definition: any, key: string, groupStrategy = "first") {
+    if (entity.constructor.name === "Group" && entity.members.length > 0) {
         const values = [];
         for (const memberMeta of definition) {
             if (memberMeta.meta && memberMeta.meta[key] !== undefined) {
-                if (groupStrategy === 'first') {
+                if (groupStrategy === "first") {
                     return memberMeta.meta[key];
                 }
 
@@ -1073,7 +1072,7 @@ function getMetaValue(entity: any, definition: any, key: string, groupStrategy =
             }
         }
 
-        if (groupStrategy === 'allEqual' && new Set(values).size === 1) {
+        if (groupStrategy === "allEqual" && new Set(values).size === 1) {
             return values[0];
         }
     } else if (definition && definition.meta && definition.meta[key] !== undefined) {
@@ -1083,47 +1082,25 @@ function getMetaValue(entity: any, definition: any, key: string, groupStrategy =
     return undefined;
 }
 
-const tuyaGetDataValue = (dataType: any, data: any) => {
-    let dataString = '';
-    switch (dataType) {
-        case dataTypes.raw:
-            return data;
-        case dataTypes.bool:
-            return data[0] === 1;
-        case dataTypes.value:
-            return convertMultiByteNumberPayloadToSingleDecimalNumber(data);
-        case dataTypes.string:
-            // Don't use .map here, doesn't work: https://github.com/Koenkk/zigbee-herdsman-converters/pull/1799/files#r530377091
-            for (let i = 0; i < data.length; ++i) {
-                dataString += String.fromCharCode(data[i]);
-            }
-            return dataString;
-        case dataTypes.enum:
-            return data[0];
-        case dataTypes.bitmap:
-            return convertMultiByteNumberPayloadToSingleDecimalNumber(data);
-    }
-};
-
 const SAFETY_MIN_SECS = 10;
-const CAPACITY = 'capacity';
-const DURATION = 'duration';
-const OFF = 'OFF';
-const ON = 'ON';
+const CAPACITY = "capacity";
+const DURATION = "duration";
+const OFF = "OFF";
+const ON = "ON";
 
 const toLocalTime = (time: any, timezone: any) => {
-    if (time === '--:--:--') {
+    if (time === "--:--:--") {
         return time;
     }
 
     const local = new Date(`2000-01-01T${time}.000${timezone}`); // Using 1970 instead produces edge cases
-    return local.toTimeString().split(' ').shift();
+    return local.toTimeString().split(" ").shift();
 };
 
 const giexFzModelConverters = {
     QT06_1: {
         // _TZE200_sh1btabb timezone is GMT+8
-        time: (value: any) => toLocalTime(value, '+08:00'),
+        time: (value: any) => toLocalTime(value, "+08:00"),
     },
 };
 
@@ -1135,23 +1112,23 @@ const giexTzModelConverters: KeyValueAny = {
 };
 
 const giexWaterValve = {
-    battery: 'battery',
-    currentTemperature: 'current_temperature',
-    cycleIrrigationInterval: 'cycle_irrigation_interval',
-    cycleIrrigationNumTimes: 'cycle_irrigation_num_times',
-    irrigationEndTime: 'irrigation_end_time',
-    irrigationStartTime: 'irrigation_start_time',
-    irrigationTarget: 'irrigation_target',
-    lastIrrigationDuration: 'last_irrigation_duration',
-    mode: 'mode',
-    state: 'state',
-    waterConsumed: 'water_consumed',
+    battery: "battery",
+    currentTemperature: "current_temperature",
+    cycleIrrigationInterval: "cycle_irrigation_interval",
+    cycleIrrigationNumTimes: "cycle_irrigation_num_times",
+    irrigationEndTime: "irrigation_end_time",
+    irrigationStartTime: "irrigation_start_time",
+    irrigationTarget: "irrigation_target",
+    lastIrrigationDuration: "last_irrigation_duration",
+    mode: "mode",
+    state: "state",
+    waterConsumed: "water_consumed",
 };
 
 const fromZigbee = {
     TS0222: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandDataResponse', 'commandDataReport'],
+        cluster: "manuSpecificTuya",
+        type: ["commandDataResponse", "commandDataReport"],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValueAny = {};
             for (const dpValue of msg.data.dpValues) {
@@ -1165,15 +1142,15 @@ const fromZigbee = {
                         result.battery = value;
                         break;
                     default:
-                        logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, 'zhc:legacy:fz:ts0222');
+                        logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, "zhc:legacy:fz:ts0222");
                 }
             }
             return result;
         },
     } satisfies Fz.Converter,
     watering_timer: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandDataReport'],
+        cluster: "manuSpecificTuya",
+        type: ["commandDataReport"],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValueAny = {};
             for (const dpValue of msg.data.dpValues) {
@@ -1213,7 +1190,7 @@ const fromZigbee = {
                         break;
                     }
                     default: {
-                        logger.debug(`>>> UNKNOWN DP #${dp} with data "${JSON.stringify(dpValue)}"`, 'zhc:legacy:fz:watering_timer');
+                        logger.debug(`>>> UNKNOWN DP #${dp} with data "${JSON.stringify(dpValue)}"`, "zhc:legacy:fz:watering_timer");
                     }
                 }
             }
@@ -1221,37 +1198,35 @@ const fromZigbee = {
         },
     } satisfies Fz.Converter,
     ZM35HQ_battery: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandDataReport'],
+        cluster: "manuSpecificTuya",
+        type: ["commandDataReport"],
         convert: (model, msg, publish, options, meta) => {
-            const dpValue = firstDpValue(msg, meta, 'ZM35HQ');
+            const dpValue = firstDpValue(msg, meta, "ZM35HQ");
             const dp = dpValue.dp;
             const value = getDataValue(dpValue);
             if (dp === 4) return {battery: value};
-            else {
-                logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, 'zhc:legacy:fz:zm35hq');
-            }
+
+            logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, "zhc:legacy:fz:zm35hq");
         },
     } satisfies Fz.Converter,
     ZMRM02: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandGetData', 'commandSetDataResponse', 'commandDataResponse'],
+        cluster: "manuSpecificTuya",
+        type: ["commandGetData", "commandSetDataResponse", "commandDataResponse"],
         convert: (model, msg, publish, options, meta) => {
-            const dpValue = firstDpValue(msg, meta, 'ZMRM02');
+            const dpValue = firstDpValue(msg, meta, "ZMRM02");
             if (dpValue.dp === 10) {
                 return {battery: getDataValue(dpValue)};
-            } else {
-                const button = dpValue.dp;
-                const actionValue = getDataValue(dpValue);
-                const lookup: KeyValueAny = {0: 'single', 1: 'double', 2: 'hold'};
-                const action = lookup[actionValue];
-                return {action: `button_${button}_${action}`};
             }
+            const button = dpValue.dp;
+            const actionValue = getDataValue(dpValue);
+            const lookup: KeyValueAny = {0: "single", 1: "double", 2: "hold"};
+            const action = lookup[actionValue];
+            return {action: `button_${button}_${action}`};
         },
     } satisfies Fz.Converter,
     SA12IZL: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandDataResponse', 'commandDataReport'],
+        cluster: "manuSpecificTuya",
+        type: ["commandDataResponse", "commandDataReport"],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValueAny = {};
             for (const dpValue of msg.data.dpValues) {
@@ -1273,15 +1248,15 @@ const fromZigbee = {
                         break;
                     }
                     default:
-                        logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, 'zhc:legacy:fz:sa12izl');
+                        logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, "zhc:legacy:fz:sa12izl");
                 }
             }
             return result;
         },
     } satisfies Fz.Converter,
     R7049_status: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandDataResponse', 'commandDataReport'],
+        cluster: "manuSpecificTuya",
+        type: ["commandDataResponse", "commandDataReport"],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValueAny = {};
             for (const dpValue of msg.data.dpValues) {
@@ -1295,7 +1270,7 @@ const fromZigbee = {
                         result.test_alarm = value;
                         break;
                     case 9: {
-                        const testAlarmResult: KeyValueAny = {0: 'checking', 1: 'check_success', 2: 'check_failure', 3: 'others'};
+                        const testAlarmResult: KeyValueAny = {0: "checking", 1: "check_success", 2: "check_failure", 3: "others"};
                         result.test_alarm_result = testAlarmResult[value];
                         break;
                     }
@@ -1303,7 +1278,7 @@ const fromZigbee = {
                         result.fault_alarm = Boolean(value);
                         break;
                     case 14: {
-                        const batteryLevels: KeyValueAny = {0: 'low', 1: 'middle', 2: 'high'};
+                        const batteryLevels: KeyValueAny = {0: "low", 1: "middle", 2: "high"};
                         result.battery_level = batteryLevels[value];
                         result.battery_low = value === 0;
                         break;
@@ -1317,35 +1292,35 @@ const fromZigbee = {
                         break;
                     }
                     default:
-                        logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, 'zhc:legacy:fz:r7049_status');
+                        logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, "zhc:legacy:fz:r7049_status");
                 }
             }
             return result;
         },
     } satisfies Fz.Converter,
     woox_R7060: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandActiveStatusReport'],
+        cluster: "manuSpecificTuya",
+        type: ["commandActiveStatusReport"],
         convert: (model, msg, publish, options, meta) => {
-            const dpValue = firstDpValue(msg, meta, 'woox_R7060');
+            const dpValue = firstDpValue(msg, meta, "woox_R7060");
             const dp = dpValue.dp;
             const value = getDataValue(dpValue);
 
             switch (dp) {
                 case dataPoints.wooxSwitch:
-                    return {state: value === 2 ? 'OFF' : 'ON'};
+                    return {state: value === 2 ? "OFF" : "ON"};
                 case 101:
                     return {battery: value};
                 default:
-                    logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, 'zhc:legacy:fz:woox_r7060');
+                    logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, "zhc:legacy:fz:woox_r7060");
             }
         },
     } satisfies Fz.Converter,
     hpsz: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandDataResponse', 'commandDataReport'],
+        cluster: "manuSpecificTuya",
+        type: ["commandDataResponse", "commandDataReport"],
         convert: (model, msg, publish, options, meta) => {
-            const dpValue = firstDpValue(msg, meta, 'hpsz');
+            const dpValue = firstDpValue(msg, meta, "hpsz");
             const dp = dpValue.dp;
             const value = getDataValue(dpValue);
             let result = null;
@@ -1363,14 +1338,14 @@ const fromZigbee = {
                     result = {led_state: value};
                     break;
                 default:
-                    logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, 'zhc:legacy:fz:hpsz');
+                    logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, "zhc:legacy:fz:hpsz");
             }
             return result;
         },
     } satisfies Fz.Converter,
     zb_sm_cover: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandDataReport', 'commandDataResponse'],
+        cluster: "manuSpecificTuya",
+        type: ["commandDataReport", "commandDataResponse"],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValueAny = {};
             for (const dpValue of msg.data.dpValues) {
@@ -1385,20 +1360,20 @@ const fromZigbee = {
                         const position = invert ? 100 - (value & 0xff) : value & 0xff;
                         if (position > 0 && position <= 100) {
                             result.position = position;
-                            result.state = 'OPEN';
-                        } else if (position == 0) {
+                            result.state = "OPEN";
+                        } else if (position === 0) {
                             // Report fully closed
                             result.position = position;
-                            result.state = 'CLOSE';
+                            result.state = "CLOSE";
                         }
                         break;
                     }
                     case 1: // report state
                         // @ts-expect-error ignore
-                        result.state = {0: 'OPEN', 1: 'STOP', 2: 'CLOSE'}[value];
+                        result.state = {0: "OPEN", 1: "STOP", 2: "CLOSE"}[value];
                         break;
                     case dataPoints.motorDirection: // reverse direction
-                        result.reverse_direction = value == 1;
+                        result.reverse_direction = value === 1;
                         break;
                     case 10: // cycle time
                         result.cycle_time = value;
@@ -1406,12 +1381,12 @@ const fromZigbee = {
                     case 101: // model
                         // @ts-expect-error ignore
                         result.motor_type = {
-                            0: '',
-                            1: 'AM0/6-28R-Sm',
-                            2: 'AM0/10-19R-Sm',
-                            3: 'AM1/10-13R-Sm',
-                            4: 'AM1/20-13R-Sm',
-                            5: 'AM1/30-13R-Sm',
+                            0: "",
+                            1: "AM0/6-28R-Sm",
+                            2: "AM0/10-19R-Sm",
+                            3: "AM1/10-13R-Sm",
+                            4: "AM1/20-13R-Sm",
+                            5: "AM1/30-13R-Sm",
                         }[value];
                         break;
                     case 102: // cycles
@@ -1419,29 +1394,29 @@ const fromZigbee = {
                         break;
                     case 103: // set or clear bottom limit
                         // @ts-expect-error ignore
-                        result.bottom_limit = {0: 'SET', 1: 'CLEAR'}[value];
+                        result.bottom_limit = {0: "SET", 1: "CLEAR"}[value];
                         break;
                     case 104: // set or clear top limit
                         // @ts-expect-error ignore
-                        result.top_limit = {0: 'SET', 1: 'CLEAR'}[value];
+                        result.top_limit = {0: "SET", 1: "CLEAR"}[value];
                         break;
                     case 109: // active power
                         result.active_power = value;
                         break;
                     case 115: // favorite_position
-                        result.favorite_position = value != 101 ? value : null;
+                        result.favorite_position = value !== 101 ? value : null;
                         break;
                     case 116: // report confirmation
                         break;
                     case 121: // running state
                         // @ts-expect-error ignore
-                        result.motor_state = {0: 'OPENING', 1: 'STOPPED', 2: 'CLOSING'}[value];
-                        result.running = value !== 1 ? true : false;
+                        result.motor_state = {0: "OPENING", 1: "STOPPED", 2: "CLOSING"}[value];
+                        result.running = value !== 1;
                         break;
                     default: // Unknown code
                         logger.debug(
                             `Unhandled DP #${dp} for ${meta.device.manufacturerName}: ${JSON.stringify(dpValue)}`,
-                            'zhc:legacy:fz:zb_sm_cover',
+                            "zhc:legacy:fz:zb_sm_cover",
                         );
                 }
             }
@@ -1449,57 +1424,57 @@ const fromZigbee = {
         },
     } satisfies Fz.Converter,
     x5h_thermostat: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandDataResponse', 'commandDataReport'],
+        cluster: "manuSpecificTuya",
+        type: ["commandDataResponse", "commandDataReport"],
         convert: (model, msg, publish, options, meta) => {
-            const dpValue = firstDpValue(msg, meta, 'x5h_thermostat');
+            const dpValue = firstDpValue(msg, meta, "x5h_thermostat");
             const dp = dpValue.dp;
             const value = getDataValue(dpValue);
 
             switch (dp) {
                 case dataPoints.x5hState: {
-                    return {system_mode: value ? 'heat' : 'off'};
+                    return {system_mode: value ? "heat" : "off"};
                 }
                 case dataPoints.x5hWorkingStatus: {
-                    return {running_state: value ? 'heat' : 'idle'};
+                    return {running_state: value ? "heat" : "idle"};
                 }
                 case dataPoints.x5hSound: {
-                    return {sound: value ? 'ON' : 'OFF'};
+                    return {sound: value ? "ON" : "OFF"};
                 }
                 case dataPoints.x5hFrostProtection: {
-                    return {frost_protection: value ? 'ON' : 'OFF'};
+                    return {frost_protection: value ? "ON" : "OFF"};
                 }
                 case dataPoints.x5hWorkingDaySetting: {
                     return {week: thermostatWeekFormat[value]};
                 }
                 case dataPoints.x5hFactoryReset: {
                     if (value) {
-                        clearTimeout(globalStore.getValue(msg.endpoint, 'factoryResetTimer'));
-                        const timer = setTimeout(() => publish({factory_reset: 'OFF'}), 60 * 1000);
-                        globalStore.putValue(msg.endpoint, 'factoryResetTimer', timer);
-                        logger.info('The thermostat is resetting now. It will be available in 1 minute.', 'zhc:legacy:fz:x5h_thermostat');
+                        clearTimeout(globalStore.getValue(msg.endpoint, "factoryResetTimer"));
+                        const timer = setTimeout(() => publish({factory_reset: "OFF"}), 60 * 1000);
+                        globalStore.putValue(msg.endpoint, "factoryResetTimer", timer);
+                        logger.info("The thermostat is resetting now. It will be available in 1 minute.", "zhc:legacy:fz:x5h_thermostat");
                     }
 
-                    return {factory_reset: value ? 'ON' : 'OFF'};
+                    return {factory_reset: value ? "ON" : "OFF"};
                 }
                 case dataPoints.x5hTempDiff: {
-                    return {deadzone_temperature: parseFloat((value / 10).toFixed(1))};
+                    return {deadzone_temperature: Number.parseFloat((value / 10).toFixed(1))};
                 }
                 case dataPoints.x5hProtectionTempLimit: {
                     return {heating_temp_limit: value};
                 }
                 case dataPoints.x5hBackplaneBrightness: {
-                    const lookup: KeyValueAny = {0: 'off', 1: 'low', 2: 'medium', 3: 'high'};
+                    const lookup: KeyValueAny = {0: "off", 1: "low", 2: "medium", 3: "high"};
 
                     if (value >= 0 && value <= 3) {
-                        globalStore.putValue(msg.endpoint, 'brightnessState', value);
+                        globalStore.putValue(msg.endpoint, "brightnessState", value);
                         return {brightness_state: lookup[value]};
                     }
 
                     // Sometimes, for example on thermostat restart, it sends message like:
                     // {"dpValues":[{"data":{"data":[90],"type":"Buffer"},"datatype":4,"dp":104}
                     // It doesn't represent any brightness value and brightness remains the previous value
-                    const lastValue = globalStore.getValue(msg.endpoint, 'brightnessState') || 1;
+                    const lastValue = globalStore.getValue(msg.endpoint, "brightnessState") || 1;
                     return {brightness_state: lookup[lastValue]};
                 }
                 case dataPoints.x5hWeeklyProcedure: {
@@ -1512,21 +1487,21 @@ const fromZigbee = {
                         const minutes = value[i * periodSize + 1];
                         const tempHexArray = [value[i * periodSize + 2], value[i * periodSize + 3]];
                         const tempRaw = Buffer.from(tempHexArray).readUIntBE(0, tempHexArray.length);
-                        const strHours = hours.toString().padStart(2, '0');
-                        const strMinutes = minutes.toString().padStart(2, '0');
-                        const temp = parseFloat((tempRaw / 10).toFixed(1));
+                        const strHours = hours.toString().padStart(2, "0");
+                        const strMinutes = minutes.toString().padStart(2, "0");
+                        const temp = Number.parseFloat((tempRaw / 10).toFixed(1));
                         periods.push(`${strHours}:${strMinutes}/${temp}`);
                     }
 
-                    const schedule = periods.join(' ');
+                    const schedule = periods.join(" ");
                     return {schedule};
                 }
                 case dataPoints.x5hChildLock: {
-                    return {child_lock: value ? 'LOCK' : 'UNLOCK'};
+                    return {child_lock: value ? "LOCK" : "UNLOCK"};
                 }
                 case dataPoints.x5hSetTemp: {
-                    const setpoint = parseFloat((value / 10).toFixed(1));
-                    globalStore.putValue(msg.endpoint, 'currentHeatingSetpoint', setpoint);
+                    const setpoint = Number.parseFloat((value / 10).toFixed(1));
+                    globalStore.putValue(msg.endpoint, "currentHeatingSetpoint", setpoint);
                     return {current_heating_setpoint: setpoint};
                 }
                 case dataPoints.x5hSetTempCeiling: {
@@ -1534,52 +1509,52 @@ const fromZigbee = {
                 }
                 case dataPoints.x5hCurrentTemp: {
                     const temperature = value & (1 << 15) ? value - (1 << 16) + 1 : value;
-                    return {local_temperature: parseFloat((temperature / 10).toFixed(1))};
+                    return {local_temperature: Number.parseFloat((temperature / 10).toFixed(1))};
                 }
                 case dataPoints.x5hTempCorrection: {
-                    return {local_temperature_calibration: parseFloat((value / 10).toFixed(1))};
+                    return {local_temperature_calibration: Number.parseFloat((value / 10).toFixed(1))};
                 }
                 case dataPoints.x5hMode: {
-                    const lookup: KeyValueAny = {0: 'manual', 1: 'program'};
+                    const lookup: KeyValueAny = {0: "manual", 1: "program"};
                     return {preset: lookup[value]};
                 }
                 case dataPoints.x5hSensorSelection: {
-                    const lookup: KeyValueAny = {0: 'internal', 1: 'external', 2: 'both'};
+                    const lookup: KeyValueAny = {0: "internal", 1: "external", 2: "both"};
                     return {sensor: lookup[value]};
                 }
                 case dataPoints.x5hOutputReverse: {
                     return {output_reverse: value};
                 }
                 default: {
-                    logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, 'zhc:legacy:fz:x5h_thermostat');
+                    logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, "zhc:legacy:fz:x5h_thermostat");
                 }
             }
         },
     } satisfies Fz.Converter,
     zs_thermostat: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandDataResponse', 'commandDataReport'],
+        cluster: "manuSpecificTuya",
+        type: ["commandDataResponse", "commandDataReport"],
         convert: (model, msg, publish, options, meta) => {
-            const dpValue = firstDpValue(msg, meta, 'zs_thermostat');
+            const dpValue = firstDpValue(msg, meta, "zs_thermostat");
             const dp = dpValue.dp;
             const value = getDataValue(dpValue);
             const ret: KeyValueAny = {};
-            const daysMap: KeyValueAny = {1: 'monday', 2: 'tuesday', 3: 'wednesday', 4: 'thursday', 5: 'friday', 6: 'saturday', 7: 'sunday'};
+            const daysMap: KeyValueAny = {1: "monday", 2: "tuesday", 3: "wednesday", 4: "thursday", 5: "friday", 6: "saturday", 7: "sunday"};
             const day = daysMap[value[0]];
 
             switch (dp) {
                 case dataPoints.zsChildLock:
-                    return {child_lock: value ? 'LOCK' : 'UNLOCK'};
+                    return {child_lock: value ? "LOCK" : "UNLOCK"};
 
                 case dataPoints.zsHeatingSetpoint:
-                    if (value == 0) ret.system_mode = 'off';
-                    if (value == 60) {
-                        ret.system_mode = 'heat';
-                        ret.preset = 'boost';
+                    if (value === 0) ret.system_mode = "off";
+                    if (value === 60) {
+                        ret.system_mode = "heat";
+                        ret.preset = "boost";
                     }
 
                     ret.current_heating_setpoint = (value / 2).toFixed(1);
-                    if (value > 0 && value < 60) globalStore.putValue(msg.endpoint, 'current_heating_setpoint', ret.current_heating_setpoint);
+                    if (value > 0 && value < 60) globalStore.putValue(msg.endpoint, "current_heating_setpoint", ret.current_heating_setpoint);
                     return ret;
                 case dataPoints.zsHeatingSetpointAuto:
                     return {current_heating_setpoint_auto: (value / 2).toFixed(1)};
@@ -1600,10 +1575,10 @@ const fromZigbee = {
                     return {local_temperature_calibration: value > 55 ? ((value - 0x100000000) / 10).toFixed(1) : (value / 10).toFixed(1)};
 
                 case dataPoints.zsBinaryOne:
-                    return {binary_one: value ? 'ON' : 'OFF'};
+                    return {binary_one: value ? "ON" : "OFF"};
 
                 case dataPoints.zsBinaryTwo:
-                    return {binary_two: value ? 'ON' : 'OFF'};
+                    return {binary_two: value ? "ON" : "OFF"};
 
                 case dataPoints.zsComfortTemp:
                     return {comfort_temperature: (value / 2).toFixed(1)};
@@ -1617,13 +1592,13 @@ const fromZigbee = {
                 case dataPoints.zsMode:
                     switch (value) {
                         case 1: // manual
-                            return {system_mode: 'heat', away_mode: 'OFF', preset: 'manual'};
+                            return {system_mode: "heat", away_mode: "OFF", preset: "manual"};
                         case 2: // away
-                            return {system_mode: 'auto', away_mode: 'ON', preset: 'holiday'};
+                            return {system_mode: "auto", away_mode: "ON", preset: "holiday"};
                         case 0: // auto
-                            return {system_mode: 'auto', away_mode: 'OFF', preset: 'schedule'};
+                            return {system_mode: "auto", away_mode: "OFF", preset: "schedule"};
                         default:
-                            logger.warning(`Preset ${value} is not recognized.`, 'zhc:legacy:fz:zs_thermostat');
+                            logger.warning(`Preset ${value} is not recognized.`, "zhc:legacy:fz:zs_thermostat");
                             break;
                     }
                     break;
@@ -1638,11 +1613,11 @@ const fromZigbee = {
                         const tempId = (i - 1) * 2 + 1;
                         const timeId = (i - 1) * 2 + 2;
                         ret[`${day}_temp_${i}`] = (value[tempId] / 2).toFixed(1);
-                        if (i != 9) {
+                        if (i !== 9) {
                             ret[`${day}_hour_${i}`] = Math.floor(value[timeId] / 4)
                                 .toString()
-                                .padStart(2, '0');
-                            ret[`${day}_minute_${i}`] = ((value[timeId] % 4) * 15).toString().padStart(2, '0');
+                                .padStart(2, "0");
+                            ret[`${day}_minute_${i}`] = ((value[timeId] % 4) * 15).toString().padStart(2, "0");
                         }
                     }
                     return ret;
@@ -1656,13 +1631,13 @@ const fromZigbee = {
                     ret.away_preset_days = (value[6] << 8) + value[7];
                     return ret;
                 default:
-                    logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, 'zhc:legacy:fz:zs_thermostat');
+                    logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, "zhc:legacy:fz:zs_thermostat");
             }
         },
     } satisfies Fz.Converter,
     giexWaterValve: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandDataResponse', 'commandDataReport'],
+        cluster: "manuSpecificTuya",
+        type: ["commandDataResponse", "commandDataReport"],
         convert: (model, msg, publish, options, meta) => {
             // @ts-expect-error ignore
             const modelConverters = giexFzModelConverters[model.model] || {};
@@ -1687,35 +1662,35 @@ const fromZigbee = {
                     case dataPoints.giexWaterValve.irrigationEndTime:
                         return {[giexWaterValve.irrigationEndTime]: modelConverters.time?.(value) || value};
                     case dataPoints.giexWaterValve.lastIrrigationDuration:
-                        return {[giexWaterValve.lastIrrigationDuration]: value.split(',').shift()}; // Remove meaningless ,0 suffix
+                        return {[giexWaterValve.lastIrrigationDuration]: value.split(",").shift()}; // Remove meaningless ,0 suffix
                     case dataPoints.giexWaterValve.battery:
                         return {[giexWaterValve.battery]: value};
                     case dataPoints.giexWaterValve.currentTemperature:
                         return; // Do Nothing - value ignored because it isn't a valid temperature reading (misdocumented and usage unclear)
                     default: // Unknown data point warning
-                        logger.debug(`Unrecognized DP #${dp} with VALUE = ${value}`, 'legacy:fz:giex_water_valve');
+                        logger.debug(`Unrecognized DP #${dp} with VALUE = ${value}`, "legacy:fz:giex_water_valve");
                 }
             }
         },
     } satisfies Fz.Converter,
     tuya_alecto_smoke: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandDataResponse', 'commandDataReport'],
+        cluster: "manuSpecificTuya",
+        type: ["commandDataResponse", "commandDataReport"],
         convert: (model, msg, publish, options, meta) => {
-            const dpValue = firstDpValue(msg, meta, 'tuya_alecto_smoke');
+            const dpValue = firstDpValue(msg, meta, "tuya_alecto_smoke");
             const dp = dpValue.dp;
             const value = getDataValue(dpValue);
             switch (dp) {
                 case dataPoints.alectoSmokeState:
                     // @ts-expect-error ignore
-                    return {smoke_state: {0: 'alarm', 1: 'normal'}[value]};
+                    return {smoke_state: {0: "alarm", 1: "normal"}[value]};
                 case dataPoints.alectoSmokeValue:
                     return {smoke_value: value};
                 case dataPoints.alectoSelfChecking:
                     return {self_checking: value};
                 case dataPoints.alectoCheckingResult:
                     // @ts-expect-error ignore
-                    return {checking_result: {0: 'checking', 1: 'check_success', 2: 'check_failure', 3: 'others'}[value]};
+                    return {checking_result: {0: "checking", 1: "check_success", 2: "check_failure", 3: "others"}[value]};
                 case dataPoints.alectoSmokeTest:
                     return {smoke_test: value};
                 case dataPoints.alectoLifecycle:
@@ -1724,31 +1699,31 @@ const fromZigbee = {
                     return {battery: value};
                 case dataPoints.alectoBatteryState:
                     // @ts-expect-error ignore
-                    return {battery_state: {0: 'low', 1: 'middle', 2: 'high'}[value]};
+                    return {battery_state: {0: "low", 1: "middle", 2: "high"}[value]};
                 case dataPoints.alectoSilence:
                     return {silence: value};
                 default:
-                    logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(msg.data)}`, 'zhc:legacy:fz:tuya_alecto_smoke');
+                    logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(msg.data)}`, "zhc:legacy:fz:tuya_alecto_smoke");
             }
         },
     } satisfies Fz.Converter,
     blitzwolf_occupancy_with_timeout: {
-        cluster: 'manuSpecificTuya',
-        type: 'commandDataResponse',
+        cluster: "manuSpecificTuya",
+        type: "commandDataResponse",
         convert: (model, msg, publish, options, meta) => {
-            const dpValue = firstDpValue(msg, meta, 'blitzwolf_occupancy_with_timeout');
+            const dpValue = firstDpValue(msg, meta, "blitzwolf_occupancy_with_timeout");
             msg.data.occupancy = dpValue.dp === dataPoints.occupancy ? 1 : 0;
-            return fromZigbeeConverters.occupancy_with_timeout.convert(model, msg, publish, options, meta) as KeyValueAny;
+            return occupancy_with_timeout.convert(model, msg, publish, options, meta) as KeyValueAny;
         },
     } satisfies Fz.Converter,
     moes_thermostat: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandDataResponse', 'commandDataReport'],
+        cluster: "manuSpecificTuya",
+        type: ["commandDataResponse", "commandDataReport"],
         convert: (model, msg, publish, options, meta) => {
-            const dpValue = firstDpValue(msg, meta, 'moes_thermostat');
+            const dpValue = firstDpValue(msg, meta, "moes_thermostat");
             const dp = dpValue.dp;
             const value = getDataValue(dpValue);
-            const stateLookup: KeyValueAny = {'0': 'cool', '1': 'heat', '2': 'fan_only'};
+            const stateLookup: KeyValueAny = {"0": "cool", "1": "heat", "2": "fan_only"};
             let temperature;
             /* See tuyaThermostat above for message structure comment */
             switch (dp) {
@@ -1794,64 +1769,58 @@ const fromZigbee = {
                         },
                     };
                 case dataPoints.state: // Thermostat on standby = OFF, running = ON
-                    if (model.model === 'BAC-002-ALZB') {
+                    if (model.model === "BAC-002-ALZB") {
                         if (!value) {
-                            return {system_mode: 'off'};
+                            return {system_mode: "off"};
                         }
                         return;
-                    } else {
-                        return {system_mode: value ? 'heat' : 'off'};
                     }
+                    return {system_mode: value ? "heat" : "off"};
                 case dataPoints.tvMode:
-                    if (model.model === 'BAC-002-ALZB') {
+                    if (model.model === "BAC-002-ALZB") {
                         return {system_mode: stateLookup[value]};
                     }
-                    return {preset_mode: value ? 'program' : 'hold', preset: value ? 'program' : 'hold'};
+                    return {preset_mode: value ? "program" : "hold", preset: value ? "program" : "hold"};
                 case dataPoints.moesChildLock:
-                    return {child_lock: value ? 'LOCK' : 'UNLOCK'};
+                    return {child_lock: value ? "LOCK" : "UNLOCK"};
                 case dataPoints.moesHeatingSetpoint:
-                    if (['_TZE200_5toc8efa', '_TZE204_5toc8efa'].includes(meta.device.manufacturerName)) {
+                    if (["_TZE200_5toc8efa", "_TZE204_5toc8efa"].includes(meta.device.manufacturerName)) {
                         return {current_heating_setpoint: value / 10};
-                    } else {
-                        return {current_heating_setpoint: value};
                     }
+                    return {current_heating_setpoint: value};
                 case dataPoints.moesMinTempLimit:
-                    if (['_TZE200_5toc8efa', '_TZE204_5toc8efa'].includes(meta.device.manufacturerName)) {
+                    if (["_TZE200_5toc8efa", "_TZE204_5toc8efa"].includes(meta.device.manufacturerName)) {
                         return {min_temperature_limit: value / 10};
-                    } else {
-                        return {min_temperature_limit: value};
                     }
+                    return {min_temperature_limit: value};
                 case dataPoints.moesMaxTempLimit:
-                    if (['_TZE200_5toc8efa', '_TZE204_5toc8efa'].includes(meta.device.manufacturerName)) {
+                    if (["_TZE200_5toc8efa", "_TZE204_5toc8efa"].includes(meta.device.manufacturerName)) {
                         return {max_temperature_limit: value / 10};
-                    } else {
-                        return {max_temperature_limit: value};
                     }
+                    return {max_temperature_limit: value};
                 case dataPoints.moesMaxTemp:
-                    if (['_TZE200_5toc8efa', '_TZE204_5toc8efa'].includes(meta.device.manufacturerName)) {
+                    if (["_TZE200_5toc8efa", "_TZE204_5toc8efa"].includes(meta.device.manufacturerName)) {
                         return {max_temperature: value / 10};
-                    } else {
-                        return {max_temperature: value};
                     }
+                    return {max_temperature: value};
                 case dataPoints.moesDeadZoneTemp:
-                    if (['_TZE200_5toc8efa', '_TZE204_5toc8efa'].includes(meta.device.manufacturerName)) {
+                    if (["_TZE200_5toc8efa", "_TZE204_5toc8efa"].includes(meta.device.manufacturerName)) {
                         return {deadzone_temperature: value / 10};
-                    } else {
-                        return {deadzone_temperature: value};
                     }
+                    return {deadzone_temperature: value};
                 case dataPoints.moesLocalTemp:
-                    if (['_TZE200_5toc8efa', '_TZE204_5toc8efa'].includes(meta.device.manufacturerName)) {
+                    if (["_TZE200_5toc8efa", "_TZE204_5toc8efa"].includes(meta.device.manufacturerName)) {
                         temperature = value / 10;
                     } else {
                         temperature = value & (1 << 15) ? value - (1 << 16) + 1 : value;
-                        if (!['_TZE200_ztvwu4nk', '_TZE200_ye5jkfsb'].includes(meta.device.manufacturerName)) {
+                        if (!["_TZE200_ztvwu4nk", "_TZE200_ye5jkfsb"].includes(meta.device.manufacturerName)) {
                             // https://github.com/Koenkk/zigbee2mqtt/issues/11980
                             temperature = temperature / 10;
                         }
                     }
-                    temperature = parseFloat(temperature.toFixed(1));
+                    temperature = Number.parseFloat(temperature.toFixed(1));
                     if (temperature < 100) {
-                        return {local_temperature: parseFloat(temperature.toFixed(1))};
+                        return {local_temperature: Number.parseFloat(temperature.toFixed(1))};
                     }
                     break;
                 case dataPoints.moesTempCalibration:
@@ -1860,55 +1829,55 @@ const fromZigbee = {
                     if (temperature > 4000) temperature = temperature - 4096;
                     return {local_temperature_calibration: temperature};
                 case dataPoints.moesScheduleEnable: // state is inverted, preset_mode is deprecated
-                    return {preset_mode: value ? 'hold' : 'program', preset: value ? 'hold' : 'program'};
+                    return {preset_mode: value ? "hold" : "program", preset: value ? "hold" : "program"};
                 case dataPoints.moesValve:
-                    return {heat: value ? 'OFF' : 'ON', running_state: value ? 'idle' : model.model === 'BAC-002-ALZB' ? 'cool' : 'heat'};
+                    return {heat: value ? "OFF" : "ON", running_state: value ? "idle" : model.model === "BAC-002-ALZB" ? "cool" : "heat"};
                 case dataPoints.moesSensor:
                     switch (value) {
                         case 0:
-                            return {sensor: 'IN'};
+                            return {sensor: "IN"};
                         case 1:
-                            return {sensor: 'AL'};
+                            return {sensor: "AL"};
                         case 2:
-                            return {sensor: 'OU'};
+                            return {sensor: "OU"};
                         default:
-                            return {sensor: 'not_supported'};
+                            return {sensor: "not_supported"};
                     }
                 case dataPoints.bacFanMode:
                     return {fan_mode: fanModes[value]};
                 default: // DataPoint 17 is unknown
-                    logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, 'zhc:legacy:fz:moes_bht_022');
+                    logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, "zhc:legacy:fz:moes_bht_022");
             }
         },
     } satisfies Fz.Converter,
     moesS_thermostat: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandDataResponse', 'commandDataReport'],
+        cluster: "manuSpecificTuya",
+        type: ["commandDataResponse", "commandDataReport"],
         convert: (model, msg, publish, options, meta) => {
-            const dpValue = firstDpValue(msg, meta, 'moesS_thermostat');
+            const dpValue = firstDpValue(msg, meta, "moesS_thermostat");
             const dp = dpValue.dp; // First we get the data point ID
             const value = getDataValue(dpValue);
-            const presetLookup = {0: 'programming', 1: 'manual', 2: 'temporary_manual', 3: 'holiday'};
+            const presetLookup = {0: "programming", 1: "manual", 2: "temporary_manual", 3: "holiday"};
             switch (dp) {
                 case dataPoints.moesSsystemMode:
                     // @ts-expect-error ignore
-                    return {preset: presetLookup[value], system_mode: 'heat'};
+                    return {preset: presetLookup[value], system_mode: "heat"};
                 case dataPoints.moesSheatingSetpoint:
                     return {current_heating_setpoint: value};
                 case dataPoints.moesSlocalTemp:
                     return {local_temperature: value / 10};
                 case dataPoints.moesSboostHeating:
-                    return {boost_heating: value ? 'ON' : 'OFF'};
+                    return {boost_heating: value ? "ON" : "OFF"};
                 case dataPoints.moesSboostHeatingCountdown:
                     return {boost_heating_countdown: value};
                 case dataPoints.moesSreset:
-                    return {running_state: value ? 'idle' : 'heat', valve_state: value ? 'CLOSED' : 'OPEN'};
+                    return {running_state: value ? "idle" : "heat", valve_state: value ? "CLOSED" : "OPEN"};
                 case dataPoints.moesSwindowDetectionFunktion_A2:
-                    return {window_detection: value ? 'ON' : 'OFF'};
+                    return {window_detection: value ? "ON" : "OFF"};
                 case dataPoints.moesSwindowDetection:
-                    return {window: value ? 'CLOSED' : 'OPEN'};
+                    return {window: value ? "CLOSED" : "OPEN"};
                 case dataPoints.moesSchildLock:
-                    return {child_lock: value ? 'LOCK' : 'UNLOCK'};
+                    return {child_lock: value ? "LOCK" : "UNLOCK"};
                 case dataPoints.moesSbattery:
                     return {battery: value};
                 case dataPoints.moesSboostHeatingCountdownTimeSet:
@@ -1926,7 +1895,7 @@ const fromZigbee = {
                             : {}),
                     };
                 case dataPoints.moesSecoMode:
-                    return {eco_mode: value ? 'ON' : 'OFF'};
+                    return {eco_mode: value ? "ON" : "OFF"};
                 case dataPoints.moesSecoModeTempSet:
                     return {eco_temperature: value};
                 case dataPoints.moesSmaxTempSet:
@@ -1939,20 +1908,20 @@ const fromZigbee = {
                     for (let i = 0; i < 12; i++) {
                         const item = {h: value[i * 3], m: value[i * 3 + 1], temp: value[i * 3 + 2] / 2};
                         items[i] = item;
-                        pMode[i] = item['h'].toString().padStart(2, '0') + ':' + item['m'].toString().padStart(2, '0') + '/' + item['temp'] + '°C';
+                        pMode[i] = `${item.h.toString().padStart(2, "0")}:${item.m.toString().padStart(2, "0")}/${item.temp}°C`;
                     }
-                    return {programming_mode: pMode.join('  ')};
+                    return {programming_mode: pMode.join("  ")};
                 }
                 default:
-                    logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, 'zhc:legacy:fz:moes_s_thermostat');
+                    logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, "zhc:legacy:fz:moes_s_thermostat");
             }
         },
     } satisfies Fz.Converter,
     tuya_air_quality: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandDataReport', 'commandDataResponse'],
+        cluster: "manuSpecificTuya",
+        type: ["commandDataReport", "commandDataResponse"],
         convert: (model, msg, publish, options, meta) => {
-            const dpValue = firstDpValue(msg, meta, 'tuya_air_quality');
+            const dpValue = firstDpValue(msg, meta, "tuya_air_quality");
             const dp = dpValue.dp;
             const value = getDataValue(dpValue);
             switch (dp) {
@@ -1962,73 +1931,74 @@ const fromZigbee = {
                     return {humidity: value / 10};
                 // DP22: Smart Air Box: Formaldehyd, Smart Air Housekeeper: co2
                 case dataPoints.tuyaSabFormaldehyd:
-                    if (['_TZE200_dwcarsat', '_TZE200_ryfmq5rl', '_TZE200_mja3fuja', '_TZE204_dwcarsat'].includes(meta.device.manufacturerName)) {
+                    if (["_TZE200_dwcarsat", "_TZE200_ryfmq5rl", "_TZE200_mja3fuja", "_TZE204_dwcarsat"].includes(meta.device.manufacturerName)) {
                         return {co2: value};
-                    } else {
-                        return {formaldehyd: value};
                     }
+                    return {formaldehyd: value};
                 // DP2: Smart Air Box: co2, Smart Air Housekeeper: MP25
                 case dataPoints.tuyaSabCO2:
-                    if (['_TZE200_dwcarsat', '_TZE204_dwcarsat'].includes(meta.device.manufacturerName)) {
+                    if (["_TZE200_dwcarsat", "_TZE204_dwcarsat"].includes(meta.device.manufacturerName)) {
                         // Ignore: https://github.com/Koenkk/zigbee2mqtt/issues/11033#issuecomment-1109808552
-                        if (value === 0xaaac || value === 0xaaab) return;
+                        // There are a lot of "strange" big values, so if the value is bigger than the range of the sensor, discard
+                        // According to the manual of the device, the valid range is 0-1000 ug/m3
+                        if (value > 1000) return;
                         return {pm25: value};
-                    } else if (meta.device.manufacturerName === '_TZE200_ryfmq5rl') {
+                    }
+                    if (meta.device.manufacturerName === "_TZE200_ryfmq5rl") {
                         return {formaldehyd: value / 100};
-                    } else if (meta.device.manufacturerName === '_TZE200_mja3fuja') {
+                    }
+                    if (meta.device.manufacturerName === "_TZE200_mja3fuja") {
                         return {formaldehyd: value};
-                    } else {
-                        return {co2: value};
                     }
+                    return {co2: value};
                 case dataPoints.tuyaSabVOC:
-                    if (meta.device.manufacturerName === '_TZE200_ryfmq5rl') {
+                    if (meta.device.manufacturerName === "_TZE200_ryfmq5rl") {
                         return {voc: value / 10};
-                    } else {
-                        return {voc: value};
                     }
+                    return {voc: value};
                 case dataPoints.tuyaSahkFormaldehyd:
                     return {formaldehyd: value};
                 default:
-                    logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, 'zhc:legacy:fz:tuya_air_quality');
+                    logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, "zhc:legacy:fz:tuya_air_quality");
             }
         },
     } satisfies Fz.Converter,
     tuya_CO: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandDataReport', 'commandDataResponse'],
+        cluster: "manuSpecificTuya",
+        type: ["commandDataReport", "commandDataResponse"],
         convert: (model, msg, publish, options, meta) => {
-            const dpValue = firstDpValue(msg, meta, 'tuya_CO');
+            const dpValue = firstDpValue(msg, meta, "tuya_CO");
             const dp = dpValue.dp;
             const value = getDataValue(dpValue);
             switch (dp) {
                 case dataPoints.tuyaSabCO:
                     return {co: value / 100};
                 case dataPoints.tuyaSabCOalarm:
-                    return {carbon_monoxide: value ? 'OFF' : 'ON'};
+                    return {carbon_monoxide: value ? "OFF" : "ON"};
                 default:
-                    logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, 'zhc:legacy:fz:tuya_co');
+                    logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, "zhc:legacy:fz:tuya_co");
             }
         },
     } satisfies Fz.Converter,
     connecte_thermostat: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandDataResponse', 'commandDataReport'],
+        cluster: "manuSpecificTuya",
+        type: ["commandDataResponse", "commandDataReport"],
         convert: (model, msg, publish, options, meta) => {
-            const dpValue = firstDpValue(msg, meta, 'connecte_thermostat');
+            const dpValue = firstDpValue(msg, meta, "connecte_thermostat");
             const dp = dpValue.dp;
             const value = getDataValue(dpValue);
 
             switch (dp) {
                 case dataPoints.connecteState:
-                    return {state: value ? 'ON' : 'OFF'};
+                    return {state: value ? "ON" : "OFF"};
                 case dataPoints.connecteMode:
                     switch (value) {
                         case 0: // manual
-                            return {system_mode: 'heat', away_mode: 'OFF'};
+                            return {system_mode: "heat", away_mode: "OFF"};
                         case 1: // home (auto)
-                            return {system_mode: 'auto', away_mode: 'OFF'};
+                            return {system_mode: "auto", away_mode: "OFF"};
                         case 2: // away (auto)
-                            return {system_mode: 'auto', away_mode: 'ON'};
+                            return {system_mode: "auto", away_mode: "ON"};
                     }
                     break;
                 case dataPoints.connecteHeatingSetpoint:
@@ -2038,74 +2008,72 @@ const fromZigbee = {
                 case dataPoints.connecteTempCalibration:
                     return {local_temperature_calibration: value};
                 case dataPoints.connecteChildLock:
-                    return {child_lock: value ? 'LOCK' : 'UNLOCK'};
+                    return {child_lock: value ? "LOCK" : "UNLOCK"};
                 case dataPoints.connecteTempFloor:
                     return {external_temperature: value};
                 case dataPoints.connecteSensorType:
                     // @ts-expect-error ignore
-                    return {sensor: {0: 'internal', 1: 'external', 2: 'both'}[value]};
+                    return {sensor: {0: "internal", 1: "external", 2: "both"}[value]};
                 case dataPoints.connecteHysteresis:
                     return {hysteresis: value};
                 case dataPoints.connecteRunningState:
-                    return {running_state: value ? 'heat' : 'idle'};
+                    return {running_state: value ? "heat" : "idle"};
                 case dataPoints.connecteTempProgram:
                     break;
                 case dataPoints.connecteOpenWindow:
-                    return {window_detection: value ? 'ON' : 'OFF'};
+                    return {window_detection: value ? "ON" : "OFF"};
                 case dataPoints.connecteMaxProtectTemp:
                     return {max_temperature_protection: value};
                 default:
-                    logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, 'zhc:legacy:fz:connecte_thermostat');
+                    logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, "zhc:legacy:fz:connecte_thermostat");
             }
         },
     } satisfies Fz.Converter,
     saswell_thermostat: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandDataResponse', 'commandDataReport'],
+        cluster: "manuSpecificTuya",
+        type: ["commandDataResponse", "commandDataReport"],
         convert: (model, msg, publish, options, meta) => {
-            const dpValue = firstDpValue(msg, meta, 'saswell_thermostat');
+            const dpValue = firstDpValue(msg, meta, "saswell_thermostat");
             const dp = dpValue.dp;
             const value = getDataValue(dpValue);
 
             switch (dp) {
                 case dataPoints.saswellHeating:
                     // heating status 1 - heating
-                    return {heating: value ? 'ON' : 'OFF', running_state: value ? 'heat' : 'idle'};
+                    return {heating: value ? "ON" : "OFF", running_state: value ? "heat" : "idle"};
                 case dataPoints.saswellWindowDetection:
-                    return {window_detection: value ? 'ON' : 'OFF'};
+                    return {window_detection: value ? "ON" : "OFF"};
                 case dataPoints.saswellFrostDetection:
-                    return {frost_detection: value ? 'ON' : 'OFF'};
+                    return {frost_detection: value ? "ON" : "OFF"};
                 case dataPoints.saswellTempCalibration:
                     return {local_temperature_calibration: value > 6 ? 0xffffffff - value : value};
                 case dataPoints.saswellChildLock:
-                    return {child_lock: value ? 'LOCK' : 'UNLOCK'};
+                    return {child_lock: value ? "LOCK" : "UNLOCK"};
                 case dataPoints.saswellState:
-                    return {system_mode: value ? 'heat' : 'off'};
+                    return {system_mode: value ? "heat" : "off"};
                 case dataPoints.saswellLocalTemp:
-                    return {local_temperature: parseFloat((value / 10).toFixed(1))};
+                    return {local_temperature: Number.parseFloat((value / 10).toFixed(1))};
                 case dataPoints.saswellHeatingSetpoint:
-                    return {current_heating_setpoint: parseFloat((value / 10).toFixed(1))};
+                    return {current_heating_setpoint: Number.parseFloat((value / 10).toFixed(1))};
                 case dataPoints.saswellValvePos:
                     // single value 1-100%
                     break;
                 case dataPoints.saswellBatteryLow:
-                    return {battery_low: value ? true : false};
+                    return {battery_low: !!value};
                 case dataPoints.saswellAwayMode:
                     if (value) {
-                        return {away_mode: 'ON', preset_mode: 'away'};
-                    } else {
-                        return {away_mode: 'OFF', preset_mode: 'none'};
+                        return {away_mode: "ON", preset_mode: "away"};
                     }
+                    return {away_mode: "OFF", preset_mode: "none"};
                 case dataPoints.saswellScheduleMode:
                     if (thermostatScheduleMode[value] !== undefined) {
                         return {schedule_mode: thermostatScheduleMode[value]};
-                    } else {
-                        logger.warning(`Unknown schedule mode ${value}`, 'zhc:legacy:fz:saswell_thermostat');
                     }
+                    logger.warning(`Unknown schedule mode ${value}`, "zhc:legacy:fz:saswell_thermostat");
                     break;
                 case dataPoints.saswellScheduleEnable:
                     if (value) {
-                        return {system_mode: 'auto'};
+                        return {system_mode: "auto"};
                     }
                     break;
                 case dataPoints.saswellScheduleSet:
@@ -2176,22 +2144,22 @@ const fromZigbee = {
                     // ]
                     break;
                 case dataPoints.saswellAntiScaling:
-                    return {anti_scaling: value ? 'ON' : 'OFF'};
+                    return {anti_scaling: value ? "ON" : "OFF"};
                 default:
-                    logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, 'zhc:legacy:fz:saswell_thermostat');
+                    logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, "zhc:legacy:fz:saswell_thermostat");
             }
         },
     } satisfies Fz.Converter,
     evanell_thermostat: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandDataResponse', 'commandDataReport'],
+        cluster: "manuSpecificTuya",
+        type: ["commandDataResponse", "commandDataReport"],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValueAny = {};
             for (const dpValue of msg.data.dpValues) {
                 const value = getDataValue(dpValue);
                 switch (dpValue.dp) {
                     case dataPoints.evanellChildLock:
-                        result.child_lock = value ? 'LOCK' : 'UNLOCK';
+                        result.child_lock = value ? "LOCK" : "UNLOCK";
                         break;
                     case dataPoints.evanellBattery:
                         result.battery = value;
@@ -2205,31 +2173,31 @@ const fromZigbee = {
                     case dataPoints.evanellMode:
                         switch (value) {
                             case 0: // manual
-                                result.system_mode = 'auto';
+                                result.system_mode = "auto";
                                 break;
                             case 2: // away
-                                result.system_mode = 'heat';
+                                result.system_mode = "heat";
                                 break;
                             case 3: // auto
-                                result.system_mode = 'off';
+                                result.system_mode = "off";
                                 break;
                             default:
-                                logger.warning(`Mode ${value} is not recognized.`, 'zhc:legacy:fz:evanell_thermostat');
+                                logger.warning(`Mode ${value} is not recognized.`, "zhc:legacy:fz:evanell_thermostat");
                                 break;
                         }
                         break;
                     default:
-                        logger.debug(`Unrecognized DP #${dpValue.dp} with data ${JSON.stringify(dpValue)}`, 'zhc:legacy:fz:evanell_thermostat');
+                        logger.debug(`Unrecognized DP #${dpValue.dp} with data ${JSON.stringify(dpValue)}`, "zhc:legacy:fz:evanell_thermostat");
                 }
             }
             return result;
         },
     } satisfies Fz.Converter,
     etop_thermostat: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandDataResponse', 'commandDataReport'],
+        cluster: "manuSpecificTuya",
+        type: ["commandDataResponse", "commandDataReport"],
         convert: (model, msg, publish, options, meta) => {
-            const dpValue = firstDpValue(msg, meta, 'etop_thermostat');
+            const dpValue = firstDpValue(msg, meta, "etop_thermostat");
             const dp = dpValue.dp;
             const value = getDataValue(dpValue);
 
@@ -2237,18 +2205,18 @@ const fromZigbee = {
 
             switch (dp) {
                 case dataPoints.state: // on/off
-                    return !value ? {system_mode: 'off'} : {};
+                    return !value ? {system_mode: "off"} : {};
                 case dataPoints.etopErrorStatus:
                     return {
-                        high_temperature: (value & (1 << 0)) > 0 ? 'ON' : 'OFF',
-                        low_temperature: (value & (1 << 1)) > 0 ? 'ON' : 'OFF',
-                        internal_sensor_error: (value & (1 << 2)) > 0 ? 'ON' : 'OFF',
-                        external_sensor_error: (value & (1 << 3)) > 0 ? 'ON' : 'OFF',
+                        high_temperature: (value & (1 << 0)) > 0 ? "ON" : "OFF",
+                        low_temperature: (value & (1 << 1)) > 0 ? "ON" : "OFF",
+                        internal_sensor_error: (value & (1 << 2)) > 0 ? "ON" : "OFF",
+                        external_sensor_error: (value & (1 << 3)) > 0 ? "ON" : "OFF",
                         battery_low: (value & (1 << 4)) > 0,
-                        device_offline: (value & (1 << 5)) > 0 ? 'ON' : 'OFF',
+                        device_offline: (value & (1 << 5)) > 0 ? "ON" : "OFF",
                     };
                 case dataPoints.childLock:
-                    return {child_lock: value ? 'LOCK' : 'UNLOCK'};
+                    return {child_lock: value ? "LOCK" : "UNLOCK"};
                 case dataPoints.heatingSetpoint:
                     return {current_heating_setpoint: (value / 10).toFixed(1)};
                 case dataPoints.localTemp:
@@ -2256,28 +2224,28 @@ const fromZigbee = {
                 case dataPoints.mode:
                     switch (value) {
                         case 0: // manual
-                            return {system_mode: 'heat', away_mode: 'OFF', preset: 'none'};
+                            return {system_mode: "heat", away_mode: "OFF", preset: "none"};
                         case 1: // away
-                            return {system_mode: 'heat', away_mode: 'ON', preset: 'away'};
+                            return {system_mode: "heat", away_mode: "ON", preset: "away"};
                         case 2: // auto
-                            return {system_mode: 'auto', away_mode: 'OFF', preset: 'none'};
+                            return {system_mode: "auto", away_mode: "OFF", preset: "none"};
                         default:
-                            logger.warning(`Preset ${value} is not recognized.`, 'zhc:legacy:fz:etop_thermostat');
+                            logger.warning(`Preset ${value} is not recognized.`, "zhc:legacy:fz:etop_thermostat");
                             break;
                     }
                     break;
                 case dataPoints.runningState:
-                    return {running_state: value ? 'heat' : 'idle'};
+                    return {running_state: value ? "heat" : "idle"};
                 default:
-                    logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, 'zhc:legacy:fz:etop_thermostat');
+                    logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, "zhc:legacy:fz:etop_thermostat");
             }
         },
     } satisfies Fz.Converter,
     tuya_thermostat: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandDataResponse', 'commandDataReport'],
+        cluster: "manuSpecificTuya",
+        type: ["commandDataResponse", "commandDataReport"],
         convert: (model, msg, publish, options, meta) => {
-            const dpValue = firstDpValue(msg, meta, 'tuya_thermostat');
+            const dpValue = firstDpValue(msg, meta, "tuya_thermostat");
             const dp = dpValue.dp;
             const value = getDataValue(dpValue);
             switch (dp) {
@@ -2285,7 +2253,7 @@ const fromZigbee = {
                     return {window_open: value};
                 case dataPoints.windowDetection:
                     return {
-                        window_detection: value[0] ? 'ON' : 'OFF',
+                        window_detection: value[0] ? "ON" : "OFF",
                         window_detection_params: {
                             temperature: value[1],
                             minutes: value[2],
@@ -2302,39 +2270,33 @@ const fromZigbee = {
                     for (let i = 0; i < 6; i++) {
                         const item: KeyValueAny = {hour: value[i * 3] & 0x3f, minute: value[i * 3 + 1], temperature: value[i * 3 + 2]};
                         if (value[i * 3] & 0x40) {
-                            item['current'] = true;
+                            item.current = true;
                         }
 
                         items[i] = item;
                         programmingMode[i] =
-                            item['hour'].toString().padStart(2, '0') +
-                            ':' +
-                            item['minute'].toString().padStart(2, '0') +
-                            '/' +
-                            item['temperature'] +
-                            '°C';
+                            `${item.hour.toString().padStart(2, "0")}:${item.minute.toString().padStart(2, "0")}/${item.temperature}°C`;
                     }
 
-                    if (dp == dataPoints.scheduleWorkday) {
-                        return {workdays: items, workdays_schedule: programmingMode.join(' ')};
-                    } else {
-                        return {holidays: items, holidays_schedule: programmingMode.join(' ')};
+                    if (dp === dataPoints.scheduleWorkday) {
+                        return {workdays: items, workdays_schedule: programmingMode.join(" ")};
                     }
+                    return {holidays: items, holidays_schedule: programmingMode.join(" ")};
                 }
                 case dataPoints.childLock:
-                    return {child_lock: value ? 'LOCK' : 'UNLOCK'};
+                    return {child_lock: value ? "LOCK" : "UNLOCK"};
                 case dataPoints.siterwellWindowDetection:
-                    return {window_detection: value ? 'ON' : 'OFF'};
+                    return {window_detection: value ? "ON" : "OFF"};
                 case dataPoints.valveDetection:
-                    return {valve_detection: value ? 'ON' : 'OFF'};
+                    return {valve_detection: value ? "ON" : "OFF"};
                 case dataPoints.autoLock: // 0x7401 auto lock mode
-                    return {auto_lock: value ? 'AUTO' : 'MANUAL'};
+                    return {auto_lock: value ? "AUTO" : "MANUAL"};
                 case dataPoints.heatingSetpoint:
-                    return {current_heating_setpoint: parseFloat((value / 10).toFixed(1))};
+                    return {current_heating_setpoint: Number.parseFloat((value / 10).toFixed(1))};
                 case dataPoints.localTemp:
-                    return {local_temperature: parseFloat((value / 10).toFixed(1))};
+                    return {local_temperature: Number.parseFloat((value / 10).toFixed(1))};
                 case dataPoints.tempCalibration:
-                    return {local_temperature_calibration: parseFloat((value / 10).toFixed(1))};
+                    return {local_temperature_calibration: Number.parseFloat((value / 10).toFixed(1))};
                 case dataPoints.battery: // 0x1502 MCU reporting battery status
                     return {battery: value};
                 case dataPoints.batteryLow:
@@ -2350,24 +2312,24 @@ const fromZigbee = {
                 case dataPoints.ecoTemp:
                     return {eco_temperature: value};
                 case dataPoints.valvePos:
-                    return {position: value, running_state: value ? 'heat' : 'idle'};
+                    return {position: value, running_state: value ? "heat" : "idle"};
                 case dataPoints.awayTemp:
                     return {away_preset_temperature: value};
                 case dataPoints.awayDays:
                     return {away_preset_days: value};
                 case dataPoints.mode: {
                     const ret: KeyValueAny = {};
-                    const presetOk = getMetaValue(msg.endpoint, model, 'tuyaThermostatPreset')[value] !== undefined;
+                    const presetOk = getMetaValue(msg.endpoint, model, "tuyaThermostatPreset")[value] !== undefined;
                     if (presetOk) {
-                        ret.preset = getMetaValue(msg.endpoint, model, 'tuyaThermostatPreset')[value];
-                        ret.away_mode = ret.preset == 'away' ? 'ON' : 'OFF'; // Away is special HA mode
-                        const presetToSystemMode = utils.getMetaValue(msg.endpoint, model, 'tuyaThermostatPresetToSystemMode', null, {});
+                        ret.preset = getMetaValue(msg.endpoint, model, "tuyaThermostatPreset")[value];
+                        ret.away_mode = ret.preset === "away" ? "ON" : "OFF"; // Away is special HA mode
+                        const presetToSystemMode = utils.getMetaValue(msg.endpoint, model, "tuyaThermostatPresetToSystemMode", null, {});
                         if (value in presetToSystemMode) {
                             // @ts-expect-error ignore
                             ret.system_mode = presetToSystemMode[value];
                         }
                     } else {
-                        logger.warning(`TRV preset ${value} is not recognized.`, 'zhc:legacy:fz:tuya_thermostat');
+                        logger.warning(`TRV preset ${value} is not recognized.`, "zhc:legacy:fz:tuya_thermostat");
                         return;
                     }
                     return ret;
@@ -2380,45 +2342,47 @@ const fromZigbee = {
                 case dataPoints.weekFormat: // Week select 0 - 5 days, 1 - 6 days, 2 - 7 days
                     return {week: thermostatWeekFormat[value]};
                 default: // The purpose of the dps 17 & 19 is still unknown
-                    logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, 'zhc:legacy:fz:tuya_thermostat');
+                    logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, "zhc:legacy:fz:tuya_thermostat");
             }
         },
     } satisfies Fz.Converter,
     tuya_dimmer: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandDataResponse', 'commandDataReport'],
+        cluster: "manuSpecificTuya",
+        type: ["commandDataResponse", "commandDataReport"],
         convert: (model, msg, publish, options, meta) => {
-            const dpValue = firstDpValue(msg, meta, 'tuya_dimmer');
+            const dpValue = firstDpValue(msg, meta, "tuya_dimmer");
             const value = getDataValue(dpValue);
             if (dpValue.dp === dataPoints.state) {
-                return {state: value ? 'ON' : 'OFF'};
-            } else if (meta.device.manufacturerName === '_TZE200_swaamsoy') {
+                return {state: value ? "ON" : "OFF"};
+            }
+            if (meta.device.manufacturerName === "_TZE200_swaamsoy") {
                 // https://github.com/Koenkk/zigbee-herdsman-converters/pull/3004
                 if (dpValue.dp === 2) {
                     if (value < 10) {
-                        logUnexpectedDataValue('tuya_dimmer', msg, dpValue, meta, 'brightness', 10, 1000);
+                        logUnexpectedDataValue("tuya_dimmer", msg, dpValue, meta, "brightness", 10, 1000);
                     }
                     return {brightness: utils.mapNumberRange(value, 10, 1000, 0, 254)};
                 }
-            } else if (['_TZE200_3p5ydos3', '_TZE200_9i9dt8is', '_TZE200_dfxkcots', '_TZE200_w4cryh2i'].includes(meta.device.manufacturerName)) {
+            } else if (["_TZE200_3p5ydos3", "_TZE200_9i9dt8is", "_TZE200_dfxkcots", "_TZE200_w4cryh2i"].includes(meta.device.manufacturerName)) {
                 if (dpValue.dp === dataPoints.eardaDimmerLevel) {
                     return {brightness: utils.mapNumberRange(value, 0, 1000, 0, 254)};
-                } else if (dpValue.dp === dataPoints.dimmerMinLevel) {
-                    return {min_brightness: utils.mapNumberRange(value, 0, 1000, 1, 255)};
-                } else if (dpValue.dp === dataPoints.dimmerMaxLevel) {
-                    return {max_brightness: utils.mapNumberRange(value, 0, 1000, 1, 255)};
-                } else {
-                    logUnexpectedDataPoint('tuya_dimmer', msg, dpValue, meta);
                 }
+                if (dpValue.dp === dataPoints.dimmerMinLevel) {
+                    return {min_brightness: utils.mapNumberRange(value, 0, 1000, 1, 255)};
+                }
+                if (dpValue.dp === dataPoints.dimmerMaxLevel) {
+                    return {max_brightness: utils.mapNumberRange(value, 0, 1000, 1, 255)};
+                }
+                logUnexpectedDataPoint("tuya_dimmer", msg, dpValue, meta);
             } else {
                 if (dpValue.dp !== dataPoints.dimmerLevel) {
-                    logUnexpectedDataPoint('tuya_dimmer', msg, dpValue, meta);
+                    logUnexpectedDataPoint("tuya_dimmer", msg, dpValue, meta);
                 }
                 if (dpValue.datatype !== dataTypes.value) {
-                    logUnexpectedDataType('tuya_dimmer', msg, dpValue, meta);
+                    logUnexpectedDataType("tuya_dimmer", msg, dpValue, meta);
                 } else {
                     if (value < 10) {
-                        logUnexpectedDataValue('tuya_dimmer', msg, dpValue, meta, 'brightness', 10, 1000);
+                        logUnexpectedDataValue("tuya_dimmer", msg, dpValue, meta, "brightness", 10, 1000);
                     }
                     return {brightness: utils.mapNumberRange(value, 10, 1000, 0, 254), level: value};
                 }
@@ -2426,10 +2390,10 @@ const fromZigbee = {
         },
     } satisfies Fz.Converter,
     tuya_motion_sensor: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandDataResponse'],
+        cluster: "manuSpecificTuya",
+        type: ["commandDataResponse"],
         convert: (model, msg, publish, options, meta) => {
-            const dpValue = firstDpValue(msg, meta, 'tuya_motion_sensor');
+            const dpValue = firstDpValue(msg, meta, "tuya_motion_sensor");
             const dp = dpValue.dp;
             const value = getDataValue(dpValue);
             let result = null;
@@ -2449,7 +2413,7 @@ const fromZigbee = {
                     break;
                 case dataPoints.msLedStatus:
                     // @ts-expect-error ignore
-                    result = {led_status: {1: 'OFF', 0: 'ON'}[value]};
+                    result = {led_status: {1: "OFF", 0: "ON"}[value]};
                     break;
                 case dataPoints.msVacancyDelay:
                     result = {vacancy_delay: value};
@@ -2470,15 +2434,15 @@ const fromZigbee = {
                     result = {luminance_level: value};
                     break;
                 default:
-                    logger.debug(`Unrecognized DP ${dp} with data ${JSON.stringify(dpValue)}`, 'zhc:legacy:fz:tuya_motion_sensor');
+                    logger.debug(`Unrecognized DP ${dp} with data ${JSON.stringify(dpValue)}`, "zhc:legacy:fz:tuya_motion_sensor");
             }
 
             return result;
         },
     } satisfies Fz.Converter,
     tuya_smart_vibration_sensor: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandGetData', 'commandDataResponse', 'raw'],
+        cluster: "manuSpecificTuya",
+        type: ["commandGetData", "commandDataResponse", "raw"],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValueAny = {};
             for (const dpValue of msg.data.dpValues) {
@@ -2496,7 +2460,7 @@ const fromZigbee = {
                     default:
                         logger.debug(
                             `Unrecognized DP #${dpValue.dp} with data ${JSON.stringify(dpValue)}`,
-                            'zhc:legacy:fz:tuya_smart_vibration_sensor',
+                            "zhc:legacy:fz:tuya_smart_vibration_sensor",
                         );
                 }
             }
@@ -2504,15 +2468,15 @@ const fromZigbee = {
         },
     } satisfies Fz.Converter,
     matsee_garage_door_opener: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandDataReport', 'raw'],
+        cluster: "manuSpecificTuya",
+        type: ["commandDataReport", "raw"],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValueAny = {};
             for (const dpValue of msg.data.dpValues) {
                 const value = getDataValue(dpValue);
                 switch (dpValue.dp) {
                     case dataPoints.garageDoorTrigger:
-                        result.action = 'trigger';
+                        result.action = "trigger";
                         break;
                     case dataPoints.garageDoorContact:
                         result.garage_door_contact = Boolean(!value);
@@ -2523,7 +2487,7 @@ const fromZigbee = {
                     default:
                         logger.debug(
                             `Unrecognized DP #${dpValue.dp} with data ${JSON.stringify(dpValue)}`,
-                            'zhc:legacy:fz:matsee_garage_door_opener',
+                            "zhc:legacy:fz:matsee_garage_door_opener",
                         );
                 }
             }
@@ -2531,10 +2495,10 @@ const fromZigbee = {
         },
     } satisfies Fz.Converter,
     moes_thermostat_tv: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandDataResponse', 'commandDataReport', 'raw'],
+        cluster: "manuSpecificTuya",
+        type: ["commandDataResponse", "commandDataReport", "raw"],
         convert: (model, msg, publish, options, meta) => {
-            const dpValue = firstDpValue(msg, meta, 'moes_thermostat_tv');
+            const dpValue = firstDpValue(msg, meta, "moes_thermostat_tv");
             const dp = dpValue.dp;
             let value = getDataValue(dpValue);
             let result = null;
@@ -2542,16 +2506,16 @@ const fromZigbee = {
                 case dataPoints.tvMode:
                     switch (value) {
                         case 1: // manual
-                            result = {system_mode: 'heat', preset: 'manual'};
+                            result = {system_mode: "heat", preset: "manual"};
                             break;
                         case 2: // holiday
-                            result = {system_mode: 'heat', preset: 'holiday'};
+                            result = {system_mode: "heat", preset: "holiday"};
                             break;
                         case 0: // auto
-                            result = {system_mode: 'auto', preset: 'schedule'};
+                            result = {system_mode: "auto", preset: "schedule"};
                             break;
                         default:
-                            logger.warning(`Preset ${value} is not recognized.`, 'zhc:legacy:fz:moes_thermostat_tv');
+                            logger.warning(`Preset ${value} is not recognized.`, "zhc:legacy:fz:moes_thermostat_tv");
                             break;
                     }
                     break;
@@ -2581,7 +2545,7 @@ const fromZigbee = {
                     break;
                 case dataPoints.tvChildLock:
                     // @ts-expect-error ignore
-                    result = {child_lock: {1: 'LOCK', 0: 'UNLOCK'}[value]};
+                    result = {child_lock: {1: "LOCK", 0: "UNLOCK"}[value]};
                     break;
                 case dataPoints.tvErrorStatus:
                     result = {error: value};
@@ -2605,37 +2569,37 @@ const fromZigbee = {
                     result = {eco_temperature: (value / 10).toFixed(1)};
                     break;
                 case dataPoints.tvHeatingStop:
-                    if (value == 1) {
-                        result = {system_mode: 'off', heating_stop: true};
+                    if (value === 1) {
+                        result = {system_mode: "off", heating_stop: true};
                     } else {
                         result = {heating_stop: false};
                     }
                     break;
                 default:
-                    logger.debug(`Unrecognized DP ${dp} with data ${JSON.stringify(dpValue)}`, 'zhc:legacy:fz:moes_thermostat_tv');
+                    logger.debug(`Unrecognized DP ${dp} with data ${JSON.stringify(dpValue)}`, "zhc:legacy:fz:moes_thermostat_tv");
             }
 
             return result;
         },
     } satisfies Fz.Converter,
     hoch_din: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandDataResponse', 'commandDataReport'],
+        cluster: "manuSpecificTuya",
+        type: ["commandDataResponse", "commandDataReport"],
         convert: (model, msg, publish, options, meta) => {
-            const dpValue = firstDpValue(msg, meta, 'hoch_din');
+            const dpValue = firstDpValue(msg, meta, "hoch_din");
             const dp = dpValue.dp;
             const value = getDataValue(dpValue);
             const result: KeyValueAny = {};
-            logger.debug(`dp=[${dp}], datatype=[${dpValue.datatype}], value=[${value}]`, 'zhc:legacy:fz::hoch_din');
+            logger.debug(`dp=[${dp}], datatype=[${dpValue.datatype}], value=[${value}]`, "zhc:legacy:fz::hoch_din");
 
             if (dp === dataPoints.state) {
-                result.state = value ? 'ON' : 'OFF';
+                result.state = value ? "ON" : "OFF";
                 if (value) {
-                    result.trip = 'clear';
+                    result.trip = "clear";
                 }
             }
             if (dp === dataPoints.hochChildLock) {
-                result.child_lock = value ? 'ON' : 'OFF';
+                result.child_lock = value ? "ON" : "OFF";
             }
             if (dp === dataPoints.hochVoltage) {
                 result.voltage = (value[1] | (value[0] << 8)) / 10;
@@ -2666,7 +2630,7 @@ const fromZigbee = {
                 result.energy = result.energy_consumed;
             }
             if (dp === dataPoints.hochLocking) {
-                result.trip = value ? 'trip' : 'clear';
+                result.trip = value ? "trip" : "clear";
             }
             if (dp === dataPoints.hochCountdownTimer) {
                 result.countdown_timer = value;
@@ -2676,22 +2640,22 @@ const fromZigbee = {
             }
             if (dp === dataPoints.hochRelayStatus) {
                 const lookup: KeyValueAny = {
-                    0: 'off',
-                    1: 'on',
-                    2: 'previous',
+                    0: "off",
+                    1: "on",
+                    2: "previous",
                 };
                 result.power_on_behavior = lookup[value];
             }
             if (dp === dataPoints.hochFaultCode) {
                 const lookup: KeyValueAny = {
-                    0: 'clear',
-                    1: 'over voltage threshold',
-                    2: 'under voltage threshold',
-                    4: 'over current threshold',
-                    8: 'over temperature threshold',
-                    10: 'over leakage current threshold',
-                    16: 'trip test',
-                    128: 'safety lock',
+                    0: "clear",
+                    1: "over voltage threshold",
+                    2: "under voltage threshold",
+                    4: "over current threshold",
+                    8: "over temperature threshold",
+                    10: "over leakage current threshold",
+                    16: "trip test",
+                    128: "safety lock",
                 };
                 result.alarm = lookup[value];
             }
@@ -2700,11 +2664,11 @@ const fromZigbee = {
             }
             if (dp === dataPoints.hochVoltageThreshold) {
                 result.over_voltage_threshold = (value[1] | (value[0] << 8)) / 10;
-                result.over_voltage_trip = value[2] ? 'ON' : 'OFF';
-                result.over_voltage_alarm = value[3] ? 'ON' : 'OFF';
+                result.over_voltage_trip = value[2] ? "ON" : "OFF";
+                result.over_voltage_alarm = value[3] ? "ON" : "OFF";
                 result.under_voltage_threshold = (value[5] | (value[4] << 8)) / 10;
-                result.under_voltage_trip = value[6] ? 'ON' : 'OFF';
-                result.under_voltage_alarm = value[7] ? 'ON' : 'OFF';
+                result.under_voltage_trip = value[6] ? "ON" : "OFF";
+                result.under_voltage_alarm = value[7] ? "ON" : "OFF";
             }
             if (dp === dataPoints.hochCurrentThreshold) {
                 let overCurrentValue = 0;
@@ -2713,37 +2677,37 @@ const fromZigbee = {
                     overCurrentValue += value[i];
                 }
                 result.over_current_threshold = overCurrentValue / 1000;
-                result.over_current_trip = value[3] ? 'ON' : 'OFF';
-                result.over_current_alarm = value[4] ? 'ON' : 'OFF';
+                result.over_current_trip = value[3] ? "ON" : "OFF";
+                result.over_current_alarm = value[4] ? "ON" : "OFF";
             }
             if (dp === dataPoints.hochTemperatureThreshold) {
                 result.over_temperature_threshold = value[0] > 127 ? (value[0] - 128) * -1 : value[0];
-                result.over_temperature_trip = value[1] ? 'ON' : 'OFF';
-                result.over_temperature_alarm = value[2] ? 'ON' : 'OFF';
+                result.over_temperature_trip = value[1] ? "ON" : "OFF";
+                result.over_temperature_alarm = value[2] ? "ON" : "OFF";
             }
             if (dp === dataPoints.hochLeakageParameters) {
                 result.self_test_auto_days = value[0];
                 result.self_test_auto_hours = value[1];
-                result.self_test_auto = value[2] ? 'ON' : 'OFF';
+                result.self_test_auto = value[2] ? "ON" : "OFF";
                 result.over_leakage_current_threshold = value[4] | (value[3] << 8);
-                result.over_leakage_current_trip = value[5] ? 'ON' : 'OFF';
-                result.over_leakage_current_alarm = value[6] ? 'ON' : 'OFF';
-                result.self_test = value[7] ? 'test' : 'clear';
+                result.over_leakage_current_trip = value[5] ? "ON" : "OFF";
+                result.over_leakage_current_alarm = value[6] ? "ON" : "OFF";
+                result.self_test = value[7] ? "test" : "clear";
             }
             return result;
         },
     } satisfies Fz.Converter,
     tuya_light_wz5: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandDataResponse', 'commandDataReport'],
+        cluster: "manuSpecificTuya",
+        type: ["commandDataResponse", "commandDataReport"],
         convert: (model, msg, publish, options, meta) => {
-            const separateWhite = model.meta && model.meta.separateWhite;
+            const separateWhite = model.meta?.separateWhite;
             const result: KeyValueAny = {};
             for (const dpValue of msg.data.dpValues.values()) {
                 const dp = dpValue.dp;
                 const value = getDataValue(dpValue);
                 if (dp === dataPoints.state) {
-                    result.state = value ? 'ON' : 'OFF';
+                    result.state = value ? "ON" : "OFF";
                 } else if (dp === dataPoints.silvercrestSetBrightness) {
                     const brightness = utils.mapNumberRange(value, 0, 1000, 0, 255);
                     if (separateWhite) {
@@ -2752,10 +2716,10 @@ const fromZigbee = {
                         result.brightness = brightness;
                     }
                 } else if (dp === dataPoints.silvercrestSetColor) {
-                    const h = parseInt(value.substring(0, 4), 16);
-                    const s = parseInt(value.substring(4, 8), 16);
-                    const b = parseInt(value.substring(8, 12), 16);
-                    result.color_mode = 'hs';
+                    const h = Number.parseInt(value.substring(0, 4), 16);
+                    const s = Number.parseInt(value.substring(4, 8), 16);
+                    const b = Number.parseInt(value.substring(8, 12), 16);
+                    result.color_mode = "hs";
                     result.color = {hue: h, saturation: utils.mapNumberRange(s, 0, 1000, 0, 100)};
                     result.brightness = utils.mapNumberRange(b, 0, 1000, 0, 255);
                 } else if (dp === dataPoints.silvercrestSetColorTemp) {
@@ -2767,28 +2731,28 @@ const fromZigbee = {
         },
     } satisfies Fz.Converter,
     ZMAM02_cover: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandDataReport', 'commandDataResponse'],
+        cluster: "manuSpecificTuya",
+        type: ["commandDataReport", "commandDataResponse"],
         options: [exposes.options.invert_cover()],
         convert: (model, msg, publish, options, meta) => {
-            const dpValue = firstDpValue(msg, meta, 'ZMAM02_cover');
+            const dpValue = firstDpValue(msg, meta, "ZMAM02_cover");
             const dp = dpValue.dp;
             const value = getDataValue(dpValue);
             switch (dp) {
                 case dataPoints.coverPosition: // Started moving to position (triggered from Zigbee)
                 case dataPoints.coverArrived: {
                     // Arrived at position
-                    const running = dp === dataPoints.coverArrived ? false : true;
+                    const running = dp !== dataPoints.coverArrived;
                     const invert = isCoverInverted(meta.device.manufacturerName) ? !options.invert_cover : options.invert_cover;
                     const position = invert ? 100 - (value & 0xff) : value & 0xff;
                     if (position > 0 && position <= 100) {
-                        return {running, position, state: 'OPEN'};
-                    } else if (position == 0) {
-                        // Report fully closed
-                        return {running, position, state: 'CLOSE'};
-                    } else {
-                        return {running}; // Not calibrated yet, no position is available
+                        return {running, position, state: "OPEN"};
                     }
+                    if (position === 0) {
+                        // Report fully closed
+                        return {running, position, state: "CLOSE"};
+                    }
+                    return {running}; // Not calibrated yet, no position is available
                 }
                 case dataPoints.coverSpeed: // Cover is reporting its current speed setting
                     return {motor_speed: value};
@@ -2800,46 +2764,46 @@ const fromZigbee = {
                 case dataPoints.AM02MotorWorkingMode:
                     switch (value) {
                         case 0: // continuous 1
-                            return {motor_working_mode: 'continuous'};
+                            return {motor_working_mode: "continuous"};
                         case 1: // intermittently
-                            return {motor_working_mode: 'intermittently'};
+                            return {motor_working_mode: "intermittently"};
                         default:
-                            logger.warning(`Mode ${value} is not recognized.`, 'zhc:legacy:fz:zmam02_cover');
+                            logger.warning(`Mode ${value} is not recognized.`, "zhc:legacy:fz:zmam02_cover");
                             break;
                     }
                     break;
                 case dataPoints.AM02Border:
                     switch (value) {
                         case 0: // up
-                            return {border: 'up'};
+                            return {border: "up"};
                         case 1: // down
-                            return {border: 'down'};
+                            return {border: "down"};
                         case 2: // down_delete
-                            return {border: 'down_delete'};
+                            return {border: "down_delete"};
                         default:
-                            logger.warning(`Mode ${value} is not recognized.`, 'zhc:legacy:fz:zmam02_cover');
+                            logger.warning(`Mode ${value} is not recognized.`, "zhc:legacy:fz:zmam02_cover");
                             break;
                     }
                     break;
                 case dataPoints.AM02Direction:
                     switch (value) {
                         case 0:
-                            return {motor_direction: 'forward'};
+                            return {motor_direction: "forward"};
                         case 1:
-                            return {motor_direction: 'back'};
+                            return {motor_direction: "back"};
                         default:
-                            logger.warning(`Mode ${value} is not recognized.`, 'zhc:legacy:fz:zmam02_cover');
+                            logger.warning(`Mode ${value} is not recognized.`, "zhc:legacy:fz:zmam02_cover");
                             break;
                     }
                     break;
                 case dataPoints.AM02Mode:
                     switch (value) {
                         case 0: // morning
-                            return {mode: 'morning'};
+                            return {mode: "morning"};
                         case 1: // night
-                            return {mode: 'night'};
+                            return {mode: "night"};
                         default:
-                            logger.warning(`Mode ${value} is not recognized.`, 'zhc:legacy:fz:zmam02_cover');
+                            logger.warning(`Mode ${value} is not recognized.`, "zhc:legacy:fz:zmam02_cover");
                             break;
                     }
                     break;
@@ -2847,35 +2811,34 @@ const fromZigbee = {
                 case dataPoints.AM02TimeTotal: // DP 10: Ignore until need is defined
                     break;
                 default: // Unknown code
-                    logger.debug(`Unrecognized DP #${dp} ${JSON.stringify(dpValue)}`, 'zhc:legacy:fz:zmam02_cover');
+                    logger.debug(`Unrecognized DP #${dp} ${JSON.stringify(dpValue)}`, "zhc:legacy:fz:zmam02_cover");
             }
         },
     } satisfies Fz.Converter,
     tm081: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandDataReport'],
+        cluster: "manuSpecificTuya",
+        type: ["commandDataReport"],
         convert: (model, msg, publish, options, meta) => {
-            const dpValue = firstDpValue(msg, meta, 'tm0801');
+            const dpValue = firstDpValue(msg, meta, "tm0801");
             const dp = dpValue.dp;
             const value = getDataValue(dpValue);
-            if (dp === 1) return {contact: value === true ? false : true};
+            if (dp === 1) return {contact: value !== true};
             if (dp === 2) return {battery: value};
-            else {
-                logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, 'zhc:legacy:fz:tm081');
-            }
+
+            logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, "zhc:legacy:fz:tm081");
         },
     } satisfies Fz.Converter,
     tuya_remote: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandGetData', 'commandDataResponse'],
+        cluster: "manuSpecificTuya",
+        type: ["commandGetData", "commandDataResponse"],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValueAny = {};
-            const clickMapping: KeyValueAny = {0: 'single', 1: 'double', 2: 'hold'};
-            const buttonMapping: KeyValueAny = {1: '1', 2: '2', 3: '3', 4: '4', 5: '5', 6: '6'};
+            const clickMapping: KeyValueAny = {0: "single", 1: "double", 2: "hold"};
+            const buttonMapping: KeyValueAny = {1: "1", 2: "2", 3: "3", 4: "4", 5: "5", 6: "6"};
             for (const dpValue of msg.data.dpValues) {
                 const value = getDataValue(dpValue);
                 // battery DP
-                if (dpValue.dp == 10) {
+                if (dpValue.dp === 10) {
                     result.battery = value;
                 } else {
                     result.action = `${buttonMapping[dpValue.dp]}_${clickMapping[value]}`;
@@ -2885,10 +2848,10 @@ const fromZigbee = {
         },
     } satisfies Fz.Converter,
     tuya_smart_human_presense_sensor: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandDataResponse', 'commandDataReport'],
+        cluster: "manuSpecificTuya",
+        type: ["commandDataResponse", "commandDataReport"],
         convert: (model, msg, publish, options, meta) => {
-            const dpValue = firstDpValue(msg, meta, 'tuya_smart_human_presense_sensor');
+            const dpValue = firstDpValue(msg, meta, "tuya_smart_human_presense_sensor");
             const dp = dpValue.dp;
             const value = getDataValue(dpValue);
             let result = null;
@@ -2925,14 +2888,14 @@ const fromZigbee = {
                     result = {self_test: tuyaHPSCheckingResult[value]};
                     break;
                 default:
-                    logger.debug(`Unrecognized DP ${dp} with data ${JSON.stringify(dpValue)}`, 'zhc:legacy:fz:tuya_smart_human_presense_sensor');
+                    logger.debug(`Unrecognized DP ${dp} with data ${JSON.stringify(dpValue)}`, "zhc:legacy:fz:tuya_smart_human_presense_sensor");
             }
             return result;
         },
     } satisfies Fz.Converter,
     ZG204ZL_lms: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandDataResponse', 'commandDataReport'],
+        cluster: "manuSpecificTuya",
+        type: ["commandDataResponse", "commandDataReport"],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValueAny = {};
             for (const dpValue of msg.data.dpValues) {
@@ -2947,28 +2910,28 @@ const fromZigbee = {
                         break;
                     case dataPoints.lmsSensitivity:
                         // @ts-expect-error ignore
-                        result.sensitivity = {'0': 'low', '1': 'medium', '2': 'high'}[value];
+                        result.sensitivity = {"0": "low", "1": "medium", "2": "high"}[value];
                         break;
                     case dataPoints.lmsKeepTime:
                         // @ts-expect-error ignore
-                        result.keep_time = {'0': '10', '1': '30', '2': '60', '3': '120'}[value];
+                        result.keep_time = {"0": "10", "1": "30", "2": "60", "3": "120"}[value];
                         break;
                     case dataPoints.lmsIlluminance:
                         result.illuminance = value;
                         break;
                     default:
-                        logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, 'zhc:legacy:fz:zg204zl_lms');
+                        logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, "zhc:legacy:fz:zg204zl_lms");
                 }
             }
             return result;
         },
     } satisfies Fz.Converter,
     moes_cover: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandDataResponse', 'commandDataReport'],
+        cluster: "manuSpecificTuya",
+        type: ["commandDataResponse", "commandDataReport"],
         options: [exposes.options.invert_cover()],
         convert: (model, msg, publish, options, meta) => {
-            const dpValue = firstDpValue(msg, meta, 'moes_cover');
+            const dpValue = firstDpValue(msg, meta, "moes_cover");
             const dp = dpValue.dp;
             const value = getDataValue(dpValue);
             let result = null;
@@ -2981,53 +2944,53 @@ const fromZigbee = {
                 }
                 case dataPoints.state:
                     // @ts-expect-error ignore
-                    result = {state: {0: 'OPEN', 1: 'STOP', 2: 'CLOSE'}[value], running: {0: true, 1: false, 2: true}[value]};
+                    result = {state: {0: "OPEN", 1: "STOP", 2: "CLOSE"}[value], running: {0: true, 1: false, 2: true}[value]};
                     break;
                 case dataPoints.moesCoverBacklight:
-                    result = {backlight: value ? 'ON' : 'OFF'};
+                    result = {backlight: value ? "ON" : "OFF"};
                     break;
                 case dataPoints.moesCoverCalibration:
                     // @ts-expect-error ignore
-                    result = {calibration: {0: 'ON', 1: 'OFF'}[value]};
+                    result = {calibration: {0: "ON", 1: "OFF"}[value]};
                     break;
                 case dataPoints.moesCoverMotorReversal:
                     // @ts-expect-error ignore
-                    result = {motor_reversal: {0: 'OFF', 1: 'ON'}[value]};
+                    result = {motor_reversal: {0: "OFF", 1: "ON"}[value]};
                     break;
                 default:
-                    logger.debug(`Unrecognized DP ${dp} with data ${JSON.stringify(dpValue)}`, 'zhc:legacy:fz:moes_cover');
+                    logger.debug(`Unrecognized DP ${dp} with data ${JSON.stringify(dpValue)}`, "zhc:legacy:fz:moes_cover");
             }
             return result;
         },
     } satisfies Fz.Converter,
     tuya_temperature_humidity_sensor: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandDataReport', 'commandDataResponse'],
+        cluster: "manuSpecificTuya",
+        type: ["commandDataReport", "commandDataResponse"],
         convert: (model, msg, publish, options, meta) => {
-            const dpValue = firstDpValue(msg, meta, 'tuya_temperature_humidity_sensor');
+            const dpValue = firstDpValue(msg, meta, "tuya_temperature_humidity_sensor");
             const dp = dpValue.dp;
             const value = getDataValue(dpValue);
             switch (dp) {
                 case dataPoints.tthTemperature:
                     return {temperature: (value > 0x2000 ? value - 0xffff : value) / 10};
                 case dataPoints.tthHumidity:
-                    return {humidity: value / (['_TZE200_bjawzodf', '_TZE200_zl1kmjqx'].includes(meta.device.manufacturerName) ? 10 : 1)};
+                    return {humidity: value / (["_TZE200_bjawzodf", "_TZE200_zl1kmjqx"].includes(meta.device.manufacturerName) ? 10 : 1)};
                 case dataPoints.tthBatteryLevel:
                     return {
                         // @ts-expect-error ignore
-                        battery_level: {0: 'low', 1: 'middle', 2: 'high'}[value],
-                        battery_low: value === 0 ? true : false,
+                        battery_level: {0: "low", 1: "middle", 2: "high"}[value],
+                        battery_low: value === 0,
                     };
                 case dataPoints.tthBattery:
                     return {battery: value};
                 default:
-                    logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, 'zhc:legacy:fz:tuya_temperature_humidity_sensor');
+                    logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, "zhc:legacy:fz:tuya_temperature_humidity_sensor");
             }
         },
     } satisfies Fz.Converter,
     nous_lcd_temperature_humidity_sensor: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandDataResponse', 'commandDataReport'],
+        cluster: "manuSpecificTuya",
+        type: ["commandDataResponse", "commandDataReport"],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValueAny = {};
             for (const dpValue of msg.data.dpValues) {
@@ -3045,7 +3008,7 @@ const fromZigbee = {
                         break;
                     case dataPoints.nousTempUnitConvert:
                         // @ts-expect-error ignore
-                        result.temperature_unit_convert = {0x00: 'celsius', 0x01: 'fahrenheit'}[value];
+                        result.temperature_unit_convert = {0: "celsius", 1: "fahrenheit"}[value];
                         break;
                     case dataPoints.nousMaxTemp:
                         result.max_temperature = value / 10;
@@ -3061,11 +3024,11 @@ const fromZigbee = {
                         break;
                     case dataPoints.nousTempAlarm:
                         // @ts-expect-error ignore
-                        result.temperature_alarm = {0x00: 'lower_alarm', 0x01: 'upper_alarm', 0x02: 'canceled'}[value];
+                        result.temperature_alarm = {0: "lower_alarm", 1: "upper_alarm", 2: "canceled"}[value];
                         break;
                     case dataPoints.nousHumiAlarm:
                         // @ts-expect-error ignore
-                        result.humidity_alarm = {0x00: 'lower_alarm', 0x01: 'upper_alarm', 0x02: 'canceled'}[value];
+                        result.humidity_alarm = {0: "lower_alarm", 1: "upper_alarm", 2: "canceled"}[value];
                         break;
                     case dataPoints.nousTempSensitivity:
                         result.temperature_sensitivity = value / 10;
@@ -3082,7 +3045,7 @@ const fromZigbee = {
                     default:
                         logger.debug(
                             `Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`,
-                            'zhc:legacy:fz:nous_lcd_temperature_humidity_sensor',
+                            "zhc:legacy:fz:nous_lcd_temperature_humidity_sensor",
                         );
                 }
             }
@@ -3090,10 +3053,10 @@ const fromZigbee = {
         },
     } satisfies Fz.Converter,
     tuya_illuminance_temperature_humidity_sensor: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandDataReport', 'commandDataResponse'],
+        cluster: "manuSpecificTuya",
+        type: ["commandDataReport", "commandDataResponse"],
         convert: (model, msg, publish, options, meta) => {
-            const dpValue = firstDpValue(msg, meta, 'tuya_illuminance_temperature_humidity_sensor');
+            const dpValue = firstDpValue(msg, meta, "tuya_illuminance_temperature_humidity_sensor");
             const dp = dpValue.dp;
             const value = getDataValue(dpValue);
             switch (dp) {
@@ -3108,23 +3071,23 @@ const fromZigbee = {
                 default:
                     logger.debug(
                         `Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`,
-                        'zhc:legacy:fz:tuya_illuminance_temperature_humidity_sensor',
+                        "zhc:legacy:fz:tuya_illuminance_temperature_humidity_sensor",
                     );
             }
         },
     } satisfies Fz.Converter,
     tuya_illuminance_sensor: {
-        cluster: `manuSpecificTuya`,
-        type: [`commandDataReport`, `commandDataResponse`],
+        cluster: "manuSpecificTuya",
+        type: ["commandDataReport", "commandDataResponse"],
         convert: (() => {
             const brightnessState: KeyValueAny = {
-                0: 'low',
-                1: 'middle',
-                2: 'high',
-                3: 'strong',
+                0: "low",
+                1: "middle",
+                2: "high",
+                3: "strong",
             };
             return (model: Definition, msg: KeyValueAny, publish: Publish, options: KeyValueAny, meta: Fz.Meta) => {
-                const dpValue = firstDpValue(msg, meta, `tuya_illuminance_sensor`);
+                const dpValue = firstDpValue(msg, meta, "tuya_illuminance_sensor");
                 const dp = dpValue.dp;
                 const value = getDataValue(dpValue);
                 switch (dp) {
@@ -3133,16 +3096,16 @@ const fromZigbee = {
                     case dataPoints.tIlluminanceLux:
                         return {illuminance: value};
                     default:
-                        logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, 'zhc:legacy:fz:tuya_illuminance_sensor');
+                        logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, "zhc:legacy:fz:tuya_illuminance_sensor");
                 }
             };
         })(),
     } satisfies Fz.Converter,
     hy_thermostat: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandDataReport', 'commandDataResponse'],
+        cluster: "manuSpecificTuya",
+        type: ["commandDataReport", "commandDataResponse"],
         convert: (model, msg, publish, options, meta) => {
-            const dpValue = firstDpValue(msg, meta, 'hy_thermostat');
+            const dpValue = firstDpValue(msg, meta, "hy_thermostat");
             const dp = dpValue.dp;
             const value = getDataValue(dpValue);
 
@@ -3154,7 +3117,7 @@ const fromZigbee = {
                             {hour: value[3], minute: value[4], temperature: value[5]},
                             {hour: value[6], minute: value[7], temperature: value[8]},
                         ],
-                        range: 'am',
+                        range: "am",
                     };
                 case dataPoints.hyWorkdaySchedule2: // schedule for workdays [15,0,25,145,2,17,22,50,14]
                     return {
@@ -3163,7 +3126,7 @@ const fromZigbee = {
                             {hour: value[3], minute: value[4], temperature: value[5]},
                             {hour: value[6], minute: value[7], temperature: value[8]},
                         ],
-                        range: 'pm',
+                        range: "pm",
                     };
                 case dataPoints.hyHolidaySchedule1: // schedule for holidays [5,5,20,8,4,13,11,30,15]
                     return {
@@ -3172,7 +3135,7 @@ const fromZigbee = {
                             {hour: value[3], minute: value[4], temperature: value[5]},
                             {hour: value[6], minute: value[7], temperature: value[8]},
                         ],
-                        range: 'am',
+                        range: "am",
                     };
                 case dataPoints.hyHolidaySchedule2: // schedule for holidays [13,30,15,17,0,15,22,0,15]
                     return {
@@ -3181,18 +3144,18 @@ const fromZigbee = {
                             {hour: value[3], minute: value[4], temperature: value[5]},
                             {hour: value[6], minute: value[7], temperature: value[8]},
                         ],
-                        range: 'pm',
+                        range: "pm",
                     };
                 case dataPoints.hyHeating: // heating
-                    return {heating: value ? 'ON' : 'OFF'};
+                    return {heating: value ? "ON" : "OFF"};
                 case dataPoints.hyMaxTempProtection: // max temperature protection
-                    return {max_temperature_protection: value ? 'ON' : 'OFF'};
+                    return {max_temperature_protection: value ? "ON" : "OFF"};
                 case dataPoints.hyMinTempProtection: // min temperature protection
-                    return {min_temperature_protection: value ? 'ON' : 'OFF'};
+                    return {min_temperature_protection: value ? "ON" : "OFF"};
                 case dataPoints.hyState: // 0x017D work state
-                    return {state: value ? 'ON' : 'OFF'};
+                    return {state: value ? "ON" : "OFF"};
                 case dataPoints.hyChildLock: // 0x0181 Changed child lock status
-                    return {child_lock: value ? 'LOCK' : 'UNLOCK'};
+                    return {child_lock: value ? "LOCK" : "UNLOCK"};
                 case dataPoints.hyExternalTemp: // external sensor temperature
                     return {external_temperature: (value / 10).toFixed(1)};
                 case dataPoints.hyAwayDays: // away preset days
@@ -3219,40 +3182,40 @@ const fromZigbee = {
                     return {local_temperature: (value / 10).toFixed(1)};
                 case dataPoints.hySensor: // Sensor type
                     // @ts-expect-error ignore
-                    return {sensor_type: {0: 'internal', 1: 'external', 2: 'both'}[value]};
+                    return {sensor_type: {0: "internal", 1: "external", 2: "both"}[value]};
                 case dataPoints.hyPowerOnBehavior: // 0x0475 State after power on
                     // @ts-expect-error ignore
-                    return {power_on_behavior: {0: 'restore', 1: 'off', 2: 'on'}[value]};
+                    return {power_on_behavior: {0: "restore", 1: "off", 2: "on"}[value]};
                 case dataPoints.hyWeekFormat: // 0x0476 Week select 0 - 5 days, 1 - 6 days, 2 - 7 days
                     return {week: thermostatWeekFormat[value]};
                 case dataPoints.hyMode: // 0x0480 mode
                     // @ts-expect-error ignore
-                    return {system_mode: {0: 'manual', 1: 'auto', 2: 'away'}[value]};
+                    return {system_mode: {0: "manual", 1: "auto", 2: "away"}[value]};
                 case dataPoints.hyAlarm: // [16] [0]
-                    return {alarm: value > 0 ? true : false};
+                    return {alarm: value > 0};
                 default: // The purpose of the codes 17 & 19 are still unknown
-                    logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, 'zhc:legacy:fz:hy_thermostat');
+                    logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, "zhc:legacy:fz:hy_thermostat");
             }
         },
     } satisfies Fz.Converter,
     neo_nas_pd07: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandDataReport', 'commandDataResponse'],
+        cluster: "manuSpecificTuya",
+        type: ["commandDataReport", "commandDataResponse"],
         convert: (model, msg, publish, options, meta) => {
-            const dpValue = firstDpValue(msg, meta, 'neo_nas_pd07');
+            const dpValue = firstDpValue(msg, meta, "neo_nas_pd07");
             const dp = dpValue.dp;
             const value = getDataValue(dpValue);
             switch (dp) {
                 case dataPoints.neoOccupancy:
-                    return {occupancy: value > 0 ? true : false};
+                    return {occupancy: value > 0};
                 case 102:
                     return {
                         // @ts-expect-error ignore
-                        power_type: {0: 'battery_full', 1: 'battery_high', 2: 'battery_medium', 3: 'battery_low', 4: 'usb'}[value],
+                        power_type: {0: "battery_full", 1: "battery_high", 2: "battery_medium", 3: "battery_low", 4: "usb"}[value],
                         battery_low: value === 3,
                     };
                 case dataPoints.neoTamper:
-                    return {tamper: value > 0 ? true : false};
+                    return {tamper: value > 0};
                 case 104:
                     return {temperature: value / 10};
                 case 105:
@@ -3266,24 +3229,24 @@ const fromZigbee = {
                 case dataPoints.neoMaxHumidity:
                     return {humidity_max: value};
                 case dataPoints.neoTempScale:
-                    return {temperature_scale: value ? '°C' : '°F'};
+                    return {temperature_scale: value ? "°C" : "°F"};
                 case 111:
-                    return {unknown_111: value ? 'ON' : 'OFF'};
+                    return {unknown_111: value ? "ON" : "OFF"};
                 case 112:
-                    return {unknown_112: value ? 'ON' : 'OFF'};
+                    return {unknown_112: value ? "ON" : "OFF"};
                 case dataPoints.neoTempHumidityAlarm:
                     // @ts-expect-error ignore
-                    return {alarm: {0: 'over_temperature', 1: 'over_humidity', 2: 'below_min_temperature', 3: 'below_min_humdity', 4: 'off'}[value]};
+                    return {alarm: {0: "over_temperature", 1: "over_humidity", 2: "below_min_temperature", 3: "below_min_humdity", 4: "off"}[value]};
                 default: // Unknown code
-                    logger.debug(`Unrecognized DP #${dp}: ${JSON.stringify(dpValue)}`, 'zhc:legacy:fz:neo_nas_pd07');
+                    logger.debug(`Unrecognized DP #${dp}: ${JSON.stringify(dpValue)}`, "zhc:legacy:fz:neo_nas_pd07");
             }
         },
     } satisfies Fz.Converter,
     neo_t_h_alarm: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandDataReport', 'commandDataResponse'],
+        cluster: "manuSpecificTuya",
+        type: ["commandDataReport", "commandDataResponse"],
         convert: (model, msg, publish, options, meta) => {
-            const dpValue = firstDpValue(msg, meta, 'neo_t_h_alarm');
+            const dpValue = firstDpValue(msg, meta, "neo_t_h_alarm");
             const dp = dpValue.dp;
             const value = getDataValue(dpValue);
             switch (dp) {
@@ -3312,7 +3275,7 @@ const fromZigbee = {
                 case dataPoints.neoPowerType: // 0x0465 [4]
                     return {
                         // @ts-expect-error ignore
-                        power_type: {0: 'battery_full', 1: 'battery_high', 2: 'battery_medium', 3: 'battery_low', 4: 'usb'}[value],
+                        power_type: {0: "battery_full", 1: "battery_high", 2: "battery_medium", 3: "battery_low", 4: "usb"}[value],
                         battery_low: value === 3,
                     };
                 case dataPoints.neoMelody: // 0x0466 [5] Melody
@@ -3321,17 +3284,17 @@ const fromZigbee = {
                     break;
                 case dataPoints.neoVolume: // 0x0474 [0]/[1]/[2] Volume 0-max, 2-low
                     // @ts-expect-error ignore
-                    return {volume: {2: 'low', 1: 'medium', 0: 'high'}[value]};
+                    return {volume: {2: "low", 1: "medium", 0: "high"}[value]};
                 default: // Unknown code
-                    logger.debug(`Unrecognized DP #${dp}: ${JSON.stringify(dpValue)}`, 'zhc:legacy:fz:neo_t_h_alarm');
+                    logger.debug(`Unrecognized DP #${dp}: ${JSON.stringify(dpValue)}`, "zhc:legacy:fz:neo_t_h_alarm");
             }
         },
     } satisfies Fz.Converter,
     neo_alarm: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandDataReport', 'commandDataResponse'],
+        cluster: "manuSpecificTuya",
+        type: ["commandDataReport", "commandDataResponse"],
         convert: (model, msg, publish, options, meta) => {
-            const dpValue = firstDpValue(msg, meta, 'neo_alarm');
+            const dpValue = firstDpValue(msg, meta, "neo_alarm");
             const dp = dpValue.dp;
             const value = getDataValue(dpValue);
 
@@ -3346,34 +3309,34 @@ const fromZigbee = {
                     return {melody: value};
                 case dataPoints.neoAOVolume: // 0x5 [0]/[1]/[2] Volume 0-low, 2-max
                     // @ts-expect-error ignore
-                    return {volume: {0: 'low', 1: 'medium', 2: 'high'}[value]};
+                    return {volume: {0: "low", 1: "medium", 2: "high"}[value]};
                 default: // Unknown code
-                    logger.debug(`Unrecognized DP #${dp}: ${JSON.stringify(msg.data)}`, 'zhc:legacy:fz:neo_alarm');
+                    logger.debug(`Unrecognized DP #${dp}: ${JSON.stringify(msg.data)}`, "zhc:legacy:fz:neo_alarm");
             }
         },
     } satisfies Fz.Converter,
     ZB006X_settings: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandActiveStatusReport', 'commandActiveStatusReportAlt'],
+        cluster: "manuSpecificTuya",
+        type: ["commandActiveStatusReport", "commandActiveStatusReportAlt"],
         convert: (model, msg, publish, options, meta) => {
-            const dpValue = firstDpValue(msg, meta, 'ZB006X_settings');
+            const dpValue = firstDpValue(msg, meta, "ZB006X_settings");
             const dp = dpValue.dp;
             const value = getDataValue(dpValue);
             switch (dp) {
                 case dataPoints.fantemPowerSupplyMode:
                     // @ts-expect-error ignore
-                    return {power_supply_mode: {0: 'unknown', 1: 'no_neutral', 2: 'with_neutral'}[value]};
+                    return {power_supply_mode: {0: "unknown", 1: "no_neutral", 2: "with_neutral"}[value]};
                 case dataPoints.fantemExtSwitchType:
                     // @ts-expect-error ignore
-                    return {switch_type: {0: 'unknown', 1: 'toggle', 2: 'momentary', 3: 'rotary', 4: 'auto_config'}[value]};
+                    return {switch_type: {0: "unknown", 1: "toggle", 2: "momentary", 3: "rotary", 4: "auto_config"}[value]};
                 case dataPoints.fantemLoadDetectionMode:
                     // @ts-expect-error ignore
-                    return {load_detection_mode: {0: 'none', 1: 'first_power_on', 2: 'every_power_on'}[value]};
+                    return {load_detection_mode: {0: "none", 1: "first_power_on", 2: "every_power_on"}[value]};
                 case dataPoints.fantemExtSwitchStatus:
                     return {switch_status: value};
                 case dataPoints.fantemControlMode:
                     // @ts-expect-error ignore
-                    return {control_mode: {0: 'ext_switch', 1: 'remote', 2: 'both'}[value]};
+                    return {control_mode: {0: "ext_switch", 1: "remote", 2: "both"}[value]};
                 case 111:
                     // Value 0 is received after each device power-on. No idea what it means.
                     return;
@@ -3381,18 +3344,18 @@ const fromZigbee = {
                     // Not sure if 0 is 'resistive' and 2 is 'resistive_inductive'.
                     // If you see 'unknown', pls. check with Tuya gateway and app and update with label shown in Tuya app.
                     // @ts-expect-error ignore
-                    return {load_type: {0: 'unknown', 1: 'resistive_capacitive', 2: 'unknown', 3: 'detecting'}[value]};
+                    return {load_type: {0: "unknown", 1: "resistive_capacitive", 2: "unknown", 3: "detecting"}[value]};
                 case dataPoints.fantemLoadDimmable:
                     // @ts-expect-error ignore
-                    return {load_dimmable: {0: 'unknown', 1: 'dimmable', 2: 'not_dimmable'}[value]};
+                    return {load_dimmable: {0: "unknown", 1: "dimmable", 2: "not_dimmable"}[value]};
                 default:
-                    logger.debug(`Unrecognized DP|Value [${dp}|${value}][${JSON.stringify(dpValue)}]`, 'zhc:legacy:fz:zb006x_settings');
+                    logger.debug(`Unrecognized DP|Value [${dp}|${value}][${JSON.stringify(dpValue)}]`, "zhc:legacy:fz:zb006x_settings");
             }
         },
     } satisfies Fz.Converter,
     tuya_cover: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandDataReport', 'commandDataResponse'],
+        cluster: "manuSpecificTuya",
+        type: ["commandDataReport", "commandDataResponse"],
         options: [exposes.options.invert_cover()],
         convert: (model, msg, publish, options, meta) => {
             // Protocol description
@@ -3417,21 +3380,21 @@ const fromZigbee = {
 
                             // Not all covers report coverArrived, so set running to false if device doesn't report position
                             // for a few seconds
-                            clearTimeout(globalStore.getValue(msg.endpoint, 'running_timer'));
+                            clearTimeout(globalStore.getValue(msg.endpoint, "running_timer"));
                             if (running) {
                                 const timer = setTimeout(() => publish({running: false}), 3 * 1000);
-                                globalStore.putValue(msg.endpoint, 'running_timer', timer);
+                                globalStore.putValue(msg.endpoint, "running_timer", timer);
                             }
 
                             if (position > 0 && position <= 100) {
                                 result.running = running;
                                 result.position = position;
-                                result.state = 'OPEN';
-                            } else if (position == 0) {
+                                result.state = "OPEN";
+                            } else if (position === 0) {
                                 // Report fully closed
                                 result.running = running;
                                 result.position = position;
-                                result.state = 'CLOSE';
+                                result.state = "CLOSE";
                             } else {
                                 result.running = running; // Not calibrated yet, no position is available
                             }
@@ -3447,7 +3410,7 @@ const fromZigbee = {
                     case dataPoints.config: // Returned by configuration set; ignore
                         break;
                     default: // Unknown code
-                        logger.debug(`Unrecognized DP #${dp}: ${JSON.stringify(dpValue)}`, 'zhc:legacy:fz:tuya_cover');
+                        logger.debug(`Unrecognized DP #${dp}: ${JSON.stringify(dpValue)}`, "zhc:legacy:fz:tuya_cover");
                 }
             }
 
@@ -3455,10 +3418,10 @@ const fromZigbee = {
         },
     } satisfies Fz.Converter,
     moes_switch: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandDataResponse', 'commandDataReport'],
+        cluster: "manuSpecificTuya",
+        type: ["commandDataResponse", "commandDataReport"],
         convert: (model, msg, publish, options, meta) => {
-            const dpValue = firstDpValue(msg, meta, 'moes_switch');
+            const dpValue = firstDpValue(msg, meta, "moes_switch");
             const dp = dpValue.dp;
 
             // tuya_switch datapoints
@@ -3474,24 +3437,24 @@ const fromZigbee = {
                 case dataPoints.moesSwitchIndicateLight:
                     return {indicate_light: moesSwitch.indicateLight[value]};
                 default:
-                    logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, 'zhc:legacy:fz:moes_switch');
+                    logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, "zhc:legacy:fz:moes_switch");
                     break;
             }
         },
     } satisfies Fz.Converter,
     tuya_water_leak: {
-        cluster: 'manuSpecificTuya',
-        type: 'commandDataReport',
+        cluster: "manuSpecificTuya",
+        type: "commandDataReport",
         convert: (model, msg, publish, options, meta) => {
-            const dpValue = firstDpValue(msg, meta, 'tuya_water_leak');
+            const dpValue = firstDpValue(msg, meta, "tuya_water_leak");
             if (dpValue.dp === dataPoints.waterLeak) {
                 return {water_leak: getDataValue(dpValue)};
             }
         },
     } satisfies Fz.Converter,
     wls100z_water_leak: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandDataResponse', 'commandDataReport'],
+        cluster: "manuSpecificTuya",
+        type: ["commandDataResponse", "commandDataReport"],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValueAny = {};
             for (const dpValue of msg.data.dpValues) {
@@ -3504,17 +3467,17 @@ const fromZigbee = {
                         result.battery = value;
                         break;
                     default:
-                        logger.debug(`Unrecognized DP #${dpValue.dp} with data ${JSON.stringify(dpValue)}`, 'zhc:legacy:fz:wls100z_water_leak');
+                        logger.debug(`Unrecognized DP #${dpValue.dp} with data ${JSON.stringify(dpValue)}`, "zhc:legacy:fz:wls100z_water_leak");
                 }
             }
             return result;
         },
     } satisfies Fz.Converter,
     silvercrest_smart_led_string: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandDataResponse', 'commandDataReport'],
+        cluster: "manuSpecificTuya",
+        type: ["commandDataResponse", "commandDataReport"],
         convert: (model, msg, publish, options, meta) => {
-            const dpValue = firstDpValue(msg, meta, 'silvercrest_smart_led_string');
+            const dpValue = firstDpValue(msg, meta, "silvercrest_smart_led_string");
             const dp = dpValue.dp;
             const value = getDataValue(dpValue);
             const result: KeyValueAny = {};
@@ -3527,16 +3490,16 @@ const fromZigbee = {
             if (dp === dataPoints.silvercrestSetBrightness) {
                 result.brightness = utils.mapNumberRange(value, 0, 1000, 0, 255);
             } else if (dp === dataPoints.silvercrestSetColor) {
-                const h = parseInt(value.substring(0, 4), 16);
-                const s = parseInt(value.substring(4, 8), 16);
-                const b = parseInt(value.substring(8, 12), 16);
-                result.color_mode = 'hs';
+                const h = Number.parseInt(value.substring(0, 4), 16);
+                const s = Number.parseInt(value.substring(4, 8), 16);
+                const b = Number.parseInt(value.substring(8, 12), 16);
+                result.color_mode = "hs";
                 result.color = {b: utils.mapNumberRange(b, 0, 1000, 0, 255), h, s: utils.mapNumberRange(s, 0, 1000, 0, 100)};
                 result.brightness = result.color.b;
             } else if (dp === dataPoints.silvercrestSetEffect) {
                 result.effect = {
-                    effect: utils.getKey(silvercrestEffects, value.substring(0, 2), '', String),
-                    speed: utils.mapNumberRange(parseInt(value.substring(2, 4)), 0, 64, 0, 100),
+                    effect: utils.getKey(silvercrestEffects, value.substring(0, 2), "", String),
+                    speed: utils.mapNumberRange(Number.parseInt(value.substring(2, 4)), 0, 64, 0, 100),
                     colors: [],
                 };
 
@@ -3553,9 +3516,9 @@ const fromZigbee = {
                     const g = part[2] + part[3];
                     const b = part[4] + part[5];
                     result.effect.colors.push({
-                        r: parseInt(r, 16),
-                        g: parseInt(g, 16),
-                        b: parseInt(b, 16),
+                        r: Number.parseInt(r, 16),
+                        g: Number.parseInt(g, 16),
+                        b: Number.parseInt(b, 16),
                     });
                 }
             }
@@ -3564,15 +3527,15 @@ const fromZigbee = {
         },
     } satisfies Fz.Converter,
     frankever_valve: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandDataResponse', 'commandDataReport', 'commandActiveStatusReport'],
+        cluster: "manuSpecificTuya",
+        type: ["commandDataResponse", "commandDataReport", "commandActiveStatusReport"],
         convert: (model, msg, publish, options, meta) => {
-            const dpValue = firstDpValue(msg, meta, 'frankever_valve');
+            const dpValue = firstDpValue(msg, meta, "frankever_valve");
             const value = getDataValue(dpValue);
             const dp = dpValue.dp;
             switch (dp) {
                 case dataPoints.state: {
-                    return {state: value ? 'ON' : 'OFF'};
+                    return {state: value ? "ON" : "OFF"};
                 }
                 case dataPoints.frankEverTreshold: {
                     return {threshold: value};
@@ -3581,16 +3544,16 @@ const fromZigbee = {
                     return {timer: value / 60};
                 }
                 default: {
-                    logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, 'zhc:legacy:fz:frankever_valve');
+                    logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, "zhc:legacy:fz:frankever_valve");
                 }
             }
         },
     } satisfies Fz.Converter,
     tuya_woox_smoke: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandDataResponse'],
+        cluster: "manuSpecificTuya",
+        type: ["commandDataResponse"],
         convert: (model, msg, publish, options, meta) => {
-            const dpValue = firstDpValue(msg, meta, 'tuya_woox_smoke');
+            const dpValue = firstDpValue(msg, meta, "tuya_woox_smoke");
             const dp = dpValue.dp;
             const value = getDataValue(dpValue);
             switch (dp) {
@@ -3601,21 +3564,21 @@ const fromZigbee = {
                 case dataPoints.wooxSmokeTest:
                     return {smoke: value};
                 default:
-                    logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, 'zhc:legacy:fz:tuya_smoke');
+                    logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, "zhc:legacy:fz:tuya_smoke");
             }
         },
     } satisfies Fz.Converter,
     tuya_switch: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandDataReport', 'commandDataResponse', 'commandActiveStatusReport'],
+        cluster: "manuSpecificTuya",
+        type: ["commandDataReport", "commandDataResponse", "commandActiveStatusReport"],
         convert: (model, msg, publish, options, meta) => {
-            const multiEndpoint = model.meta && model.meta.multiEndpoint;
-            const dpValue = firstDpValue(msg, meta, 'tuya_switch');
+            const multiEndpoint = model.meta?.multiEndpoint;
+            const dpValue = firstDpValue(msg, meta, "tuya_switch");
             const dp = dpValue.dp;
             const value = getDataValue(dpValue);
-            const state = value ? 'ON' : 'OFF';
+            const state = value ? "ON" : "OFF";
             if (multiEndpoint) {
-                const lookup: KeyValueAny = {1: 'l1', 2: 'l2', 3: 'l3', 4: 'l4', 5: 'l5', 6: 'l6'};
+                const lookup: KeyValueAny = {1: "l1", 2: "l2", 3: "l3", 4: "l4", 5: "l5", 6: "l6"};
                 const endpoint = lookup[dp];
                 if (endpoint in model.endpoint(msg.device)) {
                     return {[`state_${endpoint}`]: state};
@@ -3627,13 +3590,13 @@ const fromZigbee = {
         },
     } satisfies Fz.Converter,
     tuya_dinrail_switch: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandDataReport', 'commandDataResponse', 'commandActiveStatusReport'],
+        cluster: "manuSpecificTuya",
+        type: ["commandDataReport", "commandDataResponse", "commandActiveStatusReport"],
         convert: (model, msg, publish, options, meta) => {
-            const dpValue = firstDpValue(msg, meta, 'tuya_dinrail_switch');
+            const dpValue = firstDpValue(msg, meta, "tuya_dinrail_switch");
             const dp = dpValue.dp;
             const value = getDataValue(dpValue);
-            const state = value ? 'ON' : 'OFF';
+            const state = value ? "ON" : "OFF";
 
             switch (dp) {
                 case dataPoints.state: // DPID that we added to common
@@ -3647,22 +3610,22 @@ const fromZigbee = {
                 case dataPoints.dinrailPowerMeterVoltage:
                     return {voltage: value / 10};
                 default:
-                    logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, 'zhc:legacy:fz:tuya_dinrail_switch');
+                    logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, "zhc:legacy:fz:tuya_dinrail_switch");
             }
 
             return null;
         },
     } satisfies Fz.Converter,
     ZVG1: {
-        cluster: 'manuSpecificTuya',
-        type: 'commandDataResponse',
+        cluster: "manuSpecificTuya",
+        type: "commandDataResponse",
         convert: (model, msg, publish, options, meta) => {
-            const dpValue = firstDpValue(msg, meta, 'ZVG1');
+            const dpValue = firstDpValue(msg, meta, "ZVG1");
             const value = getDataValue(dpValue);
             const dp = dpValue.dp;
             switch (dp) {
                 case dataPoints.state: {
-                    return {state: value ? 'ON' : 'OFF'};
+                    return {state: value ? "ON" : "OFF"};
                 }
                 case 5: {
                     // Assume value is reported in fl. oz., converter to litres
@@ -3672,13 +3635,13 @@ const fromZigbee = {
                     return {battery: value};
                 }
                 case 10: {
-                    let data = 'disabled';
-                    if (value == 1) {
-                        data = '24h';
-                    } else if (value == 2) {
-                        data = '48h';
-                    } else if (value == 3) {
-                        data = '72h';
+                    let data = "disabled";
+                    if (value === 1) {
+                        data = "24h";
+                    } else if (value === 2) {
+                        data = "48h";
+                    } else if (value === 3) {
+                        data = "72h";
                     }
                     return {weather_delay: data};
                 }
@@ -3687,9 +3650,9 @@ const fromZigbee = {
                     return {timer_time_left: value / 60};
                 }
                 case 12: {
-                    if (value === 0) return {timer_state: 'disabled'};
-                    else if (value === 1) return {timer_state: 'active'};
-                    else return {timer_state: 'enabled'};
+                    if (value === 0) return {timer_state: "disabled"};
+                    if (value === 1) return {timer_state: "active"};
+                    return {timer_state: "enabled"};
                 }
                 case 15: {
                     // value reported in seconds
@@ -3697,57 +3660,47 @@ const fromZigbee = {
                 }
                 case 16: {
                     const tresult: KeyValueAny = {
-                        cycle_timer_1: '',
-                        cycle_timer_2: '',
-                        cycle_timer_3: '',
-                        cycle_timer_4: '',
+                        cycle_timer_1: "",
+                        cycle_timer_2: "",
+                        cycle_timer_3: "",
+                        cycle_timer_4: "",
                     };
                     for (let index = 0; index < 40; index += 12) {
                         const timer = convertRawToCycleTimer(value.slice(index));
                         if (timer.irrigationDuration > 0) {
-                            tresult['cycle_timer_' + (index / 13 + 1)] =
-                                timer.starttime +
-                                ' / ' +
-                                timer.endtime +
-                                ' / ' +
-                                timer.irrigationDuration +
-                                ' / ' +
-                                timer.pauseDuration +
-                                ' / ' +
-                                timer.weekdays +
-                                ' / ' +
-                                timer.active;
+                            tresult[`cycle_timer_${index / 13 + 1}`] =
+                                `${timer.starttime} / ${timer.endtime} / ${timer.irrigationDuration} / ${timer.pauseDuration} / ${timer.weekdays} / ${timer.active}`;
                         }
                     }
                     return tresult;
                 }
                 case 17: {
                     const tresult: KeyValueAny = {
-                        normal_schedule_timer_1: '',
-                        normal_schedule_timer_2: '',
-                        normal_schedule_timer_3: '',
-                        normal_schedule_timer_4: '',
+                        normal_schedule_timer_1: "",
+                        normal_schedule_timer_2: "",
+                        normal_schedule_timer_3: "",
+                        normal_schedule_timer_4: "",
                     };
                     for (let index = 0; index < 40; index += 13) {
                         const timer = convertRawToTimer(value.slice(index));
                         if (timer.duration > 0) {
-                            tresult['normal_schedule_timer_' + (index / 13 + 1)] =
-                                timer.time + ' / ' + timer.duration + ' / ' + timer.weekdays + ' / ' + timer.active;
+                            tresult[`normal_schedule_timer_${index / 13 + 1}`] =
+                                `${timer.time} / ${timer.duration} / ${timer.weekdays} / ${timer.active}`;
                         }
                     }
                     return tresult;
                 }
                 default: {
-                    logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, 'zhc:legacy:fz:rtx_zvg1_valve');
+                    logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, "zhc:legacy:fz:rtx_zvg1_valve");
                 }
             }
         },
     } satisfies Fz.Converter,
     ZB003X: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandActiveStatusReport'],
+        cluster: "manuSpecificTuya",
+        type: ["commandActiveStatusReport"],
         convert: (model, msg, publish, options, meta) => {
-            const dpValue = firstDpValue(msg, meta, 'ZB003X');
+            const dpValue = firstDpValue(msg, meta, "ZB003X");
             const dp = dpValue.dp;
             const value = getDataValue(dpValue);
             switch (dp) {
@@ -3771,27 +3724,27 @@ const fromZigbee = {
                 case dataPoints.fantemMotionEnable:
                     return {pir_enable: value};
                 case dataPoints.fantemLedEnable:
-                    return {led_enable: value ? false : true};
+                    return {led_enable: !value};
                 case dataPoints.fantemReportingEnable:
                     return {reporting_enable: value};
                 default:
-                    logger.debug(`Unrecognized DP #${dp}: ${JSON.stringify(dpValue)}`, 'zhc:legacy:fz:zb003x');
+                    logger.debug(`Unrecognized DP #${dp}: ${JSON.stringify(dpValue)}`, "zhc:legacy:fz:zb003x");
             }
         },
     } satisfies Fz.Converter,
     tuya_thermostat_weekly_schedule_2: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandDataResponse', 'commandDataReport'],
+        cluster: "manuSpecificTuya",
+        type: ["commandDataResponse", "commandDataReport"],
         convert: (model, msg, publish, options, meta) => {
-            const dpValue = firstDpValue(msg, meta, 'tuya_thermostat_weekly_schedule');
+            const dpValue = firstDpValue(msg, meta, "tuya_thermostat_weekly_schedule");
             const dp = dpValue.dp;
             const value = getDataValue(dpValue);
 
-            const thermostatMeta = getMetaValue(msg.endpoint, model, 'thermostat');
+            const thermostatMeta = getMetaValue(msg.endpoint, model, "thermostat");
             const firstDayDpId = thermostatMeta.weeklyScheduleFirstDayDpId;
             const maxTransitions = thermostatMeta.weeklyScheduleMaxTransitions;
             let dataOffset = 0;
-            let conversion = 'generic';
+            let conversion = "generic";
 
             function dataToTransitions(data: any, maxTransitions: any, offset: any) {
                 // Later it is possible to move converter to meta or to other place outside if other type of converter
@@ -3800,7 +3753,7 @@ const fromZigbee = {
                 function dataToTransition(data: any, index: number) {
                     return {
                         time: (data[index + 0] << 8) + data[index + 1],
-                        heating_setpoint: (parseFloat((data[index + 2] << 8) + data[index + 3]) / 10.0).toFixed(1),
+                        heating_setpoint: (Number.parseFloat((data[index + 2] << 8) + data[index + 3]) / 10.0).toFixed(1),
                     };
                 }
                 const result = [];
@@ -3813,7 +3766,7 @@ const fromZigbee = {
             if (thermostatMeta.weeklyScheduleConversion !== undefined) {
                 conversion = thermostatMeta.weeklyScheduleConversion;
             }
-            if (conversion == 'saswell') {
+            if (conversion === "saswell") {
                 // Saswell has scheduling mode in the first byte
                 dataOffset = 1;
             }
@@ -3830,66 +3783,55 @@ const fromZigbee = {
         },
     } satisfies Fz.Converter,
     tuya_data_point_dump: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandDataResponse', 'commandDataReport', 'commandActiveStatusReport', 'commandActiveStatusReportAlt'],
+        cluster: "manuSpecificTuya",
+        type: ["commandDataResponse", "commandDataReport", "commandActiveStatusReport", "commandActiveStatusReportAlt"],
         convert: (model, msg, publish, options, meta) => {
             // Don't use in production!
             // Used in: https://www.zigbee2mqtt.io/how_tos/how_to_support_new_tuya_devices.html
             const getHex = (value: number) => {
                 let hex = value.toString(16);
                 if (hex.length < 2) {
-                    hex = '0' + hex;
+                    hex = `0${hex}`;
                 }
                 return hex;
             };
             const now = Date.now().toString();
-            let dataStr = '';
+            let dataStr = "";
             for (const [i, dpValue] of msg.data.dpValues.entries()) {
-                logDataPoint('tuya_data_point_dump', msg, dpValue, meta);
-                dataStr +=
-                    now +
-                    ' ' +
-                    meta.device.ieeeAddr +
-                    ' ' +
-                    getHex(msg.data.seq) +
-                    ' ' +
-                    getHex(i) +
-                    ' ' +
-                    getHex(dpValue.dp) +
-                    ' ' +
-                    getHex(dpValue.datatype);
+                logDataPoint("tuya_data_point_dump", msg, dpValue, meta);
+                dataStr += `${now} ${meta.device.ieeeAddr} ${getHex(msg.data.seq)} ${getHex(i)} ${getHex(dpValue.dp)} ${getHex(dpValue.datatype)}`;
 
                 dpValue.data.forEach((elem: any) => {
-                    dataStr += ' ' + getHex(elem);
+                    dataStr += ` ${getHex(elem)}`;
                 });
-                dataStr += '\n';
+                dataStr += "\n";
             }
-            fs.appendFile('data/tuya.dump.txt', dataStr, (err) => {
+            fs.appendFile("data/tuya.dump.txt", dataStr, (err) => {
                 if (err) throw err;
             });
         },
     } satisfies Fz.Converter,
     javis_microwave_sensor: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandDataReport', 'commandDataResponse'],
+        cluster: "manuSpecificTuya",
+        type: ["commandDataReport", "commandDataResponse"],
         convert: (model, msg, publish, options, meta) => {
-            const dpValue = firstDpValue(msg, meta, 'javis_microwave_sensor');
+            const dpValue = firstDpValue(msg, meta, "javis_microwave_sensor");
             const dp = dpValue.dp;
             const value = getDataValue(dpValue);
             const lookup: KeyValueAny = {
-                0: 'no_motion',
-                1: 'big_motion',
-                2: 'minor_motion',
-                3: 'breathing',
-                4: 'abnormal_state',
-                5: 'initializing',
-                6: 'initialization_completed',
+                0: "no_motion",
+                1: "big_motion",
+                2: "minor_motion",
+                3: "breathing",
+                4: "abnormal_state",
+                5: "initializing",
+                6: "initialization_completed",
             };
             switch (dp) {
                 case 1:
                     return {
                         states: lookup[value],
-                        occupancy: 0 < value && value < 5 ? true : false,
+                        occupancy: !!(0 < value && value < 5),
                     };
                 case 2:
                     return {
@@ -3900,18 +3842,17 @@ const fromZigbee = {
                         illuminance: value,
                     };
                 case 102:
-                    if (meta.device.manufacturerName === '_TZE200_kagkgk0i') {
+                    if (meta.device.manufacturerName === "_TZE200_kagkgk0i") {
                         return {
                             illuminance_calibration: value,
                         };
-                    } else {
-                        return {
-                            keep_time: value,
-                        };
                     }
+                    return {
+                        keep_time: value,
+                    };
                 case 103:
                     return {
-                        led_enable: value == 1 ? true : false,
+                        led_enable: value === 1,
                     };
                 case 104:
                     return {illuminance: value};
@@ -3920,34 +3861,32 @@ const fromZigbee = {
                         illuminance_calibration: value,
                     };
                 case 106:
-                    if (meta.device.manufacturerName === '_TZE200_kagkgk0i') {
+                    if (meta.device.manufacturerName === "_TZE200_kagkgk0i") {
                         return {
                             keep_time: value,
                         };
-                    } else {
-                        break;
                     }
+                    break;
                 case 107:
-                    if (meta.device.manufacturerName === '_TZE200_kagkgk0i') {
+                    if (meta.device.manufacturerName === "_TZE200_kagkgk0i") {
                         return {
-                            led_enable: value == 1 ? true : false,
+                            led_enable: value === 1,
                         };
-                    } else {
-                        break;
                     }
+                    break;
                 default:
-                    logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, 'zhc:legacy:fz:javis_microwave_sensor');
+                    logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, "zhc:legacy:fz:javis_microwave_sensor");
             }
         },
     } satisfies Fz.Converter,
     SLUXZB: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandDataResponse', 'commandDataReport'],
+        cluster: "manuSpecificTuya",
+        type: ["commandDataResponse", "commandDataReport"],
         convert: (model, msg, publish, options, meta) => {
-            const dpValue = firstDpValue(msg, meta, 'SLUXZB');
+            const dpValue = firstDpValue(msg, meta, "SLUXZB");
             const dp = dpValue.dp;
             const value = getDataValue(dpValue);
-            const brightnesStateLookup: KeyValueAny = {'0': 'low', '1': 'middle', '2': 'high'};
+            const brightnesStateLookup: KeyValueAny = {"0": "low", "1": "middle", "2": "high"};
             switch (dp) {
                 case 2:
                     return {illuminance: value};
@@ -3956,7 +3895,7 @@ const fromZigbee = {
                 case 1:
                     return {brightness_level: brightnesStateLookup[value]};
                 default:
-                    logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, 'zhc:legacy:fz:s_lux_zb');
+                    logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, "zhc:legacy:fz:s_lux_zb");
             }
         },
     } satisfies Fz.Converter,
@@ -3964,95 +3903,95 @@ const fromZigbee = {
 
 const toZigbee1 = {
     SA12IZL_silence_siren: {
-        key: ['silence_siren'],
+        key: ["silence_siren"],
         convertSet: async (entity, key, value: any, meta) => {
             await sendDataPointBool(entity, 16, value);
         },
     } satisfies Tz.Converter,
     SA12IZL_alarm: {
-        key: ['alarm'],
+        key: ["alarm"],
         convertSet: async (entity, key, value: any, meta) => {
             await sendDataPointEnum(entity, 20, value ? 0 : 1);
         },
     } satisfies Tz.Converter,
     R7049_silenceSiren: {
-        key: ['silence_siren'],
+        key: ["silence_siren"],
         convertSet: async (entity, key, value: any, meta) => {
             await sendDataPointBool(entity, 16, value);
         },
     } satisfies Tz.Converter,
     R7049_testAlarm: {
-        key: ['test_alarm'],
+        key: ["test_alarm"],
         convertSet: async (entity, key, value: any, meta) => {
             await sendDataPointBool(entity, 8, value);
         },
     } satisfies Tz.Converter,
     R7049_alarm: {
-        key: ['alarm'],
+        key: ["alarm"],
         convertSet: async (entity, key, value: any, meta) => {
             await sendDataPointEnum(entity, 20, value ? 0 : 1);
         },
     } satisfies Tz.Converter,
     valve_state: {
-        key: ['valve_state'],
+        key: ["valve_state"],
         convertSet: async (entity, key, value, meta) => {
             await sendDataPointValue(entity, dataPoints.wateringTimer.valve_state, value);
         },
     } satisfies Tz.Converter,
     shutdown_timer: {
-        key: ['shutdown_timer'],
+        key: ["shutdown_timer"],
         convertSet: async (entity, key, value, meta) => {
             await sendDataPointValue(entity, dataPoints.wateringTimer.shutdown_timer, value);
         },
     } satisfies Tz.Converter,
     valve_state_auto_shutdown: {
-        key: ['valve_state_auto_shutdown'],
+        key: ["valve_state_auto_shutdown"],
         convertSet: async (entity, key, value, meta) => {
             await sendDataPointValue(entity, dataPoints.wateringTimer.valve_state_auto_shutdown, value);
         },
     } satisfies Tz.Converter,
     hpsz: {
-        key: ['led_state'],
+        key: ["led_state"],
         convertSet: async (entity, key, value: any, meta) => {
             await sendDataPointBool(entity, dataPoints.HPSZLEDState, value);
         },
     } satisfies Tz.Converter,
     tuya_cover_control: {
-        key: ['state', 'position'],
+        key: ["state", "position"],
         options: [exposes.options.invert_cover()],
         convertSet: async (entity, key, value: any, meta) => {
             // Protocol description
             // https://github.com/Koenkk/zigbee-herdsman-converters/issues/1159#issuecomment-614659802
 
-            if (key === 'position') {
+            if (key === "position") {
                 if (value >= 0 && value <= 100) {
                     const invert = isCoverInverted(meta.device.manufacturerName) ? !meta.options.invert_cover : meta.options.invert_cover;
 
                     value = invert ? 100 - value : value;
                     await sendDataPointValue(entity, dataPoints.coverPosition, value);
                 } else {
-                    throw new Error('Tuya_cover_control: Curtain motor position is out of range');
+                    throw new Error("Tuya_cover_control: Curtain motor position is out of range");
                 }
-            } else if (key === 'state') {
+            } else if (key === "state") {
                 const stateEnums = getCoverStateEnums(meta.device.manufacturerName);
                 logger.debug(
                     `Using state enums for ${meta.device.manufacturerName}: ${JSON.stringify(stateEnums)}`,
-                    'zhc:legacy:tz:tuya_cover_control',
+                    "zhc:legacy:tz:tuya_cover_control",
                 );
 
                 value = value.toLowerCase();
                 switch (value) {
-                    case 'close':
+                    case "close":
                         await sendDataPointEnum(entity, dataPoints.state, stateEnums.close);
                         break;
-                    case 'open':
+                    case "open":
                         await sendDataPointEnum(entity, dataPoints.state, stateEnums.open);
                         break;
-                    case 'stop':
+                    case "stop":
                         await sendDataPointEnum(entity, dataPoints.state, stateEnums.stop);
                         break;
                     default:
-                        throw new Error('Tuya_cover_control: Invalid command received');
+                        throw new Error("Tuya_cover_control: Invalid command received");
                 }
             }
         },
@@ -4061,67 +4000,67 @@ const toZigbee1 = {
 
 const toZigbee2 = {
     zb_sm_cover: {
-        key: ['state', 'position', 'reverse_direction', 'top_limit', 'bottom_limit', 'favorite_position', 'goto_positon', 'report'],
+        key: ["state", "position", "reverse_direction", "top_limit", "bottom_limit", "favorite_position", "goto_positon", "report"],
         convertSet: async (entity, key, value: any, meta) => {
             switch (key) {
-                case 'position': {
+                case "position": {
                     const invert = meta.state ? !meta.state.invert_cover : false;
                     value = invert ? 100 - value : value;
                     if (value >= 0 && value <= 100) {
                         await sendDataPointValue(entity, dataPoints.coverPosition, value);
                     } else {
-                        throw new Error('Tuya_cover_control: Curtain motor position is out of range');
+                        throw new Error("Tuya_cover_control: Curtain motor position is out of range");
                     }
                     break;
                 }
-                case 'state': {
+                case "state": {
                     const stateEnums = getCoverStateEnums(meta.device.manufacturerName);
-                    logger.debug(`Using state enums for ${meta.device.manufacturerName}: ${JSON.stringify(stateEnums)}`, 'zhc:legacy:tz:zb_sm_cover');
+                    logger.debug(`Using state enums for ${meta.device.manufacturerName}: ${JSON.stringify(stateEnums)}`, "zhc:legacy:tz:zb_sm_cover");
 
                     value = value.toLowerCase();
                     switch (value) {
-                        case 'close':
+                        case "close":
                             await sendDataPointEnum(entity, dataPoints.state, stateEnums.close);
                             break;
-                        case 'open':
+                        case "open":
                             await sendDataPointEnum(entity, dataPoints.state, stateEnums.open);
                             break;
-                        case 'stop':
+                        case "stop":
                             await sendDataPointEnum(entity, dataPoints.state, stateEnums.stop);
                             break;
                         default:
-                            throw new Error('Tuya_cover_control: Invalid command received');
+                            throw new Error("Tuya_cover_control: Invalid command received");
                     }
                     break;
                 }
-                case 'reverse_direction': {
-                    logger.info(`Motor direction ${value ? 'reverse' : 'forward'}`, 'zhc:legacy:tz:zb_sm_cover');
+                case "reverse_direction": {
+                    logger.info(`Motor direction ${value ? "reverse" : "forward"}`, "zhc:legacy:tz:zb_sm_cover");
                     await sendDataPointEnum(entity, dataPoints.motorDirection, value ? 1 : 0);
                     break;
                 }
-                case 'top_limit': {
+                case "top_limit": {
                     // @ts-expect-error ignore
                     await sendDataPointEnum(entity, 104, {SET: 0, CLEAR: 1}[value]);
                     break;
                 }
-                case 'bottom_limit': {
+                case "bottom_limit": {
                     // @ts-expect-error ignore
                     await sendDataPointEnum(entity, 103, {SET: 0, CLEAR: 1}[value]);
                     break;
                 }
-                case 'favorite_position': {
+                case "favorite_position": {
                     await sendDataPointValue(entity, 115, value);
                     break;
                 }
-                case 'goto_positon': {
-                    if (value == 'FAVORITE') {
+                case "goto_positon": {
+                    if (value === "FAVORITE") {
                         value = meta.state ? meta.state.favorite_position : null;
                     } else {
-                        value = parseInt(value);
+                        value = Number.parseInt(value);
                     }
-                    return await toZigbee1.tuya_cover_control.convertSet(entity, 'position', value, meta);
+                    return await toZigbee1.tuya_cover_control.convertSet(entity, "position", value, meta);
                 }
-                case 'report': {
+                case "report": {
                     await sendDataPointBool(entity, 116, 0);
                     break;
                 }
@@ -4130,28 +4069,28 @@ const toZigbee2 = {
     } satisfies Tz.Converter,
     x5h_thermostat: {
         key: [
-            'system_mode',
-            'current_heating_setpoint',
-            'sensor',
-            'brightness_state',
-            'sound',
-            'frost_protection',
-            'week',
-            'factory_reset',
-            'local_temperature_calibration',
-            'heating_temp_limit',
-            'deadzone_temperature',
-            'upper_temp',
-            'preset',
-            'child_lock',
-            'schedule',
+            "system_mode",
+            "current_heating_setpoint",
+            "sensor",
+            "brightness_state",
+            "sound",
+            "frost_protection",
+            "week",
+            "factory_reset",
+            "local_temperature_calibration",
+            "heating_temp_limit",
+            "deadzone_temperature",
+            "upper_temp",
+            "preset",
+            "child_lock",
+            "schedule",
         ],
         convertSet: async (entity, key, value: any, meta) => {
             switch (key) {
-                case 'system_mode':
-                    await sendDataPointBool(entity, dataPoints.x5hState, value === 'heat');
+                case "system_mode":
+                    await sendDataPointBool(entity, dataPoints.x5hState, value === "heat");
                     break;
-                case 'preset': {
+                case "preset": {
                     value = value.toLowerCase();
                     const lookup: KeyValueAny = {manual: 0, program: 1};
                     utils.validateValue(value, Object.keys(lookup));
@@ -4159,33 +4098,33 @@ const toZigbee2 = {
                     await sendDataPointEnum(entity, dataPoints.x5hMode, value);
                     break;
                 }
-                case 'upper_temp':
+                case "upper_temp":
                     if (value >= 35 && value <= 95) {
                         await sendDataPointValue(entity, dataPoints.x5hSetTempCeiling, value);
-                        const setpoint = globalStore.getValue(entity, 'currentHeatingSetpoint', 20);
+                        const setpoint = globalStore.getValue(entity, "currentHeatingSetpoint", 20);
                         const setpointRaw = Math.round(setpoint * 10);
                         await new Promise((r) => setTimeout(r, 500));
                         await sendDataPointValue(entity, dataPoints.x5hSetTemp, setpointRaw);
                     } else {
-                        throw new Error('Supported values are in range [35, 95]');
+                        throw new Error("Supported values are in range [35, 95]");
                     }
                     break;
-                case 'deadzone_temperature':
+                case "deadzone_temperature":
                     if (value >= 0.5 && value <= 9.5) {
                         value = Math.round(value * 10);
                         await sendDataPointValue(entity, dataPoints.x5hTempDiff, value);
                     } else {
-                        throw new Error('Supported values are in range [0.5, 9.5]');
+                        throw new Error("Supported values are in range [0.5, 9.5]");
                     }
                     break;
-                case 'heating_temp_limit':
+                case "heating_temp_limit":
                     if (value >= 5 && value <= 60) {
                         await sendDataPointValue(entity, dataPoints.x5hProtectionTempLimit, value);
                     } else {
-                        throw new Error('Supported values are in range [5, 60]');
+                        throw new Error("Supported values are in range [5, 60]");
                     }
                     break;
-                case 'local_temperature_calibration':
+                case "local_temperature_calibration":
                     if (value >= -9.9 && value <= 9.9) {
                         value = Math.round(value * 10);
 
@@ -4195,22 +4134,22 @@ const toZigbee2 = {
 
                         await sendDataPointValue(entity, dataPoints.x5hTempCorrection, value);
                     } else {
-                        throw new Error('Supported values are in range [-9.9, 9.9]');
+                        throw new Error("Supported values are in range [-9.9, 9.9]");
                     }
                     break;
-                case 'factory_reset':
-                    await sendDataPointBool(entity, dataPoints.x5hFactoryReset, value === 'ON');
+                case "factory_reset":
+                    await sendDataPointBool(entity, dataPoints.x5hFactoryReset, value === "ON");
                     break;
-                case 'week':
+                case "week":
                     await sendDataPointEnum(entity, dataPoints.x5hWorkingDaySetting, utils.getKey(thermostatWeekFormat, value, value, Number));
                     break;
-                case 'frost_protection':
-                    await sendDataPointBool(entity, dataPoints.x5hFrostProtection, value === 'ON');
+                case "frost_protection":
+                    await sendDataPointBool(entity, dataPoints.x5hFrostProtection, value === "ON");
                     break;
-                case 'sound':
-                    await sendDataPointBool(entity, dataPoints.x5hSound, value === 'ON');
+                case "sound":
+                    await sendDataPointBool(entity, dataPoints.x5hSound, value === "ON");
                     break;
-                case 'brightness_state': {
+                case "brightness_state": {
                     value = value.toLowerCase();
                     const lookup: KeyValueAny = {off: 0, low: 1, medium: 2, high: 3};
                     utils.validateValue(value, Object.keys(lookup));
@@ -4218,7 +4157,7 @@ const toZigbee2 = {
                     await sendDataPointEnum(entity, dataPoints.x5hBackplaneBrightness, value);
                     break;
                 }
-                case 'sensor': {
+                case "sensor": {
                     value = value.toLowerCase();
                     const lookup: KeyValueAny = {internal: 0, external: 1, both: 2};
                     utils.validateValue(value, Object.keys(lookup));
@@ -4226,7 +4165,7 @@ const toZigbee2 = {
                     await sendDataPointEnum(entity, dataPoints.x5hSensorSelection, value);
                     break;
                 }
-                case 'current_heating_setpoint':
+                case "current_heating_setpoint":
                     if (value >= 5 && value <= 60) {
                         value = Math.round(value * 10);
                         await sendDataPointValue(entity, dataPoints.x5hSetTemp, value);
@@ -4234,23 +4173,23 @@ const toZigbee2 = {
                         throw new Error(`Unsupported value: ${value}`);
                     }
                     break;
-                case 'child_lock':
-                    await sendDataPointBool(entity, dataPoints.x5hChildLock, value === 'LOCK');
+                case "child_lock":
+                    await sendDataPointBool(entity, dataPoints.x5hChildLock, value === "LOCK");
                     break;
-                case 'schedule': {
-                    const periods = value.split(' ');
+                case "schedule": {
+                    const periods = value.split(" ");
                     const periodsNumber = 8;
                     const payload = [];
 
                     for (let i = 0; i < periodsNumber; i++) {
-                        const timeTemp = periods[i].split('/');
-                        const hm = timeTemp[0].split(':', 2);
-                        const h = parseInt(hm[0]);
-                        const m = parseInt(hm[1]);
-                        const temp = parseFloat(timeTemp[1]);
+                        const timeTemp = periods[i].split("/");
+                        const hm = timeTemp[0].split(":", 2);
+                        const h = Number.parseInt(hm[0]);
+                        const m = Number.parseInt(hm[1]);
+                        const temp = Number.parseFloat(timeTemp[1]);
 
                         if (h < 0 || h >= 24 || m < 0 || m >= 60 || temp < 5 || temp > 60) {
-                            throw new Error('Invalid hour, minute or temperature of: ' + periods[i]);
+                            throw new Error(`Invalid hour, minute or temperature of: ${periods[i]}`);
                         }
 
                         const tempHexArray = convertDecimalValueTo2ByteHexArray(Math.round(temp * 10));
@@ -4267,25 +4206,25 @@ const toZigbee2 = {
         },
     } satisfies Tz.Converter,
     zs_thermostat_child_lock: {
-        key: ['child_lock'],
+        key: ["child_lock"],
         convertSet: async (entity, key, value, meta) => {
-            await sendDataPointBool(entity, dataPoints.zsChildLock, value === 'LOCK');
+            await sendDataPointBool(entity, dataPoints.zsChildLock, value === "LOCK");
         },
     } satisfies Tz.Converter,
     zs_thermostat_binary_one: {
-        key: ['binary_one'],
+        key: ["binary_one"],
         convertSet: async (entity, key, value, meta) => {
-            await sendDataPointBool(entity, dataPoints.zsBinaryOne, value === 'ON');
+            await sendDataPointBool(entity, dataPoints.zsBinaryOne, value === "ON");
         },
     } satisfies Tz.Converter,
     zs_thermostat_binary_two: {
-        key: ['binary_two'],
+        key: ["binary_two"],
         convertSet: async (entity, key, value, meta) => {
-            await sendDataPointBool(entity, dataPoints.zsBinaryTwo, value === 'ON');
+            await sendDataPointBool(entity, dataPoints.zsBinaryTwo, value === "ON");
         },
     } satisfies Tz.Converter,
     zs_thermostat_current_heating_setpoint: {
-        key: ['current_heating_setpoint'],
+        key: ["current_heating_setpoint"],
         convertSet: async (entity, key, value: number, meta) => {
             let temp = Math.round(value * 2);
             if (temp <= 0) temp = 1;
@@ -4294,7 +4233,7 @@ const toZigbee2 = {
         },
     } satisfies Tz.Converter,
     zs_thermostat_current_heating_setpoint_auto: {
-        key: ['current_heating_setpoint_auto'],
+        key: ["current_heating_setpoint_auto"],
         convertSet: async (entity, key, value: number, meta) => {
             let temp = Math.round(value * 2);
             if (temp <= 0) temp = 1;
@@ -4303,15 +4242,15 @@ const toZigbee2 = {
         },
     } satisfies Tz.Converter,
     zs_thermostat_comfort_temp: {
-        key: ['comfort_temperature'],
+        key: ["comfort_temperature"],
         convertSet: async (entity, key, value: number, meta) => {
-            logger.debug(JSON.stringify(entity), 'zhc:legacy:tz:zs_thermostat_comfort_temp');
+            logger.debug(JSON.stringify(entity), "zhc:legacy:tz:zs_thermostat_comfort_temp");
             const temp = Math.round(value * 2);
             await sendDataPointValue(entity, dataPoints.zsComfortTemp, temp);
         },
     } satisfies Tz.Converter,
     zs_thermostat_openwindow_temp: {
-        key: ['detectwindow_temperature'],
+        key: ["detectwindow_temperature"],
         convertSet: async (entity, key, value: number, meta) => {
             let temp = Math.round(value * 2);
             if (temp <= 0) temp = 1;
@@ -4320,52 +4259,52 @@ const toZigbee2 = {
         },
     } satisfies Tz.Converter,
     zs_thermostat_openwindow_time: {
-        key: ['detectwindow_timeminute'],
+        key: ["detectwindow_timeminute"],
         convertSet: async (entity, key, value, meta) => {
             await sendDataPointValue(entity, dataPoints.zsOpenwindowTime, value);
         },
     } satisfies Tz.Converter,
     zs_thermostat_eco_temp: {
-        key: ['eco_temperature'],
+        key: ["eco_temperature"],
         convertSet: async (entity, key, value: number, meta) => {
             const temp = Math.round(value * 2);
             await sendDataPointValue(entity, dataPoints.zsEcoTemp, temp);
         },
     } satisfies Tz.Converter,
     zs_thermostat_preset_mode: {
-        key: ['preset'],
+        key: ["preset"],
         convertSet: async (entity, key, value: any, meta) => {
             const lookup: KeyValueAny = {schedule: 0, manual: 1, holiday: 2};
-            if (value == 'boost') {
-                await sendDataPointEnum(entity, dataPoints.zsMode, lookup['manual']);
+            if (value === "boost") {
+                await sendDataPointEnum(entity, dataPoints.zsMode, lookup.manual);
                 await sendDataPointValue(entity, dataPoints.zsHeatingSetpoint, 60);
             } else {
                 await sendDataPointEnum(entity, dataPoints.zsMode, lookup[value]);
-                if (value == 'manual') {
-                    const temp = globalStore.getValue(entity, 'current_heating_setpoint');
+                if (value === "manual") {
+                    const temp = globalStore.getValue(entity, "current_heating_setpoint");
                     await sendDataPointValue(entity, dataPoints.zsHeatingSetpoint, temp ? Math.round(temp * 2) : 43);
                 }
             }
         },
     } satisfies Tz.Converter,
     zs_thermostat_system_mode: {
-        key: ['system_mode'],
+        key: ["system_mode"],
         convertSet: async (entity, key, value, meta) => {
-            if (value == 'off') {
+            if (value === "off") {
                 await sendDataPointEnum(entity, dataPoints.zsMode, 1);
                 await sendDataPointValue(entity, dataPoints.zsHeatingSetpoint, 0);
-            } else if (value == 'auto') {
+            } else if (value === "auto") {
                 await sendDataPointEnum(entity, dataPoints.zsMode, 0);
-            } else if (value == 'heat') {
+            } else if (value === "heat") {
                 // manual
-                const temp = globalStore.getValue(entity, 'current_heating_setpoint');
+                const temp = globalStore.getValue(entity, "current_heating_setpoint");
                 await sendDataPointEnum(entity, dataPoints.zsMode, 1);
                 await sendDataPointValue(entity, dataPoints.zsHeatingSetpoint, temp ? Math.round(temp * 2) : 43);
             }
         },
     } satisfies Tz.Converter,
     zs_thermostat_local_temperature_calibration: {
-        key: ['local_temperature_calibration'],
+        key: ["local_temperature_calibration"],
         convertSet: async (entity, key, value: number, meta) => {
             if (value > 0) value = value * 10;
             if (value < 0) value = value * 10 + 0x100000000;
@@ -4373,19 +4312,19 @@ const toZigbee2 = {
         },
     } satisfies Tz.Converter,
     zs_thermostat_away_setting: {
-        key: ['away_setting'],
+        key: ["away_setting"],
         convertSet: async (entity, key, value: KeyValueAny, meta) => {
             const result: any = [];
             const daysInMonth = new Date(2000 + result[0], result[1], 0).getDate();
 
             for (const attrName of [
-                'away_preset_year',
-                'away_preset_month',
-                'away_preset_day',
-                'away_preset_hour',
-                'away_preset_minute',
-                'away_preset_temperature',
-                'away_preset_days',
+                "away_preset_year",
+                "away_preset_month",
+                "away_preset_day",
+                "away_preset_hour",
+                "away_preset_minute",
+                "away_preset_temperature",
+                "away_preset_days",
             ]) {
                 let v = 0;
                 if (value[attrName] !== undefined) {
@@ -4395,15 +4334,15 @@ const toZigbee2 = {
                     v = meta.state[attrName];
                 }
                 switch (attrName) {
-                    case 'away_preset_year':
+                    case "away_preset_year":
                         if (v < 17 || v > 99) v = 17;
                         result.push(Math.round(v));
                         break;
-                    case 'away_preset_month':
+                    case "away_preset_month":
                         if (v < 1 || v > 12) v = 1;
                         result.push(Math.round(v));
                         break;
-                    case 'away_preset_day':
+                    case "away_preset_day":
                         if (v < 1) {
                             v = 1;
                         } else if (v > daysInMonth) {
@@ -4411,19 +4350,19 @@ const toZigbee2 = {
                         }
                         result.push(Math.round(v));
                         break;
-                    case 'away_preset_hour':
+                    case "away_preset_hour":
                         if (v < 0 || v > 23) v = 0;
                         result.push(Math.round(v));
                         break;
-                    case 'away_preset_minute':
+                    case "away_preset_minute":
                         if (v < 0 || v > 59) v = 0;
                         result.push(Math.round(v));
                         break;
-                    case 'away_preset_temperature':
+                    case "away_preset_temperature":
                         if (v < 0.5 || v > 29.5) v = 17;
                         result.push(Math.round(v * 2));
                         break;
-                    case 'away_preset_days':
+                    case "away_preset_days":
                         if (v < 1 || v > 9999) v = 1;
                         result.push((v & 0xff00) >> 8);
                         result.push(v & 0x00ff);
@@ -4435,7 +4374,7 @@ const toZigbee2 = {
         },
     } satisfies Tz.Converter,
     zs_thermostat_local_schedule: {
-        key: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'],
+        key: ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"],
         convertSet: async (entity, key, value: any, meta) => {
             const daysMap: KeyValueAny = {monday: 1, tuesday: 2, wednesday: 3, thursday: 4, friday: 5, saturday: 6, sunday: 7};
             const day = daysMap[key];
@@ -4453,7 +4392,7 @@ const toZigbee2 = {
                 }
                 if (v < 0.5 || v > 29.5) v = 17;
                 results.push(Math.round(v * 2));
-                if (i != 9) {
+                if (i !== 9) {
                     // hour
                     let attrName = `${key}_hour_${i}`;
                     let h = 0;
@@ -4495,7 +4434,7 @@ const toZigbee2 = {
             giexWaterValve.cycleIrrigationInterval,
         ],
         convertSet: async (entity, key, value, meta) => {
-            if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
+            if (Array.isArray(meta.mapped)) throw new Error("Not supported for groups");
             const modelConverters = giexTzModelConverters[meta.mapped?.model] || {};
             switch (key) {
                 case giexWaterValve.state:
@@ -4517,18 +4456,18 @@ const toZigbee2 = {
                     await sendDataPointValue(entity, dataPoints.giexWaterValve.cycleIrrigationInterval, value);
                     return {state: {[giexWaterValve.cycleIrrigationInterval]: value}};
                 default: // Unknown key warning
-                    logger.warning(`Unhandled KEY ${key}`, 'zhc:legacy:tz:giex_water_Valve');
+                    logger.warning(`Unhandled KEY ${key}`, "zhc:legacy:tz:giex_water_Valve");
             }
         },
     } satisfies Tz.Converter,
     tuya_alecto_smoke: {
-        key: ['self_checking', 'silence'],
+        key: ["self_checking", "silence"],
         convertSet: async (entity, key, value: any, meta) => {
             switch (key) {
-                case 'self_checking':
+                case "self_checking":
                     await sendDataPointBool(entity, dataPoints.alectoSelfChecking, value);
                     break;
-                case 'silence':
+                case "silence":
                     await sendDataPointBool(entity, dataPoints.alectoSilence, value);
                     break;
                 default: // Unknown key
@@ -4537,7 +4476,7 @@ const toZigbee2 = {
         },
     } satisfies Tz.Converter,
     matsee_garage_door_opener: {
-        key: ['trigger'],
+        key: ["trigger"],
         convertSet: async (entity, key, value, meta) => {
             const state = meta.message.trigger !== undefined ? meta.message.trigger : true;
             // @ts-expect-error ignore
@@ -4547,42 +4486,42 @@ const toZigbee2 = {
     } satisfies Tz.Converter,
     connecte_thermostat: {
         key: [
-            'child_lock',
-            'current_heating_setpoint',
-            'local_temperature_calibration',
-            'max_temperature_protection',
-            'window_detection',
-            'hysteresis',
-            'state',
-            'away_mode',
-            'sensor',
-            'system_mode',
+            "child_lock",
+            "current_heating_setpoint",
+            "local_temperature_calibration",
+            "max_temperature_protection",
+            "window_detection",
+            "hysteresis",
+            "state",
+            "away_mode",
+            "sensor",
+            "system_mode",
         ],
         convertSet: async (entity, key, value, meta) => {
             switch (key) {
-                case 'state':
-                    await sendDataPointBool(entity, dataPoints.connecteState, value === 'ON');
+                case "state":
+                    await sendDataPointBool(entity, dataPoints.connecteState, value === "ON");
                     break;
-                case 'child_lock':
-                    await sendDataPointBool(entity, dataPoints.connecteChildLock, value === 'LOCK');
+                case "child_lock":
+                    await sendDataPointBool(entity, dataPoints.connecteChildLock, value === "LOCK");
                     break;
-                case 'local_temperature_calibration':
+                case "local_temperature_calibration":
                     // @ts-expect-error ignore
                     if (value < 0) value = 0xffffffff + value + 1;
                     await sendDataPointValue(entity, dataPoints.connecteTempCalibration, value);
                     break;
-                case 'hysteresis':
+                case "hysteresis":
                     // value = Math.round(value * 10);
                     await sendDataPointValue(entity, dataPoints.connecteHysteresis, value);
                     break;
-                case 'max_temperature_protection':
+                case "max_temperature_protection":
                     // @ts-expect-error ignore
                     await sendDataPointValue(entity, dataPoints.connecteMaxProtectTemp, Math.round(value));
                     break;
-                case 'current_heating_setpoint':
+                case "current_heating_setpoint":
                     await sendDataPointValue(entity, dataPoints.connecteHeatingSetpoint, value);
                     break;
-                case 'sensor':
+                case "sensor":
                     await sendDataPointEnum(
                         entity,
                         dataPoints.connecteSensorType,
@@ -4590,28 +4529,28 @@ const toZigbee2 = {
                         {internal: 0, external: 1, both: 2}[value],
                     );
                     break;
-                case 'system_mode':
+                case "system_mode":
                     switch (value) {
-                        case 'heat':
+                        case "heat":
                             await sendDataPointEnum(entity, dataPoints.connecteMode, 0 /* manual */);
                             break;
-                        case 'auto':
+                        case "auto":
                             await sendDataPointEnum(entity, dataPoints.connecteMode, 1 /* auto */);
                             break;
                     }
                     break;
-                case 'away_mode':
+                case "away_mode":
                     switch (value) {
-                        case 'ON':
+                        case "ON":
                             await sendDataPointEnum(entity, dataPoints.connecteMode, 2 /* auto */);
                             break;
-                        case 'OFF':
+                        case "OFF":
                             await sendDataPointEnum(entity, dataPoints.connecteMode, 0 /* manual */);
                             break;
                     }
                     break;
-                case 'window_detection':
-                    await sendDataPointBool(entity, dataPoints.connecteOpenWindow, value === 'ON');
+                case "window_detection":
+                    await sendDataPointBool(entity, dataPoints.connecteOpenWindow, value === "ON");
                     break;
                 default: // Unknown key
                     throw new Error(`Unhandled key toZigbee.connecte_thermostat ${key}`);
@@ -4620,15 +4559,15 @@ const toZigbee2 = {
     } satisfies Tz.Converter,
 
     moes_thermostat_child_lock: {
-        key: ['child_lock'],
+        key: ["child_lock"],
         convertSet: async (entity, key, value, meta) => {
-            await sendDataPointBool(entity, dataPoints.moesChildLock, value === 'LOCK');
+            await sendDataPointBool(entity, dataPoints.moesChildLock, value === "LOCK");
         },
     } satisfies Tz.Converter,
     moes_thermostat_current_heating_setpoint: {
-        key: ['current_heating_setpoint'],
+        key: ["current_heating_setpoint"],
         convertSet: async (entity, key, value: any, meta) => {
-            if (['_TZE200_5toc8efa', '_TZE204_5toc8efa'].includes(meta.device.manufacturerName)) {
+            if (["_TZE200_5toc8efa", "_TZE204_5toc8efa"].includes(meta.device.manufacturerName)) {
                 await sendDataPointValue(entity, dataPoints.moesHeatingSetpoint, value * 10);
             } else {
                 await sendDataPointValue(entity, dataPoints.moesHeatingSetpoint, value);
@@ -4636,9 +4575,9 @@ const toZigbee2 = {
         },
     } satisfies Tz.Converter,
     moes_thermostat_deadzone_temperature: {
-        key: ['deadzone_temperature'],
+        key: ["deadzone_temperature"],
         convertSet: async (entity, key, value: any, meta) => {
-            if (['_TZE200_5toc8efa', '_TZE204_5toc8efa'].includes(meta.device.manufacturerName)) {
+            if (["_TZE200_5toc8efa", "_TZE204_5toc8efa"].includes(meta.device.manufacturerName)) {
                 await sendDataPointValue(entity, dataPoints.moesDeadZoneTemp, value * 10);
             } else {
                 await sendDataPointValue(entity, dataPoints.moesDeadZoneTemp, value);
@@ -4646,16 +4585,16 @@ const toZigbee2 = {
         },
     } satisfies Tz.Converter,
     moes_thermostat_calibration: {
-        key: ['local_temperature_calibration'],
+        key: ["local_temperature_calibration"],
         convertSet: async (entity, key, value: any, meta) => {
             if (value < 0) value = 4096 + value;
             await sendDataPointValue(entity, dataPoints.moesTempCalibration, value);
         },
     } satisfies Tz.Converter,
     moes_thermostat_min_temperature_limit: {
-        key: ['min_temperature_limit'],
+        key: ["min_temperature_limit"],
         convertSet: async (entity, key, value: any, meta) => {
-            if (['_TZE200_5toc8efa', '_TZE204_5toc8efa'].includes(meta.device.manufacturerName)) {
+            if (["_TZE200_5toc8efa", "_TZE204_5toc8efa"].includes(meta.device.manufacturerName)) {
                 await sendDataPointValue(entity, dataPoints.moesMinTempLimit, value * 10);
             } else {
                 await sendDataPointValue(entity, dataPoints.moesMinTempLimit, value);
@@ -4663,9 +4602,9 @@ const toZigbee2 = {
         },
     } satisfies Tz.Converter,
     moes_thermostat_max_temperature_limit: {
-        key: ['max_temperature_limit'],
+        key: ["max_temperature_limit"],
         convertSet: async (entity, key, value: any, meta) => {
-            if (['_TZE200_5toc8efa', '_TZE204_5toc8efa'].includes(meta.device.manufacturerName)) {
+            if (["_TZE200_5toc8efa", "_TZE204_5toc8efa"].includes(meta.device.manufacturerName)) {
                 await sendDataPointValue(entity, dataPoints.moesMaxTempLimit, value * 10);
             } else {
                 await sendDataPointValue(entity, dataPoints.moesMaxTempLimit, value);
@@ -4673,33 +4612,33 @@ const toZigbee2 = {
         },
     } satisfies Tz.Converter,
     moes_thermostat_mode: {
-        key: ['preset'],
+        key: ["preset"],
         convertSet: async (entity, key, value, meta) => {
-            const hold = value === 'hold' ? 0 : 1;
-            const schedule = value === 'program' ? 0 : 1;
+            const hold = value === "hold" ? 0 : 1;
+            const schedule = value === "program" ? 0 : 1;
             await sendDataPointEnum(entity, dataPoints.moesHold, hold);
             await sendDataPointEnum(entity, dataPoints.moesScheduleEnable, schedule);
         },
     } satisfies Tz.Converter,
     moes_thermostat_mode2: {
-        key: ['system_mode'],
+        key: ["system_mode"],
         convertSet: async (entity, key, value, meta) => {
             // const stateLookup: KeyValueAny = {'0': 'cool', '1': 'heat', '2': 'fan_only'};
             switch (value) {
-                case 'off':
+                case "off":
                     await sendDataPointBool(entity, dataPoints.moesSsystemMode, 0);
                     break;
-                case 'cool':
+                case "cool":
                     // turn on
                     await sendDataPointBool(entity, dataPoints.moesSsystemMode, 1);
                     await sendDataPointEnum(entity, dataPoints.tvMode, 0);
                     break;
-                case 'heat':
+                case "heat":
                     // turn on
                     await sendDataPointBool(entity, dataPoints.moesSsystemMode, 1);
                     await sendDataPointEnum(entity, dataPoints.tvMode, 1);
                     break;
-                case 'fan_only':
+                case "fan_only":
                     // turn on
                     await sendDataPointBool(entity, dataPoints.moesSsystemMode, 1);
                     await sendDataPointEnum(entity, dataPoints.tvMode, 2);
@@ -4709,16 +4648,16 @@ const toZigbee2 = {
         },
     } satisfies Tz.Converter,
     moes_thermostat_standby: {
-        key: ['system_mode'],
+        key: ["system_mode"],
         convertSet: async (entity, key, value, meta) => {
-            await sendDataPointBool(entity, dataPoints.state, value === 'heat');
+            await sendDataPointBool(entity, dataPoints.state, value === "heat");
         },
     } satisfies Tz.Converter,
     moes_thermostat_program_schedule: {
-        key: ['program'],
+        key: ["program"],
         convertSet: async (entity, key, value: any, meta) => {
             if (!meta.state.program) {
-                logger.warning(`Existing program state not set.`, 'zhc:legacy:tz:moes_bht_002');
+                logger.warning("Existing program state not set.", "zhc:legacy:tz:moes_bht_002");
                 return;
             }
 
@@ -4771,51 +4710,51 @@ const toZigbee2 = {
         },
     } satisfies Tz.Converter,
     moesS_thermostat_system_mode: {
-        key: ['system_mode'],
+        key: ["system_mode"],
         convertSet: async (entity, key, value, meta) => {
-            return {state: {system_mode: 'heat'}};
+            return {state: {system_mode: "heat"}};
         },
     } satisfies Tz.Converter,
     moesS_thermostat_preset: {
-        key: ['preset'],
+        key: ["preset"],
         convertSet: async (entity, key, value: any, meta) => {
             const lookup: KeyValueAny = {programming: 0, manual: 1, temporary_manual: 2, holiday: 3};
             await sendDataPointEnum(entity, dataPoints.moesSsystemMode, lookup[value]);
         },
     } satisfies Tz.Converter,
     moesS_thermostat_current_heating_setpoint: {
-        key: ['current_heating_setpoint'],
+        key: ["current_heating_setpoint"],
         convertSet: async (entity, key, value: number, meta) => {
             const temp = Math.round(value);
             await sendDataPointValue(entity, dataPoints.moesSheatingSetpoint, temp);
         },
     } satisfies Tz.Converter,
     moesS_thermostat_boost_heating: {
-        key: ['boost_heating'],
+        key: ["boost_heating"],
         convertSet: async (entity, key, value, meta) => {
-            await sendDataPointBool(entity, dataPoints.moesSboostHeating, value === 'ON');
+            await sendDataPointBool(entity, dataPoints.moesSboostHeating, value === "ON");
         },
     } satisfies Tz.Converter,
     moesS_thermostat_window_detection: {
-        key: ['window_detection'],
+        key: ["window_detection"],
         convertSet: async (entity, key, value, meta) => {
-            await sendDataPointBool(entity, dataPoints.moesSwindowDetectionFunktion_A2, value === 'ON');
+            await sendDataPointBool(entity, dataPoints.moesSwindowDetectionFunktion_A2, value === "ON");
         },
     } satisfies Tz.Converter,
     moesS_thermostat_child_lock: {
-        key: ['child_lock'],
+        key: ["child_lock"],
         convertSet: async (entity, key, value, meta) => {
-            await sendDataPointBool(entity, dataPoints.moesSchildLock, value === 'LOCK');
+            await sendDataPointBool(entity, dataPoints.moesSchildLock, value === "LOCK");
         },
     } satisfies Tz.Converter,
     moesS_thermostat_boostHeatingCountdownTimeSet: {
-        key: ['boost_heating_countdown_time_set'],
+        key: ["boost_heating_countdown_time_set"],
         convertSet: async (entity, key, value, meta) => {
             await sendDataPointValue(entity, dataPoints.moesSboostHeatingCountdownTimeSet, value);
         },
     } satisfies Tz.Converter,
     moesS_thermostat_temperature_calibration: {
-        key: ['local_temperature_calibration'],
+        key: ["local_temperature_calibration"],
         convertSet: async (entity, key, value: number, meta) => {
             let temp = Math.round(value * 1);
             if (temp < 0) {
@@ -4825,45 +4764,45 @@ const toZigbee2 = {
         },
     } satisfies Tz.Converter,
     moesS_thermostat_moesSecoMode: {
-        key: ['eco_mode'],
+        key: ["eco_mode"],
         convertSet: async (entity, key, value, meta) => {
-            await sendDataPointBool(entity, dataPoints.moesSecoMode, value === 'ON');
+            await sendDataPointBool(entity, dataPoints.moesSecoMode, value === "ON");
         },
     } satisfies Tz.Converter,
     moesS_thermostat_eco_temperature: {
-        key: ['eco_temperature'],
+        key: ["eco_temperature"],
         convertSet: async (entity, key, value: any, meta) => {
             const temp = Math.round(value);
             await sendDataPointValue(entity, dataPoints.moesSecoModeTempSet, temp);
         },
     } satisfies Tz.Converter,
     moesS_thermostat_max_temperature: {
-        key: ['max_temperature'],
+        key: ["max_temperature"],
         convertSet: async (entity, key, value: any, meta) => {
             const temp = Math.round(value);
             await sendDataPointValue(entity, dataPoints.moesSmaxTempSet, temp);
         },
     } satisfies Tz.Converter,
     moesS_thermostat_min_temperature: {
-        key: ['min_temperature'],
+        key: ["min_temperature"],
         convertSet: async (entity, key, value: any, meta) => {
             const temp = Math.round(value);
             await sendDataPointValue(entity, dataPoints.moesSminTempSet, temp);
         },
     } satisfies Tz.Converter,
     moesS_thermostat_schedule_programming: {
-        key: ['programming_mode'],
+        key: ["programming_mode"],
         convertSet: async (entity, key, value: string, meta) => {
             const payload = [];
-            const items = value.split('  ');
+            const items = value.split("  ");
             for (let i = 0; i < 12; i++) {
-                const hourTemperature = items[i].split('/');
-                const hourMinute = hourTemperature[0].split(':', 2);
-                const h = parseInt(hourMinute[0]);
-                const m = parseInt(hourMinute[1]);
-                const temp = parseInt(hourTemperature[1]);
+                const hourTemperature = items[i].split("/");
+                const hourMinute = hourTemperature[0].split(":", 2);
+                const h = Number.parseInt(hourMinute[0]);
+                const m = Number.parseInt(hourMinute[1]);
+                const temp = Number.parseInt(hourTemperature[1]);
                 if (h < 0 || h >= 24 || m < 0 || m >= 60 || temp < 5 || temp >= 35) {
-                    throw new Error('Invalid hour, minute or temperature of:' + items[i]);
+                    throw new Error(`Invalid hour, minute or temperature of:${items[i]}`);
                 }
                 payload[i * 3] = h;
                 payload[i * 3 + 1] = m;
@@ -4873,16 +4812,16 @@ const toZigbee2 = {
         },
     } satisfies Tz.Converter,
     hgkg_thermostat_standby: {
-        key: ['system_mode'],
+        key: ["system_mode"],
         convertSet: async (entity, key, value, meta) => {
-            await sendDataPointBool(entity, dataPoints.state, value === 'cool');
+            await sendDataPointBool(entity, dataPoints.state, value === "cool");
         },
     } satisfies Tz.Converter,
     moes_switch: {
-        key: ['power_on_behavior', 'indicate_light'],
+        key: ["power_on_behavior", "indicate_light"],
         convertSet: async (entity, key, value, meta) => {
             switch (key) {
-                case 'power_on_behavior':
+                case "power_on_behavior":
                     await sendDataPointEnum(
                         entity,
                         dataPoints.moesSwitchPowerOnBehavior,
@@ -4890,7 +4829,7 @@ const toZigbee2 = {
                         utils.getKey(moesSwitch.powerOnBehavior, value),
                     );
                     break;
-                case 'indicate_light':
+                case "indicate_light":
                     await sendDataPointEnum(
                         entity,
                         dataPoints.moesSwitchIndicateLight,
@@ -4899,21 +4838,21 @@ const toZigbee2 = {
                     );
                     break;
                 default:
-                    logger.warning(`Unhandled Key ${key}`, 'zhc:legacy:tz:moes_switch');
+                    logger.warning(`Unhandled Key ${key}`, "zhc:legacy:tz:moes_switch");
                     break;
             }
         },
     } satisfies Tz.Converter,
     moes_thermostat_sensor: {
-        key: ['sensor'],
+        key: ["sensor"],
         convertSet: async (entity, key, value: any, meta) => {
-            if (typeof value === 'string') {
+            if (typeof value === "string") {
                 value = value.toLowerCase();
                 const lookup: KeyValueAny = {in: 0, al: 1, ou: 2};
                 utils.validateValue(value, Object.keys(lookup));
                 value = lookup[value];
             }
-            if (typeof value === 'number' && value >= 0 && value <= 2) {
+            if (typeof value === "number" && value >= 0 && value <= 2) {
                 await sendDataPointEnum(entity, dataPoints.moesSensor, value);
             } else {
                 throw new Error(`Unsupported value: ${value}`);
@@ -4921,144 +4860,143 @@ const toZigbee2 = {
         },
     } satisfies Tz.Converter,
     tuya_dimmer_state: {
-        key: ['state'],
+        key: ["state"],
         convertSet: async (entity, key, value, meta) => {
             // Always use same transid as tuya_dimmer_level (https://github.com/Koenkk/zigbee2mqtt/issues/6366)
-            await sendDataPointBool(entity, dataPoints.state, value === 'ON', 'dataRequest', 1);
+            await sendDataPointBool(entity, dataPoints.state, value === "ON", "dataRequest", 1);
         },
     } satisfies Tz.Converter,
     tuya_dimmer_level: {
-        key: ['brightness_min', 'min_brightness', 'max_brightness', 'brightness', 'brightness_percent', 'level'],
+        key: ["brightness_min", "min_brightness", "max_brightness", "brightness", "brightness_percent", "level"],
         convertSet: async (entity, key, value: any, meta) => {
             // upscale to 1000
             let newValue;
             let dp = dataPoints.dimmerLevel;
-            if (['_TZE200_3p5ydos3', '_TZE200_9i9dt8is', '_TZE200_dfxkcots', '_TZE200_w4cryh2i'].includes(meta.device.manufacturerName)) {
+            if (["_TZE200_3p5ydos3", "_TZE200_9i9dt8is", "_TZE200_dfxkcots", "_TZE200_w4cryh2i"].includes(meta.device.manufacturerName)) {
                 dp = dataPoints.eardaDimmerLevel;
             }
-            if (key === 'brightness_min') {
+            if (key === "brightness_min") {
                 if (value >= 0 && value <= 100) {
                     newValue = utils.mapNumberRange(value, 0, 100, 0, 1000);
                     dp = dataPoints.dimmerLevel;
                 } else {
-                    throw new Error('Dimmer brightness_min is out of range 0..100');
+                    throw new Error("Dimmer brightness_min is out of range 0..100");
                 }
-            } else if (key === 'min_brightness') {
+            } else if (key === "min_brightness") {
                 if (value >= 1 && value <= 255) {
                     newValue = utils.mapNumberRange(value, 1, 255, 0, 1000);
                     dp = dataPoints.dimmerMinLevel;
                 } else {
-                    throw new Error('Dimmer min_brightness is out of range 1..255');
+                    throw new Error("Dimmer min_brightness is out of range 1..255");
                 }
-            } else if (key === 'max_brightness') {
+            } else if (key === "max_brightness") {
                 if (value >= 1 && value <= 255) {
                     newValue = utils.mapNumberRange(value, 1, 255, 0, 1000);
                     dp = dataPoints.dimmerMaxLevel;
                 } else {
-                    throw new Error('Dimmer min_brightness is out of range 1..255');
+                    throw new Error("Dimmer min_brightness is out of range 1..255");
                 }
-            } else if (key === 'level') {
+            } else if (key === "level") {
                 if (value >= 0 && value <= 1000) {
                     newValue = Math.round(Number(value));
                 } else {
-                    throw new Error('Dimmer level is out of range 0..1000');
+                    throw new Error("Dimmer level is out of range 0..1000");
                 }
-            } else if (key === 'brightness_percent') {
+            } else if (key === "brightness_percent") {
                 if (value >= 0 && value <= 100) {
                     newValue = utils.mapNumberRange(value, 0, 100, 0, 1000);
                 } else {
-                    throw new Error('Dimmer brightness_percent is out of range 0..100');
+                    throw new Error("Dimmer brightness_percent is out of range 0..100");
                 }
             } else {
                 // brightness
                 if (value >= 0 && value <= 254) {
                     newValue = utils.mapNumberRange(value, 0, 254, 0, 1000);
                 } else {
-                    throw new Error('Dimmer brightness is out of range 0..254');
+                    throw new Error("Dimmer brightness is out of range 0..254");
                 }
             }
             // Always use same transid as tuya_dimmer_state (https://github.com/Koenkk/zigbee2mqtt/issues/6366)
-            await sendDataPointValue(entity, dp, newValue, 'dataRequest', 1);
+            await sendDataPointValue(entity, dp, newValue, "dataRequest", 1);
         },
     } satisfies Tz.Converter,
     tuya_switch_state: {
-        key: ['state'],
+        key: ["state"],
         convertSet: async (entity, key, value: any, meta) => {
             const lookup: KeyValueAny = {l1: 1, l2: 2, l3: 3, l4: 4, l5: 5, l6: 6};
-            const multiEndpoint = utils.getMetaValue(entity, meta.mapped, 'multiEndpoint', 'allEqual', false);
+            const multiEndpoint = utils.getMetaValue(entity, meta.mapped, "multiEndpoint", "allEqual", false);
             const keyid = multiEndpoint ? lookup[meta.endpoint_name] : 1;
-            await sendDataPointBool(entity, keyid, value === 'ON');
+            await sendDataPointBool(entity, keyid, value === "ON");
             return {state: {state: value.toUpperCase()}};
         },
     } satisfies Tz.Converter,
     frankever_threshold: {
-        key: ['threshold'],
+        key: ["threshold"],
         convertSet: async (entity, key, value: number, meta) => {
             // input to multiple of 10 with max value of 100
             const thresh = Math.abs(Math.min(10 * Math.floor(value / 10), 100));
-            await sendDataPointValue(entity, dataPoints.frankEverTreshold, thresh, 'dataRequest', 1);
+            await sendDataPointValue(entity, dataPoints.frankEverTreshold, thresh, "dataRequest", 1);
             return {state: {threshold: value}};
         },
     } satisfies Tz.Converter,
     frankever_timer: {
-        key: ['timer'],
+        key: ["timer"],
         convertSet: async (entity, key, value: number, meta) => {
             // input in minutes with maximum of 600 minutes (equals 10 hours)
             const timer = 60 * Math.abs(Math.min(value, 600));
             // sendTuyaDataPoint* functions take care of converting the data to proper format
-            await sendDataPointValue(entity, dataPoints.frankEverTimer, timer, 'dataRequest', 1);
+            await sendDataPointValue(entity, dataPoints.frankEverTimer, timer, "dataRequest", 1);
             return {state: {timer: value}};
         },
     } satisfies Tz.Converter,
     ZVG1_timer: {
-        key: ['timer'],
+        key: ["timer"],
         convertSet: async (entity, key, value: number, meta) => {
             // input in minutes with maximum of 600 minutes (equals 10 hours)
             const timer = 60 * Math.abs(Math.min(value, 600));
             // sendTuyaDataPoint* functions take care of converting the data to proper format
-            await sendDataPointValue(entity, 11, timer, 'dataRequest', 1);
+            await sendDataPointValue(entity, 11, timer, "dataRequest", 1);
             return {state: {timer: value}};
         },
     } satisfies Tz.Converter,
     ZVG1_weather_delay: {
-        key: ['weather_delay'],
+        key: ["weather_delay"],
         convertSet: async (entity, key, value: string, meta) => {
-            const lookup: KeyValueAny = {disabled: 0, '24h': 1, '48h': 2, '72h': 3};
+            const lookup: KeyValueAny = {disabled: 0, "24h": 1, "48h": 2, "72h": 3};
             await sendDataPointEnum(entity, 10, lookup[value]);
         },
     } satisfies Tz.Converter,
     ZVG1_cycle_timer: {
-        key: ['cycle_timer_1', 'cycle_timer_2', 'cycle_timer_3', 'cycle_timer_4'],
+        key: ["cycle_timer_1", "cycle_timer_2", "cycle_timer_3", "cycle_timer_4"],
         convertSet: async (entity, key, value: string, meta) => {
             let data = [0];
             const footer = [0x64];
-            if (value == '') {
+            if (value === "") {
                 // delete
                 data.push(0x04);
-                data.push(parseInt(key.substr(-1)));
+                data.push(Number.parseInt(key.substr(-1)));
                 await sendDataPointRaw(entity, 16, data);
                 const ret: KeyValueAny = {state: {}};
-                ret['state'][key] = value;
+                ret.state[key] = value;
                 return ret;
+            }
+            if ((meta.state[key] !== undefined && meta.state[key] === "") || meta.state[key] === undefined) {
+                data.push(0x03);
             } else {
-                if ((meta.state[key] !== undefined && meta.state[key] == '') || meta.state[key] === undefined) {
-                    data.push(0x03);
-                } else {
-                    data.push(0x02);
-                    data.push(parseInt(key.substr(-1)));
-                }
+                data.push(0x02);
+                data.push(Number.parseInt(key.substr(-1)));
             }
 
-            const tarray = value.replace(/ /g, '').split('/');
+            const tarray = value.replace(/ /g, "").split("/");
             if (tarray.length < 4) {
-                throw new Error('Please check the format of the timer string');
+                throw new Error("Please check the format of the timer string");
             }
             if (tarray.length < 5) {
-                tarray.push('MoTuWeThFrSaSu');
+                tarray.push("MoTuWeThFrSaSu");
             }
 
             if (tarray.length < 6) {
-                tarray.push('1');
+                tarray.push("1");
             }
 
             const starttime = tarray[0];
@@ -5066,10 +5004,10 @@ const toZigbee2 = {
             const irrigationDuration = tarray[2];
             const pauseDuration = tarray[3];
             const weekdays = tarray[4];
-            const active = parseInt(tarray[5]);
+            const active = Number.parseInt(tarray[5]);
 
-            if (!(active == 0 || active == 1)) {
-                throw new Error('Active value only 0 or 1 allowed');
+            if (!(active === 0 || active === 1)) {
+                throw new Error("Active value only 0 or 1 allowed");
             }
             data.push(active);
 
@@ -5085,51 +5023,50 @@ const toZigbee2 = {
             data = data.concat(footer);
             await sendDataPointRaw(entity, 16, data);
             const ret: KeyValueAny = {state: {}};
-            ret['state'][key] = value;
+            ret.state[key] = value;
             return ret;
         },
     } satisfies Tz.Converter,
     ZVG1_normal_schedule_timer: {
-        key: ['normal_schedule_timer_1', 'normal_schedule_timer_2', 'normal_schedule_timer_3', 'normal_schedule_timer_4'],
+        key: ["normal_schedule_timer_1", "normal_schedule_timer_2", "normal_schedule_timer_3", "normal_schedule_timer_4"],
         convertSet: async (entity, key, value: string, meta) => {
             let data = [0];
             const footer = [0x07, 0xe6, 0x08, 0x01, 0x01];
-            if (value == '') {
+            if (value === "") {
                 // delete
                 data.push(0x04);
-                data.push(parseInt(key.substr(-1)));
+                data.push(Number.parseInt(key.substr(-1)));
                 await sendDataPointRaw(entity, 17, data);
                 const ret: KeyValueAny = {state: {}};
-                ret['state'][key] = value;
+                ret.state[key] = value;
                 return ret;
+            }
+            if ((meta.state[key] !== undefined && meta.state[key] === "") || meta.state[key] === undefined) {
+                data.push(0x03);
             } else {
-                if ((meta.state[key] !== undefined && meta.state[key] == '') || meta.state[key] === undefined) {
-                    data.push(0x03);
-                } else {
-                    data.push(0x02);
-                    data.push(parseInt(key.substr(-1)));
-                }
+                data.push(0x02);
+                data.push(Number.parseInt(key.substr(-1)));
             }
 
-            const tarray = value.replace(/ /g, '').split('/');
+            const tarray = value.replace(/ /g, "").split("/");
             if (tarray.length < 2) {
-                throw new Error('Please check the format of the timer string');
+                throw new Error("Please check the format of the timer string");
             }
             if (tarray.length < 3) {
-                tarray.push('MoTuWeThFrSaSu');
+                tarray.push("MoTuWeThFrSaSu");
             }
 
             if (tarray.length < 4) {
-                tarray.push('1');
+                tarray.push("1");
             }
 
             const time = tarray[0];
             const duration = tarray[1];
             const weekdays = tarray[2];
-            const active = parseInt(tarray[3]);
+            const active = Number.parseInt(tarray[3]);
 
-            if (!(active == 0 || active == 1)) {
-                throw new Error('Active value only 0 or 1 allowed');
+            if (!(active === 0 || active === 1)) {
+                throw new Error("Active value only 0 or 1 allowed");
             }
 
             data = data.concat(convertTimeTo2ByteHexArray(time));
@@ -5143,23 +5080,23 @@ const toZigbee2 = {
             data = data.concat(footer);
             await sendDataPointRaw(entity, 17, data);
             const ret: KeyValueAny = {state: {}};
-            ret['state'][key] = value;
+            ret.state[key] = value;
             return ret;
         },
     } satisfies Tz.Converter,
     etop_thermostat_system_mode: {
-        key: ['system_mode'],
+        key: ["system_mode"],
         convertSet: async (entity, key, value, meta) => {
             switch (value) {
-                case 'off':
+                case "off":
                     await sendDataPointBool(entity, dataPoints.state, false);
                     break;
-                case 'heat':
+                case "heat":
                     await sendDataPointBool(entity, dataPoints.state, true);
                     await utils.sleep(500);
                     await sendDataPointEnum(entity, dataPoints.mode, 0 /* manual */);
                     break;
-                case 'auto':
+                case "auto":
                     await sendDataPointBool(entity, dataPoints.state, true);
                     await utils.sleep(500);
                     await sendDataPointEnum(entity, dataPoints.mode, 2 /* auto */);
@@ -5168,31 +5105,31 @@ const toZigbee2 = {
         },
     } satisfies Tz.Converter,
     etop_thermostat_away_mode: {
-        key: ['away_mode'],
+        key: ["away_mode"],
         convertSet: async (entity, key, value, meta) => {
             switch (value) {
-                case 'ON':
+                case "ON":
                     await sendDataPointBool(entity, dataPoints.state, true);
                     await utils.sleep(500);
                     await sendDataPointEnum(entity, dataPoints.mode, 1 /* away */);
                     break;
-                case 'OFF':
+                case "OFF":
                     await sendDataPointEnum(entity, dataPoints.mode, 0 /* manual */);
                     break;
             }
         },
     } satisfies Tz.Converter,
     tuya_thermostat_weekly_schedule: {
-        key: ['weekly_schedule'],
+        key: ["weekly_schedule"],
         convertSet: async (entity, key, value, meta) => {
-            const thermostatMeta = utils.getMetaValue(entity, meta.mapped, 'thermostat');
+            const thermostatMeta = utils.getMetaValue(entity, meta.mapped, "thermostat");
             // @ts-expect-error ignore
             const maxTransitions = thermostatMeta.weeklyScheduleMaxTransitions;
             // @ts-expect-error ignore
             const supportedModes = thermostatMeta.weeklyScheduleSupportedModes;
             // @ts-expect-error ignore
             const firstDayDpId = thermostatMeta.weeklyScheduleFirstDayDpId;
-            let conversion = 'generic';
+            let conversion = "generic";
             if (utils.isObject(thermostatMeta) && thermostatMeta.weeklyScheduleConversion !== undefined) {
                 conversion = thermostatMeta.weeklyScheduleConversion;
             }
@@ -5207,14 +5144,14 @@ const toZigbee2 = {
             }
 
             for (const [, daySchedule] of Object.entries(value)) {
-                const dayofweek = parseInt(daySchedule.dayofweek);
-                const numoftrans = parseInt(daySchedule.numoftrans);
+                const dayofweek = Number.parseInt(daySchedule.dayofweek);
+                const numoftrans = Number.parseInt(daySchedule.numoftrans);
                 let transitions = [...daySchedule.transitions];
-                const mode = parseInt(daySchedule.mode);
+                const mode = Number.parseInt(daySchedule.mode);
                 if (!supportedModes.includes(mode)) {
                     throw new Error(`Invalid mode: ${mode} for device ${meta.options.friendly_name}`);
                 }
-                if (numoftrans != transitions.length) {
+                if (numoftrans !== transitions.length) {
                     throw new Error(
                         `Invalid numoftrans provided. Real: ${transitions.length} ` +
                             `provided ${numoftrans} for device ${meta.options.friendly_name}`,
@@ -5229,15 +5166,15 @@ const toZigbee2 = {
                 if (transitions.length < maxTransitions) {
                     logger.warning(
                         `Padding transitions from ${transitions.length} to ${maxTransitions} with last item for device ${meta.options.friendly_name}`,
-                        'zhc:legacy:tz:tuya_thermostat_weekly_schedule',
+                        "zhc:legacy:tz:tuya_thermostat_weekly_schedule",
                     );
                     const lastTransition = transitions[transitions.length - 1];
-                    while (transitions.length != maxTransitions) {
+                    while (transitions.length !== maxTransitions) {
                         transitions = [...transitions, lastTransition];
                     }
                 }
                 const payload = [];
-                if (conversion == 'saswell') {
+                if (conversion === "saswell") {
                     // Single data point for setting schedule
                     // [
                     //     bitmap of days: |  7|  6|  5|  4|  3|  2|  1|
@@ -5255,7 +5192,7 @@ const toZigbee2 = {
                 transitions.forEach((transition) => {
                     payload.push(...transitionToData(transition));
                 });
-                if (conversion == 'saswell') {
+                if (conversion === "saswell") {
                     await sendDataPointRaw(entity, dataPoints.saswellScheduleSet, payload);
                 } else {
                     await sendDataPointRaw(entity, firstDayDpId - 1 + dayofweek, payload);
@@ -5264,78 +5201,78 @@ const toZigbee2 = {
         },
     } satisfies Tz.Converter,
     tuya_thermostat_child_lock: {
-        key: ['child_lock'],
+        key: ["child_lock"],
         convertSet: async (entity, key, value, meta) => {
-            await sendDataPointBool(entity, dataPoints.childLock, value === 'LOCK');
+            await sendDataPointBool(entity, dataPoints.childLock, value === "LOCK");
         },
     } satisfies Tz.Converter,
     tuya_thermostat_window_detection: {
-        key: ['window_detection'],
+        key: ["window_detection"],
         convertSet: async (entity, key, value, meta) => {
-            await sendDataPointRaw(entity, dataPoints.windowDetection, [value === 'ON' ? 1 : 0]);
+            await sendDataPointRaw(entity, dataPoints.windowDetection, [value === "ON" ? 1 : 0]);
         },
     } satisfies Tz.Converter,
     siterwell_thermostat_window_detection: {
-        key: ['window_detection'],
+        key: ["window_detection"],
         convertSet: async (entity, key, value, meta) => {
-            await sendDataPointBool(entity, dataPoints.siterwellWindowDetection, value === 'ON');
+            await sendDataPointBool(entity, dataPoints.siterwellWindowDetection, value === "ON");
         },
     } satisfies Tz.Converter,
     tuya_thermostat_valve_detection: {
-        key: ['valve_detection'],
+        key: ["valve_detection"],
         convertSet: async (entity, key, value, meta) => {
-            await sendDataPointBool(entity, dataPoints.valveDetection, value === 'ON');
+            await sendDataPointBool(entity, dataPoints.valveDetection, value === "ON");
         },
     } satisfies Tz.Converter,
     tuya_thermostat_current_heating_setpoint: {
-        key: ['current_heating_setpoint'],
+        key: ["current_heating_setpoint"],
         convertSet: async (entity, key, value: number, meta) => {
             const temp = Math.round(value * 10);
             await sendDataPointValue(entity, dataPoints.heatingSetpoint, temp);
         },
     } satisfies Tz.Converter,
     tuya_thermostat_system_mode: {
-        key: ['system_mode'],
+        key: ["system_mode"],
         convertSet: async (entity, key, value, meta) => {
-            const modeId = utils.getKey(utils.getMetaValue(entity, meta.mapped, 'tuyaThermostatSystemMode'), value, null, Number);
+            const modeId = utils.getKey(utils.getMetaValue(entity, meta.mapped, "tuyaThermostatSystemMode"), value, null, Number);
             if (modeId !== null) {
                 // @ts-expect-error ignore
-                await sendDataPointEnum(entity, dataPoints.mode, parseInt(modeId));
+                await sendDataPointEnum(entity, dataPoints.mode, Number.parseInt(modeId));
             } else {
                 throw new Error(`TRV system mode ${value} is not recognized.`);
             }
         },
     } satisfies Tz.Converter,
     tuya_thermostat_preset: {
-        key: ['preset'],
+        key: ["preset"],
         convertSet: async (entity, key, value, meta) => {
-            const presetId = utils.getKey(utils.getMetaValue(entity, meta.mapped, 'tuyaThermostatPreset'), value, null, Number);
+            const presetId = utils.getKey(utils.getMetaValue(entity, meta.mapped, "tuyaThermostatPreset"), value, null, Number);
             if (presetId !== null) {
                 // @ts-expect-error ignore
-                await sendDataPointEnum(entity, dataPoints.mode, parseInt(presetId));
+                await sendDataPointEnum(entity, dataPoints.mode, Number.parseInt(presetId));
             } else {
                 throw new Error(`TRV preset ${value} is not recognized.`);
             }
         },
     } satisfies Tz.Converter,
     tuya_thermostat_away_mode: {
-        key: ['away_mode'],
+        key: ["away_mode"],
         convertSet: async (entity, key, value, meta) => {
             // HA has special behavior for the away mode
             // @ts-expect-error ignore
-            const awayPresetId = utils.getKey(utils.getMetaValue(entity, meta.mapped, 'tuyaThermostatPreset'), 'away', null, Number);
+            const awayPresetId = utils.getKey(utils.getMetaValue(entity, meta.mapped, "tuyaThermostatPreset"), "away", null, Number);
             const schedulePresetId = utils.getKey(
-                utils.getMetaValue(entity, meta.mapped, 'tuyaThermostatPreset'),
-                'schedule',
+                utils.getMetaValue(entity, meta.mapped, "tuyaThermostatPreset"),
+                "schedule",
                 null,
                 // @ts-expect-error ignore
                 Number,
             );
             if (awayPresetId !== null) {
-                if (value == 'ON') {
-                    await sendDataPointEnum(entity, dataPoints.mode, parseInt(awayPresetId));
+                if (value === "ON") {
+                    await sendDataPointEnum(entity, dataPoints.mode, Number.parseInt(awayPresetId));
                 } else if (schedulePresetId != null) {
-                    await sendDataPointEnum(entity, dataPoints.mode, parseInt(schedulePresetId));
+                    await sendDataPointEnum(entity, dataPoints.mode, Number.parseInt(schedulePresetId));
                 }
                 // In case 'OFF' tuya_thermostat_preset() should be called with another preset
             } else {
@@ -5344,37 +5281,37 @@ const toZigbee2 = {
         },
     } satisfies Tz.Converter,
     tuya_thermostat_fan_mode: {
-        key: ['fan_mode'],
+        key: ["fan_mode"],
         convertSet: async (entity, key, value, meta) => {
             const modeId = utils.getKey(fanModes, value, null, Number);
             if (modeId !== null) {
                 // @ts-expect-error ignore
-                await sendDataPointEnum(entity, dataPoints.fanMode, parseInt(modeId));
+                await sendDataPointEnum(entity, dataPoints.fanMode, Number.parseInt(modeId));
             } else {
                 throw new Error(`TRV fan mode ${value} is not recognized.`);
             }
         },
     } satisfies Tz.Converter,
     tuya_thermostat_bac_fan_mode: {
-        key: ['fan_mode'],
+        key: ["fan_mode"],
         convertSet: async (entity, key, value, meta) => {
             const modeId = utils.getKey(fanModes, value, null, Number);
             if (modeId !== null) {
                 // @ts-expect-error ignore
-                await sendDataPointEnum(entity, dataPoints.bacFanMode, parseInt(modeId));
+                await sendDataPointEnum(entity, dataPoints.bacFanMode, Number.parseInt(modeId));
             } else {
                 throw new Error(`TRV fan mode ${value} is not recognized.`);
             }
         },
     } satisfies Tz.Converter,
     tuya_thermostat_auto_lock: {
-        key: ['auto_lock'],
+        key: ["auto_lock"],
         convertSet: async (entity, key, value, meta) => {
-            await sendDataPointBool(entity, dataPoints.autoLock, value === 'AUTO');
+            await sendDataPointBool(entity, dataPoints.autoLock, value === "AUTO");
         },
     } satisfies Tz.Converter,
     tuya_thermostat_calibration: {
-        key: ['local_temperature_calibration'],
+        key: ["local_temperature_calibration"],
         convertSet: async (entity, key, value: number, meta) => {
             let temp = Math.round(value * 10);
             if (temp < 0) {
@@ -5384,67 +5321,67 @@ const toZigbee2 = {
         },
     } satisfies Tz.Converter,
     tuya_thermostat_min_temp: {
-        key: ['min_temperature'],
+        key: ["min_temperature"],
         convertSet: async (entity, key, value, meta) => {
             await sendDataPointValue(entity, dataPoints.minTemp, value);
         },
     } satisfies Tz.Converter,
     tuya_thermostat_max_temp: {
-        key: ['max_temperature'],
+        key: ["max_temperature"],
         convertSet: async (entity, key, value, meta) => {
             await sendDataPointValue(entity, dataPoints.maxTemp, value);
         },
     } satisfies Tz.Converter,
     tuya_thermostat_boost_time: {
-        key: ['boost_time'],
+        key: ["boost_time"],
         convertSet: async (entity, key, value, meta) => {
             await sendDataPointValue(entity, dataPoints.boostTime, value);
         },
     } satisfies Tz.Converter,
     tuya_thermostat_comfort_temp: {
-        key: ['comfort_temperature'],
+        key: ["comfort_temperature"],
         convertSet: async (entity, key, value, meta) => {
             await sendDataPointValue(entity, dataPoints.comfortTemp, value);
         },
     } satisfies Tz.Converter,
     tuya_thermostat_eco_temp: {
-        key: ['eco_temperature'],
+        key: ["eco_temperature"],
         convertSet: async (entity, key, value, meta) => {
             await sendDataPointValue(entity, dataPoints.ecoTemp, value);
         },
     } satisfies Tz.Converter,
     tuya_thermostat_force: {
-        key: ['force'],
+        key: ["force"],
         convertSet: async (entity, key, value, meta) => {
             const modeId = utils.getKey(thermostatForceMode, value, null, Number);
             if (modeId !== null) {
                 // @ts-expect-error ignore
-                await sendDataPointEnum(entity, dataPoints.forceMode, parseInt(modeId));
+                await sendDataPointEnum(entity, dataPoints.forceMode, Number.parseInt(modeId));
             } else {
                 throw new Error(`TRV force mode ${value} is not recognized.`);
             }
         },
     } satisfies Tz.Converter,
     tuya_thermostat_force_to_mode: {
-        key: ['system_mode'],
+        key: ["system_mode"],
         convertSet: async (entity, key, value, meta) => {
-            const modeId = utils.getKey(utils.getMetaValue(entity, meta.mapped, 'tuyaThermostatSystemMode'), value, null, Number);
+            const modeId = utils.getKey(utils.getMetaValue(entity, meta.mapped, "tuyaThermostatSystemMode"), value, null, Number);
             if (modeId !== null) {
                 // @ts-expect-error ignore
-                await sendDataPointEnum(entity, dataPoints.forceMode, parseInt(modeId));
+                await sendDataPointEnum(entity, dataPoints.forceMode, Number.parseInt(modeId));
             } else {
                 throw new Error(`TRV system mode ${value} is not recognized.`);
             }
         },
     } satisfies Tz.Converter,
     tuya_thermostat_away_preset: {
-        key: ['away_preset_temperature', 'away_preset_days'],
+        key: ["away_preset_temperature", "away_preset_days"],
         convertSet: async (entity, key, value, meta) => {
             switch (key) {
-                case 'away_preset_days':
+                case "away_preset_days":
                     await sendDataPointValue(entity, dataPoints.awayDays, value);
                     break;
-                case 'away_preset_temperature':
+                case "away_preset_temperature":
                     await sendDataPointValue(entity, dataPoints.awayTemp, value);
                     break;
             }
@@ -5452,19 +5389,19 @@ const toZigbee2 = {
     } satisfies Tz.Converter,
     tuya_thermostat_window_detect: {
         // payload example { "detect":"OFF", "temperature":5, "minutes":8}
-        key: ['window_detect'],
+        key: ["window_detect"],
         convertSet: async (entity, key, value: KeyValueAny, meta) => {
-            const detect = value.detect.toUpperCase() === 'ON' ? 1 : 0;
+            const detect = value.detect.toUpperCase() === "ON" ? 1 : 0;
             await sendDataPointRaw(entity, dataPoints.windowDetection, [detect, value.temperature, value.minutes]);
         },
     } satisfies Tz.Converter,
     tuya_thermostat_schedule: {
         // payload example {"holidays":[{"hour":6,"minute":0,"temperature":20},{"hour":8,"minute":0,....  6x
-        key: ['schedule'],
+        key: ["schedule"],
         convertSet: async (entity, key, value: any, meta) => {
             const prob = Object.keys(value)[0]; // "workdays" or "holidays"
-            if (prob === 'workdays' || prob === 'holidays') {
-                const dpId = prob === 'workdays' ? dataPoints.scheduleWorkday : dataPoints.scheduleHoliday;
+            if (prob === "workdays" || prob === "holidays") {
+                const dpId = prob === "workdays" ? dataPoints.scheduleWorkday : dataPoints.scheduleHoliday;
                 const payload = [];
                 for (let i = 0; i < 6; i++) {
                     if (value[prob][i].hour >= 0 && value[prob][i].hour < 24) {
@@ -5483,21 +5420,21 @@ const toZigbee2 = {
     } satisfies Tz.Converter,
     tuya_thermostat_schedule_programming_mode: {
         // payload example "00:20/5°C 01:20/5°C 6:59/15°C 18:00/5°C 20:00/5°C 23:30/5°C"
-        key: ['workdays_schedule', 'holidays_schedule'],
+        key: ["workdays_schedule", "holidays_schedule"],
         convertSet: async (entity, key, value: any, meta) => {
-            const dpId = key === 'workdays_schedule' ? dataPoints.scheduleWorkday : dataPoints.scheduleHoliday;
+            const dpId = key === "workdays_schedule" ? dataPoints.scheduleWorkday : dataPoints.scheduleHoliday;
             const payload = [];
-            const items = value.split(' ');
+            const items = value.split(" ");
 
             for (let i = 0; i < 6; i++) {
-                const hourTemperature = items[i].split('/');
-                const hourMinute = hourTemperature[0].split(':', 2);
-                const hour = parseInt(hourMinute[0]);
-                const minute = parseInt(hourMinute[1]);
-                const temperature = parseInt(hourTemperature[1]);
+                const hourTemperature = items[i].split("/");
+                const hourMinute = hourTemperature[0].split(":", 2);
+                const hour = Number.parseInt(hourMinute[0]);
+                const minute = Number.parseInt(hourMinute[1]);
+                const temperature = Number.parseInt(hourTemperature[1]);
 
                 if (hour < 0 || hour >= 24 || minute < 0 || minute >= 60 || temperature < 5 || temperature >= 35) {
-                    throw new Error('Invalid hour, minute or temperature of:' + items[i]);
+                    throw new Error(`Invalid hour, minute or temperature of:${items[i]}`);
                 }
 
                 payload[i * 3] = hour;
@@ -5508,61 +5445,61 @@ const toZigbee2 = {
         },
     } satisfies Tz.Converter,
     tuya_thermostat_week: {
-        key: ['week'],
+        key: ["week"],
         convertSet: async (entity, key, value: any, meta) => {
-            const lookup: KeyValueAny = {'5+2': 0, '6+1': 1, '7': 2};
+            const lookup: KeyValueAny = {"5+2": 0, "6+1": 1, "7": 2};
             const week = lookup[value];
             await sendDataPointEnum(entity, dataPoints.weekFormat, week);
             return {state: {week: value}};
         },
     } satisfies Tz.Converter,
     tuya_cover_options: {
-        key: ['options'],
+        key: ["options"],
         convertSet: async (entity, key, value: any, meta) => {
-            if (value.reverse_direction != undefined) {
+            if (value.reverse_direction !== undefined) {
                 if (value.reverse_direction) {
-                    logger.info('Motor direction reverse', 'zhc:legacy:tz:tuya_cover_options');
+                    logger.info("Motor direction reverse", "zhc:legacy:tz:tuya_cover_options");
                     await sendDataPointEnum(entity, dataPoints.motorDirection, 1);
                 } else {
-                    logger.info('Motor direction forward', 'zhc:legacy:tz:tuya_cover_options');
+                    logger.info("Motor direction forward", "zhc:legacy:tz:tuya_cover_options");
                     await sendDataPointEnum(entity, dataPoints.motorDirection, 0);
                 }
             }
 
-            if (value.motor_speed != undefined) {
+            if (value.motor_speed !== undefined) {
                 if (value.motor_speed < 0 || value.motor_speed > 255) {
-                    throw new Error('Tuya_cover_control: Motor speed is out of range');
+                    throw new Error("Tuya_cover_control: Motor speed is out of range");
                 }
 
-                logger.info(`Setting motor speed to ${value.motor_speed}`, 'zhc:legacy:tz:tuya_cover_options');
+                logger.info(`Setting motor speed to ${value.motor_speed}`, "zhc:legacy:tz:tuya_cover_options");
                 await sendDataPointValue(entity, dataPoints.coverSpeed, value.motor_speed);
             }
         },
     } satisfies Tz.Converter,
     neo_nas_pd07: {
-        key: ['temperature_max', 'temperature_min', 'humidity_max', 'humidity_min', 'temperature_scale', 'unknown_111', 'unknown_112'],
+        key: ["temperature_max", "temperature_min", "humidity_max", "humidity_min", "temperature_scale", "unknown_111", "unknown_112"],
         convertSet: async (entity, key, value, meta) => {
             switch (key) {
-                case 'temperature_max':
+                case "temperature_max":
                     await sendDataPointValue(entity, dataPoints.neoMaxTemp, value);
                     break;
-                case 'temperature_min':
+                case "temperature_min":
                     await sendDataPointValue(entity, dataPoints.neoMinTemp, value);
                     break;
-                case 'humidity_max':
+                case "humidity_max":
                     await sendDataPointValue(entity, dataPoints.neoMaxHumidity, value);
                     break;
-                case 'humidity_min':
+                case "humidity_min":
                     await sendDataPointValue(entity, dataPoints.neoMinHumidity, value);
                     break;
-                case 'temperature_scale':
-                    await sendDataPointBool(entity, dataPoints.neoTempScale, value === '°C');
+                case "temperature_scale":
+                    await sendDataPointBool(entity, dataPoints.neoTempScale, value === "°C");
                     break;
-                case 'unknown_111':
-                    await sendDataPointBool(entity, 111, value === 'ON');
+                case "unknown_111":
+                    await sendDataPointBool(entity, 111, value === "ON");
                     break;
-                case 'unknown_112':
-                    await sendDataPointBool(entity, 112, value === 'ON');
+                case "unknown_112":
+                    await sendDataPointBool(entity, 112, value === "ON");
                     break;
                 default: // Unknown key
                     throw new Error(`tz.neo_nas_pd07: Unhandled key ${key}`);
@@ -5571,26 +5508,26 @@ const toZigbee2 = {
     } satisfies Tz.Converter,
     neo_t_h_alarm: {
         key: [
-            'alarm',
-            'melody',
-            'volume',
-            'duration',
-            'temperature_max',
-            'temperature_min',
-            'humidity_min',
-            'humidity_max',
-            'temperature_alarm',
-            'humidity_alarm',
+            "alarm",
+            "melody",
+            "volume",
+            "duration",
+            "temperature_max",
+            "temperature_min",
+            "humidity_min",
+            "humidity_max",
+            "temperature_alarm",
+            "humidity_alarm",
         ],
         convertSet: async (entity, key, value: any, meta) => {
             switch (key) {
-                case 'alarm':
+                case "alarm":
                     await sendDataPointBool(entity, dataPoints.neoAlarm, value);
                     break;
-                case 'melody':
-                    await sendDataPointEnum(entity, dataPoints.neoMelody, parseInt(value, 10));
+                case "melody":
+                    await sendDataPointEnum(entity, dataPoints.neoMelody, Number.parseInt(value, 10));
                     break;
-                case 'volume':
+                case "volume":
                     await sendDataPointEnum(
                         entity,
                         dataPoints.neoVolume,
@@ -5598,25 +5535,25 @@ const toZigbee2 = {
                         {low: 2, medium: 1, high: 0}[value],
                     );
                     break;
-                case 'duration':
+                case "duration":
                     await sendDataPointValue(entity, dataPoints.neoDuration, value);
                     break;
-                case 'temperature_max':
+                case "temperature_max":
                     await sendDataPointValue(entity, dataPoints.neoMaxTemp, value);
                     break;
-                case 'temperature_min':
+                case "temperature_min":
                     await sendDataPointValue(entity, dataPoints.neoMinTemp, value);
                     break;
-                case 'humidity_max':
+                case "humidity_max":
                     await sendDataPointValue(entity, dataPoints.neoMaxHumidity, value);
                     break;
-                case 'humidity_min':
+                case "humidity_min":
                     await sendDataPointValue(entity, dataPoints.neoMinHumidity, value);
                     break;
-                case 'temperature_alarm':
+                case "temperature_alarm":
                     await sendDataPointBool(entity, dataPoints.neoTempAlarm, value);
                     break;
-                case 'humidity_alarm':
+                case "humidity_alarm":
                     await sendDataPointBool(entity, dataPoints.neoHumidityAlarm, value);
                     break;
                 default: // Unknown key
@@ -5625,16 +5562,16 @@ const toZigbee2 = {
         },
     } satisfies Tz.Converter,
     neo_alarm: {
-        key: ['alarm', 'melody', 'volume', 'duration'],
+        key: ["alarm", "melody", "volume", "duration"],
         convertSet: async (entity, key, value: any, meta) => {
             switch (key) {
-                case 'alarm':
+                case "alarm":
                     await sendDataPointBool(entity, dataPoints.neoAOAlarm, value);
                     break;
-                case 'melody':
-                    await sendDataPointEnum(entity, dataPoints.neoAOMelody, parseInt(value, 10));
+                case "melody":
+                    await sendDataPointEnum(entity, dataPoints.neoAOMelody, Number.parseInt(value, 10));
                     break;
-                case 'volume':
+                case "volume":
                     await sendDataPointEnum(
                         entity,
                         dataPoints.neoAOVolume,
@@ -5642,7 +5579,7 @@ const toZigbee2 = {
                         {low: 0, medium: 1, high: 2}[value],
                     );
                     break;
-                case 'duration':
+                case "duration":
                     await sendDataPointValue(entity, dataPoints.neoAODuration, value);
                     break;
                 default: // Unknown key
@@ -5652,62 +5589,62 @@ const toZigbee2 = {
     } satisfies Tz.Converter,
     nous_lcd_temperature_humidity_sensor: {
         key: [
-            'min_temperature',
-            'max_temperature',
-            'temperature_sensitivity',
-            'temperature_unit_convert',
-            'temperature_report_interval',
-            'min_humidity',
-            'max_humidity',
-            'humidity_sensitivity',
-            'humidity_report_interval',
+            "min_temperature",
+            "max_temperature",
+            "temperature_sensitivity",
+            "temperature_unit_convert",
+            "temperature_report_interval",
+            "min_humidity",
+            "max_humidity",
+            "humidity_sensitivity",
+            "humidity_report_interval",
         ],
         convertSet: async (entity, key, value: any, meta) => {
             switch (key) {
-                case 'temperature_unit_convert':
-                    await sendDataPointEnum(entity, dataPoints.nousTempUnitConvert, ['celsius', 'fahrenheit'].indexOf(value));
+                case "temperature_unit_convert":
+                    await sendDataPointEnum(entity, dataPoints.nousTempUnitConvert, ["celsius", "fahrenheit"].indexOf(value));
                     break;
-                case 'min_temperature':
+                case "min_temperature":
                     await sendDataPointValue(entity, dataPoints.nousMinTemp, Math.round(value * 10));
                     break;
-                case 'max_temperature':
+                case "max_temperature":
                     await sendDataPointValue(entity, dataPoints.nousMaxTemp, Math.round(value * 10));
                     break;
-                case 'temperature_sensitivity':
+                case "temperature_sensitivity":
                     await sendDataPointValue(entity, dataPoints.nousTempSensitivity, Math.round(value * 10));
                     break;
-                case 'humidity_sensitivity':
+                case "humidity_sensitivity":
                     await sendDataPointValue(entity, dataPoints.nousHumiSensitivity, value);
                     break;
-                case 'min_humidity':
+                case "min_humidity":
                     await sendDataPointValue(entity, dataPoints.nousMinHumi, Math.round(value));
                     break;
-                case 'max_humidity':
+                case "max_humidity":
                     await sendDataPointValue(entity, dataPoints.nousMaxHumi, Math.round(value));
                     break;
-                case 'temperature_report_interval':
+                case "temperature_report_interval":
                     await sendDataPointValue(entity, dataPoints.nousTempReportInterval, value);
                     break;
-                case 'humidity_report_interval':
+                case "humidity_report_interval":
                     await sendDataPointValue(entity, dataPoints.nousHumiReportInterval, value);
                     break;
                 default: // Unknown key
-                    logger.warning(`Unhandled key ${key}`, 'zhc:legacy:tz:nous_lcd_temperature_humidity_sensor');
+                    logger.warning(`Unhandled key ${key}`, "zhc:legacy:tz:nous_lcd_temperature_humidity_sensor");
             }
         },
     } satisfies Tz.Converter,
     saswell_thermostat_current_heating_setpoint: {
-        key: ['current_heating_setpoint'],
+        key: ["current_heating_setpoint"],
         convertSet: async (entity, key, value: any, meta) => {
             const temp = Math.round(value * 10);
             await sendDataPointValue(entity, dataPoints.saswellHeatingSetpoint, temp);
         },
     } satisfies Tz.Converter,
     saswell_thermostat_mode: {
-        key: ['system_mode'],
+        key: ["system_mode"],
         convertSet: async (entity, key, value, meta) => {
-            const schedule = value === 'auto';
-            const enable = !(value === 'off');
+            const schedule = value === "auto";
+            const enable = !(value === "off");
             await sendDataPointBool(entity, dataPoints.saswellState, enable);
             // Older versions of Saswell TRVs need the delay to work reliably
             await utils.sleep(3000);
@@ -5715,9 +5652,9 @@ const toZigbee2 = {
         },
     } satisfies Tz.Converter,
     saswell_thermostat_away: {
-        key: ['away_mode'],
+        key: ["away_mode"],
         convertSet: async (entity, key, value, meta) => {
-            if (value == 'ON') {
+            if (value === "ON") {
                 await sendDataPointBool(entity, dataPoints.saswellAwayMode, true);
             } else {
                 await sendDataPointBool(entity, dataPoints.saswellAwayMode, false);
@@ -5725,71 +5662,71 @@ const toZigbee2 = {
         },
     } satisfies Tz.Converter,
     saswell_thermostat_child_lock: {
-        key: ['child_lock'],
+        key: ["child_lock"],
         convertSet: async (entity, key, value, meta) => {
             // It seems that currently child lock can be sent and device responds,
             // but it's not entering lock state
-            await sendDataPointBool(entity, dataPoints.saswellChildLock, value === 'LOCK');
+            await sendDataPointBool(entity, dataPoints.saswellChildLock, value === "LOCK");
         },
     } satisfies Tz.Converter,
     saswell_thermostat_window_detection: {
-        key: ['window_detection'],
+        key: ["window_detection"],
         convertSet: async (entity, key, value, meta) => {
-            await sendDataPointBool(entity, dataPoints.saswellWindowDetection, value === 'ON');
+            await sendDataPointBool(entity, dataPoints.saswellWindowDetection, value === "ON");
         },
     } satisfies Tz.Converter,
     saswell_thermostat_frost_detection: {
-        key: ['frost_detection'],
+        key: ["frost_detection"],
         convertSet: async (entity, key, value, meta) => {
-            await sendDataPointBool(entity, dataPoints.saswellFrostDetection, value === 'ON');
+            await sendDataPointBool(entity, dataPoints.saswellFrostDetection, value === "ON");
         },
     } satisfies Tz.Converter,
     saswell_thermostat_anti_scaling: {
-        key: ['anti_scaling'],
+        key: ["anti_scaling"],
         convertSet: async (entity, key, value, meta) => {
-            await sendDataPointBool(entity, dataPoints.saswellAntiScaling, value === 'ON');
+            await sendDataPointBool(entity, dataPoints.saswellAntiScaling, value === "ON");
         },
     } satisfies Tz.Converter,
     saswell_thermostat_calibration: {
-        key: ['local_temperature_calibration'],
+        key: ["local_temperature_calibration"],
         convertSet: async (entity, key, value: any, meta) => {
             if (value < 0) value = 0xffffffff + value + 1;
             await sendDataPointValue(entity, dataPoints.saswellTempCalibration, value);
         },
     } satisfies Tz.Converter,
     evanell_thermostat_current_heating_setpoint: {
-        key: ['current_heating_setpoint'],
+        key: ["current_heating_setpoint"],
         convertSet: async (entity, key, value: any, meta) => {
             const temp = Math.round(value * 10);
             await sendDataPointValue(entity, dataPoints.evanellHeatingSetpoint, temp);
         },
     } satisfies Tz.Converter,
     evanell_thermostat_system_mode: {
-        key: ['system_mode'],
+        key: ["system_mode"],
         convertSet: async (entity, key, value, meta) => {
             switch (value) {
-                case 'off':
+                case "off":
                     await sendDataPointEnum(entity, dataPoints.evanellMode, 3 /* off */);
                     break;
-                case 'heat':
+                case "heat":
                     await sendDataPointEnum(entity, dataPoints.evanellMode, 2 /* manual */);
                     break;
-                case 'auto':
+                case "auto":
                     await sendDataPointEnum(entity, dataPoints.evanellMode, 0 /* auto */);
                     break;
             }
         },
     } satisfies Tz.Converter,
     evanell_thermostat_child_lock: {
-        key: ['child_lock'],
+        key: ["child_lock"],
         convertSet: async (entity, key, value, meta) => {
-            await sendDataPointBool(entity, dataPoints.evanellChildLock, value === 'LOCK');
+            await sendDataPointBool(entity, dataPoints.evanellChildLock, value === "LOCK");
         },
     } satisfies Tz.Converter,
     silvercrest_smart_led_string: {
-        key: ['color', 'brightness', 'effect'],
+        key: ["color", "brightness", "effect"],
         convertSet: async (entity, key, value: any, meta) => {
-            if (key === 'effect') {
+            if (key === "effect") {
                 await sendDataPointEnum(entity, dataPoints.silvercrestChangeMode, silvercrestModes.effect);
 
                 let data: any = [];
@@ -5805,10 +5742,10 @@ const toZigbee2 = {
                 // Make it a string and attach a leading zero (0x30)
                 let speedString = String(speed);
                 if (speedString.length === 1) {
-                    speedString = '0' + speedString;
+                    speedString = `0${speedString}`;
                 }
                 if (!speedString) {
-                    speedString = '00';
+                    speedString = "00";
                 }
 
                 data = data.concat(convertStringToHexArray(speedString));
@@ -5821,29 +5758,29 @@ const toZigbee2 = {
 
                 if (colors) {
                     for (const color of colors) {
-                        let r = '00';
-                        let g = '00';
-                        let b = '00';
+                        let r = "00";
+                        let g = "00";
+                        let b = "00";
 
                         if (color.r) {
                             r = color.r.toString(16);
                         }
                         if (r.length === 1) {
-                            r = '0' + r;
+                            r = `0${r}`;
                         }
 
                         if (color.g) {
                             g = color.g.toString(16);
                         }
                         if (g.length === 1) {
-                            g = '0' + g;
+                            g = `0${g}`;
                         }
 
                         if (color.b) {
                             b = color.b.toString(16);
                         }
                         if (b.length === 1) {
-                            b = '0' + b;
+                            b = `0${b}`;
                         }
 
                         data = data.concat(convertStringToHexArray(r));
@@ -5853,7 +5790,7 @@ const toZigbee2 = {
                 }
 
                 await sendDataPointStringBuffer(entity, dataPoints.silvercrestSetEffect, data);
-            } else if (key === 'brightness') {
+            } else if (key === "brightness") {
                 await sendDataPointEnum(entity, dataPoints.silvercrestChangeMode, silvercrestModes.white);
                 // It expects 2 leading zero's.
                 let data = [0x00, 0x00];
@@ -5863,36 +5800,38 @@ const toZigbee2 = {
                 data = data.concat(convertDecimalValueTo2ByteHexArray(scaled));
 
                 await sendDataPoint(entity, {dp: dataPoints.silvercrestSetBrightness, datatype: dataTypes.value, data: data});
-            } else if (key === 'color') {
+            } else if (key === "color") {
                 await sendDataPointEnum(entity, dataPoints.silvercrestChangeMode, silvercrestModes.color);
 
                 const make4sizedString = (v: string) => {
                     if (v.length >= 4) {
                         return v;
-                    } else if (v.length === 3) {
-                        return '0' + v;
-                    } else if (v.length === 2) {
-                        return '00' + v;
-                    } else if (v.length === 1) {
-                        return '000' + v;
-                    } else {
-                        return '0000';
                     }
+                    if (v.length === 3) {
+                        return `0${v}`;
+                    }
+                    if (v.length === 2) {
+                        return `00${v}`;
+                    }
+                    if (v.length === 1) {
+                        return `000${v}`;
+                    }
+                    return "0000";
                 };
 
                 const fillInHSB = (h: any, s: any, b: any, state: any) => {
                     // Define default values. Device expects leading zero in string.
                     const hsb = {
-                        h: '0168', // 360
-                        s: '03e8', // 1000
-                        b: '03e8', // 1000
+                        h: "0168", // 360
+                        s: "03e8", // 1000
+                        b: "03e8", // 1000
                     };
 
                     if (h) {
                         // The device expects 0-359
                         // The device expects a round number, otherwise everything breaks
                         hsb.h = make4sizedString(utils.numberWithinRange(utils.precisionRound(h, 0), 0, 359).toString(16));
-                    } else if (state.color && state.color.h) {
+                    } else if (state.color?.h) {
                         hsb.h = make4sizedString(utils.numberWithinRange(utils.precisionRound(state.color.h, 0), 0, 359).toString(16));
                     }
 
@@ -5900,7 +5839,7 @@ const toZigbee2 = {
                     // The device expects a round number, otherwise everything breaks
                     if (s) {
                         hsb.s = make4sizedString(utils.mapNumberRange(s, 0, 100, 0, 1000).toString(16));
-                    } else if (state.color && state.color.s) {
+                    } else if (state.color?.s) {
                         hsb.s = make4sizedString(utils.mapNumberRange(state.color.s, 0, 100, 0, 1000).toString(16));
                     }
 
@@ -5917,7 +5856,7 @@ const toZigbee2 = {
                 let hsb: KeyValueAny = {};
 
                 if (value.hsb !== undefined) {
-                    const split = value.hsb.split(',').map((i: string) => parseInt(i));
+                    const split = value.hsb.split(",").map((i: string) => Number.parseInt(i));
                     hsb = fillInHSB(split[0], split[1], split[2], meta.state);
                 } else {
                     hsb = fillInHSB(
@@ -5938,32 +5877,32 @@ const toZigbee2 = {
         },
     } satisfies Tz.Converter,
     tuya_data_point_test: {
-        key: ['tuya_data_point_test'],
+        key: ["tuya_data_point_test"],
         convertSet: async (entity, key, value: string, meta) => {
-            const args = value.split(',');
+            const args = value.split(",");
             const mode = args[0];
-            const dp = parseInt(args[1]);
+            const dp = Number.parseInt(args[1]);
             const data = [];
 
             switch (mode) {
-                case 'raw':
+                case "raw":
                     for (let i = 2; i < args.length; i++) {
-                        data.push(parseInt(args[i]));
+                        data.push(Number.parseInt(args[i]));
                     }
                     await sendDataPointRaw(entity, dp, data);
                     break;
-                case 'bool':
-                    await sendDataPointBool(entity, dp, args[2] === '1');
+                case "bool":
+                    await sendDataPointBool(entity, dp, args[2] === "1");
                     break;
-                case 'value':
-                    await sendDataPointValue(entity, dp, parseInt(args[2]));
+                case "value":
+                    await sendDataPointValue(entity, dp, Number.parseInt(args[2]));
                     break;
-                case 'enum':
-                    await sendDataPointEnum(entity, dp, parseInt(args[2]));
+                case "enum":
+                    await sendDataPointEnum(entity, dp, Number.parseInt(args[2]));
                     break;
-                case 'bitmap':
+                case "bitmap":
                     for (let i = 2; i < args.length; i++) {
-                        data.push(parseInt(args[i]));
+                        data.push(Number.parseInt(args[i]));
                     }
                     await sendDataPointBitmap(entity, dp, data);
                     break;
@@ -5972,74 +5911,74 @@ const toZigbee2 = {
     } satisfies Tz.Converter,
     hy_thermostat: {
         key: [
-            'child_lock',
-            'current_heating_setpoint',
-            'local_temperature_calibration',
-            'max_temperature_protection',
-            'min_temperature_protection',
-            'state',
-            'hysteresis',
-            'hysteresis_for_protection',
-            'max_temperature_for_protection',
-            'min_temperature_for_protection',
-            'max_temperature',
-            'min_temperature',
-            'sensor_type',
-            'power_on_behavior',
-            'week',
-            'system_mode',
-            'away_preset_days',
-            'away_preset_temperature',
+            "child_lock",
+            "current_heating_setpoint",
+            "local_temperature_calibration",
+            "max_temperature_protection",
+            "min_temperature_protection",
+            "state",
+            "hysteresis",
+            "hysteresis_for_protection",
+            "max_temperature_for_protection",
+            "min_temperature_for_protection",
+            "max_temperature",
+            "min_temperature",
+            "sensor_type",
+            "power_on_behavior",
+            "week",
+            "system_mode",
+            "away_preset_days",
+            "away_preset_temperature",
         ],
         convertSet: async (entity, key, value: any, meta) => {
             switch (key) {
-                case 'max_temperature_protection':
-                    await sendDataPointBool(entity, dataPoints.hyMaxTempProtection, value === 'ON');
+                case "max_temperature_protection":
+                    await sendDataPointBool(entity, dataPoints.hyMaxTempProtection, value === "ON");
                     break;
-                case 'min_temperature_protection':
-                    await sendDataPointBool(entity, dataPoints.hyMinTempProtection, value === 'ON');
+                case "min_temperature_protection":
+                    await sendDataPointBool(entity, dataPoints.hyMinTempProtection, value === "ON");
                     break;
-                case 'state':
-                    await sendDataPointBool(entity, dataPoints.hyState, value === 'ON');
+                case "state":
+                    await sendDataPointBool(entity, dataPoints.hyState, value === "ON");
                     break;
-                case 'child_lock':
-                    await sendDataPointBool(entity, dataPoints.hyChildLock, value === 'LOCK');
+                case "child_lock":
+                    await sendDataPointBool(entity, dataPoints.hyChildLock, value === "LOCK");
                     break;
-                case 'away_preset_days':
+                case "away_preset_days":
                     await sendDataPointValue(entity, dataPoints.hyAwayDays, value);
                     break;
-                case 'away_preset_temperature':
+                case "away_preset_temperature":
                     await sendDataPointValue(entity, dataPoints.hyAwayTemp, value);
                     break;
-                case 'local_temperature_calibration':
+                case "local_temperature_calibration":
                     value = Math.round(value * 10);
                     if (value < 0) value = 0xffffffff + value + 1;
                     await sendDataPointValue(entity, dataPoints.hyTempCalibration, value);
                     break;
-                case 'hysteresis':
+                case "hysteresis":
                     value = Math.round(value * 10);
                     await sendDataPointValue(entity, dataPoints.hyHysteresis, value);
                     break;
-                case 'hysteresis_for_protection':
+                case "hysteresis_for_protection":
                     await sendDataPointValue(entity, dataPoints.hyProtectionHysteresis, value);
                     break;
-                case 'max_temperature_for_protection':
+                case "max_temperature_for_protection":
                     await sendDataPointValue(entity, dataPoints.hyProtectionMaxTemp, value);
                     break;
-                case 'min_temperature_for_protection':
+                case "min_temperature_for_protection":
                     await sendDataPointValue(entity, dataPoints.hyProtectionMinTemp, value);
                     break;
-                case 'max_temperature':
+                case "max_temperature":
                     await sendDataPointValue(entity, dataPoints.hyMaxTemp, value);
                     break;
-                case 'min_temperature':
+                case "min_temperature":
                     await sendDataPointValue(entity, dataPoints.hyMinTemp, value);
                     break;
-                case 'current_heating_setpoint':
+                case "current_heating_setpoint":
                     value = Math.round(value * 10);
                     await sendDataPointValue(entity, dataPoints.hyHeatingSetpoint, value);
                     break;
-                case 'sensor_type':
+                case "sensor_type":
                     await sendDataPointEnum(
                         entity,
                         dataPoints.hySensor,
@@ -6047,7 +5986,7 @@ const toZigbee2 = {
                         {internal: 0, external: 1, both: 2}[value],
                     );
                     break;
-                case 'power_on_behavior':
+                case "power_on_behavior":
                     await sendDataPointEnum(
                         entity,
                         dataPoints.hyPowerOnBehavior,
@@ -6055,10 +5994,10 @@ const toZigbee2 = {
                         {restore: 0, off: 1, on: 2}[value],
                     );
                     break;
-                case 'week':
+                case "week":
                     await sendDataPointEnum(entity, dataPoints.hyWeekFormat, utils.getKey(thermostatWeekFormat, value, value, Number));
                     break;
-                case 'system_mode':
+                case "system_mode":
                     await sendDataPointEnum(
                         entity,
                         dataPoints.hyMode,
@@ -6073,50 +6012,50 @@ const toZigbee2 = {
     } satisfies Tz.Converter,
     ZB003X: {
         key: [
-            'reporting_time',
-            'temperature_calibration',
-            'humidity_calibration',
-            'illuminance_calibration',
-            'pir_enable',
-            'led_enable',
-            'reporting_enable',
-            'sensitivity',
-            'keep_time',
+            "reporting_time",
+            "temperature_calibration",
+            "humidity_calibration",
+            "illuminance_calibration",
+            "pir_enable",
+            "led_enable",
+            "reporting_enable",
+            "sensitivity",
+            "keep_time",
         ],
         convertSet: async (entity, key, value: any, meta) => {
             switch (key) {
-                case 'reporting_time':
-                    await sendDataPointValue(entity, dataPoints.fantemReportingTime, value, 'sendData');
+                case "reporting_time":
+                    await sendDataPointValue(entity, dataPoints.fantemReportingTime, value, "sendData");
                     break;
-                case 'temperature_calibration':
+                case "temperature_calibration":
                     value = Math.round(value * 10);
                     if (value < 0) value = 0xffffffff + value + 1;
-                    await sendDataPointValue(entity, dataPoints.fantemTempCalibration, value, 'sendData');
+                    await sendDataPointValue(entity, dataPoints.fantemTempCalibration, value, "sendData");
                     break;
-                case 'humidity_calibration':
+                case "humidity_calibration":
                     if (value < 0) value = 0xffffffff + value + 1;
-                    await sendDataPointValue(entity, dataPoints.fantemHumidityCalibration, value, 'sendData');
+                    await sendDataPointValue(entity, dataPoints.fantemHumidityCalibration, value, "sendData");
                     break;
-                case 'illuminance_calibration':
+                case "illuminance_calibration":
                     if (value < 0) value = 0xffffffff + value + 1;
-                    await sendDataPointValue(entity, dataPoints.fantemLuxCalibration, value, 'sendData');
+                    await sendDataPointValue(entity, dataPoints.fantemLuxCalibration, value, "sendData");
                     break;
-                case 'pir_enable':
-                    await sendDataPointBool(entity, dataPoints.fantemMotionEnable, value, 'sendData');
+                case "pir_enable":
+                    await sendDataPointBool(entity, dataPoints.fantemMotionEnable, value, "sendData");
                     break;
-                case 'led_enable':
-                    await sendDataPointBool(entity, dataPoints.fantemLedEnable, value === false, 'sendData');
+                case "led_enable":
+                    await sendDataPointBool(entity, dataPoints.fantemLedEnable, value === false, "sendData");
                     break;
-                case 'reporting_enable':
-                    await sendDataPointBool(entity, dataPoints.fantemReportingEnable, value, 'sendData');
+                case "reporting_enable":
+                    await sendDataPointBool(entity, dataPoints.fantemReportingEnable, value, "sendData");
                     break;
-                case 'sensitivity':
+                case "sensitivity":
                     // @ts-expect-error ignore
-                    await entity.write('ssIasZone', {currentZoneSensitivityLevel: {low: 0, medium: 1, high: 2}[value]});
+                    await entity.write("ssIasZone", {currentZoneSensitivityLevel: {low: 0, medium: 1, high: 2}[value]});
                     break;
-                case 'keep_time':
+                case "keep_time":
                     // @ts-expect-error ignore
-                    await entity.write('ssIasZone', {61441: {value: {'0': 0, '30': 1, '60': 2, '120': 3, '240': 4, '480': 5}[value], type: 0x20}});
+                    await entity.write("ssIasZone", {61441: {value: {"0": 0, "30": 1, "60": 2, "120": 3, "240": 4, "480": 5}[value], type: 0x20}});
                     break;
                 default: // Unknown key
                     throw new Error(`tz.ZB003X: Unhandled key ${key}`);
@@ -6124,30 +6063,30 @@ const toZigbee2 = {
         },
     } satisfies Tz.Converter,
     ZB006X_settings: {
-        key: ['switch_type', 'load_detection_mode', 'control_mode'],
+        key: ["switch_type", "load_detection_mode", "control_mode"],
         convertSet: async (entity, key, value: any, meta) => {
             switch (key) {
-                case 'switch_type':
+                case "switch_type":
                     await sendDataPointEnum(
                         entity,
                         dataPoints.fantemExtSwitchType,
                         // @ts-expect-error ignore
                         {unknown: 0, toggle: 1, momentary: 2, rotary: 3, auto_config: 4}[value],
-                        'sendData',
+                        "sendData",
                     );
                     break;
-                case 'load_detection_mode':
+                case "load_detection_mode":
                     await sendDataPointEnum(
                         entity,
                         dataPoints.fantemLoadDetectionMode,
                         // @ts-expect-error ignore
                         {none: 0, first_power_on: 1, every_power_on: 2}[value],
-                        'sendData',
+                        "sendData",
                     );
                     break;
-                case 'control_mode':
+                case "control_mode":
                     // @ts-expect-error ignore
-                    await sendDataPointEnum(entity, dataPoints.fantemControlMode, {ext_switch: 0, remote: 1, both: 2}[value], 'sendData');
+                    await sendDataPointEnum(entity, dataPoints.fantemControlMode, {ext_switch: 0, remote: 1, both: 2}[value], "sendData");
                     break;
                 default: // Unknown key
                     throw new Error(`tz.ZB006X_settings: Unhandled key ${key}`);
@@ -6155,68 +6094,65 @@ const toZigbee2 = {
         },
     } satisfies Tz.Converter,
     tuya_motion_sensor: {
-        key: ['o_sensitivity', 'v_sensitivity', 'led_status', 'vacancy_delay', 'light_on_luminance_prefer', 'light_off_luminance_prefer', 'mode'],
+        key: ["o_sensitivity", "v_sensitivity", "led_status", "vacancy_delay", "light_on_luminance_prefer", "light_off_luminance_prefer", "mode"],
         convertSet: async (entity, key, value: any, meta) => {
             switch (key) {
-                case 'o_sensitivity':
+                case "o_sensitivity":
                     await sendDataPointEnum(entity, dataPoints.msOSensitivity, utils.getKey(msLookups.OSensitivity, value));
                     break;
-                case 'v_sensitivity':
+                case "v_sensitivity":
                     await sendDataPointEnum(entity, dataPoints.msVSensitivity, utils.getKey(msLookups.VSensitivity, value));
                     break;
-                case 'led_status':
+                case "led_status":
                     // @ts-expect-error ignore
                     await sendDataPointEnum(entity, dataPoints.msLedStatus, {on: 0, off: 1}[value.toLowerCase()]);
                     break;
-                case 'vacancy_delay':
+                case "vacancy_delay":
                     await sendDataPointValue(entity, dataPoints.msVacancyDelay, value);
                     break;
-                case 'light_on_luminance_prefer':
+                case "light_on_luminance_prefer":
                     await sendDataPointValue(entity, dataPoints.msLightOnLuminancePrefer, value);
                     break;
-                case 'light_off_luminance_prefer':
+                case "light_off_luminance_prefer":
                     await sendDataPointValue(entity, dataPoints.msLightOffLuminancePrefer, value);
                     break;
-                case 'mode':
+                case "mode":
                     await sendDataPointEnum(entity, dataPoints.msMode, utils.getKey(msLookups.Mode, value));
                     break;
                 default: // Unknown key
-                    logger.warning(`toZigbee.tuya_motion_sensor: Unhandled key ${key}`, 'zhc:legacy:tz:tuya_motion_sensor');
+                    logger.warning(`toZigbee.tuya_motion_sensor: Unhandled key ${key}`, "zhc:legacy:tz:tuya_motion_sensor");
             }
         },
     } satisfies Tz.Converter,
     javis_microwave_sensor: {
-        key: ['illuminance_calibration', 'led_enable', 'sensitivity', 'keep_time'],
+        key: ["illuminance_calibration", "led_enable", "sensitivity", "keep_time"],
         convertSet: async (entity, key, value, meta) => {
             switch (key) {
-                case 'illuminance_calibration': // (10--100) sensor illuminance sensitivity
-                    if (meta.device.manufacturerName === '_TZE200_kagkgk0i') {
+                case "illuminance_calibration": // (10--100) sensor illuminance sensitivity
+                    if (meta.device.manufacturerName === "_TZE200_kagkgk0i") {
                         await sendDataPointRaw(entity, 102, [value]);
                         break;
-                    } else {
-                        await sendDataPointRaw(entity, 105, [value]);
-                        break;
                     }
-                case 'led_enable': // OK (value true/false or 1/0)
-                    if (meta.device.manufacturerName === '_TZE200_kagkgk0i') {
+                    await sendDataPointRaw(entity, 105, [value]);
+                    break;
+                case "led_enable": // OK (value true/false or 1/0)
+                    if (meta.device.manufacturerName === "_TZE200_kagkgk0i") {
                         await sendDataPointRaw(entity, 107, [value ? 1 : 0]);
                         break;
-                    } else {
-                        await sendDataPointRaw(entity, 103, [value ? 1 : 0]);
-                        break;
                     }
+                    await sendDataPointRaw(entity, 103, [value ? 1 : 0]);
+                    break;
 
-                case 'sensitivity': // value: 25, 50, 75, 100
+                case "sensitivity": // value: 25, 50, 75, 100
                     await sendDataPointRaw(entity, 2, [value]);
                     break;
-                case 'keep_time': // value 0 --> 7 corresponding 5s, 30s, 1, 3, 5, 10, 20, 30 min
-                    if (meta.device.manufacturerName === '_TZE200_kagkgk0i') {
+                case "keep_time": // value 0 --> 7 corresponding 5s, 30s, 1, 3, 5, 10, 20, 30 min
+                    if (meta.device.manufacturerName === "_TZE200_kagkgk0i") {
                         await sendDataPointRaw(entity, 106, [value]);
                         break;
-                    } else {
-                        await sendDataPointRaw(entity, 102, [value]);
-                        break;
                     }
+                    await sendDataPointRaw(entity, 102, [value]);
+                    break;
                 default: // Unknown key
                     throw new Error(`Unhandled key ${key}`);
             }
@@ -6224,66 +6160,66 @@ const toZigbee2 = {
     } satisfies Tz.Converter,
     moes_thermostat_tv: {
         key: [
-            'system_mode',
-            'window_detection',
-            'frost_detection',
-            'child_lock',
-            'current_heating_setpoint',
-            'local_temperature_calibration',
-            'holiday_temperature',
-            'comfort_temperature',
-            'eco_temperature',
-            'open_window_temperature',
-            'heating_stop',
-            'preset',
+            "system_mode",
+            "window_detection",
+            "frost_detection",
+            "child_lock",
+            "current_heating_setpoint",
+            "local_temperature_calibration",
+            "holiday_temperature",
+            "comfort_temperature",
+            "eco_temperature",
+            "open_window_temperature",
+            "heating_stop",
+            "preset",
         ],
         convertSet: async (entity, key, value: any, meta) => {
             switch (key) {
-                case 'system_mode':
-                    if (value != 'off') {
+                case "system_mode":
+                    if (value !== "off") {
                         await sendDataPointBool(entity, dataPoints.tvHeatingStop, 0);
                         await sendDataPointEnum(entity, dataPoints.tvMode, utils.getKey(tvThermostatMode, value));
                     } else {
                         await sendDataPointBool(entity, dataPoints.tvHeatingStop, 1);
                     }
                     break;
-                case 'window_detection':
+                case "window_detection":
                     await sendDataPointBool(entity, dataPoints.tvWindowDetection, value);
                     break;
-                case 'frost_detection':
-                    if (value == false) {
+                case "frost_detection":
+                    if (value === false) {
                         await sendDataPointBool(entity, dataPoints.tvFrostDetection, 0);
                         await sendDataPointEnum(entity, dataPoints.tvMode, 1);
                     } else {
                         await sendDataPointBool(entity, dataPoints.tvFrostDetection, 1);
                     }
                     break;
-                case 'child_lock':
-                    await sendDataPointBool(entity, dataPoints.tvChildLock, value === 'LOCK');
+                case "child_lock":
+                    await sendDataPointBool(entity, dataPoints.tvChildLock, value === "LOCK");
                     break;
-                case 'local_temperature_calibration':
+                case "local_temperature_calibration":
                     value = Math.round(value * 10);
                     value = value < 0 ? 0xffffffff + value + 1 : value;
                     await sendDataPointValue(entity, dataPoints.tvTempCalibration, value);
                     break;
-                case 'current_heating_setpoint':
+                case "current_heating_setpoint":
                     value = Math.round(value * 10);
                     await sendDataPointValue(entity, dataPoints.tvHeatingSetpoint, value);
                     break;
-                case 'holiday_temperature':
+                case "holiday_temperature":
                     value = Math.round(value * 10);
                     await sendDataPointValue(entity, dataPoints.tvHolidayTemp, value);
                     break;
-                case 'comfort_temperature':
+                case "comfort_temperature":
                     value = Math.round(value * 10);
                     await sendDataPointValue(entity, dataPoints.tvComfortTemp, value);
                     break;
-                case 'eco_temperature':
+                case "eco_temperature":
                     value = Math.round(value * 10);
                     await sendDataPointValue(entity, dataPoints.tvEcoTemp, value);
                     break;
-                case 'heating_stop':
-                    if (value == true) {
+                case "heating_stop":
+                    if (value === true) {
                         await sendDataPointBool(entity, dataPoints.tvHeatingStop, 1);
                     } else {
                         await sendDataPointBool(entity, dataPoints.tvHeatingStop, 0);
@@ -6295,31 +6231,31 @@ const toZigbee2 = {
                 //     await sendDataPointValue(entity, dataPoints.tvBoostTime, 300);
                 //     await sendDataPointEnum(entity, dataPoints.tvBoostMode, (value) ? 0 : 1);
                 //     break;
-                case 'open_window_temperature':
+                case "open_window_temperature":
                     value = Math.round(value * 10);
                     await sendDataPointValue(entity, dataPoints.tvOpenWindowTemp, value);
                     break;
-                case 'preset':
+                case "preset":
                     await sendDataPointBool(entity, dataPoints.tvHeatingStop, 0);
                     await sendDataPointEnum(entity, dataPoints.tvMode, utils.getKey(tvThermostatPreset, value));
                     break;
                 default: // Unknown key
-                    logger.warning(`Unhandled key ${key}`, 'zhc:legacy:tz:moes_thermostat_tv');
+                    logger.warning(`Unhandled key ${key}`, "zhc:legacy:tz:moes_thermostat_tv");
             }
         },
     } satisfies Tz.Converter,
     tuya_light_wz5: {
-        key: ['color', 'color_temp', 'brightness', 'white_brightness'],
+        key: ["color", "color_temp", "brightness", "white_brightness"],
         convertSet: async (entity, key, value: any, meta) => {
-            if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
-            const separateWhite = meta.mapped.meta && meta.mapped.meta.separateWhite;
-            if (key == 'white_brightness' || (!separateWhite && key == 'brightness')) {
+            if (Array.isArray(meta.mapped)) throw new Error("Not supported for groups");
+            const separateWhite = meta.mapped.meta?.separateWhite;
+            if (key === "white_brightness" || (!separateWhite && key === "brightness")) {
                 // upscale to 1000
                 let newValue;
                 if (value >= 0 && value <= 255) {
                     newValue = utils.mapNumberRange(value, 0, 255, 0, 1000);
                 } else {
-                    throw new Error('Dimmer brightness is out of range 0..255');
+                    throw new Error("Dimmer brightness is out of range 0..255");
                 }
                 await sendDataPoints(
                     entity,
@@ -6327,11 +6263,12 @@ const toZigbee2 = {
                         dpValueFromEnum(dataPoints.silvercrestChangeMode, silvercrestModes.white),
                         dpValueFromIntValue(dataPoints.dimmerLevel, newValue),
                     ],
-                    'dataRequest',
+                    "dataRequest",
                 );
 
-                return {state: key == 'white_brightness' ? {white_brightness: value} : {brightness: value}};
-            } else if (key == 'color_temp') {
+                return {state: key === "white_brightness" ? {white_brightness: value} : {brightness: value}};
+            }
+            if (key === "color_temp") {
                 const [colorTempMin, colorTempMax] = [250, 454];
                 const preset: KeyValueAny = {
                     warmest: colorTempMax,
@@ -6340,8 +6277,7 @@ const toZigbee2 = {
                     cool: 250,
                     coolest: colorTempMin,
                 };
-                // @ts-expect-error ignore
-                if (typeof value === 'string' && isNaN(value)) {
+                if (typeof value === "string" && Number.isNaN(value)) {
                     const presetName = value.toLowerCase();
                     if (presetName in preset) {
                         value = preset[presetName];
@@ -6359,39 +6295,42 @@ const toZigbee2 = {
                         dpValueFromEnum(dataPoints.silvercrestChangeMode, silvercrestModes.white),
                         dpValueFromIntValue(dataPoints.silvercrestSetColorTemp, data),
                     ],
-                    'dataRequest',
+                    "dataRequest",
                 );
 
                 return {state: {color_temp: value}};
-            } else if (key == 'color' || (separateWhite && key == 'brightness')) {
+            }
+            if (key === "color" || (separateWhite && key === "brightness")) {
                 const newState: KeyValueAny = {};
-                if (key == 'brightness') {
+                if (key === "brightness") {
                     newState.brightness = value;
-                } else if (key == 'color') {
+                } else if (key === "color") {
                     newState.color = value;
-                    newState.color_mode = 'hs';
+                    newState.color_mode = "hs";
                 }
 
                 const make4sizedString = (v: string) => {
                     if (v.length >= 4) {
                         return v;
-                    } else if (v.length === 3) {
-                        return '0' + v;
-                    } else if (v.length === 2) {
-                        return '00' + v;
-                    } else if (v.length === 1) {
-                        return '000' + v;
-                    } else {
-                        return '0000';
                     }
+                    if (v.length === 3) {
+                        return `0${v}`;
+                    }
+                    if (v.length === 2) {
+                        return `00${v}`;
+                    }
+                    if (v.length === 1) {
+                        return `000${v}`;
+                    }
+                    return "0000";
                 };
 
                 const fillInHSB = (h: number, s: number, b: number, state: KeyValueAny) => {
                     // Define default values. Device expects leading zero in string.
                     const hsb = {
-                        h: '0168', // 360
-                        s: '03e8', // 1000
-                        b: '03e8', // 1000
+                        h: "0168", // 360
+                        s: "03e8", // 1000
+                        b: "03e8", // 1000
                     };
 
                     if (h) {
@@ -6400,7 +6339,7 @@ const toZigbee2 = {
                             h = 359;
                         }
                         hsb.h = make4sizedString(h.toString(16));
-                    } else if (state.color && state.color.hue) {
+                    } else if (state.color?.hue) {
                         hsb.h = make4sizedString(state.color.hue.toString(16));
                     }
 
@@ -6408,7 +6347,7 @@ const toZigbee2 = {
                     // The device expects a round number, otherwise everything breaks
                     if (s) {
                         hsb.s = make4sizedString(utils.mapNumberRange(s, 0, 100, 0, 1000).toString(16));
-                    } else if (state.color && state.color.saturation) {
+                    } else if (state.color?.saturation) {
                         hsb.s = make4sizedString(utils.mapNumberRange(state.color.saturation, 0, 100, 0, 1000).toString(16));
                     }
 
@@ -6424,7 +6363,7 @@ const toZigbee2 = {
                 const hsb = fillInHSB(
                     value.h || value.hue || null,
                     value.s || value.saturation || null,
-                    value.b || value.brightness || key == 'brightness' ? value : null,
+                    value.b || value.brightness || key === "brightness" ? value : null,
                     meta.state,
                 );
 
@@ -6438,118 +6377,118 @@ const toZigbee2 = {
                     dpValueFromStringBuffer(dataPoints.silvercrestSetColor, data),
                 ];
 
-                await sendDataPoints(entity, commands, 'dataRequest');
+                await sendDataPoints(entity, commands, "dataRequest");
 
                 return {state: newState};
             }
         },
     } satisfies Tz.Converter,
     ZMAM02_cover: {
-        key: ['state', 'position', 'mode', 'motor_direction', 'border', 'motor_working_mode'],
+        key: ["state", "position", "mode", "motor_direction", "border", "motor_working_mode"],
         options: [exposes.options.invert_cover()],
         convertSet: async (entity, key, value: any, meta) => {
-            if (key === 'position') {
+            if (key === "position") {
                 if (value >= 0 && value <= 100) {
                     const invert = isCoverInverted(meta.device.manufacturerName) ? !meta.options.invert_cover : meta.options.invert_cover;
 
                     value = invert ? 100 - value : value;
                     await sendDataPointValue(entity, dataPoints.coverPosition, value);
                 } else {
-                    throw new Error('Tuya_cover_control: Curtain motor position is out of range');
+                    throw new Error("Tuya_cover_control: Curtain motor position is out of range");
                 }
-            } else if (key === 'state') {
+            } else if (key === "state") {
                 const stateEnums = getCoverStateEnums(meta.device.manufacturerName);
-                logger.debug(`Using state enums for ${meta.device.manufacturerName}: ${JSON.stringify(stateEnums)}`, 'zhc:legacy:tz:zmam02');
+                logger.debug(`Using state enums for ${meta.device.manufacturerName}: ${JSON.stringify(stateEnums)}`, "zhc:legacy:tz:zmam02");
                 value = value.toLowerCase();
                 switch (value) {
-                    case 'close':
+                    case "close":
                         await sendDataPointEnum(entity, dataPoints.AM02Control, stateEnums.close);
                         break;
-                    case 'open':
+                    case "open":
                         await sendDataPointEnum(entity, dataPoints.AM02Control, stateEnums.open);
                         break;
-                    case 'stop':
+                    case "stop":
                         await sendDataPointEnum(entity, dataPoints.AM02Control, stateEnums.stop);
                         break;
                     default:
-                        throw new Error('ZMAM02: Invalid command received');
+                        throw new Error("ZMAM02: Invalid command received");
                 }
             }
             switch (key) {
-                case 'mode':
+                case "mode":
                     await sendDataPointEnum(entity, dataPoints.AM02Mode, utils.getKey(ZMLookups.AM02Mode, value));
                     break;
-                case 'motor_direction':
+                case "motor_direction":
                     await sendDataPointEnum(entity, dataPoints.AM02Direction, utils.getKey(ZMLookups.AM02Direction, value));
                     break;
-                case 'border':
+                case "border":
                     await sendDataPointEnum(entity, dataPoints.AM02Border, utils.getKey(ZMLookups.AM02Border, value));
                     break;
-                case 'motor_working_mode':
+                case "motor_working_mode":
                     await sendDataPointEnum(entity, dataPoints.AM02MotorWorkingMode, utils.getKey(ZMLookups.AM02MotorWorkingMode, value));
                     break;
             }
         },
     } satisfies Tz.Converter,
     tuya_smart_human_presense_sensor: {
-        key: ['radar_sensitivity', 'minimum_range', 'maximum_range', 'detection_delay', 'fading_time'],
+        key: ["radar_sensitivity", "minimum_range", "maximum_range", "detection_delay", "fading_time"],
         convertSet: async (entity, key, value: any, meta) => {
             switch (key) {
-                case 'radar_sensitivity':
+                case "radar_sensitivity":
                     await sendDataPointValue(entity, dataPoints.tshpscSensitivity, value);
                     break;
-                case 'minimum_range':
+                case "minimum_range":
                     await sendDataPointValue(entity, dataPoints.tshpsMinimumRange, value * 100);
                     break;
-                case 'maximum_range':
+                case "maximum_range":
                     await sendDataPointValue(entity, dataPoints.tshpsMaximumRange, value * 100);
                     break;
-                case 'detection_delay':
+                case "detection_delay":
                     await sendDataPointValue(entity, dataPoints.tshpsDetectionDelay, value * 10);
                     break;
-                case 'fading_time':
+                case "fading_time":
                     await sendDataPointValue(entity, dataPoints.tshpsFadingTime, value * 10);
                     break;
                 default: // Unknown Key
-                    logger.warning(`Unhandled Key ${key}`, 'zhc:legacy:tz:tuya_smart_human_presense_sensor');
+                    logger.warning(`Unhandled Key ${key}`, "zhc:legacy:tz:tuya_smart_human_presense_sensor");
             }
         },
     } satisfies Tz.Converter,
     ZG204ZL_lms: {
-        key: ['sensitivity', 'keep_time'],
+        key: ["sensitivity", "keep_time"],
         convertSet: async (entity, key, value, meta) => {
             switch (key) {
-                case 'sensitivity':
+                case "sensitivity":
                     // @ts-expect-error ignore
                     await sendDataPointEnum(entity, dataPoints.lmsSensitivity, {low: 0, medium: 1, high: 2}[value]);
                     break;
-                case 'keep_time':
+                case "keep_time":
                     // @ts-expect-error ignore
-                    await sendDataPointEnum(entity, dataPoints.lmsKeepTime, {'10': 0, '30': 1, '60': 2, '120': 3}[value]);
+                    await sendDataPointEnum(entity, dataPoints.lmsKeepTime, {"10": 0, "30": 1, "60": 2, "120": 3}[value]);
                     break;
                 default: // Unknown key
-                    logger.warning(`Unhandled SET key ${key}`, 'zhc:legacy:tz:zg204zl_lms');
+                    logger.warning(`Unhandled SET key ${key}`, "zhc:legacy:tz:zg204zl_lms");
             }
         },
         convertGet: async (entity, key, meta) => {
             switch (key) {
-                case 'sensitivity':
-                    await sendDataPointEnum(entity, dataPoints.lmsSensitivity, 0, 'dataQuery');
+                case "sensitivity":
+                    await sendDataPointEnum(entity, dataPoints.lmsSensitivity, 0, "dataQuery");
                     break;
-                case 'keep_time':
-                    await sendDataPointEnum(entity, dataPoints.lmsKeepTime, 0, 'dataQuery');
+                case "keep_time":
+                    await sendDataPointEnum(entity, dataPoints.lmsKeepTime, 0, "dataQuery");
                     break;
                 default: // Unknown key
-                    logger.warning(`Unhandled GET key ${key}`, 'zhc:legacy:tz:zg204zl_lms');
+                    logger.warning(`Unhandled GET key ${key}`, "zhc:legacy:tz:zg204zl_lms");
             }
         },
     } satisfies Tz.Converter,
     moes_cover: {
-        key: ['backlight', 'calibration', 'motor_reversal', 'state', 'position'],
+        key: ["backlight", "calibration", "motor_reversal", "state", "position"],
         options: [exposes.options.invert_cover()],
         convertSet: async (entity, key, value: any, meta) => {
             switch (key) {
-                case 'position':
+                case "position":
                     if (value >= 0 && value <= 100) {
                         const invert = !isCoverInverted(meta.device.manufacturerName) ? !meta.options.invert_cover : meta.options.invert_cover;
                         const position = invert ? 100 - value : value;
@@ -6557,24 +6496,24 @@ const toZigbee2 = {
                         return {state: {position: value}};
                     }
                     break;
-                case 'state': {
+                case "state": {
                     // @ts-expect-error ignore
                     const state = {OPEN: 0, STOP: 1, CLOSE: 2}[value.toUpperCase()];
                     await sendDataPointEnum(entity, dataPoints.state, state);
                     break;
                 }
-                case 'backlight': {
-                    const backlight = value.toUpperCase() === 'ON' ? true : false;
+                case "backlight": {
+                    const backlight = value.toUpperCase() === "ON";
                     await sendDataPointBool(entity, dataPoints.moesCoverBacklight, backlight);
                     return {state: {backlight: value}};
                 }
-                case 'calibration': {
-                    const calibration = value.toUpperCase() === 'ON' ? 0 : 1;
+                case "calibration": {
+                    const calibration = value.toUpperCase() === "ON" ? 0 : 1;
                     await sendDataPointEnum(entity, dataPoints.moesCoverCalibration, calibration);
                     break;
                 }
-                case 'motor_reversal': {
-                    const motorReversal = value.toUpperCase() === 'ON' ? 1 : 0;
+                case "motor_reversal": {
+                    const motorReversal = value.toUpperCase() === "ON" ? 1 : 0;
                     await sendDataPointEnum(entity, dataPoints.moesCoverMotorReversal, motorReversal);
                     return {state: {motor_reversal: value}};
                 }
@@ -6583,12 +6522,12 @@ const toZigbee2 = {
     } satisfies Tz.Converter,
     hoch_din: {
         key: [
-            'state',
-            'child_lock',
-            'countdown_timer',
-            'power_on_behavior',
-            'trip',
-            'clear_device_data',
+            "state",
+            "child_lock",
+            "countdown_timer",
+            "power_on_behavior",
+            "trip",
+            "clear_device_data",
             /* TODO: Add the below keys when toZigbee converter work has been completed
             'voltage_setting',
             'current_setting',
@@ -6596,26 +6535,31 @@ const toZigbee2 = {
             'leakage_current_setting'*/
         ],
         convertSet: async (entity, key, value: any, meta) => {
-            if (key === 'state') {
-                await sendDataPointBool(entity, dataPoints.state, value === 'ON');
+            if (key === "state") {
+                await sendDataPointBool(entity, dataPoints.state, value === "ON");
                 return {state: {state: value}};
-            } else if (key === 'child_lock') {
-                await sendDataPointBool(entity, dataPoints.hochChildLock, value === 'ON');
+            }
+            if (key === "child_lock") {
+                await sendDataPointBool(entity, dataPoints.hochChildLock, value === "ON");
                 return {state: {child_lock: value}};
-            } else if (key === 'countdown_timer') {
+            }
+            if (key === "countdown_timer") {
                 await sendDataPointValue(entity, dataPoints.hochCountdownTimer, value);
                 return {state: {countdown_timer: value}};
-            } else if (key === 'power_on_behavior') {
+            }
+            if (key === "power_on_behavior") {
                 const lookup: KeyValueAny = {off: 0, on: 1, previous: 2};
-                await sendDataPointEnum(entity, dataPoints.hochRelayStatus, lookup[value], 'sendData');
+                await sendDataPointEnum(entity, dataPoints.hochRelayStatus, lookup[value], "sendData");
                 return {state: {power_on_behavior: value}};
-            } else if (key === 'trip') {
-                if (value === 'clear') {
-                    await sendDataPointBool(entity, dataPoints.hochLocking, true, 'sendData');
+            }
+            if (key === "trip") {
+                if (value === "clear") {
+                    await sendDataPointBool(entity, dataPoints.hochLocking, true, "sendData");
                 }
-                return {state: {trip: 'clear'}};
-            } else if (key === 'clear_device_data') {
-                await sendDataPointBool(entity, dataPoints.hochClearEnergy, true, 'sendData');
+                return {state: {trip: "clear"}};
+            }
+            if (key === "clear_device_data") {
+                await sendDataPointBool(entity, dataPoints.hochClearEnergy, true, "sendData");
                 /* TODO: Release the below with other toZigbee converters for device composites
             } else if (key === 'temperature_setting') {
                 if (value.over_temperature_threshold && value.over_temperature_trip && value.over_temperature_alarm){
@@ -6637,25 +6581,16 @@ const toZigbee2 = {
     } satisfies Tz.Converter,
 };
 
-const thermostatControlSequenceOfOperations: {[s: number]: string} = {
-    0: 'cooling only',
-    1: 'cooling with reheat',
-    2: 'heating only',
-    3: 'heating with reheat',
-    4: 'cooling and heating 4-pipes',
-    5: 'cooling and heating 4-pipes with reheat',
-};
-
 const thermostatSystemModes: {[s: number]: string} = {
-    0: 'off',
-    1: 'auto',
-    3: 'cool',
-    4: 'heat',
-    5: 'emergency heating',
-    6: 'precooling',
-    7: 'fan_only',
-    8: 'dry',
-    9: 'Sleep',
+    0: "off",
+    1: "auto",
+    3: "cool",
+    4: "heat",
+    5: "emergency heating",
+    6: "precooling",
+    7: "fan_only",
+    8: "dry",
+    9: "Sleep",
 };
 
 const toZigbee = {...toZigbee1, ...toZigbee2};
@@ -6665,7 +6600,6 @@ export {
     fromZigbee,
     toZigbee as tz,
     toZigbee,
-    thermostatControlSequenceOfOperations,
     thermostatSystemModes,
     tuyaHPSCheckingResult,
     thermostatSystemModes2,
@@ -6675,39 +6609,6 @@ export {
     giexWaterValve,
     msLookups,
     ZMLookups,
-    firstDpValue,
-    dpValueFromEnum,
     dataPoints,
-    dpValueFromBool,
-    dpValueFromIntValue,
-    dpValueFromRaw,
-    dpValueFromBitmap,
-    dpValueFromStringBuffer,
     moesSwitch,
-    getDataValue,
-    getTypeName,
-    logUnexpectedDataPoint,
-    logUnexpectedDataType,
-    getDataPointNames,
-    getCoverStateEnums,
-    convertDecimalValueTo4ByteHexArray,
-    sendDataPoints,
-    convertStringToHexArray,
-    sendDataPoint,
-    sendDataPointValue,
-    sendDataPointBool,
-    sendDataPointEnum,
-    sendDataPointRaw,
-    sendDataPointBitmap,
-    sendDataPointStringBuffer,
-    convertRawToCycleTimer,
-    logDataPoint,
-    convertWeekdaysTo1ByteHexArray,
-    convertRawToTimer,
-    logUnexpectedDataValue,
-    isCoverInverted,
-    convertDecimalValueTo2ByteHexArray,
-    convertTimeTo2ByteHexArray,
-    getMetaValue,
-    tuyaGetDataValue,
 };

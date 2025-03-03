@@ -1,11 +1,11 @@
-import baseDefinitions from '../src/devices/index';
-import {Definition, prepareDefinition} from '../src/index';
-import {access, Numeric} from '../src/lib/exposes';
-import * as sunricher from '../src/lib/sunricher';
-import {tz} from '../src/lib/tuya';
-import {COLORTEMP_RANGE_MISSING_ALLOWED} from './colortemp_range_missing_allowed';
+import baseDefinitions from "../src/devices/index";
+import {type Definition, prepareDefinition} from "../src/index";
+import {Numeric, access} from "../src/lib/exposes";
+import * as sunricher from "../src/lib/sunricher";
+import {tz} from "../src/lib/tuya";
+import {COLORTEMP_RANGE_MISSING_ALLOWED} from "./colortemp_range_missing_allowed";
 
-describe('Check definitions', () => {
+describe("Check definitions", () => {
     const definitions: Definition[] = [];
 
     beforeAll(() => {
@@ -19,7 +19,7 @@ describe('Check definitions', () => {
         }
     });
 
-    it('Exposes access matches toZigbee', () => {
+    it("Exposes access matches toZigbee", () => {
         for (const definition of definitions) {
             // tuya.tz.datapoints is generic, keys cannot be used to determine expose access
             if (definition.toZigbee.includes(tz.datapoints)) return;
@@ -28,7 +28,7 @@ describe('Check definitions', () => {
             if (definition.toZigbee.includes(sunricher.tz.setModel)) return;
 
             const toCheck = [];
-            const exposes = typeof definition.exposes == 'function' ? definition.exposes(undefined, undefined) : definition.exposes;
+            const exposes = typeof definition.exposes === "function" ? definition.exposes(undefined, undefined) : definition.exposes;
 
             for (const expose of exposes) {
                 if (expose.access !== undefined) {
@@ -49,20 +49,20 @@ describe('Check definitions', () => {
                     (item) => item.key.includes(property) && (!item.endpoints || (expose.endpoint && item.endpoints.includes(expose.endpoint))),
                 );
 
-                if ((expose.access & access.SET) != (toZigbee && toZigbee.convertSet ? access.SET : 0)) {
-                    throw new Error(`${definition.model} - ${property}, supports set: ${!!(toZigbee && toZigbee.convertSet)}`);
+                if ((expose.access & access.SET) !== (toZigbee?.convertSet ? access.SET : 0)) {
+                    throw new Error(`${definition.model} - ${property}, supports set: ${!!(toZigbee?.convertSet)}`);
                 }
 
-                if ((expose.access & access.GET) != (toZigbee && toZigbee.convertGet ? access.GET : 0)) {
-                    throw new Error(`${definition.model} - ${property} (${expose.name}), supports get: ${!!(toZigbee && toZigbee.convertGet)}`);
+                if ((expose.access & access.GET) !== (toZigbee?.convertGet ? access.GET : 0)) {
+                    throw new Error(`${definition.model} - ${property} (${expose.name}), supports get: ${!!(toZigbee?.convertGet)}`);
                 }
             }
         }
     });
 
-    it('Exposes properties are unique', () => {
+    it("Exposes properties are unique", () => {
         for (const definition of definitions) {
-            const exposes = typeof definition.exposes == 'function' ? definition.exposes(undefined, undefined) : definition.exposes;
+            const exposes = typeof definition.exposes === "function" ? definition.exposes(undefined, undefined) : definition.exposes;
             const found: string[] = [];
 
             for (const expose of exposes) {
@@ -75,12 +75,12 @@ describe('Check definitions', () => {
         }
     });
 
-    it('Check if all exposes have a color temp range', () => {
+    it("Check if all exposes have a color temp range", () => {
         for (const definition of definitions) {
-            const exposes = typeof definition.exposes == 'function' ? definition.exposes(undefined, undefined) : definition.exposes;
+            const exposes = typeof definition.exposes === "function" ? definition.exposes(undefined, undefined) : definition.exposes;
 
-            for (const expose of exposes.filter((e) => e.type === 'light')) {
-                const colorTemp = expose.features.find((f) => f.name === 'color_temp');
+            for (const expose of exposes.filter((e) => e.type === "light")) {
+                const colorTemp = expose.features.find((f) => f.name === "color_temp");
 
                 if (
                     colorTemp &&
@@ -96,16 +96,16 @@ describe('Check definitions', () => {
         }
     });
 
-    it('Number exposes with set access should have a range', () => {
+    it("Number exposes with set access should have a range", () => {
         for (const definition of definitions) {
             if (definition.exposes) {
-                const exposes = typeof definition.exposes == 'function' ? definition.exposes(undefined, undefined) : definition.exposes;
+                const exposes = typeof definition.exposes === "function" ? definition.exposes(undefined, undefined) : definition.exposes;
 
                 for (const expose of exposes) {
-                    if (expose.type == 'numeric' && expose.access & access.SET) {
+                    if (expose.type === "numeric" && expose.access & access.SET) {
                         assert(expose instanceof Numeric);
 
-                        if (expose.value_min == undefined || expose.value_max == undefined) {
+                        if (expose.value_min === undefined || expose.value_max === undefined) {
                             throw new Error(`Value min or max unknown for ${expose.property}`);
                         }
                     }

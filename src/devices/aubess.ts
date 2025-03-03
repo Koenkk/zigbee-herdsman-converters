@@ -1,6 +1,6 @@
-import * as tuya from '../lib/tuya';
-import {DefinitionWithExtend} from '../lib/types';
-import * as zosung from '../lib/zosung';
+import * as tuya from "../lib/tuya";
+import type {DefinitionWithExtend} from "../lib/types";
+import * as zosung from "../lib/zosung";
 
 const fzZosung = zosung.fzZosung;
 const tzZosung = zosung.tzZosung;
@@ -8,10 +8,10 @@ const ez = zosung.presetsZosung;
 
 export const definitions: DefinitionWithExtend[] = [
     {
-        fingerprint: tuya.fingerprint('TS1201', ['_TZ3290_acv1iuslxi3shaaj']),
-        model: 'ZXZIR-02',
-        vendor: 'Aubess',
-        description: 'Universal smart IR remote control',
+        fingerprint: tuya.fingerprint("TS1201", ["_TZ3290_acv1iuslxi3shaaj"]),
+        model: "ZXZIR-02",
+        vendor: "Aubess",
+        description: "Universal smart IR remote control",
         fromZigbee: [
             fzZosung.zosung_send_ir_code_00,
             fzZosung.zosung_send_ir_code_01,

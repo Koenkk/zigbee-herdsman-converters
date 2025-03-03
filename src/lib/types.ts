@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-namespace */
 
-import type {Models as ZHModels} from 'zigbee-herdsman';
-import type {Header as ZHZclHeader} from 'zigbee-herdsman/dist/zspec/zcl';
-import type {FrameControl} from 'zigbee-herdsman/dist/zspec/zcl/definition/tstype';
+import type {Models as ZHModels} from "zigbee-herdsman";
+import type {Header as ZHZclHeader} from "zigbee-herdsman/dist/zspec/zcl";
+import type {FrameControl} from "zigbee-herdsman/dist/zspec/zcl/definition/tstype";
 
-import * as exposes from './exposes';
+import type * as exposes from "./exposes";
 
 export interface Logger {
     debug: (messageOrLambda: string | (() => string), namespace: string) => void;
@@ -29,14 +29,14 @@ export interface KeyValueAny {
 }
 export type Publish = (payload: KeyValue) => void;
 export type OnEventType =
-    | 'start'
-    | 'stop'
-    | 'message'
-    | 'deviceJoined'
-    | 'deviceInterview'
-    | 'deviceAnnounce'
-    | 'deviceNetworkAddressChanged'
-    | 'deviceOptionsChanged';
+    | "start"
+    | "stop"
+    | "message"
+    | "deviceJoined"
+    | "deviceInterview"
+    | "deviceAnnounce"
+    | "deviceNetworkAddressChanged"
+    | "deviceOptionsChanged";
 export type Access = 0b001 | 0b010 | 0b100 | 0b011 | 0b101 | 0b111;
 export type Expose =
     | exposes.Numeric
@@ -55,12 +55,12 @@ export type Option = exposes.Numeric | exposes.Binary | exposes.Composite | expo
 export interface Fingerprint {
     applicationVersion?: number;
     manufacturerID?: number;
-    type?: 'EndDevice' | 'Router';
+    type?: "EndDevice" | "Router";
     dateCode?: string;
     hardwareVersion?: number;
     manufacturerName?: string;
     modelID?: string;
-    powerSource?: 'Battery' | 'Mains (single phase)';
+    powerSource?: "Battery" | "Mains (single phase)";
     softwareBuildID?: string;
     stackVersion?: number;
     zclVersion?: number;
@@ -90,7 +90,7 @@ export type BatteryLinearVoltage = {
     vOffset?: number;
 };
 
-export type BatteryNonLinearVoltage = '3V_2100' | '3V_1500_2800';
+export type BatteryNonLinearVoltage = "3V_2100" | "3V_1500_2800";
 
 export interface DefinitionMeta {
     separateWhite?: boolean;
@@ -134,7 +134,7 @@ export interface DefinitionMeta {
      * @defaultValue 10000
      */
     timeout?: number;
-    tuyaSendCommand?: 'sendData' | 'dataRequest';
+    tuyaSendCommand?: "sendData" | "dataRequest";
     /**
      * Set cover state based on tilt
      */
@@ -236,14 +236,14 @@ export type OnEvent = (
 ) => Promise<void>;
 
 export interface ModernExtend {
-    fromZigbee?: Definition['fromZigbee'];
-    toZigbee?: Definition['toZigbee'];
+    fromZigbee?: Definition["fromZigbee"];
+    toZigbee?: Definition["toZigbee"];
     exposes?: (Expose | DefinitionExposesFunction)[];
-    configure?: Definition['configure'][];
-    meta?: Definition['meta'];
-    ota?: Definition['ota'];
-    onEvent?: Definition['onEvent'];
-    endpoint?: Definition['endpoint'];
+    configure?: Definition["configure"][];
+    meta?: Definition["meta"];
+    ota?: Definition["ota"];
+    onEvent?: Definition["onEvent"][];
+    endpoint?: Definition["endpoint"];
     isModernExtend: true;
 }
 
@@ -328,7 +328,9 @@ export namespace Tz {
         state: KeyValue;
         endpoint_name: string | undefined;
         membersState?: {[s: string]: KeyValue};
+        publish: Publish;
     }
+    // biome-ignore lint/suspicious/noConfusingVoidType: allow for converters
     export type ConvertSetResult = {state?: KeyValue; membersState?: {[s: string]: KeyValue}} | void;
     export interface Converter {
         key?: string[];
@@ -421,30 +423,30 @@ export namespace Ota {
         raw: Buffer;
     }
     export interface ImageInfo {
-        imageType: ImageHeader['imageType'];
-        fileVersion: ImageHeader['fileVersion'];
-        manufacturerCode: ImageHeader['manufacturerCode'];
+        imageType: ImageHeader["imageType"];
+        fileVersion: ImageHeader["fileVersion"];
+        manufacturerCode: ImageHeader["manufacturerCode"];
     }
     export interface ImageMeta {
-        fileVersion: ImageHeader['fileVersion'];
-        fileSize?: ImageHeader['totalImageSize'];
+        fileVersion: ImageHeader["fileVersion"];
+        fileSize?: ImageHeader["totalImageSize"];
         url: string;
         force?: boolean;
         sha512?: string;
-        otaHeaderString?: ImageHeader['otaHeaderString'];
-        hardwareVersionMin?: ImageHeader['minimumHardwareVersion'];
-        hardwareVersionMax?: ImageHeader['maximumHardwareVersion'];
+        otaHeaderString?: ImageHeader["otaHeaderString"];
+        hardwareVersionMin?: ImageHeader["minimumHardwareVersion"];
+        hardwareVersionMax?: ImageHeader["maximumHardwareVersion"];
     }
     export interface ZigbeeOTAImageMeta extends ImageInfo, ImageMeta {
         fileName: string;
         modelId?: string;
         manufacturerName?: string[];
-        minFileVersion?: ImageHeader['fileVersion'];
-        maxFileVersion?: ImageHeader['fileVersion'];
+        minFileVersion?: ImageHeader["fileVersion"];
+        maxFileVersion?: ImageHeader["fileVersion"];
         originalUrl?: string;
         releaseNotes?: string;
     }
-    export type ExtraMetas = Pick<ZigbeeOTAImageMeta, 'modelId' | 'otaHeaderString' | 'hardwareVersionMin' | 'hardwareVersionMax'> & {
+    export type ExtraMetas = Pick<ZigbeeOTAImageMeta, "modelId" | "otaHeaderString" | "hardwareVersionMin" | "hardwareVersionMax"> & {
         manufacturerName?: string;
         suppressElementImageParseFailure?: boolean;
     };
@@ -459,10 +461,10 @@ export namespace Reporting {
 }
 
 export type LevelConfigFeatures = (
-    | 'on_off_transition_time'
-    | 'on_transition_time'
-    | 'off_transition_time'
-    | 'execute_if_off'
-    | 'on_level'
-    | 'current_level_startup'
+    | "on_off_transition_time"
+    | "on_transition_time"
+    | "off_transition_time"
+    | "execute_if_off"
+    | "on_level"
+    | "current_level_startup"
 )[];
