@@ -6384,7 +6384,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.smoke(),
             e.battery(),
             tuya.exposes.silence(),
-            tuya.exposes.selfTest(),
+            e.test(),
             e.numeric("smoke_concentration", ea.STATE).withUnit("ppm").withDescription("Parts per million of smoke detected"),
             e.binary("device_fault", ea.STATE, true, false).withDescription("Indicates a fault with the device"),
         ],
