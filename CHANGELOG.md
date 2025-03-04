@@ -1,5 +1,17 @@
 # Changelog
 
+## [23.4.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.3.0...v23.4.0) (2025-03-04)
+
+
+### Features
+
+* **add:** 929003809501 https://github.com/Koenkk/zigbee2mqtt/issues/26365 ([4b7c15c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4b7c15c91a5f8582c18ab7a4d46123a1db45d062))
+
+
+### Bug Fixes
+
+* **detect:** Detect `JETSTROM 6060 JP` as IKEA L2207 https://github.com/Koenkk/zigbee2mqtt/issues/26594 ([9a8a44c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9a8a44c620beaa5773c4c4dc2233b1263671f416))
+
 ## [23.3.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.2.0...v23.3.0) (2025-03-03)
 
 
