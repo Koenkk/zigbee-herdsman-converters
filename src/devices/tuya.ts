@@ -871,7 +871,7 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [
             {vendor: "Tesla Smart", model: "TSL-SEN-SMOKE"},
             {vendor: "Dongguan Daying Electornics Technology", model: "YG400A"},
-            tuya.whitelabel("Tuya", "TS0205_smoke_2", "Smoke sensor", ["_TZ3210_up3pngle"]),
+            tuya.whitelabel("Tuya", "TS0205_smoke_2", "Optical smoke sensor (model YG500A on the PCB)", ["_TZ3210_up3pngle"]),
             tuya.whitelabel("Nedis", "ZBDS10WT", "Smoke sensor", ["_TYZB01_wqcac7lo"]),
         ],
         // Configure battery % fails
@@ -1211,7 +1211,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_vvmbj46n", "_TZE284_vvmbj46n"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_vvmbj46n", "_TZE284_vvmbj46n", "_TZE200_w6n8jeuu"]),
         model: "ZTH05Z",
         vendor: "Tuya",
         description: "Temperature and humidity sensor",
@@ -1451,10 +1451,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.numeric("alarm_time", ea.STATE_SET).withValueMin(1).withValueMax(180).withValueStep(1).withUnit("s").withDescription("Alarm time"),
             e.binary("preheat", ea.STATE, true, false).withDescription("Indicates sensor preheat is active"),
         ],
-        whiteLabel: [
-            tuya.whitelabel("DYGSM", "DY-RQ500A", "Gas sensor", ["_TZE204_zougpkpy"]),
-            tuya.whitelabel("DYGSM", "DY-RQ500A", "Gas sensor", ["_TZE204_chbyv06x"]),
-        ],
+        whiteLabel: [tuya.whitelabel("DYGSM", "DY-RQ500A", "Gas sensor", ["_TZE204_zougpkpy", "_TZE204_chbyv06x", "_TZE284_chbyv06x"])],
         meta: {
             tuyaDatapoints: [
                 [1, "gas", tuya.valueConverter.trueFalseEnum0],
@@ -5471,7 +5468,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withLocalTemperature(ea.STATE)
                 .withPreset(["schedule", "holiday", "manual", "comfort", "eco"])
                 .withSystemMode(["off", "heat"], ea.STATE)
-                .withLocalTemperatureCalibration(-12, 12, 0.5, ea.STATE_SET),
+                .withLocalTemperatureCalibration(-12, 12, 1, ea.STATE_SET),
             ...tuya.exposes.scheduleAllDays(ea.STATE_SET, "HH:MM/C HH:MM/C HH:MM/C HH:MM/C HH:MM/C HH:MM/C"),
             e.holiday_temperature().withValueMin(5).withValueMax(45),
             e.comfort_temperature().withValueMin(5).withValueMax(45),
@@ -6173,6 +6170,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("PSMART", "T440", "Smart wallsocket (with power monitoring)", ["_TZ3000_y4ona9me"]),
             tuya.whitelabel("Nous", "A6Z", "Outdoor smart socket", ["_TZ3000_266azbg3"]),
             tuya.whitelabel("Nedis", "ZBPO130FWT", "Outdoor smart plug (with power monitoring)", ["_TZ3000_3ias4w4o"]),
+            tuya.whitelabel("Nous", "A9Z", "Smart ZigBee Socket", ["_TZ3210_ddigca5n"]),
         ],
         ota: true,
         extend: [
@@ -8157,7 +8155,7 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [
             tuya.whitelabel("Tongou", "TO-Q-SY1-JZT", "Din smart relay (with power monitoring via polling)", ["_TZ3000_qeuvnohg"]),
             tuya.whitelabel("TOMZN", "TOB9Z-63M", "Din smart relay (with power monitoring via polling)", ["_TZ3000_6l1pjfqe"]),
-            tuya.whitelabel("Nous", "D2Z", "Din smart relay (with power monitoring via polling)", ["_TZ3000_2iiimqs9"]),
+            tuya.whitelabel("Nous", "DZ", "DIN Switch (with power monitoring via polling)", ["_TZ3000_2iiimqs9"]),
         ],
         ota: true,
         configure: async (device, coordinatorEndpoint) => {
@@ -13439,6 +13437,195 @@ export const definitions: DefinitionWithExtend[] = [
             respondToMcuVersionResponse: false,
             queryIntervalSeconds: 10,
         }),
+    },
+    {
+        fingerprint: [{modelID: "TS0601", manufacturerName: "_TZE284_6ocnqlhn"}],
+        model: "TO-Q-SYS-J2T",
+        vendor: "Tongou",
+        description: "Din rail smart meter",
+        fromZigbee: [tuya.fz.datapoints, tuya.fz.gateway_connection_status],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEvent({respondToMcuVersionResponse: false, queryIntervalSeconds: 10}),
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+            // Required to get the device to start reporting
+            await device.getEndpoint(1).command("manuSpecificTuya", "dataQuery", {});
+        },
+        exposes: [
+            tuya.exposes.switch(),
+            e.power(),
+            e.current(),
+            e.voltage(),
+            e.energy(),
+            e.ac_frequency(),
+            e.power_factor().withUnit("%"),
+            e.numeric("temperature", ea.STATE).withUnit("°C").withDescription("Current temperature"),
+            e
+                .enum("event", ea.STATE, [
+                    "normal",
+                    "over_current_trip",
+                    "over_power_trip",
+                    "high_temp_trip",
+                    "over_voltage_trip",
+                    "under_voltage_trip",
+                    "over_current_alarm",
+                    "over_power_alarm",
+                    "high_temp_alarm",
+                    "over_voltage_alarm",
+                    "under_voltage_alarm",
+                    "remote_on",
+                    "remote_off",
+                    "manual_on",
+                    "manual_off",
+                    "leakage_trip",
+                    "leakage_alarm",
+                    "restore_default",
+                    "automatic_closing",
+                    "electricity_shortage",
+                    "electricity_shortage_alarm",
+                    "timing_switch_On",
+                    "timing_switch_off",
+                ])
+                .withDescription("Last event of the device"),
+            e.enum("over_current_setting", ea.STATE_SET, ["Ignore", "Alarm", "Trip"]).withDescription("Over current setting"),
+            e
+                .numeric("over_current_threshold", ea.STATE_SET)
+                .withUnit("A")
+                .withDescription("Setup the value on the device")
+                .withValueMin(1)
+                .withValueMax(50),
+            e.enum("over_voltage_setting", ea.STATE_SET, ["Ignore", "Alarm", "Trip"]).withDescription("Over voltage setting"),
+            e
+                .numeric("over_voltage_threshold", ea.STATE_SET)
+                .withUnit("V")
+                .withDescription("Setup value on the device")
+                .withValueMin(240)
+                .withValueMax(295),
+            e.enum("under_voltage_setting", ea.STATE_SET, ["Ignore", "Alarm", "Trip"]).withDescription("Under voltage setting"),
+            e
+                .numeric("under_voltage_threshold", ea.STATE_SET)
+                .withUnit("V")
+                .withDescription("Setup value on the device")
+                .withValueMin(90)
+                .withValueMax(220),
+            e.enum("temperature_setting", ea.STATE_SET, ["Ignore", "Alarm", "Trip"]).withDescription("Temperature setting"),
+            e
+                .numeric("temperature_threshold", ea.STATE_SET)
+                .withUnit("°C")
+                .withDescription("Setup value on the device")
+                .withValueMin(-25)
+                .withValueMax(80),
+            e.enum("over_power_setting", ea.STATE_SET, ["Ignore", "Alarm", "Trip"]).withDescription("Over power setting"),
+            e
+                .numeric("over_power_threshold", ea.STATE_SET)
+                .withUnit("W")
+                .withDescription("Setup value on the device")
+                .withValueMin(1000)
+                .withValueMax(26000),
+            e.numeric("test1", ea.STATE), // ?
+            e.numeric("test5", ea.STATE), // ?
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "energy", tuya.valueConverter.divideBy100],
+                [6, null, tuya.valueConverter.phaseVariant2],
+                [13, "test1", tuya.valueConverter.raw], // ?
+                [15, "leakage_current", tuya.valueConverter.raw],
+                [16, "state", tuya.valueConverter.onOff],
+                [32, "ac_frequency", tuya.valueConverter.divideBy100],
+                [50, "power_factor", tuya.valueConverter.raw],
+                [
+                    102,
+                    "over_voltage_setting",
+                    tuya.valueConverterBasic.lookup({
+                        Ignore: tuya.enum(0),
+                        Alarm: tuya.enum(1),
+                        Trip: tuya.enum(2),
+                    }),
+                ],
+                [
+                    103,
+                    "under_voltage_setting",
+                    tuya.valueConverterBasic.lookup({
+                        Ignore: tuya.enum(0),
+                        Alarm: tuya.enum(1),
+                        Trip: tuya.enum(2),
+                    }),
+                ],
+                [
+                    104,
+                    "over_current_setting",
+                    tuya.valueConverterBasic.lookup({
+                        Ignore: tuya.enum(0),
+                        Alarm: tuya.enum(1),
+                        Trip: tuya.enum(2),
+                    }),
+                ],
+                [
+                    105,
+                    "over_power_setting",
+                    tuya.valueConverterBasic.lookup({
+                        Ignore: tuya.enum(0),
+                        Alarm: tuya.enum(1),
+                        Trip: tuya.enum(2),
+                    }),
+                ],
+                [
+                    107,
+                    "temperature_setting",
+                    tuya.valueConverterBasic.lookup({
+                        Ignore: tuya.enum(0),
+                        Alarm: tuya.enum(1),
+                        Trip: tuya.enum(2),
+                    }),
+                ],
+                [
+                    108,
+                    "leakage_setting",
+                    tuya.valueConverterBasic.lookup({
+                        Ignore: tuya.enum(0),
+                        Alarm: tuya.enum(1),
+                        Trip: tuya.enum(2),
+                    }),
+                ],
+                [
+                    110,
+                    "event",
+                    tuya.valueConverterBasic.lookup({
+                        normal: 0,
+                        over_current_trip: 1,
+                        over_power_trip: 2,
+                        high_temp_trip: 3,
+                        over_voltage_trip: 4,
+                        under_voltage_trip: 5,
+                        over_current_alarm: 6,
+                        over_power_alarm: 7,
+                        high_temp_alarm: 8,
+                        over_voltage_alarm: 9,
+                        under_voltage_alarm: 10,
+                        remote_on: 11,
+                        remote_off: 12,
+                        manual_on: 13,
+                        manual_off: 14,
+                        leakage_trip: 15,
+                        leakage_alarm: 16,
+                        restore_default: 17,
+                        automatic_closing: 18,
+                        electricity_shortage: 19,
+                        electricity_shortage_alarm: 20,
+                        timing_switch_on: 21,
+                        timing_switch_off: 22,
+                    }),
+                ],
+                [114, "over_current_threshold", tuya.valueConverter.raw],
+                [115, "over_voltage_threshold", tuya.valueConverter.raw],
+                [116, "under_voltage_threshold", tuya.valueConverter.raw],
+                [118, "temperature_threshold", tuya.valueConverter.divideBy10],
+                [119, "over_power_threshold", tuya.valueConverter.raw],
+                [125, "test5", tuya.valueConverter.raw], // ?
+                [131, "temperature", tuya.valueConverter.divideBy10],
+            ],
+        },
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_l6llgoxq"]),

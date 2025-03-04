@@ -869,6 +869,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SNZB-02D",
         vendor: "SONOFF",
         description: "Temperature and humidity sensor with screen",
+        ota: true,
         extend: [
             m.deviceAddCustomCluster("customSonoffSnzb02d", {
                 ID: 0xfc11,
@@ -1235,6 +1236,7 @@ export const definitions: DefinitionWithExtend[] = [
                     valveMotorRunningVoltage: {ID: 0x6007, type: Zcl.DataType.UINT16},
                     valveOpeningDegree: {ID: 0x600b, type: Zcl.DataType.UINT8},
                     valveClosingDegree: {ID: 0x600c, type: Zcl.DataType.UINT8},
+                    tempAccuracy: {ID: 0x6011, type: Zcl.DataType.INT16},
                     externalTemperatureInput: {
                         ID: 0x600d,
                         type: Zcl.DataType.INT16,
@@ -1374,6 +1376,24 @@ export const definitions: DefinitionWithExtend[] = [
                 valueMax: 100.0,
                 valueStep: 1.0,
                 unit: "%",
+            }),
+            m.numeric({
+                name: "temperature_accuracy",
+                cluster: "customSonoffTrvzb",
+                attribute: "tempAccuracy",
+                entityCategory: "config",
+                description:
+                    "Temperature control accuracy. " +
+                    "The range is -0.2 ~ -1°C, with an interval of 0.2, and the default is -1. " +
+                    "If the temperature control accuracy is selected as -1°C (default value) and the target temperature is 26 degrees, " +
+                    "then TRVZB will close the valve when the room temperature reaches 26 degrees and open the valve at 25 degrees. " +
+                    "If -0.4°C is chosen as the temperature control accuracy, then the valve will close when the room temperature reaches 26 degrees and open at 25.6 degrees." +
+                    "Note: Only version v1.3.0 or higher is supported.",
+                valueMin: -1.0,
+                valueMax: -0.2,
+                valueStep: 0.2,
+                unit: "°C",
+                scale: 100,
             }),
             sonoffExtend.weeklySchedule(),
             m.customTimeResponse("1970_UTC"),

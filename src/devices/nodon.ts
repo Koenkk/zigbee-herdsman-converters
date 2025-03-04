@@ -170,7 +170,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        zigbeeModel: ["SIN-4-RS-20"],
+        zigbeeModel: ["SIN-4-RS-20", "SIN-4-UNK"],
         model: "SIN-4-RS-20",
         vendor: "NodOn",
         description: "Roller shutter relay switch",
