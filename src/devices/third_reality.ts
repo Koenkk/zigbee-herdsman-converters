@@ -152,7 +152,9 @@ export const definitions: DefinitionWithExtend[] = [
         model: "3RSMR01067Z",
         vendor: "Third Reality",
         description: "Smart motion sensor R1",
+        fromZigbee: [fz.ias_occupancy_alarm_1],
         ota: true,
+        exposes: [e.occupancy()],
         extend: [
             m.battery(),
             m.deviceAddCustomCluster("3rRadarSpecialCluster", {
