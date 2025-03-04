@@ -852,6 +852,7 @@ const sunricherExtend = {
 };
 
 const fzLocal = {
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     sunricher_SRZGP2801K45C: {
         cluster: "greenPower",
         type: ["commandNotification", "commandCommissioningNotification"],

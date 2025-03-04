@@ -2245,6 +2245,7 @@ export const livolo_cover_options: Tz.Converter = {
         }
     },
 };
+// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const ZigUP_lock: Tz.Converter = {
     key: ["led"],
     convertSet: async (entity, key, value, meta) => {
@@ -2252,6 +2253,7 @@ export const ZigUP_lock: Tz.Converter = {
         await entity.command("closuresDoorLock", utils.getFromLookup(value, lookup), {pincodevalue: ""});
     },
 };
+// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const LS21001_alert_behaviour: Tz.Converter = {
     key: ["alert_behaviour"],
     convertSet: async (entity, key, value, meta) => {
@@ -2264,12 +2266,14 @@ export const LS21001_alert_behaviour: Tz.Converter = {
         return {state: {alert_behaviour: value}};
     },
 };
+// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const STS_PRS_251_beep: Tz.Converter = {
     key: ["beep"],
     convertSet: async (entity, key, value, meta) => {
         await entity.command("genIdentify", "identify", {identifytime: value}, utils.getOptions(meta.mapped, entity));
     },
 };
+// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const SPZ01_power_outage_memory: Tz.Converter = {
     key: ["power_outage_memory"],
     convertSet: async (entity, key, value, meta) => {
@@ -2620,6 +2624,7 @@ export const danfoss_multimaster_role: Tz.Converter = {
         await entity.read("haDiagnostic", ["danfossMultimasterRole"], manufacturerOptions.danfoss);
     },
 };
+// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const ZMCSW032D_cover_position: Tz.Converter = {
     key: ["position", "tilt"],
     convertSet: async (entity, key, value, meta) => {
@@ -2967,6 +2972,7 @@ export const tuya_led_controller: Tz.Converter = {
         }
     },
 };
+// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const EMIZB_132_mode: Tz.Converter = {
     key: ["interface_mode"],
     convertSet: async (entity, key, value, meta) => {
@@ -3250,6 +3256,7 @@ export const tint_scene: Tz.Converter = {
         await entity.write("genBasic", {16389: {value, type: 0x20}}, manufacturerOptions.tint);
     },
 };
+// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const bticino_4027C_cover_state: Tz.Converter = {
     key: ["state"],
     options: [exposes.options.invert_cover()],
@@ -3276,6 +3283,7 @@ export const bticino_4027C_cover_state: Tz.Converter = {
         return {state: {position}};
     },
 };
+// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const bticino_4027C_cover_position: Tz.Converter = {
     key: ["position"],
     options: [exposes.options.invert_cover(), exposes.options.no_position_support()],
@@ -3395,6 +3403,7 @@ export const diyruz_freepad_on_off_config: Tz.Converter = {
         return {state: {[`${key}`]: value}};
     },
 };
+// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const TYZB01_on_off: Tz.Converter = {
     key: ["state", "time_in_seconds"],
     convertSet: async (entity, key, value, meta) => {
@@ -3940,6 +3949,7 @@ export const scene_rename: Tz.Converter = {
         logger.info("Successfully renamed scene", NS);
     },
 };
+// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const TS0003_curtain_switch: Tz.Converter = {
     key: ["state"],
     convertSet: async (entity, key, value, meta) => {
@@ -4047,6 +4057,7 @@ export const moes_cover_calibration: Tz.Converter = {
         await entity.read("closuresWindowCovering", ["moesCalibrationTime"]);
     },
 };
+// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const ZM35HQ_attr: Tz.Converter = {
     key: ["sensitivity", "keep_time"],
     convertSet: async (entity, key, value, meta) => {
@@ -4067,6 +4078,7 @@ export const ZM35HQ_attr: Tz.Converter = {
         await entity.read("ssIasZone", ["currentZoneSensitivityLevel", 61441, "zoneStatus"]);
     },
 };
+// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const TS0210_sensitivity: Tz.Converter = {
     key: ["sensitivity"],
     convertSet: async (entity, key, value, meta) => {
@@ -4450,6 +4462,7 @@ export const light_onoff_restorable_brightness: Tz.Converter = {
         return await light_onoff_brightness.convertGet(entity, key, meta);
     },
 };
+// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const RM01_light_onoff_brightness: Tz.Converter = {
     key: ["state", "brightness", "brightness_percent"],
     options: [exposes.options.transition()],
@@ -4468,6 +4481,7 @@ export const RM01_light_onoff_brightness: Tz.Converter = {
         throw new Error("OnOff and LevelControl not supported on this RM01 device.");
     },
 };
+// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const RM01_light_brightness_step: Tz.Converter = {
     options: [exposes.options.transition()],
     key: ["brightness_step", "brightness_step_onoff"],
@@ -4479,6 +4493,7 @@ export const RM01_light_brightness_step: Tz.Converter = {
         throw new Error("LevelControl not supported on this RM01 device.");
     },
 };
+// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const RM01_light_brightness_move: Tz.Converter = {
     key: ["brightness_move", "brightness_move_onoff"],
     convertSet: async (entity, key, value, meta) => {
@@ -4523,6 +4538,7 @@ export const ptvo_switch_light_brightness: Tz.Converter = {
         throw new Error("LevelControl not supported on this endpoint.");
     },
 };
+// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const TS110E_options: Tz.Converter = {
     key: ["min_brightness", "max_brightness", "light_type", "switch_type"],
     convertSet: async (entity, key, value, meta) => {
@@ -4546,6 +4562,7 @@ export const TS110E_options: Tz.Converter = {
         await entity.read("genLevelCtrl", [id]);
     },
 };
+// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const TS110E_onoff_brightness: Tz.Converter = {
     key: ["state", "brightness"],
     convertSet: async (entity, key, value, meta) => {
@@ -4570,6 +4587,7 @@ export const TS110E_onoff_brightness: Tz.Converter = {
         if (key === "brightness") await entity.read("genLevelCtrl", [61440]);
     },
 };
+// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const TS110E_light_onoff_brightness: Tz.Converter = {
     ...light_onoff_brightness,
     convertSet: async (entity, key, value, meta) => {

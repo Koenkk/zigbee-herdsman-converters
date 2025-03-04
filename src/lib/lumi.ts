@@ -987,11 +987,17 @@ const lumiPresenceConstants = {
          */
         delete: 3,
     },
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     region_config_regionId_min: 1,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     region_config_regionId_max: 10,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     region_config_zoneY_min: 1,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     region_config_zoneY_max: 7,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     region_config_zoneX_min: 1,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     region_config_zoneX_max: 4,
     region_config_cmd_suffix_upsert: 0xff,
     region_config_cmd_suffix_delete: 0x00,
@@ -3580,6 +3586,7 @@ export const fromZigbee = {
     } satisfies Fz.Converter,
 
     // lumi device specific
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     lumi_action_WXKG01LM: {
         // Unique converter
         cluster: "genOnOff",
@@ -3640,6 +3647,7 @@ export const fromZigbee = {
             }
         },
     } satisfies Fz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     lumi_smart_panel_ZNCJMB14LM: {
         cluster: "manuSpecificLumi",
         type: ["attributeReport", "readResponse"],
@@ -4987,6 +4995,7 @@ export const toZigbee = {
             }
         },
     } satisfies Tz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     lumi_curtain_limits_calibration_ZNCLDJ14LM: {
         key: ["limits_calibration"],
         options: [
@@ -5006,6 +5015,7 @@ export const toZigbee = {
             }
         },
     } satisfies Tz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     lumi_curtain_automatic_calibration_ZNCLDJ01LM: {
         key: ["automatic_calibration"],
         convertSet: async (entity, key, value, meta) => {
@@ -5189,6 +5199,7 @@ export const toZigbee = {
     } satisfies Tz.Converter,
 
     // lumi device specific
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     lumi_smart_panel_ZNCJMB14LM: {
         key: [
             "theme",

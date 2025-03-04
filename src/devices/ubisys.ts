@@ -84,6 +84,7 @@ const ubisys = {
                 }
             },
         } satisfies Fz.Converter,
+        // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
         dimmer_setup_genLevelCtrl: {
             cluster: "genLevelCtrl",
             type: ["attributeReport", "readResponse"],
@@ -319,6 +320,7 @@ const ubisys = {
                 await entity.read("manuSpecificUbisysDimmerSetup", ["mode"], manufacturerOptions.ubisysNull);
             },
         } satisfies Tz.Converter,
+        // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
         dimmer_setup_genLevelCtrl: {
             key: ["minimum_on_level"],
             convertSet: async (entity, key, value, meta) => {

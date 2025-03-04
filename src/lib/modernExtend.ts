@@ -122,6 +122,7 @@ export const TIME_LOOKUP = {
 };
 
 type ReportingConfigTime = number | keyof typeof TIME_LOOKUP;
+// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 type ReportingConfigAttribute = string | number | {ID: number; type: number};
 type ReportingConfig = {min: ReportingConfigTime; max: ReportingConfigTime; change: number; attribute: ReportingConfigAttribute};
 export type ReportingConfigWithoutAttribute = Omit<ReportingConfig, "attribute">;
@@ -285,6 +286,7 @@ export function forcePowerSource(args: {powerSource: "Mains (single phase)" | "B
 
 export interface LinkQualityArgs {
     reporting?: boolean;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     attribute?: string | {ID: number; type: number};
     reportingConfig?: ReportingConfigWithoutAttribute;
 }
@@ -1412,7 +1414,7 @@ export function commandsWindowCovering(args?: CommandsWindowCoveringArgs): Moder
 
 // #region Security and Safety
 
-export type iasZoneType =
+export type IasZoneType =
     | "occupancy"
     | "contact"
     | "smoke"
@@ -1424,7 +1426,7 @@ export type iasZoneType =
     | "alarm"
     | "gas"
     | "generic";
-export type iasZoneAttribute =
+export type IasZoneAttribute =
     | "alarm_1"
     | "alarm_2"
     | "tamper"
@@ -1435,7 +1437,7 @@ export type iasZoneAttribute =
     | "test"
     | "trouble"
     | "battery_defect";
-export type manufacturerZoneAttribute = {
+export type ManufacturerZoneAttribute = {
     bit: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15;
     name: string;
     valueOn: string | boolean;
@@ -1444,13 +1446,13 @@ export type manufacturerZoneAttribute = {
     entityCategory?: "config" | "diagnostic";
 };
 export interface IasArgs {
-    zoneType: iasZoneType;
-    zoneAttributes: iasZoneAttribute[];
+    zoneType: IasZoneType;
+    zoneAttributes: IasZoneAttribute[];
     alarmTimeout?: boolean;
     keepAliveTimeout?: number;
     zoneStatusReporting?: boolean;
     description?: string;
-    manufacturerZoneAttributes?: manufacturerZoneAttribute[];
+    manufacturerZoneAttributes?: ManufacturerZoneAttribute[];
 }
 export function iasZoneAlarm(args: IasArgs): ModernExtend {
     const exposes: Expose[] = [];
@@ -2177,6 +2179,7 @@ export interface EnumLookupArgs {
     name: string;
     lookup: KeyValue;
     cluster: string | number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     attribute: string | {ID: number; type: number};
     description: string;
     zigbeeCommandOptions?: {manufacturerCode?: number; disableDefaultResponse?: boolean};
@@ -2243,6 +2246,7 @@ export type ScaleFunction = (value: number, type: "from" | "to") => number;
 export interface NumericArgs {
     name: string;
     cluster: string | number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     attribute: string | {ID: number; type: number};
     description: string;
     zigbeeCommandOptions?: {manufacturerCode?: number; disableDefaultResponse?: boolean};
@@ -2376,6 +2380,7 @@ export interface BinaryArgs {
     valueOn: [string | boolean, unknown];
     valueOff: [string | boolean, unknown];
     cluster: string | number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     attribute: string | {ID: number; type: number};
     description: string;
     zigbeeCommandOptions?: {manufacturerCode: number};
@@ -2439,6 +2444,7 @@ export function binary(args: BinaryArgs): ModernExtend {
 export interface TextArgs {
     name: string;
     cluster: string | number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     attribute: string | {ID: number; type: number};
     description: string;
     zigbeeCommandOptions?: {manufacturerCode: number};
@@ -2499,6 +2505,7 @@ export type Parse = (msg: Fz.Message, attributeKey: string | number) => unknown;
 export interface ActionEnumLookupArgs {
     actionLookup: KeyValue;
     cluster: string | number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     attribute: string | {ID: number; type: number};
     endpointNames?: string[];
     buttonLookup?: KeyValue;

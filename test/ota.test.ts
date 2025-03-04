@@ -158,6 +158,7 @@ describe("OTA", () => {
     );
 
     class MockOTAEndpoint extends EventEmitter {
+        // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
         public ID: number;
         public waiters: [];
         public manufacturerCode: Zcl.ManufacturerCode;
@@ -167,10 +168,10 @@ describe("OTA", () => {
         public reqFileOffset: number;
         public downloadedImage: Buffer;
 
-        constructor(ID: number, newImageHeader: Ota.ImageHeader, newImageRawLength: number, imageVersionOffset: number) {
+        constructor(id: number, newImageHeader: Ota.ImageHeader, newImageRawLength: number, imageVersionOffset: number) {
             super();
 
-            this.ID = ID;
+            this.ID = id;
             this.waiters = [];
             this.manufacturerCode = newImageHeader.manufacturerCode;
             this.currentImageType = newImageHeader.imageType;

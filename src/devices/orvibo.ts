@@ -14,6 +14,7 @@ const ea = exposes.access;
 const NS = "zhc:orvibo";
 
 const tzLocal = {
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     DD10Z_brightness: {
         key: ["brightness"],
         options: [exposes.options.transition()],

@@ -194,6 +194,7 @@ const breezemodes: string[] = ["off", "low", "medium", "high"];
 const INOVELLI = 0x122f;
 
 interface Attribute {
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     ID: number;
     dataType: number;
     min?: number;
@@ -259,49 +260,49 @@ const speedToInt = (speedIn: string): number => {
 };
 
 // Create Expose list with Inovelli Parameters definitions
-const attributesToExposeList = (ATTRIBUTES: {[s: string]: Attribute}, exposesList: Expose[]) => {
+const attributesToExposeList = (attributes: {[s: string]: Attribute}, exposesList: Expose[]) => {
     // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
-    Object.keys(ATTRIBUTES).forEach((key) => {
-        if (ATTRIBUTES[key].displayType === "enum") {
+    Object.keys(attributes).forEach((key) => {
+        if (attributes[key].displayType === "enum") {
             const enumE = e
-                .enum(key, ATTRIBUTES[key].readOnly ? ea.STATE_GET : ea.ALL, Object.keys(ATTRIBUTES[key].values))
-                .withDescription(ATTRIBUTES[key].description);
-            if (!ATTRIBUTES[key].readOnly) {
-                enumE.withCategory(ATTRIBUTES[key].category ?? "config");
+                .enum(key, attributes[key].readOnly ? ea.STATE_GET : ea.ALL, Object.keys(attributes[key].values))
+                .withDescription(attributes[key].description);
+            if (!attributes[key].readOnly) {
+                enumE.withCategory(attributes[key].category ?? "config");
             }
             exposesList.push(enumE);
-        } else if (ATTRIBUTES[key].displayType === "binary" || ATTRIBUTES[key].displayType === "switch") {
+        } else if (attributes[key].displayType === "binary" || attributes[key].displayType === "switch") {
             const binary = e
                 .binary(
                     key,
-                    ATTRIBUTES[key].readOnly ? ea.STATE_GET : ea.ALL,
+                    attributes[key].readOnly ? ea.STATE_GET : ea.ALL,
                     // @ts-expect-error ignore
-                    ATTRIBUTES[key].values.Enabled,
-                    ATTRIBUTES[key].values.Disabled,
+                    attributes[key].values.Enabled,
+                    attributes[key].values.Disabled,
                 )
-                .withDescription(ATTRIBUTES[key].description);
-            if (!ATTRIBUTES[key].readOnly) {
-                binary.withCategory(ATTRIBUTES[key].category ?? "config");
+                .withDescription(attributes[key].description);
+            if (!attributes[key].readOnly) {
+                binary.withCategory(attributes[key].category ?? "config");
             }
             exposesList.push(binary);
         } else {
             const numeric = e
-                .numeric(key, ATTRIBUTES[key].readOnly ? ea.STATE_GET : ea.ALL)
-                .withValueMin(ATTRIBUTES[key].min)
-                .withValueMax(ATTRIBUTES[key].max);
+                .numeric(key, attributes[key].readOnly ? ea.STATE_GET : ea.ALL)
+                .withValueMin(attributes[key].min)
+                .withValueMax(attributes[key].max);
 
-            if (ATTRIBUTES[key].values) {
+            if (attributes[key].values) {
                 // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
-                Object.keys(ATTRIBUTES[key].values).forEach((value) => {
-                    numeric.withPreset(value, ATTRIBUTES[key].values[value], "");
+                Object.keys(attributes[key].values).forEach((value) => {
+                    numeric.withPreset(value, attributes[key].values[value], "");
                 });
             }
-            if (ATTRIBUTES[key].unit) {
-                numeric.withUnit(ATTRIBUTES[key].unit);
+            if (attributes[key].unit) {
+                numeric.withUnit(attributes[key].unit);
             }
-            numeric.withDescription(ATTRIBUTES[key].description);
-            if (!ATTRIBUTES[key].readOnly) {
-                numeric.withCategory(ATTRIBUTES[key].category ?? "config");
+            numeric.withDescription(attributes[key].description);
+            if (!attributes[key].readOnly) {
+                numeric.withCategory(attributes[key].category ?? "config");
             }
             exposesList.push(numeric);
         }
@@ -1160,34 +1161,47 @@ const VZM35_ATTRIBUTES: {[s: string]: Attribute} = {
 };
 
 const VZM36_ATTRIBUTES: {[s: string]: Attribute} = {
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     dimmingSpeedUpRemote_1: {...COMMON_ATTRIBUTES.dimmingSpeedUpRemote},
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     rampRateOffToOnRemote_1: {...COMMON_ATTRIBUTES.rampRateOffToOnRemote},
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     dimmingSpeedDownRemote_1: {...COMMON_ATTRIBUTES.dimmingSpeedDownRemote},
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     rampRateOnToOffRemote_1: {...COMMON_ATTRIBUTES.rampRateOnToOffRemote},
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     minimumLevel_1: {...COMMON_DIMMER_ATTRIBUTES.minimumLevel},
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     maximumLevel_1: {...COMMON_DIMMER_ATTRIBUTES.maximumLevel},
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     autoTimerOff_1: {
         ...COMMON_ATTRIBUTES.autoTimerOff,
         description:
             "Automatically turns the light off after this many seconds." +
             " When the light is turned on a timer is started. When the timer expires, the light is turned off. 0 = Auto off is disabled.",
     },
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     defaultLevelRemote_1: {
         ...COMMON_ATTRIBUTES.defaultLevelRemote,
         description:
             "Default level for the light when it is turned on from the hub." +
             " A setting of 255 means that the light will return to the level that it was on before it was turned off.",
     },
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     stateAfterPowerRestored_1: {
         ...COMMON_ATTRIBUTES.stateAfterPowerRestored,
         description: "The state the light should return to when power is restored after power failure. 0 = off, 1-254 = level, 255 = previous.",
     },
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     quickStartTime_1: {...COMMON_DIMMABLE_LIGHT_ATTRIBUTES.quickStartTime},
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     quickStartLevel_1: {...COMMON_DIMMABLE_LIGHT_ATTRIBUTES.quickStartLevel},
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     higherOutputInNonNeutral_1: {
         ...COMMON_DIMMABLE_LIGHT_ATTRIBUTES.higherOutputInNonNeutral,
         description: "Increase level in non-neutral mode for light.",
     },
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     dimmingMode_1: {
         ...COMMON_DIMMABLE_LIGHT_ATTRIBUTES.dimmingMode,
         readOnly: false,
@@ -1197,12 +1211,17 @@ const VZM36_ATTRIBUTES: {[s: string]: Attribute} = {
             "aux/add-on switch (multi-way with a dumb/existing switch and non-neutral setups are not supported and " +
             "will default back to Leading Edge).",
     },
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     smartBulbMode_1: {...COMMON_ATTRIBUTES.smartBulbMode},
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     ledColorWhenOn_1: {...COMMON_ATTRIBUTES.ledColorWhenOn},
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     ledIntensityWhenOn_1: {...COMMON_ATTRIBUTES.ledIntensityWhenOn},
     // remote protection is readonly...
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     outputMode_1: {...COMMON_DIMMER_ATTRIBUTES.outputMode},
     // Endpoint 2 (Fan)
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     dimmingSpeedUpRemote_2: {
         ...COMMON_ATTRIBUTES.dimmingSpeedUpRemote,
         description:
@@ -1210,6 +1229,7 @@ const VZM36_ATTRIBUTES: {[s: string]: Attribute} = {
             "A setting of 0 turns the fan immediately on. Increasing the value slows down the transition speed. " +
             "Every number represents 100ms. Default = 25 (2.5s)",
     },
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     rampRateOffToOnRemote_2: {
         ...COMMON_ATTRIBUTES.rampRateOffToOnRemote,
         description:
@@ -1217,6 +1237,7 @@ const VZM36_ATTRIBUTES: {[s: string]: Attribute} = {
             "A setting of 0 turns the fan immediately on. Increasing the value slows down the transition speed. " +
             "Every number represents 100ms. Default = 127 - Keep in sync with dimmingSpeedUpRemote setting.",
     },
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     dimmingSpeedDownRemote_2: {
         ...COMMON_ATTRIBUTES.dimmingSpeedDownRemote,
         description:
@@ -1224,6 +1245,7 @@ const VZM36_ATTRIBUTES: {[s: string]: Attribute} = {
             "A setting of 0 turns the fan immediately off. Increasing the value slows down the transition speed. " +
             "Every number represents 100ms. Default = 127 - Keep in sync with dimmingSpeedUpRemote setting.",
     },
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     rampRateOnToOffRemote_2: {
         ...COMMON_ATTRIBUTES.rampRateOnToOffRemote,
         description:
@@ -1231,30 +1253,36 @@ const VZM36_ATTRIBUTES: {[s: string]: Attribute} = {
             "A setting of 'instant' turns the fan immediately off. Increasing the value slows down the transition speed. " +
             "Every number represents 100ms. Default = 127 - Keep in sync with rampRateOffToOnRemote setting.",
     },
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     minimumLevel_2: {
         ...COMMON_DIMMER_ATTRIBUTES.minimumLevel,
         description: "The minimum level that the fan can be set to.",
     },
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     maximumLevel_2: {
         ...COMMON_DIMMER_ATTRIBUTES.maximumLevel,
         description: "The maximum level that the fan can be set to.",
     },
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     autoTimerOff_2: {
         ...COMMON_ATTRIBUTES.autoTimerOff,
         description:
             "Automatically turns the fan off after this many seconds." +
             " When the fan is turned on a timer is started. When the timer expires, the switch is turned off. 0 = Auto off is disabled.",
     },
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     defaultLevelRemote_2: {
         ...COMMON_ATTRIBUTES.defaultLevelRemote,
         description:
             "Default level for the fan when it is turned on from the hub." +
             " A setting of 255 means that the fan will return to the level that it was on before it was turned off.",
     },
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     stateAfterPowerRestored_2: {
         ...COMMON_ATTRIBUTES.stateAfterPowerRestored,
         description: "The state the fan should return to when power is restored after power failure. 0 = off, 1-254 = level, 255 = previous.",
     },
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     quickStartTime_2: {
         ...COMMON_DIMMABLE_LIGHT_ATTRIBUTES.quickStartTime,
         description: "Duration of full power output while fan transitions from Off to On. In 60th of second. 0 = disable, 1 = 1/60s, 60 = 1s",
@@ -1262,12 +1290,14 @@ const VZM36_ATTRIBUTES: {[s: string]: Attribute} = {
     // power type readonly
     // internal temp readonly
     // overheat readonly
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     smartBulbMode_2: {
         ...COMMON_DIMMER_ATTRIBUTES.smartBulbMode,
         values: {Disabled: 0, "Smart Fan Mode": 1},
         description: "For use with Smart Fans that need constant power and are controlled via commands rather than power.",
     },
     // remote protection readonly..
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     outputMode_2: {
         ...COMMON_DIMMER_ATTRIBUTES.outputMode,
         values: {"Ceiling Fan (3-Speed)": 0, "Exhaust Fan (On/Off)": 1},
@@ -1276,9 +1306,9 @@ const VZM36_ATTRIBUTES: {[s: string]: Attribute} = {
 };
 
 const tzLocal = {
-    inovelli_parameters: (ATTRIBUTES: {[s: string]: Attribute}, cluster: string) =>
+    inovelli_parameters: (attributes: {[s: string]: Attribute}, cluster: string) =>
         ({
-            key: Object.keys(ATTRIBUTES).filter((a) => !ATTRIBUTES[a].readOnly),
+            key: Object.keys(attributes).filter((a) => !attributes[a].readOnly),
             convertSet: async (entity, key, value, meta) => {
                 // Check key to see if there is an endpoint postfix for the VZM36
                 const keysplit = key.split("_");
@@ -1287,18 +1317,18 @@ const tzLocal = {
                     entityToUse = meta.device.getEndpoint(Number(keysplit[1]));
                 }
 
-                if (!(key in ATTRIBUTES)) {
+                if (!(key in attributes)) {
                     return;
                 }
 
                 const payload = {
-                    [ATTRIBUTES[key].ID]: {
+                    [attributes[key].ID]: {
                         value:
-                            ATTRIBUTES[key].displayType === "enum"
+                            attributes[key].displayType === "enum"
                                 ? // @ts-expect-error ignore
-                                  ATTRIBUTES[key].values[value]
+                                  attributes[key].values[value]
                                 : value,
-                        type: ATTRIBUTES[key].dataType,
+                        type: attributes[key].dataType,
                     },
                 };
 
@@ -1326,9 +1356,10 @@ const tzLocal = {
                 });
             },
         }) satisfies Tz.Converter,
-    inovelli_parameters_readOnly: (ATTRIBUTES: {[s: string]: Attribute}, cluster: string) =>
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    inovelli_parameters_readOnly: (attributes: {[s: string]: Attribute}, cluster: string) =>
         ({
-            key: Object.keys(ATTRIBUTES).filter((a) => ATTRIBUTES[a].readOnly),
+            key: Object.keys(attributes).filter((a) => attributes[a].readOnly),
             convertGet: async (entity, key, meta) => {
                 // Check key to see if there is an endpoint postfix for the VZM36
                 const keysplit = key.split("_");
@@ -1685,7 +1716,7 @@ const inovelliOnOffConvertSet = async (entity: Zh.Endpoint | Zh.Group, key: stri
 };
 
 const fzLocal = {
-    inovelli: (ATTRIBUTES: {[s: string]: Attribute}, cluster: string, splitValuesByEndpoint = false) =>
+    inovelli: (attributes: {[s: string]: Attribute}, cluster: string, splitValuesByEndpoint = false) =>
         ({
             cluster: cluster,
             type: ["raw", "readResponse", "commandQueryNextImageRequest"],
@@ -1713,11 +1744,11 @@ const fzLocal = {
                 if (msg.type === "readResponse") {
                     return Object.keys(msg.data).reduce((p, c) => {
                         const key = splitValuesByEndpoint ? `${c}_${msg.endpoint.ID}` : c;
-                        if (ATTRIBUTES[key] && ATTRIBUTES[key].displayType === "enum") {
+                        if (attributes[key] && attributes[key].displayType === "enum") {
                             return {
                                 // biome-ignore lint/performance/noAccumulatingSpread: ignored using `--suppress`
                                 ...p,
-                                [key]: Object.keys(ATTRIBUTES[key].values).find((k) => ATTRIBUTES[key].values[k] === msg.data[c]),
+                                [key]: Object.keys(attributes[key].values).find((k) => attributes[key].values[k] === msg.data[c]),
                             };
                         }
                         // biome-ignore lint/performance/noAccumulatingSpread: ignored using `--suppress`

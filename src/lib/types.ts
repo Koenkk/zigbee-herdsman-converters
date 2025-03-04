@@ -63,6 +63,7 @@ export interface Fingerprint {
     stackVersion?: number;
     zclVersion?: number;
     ieeeAddr?: RegExp;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     endpoints?: {ID?: number; profileID?: number; deviceID?: number; inputClusters?: number[]; outputClusters?: number[]}[];
     priority?: number;
 }
@@ -78,7 +79,9 @@ export interface MockProperty {
 export interface DiscoveryEntry {
     mockProperties: MockProperty[];
     type: string;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     object_id: string;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     discovery_payload: KeyValue;
 }
 
@@ -324,6 +327,7 @@ export namespace Tz {
         mapped: Definition | Definition[];
         options: KeyValue;
         state: KeyValue;
+        // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
         endpoint_name: string | undefined;
         membersState?: {[s: string]: KeyValue};
         publish: Publish;

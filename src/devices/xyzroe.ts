@@ -159,6 +159,7 @@ const tzLocal = {
             }
         },
     } satisfies Tz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     ZigDC_interval: {
         key: ["interval"],
         convertSet: async (entity, key, value, meta) => {
@@ -178,6 +179,7 @@ const tzLocal = {
             return;
         },
     } satisfies Tz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     ZigDC_input_config: {
         key: ["switch_type", "switch_actions", "bind_command"],
         convertGet: async (entity, key, meta) => {
@@ -293,6 +295,7 @@ const fzLocal = {
             }
         },
     } satisfies Fz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     ZigDC_ina3221: {
         cluster: "genAnalogInput",
         type: ["attributeReport", "readResponse"],
@@ -322,6 +325,7 @@ const fzLocal = {
             return payload;
         },
     } satisfies Fz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     ZigDC_uptime: {
         cluster: "genAnalogInput",
         type: ["attributeReport", "readResponse"],
@@ -336,6 +340,7 @@ const fzLocal = {
             return payload;
         },
     } satisfies Fz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     ZigDC_input_config: {
         cluster: "genOnOffSwitchCfg",
         type: ["readResponse", "attributeReport"],

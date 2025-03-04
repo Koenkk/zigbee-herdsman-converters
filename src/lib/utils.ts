@@ -116,9 +116,9 @@ export function mapNumberRange(value: number, fromLow: number, fromHigh: number,
 }
 
 const transactionStore: {[s: string]: number[]} = {};
-export function hasAlreadyProcessedMessage(msg: Fz.Message, model: Definition, ID: number = null, key: string = null) {
+export function hasAlreadyProcessedMessage(msg: Fz.Message, model: Definition, id: number = null, key: string = null) {
     if (model.meta?.publishDuplicateTransaction) return false;
-    const currentID = ID !== null ? ID : msg.meta.zclTransactionSequenceNumber;
+    const currentID = id !== null ? id : msg.meta.zclTransactionSequenceNumber;
     // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
     key = key || `${msg.device.ieeeAddr}-${msg.endpoint.ID}`;
     if (transactionStore[key]?.includes(currentID)) return true;

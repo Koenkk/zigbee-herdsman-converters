@@ -461,6 +461,7 @@ describe("ZHC", () => {
     });
 
     it("computes calibration/precision", async () => {
+        // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
         const TS0601_soil = await findByDevice(mockDevice({modelID: "TS0601", manufacturerName: "_TZE200_myd45weu", endpoints: []}));
         expect(TS0601_soil.options.map((t) => t.name)).toStrictEqual([
             "temperature_calibration",
@@ -481,6 +482,7 @@ describe("ZHC", () => {
         postProcessConvertedFromZigbeeMessage(AUA1ZBDSS, payload2, options2);
         expect(payload2).toStrictEqual({power_left: 11});
 
+        // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
         const TS011F_plug_1 = await findByDevice(mockDevice({modelID: "TS011F", endpoints: []}));
         expect(TS011F_plug_1.options.map((t) => t.name)).toStrictEqual([
             "power_calibration",

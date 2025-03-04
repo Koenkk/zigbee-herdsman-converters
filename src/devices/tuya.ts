@@ -244,6 +244,7 @@ const convLocal = {
 };
 
 const tzLocal = {
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     TS030F_border: {
         key: ["border"],
         convertSet: async (entity, key, value, meta) => {
@@ -253,6 +254,7 @@ const tzLocal = {
             });
         },
     } satisfies Tz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     TS0726_switch_mode: {
         key: ["switch_mode"],
         convertSet: async (entity, key, value, meta) => {
@@ -376,6 +378,7 @@ const tzLocal = {
             await entity.read("lightingColorCtrl", ["currentHue", "currentSaturation", "currentLevel", "tuyaRgbMode", "colorTemperature"]);
         },
     } satisfies Tz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     TS0504B_color: {
         key: ["color"],
         convertSet: async (entity, key, value, meta) => {
@@ -441,6 +444,7 @@ const tzLocal = {
             }
         },
     } satisfies Tz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     TS011F_threshold: {
         key: [
             "temperature_threshold",
@@ -553,6 +557,7 @@ const tzLocal = {
 };
 
 const fzLocal = {
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     TS0726_action: {
         cluster: "genOnOff",
         type: ["commandTuyaAction"],
@@ -560,6 +565,7 @@ const fzLocal = {
             return {action: `scene_${msg.endpoint.ID}`};
         },
     } satisfies Fz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     TS0222_humidity: {
         ...fz.humidity,
         convert: (model, msg, publish, options, meta) => {
@@ -588,6 +594,7 @@ const fzLocal = {
             return {action: `scene_${id}`};
         },
     } satisfies Fz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     TS0201_battery: {
         cluster: "genPowerCfg",
         type: ["attributeReport", "readResponse"],
@@ -603,6 +610,7 @@ const fzLocal = {
             return fz.battery.convert(model, msg, publish, options, meta);
         },
     } satisfies Fz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     TS0201_humidity: {
         ...fz.humidity,
         convert: (model, msg, publish, options, meta) => {
@@ -636,6 +644,7 @@ const fzLocal = {
             return result;
         },
     } satisfies Fz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     TS011F_electrical_measurement: {
         ...fz.electrical_measurement,
         convert: async (model, msg, publish, options, meta) => {
@@ -686,6 +695,7 @@ const fzLocal = {
             return result;
         },
     } satisfies Fz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     TS011F_threshold: {
         cluster: "manuSpecificTuya_3",
         type: "raw",
@@ -730,6 +740,7 @@ const fzLocal = {
             }
         },
     } satisfies Fz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     PJ1203A_sync_time_increase_seq: {
         cluster: "manuSpecificTuya",
         type: ["commandMcuSyncTime"],
@@ -738,6 +749,7 @@ const fzLocal = {
             priv.last_seq += priv.seq_inc;
         },
     } satisfies Fz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     PJ1203A_strict_fz_datapoints: {
         ...tuya.fz.datapoints,
         convert: (model, msg, publish, options, meta) => {
@@ -15267,23 +15279,23 @@ export const definitions: DefinitionWithExtend[] = [
                     tuya.valueConverter.thermostatSystemModeAndPresetMap({
                         fromMap: {
                             0: {
-                                device_mode: "manual",
-                                system_mode: "heat",
+                                deviceMode: "manual",
+                                systemMode: "heat",
                                 preset: "manual",
                             },
-                            1: {device_mode: "auto", system_mode: "auto", preset: "auto"},
+                            1: {deviceMode: "auto", systemMode: "auto", preset: "auto"},
                             2: {
-                                device_mode: "holiday",
-                                system_mode: "heat",
+                                deviceMode: "holiday",
+                                systemMode: "heat",
                                 preset: "holiday",
                             },
                             3: {
-                                device_mode: "comfort",
-                                system_mode: "heat",
+                                deviceMode: "comfort",
+                                systemMode: "heat",
                                 preset: "comfort",
                             },
-                            4: {device_mode: "eco", system_mode: "heat", preset: "eco"},
-                            5: {device_mode: "off", system_mode: "off", preset: "off"},
+                            4: {deviceMode: "eco", systemMode: "heat", preset: "eco"},
+                            5: {deviceMode: "off", systemMode: "off", preset: "off"},
                         },
                     }),
                 ],

@@ -1741,6 +1741,7 @@ const ticmeterCustomCluster = {
         powerMaxInjectedYesterday: {ID: 0x0018, type: Zcl.DataType.UINT32},
         //
         injectedLoadN: {ID: 0x0019, type: Zcl.DataType.UINT16},
+        // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
         injectedLoadN_1: {ID: 0x001a, type: Zcl.DataType.UINT16},
         //
         startEJP1: {ID: 0x001c, type: Zcl.DataType.UINT64},

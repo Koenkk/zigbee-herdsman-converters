@@ -94,9 +94,13 @@ const coverStateOverride: KeyValueAny = {
     // Contains all covers which differentiate from the default enum states
     // Use manufacturerName to identify device!
     // https://github.com/Koenkk/zigbee2mqtt/issues/5596#issuecomment-759408189
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     _TZE200_rddyvrci: {close: 1, open: 2, stop: 0},
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     _TZE200_wmcdj3aq: {close: 0, open: 2, stop: 1},
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     _TZE200_cowvfni3: {close: 0, open: 2, stop: 1},
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     _TYST11_cowvfni3: {close: 0, open: 2, stop: 1},
 };
 
@@ -659,6 +663,7 @@ const dataPoints = {
     moesSboostHeating: 4,
     moesSboostHeatingCountdown: 5,
     moesSreset: 7,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     moesSwindowDetectionFunktion_A2: 8,
     moesSwindowDetection: 9,
     moesSchildLock: 13,
@@ -1225,6 +1230,7 @@ const fromZigbee = {
             return result;
         },
     } satisfies Fz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     ZM35HQ_battery: {
         cluster: "manuSpecificTuya",
         type: ["commandDataReport"],
@@ -1282,6 +1288,7 @@ const fromZigbee = {
             return result;
         },
     } satisfies Fz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     R7049_status: {
         cluster: "manuSpecificTuya",
         type: ["commandDataResponse", "commandDataReport"],
@@ -1326,6 +1333,7 @@ const fromZigbee = {
             return result;
         },
     } satisfies Fz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     woox_R7060: {
         cluster: "manuSpecificTuya",
         type: ["commandActiveStatusReport"],
@@ -1879,6 +1887,7 @@ const fromZigbee = {
             }
         },
     } satisfies Fz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     moesS_thermostat: {
         cluster: "manuSpecificTuya",
         type: ["commandDataResponse", "commandDataReport"],
@@ -1992,6 +2001,7 @@ const fromZigbee = {
             }
         },
     } satisfies Fz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     tuya_CO: {
         cluster: "manuSpecificTuya",
         type: ["commandDataReport", "commandDataResponse"],
@@ -2759,6 +2769,7 @@ const fromZigbee = {
             return result;
         },
     } satisfies Fz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     ZMAM02_cover: {
         cluster: "manuSpecificTuya",
         type: ["commandDataReport", "commandDataResponse"],
@@ -2922,6 +2933,7 @@ const fromZigbee = {
             return result;
         },
     } satisfies Fz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     ZG204ZL_lms: {
         cluster: "manuSpecificTuya",
         type: ["commandDataResponse", "commandDataReport"],
@@ -3344,6 +3356,7 @@ const fromZigbee = {
             }
         },
     } satisfies Fz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     ZB006X_settings: {
         cluster: "manuSpecificTuya",
         type: ["commandActiveStatusReport", "commandActiveStatusReportAlt"],
@@ -3935,6 +3948,7 @@ const fromZigbee = {
 };
 
 const toZigbee1 = {
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     SA12IZL_silence_siren: {
         key: ["silence_siren"],
         // biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
@@ -3942,6 +3956,7 @@ const toZigbee1 = {
             await sendDataPointBool(entity, 16, value);
         },
     } satisfies Tz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     SA12IZL_alarm: {
         key: ["alarm"],
         // biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
@@ -3949,6 +3964,7 @@ const toZigbee1 = {
             await sendDataPointEnum(entity, 20, value ? 0 : 1);
         },
     } satisfies Tz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     R7049_silenceSiren: {
         key: ["silence_siren"],
         // biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
@@ -3956,6 +3972,7 @@ const toZigbee1 = {
             await sendDataPointBool(entity, 16, value);
         },
     } satisfies Tz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     R7049_testAlarm: {
         key: ["test_alarm"],
         // biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
@@ -3963,6 +3980,7 @@ const toZigbee1 = {
             await sendDataPointBool(entity, 8, value);
         },
     } satisfies Tz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     R7049_alarm: {
         key: ["alarm"],
         // biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
@@ -4783,12 +4801,14 @@ const toZigbee2 = {
             await sendDataPointRaw(entity, dataPoints.moesSchedule, payload);
         },
     } satisfies Tz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     moesS_thermostat_system_mode: {
         key: ["system_mode"],
         convertSet: (entity, key, value, meta) => {
             return {state: {system_mode: "heat"}};
         },
     } satisfies Tz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     moesS_thermostat_preset: {
         key: ["preset"],
         // biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
@@ -4797,6 +4817,7 @@ const toZigbee2 = {
             await sendDataPointEnum(entity, dataPoints.moesSsystemMode, lookup[value]);
         },
     } satisfies Tz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     moesS_thermostat_current_heating_setpoint: {
         key: ["current_heating_setpoint"],
         convertSet: async (entity, key, value: number, meta) => {
@@ -4804,30 +4825,35 @@ const toZigbee2 = {
             await sendDataPointValue(entity, dataPoints.moesSheatingSetpoint, temp);
         },
     } satisfies Tz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     moesS_thermostat_boost_heating: {
         key: ["boost_heating"],
         convertSet: async (entity, key, value, meta) => {
             await sendDataPointBool(entity, dataPoints.moesSboostHeating, value === "ON");
         },
     } satisfies Tz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     moesS_thermostat_window_detection: {
         key: ["window_detection"],
         convertSet: async (entity, key, value, meta) => {
             await sendDataPointBool(entity, dataPoints.moesSwindowDetectionFunktion_A2, value === "ON");
         },
     } satisfies Tz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     moesS_thermostat_child_lock: {
         key: ["child_lock"],
         convertSet: async (entity, key, value, meta) => {
             await sendDataPointBool(entity, dataPoints.moesSchildLock, value === "LOCK");
         },
     } satisfies Tz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     moesS_thermostat_boostHeatingCountdownTimeSet: {
         key: ["boost_heating_countdown_time_set"],
         convertSet: async (entity, key, value, meta) => {
             await sendDataPointValue(entity, dataPoints.moesSboostHeatingCountdownTimeSet, value);
         },
     } satisfies Tz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     moesS_thermostat_temperature_calibration: {
         key: ["local_temperature_calibration"],
         convertSet: async (entity, key, value: number, meta) => {
@@ -4838,12 +4864,14 @@ const toZigbee2 = {
             await sendDataPointValue(entity, dataPoints.moesScompensationTempSet, temp);
         },
     } satisfies Tz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     moesS_thermostat_moesSecoMode: {
         key: ["eco_mode"],
         convertSet: async (entity, key, value, meta) => {
             await sendDataPointBool(entity, dataPoints.moesSecoMode, value === "ON");
         },
     } satisfies Tz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     moesS_thermostat_eco_temperature: {
         key: ["eco_temperature"],
         // biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
@@ -4852,6 +4880,7 @@ const toZigbee2 = {
             await sendDataPointValue(entity, dataPoints.moesSecoModeTempSet, temp);
         },
     } satisfies Tz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     moesS_thermostat_max_temperature: {
         key: ["max_temperature"],
         // biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
@@ -4860,6 +4889,7 @@ const toZigbee2 = {
             await sendDataPointValue(entity, dataPoints.moesSmaxTempSet, temp);
         },
     } satisfies Tz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     moesS_thermostat_min_temperature: {
         key: ["min_temperature"],
         // biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
@@ -4868,6 +4898,7 @@ const toZigbee2 = {
             await sendDataPointValue(entity, dataPoints.moesSminTempSet, temp);
         },
     } satisfies Tz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     moesS_thermostat_schedule_programming: {
         key: ["programming_mode"],
         convertSet: async (entity, key, value: string, meta) => {
@@ -5033,6 +5064,7 @@ const toZigbee2 = {
             return {state: {timer: value}};
         },
     } satisfies Tz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     ZVG1_timer: {
         key: ["timer"],
         convertSet: async (entity, key, value: number, meta) => {
@@ -5043,6 +5075,7 @@ const toZigbee2 = {
             return {state: {timer: value}};
         },
     } satisfies Tz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     ZVG1_weather_delay: {
         key: ["weather_delay"],
         convertSet: async (entity, key, value: string, meta) => {
@@ -5050,6 +5083,7 @@ const toZigbee2 = {
             await sendDataPointEnum(entity, 10, lookup[value]);
         },
     } satisfies Tz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     ZVG1_cycle_timer: {
         key: ["cycle_timer_1", "cycle_timer_2", "cycle_timer_3", "cycle_timer_4"],
         convertSet: async (entity, key, value: string, meta) => {
@@ -5111,6 +5145,7 @@ const toZigbee2 = {
             return ret;
         },
     } satisfies Tz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     ZVG1_normal_schedule_timer: {
         key: ["normal_schedule_timer_1", "normal_schedule_timer_2", "normal_schedule_timer_3", "normal_schedule_timer_4"],
         convertSet: async (entity, key, value: string, meta) => {
@@ -6172,6 +6207,7 @@ const toZigbee2 = {
             }
         },
     } satisfies Tz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     ZB006X_settings: {
         key: ["switch_type", "load_detection_mode", "control_mode"],
         // biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
@@ -6509,6 +6545,7 @@ const toZigbee2 = {
             }
         },
     } satisfies Tz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     ZMAM02_cover: {
         key: ["state", "position", "mode", "motor_direction", "border", "motor_working_mode"],
         options: [exposes.options.invert_cover()],
@@ -6584,6 +6621,7 @@ const toZigbee2 = {
             }
         },
     } satisfies Tz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     ZG204ZL_lms: {
         key: ["sensitivity", "keep_time"],
         convertSet: async (entity, key, value, meta) => {

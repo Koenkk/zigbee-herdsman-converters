@@ -599,6 +599,7 @@ export const valueConverter = {
         from: (value: number) => (value > 4000 ? value - 4096 : value),
         to: (value: number) => (value < 0 ? 4096 + value : value),
     },
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     localTemperatureCalibration_256: {
         from: (value: number) => (value > 200 ? value - 256 : value),
         to: (value: number) => (value < 0 ? 256 + value : value),
@@ -1079,6 +1080,7 @@ export const valueConverter = {
             },
         };
     },
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     thermostatScheduleDayMultiDP_TRV602Z: {
         from: (v: string) => {
             const schedule = [];
@@ -1126,6 +1128,7 @@ export const valueConverter = {
             return payload;
         },
     },
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     thermostatScheduleDayMultiDP_TRV602Z_WithDayNumber: (dayNum: number) => {
         return {
             from: (v: string) => valueConverter.thermostatScheduleDayMultiDP_TRV602Z.from(v),
@@ -1172,6 +1175,7 @@ export const valueConverter = {
             },
         };
     },
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     ZWT198_schedule: {
         from: (value: number[], meta: Fz.Meta, options: KeyValue) => {
             const programmingMode = [];
@@ -1249,6 +1253,7 @@ export const valueConverter = {
             await sendDataPointRaw(entity, dpId, payload, sendCommand, 1);
         },
     },
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     PO_BOCO_ELEC_schedule: (day: number) => ({
         to: (v: string) => {
             const payload = [80 + day];
@@ -1309,6 +1314,7 @@ export const valueConverter = {
             return payload.join(" / ");
         },
     }),
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     PO_BOCO_ELEC_holiday: {
         to: (v: string) => {
             const payload = [];
@@ -1504,13 +1510,13 @@ export const valueConverter = {
         fromMap = {},
         toMap = {},
     }: {
-        fromMap?: {[modeId: number]: {device_mode: string; system_mode: string; preset: string}};
+        fromMap?: {[modeId: number]: {deviceMode: string; systemMode: string; preset: string}};
         toMap?: {[key: string]: Enum};
     }) => {
         return {
             from: (v: string) => {
                 utils.assertNumber(v, "system_mode");
-                return {running_mode: fromMap[v].device_mode, system_mode: fromMap[v].system_mode, preset: fromMap[v].preset};
+                return {running_mode: fromMap[v].deviceMode, system_mode: fromMap[v].systemMode, preset: fromMap[v].preset};
             },
             to: (v: string) => {
                 return utils.getFromLookup(v, toMap);

@@ -13,6 +13,7 @@ const e = exposes.presets;
 const ea = exposes.access;
 
 const fzLocal = {
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     FB20002_on: {
         cluster: "genOnOff",
         type: "commandTuyaAction",

@@ -120,8 +120,8 @@ export class Switch extends Base {
         this.type = "switch";
     }
 
-    withState(property: string, toggle: string | boolean, description: string, access = a.ALL, value_on = "ON", value_off = "OFF") {
-        const feature = new Binary("state", access, value_on, value_off).withProperty(property).withDescription(description);
+    withState(property: string, toggle: string | boolean, description: string, access = a.ALL, valueOn = "ON", valueOff = "OFF") {
+        const feature = new Binary("state", access, valueOn, valueOff).withProperty(property).withDescription(description);
         if (toggle) {
             feature.withValueToggle("TOGGLE");
         }
@@ -166,8 +166,11 @@ export class Lock extends Base {
 
 export class Binary extends Base {
     property = "";
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     value_on: string | boolean;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     value_off: string | boolean;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     value_toggle?: string;
 
     constructor(name: string, access: number, valueOn: string | boolean, valueOff: string | boolean) {
@@ -196,8 +199,11 @@ export class Binary extends Base {
 
 export class List extends Base {
     property = "";
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     item_type: Numeric | Binary | Composite | Text;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     length_min?: number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     length_max?: number;
 
     constructor(name: string, access: number, itemType: Numeric | Binary | Composite | Text) {
@@ -234,8 +240,11 @@ export class List extends Base {
 export class Numeric extends Base {
     property = "";
     unit?: string;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     value_max?: number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     value_min?: number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     value_step?: number;
     presets?: {name: string; value: number | string; description: string}[];
 
@@ -768,11 +777,17 @@ export class Climate extends Base {
  * The access property is a 3-bit bitmask.
  */
 export const access: {
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     STATE: Access;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     SET: Access;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     GET: Access;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     STATE_SET: Access;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     STATE_GET: Access;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     ALL: Access;
 } = {
     /**
@@ -919,6 +934,7 @@ export const presets = {
     numeric: (name: string, access: number) => new Numeric(name, access),
     text: (name: string, access: number) => new Text(name, access),
     list: (name: string, access: number, itemType: Feature) => new List(name, access, itemType),
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     switch_: () => new Switch(),
     // Specific
     ac_frequency: () =>
@@ -1162,12 +1178,10 @@ export const presets = {
             .withValueMax(5),
     min_temperature: () =>
         new Numeric("min_temperature", access.STATE_SET).withUnit("°C").withDescription("Minimum temperature").withValueMin(1).withValueMax(15),
-    mode_switch_select: (mode_switch_names: string[]) =>
-        new Enum("mode_switch", access.ALL, mode_switch_names).withDescription("Select mode switch to use").withCategory("config"),
-    motion_sensitivity_select: (motion_sensitivity_names: string[]) =>
-        new Enum("motion_sensitivity", access.ALL, motion_sensitivity_names)
-            .withDescription("Select motion sensitivity to use")
-            .withCategory("config"),
+    mode_switch_select: (modeSwitchNames: string[]) =>
+        new Enum("mode_switch", access.ALL, modeSwitchNames).withDescription("Select mode switch to use").withCategory("config"),
+    motion_sensitivity_select: (motionSensitivityNames: string[]) =>
+        new Enum("motion_sensitivity", access.ALL, motionSensitivityNames).withDescription("Select motion sensitivity to use").withCategory("config"),
     noise: () => new Numeric("noise", access.STATE).withUnit("dBA").withDescription("The measured noise value"),
     noise_detected: () => new Binary("noise_detected", access.STATE, true, false).withDescription("Indicates whether the device detected noise"),
     occupancy: () => new Binary("occupancy", access.STATE, true, false).withDescription("Indicates whether the device detected occupancy"),
@@ -1179,8 +1193,8 @@ export const presets = {
             .withDescription("Open window temperature")
             .withValueMin(0)
             .withValueMax(35),
-    operation_mode_select: (operation_mode_names: string[]) =>
-        new Enum("operation_mode", access.ALL, operation_mode_names).withDescription("Select operation mode to use").withCategory("config"),
+    operation_mode_select: (operationModeNames: string[]) =>
+        new Enum("operation_mode", access.ALL, operationModeNames).withDescription("Select operation mode to use").withCategory("config"),
     overload_protection: (min: number, max: number) =>
         new Numeric("overload_protection", access.ALL)
             .withUnit("W")
@@ -1269,8 +1283,8 @@ export const presets = {
         ]).withDescription("State of the door"),
     tamper: () => new Binary("tamper", access.STATE, true, false).withDescription("Indicates whether the device is tampered"),
     temperature: () => new Numeric("temperature", access.STATE).withUnit("°C").withDescription("Measured temperature value"),
-    temperature_sensor_select: (sensor_names: string[]) =>
-        new Enum("sensor", access.STATE_SET, sensor_names).withDescription("Select temperature sensor to use").withCategory("config"),
+    temperature_sensor_select: (sensorNames: string[]) =>
+        new Enum("sensor", access.STATE_SET, sensorNames).withDescription("Select temperature sensor to use").withCategory("config"),
     test: () => new Binary("test", access.STATE, true, false).withDescription("Indicates whether the device is being tested"),
     trigger_count: (sinceScheduledReport = true) =>
         new Numeric("trigger_count", access.STATE)
@@ -1368,28 +1382,28 @@ export const presets = {
     max_brightness: () => new Numeric("max_brightness", access.ALL).withValueMin(1).withValueMax(255).withDescription("Maximum light brightness"),
 };
 
-const _binary = (name: string, access: number, valueOn: string, valueOff: string) => new Binary(name, access, valueOn, valueOff);
-const _climate = () => new Climate();
-const _composite = (name: string, property: string, access: number) => new Composite(name, property, access);
-const _cover = () => new Cover();
-const _enum = (name: string, access: number, values: string[]) => new Enum(name, access, values);
-const _light = () => new Light();
-const _numeric = (name: string, access: number) => new Numeric(name, access);
-const _switch = () => new Switch();
-const _text = (name: string, access: number) => new Text(name, access);
-const _list = (name: string, access: number, itemType: Feature) => new List(name, access, itemType);
-const _lock = () => new Lock();
+const eBinary = (name: string, access: number, valueOn: string, valueOff: string) => new Binary(name, access, valueOn, valueOff);
+const eClimate = () => new Climate();
+const eComposite = (name: string, property: string, access: number) => new Composite(name, property, access);
+const eCover = () => new Cover();
+const eEnum = (name: string, access: number, values: string[]) => new Enum(name, access, values);
+const eLight = () => new Light();
+const eNumeric = (name: string, access: number) => new Numeric(name, access);
+const eSwitch = () => new Switch();
+const eText = (name: string, access: number) => new Text(name, access);
+const eList = (name: string, access: number, itemType: Feature) => new List(name, access, itemType);
+const eLock = () => new Lock();
 
 export {
-    _binary as binary,
-    _climate as climate,
-    _composite as composite,
-    _cover as cover,
-    _enum as enum,
-    _light as light,
-    _numeric as numeric,
-    _switch as switch,
-    _text as text,
-    _list as list,
-    _lock as lock,
+    eBinary as binary,
+    eClimate as climate,
+    eComposite as composite,
+    eCover as cover,
+    eEnum as enum,
+    eLight as light,
+    eNumeric as numeric,
+    eSwitch as switch,
+    eText as text,
+    eList as list,
+    eLock as lock,
 };

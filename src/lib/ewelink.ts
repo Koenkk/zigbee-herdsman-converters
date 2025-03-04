@@ -318,15 +318,15 @@ function privateMotorMode(clusterName: string, writeCommand: string): ModernExte
                         if (payload[0] === privateCmd && payload[1] === subCmd) {
                             const entities = Object.entries(protocol.dooya.mapping);
                             // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
-                            let motor_mode;
+                            let motorMode;
                             for (const entity of entities) {
                                 if (entity[1] === payload[2]) {
-                                    motor_mode = entity[0];
+                                    motorMode = entity[0];
                                     break;
                                 }
                             }
                             return {
-                                motor_mode,
+                                motor_mode: motorMode,
                             };
                         }
                     } else if (protocol.ak.supportModel.includes(model.model)) {
@@ -336,15 +336,15 @@ function privateMotorMode(clusterName: string, writeCommand: string): ModernExte
                         if (payload[0] === cmdType && payload[2] === privateCmd && payload[3] === dataType) {
                             const entities = Object.entries(protocol.ak.mapping);
                             // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
-                            let motor_mode;
+                            let motorMode;
                             for (const entity of entities) {
                                 if (entity[1] === payload[6]) {
-                                    motor_mode = entity[0];
+                                    motorMode = entity[0];
                                     break;
                                 }
                             }
                             return {
-                                motor_mode,
+                                motor_mode: motorMode,
                             };
                         }
                     }

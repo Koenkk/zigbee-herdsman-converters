@@ -12,6 +12,7 @@ const e = exposes.presets;
 
 const NS = "zhc:ewelink";
 const fzLocal = {
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     WS01_rain: {
         cluster: "ssIasZone",
         type: "commandStatusChangeNotification",
