@@ -95,23 +95,23 @@ export const definitions: DefinitionWithExtend[] = [
             }),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
-            device.endpoints.forEach(async (ep) => {
-                const endpoint = device.getEndpoint(1);
-                await reporting.bind(endpoint, coordinatorEndpoint, ["genBasic", "genOnOff"]);
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genBasic", "genOnOff"]);
 
+            for (const ep of device.endpoints) {
                 if ([7, 8, 9, 10, 16, 21, 24, 26, 27].includes(ep.ID)) {
-                    reporting.bind(ep, coordinatorEndpoint, ["genOnOff"]);
-                    reporting.onOff(ep);
+                    await reporting.bind(ep, coordinatorEndpoint, ["genOnOff"]);
+                    await reporting.onOff(ep);
                 }
 
                 if ([2, 3, 4, 5, 6].includes(ep.ID)) {
-                    reporting.bind(ep, coordinatorEndpoint, ["genMultistateInput"]);
+                    await reporting.bind(ep, coordinatorEndpoint, ["genMultistateInput"]);
                 }
 
                 if ([11, 12].includes(ep.ID)) {
-                    reporting.bind(ep, coordinatorEndpoint, ["genMultistateOutput"]);
+                    await reporting.bind(ep, coordinatorEndpoint, ["genMultistateOutput"]);
                 }
-            });
+            }
         },
     },
 ];
