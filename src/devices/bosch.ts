@@ -368,6 +368,7 @@ const boschExtend = {
                             battery_defect: (zoneStatus & (1 << 9)) > 0,
                             action: lookup[(zoneStatus >> 11) & 3],
                         };
+                        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
                         if (result.action === "none") delete result.action;
                         return result;
                     }
@@ -1051,6 +1052,7 @@ const fzLocal = {
             const buttonId = msg.data.readUInt8(4);
             const longPress = msg.data.readUInt8(5);
             const duration = msg.data.readUInt16LE(6);
+            // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
             let buffer;
             if (options.led_response !== undefined) {
                 buffer = Buffer.from(options.led_response as string, "hex");

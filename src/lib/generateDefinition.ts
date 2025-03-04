@@ -47,7 +47,7 @@ class ExtendGenerator<T> implements GeneratedExtend {
 
 // Device passed as the first argument mostly to check
 // if passed endpoint(if only one) is the first endpoint in the device.
-type ExtenderGenerator = (device: Zh.Device, endpoints: Zh.Endpoint[]) => Promise<GeneratedExtend[]>;
+type ExtenderGenerator = (device: Zh.Device, endpoints: Zh.Endpoint[]) => Promise<GeneratedExtend[]> | GeneratedExtend[];
 type Extender = [string[], ExtenderGenerator];
 
 type DefinitionWithZigbeeModel = DefinitionWithExtend & {zigbeeModel: string[]};
@@ -119,6 +119,7 @@ export async function generateDefinition(device: Zh.Device): Promise<{externalDe
 
     const extenders = generatedExtend.map((e) => e.getExtend());
     // Generated definition below will provide this.
+    // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
     extenders.forEach((extender) => {
         extender.endpoint = undefined;
     });
@@ -309,7 +310,7 @@ async function extenderOnOffLight(device: Zh.Device, endpoints: Zh.Endpoint[]): 
     return generated;
 }
 
-async function extenderElectricityMeter(device: Zh.Device, endpoints: Zh.Endpoint[]): Promise<GeneratedExtend[]> {
+function extenderElectricityMeter(device: Zh.Device, endpoints: Zh.Endpoint[]): GeneratedExtend[] {
     // TODO: Support multiple endpoints
     if (endpoints.length > 1) {
         logger.warning("extenderElectricityMeter can accept only one endpoint", NS);

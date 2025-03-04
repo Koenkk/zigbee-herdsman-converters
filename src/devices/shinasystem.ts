@@ -42,6 +42,7 @@ const fzLocal = {
             };
         },
     } satisfies Fz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     GCM300Z_valve_status: {
         cluster: "genOnOff",
         type: ["attributeReport", "readResponse"],
@@ -165,11 +166,13 @@ const tzLocal = {
             await endpoint.write("genAnalogInput", payload);
         },
     } satisfies Tz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     GCM300Z_valve_status: {
         key: ["gas_valve_state"],
         convertSet: async (entity, key, value, meta) => {
             const lookup = {CLOSE: "off"}; // open is not supported.
             const state = utils.getFromLookup(value, lookup);
+            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             if (state !== "off") value = "CLOSE";
             else await entity.command("genOnOff", state, {}, utils.getOptions(meta.mapped, entity));
             return {state: {[key]: value}};

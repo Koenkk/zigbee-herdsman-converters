@@ -159,6 +159,7 @@ async function getJson<T>(pageUrl: string): Promise<T> {
 function readLocalFile(fileName: string): Buffer {
     // If the file name is not a full path, then treat it as a relative to the data directory
     if (!path.isAbsolute(fileName) && dataDir) {
+        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         fileName = path.join(dataDir, fileName);
     }
 
@@ -558,7 +559,9 @@ async function getImageMeta(
             // let extra metas override the match from device.modelID, same for manufacturerName
             (!i.modelId || i.modelId === device.modelID || i.modelId === extraMetas.modelId) &&
             (!i.manufacturerName ||
+                // biome-ignore lint/style/noNonNullAssertion: ignored using `--suppress`
                 i.manufacturerName.includes(device.manufacturerName!) ||
+                // biome-ignore lint/style/noNonNullAssertion: ignored using `--suppress`
                 i.manufacturerName.includes(extraMetas.manufacturerName!)) &&
             (!extraMetas.otaHeaderString || i.otaHeaderString === extraMetas.otaHeaderString) &&
             (i.hardwareVersionMin === undefined ||
@@ -580,6 +583,7 @@ async function isImageAvailable(
 
     logger.debug(() => `${deviceLogString(device)} Checking ${imageSet} image availability, current: ${JSON.stringify(current)}`, NS);
 
+    // biome-ignore lint/style/noNonNullAssertion: ignored using `--suppress`
     if (["lumi.airrtc.agl001", "lumi.curtain.acn003", "lumi.curtain.agl001"].includes(device.modelID!)) {
         // The current.fileVersion which comes from the device is wrong.
         // Use the `lumiFileVersion` which comes from the manuSpecificLumi.attributeReport instead.
@@ -587,6 +591,7 @@ async function isImageAvailable(
         // https://github.com/Koenkk/zigbee2mqtt/issues/16345 doesn't seem to be needed for all
         // https://github.com/Koenkk/zigbee2mqtt/issues/15745
         if (device.meta.lumiFileVersion) {
+            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             current = {...current, fileVersion: device.meta.lumiFileVersion};
         }
     }
@@ -608,7 +613,14 @@ async function isImageAvailable(
 
     /* istanbul ignore next */
     if (meta.releaseNotes) {
-        logger.info(() => `${deviceLogString(device)} Firmware release notes: ${meta.releaseNotes!.replace(/[\r\n]/g, "")}`, NS);
+        logger.info(
+            () =>
+                `${deviceLogString(device)} Firmware release notes: ${
+                    // biome-ignore lint/style/noNonNullAssertion: ignored using `--suppress`
+                    meta.releaseNotes!.replace(/[\r\n]/g, "")
+                }`,
+            NS,
+        );
     }
 
     // Negative number means the firmware is 'newer' than current one
@@ -706,6 +718,7 @@ export async function isUpdateAvailable(
 
         logger.debug(() => `${deviceLogString(device)} Got request '${JSON.stringify(payload)}'`, NS);
 
+        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         requestPayload = payload;
     }
 
@@ -830,6 +843,7 @@ export async function update(device: Zh.Device, extraMetas: Ota.ExtraMetas, prev
                 imageBlockRequest.header.transactionSequenceNumber,
             );
 
+            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             pageOffset += blockPayload.dataSize;
         } catch (error) {
             // Shit happens, device will probably do a new imageBlockRequest so don't care.

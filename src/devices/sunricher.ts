@@ -42,7 +42,7 @@ const sunricherExtend = {
                 cluster: "genBasic",
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
-                    if (Object.prototype.hasOwnProperty.call(msg.data, attribute)) {
+                    if (Object.hasOwn(msg.data, attribute)) {
                         const value = msg.data[attribute];
                         return {
                             external_switch_type: value_map[value] || "unknown",
@@ -109,7 +109,7 @@ const sunricherExtend = {
                 cluster: "genBasic",
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
-                    if (Object.prototype.hasOwnProperty.call(msg.data, attribute)) {
+                    if (Object.hasOwn(msg.data, attribute)) {
                         console.log("from ", msg.data[attribute]);
                         const value = Math.round(msg.data[attribute] / 5.1);
                         return {
@@ -404,7 +404,7 @@ const sunricherExtend = {
                 cluster,
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
-                    if (!Object.prototype.hasOwnProperty.call(msg.data, attribute)) return;
+                    if (!Object.hasOwn(msg.data, attribute)) return;
                     const indicatorLight = msg.data[attribute];
                     const firstBit = indicatorLight & 0x01;
                     return {indicator_light: firstBit === 1 ? "on" : "off"};
@@ -852,6 +852,7 @@ const sunricherExtend = {
 };
 
 const fzLocal = {
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     sunricher_SRZGP2801K45C: {
         cluster: "greenPower",
         type: ["commandNotification", "commandCommissioningNotification"],
@@ -2158,7 +2159,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMax(60)
                 .withDescription("Room temperature alarm threshold, between 20 and 60 in °C.  0 means disabled.  Default: 45."),
         ],
-        onEvent: async (type, data, device, options) => {
+        onEvent: (type, data, device, options) => {
             if (type === "stop") {
                 clearInterval(globalStore.getValue(device, "time"));
                 globalStore.clearValue(device, "time");

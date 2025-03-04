@@ -8,6 +8,7 @@ const files = fs
     .map((f) => f.replace(".ts", ""));
 
 const imports = files.map((f) => `import ${f} from './${f}';`).join("\n");
+// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 const export_ = files.map((f) => `    ...${f},`).join("\n");
 
 const indexPath = path.join(devicesPath, "index.ts");

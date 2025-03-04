@@ -121,7 +121,7 @@ function YandexCluster(): ModernExtend {
 function reinterview(): ModernExtend {
     let coordEnd: ZHModels.Endpoint | number = 1;
     const configure: Configure[] = [
-        async (device, coordinatorEndpoint, definition) => {
+        (device, coordinatorEndpoint, definition) => {
             coordEnd = coordinatorEndpoint;
         },
     ];

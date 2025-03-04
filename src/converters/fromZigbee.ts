@@ -1003,6 +1003,7 @@ export const ias_vibration_alarm_1_with_timeout: Fz.Converter = {
         const timeout = options && options.vibration_timeout !== undefined ? Number(options.vibration_timeout) : 90;
 
         // Stop existing timers because vibration is detected and set a new one.
+        // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
         globalStore.getValue(msg.endpoint, "timers", []).forEach((t: NodeJS.Timeout) => clearTimeout(t));
         globalStore.putValue(msg.endpoint, "timers", []);
 
@@ -2299,6 +2300,7 @@ export const tuya_cover_options: Fz.Converter = {
         return result;
     },
 };
+// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const WSZ01_on_off_action: Fz.Converter = {
     cluster: 65029,
     type: "raw",
@@ -2676,7 +2678,9 @@ export const ptvo_switch_uart: Fz.Converter = {
         let data = msg.data.stateText;
         if (typeof data === "object") {
             let bHex = false;
+            // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
             let code;
+            // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
             let index;
             for (index = 0; index < data.length; index += 1) {
                 code = data[index];
@@ -3277,6 +3281,7 @@ export const diyruz_rspm: Fz.Converter = {
         };
     },
 };
+// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const K4003C_binary_input: Fz.Converter = {
     cluster: "genBinaryInput",
     type: "attributeReport",
@@ -3406,6 +3411,7 @@ export const enocean_ptm216z: Fz.Converter = {
         }
     },
 };
+// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const _8840100H_water_leak_alarm: Fz.Converter = {
     cluster: "haApplianceEventsAlerts",
     type: "commandAlertsNotification",
@@ -3441,6 +3447,7 @@ export const kmpcil_res005_on_off: Fz.Converter = {
         return {state: msg.data.presentValue === 0 ? "OFF" : "ON"};
     },
 };
+// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const _3310_humidity: Fz.Converter = {
     cluster: "manuSpecificCentraliteHumidity",
     type: ["attributeReport", "readResponse"],
@@ -3532,6 +3539,7 @@ export const legrand_binary_input_on_off: Fz.Converter = {
         return {[property]: msg.data.presentValue ? "ON" : "OFF"};
     },
 };
+// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const bticino_4027C_binary_input_moving: Fz.Converter = {
     cluster: "genBinaryInput",
     type: ["attributeReport", "readResponse"],
@@ -3640,6 +3648,7 @@ export const legrand_greenpower: Fz.Converter = {
         }
     },
 };
+// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const W2_module_carbon_monoxide: Fz.Converter = {
     cluster: "ssIasZone",
     type: "commandStatusChangeNotification",
@@ -3698,6 +3707,7 @@ export const keen_home_smart_vent_pressure: Fz.Converter = {
         return {pressure};
     },
 };
+// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const U02I007C01_contact: Fz.Converter = {
     cluster: "ssIasZone",
     type: "commandStatusChangeNotification",
@@ -3709,6 +3719,7 @@ export const U02I007C01_contact: Fz.Converter = {
         };
     },
 };
+// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const U02I007C01_water_leak: Fz.Converter = {
     cluster: "ssIasZone",
     type: "commandStatusChangeNotification",
@@ -3795,6 +3806,7 @@ export const almond_click: Fz.Converter = {
         }
     },
 };
+// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const SAGE206612_state: Fz.Converter = {
     cluster: "genOnOff",
     type: ["commandOn", "commandOff"],
@@ -3818,6 +3830,7 @@ export const SAGE206612_state: Fz.Converter = {
         }
     },
 };
+// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const ZMCSW032D_cover_position: Fz.Converter = {
     cluster: "closuresWindowCovering",
     type: ["attributeReport", "readResponse"],
@@ -3897,6 +3910,7 @@ export const ZMCSW032D_cover_position: Fz.Converter = {
         return result;
     },
 };
+// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const PGC410EU_presence: Fz.Converter = {
     cluster: "manuSpecificSmartThingsArrivalSensor",
     type: "commandArrivalSensorNotify",
@@ -3914,6 +3928,7 @@ export const PGC410EU_presence: Fz.Converter = {
         return {presence: true};
     },
 };
+// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const STS_PRS_251_presence: Fz.Converter = {
     cluster: "genBinaryInput",
     type: ["attributeReport", "readResponse"],
@@ -4117,6 +4132,7 @@ export const diyruz_zintercom_config: Fz.Converter = {
         return result;
     },
 };
+// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const CC2530ROUTER_led: Fz.Converter = {
     cluster: "genOnOff",
     type: ["attributeReport", "readResponse"],
@@ -4124,6 +4140,7 @@ export const CC2530ROUTER_led: Fz.Converter = {
         return {led: msg.data.onOff === 1};
     },
 };
+// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const CC2530ROUTER_meta: Fz.Converter = {
     cluster: "genBinaryValue",
     type: ["attributeReport", "readResponse"],
@@ -4136,6 +4153,7 @@ export const CC2530ROUTER_meta: Fz.Converter = {
         };
     },
 };
+// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const KAMI_contact: Fz.Converter = {
     cluster: "ssIasZone",
     type: ["raw"],
@@ -4143,6 +4161,7 @@ export const KAMI_contact: Fz.Converter = {
         return {contact: msg.data[7] === 0};
     },
 };
+// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const KAMI_occupancy: Fz.Converter = {
     cluster: "msOccupancySensing",
     type: ["raw"],
@@ -4152,6 +4171,7 @@ export const KAMI_occupancy: Fz.Converter = {
         }
     },
 };
+// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const DNCKAT_S00X_buttons: Fz.Converter = {
     cluster: "genOnOff",
     type: ["attributeReport", "readResponse"],
@@ -4189,6 +4209,7 @@ export const hue_wall_switch_device_mode: Fz.Converter = {
         }
     },
 };
+// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const CCTSwitch_D0001_levelctrl: Fz.Converter = {
     cluster: "genLevelCtrl",
     type: ["commandMoveToLevel", "commandMoveToLevelWithOnOff", "commandMove", "commandStop"],
@@ -4250,6 +4271,7 @@ export const CCTSwitch_D0001_levelctrl: Fz.Converter = {
         return payload;
     },
 };
+// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const CCTSwitch_D0001_lighting: Fz.Converter = {
     cluster: "lightingColorCtrl",
     type: ["commandMoveToColorTemp", "commandMoveColorTemp"],
@@ -4449,6 +4471,7 @@ export const itcmdr_clicks: Fz.Converter = {
         return {action};
     },
 };
+// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const ZB003X_attr: Fz.Converter = {
     cluster: "ssIasZone",
     type: ["attributeReport", "readResponse"],
@@ -4466,6 +4489,7 @@ export const ZB003X_attr: Fz.Converter = {
         }
     },
 };
+// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const ZB003X_occupancy: Fz.Converter = {
     cluster: "ssIasZone",
     type: "commandStatusChangeNotification",
@@ -4682,6 +4706,7 @@ export const tuya_operation_mode: Fz.Converter = {
         }
     },
 };
+// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const sunricher_switch2801K2: Fz.Converter = {
     cluster: "greenPower",
     type: ["commandNotification", "commandCommissioningNotification"],
@@ -4697,6 +4722,7 @@ export const sunricher_switch2801K2: Fz.Converter = {
         }
     },
 };
+// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const sunricher_switch2801K4: Fz.Converter = {
     cluster: "greenPower",
     type: ["commandNotification", "commandCommissioningNotification"],
@@ -4740,6 +4766,7 @@ export const tuya_multi_action: Fz.Converter = {
     convert: (model, msg, publish, options, meta) => {
         if (hasAlreadyProcessedMessage(msg, model)) return;
 
+        // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
         let action;
         if (msg.type === "commandTuyaAction") {
             const lookup: KeyValueAny = {0: "single", 1: "double", 2: "hold"};
@@ -4772,6 +4799,7 @@ export const hw_version: Fz.Converter = {
         return result;
     },
 };
+// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const SNZB02_temperature: Fz.Converter = {
     cluster: "msTemperatureMeasurement",
     type: ["attributeReport", "readResponse"],
@@ -4786,6 +4814,7 @@ export const SNZB02_temperature: Fz.Converter = {
         }
     },
 };
+// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const SNZB02_humidity: Fz.Converter = {
     cluster: "msRelativeHumidity",
     type: ["attributeReport", "readResponse"],
@@ -4821,6 +4850,7 @@ export const awox_colors: Fz.Converter = {
         }
     },
 };
+// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const awox_refreshColored: Fz.Converter = {
     cluster: "lightingColorCtrl",
     type: ["commandMoveHue"],
@@ -4908,6 +4938,7 @@ export const ignore_light_color_colortemp_report: Fz.Converter = {
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {},
 };
+// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const ignore_closuresWindowCovering_report: Fz.Converter = {
     cluster: "closuresWindowCovering",
     type: ["attributeReport", "readResponse"],
@@ -4938,6 +4969,7 @@ export const ignore_iasace_commandgetpanelstatus: Fz.Converter = {
     type: ["commandGetPanelStatus"],
     convert: (model, msg, publish, options, meta) => {},
 };
+// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const ignore_genIdentify: Fz.Converter = {
     cluster: "genIdentify",
     type: ["attributeReport", "readResponse"],
@@ -4973,16 +5005,19 @@ export const ignore_poll_ctrl: Fz.Converter = {
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {},
 };
+// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const ignore_genLevelCtrl_report: Fz.Converter = {
     cluster: "genLevelCtrl",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {},
 };
+// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const ignore_genOta: Fz.Converter = {
     cluster: "genOta",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {},
 };
+// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const ignore_haDiagnostic: Fz.Converter = {
     cluster: "haDiagnostic",
     type: ["attributeReport", "readResponse"],
@@ -5023,7 +5058,7 @@ export const ignore_electrical_measurement: Fz.Converter = {
 export const command_arm_with_transaction: Fz.Converter = {
     cluster: "ssIasAce",
     type: "commandArm",
-    convert: async (model, msg, publish, options, meta) => {
+    convert: (model, msg, publish, options, meta) => {
         const payload = command_arm.convert(model, msg, publish, options, meta) as KeyValueAny;
         if (!payload) return;
         payload.action_transaction = msg.meta.zclTransactionSequenceNumber;
@@ -5033,23 +5068,25 @@ export const command_arm_with_transaction: Fz.Converter = {
 export const metering_datek: Fz.Converter = {
     cluster: "seMetering",
     type: ["attributeReport", "readResponse"],
-    convert: async (model, msg, publish, options, meta) => {
+    convert: (model, msg, publish, options, meta) => {
         const result = metering.convert(model, msg, publish, options, meta) as KeyValueAny;
         // Filter incorrect 0 energy values reported by the device:
         // https://github.com/Koenkk/zigbee2mqtt/issues/7852
         if (result && result.energy === 0) {
+            // biome-ignore lint/performance/noDelete: ignored using `--suppress`
             delete result.energy;
         }
         return result;
     },
 };
+// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const EKO09738_metering: Fz.Converter = {
     /**
      * Elko EKO09738 and EKO09716 reports power in mW, scale to W
      */
     cluster: "seMetering",
     type: ["attributeReport", "readResponse"],
-    convert: async (model, msg, publish, options, meta) => {
+    convert: (model, msg, publish, options, meta) => {
         const result = metering.convert(model, msg, publish, options, meta) as KeyValueAny;
         if (result && result.power !== undefined) {
             result.power /= 1000;
@@ -5060,7 +5097,7 @@ export const EKO09738_metering: Fz.Converter = {
 export const command_on_presence: Fz.Converter = {
     cluster: "genOnOff",
     type: "commandOn",
-    convert: async (model, msg, publish, options, meta) => {
+    convert: (model, msg, publish, options, meta) => {
         const payload1 = checkin_presence.convert(model, msg, publish, options, meta);
         const payload2 = command_on.convert(model, msg, publish, options, meta);
         return {...payload1, ...payload2};
@@ -5075,6 +5112,7 @@ export const ias_ace_occupancy_with_timeout: Fz.Converter = {
         return occupancy_with_timeout.convert(model, msg, publish, options, meta);
     },
 };
+// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const SP600_power: Fz.Converter = {
     cluster: "seMetering",
     type: ["attributeReport", "readResponse"],
@@ -5101,7 +5139,7 @@ export const SP600_power: Fz.Converter = {
 export const stelpro_thermostat: Fz.Converter = {
     cluster: "hvacThermostat",
     type: ["attributeReport", "readResponse"],
-    convert: async (model, msg, publish, options, meta) => {
+    convert: (model, msg, publish, options, meta) => {
         const result = thermostat.convert(model, msg, publish, options, meta) as KeyValueAny;
         if (result && msg.data.StelproSystemMode === 5) {
             // 'Eco' mode is translated into 'auto' here
@@ -5116,7 +5154,7 @@ export const stelpro_thermostat: Fz.Converter = {
 export const viessmann_thermostat: Fz.Converter = {
     cluster: "hvacThermostat",
     type: ["attributeReport", "readResponse"],
-    convert: async (model, msg, publish, options, meta) => {
+    convert: (model, msg, publish, options, meta) => {
         const result = thermostat.convert(model, msg, publish, options, meta) as KeyValueAny;
 
         if (result) {
@@ -5124,6 +5162,7 @@ export const viessmann_thermostat: Fz.Converter = {
             // NOTE: remove the result for now, but leave it configure for reporting
             //       it will show up in the debug log still to help try and figure out
             //       what this value potentially means.
+            // biome-ignore lint/performance/noDelete: ignored using `--suppress`
             delete result.pi_heating_demand;
 
             // viessmannWindowOpenInternal
@@ -5153,7 +5192,7 @@ export const viessmann_thermostat: Fz.Converter = {
 export const eurotronic_thermostat: Fz.Converter = {
     cluster: "hvacThermostat",
     type: ["attributeReport", "readResponse"],
-    convert: async (model, msg, publish, options, meta) => {
+    convert: (model, msg, publish, options, meta) => {
         const result = thermostat.convert(model, msg, publish, options, meta) as KeyValueAny;
         if (result) {
             if (typeof msg.data[0x4003] === "number") {
@@ -5197,7 +5236,7 @@ export const eurotronic_thermostat: Fz.Converter = {
 export const terncy_raw: Fz.Converter = {
     cluster: "manuSpecificClusterAduroSmart",
     type: "raw",
-    convert: async (model, msg, publish, options, meta) => {
+    convert: (model, msg, publish, options, meta) => {
         // 13,40,18,104, 0,8,1 - single
         // 13,40,18,22,  0,17,1
         // 13,40,18,32,  0,18,1
@@ -5240,10 +5279,11 @@ export const terncy_raw: Fz.Converter = {
         }
     },
 };
+// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const ZM35HQ_attr: Fz.Converter = {
     cluster: "ssIasZone",
     type: ["attributeReport", "readResponse"],
-    convert: async (model, msg, publish, options, meta) => {
+    convert: (model, msg, publish, options, meta) => {
         let result: KeyValueAny = {};
         const data = msg.data;
         if (data && data.zoneStatus !== undefined) {
@@ -5264,7 +5304,7 @@ export const ZM35HQ_attr: Fz.Converter = {
 export const schneider_lighting_ballast_configuration: Fz.Converter = {
     cluster: "lightingBallastCfg",
     type: ["attributeReport", "readResponse"],
-    convert: async (model, msg, publish, options, meta) => {
+    convert: (model, msg, publish, options, meta) => {
         const result = lighting_ballast_configuration.convert(model, msg, publish, options, meta) as KeyValueAny;
         const lookup: KeyValueAny = {1: "RC", 2: "RL"};
         if (result && msg.data[0xe000] !== undefined) {
@@ -5276,7 +5316,7 @@ export const schneider_lighting_ballast_configuration: Fz.Converter = {
 export const wiser_lighting_ballast_configuration: Fz.Converter = {
     cluster: "lightingBallastCfg",
     type: ["attributeReport", "readResponse"],
-    convert: async (model, msg, publish, options, meta) => {
+    convert: (model, msg, publish, options, meta) => {
         const result = lighting_ballast_configuration.convert(model, msg, publish, options, meta) as KeyValueAny;
         if (result && msg.data.wiserControlMode !== undefined) {
             result.dimmer_mode = constants.wiserDimmerControlMode[msg.data.wiserControlMode];
@@ -5366,6 +5406,7 @@ export const TS110E: Fz.Converter = {
         return result;
     },
 };
+// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const TS110E_light_type: Fz.Converter = {
     cluster: "genLevelCtrl",
     type: ["attributeReport", "readResponse"],
@@ -5378,6 +5419,7 @@ export const TS110E_light_type: Fz.Converter = {
         return result;
     },
 };
+// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const TS110E_switch_type: Fz.Converter = {
     cluster: "genLevelCtrl",
     type: ["attributeReport", "readResponse"],

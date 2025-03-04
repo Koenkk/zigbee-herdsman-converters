@@ -31,6 +31,7 @@ export const definitions: DefinitionWithExtend[] = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg"]);
+            // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
             device.endpoints.forEach(async (ep) => {
                 await reporting.bind(ep, coordinatorEndpoint, ["genMultistateInput"]);
             });

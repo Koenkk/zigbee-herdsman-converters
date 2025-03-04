@@ -10,6 +10,7 @@ const e = exposes.presets;
 const ea = exposes.access;
 
 const fzLocal = {
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     LXN59_cover_options: {
         cluster: "closuresWindowCovering",
         type: ["attributeReport", "readResponse"],
@@ -23,6 +24,7 @@ const fzLocal = {
             return result;
         },
     } satisfies Fz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     LXN59_cover_state_via_onoff: {
         cluster: "genOnOff",
         type: ["attributeReport", "readResponse"],

@@ -29,7 +29,7 @@ const manufacturerOptions = {
     ubisysNull: {manufacturerCode: null},
 };
 
-const ubisysPollCurrentSummDelivered = async (type: OnEventType, data: OnEventData, device: Zh.Device, endpointId: number, options: KeyValue) => {
+const ubisysPollCurrentSummDelivered = (type: OnEventType, data: OnEventData, device: Zh.Device, endpointId: number, options: KeyValue) => {
     const endpoint = device.getEndpoint(endpointId);
     const poll = async () => {
         await endpoint.read("seMetering", ["currentSummDelivered"]);
@@ -84,6 +84,7 @@ const ubisys = {
                 }
             },
         } satisfies Fz.Converter,
+        // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
         dimmer_setup_genLevelCtrl: {
             cluster: "genLevelCtrl",
             type: ["attributeReport", "readResponse"],
@@ -134,8 +135,10 @@ const ubisys = {
                     converterFunc?: (v: unknown) => unknown,
                     delaySecondsAfter?: number,
                 ) => {
+                    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
                     if (!jsonAttr) jsonAttr = attr;
                     if (jsonAttr.startsWith("ubisys")) {
+                        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
                         jsonAttr = jsonAttr.substring(6, 1).toLowerCase + jsonAttr.substring(7);
                     }
                     if (value[jsonAttr] !== undefined) {
@@ -317,6 +320,7 @@ const ubisys = {
                 await entity.read("manuSpecificUbisysDimmerSetup", ["mode"], manufacturerOptions.ubisysNull);
             },
         } satisfies Tz.Converter,
+        // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
         dimmer_setup_genLevelCtrl: {
             key: ["minimum_on_level"],
             convertSet: async (entity, key, value, meta) => {
@@ -534,6 +538,7 @@ const ubisys = {
                             endpoint += 4;
                         }
 
+                        // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
                         let inputActions;
                         if (!templateType.doubleInputs) {
                             if (!templateType.scene) {

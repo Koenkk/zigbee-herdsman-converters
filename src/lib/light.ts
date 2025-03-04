@@ -49,7 +49,9 @@ export function readColorAttributes(entity: Zh.Endpoint | Zh.Group, meta: Tz.Met
 }
 
 export function findColorTempRange(entity: Zh.Endpoint | Zh.Group) {
+    // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
     let colorTempMin;
+    // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
     let colorTempMax;
     if (utils.isGroup(entity)) {
         const minCandidates = entity.members

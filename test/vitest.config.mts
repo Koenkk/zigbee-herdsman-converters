@@ -7,7 +7,6 @@ export default defineConfig({
         env: {
             VITEST_ZHC_TEST: "true",
         },
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         onConsoleLog(log: string, type: "stdout" | "stderr"): boolean | undefined {
             return false;
         },

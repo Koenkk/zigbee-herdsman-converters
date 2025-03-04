@@ -13,6 +13,7 @@ const project = new Project({
 project.addSourceFilesAtPaths("src/devices/*.ts");
 
 //#region Refactor modernExtend temperature() to m.temperature()
+// biome-ignore lint/complexity/noForEach: ignored using `--suppress`
 project.getSourceFiles().forEach((sourceFile) => {
     if (sourceFile.getBaseName() === "index.ts") return;
     console.log(`Handling ${sourceFile.getBaseName()}`);

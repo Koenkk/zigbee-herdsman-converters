@@ -9,6 +9,7 @@ import type {Definition, DefinitionMeta, Fz, Zh} from "../src/lib/types";
 import * as utils from "../src/lib/utils";
 
 interface MockEndpointArgs {
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     ID?: number;
     profileID?: number;
     deviceID?: number;
@@ -44,17 +45,17 @@ export function mockDevice(
     const endpoints = args.endpoints.map((e) => mockEndpoint(e, device));
     // @ts-expect-error ignore
     device.endpoints = endpoints;
-    device.getEndpoint = (ID: number) => {
-        const endpoint = endpoints.find((e) => e.ID === ID);
-        if (!endpoint) throw new Error(`No endpoint ${ID}`);
+    device.getEndpoint = (id: number) => {
+        const endpoint = endpoints.find((e) => e.ID === id);
+        if (!endpoint) throw new Error(`No endpoint ${id}`);
         return endpoint;
     };
     return device;
 }
 
-function getCluster(ID: string | number) {
-    const cluster = Object.entries(Clusters).find((c) => (typeof ID === "number" ? c[1].ID === ID : c[0] === ID));
-    if (!cluster) throw new Error(`Cluster '${ID}' does not exist`);
+function getCluster(id: string | number) {
+    const cluster = Object.entries(Clusters).find((c) => (typeof id === "number" ? c[1].ID === id : c[0] === id));
+    if (!cluster) throw new Error(`Cluster '${id}' does not exist`);
     return {name: cluster[0], ID: cluster[1].ID};
 }
 
@@ -78,7 +79,7 @@ function mockEndpoint(args: MockEndpointArgs, device: Zh.Device | undefined): Zh
         getInputClusters: () => inputClusters.map((c) => getCluster(c)),
         // @ts-expect-error ignore
         getOutputClusters: () => outputClusters.map((c) => getCluster(c)),
-        supportsInputCluster: (key) => !!inputClusters.find((ID) => ID === getCluster(key).ID),
+        supportsInputCluster: (key) => !!inputClusters.find((id) => id === getCluster(key).ID),
         saveClusterAttributeKeyValue: vi.fn().mockImplementation((cluster, values) => {
             attributes[cluster] = {...attributes[cluster], ...values};
         }),

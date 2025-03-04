@@ -18,6 +18,7 @@ const fzLocal = {
             }
         },
     } satisfies Fz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     PC321_metering: {
         cluster: "seMetering",
         type: ["attributeReport", "readResponse"],
@@ -119,6 +120,7 @@ const fzLocal = {
 };
 
 const tzLocal = {
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     PC321_clearMetering: {
         key: ["clear_metering"],
         convertSet: async (entity, key, value, meta) => {

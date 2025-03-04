@@ -26,6 +26,7 @@ const fzLocal = {
 };
 
 const tzLocal = {
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     LDSENK08_sensitivity: {
         key: ["sensitivity"],
         convertSet: async (entity, key, value, meta) => {
