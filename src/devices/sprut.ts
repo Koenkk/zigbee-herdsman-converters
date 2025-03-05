@@ -99,11 +99,6 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ["genBasic", "genOnOff"]);
 
             for (const ep of device.endpoints) {
-                if ([7, 8, 9, 10, 16, 21, 24, 26, 27].includes(ep.ID)) {
-                    await reporting.bind(ep, coordinatorEndpoint, ["genOnOff"]);
-                    await reporting.onOff(ep);
-                }
-
                 if ([2, 3, 4, 5, 6].includes(ep.ID)) {
                     await reporting.bind(ep, coordinatorEndpoint, ["genMultistateInput"]);
                 }
