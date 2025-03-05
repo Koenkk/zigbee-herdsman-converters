@@ -227,6 +227,7 @@ const philipsModernExtend = {
         const result: ModernExtend = {configure, onEvent, isModernExtend: true};
         return result;
     },
+    },
 };
 export {philipsModernExtend as m};
 
