@@ -10,7 +10,7 @@ import * as exposes from "./exposes";
 import {logger} from "./logger";
 import * as modernExtend from "./modernExtend";
 import * as globalStore from "./store";
-import type {Configure, Fz, KeyValue, KeyValueAny, ModernExtend, Tz} from "./types";
+import type {Configure, Fz, KeyValue, KeyValueAny, ModernExtend, Tz, OnEvent} from "./types";
 import * as utils from "./utils";
 import {exposeEndpoints, isObject} from "./utils";
 
@@ -200,6 +200,33 @@ const philipsModernExtend = {
         const result: ModernExtend = {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
         return result;
     },
+    customClusterFC00: () => {
+        const customClusterFC00 = m.deviceAddCustomCluster("manuSpecificPhilips", {
+            ID: 0xfc00,
+            manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V,
+            attributes: {
+                config: {ID: 49, type: Zcl.DataType.BITMAP16},
+            },
+            commands: {},
+            commandsResponse: {
+                hueNotification: {
+                    ID: 0,
+                    parameters: [
+                        {name: "button", type: Zcl.DataType.UINT8},
+                        {name: "unknown1", type: Zcl.DataType.UINT24},
+                        {name: "type", type: Zcl.DataType.UINT8},
+                        {name: "unknown2", type: Zcl.DataType.UINT8},
+                        {name: "time", type: Zcl.DataType.UINT8},
+                        {name: "unknown2", type: Zcl.DataType.UINT8},
+                    ],
+                },
+            },
+        });
+        const onEvent = [...customClusterFC00.onEvent];
+        const configure = [...customClusterFC00.configure];
+        const result: ModernExtend = {configure, onEvent, isModernExtend: true};
+        return result;
+    }
 };
 export {philipsModernExtend as m};
 
