@@ -25,72 +25,72 @@ export const definitions: DefinitionWithExtend[] = [
                     "4": 4, // massageHeadIntensity 0: off, 1-6: intensity
                     "5": 5, // massageLegsIntensity 0: off, 1-6: intensity
                     "6": 6, // massageDuration 0: off, 1: 10 min, 2: 20 min, 3: 30 min
-                    "7": 7, // flat
-                    "8": 8, // zeroGravity
-                    "9": 9, // reading
-                    "10": 10, // tv
-                    "11": 11, // headGet
-                    "12": 12, //legsGet
+                    flat: 7,
+                    zeroGravity: 8,
+                    reading: 9,
+                    tv: 10,
+                    "11": 11,
+                    "12": 12,
                     "13": 13,
                     "14": 14,
                     "15": 15,
-                    "16": 16, // button type (clearAnglesSettings)
+                    clearAnglesSettings: 16, // button type
                     "17": 17,
                     "18": 18,
                     "19": 19,
                     "20": 20,
-                    "21": 21, // massage
+                    massage: 21,
                     "22": 22,
                     "23": 23,
-                    "24": 24, // antiSnoring
+                    antiSnoring: 24,
                     "25": 25,
-                    "26": 26, // move
-                    "27": 27, // stop
+                    move: 26,
+                    stop: 27,
                 },
             }),
             m.onOff({
                 powerOnBehavior: false,
-                endpointNames: ["7"],
+                endpointNames: ["flat"],
                 description: "Flat mode",
             }),
             m.onOff({
                 powerOnBehavior: false,
-                endpointNames: ["8"],
+                endpointNames: ["zeroGravity"],
                 description: "Zero gravity mode",
             }),
             m.onOff({
                 powerOnBehavior: false,
-                endpointNames: ["9"],
+                endpointNames: ["reading"],
                 description: "Reading mode",
             }),
             m.onOff({
                 powerOnBehavior: false,
-                endpointNames: ["10"],
+                endpointNames: ["tv"],
                 description: "TV mode",
             }),
             m.onOff({
                 powerOnBehavior: false,
-                endpointNames: ["16"],
+                endpointNames: ["clearAnglesSettings"],
                 description: "Clear angle settings",
             }),
             m.onOff({
                 powerOnBehavior: false,
-                endpointNames: ["21"],
+                endpointNames: ["massage"],
                 description: "Massage",
             }),
             m.onOff({
                 powerOnBehavior: false,
-                endpointNames: ["24"],
+                endpointNames: ["antiSnoring"],
                 description: "Anti snoring mode",
             }),
             m.onOff({
                 powerOnBehavior: false,
-                endpointNames: ["26"],
+                endpointNames: ["move"],
                 description: "Move",
             }),
             m.onOff({
                 powerOnBehavior: false,
-                endpointNames: ["27"],
+                endpointNames: ["stop"],
                 description: "Stop",
             }),
         ],
