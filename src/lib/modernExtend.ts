@@ -1659,14 +1659,13 @@ type MeterType = "electricity" | "gas"; // water, etc
 interface MeterArgs {
     type?: MeterType;
     cluster?: "both" | "metering" | "electrical";
-    power?: false | (MultiplierDivisor & Partial<ReportingConfigWithoutAttribute>);
+    power?: false | (MultiplierDivisor & Partial<ReportingConfigWithoutAttribute> & {cluster?: "metering" | "electrical"});
     energy?: false | (MultiplierDivisor & Partial<ReportingConfigWithoutAttribute>);
     status?: boolean;
     extendedStatus?: boolean;
     configureReporting?: boolean;
     endpointNames?: string[];
     fzMetering?: Fz.Converter;
-    reportingPowerType?: "metering" | "electrical";
     // applies only to electrical
     electricalMeasurementType?: "both" | "ac" | "dc";
     voltage?: false | (MultiplierDivisor & Partial<ReportingConfigWithoutAttribute>);
@@ -1895,7 +1894,7 @@ function genericMeter(args?: MeterArgs) {
         if (args.producedEnergy !== false) exposes.push(e.produced_energy().withAccess(ea.STATE_GET));
         fromZigbee = [args.fzElectricalMeasurement ?? fz.electrical_measurement, args.fzMetering ?? fz.metering];
         toZigbee = [
-            args.reportingPowerType === "electrical" ? tz.electrical_measurement_power : tz.metering_power,
+            (args.power === false || args.power?.cluster === undefined || args.power.cluster === "electrical") ? tz.electrical_measurement_power : tz.metering_power,
             tz.acvoltage,
             tz.accurrent,
             tz.currentsummdelivered,
@@ -1903,7 +1902,7 @@ function genericMeter(args?: MeterArgs) {
             tz.frequency,
             tz.powerfactor,
         ];
-        if (args.reportingPowerType === "electrical") delete configureLookup.seMetering.power;
+        if (args.power === false || args.power?.cluster === undefined || args.power.cluster === "electrical") delete configureLookup.seMetering.power;
         else delete configureLookup.haElectricalMeasurement.power;
     } else if (args.cluster === "metering" && args.type === "electricity") {
         if (args.power !== false) exposes.push(e.power().withAccess(ea.STATE_GET));
@@ -2040,7 +2039,6 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
         powerFactor: false,
         status: false,
         extendedStatus: false,
-        reportingPowerType: "electrical",
         ...args,
     };
     return genericMeter(args);
