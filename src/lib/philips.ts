@@ -10,7 +10,7 @@ import * as exposes from "./exposes";
 import {logger} from "./logger";
 import * as modernExtend from "./modernExtend";
 import * as globalStore from "./store";
-import type {Configure, Fz, KeyValue, KeyValueAny, ModernExtend, Tz, OnEvent} from "./types";
+import type {Configure, Fz, KeyValue, KeyValueAny, ModernExtend, OnEvent, Tz} from "./types";
 import * as utils from "./utils";
 import {exposeEndpoints, isObject} from "./utils";
 
@@ -226,7 +226,7 @@ const philipsModernExtend = {
         const configure = [...customClusterFC00.configure];
         const result: ModernExtend = {configure, onEvent, isModernExtend: true};
         return result;
-    }
+    },
 };
 export {philipsModernExtend as m};
 
