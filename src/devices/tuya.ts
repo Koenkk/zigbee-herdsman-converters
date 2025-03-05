@@ -4269,8 +4269,13 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [tuya.whitelabel("AVATTO", "ZWSM16-3-Zigbee", "3 gang switch module", ["_TZ3000_hbic3ka3"])],
     },
     {
+<<<<<<< HEAD
         fingerprint: tuya.fingerprint("TS0003", ["_TZ3000_ju82pu2b"]),
         model: "TS0003_switch_3_gang_simple",
+=======
+        fingerprint: tuya.fingerprint("TS0003", ['_TZ3000_ju82pu2b']),
+        model: "TW-03",
+>>>>>>> 483614aa (TZ3000_ju82pu2b support)
         vendor: "Tuya",
         description: "3-Gang switch",
         extend: [
@@ -4289,7 +4294,10 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ["genOnOff"]);
             await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ["genOnOff"]);
         },
+<<<<<<< HEAD
         whiteLabel: [tuya.whitelabel("Tuya", "TW-03", "3 Gang switch", ["_TZ3000_ju82pu2b"])],
+=======
+>>>>>>> 483614aa (TZ3000_ju82pu2b support)
     },
     {
         fingerprint: tuya.fingerprint("TS0003", ["_TZ3000_vsasbzkf", "_TZ3000_nnwehhst"]),
