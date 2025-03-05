@@ -94,7 +94,29 @@ const philipsModernExtend = {
             result.exposes.push(...exposeEndpoints(e.enum("effect", ea.SET, effects), args.endpointNames));
         }
 
-        const customCluster = m.deviceAddCustomCluster("manuSpecificPhilips3", {
+        const customClusterFC00 = m.deviceAddCustomCluster("manuSpecificPhilips", {
+            ID: 0xfc00,
+            manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V,
+            attributes: {
+                config: {ID: 49, type: Zcl.DataType.BITMAP16},
+            },
+            commands: {},
+            commandsResponse: {
+                hueNotification: {
+                    ID: 0,
+                    parameters: [
+                        {name: "button", type: Zcl.DataType.UINT8},
+                        {name: "unknown1", type: Zcl.DataType.UINT24},
+                        {name: "type", type: Zcl.DataType.UINT8},
+                        {name: "unknown2", type: Zcl.DataType.UINT8},
+                        {name: "time", type: Zcl.DataType.UINT8},
+                        {name: "unknown2", type: Zcl.DataType.UINT8},
+                    ],
+                },
+            },
+        });
+
+        const customClusterFC01 = m.deviceAddCustomCluster("manuSpecificPhilips3", {
             ID: 0xfc01,
             manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V,
             attributes: {},
@@ -122,8 +144,29 @@ const philipsModernExtend = {
             },
             commandsResponse: {},
         });
-        result.onEvent = [...(result.onEvent ?? []), ...customCluster.onEvent];
-        result.configure = [...(result.configure ?? []), ...customCluster.configure];
+
+        const customClusterFC03 = m.deviceAddCustomCluster("manuSpecificPhilips2", {
+            ID: 0xfc03,
+            manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V,
+            attributes: {
+                state: {ID: 0x0002, type: Zcl.DataType.OCTET_STR},
+            },
+            commands: {
+                multiColor: {
+                    ID: 0,
+                    parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}],
+                },
+            },
+            commandsResponse: {},
+        });
+
+        result.onEvent = [...(result.onEvent ?? []), ...customClusterFC00.onEvent, ...customClusterFC01.onEvent, ...customClusterFC03.onEvent];
+        result.configure = [
+            ...(result.configure ?? []),
+            ...customClusterFC00.configure,
+            ...customClusterFC01.configure,
+            ...customClusterFC03.configure,
+        ];
 
         return result;
     },
@@ -155,6 +198,33 @@ const philipsModernExtend = {
             },
         ];
         const result: ModernExtend = {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
+        return result;
+    },
+    customClusterFC00: () => {
+        const customClusterFC00 = m.deviceAddCustomCluster("manuSpecificPhilips", {
+            ID: 0xfc00,
+            manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V,
+            attributes: {
+                config: {ID: 49, type: Zcl.DataType.BITMAP16},
+            },
+            commands: {},
+            commandsResponse: {
+                hueNotification: {
+                    ID: 0,
+                    parameters: [
+                        {name: "button", type: Zcl.DataType.UINT8},
+                        {name: "unknown1", type: Zcl.DataType.UINT24},
+                        {name: "type", type: Zcl.DataType.UINT8},
+                        {name: "unknown2", type: Zcl.DataType.UINT8},
+                        {name: "time", type: Zcl.DataType.UINT8},
+                        {name: "unknown2", type: Zcl.DataType.UINT8},
+                    ],
+                },
+            },
+        });
+        const onEvent = [...customClusterFC00.onEvent];
+        const configure = [...customClusterFC00.configure];
+        const result: ModernExtend = {configure, onEvent, isModernExtend: true};
         return result;
     },
 };
