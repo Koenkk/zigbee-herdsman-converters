@@ -1894,7 +1894,9 @@ function genericMeter(args?: MeterArgs) {
         if (args.producedEnergy !== false) exposes.push(e.produced_energy().withAccess(ea.STATE_GET));
         fromZigbee = [args.fzElectricalMeasurement ?? fz.electrical_measurement, args.fzMetering ?? fz.metering];
         toZigbee = [
-            (args.power === false || args.power?.cluster === undefined || args.power.cluster === "electrical") ? tz.electrical_measurement_power : tz.metering_power,
+            args.power === false || args.power?.cluster === undefined || args.power.cluster === "electrical"
+                ? tz.electrical_measurement_power
+                : tz.metering_power,
             tz.acvoltage,
             tz.accurrent,
             tz.currentsummdelivered,
