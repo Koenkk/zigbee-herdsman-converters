@@ -274,6 +274,7 @@ import {definitions as somgoms} from "./somgoms";
 import {definitions as sonoff} from "./sonoff";
 import {definitions as sowilo} from "./sowilo";
 import {definitions as spotmau} from "./spotmau";
+import {definitions as sprut} from "./sprut";
 import {definitions as stelpro} from "./stelpro";
 import {definitions as sunricher} from "./sunricher";
 import {definitions as swann} from "./swann";
@@ -600,6 +601,7 @@ export default [
     ...sonoff,
     ...sowilo,
     ...spotmau,
+    ...sprut,
     ...stelpro,
     ...sunricher,
     ...swann,
