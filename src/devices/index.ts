@@ -259,6 +259,7 @@ import {definitions as simon} from "./simon";
 import {definitions as sinope} from "./sinope";
 import {definitions as siterwell} from "./siterwell";
 import {definitions as skydance} from "./skydance";
+import {definitions as slacky_diy} from "./slacky_diy";
 import {definitions as slv} from "./slv";
 import {definitions as smart9} from "./smart9";
 import {definitions as smart_home_pty} from "./smart_home_pty";
@@ -585,6 +586,7 @@ export default [
     ...sinope,
     ...siterwell,
     ...skydance,
+    ...slacky_diy,
     ...slv,
     ...smart_home_pty,
     ...smart9,
