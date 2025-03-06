@@ -77,10 +77,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "Tuya_CO2Sensor_r01",
         vendor: "Slacky-DIY",
         description: "Tuya CO2 sensor with custom Firmware",
-        extend: [
-            m.co2({reporting: co2Reporting}),
-        ],
-	ota: true,
+        extend: [m.co2({reporting: co2Reporting})],
+        ota: true,
     },
     {
     zigbeeModel: ["Watermeter_TLSR8258"],
