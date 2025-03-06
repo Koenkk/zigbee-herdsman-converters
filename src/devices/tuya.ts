@@ -3382,7 +3382,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS011F", ["_TZ3000_bep7ccew"]),
+        fingerprint: tuya.fingerprint("TS011F", ["_TZ3000_bep7ccew", "_TZ3000_gazjngjl"]),
         model: "TS011F_2_gang_power",
         vendor: "Tuya",
         description: "2 gang socket with power monitoring and USB",
@@ -4267,6 +4267,13 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ["genOnOff"]);
         },
         whiteLabel: [tuya.whitelabel("AVATTO", "ZWSM16-3-Zigbee", "3 gang switch module", ["_TZ3000_hbic3ka3"])],
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0003", ["_TZ3000_ju82pu2b"]),
+        model: "TW-03",
+        vendor: "Tuya",
+        description: "3-Gang switch",
+        extend: [tuya.modernExtend.tuyaOnOff({powerOnBehavior2: true, endpoints: ["l1", "l2", "l3"]})],
     },
     {
         fingerprint: tuya.fingerprint("TS0003", ["_TZ3000_vsasbzkf", "_TZ3000_nnwehhst"]),
@@ -8915,7 +8922,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_qasjif9e", "_TZE204_ztqnh5cg", "_TZE204_iadro9bf"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_qasjif9e", "_TZE204_ztqnh5cg", "_TZE204_iadro9bf", "_TZE284_iadro9bf"]),
         model: "ZY-M100-S_2",
         vendor: "Tuya",
         description: "Mini human breathe sensor",
