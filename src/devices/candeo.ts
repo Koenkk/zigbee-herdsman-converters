@@ -242,21 +242,12 @@ export const definitions: DefinitionWithExtend[] = [
         model: "C203",
         vendor: "Candeo",
         description: "Zigbee micro smart dimmer",
-        fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.power_on_behavior, fzLocal.switch_type, fz.ignore_genOta],
-        toZigbee: [tz.light_onoff_brightness, tz.level_config, tz.power_on_behavior, tz.identify, tzLocal.switch_type],
-        exposes: [
-            e.light().withBrightness().withLevelConfig(["on_transition_time", "off_transition_time", "execute_if_off"]),
-            e.power_on_behavior(["off", "on", "toggle", "previous"]),
-            e.identify(),
-            e.enum("external_switch_type", ea.ALL, ["momentary", "toggle"]).withLabel("External switch type"),
-        ],
-        meta: {},
+        extend: [m.light({configureReporting: true})],
+        fromZigbee: [fzLocal.switch_type, fz.ignore_genOta],
+        toZigbee: [tzLocal.switch_type],
+        exposes: [e.enum("external_switch_type", ea.ALL, ["momentary", "toggle"]).withLabel("External switch type")],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genOnOff", "genLevelCtrl"]);
-            await reporting.onOff(endpoint1);
-            await reporting.brightness(endpoint1);
-            await endpoint1.read("genOnOff", ["onOff"]);
             await endpoint1.write("genOnOff", {16387: {value: 0xff, type: 0x30}});
             await endpoint1.read("genOnOff", ["startUpOnOff"]);
             await endpoint1.read("genLevelCtrl", ["currentLevel"]);
