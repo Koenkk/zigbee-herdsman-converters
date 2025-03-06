@@ -133,7 +133,7 @@ export const definitions: DefinitionWithExtend[] = [
                 "stop_cover",
             ]),
         ],
-        configure: async (device, coordinatorEndpoint) => {
+        configure: (device, coordinatorEndpoint) => {
             // Has Unknown power source, force it here.
             device.powerSource = "Mains (single phase)";
             device.save();

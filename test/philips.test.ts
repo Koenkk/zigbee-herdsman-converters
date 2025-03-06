@@ -7,8 +7,8 @@ describe("lib/philips", () => {
             ["4b0101b2875a25411350000000b3474def153e2ad42e98232c7483292800", false, ["#ff77f8", "#7951ff", "#2538ff", "#1137ff", "#0c32ff"]],
             ["4b010164fb74346b1350000000f3297fda7d55da7d55f3297fda7d552800", true, ["#ff0517", "#ffa52c", "#ff0517", "#ff0517", "#ffa52c"]],
             ["4b010127a0526f5410400000000727640e9f5d0727640e9f5d2000", true, ["#ff0500", "#ffffff", "#ff0500", "#ffffff"]],
-        ])("colors(%s) should be %s", (input, opts_reverse, expected) => {
-            const ret = decodeGradientColors(input, {reverse: opts_reverse});
+        ])("colors(%s) should be %s", (input, optsReverse, expected) => {
+            const ret = decodeGradientColors(input, {reverse: optsReverse});
             expect(ret.colors).toStrictEqual(expected);
         });
 
