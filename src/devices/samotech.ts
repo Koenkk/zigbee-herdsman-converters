@@ -1,4 +1,5 @@
 import * as m from "../lib/modernExtend";
+import * as sunricher from "../lib/sunricher";
 import type {DefinitionWithExtend} from "../lib/types";
 
 export const definitions: DefinitionWithExtend[] = [
@@ -53,7 +54,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SM323_v2",
         vendor: "Samotech",
         description: "Zigbee retrofit dimmer 250W",
-        extend: [m.light({configureReporting: true}), m.electricityMeter()],
+        extend: [m.light({configureReporting: true}), m.electricityMeter(), sunricher.extend.externalSwitchType()],
     },
     {
         zigbeeModel: ["SM324"],
