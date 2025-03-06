@@ -539,14 +539,15 @@ export const definitions: DefinitionWithExtend[] = [
             // biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
             const endpointList: any = [];
             const deviceConfig = ptvoGetMetaOption(device, "device_config", "");
+            if (device?.endpoints) {
+                for (const endpoint of device.endpoints) {
+                    const epId = endpoint.ID;
+                    const epName = `l${epId}`;
+                    endpointList[epName] = epId;
+                }
+            }
             if (deviceConfig === "") {
-                if (device?.endpoints) {
-                    for (const endpoint of device.endpoints) {
-                        const epId = endpoint.ID;
-                        const epName = `l${epId}`;
-                        endpointList[epName] = epId;
-                    }
-                } else {
+                if (endpointList.length === 0) {
                     // fallback code
                     for (let epId = 1; epId <= 8; epId++) {
                         const epName = `l${epId}`;
@@ -554,12 +555,16 @@ export const definitions: DefinitionWithExtend[] = [
                     }
                 }
             } else {
-                for (let i = 0; i < deviceConfig.length; i++) {
-                    const epConfig = deviceConfig.charCodeAt(i);
-                    if (epConfig === 0x20) {
+                const deviceConfigArray = deviceConfig.split(/[\r\n]+/);
+                // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
+                let epConfig;
+                for (let i = 0; i < deviceConfigArray.length; i++) {
+                    epConfig = deviceConfigArray[i];
+                    const matches = epConfig.match(/^([0-9A-F]+)/);
+                    if (!matches || matches.length === 0) {
                         continue;
                     }
-                    const epId = i + 1;
+                    const epId = Number.parseInt(matches[0], 16);
                     const epName = `l${epId}`;
                     endpointList[epName] = epId;
                 }

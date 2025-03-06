@@ -3905,7 +3905,8 @@ export const scene_remove_all: Tz.Converter = {
     key: ["scene_remove_all"],
     convertSet: async (entity, key, value, meta) => {
         const groupid = utils.isGroup(entity) ? entity.groupID : 0;
-        const response = await entity.command("genScenes", "removeAll", {groupid}, utils.getOptions(meta.mapped, entity));
+        // In case `entity` is a group, the response is `undefined`, mock it.
+        const response = (await entity.command("genScenes", "removeAll", {groupid}, utils.getOptions(meta.mapped, entity))) ?? {status: 0};
         utils.assertObject(response);
         if (utils.isGroup(entity)) {
             if (meta.membersState) {
