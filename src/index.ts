@@ -81,6 +81,7 @@ export {
 export * as ota from "./lib/ota";
 export {setLogger} from "./lib/logger";
 export {getConfigureKey} from "./lib/configureKey";
+export {clear as clearGlobalStore} from "./lib/store";
 
 // key: zigbeeModel, value: array of definitions (most of the times 1)
 const externalDefinitionsLookup = new Map<string, DefinitionWithExtend[]>();
