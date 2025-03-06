@@ -4273,22 +4273,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TW-03",
         vendor: "Tuya",
         description: "3-Gang switch",
-        extend: [
-            tuya.modernExtend.tuyaOnOff({
-                powerOnBehavior2: true,
-                endpoints: ["l1", "l2", "l3"],
-            }),
-        ],
-        endpoint: (device) => {
-            return {l1: 1, l2: 2, l3: 3};
-        },
-        meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint);
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
-            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ["genOnOff"]);
-            await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ["genOnOff"]);
-        },
+        extend: [tuya.modernExtend.tuyaOnOff({powerOnBehavior2: true, endpoints: ["l1", "l2", "l3"]})],
     },
     {
         fingerprint: tuya.fingerprint("TS0003", ["_TZ3000_vsasbzkf", "_TZ3000_nnwehhst"]),
