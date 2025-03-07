@@ -2387,15 +2387,17 @@ export interface BinaryArgs {
     endpointName?: string;
     reporting?: false | ReportingConfig;
     access?: "STATE" | "STATE_GET" | "STATE_SET" | "SET" | "ALL";
+    label?: string;
     entityCategory?: "config" | "diagnostic";
 }
 export function binary(args: BinaryArgs): ModernExtend {
-    const {name, valueOn, valueOff, cluster, attribute, description, zigbeeCommandOptions, endpointName, reporting, entityCategory} = args;
+    const {name, valueOn, valueOff, cluster, attribute, description, zigbeeCommandOptions, endpointName, reporting, label, entityCategory} = args;
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
     const access = ea[args.access ?? "ALL"];
 
     let expose = e.binary(name, access, valueOn[0], valueOff[0]).withDescription(description);
     if (endpointName) expose = expose.withEndpoint(endpointName);
+    if (label) expose = expose.withLabel(label);
     if (entityCategory) expose = expose.withCategory(entityCategory);
 
     const fromZigbee: Fz.Converter[] = [
