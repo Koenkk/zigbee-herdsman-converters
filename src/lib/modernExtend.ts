@@ -1953,7 +1953,7 @@ function genericMeter(args?: MeterArgs) {
         fromZigbee = [args.fzElectricalMeasurement ?? fz.electrical_measurement, args.fzMetering ?? fz.metering];
         const useMetering = args.power !== false && args.power?.cluster === "metering";
         toZigbee = [
-            useMetering ? tz.metering_power : tz.electrical_measurement_power,
+            useMetering === true ? tz.metering_power : tz.electrical_measurement_power,
             tz.acvoltage,
             tz.accurrent,
             tz.currentsummdelivered,
@@ -1961,7 +1961,7 @@ function genericMeter(args?: MeterArgs) {
             tz.frequency,
             tz.powerfactor,
         ];
-        if (useMetering) delete configureLookup.haElectricalMeasurement.power;
+        if (useMetering === true) delete configureLookup.haElectricalMeasurement.power;
         else delete configureLookup.seMetering.power;
     } else if (args.cluster === "metering" && args.type === "electricity") {
         if (args.power !== false) exposes.push(e.power().withAccess(ea.STATE_GET));
