@@ -1964,8 +1964,7 @@ function genericMeter(args?: MeterArgs) {
         if (useMetering === true) {
             // biome-ignore lint/performance/noDelete: ignored using `--suppress`
             delete configureLookup.haElectricalMeasurement.power;
-        }
-        else {
+        } else {
             // biome-ignore lint/performance/noDelete: ignored using `--suppress`
             delete configureLookup.seMetering.power;
         }
