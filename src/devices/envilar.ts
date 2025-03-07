@@ -65,5 +65,5 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: 'Envilar',
         description: 'Dimmable LED Driver',
         extend: [m.light()]  
-    }
+    },
 ];
