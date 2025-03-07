@@ -26,7 +26,7 @@ export const definitions: DefinitionWithExtend[] = [
                     "5": 5, // massageLegsIntensity 0: off, 1-6: intensity
                     "6": 6, // massageDuration 0: off, 1: 10 min, 2: 20 min, 3: 30 min
                     flat: 7,
-                    zeroGravity: 8,
+                    zero_gravity: 8,
                     reading: 9,
                     tv: 10,
                     "11": 11,
@@ -34,7 +34,7 @@ export const definitions: DefinitionWithExtend[] = [
                     "13": 13,
                     "14": 14,
                     "15": 15,
-                    clearAnglesSettings: 16, // button type
+                    clear_angles_settings: 16, // button type
                     "17": 17,
                     "18": 18,
                     "19": 19,
@@ -42,7 +42,7 @@ export const definitions: DefinitionWithExtend[] = [
                     massage: 21,
                     "22": 22,
                     "23": 23,
-                    antiSnoring: 24,
+                    anti_snoring: 24,
                     "25": 25,
                     move: 26,
                     stop: 27,
@@ -55,7 +55,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.onOff({
                 powerOnBehavior: false,
-                endpointNames: ["zeroGravity"],
+                endpointNames: ["zero_gravity"],
                 description: "Zero gravity mode",
             }),
             m.onOff({
@@ -70,7 +70,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.onOff({
                 powerOnBehavior: false,
-                endpointNames: ["clearAnglesSettings"],
+                endpointNames: ["clear_angles_settings"],
                 description: "Clear angle settings",
             }),
             m.onOff({
@@ -80,7 +80,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.onOff({
                 powerOnBehavior: false,
-                endpointNames: ["antiSnoring"],
+                endpointNames: ["anti_snoring"],
                 description: "Anti snoring mode",
             }),
             m.onOff({
