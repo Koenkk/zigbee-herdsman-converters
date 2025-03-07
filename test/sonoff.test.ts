@@ -7,6 +7,7 @@ import {type Definition, type Fz, type KeyValueAny, type Tz, Zh} from "../src/li
 import {mockDevice} from "./utils";
 
 interface State {
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     readonly weekly_schedule: {
         readonly sunday: string;
         readonly monday: string;
@@ -176,6 +177,7 @@ describe("Sonoff TRVZB", () => {
                     message: null,
                     mapped: null,
                     options: null,
+                    publish: null,
                     endpoint_name: null,
                 };
 

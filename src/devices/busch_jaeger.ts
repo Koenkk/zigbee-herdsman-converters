@@ -136,7 +136,7 @@ export const definitions: DefinitionWithExtend[] = [
                 ),
         ],
         toZigbee: [tz.RM01_light_onoff_brightness, tz.RM01_light_brightness_step, tz.RM01_light_brightness_move],
-        onEvent: async (type, data, device, options) => {
+        onEvent: (type, data, device, options) => {
             const switchEndpoint = device.getEndpoint(0x12);
             if (switchEndpoint == null) {
                 return;

@@ -316,6 +316,7 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
                         "QBKG25LM",
                     ].includes(model.model)
                 ) {
+                    // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
                     let mapping;
                     switch (model.model) {
                         case "QBCZ15LM":
@@ -382,6 +383,7 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
                         "QBKG03LM",
                     ].includes(model.model)
                 ) {
+                    // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
                     let mapping;
                     switch (model.model) {
                         case "QBCZ15LM":
@@ -985,11 +987,17 @@ const lumiPresenceConstants = {
          */
         delete: 3,
     },
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     region_config_regionId_min: 1,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     region_config_regionId_max: 10,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     region_config_zoneY_min: 1,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     region_config_zoneY_max: 7,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     region_config_zoneX_min: 1,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     region_config_zoneX_max: 4,
     region_config_cmd_suffix_upsert: 0xff,
     region_config_cmd_suffix_delete: 0x00,
@@ -1063,7 +1071,7 @@ export const presence = {
             },
         };
     },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
     isAqaraFp1RegionId: (value: any): value is number => {
         return (
             typeof value === "number" &&
@@ -1071,7 +1079,7 @@ export const presence = {
             value <= presence.constants.region_config_regionId_max
         );
     },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
     isAqaraFp1RegionZoneDefinition: (value: any): value is LumiPresenceRegionZone => {
         return (
             value &&
@@ -1118,6 +1126,7 @@ function readDaySelection(buffer: Buffer, offset: number): Day[] {
 }
 
 function validateDaySelection(selectedDays: Day[]) {
+    // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
     selectedDays
         .filter((selectedDay) => !dayNames.includes(selectedDay))
         .forEach((invalidValue) => {
@@ -1222,6 +1231,7 @@ export const trv = {
         const data = buffer2DataObject(model, messageBuffer);
         const payload: KeyValue = {};
 
+        // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
         Object.entries(data).forEach(([key, value]) => {
             switch (Number.parseInt(key)) {
                 case 3:
@@ -1299,6 +1309,7 @@ export const trv = {
             throw new Error(`The schedule object must contain an array of ${eventCount} time/temperature events`);
         }
 
+        // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
         schedule.events.forEach((event) => {
             validateTime(event.time);
 
@@ -1419,6 +1430,7 @@ export const lumiModernExtend = {
             powerOutageCount?: boolean;
         },
     ) => {
+        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         args = {powerOutageCount: true, deviceTemperature: true, ...args};
         const colorTemp: {range: Range; startup: boolean} = args.colorTemp ? {startup: false, range: args.colorTempRange ?? [153, 370]} : undefined;
         const result = modernExtend.light({effect: false, powerOnBehavior: false, ...args, colorTemp});
@@ -1449,6 +1461,7 @@ export const lumiModernExtend = {
         return result;
     },
     lumiOnOff: (args?: modernExtend.OnOffArgs & {operationMode?: boolean; powerOutageMemory?: "binary" | "enum"; lockRelay?: boolean}) => {
+        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         args = {operationMode: false, lockRelay: false, ...args};
         const result = modernExtend.onOff({powerOnBehavior: false, ...args});
         result.fromZigbee.push(fromZigbee.lumi_specific);
@@ -1465,6 +1478,7 @@ export const lumiModernExtend = {
         if (args.operationMode === true) {
             const extend = lumiModernExtend.lumiOperationMode({description: "Decoupled mode for a button"});
             if (args.endpointNames) {
+                // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
                 args.endpointNames.forEach((ep) => {
                     const epExtend = lumiModernExtend.lumiOperationMode({
                         description: `Decoupled mode for ${ep.toString()} button`,
@@ -1481,6 +1495,7 @@ export const lumiModernExtend = {
         if (args.lockRelay) {
             const extend = lumiModernExtend.lumiLockRelay();
             if (args.endpointNames) {
+                // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
                 args.endpointNames.forEach((ep) => {
                     const epExtend = lumiModernExtend.lumiLockRelay({
                         description: `Locks ${ep.toString()} relay and prevents it from operating`,
@@ -2103,6 +2118,7 @@ export const lumiModernExtend = {
         powerOutageCountAttribute?: number;
         resetsWhenPairing?: boolean;
     }): ModernExtend => {
+        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         args = {cluster: "manuSpecificLumi", deviceTemperatureAttribute: 3, powerOutageCountAttribute: 5, resetsWhenPairing: false, ...args};
         const exposes: Expose[] = [e.device_temperature(), e.power_outage_count(args.resetsWhenPairing)];
 
@@ -2173,6 +2189,7 @@ export const lumiModernExtend = {
         return {exposes, fromZigbee, isModernExtend: true};
     },
     lumiCommandMode: (args?: {setEventMode: boolean}): ModernExtend => {
+        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         args = {setEventMode: true, ...args};
         const exposes: Expose[] = [
             e
@@ -2217,6 +2234,7 @@ export const lumiModernExtend = {
         percentageAtrribute?: number;
         voltageAttribute?: number;
     }): ModernExtend => {
+        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         args = {
             cluster: "manuSpecificLumi",
             percentageAtrribute: 1,
@@ -2440,6 +2458,7 @@ export const fromZigbee = {
             }
 
             if (model.model === "WXKG11LM") {
+                // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
                 let clicks;
                 if (msg.data.onOff) {
                     clicks = 1;
@@ -2531,6 +2550,7 @@ export const fromZigbee = {
             }
             if (model.model === "CTP-R01") {
                 const value = msg.data.presentValue;
+                // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
                 let payload;
                 if (value === 0) payload = {action: "shake"};
                 else if (value === 1) payload = {action: "throw"};
@@ -2671,7 +2691,7 @@ export const fromZigbee = {
     lumi_pressure: {
         cluster: "msPressureMeasurement",
         type: ["attributeReport", "readResponse"],
-        convert: async (model, msg, publish, options, meta) => {
+        convert: (model, msg, publish, options, meta) => {
             const result = fz.pressure.convert(model, msg, publish, options, meta) as KeyValueAny;
             if (result && result.pressure > 500 && result.pressure < 2000) {
                 return result;
@@ -2685,6 +2705,7 @@ export const fromZigbee = {
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
+            // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
             Object.entries(msg.data).forEach(([key, value]) => {
                 switch (Number.parseInt(key)) {
                     case 0xfff1: {
@@ -2723,6 +2744,7 @@ export const fromZigbee = {
                                 // schedule string
                                 const schlist = val.toString().split(",");
                                 const schedule: unknown[] = [];
+                                // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
                                 schlist.forEach((str: string) => {
                                     // 7f13000100
                                     if (str !== "//") {
@@ -2779,6 +2801,7 @@ export const fromZigbee = {
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
+            // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
             Object.entries(msg.data).forEach(([key, value]) => {
                 switch (Number.parseInt(key)) {
                     case 0x0271:
@@ -2830,6 +2853,7 @@ export const fromZigbee = {
                             // See https://github.com/Koenkk/zigbee-herdsman-converters/pull/5363#discussion_r1081477047
                             // @ts-expect-error ignore
                             meta.device.softwareBuildID = heartbeat.firmware_version;
+                            // biome-ignore lint/performance/noDelete: ignored using `--suppress`
                             delete heartbeat.firmware_version;
                         }
 
@@ -2873,6 +2897,7 @@ export const fromZigbee = {
         convert: (model, msg, publish, options, meta) => {
             const payload: KeyValue = {};
 
+            // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
             Object.entries(msg.data).forEach(([key, value]) => {
                 const eventKey = Number.parseInt(key);
 
@@ -3528,6 +3553,7 @@ export const fromZigbee = {
         type: "commandStepColorTemp",
         convert: (model, msg, publish, options, meta) => {
             if (hasAlreadyProcessedMessage(msg, model)) return;
+            // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
             let action;
             if (model.model === "WXCJKG12LM") {
                 // for WXCJKG12LM model it's double click event on buttons 3 and 4
@@ -3560,6 +3586,7 @@ export const fromZigbee = {
     } satisfies Fz.Converter,
 
     // lumi device specific
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     lumi_action_WXKG01LM: {
         // Unique converter
         cluster: "genOnOff",
@@ -3620,6 +3647,7 @@ export const fromZigbee = {
             }
         },
     } satisfies Fz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     lumi_smart_panel_ZNCJMB14LM: {
         cluster: "manuSpecificLumi",
         type: ["attributeReport", "readResponse"],
@@ -3856,6 +3884,7 @@ export const toZigbee = {
                 case "schedule": {
                     const schedule: string[] = [];
                     // @ts-expect-error ignore
+                    // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
                     value.forEach((item) => {
                         const schedItem = Buffer.from([getKey(feederDaysLookup, item.days, 0x7f), item.hour, item.minute, item.size, 0]);
                         schedule.push(schedItem.toString("hex"));
@@ -3892,6 +3921,7 @@ export const toZigbee = {
         key: ["detection_distance"],
         convertSet: async (entity, key, value, meta) => {
             assertString(value, "detection_distance");
+            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             value = value.toLowerCase();
             const lookup = {"10mm": 1, "20mm": 2, "30mm": 3};
             await entity.write("manuSpecificLumi", {268: {value: getFromLookup(value, lookup), type: 0x20}}, {manufacturerCode});
@@ -4234,7 +4264,7 @@ export const toZigbee = {
     } satisfies Tz.Converter,
     lumi_cube_operation_mode: {
         key: ["operation_mode"],
-        convertSet: async (entity, key, value, meta) => {
+        convertSet: (entity, key, value, meta) => {
             const lookup = {action_mode: 0, scene_mode: 1};
             /**
              * schedule the callback to run when the configuration window comes
@@ -4259,6 +4289,7 @@ export const toZigbee = {
             let targetValue = isObject(value) && value.state !== undefined ? value.state : value;
 
             // 1/2 gang switches using genBasic on endpoint 1.
+            // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
             let attrId;
             let attrValue: number;
             if (meta.mapped.meta?.multiEndpoint) {
@@ -4289,6 +4320,7 @@ export const toZigbee = {
             return {state: {operation_mode: targetValue}};
         },
         convertGet: async (entity, key, meta) => {
+            // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
             let attrId;
             if (Array.isArray(meta.mapped)) throw new Error("Not supported for groups");
             if (meta.mapped.meta?.multiEndpoint) {
@@ -4319,6 +4351,7 @@ export const toZigbee = {
         key: ["detection_interval"],
         convertSet: async (entity, key, value, meta) => {
             assertNumber(value, key);
+            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             value *= 1;
             await entity.write("manuSpecificLumi", {258: {value: [value], type: 0x20}}, manufacturerOptions.lumi);
             return {state: {detection_interval: value}};
@@ -4331,6 +4364,7 @@ export const toZigbee = {
         key: ["overload_protection"],
         convertSet: async (entity, key, value, meta) => {
             assertNumber(value, key);
+            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             value *= 1;
             await entity.write("manuSpecificLumi", {523: {value: [value], type: 0x39}}, manufacturerOptions.lumi);
             return {state: {overload_protection: value}};
@@ -4377,6 +4411,7 @@ export const toZigbee = {
         convertSet: async (entity, key, value, meta) => {
             const lookup = {rgbw: 3, dual_ct: 1};
             assertString(value, key);
+            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             value = value.toLowerCase();
             // @ts-expect-error ignore
             if (["rgbw"].includes(value)) {
@@ -4405,6 +4440,7 @@ export const toZigbee = {
         convertSet: async (entity, key, value, meta) => {
             const lookup = {toggle: 1, momentary: 2};
             assertString(value, key);
+            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             value = value.toLowerCase();
             await entity.write("manuSpecificLumi", {10: {value: getFromLookup(value, lookup), type: 0x20}}, manufacturerOptions.lumi);
             return {state: {switch_type: value}};
@@ -4608,6 +4644,7 @@ export const toZigbee = {
         key: ["detection_period"],
         convertSet: async (entity, key, value, meta) => {
             assertNumber(value, key);
+            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             value *= 1;
             await entity.write("manuSpecificLumi", {0: {value: [value], type: 0x21}}, manufacturerOptions.lumi);
             return {state: {detection_period: value}};
@@ -4621,6 +4658,7 @@ export const toZigbee = {
         convertSet: async (entity, key, value, meta) => {
             const lookup = {low: 1, medium: 2, high: 3};
             assertString(value, key);
+            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             value = value.toLowerCase();
             await entity.write("manuSpecificLumi", {268: {value: getFromLookup(value, lookup), type: 0x20}}, manufacturerOptions.lumi);
             return {state: {motion_sensitivity: value}};
@@ -4639,6 +4677,7 @@ export const toZigbee = {
         key: ["monitoring_mode"],
         convertSet: async (entity, key, value, meta) => {
             assertString(value, key);
+            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             value = value.toLowerCase();
             const lookup = {undirected: 0, left_right: 1};
             await entity.write("manuSpecificLumi", {324: {value: getFromLookup(value, lookup), type: 0x20}}, manufacturerOptions.lumi);
@@ -4652,6 +4691,7 @@ export const toZigbee = {
         key: ["approach_distance"],
         convertSet: async (entity, key, value, meta) => {
             assertString(value, key);
+            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             value = value.toLowerCase();
             const lookup = {far: 0, medium: 1, near: 2};
             await entity.write("manuSpecificLumi", {326: {value: getFromLookup(value, lookup), type: 0x20}}, manufacturerOptions.lumi);
@@ -4730,6 +4770,7 @@ export const toZigbee = {
         key: ["sensitivity"],
         convertSet: async (entity, key, value, meta) => {
             if (isString(value)) {
+                // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
                 value = getFromLookup(value, {low: 0x15, medium: 0x0b, high: 0x01});
             }
             assertNumber(value);
@@ -4790,6 +4831,7 @@ export const toZigbee = {
             }
 
             // Reset limits is an action, not a state.
+            // biome-ignore lint/performance/noDelete: ignored using `--suppress`
             delete opts.reset_limits;
             return {state: {options: opts}};
         },
@@ -4831,11 +4873,14 @@ export const toZigbee = {
             } else {
                 const lookup = {open: 100, close: 0, on: 100, off: 0};
 
+                // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
                 value = typeof value === "string" ? value.toLowerCase() : value;
                 if (isString(value)) {
+                    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
                     value = getFromLookup(value, lookup);
                 }
                 assertNumber(value);
+                // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
                 value = meta.options.invert_cover ? 100 - value : value;
 
                 if (["ZNCLBL01LM"].includes(meta.mapped.model)) {
@@ -4950,6 +4995,7 @@ export const toZigbee = {
             }
         },
     } satisfies Tz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     lumi_curtain_limits_calibration_ZNCLDJ14LM: {
         key: ["limits_calibration"],
         options: [
@@ -4969,6 +5015,7 @@ export const toZigbee = {
             }
         },
     } satisfies Tz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     lumi_curtain_automatic_calibration_ZNCLDJ01LM: {
         key: ["automatic_calibration"],
         convertSet: async (entity, key, value, meta) => {
@@ -5053,8 +5100,10 @@ export const toZigbee = {
             assertString(value, key);
             if (Array.isArray(meta.mapped)) throw new Error("Not supported for groups");
             const attribute = ["JY-GZ-01AQ"].includes(meta.mapped.model) ? 0x013e : 0x013f;
+            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             value = value.toLowerCase() === "alarm" ? 15361 : 15360;
             await entity.write("manuSpecificLumi", {[`${attribute}`]: {value: [`${value}`], type: 0x23}}, manufacturerOptions.lumi);
+            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             value = value === 15361 ? 0 : 1;
             await entity.write("manuSpecificLumi", {294: {value: [`${value}`], type: 0x20}}, manufacturerOptions.lumi);
         },
@@ -5124,6 +5173,7 @@ export const toZigbee = {
         key: ["sensitivity"],
         convertSet: async (entity, key, value, meta) => {
             assertString(value, key);
+            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             value = value.toLowerCase();
             const lookup = {low: 0x04010000, medium: 0x04020000, high: 0x04030000};
 
@@ -5137,6 +5187,7 @@ export const toZigbee = {
         key: ["gas_sensitivity"],
         convertSet: async (entity, key, value, meta) => {
             assertString(value, key);
+            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             value = value.toUpperCase();
             const lookup = {"15%LEL": 1, "10%LEL": 2};
             await entity.write("manuSpecificLumi", {268: {value: getFromLookup(value, lookup), type: 0x20}}, manufacturerOptions.lumi);
@@ -5148,6 +5199,7 @@ export const toZigbee = {
     } satisfies Tz.Converter,
 
     // lumi device specific
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     lumi_smart_panel_ZNCJMB14LM: {
         key: [
             "theme",
