@@ -1961,8 +1961,14 @@ function genericMeter(args?: MeterArgs) {
             tz.frequency,
             tz.powerfactor,
         ];
-        if (useMetering === true) delete configureLookup.haElectricalMeasurement.power;
-        else delete configureLookup.seMetering.power;
+        if (useMetering === true) {
+            // biome-ignore lint/performance/noDelete: ignored using `--suppress`
+            delete configureLookup.haElectricalMeasurement.power;
+        }
+        else {
+            // biome-ignore lint/performance/noDelete: ignored using `--suppress`
+            delete configureLookup.seMetering.power;
+        }
     } else if (args.cluster === "metering" && args.type === "electricity") {
         if (args.power !== false) exposes.push(e.power().withAccess(ea.STATE_GET));
         if (args.energy !== false) exposes.push(e.energy().withAccess(ea.STATE_GET));
