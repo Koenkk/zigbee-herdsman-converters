@@ -42,6 +42,7 @@ const tzLocal = {
         key: ["preset"],
         convertSet: async (entity, key, value, meta) => {
             utils.assertString(value, "preset");
+            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             value = value.toLowerCase();
             utils.validateValue(value, ["activity", "boost", "eco", "none"]);
             const activity = value === "activity" ? 1 : 0;
@@ -59,6 +60,7 @@ const tzLocal = {
         key: ["swing_mode"],
         convertSet: async (entity, key, value, meta) => {
             utils.assertString(value, "swing_mode");
+            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             value = value.toLowerCase();
             utils.validateValue(value, ["on", "off"]);
             await entity.write(

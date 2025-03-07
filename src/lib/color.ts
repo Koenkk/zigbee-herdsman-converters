@@ -70,6 +70,7 @@ export class ColorRGB {
      * @returns new ColoRGB object
      */
     static fromHex(hex: string): ColorRGB {
+        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         hex = hex.replace("#", "");
         const bigint = Number.parseInt(hex, 16);
         return new ColorRGB(((bigint >> 16) & 255) / 255, ((bigint >> 8) & 255) / 255, (bigint & 255) / 255);
@@ -108,6 +109,7 @@ export class ColorRGB {
         const max = Math.max(r, g, b);
         const min = Math.min(r, g, b);
         const d = max - min;
+        // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
         let h;
         const s = max === 0 ? 0 : d / max;
         const v = max;
@@ -410,8 +412,11 @@ export class ColorHSV {
         const s = hsvComplete.saturation / 100;
         const v = hsvComplete.value / 100;
 
+        // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
         let r;
+        // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
         let g;
+        // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
         let b;
         const i = Math.floor(h * 6);
         const f = h * 6 - i;
@@ -575,7 +580,8 @@ export class Color {
      * @param value - converter value argument
      * @returns Color object
      */
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
+    // biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
     static fromConverterArg(value: any): Color {
         if (value.x !== undefined && value.y !== undefined) {
             const xy = ColorXY.fromObject(value);
@@ -692,7 +698,9 @@ export function syncColorState(newState: KeyValueAny, oldState: KeyValueAny, end
     }
 
     // handle undefined newState/oldState
+    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
     if (newState === undefined) newState = {};
+    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
     if (oldState === undefined) oldState = {};
 
     // figure out current color_mode
@@ -793,6 +801,7 @@ export function syncColorState(newState: KeyValueAny, oldState: KeyValueAny, end
     }
 
     // drop empty result.color
+    // biome-ignore lint/performance/noDelete: ignored using `--suppress`
     if (Object.keys(result.color).length === 0) delete result.color;
 
     return result;

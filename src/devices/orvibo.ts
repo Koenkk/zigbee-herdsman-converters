@@ -14,6 +14,7 @@ const ea = exposes.access;
 const NS = "zhc:orvibo";
 
 const tzLocal = {
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     DD10Z_brightness: {
         key: ["brightness"],
         options: [exposes.options.transition()],
@@ -42,11 +43,13 @@ const distinct = <T>(input: T[], toKey: (input: T) => string): T[] => {
 const hexToBytes = (hex: string): number[] => {
     // Remove '0x' prefix if present
     if (hex.startsWith("0x")) {
+        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         hex = hex.slice(2);
     }
 
     // Ensure even length
     if (hex.length % 2 !== 0) {
+        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         hex = `0${hex}`;
     }
 

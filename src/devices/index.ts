@@ -1,12 +1,12 @@
 import {definitions as ITCommander} from "./ITCommander";
 import {definitions as acova} from "./acova";
-import {definitions as acuity_brands_lighting} from "./acuity_brands_lighting";
+import {definitions as acuityBrandsLighting} from "./acuity_brands_lighting";
 import {definitions as adeo} from "./adeo";
 import {definitions as adurosmart} from "./adurosmart";
 import {definitions as aeotec} from "./aeotec";
 import {definitions as airam} from "./airam";
-import {definitions as airzone_aidoo} from "./airzone_aidoo";
-import {definitions as ajax_online} from "./ajax_online";
+import {definitions as airzoneAidoo} from "./airzone_aidoo";
+import {definitions as ajaxOnline} from "./ajax_online";
 import {definitions as akuvox} from "./akuvox";
 import {definitions as alchemy} from "./alchemy";
 import {definitions as aldi} from "./aldi";
@@ -16,7 +16,7 @@ import {definitions as anchor} from "./anchor";
 import {definitions as atlantic} from "./atlantic";
 import {definitions as atsmart} from "./atsmart";
 import {definitions as aubess} from "./aubess";
-import {definitions as aurora_lighting} from "./aurora_lighting";
+import {definitions as auroraLighting} from "./aurora_lighting";
 import {definitions as automaton} from "./automaton";
 import {definitions as avatto} from "./avatto";
 import {definitions as awox} from "./awox";
@@ -25,16 +25,16 @@ import {definitions as bankamp} from "./bankamp";
 import {definitions as bega} from "./bega";
 import {definitions as belkin} from "./belkin";
 import {definitions as bitron} from "./bitron";
-import {definitions as bituo_technik} from "./bituo_technik";
+import {definitions as bituoTechnik} from "./bituo_technik";
 import {definitions as blaupunkt} from "./blaupunkt";
 import {definitions as blitzwolf} from "./blitzwolf";
 import {definitions as bosch} from "./bosch";
-import {definitions as bouffalo_lab} from "./bouffalo_lab";
+import {definitions as bouffaloLab} from "./bouffalo_lab";
 import {definitions as brimate} from "./brimate";
-import {definitions as brun_holding} from "./brun_holding";
+import {definitions as brunHolding} from "./brun_holding";
 import {definitions as bseed} from "./bseed";
 import {definitions as bticino} from "./bticino";
-import {definitions as busch_jaeger} from "./busch_jaeger";
+import {definitions as buschJaeger} from "./busch_jaeger";
 import {definitions as byun} from "./byun";
 import {definitions as calex} from "./calex";
 import {definitions as candeo} from "./candeo";
@@ -45,29 +45,29 @@ import {definitions as chacon} from "./chacon";
 import {definitions as cleode} from "./cleode";
 import {definitions as cleverio} from "./cleverio";
 import {definitions as climax} from "./climax";
-import {definitions as commercial_electric} from "./commercial_electric";
+import {definitions as commercialElectric} from "./commercial_electric";
 import {definitions as cree} from "./cree";
 import {definitions as ctm} from "./ctm";
-import {definitions as current_products_corp} from "./current_products_corp";
-import {definitions as custom_devices_diy} from "./custom_devices_diy";
-import {definitions as cy_lighting} from "./cy_lighting";
+import {definitions as currentProductsCorp} from "./current_products_corp";
+import {definitions as customDevicesDiy} from "./custom_devices_diy";
+import {definitions as cyLighting} from "./cy_lighting";
 import {definitions as danalock} from "./danalock";
 import {definitions as danfoss} from "./danfoss";
 import {definitions as databyte} from "./databyte";
 import {definitions as datek} from "./datek";
-import {definitions as dawon_dns} from "./dawon_dns";
+import {definitions as dawonDns} from "./dawon_dns";
 import {definitions as develco} from "./develco";
 import {definitions as digi} from "./digi";
-import {definitions as direct_signs} from "./direct_signs";
+import {definitions as directSigns} from "./direct_signs";
 import {definitions as diyruz} from "./diyruz";
 import {definitions as dlink} from "./dlink";
 import {definitions as dnake} from "./dnake";
-import {definitions as dowsing_reynolds} from "./dowsing_reynolds";
+import {definitions as dowsingReynolds} from "./dowsing_reynolds";
 import {definitions as dqsmart} from "./dqsmart";
-import {definitions as dresden_elektronik} from "./dresden_elektronik";
+import {definitions as dresdenElektronik} from "./dresden_elektronik";
 import {definitions as easyaccess} from "./easyaccess";
 import {definitions as easyiot} from "./easyiot";
-import {definitions as eatonhalo_led} from "./eatonhalo_led";
+import {definitions as eatonhaloLed} from "./eatonhalo_led";
 import {definitions as echostar} from "./echostar";
 import {definitions as ecodim} from "./ecodim";
 import {definitions as ecolink} from "./ecolink";
@@ -109,10 +109,10 @@ import {definitions as gmy} from "./gmy";
 import {definitions as gs} from "./gs";
 import {definitions as gumax} from "./gumax";
 import {definitions as halemeier} from "./halemeier";
-import {definitions as hampton_bay} from "./hampton_bay";
+import {definitions as hamptonBay} from "./hampton_bay";
 import {definitions as heatit} from "./heatit";
 import {definitions as heiman} from "./heiman";
-import {definitions as heimgard_technologies} from "./heimgard_technologies";
+import {definitions as heimgardTechnologies} from "./heimgard_technologies";
 import {definitions as hej} from "./hej";
 import {definitions as hfh} from "./hfh";
 import {definitions as hilux} from "./hilux";
@@ -120,7 +120,7 @@ import {definitions as hive} from "./hive";
 import {definitions as hommyn} from "./hommyn";
 import {definitions as honyar} from "./honyar";
 import {definitions as hornbach} from "./hornbach";
-import {definitions as hzc_electric} from "./hzc_electric";
+import {definitions as hzcElectric} from "./hzc_electric";
 import {definitions as icasa} from "./icasa";
 import {definitions as idinio} from "./idinio";
 import {definitions as ihorn} from "./ihorn";
@@ -145,7 +145,7 @@ import {definitions as jiawen} from "./jiawen";
 import {definitions as jumitech} from "./jumitech";
 import {definitions as jxuan} from "./jxuan";
 import {definitions as kami} from "./kami";
-import {definitions as keen_home} from "./keen_home";
+import {definitions as keenHome} from "./keen_home";
 import {definitions as klikaanklikuit} from "./klikaanklikuit";
 import {definitions as kmpcil} from "./kmpcil";
 import {definitions as konke} from "./konke";
@@ -154,7 +154,7 @@ import {definitions as kurvia} from "./kurvia";
 import {definitions as kwikset} from "./kwikset";
 import {definitions as lanesto} from "./lanesto";
 import {definitions as lds} from "./lds";
-import {definitions as led_trading} from "./led_trading";
+import {definitions as ledTrading} from "./led_trading";
 import {definitions as ledvance} from "./ledvance";
 import {definitions as leedarson} from "./leedarson";
 import {definitions as legrand} from "./legrand";
@@ -179,9 +179,9 @@ import {definitions as lupus} from "./lupus";
 import {definitions as lutron} from "./lutron";
 import {definitions as lux} from "./lux";
 import {definitions as lytko} from "./lytko";
-import {definitions as m_elec} from "./m_elec";
+import {definitions as mElec} from "./m_elec";
 import {definitions as makegood} from "./makegood";
-import {definitions as matcall_bv} from "./matcall_bv";
+import {definitions as matcallBv} from "./matcall_bv";
 import {definitions as mazda} from "./mazda";
 import {definitions as meazon} from "./meazon";
 import {definitions as mercator} from "./mercator";
@@ -189,7 +189,7 @@ import {definitions as miboxer} from "./miboxer";
 import {definitions as micromatic} from "./micromatic";
 import {definitions as modular} from "./modular";
 import {definitions as moes} from "./moes";
-import {definitions as muller_licht} from "./muller_licht";
+import {definitions as mullerLicht} from "./muller_licht";
 import {definitions as multiterm} from "./multiterm";
 import {definitions as namron} from "./namron";
 import {definitions as nanoleaf} from "./nanoleaf";
@@ -199,13 +199,13 @@ import {definitions as net2grid} from "./net2grid";
 import {definitions as netvox} from "./netvox";
 import {definitions as nexelec} from "./nexelec";
 import {definitions as niko} from "./niko";
-import {definitions as ninja_blocks} from "./ninja_blocks";
+import {definitions as ninjaBlocks} from "./ninja_blocks";
 import {definitions as niviss} from "./niviss";
 import {definitions as nodon} from "./nodon";
 import {definitions as nordtronic} from "./nordtronic";
 import {definitions as nous} from "./nous";
 import {definitions as novo} from "./novo";
-import {definitions as nue_3a} from "./nue_3a";
+import {definitions as nue3a} from "./nue_3a";
 import {definitions as nyce} from "./nyce";
 import {definitions as onenuo} from "./onenuo";
 import {definitions as onesti} from "./onesti";
@@ -215,7 +215,7 @@ import {definitions as osram} from "./osram";
 import {definitions as oujiabao} from "./oujiabao";
 import {definitions as owon} from "./owon";
 import {definitions as ozsmartthings} from "./ozsmartthings";
-import {definitions as paul_neuhaus} from "./paul_neuhaus";
+import {definitions as paulNeuhaus} from "./paul_neuhaus";
 import {definitions as paulmann} from "./paulmann";
 import {definitions as peq} from "./peq";
 import {definitions as perenio} from "./perenio";
@@ -233,24 +233,24 @@ import {definitions as qoto} from "./qoto";
 import {definitions as quotra} from "./quotra";
 import {definitions as rademacher} from "./rademacher";
 import {definitions as raex} from "./raex";
-import {definitions as rgb_genie} from "./rgb_genie";
+import {definitions as rgbGenie} from "./rgb_genie";
 import {definitions as robb} from "./robb";
 import {definitions as roome} from "./roome";
 import {definitions as rtx} from "./rtx";
-import {definitions as salus_controls} from "./salus_controls";
+import {definitions as salusControls} from "./salus_controls";
 import {definitions as samotech} from "./samotech";
 import {definitions as saswell} from "./saswell";
 import {definitions as sber} from "./sber";
 import {definitions as scanproducts} from "./scanproducts";
 import {definitions as schlage} from "./schlage";
-import {definitions as schneider_electric} from "./schneider_electric";
+import {definitions as schneiderElectric} from "./schneider_electric";
 import {definitions as schwaiger} from "./schwaiger";
-import {definitions as seastar_intelligence} from "./seastar_intelligence";
+import {definitions as seastarIntelligence} from "./seastar_intelligence";
 import {definitions as securifi} from "./securifi";
 import {definitions as sengled} from "./sengled";
 import {definitions as sercomm} from "./sercomm";
-import {definitions as shade_control} from "./shade_control";
-import {definitions as shenzhen_homa} from "./shenzhen_homa";
+import {definitions as shadeControl} from "./shade_control";
+import {definitions as shenzhenHoma} from "./shenzhen_homa";
 import {definitions as shinasystem} from "./shinasystem";
 import {definitions as shyugj} from "./shyugj";
 import {definitions as siglis} from "./siglis";
@@ -261,12 +261,12 @@ import {definitions as siterwell} from "./siterwell";
 import {definitions as skydance} from "./skydance";
 import {definitions as slv} from "./slv";
 import {definitions as smart9} from "./smart9";
-import {definitions as smart_home_pty} from "./smart_home_pty";
+import {definitions as smartHomePty} from "./smart_home_pty";
 import {definitions as smartenit} from "./smartenit";
 import {definitions as smartthings} from "./smartthings";
 import {definitions as smartwings} from "./smartwings";
 import {definitions as smlight} from "./smlight";
-import {definitions as sohan_electric} from "./sohan_electric";
+import {definitions as sohanElectric} from "./sohan_electric";
 import {definitions as solaredge} from "./solaredge";
 import {definitions as soma} from "./soma";
 import {definitions as somfy} from "./somfy";
@@ -284,9 +284,9 @@ import {definitions as tci} from "./tci";
 import {definitions as tech} from "./tech";
 import {definitions as technicolor} from "./technicolor";
 import {definitions as terncy} from "./terncy";
-import {definitions as the_light_group} from "./the_light_group";
-import {definitions as third_reality} from "./third_reality";
-import {definitions as titan_products} from "./titan_products";
+import {definitions as theLightGroup} from "./the_light_group";
+import {definitions as thirdReality} from "./third_reality";
+import {definitions as titanProducts} from "./titan_products";
 import {definitions as tlwglobal} from "./tlwglobal";
 import {definitions as tplink} from "./tplink";
 import {definitions as trust} from "./trust";
@@ -294,11 +294,11 @@ import {definitions as tubeszb} from "./tubeszb";
 import {definitions as tuya} from "./tuya";
 import {definitions as ubisys} from "./ubisys";
 import {definitions as uhome} from "./uhome";
-import {definitions as universal_electronics_inc} from "./universal_electronics_inc";
+import {definitions as universalElectronicsInc} from "./universal_electronics_inc";
 import {definitions as vbled} from "./vbled";
 import {definitions as vesternet} from "./vesternet";
 import {definitions as viessmann} from "./viessmann";
-import {definitions as villeroy_boch} from "./villeroy_boch";
+import {definitions as villeroyBoch} from "./villeroy_boch";
 import {definitions as vimar} from "./vimar";
 import {definitions as visonic} from "./visonic";
 import {definitions as vrey} from "./vrey";
@@ -328,13 +328,13 @@ import {definitions as zipato} from "./zipato";
 
 export default [
     ...acova,
-    ...acuity_brands_lighting,
+    ...acuityBrandsLighting,
     ...adeo,
     ...adurosmart,
     ...aeotec,
     ...airam,
-    ...airzone_aidoo,
-    ...ajax_online,
+    ...airzoneAidoo,
+    ...ajaxOnline,
     ...akuvox,
     ...alchemy,
     ...aldi,
@@ -344,7 +344,7 @@ export default [
     ...atlantic,
     ...atsmart,
     ...aubess,
-    ...aurora_lighting,
+    ...auroraLighting,
     ...automaton,
     ...avatto,
     ...awox,
@@ -353,16 +353,16 @@ export default [
     ...bega,
     ...belkin,
     ...bitron,
-    ...bituo_technik,
+    ...bituoTechnik,
     ...blaupunkt,
     ...blitzwolf,
     ...bosch,
-    ...bouffalo_lab,
+    ...bouffaloLab,
     ...brimate,
-    ...brun_holding,
+    ...brunHolding,
     ...bseed,
     ...bticino,
-    ...busch_jaeger,
+    ...buschJaeger,
     ...byun,
     ...calex,
     ...candeo,
@@ -373,29 +373,29 @@ export default [
     ...cleode,
     ...cleverio,
     ...climax,
-    ...commercial_electric,
+    ...commercialElectric,
     ...cree,
     ...ctm,
-    ...current_products_corp,
-    ...custom_devices_diy,
-    ...cy_lighting,
+    ...currentProductsCorp,
+    ...customDevicesDiy,
+    ...cyLighting,
     ...danalock,
     ...danfoss,
     ...databyte,
     ...datek,
-    ...dawon_dns,
+    ...dawonDns,
     ...develco,
     ...digi,
-    ...direct_signs,
+    ...directSigns,
     ...diyruz,
     ...dlink,
     ...dnake,
-    ...dowsing_reynolds,
-    ...dresden_elektronik,
+    ...dowsingReynolds,
+    ...dresdenElektronik,
     ...dqsmart,
     ...easyaccess,
     ...easyiot,
-    ...eatonhalo_led,
+    ...eatonhaloLed,
     ...echostar,
     ...ecodim,
     ...ecolink,
@@ -437,10 +437,10 @@ export default [
     ...gs,
     ...gumax,
     ...halemeier,
-    ...hampton_bay,
+    ...hamptonBay,
     ...heatit,
     ...heiman,
-    ...heimgard_technologies,
+    ...heimgardTechnologies,
     ...hej,
     ...hfh,
     ...hilux,
@@ -448,7 +448,7 @@ export default [
     ...hommyn,
     ...honyar,
     ...hornbach,
-    ...hzc_electric,
+    ...hzcElectric,
     ...icasa,
     ...idinio,
     ...ihorn,
@@ -474,7 +474,7 @@ export default [
     ...jumitech,
     ...jxuan,
     ...kami,
-    ...keen_home,
+    ...keenHome,
     ...klikaanklikuit,
     ...kmpcil,
     ...konke,
@@ -483,7 +483,7 @@ export default [
     ...kwikset,
     ...lanesto,
     ...lds,
-    ...led_trading,
+    ...ledTrading,
     ...ledvance,
     ...leedarson,
     ...legrand,
@@ -507,9 +507,9 @@ export default [
     ...lutron,
     ...lux,
     ...lytko,
-    ...m_elec,
+    ...mElec,
     ...makegood,
-    ...matcall_bv,
+    ...matcallBv,
     ...mazda,
     ...meazon,
     ...mercator,
@@ -517,7 +517,7 @@ export default [
     ...micromatic,
     ...modular,
     ...moes,
-    ...muller_licht,
+    ...mullerLicht,
     ...multiterm,
     ...namron,
     ...nanoleaf,
@@ -527,13 +527,13 @@ export default [
     ...netvox,
     ...nexelec,
     ...niko,
-    ...ninja_blocks,
+    ...ninjaBlocks,
     ...niviss,
     ...nodon,
     ...nordtronic,
     ...nous,
     ...novo,
-    ...nue_3a,
+    ...nue3a,
     ...nyce,
     ...onenuo,
     ...onesti,
@@ -543,7 +543,7 @@ export default [
     ...oujiabao,
     ...owon,
     ...ozsmartthings,
-    ...paul_neuhaus,
+    ...paulNeuhaus,
     ...paulmann,
     ...peq,
     ...perenio,
@@ -560,24 +560,24 @@ export default [
     ...quotra,
     ...rademacher,
     ...raex,
-    ...rgb_genie,
+    ...rgbGenie,
     ...robb,
     ...roome,
     ...rtx,
-    ...salus_controls,
+    ...salusControls,
     ...samotech,
     ...saswell,
     ...sber,
     ...scanproducts,
     ...schlage,
-    ...schneider_electric,
+    ...schneiderElectric,
     ...schwaiger,
-    ...seastar_intelligence,
+    ...seastarIntelligence,
     ...securifi,
     ...sengled,
     ...sercomm,
-    ...shade_control,
-    ...shenzhen_homa,
+    ...shadeControl,
+    ...shenzhenHoma,
     ...shinasystem,
     ...shyugj,
     ...siglis,
@@ -587,13 +587,13 @@ export default [
     ...siterwell,
     ...skydance,
     ...slv,
-    ...smart_home_pty,
+    ...smartHomePty,
     ...smart9,
     ...smartenit,
     ...smartthings,
     ...smartwings,
     ...smlight,
-    ...sohan_electric,
+    ...sohanElectric,
     ...solaredge,
     ...soma,
     ...somfy,
@@ -611,9 +611,9 @@ export default [
     ...tech,
     ...technicolor,
     ...terncy,
-    ...the_light_group,
-    ...third_reality,
-    ...titan_products,
+    ...theLightGroup,
+    ...thirdReality,
+    ...titanProducts,
     ...tlwglobal,
     ...tplink,
     ...trust,
@@ -622,11 +622,11 @@ export default [
     ...ubisys,
     ...uhome,
     ...lumi,
-    ...universal_electronics_inc,
+    ...universalElectronicsInc,
     ...vbled,
     ...vesternet,
     ...viessmann,
-    ...villeroy_boch,
+    ...villeroyBoch,
     ...vimar,
     ...visonic,
     ...vrey,

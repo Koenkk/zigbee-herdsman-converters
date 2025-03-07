@@ -108,7 +108,7 @@ const fzLocal = {
     c4_assa_lock_attribute: {
         cluster: "manuSpecificUbisysDeviceSetup",
         type: ["readResponse"],
-        convert: async (model, msg, publish, options, meta) => {
+        convert: (model, msg, publish, options, meta) => {
             const data = msg.data;
             const result: ZHTypes.KeyValue = {};
             if (data["18"]) {
