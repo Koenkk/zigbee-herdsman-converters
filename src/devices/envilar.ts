@@ -59,4 +59,11 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.onOff({powerOnBehavior: true}), m.identify(), m.electricityMeter()],
         whiteLabel: [{vendor: "Sunricher", model: "SR-ZG9101SAC-HP-SWITCH-B"}],
     },
+    {
+        zigbeeModel: ["7848"],
+        model: "7848",
+        vendor: 'Envilar',
+        description: 'Dimmable LED Driver',
+        extend: [m.light()]  
+    }
 ];
