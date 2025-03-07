@@ -1893,10 +1893,9 @@ function genericMeter(args?: MeterArgs) {
         if (args.energy !== false) exposes.push(e.energy().withAccess(ea.STATE_GET));
         if (args.producedEnergy !== false) exposes.push(e.produced_energy().withAccess(ea.STATE_GET));
         fromZigbee = [args.fzElectricalMeasurement ?? fz.electrical_measurement, args.fzMetering ?? fz.metering];
+        const useMetering = args.power !== false && args.power?.cluster === "metering";
         toZigbee = [
-            args.power === false || args.power?.cluster === undefined || args.power.cluster === "electrical"
-                ? tz.electrical_measurement_power
-                : tz.metering_power,
+            useMetering ? tz.metering_power : tz.electrical_measurement_power,
             tz.acvoltage,
             tz.accurrent,
             tz.currentsummdelivered,
@@ -1904,8 +1903,8 @@ function genericMeter(args?: MeterArgs) {
             tz.frequency,
             tz.powerfactor,
         ];
-        if (args.power === false || args.power?.cluster === undefined || args.power.cluster === "electrical") delete configureLookup.seMetering.power;
-        else delete configureLookup.haElectricalMeasurement.power;
+        if (useMetering) delete configureLookup.haElectricalMeasurement.power;
+        else delete configureLookup.seMetering.power;
     } else if (args.cluster === "metering" && args.type === "electricity") {
         if (args.power !== false) exposes.push(e.power().withAccess(ea.STATE_GET));
         if (args.energy !== false) exposes.push(e.energy().withAccess(ea.STATE_GET));
