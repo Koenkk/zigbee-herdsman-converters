@@ -1078,7 +1078,7 @@ export const light_hue_saturation_move: Tz.Converter = {
     },
 };
 export const light_onoff_brightness: Tz.Converter = {
-    key: ["state", "brightness", "brightness_percent"],
+    key: ["state", "brightness", "brightness_percent", "on_time", "off_wait_time"],
     options: [exposes.options.transition()],
     convertSet: async (entity, key, value, meta) => {
         const {message} = meta;
