@@ -59,7 +59,7 @@ const electricityMeterExtend = {
                     ]);
                 },
                 convertSet: async (entity, key, value, meta) => {
-                    return null;
+                    return await null;
                 },
             },
         ];
@@ -145,7 +145,7 @@ const electricityMeterExtend = {
                     await entity.read("haElectricalMeasurement", ["rmsVoltage", "acVoltageMultiplier", "acVoltageDivisor"]);
                 },
                 convertSet: async (entity, key, value, meta) => {
-                    return null;
+                    return await null;
                 },
             },
             {
@@ -154,7 +154,7 @@ const electricityMeterExtend = {
                     await entity.read("haElectricalMeasurement", ["instantaneousLineCurrent", "acCurrentMultiplier", "acCurrentDivisor"]);
                 },
                 convertSet: async (entity, key, value, meta) => {
-                    return null;
+                    return await null;
                 },
             },
             {
@@ -163,7 +163,7 @@ const electricityMeterExtend = {
                     await entity.read("haElectricalMeasurement", ["apparentPower", "acPowerMultiplier", "acPowerDivisor"]);
                 },
                 convertSet: async (entity, key, value, meta) => {
-                    return null;
+                    return await null;
                 },
             },
         ];
@@ -334,7 +334,7 @@ const electricityMeterExtend = {
                     await entity.read("seMetering", [attrElCityMeterModelName]);
                 },
                 convertSet: async (entity, key, value, meta) => {
-                    return null;
+                    return await null;
                 },
             },
             {
@@ -343,7 +343,7 @@ const electricityMeterExtend = {
                     await entity.read("seMetering", ["meterSerialNumber"]);
                 },
                 convertSet: async (entity, key, value, meta) => {
-                    return null;
+                    return await null;
                 },
             },
             {
@@ -352,7 +352,7 @@ const electricityMeterExtend = {
                     await entity.read("seMetering", [attrElCityMeterDateRelease]);
                 },
                 convertSet: async (entity, key, value, meta) => {
-                    return null;
+                    return await null;
                 },
             },
             {
@@ -361,7 +361,7 @@ const electricityMeterExtend = {
                     await entity.read("seMetering", ["remainingBattLife"]);
                 },
                 convertSet: async (entity, key, value, meta) => {
-                    return null;
+                    return await null;
                 },
             },
             {
@@ -370,7 +370,7 @@ const electricityMeterExtend = {
                     await entity.read("genDeviceTempCfg", ["currentTemperature"]);
                 },
                 convertSet: async (entity, key, value, meta) => {
-                    return null;
+                    return await null;
                 },
             },
         ];
