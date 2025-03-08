@@ -1,5 +1,3 @@
-import * as fz from "../converters/fromZigbee";
-import * as tz from "../converters/toZigbee";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import type {DefinitionWithExtend} from "../lib/types";
@@ -9,41 +7,17 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["Bed.box"],
         model: "Bed.box",
         vendor: "Sprut.device",
-        description: "Sprut bed.box Ergomotion controller",
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
-        meta: {
-            multiEndpoint: true,
-        },
-        exposes: [],
+        description: "Sprut bed.box ergomotion controller",
         extend: [
             m.deviceEndpoints({
                 endpoints: {
-                    "1": 1,
-                    "2": 2, // headSet
-                    "3": 3, // legsSet
-                    "4": 4, // massageHeadIntensity 0: off, 1-6: intensity
-                    "5": 5, // massageLegsIntensity 0: off, 1-6: intensity
-                    "6": 6, // massageDuration 0: off, 1: 10 min, 2: 20 min, 3: 30 min
                     flat: 7,
                     zero_gravity: 8,
                     reading: 9,
                     tv: 10,
-                    "11": 11,
-                    "12": 12,
-                    "13": 13,
-                    "14": 14,
-                    "15": 15,
                     clear_angles_settings: 16, // button type
-                    "17": 17,
-                    "18": 18,
-                    "19": 19,
-                    "20": 20,
                     massage: 21,
-                    "22": 22,
-                    "23": 23,
                     anti_snoring: 24,
-                    "25": 25,
                     move: 26,
                     stop: 27,
                 },
