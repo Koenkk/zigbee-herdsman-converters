@@ -386,6 +386,7 @@ const tzLocal = {
         ...tz.fan_mode,
         convertSet: async (entity, key, value, meta) => {
             utils.assertString(value);
+            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             if (value.toLowerCase() === "on") value = "low";
             return await tz.fan_mode.convertSet(entity, key, value, meta);
         },
@@ -1153,7 +1154,8 @@ export const definitions: DefinitionWithExtend[] = [
             return {l1: 1, l2: 2, s1: 21, s2: 22, s3: 23, s4: 24};
         },
         exposes: [e.switch().withEndpoint("l1"), e.switch().withEndpoint("l2"), e.action(["on_s*", "off_s*"])],
-        configure: async (device, coordinatorEndpoint) => {
+        configure: (device, coordinatorEndpoint) => {
+            // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
             device.endpoints.forEach(async (ep) => {
                 if (ep.outputClusters.includes(6) || ep.ID <= 2) {
                     await reporting.bind(ep, coordinatorEndpoint, ["genOnOff"]);
@@ -1197,6 +1199,7 @@ export const definitions: DefinitionWithExtend[] = [
             const endpoint = device.getEndpoint(3);
             await reporting.bind(endpoint, coordinatorEndpoint, ["lightingBallastCfg"]);
             // Configure the four front switches
+            // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
             device.endpoints.forEach(async (ep) => {
                 if (21 <= ep.ID && ep.ID <= 22) {
                     await reporting.bind(ep, coordinatorEndpoint, ["genOnOff", "genLevelCtrl"]);
@@ -1205,11 +1208,12 @@ export const definitions: DefinitionWithExtend[] = [
                 }
             });
         },
-        onEvent: async (type, data, device) => {
+        onEvent: (type, data, device) => {
             // Record the factory default bindings for easy removal/change after deviceInterview
             if (type === "deviceInterview") {
                 const dimmer = device.getEndpoint(3);
-                device.endpoints.forEach(async (ep) => {
+                // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
+                device.endpoints.forEach((ep) => {
                     if (21 <= ep.ID && ep.ID <= 22) {
                         ep.addBinding("genOnOff", dimmer);
                         ep.addBinding("genLevelCtrl", dimmer);
@@ -2194,7 +2198,7 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.thermostatOccupancy(endpoint4);
         },
         options: [exposes.options.measurement_poll_interval()],
-        onEvent: async (type, data, device, options) => {
+        onEvent: (type, data, device, options) => {
             const endpoint = device.getEndpoint(1);
             const poll = async () => {
                 await endpoint.read("hvacThermostat", ["occupiedHeatingSetpoint"]);

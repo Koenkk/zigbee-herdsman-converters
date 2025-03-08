@@ -16,5 +16,6 @@ for (const def of file) {
 
 for (const [key, values] of Object.entries(models)) {
     console.log(`\n\n// ${key}`);
+    // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
     values.forEach((v) => console.log(v));
 }

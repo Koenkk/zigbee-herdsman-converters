@@ -120,6 +120,7 @@ const tzLocal = {
 };
 
 function gledoptoLight(args?: m.LightArgs) {
+    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
     args = {powerOnBehavior: false, ...args};
     if (args.color) args.color = {modes: ["xy", "hs"], ...(utils.isObject(args.color) ? args.color : {})};
     const result = m.light(args);
@@ -140,7 +141,7 @@ function gledoptoLight(args?: m.LightArgs) {
 function gledoptoOnOff(args?: m.OnOffArgs) {
     const result = m.onOff({powerOnBehavior: false, ...args});
     result.onEvent = [
-        async (type: OnEventType, data: KeyValue, device: Zh.Device) => {
+        (type: OnEventType, data: KeyValue, device: Zh.Device) => {
             // This device doesn't support reporting.
             // Therefore we read the on/off state every 5 seconds.
             // This is the same way as the Hue bridge does it.

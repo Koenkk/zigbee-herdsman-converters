@@ -54,6 +54,7 @@ const legacyKeys: {[s: string]: number} = {
     BPU3_1466202208: 1,
     "4713407_-1239574396": 2,
     "CTR.UBX_1721592371": 1,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     Aj_Zigbee_Led_Strip_88764544: 2,
     AJ_ZB_GU10_88764544: 2,
     "L122FF63H11A5.0W_88764544": 2,
@@ -141,9 +142,12 @@ const legacyKeys: {[s: string]: number} = {
     "SMRZB-332_-570313272": 1,
     "DIYRuZ_FreePad_-1164805536": 1,
     "FreePad_LeTV_8_-1164805536": 1,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     DIYRuZ_Geiger_1515339524: 1,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     DIYRuZ_Flower_1834002472: 1,
     "DIYRuZ_AirSense_-1397322426": 1,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     Mega23M12_88764544: 2,
     "XVV-Mega23M12_88764544": 2,
     "EasyCode903G2.1_1220202591": 1,
@@ -244,6 +248,7 @@ const legacyKeys: {[s: string]: number} = {
     "54668161_88764544": 2,
     "HS1CA-M_1553276182": 1,
     "HS2SK_-1105234664": 5,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     HS2SK_nxp_1881458503: 5,
     HS1SA_491743244: 1,
     HS3SA_491743244: 1,
@@ -284,6 +289,7 @@ const legacyKeys: {[s: string]: number} = {
     "HV-GSCXZB279_HV-GSCXZB229_HV-GSCXZB229K_88764544": 2,
     "HV-GUCXZB5_88764544": 2,
     "UK7004240_-1419162246": 1,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     SLR1b_1715456678: 1,
     "SLR2_-1078819997": 3,
     "SLR2b_-1078819997": 3,
@@ -846,9 +852,12 @@ const legacyKeys: {[s: string]: number} = {
     TS0504B_1676534437: 2,
     TS0108_241577581: 1,
     "TS0601_dimmer_-1560235388": 1,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     TS0601_switch_72637060: 1,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     TS0601_switch_2_gang_1261674374: 1,
     "TS0601_switch_3_gang_-1884513748": 1,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     TS0215A_remote_1750255244: 1,
     TS0503A_1676534437: 2,
     TS0502A_88764544: 2,

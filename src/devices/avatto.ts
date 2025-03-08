@@ -103,12 +103,12 @@ export const definitions: DefinitionWithExtend[] = [
                     null,
                     tuya.valueConverter.thermostatSystemModeAndPresetMap({
                         fromMap: {
-                            0: {device_mode: "auto", system_mode: "auto", preset: "none"},
-                            1: {device_mode: "manual", system_mode: "heat", preset: "none"},
-                            2: {device_mode: "off", system_mode: "off", preset: "none"},
-                            3: {device_mode: "eco", system_mode: "heat", preset: "eco"},
-                            4: {device_mode: "comfort", system_mode: "heat", preset: "comfort"},
-                            5: {device_mode: "boost", system_mode: "heat", preset: "boost"},
+                            0: {deviceMode: "auto", systemMode: "auto", preset: "none"},
+                            1: {deviceMode: "manual", systemMode: "heat", preset: "none"},
+                            2: {deviceMode: "off", systemMode: "off", preset: "none"},
+                            3: {deviceMode: "eco", systemMode: "heat", preset: "eco"},
+                            4: {deviceMode: "comfort", systemMode: "heat", preset: "comfort"},
+                            5: {deviceMode: "boost", systemMode: "heat", preset: "boost"},
                         },
                     }),
                 ],

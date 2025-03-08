@@ -244,6 +244,7 @@ const convLocal = {
 };
 
 const tzLocal = {
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     TS030F_border: {
         key: ["border"],
         convertSet: async (entity, key, value, meta) => {
@@ -253,6 +254,7 @@ const tzLocal = {
             });
         },
     } satisfies Tz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     TS0726_switch_mode: {
         key: ["switch_mode"],
         convertSet: async (entity, key, value, meta) => {
@@ -376,6 +378,7 @@ const tzLocal = {
             await entity.read("lightingColorCtrl", ["currentHue", "currentSaturation", "currentLevel", "tuyaRgbMode", "colorTemperature"]);
         },
     } satisfies Tz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     TS0504B_color: {
         key: ["color"],
         convertSet: async (entity, key, value, meta) => {
@@ -417,6 +420,7 @@ const tzLocal = {
                 const lookup: KeyValue = {mute: 0, low: 10, medium: 30, high: 50};
                 utils.assertString(value, "volume");
                 const lookupValue = lookup[value];
+                // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
                 value = value.toLowerCase();
                 utils.validateValue(value, Object.keys(lookup));
                 await entity.write("ssIasWd", {2: {value: lookupValue, type: 0x0a}}, utils.getOptions(meta.mapped, entity));
@@ -440,6 +444,7 @@ const tzLocal = {
             }
         },
     } satisfies Tz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     TS011F_threshold: {
         key: [
             "temperature_threshold",
@@ -552,6 +557,7 @@ const tzLocal = {
 };
 
 const fzLocal = {
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     TS0726_action: {
         cluster: "genOnOff",
         type: ["commandTuyaAction"],
@@ -559,9 +565,10 @@ const fzLocal = {
             return {action: `scene_${msg.endpoint.ID}`};
         },
     } satisfies Fz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     TS0222_humidity: {
         ...fz.humidity,
-        convert: async (model, msg, publish, options, meta) => {
+        convert: (model, msg, publish, options, meta) => {
             const result = fz.humidity.convert(model, msg, publish, options, meta) as KeyValueAny;
             if (result) result.humidity *= 10;
             return result;
@@ -587,6 +594,7 @@ const fzLocal = {
             return {action: `scene_${id}`};
         },
     } satisfies Fz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     TS0201_battery: {
         cluster: "genPowerCfg",
         type: ["attributeReport", "readResponse"],
@@ -602,6 +610,7 @@ const fzLocal = {
             return fz.battery.convert(model, msg, publish, options, meta);
         },
     } satisfies Fz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     TS0201_humidity: {
         ...fz.humidity,
         convert: (model, msg, publish, options, meta) => {
@@ -635,6 +644,7 @@ const fzLocal = {
             return result;
         },
     } satisfies Fz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     TS011F_electrical_measurement: {
         ...fz.electrical_measurement,
         convert: async (model, msg, publish, options, meta) => {
@@ -685,6 +695,7 @@ const fzLocal = {
             return result;
         },
     } satisfies Fz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     TS011F_threshold: {
         cluster: "manuSpecificTuya_3",
         type: "raw",
@@ -729,6 +740,7 @@ const fzLocal = {
             }
         },
     } satisfies Fz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     PJ1203A_sync_time_increase_seq: {
         cluster: "manuSpecificTuya",
         type: ["commandMcuSyncTime"],
@@ -737,6 +749,7 @@ const fzLocal = {
             priv.last_seq += priv.seq_inc;
         },
     } satisfies Fz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     PJ1203A_strict_fz_datapoints: {
         ...tuya.fz.datapoints,
         convert: (model, msg, publish, options, meta) => {
@@ -1738,7 +1751,7 @@ export const definitions: DefinitionWithExtend[] = [
                 color: true,
             }),
         ],
-        configure: async (device, coordinatorEndpoint) => {
+        configure: (device, coordinatorEndpoint) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue("lightingColorCtrl", {
                 colorCapabilities: 29,
             });
@@ -1756,7 +1769,7 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: [tz.on_off, tzLocal.led_control, tuya.tz.do_not_disturb],
         fromZigbee: [fz.on_off, fz.tuya_led_controller, fz.brightness, fz.ignore_basic_report],
         exposes: [e.light_brightness_colortemp_colorhs([143, 500]).removeFeature("color_temp_startup"), tuya.exposes.doNotDisturb()],
-        configure: async (device, coordinatorEndpoint) => {
+        configure: (device, coordinatorEndpoint) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue("lightingColorCtrl", {
                 colorCapabilities: 29,
             });
@@ -1777,7 +1790,7 @@ export const definitions: DefinitionWithExtend[] = [
                 color: {modes: ["hs"], applyRedFix: true, enhancedHue: false},
             }),
         ],
-        configure: async (device, coordinatorEndpoint) => {
+        configure: (device, coordinatorEndpoint) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue("lightingColorCtrl", {
                 colorCapabilities: 29,
             });
@@ -1792,7 +1805,7 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: [tz.on_off, tzLocal.led_control, tuya.tz.do_not_disturb],
         fromZigbee: [fz.on_off, fz.tuya_led_controller, fz.brightness, fz.ignore_basic_report],
         exposes: [e.light_brightness_colortemp_colorhs([50, 1000]).removeFeature("color_temp_startup"), tuya.exposes.doNotDisturb()],
-        configure: async (device, coordinatorEndpoint) => {
+        configure: (device, coordinatorEndpoint) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue("lightingColorCtrl", {
                 colorCapabilities: 29,
             });
@@ -2277,6 +2290,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE200_ojzhk75b",
             "_TZE200_w4cryh2i",
             "_TZE200_dfxkcots",
+            "_TZE204_68utemio",
             "_TZE200_9i9dt8is",
             "_TZE200_ctq0k47x",
             "_TZE200_ebwgzdqq",
@@ -2328,6 +2342,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Moes", "ZS-SR-EUD-1", "Star ring smart dimmer switch 1 gang", ["_TZE204_hlx9tnzb"]),
             tuya.whitelabel("Moes", "MS-105Z", "Smart Dimmer module", ["_TZE200_la2c2uo9"]),
             tuya.whitelabel("Mercator Ikuü", "SSWM-DIMZ", "Switch Mechanism", ["_TZE200_9cxuhakf"]),
+            tuya.whitelabel("Zemismart", "ZN2S-US1-SD", "Single gang dimmer", ["_TZE204_68utemio"]),
             tuya.whitelabel("Mercator Ikuü", "SSWRM-ZB", "Rotary dimmer mechanism", ["_TZE200_a0syesf5"]),
             tuya.whitelabel("Lonsonho", "EDM-1ZBB-EU", "Smart Dimmer Switch", ["_TZE200_0nauxa0p"]),
             tuya.whitelabel("ION Industries", "ID200W-ZIGB", "LED Zigbee Dimmer", ["_TZE200_ykgar0ow"]),
@@ -3195,7 +3210,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Lidl", "14147206L", "Livarno Lux ceiling light", ["_TZ3000_rylaozuc", "_TZ3000_5fkufhn1"]),
             tuya.whitelabel("Lidl", "14153905L", "Livarno Home LED floor lamp", ["_TZ3000_8uaoilu9"]),
         ],
-        configure: async (device, coordinatorEndpoint) => {
+        configure: (device, coordinatorEndpoint) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue("lightingColorCtrl", {
                 colorCapabilities: 16,
             });
@@ -3278,7 +3293,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Mycket", "MS-SP-LE27WRGB", "E27 RGBW bulb", ["_TZ3000_evag0pvn"]),
             tuya.whitelabel("Lidl", "HG06104A", "Livarno Home RGB+CCT LED light strip 2m", ["_TZ3000_riwp3k79", "_TZ3000_riwp3k79"]),
         ],
-        configure: async (device, coordinatorEndpoint) => {
+        configure: (device, coordinatorEndpoint) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue("lightingColorCtrl", {
                 colorCapabilities: 29,
             });
@@ -3747,6 +3762,7 @@ export const definitions: DefinitionWithExtend[] = [
                                 return v === true ? "ON" : "OFF";
                             }
 
+                            // biome-ignore lint/performance/noDelete: ignored using `--suppress`
                             delete meta.state.state;
                         },
                     },
@@ -5118,7 +5134,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.binary("factory_reset", ea.SET, true, false).withDescription("Factory reset the device"),
         ],
         whiteLabel: [tuya.whitelabel("Moes", "AM43-0.45/40-ES-EB", "Roller blind/shades drive motor", ["_TZE200_zah67ekd", "_TZE200_icka1clh"])],
-        configure: async (device, coordinatorEndpoint) => {
+        configure: (device, coordinatorEndpoint) => {
             device.powerSource = "Mains (single phase)";
             device.save();
         },
@@ -12789,6 +12805,7 @@ export const definitions: DefinitionWithExtend[] = [
                                 return v === true ? "ON" : "OFF";
                             }
 
+                            // biome-ignore lint/performance/noDelete: ignored using `--suppress`
                             delete meta.state.state;
                         },
                     },
@@ -15271,23 +15288,23 @@ export const definitions: DefinitionWithExtend[] = [
                     tuya.valueConverter.thermostatSystemModeAndPresetMap({
                         fromMap: {
                             0: {
-                                device_mode: "manual",
-                                system_mode: "heat",
+                                deviceMode: "manual",
+                                systemMode: "heat",
                                 preset: "manual",
                             },
-                            1: {device_mode: "auto", system_mode: "auto", preset: "auto"},
+                            1: {deviceMode: "auto", systemMode: "auto", preset: "auto"},
                             2: {
-                                device_mode: "holiday",
-                                system_mode: "heat",
+                                deviceMode: "holiday",
+                                systemMode: "heat",
                                 preset: "holiday",
                             },
                             3: {
-                                device_mode: "comfort",
-                                system_mode: "heat",
+                                deviceMode: "comfort",
+                                systemMode: "heat",
                                 preset: "comfort",
                             },
-                            4: {device_mode: "eco", system_mode: "heat", preset: "eco"},
-                            5: {device_mode: "off", system_mode: "off", preset: "off"},
+                            4: {deviceMode: "eco", systemMode: "heat", preset: "eco"},
+                            5: {deviceMode: "off", systemMode: "off", preset: "off"},
                         },
                     }),
                 ],

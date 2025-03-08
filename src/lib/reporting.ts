@@ -1,5 +1,3 @@
-/* eslint camelcase: 0 */
-
 import {repInterval} from "./constants";
 import type {Reporting, Zh} from "./types";
 

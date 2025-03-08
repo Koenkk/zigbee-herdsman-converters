@@ -12,6 +12,7 @@ const e = exposes.presets;
 
 const NS = "zhc:ewelink";
 const fzLocal = {
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     WS01_rain: {
         cluster: "ssIasZone",
         type: "commandStatusChangeNotification",
@@ -38,20 +39,14 @@ export const definitions: DefinitionWithExtend[] = [
         model: "CK-BL702-MSW-01(7010)",
         vendor: "eWeLink",
         description: "CMARS Zigbee smart plug",
-        extend: [m.onOff({skipDuplicateTransaction: true})],
-        onEvent: async (type, data, device) => {
-            device.skipDefaultResponse = true;
-        },
+        extend: [m.onOff({skipDuplicateTransaction: true}), m.skipDefaultResponse()],
     },
     {
         zigbeeModel: ["SA-003-Zigbee"],
         model: "SA-003-Zigbee",
         vendor: "eWeLink",
         description: "Zigbee smart plug",
-        extend: [m.onOff({powerOnBehavior: false, skipDuplicateTransaction: true, configureReporting: false})],
-        onEvent: async (type, data, device) => {
-            device.skipDefaultResponse = true;
-        },
+        extend: [m.onOff({powerOnBehavior: false, skipDuplicateTransaction: true, configureReporting: false}), m.skipDefaultResponse()],
         configure: async (device, coordinatorEndpoint) => {
             try {
                 await device.getEndpoint(1).bind("genOnOff", coordinatorEndpoint);
@@ -67,50 +62,39 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SA-030-1",
         vendor: "eWeLink",
         description: "Zigbee 3.0 smart plug 13A (3120W)(UK version)",
-        extend: [m.onOff({skipDuplicateTransaction: true})],
-        onEvent: async (type, data, device) => {
-            device.skipDefaultResponse = true;
-        },
+        extend: [m.onOff({skipDuplicateTransaction: true}), m.skipDefaultResponse()],
     },
     {
         zigbeeModel: ["SWITCH-ZR02"],
         model: "SWITCH-ZR02",
         vendor: "eWeLink",
         description: "Zigbee smart switch",
-        extend: [m.onOff({powerOnBehavior: false, skipDuplicateTransaction: true})],
-        onEvent: async (type, data, device) => {
-            device.skipDefaultResponse = true;
-        },
+        extend: [m.onOff({powerOnBehavior: false, skipDuplicateTransaction: true}), m.skipDefaultResponse()],
     },
     {
         zigbeeModel: ["SWITCH-ZR03-1"],
         model: "SWITCH-ZR03-1",
         vendor: "eWeLink",
         description: "Zigbee smart switch",
-        extend: [m.onOff({skipDuplicateTransaction: true})],
-        onEvent: async (type, data, device) => {
-            device.skipDefaultResponse = true;
-        },
+        extend: [m.onOff({skipDuplicateTransaction: true}), m.skipDefaultResponse()],
     },
     {
         zigbeeModel: ["ZB-SW01"],
         model: "ZB-SW01",
         vendor: "eWeLink",
         description: "Smart light switch - 1 gang",
-        extend: [m.onOff({powerOnBehavior: false, skipDuplicateTransaction: true, configureReporting: false})],
-        onEvent: async (type, data, device) => {
-            device.skipDefaultResponse = true;
-        },
+        extend: [m.onOff({powerOnBehavior: false, skipDuplicateTransaction: true, configureReporting: false}), m.skipDefaultResponse()],
     },
     {
         zigbeeModel: ["ZB-SW02", "E220-KR2N0Z0-HA", "SWITCH-ZR03-2"],
         model: "ZB-SW02",
         vendor: "eWeLink",
         description: "Smart light switch/2 gang relay",
-        extend: [m.deviceEndpoints({endpoints: {left: 1, right: 2}}), m.onOff({endpointNames: ["left", "right"], configureReporting: false})],
-        onEvent: async (type, data, device) => {
-            device.skipDefaultResponse = true;
-        },
+        extend: [
+            m.deviceEndpoints({endpoints: {left: 1, right: 2}}),
+            m.onOff({endpointNames: ["left", "right"], configureReporting: false}),
+            m.skipDefaultResponse(),
+        ],
     },
     {
         zigbeeModel: ["ZB-SW03"],
@@ -120,10 +104,8 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.deviceEndpoints({endpoints: {left: 1, center: 2, right: 3}}),
             m.onOff({endpointNames: ["left", "center", "right"], configureReporting: false}),
+            m.skipDefaultResponse(),
         ],
-        onEvent: async (type, data, device) => {
-            device.skipDefaultResponse = true;
-        },
     },
     {
         zigbeeModel: ["ZB-SW04"],
@@ -133,10 +115,8 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4}}),
             m.onOff({endpointNames: ["l1", "l2", "l3", "l4"], configureReporting: false}),
+            m.skipDefaultResponse(),
         ],
-        onEvent: async (type, data, device) => {
-            device.skipDefaultResponse = true;
-        },
     },
     {
         zigbeeModel: ["ZB-SW05"],
@@ -146,10 +126,8 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4, l5: 5}}),
             m.onOff({endpointNames: ["l1", "l2", "l3", "l4", "l5"], configureReporting: false}),
+            m.skipDefaultResponse(),
         ],
-        onEvent: async (type, data, device) => {
-            device.skipDefaultResponse = true;
-        },
     },
     {
         zigbeeModel: ["WS01"],

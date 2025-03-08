@@ -255,6 +255,7 @@ export function ikeaAirPurifier(): ModernExtend {
                     // Air Quality
                     // Scale based on EU AQI (https://www.eea.europa.eu/themes/air/air-quality-index)
                     // Using German IAQ labels to match the Develco Air Quality Sensor
+                    // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
                     let airQuality;
                     const airQualityProperty = postfixWithEndpointName("air_quality", msg, model, meta);
                     if (pm25 <= 10) {
@@ -334,11 +335,14 @@ export function ikeaAirPurifier(): ModernExtend {
             key: ["fan_mode", "fan_state"],
             convertSet: async (entity, key, value, meta) => {
                 if (key === "fan_state" && typeof value === "string" && value.toLowerCase() === "on") {
+                    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
                     value = "auto";
                 } else {
+                    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
                     value = value.toString().toLowerCase();
                 }
 
+                // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
                 let fanMode;
                 switch (value) {
                     case "off":
@@ -466,6 +470,7 @@ export function ikeaVoc(args?: Partial<m.NumericArgs>) {
 }
 
 export function ikeaConfigureGenPollCtrl(args?: {endpointId: number}): ModernExtend {
+    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
     args = {endpointId: 1, ...args};
     const configure: Configure[] = [
         async (device, coordinatorEndpoint, definition) => {
@@ -622,6 +627,7 @@ export function styrbarCommandOn(): ModernExtend {
 }
 
 export function ikeaDotsClick(args: {actionLookup?: KeyValue; dotsPrefix?: boolean; endpointNames: string[]}): ModernExtend {
+    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
     args = {
         actionLookup: {
             commandAction1: "initial_press",
@@ -645,6 +651,7 @@ export function ikeaDotsClick(args: {actionLookup?: KeyValue; dotsPrefix?: boole
             type: "raw",
             convert: (model, msg, publish, options, meta) => {
                 if (!Buffer.isBuffer(msg.data)) return;
+                // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
                 let action;
                 const button = msg.data[5];
                 switch (msg.data[6]) {
@@ -680,6 +687,7 @@ export function ikeaDotsClick(args: {actionLookup?: KeyValue; dotsPrefix?: boole
 }
 
 export function ikeaArrowClick(args?: {styrbar?: boolean; bind?: boolean}): ModernExtend {
+    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
     args = {styrbar: false, bind: true, ...args};
     const actions = ["arrow_left_click", "arrow_left_hold", "arrow_left_release", "arrow_right_click", "arrow_right_hold", "arrow_right_release"];
     const exposes: Expose[] = [presets.action(actions)];
