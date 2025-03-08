@@ -598,7 +598,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "PMM-300Z1",
         vendor: "ShinaSystem",
         description: "SiHAS energy monitor",
-        extend: [m.electricityMeter()],
+        extend: [m.electricityMeter({power: {cluster: "metering"}})],
     },
     {
         zigbeeModel: ["PMM-300Z2"],
@@ -606,7 +606,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "ShinaSystem",
         ota: true,
         description: "SiHAS energy monitor",
-        extend: [m.electricityMeter({acFrequency: {multiplier: 1, divisor: 10}, powerFactor: true}), m.temperature()],
+        extend: [m.electricityMeter({power: {cluster: "metering"}, acFrequency: {multiplier: 1, divisor: 10}, powerFactor: true}), m.temperature()],
     },
     {
         zigbeeModel: ["PMM-300Z3"],
@@ -614,7 +614,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "ShinaSystem",
         ota: true,
         description: "SiHAS 3phase energy monitor",
-        extend: [m.electricityMeter({acFrequency: {multiplier: 1, divisor: 10}, powerFactor: true}), m.temperature()],
+        extend: [m.electricityMeter({power: {cluster: "metering"}, acFrequency: {multiplier: 1, divisor: 10}, powerFactor: true}), m.temperature()],
     },
     {
         zigbeeModel: ["DLM-300Z"],

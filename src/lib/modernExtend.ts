@@ -1678,7 +1678,7 @@ type MeterType = "electricity" | "gas"; // water, etc
 interface MeterArgs {
     type?: MeterType;
     cluster?: "both" | "metering" | "electrical";
-    power?: false | (MultiplierDivisor & Partial<ReportingConfigWithoutAttribute>);
+    power?: false | (MultiplierDivisor & Partial<ReportingConfigWithoutAttribute> & {cluster?: "metering" | "electrical"});
     energy?: false | (MultiplierDivisor & Partial<ReportingConfigWithoutAttribute>);
     status?: boolean;
     extendedStatus?: boolean;
@@ -1951,8 +1951,9 @@ function genericMeter(args?: MeterArgs) {
         if (args.energy !== false) exposes.push(e.energy().withAccess(ea.STATE_GET));
         if (args.producedEnergy !== false) exposes.push(e.produced_energy().withAccess(ea.STATE_GET));
         fromZigbee = [args.fzElectricalMeasurement ?? fz.electrical_measurement, args.fzMetering ?? fz.metering];
+        const useMeteringForPower = args.power !== false && args.power?.cluster === "metering";
         toZigbee = [
-            tz.electrical_measurement_power,
+            useMeteringForPower ? tz.metering_power : tz.electrical_measurement_power,
             tz.acvoltage,
             tz.accurrent,
             tz.currentsummdelivered,
@@ -1960,8 +1961,13 @@ function genericMeter(args?: MeterArgs) {
             tz.frequency,
             tz.powerfactor,
         ];
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
-        delete configureLookup.seMetering.power;
+        if (useMeteringForPower) {
+            // biome-ignore lint/performance/noDelete: ignored using `--suppress`
+            delete configureLookup.haElectricalMeasurement.power;
+        } else {
+            // biome-ignore lint/performance/noDelete: ignored using `--suppress`
+            delete configureLookup.seMetering.power;
+        }
     } else if (args.cluster === "metering" && args.type === "electricity") {
         if (args.power !== false) exposes.push(e.power().withAccess(ea.STATE_GET));
         if (args.energy !== false) exposes.push(e.energy().withAccess(ea.STATE_GET));
