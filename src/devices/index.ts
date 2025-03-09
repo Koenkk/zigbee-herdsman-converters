@@ -587,7 +587,7 @@ export default [
     ...sinope,
     ...siterwell,
     ...skydance,
-	...slackyDiy,
+    ...slackyDiy,
     ...slv,
     ...smartHomePty,
     ...smart9,
