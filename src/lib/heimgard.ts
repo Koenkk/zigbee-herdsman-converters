@@ -2,7 +2,7 @@ import type {Fz, KeyValue, Tz} from "./types";
 
 import {Zcl} from "zigbee-herdsman";
 
-import tz from "../converters/toZigbee";
+import {lock} from "../converters/toZigbee";
 import * as utils from "../lib/utils";
 import * as modernExtend from "./modernExtend";
 
@@ -94,7 +94,7 @@ export const fromZigbee = {
                 //Perform a lookup
                 if (isInteriorLocked && isExteriorLocked && msg.data.lockState === 2 && enforceLockingIfBogus) {
                     // In cases where the lockState reports unlocked while there is no history, we should perform a locking action to ensure that it is actually locked. This is to ensure that the state and physical state is correct. This is due to faulty product code.
-                    void tz.lock.convertSet(msg.endpoint, "state", "LOCK", null);
+                    void lock.convertSet(msg.endpoint, "state", "LOCK", null);
                     return;
                 }
             }
@@ -124,7 +124,7 @@ export const fromZigbee = {
                     result.state = lockStateCode === 1 ? "LOCK" : "UNLOCK";
                     meta.state.state = result.state;
                 } else {
-                    void tz.lock.convertSet(msg.endpoint, "state", "LOCK", null);
+                    void lock.convertSet(msg.endpoint, "state", "LOCK", null);
                     return;
                 }
             } else {
