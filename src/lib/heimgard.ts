@@ -1,14 +1,21 @@
+import type {Fz, KeyValue, Tz} from './types';
+
 import {Zcl} from 'zigbee-herdsman';
 
-import fz from '../converters/fromZigbee';
 import tz from '../converters/toZigbee';
 import * as utils from '../lib/utils';
 import * as modernExtend from './modernExtend';
-import {Fz, KeyValue, Tz} from './types';
 
 // Lock state changes requested by the following. Tested against device HT-SLM-2.
 // remote = executed from zigbee2mqtt
-const lockChangeSource = {0: 'pin', 1: 'remote', 2: 'function_key', 3: 'rfid_tag', 4: 'fingerprint', 255: 'self'};
+const lockChangeSource = {
+    0: 'pin',
+    1: 'remote',
+    2: 'function_key',
+    3: 'rfid_tag',
+    4: 'fingerprint',
+    255: 'self',
+};
 
 export interface LockStateHistory {
     time: number;
@@ -16,24 +23,24 @@ export interface LockStateHistory {
     exteriorLockState: string;
 }
 
-export enum lockSide {
-    interior,
-    exterior,
-    unknown,
+export enum LockSide {
+    Interior = 0,
+    Exterior = 1,
+    Unknown = 2,
 }
 
-function identifyLockStateFromHistory(meta: Fz.Meta): lockSide {
+function identifyLockStateFromHistory(meta: Fz.Meta): LockSide {
     const history: LockStateHistory[] = (meta.state?.history as LockStateHistory[]) ?? [];
 
     const filteredHistory: LockStateHistory[] = [];
     let lastEntry: LockStateHistory | null = null;
 
-    history.forEach((entry) => {
+    for (const entry of history) {
         if (!lastEntry || entry.interiorLockState !== lastEntry.interiorLockState || entry.exteriorLockState !== lastEntry.exteriorLockState) {
             filteredHistory.push(entry);
         }
         lastEntry = entry;
-    });
+    }
 
     let lastInteriorChange = null;
     let lastExteriorChange = null;
@@ -53,36 +60,39 @@ function identifyLockStateFromHistory(meta: Fz.Meta): lockSide {
 
     if (lastInteriorChange && lastExteriorChange) {
         if (lastInteriorChange.time > lastExteriorChange.time) {
-            return lockSide.interior;
-        } else {
-            return lockSide.exterior;
+            return LockSide.Interior;
         }
-    } else if (lastInteriorChange) {
-        return lockSide.interior;
-    } else if (lastExteriorChange) {
-        return lockSide.exterior;
-    } else {
-        console.error('Catch 22: Lock state could not be determined...');
-        return lockSide.unknown;
+        return LockSide.Exterior;
     }
+
+    if (lastInteriorChange) {
+        return LockSide.Interior;
+    }
+
+    if (lastExteriorChange) {
+        return LockSide.Exterior;
+    }
+
+    console.error('Catch 22: Lock state could not be determined...');
+    return LockSide.Unknown;
 }
 
 export const fromZigbee = {
-    heimgard_slm_2_lockState: {
+    slm2LockState: {
         cluster: 'closuresDoorLock',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
 
             const {isInteriorLocked, isExteriorLocked, safety_locking} = meta.state;
-            const enforceLockingIfBogus = safety_locking === 'Enabled' ? true : false;
+            const enforceLockingIfBogus = safety_locking === 'Enabled';
             if (enforceLockingIfBogus !== undefined) {
                 result.safety_locking = enforceLockingIfBogus === true ? 'Enabled' : 'Disabled';
             }
 
-            if (msg.data['lockState'] !== undefined) {
+            if (msg.data.lockState !== undefined) {
                 //Perform a lookup
-                if (isInteriorLocked && isExteriorLocked && msg.data['lockState'] === 2 && enforceLockingIfBogus) {
+                if (isInteriorLocked && isExteriorLocked && msg.data.lockState === 2 && enforceLockingIfBogus) {
                     // In cases where the lockState reports unlocked while there is no history, we should perform a locking action to ensure that it is actually locked. This is to ensure that the state and physical state is correct. This is due to faulty product code.
                     void tz.lock.convertSet(msg.endpoint, 'state', 'LOCK', null);
                     return;
@@ -91,27 +101,27 @@ export const fromZigbee = {
             return result;
         },
     } satisfies Fz.Converter,
-    heimgard_slm_2_lock: {
+    slm2Lock: {
         cluster: 'closuresDoorLock',
         type: ['commandOperationEventNotification'],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
-            const lockStateCode = msg.data['opereventcode'];
-            const lockChangeRequester = utils.getFromLookup(msg.data['opereventsrc'], lockChangeSource);
-            const isLocked = lockStateCode == 1;
+            const lockStateCode = msg.data.opereventcode;
+            const lockChangeRequester = utils.getFromLookup(msg.data.opereventsrc, lockChangeSource);
+            const isLocked = lockStateCode === 1;
 
             let {isInteriorLocked, isExteriorLocked} = meta.state;
 
             // Autolocked by device
             if (lockChangeRequester === 'self') {
                 const targetLock = identifyLockStateFromHistory(meta);
-                if (targetLock === lockSide.interior) {
+                if (targetLock === LockSide.Interior) {
                     isInteriorLocked = isLocked;
                     result.inner_lock_state = 'locked';
-                } else if (targetLock === lockSide.exterior) {
+                } else if (targetLock === LockSide.Exterior) {
                     isExteriorLocked = isLocked;
                     result.lock_state = 'locked';
-                    result.state = lockStateCode == 1 ? 'LOCK' : 'UNLOCK';
+                    result.state = lockStateCode === 1 ? 'LOCK' : 'UNLOCK';
                     meta.state.state = result.state;
                 } else {
                     void tz.lock.convertSet(msg.endpoint, 'state', 'LOCK', null);
@@ -127,16 +137,20 @@ export const fromZigbee = {
                         if (lockChangeRequester === 'function_key' || lockChangeRequester === 'remote') {
                             result.last_unlock_by_user = 'N/A';
                         } else {
-                            result.last_unlock_by_user = msg.data['userid'];
+                            result.last_unlock_by_user = msg.data.userid;
                         }
                     } else {
                         // If locked
                         result.last_lock_source = lockChangeRequester;
-                        result.last_lock_by_user = msg.data['userid'];
+                        result.last_lock_by_user = msg.data.userid;
                     }
 
                     isExteriorLocked = isLocked;
-                    const known_lockstates = {0: 'unknown_lock_failure', 1: 'locked', 2: 'unlocked'};
+                    const known_lockstates = {
+                        0: 'unknown_lock_failure',
+                        1: 'locked',
+                        2: 'unlocked',
+                    };
                     result.lock_state = utils.getFromLookup(lockStateCode, known_lockstates, 'unknown_lock_failure');
                     result.state = isLocked ? 'LOCK' : 'UNLOCK';
                     meta.state.state = result.state;
@@ -156,17 +170,6 @@ export const fromZigbee = {
             meta.state.isInteriorLocked = isInteriorLocked;
             meta.state.isExteriorLocked = isExteriorLocked;
 
-            return result;
-        },
-    } satisfies Fz.Converter,
-    heimgard_slm_2_battery_volt: {
-        cluster: 'genPowerCfg',
-        type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
-            const result = fz.battery.convert(model, msg, publish, options, meta);
-            if (result['voltage'] !== undefined) {
-                result.voltage = result.voltage / 1000;
-            }
             return result;
         },
     } satisfies Fz.Converter,

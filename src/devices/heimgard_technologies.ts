@@ -48,12 +48,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "HT-SLM-2",
         vendor: "Heimgard Technologies",
         description: "Doorlock with fingerprint",
-        fromZigbee: [
-            fz.lock_user_status_response,
-            heimgard.fromZigbee.heimgard_slm_2_battery_volt,
-            heimgard.fromZigbee.heimgard_slm_2_lock,
-            heimgard.fromZigbee.heimgard_slm_2_lockState,
-        ],
+        fromZigbee: [fz.lock_user_status_response, heimgard.fromZigbee.slm2Lock, heimgard.fromZigbee.slm2LockState],
         toZigbee: [heimgard.toZigbee.antiBogus, tz.identify, tz.lock_userstatus],
         meta: {pinCodeCount: 39},
         ota: true,
@@ -67,7 +62,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.lock({pinCodeCount: 39, excludeSoundVolume: true}),
             heimgard.slm_2.soundVolume(),
-            m.battery(),
+            m.battery({voltage: true}),
             m.forcePowerSource({powerSource: 'Battery'}),
         ],
         exposes: [
@@ -80,7 +75,6 @@ export const definitions: DefinitionWithExtend[] = [
                 .binary('safety_locking', ea.ALL, 'Enabled', 'Disabled')
                 .withLabel('Enforced locking')
                 .withDescription("Enforcing locking of the device if the state is bogus and can't safely be determined."),
-            e.voltage(),
         ],
     },
     {
