@@ -326,7 +326,7 @@ describe("ZHC", () => {
         expect((await findByDevice(device)).vendor).toStrictEqual("Aqara");
     });
 
-    it("should prepare definitions only once", async () => {
+    it("should not add toZigbee converters/options multiple times if findByDevice is called multiple times for the same device", async () => {
         const device = mockDevice({modelID: "TS0601", manufacturerName: "_TZE200_3towulqd", endpoints: []});
         const definition1 = await findByDevice(device);
         const definition1TzLength = definition1.toZigbee.length;
