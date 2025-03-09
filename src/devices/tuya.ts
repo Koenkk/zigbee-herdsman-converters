@@ -7849,7 +7849,7 @@ export const definitions: DefinitionWithExtend[] = [
                     "preset",
                     tuya.valueConverterBasic.lookup((_, device) => {
                         // https://github.com/Koenkk/zigbee2mqtt/issues/21353#issuecomment-1938328429
-                        if (["_TZE204_lzriup1j", "_TZE204_xnbkhhdr"].indexOf(device.manufacturerName) !== -1) {
+                        if (device.manufacturerName === '_TZE204_lzriup1j') {
                             return {
                                 auto: tuya.enum(1),
                                 manual: tuya.enum(0),
