@@ -1,7 +1,7 @@
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
-import * as h from '../lib/heimgard';
+import * as heimgard from '../lib/heimgard';
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import type {DefinitionWithExtend} from "../lib/types";
@@ -49,15 +49,12 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Heimgard Technologies",
         description: "Doorlock with fingerprint",
         fromZigbee: [
-            fz.lock,
-            fz.battery,
-            fz.lock_pin_code_response,
             fz.lock_user_status_response,
-            h.fromZigbee.heimgard_slm_2_battery_volt,
-            h.fromZigbee.heimgard_slm_2_lock,
-            h.fromZigbee.heimgard_slm_2_lockState,
+            heimgard.fromZigbee.heimgard_slm_2_battery_volt,
+            heimgard.fromZigbee.heimgard_slm_2_lock,
+            heimgard.fromZigbee.heimgard_slm_2_lockState,
         ],
-        toZigbee: [tz.lock, h.toZigbee.antiBogus, tz.identify, tz.pincode_lock, tz.lock_userstatus],
+        toZigbee: [heimgard.toZigbee.antiBogus, tz.identify, tz.lock_userstatus],
         meta: {pinCodeCount: 39},
         ota: true,
         configure: async (device, coordinatorEndpoint) => {
@@ -66,12 +63,14 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.lockState(endpoint);
             await reporting.batteryPercentageRemaining(endpoint);
             await endpoint.read("closuresDoorLock", ["lockState", "soundVolume"]);
-            device.powerSource = 'Battery';
-            device.save();
         },
-        extend: [h.slm_2.soundVolume()],
+        extend: [
+            m.lock({pinCodeCount: 39, excludeSoundVolume: true}),
+            heimgard.slm_2.soundVolume(),
+            m.battery(),
+            m.forcePowerSource({powerSource: 'Battery'}),
+        ],
         exposes: [
-            e.lock(),
             e
                 .enum('last_unlock_source', ea.STATE, ['pin', 'remote', 'function_key', 'rfid_tag', 'fingerprint', 'self'])
                 .withDescription('Physical override key will not be reported'),
@@ -81,8 +80,6 @@ export const definitions: DefinitionWithExtend[] = [
                 .binary('safety_locking', ea.ALL, 'Enabled', 'Disabled')
                 .withLabel('Enforced locking')
                 .withDescription("Enforcing locking of the device if the state is bogus and can't safely be determined."),
-            e.pincode(),
-            e.battery(),
             e.voltage(),
         ],
     },
