@@ -553,12 +553,15 @@ function waterPreset(): ModernExtend {
     const toZigbee: Tz.Converter[] = [
         {
             key: ["preset"],
-            convertSet: async (entity, key, value: any, meta) => {
+            convertSet: async (entity, key, value, meta) => {
                 const endpoint = meta.device.getEndpoint(3);
                 const values = {
-                    hot_water: value.hot_water_preset,
-                    cold_water: value.cold_water_preset,
-                    step_water: value.step_water_preset,
+                    // biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
+                    hot_water: (value as any).hot_water_preset,
+                    // biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
+                    cold_water: (value as any).cold_water_preset,
+                    // biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
+                    step_water: (value as any).step_water_preset,
                 };
                 if (values.hot_water !== undefined && values.hot_water >= 0) {
                     const hot_water_preset = Number.parseInt(values.hot_water);
@@ -575,6 +578,7 @@ function waterPreset(): ModernExtend {
             },
         },
     ];
+
     return {toZigbee, exposes, isModernExtend: true};
 }
 
