@@ -854,7 +854,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        zigbeeModel: ["SIRZB-110", "SIRZB-111"],
+        zigbeeModel: ["SIRZB-110"],
         model: "SIRZB-110",
         vendor: "Develco",
         description: "Customizable siren",
@@ -885,7 +885,46 @@ export const definitions: DefinitionWithExtend[] = [
         endpoint: (device) => {
             return {default: 43};
         },
-        whiteLabel: [{model: "SIRZB-111", vendor: "Develco", description: "Customizable siren", fingerprint: [{modelID: "SIRZB-111"}]}],
+        exposes: [
+            e.battery_low(),
+            e.test(),
+            e.warning(),
+            e.squawk(),
+            e.numeric("max_duration", ea.ALL).withUnit("s").withValueMin(0).withValueMax(900).withDescription("Max duration of the siren"),
+            e.binary("alarm", ea.SET, "START", "OFF").withDescription("Manual start of the siren"),
+        ],
+    },
+    {
+        zigbeeModel: ["SIRZB-111"],
+        model: "SIRZB-111",
+        vendor: "Develco",
+        description: "Customizable siren",
+        fromZigbee: [fz.ias_enroll, fz.ias_wd, fz.ias_siren],
+        toZigbee: [tz.warning, tz.warning_simple, tz.ias_max_duration, tz.squawk],
+        extend: [
+            develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
+            develcoModernExtend.readGenBasicPrimaryVersions(),
+            m.battery({
+                voltageToPercentage: {min: 2500, max: 3000},
+                percentage: true,
+                voltage: true,
+                lowStatus: false,
+                voltageReporting: true,
+                percentageReporting: false,
+            }),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(43);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["ssIasZone", "ssIasWd", "genBasic"]);
+            await endpoint.read("ssIasZone", ["iasCieAddr", "zoneState", "zoneId"]);
+            await endpoint.read("ssIasWd", ["maxDuration"]);
+
+            const endpoint2 = device.getEndpoint(1);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ["genOnOff"]);
+        },
+        endpoint: (device) => {
+            return {default: 43};
+        },
         exposes: [
             e.battery_low(),
             e.test(),
