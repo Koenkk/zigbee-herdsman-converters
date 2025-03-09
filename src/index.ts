@@ -85,7 +85,6 @@ export {clear as clearGlobalStore} from "./lib/store";
 
 // key: zigbeeModel, value: array of definitions (most of the times 1)
 const externalDefinitionsLookup = new Map<string, DefinitionWithExtend[]>();
-const preparedDefintionsLookup = new Map<DefinitionWithExtend, Definition>();
 export const externalDefinitions: DefinitionWithExtend[] = [];
 
 // expected to be at the beginning of `definitions` array
@@ -404,15 +403,12 @@ function processExtensions(definition: DefinitionWithExtend): Definition {
 }
 
 export function prepareDefinition(definition: DefinitionWithExtend): Definition {
-    if (preparedDefintionsLookup.has(definition)) {
-        return preparedDefintionsLookup.get(definition);
-    }
-
-    const finalDefinition = processExtensions(definition);
+    const finalDefinition = processExtensions({options: [], ...definition});
 
     // When changing the `.push` here, review `should prepare definitions only once` test case as it
     // depends on this.
-    finalDefinition.toZigbee.push(
+    finalDefinition.toZigbee = [
+        ...finalDefinition.toZigbee,
         toZigbee.scene_store,
         toZigbee.scene_recall,
         toZigbee.scene_add,
@@ -424,17 +420,14 @@ export function prepareDefinition(definition: DefinitionWithExtend): Definition 
         toZigbee.command,
         toZigbee.factory_reset,
         toZigbee.zcl_command,
-    );
+    ];
 
     if (definition.externalConverterName) {
         validateDefinition(finalDefinition);
     }
 
     // Add all the options
-    if (!finalDefinition.options) {
-        finalDefinition.options = [];
-    }
-
+    finalDefinition.options = [...finalDefinition.options];
     const optionKeys = finalDefinition.options.map((o) => o.name);
 
     // Add calibration/precision options based on expose
@@ -474,7 +467,6 @@ export function prepareDefinition(definition: DefinitionWithExtend): Definition 
         }
     }
 
-    preparedDefintionsLookup.set(definition, finalDefinition);
     return finalDefinition;
 }
 
