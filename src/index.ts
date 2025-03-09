@@ -399,11 +399,11 @@ function processExtensions(definition: DefinitionWithExtend): Definition {
         return {toZigbee, fromZigbee, exposes, meta, configure, endpoint, onEvent, ota, ...definitionWithoutExtend};
     }
 
-    return definition;
+    return {...definition};
 }
 
 export function prepareDefinition(definition: DefinitionWithExtend): Definition {
-    const finalDefinition = processExtensions({options: [], ...definition});
+    const finalDefinition = processExtensions(definition);
 
     // When changing the `.push` here, review `should prepare definitions only once` test case as it
     // depends on this.
@@ -427,7 +427,7 @@ export function prepareDefinition(definition: DefinitionWithExtend): Definition 
     }
 
     // Add all the options
-    finalDefinition.options = [...finalDefinition.options];
+    finalDefinition.options = [...(finalDefinition.options ?? [])];
     const optionKeys = finalDefinition.options.map((o) => o.name);
 
     // Add calibration/precision options based on expose
