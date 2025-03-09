@@ -9,6 +9,16 @@ const e = exposes.presets;
 
 export const definitions: DefinitionWithExtend[] = [
     {
+        zigbeeModel: ['ROB_200-011-1'],
+        model: 'ROB_200-011-1',
+        vendor: 'ROBB',
+        description: 'Pro Zigbee Dimmer 400W',
+        extend: [
+            m.light(), 
+            m.electricityMeter()
+        ],
+    },
+    {
         zigbeeModel: ["ROB_200-081-0"],
         model: "ROB_200-081-0",
         vendor: "ROBB",
