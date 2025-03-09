@@ -39,8 +39,8 @@ const localValueConverters = {
                 day: number;
                 hour: number;
                 minute: number;
-                away_preset_temperature: number;
-                away_preset_days: number;
+                awayPresetTemperature: number;
+                awayPresetDays: number;
             },
             meta: Tz.Meta,
         ) => {
@@ -57,9 +57,9 @@ const localValueConverters = {
             output[2] = value.day; // day
             output[3] = value.hour; // hour
             output[4] = value.minute; // min
-            output[5] = Math.round(value.away_preset_temperature * 2);
-            output[7] = value.away_preset_days & 0xff;
-            output[6] = value.away_preset_days >> 8;
+            output[5] = Math.round(value.awayPresetTemperature * 2);
+            output[7] = value.awayPresetDays & 0xff;
+            output[6] = value.awayPresetDays >> 8;
             logger.debug(JSON.stringify({"send to tuya": output, "value was": value}), NS);
         },
     },

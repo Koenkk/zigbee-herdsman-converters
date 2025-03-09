@@ -72,6 +72,7 @@ interface OnEventArgs {
 
 export function onEvent(args?: OnEventArgs): OnEvent {
     return async (type, data, device, settings, state) => {
+        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         args = {queryOnDeviceAnnounce: false, timeStart: "1970", respondToMcuVersionResponse: true, ...args};
 
         const endpoint = device.endpoints[0];
@@ -168,7 +169,7 @@ function convertDecimalValueTo2ByteHexArray(value: number) {
     return [chunk1, chunk2].map((hexVal) => Number.parseInt(hexVal, 16));
 }
 
-export async function onEventMeasurementPoll(
+export function onEventMeasurementPoll(
     type: OnEventType,
     data: OnEventData,
     device: Zh.Device,
@@ -247,6 +248,7 @@ export async function onEventSetLocalTime(type: OnEventType, data: KeyValue, dev
 // Return `seq` - transaction ID for handling concrete response
 async function sendDataPoints(entity: Zh.Endpoint | Zh.Group, dpValues: Tuya.DpValue[], cmd = "dataRequest", seq?: number) {
     if (seq === undefined) {
+        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         seq = globalStore.getValue(entity, "sequence", 0);
         globalStore.putValue(entity, "sequence", (seq + 1) % 0xffff);
     }
@@ -597,6 +599,7 @@ export const valueConverter = {
         from: (value: number) => (value > 4000 ? value - 4096 : value),
         to: (value: number) => (value < 0 ? 4096 + value : value),
     },
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     localTemperatureCalibration_256: {
         from: (value: number) => (value > 200 ? value - 256 : value),
         to: (value: number) => (value < 0 ? 256 + value : value),
@@ -609,7 +612,7 @@ export const valueConverter = {
         from: (v: number) => v,
     },
     coverPosition: {
-        to: async (v: number, meta: Tz.Meta) => {
+        to: (v: number, meta: Tz.Meta) => {
             return meta.options.invert_cover ? 100 - v : v;
         },
         from: (v: number, meta: Fz.Meta, options: KeyValue, publish: Publish) => {
@@ -619,7 +622,7 @@ export const valueConverter = {
         },
     },
     coverPositionInverted: {
-        to: async (v: number, meta: Tz.Meta) => {
+        to: (v: number, meta: Tz.Meta) => {
             return meta.options.invert_cover ? v : 100 - v;
         },
         from: (v: number, meta: Fz.Meta, options: KeyValue, publish: Publish) => {
@@ -766,7 +769,7 @@ export const valueConverter = {
             const len = data.length;
             let i = 0;
             while (i < len) {
-                if (Object.prototype.hasOwnProperty.call(alarmLookup, data[i])) {
+                if (Object.hasOwn(alarmLookup, data[i])) {
                     const alarm = alarmLookup[data[i]];
                     const state = lookup[data[i + 1]];
                     const threshold = data[i + 3] | (data[i + 2] << 8);
@@ -855,7 +858,7 @@ export const valueConverter = {
             const len = data.length;
             let i = 0;
             while (i < len) {
-                if (Object.prototype.hasOwnProperty.call(alarmLookup, data[i])) {
+                if (Object.hasOwn(alarmLookup, data[i])) {
                     const alarm = alarmLookup[data[i]];
                     const state = lookup[data[i + 1]];
                     const threshold = data[i + 3] | (data[i + 2] << 8);
@@ -871,6 +874,7 @@ export const valueConverter = {
     lockUnlock: valueConverterBasic.lookup({LOCK: true, UNLOCK: false}),
     localTempCalibration1: {
         from: (v: number) => {
+            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             if (v > 55) v -= 0x100000000;
             return v / 10;
         },
@@ -889,6 +893,7 @@ export const valueConverter = {
     },
     localTempCalibration3: {
         from: (v: number) => {
+            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             if (v > 0x7fffffff) v -= 0x100000000;
             return v / 10;
         },
@@ -995,6 +1000,7 @@ export const valueConverter = {
             const schedulePeriods = schedule.length;
             if (schedulePeriods > 10) throw new Error(`There cannot be more than 10 periods in the schedule: ${v}`);
             if (schedulePeriods < 2) throw new Error(`There cannot be less than 2 periods in the schedule: ${v}`);
+            // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
             let prevHour;
 
             for (const period of schedule) {
@@ -1074,6 +1080,7 @@ export const valueConverter = {
             },
         };
     },
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     thermostatScheduleDayMultiDP_TRV602Z: {
         from: (v: string) => {
             const schedule = [];
@@ -1121,6 +1128,7 @@ export const valueConverter = {
             return payload;
         },
     },
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     thermostatScheduleDayMultiDP_TRV602Z_WithDayNumber: (dayNum: number) => {
         return {
             from: (v: string) => valueConverter.thermostatScheduleDayMultiDP_TRV602Z.from(v),
@@ -1167,6 +1175,7 @@ export const valueConverter = {
             },
         };
     },
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     ZWT198_schedule: {
         from: (value: number[], meta: Fz.Meta, options: KeyValue) => {
             const programmingMode = [];
@@ -1244,6 +1253,7 @@ export const valueConverter = {
             await sendDataPointRaw(entity, dpId, payload, sendCommand, 1);
         },
     },
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     PO_BOCO_ELEC_schedule: (day: number) => ({
         to: (v: string) => {
             const payload = [80 + day];
@@ -1257,6 +1267,7 @@ export const valueConverter = {
             };
 
             const items = v.split(" / ");
+            // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
             items.forEach((item) => {
                 if (Object.keys(modeMapping).includes(item)) {
                     payload.push(modeMapping[item]);
@@ -1303,6 +1314,7 @@ export const valueConverter = {
             return payload.join(" / ");
         },
     }),
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     PO_BOCO_ELEC_holiday: {
         to: (v: string) => {
             const payload = [];
@@ -1498,13 +1510,13 @@ export const valueConverter = {
         fromMap = {},
         toMap = {},
     }: {
-        fromMap?: {[modeId: number]: {device_mode: string; system_mode: string; preset: string}};
+        fromMap?: {[modeId: number]: {deviceMode: string; systemMode: string; preset: string}};
         toMap?: {[key: string]: Enum};
     }) => {
         return {
             from: (v: string) => {
                 utils.assertNumber(v, "system_mode");
-                return {running_mode: fromMap[v].device_mode, system_mode: fromMap[v].system_mode, preset: fromMap[v].preset};
+                return {running_mode: fromMap[v].deviceMode, system_mode: fromMap[v].systemMode, preset: fromMap[v].preset};
             },
             to: (v: string) => {
                 return utils.getFromLookup(v, toMap);
@@ -2137,6 +2149,7 @@ const tuyaModernExtend = {
         if (valueMax !== undefined) exp = exp.withValueMax(valueMax);
         if (valueStep !== undefined) exp = exp.withValueStep(valueStep);
 
+        // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
         let converter;
         if (scale === undefined) {
             converter = valueConverterBasic.raw();
@@ -2305,6 +2318,7 @@ const tuyaModernExtend = {
         });
     },
     tuyaLight(args?: modernExtend.LightArgs & {minBrightness?: "none" | "attribute" | "command"; switchType?: boolean}) {
+        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         args = {minBrightness: "none", powerOnBehavior: false, switchType: false, ...args};
         if (args.colorTemp) {
             args.colorTemp = {startup: false, ...args.colorTemp};
@@ -2447,6 +2461,7 @@ const tuyaModernExtend = {
 
         if (args.switchMode) {
             if (args.endpoints) {
+                // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
                 args.endpoints.forEach((ep) => {
                     const epExtend = tuyaModernExtend.tuyaSwitchMode({
                         description: `Switch mode ${ep}`,

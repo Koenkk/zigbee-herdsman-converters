@@ -102,7 +102,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE204_u9bfwha0",
             "_TZE204_xalsoe3m",
         ]),
-        model: "BHT-002-GCLZB",
+        model: "BHT-002",
         vendor: "Moes",
         description: "Moes BHT series Thermostat",
         fromZigbee: [legacy.fz.moes_thermostat],
@@ -655,7 +655,7 @@ export const definitions: DefinitionWithExtend[] = [
             )
                 .withDescription("Screen on time")
                 .withCategory("config"),
-            e.binary("rgb_light", exposes.access.STATE, true, false),
+            e.binary("rgb_light", exposes.access.STATE_SET, "ON", "OFF"),
         ],
         meta: {
             tuyaDatapoints: [
@@ -663,7 +663,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [2, "preset", tuya.valueConverterBasic.lookup({Manual: 0, "Temporary manual": 1, Program: 2, Eco: 3})],
                 [16, "local_temperature", tuya.valueConverter.divideBy10],
                 [18, "min_temperature_limit", tuya.valueConverter.divideBy10],
-                [32, "sensor", tuya.valueConverterBasic.lookup({IN: 0, AL: 1, OU: 2})],
+                [32, "sensor_mode", tuya.valueConverterBasic.lookup({IN: 0, AL: 1, OU: 2})],
                 [34, "max_temperature_limit", tuya.valueConverter.divideBy10],
                 [39, "child_lock", tuya.valueConverter.lockUnlock],
                 [47, "running_state", tuya.valueConverterBasic.lookup({heat: 0, idle: 1})],
@@ -687,7 +687,7 @@ export const definitions: DefinitionWithExtend[] = [
                         "60_seconds": 5,
                     }),
                 ],
-                [115, "rbg_light", tuya.valueConverterBasic.trueFalse(1)],
+                [115, "rgb_light", tuya.valueConverterBasic.lookup({ON: true, OFF: false})],
             ],
         },
     },

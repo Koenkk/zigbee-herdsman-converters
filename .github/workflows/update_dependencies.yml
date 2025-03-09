@@ -21,7 +21,9 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
-      - run: pnpm up --latest
+      - run: |
+          pnpm self-update
+          pnpm up --latest
       - uses: peter-evans/create-pull-request@v7
         id: cpr
         env:
@@ -35,6 +37,4 @@ jobs:
         if: ${{ steps.cpr.outputs.pull-request-number }}
         with:
           issue-number: ${{ steps.cpr.outputs.pull-request-number }}
-          body: |
-            CC: @Koenkk
-
+          body: "CC: @Koenkk"

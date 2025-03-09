@@ -12,20 +12,30 @@
     },
     "linter": {
         "rules": {
-            "style": {
-                "noNonNullAssertion": "off",
-                "noParameterAssign": "off"
-            },
-            "complexity": {
-                "noForEach": "off"
-            },
-            "performance": {
-                "noDelete": "off",
-                "noAccumulatingSpread": "off"
-            },
             "suspicious": {
-                "noImplicitAnyLet": "off",
-                "noExplicitAny": "off"
+                "useAwait": "error"
+            },
+            "style": {
+                "useNamingConvention": {
+                    "level": "error",
+                    "options": {
+                        "strictCase": false,
+                        "conventions": [
+                            {
+                                "selector": {
+                                    "kind": "objectLiteralProperty"
+                                },
+                                "formats": ["snake_case", "camelCase", "CONSTANT_CASE", "PascalCase"]
+                            },
+                            {
+                                "selector": {
+                                    "kind": "const"
+                                },
+                                "formats": ["snake_case", "camelCase", "CONSTANT_CASE", "PascalCase"]
+                            }
+                        ]
+                    }
+                }
             }
         }
     }
