@@ -1270,6 +1270,7 @@ export function lightingBallast(): ModernExtend {
 export interface LockArgs {
     pinCodeCount: number;
     endpointNames?: string[];
+    excludeSoundVolume?: boolean;
 }
 export function lock(args?: LockArgs): ModernExtend {
     // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
@@ -1281,8 +1282,9 @@ export function lock(args?: LockArgs): ModernExtend {
         tz.pincode_lock,
         tz.lock_userstatus,
         tz.lock_auto_relock_time,
-        tz.lock_sound_volume,
-    ];
+        args.excludeSoundVolume ? undefined : tz.lock_sound_volume,
+    ].filter(Boolean);
+
     const exposes = [
         e.lock(),
         e.pincode(),
@@ -1290,8 +1292,9 @@ export function lock(args?: LockArgs): ModernExtend {
         e.lock_action_source_name(),
         e.lock_action_user(),
         e.auto_relock_time().withValueMin(0).withValueMax(3600),
-        e.sound_volume(),
-    ];
+        args.excludeSoundVolume ? undefined : e.sound_volume(),
+    ].filter(Boolean);
+
     const configure: Configure[] = [
         setupConfigureForReporting("closuresDoorLock", "lockState", {min: "MIN", max: "1_HOUR", change: 0}, ea.STATE_GET),
     ];

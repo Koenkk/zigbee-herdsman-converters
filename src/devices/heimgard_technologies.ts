@@ -1,11 +1,13 @@
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
+import * as heimgard from "../lib/heimgard";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import type {DefinitionWithExtend} from "../lib/types";
 
 const e = exposes.presets;
+const ea = exposes.access;
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -46,8 +48,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "HT-SLM-2",
         vendor: "Heimgard Technologies",
         description: "Doorlock with fingerprint",
-        fromZigbee: [fz.lock, fz.battery, fz.lock_pin_code_response, fz.lock_user_status_response],
-        toZigbee: [tz.lock, tz.lock_sound_volume, tz.identify, tz.pincode_lock, tz.lock_userstatus],
+        fromZigbee: [fz.lock_user_status_response, heimgard.fromZigbee.slm2Lock, heimgard.fromZigbee.slm2LockState],
+        toZigbee: [heimgard.toZigbee.antiBogus, tz.identify, tz.lock_userstatus],
         meta: {pinCodeCount: 39},
         ota: true,
         configure: async (device, coordinatorEndpoint) => {
@@ -57,7 +59,23 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.batteryPercentageRemaining(endpoint);
             await endpoint.read("closuresDoorLock", ["lockState", "soundVolume"]);
         },
-        exposes: [e.lock(), e.pincode(), e.battery(), e.sound_volume()],
+        extend: [
+            m.lock({pinCodeCount: 39, excludeSoundVolume: true}),
+            heimgard.slm_2.soundVolume(),
+            m.battery({voltage: true}),
+            m.forcePowerSource({powerSource: "Battery"}),
+        ],
+        exposes: [
+            e
+                .enum("last_unlock_source", ea.STATE, ["pin", "remote", "function_key", "rfid_tag", "fingerprint", "self"])
+                .withDescription("Physical override key will not be reported"),
+            e.text("last_unlock_by_user", ea.STATE).withDescription("Last user that opened the lock"),
+            e.enum("inner_lock_state", ea.STATE, ["LOCK", "UNLOCK", "UNKNOWN"]),
+            e
+                .binary("safety_locking", ea.ALL, "Enabled", "Disabled")
+                .withLabel("Enforced locking")
+                .withDescription("Enforcing locking of the device if the state is bogus and can't safely be determined."),
+        ],
     },
     {
         zigbeeModel: ["HC-IWDIM-1"],
