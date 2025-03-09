@@ -405,8 +405,6 @@ function processExtensions(definition: DefinitionWithExtend): Definition {
 export function prepareDefinition(definition: DefinitionWithExtend): Definition {
     const finalDefinition = processExtensions(definition);
 
-    // When changing the `.push` here, review `should prepare definitions only once` test case as it
-    // depends on this.
     finalDefinition.toZigbee = [
         ...finalDefinition.toZigbee,
         toZigbee.scene_store,
