@@ -2733,6 +2733,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light()],
     },
     {
+        zigbeeModel: ["PWM003"],
+        model: "915005732902",
+        vendor: "Philips",
+        description: "Hue Fuzo outdoor wall light",
+        extend: [philips.m.light()],
+    },
+    {
         zigbeeModel: ["929003055201"],
         model: "929003055201",
         vendor: "Philips",
