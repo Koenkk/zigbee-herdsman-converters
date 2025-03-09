@@ -1,7 +1,7 @@
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
-import * as heimgard from '../lib/heimgard';
+import * as heimgard from "../lib/heimgard";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import type {DefinitionWithExtend} from "../lib/types";
@@ -63,17 +63,17 @@ export const definitions: DefinitionWithExtend[] = [
             m.lock({pinCodeCount: 39, excludeSoundVolume: true}),
             heimgard.slm_2.soundVolume(),
             m.battery({voltage: true}),
-            m.forcePowerSource({powerSource: 'Battery'}),
+            m.forcePowerSource({powerSource: "Battery"}),
         ],
         exposes: [
             e
-                .enum('last_unlock_source', ea.STATE, ['pin', 'remote', 'function_key', 'rfid_tag', 'fingerprint', 'self'])
-                .withDescription('Physical override key will not be reported'),
-            e.text('last_unlock_by_user', ea.STATE).withDescription('Last user that opened the lock'),
-            e.enum('inner_lock_state', ea.STATE, ['LOCK', 'UNLOCK', 'UNKNOWN']),
+                .enum("last_unlock_source", ea.STATE, ["pin", "remote", "function_key", "rfid_tag", "fingerprint", "self"])
+                .withDescription("Physical override key will not be reported"),
+            e.text("last_unlock_by_user", ea.STATE).withDescription("Last user that opened the lock"),
+            e.enum("inner_lock_state", ea.STATE, ["LOCK", "UNLOCK", "UNKNOWN"]),
             e
-                .binary('safety_locking', ea.ALL, 'Enabled', 'Disabled')
-                .withLabel('Enforced locking')
+                .binary("safety_locking", ea.ALL, "Enabled", "Disabled")
+                .withLabel("Enforced locking")
                 .withDescription("Enforcing locking of the device if the state is bogus and can't safely be determined."),
         ],
     },

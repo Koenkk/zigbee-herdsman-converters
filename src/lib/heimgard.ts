@@ -1,20 +1,20 @@
-import type {Fz, KeyValue, Tz} from './types';
+import type {Fz, KeyValue, Tz} from "./types";
 
-import {Zcl} from 'zigbee-herdsman';
+import {Zcl} from "zigbee-herdsman";
 
-import tz from '../converters/toZigbee';
-import * as utils from '../lib/utils';
-import * as modernExtend from './modernExtend';
+import tz from "../converters/toZigbee";
+import * as utils from "../lib/utils";
+import * as modernExtend from "./modernExtend";
 
 // Lock state changes requested by the following. Tested against device HT-SLM-2.
 // remote = executed from zigbee2mqtt
 const lockChangeSource = {
-    0: 'pin',
-    1: 'remote',
-    2: 'function_key',
-    3: 'rfid_tag',
-    4: 'fingerprint',
-    255: 'self',
+    0: "pin",
+    1: "remote",
+    2: "function_key",
+    3: "rfid_tag",
+    4: "fingerprint",
+    255: "self",
 };
 
 export interface LockStateHistory {
@@ -49,11 +49,11 @@ function identifyLockStateFromHistory(meta: Fz.Meta): LockSide {
         const prevEntry = filteredHistory[i - 1];
         const currentEntry = filteredHistory[i];
 
-        if (prevEntry.interiorLockState === 'locked' && currentEntry.interiorLockState === 'unlocked') {
+        if (prevEntry.interiorLockState === "locked" && currentEntry.interiorLockState === "unlocked") {
             lastInteriorChange = currentEntry;
         }
 
-        if (prevEntry.exteriorLockState === 'locked' && currentEntry.exteriorLockState === 'unlocked') {
+        if (prevEntry.exteriorLockState === "locked" && currentEntry.exteriorLockState === "unlocked") {
             lastExteriorChange = currentEntry;
         }
     }
@@ -73,28 +73,28 @@ function identifyLockStateFromHistory(meta: Fz.Meta): LockSide {
         return LockSide.Exterior;
     }
 
-    console.error('Catch 22: Lock state could not be determined...');
+    console.error("Catch 22: Lock state could not be determined...");
     return LockSide.Unknown;
 }
 
 export const fromZigbee = {
     slm2LockState: {
-        cluster: 'closuresDoorLock',
-        type: ['attributeReport', 'readResponse'],
+        cluster: "closuresDoorLock",
+        type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
 
             const {isInteriorLocked, isExteriorLocked, safety_locking} = meta.state;
-            const enforceLockingIfBogus = safety_locking === 'Enabled';
+            const enforceLockingIfBogus = safety_locking === "Enabled";
             if (enforceLockingIfBogus !== undefined) {
-                result.safety_locking = enforceLockingIfBogus === true ? 'Enabled' : 'Disabled';
+                result.safety_locking = enforceLockingIfBogus === true ? "Enabled" : "Disabled";
             }
 
             if (msg.data.lockState !== undefined) {
                 //Perform a lookup
                 if (isInteriorLocked && isExteriorLocked && msg.data.lockState === 2 && enforceLockingIfBogus) {
                     // In cases where the lockState reports unlocked while there is no history, we should perform a locking action to ensure that it is actually locked. This is to ensure that the state and physical state is correct. This is due to faulty product code.
-                    void tz.lock.convertSet(msg.endpoint, 'state', 'LOCK', null);
+                    void tz.lock.convertSet(msg.endpoint, "state", "LOCK", null);
                     return;
                 }
             }
@@ -102,8 +102,8 @@ export const fromZigbee = {
         },
     } satisfies Fz.Converter,
     slm2Lock: {
-        cluster: 'closuresDoorLock',
-        type: ['commandOperationEventNotification'],
+        cluster: "closuresDoorLock",
+        type: ["commandOperationEventNotification"],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
             const lockStateCode = msg.data.opereventcode;
@@ -113,29 +113,29 @@ export const fromZigbee = {
             let {isInteriorLocked, isExteriorLocked} = meta.state;
 
             // Autolocked by device
-            if (lockChangeRequester === 'self') {
+            if (lockChangeRequester === "self") {
                 const targetLock = identifyLockStateFromHistory(meta);
                 if (targetLock === LockSide.Interior) {
                     isInteriorLocked = isLocked;
-                    result.inner_lock_state = 'locked';
+                    result.inner_lock_state = "locked";
                 } else if (targetLock === LockSide.Exterior) {
                     isExteriorLocked = isLocked;
-                    result.lock_state = 'locked';
-                    result.state = lockStateCode === 1 ? 'LOCK' : 'UNLOCK';
+                    result.lock_state = "locked";
+                    result.state = lockStateCode === 1 ? "LOCK" : "UNLOCK";
                     meta.state.state = result.state;
                 } else {
-                    void tz.lock.convertSet(msg.endpoint, 'state', 'LOCK', null);
+                    void tz.lock.convertSet(msg.endpoint, "state", "LOCK", null);
                     return;
                 }
             } else {
-                if (lockChangeRequester === 'function_key') {
+                if (lockChangeRequester === "function_key") {
                     isInteriorLocked = isLocked;
-                    result.inner_lock_state = isLocked ? 'locked' : 'unlocked';
+                    result.inner_lock_state = isLocked ? "locked" : "unlocked";
                 } else {
                     if (!isLocked) {
                         result.last_unlock_source = lockChangeRequester;
-                        if (lockChangeRequester === 'function_key' || lockChangeRequester === 'remote') {
-                            result.last_unlock_by_user = 'N/A';
+                        if (lockChangeRequester === "function_key" || lockChangeRequester === "remote") {
+                            result.last_unlock_by_user = "N/A";
                         } else {
                             result.last_unlock_by_user = msg.data.userid;
                         }
@@ -147,20 +147,20 @@ export const fromZigbee = {
 
                     isExteriorLocked = isLocked;
                     const known_lockstates = {
-                        0: 'unknown_lock_failure',
-                        1: 'locked',
-                        2: 'unlocked',
+                        0: "unknown_lock_failure",
+                        1: "locked",
+                        2: "unlocked",
                     };
-                    result.lock_state = utils.getFromLookup(lockStateCode, known_lockstates, 'unknown_lock_failure');
-                    result.state = isLocked ? 'LOCK' : 'UNLOCK';
+                    result.lock_state = utils.getFromLookup(lockStateCode, known_lockstates, "unknown_lock_failure");
+                    result.state = isLocked ? "LOCK" : "UNLOCK";
                     meta.state.state = result.state;
                 }
             }
 
             const newHistoryEntry: LockStateHistory = {
                 time: Date.now(),
-                interiorLockState: isInteriorLocked ? 'locked' : 'unlocked',
-                exteriorLockState: isExteriorLocked ? 'locked' : 'unlocked',
+                interiorLockState: isInteriorLocked ? "locked" : "unlocked",
+                exteriorLockState: isExteriorLocked ? "locked" : "unlocked",
             };
             const historyCache = (meta.state.history as LockStateHistory[]) ?? [];
             historyCache.push(newHistoryEntry);
@@ -177,16 +177,16 @@ export const fromZigbee = {
 
 export const toZigbee = {
     antiBogus: {
-        key: ['safety_locking'],
+        key: ["safety_locking"],
         convertSet: async (entity, key, value, meta) => {
             meta.state.safety_locking = value;
-            await entity.read('closuresDoorLock', ['lockState']);
+            await entity.read("closuresDoorLock", ["lockState"]);
             return {
                 [key]: value,
             };
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('closuresDoorLock', ['lockState']);
+            await entity.read("closuresDoorLock", ["lockState"]);
         },
     } satisfies Tz.Converter,
 };
@@ -194,17 +194,17 @@ export const toZigbee = {
 export const slm_2 = {
     soundVolume: (args?: Partial<modernExtend.EnumLookupArgs>) =>
         modernExtend.enumLookup({
-            name: 'soundVolume',
-            cluster: 'closuresDoorLock',
+            name: "soundVolume",
+            cluster: "closuresDoorLock",
             attribute: {ID: 0x0024, type: Zcl.DataType.UINT8},
-            description: 'Sound volume',
+            description: "Sound volume",
             lookup: {
                 off: 0,
                 low: 1,
                 medium: 2,
                 high: 3,
             },
-            access: 'ALL',
+            access: "ALL",
             ...args,
         }),
 };
