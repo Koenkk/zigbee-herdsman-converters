@@ -153,7 +153,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.enumLookup({
                 name: "internal_or_external",
-                lookup: {"INTERNAL": 1, "EXTERNAL": 0},
+                lookup: {INTERNAL: 1, EXTERNAL: 0},
                 cluster: "msCO2",
                 attribute: {ID: 0x0288, type: Zcl.DataType.BOOLEAN},
                 description: "Display data from internal or external TH sensor",
