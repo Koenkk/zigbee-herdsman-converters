@@ -326,6 +326,15 @@ describe("ZHC", () => {
         expect((await findByDevice(device)).vendor).toStrictEqual("Aqara");
     });
 
+    it("should prepare definitions only once", async () => {
+        const device = mockDevice({modelID: "TS0601", manufacturerName: "_TZE200_3towulqd", endpoints: []});
+        const definition1 = await findByDevice(device);
+        const definition1TzLength = definition1.toZigbee.length;
+        const definition2 = await findByDevice(device);
+        const definition2TzLength = definition2.toZigbee.length;
+        expect(definition1TzLength).toStrictEqual(definition2TzLength);
+    });
+
     it("adds external converter with same model built-in", async () => {
         const device = mockDevice({modelID: "TS0601", manufacturerName: "_TZE204_sxm7l9xa", endpoints: []}, "EndDevice");
         const extDevice = mockDevice({modelID: "TS0601", manufacturerName: "_TZE204_unknown", endpoints: []}, "EndDevice");
