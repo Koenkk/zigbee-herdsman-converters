@@ -219,6 +219,12 @@ export interface DefinitionMeta {
      * Never use a transition when transitioning to off (even when specified)
      */
     noOffTransitionWhenOff?: boolean | ((entity: Zh.Endpoint) => boolean);
+    /**
+     * Maintain a virtual state for devices that don't report it
+     */
+    virtualState?: {
+        warning?: string;
+    };
 }
 
 export type Configure = (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint, definition: Definition) => Promise<void> | void;

@@ -1,5 +1,6 @@
 import {Zcl} from "zigbee-herdsman";
 
+import {Endpoint} from "zigbee-herdsman/dist/controller/model";
 import * as libColor from "../lib/color";
 import * as constants from "../lib/constants";
 import * as exposes from "../lib/exposes";
@@ -560,6 +561,27 @@ export const warning: Tz.Converter = {
             {startwarninginfo: info, warningduration: values.duration, strobedutycycle: values.strobeDutyCycle, strobelevel: values.strobeLevel},
             utils.getOptions(meta.mapped, entity),
         );
+
+        // Track and maintain a virtual state of the siren
+        // is on if duration set, and either strobe with dutycycle or alarm is set
+        const virtualState = meta.mapped.meta?.virtualState?.warning;
+        if (virtualState && entity instanceof Endpoint) {
+            const siren_on = values.duration > 0 && (values.mode !== "stop" || (values.strobe && values.strobeDutyCycle > 0));
+
+            // Stop existing timer because we received a new siren command
+            clearTimeout(globalStore.getValue(entity, "state_timer"));
+            globalStore.clearValue(entity, "state_timer");
+            if (siren_on) {
+                const duration = Math.min(values.duration, await utils.getClusterAttributeValue(entity, "ssIasWd", "maxDuration"));
+                const timer = setTimeout(() => {
+                    //logger.debug('Siren should be OFF ', NS);
+                    meta.publish({[virtualState]: "OFF"});
+                }, duration * 1000);
+                globalStore.putValue(entity, "state_timer", timer);
+            }
+
+            return {state: {[virtualState]: siren_on ? "ON" : "OFF"}};
+        }
     },
 };
 export const ias_max_duration: Tz.Converter = {
