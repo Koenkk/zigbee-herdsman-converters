@@ -7243,6 +7243,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             tuya.modernExtend.tuyaOnOff({
                 switchType: true,
+                onOffCountdown: true
                 endpoints: ["left", "right"],
             }),
         ],
