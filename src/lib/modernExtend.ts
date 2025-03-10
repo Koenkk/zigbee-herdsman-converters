@@ -327,6 +327,7 @@ export interface BatteryArgs {
     percentageReporting?: boolean;
     voltageReportingConfig?: ReportingConfigWithoutAttribute;
     voltageReporting?: boolean;
+    lowStatusReportingConfig?: ReportingConfigWithoutAttribute;
 }
 export function battery(args?: BatteryArgs): ModernExtend {
     // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
@@ -452,6 +453,12 @@ export function battery(args?: BatteryArgs): ModernExtend {
         if (args.voltageToPercentage) meta.battery.voltageToPercentage = args.voltageToPercentage;
         if (args.dontDividePercentage) meta.battery.dontDividePercentage = args.dontDividePercentage;
         result.meta = meta;
+    }
+
+    if (args.lowStatusReportingConfig) {
+        const configure: Configure[] = result.configure || [];
+        configure.push(setupConfigureForReporting("genPowerCfg", "batteryAlarmState", args.lowStatusReportingConfig, ea.STATE_GET));
+        result.configure = configure;
     }
 
     return result;
@@ -2683,6 +2690,19 @@ export function ignoreClusterReport(args: {cluster: string | number}): ModernExt
 
 export function bindCluster(args: {cluster: string | number; clusterType: "input" | "output"; endpointNames?: string[]}): ModernExtend {
     const configure: Configure[] = [setupConfigureForBinding(args.cluster, args.clusterType, args.endpointNames)];
+    return {configure, isModernExtend: true};
+}
+
+export function reportAttribute(args: {
+    cluster: string | number,
+    attribute: ReportingConfigAttribute,
+    config: ReportingConfigWithoutAttribute,
+    access?: Access,
+    endpointNames?: string[],
+}): ModernExtend {
+    const configure: Configure[] = [
+        setupConfigureForReporting(args.cluster, args.attribute, args.config, args.access || ea.STATE_GET, args.endpointNames),
+    ];
     return {configure, isModernExtend: true};
 }
 
