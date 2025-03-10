@@ -16400,4 +16400,20 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Battery powered light",
         extend: [m.battery(), m.light()],
     },
+    {
+    fingerprint: [{modelID: 'TS0003', manufacturerName: '_TZ3000_mw1pqqqt'}],
+    model: '3CH USB Switch',
+    description: 'Tuya 3CH USB Switch',
+    vendor: 'Tuya',
+    extend: [tuya.modernExtend.tuyaOnOff({switchType: false, indicatorMode: false, onOffCountdown: true, endpoints: ['l1', 'l2', 'l3']})],
+    endpoint: (device) => {
+        return {l1: 1, l2: 2, l3: 3};
+    },
+    meta: {multiEndpoint: true},
+    configure: async (device, coordinatorEndpoint) => {
+        await tuya.configureMagicPacket(device, coordinatorEndpoint);
+        await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
+        await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
+        await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
+    },  
 ];
