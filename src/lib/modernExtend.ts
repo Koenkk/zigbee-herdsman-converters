@@ -438,7 +438,9 @@ export function battery(args?: BatteryArgs): ModernExtend {
 
     if (args.percentageReporting || args.voltageReporting) {
         if (args.percentageReporting) {
-            result.configure.push(setupConfigureForReporting("genPowerCfg", "batteryPercentageRemaining", args.percentageReportingConfig, ea.STATE_GET));
+            result.configure.push(
+                setupConfigureForReporting("genPowerCfg", "batteryPercentageRemaining", args.percentageReportingConfig, ea.STATE_GET),
+            );
         }
         if (args.voltageReporting) {
             result.configure.push(setupConfigureForReporting("genPowerCfg", "batteryVoltage", args.voltageReportingConfig, ea.STATE_GET));
