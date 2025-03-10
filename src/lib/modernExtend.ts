@@ -434,18 +434,16 @@ export function battery(args?: BatteryArgs): ModernExtend {
         },
     ];
 
-    const result: ModernExtend = {exposes, fromZigbee, toZigbee, isModernExtend: true};
+    const result: ModernExtend = {exposes, fromZigbee, toZigbee, configure: [], isModernExtend: true};
 
     if (args.percentageReporting || args.voltageReporting) {
-        const configure: Configure[] = [];
         if (args.percentageReporting) {
-            configure.push(setupConfigureForReporting("genPowerCfg", "batteryPercentageRemaining", args.percentageReportingConfig, ea.STATE_GET));
+            result.configure.push(setupConfigureForReporting("genPowerCfg", "batteryPercentageRemaining", args.percentageReportingConfig, ea.STATE_GET));
         }
         if (args.voltageReporting) {
-            configure.push(setupConfigureForReporting("genPowerCfg", "batteryVoltage", args.voltageReportingConfig, ea.STATE_GET));
+            result.configure.push(setupConfigureForReporting("genPowerCfg", "batteryVoltage", args.voltageReportingConfig, ea.STATE_GET));
         }
-        configure.push(configureSetPowerSourceWhenUnknown("Battery"));
-        result.configure = configure;
+        result.configure.push(configureSetPowerSourceWhenUnknown("Battery"));
     }
 
     if (args.voltageToPercentage || args.dontDividePercentage) {
@@ -456,9 +454,7 @@ export function battery(args?: BatteryArgs): ModernExtend {
     }
 
     if (args.lowStatusReportingConfig) {
-        const configure: Configure[] = result.configure || [];
-        configure.push(setupConfigureForReporting("genPowerCfg", "batteryAlarmState", args.lowStatusReportingConfig, ea.STATE_GET));
-        result.configure = configure;
+        result.configure.push(setupConfigureForReporting("genPowerCfg", "batteryAlarmState", args.lowStatusReportingConfig, ea.STATE_GET));
     }
 
     return result;
