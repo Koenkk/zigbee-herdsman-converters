@@ -2961,7 +2961,14 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_mwvfvw8g", "_TZE200_wnp4d4va", "_TZE200_cduqh1l0", "_TZE200_emxxanvi", "_TZE204_g4au0afs"]),
+        fingerprint: tuya.fingerprint("TS0601", [
+            "_TZE200_mwvfvw8g",
+            "_TZE200_wnp4d4va",
+            "_TZE200_cduqh1l0",
+            "_TZE200_emxxanvi",
+            "_TZE204_g4au0afs",
+            "_TZE204_w1wwxoja",
+        ]),
         model: "TS0601_switch_6_gang",
         vendor: "Tuya",
         description: "6 gang switch",
@@ -7849,7 +7856,7 @@ export const definitions: DefinitionWithExtend[] = [
                     "preset",
                     tuya.valueConverterBasic.lookup((_, device) => {
                         // https://github.com/Koenkk/zigbee2mqtt/issues/21353#issuecomment-1938328429
-                        if (["_TZE204_lzriup1j", "_TZE204_xnbkhhdr"].indexOf(device.manufacturerName) !== -1) {
+                        if (device.manufacturerName === "_TZE204_lzriup1j") {
                             return {
                                 auto: tuya.enum(1),
                                 manual: tuya.enum(0),
@@ -9603,7 +9610,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_3towulqd", "_TZE200_1ibpyhdc", "_TZE200_bh3n6gk8", "_TZE200_ttcovulf"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_3towulqd", "_TZE200_1ibpyhdc", "_TZE200_bh3n6gk8", "_TZE200_ttcovulf", "_TZE200_gjldowol"]),
         model: "ZG-204ZL",
         vendor: "Tuya",
         description: "Luminance motion sensor",
