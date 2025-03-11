@@ -399,13 +399,14 @@ function processExtensions(definition: DefinitionWithExtend): Definition {
         return {toZigbee, fromZigbee, exposes, meta, configure, endpoint, onEvent, ota, ...definitionWithoutExtend};
     }
 
-    return definition;
+    return {...definition};
 }
 
 export function prepareDefinition(definition: DefinitionWithExtend): Definition {
     const finalDefinition = processExtensions(definition);
 
-    finalDefinition.toZigbee.push(
+    finalDefinition.toZigbee = [
+        ...finalDefinition.toZigbee,
         toZigbee.scene_store,
         toZigbee.scene_recall,
         toZigbee.scene_add,
@@ -417,17 +418,14 @@ export function prepareDefinition(definition: DefinitionWithExtend): Definition 
         toZigbee.command,
         toZigbee.factory_reset,
         toZigbee.zcl_command,
-    );
+    ];
 
     if (definition.externalConverterName) {
         validateDefinition(finalDefinition);
     }
 
     // Add all the options
-    if (!finalDefinition.options) {
-        finalDefinition.options = [];
-    }
-
+    finalDefinition.options = [...(finalDefinition.options ?? [])];
     const optionKeys = finalDefinition.options.map((o) => o.name);
 
     // Add calibration/precision options based on expose
