@@ -4322,7 +4322,17 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ["genOnOff"]);
         },
     },
-
+    {
+        fingerprint: [{modelID: "TS0003", manufacturerName: "_TZ3000_mw1pqqqt"}],
+        model: "_TZ3000_mw1pqqqt",
+        description: "3 channel USB switch",
+        vendor: "Tuya",
+        extend: [tuya.modernExtend.tuyaOnOff({switchType: false, indicatorMode: false, onOffCountdown: true, endpoints: ["l1", "l2", "l3"]})],
+        endpoint: (device) => {
+            return {l1: 1, l2: 2, l3: 3};
+        },
+        meta: {multiEndpoint: true},
+    },
     {
         fingerprint: tuya.fingerprint("TS0001", [
             "_TZ3000_tqlv4ug4",
