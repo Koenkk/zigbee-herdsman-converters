@@ -4322,7 +4322,17 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ["genOnOff"]);
         },
     },
-
+    {
+        fingerprint: [{modelID: "TS0003", manufacturerName: "_TZ3000_mw1pqqqt"}],
+        model: "_TZ3000_mw1pqqqt",
+        description: "3 channel USB switch",
+        vendor: "Tuya",
+        extend: [tuya.modernExtend.tuyaOnOff({switchType: false, indicatorMode: false, onOffCountdown: true, endpoints: ["l1", "l2", "l3"]})],
+        endpoint: (device) => {
+            return {l1: 1, l2: 2, l3: 3};
+        },
+        meta: {multiEndpoint: true},
+    },
     {
         fingerprint: tuya.fingerprint("TS0001", [
             "_TZ3000_tqlv4ug4",
@@ -4407,6 +4417,7 @@ export const definitions: DefinitionWithExtend[] = [
                 "_TZE200_1fuxihti",
                 "_TZE204_1fuxihti",
                 "_TZE204_57hjqelq",
+                "_TZE200_hojryzzd",
                 "_TZE204_m1wl5fvq",
                 "_TZE200_en3wvcbx",
                 "_TZE200_fctwhugx",
@@ -7243,6 +7254,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             tuya.modernExtend.tuyaOnOff({
                 switchType: true,
+                onOffCountdown: true,
                 endpoints: ["left", "right"],
             }),
         ],
@@ -7301,6 +7313,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             tuya.modernExtend.tuyaOnOff({
                 switchType: true,
+                onOffCountdown: true,
                 endpoints: ["left", "center", "right"],
             }),
         ],
@@ -7476,7 +7489,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        zigbeeModel: ["TS0726"],
+        fingerprint: tuya.fingerprint("TS0726", ["_TZ3000_wsspgtcd"]),
         model: "TS0726_4_gang",
         vendor: "Tuya",
         description: "4 gang switch with neutral wire",
@@ -7500,7 +7513,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0726", ["_TZ3002_sal078g8"]),
+        fingerprint: tuya.fingerprint("TS0726", ["_TZ3000_qhyadm57", "_TZ3002_sal078g8"]),
         model: "TS0726_switch_4g_2s",
         vendor: "Tuya",
         description: "COSWALL smart switch (4 gang + 2 scene)",
