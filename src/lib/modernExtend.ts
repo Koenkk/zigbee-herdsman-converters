@@ -122,6 +122,7 @@ export const TIME_LOOKUP = {
 };
 
 type ReportingConfigTime = number | keyof typeof TIME_LOOKUP;
+// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 type ReportingConfigAttribute = string | number | {ID: number; type: number};
 type ReportingConfig = {min: ReportingConfigTime; max: ReportingConfigTime; change: number; attribute: ReportingConfigAttribute};
 export type ReportingConfigWithoutAttribute = Omit<ReportingConfig, "attribute">;
@@ -265,7 +266,7 @@ export function determineEndpoint(entity: Zh.Endpoint | Zh.Group, meta: Tz.Meta,
 
 export function forceDeviceType(args: {type: "EndDevice" | "Router"}): ModernExtend {
     const configure: Configure[] = [
-        async (device, coordinatorEndpoint, definition) => {
+        (device, coordinatorEndpoint, definition) => {
             device.type = args.type;
             device.save();
         },
@@ -275,7 +276,7 @@ export function forceDeviceType(args: {type: "EndDevice" | "Router"}): ModernExt
 
 export function forcePowerSource(args: {powerSource: "Mains (single phase)" | "Battery"}): ModernExtend {
     const configure: Configure[] = [
-        async (device, coordinatorEndpoint, definition) => {
+        (device, coordinatorEndpoint, definition) => {
             device.powerSource = args.powerSource;
             device.save();
         },
@@ -285,10 +286,12 @@ export function forcePowerSource(args: {powerSource: "Mains (single phase)" | "B
 
 export interface LinkQualityArgs {
     reporting?: boolean;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     attribute?: string | {ID: number; type: number};
     reportingConfig?: ReportingConfigWithoutAttribute;
 }
 export function linkQuality(args?: LinkQualityArgs): ModernExtend {
+    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
     args = {reporting: false, attribute: "zclVersion", reportingConfig: {min: "1_HOUR", max: "4_HOURS", change: 0}, ...args};
 
     // Exposes is empty because the application (e.g. Z2M) adds a linkquality sensor
@@ -326,6 +329,7 @@ export interface BatteryArgs {
     voltageReporting?: boolean;
 }
 export function battery(args?: BatteryArgs): ModernExtend {
+    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
     args = {
         percentage: true,
         voltage: false,
@@ -468,6 +472,7 @@ export function deviceTemperature(args?: Partial<NumericArgs>) {
 }
 
 export function identify(args?: {isSleepy: boolean}): ModernExtend {
+    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
     args = {isSleepy: false, ...args};
     const normal: Expose = e.enum("identify", ea.SET, ["identify"]).withDescription("Initiate device identification").withCategory("config");
     const sleepy: Expose = e
@@ -512,6 +517,7 @@ export interface OnOffArgs {
     description?: string;
 }
 export function onOff(args?: OnOffArgs): ModernExtend {
+    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
     args = {powerOnBehavior: true, skipDuplicateTransaction: false, configureReporting: true, ...args};
 
     const exposes: Expose[] = args.description
@@ -564,6 +570,7 @@ export interface CommandsOnOffArgs {
     endpointNames?: string[];
 }
 export function commandsOnOff(args?: CommandsOnOffArgs): ModernExtend {
+    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
     args = {commands: ["on", "off", "toggle"], bind: true, ...args};
     let actions: string[] = args.commands;
     if (args.endpointNames) {
@@ -756,6 +763,7 @@ export interface OccupancyArgs {
     endpointNames?: string[];
 }
 export function occupancy(args?: OccupancyArgs): ModernExtend {
+    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
     args = {reporting: true, reportingConfig: {min: "MIN", max: "1_HOUR", change: 0}, ...args};
 
     const templateExposes: Expose[] = [e.occupancy().withAccess(ea.STATE_GET)];
@@ -978,6 +986,7 @@ export interface LightArgs {
     levelConfig?: {disabledFeatures?: LevelConfigFeatures};
 }
 export function light(args?: LightArgs): ModernExtend {
+    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
     args = {effect: true, powerOnBehavior: true, configureReporting: false, ...args};
     if (args.colorTemp) {
         args.colorTemp = {startup: true, ...args.colorTemp};
@@ -1013,15 +1022,18 @@ export function light(args?: LightArgs): ModernExtend {
     }
 
     if (args.colorTemp) {
+        // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
         lightExpose.forEach((e) => e.withColorTemp(args.colorTemp.range));
         toZigbee.push(tz.light_colortemp_move, tz.light_colortemp_step);
         if (args.colorTemp.startup) {
             toZigbee.push(tz.light_colortemp_startup);
+            // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
             lightExpose.forEach((e) => e.withColorTempStartup(args.colorTemp.range));
         }
     }
 
     if (argsColor) {
+        // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
         lightExpose.forEach((e) => e.withColor(argsColor.modes));
         toZigbee.push(tz.light_hue_saturation_move, tz.light_hue_saturation_step);
         if (argsColor.modes.includes("hs")) {
@@ -1036,6 +1048,7 @@ export function light(args?: LightArgs): ModernExtend {
     }
 
     if (args.levelConfig) {
+        // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
         lightExpose.forEach((e) => e.withLevelConfig(args.levelConfig.disabledFeatures ?? []));
         toZigbee.push(tz.level_config);
     }
@@ -1115,6 +1128,7 @@ export interface CommandsLevelCtrl {
     endpointNames?: string[];
 }
 export function commandsLevelCtrl(args?: CommandsLevelCtrl): ModernExtend {
+    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
     args = {
         commands: [
             "brightness_move_to_level",
@@ -1169,6 +1183,7 @@ export interface CommandsColorCtrl {
     endpointNames?: string[];
 }
 export function commandsColorCtrl(args?: CommandsColorCtrl): ModernExtend {
+    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
     args = {
         commands: [
             "color_temperature_move_stop",
@@ -1257,6 +1272,7 @@ export interface LockArgs {
     endpointNames?: string[];
 }
 export function lock(args?: LockArgs): ModernExtend {
+    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
     args = {...args};
 
     const fromZigbee = [fz.lock, fz.lock_operation_event, fz.lock_programming_event, fz.lock_pin_code_response, fz.lock_user_status_response];
@@ -1296,6 +1312,7 @@ export interface WindowCoveringArgs {
     endpointNames?: string[];
 }
 export function windowCovering(args: WindowCoveringArgs): ModernExtend {
+    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
     args = {stateSource: "lift", configureReporting: true, ...args};
     let coverExpose: Cover = e.cover();
     if (args.controls.includes("lift")) coverExpose = coverExpose.withPosition();
@@ -1357,6 +1374,7 @@ export interface CommandsWindowCoveringArgs {
     endpointNames?: string[];
 }
 export function commandsWindowCovering(args?: CommandsWindowCoveringArgs): ModernExtend {
+    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
     args = {commands: ["open", "close", "stop"], bind: true, ...args};
     let actions: string[] = args.commands;
     if (args.endpointNames) {
@@ -1396,7 +1414,7 @@ export function commandsWindowCovering(args?: CommandsWindowCoveringArgs): Moder
 
 // #region Security and Safety
 
-export type iasZoneType =
+export type IasZoneType =
     | "occupancy"
     | "contact"
     | "smoke"
@@ -1408,7 +1426,7 @@ export type iasZoneType =
     | "alarm"
     | "gas"
     | "generic";
-export type iasZoneAttribute =
+export type IasZoneAttribute =
     | "alarm_1"
     | "alarm_2"
     | "tamper"
@@ -1419,7 +1437,7 @@ export type iasZoneAttribute =
     | "test"
     | "trouble"
     | "battery_defect";
-export type manufacturerZoneAttribute = {
+export type ManufacturerZoneAttribute = {
     bit: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15;
     name: string;
     valueOn: string | boolean;
@@ -1428,13 +1446,13 @@ export type manufacturerZoneAttribute = {
     entityCategory?: "config" | "diagnostic";
 };
 export interface IasArgs {
-    zoneType: iasZoneType;
-    zoneAttributes: iasZoneAttribute[];
+    zoneType: IasZoneType;
+    zoneAttributes: IasZoneAttribute[];
     alarmTimeout?: boolean;
     keepAliveTimeout?: number;
     zoneStatusReporting?: boolean;
     description?: string;
-    manufacturerZoneAttributes?: manufacturerZoneAttribute[];
+    manufacturerZoneAttributes?: ManufacturerZoneAttribute[];
 }
 export function iasZoneAlarm(args: IasArgs): ModernExtend {
     const exposes: Expose[] = [];
@@ -1628,6 +1646,7 @@ export function iasWarning(args?: IasWarningArgs): ModernExtend {
                     strobeLevel: value.strobe_level !== undefined ? utils.getFromLookup(value.strobe_level, strobeLevel) : 1,
                 };
 
+                // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
                 let info;
                 if (args?.reversePayload) {
                     info = getFromLookup(values.mode, warningMode) + ((values.strobe ? 1 : 0) << 4) + (getFromLookup(values.level, level) << 6);
@@ -1659,7 +1678,7 @@ type MeterType = "electricity" | "gas"; // water, etc
 interface MeterArgs {
     type?: MeterType;
     cluster?: "both" | "metering" | "electrical";
-    power?: false | (MultiplierDivisor & Partial<ReportingConfigWithoutAttribute>);
+    power?: false | (MultiplierDivisor & Partial<ReportingConfigWithoutAttribute> & {cluster?: "metering" | "electrical"});
     energy?: false | (MultiplierDivisor & Partial<ReportingConfigWithoutAttribute>);
     status?: boolean;
     extendedStatus?: boolean;
@@ -1818,69 +1837,108 @@ function genericMeter(args?: MeterArgs) {
     };
 
     if (args.power === false) {
+        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.power;
+        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.seMetering.power;
+        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.power_phase_b;
+        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.power_phase_c;
+        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.dc_power;
     }
     if (args.voltage === false) {
+        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.voltage;
+        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.voltage_phase_b;
+        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.voltage_phase_c;
+        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.dc_voltage;
     }
     if (args.current === false) {
+        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.current;
+        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.current_phase_b;
+        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.current_phase_c;
+        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.dc_current;
     }
     if (args.energy === false) {
+        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.seMetering.energy;
     }
     if (args.producedEnergy === false) {
+        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.seMetering.produced_energy;
     }
     if (args.powerFactor === false) {
+        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.power_factor;
     }
     if (args.acFrequency === false) {
+        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.ac_frequency;
     }
     if (args.threePhase === false) {
+        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.power_phase_b;
+        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.power_phase_c;
+        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.current_phase_b;
+        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.current_phase_c;
+        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.voltage_phase_b;
+        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.voltage_phase_c;
     }
 
     if (args.electricalMeasurementType === "dc") {
+        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.power;
+        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.voltage;
+        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.current;
+        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.power_factor;
+        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.ac_frequency;
+        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.power_phase_b;
+        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.power_phase_c;
+        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.current_phase_b;
+        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.current_phase_c;
+        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.voltage_phase_b;
+        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.voltage_phase_c;
     }
 
     if (args.electricalMeasurementType === "ac") {
+        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.dc_power;
+        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.dc_voltage;
+        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.dc_current;
     }
 
     if (args.status === false) {
+        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.seMetering.status;
     }
     if (args.extendedStatus === false) {
+        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.seMetering.extended_status;
     }
 
@@ -1893,8 +1951,9 @@ function genericMeter(args?: MeterArgs) {
         if (args.energy !== false) exposes.push(e.energy().withAccess(ea.STATE_GET));
         if (args.producedEnergy !== false) exposes.push(e.produced_energy().withAccess(ea.STATE_GET));
         fromZigbee = [args.fzElectricalMeasurement ?? fz.electrical_measurement, args.fzMetering ?? fz.metering];
+        const useMeteringForPower = args.power !== false && args.power?.cluster === "metering";
         toZigbee = [
-            tz.electrical_measurement_power,
+            useMeteringForPower ? tz.metering_power : tz.electrical_measurement_power,
             tz.acvoltage,
             tz.accurrent,
             tz.currentsummdelivered,
@@ -1902,13 +1961,20 @@ function genericMeter(args?: MeterArgs) {
             tz.frequency,
             tz.powerfactor,
         ];
-        delete configureLookup.seMetering.power;
+        if (useMeteringForPower) {
+            // biome-ignore lint/performance/noDelete: ignored using `--suppress`
+            delete configureLookup.haElectricalMeasurement.power;
+        } else {
+            // biome-ignore lint/performance/noDelete: ignored using `--suppress`
+            delete configureLookup.seMetering.power;
+        }
     } else if (args.cluster === "metering" && args.type === "electricity") {
         if (args.power !== false) exposes.push(e.power().withAccess(ea.STATE_GET));
         if (args.energy !== false) exposes.push(e.energy().withAccess(ea.STATE_GET));
         if (args.producedEnergy !== false) exposes.push(e.produced_energy().withAccess(ea.STATE_GET));
         fromZigbee = [args.fzMetering ?? fz.metering];
         toZigbee = [tz.metering_power, tz.currentsummdelivered, tz.currentsummreceived];
+        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement;
     } else if (args.cluster === "metering" && args.type === "gas") {
         if (args.power !== false) exposes.push(e.numeric("power", ea.STATE_GET).withUnit("m³/h").withDescription("Instantaneous gas flow in m³/h"));
@@ -1930,6 +1996,7 @@ function genericMeter(args?: MeterArgs) {
             tz.metering_status,
             tz.metering_extended_status,
         ];
+        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement;
     } else if (args.cluster === "electrical") {
         if (args.power !== false) exposes.push(e.power().withAccess(ea.STATE_GET));
@@ -1939,6 +2006,7 @@ function genericMeter(args?: MeterArgs) {
         if (args.powerFactor !== false) exposes.push(e.power_factor().withAccess(ea.STATE_GET));
         fromZigbee = [args.fzElectricalMeasurement ?? fz.electrical_measurement];
         toZigbee = [tz.electrical_measurement_power, tz.acvoltage, tz.accurrent, tz.frequency, tz.powerfactor];
+        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.seMetering;
     }
 
@@ -2027,6 +2095,7 @@ export interface ElectricityMeterArgs extends MeterArgs {
     type?: "electricity";
 }
 export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
+    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
     args = {
         type: "electricity",
         cluster: "both",
@@ -2048,6 +2117,7 @@ export interface GasMeterArgs extends MeterArgs {
     type?: "gas";
 }
 export function gasMeter(args?: GasMeterArgs): ModernExtend {
+    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
     args = {
         type: "gas",
         cluster: "metering",
@@ -2068,7 +2138,9 @@ export interface CommandsScenesArgs {
     endpointNames?: string[];
 }
 export function commandsScenes(args?: CommandsScenesArgs) {
+    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
     args = {commands: ["recall", "store", "add", "remove", "remove_all"], bind: true, ...args};
+    // biome-ignore lint/style/noNonNullAssertion: ignored using `--suppress`
     let actions = args.commands!;
     if (args.endpointNames) {
         actions = args.commands.flatMap((c) => args.endpointNames.map((e) => `${c}_${e}`));
@@ -2113,6 +2185,7 @@ export interface EnumLookupArgs {
     name: string;
     lookup: KeyValue;
     cluster: string | number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     attribute: string | {ID: number; type: number};
     description: string;
     zigbeeCommandOptions?: {manufacturerCode?: number; disableDefaultResponse?: boolean};
@@ -2179,6 +2252,7 @@ export type ScaleFunction = (value: number, type: "from" | "to") => number;
 export interface NumericArgs {
     name: string;
     cluster: string | number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     attribute: string | {ID: number; type: number};
     description: string;
     zigbeeCommandOptions?: {manufacturerCode?: number; disableDefaultResponse?: boolean};
@@ -2312,21 +2386,24 @@ export interface BinaryArgs {
     valueOn: [string | boolean, unknown];
     valueOff: [string | boolean, unknown];
     cluster: string | number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     attribute: string | {ID: number; type: number};
     description: string;
     zigbeeCommandOptions?: {manufacturerCode: number};
     endpointName?: string;
     reporting?: false | ReportingConfig;
     access?: "STATE" | "STATE_GET" | "STATE_SET" | "SET" | "ALL";
+    label?: string;
     entityCategory?: "config" | "diagnostic";
 }
 export function binary(args: BinaryArgs): ModernExtend {
-    const {name, valueOn, valueOff, cluster, attribute, description, zigbeeCommandOptions, endpointName, reporting, entityCategory} = args;
+    const {name, valueOn, valueOff, cluster, attribute, description, zigbeeCommandOptions, endpointName, reporting, label, entityCategory} = args;
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
     const access = ea[args.access ?? "ALL"];
 
     let expose = e.binary(name, access, valueOn[0], valueOff[0]).withDescription(description);
     if (endpointName) expose = expose.withEndpoint(endpointName);
+    if (label) expose = expose.withLabel(label);
     if (entityCategory) expose = expose.withCategory(entityCategory);
 
     const fromZigbee: Fz.Converter[] = [
@@ -2375,6 +2452,7 @@ export function binary(args: BinaryArgs): ModernExtend {
 export interface TextArgs {
     name: string;
     cluster: string | number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     attribute: string | {ID: number; type: number};
     description: string;
     zigbeeCommandOptions?: {manufacturerCode: number};
@@ -2435,6 +2513,7 @@ export type Parse = (msg: Fz.Message, attributeKey: string | number) => unknown;
 export interface ActionEnumLookupArgs {
     actionLookup: KeyValue;
     cluster: string | number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     attribute: string | {ID: number; type: number};
     endpointNames?: string[];
     buttonLookup?: KeyValue;
@@ -2494,6 +2573,7 @@ export function quirkAddEndpointCluster(args: QuirkAddEndpointClusterArgs): Mode
                 return;
             }
 
+            // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
             inputClusters?.forEach((cluster: number | string) => {
                 const clusterID = isString(cluster) ? Zcl.Utils.getCluster(cluster, device.manufacturerID, device.customClusters).ID : cluster;
 
@@ -2503,6 +2583,7 @@ export function quirkAddEndpointCluster(args: QuirkAddEndpointClusterArgs): Mode
                 }
             });
 
+            // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
             outputClusters?.forEach((cluster: number | string) => {
                 const clusterID = isString(cluster) ? Zcl.Utils.getCluster(cluster, device.manufacturerID, device.customClusters).ID : cluster;
 
@@ -2521,7 +2602,7 @@ export function quirkAddEndpointCluster(args: QuirkAddEndpointClusterArgs): Mode
 
 export function quirkCheckinInterval(timeout: number | keyof typeof TIME_LOOKUP): ModernExtend {
     const configure: Configure[] = [
-        async (device, coordinatorEndpoint, definition) => {
+        (device, coordinatorEndpoint, definition) => {
             device.checkinInterval = typeof timeout === "number" ? timeout : TIME_LOOKUP[timeout];
             device.save();
         },
@@ -2547,6 +2628,16 @@ export function reconfigureReportingsOnDeviceAnnounce(): ModernExtend {
                     }
                 }
             }
+        },
+    ];
+
+    return {onEvent, isModernExtend: true};
+}
+
+export function skipDefaultResponse(): ModernExtend {
+    const onEvent: OnEvent[] = [
+        (type, data, device, options, state: KeyValue) => {
+            device.skipDefaultResponse = true;
         },
     ];
 

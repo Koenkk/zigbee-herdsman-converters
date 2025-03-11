@@ -81,6 +81,7 @@ export {
 export * as ota from "./lib/ota";
 export {setLogger} from "./lib/logger";
 export {getConfigureKey} from "./lib/configureKey";
+export {clear as clearGlobalStore} from "./lib/store";
 
 // key: zigbeeModel, value: array of definitions (most of the times 1)
 const externalDefinitionsLookup = new Map<string, DefinitionWithExtend[]>();
@@ -111,7 +112,9 @@ function addToExternalDefinitionsLookup(zigbeeModel: string | undefined, definit
     }
 
     // key created above
+    // biome-ignore lint/style/noNonNullAssertion: ignored using `--suppress`
     if (!externalDefinitionsLookup.get(lookupModel)!.includes(definition)) {
+        // biome-ignore lint/style/noNonNullAssertion: ignored using `--suppress`
         externalDefinitionsLookup.get(lookupModel)!.splice(0, 0, definition);
     }
 }
@@ -120,12 +123,15 @@ function removeFromExternalDefinitionsLookup(zigbeeModel: string | undefined, de
     const lookupModel = zigbeeModel ? zigbeeModel.toLowerCase() : "null";
 
     if (externalDefinitionsLookup.has(lookupModel)) {
+        // biome-ignore lint/style/noNonNullAssertion: ignored using `--suppress`
         const i = externalDefinitionsLookup.get(lookupModel)!.indexOf(definition);
 
         if (i > -1) {
+            // biome-ignore lint/style/noNonNullAssertion: ignored using `--suppress`
             externalDefinitionsLookup.get(lookupModel)!.splice(i, 1);
         }
 
+        // biome-ignore lint/style/noNonNullAssertion: ignored using `--suppress`
         if (externalDefinitionsLookup.get(lookupModel)!.length === 0) {
             externalDefinitionsLookup.delete(lookupModel);
         }
@@ -393,13 +399,14 @@ function processExtensions(definition: DefinitionWithExtend): Definition {
         return {toZigbee, fromZigbee, exposes, meta, configure, endpoint, onEvent, ota, ...definitionWithoutExtend};
     }
 
-    return definition;
+    return {...definition};
 }
 
 export function prepareDefinition(definition: DefinitionWithExtend): Definition {
     const finalDefinition = processExtensions(definition);
 
-    finalDefinition.toZigbee.push(
+    finalDefinition.toZigbee = [
+        ...finalDefinition.toZigbee,
         toZigbee.scene_store,
         toZigbee.scene_recall,
         toZigbee.scene_add,
@@ -411,17 +418,14 @@ export function prepareDefinition(definition: DefinitionWithExtend): Definition 
         toZigbee.command,
         toZigbee.factory_reset,
         toZigbee.zcl_command,
-    );
+    ];
 
     if (definition.externalConverterName) {
         validateDefinition(finalDefinition);
     }
 
     // Add all the options
-    if (!finalDefinition.options) {
-        finalDefinition.options = [];
-    }
-
+    finalDefinition.options = [...(finalDefinition.options ?? [])];
     const optionKeys = finalDefinition.options.map((o) => o.name);
 
     // Add calibration/precision options based on expose

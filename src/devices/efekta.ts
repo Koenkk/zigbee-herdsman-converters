@@ -63,6 +63,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msCO2",
                 attribute: {ID: 0x0203, type: Zcl.DataType.BOOLEAN},
                 description: "Enable or Disable Auto Brightness of the Display",
+                access: "STATE_SET",
             }),
             m.binary({
                 name: "night_onoff_backlight",
@@ -71,6 +72,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msCO2",
                 attribute: {ID: 0x0401, type: Zcl.DataType.BOOLEAN},
                 description: "Complete shutdown of the backlight at night mode",
+                access: "STATE_SET",
             }),
             m.numeric({
                 name: "night_on_backlight",
@@ -80,6 +82,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msCO2",
                 attribute: {ID: 0x0405, type: Zcl.DataType.UINT8},
                 description: "Night mode activation time",
+                access: "STATE_SET",
             }),
             m.numeric({
                 name: "night_off_backlight",
@@ -89,6 +92,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msCO2",
                 attribute: {ID: 0x0406, type: Zcl.DataType.UINT8},
                 description: "Night mode deactivation time",
+                access: "STATE_SET",
             }),
             m.enumLookup({
                 name: "rotate",
@@ -96,22 +100,23 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msCO2",
                 attribute: {ID: 0x0285, type: Zcl.DataType.UINT16},
                 description: "Display rotation angle",
+                access: "STATE_SET",
             }),
-            m.binary({
+            m.enumLookup({
                 name: "long_chart_period",
-                valueOn: ["ON", 1],
-                valueOff: ["OFF", 0],
+                lookup: {"1H": 0, "24H": 1},
                 cluster: "msCO2",
                 attribute: {ID: 0x0204, type: Zcl.DataType.BOOLEAN},
                 description: "The period of plotting the CO2 level(OFF - 1H | ON - 24H)",
+                access: "STATE_SET",
             }),
-            m.binary({
+            m.enumLookup({
                 name: "long_chart_period2",
-                valueOn: ["ON", 1],
-                valueOff: ["OFF", 0],
+                lookup: {"1H": 0, "24H": 1},
                 cluster: "msCO2",
                 attribute: {ID: 0x0404, type: Zcl.DataType.BOOLEAN},
                 description: "The period of plotting the VOC Index points(OFF - 1H | ON - 24H)",
+                access: "STATE_SET",
             }),
             m.numeric({
                 name: "set_altitude",
@@ -121,6 +126,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msCO2",
                 attribute: {ID: 0x0205, type: Zcl.DataType.UINT16},
                 description: "Setting the altitude above sea level (for high accuracy of the CO2 sensor)",
+                access: "STATE_SET",
             }),
             m.numeric({
                 name: "temperature_offset",
@@ -132,6 +138,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: 0x0210, type: Zcl.DataType.INT16},
                 description: "Adjust temperature",
+                access: "STATE_SET",
             }),
             m.numeric({
                 name: "humidity_offset",
@@ -142,14 +149,15 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msRelativeHumidity",
                 attribute: {ID: 0x0210, type: Zcl.DataType.INT16},
                 description: "Adjust humidity",
+                access: "STATE_SET",
             }),
-            m.binary({
+            m.enumLookup({
                 name: "internal_or_external",
-                valueOn: ["ON", 1],
-                valueOff: ["OFF", 0],
+                lookup: {INTERNAL: 1, EXTERNAL: 0},
                 cluster: "msCO2",
                 attribute: {ID: 0x0288, type: Zcl.DataType.BOOLEAN},
                 description: "Display data from internal or external TH sensor",
+                access: "STATE_SET",
             }),
             m.binary({
                 name: "automatic_scal",
@@ -158,6 +166,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msCO2",
                 attribute: {ID: 0x0402, type: Zcl.DataType.BOOLEAN},
                 description: "Automatic self calibration",
+                access: "STATE_SET",
             }),
             m.binary({
                 name: "forced_recalibration",
@@ -166,6 +175,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msCO2",
                 attribute: {ID: 0x0202, type: Zcl.DataType.BOOLEAN},
                 description: "Start FRC (Perform Forced Recalibration of the CO2 Sensor)",
+                access: "STATE_SET",
             }),
             m.binary({
                 name: "factory_reset_co2",
@@ -174,6 +184,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msCO2",
                 attribute: {ID: 0x0206, type: Zcl.DataType.BOOLEAN},
                 description: "Factory Reset CO2 sensor",
+                access: "STATE_SET",
             }),
             m.numeric({
                 name: "manual_forced_recalibration",
@@ -183,6 +194,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msCO2",
                 attribute: {ID: 0x0207, type: Zcl.DataType.UINT16},
                 description: "Start Manual FRC (Perform Forced Recalibration of the CO2 Sensor)",
+                access: "STATE_SET",
             }),
             m.binary({
                 name: "enable_gas",
@@ -191,6 +203,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msCO2",
                 attribute: {ID: 0x0220, type: Zcl.DataType.BOOLEAN},
                 description: "Enable CO2 Gas Control",
+                access: "STATE_SET",
             }),
             m.binary({
                 name: "invert_logic_gas",
@@ -199,6 +212,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msCO2",
                 attribute: {ID: 0x0225, type: Zcl.DataType.BOOLEAN},
                 description: "Enable invert logic CO2 Gas Control",
+                access: "STATE_SET",
             }),
             m.numeric({
                 name: "high_gas",
@@ -208,6 +222,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msCO2",
                 attribute: {ID: 0x0221, type: Zcl.DataType.UINT16},
                 description: "Setting High CO2 Gas Border",
+                access: "STATE_SET",
             }),
             m.numeric({
                 name: "low_gas",
@@ -217,6 +232,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msCO2",
                 attribute: {ID: 0x0222, type: Zcl.DataType.UINT16},
                 description: "Setting Low CO2 Gas Border",
+                access: "STATE_SET",
             }),
         ],
     },
@@ -1446,7 +1462,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["EFEKTA_T8_POW"],
         model: "EFEKTA_T8_POW",
-        vendor: "EfektaLab",
+        vendor: "EFEKTA",
         description: "Temperature sensor with a signal amplifier, support up to 8 DS18B20",
         extend: [
             m.deviceEndpoints({

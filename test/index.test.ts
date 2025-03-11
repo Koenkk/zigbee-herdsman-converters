@@ -326,6 +326,18 @@ describe("ZHC", () => {
         expect((await findByDevice(device)).vendor).toStrictEqual("Aqara");
     });
 
+    it("should not add toZigbee converters/options multiple times if findByDevice is called multiple times for the same device", async () => {
+        const device = mockDevice({modelID: "TS0601", manufacturerName: "_TZE200_3towulqd", endpoints: []});
+        const definition1 = await findByDevice(device);
+        const definition1TzLength = definition1.toZigbee.length;
+        const definition1OptionsLength = definition1.toZigbee.length;
+        const definition2 = await findByDevice(device);
+        const definition2TzLength = definition2.toZigbee.length;
+        const definition2OptionsLength = definition2.toZigbee.length;
+        expect(definition1TzLength).toStrictEqual(definition2TzLength);
+        expect(definition1OptionsLength).toStrictEqual(definition2OptionsLength);
+    });
+
     it("adds external converter with same model built-in", async () => {
         const device = mockDevice({modelID: "TS0601", manufacturerName: "_TZE204_sxm7l9xa", endpoints: []}, "EndDevice");
         const extDevice = mockDevice({modelID: "TS0601", manufacturerName: "_TZE204_unknown", endpoints: []}, "EndDevice");
@@ -426,25 +438,25 @@ describe("ZHC", () => {
         it("calculates", () => {
             expect(
                 getConfigureKey(
-                    mockDefinition(async () => {
+                    mockDefinition(() => {
                         console.log("hello world");
                         console.log("bye world");
                     }),
                 ),
-            ).toStrictEqual(-1526019382);
+            ).toStrictEqual(1320643662);
         });
 
         it("calculates diff", () => {
             expect(
                 getConfigureKey(
-                    mockDefinition(async () => {
+                    mockDefinition(() => {
                         console.log("hello world");
                         console.log("bye world");
                     }),
                 ),
             ).not.toStrictEqual(
                 getConfigureKey(
-                    mockDefinition(async () => {
+                    mockDefinition(() => {
                         console.log("hello world");
                         console.log("bye mars");
                     }),
@@ -461,6 +473,7 @@ describe("ZHC", () => {
     });
 
     it("computes calibration/precision", async () => {
+        // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
         const TS0601_soil = await findByDevice(mockDevice({modelID: "TS0601", manufacturerName: "_TZE200_myd45weu", endpoints: []}));
         expect(TS0601_soil.options.map((t) => t.name)).toStrictEqual([
             "temperature_calibration",
@@ -481,6 +494,7 @@ describe("ZHC", () => {
         postProcessConvertedFromZigbeeMessage(AUA1ZBDSS, payload2, options2);
         expect(payload2).toStrictEqual({power_left: 11});
 
+        // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
         const TS011F_plug_1 = await findByDevice(mockDevice({modelID: "TS011F", endpoints: []}));
         expect(TS011F_plug_1.options.map((t) => t.name)).toStrictEqual([
             "power_calibration",

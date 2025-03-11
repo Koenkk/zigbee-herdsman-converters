@@ -37,6 +37,7 @@ const tzLocal = {
 };
 
 const fzLocal = {
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     TS0225_illuminance: {
         cluster: "msIlluminanceMeasurement",
         type: "raw",
