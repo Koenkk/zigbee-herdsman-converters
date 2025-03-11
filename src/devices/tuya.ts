@@ -7428,7 +7428,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0726", ["_TZ3002_1s0vfmtv"]),
+        fingerprint: tuya.fingerprint("TS0726", ["_TZ3000_qhyadm57", "_TZ3002_1s0vfmtv"]),
         model: "TS0726_2_gang",
         vendor: "Tuya",
         description: "2 gang switch with neutral wire",
@@ -7452,7 +7452,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0726", ["_TZ3002_rbnycsav"]),
+        fingerprint: tuya.fingerprint("TS0726", ["_TZ3000_qhyadm57", "_TZ3002_rbnycsav"]),
         model: "TS0726_3_gang",
         vendor: "Tuya",
         description: "3 gang switch with neutral wire",
@@ -7476,6 +7476,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint("TS0726", ["_TZ3000_qhyadm57"]), //This must be listed separately here, otherwise TS0726 with 4 gang+2 scene will be recognized as the existing TS0726_4_gang, which can only recognize 4 * Switch and cannot recognize 2 scene. And all actions are not recognized
         zigbeeModel: ["TS0726"],
         model: "TS0726_4_gang",
         vendor: "Tuya",
@@ -7500,7 +7501,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0726", ["_TZ3002_sal078g8"]),
+        fingerprint: tuya.fingerprint("TS0726", ["_TZ3000_qhyadm57", "_TZ3002_sal078g8"]),
         model: "TS0726_switch_4g_2s",
         vendor: "Tuya",
         description: "COSWALL smart switch (4 gang + 2 scene)",
