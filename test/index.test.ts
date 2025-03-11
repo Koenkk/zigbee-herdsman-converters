@@ -1,3 +1,5 @@
+import fs from "node:fs";
+import path from "node:path";
 import {
     type Definition,
     addExternalDefinition,
@@ -526,6 +528,16 @@ describe("ZHC", () => {
             property: "temperatures",
             type: "list",
         });
+    });
+
+    it("check if all definitions are imported in devices/index.ts", () => {
+        const devicesDir = path.join(__dirname, "..", "src", "devices");
+        const files = fs.readdirSync(devicesDir).map((f) => f.replace(".ts", ""));
+        const index = fs.readFileSync(path.join(__dirname, "..", "src", "devices", "index.ts"), "utf-8");
+        const importRegex = /^import {definitions as .+} from "\.\/(.+)";$/gm;
+        const imports = Array.from(index.matchAll(importRegex)).map((r) => r[1]);
+        files.splice(files.indexOf("index"), 1);
+        expect(files).toEqual(imports);
     });
 
     it("instantiates list expose of composite type", () => {
