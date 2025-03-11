@@ -1,3 +1,4 @@
+import type {DefinitionWithExtend} from "../lib/types";
 import {definitions as ITCommander} from "./ITCommander";
 import {definitions as acova} from "./acova";
 import {definitions as acuityBrandsLighting} from "./acuity_brands_lighting";
@@ -233,6 +234,7 @@ import {definitions as qmotion} from "./qmotion";
 import {definitions as qoto} from "./qoto";
 import {definitions as quotra} from "./quotra";
 import {definitions as rademacher} from "./rademacher";
+import {definitions as radium} from "./radium";
 import {definitions as raex} from "./raex";
 import {definitions as rgbGenie} from "./rgb_genie";
 import {definitions as robb} from "./robb";
@@ -327,7 +329,7 @@ import {definitions as zen} from "./zen";
 import {definitions as zigbeetlc} from "./zigbeetlc";
 import {definitions as zipato} from "./zipato";
 
-export default [
+const definitions: DefinitionWithExtend[] = [
     ...acova,
     ...acuityBrandsLighting,
     ...adeo,
@@ -561,6 +563,7 @@ export default [
     ...qoto,
     ...quotra,
     ...rademacher,
+    ...radium,
     ...raex,
     ...rgbGenie,
     ...robb,
@@ -657,3 +660,5 @@ export default [
     ...zipato,
     ...qa,
 ];
+
+export default definitions;

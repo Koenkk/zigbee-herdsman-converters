@@ -387,6 +387,43 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        zigbeeModel: ["PCT512"],
+        model: "PCT512",
+        vendor: "OWON",
+        description: "Thermostat",
+        fromZigbee: [fz.thermostat],
+        toZigbee: [
+            tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_min_heat_setpoint_limit,
+            tz.thermostat_max_heat_setpoint_limit,
+            tz.thermostat_local_temperature,
+            tz.thermostat_system_mode,
+            tz.thermostat_running_state,
+        ],
+        extend: [m.occupancy(), m.humidity()],
+        exposes: [
+            e
+                .climate()
+                .withSystemMode(["off", "heat"])
+                .withLocalTemperature()
+                .withRunningState(["heat", "idle"])
+                .withSetpoint("occupied_heating_setpoint", 5, 30, 0.5),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            const binds = ["genBasic", "genIdentify", "genGroups", "genScenes", "genOnOff", "hvacThermostat", "msRelativeHumidity"];
+
+            await reporting.bind(endpoint, coordinatorEndpoint, binds);
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint, {min: 0, max: 3600, change: 10});
+            await reporting.thermostatTemperature(endpoint, {min: 0, max: 3600, change: 10});
+            await reporting.humidity(endpoint, {min: 0, max: 3600, change: 10});
+            await reporting.thermostatSystemMode(endpoint, {min: 0, max: 3600});
+            await reporting.thermostatRunningState(endpoint);
+            await endpoint.read("hvacThermostat", ["systemMode", "runningState", "occupiedHeatingSetpoint", "localTemp"]);
+            await endpoint.read("msRelativeHumidity", ["measuredValue"]);
+        },
+    },
+    {
         zigbeeModel: ["PIR323-PTH"],
         model: "PIR323-PTH",
         vendor: "OWON",
