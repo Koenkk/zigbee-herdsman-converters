@@ -1461,7 +1461,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["EFEKTA_T1_Y"],
-        model: "EFEKTA_T1_Y_LR",
+        model: "EFEKTA_T1_Y",
         vendor: "EFEKTA",
         description: "Temperature sensor DS18B20, AAA bsttery, works in Tuya",
         extend: [
