@@ -391,7 +391,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "PCT512",
         vendor: "OWON",
         description: "Thermostat",
-        fromZigbee: [fz.thermostat, fz.humidity, fz.occupancy],
+        fromZigbee: [fz.thermostat],
         toZigbee: [
             tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_min_heat_setpoint_limit,
@@ -400,9 +400,8 @@ export const definitions: DefinitionWithExtend[] = [
             tz.thermostat_system_mode,
             tz.thermostat_running_state,
         ],
+        extend: [m.occupancy(), m.humidity()],
         exposes: [
-            e.humidity(),
-            e.occupancy(),
             e
                 .climate()
                 .withSystemMode(["off", "heat"])
