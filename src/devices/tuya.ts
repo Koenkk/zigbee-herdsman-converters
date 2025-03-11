@@ -7488,7 +7488,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        zigbeeModel: ["TS0726"],
+        fingerprint: tuya.fingerprint("TS0726", ["_TZ3000_wsspgtcd"]),
         model: "TS0726_4_gang",
         vendor: "Tuya",
         description: "4 gang switch with neutral wire",
@@ -7512,7 +7512,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0726", ["_TZ3002_sal078g8"]),
+        fingerprint: tuya.fingerprint("TS0726", ["_TZ3000_qhyadm57", "_TZ3002_sal078g8"]),
         model: "TS0726_switch_4g_2s",
         vendor: "Tuya",
         description: "COSWALL smart switch (4 gang + 2 scene)",
