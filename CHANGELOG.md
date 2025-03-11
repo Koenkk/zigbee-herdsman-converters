@@ -1,5 +1,22 @@
 # Changelog
 
+## [23.6.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.5.0...v23.6.0) (2025-03-11)
+
+
+### Features
+
+* **add:** _TZ3000_mw1pqqqt ([#8963](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8963)) ([24835d1](https://github.com/Koenkk/zigbee-herdsman-converters/commit/24835d183f2f61cd0fbefe6abeb24ce973be39c8))
+* **add:** EFEKTA_T1_v2_LR, EFEKTA_T1_v2 ([#8971](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8971)) ([093effd](https://github.com/Koenkk/zigbee-herdsman-converters/commit/093effd688036d9ac8b81277c304151af1626682))
+* **add:** PCT512 ([#8972](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8972)) ([7264783](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7264783ba0b8e3f6e6e1dde0e1c518a419b423ff))
+* Samotech SM309-S SM308-S: add external switch type ([#8970](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8970)) ([5afcc0a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5afcc0a95c492b63e5ea55ab91821032337f66d5))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3000_qhyadm57` as Tuya TS0726_switch_4g_2s ([#8967](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8967)) ([e1dbf5b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e1dbf5b04f2af347902c6b1a6b5a382063b4fe81))
+* **detect:** Detect `_TZE200_hojryzzd` as Tuya TS0601_cover_1 ([#8969](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8969)) ([e0a230c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e0a230c80c6c0e1c60f626b4621d1081478bf16a))
+* **ignore:** Small improvements ([#8974](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8974)) ([9717391](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9717391e42d037d7953407735f9fededd6b57903))
+
 ## [23.5.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.4.0...v23.5.0) (2025-03-10)
 
 
