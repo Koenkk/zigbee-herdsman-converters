@@ -1613,7 +1613,7 @@ export const definitions: DefinitionWithExtend[] = [
                 reporting: fourReporting,
                 access: "STATE",
             }),
-             m.battery({
+            m.battery({
                 percentage: true,
                 lowStatus: true,
                 voltage: true,
@@ -1650,14 +1650,14 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_SET",
             }),
             m.numeric({
-                name: 'uptime',
-                unit: 'Hours',
-                cluster: 'genTime',
-                attribute: 'localTime',
-                description: 'Uptime',
+                name: "uptime",
+                unit: "Hours",
+                cluster: "genTime",
+                attribute: "localTime",
+                description: "Uptime",
                 scale: 3600,
                 precision: 1,
-                access: 'STATE',
+                access: "STATE",
             }),
             m.enumLookup({
                 name: "resolution",
@@ -1731,7 +1731,7 @@ export const definitions: DefinitionWithExtend[] = [
                 reporting: fourReporting,
                 access: "STATE",
             }),
-             m.battery({
+            m.battery({
                 percentage: true,
                 lowStatus: true,
                 voltage: true,
@@ -1760,14 +1760,14 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_SET",
             }),
             m.numeric({
-                name: 'uptime',
-                unit: 'Hours',
-                cluster: 'genTime',
-                attribute: 'localTime',
-                description: 'Uptime',
+                name: "uptime",
+                unit: "Hours",
+                cluster: "genTime",
+                attribute: "localTime",
+                description: "Uptime",
                 scale: 3600,
                 precision: 1,
-                access: 'STATE',
+                access: "STATE",
             }),
             m.enumLookup({
                 name: "resolution",
