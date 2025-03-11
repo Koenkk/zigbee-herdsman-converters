@@ -4407,6 +4407,7 @@ export const definitions: DefinitionWithExtend[] = [
                 "_TZE200_1fuxihti",
                 "_TZE204_1fuxihti",
                 "_TZE204_57hjqelq",
+                "_TZE200_hojryzzd",
                 "_TZE204_m1wl5fvq",
                 "_TZE200_en3wvcbx",
                 "_TZE200_fctwhugx",
