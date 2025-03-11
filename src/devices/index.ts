@@ -48,9 +48,9 @@ import {definitions as climax} from "./climax";
 import {definitions as commercialElectric} from "./commercial_electric";
 import {definitions as cree} from "./cree";
 import {definitions as ctm} from "./ctm";
-import {definitions as cwd} from "./cwd";
 import {definitions as currentProductsCorp} from "./current_products_corp";
 import {definitions as customDevicesDiy} from "./custom_devices_diy";
+import {definitions as cwd} from "./cwd";
 import {definitions as cyLighting} from "./cy_lighting";
 import {definitions as danalock} from "./danalock";
 import {definitions as danfoss} from "./danfoss";
@@ -377,9 +377,9 @@ export default [
     ...commercialElectric,
     ...cree,
     ...ctm,
-    ...cwd,
     ...currentProductsCorp,
     ...customDevicesDiy,
+    ...cwd,
     ...cyLighting,
     ...danalock,
     ...danfoss,
