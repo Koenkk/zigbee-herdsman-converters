@@ -327,6 +327,7 @@ export interface BatteryArgs {
     percentageReporting?: boolean;
     voltageReportingConfig?: ReportingConfigWithoutAttribute;
     voltageReporting?: boolean;
+    lowStatusReportingConfig?: ReportingConfigWithoutAttribute;
 }
 export function battery(args?: BatteryArgs): ModernExtend {
     // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
@@ -433,18 +434,18 @@ export function battery(args?: BatteryArgs): ModernExtend {
         },
     ];
 
-    const result: ModernExtend = {exposes, fromZigbee, toZigbee, isModernExtend: true};
+    const result: ModernExtend = {exposes, fromZigbee, toZigbee, configure: [], isModernExtend: true};
 
     if (args.percentageReporting || args.voltageReporting) {
-        const configure: Configure[] = [];
         if (args.percentageReporting) {
-            configure.push(setupConfigureForReporting("genPowerCfg", "batteryPercentageRemaining", args.percentageReportingConfig, ea.STATE_GET));
+            result.configure.push(
+                setupConfigureForReporting("genPowerCfg", "batteryPercentageRemaining", args.percentageReportingConfig, ea.STATE_GET),
+            );
         }
         if (args.voltageReporting) {
-            configure.push(setupConfigureForReporting("genPowerCfg", "batteryVoltage", args.voltageReportingConfig, ea.STATE_GET));
+            result.configure.push(setupConfigureForReporting("genPowerCfg", "batteryVoltage", args.voltageReportingConfig, ea.STATE_GET));
         }
-        configure.push(configureSetPowerSourceWhenUnknown("Battery"));
-        result.configure = configure;
+        result.configure.push(configureSetPowerSourceWhenUnknown("Battery"));
     }
 
     if (args.voltageToPercentage || args.dontDividePercentage) {
@@ -452,6 +453,10 @@ export function battery(args?: BatteryArgs): ModernExtend {
         if (args.voltageToPercentage) meta.battery.voltageToPercentage = args.voltageToPercentage;
         if (args.dontDividePercentage) meta.battery.dontDividePercentage = args.dontDividePercentage;
         result.meta = meta;
+    }
+
+    if (args.lowStatusReportingConfig) {
+        result.configure.push(setupConfigureForReporting("genPowerCfg", "batteryAlarmState", args.lowStatusReportingConfig, ea.STATE_GET));
     }
 
     return result;
