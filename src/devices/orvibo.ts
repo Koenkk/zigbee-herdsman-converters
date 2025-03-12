@@ -105,9 +105,9 @@ const clusterManuSpecifcOrviboSwitchRewiring = () => {
 };
 const clusterManuSpecificOrviboPowerOnBehavior = () => {
     return m.deviceAddCustomCluster("manuSpecificOrvibo2", {
-        ID: 0xFF00,
+        ID: 0xff00,
         attributes: {
-            power_on_behavior: { ID: 0x0001, type: Zcl.DataType.UINT8 }
+            power_on_behavior: {ID: 0x0001, type: Zcl.DataType.UINT8},
         },
         commands: {},
         commandsResponse: {},
@@ -252,42 +252,42 @@ const orviboSwitchRewiring = (args: OrviboSwitchRewiringArgs): ModernExtend => {
     };
 };
 const orviboSwitchPowerOnBehavior = (): ModernExtend => {
-    const powerOnLookup: {[k: number]: string} = {1: 'off', 2: 'previous'};
-    const powerOnLookup2: {[k: string]: number} = {'off': 1, 'previous': 2};
-    const exposes: Expose[] = [e.power_on_behavior(['off', 'previous'])];
+    const powerOnLookup: {[k: number]: string} = {1: "off", 2: "previous"};
+    const powerOnLookup2: {[k: string]: number} = {off: 1, previous: 2};
+    const exposes: Expose[] = [e.power_on_behavior(["off", "previous"])];
     const fromZigbee: Fz.Converter[] = [
         {
-            cluster: 'manuSpecificOrvibo2',
-            type: ['readResponse'],
+            cluster: "manuSpecificOrvibo2",
+            type: ["readResponse"],
             convert: (model, msg, publish, options, meta) => {
                 const result: KeyValue = {};
-                if (typeof msg.data.power_on_behavior === 'number') {
+                if (typeof msg.data.power_on_behavior === "number") {
                     result.power_on_behavior = powerOnLookup[msg.data.power_on_behavior as number];
                 }
                 return result;
-            }
-        }
+            },
+        },
     ];
     const toZigbee: Tz.Converter[] = [
         {
-            key: ['power_on_behavior'],
-            convertSet:  async (entity, key, value, meta) => {
-                if (key === 'power_on_behavior') {
-                    await entity.write('manuSpecificOrvibo2', {power_on_behavior: powerOnLookup2[value as string]});
+            key: ["power_on_behavior"],
+            convertSet: async (entity, key, value, meta) => {
+                if (key === "power_on_behavior") {
+                    await entity.write("manuSpecificOrvibo2", {power_on_behavior: powerOnLookup2[value as string]});
                 }
             },
             convertGet: async (entity, key, meta) => {
-                if (key === 'power_on_behavior') {
-                    await entity.read('manuSpecificOrvibo2', ['power_on_behavior']);
+                if (key === "power_on_behavior") {
+                    await entity.read("manuSpecificOrvibo2", ["power_on_behavior"]);
                 }
-            }
-        }
+            },
+        },
     ];
     return {
         exposes,
         fromZigbee,
         toZigbee,
-        isModernExtend: true
+        isModernExtend: true,
     };
 };
 
@@ -554,7 +554,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             clusterManuSpecificOrviboPowerOnBehavior(),
             orviboSwitchPowerOnBehavior(),
-            m.onOff({configureReporting: false, powerOnBehavior: false})
+            m.onOff({configureReporting: false, powerOnBehavior: false}),
         ],
     },
     {
@@ -591,7 +591,11 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             clusterManuSpecifcOrviboSwitchRewiring(),
             m.deviceEndpoints({endpoints: {left_up: 1, left_down: 2, center_up: 3, center_down: 4, right_up: 5, right_down: 6}}),
-            m.onOff({powerOnBehavior: false, configureReporting: false, endpointNames: ["left_up", "left_down", "center_up", "center_down", "right_up", "right_down"]}),
+            m.onOff({
+                powerOnBehavior: false,
+                configureReporting: false,
+                endpointNames: ["left_up", "left_down", "center_up", "center_down", "right_up", "right_down"],
+            }),
             orviboSwitchRewiring({
                 endpointNames: ["left_up", "left_down", "center_up", "center_down", "right_up", "right_down"],
                 endpoints: {left_up: 1, left_down: 2, center_up: 3, center_down: 4, right_up: 5, right_down: 6},
