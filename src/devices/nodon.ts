@@ -223,18 +223,12 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "NodOn",
         description: "Multifunction relay switch with metering",
         ota: true,
-        fromZigbee: [fz.on_off, fz.metering, fz.power_on_behavior],
-        toZigbee: [tz.on_off, tz.power_on_behavior],
-        exposes: [e.switch(), e.power(), e.energy(), e.power_on_behavior()],
-        extend: [nodonModernExtend.impulseMode(), nodonModernExtend.switchType()],
-        configure: async (device, coordinatorEndpoint) => {
-            const ep = device.getEndpoint(1);
-            await reporting.bind(ep, coordinatorEndpoint, ["genBasic", "genIdentify", "genOnOff", "seMetering"]);
-            await reporting.onOff(ep, {min: 1, max: 3600, change: 0});
-            await reporting.readMeteringMultiplierDivisor(ep);
-            await reporting.instantaneousDemand(ep);
-            await reporting.currentSummDelivered(ep);
-        },
+        extend: [
+            m.onOff({powerOnBehavior: true}),
+            m.electricityMeter({cluster: "metering"}),
+            nodonModernExtend.impulseMode(),
+            nodonModernExtend.switchType(),
+        ],
     },
     {
         zigbeeModel: ["SIN-4-2-20"],
