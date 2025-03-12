@@ -36,10 +36,7 @@ const fzLocal = {
     } satisfies Fz.Converter,
 };
 
-type ExternalSwitchTriggerModeArgs = {
-    entityCategory?: "config" | "diagnostic";
-};
-type InchingControlSetArgs = {
+type EntityCategoryArgs = {
     entityCategory?: "config" | "diagnostic";
 };
 
@@ -70,7 +67,7 @@ const sonoffExtend = {
             },
             commandsResponse: {},
         }),
-    inchingControlSet: (args: InchingControlSetArgs = {}): ModernExtend => {
+    inchingControlSet: (args: EntityCategoryArgs = {}): ModernExtend => {
         const {entityCategory} = args;
 
         const clusterName = "customClusterEwelink";
@@ -494,7 +491,7 @@ const sonoffExtend = {
             isModernExtend: true,
         };
     },
-    externalSwitchTriggerMode: (args: ExternalSwitchTriggerModeArgs = {}): ModernExtend => {
+    externalSwitchTriggerMode: (args: EntityCategoryArgs = {}): ModernExtend => {
         const {entityCategory} = args;
 
         const clusterName = "customClusterEwelink";
