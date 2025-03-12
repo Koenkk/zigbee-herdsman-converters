@@ -39,6 +39,9 @@ const fzLocal = {
 type ExternalSwitchTriggerModeArgs = {
     entityCategory?: "config" | "diagnostic";
 };
+type InchingControlSetArgs = {
+    entityCategory?: "config" | "diagnostic";
+};
 
 const sonoffExtend = {
     addCustomClusterEwelink: () =>
@@ -67,10 +70,12 @@ const sonoffExtend = {
             },
             commandsResponse: {},
         }),
-    inchingControlSet: (): ModernExtend => {
+    inchingControlSet: (args: InchingControlSetArgs = {}): ModernExtend => {
+        const {entityCategory} = args;
+
         const clusterName = "customClusterEwelink";
         const commandName = "protocolData";
-        const exposes = e
+        let exposes = e
             .composite("inching_control_set", "inching_control_set", ea.SET)
             .withDescription(
                 "Device Inching function Settings. The device will automatically turn off (turn on) " +
@@ -87,6 +92,9 @@ const sonoffExtend = {
                     .withValueStep(0.5),
             )
             .withFeature(e.binary("inching_mode", ea.SET, "ON", "OFF").withDescription("Set inching off or inching on mode.").withValueToggle("ON"));
+
+        if (entityCategory) exposes = exposes.withCategory(entityCategory);
+
         const fromZigbee: Fz.Converter[] = [];
         const toZigbee: Tz.Converter[] = [
             {
@@ -1559,7 +1567,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueOn: [true, 1],
             }),
             sonoffExtend.externalSwitchTriggerMode({entityCategory: "config"}),
-            sonoffExtend.inchingControlSet(),
+            sonoffExtend.inchingControlSet({entityCategory: "config"}),
         ],
         ota: true,
         configure: async (device, coordinatorEndpoint) => {
