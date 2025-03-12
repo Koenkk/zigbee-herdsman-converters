@@ -51,6 +51,7 @@ import {definitions as cree} from "./cree";
 import {definitions as ctm} from "./ctm";
 import {definitions as currentProductsCorp} from "./current_products_corp";
 import {definitions as customDevicesDiy} from "./custom_devices_diy";
+import {definitions as cwd} from "./cwd";
 import {definitions as cyLighting} from "./cy_lighting";
 import {definitions as danalock} from "./danalock";
 import {definitions as danfoss} from "./danfoss";
@@ -380,6 +381,7 @@ const definitions: DefinitionWithExtend[] = [
     ...ctm,
     ...currentProductsCorp,
     ...customDevicesDiy,
+    ...cwd,
     ...cyLighting,
     ...danalock,
     ...danfoss,
