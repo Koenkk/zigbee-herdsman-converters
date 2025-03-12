@@ -352,7 +352,12 @@ export const definitions: DefinitionWithExtend[] = [
         model: "T18W3Z",
         vendor: "ORVIBO",
         description: "Neutral smart switch 3 gang",
-        extend: [m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3}}), m.onOff({endpointNames: ["l1", "l2", "l3"]})],
+        extend: [
+            clusterManuSpecificOrviboPowerOnBehavior(),
+            orviboSwitchPowerOnBehavior(),
+            m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3}}),
+            m.onOff({configureReporting: false, powerOnBehavior: false, endpointNames: ["l1", "l2", "l3"]}),
+        ],
     },
     {
         zigbeeModel: ["fdd76effa0e146b4bdafa0c203a37192", "c670e231d1374dbc9e3c6a9fffbd0ae6", "75a4bfe8ef9c4350830a25d13e3ab068"],
@@ -436,21 +441,35 @@ export const definitions: DefinitionWithExtend[] = [
         model: "T30W3Z",
         vendor: "ORVIBO",
         description: "Smart light switch - 3 gang",
-        extend: [m.deviceEndpoints({endpoints: {top: 1, center: 2, bottom: 3}}), m.onOff({endpointNames: ["top", "center", "bottom"]})],
+        extend: [
+            clusterManuSpecificOrviboPowerOnBehavior(),
+            orviboSwitchPowerOnBehavior(),
+            m.deviceEndpoints({endpoints: {top: 1, center: 2, bottom: 3}}),
+            m.onOff({configureReporting: false, powerOnBehavior: false, endpointNames: ["top", "center", "bottom"]}),
+        ],
     },
     {
         zigbeeModel: ["074b3ffba5a045b7afd94c47079dd553"],
         model: "T21W2Z",
         vendor: "ORVIBO",
         description: "Smart light switch - 2 gang",
-        extend: [m.deviceEndpoints({endpoints: {top: 1, bottom: 2}}), m.onOff({endpointNames: ["top", "bottom"]})],
+        extend: [
+            clusterManuSpecificOrviboPowerOnBehavior(),
+            orviboSwitchPowerOnBehavior(),
+            m.deviceEndpoints({endpoints: {top: 1, bottom: 2}}),
+            m.onOff({configureReporting: false, powerOnBehavior: false, endpointNames: ["top", "bottom"]}),
+        ],
     },
     {
         zigbeeModel: ["095db3379e414477ba6c2f7e0c6aa026"],
         model: "T21W1Z",
         vendor: "ORVIBO",
         description: "Smart light switch - 1 gang",
-        extend: [m.onOff()],
+        extend: [
+            clusterManuSpecificOrviboPowerOnBehavior(),
+            orviboSwitchPowerOnBehavior(),
+            m.onOff({configureReporting: false, powerOnBehavior: false}),
+        ],
     },
     {
         zigbeeModel: ["093199ff04984948b4c78167c8e7f47e", "c8daea86aa9c415aa524365775b1218c", "c8daea86aa9c415aa524365775b1218"],
@@ -475,7 +494,12 @@ export const definitions: DefinitionWithExtend[] = [
         model: "R11W2Z",
         vendor: "ORVIBO",
         description: "In wall switch - 2 gang",
-        extend: [m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}), m.onOff({endpointNames: ["l1", "l2"]})],
+        extend: [
+            clusterManuSpecificOrviboPowerOnBehavior(),
+            orviboSwitchPowerOnBehavior(),
+            m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
+            m.onOff({configureReporting: false, powerOnBehavior: false, endpointNames: ["l1", "l2"]}),
+        ],
     },
     {
         zigbeeModel: ["9ea4d5d8778d4f7089ac06a3969e784b", "83b9b27d5ffb4830bf35be5b1023623e", "2810c2403b9c4a5db62cc62d1030d95e"],
@@ -562,14 +586,24 @@ export const definitions: DefinitionWithExtend[] = [
         model: "T40W2Z",
         vendor: "ORVIBO",
         description: "MixSwitch 2 gangs",
-        extend: [m.deviceEndpoints({endpoints: {left: 1, right: 2}}), m.onOff({endpointNames: ["left", "right"]})],
+        extend: [
+            clusterManuSpecificOrviboPowerOnBehavior(),
+            orviboSwitchPowerOnBehavior(),
+            m.deviceEndpoints({endpoints: {left: 1, right: 2}}),
+            m.onOff({configureReporting: false, powerOnBehavior: false, endpointNames: ["left", "right"]}),
+        ],
     },
     {
         zigbeeModel: ["e8d667cb184b4a2880dd886c23d00976"],
         model: "T40W3Z_v1",
         vendor: "ORVIBO",
         description: "MixSwitch 3 gangs",
-        extend: [m.deviceEndpoints({endpoints: {left: 1, center: 2, right: 3}}), m.onOff({endpointNames: ["left", "center", "right"]})],
+        extend: [
+            clusterManuSpecificOrviboPowerOnBehavior(),
+            orviboSwitchPowerOnBehavior(),
+            m.deviceEndpoints({endpoints: {left: 1, center: 2, right: 3}}),
+            m.onOff({configureReporting: false, powerOnBehavior: false, endpointNames: ["left", "center", "right"]}),
+        ],
     },
     {
         zigbeeModel: ["f3be30b8c43c44da85aac622e5b56111", "f58591161f344ccea242688a6de7d25d"],
@@ -618,14 +652,23 @@ export const definitions: DefinitionWithExtend[] = [
         model: "T41W1Z",
         vendor: "ORVIBO",
         description: "MixSwitch 1 gang (without neutral wire)",
-        extend: [m.onOff()],
+        extend: [
+            clusterManuSpecificOrviboPowerOnBehavior(),
+            orviboSwitchPowerOnBehavior(),
+            m.onOff({configureReporting: false, powerOnBehavior: false}),
+        ],
     },
     {
         zigbeeModel: ["7c8f476a0f764cd4b994bc73d07c906d"],
         model: "T41W2Z",
         vendor: "ORVIBO",
         description: "MixSwitch 2 gang (without neutral wire)",
-        extend: [m.deviceEndpoints({endpoints: {left: 1, right: 2}}), m.onOff({endpointNames: ["left", "right"]})],
+        extend: [
+            clusterManuSpecificOrviboPowerOnBehavior(),
+            orviboSwitchPowerOnBehavior(),
+            m.deviceEndpoints({endpoints: {left: 1, right: 2}}),
+            m.onOff({configureReporting: false, powerOnBehavior: false, endpointNames: ["left", "right"]}),
+        ],
     },
     {
         zigbeeModel: ["cb7ce9fe2cb147e69c5ea700b39b3d5b"],
@@ -646,7 +689,12 @@ export const definitions: DefinitionWithExtend[] = [
         model: "R30W3Z",
         vendor: "ORVIBO",
         description: "In-wall switch 3 gang",
-        extend: [m.deviceEndpoints({endpoints: {left: 1, center: 2, right: 3}}), m.onOff({endpointNames: ["left", "center", "right"]})],
+        extend: [
+            clusterManuSpecificOrviboPowerOnBehavior(),
+            orviboSwitchPowerOnBehavior(),
+            m.deviceEndpoints({endpoints: {left: 1, center: 2, right: 3}}),
+            m.onOff({configureReporting: false, powerOnBehavior: false, endpointNames: ["left", "center", "right"]}),
+        ],
     },
     {
         zigbeeModel: ["0e93fa9c36bb417a90ad5d8a184b683a"],
