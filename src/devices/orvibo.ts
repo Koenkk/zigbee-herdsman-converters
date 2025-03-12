@@ -6,7 +6,7 @@ import * as exposes from "../lib/exposes";
 import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import type {DefinitionWithExtend, Fz, KeyValueAny, ModernExtend, OnEvent, Option, Tz} from "../lib/types";
+import type {DefinitionWithExtend, Expose, Fz, KeyValue, KeyValueAny, ModernExtend, OnEvent, Option, Tz} from "../lib/types";
 import {addActionGroup, hasAlreadyProcessedMessage, postfixWithEndpointName} from "../lib/utils";
 
 const e = exposes.presets;
@@ -60,6 +60,58 @@ const hexToBytes = (hex: string): number[] => {
     }
 
     return bytes;
+};
+const clusterManuSpecifcOrviboSwitchRewiring = () => {
+    return m.deviceAddCustomCluster("manuSpecificOrvibo", {
+        ID: 0x0017,
+        attributes: {},
+        commands: {
+            setSwitchRelay: {
+                // This command can be used to set switch to ON, OFF or TOGGLE particular relay.
+                // Payload: {"data":[<SWITCH_ID>,0,0,<IEEE_REVERSED_ADDRESS>,<RELAY_ID>,4,1,6,0,1,<ACTION>]}
+                // Where <SWITCH_ID> is integer 1-6
+                // Where <IEEE_REVERSED_ADDRESS> is 8 bytes reversed device IEEE address
+                // Where <RELAY_ID> is integer 1-4
+                // Where <ACTION> is 0 for OFF, 1 for ON, and 2 for TOGGLE
+                // Example for switch 3 toggling relay 2 for device with IEEE address 0x0131000029042388: {"data":[3,0,0,136,35,4,41,0,0,49,1,2,4,1,6,0,1,2]}
+                ID: 0x00,
+                parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}],
+            },
+            clearSwitchAction: {
+                // This command can be used to clear any action particular switch was configured to execute
+                // Payload {"data":[<SWITCH_ID>,0,0]}
+                ID: 0x02,
+                parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}],
+            },
+            setSwitchScene: {
+                // This command can be used to set switch to recall a scene
+                // Payload {"data":[<SWITCH_ID>,0,0,0,0,<SCENE_ID>]}
+
+                // ADDING/REMOVING RELAYS FROM SCENE
+                // Scene can be used to change state of any or all relays in this switch.
+                // To ADD relay to a scene execute on relay endpoint (1-4) cluster 5 command 0 with payload { "groupid": 0, "sceneid": <SCENE_ID>, "transtime": 0, "scenename": "todo", "extensionfieldsets": [{"clstId": 6, "len": 1, "extField":[<ACTION>]}] }
+                // Where <ACTION> is 0 for OFF and 1 for ON (TOGGLE not supported)
+                // To REMOVE relay from a scene execute on relay endpoint (1-4) cluster 5 command 2 with payload { "groupid":0,"sceneid":<SCENE_ID> }
+
+                // COMMANDING RELAY AND RECALLING A SCENE
+                // It is possible to configure a switch to command a relay (see setSwitchRelay command) and recall a scene (this command). It is important to execute commands in the following order - clearSwitchAction, then setSwitchRelay and then setSwitchScene.
+                // This can be useful for a scenario where you have blinds motor set-up on relay 1 and 2, and would like to have switch 1 toggle relay 1, but turn off relay 2. You would command relay 1 with TOGGLE action and recall scene set-up for relay 2 to turn it off.
+                ID: 0x04,
+                parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}],
+            },
+        },
+        commandsResponse: {},
+    });
+};
+const clusterManuSpecificOrviboPowerOnBehavior = () => {
+    return m.deviceAddCustomCluster("manuSpecificOrvibo2", {
+        ID: 0xFF00,
+        attributes: {
+            power_on_behavior: { ID: 0x0001, type: Zcl.DataType.UINT8 }
+        },
+        commands: {},
+        commandsResponse: {},
+    });
 };
 export interface OrviboSwitchRewiringArgs {
     endpointNames: string[];
@@ -197,6 +249,45 @@ const orviboSwitchRewiring = (args: OrviboSwitchRewiringArgs): ModernExtend => {
         onEvent,
         fromZigbee,
         isModernExtend: true,
+    };
+};
+const orviboSwitchPowerOnBehavior = (): ModernExtend => {
+    const powerOnLookup: {[k: number]: string} = {1: 'off', 2: 'previous'};
+    const powerOnLookup2: {[k: string]: number} = {'off': 1, 'previous': 2};
+    const exposes: Expose[] = [e.power_on_behavior(['off', 'previous'])];
+    const fromZigbee: Fz.Converter[] = [
+        {
+            cluster: 'manuSpecificOrvibo2',
+            type: ['readResponse'],
+            convert: (model, msg, publish, options, meta) => {
+                const result: KeyValue = {};
+                if (typeof msg.data.power_on_behavior === 'number') {
+                    result.power_on_behavior = powerOnLookup[msg.data.power_on_behavior as number];
+                }
+                return result;
+            }
+        }
+    ];
+    const toZigbee: Tz.Converter[] = [
+        {
+            key: ['power_on_behavior'],
+            convertSet:  async (entity, key, value, meta) => {
+                if (key === 'power_on_behavior') {
+                    await entity.write('manuSpecificOrvibo2', {power_on_behavior: powerOnLookup2[value as string]});
+                }
+            },
+            convertGet: async (entity, key, meta) => {
+                if (key === 'power_on_behavior') {
+                    await entity.read('manuSpecificOrvibo2', ['power_on_behavior']);
+                }
+            }
+        }
+    ];
+    return {
+        exposes,
+        fromZigbee,
+        toZigbee,
+        isModernExtend: true
     };
 };
 
@@ -460,7 +551,11 @@ export const definitions: DefinitionWithExtend[] = [
         model: "T40W1Z",
         vendor: "ORVIBO",
         description: "MixSwitch 1 gang",
-        extend: [m.onOff()],
+        extend: [
+            clusterManuSpecificOrviboPowerOnBehavior(),
+            orviboSwitchPowerOnBehavior(),
+            m.onOff({configureReporting: false, powerOnBehavior: false})
+        ],
     },
     {
         zigbeeModel: ["2e13af8e17434961be98f055d68c2166"],
@@ -481,7 +576,12 @@ export const definitions: DefinitionWithExtend[] = [
         model: "T40W3Z_v2",
         vendor: "ORVIBO",
         description: "MixSwitch 3 gangs",
-        extend: [m.deviceEndpoints({endpoints: {right: 1, center: 2, left: 3}}), m.onOff({endpointNames: ["right", "center", "left"]})],
+        extend: [
+            clusterManuSpecificOrviboPowerOnBehavior(),
+            orviboSwitchPowerOnBehavior(),
+            m.deviceEndpoints({endpoints: {right: 1, center: 2, left: 3}}),
+            m.onOff({configureReporting: false, powerOnBehavior: false, endpointNames: ["right", "center", "left"]}),
+        ],
     },
     {
         zigbeeModel: ["20513b10079f4cc68cffb8b0dc6d3277", "c2ea8c76f9fe40e5a7de5e8fb8dfb765"],
@@ -489,48 +589,9 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "ORVIBO",
         description: "MixSwitch 4 gangs",
         extend: [
-            m.deviceAddCustomCluster("manuSpecificOrvibo", {
-                ID: 0x0017,
-                attributes: {},
-                commands: {
-                    setSwitchRelay: {
-                        // This command can be used to set switch to ON, OFF or TOGGLE particular relay.
-                        // Payload: {"data":[<SWITCH_ID>,0,0,<IEEE_REVERSED_ADDRESS>,<RELAY_ID>,4,1,6,0,1,<ACTION>]}
-                        // Where <SWITCH_ID> is integer 1-6
-                        // Where <IEEE_REVERSED_ADDRESS> is 8 bytes reversed device IEEE address
-                        // Where <RELAY_ID> is integer 1-4
-                        // Where <ACTION> is 0 for OFF, 1 for ON, and 2 for TOGGLE
-                        // Example for switch 3 toggling relay 2 for device with IEEE address 0x0131000029042388: {"data":[3,0,0,136,35,4,41,0,0,49,1,2,4,1,6,0,1,2]}
-                        ID: 0x00,
-                        parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}],
-                    },
-                    clearSwitchAction: {
-                        // This command can be used to clear any action particular switch was configured to execute
-                        // Payload {"data":[<SWITCH_ID>,0,0]}
-                        ID: 0x02,
-                        parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}],
-                    },
-                    setSwitchScene: {
-                        // This command can be used to set switch to recall a scene
-                        // Payload {"data":[<SWITCH_ID>,0,0,0,0,<SCENE_ID>]}
-
-                        // ADDING/REMOVING RELAYS FROM SCENE
-                        // Scene can be used to change state of any or all relays in this switch.
-                        // To ADD relay to a scene execute on relay endpoint (1-4) cluster 5 command 0 with payload { "groupid": 0, "sceneid": <SCENE_ID>, "transtime": 0, "scenename": "todo", "extensionfieldsets": [{"clstId": 6, "len": 1, "extField":[<ACTION>]}] }
-                        // Where <ACTION> is 0 for OFF and 1 for ON (TOGGLE not supported)
-                        // To REMOVE relay from a scene execute on relay endpoint (1-4) cluster 5 command 2 with payload { "groupid":0,"sceneid":<SCENE_ID> }
-
-                        // COMMANDING RELAY AND RECALLING A SCENE
-                        // It is possible to configure a switch to command a relay (see setSwitchRelay command) and recall a scene (this command). It is important to execute commands in the following order - clearSwitchAction, then setSwitchRelay and then setSwitchScene.
-                        // This can be useful for a scenario where you have blinds motor set-up on relay 1 and 2, and would like to have switch 1 toggle relay 1, but turn off relay 2. You would command relay 1 with TOGGLE action and recall scene set-up for relay 2 to turn it off.
-                        ID: 0x04,
-                        parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}],
-                    },
-                },
-                commandsResponse: {},
-            }),
+            clusterManuSpecifcOrviboSwitchRewiring(),
             m.deviceEndpoints({endpoints: {left_up: 1, left_down: 2, center_up: 3, center_down: 4, right_up: 5, right_down: 6}}),
-            m.onOff({powerOnBehavior: false, endpointNames: ["left_up", "left_down", "center_up", "center_down", "right_up", "right_down"]}),
+            m.onOff({powerOnBehavior: false, configureReporting: false, endpointNames: ["left_up", "left_down", "center_up", "center_down", "right_up", "right_down"]}),
             orviboSwitchRewiring({
                 endpointNames: ["left_up", "left_down", "center_up", "center_down", "right_up", "right_down"],
                 endpoints: {left_up: 1, left_down: 2, center_up: 3, center_down: 4, right_up: 5, right_down: 6},
