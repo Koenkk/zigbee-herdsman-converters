@@ -594,6 +594,41 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        zigbeeModel: ["SQM300ZC4"],
+        model: "SQM300ZC4",
+        vendor: "ShinaSystem",
+        ota: true,
+        description: "SiHAS remote control 4 full button",
+        fromZigbee: [fz.sihas_action, fz.battery],
+        toZigbee: [],
+        exposes: [
+            e.action([
+                "1_single",
+                "1_double",
+                "1_long",
+                "2_single",
+                "2_double",
+                "2_long",
+                "3_single",
+                "3_double",
+                "3_long",
+                "4_single",
+                "4_double",
+                "4_long",
+            ]),
+            e.battery(),
+        ],
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "genPowerCfg"]);
+            await reporting.batteryPercentageRemaining(endpoint, {min: 300, max: 43200, change: 1});
+            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ["genOnOff"]);
+            await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ["genOnOff"]);
+            await reporting.bind(device.getEndpoint(4), coordinatorEndpoint, ["genOnOff"]);
+        },
+    },
+    {
         zigbeeModel: ["PMM-300Z1"],
         model: "PMM-300Z1",
         vendor: "ShinaSystem",
