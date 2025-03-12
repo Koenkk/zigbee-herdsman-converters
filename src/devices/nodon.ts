@@ -1,5 +1,6 @@
 import {Zcl} from "zigbee-herdsman";
 
+import * as semver from "semver";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as constants from "../lib/constants";
@@ -146,13 +147,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SDC-4-1-00",
         vendor: "NodOn",
         description: "Dry contact sensor",
-        extend: [m.battery(), nodonModernExtend.dryContact()],
+        extend: [m.battery({voltageReporting: true}), nodonModernExtend.dryContact()],
         ota: true,
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg"]);
-            await reporting.batteryVoltage(endpoint);
-        },
     },
     {
         zigbeeModel: ["SDO-4-1-00"],
@@ -161,13 +157,9 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Door & window opening sensor",
         fromZigbee: [fz.battery, fz.ias_contact_alarm_1],
         toZigbee: [],
-        exposes: [e.contact(), e.battery_low(), e.battery()],
+        exposes: [e.contact()],
+        extend: [m.battery({voltageReporting: true})],
         ota: true,
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg"]);
-            await reporting.batteryVoltage(endpoint);
-        },
     },
     {
         zigbeeModel: ["SIN-4-RS-20", "SIN-4-UNK"],
@@ -202,33 +194,29 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SIN-4-1-20",
         vendor: "NodOn",
         description: "Multifunction relay switch",
-        extend: [m.onOff({ota: true}), nodonModernExtend.impulseMode(), nodonModernExtend.switchType()],
-        endpoint: (device) => {
-            return {default: 1};
-        },
+        extend: [m.onOff(), nodonModernExtend.impulseMode(), nodonModernExtend.switchType()],
+        ota: true,
     },
     {
         zigbeeModel: ["SIN-4-1-20_PRO"],
         model: "SIN-4-1-20_PRO",
         vendor: "NodOn",
         description: "Multifunction relay switch",
-        extend: [m.onOff({ota: true}), nodonModernExtend.impulseMode(), nodonModernExtend.switchType()],
-        endpoint: (device) => {
-            return {default: 1};
-        },
+        extend: [m.onOff(), nodonModernExtend.impulseMode(), nodonModernExtend.switchType()],
+        ota: true,
     },
     {
         zigbeeModel: ["SIN-4-1-21"],
         model: "SIN-4-1-21",
         vendor: "NodOn",
         description: "Multifunction relay switch with metering",
-        ota: true,
         extend: [
             m.onOff({powerOnBehavior: true}),
             m.electricityMeter({cluster: "metering"}),
             nodonModernExtend.impulseMode(),
             nodonModernExtend.switchType(),
         ],
+        ota: true,
     },
     {
         zigbeeModel: ["SIN-4-2-20"],
@@ -261,38 +249,16 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SIN-4-FP-20",
         vendor: "NodOn",
         description: "Pilot wire heating module",
+        extend: [m.onOff({powerOnBehavior: true}), m.electricityMeter({cluster: "metering"}), ...nodonPilotWire(true)],
         ota: true,
-        fromZigbee: [fz.on_off, fz.metering],
-        toZigbee: [tz.on_off],
-        exposes: [e.power(), e.energy()],
-        configure: async (device, coordinatorEndpoint) => {
-            const ep = device.getEndpoint(1);
-            await reporting.bind(ep, coordinatorEndpoint, ["genBasic", "genIdentify", "genOnOff", "seMetering"]);
-            await reporting.onOff(ep, {min: 1, max: 3600, change: 0});
-            await reporting.readMeteringMultiplierDivisor(ep);
-            await reporting.instantaneousDemand(ep);
-            await reporting.currentSummDelivered(ep);
-        },
-        extend: [...nodonPilotWire(true)],
     },
     {
         zigbeeModel: ["SIN-4-FP-21"],
         model: "SIN-4-FP-21",
         vendor: "NodOn",
         description: "Pilot wire heating module",
+        extend: [m.onOff({powerOnBehavior: true}), m.electricityMeter({cluster: "metering"}), ...nodonPilotWire(true)],
         ota: true,
-        fromZigbee: [fz.on_off, fz.metering],
-        toZigbee: [tz.on_off],
-        exposes: [e.power(), e.energy()],
-        configure: async (device, coordinatorEndpoint) => {
-            const ep = device.getEndpoint(1);
-            await reporting.bind(ep, coordinatorEndpoint, ["genBasic", "genIdentify", "genOnOff", "seMetering"]);
-            await reporting.onOff(ep, {min: 1, max: 3600, change: 0});
-            await reporting.readMeteringMultiplierDivisor(ep);
-            await reporting.instantaneousDemand(ep);
-            await reporting.currentSummDelivered(ep);
-        },
-        extend: [...nodonPilotWire(true)],
     },
     {
         zigbeeModel: ["STPH-4-1-00"],
