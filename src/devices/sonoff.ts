@@ -36,6 +36,10 @@ const fzLocal = {
     } satisfies Fz.Converter,
 };
 
+type ExternalSwitchTriggerModeArgs = {
+    entityCategory?: "config" | "diagnostic";
+};
+
 const sonoffExtend = {
     addCustomClusterEwelink: () =>
         m.deviceAddCustomCluster("customClusterEwelink", {
@@ -482,16 +486,20 @@ const sonoffExtend = {
             isModernExtend: true,
         };
     },
-    externalSwitchTriggerMode: (): ModernExtend => {
+    externalSwitchTriggerMode: (args: ExternalSwitchTriggerModeArgs = {}): ModernExtend => {
+        const {entityCategory} = args;
+
         const clusterName = "customClusterEwelink";
         const attributeName = "externalTriggerMode";
-        const exposes = e
+        let exposes = e
             .enum("external_trigger_mode", ea.ALL, ["edge", "pulse", "following(off)", "following(on)"])
             .withDescription(
                 "External trigger mode, which can be one of edge, pulse, " +
                     "following(off), following(on). The appropriate triggering mode can be selected according to the type of " +
                     "external switch to achieve a better use experience.",
             );
+        if (entityCategory) exposes = exposes.withCategory(entityCategory);
+
         const fromZigbee: Fz.Converter[] = [
             {
                 cluster: clusterName,
@@ -1550,7 +1558,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueOff: [false, 0],
                 valueOn: [true, 1],
             }),
-            sonoffExtend.externalSwitchTriggerMode(),
+            sonoffExtend.externalSwitchTriggerMode({entityCategory: "config"}),
             sonoffExtend.inchingControlSet(),
         ],
         ota: true,
