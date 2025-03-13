@@ -242,7 +242,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "C203",
         vendor: "Candeo",
         description: "Zigbee micro smart dimmer",
-        extend: [m.light({configureReporting: true})],
+        extend: [m.light({configureReporting: true, levelConfig: {}})],
         fromZigbee: [fzLocal.switch_type, fz.ignore_genOta],
         toZigbee: [tzLocal.switch_type],
         exposes: [e.enum("external_switch_type", ea.ALL, ["momentary", "toggle"]).withLabel("External switch type")],
