@@ -1,5 +1,28 @@
 # Changelog
 
+## [23.7.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.6.0...v23.7.0) (2025-03-13)
+
+
+### Features
+
+* **add:** 98425271 ([#8989](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8989)) ([8355b2b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8355b2bec64c6397d43426248b0e044393c6722c))
+* **add:** EFEKTA_TH_v1_LR, EFEKTA_TH_v1, EFEKTA_TH_v2_LR ([#8988](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8988)) ([fb5e646](https://github.com/Koenkk/zigbee-herdsman-converters/commit/fb5e646c929037aca4fef678cb39230c9a705ad7))
+* **add:** HLL6948V1 ([#8966](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8966)) ([036b85b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/036b85bcd00dd975b48711471ec79d3d1bf61782))
+* **add:** SQM300ZC4 ([#8978](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8978)) ([6476905](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6476905b92508534b39203ffe4f50e79f760533a))
+* Niko 552-72201: add led enable & led state ([#8975](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8975)) ([0f37143](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0f3714387ecbfda9fbbc431140c16b3d06a8c970))
+
+
+### Bug Fixes
+
+* Add `lowStatusReportingConfig` to `battery` modernExtend ([#8965](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8965)) ([4d37030](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4d370301380e6396730c47bcfeb5b2d73bab98be))
+* Convert more of NodOn to modern extend ([#8987](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8987)) ([81d0c74](https://github.com/Koenkk/zigbee-herdsman-converters/commit/81d0c74852bf2ab497e3a102023bf3839dbbee0d))
+* **detect:** Detect `_TZE200_wvovwe9h` as Tuya TS0601_switch_2_gang https://github.com/Koenkk/zigbee-herdsman-converters/issues/8983 ([c2de8e2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c2de8e24ba810e21cf024ba4fb11a9ba637ec4f4))
+* Disable `producedEnergy` for `gasMeter` modernExtend ([#8977](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8977)) ([854742e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/854742e2ae2f53499fcd84088c952f831367f4c6))
+* **ignore:** fix 036b85bcd00dd975b48711471ec79d3d1bf61782 ([ebe3a04](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ebe3a040d7f68c9349555d2665dac14c739e277a))
+* **ignore:** Fix TW-03 support ([#8980](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8980)) ([a737b6c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a737b6cb3bc6531462e907311a9124a36efede0c))
+* Orvibo: fix random on/off and expose `power_on_behavior`  ([#8984](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8984)) ([adcba6f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/adcba6f02a8a2fe77b54a4e2f9dfd0f29f79bf56))
+* Sonoff ZBMINIR2: add config entity category to selected exposed options ([#8982](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8982)) ([658050f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/658050f346ba9094e1a5d22f979efc5951da888c))
+
 ## [23.6.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.5.0...v23.6.0) (2025-03-11)
 
 
