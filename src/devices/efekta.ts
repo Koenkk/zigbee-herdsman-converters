@@ -2414,7 +2414,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Smart device with internal and external temperature and humidity sensor.",
         extend: [
             m.deviceEndpoints({endpoints: {"1": 1, "2": 2}}),
-             m.temperature({
+            m.temperature({
                 endpointNames: ["1"],
                 description: "Measured value of the built-in temperature sensor",
                 reporting: fourReporting,
@@ -2591,7 +2591,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Smart device with internal and external temperature and humidity sensor.",
         extend: [
             m.deviceEndpoints({endpoints: {"1": 1, "2": 2}}),
-             m.temperature({
+            m.temperature({
                 endpointNames: ["1"],
                 description: "Measured value of the built-in temperature sensor",
                 reporting: fourReporting,
