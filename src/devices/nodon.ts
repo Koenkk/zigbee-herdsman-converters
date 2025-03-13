@@ -8,7 +8,7 @@ import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import {nodonPilotWire} from "../lib/nodon";
 import * as reporting from "../lib/reporting";
-import type {DefinitionWithExtend} from "../lib/types";
+import type {DefinitionExposes, DefinitionWithExtend, ModernExtend} from "../lib/types";
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -87,28 +87,71 @@ const nodonModernExtend = {
             description: "State of the contact, closed or open.",
             ...args,
         }),
-    impulseMode: (args?: Partial<m.NumericArgs>) =>
-        m.numeric({
-            name: "impulse_mode_configuration",
-            unit: "ms",
+    impulseMode: (args?: Partial<m.NumericArgs>) => {
+        const resultName = "impulse_mode_configuration";
+        const resultUnit = "ms";
+        const resultValueMin = 0;
+        const resultValueMax = 10000;
+        const resultDescription = "Set the impulse duration in milliseconds (set value to 0 to deactivate the impulse mode).";
+
+        const result: ModernExtend = m.numeric({
+            name: resultName,
+            unit: resultUnit,
             cluster: "genOnOff",
             attribute: {ID: 0x0001, type: Zcl.DataType.UINT16},
-            valueMin: 0,
-            valueMax: 10000,
+            valueMin: resultValueMin,
+            valueMax: resultValueMax,
             scale: 1,
-            description: "Set the impulse duration in milliseconds (set value to 0 to deactivate the impulse mode).",
+            description: resultDescription,
             zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.NODON},
-        }),
-    switchType: (args?: Partial<m.EnumLookupArgs>) =>
-        m.enumLookup({
-            name: "switch_type",
-            lookup: {bistable: 0x00, monostable: 0x01, auto_detect: 0x02},
+        });
+
+        // NOTE: make exposes dynamic based on fw version
+        result.exposes = [
+            (device, options) => {
+                if (device && semver.gt(device.softwareBuildID, "3.4.0")) {
+                    return [
+                        e
+                            .numeric(resultName, ea.ALL)
+                            .withDescription(resultDescription)
+                            .withUnit(resultUnit)
+                            .withValueMin(resultValueMin)
+                            .withValueMax(resultValueMax),
+                    ];
+                }
+                return [];
+            },
+        ];
+
+        return result;
+    },
+    switchType: (args?: Partial<m.EnumLookupArgs>) => {
+        const resultName = "switch_type";
+        const resultLookup = {bistable: 0x00, monostable: 0x01, auto_detect: 0x02};
+        const resultDescription = "Select the switch type wire to the device.";
+
+        const result: ModernExtend = m.enumLookup({
+            name: resultName,
+            lookup: resultLookup,
             cluster: "genOnOff",
             attribute: {ID: 0x1001, type: Zcl.DataType.ENUM8},
-            description: "Select the switch type wire to the device. " + "Available from version > V3.4.0",
+            description: resultDescription,
             zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.NODON},
             ...args,
-        }),
+        });
+
+        // NOTE: make exposes dynamic based on fw version
+        result.exposes = [
+            (device, options) => {
+                if (device && semver.gt(device.softwareBuildID, "3.4.0")) {
+                    return [e.enum(resultName, ea.ALL, Object.keys(resultLookup)).withDescription(resultDescription)];
+                }
+                return [];
+            },
+        ];
+
+        return result;
+    },
     trvMode: (args?: Partial<m.EnumLookupArgs>) =>
         m.enumLookup({
             name: "trv_mode",
