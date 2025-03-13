@@ -35,4 +35,11 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Zigbee rotary dimmer",
         extend: [m.light({configureReporting: true}), m.electricityMeter()],
     },
+    {
+        zigbeeModel: ["BoxDimZG2 98425271"],
+        model: "98425271",
+        vendor: "Nordtronic",
+        description: "Box Dimmer G2",
+        extend: [m.light({configureReporting: true}), m.electricityMeter()],
+    },
 ];
