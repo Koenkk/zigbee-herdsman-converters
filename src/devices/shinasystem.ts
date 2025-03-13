@@ -599,7 +599,8 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "ShinaSystem",
         ota: true,
         description: "SiHAS remote control 4 full button",
-        fromZigbee: [fz.sihas_action, fz.battery],
+        fromZigbee: [fz.sihas_action],
+        extend: [m.battery()],
         toZigbee: [],
         exposes: [
             e.action([
@@ -616,13 +617,11 @@ export const definitions: DefinitionWithExtend[] = [
                 "4_double",
                 "4_long",
             ]),
-            e.battery(),
         ],
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "genPowerCfg"]);
-            await reporting.batteryPercentageRemaining(endpoint, {min: 300, max: 43200, change: 1});
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff"]);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ["genOnOff"]);
             await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ["genOnOff"]);
             await reporting.bind(device.getEndpoint(4), coordinatorEndpoint, ["genOnOff"]);
