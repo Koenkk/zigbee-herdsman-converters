@@ -107,7 +107,7 @@ const clusterManuSpecificOrviboPowerOnBehavior = () => {
     return m.deviceAddCustomCluster("manuSpecificOrvibo2", {
         ID: 0xff00,
         attributes: {
-            power_on_behavior: {ID: 0x0001, type: Zcl.DataType.UINT8},
+            powerOnBehavior: {ID: 0x0001, type: Zcl.DataType.UINT8},
         },
         commands: {},
         commandsResponse: {},
@@ -261,8 +261,8 @@ const orviboSwitchPowerOnBehavior = (): ModernExtend => {
             type: ["readResponse"],
             convert: (model, msg, publish, options, meta) => {
                 const result: KeyValue = {};
-                if (typeof msg.data.power_on_behavior === "number") {
-                    result.power_on_behavior = powerOnLookup[msg.data.power_on_behavior as number];
+                if (typeof msg.data.powerOnBehavior === "number") {
+                    result.power_on_behavior = powerOnLookup[msg.data.powerOnBehavior as number];
                 }
                 return result;
             },
@@ -273,12 +273,12 @@ const orviboSwitchPowerOnBehavior = (): ModernExtend => {
             key: ["power_on_behavior"],
             convertSet: async (entity, key, value, meta) => {
                 if (key === "power_on_behavior") {
-                    await entity.write("manuSpecificOrvibo2", {power_on_behavior: powerOnLookup2[value as string]});
+                    await entity.write("manuSpecificOrvibo2", {powerOnBehavior: powerOnLookup2[value as string]});
                 }
             },
             convertGet: async (entity, key, meta) => {
                 if (key === "power_on_behavior") {
-                    await entity.read("manuSpecificOrvibo2", ["power_on_behavior"]);
+                    await entity.read("manuSpecificOrvibo2", ["powerOnBehavior"]);
                 }
             },
         },
