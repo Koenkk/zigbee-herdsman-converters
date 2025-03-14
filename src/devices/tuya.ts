@@ -6045,11 +6045,11 @@ export const definitions: DefinitionWithExtend[] = [
                     }),
                 ],
                 [114, "position", tuya.valueConverter.divideBy10],
-                [118, 'boost_timeset_countdown', tuya.valueConverter.raw],
+                [118, "boost_timeset_countdown", tuya.valueConverter.raw],
                 [119, "comfort_temperature", tuya.valueConverter.divideBy10],
                 [120, "eco_temperature", tuya.valueConverter.divideBy10],
                 [121, "holiday_temperature", tuya.valueConverter.divideBy10],
-                [122, 'frost_protection', tuya.valueConverter.onOff],
+                [122, "frost_protection", tuya.valueConverter.onOff],
                 [
                     127,
                     "hysteresis",
