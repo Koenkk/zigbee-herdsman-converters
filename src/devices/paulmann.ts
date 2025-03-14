@@ -304,11 +304,11 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Universal-switch white",
         extend: [m.onOff({powerOnBehavior: false})],
     },
-	{
-		zigbeeModel: ['371222402'],
-		model: '371222402',
-		vendor: 'Paulmann',
-		description: 'Puric pane pendant light 6x6W dimmable',
-		extend: [m.light()],
+    {
+        zigbeeModel: ['371222402'],
+        model: '371222402',
+        vendor: 'Paulmann',
+        description: 'Puric pane pendant light 6x6W dimmable',
+        extend: [m.light()],
     },
 ];
