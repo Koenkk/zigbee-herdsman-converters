@@ -5931,6 +5931,17 @@ export const definitions: DefinitionWithExtend[] = [
             e.min_temperature(),
             e.position(),
             e.window_detection(),
+            e
+                .numeric('boost_timeset_countdown', ea.STATE_SET)
+                .withUnit('m')
+                .withDescription(
+                    'Setting ' +
+                    'minimum 0 - maximum 120 minutes boost time. The boost function is activated. The remaining ' +
+                    'time for the function will be counted down in minutes ( 120 to 0 ).',
+                )
+                .withValueMin(0)
+                .withValueMax(120),
+            e.binary('frost_protection', ea.STATE_SET, 'ON', 'OFF').withDescription('Antifreeze function'),
             e.binary("window", ea.STATE, "OPEN", "CLOSE").withDescription("Window status closed or open "),
             e
                 .climate()
@@ -6034,9 +6045,11 @@ export const definitions: DefinitionWithExtend[] = [
                     }),
                 ],
                 [114, "position", tuya.valueConverter.divideBy10],
+                [118, 'boost_timeset_countdown', tuya.valueConverter.raw],
                 [119, "comfort_temperature", tuya.valueConverter.divideBy10],
                 [120, "eco_temperature", tuya.valueConverter.divideBy10],
                 [121, "holiday_temperature", tuya.valueConverter.divideBy10],
+                [122, 'frost_protection', tuya.valueConverter.onOff],
                 [
                     127,
                     "hysteresis",
