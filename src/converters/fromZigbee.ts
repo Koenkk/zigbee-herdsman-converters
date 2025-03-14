@@ -4690,6 +4690,8 @@ export const sihas_action: Fz.Converter = {
             buttonMapping = {1: "1", 2: "2", 3: "3", 4: "4"};
         } else if (model.model === "MSM-300ZB") {
             buttonMapping = {1: "1", 2: "2", 3: "3", 4: "4"};
+        } else if (model.model === "SQM300ZC4") {
+            buttonMapping = {1: "1", 2: "2", 3: "3", 4: "4"};
         }
         const button = buttonMapping ? `${buttonMapping[msg.endpoint.ID]}_` : "";
         return {action: `${button}${lookup[msg.type]}`};

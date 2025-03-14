@@ -36,6 +36,10 @@ const fzLocal = {
     } satisfies Fz.Converter,
 };
 
+type EntityCategoryArgs = {
+    entityCategory?: "config" | "diagnostic";
+};
+
 const sonoffExtend = {
     addCustomClusterEwelink: () =>
         m.deviceAddCustomCluster("customClusterEwelink", {
@@ -63,10 +67,12 @@ const sonoffExtend = {
             },
             commandsResponse: {},
         }),
-    inchingControlSet: (): ModernExtend => {
+    inchingControlSet: (args: EntityCategoryArgs = {}): ModernExtend => {
+        const {entityCategory} = args;
+
         const clusterName = "customClusterEwelink";
         const commandName = "protocolData";
-        const exposes = e
+        let exposes = e
             .composite("inching_control_set", "inching_control_set", ea.SET)
             .withDescription(
                 "Device Inching function Settings. The device will automatically turn off (turn on) " +
@@ -83,6 +89,9 @@ const sonoffExtend = {
                     .withValueStep(0.5),
             )
             .withFeature(e.binary("inching_mode", ea.SET, "ON", "OFF").withDescription("Set inching off or inching on mode.").withValueToggle("ON"));
+
+        if (entityCategory) exposes = exposes.withCategory(entityCategory);
+
         const fromZigbee: Fz.Converter[] = [];
         const toZigbee: Tz.Converter[] = [
             {
@@ -482,16 +491,20 @@ const sonoffExtend = {
             isModernExtend: true,
         };
     },
-    externalSwitchTriggerMode: (): ModernExtend => {
+    externalSwitchTriggerMode: (args: EntityCategoryArgs = {}): ModernExtend => {
+        const {entityCategory} = args;
+
         const clusterName = "customClusterEwelink";
         const attributeName = "externalTriggerMode";
-        const exposes = e
+        let exposes = e
             .enum("external_trigger_mode", ea.ALL, ["edge", "pulse", "following(off)", "following(on)"])
             .withDescription(
                 "External trigger mode, which can be one of edge, pulse, " +
                     "following(off), following(on). The appropriate triggering mode can be selected according to the type of " +
                     "external switch to achieve a better use experience.",
             );
+        if (entityCategory) exposes = exposes.withCategory(entityCategory);
+
         const fromZigbee: Fz.Converter[] = [
             {
                 cluster: clusterName,
@@ -1507,6 +1520,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "customClusterEwelink",
                 attribute: "networkLed",
                 description: "Network indicator Settings, turn off/turn on the online network indicator.",
+                entityCategory: "config",
                 valueOff: [false, 0],
                 valueOn: [true, 1],
             }),
@@ -1515,6 +1529,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "customClusterEwelink",
                 attribute: "radioPower",
                 description: "Enable/disable Radio power turbo mode",
+                entityCategory: "config",
                 valueOff: [false, 0x09],
                 valueOn: [true, 0x14],
             }),
@@ -1523,6 +1538,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "customClusterEwelink",
                 attribute: "delayedPowerOnState",
                 description: "Delayed Power-on State",
+                entityCategory: "config",
                 valueOff: [false, 0],
                 valueOn: [true, 1],
             }),
@@ -1531,6 +1547,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "customClusterEwelink",
                 attribute: "delayedPowerOnTime",
                 description: "Delayed Power-on time",
+                entityCategory: "config",
                 valueMin: 0.5,
                 valueMax: 3599.5,
                 valueStep: 0.5,
@@ -1542,11 +1559,12 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "customClusterEwelink",
                 attribute: "detachRelayMode",
                 description: "Enable/Disable detach relay mode",
+                entityCategory: "config",
                 valueOff: [false, 0],
                 valueOn: [true, 1],
             }),
-            sonoffExtend.externalSwitchTriggerMode(),
-            sonoffExtend.inchingControlSet(),
+            sonoffExtend.externalSwitchTriggerMode({entityCategory: "config"}),
+            sonoffExtend.inchingControlSet({entityCategory: "config"}),
         ],
         ota: true,
         configure: async (device, coordinatorEndpoint) => {
