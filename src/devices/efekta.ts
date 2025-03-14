@@ -4331,28 +4331,28 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.co2({
                 reporting: co2Reporting,
-				access: "STATE",
+                access: "STATE",
             }),
-			m.numeric({
+            m.numeric({
                 name: "voc_index",
                 unit: "VOC Index points",
                 cluster: "genAnalogInput",
                 attribute: "presentValue",
                 description: "VOC index",
                 reporting: fiveReporting,
-				access: "STATE",
+                access: "STATE",
             }),
             m.temperature({
                 reporting: fourReporting,
-				access: "STATE",
+                access: "STATE",
             }),
             m.humidity({
                 reporting: fourReporting,
-				access: "STATE",
+                access: "STATE",
             }),
             m.illuminance({
                 reporting: fourReporting,
-				access: "STATE",
+                access: "STATE",
             }),
             m.binary({
                 name: "auto_brightness",
