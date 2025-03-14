@@ -305,10 +305,10 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.onOff({powerOnBehavior: false})],
     },
     {
-        zigbeeModel: ['371222402'],
-        model: '371222402',
-        vendor: 'Paulmann',
-        description: 'Puric pane pendant light 6x6W dimmable',
+        zigbeeModel: ["371222402"],
+        model: "371222402",
+        vendor: "Paulmann",
+        description: "Puric pane pendant light 6x6W dimmable",
         extend: [m.light()],
     },
 ];
