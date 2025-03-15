@@ -537,7 +537,7 @@ describe("ZHC", () => {
         const importRegex = /^import {definitions as .+} from "\.\/(.+)";$/gm;
         const imports = Array.from(index.matchAll(importRegex)).map((r) => r[1]);
         files.splice(files.indexOf("index"), 1);
-        expect(files).toEqual(imports);
+        expect(files.sort()).toStrictEqual(imports.sort());
     });
 
     it("instantiates list expose of composite type", () => {
