@@ -4574,30 +4574,30 @@ export const definitions: DefinitionWithExtend[] = [
             m.co2({
                 reporting: co2Reporting,
                 access: "STATE",
-			}),
+            }),
             m.temperature({
                 endpointNames: ["1"],
                 description: "Measured value of the built-in temperature sensor",
                 reporting: fourReporting,
-				access: "STATE",
+                access: "STATE",
             }),
             m.temperature({
                 endpointNames: ["2"],
                 description: "Measured value of the external temperature sensor",
                 reporting: fourReporting,
-				access: "STATE",
+                access: "STATE",
             }),
             m.humidity({
                 endpointNames: ["1"],
                 description: "Measured value of the built-in humidity sensor",
                 reporting: fourReporting,
-				access: "STATE",
+                access: "STATE",
             }),
             m.humidity({
                 endpointNames: ["2"],
                 description: "Measured value of the external humidity sensor",
                 reporting: fourReporting,
-				access: "STATE",
+                access: "STATE",
             }),
             m.pressure({
                 reporting: threeReporting,
@@ -4605,7 +4605,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.illuminance({
                 reporting: defaultReporting,
-				access: "STATE",
+                access: "STATE",
             }),
             m.binary({
                 name: "auto_brightness",
