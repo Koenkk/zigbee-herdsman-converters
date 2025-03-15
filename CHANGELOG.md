@@ -1,5 +1,20 @@
 # Changelog
 
+## [23.8.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.7.0...v23.8.0) (2025-03-15)
+
+
+### Features
+
+* **add:** 371222402 ([#8997](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8997)) ([7913ff9](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7913ff991dd0d6d0563422a635324edd790d68b7))
+* **add:** EFEKTA_iAQ_S_III ([#8993](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8993)) ([0bd1559](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0bd15593ff5cc0e59aec2c9a06ee52dccffee294))
+* **add:** TS0726_4_gang_switch_and_2_scene ([#8996](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8996)) ([1fa2d3e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1fa2d3e57bd8dd86c11c560048c1cbc78f3a8b7c))
+* Tuya TRV602Z: support more features ([#8992](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8992)) ([1d340ff](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1d340ff35689475e6c3c0dac1f724ae0c3d5169e))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZE204_l8xiyymq` as ZSVIOT PN6 ([#8995](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8995)) ([0f92235](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0f92235d23ea48cbc8e17ff8dc538fcf47f31ec7))
+
 ## [23.7.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.6.0...v23.7.0) (2025-03-13)
 
 
