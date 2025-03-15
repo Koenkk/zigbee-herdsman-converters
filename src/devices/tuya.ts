@@ -7739,7 +7739,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: '07504L manufactured by Immax',
         vendor: '_TYZB01_b6eaxdlh',
         description: "Neo Outdoor Smart Siren (IP65)",
-        fromZigbee: [fz.ts0219_ssIasWd, fz.battery, fz.ts0219_genBasic, fz.ts0219_ssIasZone],
+        fromZigbee: [fz.ts0219ssIasWd, fz.battery, fz.ts0219genBasic, fz.ts0219ssIasZone],
         exposes: [
             e.battery(), 
             e.battery_low(),

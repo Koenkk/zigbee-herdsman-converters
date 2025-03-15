@@ -2250,7 +2250,7 @@ export const ts0216_siren: Fz.Converter = {
         return result;
     },
 };
-export const ts0219_ssIasWd: Fz.Converter = {
+export const ts0219ssIasWd: Fz.Converter = {
     cluster: "ssIasWd",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
@@ -2273,24 +2273,24 @@ export const ts0219_ssIasWd: Fz.Converter = {
             return result;
         },
 };
-export const ts0219_genBasic: Fz.Converter = {
+export const ts0219genBasic: Fz.Converter = {
     cluster: "genBasic",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
         const result: KeyValueAny = {};
         if (msg.data.powerSource !== undefined){ 
-            result.power_source = msg.data.powerSource == 2 ? "mains" : "battery";
+            result.power_source = msg.data.powerSource === 2 ? "mains" : "battery";
         }
         return result;
     },
 };
-export const ts0219_ssIasZone: Fz.Converter = {
+export const ts0219ssIasZone: Fz.Converter = {
     cluster: "ssIasZone",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
         const result: KeyValueAny = {};
         if (msg.data.zoneStatus !== undefined){ 
-            result.alarm = (msg.data.zoneStatus == 17);
+            result.alarm = (msg.data.zoneStatus === 17);
         }
         return result;
     },
