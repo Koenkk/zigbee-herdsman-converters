@@ -5453,6 +5453,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withLocalTemperature(ea.STATE)
                 .withSystemMode(["auto", "heat", "off"], ea.STATE_SET)
                 .withRunningState(["idle", "heat"], ea.STATE)
+                .withPiHeatingDemand()
                 .withLocalTemperatureCalibration(-9, 9, 1, ea.STATE_SET),
             ...tuya.exposes.scheduleAllDays(ea.STATE_SET, "HH:MM/C HH:MM/C HH:MM/C HH:MM/C HH:MM/C HH:MM/C"),
             e
@@ -5504,6 +5505,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [36, "frost_protection", tuya.valueConverter.onOff],
                 [39, "scale_protection", tuya.valueConverter.onOff],
                 [47, "local_temperature_calibration", tuya.valueConverter.localTempCalibration2],
+                [101, "pi_heating_demand", tuya.valueConverter.raw],
             ],
         },
     },
