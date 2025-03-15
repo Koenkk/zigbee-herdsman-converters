@@ -1015,8 +1015,7 @@ export const presets = {
     cpu_temperature: () =>
         new Numeric("cpu_temperature", access.STATE).withLabel("CPU temperature").withUnit("°C").withDescription("Temperature of the CPU"),
     cube_side: (name: string) => new Numeric(name, access.STATE).withDescription("Side of the cube").withValueMin(0).withValueMax(6).withValueStep(1),
-    current: () =>
-        new Numeric("current", access.STATE).withUnit("A").withDescription("Instantaneous measured electrical current"),
+    current: () => new Numeric("current", access.STATE).withUnit("A").withDescription("Instantaneous measured electrical current"),
     current_phase_b: () =>
         new Numeric("current_phase_b", access.STATE)
             .withLabel("Current phase B")
@@ -1209,14 +1208,8 @@ export const presets = {
         new Numeric("pm25", access.STATE).withLabel("PM25").withUnit("µg/m³").withDescription("Measured PM2.5 (particulate matter) concentration"),
     position: () => new Numeric("position", access.STATE).withUnit("%").withDescription("Position"),
     power: () => new Numeric("power", access.STATE).withUnit("W").withDescription("Instantaneous measured power"),
-    power_phase_b: () =>
-        new Numeric("power_phase_b", access.STATE)
-            .withUnit("W")
-            .withDescription("Instantaneous measured power on phase B"),
-    power_phase_c: () =>
-        new Numeric("power_phase_c", access.STATE)
-            .withUnit("W")
-            .withDescription("Instantaneous measured power on phase C"),
+    power_phase_b: () => new Numeric("power_phase_b", access.STATE).withUnit("W").withDescription("Instantaneous measured power on phase B"),
+    power_phase_c: () => new Numeric("power_phase_c", access.STATE).withUnit("W").withDescription("Instantaneous measured power on phase C"),
     power_factor: () => new Numeric("power_factor", access.STATE).withDescription("Instantaneous measured power factor"),
     power_factor_phase_b: () => new Numeric("power_factor_phase_b", access.STATE).withDescription("Instantaneous measured power factor on phase B"),
     power_factor_phase_c: () => new Numeric("power_factor_phase_c", access.STATE).withDescription("Instantaneous measured power factor on phase C"),
@@ -1304,8 +1297,7 @@ export const presets = {
     tilt: () => new Binary("tilt", access.STATE, true, false).withDescription("Indicates whether the device detected tilt"),
     voc: () => new Numeric("voc", access.STATE).withLabel("VOC").withUnit("µg/m³").withDescription("Measured VOC value"),
     voc_index: () => new Numeric("voc_index", access.STATE).withLabel("VOC index").withDescription("VOC index"),
-    voltage: () =>
-        new Numeric("voltage", access.STATE).withUnit("V").withDescription("Measured electrical potential value"),
+    voltage: () => new Numeric("voltage", access.STATE).withUnit("V").withDescription("Measured electrical potential value"),
     voltage_phase_b: () =>
         new Numeric("voltage_phase_b", access.STATE)
             .withLabel("Voltage phase B")
