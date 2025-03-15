@@ -189,6 +189,7 @@ import {definitions as meazon} from "./meazon";
 import {definitions as mercator} from "./mercator";
 import {definitions as miboxer} from "./miboxer";
 import {definitions as micromatic} from "./micromatic";
+import {definitions as mindy} from "./mindy";
 import {definitions as modular} from "./modular";
 import {definitions as moes} from "./moes";
 import {definitions as mullerLicht} from "./muller_licht";
@@ -519,6 +520,7 @@ const definitions: DefinitionWithExtend[] = [
     ...mercator,
     ...miboxer,
     ...micromatic,
+    ...mindy,
     ...modular,
     ...moes,
     ...mullerLicht,
