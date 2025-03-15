@@ -4019,7 +4019,7 @@ export const ts0219_volume: Tz.Converter = {
         await entity.read("ssIasWd", [0x0002]);
     },
 };
-export const ts0219_light: Tz.Converter  = {
+export const ts0219_light: Tz.Converter = {
     key: ["light"],
     convertSet: async (entity, key, value, meta) => {
         await entity.write("ssIasWd", {1: {value: value, type: 0x20}}, utils.getOptions(meta.mapped, entity));
