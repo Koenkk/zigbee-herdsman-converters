@@ -1,7 +1,7 @@
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as libColor from "../lib/color";
-import {ColorMode, colorModeLookup} from "../lib/constants";
+import {ColorMode, colorModeLookup, repInterval} from "../lib/constants";
 import * as exposes from "../lib/exposes";
 import * as legacy from "../lib/legacy";
 import {logger} from "../lib/logger";
@@ -7733,6 +7733,54 @@ export const definitions: DefinitionWithExtend[] = [
             device.type = "EndDevice";
             device.save();
         },
+    },
+    {
+        zigbeeModel: ['TS0219'],
+        model: '07504L manufactured by Immax',
+        vendor: '_TYZB01_b6eaxdlh',
+        description: "Neo Outdoor Smart Siren (IP65)",
+        fromZigbee: [fz.ts0219_ssIasWd, fz.battery, fz.ts0219_genBasic, fz.ts0219_ssIasZone],
+        exposes: [
+            e.battery(), 
+            e.battery_low(),
+            e.battery_voltage(),
+            e.binary("alarm", ea.ALL, true, false),
+            e.numeric("volume", ea.ALL).withValueMin(0).withValueMax(50).withDescription("Volume of siren")
+                .withPreset("off", 0, "off").withPreset("low", 5, "low volume").withPreset("medium", 25, "medium volume").withPreset("high", 50, "high volume"),
+            e.numeric("duration", ea.ALL).withValueMin(0).withValueMax(3600).withUnit("s").withDescription("Duration of alarm"),
+            e.numeric("light", ea.ALL).withValueMin(0).withValueMax(100).withDescription("Strobe light level")
+                .withPreset("off", 0, "off light").withPreset("low", 30, "low light").withPreset("medium", 60, "medium light").withPreset("high", 100, "high light"),
+            e.enum("power_source", ea.STATE, ["mains", "battery"]).withDescription("The current power source"),
+        ],
+        toZigbee: [tz.ts0219_alarm, tz.ts0219_duration, tz.ts0219_volume, tz.ts0219_light, tz.power_source],
+        meta: {disableDefaultResponse: true},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg", "ssIasZone", "ssIasWd"]);
+            await reporting.batteryVoltage(endpoint);
+            await reporting.batteryPercentageRemaining(endpoint);
+            //configure reporting for zoneStatus to update alarm state (when alarm goes off)
+            await endpoint.configureReporting(
+                    "ssIasZone",
+                    [
+                        {
+                            attribute: "zoneStatus",
+                            minimumReportInterval: 0,
+                            maximumReportInterval: repInterval.MAX,
+                            reportableChange: 1,
+                        },
+                    ],
+                    {},
+                );
+            
+            await endpoint.read("genBasic", ["powerSource"]);
+            await endpoint.read("ssIasZone", ["zoneState", "iasCieAddr", "zoneId", "zoneStatus"]);
+            await endpoint.read("ssIasWd", ["maxDuration", 0x0002, 0x0001]);
+        },
+        extend: [
+            //fix reported as Router
+            m.forceDeviceType({type: "EndDevice"}),
+        ]
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_znzs7yaw"]),

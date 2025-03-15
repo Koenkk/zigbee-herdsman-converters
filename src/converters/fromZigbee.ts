@@ -2250,6 +2250,51 @@ export const ts0216_siren: Fz.Converter = {
         return result;
     },
 };
+export const ts0219_ssIasWd: Fz.Converter = {
+    cluster: "ssIasWd",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const result: KeyValueAny = {};
+            //max duration
+            if (msg.data.maxDuration !== undefined){ 
+                result.duration = msg.data.maxDuration;
+            }
+            if (msg.data["0"] !== undefined){ 
+                result.duration = msg.data["0"];
+            }
+            //light
+            if (msg.data["1"] !== undefined) { 
+                result.light = msg.data["1"];
+            }
+            //volume
+            if (msg.data["2"] !== undefined) { 
+                result.volume = utils.mapNumberRange(msg.data["2"], 100, 0, 0, 100);
+            }
+            return result;
+        },
+};
+export const ts0219_genBasic: Fz.Converter = {
+    cluster: "genBasic",
+    type: ["attributeReport", "readResponse"],
+    convert: (model, msg, publish, options, meta) => {
+        const result: KeyValueAny = {};
+        if (msg.data.powerSource !== undefined){ 
+            result.power_source = msg.data.powerSource == 2 ? "mains" : "battery";
+        }
+        return result;
+    },
+};
+export const ts0219_ssIasZone: Fz.Converter = {
+    cluster: "ssIasZone",
+    type: ["attributeReport", "readResponse"],
+    convert: (model, msg, publish, options, meta) => {
+        const result: KeyValueAny = {};
+        if (msg.data.zoneStatus !== undefined){ 
+            result.alarm = (msg.data.zoneStatus == 17);
+        }
+        return result;
+    },
+};
 export const tuya_cover_options_2: Fz.Converter = {
     cluster: "closuresWindowCovering",
     type: ["attributeReport", "readResponse"],
