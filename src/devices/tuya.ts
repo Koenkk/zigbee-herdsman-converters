@@ -7505,7 +7505,7 @@ export const definitions: DefinitionWithExtend[] = [
             }
         },
     },
-    { // These cannot be merged with any existing "TS0726" or they will be identified incorrectly and the functionality will be incomplete.
+    {
         fingerprint: tuya.fingerprint("TS0726", ["_TZ3000_qhyadm57"]),
         model: "TS0726_4_gang_switch_and_2_scene",
         vendor: "Tuya",
@@ -7529,7 +7529,6 @@ export const definitions: DefinitionWithExtend[] = [
             }
         },
     },
-    // These cannot be merged with any existing "TS0726" or they will be identified incorrectly and the functionality will be incomplete.
     {
         fingerprint: tuya.fingerprint("TS0726", ["_TZ3000_wsspgtcd"]),
         model: "TS0726_4_gang",
@@ -7555,7 +7554,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0726", "_TZ3002_sal078g8"]),
+        fingerprint: tuya.fingerprint("TS0726", ["_TZ3002_sal078g8"]),
         model: "TS0726_switch_4g_2s",
         vendor: "Tuya",
         description: "COSWALL smart switch (4 gang + 2 scene)",
