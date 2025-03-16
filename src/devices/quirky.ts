@@ -2,7 +2,7 @@ import * as fz from "../converters/fromZigbee";
 import * as exposes from "../lib/exposes";
 const e = exposes.presets;
 
-const definition = {
+export const definition = {
     zigbeeModel: ["Overflow"],
     model: "Smart_Water_Leak_Sensor_Quirky_Inc",
     vendor: "Quirky",
