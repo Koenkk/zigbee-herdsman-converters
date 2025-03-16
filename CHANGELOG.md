@@ -1,5 +1,27 @@
 # Changelog
 
+## [23.8.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.7.0...v23.8.0) (2025-03-16)
+
+
+### Features
+
+* **add:** 371222402 ([#8997](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8997)) ([7913ff9](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7913ff991dd0d6d0563422a635324edd790d68b7))
+* **add:** EFEKTA_iAQ_S_II ([#9004](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9004)) ([c74a46b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c74a46b3ac088c2e2267a93106577f60e98b6f78))
+* **add:** EFEKTA_iAQ_S_III ([#8993](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8993)) ([0bd1559](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0bd15593ff5cc0e59aec2c9a06ee52dccffee294))
+* **add:** POFLW-WH02 ([#9006](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9006)) ([3a81898](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3a818983ee2061502e590294896ab73bc1c13083))
+* **add:** TS0726_4_gang_switch_and_2_scene ([#8996](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8996)) ([1fa2d3e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1fa2d3e57bd8dd86c11c560048c1cbc78f3a8b7c))
+* Tuya TRV602Z: support more features ([#8992](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8992)) ([1d340ff](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1d340ff35689475e6c3c0dac1f724ae0c3d5169e))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZE204_l8xiyymq` as ZSVIOT PN6 ([#8995](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8995)) ([0f92235](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0f92235d23ea48cbc8e17ff8dc538fcf47f31ec7))
+* **detect:** Detect `\u0000B` as Tuya TS0601_pir https://github.com/Koenkk/zigbee2mqtt/issues/26727 ([c2fc309](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c2fc30931f07b0f2f24e670f714159446d2fc00e))
+* Home Assistant: e power, current and voltage as normal sensor data ([#8999](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8999)) ([3a9dc91](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3a9dc9140e33aadb7f4a025fe5dec32f352401bf))
+* **ignore:** update dependencies ([#9007](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9007)) ([d26aa5e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d26aa5ed22a81a2cea20ffaf228fe26b07475457))
+* Moes UFO-R11: fix `Exception while calling fromZigbee converter` https://github.com/Koenkk/zigbee2mqtt/issues/26659 ([db168d4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/db168d47c2b5f8cde2d6be7d16f7ad15f0aad172))
+* Tuya TS0601_thermostat_3: expose `pi_heating_demand` ([#9002](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9002)) ([dffd62f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/dffd62fc9daac4c4102098421ac767ce24096598))
+
 ## [23.7.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.6.0...v23.7.0) (2025-03-13)
 
 
