@@ -1,5 +1,5 @@
-import * as fz from "zigbee-herdsman-converters/converters/fromZigbee";
-import * as exposes from "zigbee-herdsman-converters/lib/exposes";
+import * as fz from "../converters/fromZigbee";
+import * as exposes from "../lib/exposes";
 const e = exposes.presets;
 
 const definition = {
