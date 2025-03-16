@@ -13,4 +13,3 @@ export const definition = {
     meta: {},
 };
 
-module.exports = definition;
