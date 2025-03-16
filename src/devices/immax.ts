@@ -7,9 +7,108 @@ import * as reporting from "../lib/reporting";
 import * as tuya from "../lib/tuya";
 import type {DefinitionWithExtend} from "../lib/types";
 import {repInterval} from "../lib/constants";
+import type {KeyValueAny, Fz, Tz} from "../lib/types";
+import * as utils from "../lib/utils"
 
 const e = exposes.presets;
 const ea = exposes.access;
+
+const tzLocal = {
+    ts0219_duration: {
+        key: ["duration"],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write("ssIasWd", {maxDuration: value});
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read("ssIasWd", ["maxDuration"]);
+        },
+    } satisfies Tz.Converter,
+    ts0219_volume: {
+        key: ["volume"],
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertNumber(value);
+            await entity.write("ssIasWd", {2: {value: utils.mapNumberRange(value, 0, 100, 100, 0), type: 0x20}}, utils.getOptions(meta.mapped, entity));
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read("ssIasWd", [0x0002]);
+        },
+    } satisfies Tz.Converter,
+    ts0219_light:{
+        key: ["light"],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write("ssIasWd", {1: {value: value, type: 0x20}}, utils.getOptions(meta.mapped, entity));
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read("ssIasWd", [0x0001]);
+        },
+    } satisfies Tz.Converter,
+    ts0219_alarm: {
+        key: ["alarm"],
+        convertGet: async (entity, key, meta) => {
+            await entity.read("ssIasZone", ["zoneStatus"]);
+        },
+        convertSet: async (entity, key, value, meta) => {
+            const OFF = 0;
+            const ALARM = 16;
+            const info = value ? ALARM : OFF;
+            //only startwarninginfo is used, rest of params are ignored (stored values from device are used instead)
+            await entity.command(
+                "ssIasWd",
+                "startWarning",
+                {startwarninginfo: info, warningduration: 0, strobedutycycle: 0, strobelevel: 0},
+                utils.getOptions(meta.mapped, entity),
+            );
+        },
+    } satisfies Tz.Converter,
+}
+
+const fzLocal = {
+    ts0219ssIasWd:  {
+        cluster: "ssIasWd",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const result: KeyValueAny = {};
+            //max duration
+            if (msg.data.maxDuration !== undefined) {
+                result.duration = msg.data.maxDuration;
+            }
+            if (msg.data["0"] !== undefined) {
+                result.duration = msg.data["0"];
+            }
+            //light
+            if (msg.data["1"] !== undefined) {
+                result.light = msg.data["1"];
+            }
+            //volume
+            if (msg.data["2"] !== undefined) {
+                result.volume = utils.mapNumberRange(msg.data["2"], 100, 0, 0, 100);
+            }
+            return result;
+        },
+    } satisfies Fz.Converter,
+    ts0219genBasic: {
+        cluster: "genBasic",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const result: KeyValueAny = {};
+            if (msg.data.powerSource !== undefined) {
+                result.power_source = msg.data.powerSource === 2 ? "mains" : "battery";
+            }
+            return result;
+        },
+    } satisfies Fz.Converter,
+    ts0219ssIasZone: {
+        cluster: "ssIasZone",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const result: KeyValueAny = {};
+            if (msg.data.zoneStatus !== undefined) {
+                result.alarm = msg.data.zoneStatus === 17;
+            }
+            return result;
+        },
+    } satisfies Fz.Converter,
+};
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -241,7 +340,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: '07504L',
         vendor: 'Immax',
         description: "Neo outdoor smart siren (IP65)",
-        fromZigbee: [fz.ts0219ssIasWd, fz.battery, fz.ts0219genBasic, fz.ts0219ssIasZone],
+        fromZigbee: [fzLocal.ts0219ssIasWd, fz.battery, fzLocal.ts0219genBasic, fzLocal.ts0219ssIasZone],
         exposes: [
             e.battery(), 
             e.battery_low(),
@@ -254,7 +353,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withPreset("off", 0, "off light").withPreset("low", 30, "low light").withPreset("medium", 60, "medium light").withPreset("high", 100, "high light"),
             e.enum("power_source", ea.STATE, ["mains", "battery"]).withDescription("The current power source"),
         ],
-        toZigbee: [tz.ts0219_alarm, tz.ts0219_duration, tz.ts0219_volume, tz.ts0219_light, tz.power_source],
+        toZigbee: [tzLocal.ts0219_alarm, tzLocal.ts0219_duration, tzLocal.ts0219_volume, tzLocal.ts0219_light, tz.power_source],
         meta: {disableDefaultResponse: true},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);

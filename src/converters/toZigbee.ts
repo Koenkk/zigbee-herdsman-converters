@@ -4000,52 +4000,6 @@ export const ts0216_alarm: Tz.Converter = {
         );
     },
 };
-export const ts0219_duration: Tz.Converter = {
-    key: ["duration"],
-    convertSet: async (entity, key, value, meta) => {
-        await entity.write("ssIasWd", {maxDuration: value});
-    },
-    convertGet: async (entity, key, meta) => {
-        await entity.read("ssIasWd", ["maxDuration"]);
-    },
-};
-export const ts0219_volume: Tz.Converter = {
-    key: ["volume"],
-    convertSet: async (entity, key, value, meta) => {
-        utils.assertNumber(value);
-        await entity.write("ssIasWd", {2: {value: utils.mapNumberRange(value, 0, 100, 100, 0), type: 0x20}}, utils.getOptions(meta.mapped, entity));
-    },
-    convertGet: async (entity, key, meta) => {
-        await entity.read("ssIasWd", [0x0002]);
-    },
-};
-export const ts0219_light: Tz.Converter = {
-    key: ["light"],
-    convertSet: async (entity, key, value, meta) => {
-        await entity.write("ssIasWd", {1: {value: value, type: 0x20}}, utils.getOptions(meta.mapped, entity));
-    },
-    convertGet: async (entity, key, meta) => {
-        await entity.read("ssIasWd", [0x0001]);
-    },
-};
-export const ts0219_alarm: Tz.Converter = {
-    key: ["alarm"],
-    convertGet: async (entity, key, meta) => {
-        await entity.read("ssIasZone", ["zoneStatus"]);
-    },
-    convertSet: async (entity, key, value, meta) => {
-        const OFF = 0;
-        const ALARM = 16;
-        const info = value ? ALARM : OFF;
-        //only startwarninginfo is used, rest of params are ignored (stored values from device are used instead)
-        await entity.command(
-            "ssIasWd",
-            "startWarning",
-            {startwarninginfo: info, warningduration: 0, strobedutycycle: 0, strobelevel: 0},
-            utils.getOptions(meta.mapped, entity),
-        );
-    },
-};
 export const tuya_cover_calibration: Tz.Converter = {
     key: ["calibration", "calibration_up", "calibration_down"],
     convertSet: async (entity, key, value, meta) => {
