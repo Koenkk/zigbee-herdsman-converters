@@ -2,7 +2,7 @@ import * as fz from "../converters/fromZigbee";
 import * as exposes from "../lib/exposes";
 const e = exposes.presets;
 
-export const definition = {
+export const definitions = {
     zigbeeModel: ["Overflow"],
     model: "POFLW-WH02",
     vendor: "Quirky",
