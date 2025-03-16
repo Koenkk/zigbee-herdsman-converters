@@ -17,7 +17,7 @@ function messagesGet(entity: Zh.Endpoint | Zh.Group, seq: number) {
     if (expected !== seq) {
         throw new Error(`Unexpected sequence value (expected: ${expected} current: ${seq}).`);
     }
-    return info.data;
+    return info?.data;
 }
 function messagesSet(entity: Zh.Endpoint | Zh.Group, seq: number, data: unknown) {
     globalStore.putValue(entity, "irMessageInfo", {seq: seq, data: data});
