@@ -9623,7 +9623,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_f1pvdgoh"]),
+        fingerprint: [...tuya.fingerprint("TS0601", ["_TZE200_f1pvdgoh"]), ...tuya.fingerprint("\u0000B", ["_TZE200_f1pvdgoh"])],
         model: "TS0601_pir",
         vendor: "Tuya",
         description: "Haozee PIR sensor",
