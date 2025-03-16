@@ -12,4 +12,3 @@ export const definition = {
     exposes: [e.water_leak(), e.battery_low()],
     meta: {},
 };
-
