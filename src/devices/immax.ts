@@ -7,8 +7,8 @@ import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as tuya from "../lib/tuya";
 import type {DefinitionWithExtend} from "../lib/types";
-import type {KeyValueAny, Fz, Tz} from "../lib/types";
-import * as utils from "../lib/utils"
+import type {Fz, KeyValueAny, Tz} from "../lib/types";
+import * as utils from "../lib/utils";
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -27,13 +27,17 @@ const tzLocal = {
         key: ["volume"],
         convertSet: async (entity, key, value, meta) => {
             utils.assertNumber(value);
-            await entity.write("ssIasWd", {2: {value: utils.mapNumberRange(value, 0, 100, 100, 0), type: 0x20}}, utils.getOptions(meta.mapped, entity));
+            await entity.write(
+                "ssIasWd",
+                {2: {value: utils.mapNumberRange(value, 0, 100, 100, 0), type: 0x20}},
+                utils.getOptions(meta.mapped, entity),
+            );
         },
         convertGet: async (entity, key, meta) => {
             await entity.read("ssIasWd", [0x0002]);
         },
     } satisfies Tz.Converter,
-    ts0219_light:{
+    ts0219_light: {
         key: ["light"],
         convertSet: async (entity, key, value, meta) => {
             await entity.write("ssIasWd", {1: {value: value, type: 0x20}}, utils.getOptions(meta.mapped, entity));
@@ -60,10 +64,10 @@ const tzLocal = {
             );
         },
     } satisfies Tz.Converter,
-}
+};
 
 const fzLocal = {
-    ts0219ssIasWd:  {
+    ts0219ssIasWd: {
         cluster: "ssIasWd",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
