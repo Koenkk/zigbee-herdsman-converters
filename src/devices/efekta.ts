@@ -3952,7 +3952,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_SET",
             }),
             m.numeric({
-                endpointNames: ["1"],
+                endpointNames: ["2"],
                 name: "temperature_offset",
                 unit: "°C",
                 valueMin: -25,
