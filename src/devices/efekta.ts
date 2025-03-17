@@ -3066,7 +3066,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Adjust first pressure sensor",
                 access: "STATE_SET",
             }),
-            numeric({
+            m.numeric({
                 name: "temperature_offset",
                 unit: "°C",
                 valueMin: -25,
@@ -3074,7 +3074,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueStep: 0.1,
                 scale: 10,
                 cluster: "msTemperatureMeasurement",
-                attribute: {ID: 0x0210, type: 0x29},
+                attribute: {ID: 0x0210, type: Zcl.DataType.INT16},
                 description: "Adjust temperature sensor",
                 access: "STATE_SET",
             }),
@@ -3891,7 +3891,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Adjust first pressure sensor",
                 access: "STATE_SET",
             }),
-            numeric({
+            m.numeric({
                 endpointNames: ["1"],
                 name: "temperature_offset",
                 unit: "°C",
@@ -3900,7 +3900,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueStep: 0.1,
                 scale: 10,
                 cluster: "msTemperatureMeasurement",
-                attribute: {ID: 0x0210, type: 0x29},
+                attribute: {ID: 0x0210, type: Zcl.DataType.INT16},
                 description: "Adjust temperature sensor",
                 access: "STATE_SET",
             }),
@@ -3951,8 +3951,8 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Adjust second pressure sensor",
                 access: "STATE_SET",
             }),
-            numeric({
-                endpointNames: ["2"],
+            m.numeric({
+                endpointNames: ["1"],
                 name: "temperature_offset",
                 unit: "°C",
                 valueMin: -25,
@@ -3960,7 +3960,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueStep: 0.1,
                 scale: 10,
                 cluster: "msTemperatureMeasurement",
-                attribute: {ID: 0x0210, type: 0x29},
+                attribute: {ID: 0x0210, type: Zcl.DataType.INT16},
                 description: "Adjust temperature sensor",
                 access: "STATE_SET",
             }),
