@@ -5453,6 +5453,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withLocalTemperature(ea.STATE)
                 .withSystemMode(["auto", "heat", "off"], ea.STATE_SET)
                 .withRunningState(["idle", "heat"], ea.STATE)
+                .withPiHeatingDemand()
                 .withLocalTemperatureCalibration(-9, 9, 1, ea.STATE_SET),
             ...tuya.exposes.scheduleAllDays(ea.STATE_SET, "HH:MM/C HH:MM/C HH:MM/C HH:MM/C HH:MM/C HH:MM/C"),
             e
@@ -5504,6 +5505,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [36, "frost_protection", tuya.valueConverter.onOff],
                 [39, "scale_protection", tuya.valueConverter.onOff],
                 [47, "local_temperature_calibration", tuya.valueConverter.localTempCalibration2],
+                [101, "pi_heating_demand", tuya.valueConverter.raw],
             ],
         },
     },
@@ -9621,7 +9623,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_f1pvdgoh"]),
+        fingerprint: [...tuya.fingerprint("TS0601", ["_TZE200_f1pvdgoh"]), ...tuya.fingerprint("\u0000B", ["_TZE200_f1pvdgoh"])],
         model: "TS0601_pir",
         vendor: "Tuya",
         description: "Haozee PIR sensor",

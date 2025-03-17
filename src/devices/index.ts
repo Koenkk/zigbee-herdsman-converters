@@ -232,6 +232,7 @@ import {definitions as pushok} from "./pushok";
 import {definitions as qa} from "./qa";
 import {definitions as qmotion} from "./qmotion";
 import {definitions as qoto} from "./qoto";
+import {definitions as quirky} from "./quirky";
 import {definitions as quotra} from "./quotra";
 import {definitions as rademacher} from "./rademacher";
 import {definitions as radium} from "./radium";
@@ -561,6 +562,7 @@ const definitions: DefinitionWithExtend[] = [
     ...pushok,
     ...qmotion,
     ...qoto,
+    ...quirky,
     ...quotra,
     ...rademacher,
     ...radium,
