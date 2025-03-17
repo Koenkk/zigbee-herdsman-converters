@@ -49,7 +49,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["GWA1502_BinaryInput230V"],
         model: "GWA1502",
         vendor: "Gewiss",
-        description: "Contact Interface - 2 Channels - 230V",
+        description: "Contact interface - 2 channels - 230V",
         meta: {multiEndpoint: true},
         extend: [
             m.deviceEndpoints({endpoints: {"1": 1, "2": 2}}),
