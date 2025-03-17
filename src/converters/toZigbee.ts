@@ -564,23 +564,21 @@ export const warning: Tz.Converter = {
 
         // Track and maintain a virtual state of the siren
         // is on if duration set, and either strobe with dutycycle or alarm is set
-        const virtualState = meta.mapped.meta?.virtualState?.warning;
-        if (virtualState && entity instanceof Endpoint) {
+        if (entity instanceof Endpoint) {
             const siren_on = values.duration > 0 && (values.mode !== "stop" || (values.strobe && values.strobeDutyCycle > 0));
 
             // Stop existing timer because we received a new siren command
             clearTimeout(globalStore.getValue(entity, "state_timer"));
             globalStore.clearValue(entity, "state_timer");
             if (siren_on) {
-                const duration = Math.min(values.duration, await utils.getClusterAttributeValue(entity, "ssIasWd", "maxDuration"));
+                const duration = Math.min(values.duration, await utils.getClusterAttributeValue(entity, "ssIasWd", "maxDuration", 65534));
                 const timer = setTimeout(() => {
-                    //logger.debug('Siren should be OFF ', NS);
-                    meta.publish({[virtualState]: "OFF"});
+                    meta.publish({siren_state: "OFF"});
                 }, duration * 1000);
                 globalStore.putValue(entity, "state_timer", timer);
             }
 
-            return {state: {[virtualState]: siren_on ? "ON" : "OFF"}};
+            return {state: {siren_state: siren_on ? "ON" : "OFF"}};
         }
     },
 };

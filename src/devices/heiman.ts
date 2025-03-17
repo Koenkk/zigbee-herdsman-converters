@@ -293,7 +293,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Smart siren",
         fromZigbee: [fz.battery, fz.ignore_basic_report, fz.ias_wd],
         toZigbee: [tz.warning, tz.ias_max_duration],
-        meta: {disableDefaultResponse: true, virtualState: {warning: "siren_state"}},
+        meta: {disableDefaultResponse: true},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg"]);
