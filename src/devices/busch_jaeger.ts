@@ -81,10 +81,13 @@ export const definitions: DefinitionWithExtend[] = [
         configure: async (device, coordinatorEndpoint) => {
             // Depending on the actual devices - 6735, 6736, or 6737 - there are 1, 2, or 4 endpoints for
             // the rockers. If the module is installed on a dimmer or relay, there is an additional endpoint (18).
+
+            // These devices only have a very limited amount of memory available. Possibly depending on network size (?)
+            // they only support around 5 bindings so we need to be very careful about the binding setup. We intentionally
+            // skip binding the endpoint 18 (light endpoint) to the coordinator. The device does not support ZigBee
+            // reporting anyways and we poll the device's state instead, so this does not cause any loss of functionality.
             const endpoint18 = device.getEndpoint(0x12);
-            if (endpoint18 != null) {
-                await reporting.bind(endpoint18, coordinatorEndpoint, ["genOnOff", "genLevelCtrl"]);
-            } else {
+            if (endpoint18 == null) {
                 // We only need to bind endpoint 10 (top rocker) if endpoint 18 (relay/dimmer) is not present.
                 // Otherwise the top rocker is hard-wired to the relay/dimmer and cannot be used anyways.
                 const endpoint10 = device.getEndpoint(0x0a);
