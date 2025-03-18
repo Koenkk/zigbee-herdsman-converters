@@ -65,18 +65,6 @@ const attrElCityMeterModelName = 0xf004;
 const attrElCityMeterPasswordPreset = 0xf005;
 
 const fzLocal = {
-    thermostat_child_lock: {
-        cluster: "hvacUserInterfaceCfg",
-        type: ["attributeReport", "readResponse"],
-        convert: (model, msg, publish, options, meta) => {
-            const result: KeyValueAny = {};
-            if (msg.data.keypadLockout !== undefined) {
-                // Set as child lock instead as keypadlockout
-                result.child_lock = msg.data.keypadLockout === 1 ? "Lock" : "Unlock";
-            }
-            return result;
-        },
-    } satisfies Fz.Converter,
     thermostat_sensor_used: {
         cluster: "hvacThermostat",
         type: ["attributeReport", "readResponse"],
@@ -85,18 +73,6 @@ const fzLocal = {
             const lookup = {0: "Inner (IN)", 1: "All (AL)", 2: "Outer (OU)"};
             if (msg.data[attrThermSensorUser] !== undefined) {
                 result.sensor = utils.getFromLookup(msg.data[attrThermSensorUser], lookup);
-            }
-            return result;
-        },
-    } satisfies Fz.Converter,
-    thermostat_operation_mode: {
-        cluster: "hvacThermostat",
-        type: ["attributeReport", "readResponse"],
-        convert: (model, msg, publish, options, meta) => {
-            const result: KeyValueAny = {};
-            if (msg.data.programingOperMode !== undefined) {
-                const lookup = {0: "manual", 1: "programming", 2: "temporary"};
-                result.operation_mode = utils.getFromLookup(msg.data.programingOperMode, lookup);
             }
             return result;
         },
@@ -302,32 +278,6 @@ const tzLocal = {
             await entity.read("genLevelCtrl", ["currentLevel"]);
         },
     } satisfies Tz.Converter,
-    thermostat_child_lock: {
-        key: ["child_lock"],
-        convertSet: async (entity, key, value, meta) => {
-            const keypadLockout = Number(value === "Lock");
-            await entity.write("hvacUserInterfaceCfg", {keypadLockout});
-            return {readAfterWriteTime: 250, state: {child_lock: value}};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read("hvacUserInterfaceCfg", ["keypadLockout"]);
-        },
-    } satisfies Tz.Converter,
-    thermostat_operation_mode: {
-        key: ["operation_mode"],
-        convertSet: async (entity, key, value, meta) => {
-            const lookup: {[key: string]: number} = {
-                manual: 0,
-                programming: 1,
-                temporary: 2,
-            };
-            await entity.write("hvacThermostat", {programingOperMode: utils.getFromLookup(value, lookup)});
-            return {state: {operation_mode: value}};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read("hvacThermostat", ["programingOperMode"]);
-        },
-    } satisfies Tz.Converter,
     thermostat_sensor_used: {
         key: ["sensor"],
 
@@ -525,9 +475,8 @@ const localFromZigbeeThermostat = [
     fz.ignore_basic_report,
     fz.thermostat,
     fz.fan,
-    fz.hvac_user_interface,
+    fz.namron_hvac_user_interface,
     fz.thermostat_weekly_schedule,
-    fzLocal.thermostat_child_lock,
     fzLocal.thermostat_sensor_used,
     fzLocal.thermostat_deadzone,
     fzLocal.thermostat_frost_protect,
@@ -556,11 +505,10 @@ const localToZigbeeThermostat = [
     tz.thermostat_min_heat_setpoint_limit,
     tz.thermostat_max_heat_setpoint_limit,
     tz.thermostat_programming_operation_mode,
-    tz.thermostat_keypad_lockout,
+    tz.namron_thermostat_child_lock,
     tz.thermostat_weekly_schedule,
     tz.fan_mode,
     tzLocal.display_brightness,
-    tzLocal.thermostat_child_lock,
     tzLocal.thermostat_sensor_used,
     tzLocal.thermostat_deadzone,
     tzLocal.thermostat_deadzone_10,
@@ -1294,7 +1242,7 @@ export const definitions: DefinitionWithExtend[] = [
         configure: configureCommon,
         // Should be empty, unless device can be controlled (e.g. lights, switches).
         exposes: [
-            e.binary("child_lock", ea.ALL, "Lock", "Unlock").withDescription("Enables/disables physical input on the device"),
+            e.binary("child_lock", ea.ALL, "LOCK", "UNLOCK").withDescription("Enables/disables physical input on the device"),
             e.programming_operation_mode(["setpoint", "schedule"]).withDescription("Setpoint or Schedule mode"),
             e.enum("sensor", ea.ALL, switchSensorUsed).withDescription("Select temperature sensor to use"),
             e
@@ -1339,7 +1287,7 @@ export const definitions: DefinitionWithExtend[] = [
         configure: configureCommon,
         // Should be empty, unless device can be controlled (e.g. lights, switches).
         exposes: [
-            e.binary("child_lock", ea.ALL, "Lock", "Unlock").withDescription("Enables/disables physical input on the device"),
+            e.binary("child_lock", ea.ALL, "LOCK", "UNLOCK").withDescription("Enables/disables physical input on the device"),
             e.programming_operation_mode(["setpoint", "schedule"]).withDescription("Setpoint or Schedule mode"),
             e.enum("sensor", ea.ALL, switchSensorUsed).withDescription("Select temperature sensor to use"),
             e
@@ -1410,7 +1358,7 @@ export const definitions: DefinitionWithExtend[] = [
         configure: configureCommon,
         // Should be empty, unless device can be controlled (e.g. lights, switches).
         exposes: [
-            e.binary("child_lock", ea.ALL, "Lock", "Unlock").withDescription("Enables/disables physical input on the device"),
+            e.binary("child_lock", ea.ALL, "LOCK", "UNLOCK").withDescription("Enables/disables physical input on the device"),
             e.programming_operation_mode(["setpoint", "schedule"]).withDescription("Setpoint or Schedule mode"),
             e.enum("sensor", ea.ALL, switchSensorUsed).withDescription("Select temperature sensor to use"),
             e
@@ -1491,7 +1439,7 @@ export const definitions: DefinitionWithExtend[] = [
         configure: configureCommon,
         // Should be empty, unless device can be controlled (e.g. lights, switches).
         exposes: [
-            e.binary("child_lock", ea.ALL, "Lock", "Unlock").withDescription("Enables/disables physical input on the device"),
+            e.binary("child_lock", ea.ALL, "LOCK", "UNLOCK").withDescription("Enables/disables physical input on the device"),
             e.programming_operation_mode(["setpoint", "schedule"]).withDescription("Setpoint or Schedule mode"),
             e.enum("sensor", ea.ALL, switchSensorUsed).withDescription("Select temperature sensor to use"),
             e
@@ -1571,7 +1519,7 @@ export const definitions: DefinitionWithExtend[] = [
         configure: configureCommon,
         // Should be empty, unless device can be controlled (e.g. lights, switches).
         exposes: [
-            e.binary("child_lock", ea.ALL, "Lock", "Unlock").withDescription("Enables/disables physical input on the device"),
+            e.binary("child_lock", ea.ALL, "LOCK", "UNLOCK").withDescription("Enables/disables physical input on the device"),
             e.programming_operation_mode(["setpoint", "schedule"]).withDescription("Setpoint or Schedule mode"),
             e.enum("sensor", ea.ALL, switchSensorUsed).withDescription("Select temperature sensor to use"),
             e
@@ -1634,7 +1582,7 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: localToZigbeeThermostat,
         configure: configureCommon,
         exposes: [
-            e.binary("child_lock", ea.ALL, "Lock", "Unlock").withDescription("Enables/disables physical input on the device"),
+            e.binary("child_lock", ea.ALL, "LOCK", "UNLOCK").withDescription("Enables/disables physical input on the device"),
             e.binary("sound", ea.ALL, "On", "Off").withDescription("Sound On/Off"),
             e.binary("inversion", ea.ALL, "On", "Off").withDescription("Inversion of the output"),
             e.enum("brightness_level", ea.ALL, ["Off", "Low", "Medium", "High"]).withDescription("Screen brightness"),
@@ -1691,7 +1639,7 @@ export const definitions: DefinitionWithExtend[] = [
         configure: configureCommon,
         // Should be empty, unless device can be controlled (e.g. lights, switches).
         exposes: [
-            e.binary("child_lock", ea.ALL, "Lock", "Unlock").withDescription("Enables/disables physical input on the device"),
+            e.binary("child_lock", ea.ALL, "LOCK", "UNLOCK").withDescription("Enables/disables physical input on the device"),
             e.programming_operation_mode(["setpoint", "schedule"]).withDescription("Setpoint or Schedule mode"),
             e
                 .numeric("deadzone_temperature", ea.ALL)
@@ -1762,7 +1710,7 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: localToZigbeeThermostat,
         configure: configureCommon,
         exposes: [
-            e.binary("child_lock", ea.ALL, "Lock", "Unlock").withDescription("Enables/disables physical input on the device"),
+            e.binary("child_lock", ea.ALL, "LOCK", "UNLOCK").withDescription("Enables/disables physical input on the device"),
             e.programming_operation_mode(["setpoint", "schedule"]).withDescription("Setpoint or Schedule mode"),
             e
                 .numeric("min_heat_setpoint_limit", ea.ALL)
