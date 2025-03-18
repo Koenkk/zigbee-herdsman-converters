@@ -1,5 +1,12 @@
 # Changelog
 
+## [23.9.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.9.0...v23.9.1) (2025-03-18)
+
+
+### Bug Fixes
+
+* **ignore:** fix provenance ([f5fbb3f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f5fbb3fff56fa0c84f9319a292ccd97961d454b7))
+
 ## [23.9.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.8.0...v23.9.0) (2025-03-18)
 
 
