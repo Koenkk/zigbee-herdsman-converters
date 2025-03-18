@@ -2691,4 +2691,17 @@ export function bindCluster(args: {cluster: string | number; clusterType: "input
     return {configure, isModernExtend: true};
 }
 
+export function reportAttribute(args: {
+    cluster: string | number;
+    attribute: ReportingConfigAttribute;
+    config: ReportingConfigWithoutAttribute;
+    access?: Access;
+    endpointNames?: string[];
+}): ModernExtend {
+    const configure: Configure[] = [
+        setupConfigureForReporting(args.cluster, args.attribute, args.config, args.access || ea.STATE_GET, args.endpointNames),
+    ];
+    return {configure, isModernExtend: true};
+}
+
 // #endregion
