@@ -9,6 +9,24 @@ const e = exposes.presets;
 const ea = exposes.access;
 
 const fzLocal = {
+    nimly_lock_commandPinCodeRsp: {
+        cluster: 'closuresDoorLock',
+        type: ['commandSetPinCodeRsp','commandClearPinCodeRsp'],
+        convert: (model, msg, publish, options, meta) => {
+            const attributes: KeyValue = {};
+            if (msg.data["status"] == 0) {
+                if (msg.type == 'commandSetPinCodeRsp') {
+                    attributes.Last_successful_Pincode_Save = Date.now();
+                }
+                if (msg.type == 'commandClearPinCodeRsp'){
+                    attributes.Last_successful_Pincode_Clear = Date.now();                    
+                }
+            }
+            if (Object.keys(attributes).length > 0) {
+                return attributes;
+            }
+        },
+    },
     nimly_pro_lock_actions: {
         cluster: "closuresDoorLock",
         type: ["attributeReport", "readResponse"],
@@ -65,6 +83,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Zigbee module for EasyAccess code touch series",
         fromZigbee: [
             fzLocal.nimly_pro_lock_actions,
+            fzLocal.nimly_lock_commandPinCodeRsp,
             fz.lock,
             fz.lock_operation_event,
             fz.battery,
@@ -97,6 +116,9 @@ export const definitions: DefinitionWithExtend[] = [
             e.text("last_used_pin_code", ea.STATE).withDescription("Last used pin code"),
             e.binary("auto_relock", ea.STATE_SET, true, false).withDescription("Auto relock after 7 seconds."),
             e.pincode(),
+            e.text("Last_successful_Pincode_Clear", ea.STATE).withDescription("Last deleted Pincode"),
+            e.text("Last_successful_Pincode_Save", ea.STATE).withDescription("Last saved Pincode"),
+
         ],
     },
     {
