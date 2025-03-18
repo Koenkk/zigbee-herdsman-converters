@@ -10913,6 +10913,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [
             e.ac_frequency(),
             e.voltage(),
+            e.power(),
             tuya.exposes.powerWithPhase("a"),
             tuya.exposes.powerWithPhase("b"),
             tuya.exposes.currentWithPhase("a"),
