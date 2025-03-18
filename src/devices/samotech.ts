@@ -15,7 +15,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SM308-S",
         vendor: "Samotech",
         description: "Zigbee in wall smart switch",
-        extend: [m.onOff()],
+        extend: [m.onOff(), sunricher.extend.externalSwitchType()],
     },
     {
         zigbeeModel: ["SM308-2CH"],
@@ -30,7 +30,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SM309-S",
         vendor: "Samotech",
         description: "Zigbee dimmer 400W with power and energy metering",
-        extend: [m.light({configureReporting: true}), m.electricityMeter()],
+        extend: [m.light({configureReporting: true}), m.electricityMeter(), sunricher.extend.externalSwitchType()],
     },
     {
         zigbeeModel: ["SM309"],

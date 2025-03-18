@@ -1,6 +1,6 @@
 {
     "name": "zigbee-herdsman-converters",
-    "version": "23.4.0",
+    "version": "23.8.0",
     "description": "Collection of device converters to be used with zigbee-herdsman",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
@@ -43,7 +43,7 @@
         "buffer-crc32": "^1.0.0",
         "iconv-lite": "^0.6.3",
         "semver": "^7.7.1",
-        "zigbee-herdsman": "^3.3.0"
+        "zigbee-herdsman": "^3.4.0"
     },
     "exports": {
         ".": "./dist/index.js",

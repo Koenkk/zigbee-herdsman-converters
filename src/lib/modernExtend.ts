@@ -2129,6 +2129,7 @@ export function gasMeter(args?: GasMeterArgs): ModernExtend {
         configureReporting: true,
         status: true,
         extendedStatus: true,
+        producedEnergy: false,
         ...args,
     };
     return genericMeter(args);

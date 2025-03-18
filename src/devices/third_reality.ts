@@ -154,6 +154,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Smart motion sensor R1",
         ota: true,
         extend: [
+            m.iasZoneAlarm({zoneType: "occupancy", zoneAttributes: ["alarm_1"]}),
             m.battery(),
             m.deviceAddCustomCluster("3rRadarSpecialCluster", {
                 ID: 0xff01,

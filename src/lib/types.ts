@@ -277,7 +277,7 @@ type DefinitionConfig = {
     options?: Option[];
     meta?: DefinitionMeta;
     onEvent?: OnEvent;
-    ota?: true | Ota.ExtraMetas;
+    ota?: boolean | Ota.ExtraMetas;
 };
 
 type DefinitionFeatures = {
