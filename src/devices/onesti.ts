@@ -14,11 +14,11 @@ const fzLocal = {
         type: ['commandSetPinCodeRsp','commandClearPinCodeRsp'],
         convert: (model, msg, publish, options, meta) => {
             const attributes: KeyValue = {};
-            if (msg.data["status"] == 0) {
-                if (msg.type == 'commandSetPinCodeRsp') {
+            if (msg.data.status === 0) {
+                if (msg.type === 'commandSetPinCodeRsp') {
                     attributes.Last_successful_Pincode_Save = Date.now();
                 }
-                if (msg.type == 'commandClearPinCodeRsp'){
+                if (msg.type === 'commandClearPinCodeRsp'){
                     attributes.Last_successful_Pincode_Clear = Date.now();                    
                 }
             }
