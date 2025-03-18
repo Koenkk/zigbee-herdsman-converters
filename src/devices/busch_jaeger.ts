@@ -135,7 +135,7 @@ export const definitions: DefinitionWithExtend[] = [
                     "This device does not support state reporting so it is polled instead. The default poll interval is 60 seconds, set to -1 to disable.",
                 ),
         ],
-        toZigbee: [tz.RM01_light_onoff_brightness, tz.RM01_light_brightness_step, tz.RM01_light_brightness_move],
+        toZigbee: [tz.light_onoff_brightness, tz.light_brightness_step, tz.light_brightness_move],
         onEvent: (type, data, device, options) => {
             const switchEndpoint = device.getEndpoint(0x12);
             if (switchEndpoint == null) {
