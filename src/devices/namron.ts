@@ -533,7 +533,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "3802966",
         vendor: "Namron",
         description: "LED 4.8W CCT GU10",
-        extend: [m.light({colorTemp: {range: [153, 370]}})],
+        extend: [m.light({colorTemp: {range: [153, 454]}})],
     },
     {
         zigbeeModel: ["89665"],
