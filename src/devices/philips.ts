@@ -1113,7 +1113,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
-        zigbeeModel: ["LWB010"],
+        zigbeeModel: ["LWB010", "LWB014"],
         model: "8718696449691",
         vendor: "Philips",
         description: "Hue White A60 Single bulb E27/B22",
