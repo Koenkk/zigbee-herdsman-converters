@@ -1,5 +1,60 @@
 import * as m from "../lib/modernExtend";
-import type {DefinitionWithExtend} from "../lib/types";
+import type {DefinitionWithExtend, Fz, Tz} from "../lib/types";
+
+import * as fz from "../converters/fromZigbee";
+import * as tz from "../converters/toZigbee";
+import * as exposes from "../lib/exposes";
+import * as reporting from "../lib/reporting";
+
+const e = exposes.presets;
+const ea = exposes.access;
+
+const manufacturerSpecificClusterCode = 0x1224;
+const switchTypeAttribute = 0x8803;
+const dataType = 0x20;
+const valueMap: {[key: number]: string} = {
+    0: "momentary",
+    1: "toggle",
+};
+const valueLookup: {[key: string]: number} = {
+    momentary: 0,
+    toggle: 1,
+};
+
+const fzLocal = {
+    switch_type: {
+        cluster: "genBasic",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            if (Object.prototype.hasOwnProperty.call(msg.data, switchTypeAttribute)) {
+                const value = msg.data[switchTypeAttribute];
+                return {
+                    external_switch_type: valueMap[value] || "unknown",
+                    external_switch_type_numeric: value,
+                };
+            }
+            return undefined;
+        },
+    } satisfies Fz.Converter,
+};
+
+const tzLocal = {
+    switch_type: {
+        key: ["external_switch_type"],
+        convertSet: async (entity, key, value: string, meta) => {
+            const numericValue = valueLookup[value] ?? Number.parseInt(value, 10);
+            await entity.write(
+                "genBasic",
+                {[switchTypeAttribute]: {value: numericValue, type: dataType}},
+                {manufacturerCode: manufacturerSpecificClusterCode},
+            );
+            return {state: {external_switch_type: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read("genBasic", [switchTypeAttribute], {manufacturerCode: manufacturerSpecificClusterCode});
+        },
+    } satisfies Tz.Converter,
+};
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -180,10 +235,31 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.onOff({powerOnBehavior: true})],
     },
     {
-        fingerprint: [{modelID: "C203", manufacturerName: "Candeo"}],
+        fingerprint: [
+            {modelID: "C203", manufacturerName: "Candeo"},
+            {modelID: "HK-LN-DIM-A", manufacturerName: "Candeo"},
+        ],
         model: "C203",
         vendor: "Candeo",
         description: "Zigbee micro smart dimmer",
-        extend: [m.light({configureReporting: true})],
+        extend: [
+            m.light({configureReporting: true, levelConfig: {disabledFeatures: ["on_transition_time", "off_transition_time", "execute_if_off"]}}),
+        ],
+        fromZigbee: [fzLocal.switch_type, fz.ignore_genOta],
+        toZigbee: [tzLocal.switch_type],
+        exposes: [e.enum("external_switch_type", ea.ALL, ["momentary", "toggle"]).withLabel("External switch type")],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            await endpoint1.write("genOnOff", {16387: {value: 0xff, type: 0x30}});
+            await endpoint1.read("genOnOff", ["startUpOnOff"]);
+            await endpoint1.read("genLevelCtrl", ["currentLevel"]);
+            await endpoint1.write("genLevelCtrl", {17: {value: 0xff, type: 0x20}});
+            await endpoint1.read("genLevelCtrl", ["onLevel"]);
+            await endpoint1.write("genLevelCtrl", {16: {value: 0x0a, type: 0x21}});
+            await endpoint1.read("genLevelCtrl", ["onOffTransitionTime"]);
+            await endpoint1.write("genLevelCtrl", {16384: {value: 0xff, type: 0x20}});
+            await endpoint1.read("genLevelCtrl", ["startUpCurrentLevel"]);
+            await endpoint1.read("genBasic", [switchTypeAttribute], {manufacturerCode: manufacturerSpecificClusterCode});
+        },
     },
 ];
