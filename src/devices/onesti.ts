@@ -16,10 +16,10 @@ const fzLocal = {
             const attributes: KeyValue = {};
             if (msg.data.status === 0) {
                 if (msg.type === 'commandSetPinCodeRsp') {
-                    attributes.Last_successful_Pincode_Save = Date.now();
+                    attributes.last_successful_pincode_save = Date.now();
                 }
                 if (msg.type === 'commandClearPinCodeRsp'){
-                    attributes.Last_successful_Pincode_Clear = Date.now();                    
+                    attributes.last_successful_pincode_clear = Date.now();                    
                 }
             }
             if (Object.keys(attributes).length > 0) {
@@ -116,8 +116,8 @@ export const definitions: DefinitionWithExtend[] = [
             e.text("last_used_pin_code", ea.STATE).withDescription("Last used pin code"),
             e.binary("auto_relock", ea.STATE_SET, true, false).withDescription("Auto relock after 7 seconds."),
             e.pincode(),
-            e.text("Last_successful_Pincode_Clear", ea.STATE).withDescription("Last deleted Pincode"),
-            e.text("Last_successful_Pincode_Save", ea.STATE).withDescription("Last saved Pincode"),
+            e.text("last_successful_pincode_clear", ea.STATE).withDescription("Last deleted Pincode"),
+            e.text("last_successful_pincode_save", ea.STATE).withDescription("Last saved Pincode"),
 
         ],
     },
