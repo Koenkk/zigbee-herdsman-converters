@@ -9,7 +9,6 @@ const e = exposes.presets;
 const ea = exposes.access;
 
 const fzLocal = {
-
     nimly_pro_lock_actions: {
         cluster: "closuresDoorLock",
         type: ["attributeReport", "readResponse"],
@@ -101,7 +100,6 @@ export const definitions: DefinitionWithExtend[] = [
             e.pincode(),
             e.text("last_successful_pincode_clear", ea.STATE).withDescription("Last deleted Pincode"),
             e.text("last_successful_pincode_save", ea.STATE).withDescription("Last saved Pincode"),
-
         ],
     },
     {
