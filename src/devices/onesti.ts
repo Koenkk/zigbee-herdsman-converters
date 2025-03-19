@@ -9,24 +9,7 @@ const e = exposes.presets;
 const ea = exposes.access;
 
 const fzLocal = {
-    nimly_lock_commandPinCodeRsp: {
-        cluster: 'closuresDoorLock',
-        type: ['commandSetPinCodeRsp','commandClearPinCodeRsp'],
-        convert: (model, msg, publish, options, meta) => {
-            const attributes: KeyValue = {};
-            if (msg.data.status === 0) {
-                if (msg.type === 'commandSetPinCodeRsp') {
-                    attributes.last_successful_pincode_save = Date.now();
-                }
-                if (msg.type === 'commandClearPinCodeRsp'){
-                    attributes.last_successful_pincode_clear = Date.now();                    
-                }
-            }
-            if (Object.keys(attributes).length > 0) {
-                return attributes;
-            }
-        },
-    },
+
     nimly_pro_lock_actions: {
         cluster: "closuresDoorLock",
         type: ["attributeReport", "readResponse"],
@@ -83,7 +66,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Zigbee module for EasyAccess code touch series",
         fromZigbee: [
             fzLocal.nimly_pro_lock_actions,
-            fzLocal.nimly_lock_commandPinCodeRsp,
+            fz.lock_set_pin_code_response,
             fz.lock,
             fz.lock_operation_event,
             fz.battery,
