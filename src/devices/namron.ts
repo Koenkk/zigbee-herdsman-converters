@@ -624,7 +624,7 @@ export const definitions: DefinitionWithExtend[] = [
                         "0 means this function is disabled, default value is 27.",
                 ),
         ],
-        onEvent: async (type, data, device, options) => {
+        onEvent: (type, data, device, options) => {
             const endpoint = device.getEndpoint(1);
             if (type === "stop") {
                 clearInterval(globalStore.getValue(device, "time"));
@@ -1529,7 +1529,7 @@ export const definitions: DefinitionWithExtend[] = [
             namron.toZigbee.namron_edge_thermostat_holiday_temp,
             namron.toZigbee.namron_edge_thermostat_vacation_date,
         ],
-        onEvent: async (type, data, device, options) => {
+        onEvent: (type, data, device, options) => {
             if (type === "stop") {
                 try {
                     const key = "time_sync_value";

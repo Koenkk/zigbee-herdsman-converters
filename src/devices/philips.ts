@@ -161,6 +161,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
+        zigbeeModel: ["929003809501_01", "929003809501_02", "929003809501_03"],
+        model: "929003809501",
+        vendor: "Philips",
+        description: "Hue White and Color Ambiance GU10 (Centura)",
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
+    },
+    {
         zigbeeModel: ["929003045201_01", "929003045201_02", "929003045201_03"],
         model: "929003045201",
         vendor: "Philips",
@@ -686,7 +693,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light()],
     },
     {
-        zigbeeModel: ["LCT026", "7602031P7", "7602031U7", "7602031PU", "7602031J6"],
+        zigbeeModel: ["LCT026", "7602031P7", "7602031U7", "7602031PU", "7602031J6", "915005822501"],
         model: "7602031P7",
         vendor: "Philips",
         description: "Hue Go with Bluetooth",
@@ -2721,6 +2728,13 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["1744530P7", "1744630P7", "1744430P7", "1744730P7"],
         model: "8718696170625",
+        vendor: "Philips",
+        description: "Hue Fuzo outdoor wall light",
+        extend: [philips.m.light()],
+    },
+    {
+        zigbeeModel: ["PWM003"],
+        model: "915005732902",
         vendor: "Philips",
         description: "Hue Fuzo outdoor wall light",
         extend: [philips.m.light()],

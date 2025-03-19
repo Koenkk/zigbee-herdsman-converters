@@ -154,6 +154,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Smart motion sensor R1",
         ota: true,
         extend: [
+            m.iasZoneAlarm({zoneType: "occupancy", zoneAttributes: ["alarm_1"]}),
             m.battery(),
             m.deviceAddCustomCluster("3rRadarSpecialCluster", {
                 ID: 0xff01,
@@ -508,13 +509,10 @@ export const definitions: DefinitionWithExtend[] = [
                 commandsResponse: {},
             }),
             m.illuminance(),
+            m.forcePowerSource({powerSource: "Mains (single phase)"}),
         ],
         fromZigbee: [fzLocal.thirdreality_private_motion_sensor, fz.ias_occupancy_alarm_1_report],
         exposes: [e.occupancy()],
-        configure: async (device, coordinatorEndpoint) => {
-            device.powerSource = "Mains (single phase)";
-            device.save();
-        },
     },
     {
         zigbeeModel: ["3RCB01057Z"],

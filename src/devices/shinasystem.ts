@@ -42,6 +42,7 @@ const fzLocal = {
             };
         },
     } satisfies Fz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     GCM300Z_valve_status: {
         cluster: "genOnOff",
         type: ["attributeReport", "readResponse"],
@@ -165,11 +166,13 @@ const tzLocal = {
             await endpoint.write("genAnalogInput", payload);
         },
     } satisfies Tz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     GCM300Z_valve_status: {
         key: ["gas_valve_state"],
         convertSet: async (entity, key, value, meta) => {
             const lookup = {CLOSE: "off"}; // open is not supported.
             const state = utils.getFromLookup(value, lookup);
+            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             if (state !== "off") value = "CLOSE";
             else await entity.command("genOnOff", state, {}, utils.getOptions(meta.mapped, entity));
             return {state: {[key]: value}};
@@ -591,11 +594,45 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        zigbeeModel: ["SQM300ZC4"],
+        model: "SQM300ZC4",
+        vendor: "ShinaSystem",
+        ota: true,
+        description: "SiHAS remote control 4 full button",
+        fromZigbee: [fz.sihas_action],
+        extend: [m.battery()],
+        toZigbee: [],
+        exposes: [
+            e.action([
+                "1_single",
+                "1_double",
+                "1_long",
+                "2_single",
+                "2_double",
+                "2_long",
+                "3_single",
+                "3_double",
+                "3_long",
+                "4_single",
+                "4_double",
+                "4_long",
+            ]),
+        ],
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff"]);
+            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ["genOnOff"]);
+            await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ["genOnOff"]);
+            await reporting.bind(device.getEndpoint(4), coordinatorEndpoint, ["genOnOff"]);
+        },
+    },
+    {
         zigbeeModel: ["PMM-300Z1"],
         model: "PMM-300Z1",
         vendor: "ShinaSystem",
         description: "SiHAS energy monitor",
-        extend: [m.electricityMeter()],
+        extend: [m.electricityMeter({power: {cluster: "metering"}})],
     },
     {
         zigbeeModel: ["PMM-300Z2"],
@@ -603,7 +640,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "ShinaSystem",
         ota: true,
         description: "SiHAS energy monitor",
-        extend: [m.electricityMeter({acFrequency: {multiplier: 1, divisor: 10}, powerFactor: true}), m.temperature()],
+        extend: [m.electricityMeter({power: {cluster: "metering"}, acFrequency: {multiplier: 1, divisor: 10}, powerFactor: true}), m.temperature()],
     },
     {
         zigbeeModel: ["PMM-300Z3"],
@@ -611,7 +648,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "ShinaSystem",
         ota: true,
         description: "SiHAS 3phase energy monitor",
-        extend: [m.electricityMeter({acFrequency: {multiplier: 1, divisor: 10}, powerFactor: true}), m.temperature()],
+        extend: [m.electricityMeter({power: {cluster: "metering"}, acFrequency: {multiplier: 1, divisor: 10}, powerFactor: true}), m.temperature()],
     },
     {
         zigbeeModel: ["DLM-300Z"],

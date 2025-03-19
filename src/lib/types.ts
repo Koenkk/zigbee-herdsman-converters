@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-namespace */
-
 import type {Models as ZHModels} from "zigbee-herdsman";
 import type {Header as ZHZclHeader} from "zigbee-herdsman/dist/zspec/zcl";
 import type {FrameControl} from "zigbee-herdsman/dist/zspec/zcl/definition/tstype";
@@ -24,7 +22,7 @@ export interface KeyValueNumberString {
     [s: number]: string;
 }
 export interface KeyValueAny {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
     [s: string]: any;
 }
 export type Publish = (payload: KeyValue) => void;
@@ -65,6 +63,7 @@ export interface Fingerprint {
     stackVersion?: number;
     zclVersion?: number;
     ieeeAddr?: RegExp;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     endpoints?: {ID?: number; profileID?: number; deviceID?: number; inputClusters?: number[]; outputClusters?: number[]}[];
     priority?: number;
 }
@@ -80,7 +79,9 @@ export interface MockProperty {
 export interface DiscoveryEntry {
     mockProperties: MockProperty[];
     type: string;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     object_id: string;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     discovery_payload: KeyValue;
 }
 
@@ -220,7 +221,7 @@ export interface DefinitionMeta {
     noOffTransitionWhenOff?: boolean | ((entity: Zh.Endpoint) => boolean);
 }
 
-export type Configure = (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint, definition: Definition) => Promise<void>;
+export type Configure = (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint, definition: Definition) => Promise<void> | void;
 
 export interface OnEventMeta {
     deviceExposesChanged: () => void;
@@ -233,7 +234,7 @@ export type OnEvent = (
     settings: KeyValue,
     state: KeyValue,
     meta?: OnEventMeta,
-) => Promise<void>;
+) => Promise<void> | void;
 
 export interface ModernExtend {
     fromZigbee?: Definition["fromZigbee"];
@@ -276,7 +277,7 @@ type DefinitionConfig = {
     options?: Option[];
     meta?: DefinitionMeta;
     onEvent?: OnEvent;
-    ota?: true | Ota.ExtraMetas;
+    ota?: boolean | Ota.ExtraMetas;
 };
 
 type DefinitionFeatures = {
@@ -296,7 +297,7 @@ export type ExternalDefinitionWithExtend = DefinitionWithExtend & {externalConve
 
 export namespace Fz {
     export interface Message {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        // biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
         data: any;
         endpoint: Zh.Endpoint;
         device: Zh.Device;
@@ -326,17 +327,18 @@ export namespace Tz {
         mapped: Definition | Definition[];
         options: KeyValue;
         state: KeyValue;
+        // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
         endpoint_name: string | undefined;
         membersState?: {[s: string]: KeyValue};
         publish: Publish;
     }
-    // biome-ignore lint/suspicious/noConfusingVoidType: allow for converters
+    // biome-ignore lint/suspicious/noConfusingVoidType: ignored using `--suppress`
     export type ConvertSetResult = {state?: KeyValue; membersState?: {[s: string]: KeyValue}} | void;
     export interface Converter {
         key?: string[];
         options?: Option[] | ((definition: Definition) => Option[]);
         endpoints?: string[];
-        convertSet?: (entity: Zh.Endpoint | Zh.Group, key: string, value: unknown, meta: Tz.Meta) => Promise<ConvertSetResult>;
+        convertSet?: (entity: Zh.Endpoint | Zh.Group, key: string, value: unknown, meta: Tz.Meta) => Promise<ConvertSetResult> | ConvertSetResult;
         convertGet?: (entity: Zh.Endpoint | Zh.Group, key: string, meta: Tz.Meta) => Promise<void>;
     }
 }

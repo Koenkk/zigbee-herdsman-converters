@@ -33,6 +33,7 @@ const fzLocal = {
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             // @ts-expect-error ignore
+            // biome-ignore lint/performance/noDelete: ignored using `--suppress`
             delete msg.running_state;
             const result: KeyValue = {};
             const occupancyLookup = {0: "unoccupied", 1: "occupied"};
@@ -51,11 +52,11 @@ const fzLocal = {
                 result.main_cycle_output = utils.getFromLookup(msg.data.SinopeMainCycleOutput, cycleOutputLookup);
             }
             if (msg.data["1026"] !== undefined) {
-                const lookup = {0: "on_demand", 1: "sensing"};
+                const lookup = {0: "on_demand", 1: "sensing", 2: "off"};
                 result.backlight_auto_dim = utils.getFromLookup(msg.data["1026"], lookup);
             }
             if (msg.data.SinopeBacklight !== undefined) {
-                const lookup = {0: "on_demand", 1: "sensing"};
+                const lookup = {0: "on_demand", 1: "sensing", 2: "off"};
                 result.backlight_auto_dim = utils.getFromLookup(msg.data.SinopeBacklight, lookup);
             }
             if (msg.data["1028"] !== undefined) {
@@ -262,7 +263,7 @@ const tzLocal = {
     backlight_autodim: {
         key: ["backlight_auto_dim"],
         convertSet: async (entity, key, value, meta) => {
-            const sinopeBacklightParam = {0: "on_demand", 1: "sensing"};
+            const sinopeBacklightParam = {0: "on_demand", 1: "sensing", 2: "off"};
             const SinopeBacklight = utils.getKey(sinopeBacklightParam, value, value, Number);
             await entity.write("hvacThermostat", {SinopeBacklight}, manuSinope);
             return {state: {backlight_auto_dim: value}};
@@ -370,6 +371,7 @@ const tzLocal = {
                 return;
             }
             const lookup = {ambiant: 1, floor: 2};
+            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             value = value.toLowerCase();
             // @ts-expect-error ignore
             if (lookup[value] !== undefined) {
@@ -434,6 +436,7 @@ const tzLocal = {
                 return;
             }
             const lookup = {"10k": 0, "12k": 1};
+            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             value = value.toLowerCase();
             // @ts-expect-error ignore
             if (lookup[value] !== undefined) {
@@ -861,7 +864,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .enum("temperature_display_mode", ea.ALL, ["celsius", "fahrenheit"])
                 .withDescription("The temperature format displayed on the thermostat screen"),
             e.enum("time_format", ea.ALL, ["24h", "12h"]).withDescription("The time format featured on the thermostat display"),
-            e.enum("backlight_auto_dim", ea.ALL, ["on_demand", "sensing"]).withDescription("Control backlight dimming behavior"),
+            e.enum("backlight_auto_dim", ea.ALL, ["on_demand", "sensing", "off"]).withDescription("Control backlight dimming behavior"),
             e.enum("keypad_lockout", ea.ALL, ["unlock", "lock1"]).withDescription("Enables or disables the device’s buttons"),
             e.enum("main_cycle_output", ea.ALL, ["15_sec", "15_min"]).withDescription("The length of the control cycle: 15_sec=normal 15_min=fan"),
         ],
@@ -972,7 +975,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .enum("temperature_display_mode", ea.ALL, ["celsius", "fahrenheit"])
                 .withDescription("The temperature format displayed on the thermostat screen"),
             e.enum("time_format", ea.ALL, ["24h", "12h"]).withDescription("The time format featured on the thermostat display"),
-            e.enum("backlight_auto_dim", ea.ALL, ["on_demand", "sensing"]).withDescription("Control backlight dimming behavior"),
+            e.enum("backlight_auto_dim", ea.ALL, ["on_demand", "sensing", "off"]).withDescription("Control backlight dimming behavior"),
             e.enum("keypad_lockout", ea.ALL, ["unlock", "lock1"]).withDescription("Enables or disables the device’s buttons"),
             e.enum("main_cycle_output", ea.ALL, ["15_sec", "15_min"]).withDescription("The length of the control cycle: 15_sec=normal 15_min=fan"),
         ],

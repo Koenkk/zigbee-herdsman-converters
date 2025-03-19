@@ -36,6 +36,10 @@ const fzLocal = {
     } satisfies Fz.Converter,
 };
 
+type EntityCategoryArgs = {
+    entityCategory?: "config" | "diagnostic";
+};
+
 const sonoffExtend = {
     addCustomClusterEwelink: () =>
         m.deviceAddCustomCluster("customClusterEwelink", {
@@ -63,10 +67,12 @@ const sonoffExtend = {
             },
             commandsResponse: {},
         }),
-    inchingControlSet: (): ModernExtend => {
+    inchingControlSet: (args: EntityCategoryArgs = {}): ModernExtend => {
+        const {entityCategory} = args;
+
         const clusterName = "customClusterEwelink";
         const commandName = "protocolData";
-        const exposes = e
+        let exposes = e
             .composite("inching_control_set", "inching_control_set", ea.SET)
             .withDescription(
                 "Device Inching function Settings. The device will automatically turn off (turn on) " +
@@ -83,6 +89,9 @@ const sonoffExtend = {
                     .withValueStep(0.5),
             )
             .withFeature(e.binary("inching_mode", ea.SET, "ON", "OFF").withDescription("Set inching off or inching on mode.").withValueToggle("ON"));
+
+        if (entityCategory) exposes = exposes.withCategory(entityCategory);
+
         const fromZigbee: Fz.Converter[] = [];
         const toZigbee: Tz.Converter[] = [
             {
@@ -482,16 +491,20 @@ const sonoffExtend = {
             isModernExtend: true,
         };
     },
-    externalSwitchTriggerMode: (): ModernExtend => {
+    externalSwitchTriggerMode: (args: EntityCategoryArgs = {}): ModernExtend => {
+        const {entityCategory} = args;
+
         const clusterName = "customClusterEwelink";
         const attributeName = "externalTriggerMode";
-        const exposes = e
+        let exposes = e
             .enum("external_trigger_mode", ea.ALL, ["edge", "pulse", "following(off)", "following(on)"])
             .withDescription(
                 "External trigger mode, which can be one of edge, pulse, " +
                     "following(off), following(on). The appropriate triggering mode can be selected according to the type of " +
                     "external switch to achieve a better use experience.",
             );
+        if (entityCategory) exposes = exposes.withCategory(entityCategory);
+
         const fromZigbee: Fz.Converter[] = [
             {
                 cluster: clusterName,
@@ -518,6 +531,7 @@ const sonoffExtend = {
                 key: ["external_trigger_mode"],
                 convertSet: async (entity, key, value, meta) => {
                     utils.assertString(value, key);
+                    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
                     value = value.toLowerCase();
                     const lookup = {edge: 0, pulse: 1, "following(off)": 2, "following(on)": 130};
                     const tmpValue = utils.getFromLookup(value, lookup);
@@ -869,6 +883,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SNZB-02D",
         vendor: "SONOFF",
         description: "Temperature and humidity sensor with screen",
+        ota: true,
         extend: [
             m.deviceAddCustomCluster("customSonoffSnzb02d", {
                 ID: 0xfc11,
@@ -1053,10 +1068,7 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.linkquality_from_basic, fzLocal.router_config],
         toZigbee: [],
         exposes: [e.numeric("light_indicator_level", ea.STATE).withDescription("Brightness of the indicator light").withAccess(ea.STATE)],
-        configure: async (device, coordinatorEndpoint) => {
-            device.powerSource = "Mains (single phase)";
-            device.save();
-        },
+        extend: [m.forcePowerSource({powerSource: "Mains (single phase)"})],
     },
     {
         zigbeeModel: ["ZBCurtain"],
@@ -1235,6 +1247,7 @@ export const definitions: DefinitionWithExtend[] = [
                     valveMotorRunningVoltage: {ID: 0x6007, type: Zcl.DataType.UINT16},
                     valveOpeningDegree: {ID: 0x600b, type: Zcl.DataType.UINT8},
                     valveClosingDegree: {ID: 0x600c, type: Zcl.DataType.UINT8},
+                    tempAccuracy: {ID: 0x6011, type: Zcl.DataType.INT16},
                     externalTemperatureInput: {
                         ID: 0x600d,
                         type: Zcl.DataType.INT16,
@@ -1375,6 +1388,24 @@ export const definitions: DefinitionWithExtend[] = [
                 valueStep: 1.0,
                 unit: "%",
             }),
+            m.numeric({
+                name: "temperature_accuracy",
+                cluster: "customSonoffTrvzb",
+                attribute: "tempAccuracy",
+                entityCategory: "config",
+                description:
+                    "Temperature control accuracy. " +
+                    "The range is -0.2 ~ -1°C, with an interval of 0.2, and the default is -1. " +
+                    "If the temperature control accuracy is selected as -1°C (default value) and the target temperature is 26 degrees, " +
+                    "then TRVZB will close the valve when the room temperature reaches 26 degrees and open the valve at 25 degrees. " +
+                    "If -0.4°C is chosen as the temperature control accuracy, then the valve will close when the room temperature reaches 26 degrees and open at 25.6 degrees." +
+                    "Note: Only version v1.3.0 or higher is supported.",
+                valueMin: -1.0,
+                valueMax: -0.2,
+                valueStep: 0.2,
+                unit: "°C",
+                scale: 100,
+            }),
             sonoffExtend.weeklySchedule(),
             m.customTimeResponse("1970_UTC"),
         ],
@@ -1489,6 +1520,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "customClusterEwelink",
                 attribute: "networkLed",
                 description: "Network indicator Settings, turn off/turn on the online network indicator.",
+                entityCategory: "config",
                 valueOff: [false, 0],
                 valueOn: [true, 1],
             }),
@@ -1497,6 +1529,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "customClusterEwelink",
                 attribute: "radioPower",
                 description: "Enable/disable Radio power turbo mode",
+                entityCategory: "config",
                 valueOff: [false, 0x09],
                 valueOn: [true, 0x14],
             }),
@@ -1505,6 +1538,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "customClusterEwelink",
                 attribute: "delayedPowerOnState",
                 description: "Delayed Power-on State",
+                entityCategory: "config",
                 valueOff: [false, 0],
                 valueOn: [true, 1],
             }),
@@ -1513,6 +1547,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "customClusterEwelink",
                 attribute: "delayedPowerOnTime",
                 description: "Delayed Power-on time",
+                entityCategory: "config",
                 valueMin: 0.5,
                 valueMax: 3599.5,
                 valueStep: 0.5,
@@ -1524,11 +1559,12 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "customClusterEwelink",
                 attribute: "detachRelayMode",
                 description: "Enable/Disable detach relay mode",
+                entityCategory: "config",
                 valueOff: [false, 0],
                 valueOn: [true, 1],
             }),
-            sonoffExtend.externalSwitchTriggerMode(),
-            sonoffExtend.inchingControlSet(),
+            sonoffExtend.externalSwitchTriggerMode({entityCategory: "config"}),
+            sonoffExtend.inchingControlSet({entityCategory: "config"}),
         ],
         ota: true,
         configure: async (device, coordinatorEndpoint) => {

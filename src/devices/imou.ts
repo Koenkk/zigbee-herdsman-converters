@@ -22,4 +22,11 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         meta: {disableDefaultResponse: true},
     },
+    {
+        zigbeeModel: ["ZD1-EN"],
+        model: "ZD1-EN",
+        vendor: "IMOU",
+        description: "Door & window sensor",
+        extend: [m.iasZoneAlarm({zoneType: "alarm", zoneAttributes: ["alarm_1", "tamper", "battery_low"]}), m.battery()],
+    },
 ];

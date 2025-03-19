@@ -732,7 +732,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Signal booster",
         toZigbee: [],
         fromZigbee: [fz.linkquality_from_basic],
-        onEvent: async (type, data, device) => {
+        onEvent: (type, data, device) => {
             if (type === "stop") {
                 clearInterval(globalStore.getValue(device, "interval"));
                 globalStore.clearValue(device, "interval");
