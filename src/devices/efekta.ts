@@ -4770,7 +4770,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.identify(),
             m.soilMoisture({
                 reporting: soilMoistureReporting,
-				access: "STATE",
+                access: "STATE",
             }),
             m.battery({
                 percentage: true,
@@ -4783,13 +4783,13 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.temperature({
                 reporting: slowReporting,
-				access: "STATE",
-			}),
+                access: "STATE",
+            }),
             m.humidity({
                 reporting: slow2Reporting,
-				access: "STATE",
-			}),
-			m.numeric({
+                access: "STATE",
+            }),
+            m.numeric({
                 name: "reading_interval",
                 unit: "sec",
                 valueMin: 1,
@@ -4808,7 +4808,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Enable Smart Sleep, short wakeup every 7 seconds",
                 access: "STATE_SET",
             }),
-			m.enumLookup({
+            m.enumLookup({
                 name: "tx_radio_power",
                 lookup: {"0dbm": 0, "4dbm": 4},
                 cluster: "genPowerCfg",
@@ -4816,7 +4816,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Set TX Radio Power, dbm",
                 access: "STATE_SET",
             }),
-			m.numeric({
+            m.numeric({
                 name: "uptime",
                 unit: "Hours",
                 cluster: "genTime",
@@ -4826,27 +4826,27 @@ export const definitions: DefinitionWithExtend[] = [
                 precision: 1,
                 access: "STATE",
             }),
-			m.numeric({
+            m.numeric({
                 name: "lower_level",
                 unit: "%",
-				valueMin: 0,
+                valueMin: 0,
                 valueMax: 99,
                 cluster: "msSoilMoisture",
                 attribute: {ID: 0x0502, type: Zcl.DataType.UINT16},
                 description: "Lower level of soil moisture 0% is:",
                 access: "STATE_SET",
             }),
-			m.numeric({
+            m.numeric({
                 name: "upper_level",
                 unit: "%",
-				valueMin: 1,
+                valueMin: 1,
                 valueMax: 100,
                 cluster: "msSoilMoisture",
                 attribute: {ID: 0x0503, type: Zcl.DataType.UINT16},
                 description: "Upper level of soil moisture 100% is:",
                 access: "STATE_SET",
             }),
-			m.numeric({
+            m.numeric({
                 name: "temperature_offset",
                 unit: "°C",
                 valueMin: -50,
@@ -4858,7 +4858,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Adjust temperature",
                 access: "STATE_SET",
             }),
-			m.binary({
+            m.binary({
                 name: "temperature_compensation",
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
@@ -4869,7 +4869,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
         ],
     },
-	{
+    {
         zigbeeModel: ["zFlora_S_Max"],
         model: "zFlora_S_Max",
         vendor: "EFEKTA",
@@ -4878,7 +4878,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.identify(),
             m.soilMoisture({
                 reporting: soilMoistureReporting,
-				access: "STATE",
+                access: "STATE",
             }),
             m.battery({
                 percentage: true,
@@ -4891,17 +4891,17 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.temperature({
                 reporting: slowReporting,
-				access: "STATE",
-			}),
+                access: "STATE",
+            }),
             m.humidity({
                 reporting: slow2Reporting,
-				access: "STATE",
-			}),
-			m.illuminance({
+                access: "STATE",
+            }),
+            m.illuminance({
                 reporting: slowReporting,
                 access: "STATE",
             }),
-			m.numeric({
+            m.numeric({
                 name: "reading_interval",
                 unit: "sec",
                 valueMin: 1,
@@ -4920,7 +4920,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Enable Smart Sleep, short wakeup every 7 seconds",
                 access: "STATE_SET",
             }),
-			m.enumLookup({
+            m.enumLookup({
                 name: "tx_radio_power",
                 lookup: {"0dbm": 0, "4dbm": 4},
                 cluster: "genPowerCfg",
@@ -4928,7 +4928,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Set TX Radio Power, dbm",
                 access: "STATE_SET",
             }),
-			m.numeric({
+            m.numeric({
                 name: "uptime",
                 unit: "Hours",
                 cluster: "genTime",
@@ -4938,27 +4938,27 @@ export const definitions: DefinitionWithExtend[] = [
                 precision: 1,
                 access: "STATE",
             }),
-			m.numeric({
+            m.numeric({
                 name: "lower_level",
                 unit: "%",
-				valueMin: 0,
+                valueMin: 0,
                 valueMax: 99,
                 cluster: "msSoilMoisture",
                 attribute: {ID: 0x0502, type: Zcl.DataType.UINT16},
                 description: "Lower level of soil moisture 0% is:",
                 access: "STATE_SET",
             }),
-			m.numeric({
+            m.numeric({
                 name: "upper_level",
                 unit: "%",
-				valueMin: 1,
+                valueMin: 1,
                 valueMax: 100,
                 cluster: "msSoilMoisture",
                 attribute: {ID: 0x0503, type: Zcl.DataType.UINT16},
                 description: "Upper level of soil moisture 100% is:",
                 access: "STATE_SET",
             }),
-			m.numeric({
+            m.numeric({
                 name: "temperature_offset",
                 unit: "°C",
                 valueMin: -50,
@@ -4970,7 +4970,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Adjust temperature",
                 access: "STATE_SET",
             }),
-			m.binary({
+            m.binary({
                 name: "temperature_compensation",
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
@@ -4981,7 +4981,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
         ],
     },
-	{
+    {
         zigbeeModel: ["zFlora_Pro"],
         model: "zFlora_Pro",
         vendor: "EFEKTA",
@@ -4990,7 +4990,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.identify(),
             m.soilMoisture({
                 reporting: soilMoistureReporting,
-				access: "STATE",
+                access: "STATE",
             }),
             m.battery({
                 percentage: true,
@@ -5003,17 +5003,17 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.temperature({
                 reporting: slowReporting,
-				access: "STATE",
-			}),
+                access: "STATE",
+            }),
             m.humidity({
                 reporting: slow2Reporting,
-				access: "STATE",
-			}),
-			m.illuminance({
+                access: "STATE",
+            }),
+            m.illuminance({
                 reporting: slowReporting,
                 access: "STATE",
             }),
-			m.numeric({
+            m.numeric({
                 name: "reading_interval",
                 unit: "sec",
                 valueMin: 1,
@@ -5032,7 +5032,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Enable Smart Sleep, short wakeup every 7 seconds",
                 access: "STATE_SET",
             }),
-			m.enumLookup({
+            m.enumLookup({
                 name: "tx_radio_power",
                 lookup: {"0dbm": 0, "4dbm": 4},
                 cluster: "genPowerCfg",
@@ -5040,7 +5040,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Set TX Radio Power, dbm",
                 access: "STATE_SET",
             }),
-			m.numeric({
+            m.numeric({
                 name: "uptime",
                 unit: "Hours",
                 cluster: "genTime",
@@ -5050,27 +5050,27 @@ export const definitions: DefinitionWithExtend[] = [
                 precision: 1,
                 access: "STATE",
             }),
-			m.numeric({
+            m.numeric({
                 name: "lower_level",
                 unit: "%",
-				valueMin: 0,
+                valueMin: 0,
                 valueMax: 99,
                 cluster: "msSoilMoisture",
                 attribute: {ID: 0x0502, type: Zcl.DataType.UINT16},
                 description: "Lower level of soil moisture 0% is:",
                 access: "STATE_SET",
             }),
-			m.numeric({
+            m.numeric({
                 name: "upper_level",
                 unit: "%",
-				valueMin: 1,
+                valueMin: 1,
                 valueMax: 100,
                 cluster: "msSoilMoisture",
                 attribute: {ID: 0x0503, type: Zcl.DataType.UINT16},
                 description: "Upper level of soil moisture 100% is:",
                 access: "STATE_SET",
             }),
-			m.numeric({
+            m.numeric({
                 name: "temperature_offset",
                 unit: "°C",
                 valueMin: -50,
@@ -5082,7 +5082,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Adjust temperature",
                 access: "STATE_SET",
             }),
-			m.binary({
+            m.binary({
                 name: "temperature_compensation",
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
@@ -5093,7 +5093,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
         ],
     },
-	{
+    {
         zigbeeModel: ["zFlora_ProMax"],
         model: "zFlora_ProMax",
         vendor: "EFEKTA",
@@ -5102,7 +5102,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.identify(),
             m.soilMoisture({
                 reporting: soilMoistureReporting,
-				access: "STATE",
+                access: "STATE",
             }),
             m.battery({
                 percentage: true,
@@ -5115,17 +5115,17 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.temperature({
                 reporting: slowReporting,
-				access: "STATE",
-			}),
+                access: "STATE",
+            }),
             m.humidity({
                 reporting: slow2Reporting,
-				access: "STATE",
-			}),
-			m.illuminance({
+                access: "STATE",
+            }),
+            m.illuminance({
                 reporting: slowReporting,
                 access: "STATE",
             }),
-			m.numeric({
+            m.numeric({
                 name: "reading_interval",
                 unit: "sec",
                 valueMin: 1,
@@ -5144,7 +5144,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Enable Smart Sleep, short wakeup every 7 seconds",
                 access: "STATE_SET",
             }),
-			m.enumLookup({
+            m.enumLookup({
                 name: "tx_radio_power",
                 lookup: {"4dbm": 4, "19dbm": 19},
                 cluster: "genPowerCfg",
@@ -5152,7 +5152,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Set TX Radio Power, dbm",
                 access: "STATE_SET",
             }),
-			m.numeric({
+            m.numeric({
                 name: "uptime",
                 unit: "Hours",
                 cluster: "genTime",
@@ -5162,27 +5162,27 @@ export const definitions: DefinitionWithExtend[] = [
                 precision: 1,
                 access: "STATE",
             }),
-			m.numeric({
+            m.numeric({
                 name: "lower_level",
                 unit: "%",
-				valueMin: 0,
+                valueMin: 0,
                 valueMax: 99,
                 cluster: "msSoilMoisture",
                 attribute: {ID: 0x0502, type: Zcl.DataType.UINT16},
                 description: "Lower level of soil moisture 0% is:",
                 access: "STATE_SET",
             }),
-			m.numeric({
+            m.numeric({
                 name: "upper_level",
                 unit: "%",
-				valueMin: 1,
+                valueMin: 1,
                 valueMax: 100,
                 cluster: "msSoilMoisture",
                 attribute: {ID: 0x0503, type: Zcl.DataType.UINT16},
                 description: "Upper level of soil moisture 100% is:",
                 access: "STATE_SET",
             }),
-			m.numeric({
+            m.numeric({
                 name: "temperature_offset",
                 unit: "°C",
                 valueMin: -50,
@@ -5194,7 +5194,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Adjust temperature",
                 access: "STATE_SET",
             }),
-			m.binary({
+            m.binary({
                 name: "temperature_compensation",
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
