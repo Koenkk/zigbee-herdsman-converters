@@ -1,5 +1,29 @@
 # Changelog
 
+## [23.9.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.9.0...v23.9.1) (2025-03-18)
+
+
+### Bug Fixes
+
+* **ignore:** fix provenance ([f5fbb3f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f5fbb3fff56fa0c84f9319a292ccd97961d454b7))
+
+## [23.9.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.8.0...v23.9.0) (2025-03-18)
+
+
+### Features
+
+* **add:** 07504L ([#9005](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9005)) ([66072f4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/66072f484fbb7076789c900b23bf392d9295b88f))
+* **add:** GWA1502 ([#9009](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9009)) ([c02c960](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c02c960d35b4d48788e0be26fd2c33df6eabb1dd))
+* Cando C203: improve support ([#8907](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8907)) ([23d5ee6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/23d5ee680b17eafcaa044916fa7046ed4a8a4268))
+
+
+### Bug Fixes
+
+* Fixes for PST POW v2 and PST POW DUO v2 ([#9010](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9010)) ([8a206dc](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8a206dc5feeb180928a9db609c6513572547fcd0))
+* Third Reality 3RSMR01067Z: expose `occupancy` ([#8925](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8925)) ([efee803](https://github.com/Koenkk/zigbee-herdsman-converters/commit/efee8037ae11c14ed06f718d00725e1c8b1ea21a))
+* Tuya 2CT: expose `power` ([#9014](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9014)) ([00b6a08](https://github.com/Koenkk/zigbee-herdsman-converters/commit/00b6a08be4b2d0c88f9ef1b34f786a5383edcadf))
+* Tuya TS0726_4_gang_switch_and_2_scene: support backlight ([#9013](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9013)) ([38d5a49](https://github.com/Koenkk/zigbee-herdsman-converters/commit/38d5a4921b6509409bac2c95bed26312dba181f8))
+
 ## [23.8.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.7.0...v23.8.0) (2025-03-16)
 
 

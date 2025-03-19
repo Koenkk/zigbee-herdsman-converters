@@ -7524,13 +7524,14 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: tuya.fingerprint("TS0726", ["_TZ3000_qhyadm57"]),
         model: "TS0726_4_gang_switch_and_2_scene",
         vendor: "Tuya",
-        description: "4 gang switch and 2 scene",
+        description: "4 gang switch and 2 scene with backlight",
         fromZigbee: [fz.on_off, tuya.fz.power_on_behavior_2, fz.ignore_basic_report, fzLocal.TS0726_action],
-        toZigbee: [tz.on_off, tuya.tz.power_on_behavior_2, tzLocal.TS0726_switch_mode],
+        toZigbee: [tz.on_off, tuya.tz.power_on_behavior_2, tzLocal.TS0726_switch_mode, tuya.tz.backlight_indicator_mode_2],
         exposes: [
             ...[1, 2, 3, 4].map((ep) => e.switch().withEndpoint(`l${ep}`)),
             ...[1, 2, 3, 4].map((ep) => e.power_on_behavior().withEndpoint(`l${ep}`)),
             ...[1, 2, 3, 4].map((ep) => e.enum("switch_mode", ea.STATE_SET, ["switch", "scene"]).withEndpoint(`l${ep}`)),
+            tuya.exposes.backlightModeOffOn().withAccess(ea.STATE_SET),
             e.action(["scene_1", "scene_2", "scene_3", "scene_4", "scene_5", "scene_6"]),
         ],
         endpoint: (device) => {
@@ -10912,6 +10913,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [
             e.ac_frequency(),
             e.voltage(),
+            e.power(),
             tuya.exposes.powerWithPhase("a"),
             tuya.exposes.powerWithPhase("b"),
             tuya.exposes.currentWithPhase("a"),
