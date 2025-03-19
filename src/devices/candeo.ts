@@ -58,15 +58,11 @@ const tzLocal = {
 
 export const definitions: DefinitionWithExtend[] = [
     {
-        fingerprint: [
-            {modelID: "C205", manufacturerName: "Candeo"},
-        ],
+        fingerprint: [{modelID: "C205", manufacturerName: "Candeo"}],
         model: "C205",
         vendor: "Candeo",
         description: "Zigbee switch module",
-        extend: [
-            m.onOff()
-        ],
+        extend: [m.onOff()],
         fromZigbee: [fzLocal.switch_type, fz.ignore_genOta],
         toZigbee: [tzLocal.switch_type],
         exposes: [e.enum("external_switch_type", ea.ALL, ["momentary", "toggle"]).withLabel("External switch type")],
@@ -96,15 +92,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.light({configureReporting: true})],
     },
     {
-        fingerprint: [
-            {modelID: "C204", manufacturerName: "Candeo"},
-        ],
+        fingerprint: [{modelID: "C204", manufacturerName: "Candeo"}],
         model: "C204",
         vendor: "Candeo",
         description: "Zigbee micro smart dimmer",
         extend: [
             m.light({configureReporting: true, levelConfig: {disabledFeatures: ["on_transition_time", "off_transition_time", "execute_if_off"]}}),
-            m.electricityMeter()
+            m.electricityMeter(),
         ],
         fromZigbee: [fzLocal.switch_type, fz.ignore_genOta],
         toZigbee: [tzLocal.switch_type],
@@ -123,15 +117,13 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [
-            {modelID: "C-ZB-DM204", manufacturerName: "Candeo"},
-        ],
+        fingerprint: [{modelID: "C-ZB-DM204", manufacturerName: "Candeo"}],
         model: "C-ZB-DM204",
         vendor: "Candeo",
         description: "Zigbee micro smart dimmer",
         extend: [
             m.light({configureReporting: true, levelConfig: {disabledFeatures: ["on_transition_time", "off_transition_time", "execute_if_off"]}}),
-            m.electricityMeter()
+            m.electricityMeter(),
         ],
         fromZigbee: [fzLocal.switch_type, fz.ignore_genOta],
         toZigbee: [tzLocal.switch_type],
@@ -285,12 +277,12 @@ export const definitions: DefinitionWithExtend[] = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             const endpoint2 = device.getEndpoint(2);
-            await endpoint1.write('genOnOff', {16387: {value: 0xff, type: 0x30}});
-            await endpoint1.read('genOnOff', [16387]);
-            await endpoint2.write('genOnOff', {16387: {value: 0xff, type: 0x30}});
-            await endpoint2.read('genOnOff', [16387]);
+            await endpoint1.write("genOnOff", {16387: {value: 0xff, type: 0x30}});
+            await endpoint1.read("genOnOff", [16387]);
+            await endpoint2.write("genOnOff", {16387: {value: 0xff, type: 0x30}});
+            await endpoint2.read("genOnOff", [16387]);
             const endpoint11 = device.getEndpoint(11);
-            await endpoint11.read('genBasic', [switchTypeAttribute], { manufacturerCode: manufacturerSpecificClusterCode });
+            await endpoint11.read("genBasic", [switchTypeAttribute], {manufacturerCode: manufacturerSpecificClusterCode});
         },
     },
     {
