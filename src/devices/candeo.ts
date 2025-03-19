@@ -58,11 +58,24 @@ const tzLocal = {
 
 export const definitions: DefinitionWithExtend[] = [
     {
-        zigbeeModel: ["C205"],
+        fingerprint: [
+            {modelID: "C205", manufacturerName: "Candeo"},
+        ],
         model: "C205",
         vendor: "Candeo",
-        description: "Switch module",
-        extend: [m.onOff({powerOnBehavior: false})],
+        description: "Zigbee switch module",
+        extend: [
+            m.onOff()
+        ],
+        fromZigbee: [fzLocal.switch_type, fz.ignore_genOta],
+        toZigbee: [tzLocal.switch_type],
+        exposes: [e.enum("external_switch_type", ea.ALL, ["momentary", "toggle"]).withLabel("External switch type")],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            await endpoint1.write("genOnOff", {16387: {value: 0xff, type: 0x30}});
+            await endpoint1.read("genOnOff", ["startUpOnOff"]);
+            await endpoint1.read("genBasic", [switchTypeAttribute], {manufacturerCode: manufacturerSpecificClusterCode});
+        },
     },
     {
         zigbeeModel: ["HK-DIM-A", "Candeo Zigbee Dimmer", "HK_DIM_A"],
@@ -83,18 +96,58 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.light({configureReporting: true})],
     },
     {
-        zigbeeModel: ["C204"],
+        fingerprint: [
+            {modelID: "C204", manufacturerName: "Candeo"},
+        ],
         model: "C204",
         vendor: "Candeo",
         description: "Zigbee micro smart dimmer",
-        extend: [m.light({configureReporting: true}), m.electricityMeter()],
+        extend: [
+            m.light({configureReporting: true, levelConfig: {disabledFeatures: ["on_transition_time", "off_transition_time", "execute_if_off"]}}),
+            m.electricityMeter()
+        ],
+        fromZigbee: [fzLocal.switch_type, fz.ignore_genOta],
+        toZigbee: [tzLocal.switch_type],
+        exposes: [e.enum("external_switch_type", ea.ALL, ["momentary", "toggle"]).withLabel("External switch type")],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            await endpoint1.write("genOnOff", {16387: {value: 0xff, type: 0x30}});
+            await endpoint1.read("genOnOff", ["startUpOnOff"]);
+            await endpoint1.write("genLevelCtrl", {17: {value: 0xff, type: 0x20}});
+            await endpoint1.read("genLevelCtrl", ["onLevel"]);
+            await endpoint1.write("genLevelCtrl", {16: {value: 0x0a, type: 0x21}});
+            await endpoint1.read("genLevelCtrl", ["onOffTransitionTime"]);
+            await endpoint1.write("genLevelCtrl", {16384: {value: 0xff, type: 0x20}});
+            await endpoint1.read("genLevelCtrl", ["startUpCurrentLevel"]);
+            await endpoint1.read("genBasic", [switchTypeAttribute], {manufacturerCode: manufacturerSpecificClusterCode});
+        },
     },
     {
-        zigbeeModel: ["C-ZB-DM204"],
+        fingerprint: [
+            {modelID: "C-ZB-DM204", manufacturerName: "Candeo"},
+        ],
         model: "C-ZB-DM204",
         vendor: "Candeo",
         description: "Zigbee micro smart dimmer",
-        extend: [m.light({configureReporting: true}), m.electricityMeter()],
+        extend: [
+            m.light({configureReporting: true, levelConfig: {disabledFeatures: ["on_transition_time", "off_transition_time", "execute_if_off"]}}),
+            m.electricityMeter()
+        ],
+        fromZigbee: [fzLocal.switch_type, fz.ignore_genOta],
+        toZigbee: [tzLocal.switch_type],
+        exposes: [e.enum("external_switch_type", ea.ALL, ["momentary", "toggle"]).withLabel("External switch type")],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            await endpoint1.write("genOnOff", {16387: {value: 0xff, type: 0x30}});
+            await endpoint1.read("genOnOff", ["startUpOnOff"]);
+            await endpoint1.write("genLevelCtrl", {17: {value: 0xff, type: 0x20}});
+            await endpoint1.read("genLevelCtrl", ["onLevel"]);
+            await endpoint1.write("genLevelCtrl", {16: {value: 0x0a, type: 0x21}});
+            await endpoint1.read("genLevelCtrl", ["onOffTransitionTime"]);
+            await endpoint1.write("genLevelCtrl", {16384: {value: 0xff, type: 0x20}});
+            await endpoint1.read("genLevelCtrl", ["startUpCurrentLevel"]);
+            await endpoint1.read("genBasic", [switchTypeAttribute], {manufacturerCode: manufacturerSpecificClusterCode});
+        },
     },
     {
         zigbeeModel: ["C202"],
@@ -219,13 +272,26 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Smart 2 gang switch module",
         extend: [
             m.deviceEndpoints({
-                endpoints: {l1: 1, l2: 2},
+                endpoints: {l1: 1, l2: 2, e11: 11},
                 multiEndpointSkip: ["power", "current", "voltage", "energy"],
             }),
             m.onOff({endpointNames: ["l1", "l2"]}),
             m.electricityMeter(),
         ],
+        fromZigbee: [fzLocal.switch_type, fz.ignore_genOta],
+        toZigbee: [tzLocal.switch_type],
+        exposes: [e.enum("external_switch_type", ea.ALL, ["momentary", "toggle"]).withLabel("External switch type").withEndpoint("e11")],
         meta: {},
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            const endpoint2 = device.getEndpoint(2);
+            await endpoint1.write('genOnOff', {16387: {value: 0xff, type: 0x30}});
+            await endpoint1.read('genOnOff', [16387]);
+            await endpoint2.write('genOnOff', {16387: {value: 0xff, type: 0x30}});
+            await endpoint2.read('genOnOff', [16387]);
+            const endpoint11 = device.getEndpoint(11);
+            await endpoint11.read('genBasic', [switchTypeAttribute], { manufacturerCode: manufacturerSpecificClusterCode });
+        },
     },
     {
         fingerprint: [{modelID: "C-RFZB-SM1"}],
@@ -252,7 +318,6 @@ export const definitions: DefinitionWithExtend[] = [
             const endpoint1 = device.getEndpoint(1);
             await endpoint1.write("genOnOff", {16387: {value: 0xff, type: 0x30}});
             await endpoint1.read("genOnOff", ["startUpOnOff"]);
-            await endpoint1.read("genLevelCtrl", ["currentLevel"]);
             await endpoint1.write("genLevelCtrl", {17: {value: 0xff, type: 0x20}});
             await endpoint1.read("genLevelCtrl", ["onLevel"]);
             await endpoint1.write("genLevelCtrl", {16: {value: 0x0a, type: 0x21}});
