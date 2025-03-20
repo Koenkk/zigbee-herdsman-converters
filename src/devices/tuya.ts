@@ -4622,7 +4622,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_r0jdjrvi", "_TZE200_g5xqosu7", "_TZE204_g5xqosu7", "_TZE284_fzo2pocs"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_r0jdjrvi", "_TZE200_g5xqosu7", "_TZE204_g5xqosu7", "_TZE284_fzo2pocs", "_TZE200_9vpe3fl1"]),
         model: "TS0601_cover_8",
         vendor: "Tuya",
         description: "Cover motor",
@@ -4664,7 +4664,9 @@ export const definitions: DefinitionWithExtend[] = [
             // Tuya ZigBee Intelligent Curtain Blind Switch Electric Motorized Curtain Roller
             tuya.whitelabel("Lilistore", "TS0601_lilistore", "Cover motor", ["_TZE204_r0jdjrvi"]),
             tuya.whitelabel("Zemismart", "ZM90E-DT250N/A400", "Window opener", ["_TZE204_r0jdjrvi"]),
+            tuya.whitelabel("Nova Digital", "CMR-1", "Roller Blind Motor", ["_TZE200_9vpe3fl1"]),
         ],
+    },
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_p2qzzazi"]),
