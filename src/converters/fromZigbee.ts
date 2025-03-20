@@ -330,6 +330,24 @@ export const lock: Fz.Converter = {
         return result;
     },
 };
+export const lock_set_pin_code_response: Fz.Converter = {
+    cluster: "closuresDoorLock",
+    type: ["commandSetPinCodeRsp", "commandClearPinCodeRsp"],
+    convert: (model, msg, publish, options, meta) => {
+        const result: KeyValue = {};
+        if (msg.data.status === 0) {
+            if (msg.type === "commandSetPinCodeRsp") {
+                result.last_successful_pincode_save = Date.now();
+            }
+            if (msg.type === "commandClearPinCodeRsp") {
+                result.last_successful_pincode_clear = Date.now();
+            }
+        }
+        if (Object.keys(result).length > 0) {
+            return result;
+        }
+    },
+};
 export const lock_pin_code_response: Fz.Converter = {
     cluster: "closuresDoorLock",
     type: ["commandGetPinCodeRsp"],
