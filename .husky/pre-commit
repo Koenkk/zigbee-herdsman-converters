@@ -1,4 +1,3 @@
-pnpm run pretty:check
-pnpm run eslint
-pnpm run test:coverage
 pnpm run build
+pnpm run check
+pnpm run test

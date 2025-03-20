@@ -1,15 +1,12 @@
-import {light} from '../lib/modernExtend';
-import {DefinitionWithExtend} from '../lib/types';
+import * as m from "../lib/modernExtend";
+import type {DefinitionWithExtend} from "../lib/types";
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
-        zigbeeModel: ['ZHA-ColorLight'],
-        model: 'rgbw2.zbee27',
-        vendor: 'Zipato',
-        description: 'RGBW LED bulb with dimmer',
-        extend: [light({colorTemp: {range: undefined}, color: true})],
+        zigbeeModel: ["ZHA-ColorLight"],
+        model: "rgbw2.zbee27",
+        vendor: "Zipato",
+        description: "RGBW LED bulb with dimmer",
+        extend: [m.light({colorTemp: {range: undefined}, color: true})],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

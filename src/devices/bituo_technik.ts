@@ -1,16 +1,16 @@
-import fz from '../converters/fromZigbee';
-import * as exposes from '../lib/exposes';
-import * as reporting from '../lib/reporting';
-import {DefinitionWithExtend} from '../lib/types';
+import * as fz from "../converters/fromZigbee";
+import * as exposes from "../lib/exposes";
+import * as reporting from "../lib/reporting";
+import type {DefinitionWithExtend} from "../lib/types";
 
 const e = exposes.presets;
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
-        zigbeeModel: ['SPM01X001', 'SPM01X'],
-        model: 'SPM01-U01',
-        vendor: 'BITUO TECHNIK',
-        description: 'Smart energy sensor',
+        zigbeeModel: ["SPM01X001", "SPM01X"],
+        model: "SPM01-U01",
+        vendor: "BITUO TECHNIK",
+        description: "Smart energy sensor",
         fromZigbee: [fz.electrical_measurement, fz.metering],
         toZigbee: [],
         exposes: [
@@ -26,22 +26,22 @@ const definitions: DefinitionWithExtend[] = [
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['haElectricalMeasurement', 'seMetering']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["haElectricalMeasurement", "seMetering"]);
             await reporting.readMeteringMultiplierDivisor(endpoint);
             // {change: 0} Ensure that energy and produced energy report parameters correctly during initialization instead of showing null
             await reporting.currentSummDelivered(endpoint, {change: 0});
             await reporting.currentSummReceived(endpoint, {change: 0});
-            endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {
+            endpoint.saveClusterAttributeKeyValue("haElectricalMeasurement", {
                 acPowerMultiplier: 1,
                 acPowerDivisor: 1,
             });
         },
     },
     {
-        zigbeeModel: ['SPM02X001', 'SPM02X'],
-        model: 'SPM02-U01',
-        vendor: 'BITUO TECHNIK',
-        description: 'Smart energy sensor',
+        zigbeeModel: ["SPM02X001", "SPM02X"],
+        model: "SPM02-U01",
+        vendor: "BITUO TECHNIK",
+        description: "Smart energy sensor",
         fromZigbee: [fz.electrical_measurement, fz.metering],
         toZigbee: [],
         exposes: [
@@ -69,18 +69,15 @@ const definitions: DefinitionWithExtend[] = [
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['haElectricalMeasurement', 'seMetering']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["haElectricalMeasurement", "seMetering"]);
             await reporting.readMeteringMultiplierDivisor(endpoint);
             // {change: 0} Ensure that energy and produced energy report parameters correctly during initialization instead of showing null
             await reporting.currentSummDelivered(endpoint, {change: 0});
             await reporting.currentSummReceived(endpoint, {change: 0});
-            endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {
+            endpoint.saveClusterAttributeKeyValue("haElectricalMeasurement", {
                 acPowerMultiplier: 1,
                 acPowerDivisor: 1,
             });
         },
     },
 ];
-
-export default definitions;
-module.exports = definitions;

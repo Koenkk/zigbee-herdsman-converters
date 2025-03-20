@@ -1,32 +1,32 @@
-import type {KeyValueAny, Ota, Zh} from '../src/lib/types';
+import type {KeyValueAny, Ota, Zh} from "../src/lib/types";
 
-import crypto from 'crypto';
-import {existsSync, readFileSync} from 'fs';
-import path from 'path';
-import {EventEmitter} from 'stream';
+import crypto from "node:crypto";
+import {existsSync, readFileSync} from "node:fs";
+import path from "node:path";
+import {EventEmitter} from "node:stream";
 
-import {Zcl} from 'zigbee-herdsman';
-import ZclTransactionSequenceNumber from 'zigbee-herdsman/dist/controller/helpers/zclTransactionSequenceNumber';
-import {Waitress} from 'zigbee-herdsman/dist/utils/waitress';
+import {Zcl} from "zigbee-herdsman";
+import ZclTransactionSequenceNumber from "zigbee-herdsman/dist/controller/helpers/zclTransactionSequenceNumber";
+import {Waitress} from "zigbee-herdsman/dist/utils/waitress";
 
 import {
     DEFAULT_IMAGE_BLOCK_RESPONSE_DELAY,
-    ImageBlockRequestPayload,
-    ImageNotifyPayload,
-    ImagePageRequestPayload,
-    isUpdateAvailable,
-    parseImage,
-    QueryNextImageRequestPayload,
-    QueryNextImageResponsePayload,
-    setConfiguration,
-    update,
-    UpdateEndRequestPayload,
+    type ImageBlockRequestPayload,
+    type ImageNotifyPayload,
+    type ImagePageRequestPayload,
+    type QueryNextImageRequestPayload,
+    type QueryNextImageResponsePayload,
     UPGRADE_FILE_IDENTIFIER,
-    UpgradeEndResponsePayload,
+    type UpdateEndRequestPayload,
+    type UpgradeEndResponsePayload,
     ZIGBEE_OTA_LATEST_URL,
     ZIGBEE_OTA_PREVIOUS_URL,
-} from '../src/lib/ota';
-import {sleep} from '../src/lib/utils';
+    isUpdateAvailable,
+    parseImage,
+    setConfiguration,
+    update,
+} from "../src/lib/ota";
+import {sleep} from "../src/lib/utils";
 
 interface WaitressMatcher {
     clusterID: number;
@@ -42,44 +42,44 @@ type CommandResult = {
     payload: KeyValueAny;
 };
 
-// https://github.com/jestjs/jest/issues/6028#issuecomment-567669082
+// biome-ignore lint/suspicious/noExportsInTest: https://github.com/jestjs/jest/issues/6028#issuecomment-567669082
 export function defuseRejection<T>(promise: Promise<T>): Promise<T> {
     promise.catch(() => {});
 
     return promise;
 }
 
-const ZIGBEE_OTA_MASTER_URL = 'https://github.com/Koenkk/zigbee-OTA/raw/master/';
-const BASE_IMAGES_DIRNAME = 'images';
-const PREV_IMAGES_DIRNAME = 'images1';
-const TEST_BASE_IMAGES_DIRNAME = 'otaUpgradeImages';
-const TEST_PREV_IMAGES_DIRNAME = 'otaDowngradeImages';
-const TEST_BASE_MANIFEST_INDEX_FILEPATH = path.join('test', 'stub', 'otaIndex.json');
-const TEST_PREV_MANIFEST_INDEX_FILEPATH = path.join('test', 'stub', 'otaIndex1.json');
-const TEST_BASE_IMAGES_DIRPATH = path.join('test', 'stub', TEST_BASE_IMAGES_DIRNAME);
-const TEST_PREV_IMAGES_DIRPATH = path.join('test', 'stub', TEST_PREV_IMAGES_DIRNAME);
+const ZIGBEE_OTA_MASTER_URL = "https://github.com/Koenkk/zigbee-OTA/raw/master/";
+const BASE_IMAGES_DIRNAME = "images";
+const PREV_IMAGES_DIRNAME = "images1";
+const TEST_BASE_IMAGES_DIRNAME = "otaUpgradeImages";
+const TEST_PREV_IMAGES_DIRNAME = "otaDowngradeImages";
+const TEST_BASE_MANIFEST_INDEX_FILEPATH = path.join("test", "stub", "otaIndex.json");
+const TEST_PREV_MANIFEST_INDEX_FILEPATH = path.join("test", "stub", "otaIndex1.json");
+const TEST_BASE_IMAGES_DIRPATH = path.join("test", "stub", TEST_BASE_IMAGES_DIRNAME);
+const TEST_PREV_IMAGES_DIRPATH = path.join("test", "stub", TEST_PREV_IMAGES_DIRNAME);
 
-const BOSCH_BASE_URL = 'https://github.com/Koenkk/zigbee-OTA/raw/master/images/Bosch/0x1209_0x3011_0x03076a30.ota';
-const GLEDOPTO_BASE_URL = 'https://github.com/Koenkk/zigbee-OTA/raw/master/images/Gledopto/GL-S-007P_V15_A1_OTAV5_20210201_90%.ota';
-const GAMMA_TRONIQUES_BASE_URL = 'https://github.com/Koenkk/zigbee-OTA/raw/master/images/GammaTroniques/TICMeter.ota';
+const BOSCH_BASE_URL = "https://github.com/Koenkk/zigbee-OTA/raw/master/images/Bosch/0x1209_0x3011_0x03076a30.ota";
+const GLEDOPTO_BASE_URL = "https://github.com/Koenkk/zigbee-OTA/raw/master/images/Gledopto/GL-S-007P_V15_A1_OTAV5_20210201_90%.ota";
+const GAMMA_TRONIQUES_BASE_URL = "https://github.com/Koenkk/zigbee-OTA/raw/master/images/GammaTroniques/TICMeter.ota";
 const IKEA_BASE_URL =
-    'https://github.com/Koenkk/zigbee-OTA/raw/master/images/IKEA/inspelning-smart-plug-soc_release_prod_v33816645_02579ff4-6fec-42f6-8957-4048def87def.ota';
-const INNR_BASE_URL = 'https://github.com/Koenkk/zigbee-OTA/raw/master/images/Innr/1166-022D-24031511-upgradeMe-BY 266.zigbee';
-const INOVELLI_BASE_URL = 'https://github.com/Koenkk/zigbee-OTA/raw/master/images/Inovelli/VZM31-SN_2.18-Production.ota';
-const JET_HOME_BASE_URL = 'https://github.com/Koenkk/zigbee-OTA/raw/master/images/JetHome/jethome_zigbee_release_13_zigbee.ota.zigbee';
+    "https://github.com/Koenkk/zigbee-OTA/raw/master/images/IKEA/inspelning-smart-plug-soc_release_prod_v33816645_02579ff4-6fec-42f6-8957-4048def87def.ota";
+const INNR_BASE_URL = "https://github.com/Koenkk/zigbee-OTA/raw/master/images/Innr/1166-022D-24031511-upgradeMe-BY 266.zigbee";
+const INOVELLI_BASE_URL = "https://github.com/Koenkk/zigbee-OTA/raw/master/images/Inovelli/VZM31-SN_2.18-Production.ota";
+const JET_HOME_BASE_URL = "https://github.com/Koenkk/zigbee-OTA/raw/master/images/JetHome/jethome_zigbee_release_13_zigbee.ota.zigbee";
 const LEDVANCE_BASE_URL =
-    'https://github.com/Koenkk/zigbee-OTA/raw/master/images/LEDVANCE/A60_TW_Value_II-0x1189-0x008B-0x03177310-MF_DIS-20240426150951-3221010102432.ota';
-const LIXEE_BASE_URL = 'https://github.com/Koenkk/zigbee-OTA/raw/master/images/LiXee/ZLinky_router_v14_limited.ota';
-const SALUS_CONTROLS_BASE_URL = 'https://github.com/Koenkk/zigbee-OTA/raw/master/images/SalusControls/WindowSensor_20240103.ota';
-const SECURIFI_BASE_URL = 'https://github.com/Koenkk/zigbee-OTA/raw/master/images/Tuya/ZPS_CS5490_039.ota';
-const UBISYS_BASE_URL = 'https://github.com/Koenkk/zigbee-OTA/raw/master/images/Ubisys/10F2-7B3A-0000-0005-02500447-m7b-r0.ota.zigbee';
+    "https://github.com/Koenkk/zigbee-OTA/raw/master/images/LEDVANCE/A60_TW_Value_II-0x1189-0x008B-0x03177310-MF_DIS-20240426150951-3221010102432.ota";
+const LIXEE_BASE_URL = "https://github.com/Koenkk/zigbee-OTA/raw/master/images/LiXee/ZLinky_router_v14_limited.ota";
+const SALUS_CONTROLS_BASE_URL = "https://github.com/Koenkk/zigbee-OTA/raw/master/images/SalusControls/WindowSensor_20240103.ota";
+const SECURIFI_BASE_URL = "https://github.com/Koenkk/zigbee-OTA/raw/master/images/Tuya/ZPS_CS5490_039.ota";
+const UBISYS_BASE_URL = "https://github.com/Koenkk/zigbee-OTA/raw/master/images/Ubisys/10F2-7B3A-0000-0005-02500447-m7b-r0.ota.zigbee";
 
-const IKEA_PREV_URL = 'https://github.com/Koenkk/zigbee-OTA/raw/master/images1/IKEA/10039874-1.0-TRADFRI-motion-sensor-2-2.0.022.ota.ota.signed';
-const INOVELLI_PREV_URL = 'https://github.com/Koenkk/zigbee-OTA/raw/master/images1/Inovelli/VZM31-SN_2.15-Production.ota';
-const XYZROE_PREV_URL = 'https://github.com/Koenkk/zigbee-OTA/raw/master/images1/xyzroe/ZigUSB_C6.ota';
+const IKEA_PREV_URL = "https://github.com/Koenkk/zigbee-OTA/raw/master/images1/IKEA/10039874-1.0-TRADFRI-motion-sensor-2-2.0.022.ota.ota.signed";
+const INOVELLI_PREV_URL = "https://github.com/Koenkk/zigbee-OTA/raw/master/images1/Inovelli/VZM31-SN_2.15-Production.ota";
+const XYZROE_PREV_URL = "https://github.com/Koenkk/zigbee-OTA/raw/master/images1/xyzroe/ZigUSB_C6.ota";
 
 // NOTE: takes too long to run this with CI, can enable locally as needed
-describe('OTA', () => {
+describe("OTA", () => {
     let maximumDataSize = 64;
     const txRandomDelay = () => Math.floor(Math.random() * 500);
     const mockTXDelay = vi.fn(txRandomDelay); // arbitrary, but less than min timeout involved (queryNextImageRequest === 60000)
@@ -106,18 +106,18 @@ describe('OTA', () => {
         return waitress.resolve(payload);
     });
 
-    let stopRequestingBlocks: boolean = false;
-    let failImageBlockResponse: boolean = false;
-    let failQueryNextImageResponse: boolean = false;
-    let useImagePageRequest: boolean = false;
-    let failQueryNextImageRequest: boolean = false;
-    let failUpgradeEndResponse: boolean = false;
-    let upgradeEndRequestBadStatus: boolean = false;
+    let stopRequestingBlocks = false;
+    let failImageBlockResponse = false;
+    let failQueryNextImageResponse = false;
+    let useImagePageRequest = false;
+    let failQueryNextImageRequest = false;
+    let failUpgradeEndResponse = false;
+    let upgradeEndRequestBadStatus = false;
 
-    const getLocalPath = (fromUrl: string): string[] => fromUrl.split('/').slice(-2);
+    const getLocalPath = (fromUrl: string): string[] => fromUrl.split("/").slice(-2);
     let fetchReturnedStatus: {ok: boolean; status: number; body: unknown} = {ok: true, status: 200, body: 1 /* just needs to not be falsy */};
-    const mockGetLatestManifest = vi.fn(() => JSON.parse(readFileSync(TEST_BASE_MANIFEST_INDEX_FILEPATH, 'utf8')) as Ota.ZigbeeOTAImageMeta[]);
-    const mockGetPreviousManifest = vi.fn(() => JSON.parse(readFileSync(TEST_PREV_MANIFEST_INDEX_FILEPATH, 'utf8')) as Ota.ZigbeeOTAImageMeta[]);
+    const mockGetLatestManifest = vi.fn(() => JSON.parse(readFileSync(TEST_BASE_MANIFEST_INDEX_FILEPATH, "utf8")) as Ota.ZigbeeOTAImageMeta[]);
+    const mockGetPreviousManifest = vi.fn(() => JSON.parse(readFileSync(TEST_PREV_MANIFEST_INDEX_FILEPATH, "utf8")) as Ota.ZigbeeOTAImageMeta[]);
     const mockGetFirmwareFile = vi.fn((urlStr: string) => {
         const dirPath = urlStr.startsWith(`${ZIGBEE_OTA_MASTER_URL}${BASE_IMAGES_DIRNAME}/`) ? TEST_BASE_IMAGES_DIRPATH : TEST_PREV_IMAGES_DIRPATH;
         const filePaths = getLocalPath(urlStr);
@@ -135,29 +135,30 @@ describe('OTA', () => {
                 body: fetchReturnedStatus.body,
                 json: mockGetLatestManifest,
             };
-        } else if (urlStr === ZIGBEE_OTA_PREVIOUS_URL) {
+        }
+        if (urlStr === ZIGBEE_OTA_PREVIOUS_URL) {
             return {
                 ok: fetchReturnedStatus.ok,
                 status: fetchReturnedStatus.status,
                 body: fetchReturnedStatus.body,
                 json: mockGetPreviousManifest,
             };
-        } else {
-            // firmware file
-            return {
-                ok: fetchReturnedStatus.ok,
-                status: fetchReturnedStatus.status,
-                body: fetchReturnedStatus.body,
-                arrayBuffer: () => mockGetFirmwareFile(urlStr as string),
-            };
         }
+        // firmware file
+        return {
+            ok: fetchReturnedStatus.ok,
+            status: fetchReturnedStatus.status,
+            body: fetchReturnedStatus.body,
+            arrayBuffer: () => mockGetFirmwareFile(urlStr as string),
+        };
     };
-    let fetchSpy = vi.spyOn(global, 'fetch').mockImplementation(
+    let fetchSpy = vi.spyOn(global, "fetch").mockImplementation(
         // @ts-expect-error mocked as needed
         fetchOverride,
     );
 
     class MockOTAEndpoint extends EventEmitter {
+        // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
         public ID: number;
         public waiters: [];
         public manufacturerCode: Zcl.ManufacturerCode;
@@ -167,10 +168,10 @@ describe('OTA', () => {
         public reqFileOffset: number;
         public downloadedImage: Buffer;
 
-        constructor(ID: number, newImageHeader: Ota.ImageHeader, newImageRawLength: number, imageVersionOffset: number) {
+        constructor(id: number, newImageHeader: Ota.ImageHeader, newImageRawLength: number, imageVersionOffset: number) {
             super();
 
-            this.ID = ID;
+            this.ID = id;
             this.waiters = [];
             this.manufacturerCode = newImageHeader.manufacturerCode;
             this.currentImageType = newImageHeader.imageType;
@@ -180,7 +181,7 @@ describe('OTA', () => {
             this.downloadedImage = Buffer.alloc(0);
         }
 
-        supportsOutputCluster = vi.fn((clusterKey: number | string): boolean => clusterKey === 'genOta');
+        supportsOutputCluster = vi.fn((clusterKey: number | string): boolean => clusterKey === "genOta");
 
         commandResponse = vi.fn(
             async (
@@ -191,16 +192,17 @@ describe('OTA', () => {
                 transactionSequenceNumber?: number,
             ): Promise<void> => {
                 // just because...
-                if (clusterKey !== 'genOta') {
+                if (clusterKey !== "genOta") {
                     return await Promise.resolve();
                 }
 
+                // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
                 transactionSequenceNumber = transactionSequenceNumber || ZclTransactionSequenceNumber.next();
 
                 switch (commandKey) {
-                    case 'imageNotify': {
+                    case "imageNotify": {
                         if (failQueryNextImageRequest) {
-                            console.warn(`failQueryNextImageRequest`);
+                            console.warn("failQueryNextImageRequest");
 
                             // not a reject here, let waitress timeout QueryNextImageRequestPayload
                             return await Promise.resolve();
@@ -221,24 +223,24 @@ describe('OTA', () => {
                         break;
                     }
 
-                    case 'queryNextImageResponse': {
+                    case "queryNextImageResponse": {
                         if (failQueryNextImageResponse) {
                             failQueryNextImageResponse = false;
 
-                            throw new Error(`failQueryNextImageResponse`);
+                            throw new Error("failQueryNextImageResponse");
                         }
 
                         // trigger first `imageBlockRequest`
                         if (payload.status === Zcl.Status.SUCCESS) {
                             // payload.fileVersion is version client is required to install
                             if (payload.fileVersion === this.currentImageVersion) {
-                                return Promise.reject('Cannot perform a re-install, not supported by Zigbee spec.');
+                                return Promise.reject("Cannot perform a re-install, not supported by Zigbee spec.");
                             }
 
                             if (payload.fileVersion < this.currentImageVersion) {
-                                console.log('Performing downgrade.');
+                                console.log("Performing downgrade.");
                             } else {
-                                console.log('Performing upgrade.');
+                                console.log("Performing upgrade.");
                             }
 
                             // first imageBlockRequest can take a good long while before triggering in practice, fake it
@@ -263,15 +265,15 @@ describe('OTA', () => {
                         break;
                     }
 
-                    case 'imageBlockResponse': {
+                    case "imageBlockResponse": {
                         if (failImageBlockResponse) {
                             failImageBlockResponse = false;
 
-                            throw new Error(`failImageBlockResponse`);
+                            throw new Error("failImageBlockResponse");
                         }
 
                         if (stopRequestingBlocks) {
-                            console.warn(`stopRequestingBlocks`);
+                            console.warn("stopRequestingBlocks");
 
                             // not a reject here, let waitress timeout ImageBlockRequestPayload | ImagePageRequestPayload
                             return await Promise.resolve();
@@ -319,11 +321,11 @@ describe('OTA', () => {
                         break;
                     }
 
-                    case 'upgradeEndResponse': {
+                    case "upgradeEndResponse": {
                         if (failUpgradeEndResponse) {
                             failUpgradeEndResponse = false;
 
-                            throw new Error(`failUpgradeEndResponse`);
+                            throw new Error("failUpgradeEndResponse");
                         }
 
                         // trigger deviceAnnounce event / timeout 2min
@@ -362,7 +364,7 @@ describe('OTA', () => {
         public ieeeAddr: string;
         public modelID: string;
         public manufacturerName: string;
-        public hardwareVersion: number = 0;
+        public hardwareVersion = 0;
         public endpoints: MockOTAEndpoint[];
         public meta: Record<string, unknown> = {};
 
@@ -376,8 +378,9 @@ describe('OTA', () => {
         }
     }
 
-    const getImage = async (manifestUrl: string): Promise<Ota.Image> => {
+    const getImage = (manifestUrl: string): Ota.Image => {
         const newImageRsp = fetchOverride(manifestUrl);
+        // biome-ignore lint/style/noNonNullAssertion: ignored using `--suppress`
         const newImage = newImageRsp.arrayBuffer!();
 
         return parseImage(newImage.subarray(newImage.indexOf(UPGRADE_FILE_IDENTIFIER)));
@@ -388,7 +391,7 @@ describe('OTA', () => {
         ieeeAddress: string,
         modelId: string,
         manufacturerName: string,
-        imageVersionOffset: number = -1,
+        imageVersionOffset = -1,
     ): Promise<[MockDevice, Ota.Image]> => {
         const image = await getImage(manifestUrl);
 
@@ -402,55 +405,55 @@ describe('OTA', () => {
         manifest.find((m) => m.url === metaUrl);
 
     const getBoschDevice = (imageVersionOffset: number) =>
-        getDevice(BOSCH_BASE_URL, '0x1111111111111111', 'RBSH-RTH0-ZB-EU', 'Bosch', imageVersionOffset);
+        getDevice(BOSCH_BASE_URL, "0x1111111111111111", "RBSH-RTH0-ZB-EU", "Bosch", imageVersionOffset);
 
     const getGammaTroniquesDevice = (imageVersionOffset: number) =>
-        getDevice(GAMMA_TRONIQUES_BASE_URL, '0x2222222222222222', 'TICMeter', 'GammaTroniques', imageVersionOffset);
+        getDevice(GAMMA_TRONIQUES_BASE_URL, "0x2222222222222222", "TICMeter", "GammaTroniques", imageVersionOffset);
 
     const getGledoptoDevice = (imageVersionOffset: number) =>
-        getDevice(GLEDOPTO_BASE_URL, '0x3333333333333333', 'GL-S-007P', 'Gledopto', imageVersionOffset);
+        getDevice(GLEDOPTO_BASE_URL, "0x3333333333333333", "GL-S-007P", "Gledopto", imageVersionOffset);
 
     const getIKEADevice = (imageVersionOffset: number) =>
-        getDevice(IKEA_BASE_URL, '0x4444444444444444', 'INSPELNING Smart plug', 'IKEA', imageVersionOffset);
+        getDevice(IKEA_BASE_URL, "0x4444444444444444", "INSPELNING Smart plug", "IKEA", imageVersionOffset);
 
-    const getInnrDevice = (imageVersionOffset: number) => getDevice(INNR_BASE_URL, '0x5555555555555555', 'BY 266', 'Innr', imageVersionOffset);
+    const getInnrDevice = (imageVersionOffset: number) => getDevice(INNR_BASE_URL, "0x5555555555555555", "BY 266", "Innr", imageVersionOffset);
 
     const getInovelliDevice = (imageVersionOffset: number) =>
-        getDevice(INOVELLI_BASE_URL, '0x6666666666666666', 'VZM31-SN', 'Inovelli', imageVersionOffset);
+        getDevice(INOVELLI_BASE_URL, "0x6666666666666666", "VZM31-SN", "Inovelli", imageVersionOffset);
 
-    const getJetHomeDevice = (imageVersionOffset: number) => getDevice(JET_HOME_BASE_URL, '0x7777777777777777', 'WS7', 'JetHome', imageVersionOffset);
+    const getJetHomeDevice = (imageVersionOffset: number) => getDevice(JET_HOME_BASE_URL, "0x7777777777777777", "WS7", "JetHome", imageVersionOffset);
 
     const getLEDVANCEDevice = (imageVersionOffset: number) =>
-        getDevice(LEDVANCE_BASE_URL, '0x8888888888888888', 'A60 TW Value II', 'LEDVANCE', imageVersionOffset);
+        getDevice(LEDVANCE_BASE_URL, "0x8888888888888888", "A60 TW Value II", "LEDVANCE", imageVersionOffset);
 
-    const getLiXeeDevice = (imageVersionOffset: number) => getDevice(LIXEE_BASE_URL, '0x9999999999999999', 'ZLinky_TIC', 'LiXee', imageVersionOffset);
+    const getLiXeeDevice = (imageVersionOffset: number) => getDevice(LIXEE_BASE_URL, "0x9999999999999999", "ZLinky_TIC", "LiXee", imageVersionOffset);
 
     const getSalusControlsDevice = (imageVersionOffset: number) =>
-        getDevice(SALUS_CONTROLS_BASE_URL, '0xaaaaaaaaaaaaaaaa', 'SW600', 'Salus Controls', imageVersionOffset);
+        getDevice(SALUS_CONTROLS_BASE_URL, "0xaaaaaaaaaaaaaaaa", "SW600", "Salus Controls", imageVersionOffset);
 
     const getSecurifiDevice = (imageVersionOffset: number) =>
-        getDevice(SECURIFI_BASE_URL, '0xbbbbbbbbbbbbbbbb', 'PP-WHT-US', 'Securifi', imageVersionOffset);
+        getDevice(SECURIFI_BASE_URL, "0xbbbbbbbbbbbbbbbb", "PP-WHT-US", "Securifi", imageVersionOffset);
 
     const getUbisysDevice = (imageVersionOffset: number) =>
-        getDevice(UBISYS_BASE_URL, '0xcccccccccccccccc', 'R0 (5501)', 'Ubisys', imageVersionOffset);
+        getDevice(UBISYS_BASE_URL, "0xcccccccccccccccc", "R0 (5501)", "Ubisys", imageVersionOffset);
 
     const getIKEAPrevDevice = (imageVersionOffset: number) =>
-        getDevice(IKEA_PREV_URL, '0xdddddddddddddddd', 'TRADFRI motion sensor', 'IKEA', imageVersionOffset);
+        getDevice(IKEA_PREV_URL, "0xdddddddddddddddd", "TRADFRI motion sensor", "IKEA", imageVersionOffset);
 
     const getInovelliPrevDevice = (imageVersionOffset: number) =>
-        getDevice(INOVELLI_PREV_URL, '0xeeeeeeeeeeeeeeee', 'VZM31-SN', 'Inovelli', imageVersionOffset);
+        getDevice(INOVELLI_PREV_URL, "0xeeeeeeeeeeeeeeee", "VZM31-SN", "Inovelli", imageVersionOffset);
 
     const getXyzroePrevDevice = (imageVersionOffset: number) =>
-        getDevice(XYZROE_PREV_URL, '0xffffffffeeeeeeee', 'ZigUSB_C6', 'xyzroe', imageVersionOffset);
+        getDevice(XYZROE_PREV_URL, "0xffffffffeeeeeeee", "ZigUSB_C6", "xyzroe", imageVersionOffset);
 
-    const getRequestPayloadFromImage = (image: Ota.Image, imageVersionOffset: number = 0) => ({
+    const getRequestPayloadFromImage = (image: Ota.Image, imageVersionOffset = 0) => ({
         imageType: image.header.imageType,
         fileVersion: image.header.fileVersion + imageVersionOffset,
         manufacturerCode: image.header.manufacturerCode,
     });
 
     const DEFAULT_CONFIG = {
-        dataDir: path.join('test', 'stub'),
+        dataDir: path.join("test", "stub"),
     };
 
     beforeAll(() => {
@@ -474,7 +477,7 @@ describe('OTA', () => {
         failUpgradeEndResponse = false;
         upgradeEndRequestBadStatus = false;
         fetchReturnedStatus = {ok: true, status: 200, body: 1 /* just needs to not be falsy */};
-        fetchSpy = vi.spyOn(global, 'fetch').mockImplementation(
+        fetchSpy = vi.spyOn(global, "fetch").mockImplementation(
             // @ts-expect-error mocked as needed
             fetchOverride,
         );
@@ -485,13 +488,15 @@ describe('OTA', () => {
         vi.clearAllTimers();
     });
 
-    it('checks all test links work', async () => {
+    it("checks all test links work", async () => {
         expect(existsSync(TEST_BASE_MANIFEST_INDEX_FILEPATH)).toStrictEqual(true);
         expect(existsSync(TEST_PREV_MANIFEST_INDEX_FILEPATH)).toStrictEqual(true);
 
         const baseManifestRsp = fetchOverride(ZIGBEE_OTA_LATEST_URL);
+        // biome-ignore lint/style/noNonNullAssertion: ignored using `--suppress`
         const baseManifest = baseManifestRsp.json!() as Ota.ZigbeeOTAImageMeta[];
         const prevManifestRsp = fetchOverride(ZIGBEE_OTA_PREVIOUS_URL);
+        // biome-ignore lint/style/noNonNullAssertion: ignored using `--suppress`
         const prevManifest = prevManifestRsp.json!() as Ota.ZigbeeOTAImageMeta[];
 
         for (const meta of baseManifest.concat(prevManifest)) {
@@ -501,20 +506,20 @@ describe('OTA', () => {
         }
     });
 
-    it('fails when parsing invalid OTA file', async () => {
+    it("fails when parsing invalid OTA file", async () => {
         expect(() => {
             parseImage(Buffer.alloc(128, 0xff));
-        }).toThrow(`Not a valid OTA file`);
+        }).toThrow("Not a valid OTA file");
     });
 
-    describe('Checking', () => {
+    describe("Checking", () => {
         const expectAvailableResult = (result: Ota.UpdateAvailableResult, available: boolean, currentFileVersion: number, otaFileVersion: number) => {
             expect(result.available).toStrictEqual(available);
             expect(result.currentFileVersion).toStrictEqual(currentFileVersion);
             expect(result.otaFileVersion).toStrictEqual(otaFileVersion);
         };
 
-        it('fails to get latest manifest', async () => {
+        it("fails to get latest manifest", async () => {
             fetchReturnedStatus.ok = false;
             fetchReturnedStatus.status = 429;
             const [device, image] = await getBoschDevice(-1);
@@ -524,7 +529,7 @@ describe('OTA', () => {
             }).rejects.toThrow(`Invalid response from ${ZIGBEE_OTA_LATEST_URL} status=429.`);
         });
 
-        it('fails to get previous manifest', async () => {
+        it("fails to get previous manifest", async () => {
             fetchReturnedStatus.ok = false;
             fetchReturnedStatus.status = 403;
             const [device, image] = await getBoschDevice(-1);
@@ -534,18 +539,18 @@ describe('OTA', () => {
             }).rejects.toThrow(`Invalid response from ${ZIGBEE_OTA_PREVIOUS_URL} status=403.`);
         });
 
-        it('fails for device without OTA endpoint', async () => {
+        it("fails for device without OTA endpoint", async () => {
             const [device, image] = await getBoschDevice(-1);
             device.endpoints.pop();
 
             await expect(async () => {
                 await isUpdateAvailable(device as unknown as Zh.Device, {}, undefined, false);
             }).rejects.toThrow(
-                expect.objectContaining({message: expect.stringContaining(`Failed to find an endpoint which supports the OTA cluster`)}),
+                expect.objectContaining({message: expect.stringContaining("Failed to find an endpoint which supports the OTA cluster")}),
             );
         });
 
-        it('finds no image with specific request payload', async () => {
+        it("finds no image with specific request payload", async () => {
             const [device, image] = await getBoschDevice(-1);
 
             const result = await isUpdateAvailable(device as unknown as Zh.Device, {}, getRequestPayloadFromImage(image), false);
@@ -553,7 +558,7 @@ describe('OTA', () => {
             expectAvailableResult(result, false, image.header.fileVersion, image.header.fileVersion);
         });
 
-        it('finds an image with specific request payload', async () => {
+        it("finds an image with specific request payload", async () => {
             const [device, image] = await getBoschDevice(-1);
 
             const result = await isUpdateAvailable(device as unknown as Zh.Device, {}, getRequestPayloadFromImage(image, -1), false);
@@ -561,7 +566,7 @@ describe('OTA', () => {
             expectAvailableResult(result, true, image.header.fileVersion - 1, image.header.fileVersion);
         });
 
-        it('finds no image without specific request payload', async () => {
+        it("finds no image without specific request payload", async () => {
             const [device, image] = await getIKEADevice(0);
 
             const resultP = isUpdateAvailable(device as unknown as Zh.Device, {}, undefined, false);
@@ -573,7 +578,7 @@ describe('OTA', () => {
             expectAvailableResult(result, false, image.header.fileVersion, image.header.fileVersion);
         });
 
-        it('finds an image without specific request payload', async () => {
+        it("finds an image without specific request payload", async () => {
             const [device, image] = await getIKEADevice(-1);
 
             const resultP = isUpdateAvailable(device as unknown as Zh.Device, {}, undefined, false);
@@ -585,8 +590,9 @@ describe('OTA', () => {
             expectAvailableResult(result, true, image.header.fileVersion - 1, image.header.fileVersion);
         });
 
-        it('finds an image by minFileVersion with specific request payload', async () => {
+        it("finds an image by minFileVersion with specific request payload", async () => {
             const [device, image] = await getInovelliDevice(-1);
+            // biome-ignore lint/style/noNonNullAssertion: ignored using `--suppress`
             const metas = getMetas(INOVELLI_BASE_URL, mockGetLatestManifest())!;
             metas.minFileVersion = 16908810;
 
@@ -606,8 +612,9 @@ describe('OTA', () => {
             expectAvailableResult(result, true, metas.minFileVersion, image.header.fileVersion);
         });
 
-        it('finds no image by minFileVersion with specific request payload', async () => {
+        it("finds no image by minFileVersion with specific request payload", async () => {
             const [device, image] = await getInovelliDevice(-1);
+            // biome-ignore lint/style/noNonNullAssertion: ignored using `--suppress`
             const metas = getMetas(INOVELLI_BASE_URL, mockGetLatestManifest())!;
             metas.minFileVersion = 16908810;
 
@@ -628,8 +635,9 @@ describe('OTA', () => {
             expectAvailableResult(result, false, metas.minFileVersion - 1, metas.minFileVersion - 1);
         });
 
-        it('finds an image by maxFileVersion with specific request payload', async () => {
+        it("finds an image by maxFileVersion with specific request payload", async () => {
             const [device, image] = await getInovelliDevice(-1);
+            // biome-ignore lint/style/noNonNullAssertion: ignored using `--suppress`
             const metas = getMetas(INOVELLI_BASE_URL, mockGetLatestManifest())!;
             metas.maxFileVersion = 16908815;
 
@@ -649,8 +657,9 @@ describe('OTA', () => {
             expectAvailableResult(result, true, metas.maxFileVersion, image.header.fileVersion);
         });
 
-        it('finds no image by maxFileVersion with specific request payload', async () => {
+        it("finds no image by maxFileVersion with specific request payload", async () => {
             const [device, image] = await getInovelliDevice(-1);
+            // biome-ignore lint/style/noNonNullAssertion: ignored using `--suppress`
             const metas = getMetas(INOVELLI_BASE_URL, mockGetLatestManifest())!;
             metas.maxFileVersion = 16908815;
 
@@ -671,7 +680,7 @@ describe('OTA', () => {
             expectAvailableResult(result, false, metas.maxFileVersion + 1, metas.maxFileVersion + 1);
         });
 
-        it('finds an image by modelId', async () => {
+        it("finds an image by modelId", async () => {
             const [device, image] = await getXyzroePrevDevice(+1);
 
             const resultP = isUpdateAvailable(device as unknown as Zh.Device, {}, undefined, true);
@@ -683,12 +692,12 @@ describe('OTA', () => {
             expectAvailableResult(result, true, image.header.fileVersion + 1, image.header.fileVersion);
         });
 
-        it('finds an image by extra meta modelId', async () => {
+        it("finds an image by extra meta modelId", async () => {
             // use prev since it has modelId
             const [device, image] = await getXyzroePrevDevice(+1);
-            device.modelID = 'abcd';
+            device.modelID = "abcd";
 
-            const resultP = isUpdateAvailable(device as unknown as Zh.Device, {modelId: 'ZigUSB_C6'}, undefined, true);
+            const resultP = isUpdateAvailable(device as unknown as Zh.Device, {modelId: "ZigUSB_C6"}, undefined, true);
 
             await vi.runAllTimersAsync();
 
@@ -697,10 +706,10 @@ describe('OTA', () => {
             expectAvailableResult(result, true, image.header.fileVersion + 1, image.header.fileVersion);
         });
 
-        it('finds an image by manufacturerName', async () => {
+        it("finds an image by manufacturerName", async () => {
             const [device, image] = await getSalusControlsDevice(-1);
             // no space in manifest version, spaced by default, force it to find
-            device.manufacturerName = 'SalusControls';
+            device.manufacturerName = "SalusControls";
 
             const resultP = isUpdateAvailable(device as unknown as Zh.Device, {}, undefined, false);
 
@@ -711,10 +720,10 @@ describe('OTA', () => {
             expectAvailableResult(result, true, image.header.fileVersion - 1, image.header.fileVersion);
         });
 
-        it('finds an image by extra meta manufacturerName', async () => {
+        it("finds an image by extra meta manufacturerName", async () => {
             const [device, image] = await getSalusControlsDevice(-1);
 
-            const resultP = isUpdateAvailable(device as unknown as Zh.Device, {manufacturerName: 'SalusControls'}, undefined, false);
+            const resultP = isUpdateAvailable(device as unknown as Zh.Device, {manufacturerName: "SalusControls"}, undefined, false);
 
             await vi.runAllTimersAsync();
 
@@ -723,7 +732,7 @@ describe('OTA', () => {
             expectAvailableResult(result, true, image.header.fileVersion - 1, image.header.fileVersion);
         });
 
-        it('finds no image without proper manufacturerName', async () => {
+        it("finds no image without proper manufacturerName", async () => {
             // 'SalusControls' manifest version, 'Salus Controls' in device
             const [device, image] = await getSalusControlsDevice(-1);
 
@@ -737,10 +746,10 @@ describe('OTA', () => {
             expectAvailableResult(result, false, image.header.fileVersion - 1, image.header.fileVersion - 1);
         });
 
-        it('finds no image without proper extra meta otaHeaderString', async () => {
+        it("finds no image without proper extra meta otaHeaderString", async () => {
             const [device, image] = await getLiXeeDevice(-1);
 
-            const resultP = isUpdateAvailable(device as unknown as Zh.Device, {otaHeaderString: 'notgoingtomatch'}, undefined, false);
+            const resultP = isUpdateAvailable(device as unknown as Zh.Device, {otaHeaderString: "notgoingtomatch"}, undefined, false);
 
             await vi.runAllTimersAsync();
 
@@ -750,7 +759,7 @@ describe('OTA', () => {
             expectAvailableResult(result, false, image.header.fileVersion - 1, image.header.fileVersion - 1);
         });
 
-        it('finds an image by hardwareVersionMin', async () => {
+        it("finds an image by hardwareVersionMin", async () => {
             const [device, image] = await getUbisysDevice(-1);
             // 0 in manifest
             device.hardwareVersion = 0;
@@ -764,7 +773,7 @@ describe('OTA', () => {
             expectAvailableResult(result, true, image.header.fileVersion - 1, image.header.fileVersion);
         });
 
-        it('finds no image without proper hardwareVersionMin', async () => {
+        it("finds no image without proper hardwareVersionMin", async () => {
             const [device, image] = await getUbisysDevice(-1);
             // 0 in manifest
             device.hardwareVersion = -1;
@@ -779,7 +788,7 @@ describe('OTA', () => {
             expectAvailableResult(result, false, image.header.fileVersion - 1, image.header.fileVersion - 1);
         });
 
-        it('finds an image by hardwareVersionMax', async () => {
+        it("finds an image by hardwareVersionMax", async () => {
             const [device, image] = await getUbisysDevice(-1);
             // 5 in manifest
             device.hardwareVersion = 5;
@@ -793,7 +802,7 @@ describe('OTA', () => {
             expectAvailableResult(result, true, image.header.fileVersion - 1, image.header.fileVersion);
         });
 
-        it('finds no image without proper hardwareVersionMax', async () => {
+        it("finds no image without proper hardwareVersionMax", async () => {
             const [device, image] = await getUbisysDevice(-1);
             // 5 in manifest
             device.hardwareVersion = 6;
@@ -808,7 +817,7 @@ describe('OTA', () => {
             expectAvailableResult(result, false, image.header.fileVersion - 1, image.header.fileVersion - 1);
         });
 
-        it('finds an image by extra meta hardwareVersionMin', async () => {
+        it("finds an image by extra meta hardwareVersionMin", async () => {
             const [device, image] = await getUbisysDevice(-1);
             // fail the higher matching
             device.hardwareVersion = -1;
@@ -822,7 +831,7 @@ describe('OTA', () => {
             expectAvailableResult(result, true, image.header.fileVersion - 1, image.header.fileVersion);
         });
 
-        it('finds no image without proper extra meta hardwareVersionMin', async () => {
+        it("finds no image without proper extra meta hardwareVersionMin", async () => {
             const [device, image] = await getUbisysDevice(-1);
             // fail the higher matching
             device.hardwareVersion = -1;
@@ -838,7 +847,7 @@ describe('OTA', () => {
             expectAvailableResult(result, false, image.header.fileVersion - 1, image.header.fileVersion - 1);
         });
 
-        it('finds an image by extra meta hardwareVersionMax', async () => {
+        it("finds an image by extra meta hardwareVersionMax", async () => {
             const [device, image] = await getUbisysDevice(-1);
             // fail the higher matching
             device.hardwareVersion = 6;
@@ -853,7 +862,7 @@ describe('OTA', () => {
             expectAvailableResult(result, true, image.header.fileVersion - 1, image.header.fileVersion);
         });
 
-        it('finds no image without proper extra meta hardwareVersionMax', async () => {
+        it("finds no image without proper extra meta hardwareVersionMax", async () => {
             const [device, image] = await getUbisysDevice(-1);
             // fail the higher matching
             device.hardwareVersion = 6;
@@ -869,8 +878,9 @@ describe('OTA', () => {
             expectAvailableResult(result, false, image.header.fileVersion - 1, image.header.fileVersion - 1);
         });
 
-        it('finds an image with extra meta force and ignores higher fileVersion', async () => {
+        it("finds an image with extra meta force and ignores higher fileVersion", async () => {
             const [device, image] = await getInovelliDevice(-1);
+            // biome-ignore lint/style/noNonNullAssertion: ignored using `--suppress`
             const metas = getMetas(INOVELLI_BASE_URL, mockGetLatestManifest())!;
             metas.force = true;
 
@@ -890,7 +900,7 @@ describe('OTA', () => {
             expectAvailableResult(result, true, image.header.fileVersion + 1, image.header.fileVersion);
         });
 
-        it('finds no downgrade image with specific request payload', async () => {
+        it("finds no downgrade image with specific request payload", async () => {
             const [device, image] = await getBoschDevice(0);
 
             const result = await isUpdateAvailable(device as unknown as Zh.Device, {}, getRequestPayloadFromImage(image), true);
@@ -898,8 +908,9 @@ describe('OTA', () => {
             expectAvailableResult(result, false, image.header.fileVersion, image.header.fileVersion);
         });
 
-        it('finds a downgrade image with specific request payload', async () => {
+        it("finds a downgrade image with specific request payload", async () => {
             const [device, image] = await getInovelliDevice(0);
+            // biome-ignore lint/style/noNonNullAssertion: ignored using `--suppress`
             const prevMetas = getMetas(INOVELLI_PREV_URL, mockGetPreviousManifest())!;
 
             const result = await isUpdateAvailable(device as unknown as Zh.Device, {}, getRequestPayloadFromImage(image, 0), true);
@@ -907,7 +918,7 @@ describe('OTA', () => {
             expectAvailableResult(result, true, image.header.fileVersion, prevMetas.fileVersion);
         });
 
-        it('finds no downgrade image without specific request payload', async () => {
+        it("finds no downgrade image without specific request payload", async () => {
             const [device, image] = await getGammaTroniquesDevice(0);
 
             const resultP = isUpdateAvailable(device as unknown as Zh.Device, {}, undefined, true);
@@ -919,7 +930,7 @@ describe('OTA', () => {
             expectAvailableResult(result, false, image.header.fileVersion, image.header.fileVersion);
         });
 
-        it('finds a downgrade image without specific request payload', async () => {
+        it("finds a downgrade image without specific request payload", async () => {
             const [device, image] = await getXyzroePrevDevice(+1);
 
             const resultP = isUpdateAvailable(device as unknown as Zh.Device, {}, undefined, true);
@@ -931,25 +942,25 @@ describe('OTA', () => {
             expectAvailableResult(result, true, image.header.fileVersion + 1, image.header.fileVersion);
         });
 
-        it('executes workaround for Securifi modelID=PP-WHT-US to trigger OTA with genScenes cluster', async () => {
+        it("executes workaround for Securifi modelID=PP-WHT-US to trigger OTA with genScenes cluster", async () => {
             const [device, image] = await getSecurifiDevice(-1);
             const mockEndpointWrite = vi.fn();
 
             device.endpoints.push({
                 // @ts-expect-error mocked as needed
                 write: mockEndpointWrite,
-                supportsOutputCluster: vi.fn((clusterKey) => clusterKey === 'genScenes'),
+                supportsOutputCluster: vi.fn((clusterKey) => clusterKey === "genScenes"),
             });
 
             const result = await isUpdateAvailable(device as unknown as Zh.Device, {}, getRequestPayloadFromImage(image), false);
 
             expectAvailableResult(result, false, image.header.fileVersion, image.header.fileVersion);
             expect(mockEndpointWrite).toHaveBeenCalledTimes(1);
-            expect(mockEndpointWrite).toHaveBeenCalledWith('genScenes', {currentGroup: 49502});
+            expect(mockEndpointWrite).toHaveBeenCalledWith("genScenes", {currentGroup: 49502});
         });
 
-        it.each(['lumi.airrtc.agl001', 'lumi.curtain.acn003', 'lumi.curtain.agl001'])(
-            'executes workaround for modelIDs=%s to correct fileVersion',
+        it.each(["lumi.airrtc.agl001", "lumi.curtain.acn003", "lumi.curtain.agl001"])(
+            "executes workaround for modelIDs=%s to correct fileVersion",
             async (modelID) => {
                 // doesn't matter, forcing the trigger
                 const [device, image] = await getBoschDevice(-1);
@@ -964,8 +975,8 @@ describe('OTA', () => {
             },
         );
 
-        it.each(['lumi.airrtc.agl001', 'lumi.curtain.acn003', 'lumi.curtain.agl001'])(
-            'does not execute workaround for modelIDs=%s to correct fileVersion if not needed',
+        it.each(["lumi.airrtc.agl001", "lumi.curtain.acn003", "lumi.curtain.agl001"])(
+            "does not execute workaround for modelIDs=%s to correct fileVersion if not needed",
             async (modelID) => {
                 // doesn't matter, forcing the trigger
                 const [device, image] = await getBoschDevice(-1);
@@ -979,9 +990,10 @@ describe('OTA', () => {
             },
         );
 
-        describe('with local override index', () => {
-            it('matches from override first using local file', async () => {
+        describe("with local override index", () => {
+            it("matches from override first using local file", async () => {
                 const [device, image] = await getInovelliDevice(-1);
+                // biome-ignore lint/style/noNonNullAssertion: ignored using `--suppress`
                 const prevMetas = getMetas(INOVELLI_PREV_URL, mockGetPreviousManifest())!;
 
                 // previous index has a downgrade image, lower version, but is being overridden
@@ -1001,8 +1013,9 @@ describe('OTA', () => {
                 expectAvailableResult(result, false, image.header.fileVersion - 1, prevMetas.fileVersion);
             });
 
-            it('matches from override first using URL', async () => {
+            it("matches from override first using URL", async () => {
                 const [device, image] = await getInovelliDevice(-1);
+                // biome-ignore lint/style/noNonNullAssertion: ignored using `--suppress`
                 const prevMetas = getMetas(INOVELLI_PREV_URL, mockGetPreviousManifest())!;
 
                 // previous index has a downgrade image, lower version, but is being overridden
@@ -1022,14 +1035,18 @@ describe('OTA', () => {
                 expectAvailableResult(result, false, image.header.fileVersion - 1, prevMetas.fileVersion);
             });
 
-            it('fills missing image info when needed', async () => {
+            it("fills missing image info when needed", async () => {
                 const [device, image] = await getInovelliDevice(-1);
+                // biome-ignore lint/style/noNonNullAssertion: ignored using `--suppress`
                 const prevMetas = getMetas(INOVELLI_PREV_URL, mockGetPreviousManifest())!;
                 const incompletePrevMetas = structuredClone(prevMetas);
                 incompletePrevMetas.url = path.join(TEST_PREV_IMAGES_DIRNAME, ...getLocalPath(incompletePrevMetas.url));
                 // TODO: set @ts-expect-error when "strict": true enabled
+                // biome-ignore lint/performance/noDelete: ignored using `--suppress`
                 delete incompletePrevMetas.imageType;
+                // biome-ignore lint/performance/noDelete: ignored using `--suppress`
                 delete incompletePrevMetas.manufacturerCode;
+                // biome-ignore lint/performance/noDelete: ignored using `--suppress`
                 delete incompletePrevMetas.fileVersion;
 
                 mockGetPreviousManifest.mockReturnValueOnce([incompletePrevMetas]);
@@ -1050,8 +1067,9 @@ describe('OTA', () => {
                 expectAvailableResult(result, false, image.header.fileVersion - 1, prevMetas.fileVersion);
             });
 
-            it('does not fill missing image info when not needed', async () => {
+            it("does not fill missing image info when not needed", async () => {
                 const [device, image] = await getInovelliDevice(-1);
+                // biome-ignore lint/style/noNonNullAssertion: ignored using `--suppress`
                 const prevMetas = getMetas(INOVELLI_PREV_URL, mockGetPreviousManifest())!;
                 prevMetas.url = path.join(TEST_PREV_IMAGES_DIRNAME, ...getLocalPath(prevMetas.url));
 
@@ -1076,8 +1094,8 @@ describe('OTA', () => {
         });
     });
 
-    describe('Updating', () => {
-        it('fails to get latest manifest', async () => {
+    describe("Updating", () => {
+        it("fails to get latest manifest", async () => {
             fetchReturnedStatus.ok = false;
             fetchReturnedStatus.status = 429;
             const [device, image] = await getBoschDevice(-1);
@@ -1088,7 +1106,7 @@ describe('OTA', () => {
             await expect(result).rejects.toThrow(`Invalid response from ${ZIGBEE_OTA_LATEST_URL} status=429.`);
         });
 
-        it('fails to get previous manifest', async () => {
+        it("fails to get previous manifest", async () => {
             fetchReturnedStatus.ok = false;
             fetchReturnedStatus.status = 403;
             const [device, image] = await getInovelliDevice(-1);
@@ -1099,7 +1117,7 @@ describe('OTA', () => {
             await expect(result).rejects.toThrow(`Invalid response from ${ZIGBEE_OTA_PREVIOUS_URL} status=403.`);
         });
 
-        it('fails to get firmware file from URL', async () => {
+        it("fails to get firmware file from URL", async () => {
             const [device, image] = await getInnrDevice(-1);
 
             // first call is to manifest, let that resolve
@@ -1124,7 +1142,7 @@ describe('OTA', () => {
             await expect(result).rejects.toThrow(`Invalid response from ${INNR_BASE_URL} status=200.`);
         });
 
-        it('executes workaround for Securifi modelID=PP-WHT-US to trigger OTA with genScenes cluster', async () => {
+        it("executes workaround for Securifi modelID=PP-WHT-US to trigger OTA with genScenes cluster", async () => {
             // same version, short-circuit since tested logic already done
             const [device, image] = await getSecurifiDevice(0);
             const mockEndpointWrite = vi.fn();
@@ -1132,19 +1150,19 @@ describe('OTA', () => {
             device.endpoints.push({
                 // @ts-expect-error mocked as needed
                 write: mockEndpointWrite,
-                supportsOutputCluster: vi.fn((clusterKey) => clusterKey === 'genScenes'),
+                supportsOutputCluster: vi.fn((clusterKey) => clusterKey === "genScenes"),
             });
 
             const result = defuseRejection(update(device as unknown as Zh.Device, {}, false, () => {}));
 
             await vi.runAllTimersAsync();
 
-            await expect(result).rejects.toThrow(`No new image available`);
+            await expect(result).rejects.toThrow("No new image available");
             expect(mockEndpointWrite).toHaveBeenCalledTimes(1);
-            expect(mockEndpointWrite).toHaveBeenCalledWith('genScenes', {currentGroup: 49502});
+            expect(mockEndpointWrite).toHaveBeenCalledWith("genScenes", {currentGroup: 49502});
         });
 
-        describe.skip('runs an update', () => {
+        describe.skip("runs an update", () => {
             const consoleDebugOriginal = console.debug;
             // XXX: some logging for local testing since debug disabled
             const logOnProgress = (progress: number, remaining?: number): void => {
@@ -1165,32 +1183,32 @@ describe('OTA', () => {
                 mockOnProgress = vi.fn(logOnProgress);
             });
 
-            const expectUpdateSuccess = (endpoint: MockOTAEndpoint, image: Ota.Image, dataSize: number = 50): number => {
+            const expectUpdateSuccess = (endpoint: MockOTAEndpoint, image: Ota.Image, dataSize = 50): number => {
                 const imageChunks = Math.ceil(image.raw.length / dataSize);
 
                 expect(image.raw).toStrictEqual(endpoint.downloadedImage);
 
                 // can't be exact on the match since the logic may vary calls by 1-2 depending on delays
                 expect(
-                    endpoint.waitForCommand.mock.calls.filter(([, commandKey]) => commandKey === 'imageBlockRequest').length,
+                    endpoint.waitForCommand.mock.calls.filter(([, commandKey]) => commandKey === "imageBlockRequest").length,
                 ).toBeGreaterThanOrEqual(imageChunks);
                 expect(
-                    endpoint.waitForCommand.mock.calls.filter(([, commandKey]) => commandKey === 'imagePageRequest').length,
+                    endpoint.waitForCommand.mock.calls.filter(([, commandKey]) => commandKey === "imagePageRequest").length,
                 ).toBeGreaterThanOrEqual(imageChunks);
-                expect(endpoint.waitForCommand.mock.calls.filter(([, commandKey]) => commandKey === 'queryNextImageRequest').length).toStrictEqual(1);
-                expect(endpoint.waitForCommand.mock.calls.filter(([, commandKey]) => commandKey === 'upgradeEndRequest').length).toStrictEqual(1);
+                expect(endpoint.waitForCommand.mock.calls.filter(([, commandKey]) => commandKey === "queryNextImageRequest").length).toStrictEqual(1);
+                expect(endpoint.waitForCommand.mock.calls.filter(([, commandKey]) => commandKey === "upgradeEndRequest").length).toStrictEqual(1);
 
                 expect(endpoint.commandResponse).toHaveBeenNthCalledWith(
                     1,
-                    'genOta',
-                    'imageNotify',
+                    "genOta",
+                    "imageNotify",
                     {payloadType: 0, queryJitter: 100} as ImageNotifyPayload,
-                    {sendPolicy: 'immediate'},
+                    {sendPolicy: "immediate"},
                 );
                 expect(endpoint.commandResponse).toHaveBeenNthCalledWith(
                     2,
-                    'genOta',
-                    'queryNextImageResponse',
+                    "genOta",
+                    "queryNextImageResponse",
                     {
                         status: Zcl.Status.SUCCESS,
                         manufacturerCode: image.header.manufacturerCode,
@@ -1202,12 +1220,12 @@ describe('OTA', () => {
                     expect.any(Number),
                 );
                 expect(
-                    endpoint.commandResponse.mock.calls.filter(([, commandKey]) => commandKey === 'imageBlockResponse').length,
+                    endpoint.commandResponse.mock.calls.filter(([, commandKey]) => commandKey === "imageBlockResponse").length,
                 ).toBeGreaterThanOrEqual(imageChunks);
                 // logic is a race between imageBlockResponse and upgradeEndResponse, can't use `toHaveBeenLastCalledWith`
                 expect(endpoint.commandResponse).toHaveBeenCalledWith(
-                    'genOta',
-                    'upgradeEndResponse',
+                    "genOta",
+                    "upgradeEndResponse",
                     {
                         manufacturerCode: image.header.manufacturerCode,
                         imageType: image.header.imageType,
@@ -1222,7 +1240,7 @@ describe('OTA', () => {
                 return imageChunks;
             };
 
-            it('upgrades with defaults', async () => {
+            it("upgrades with defaults", async () => {
                 const [device, image] = await getInovelliDevice(-1);
                 const resultP = update(device as unknown as Zh.Device, {}, false, mockOnProgress);
 
@@ -1233,8 +1251,9 @@ describe('OTA', () => {
                 expectUpdateSuccess(device.endpoints[0], image);
             }, 60000);
 
-            it('upgrades with local firmware file', async () => {
+            it("upgrades with local firmware file", async () => {
                 const [device, image] = await getInovelliDevice(-10); // go before the version in prev for below mocks to work
+                // biome-ignore lint/style/noNonNullAssertion: ignored using `--suppress`
                 const prevMetas = getMetas(INOVELLI_PREV_URL, mockGetPreviousManifest())!;
                 const prevImage = await getImage(INOVELLI_PREV_URL);
                 prevMetas.url = path.join(TEST_PREV_IMAGES_DIRNAME, ...getLocalPath(prevMetas.url));
@@ -1256,7 +1275,7 @@ describe('OTA', () => {
                 expect(mockGetPreviousManifest).toHaveBeenCalledTimes(2);
             }, 60000);
 
-            it('upgrades with no TX delay randomness to allow time checking', async () => {
+            it("upgrades with no TX delay randomness to allow time checking", async () => {
                 mockTXDelay.mockImplementation(() => DEFAULT_IMAGE_BLOCK_RESPONSE_DELAY); // +25ms static
                 const [device, image] = await getInovelliDevice(-1);
                 const resultP = update(device as unknown as Zh.Device, {}, false, mockOnProgress);
@@ -1271,7 +1290,7 @@ describe('OTA', () => {
                 expect(mockOnProgress.mock.calls[1][1]).toBeLessThan((DEFAULT_IMAGE_BLOCK_RESPONSE_DELAY + 25) * imageChunks);
             }, 60000);
 
-            it('upgrades with adjusted block response delay', async () => {
+            it("upgrades with adjusted block response delay", async () => {
                 mockTXDelay.mockImplementation(() => 60); // +25ms static
 
                 setConfiguration({...DEFAULT_CONFIG, imageBlockResponseDelay: 60});
@@ -1289,7 +1308,7 @@ describe('OTA', () => {
                 expect(mockOnProgress.mock.calls[1][1]).toBeLessThan((60 + 25) * imageChunks);
             }, 60000);
 
-            it('upgrades with adjusted max data size', async () => {
+            it("upgrades with adjusted max data size", async () => {
                 mockTXDelay.mockImplementation(() => DEFAULT_IMAGE_BLOCK_RESPONSE_DELAY); // +25ms static
 
                 // set a higher value in MockEndpoint responses to allow below
@@ -1311,7 +1330,7 @@ describe('OTA', () => {
                 expect(mockOnProgress.mock.calls[1][1]).toBeLessThan((DEFAULT_IMAGE_BLOCK_RESPONSE_DELAY + 25) * imageChunks);
             }, 60000);
 
-            it('downgrades with defaults', async () => {
+            it("downgrades with defaults", async () => {
                 const [device, image] = await getInovelliDevice(0);
                 const prevImage = await getImage(INOVELLI_PREV_URL);
 
@@ -1326,7 +1345,7 @@ describe('OTA', () => {
                 expectUpdateSuccess(device.endpoints[0], prevImage);
             }, 60000);
 
-            it('downgrades using imagePageRequest', async () => {
+            it("downgrades using imagePageRequest", async () => {
                 const [device, image] = await getInovelliDevice(0);
                 const prevImage = await getImage(INOVELLI_PREV_URL);
                 useImagePageRequest = true;
@@ -1343,7 +1362,7 @@ describe('OTA', () => {
                 // expectUpdateSuccess(device.endpoints[0], prevImage);
             });
 
-            it('starts but device stops requesting blocks', async () => {
+            it("starts but device stops requesting blocks", async () => {
                 const [device, image] = await getGledoptoDevice(-1);
                 mockOnProgress = vi.fn((progress, remaining) => {
                     logOnProgress(progress, remaining);
@@ -1359,12 +1378,12 @@ describe('OTA', () => {
 
                 await expect(resultP).rejects.toThrow(
                     expect.objectContaining({
-                        message: expect.stringContaining(`Timeout. Device did not start/finish firmware download after being notified`),
+                        message: expect.stringContaining("Timeout. Device did not start/finish firmware download after being notified"),
                     }),
                 );
             }, 60000);
 
-            it('continues on failed queryNextImageResponse', async () => {
+            it("continues on failed queryNextImageResponse", async () => {
                 failQueryNextImageResponse = true;
                 const [device, image] = await getLiXeeDevice(-1);
                 const resultP = defuseRejection(update(device as unknown as Zh.Device, {}, false, mockOnProgress));
@@ -1374,14 +1393,14 @@ describe('OTA', () => {
                 // avoids having to mock re-sending a request "from device", if this error is reached, it means it bypassed the commandResponse error
                 await expect(resultP).rejects.toThrow(
                     expect.objectContaining({
-                        message: expect.stringContaining(`Timeout. Device did not start/finish firmware download after being notified`),
+                        message: expect.stringContaining("Timeout. Device did not start/finish firmware download after being notified"),
                     }),
                 );
             }, 60000);
 
-            it('continues on failed imageBlockResponse', async () => {
+            it("continues on failed imageBlockResponse", async () => {
                 const [device, image] = await getIKEADevice(-1);
-                let failed: boolean = false;
+                let failed = false;
                 mockOnProgress = vi.fn((progress, remaining) => {
                     logOnProgress(progress, remaining);
 
@@ -1398,21 +1417,22 @@ describe('OTA', () => {
                 // avoids having to mock re-sending a request "from device", if this error is reached, it means it bypassed the commandResponse error
                 await expect(resultP).rejects.toThrow(
                     expect.objectContaining({
-                        message: expect.stringContaining(`Timeout. Device did not start/finish firmware download after being notified`),
+                        message: expect.stringContaining("Timeout. Device did not start/finish firmware download after being notified"),
                     }),
                 );
                 expect(failed).toStrictEqual(true); // just to be sure
             }, 60000);
 
-            it('continues on OTA file element parse failure with extra meta', async () => {
+            it("continues on OTA file element parse failure with extra meta", async () => {
                 const [device, image] = await getInovelliDevice(-1);
+                // biome-ignore lint/style/noNonNullAssertion: ignored using `--suppress`
                 const metas = getMetas(INOVELLI_BASE_URL, mockGetLatestManifest())!;
                 const filePaths = getLocalPath(INOVELLI_BASE_URL);
                 const filePath = path.join(TEST_BASE_IMAGES_DIRPATH, ...filePaths);
                 let firmwareFile = readFileSync(filePath);
                 firmwareFile = firmwareFile.subarray(0, -1024);
                 // bypass checksum validation to get to proper codepath
-                metas.sha512 = crypto.createHash('sha512').update(firmwareFile).digest('hex');
+                metas.sha512 = crypto.createHash("sha512").update(firmwareFile).digest("hex");
 
                 mockGetFirmwareFile.mockReturnValueOnce(firmwareFile);
                 mockGetPreviousManifest.mockReturnValueOnce([metas]);
@@ -1426,18 +1446,19 @@ describe('OTA', () => {
                 await vi.runAllTimersAsync();
 
                 // this image will eventually fail GBL validation, but tested codepath was covered by then
-                await expect(resultP).rejects.toThrow(`Not a valid GBL image`);
+                await expect(resultP).rejects.toThrow("Not a valid GBL image");
             }, 60000);
 
-            it('fails on OTA file element parse failure without extra meta', async () => {
+            it("fails on OTA file element parse failure without extra meta", async () => {
                 const [device, image] = await getInovelliDevice(-1);
+                // biome-ignore lint/style/noNonNullAssertion: ignored using `--suppress`
                 const metas = getMetas(INOVELLI_BASE_URL, mockGetLatestManifest())!;
                 const filePaths = getLocalPath(INOVELLI_BASE_URL);
                 const filePath = path.join(TEST_BASE_IMAGES_DIRPATH, ...filePaths);
                 let firmwareFile = readFileSync(filePath);
                 firmwareFile = firmwareFile.subarray(0, -1024);
                 // bypass checksum validation to get to proper codepath
-                metas.sha512 = crypto.createHash('sha512').update(firmwareFile).digest('hex');
+                metas.sha512 = crypto.createHash("sha512").update(firmwareFile).digest("hex");
 
                 mockGetFirmwareFile.mockReturnValueOnce(firmwareFile);
                 mockGetPreviousManifest.mockReturnValueOnce([metas]);
@@ -1448,10 +1469,10 @@ describe('OTA', () => {
 
                 await vi.runAllTimersAsync();
 
-                await expect(resultP).rejects.toThrow(expect.objectContaining({message: expect.stringContaining(`out of range`)}));
+                await expect(resultP).rejects.toThrow(expect.objectContaining({message: expect.stringContaining("out of range")}));
             }, 60000);
 
-            it('fails file checksum validation', async () => {
+            it("fails file checksum validation", async () => {
                 const [device, image] = await getInovelliDevice(-1);
 
                 mockGetFirmwareFile.mockReturnValueOnce(Buffer.alloc(254, 0xff));
@@ -1460,40 +1481,40 @@ describe('OTA', () => {
 
                 await vi.runAllTimersAsync();
 
-                await expect(resultP).rejects.toThrow(`File checksum validation failed`);
+                await expect(resultP).rejects.toThrow("File checksum validation failed");
             });
 
-            it('fails to find an image', async () => {
+            it("fails to find an image", async () => {
                 const [device, image] = await getGammaTroniquesDevice(0);
 
                 const resultP = defuseRejection(update(device as unknown as Zh.Device, {}, true, mockOnProgress));
 
                 await vi.runAllTimersAsync();
 
-                await expect(resultP).rejects.toThrow(expect.objectContaining({message: expect.stringContaining(`No image currently available`)}));
+                await expect(resultP).rejects.toThrow(expect.objectContaining({message: expect.stringContaining("No image currently available")}));
             });
 
-            it('fails to find an upgrade image', async () => {
+            it("fails to find an upgrade image", async () => {
                 const [device, image] = await getGammaTroniquesDevice(0);
 
                 const resultP = defuseRejection(update(device as unknown as Zh.Device, {}, false, mockOnProgress));
 
                 await vi.runAllTimersAsync();
 
-                await expect(resultP).rejects.toThrow(`No new image available`);
+                await expect(resultP).rejects.toThrow("No new image available");
             });
 
-            it('fails to find a downgrade image', async () => {
+            it("fails to find a downgrade image", async () => {
                 const [device, image] = await getInovelliDevice(-10);
 
                 const resultP = defuseRejection(update(device as unknown as Zh.Device, {}, true, mockOnProgress));
 
                 await vi.runAllTimersAsync();
 
-                await expect(resultP).rejects.toThrow(`No previous image available`);
+                await expect(resultP).rejects.toThrow("No previous image available");
             });
 
-            it('fails to find an image due to hardware version restrictions unmet', async () => {
+            it("fails to find an image due to hardware version restrictions unmet", async () => {
                 const [device, image] = await getUbisysDevice(-1);
                 device.hardwareVersion = 100;
 
@@ -1501,16 +1522,19 @@ describe('OTA', () => {
 
                 await vi.runAllTimersAsync();
 
-                await expect(resultP).rejects.toThrow(expect.objectContaining({message: expect.stringContaining(`No image currently available`)}));
+                await expect(resultP).rejects.toThrow(expect.objectContaining({message: expect.stringContaining("No image currently available")}));
             });
 
-            it('fails due to hardware version restrictions unmet - with manifest missing info', async () => {
+            it("fails due to hardware version restrictions unmet - with manifest missing info", async () => {
                 const [device, image] = await getUbisysDevice(-1);
                 device.hardwareVersion = 100;
+                // biome-ignore lint/style/noNonNullAssertion: ignored using `--suppress`
                 const metas = getMetas(UBISYS_BASE_URL, mockGetLatestManifest())!;
                 // workaround to reach the proper file
                 metas.url = metas.url.replace(`${PREV_IMAGES_DIRNAME}/`, `${BASE_IMAGES_DIRNAME}/`);
+                // biome-ignore lint/performance/noDelete: ignored using `--suppress`
                 delete metas.hardwareVersionMin;
+                // biome-ignore lint/performance/noDelete: ignored using `--suppress`
                 delete metas.hardwareVersionMax;
 
                 mockGetPreviousManifest.mockReturnValueOnce([metas]);
@@ -1521,10 +1545,10 @@ describe('OTA', () => {
 
                 await vi.runAllTimersAsync();
 
-                await expect(resultP).rejects.toThrow(expect.objectContaining({message: expect.stringContaining(`Hardware version mismatch`)}));
+                await expect(resultP).rejects.toThrow(expect.objectContaining({message: expect.stringContaining("Hardware version mismatch")}));
             });
 
-            it('fails queryNextImageRequest', async () => {
+            it("fails queryNextImageRequest", async () => {
                 failQueryNextImageRequest = true;
                 const [device, image] = await getGammaTroniquesDevice(0);
 
@@ -1535,7 +1559,7 @@ describe('OTA', () => {
                 await expect(resultP).rejects.toThrow(`Device didn't respond to OTA request`);
             });
 
-            it('sends default response when upgradeEndResult != SUCCESS', async () => {
+            it("sends default response when upgradeEndResult != SUCCESS", async () => {
                 upgradeEndRequestBadStatus = true;
                 const [device, image] = await getIKEADevice(-1);
                 const otaEndpoint = device.endpoints[0];
@@ -1544,7 +1568,7 @@ describe('OTA', () => {
 
                 await vi.runAllTimersAsync();
 
-                await expect(resultP).rejects.toThrow(`Update failed with reason: FAILURE`);
+                await expect(resultP).rejects.toThrow("Update failed with reason: FAILURE");
                 expect(otaEndpoint.defaultResponse).toHaveBeenCalledTimes(1);
                 expect(otaEndpoint.defaultResponse).toHaveBeenCalledWith(
                     Zcl.Clusters.genOta.commands.upgradeEndRequest.ID,
@@ -1554,18 +1578,18 @@ describe('OTA', () => {
                 );
             }, 60000);
 
-            it('fails to send default response when upgradeEndResult != SUCCESS', async () => {
+            it("fails to send default response when upgradeEndResult != SUCCESS", async () => {
                 upgradeEndRequestBadStatus = true;
                 const [device, image] = await getIKEADevice(-1);
                 const otaEndpoint = device.endpoints[0];
 
-                otaEndpoint.defaultResponse.mockRejectedValueOnce('ignored failure');
+                otaEndpoint.defaultResponse.mockRejectedValueOnce("ignored failure");
 
                 const resultP = defuseRejection(update(device as unknown as Zh.Device, {}, false, mockOnProgress));
 
                 await vi.runAllTimersAsync();
 
-                await expect(resultP).rejects.toThrow(`Update failed with reason: FAILURE`);
+                await expect(resultP).rejects.toThrow("Update failed with reason: FAILURE");
                 expect(otaEndpoint.defaultResponse).toHaveBeenCalledTimes(1);
                 expect(otaEndpoint.defaultResponse).toHaveBeenCalledWith(
                     Zcl.Clusters.genOta.commands.upgradeEndRequest.ID,
@@ -1575,7 +1599,7 @@ describe('OTA', () => {
                 );
             }, 60000);
 
-            it('fails upgradeEndResponse', async () => {
+            it("fails upgradeEndResponse", async () => {
                 failUpgradeEndResponse = true;
                 const [device, image] = await getInovelliDevice(-1);
 
@@ -1583,7 +1607,7 @@ describe('OTA', () => {
 
                 await vi.runAllTimersAsync();
 
-                await expect(resultP).rejects.toThrow(`Upgrade end response failed: failUpgradeEndResponse`);
+                await expect(resultP).rejects.toThrow("Upgrade end response failed: failUpgradeEndResponse");
             }, 60000);
         });
     });

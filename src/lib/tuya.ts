@@ -1,13 +1,13 @@
-import {Zcl} from 'zigbee-herdsman';
+import {Zcl} from "zigbee-herdsman";
 
-import fz from '../converters/fromZigbee';
-import tz from '../converters/toZigbee';
-import * as constants from './constants';
-import * as exposes from './exposes';
-import {logger} from './logger';
-import * as modernExtend from './modernExtend';
-import * as globalStore from './store';
-import {
+import * as fz from "../converters/fromZigbee";
+import * as tz from "../converters/toZigbee";
+import * as constants from "./constants";
+import * as exposes from "./exposes";
+import {logger} from "./logger";
+import * as modernExtend from "./modernExtend";
+import * as globalStore from "./store";
+import type {
     DefinitionExposesFunction,
     Expose,
     Fz,
@@ -23,13 +23,13 @@ import {
     Tuya,
     Tz,
     Zh,
-} from './types';
-import * as utils from './utils';
-import {configureSetPowerSourceWhenUnknown} from './utils';
+} from "./types";
+import * as utils from "./utils";
+import {configureSetPowerSourceWhenUnknown} from "./utils";
 
 // import {Color} from './color';
 
-const NS = 'zhc:tuya';
+const NS = "zhc:tuya";
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -65,64 +65,65 @@ function convertStringToHexArray(value: string) {
 
 interface OnEventArgs {
     queryOnDeviceAnnounce?: boolean;
-    timeStart?: '1970' | '2000';
+    timeStart?: "1970" | "2000";
     respondToMcuVersionResponse?: boolean;
     queryIntervalSeconds?: number;
 }
 
 export function onEvent(args?: OnEventArgs): OnEvent {
     return async (type, data, device, settings, state) => {
-        args = {queryOnDeviceAnnounce: false, timeStart: '1970', respondToMcuVersionResponse: true, ...args};
+        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
+        args = {queryOnDeviceAnnounce: false, timeStart: "1970", respondToMcuVersionResponse: true, ...args};
 
         const endpoint = device.endpoints[0];
 
-        if (type === 'message' && data.cluster === 'manuSpecificTuya') {
-            if (args.respondToMcuVersionResponse && data.type === 'commandMcuVersionResponse') {
-                await endpoint.command('manuSpecificTuya', 'mcuVersionRequest', {seq: 0x0002});
-            } else if (data.type === 'commandMcuGatewayConnectionStatus') {
+        if (type === "message" && data.cluster === "manuSpecificTuya") {
+            if (args.respondToMcuVersionResponse && data.type === "commandMcuVersionResponse") {
+                await endpoint.command("manuSpecificTuya", "mcuVersionRequest", {seq: 0x0002});
+            } else if (data.type === "commandMcuGatewayConnectionStatus") {
                 // "payload" can have the following values:
                 // 0x00: The gateway is not connected to the internet.
                 // 0x01: The gateway is connected to the internet.
                 // 0x02: The request timed out after three seconds.
                 const payload = {payloadSize: 1, payload: 1};
-                await endpoint.command('manuSpecificTuya', 'mcuGatewayConnectionStatus', payload, {});
+                await endpoint.command("manuSpecificTuya", "mcuGatewayConnectionStatus", payload, {});
             }
         }
 
-        if (data.type === 'commandMcuSyncTime' && data.cluster === 'manuSpecificTuya') {
+        if (data.type === "commandMcuSyncTime" && data.cluster === "manuSpecificTuya") {
             try {
-                const offset = args.timeStart === '2000' ? constants.OneJanuary2000 : 0;
+                const offset = args.timeStart === "2000" ? constants.OneJanuary2000 : 0;
                 const utcTime = Math.round((new Date().getTime() - offset) / 1000);
                 const localTime = utcTime - new Date().getTimezoneOffset() * 60;
                 const payload = {
                     payloadSize: 8,
                     payload: [...convertDecimalValueTo4ByteHexArray(utcTime), ...convertDecimalValueTo4ByteHexArray(localTime)],
                 };
-                await endpoint.command('manuSpecificTuya', 'mcuSyncTime', payload, {});
+                await endpoint.command("manuSpecificTuya", "mcuSyncTime", payload, {});
             } catch {
                 /* handle error to prevent crash */
             }
         }
 
         // Some devices require a dataQuery on deviceAnnounce, otherwise they don't report any data
-        if (args.queryOnDeviceAnnounce && type === 'deviceAnnounce') {
-            await endpoint.command('manuSpecificTuya', 'dataQuery', {});
+        if (args.queryOnDeviceAnnounce && type === "deviceAnnounce") {
+            await endpoint.command("manuSpecificTuya", "dataQuery", {});
         }
         if (args.queryIntervalSeconds) {
-            if (type === 'stop') {
-                clearTimeout(globalStore.getValue(device, 'query_interval'));
-                globalStore.clearValue(device, 'query_interval');
-            } else if (!globalStore.hasValue(device, 'query_interval')) {
+            if (type === "stop") {
+                clearTimeout(globalStore.getValue(device, "query_interval"));
+                globalStore.clearValue(device, "query_interval");
+            } else if (!globalStore.hasValue(device, "query_interval")) {
                 const setTimer = () => {
                     const timer = setTimeout(async () => {
                         try {
-                            await endpoint.command('manuSpecificTuya', 'dataQuery', {});
+                            await endpoint.command("manuSpecificTuya", "dataQuery", {});
                         } catch {
                             /* Do nothing*/
                         }
                         setTimer();
                     }, args.queryIntervalSeconds * 1000);
-                    globalStore.putValue(device, 'query_interval', timer);
+                    globalStore.putValue(device, "query_interval", timer);
                 };
                 setTimer();
             }
@@ -131,7 +132,7 @@ export function onEvent(args?: OnEventArgs): OnEvent {
 }
 
 function getDataValue(dpValue: Tuya.DpValue) {
-    let dataString = '';
+    let dataString = "";
     switch (dpValue.datatype) {
         case dataTypes.raw:
             return dpValue.data;
@@ -153,22 +154,22 @@ function getDataValue(dpValue: Tuya.DpValue) {
 }
 
 export function convertDecimalValueTo4ByteHexArray(value: number) {
-    const hexValue = Number(value).toString(16).padStart(8, '0');
+    const hexValue = Number(value).toString(16).padStart(8, "0");
     const chunk1 = hexValue.substring(0, 2);
     const chunk2 = hexValue.substring(2, 4);
     const chunk3 = hexValue.substring(4, 6);
     const chunk4 = hexValue.substring(6);
-    return [chunk1, chunk2, chunk3, chunk4].map((hexVal) => parseInt(hexVal, 16));
+    return [chunk1, chunk2, chunk3, chunk4].map((hexVal) => Number.parseInt(hexVal, 16));
 }
 
 function convertDecimalValueTo2ByteHexArray(value: number) {
-    const hexValue = Number(value).toString(16).padStart(4, '0');
+    const hexValue = Number(value).toString(16).padStart(4, "0");
     const chunk1 = hexValue.substring(0, 2);
     const chunk2 = hexValue.substring(2);
-    return [chunk1, chunk2].map((hexVal) => parseInt(hexVal, 16));
+    return [chunk1, chunk2].map((hexVal) => Number.parseInt(hexVal, 16));
 }
 
-export async function onEventMeasurementPoll(
+export function onEventMeasurementPoll(
     type: OnEventType,
     data: OnEventData,
     device: Zh.Device,
@@ -179,20 +180,20 @@ export async function onEventMeasurementPoll(
     const endpoint = device.getEndpoint(1);
     const poll = async () => {
         if (electricalMeasurement) {
-            await endpoint.read('haElectricalMeasurement', ['rmsVoltage', 'rmsCurrent', 'activePower']);
+            await endpoint.read("haElectricalMeasurement", ["rmsVoltage", "rmsCurrent", "activePower"]);
         }
         if (metering) {
-            await endpoint.read('seMetering', ['currentSummDelivered']);
+            await endpoint.read("seMetering", ["currentSummDelivered"]);
         }
     };
 
-    utils.onEventPoll(type, data, device, options, 'measurement', 60, poll);
+    utils.onEventPoll(type, data, device, options, "measurement", 60, poll);
 }
 
 export async function onEventSetTime(type: OnEventType, data: KeyValue, device: Zh.Device) {
     // FIXME: Need to join onEventSetTime/onEventSetLocalTime to one command
 
-    if (data.type === 'commandMcuSyncTime' && data.cluster === 'manuSpecificTuya') {
+    if (data.type === "commandMcuSyncTime" && data.cluster === "manuSpecificTuya") {
         try {
             const utcTime = Math.round((new Date().getTime() - constants.OneJanuary2000) / 1000);
             const localTime = utcTime - new Date().getTimezoneOffset() * 60;
@@ -202,7 +203,7 @@ export async function onEventSetTime(type: OnEventType, data: KeyValue, device: 
                 payloadSize: 8,
                 payload: [...convertDecimalValueTo4ByteHexArray(utcTime), ...convertDecimalValueTo4ByteHexArray(localTime)],
             };
-            await endpoint.command('manuSpecificTuya', 'mcuSyncTime', payload, {});
+            await endpoint.command("manuSpecificTuya", "mcuSyncTime", payload, {});
         } catch {
             // endpoint.command can throw an error which needs to
             // be caught or the zigbee-herdsman may crash
@@ -220,11 +221,11 @@ export async function onEventSetLocalTime(type: OnEventType, data: KeyValue, dev
     //  1. Respond to the `commandMcuSyncTime` event
     //  2. Just send `mcuSyncTime` anytime (by 1-hour timer or something else)
 
-    const nextLocalTimeUpdate = globalStore.getValue(device, 'nextLocalTimeUpdate');
+    const nextLocalTimeUpdate = globalStore.getValue(device, "nextLocalTimeUpdate");
     const forceTimeUpdate = nextLocalTimeUpdate == null || nextLocalTimeUpdate < new Date().getTime();
 
-    if ((data.type === 'commandMcuSyncTime' && data.cluster === 'manuSpecificTuya') || forceTimeUpdate) {
-        globalStore.putValue(device, 'nextLocalTimeUpdate', new Date().getTime() + 3600 * 1000);
+    if ((data.type === "commandMcuSyncTime" && data.cluster === "manuSpecificTuya") || forceTimeUpdate) {
+        globalStore.putValue(device, "nextLocalTimeUpdate", new Date().getTime() + 3600 * 1000);
 
         try {
             const utcTime = Math.round(new Date().getTime() / 1000);
@@ -235,7 +236,7 @@ export async function onEventSetLocalTime(type: OnEventType, data: KeyValue, dev
                 payloadSize: 8,
                 payload: [...convertDecimalValueTo4ByteHexArray(utcTime), ...convertDecimalValueTo4ByteHexArray(localTime)],
             };
-            await endpoint.command('manuSpecificTuya', 'mcuSyncTime', payload, {});
+            await endpoint.command("manuSpecificTuya", "mcuSyncTime", payload, {});
         } catch {
             // endpoint.command can throw an error which needs to
             // be caught or the zigbee-herdsman may crash
@@ -245,13 +246,14 @@ export async function onEventSetLocalTime(type: OnEventType, data: KeyValue, dev
 }
 
 // Return `seq` - transaction ID for handling concrete response
-async function sendDataPoints(entity: Zh.Endpoint | Zh.Group, dpValues: Tuya.DpValue[], cmd = 'dataRequest', seq?: number) {
+async function sendDataPoints(entity: Zh.Endpoint | Zh.Group, dpValues: Tuya.DpValue[], cmd = "dataRequest", seq?: number) {
     if (seq === undefined) {
-        seq = globalStore.getValue(entity, 'sequence', 0);
-        globalStore.putValue(entity, 'sequence', (seq + 1) % 0xffff);
+        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
+        seq = globalStore.getValue(entity, "sequence", 0);
+        globalStore.putValue(entity, "sequence", (seq + 1) % 0xffff);
     }
 
-    await entity.command('manuSpecificTuya', cmd, {seq, dpValues}, {disableDefaultResponse: true});
+    await entity.command("manuSpecificTuya", cmd, {seq, dpValues}, {disableDefaultResponse: true});
     return seq;
 }
 
@@ -304,102 +306,134 @@ export async function sendDataPointStringBuffer(entity: Zh.Group | Zh.Endpoint, 
 }
 
 const tuyaExposes = {
-    lightType: () => e.enum('light_type', ea.STATE_SET, ['led', 'incandescent', 'halogen']).withDescription('Type of light attached to the device'),
+    lightType: () => e.enum("light_type", ea.STATE_SET, ["led", "incandescent", "halogen"]).withDescription("Type of light attached to the device"),
     lightBrightnessWithMinMax: () =>
         e
             .light_brightness()
             .withMinBrightness()
             .withMaxBrightness()
-            .setAccess('state', ea.STATE_SET)
-            .setAccess('brightness', ea.STATE_SET)
-            .setAccess('min_brightness', ea.STATE_SET)
-            .setAccess('max_brightness', ea.STATE_SET),
-    lightBrightness: () => e.light_brightness().setAccess('state', ea.STATE_SET).setAccess('brightness', ea.STATE_SET),
+            .setAccess("state", ea.STATE_SET)
+            .setAccess("brightness", ea.STATE_SET)
+            .setAccess("min_brightness", ea.STATE_SET)
+            .setAccess("max_brightness", ea.STATE_SET),
+    lightBrightness: () => e.light_brightness().setAccess("state", ea.STATE_SET).setAccess("brightness", ea.STATE_SET),
     countdown: () =>
         e
-            .numeric('countdown', ea.STATE_SET)
+            .numeric("countdown", ea.STATE_SET)
             .withValueMin(0)
             .withValueMax(43200)
             .withValueStep(1)
-            .withUnit('s')
-            .withDescription('Countdown to turn device off after a certain time'),
-    switch: () => e.switch().setAccess('state', ea.STATE_SET),
-    selfTest: () => e.binary('self_test', ea.STATE_SET, true, false).withDescription('Indicates whether the device is being self-tested'),
+            .withUnit("s")
+            .withDescription("Countdown to turn device off after a certain time"),
+    switch: () => e.switch().setAccess("state", ea.STATE_SET),
+    selfTest: () => e.binary("self_test", ea.STATE_SET, true, false).withDescription("Indicates whether the device is being self-tested"),
     selfTestResult: () =>
-        e.enum('self_test_result', ea.STATE, ['checking', 'success', 'failure', 'others']).withDescription('Result of the self-test'),
-    faultAlarm: () => e.binary('fault_alarm', ea.STATE, true, false).withDescription('Indicates whether a fault was detected'),
-    silence: () => e.binary('silence', ea.STATE_SET, true, false).withDescription('Silence the alarm'),
-    frostProtection: (extraNote = '') =>
+        e.enum("self_test_result", ea.STATE, ["checking", "success", "failure", "others"]).withDescription("Result of the self-test"),
+    faultAlarm: () => e.binary("fault_alarm", ea.STATE, true, false).withDescription("Indicates whether a fault was detected"),
+    silence: () => e.binary("silence", ea.STATE_SET, true, false).withDescription("Silence the alarm"),
+    frostProtection: (extraNote = "") =>
         e
-            .binary('frost_protection', ea.STATE_SET, 'ON', 'OFF')
+            .binary("frost_protection", ea.STATE_SET, "ON", "OFF")
             .withDescription(`When Anti-Freezing function is activated, the temperature in the house is kept at 8 °C.${extraNote}`),
-    errorStatus: () => e.numeric('error_status', ea.STATE).withDescription('Error status'),
-    scheduleAllDays: (access: number, format: string) =>
-        ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].map((day) =>
-            e.text(`schedule_${day}`, access).withDescription(`Schedule for ${day}, format: "${format}"`),
+    errorStatus: () => e.numeric("error_status", ea.STATE).withDescription("Error status"),
+    scheduleAllDays: (access: number, example: string) =>
+        ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"].map((day) =>
+            e.text(`schedule_${day}`, access).withDescription(`Schedule for ${day}, example: "${example}"`),
         ),
-    temperatureUnit: () => e.enum('temperature_unit', ea.STATE_SET, ['celsius', 'fahrenheit']).withDescription('Temperature unit'),
+    temperatureUnit: () => e.enum("temperature_unit", ea.STATE_SET, ["celsius", "fahrenheit"]).withDescription("Temperature unit"),
     temperatureCalibration: () =>
         e
-            .numeric('temperature_calibration', ea.STATE_SET)
+            .numeric("temperature_calibration", ea.STATE_SET)
             .withValueMin(-2.0)
             .withValueMax(2.0)
             .withValueStep(0.1)
-            .withUnit('°C')
-            .withDescription('Temperature calibration'),
+            .withUnit("°C")
+            .withDescription("Temperature calibration"),
     humidityCalibration: () =>
         e
-            .numeric('humidity_calibration', ea.STATE_SET)
+            .numeric("humidity_calibration", ea.STATE_SET)
             .withValueMin(-30)
             .withValueMax(30)
             .withValueStep(1)
-            .withUnit('%')
-            .withDescription('Humidity calibration'),
-    gasValue: () => e.numeric('gas_value', ea.STATE).withDescription('Measured gas concentration'),
+            .withUnit("%")
+            .withDescription("Humidity calibration"),
+    soilCalibration: () =>
+        e
+            .numeric("soil_calibration", ea.STATE_SET)
+            .withValueMin(-30)
+            .withValueMax(30)
+            .withValueStep(1)
+            .withUnit("%")
+            .withDescription("Soil Humidity calibration"),
+    temperatureSampling: () =>
+        e
+            .numeric("temperature_sampling", ea.STATE_SET)
+            .withValueMin(5)
+            .withValueMax(3600)
+            .withValueStep(1)
+            .withUnit("s")
+            .withDescription("Air temperature and humidity sampling"),
+    soilSampling: () =>
+        e
+            .numeric("soil_sampling", ea.STATE_SET)
+            .withValueMin(5)
+            .withValueMax(3600)
+            .withValueStep(1)
+            .withUnit("s")
+            .withDescription("Soil humidity sampling"),
+    soilWarning: () =>
+        e
+            .numeric("soil_warning", ea.STATE_SET)
+            .withValueMin(0)
+            .withValueMax(100)
+            .withValueStep(1)
+            .withUnit("%")
+            .withDescription("Soil water shortage humidity value"),
+    gasValue: () => e.numeric("gas_value", ea.STATE).withDescription("Measured gas concentration"),
     energyWithPhase: (phase: string) =>
-        e.numeric(`energy_${phase}`, ea.STATE).withUnit('kWh').withDescription(`Sum of consumed energy (phase ${phase.toUpperCase()})`),
+        e.numeric(`energy_${phase}`, ea.STATE).withUnit("kWh").withDescription(`Sum of consumed energy (phase ${phase.toUpperCase()})`),
     energyProducedWithPhase: (phase: string) =>
-        e.numeric(`energy_produced_${phase}`, ea.STATE).withUnit('kWh').withDescription(`Sum of produced energy (phase ${phase.toUpperCase()})`),
+        e.numeric(`energy_produced_${phase}`, ea.STATE).withUnit("kWh").withDescription(`Sum of produced energy (phase ${phase.toUpperCase()})`),
     energyFlowWithPhase: (phase: string, more: [string]) =>
         e
-            .enum(`energy_flow_${phase}`, ea.STATE, ['consuming', 'producing', ...more])
+            .enum(`energy_flow_${phase}`, ea.STATE, ["consuming", "producing", ...more])
             .withDescription(`Direction of energy (phase ${phase.toUpperCase()})`),
     voltageWithPhase: (phase: string) =>
-        e.numeric(`voltage_${phase}`, ea.STATE).withUnit('V').withDescription(`Measured electrical potential value (phase ${phase.toUpperCase()})`),
+        e.numeric(`voltage_${phase}`, ea.STATE).withUnit("V").withDescription(`Measured electrical potential value (phase ${phase.toUpperCase()})`),
     powerWithPhase: (phase: string) =>
-        e.numeric(`power_${phase}`, ea.STATE).withUnit('W').withDescription(`Instantaneous measured power (phase ${phase.toUpperCase()})`),
+        e.numeric(`power_${phase}`, ea.STATE).withUnit("W").withDescription(`Instantaneous measured power (phase ${phase.toUpperCase()})`),
     currentWithPhase: (phase: string) =>
         e
             .numeric(`current_${phase}`, ea.STATE)
-            .withUnit('A')
+            .withUnit("A")
             .withDescription(`Instantaneous measured electrical current (phase ${phase.toUpperCase()})`),
     powerFactorWithPhase: (phase: string) =>
         e
             .numeric(`power_factor_${phase}`, ea.STATE)
-            .withUnit('%')
+            .withUnit("%")
             .withDescription(`Instantaneous measured power factor (phase ${phase.toUpperCase()})`),
-    switchType: () => e.enum('switch_type', ea.ALL, ['toggle', 'state', 'momentary']).withDescription('Type of the switch'),
-    backlightModeLowMediumHigh: () => e.enum('backlight_mode', ea.ALL, ['low', 'medium', 'high']).withDescription('Intensity of the backlight'),
-    backlightModeOffNormalInverted: () => e.enum('backlight_mode', ea.ALL, ['off', 'normal', 'inverted']).withDescription('Mode of the backlight'),
-    backlightModeOffOn: () => e.binary('backlight_mode', ea.ALL, 'ON', 'OFF').withDescription(`Mode of the backlight`),
-    indicatorMode: () => e.enum('indicator_mode', ea.ALL, ['off', 'off/on', 'on/off', 'on']).withDescription('LED indicator mode'),
-    indicatorModeNoneRelayPos: () => e.enum('indicator_mode', ea.ALL, ['none', 'relay', 'pos']).withDescription('Mode of the indicator light'),
-    powerOutageMemory: () => e.enum('power_outage_memory', ea.ALL, ['on', 'off', 'restore']).withDescription('Recover state after power outage'),
-    batteryState: () => e.enum('battery_state', ea.STATE, ['low', 'medium', 'high']).withDescription('State of the battery'),
+    switchType: () => e.enum("switch_type", ea.ALL, ["toggle", "state", "momentary"]).withDescription("Type of the switch"),
+    backlightModeLowMediumHigh: () => e.enum("backlight_mode", ea.ALL, ["low", "medium", "high"]).withDescription("Intensity of the backlight"),
+    backlightModeOffNormalInverted: () => e.enum("backlight_mode", ea.ALL, ["off", "normal", "inverted"]).withDescription("Mode of the backlight"),
+    backlightModeOffOn: () => e.binary("backlight_mode", ea.ALL, "ON", "OFF").withDescription("Mode of the backlight"),
+    indicatorMode: () => e.enum("indicator_mode", ea.ALL, ["off", "off/on", "on/off", "on"]).withDescription("LED indicator mode"),
+    indicatorModeNoneRelayPos: () => e.enum("indicator_mode", ea.ALL, ["none", "relay", "pos"]).withDescription("Mode of the indicator light"),
+    powerOutageMemory: () => e.enum("power_outage_memory", ea.ALL, ["on", "off", "restore"]).withDescription("Recover state after power outage"),
+    batteryState: () => e.enum("battery_state", ea.STATE, ["low", "medium", "high"]).withDescription("State of the battery"),
     doNotDisturb: () =>
         e
-            .binary('do_not_disturb', ea.STATE_SET, true, false)
-            .withDescription('Do not disturb mode, when enabled this function will keep the light OFF after a power outage'),
+            .binary("do_not_disturb", ea.STATE_SET, true, false)
+            .withDescription("Do not disturb mode, when enabled this function will keep the light OFF after a power outage"),
     colorPowerOnBehavior: () =>
-        e.enum('color_power_on_behavior', ea.STATE_SET, ['initial', 'previous', 'customized']).withDescription('Power on behavior state'),
+        e.enum("color_power_on_behavior", ea.STATE_SET, ["initial", "previous", "customized"]).withDescription("Power on behavior state"),
     switchMode: () =>
-        e.enum('switch_mode', ea.STATE_SET, ['switch', 'scene']).withDescription('Sets the mode of the switch to act as a switch or as a scene'),
+        e.enum("switch_mode", ea.STATE_SET, ["switch", "scene"]).withDescription("Sets the mode of the switch to act as a switch or as a scene"),
     switchMode2: () =>
         e
-            .enum('switch_mode', ea.STATE_SET, ['switch', 'curtain'])
-            .withDescription('Sets the mode of the switch to act as a switch or as a curtain controller'),
+            .enum("switch_mode", ea.STATE_SET, ["switch", "curtain"])
+            .withDescription("Sets the mode of the switch to act as a switch or as a curtain controller"),
     lightMode: () =>
-        e.enum('light_mode', ea.STATE_SET, ['normal', 'on', 'off', 'flash']).withDescription(`'Sets the indicator mode of l1.
+        e.enum("light_mode", ea.STATE_SET, ["normal", "on", "off", "flash"]).withDescription(`'Sets the indicator mode of l1.
         Normal: Orange while off and white while on.
         On: Always white. Off: Always orange.
         Flash: Flashes white when triggered.
@@ -408,24 +442,24 @@ const tuyaExposes = {
     // So instead of pinning the values to each endpoint, it is easier to keep the structure stand alone.
     inchingSwitch: (quantity: number) => {
         const x = e
-            .composite('inching_control_set', 'inching_control_set', ea.SET)
+            .composite("inching_control_set", "inching_control_set", ea.SET)
             .withDescription(
-                'Device Inching function Settings. The device will automatically turn off ' + 'after each turn on for a specified period of time.',
+                "Device Inching function Settings. The device will automatically turn off " + "after each turn on for a specified period of time.",
             );
         for (let i = 1; i <= quantity; i++) {
             x.withFeature(
                 e
-                    .binary('inching_control', ea.SET, 'ENABLE', 'DISABLE')
-                    .withDescription('Enable/disable inching function for endpoint ' + i + '.')
-                    .withLabel('Inching for Endpoint ' + i)
-                    .withProperty('inching_control_' + i),
+                    .binary("inching_control", ea.SET, "ENABLE", "DISABLE")
+                    .withDescription(`Enable/disable inching function for endpoint ${i}.`)
+                    .withLabel(`Inching for Endpoint ${i}`)
+                    .withProperty(`inching_control_${i}`),
             ).withFeature(
                 e
-                    .numeric('inching_time', ea.SET)
-                    .withDescription('Delay time for executing a inching action for endpoint ' + i + '.')
-                    .withLabel('Inching time for endpoint ' + i)
-                    .withProperty('inching_time_' + i)
-                    .withUnit('seconds')
+                    .numeric("inching_time", ea.SET)
+                    .withDescription(`Delay time for executing a inching action for endpoint ${i}.`)
+                    .withLabel(`Inching time for endpoint ${i}`)
+                    .withProperty(`inching_time_${i}`)
+                    .withUnit("seconds")
                     .withValueMin(1)
                     .withValueMax(65535)
                     .withValueStep(1),
@@ -441,8 +475,8 @@ export const skip = {
     // This prevents 100% -> X% brightness jumps when the switch is already on
     // https://github.com/Koenkk/zigbee2mqtt/issues/13800#issuecomment-1263592783
     stateOnAndBrightnessPresent: (meta: Tz.Meta) => {
-        if (Array.isArray(meta.mapped)) throw new Error('Not supported');
-        const convertedKey = meta.mapped.meta.multiEndpoint && meta.endpoint_name ? `state_${meta.endpoint_name}` : 'state';
+        if (Array.isArray(meta.mapped)) throw new Error("Not supported");
+        const convertedKey = meta.mapped.meta.multiEndpoint && meta.endpoint_name ? `state_${meta.endpoint_name}` : "state";
         return meta.message.brightness !== undefined && meta.state[convertedKey] === meta.message.state;
     },
 };
@@ -450,12 +484,12 @@ export const skip = {
 export const configureMagicPacket = async (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint) => {
     try {
         const endpoint = device.endpoints[0];
-        await endpoint.read('genBasic', ['manufacturerName', 'zclVersion', 'appVersion', 'modelId', 'powerSource', 0xfffe]);
+        await endpoint.read("genBasic", ["manufacturerName", "zclVersion", "appVersion", "modelId", "powerSource", 0xfffe]);
     } catch (e) {
         // Fails for some Tuya devices with UNSUPPORTED_ATTRIBUTE, ignore that.
         // e.g. https://github.com/Koenkk/zigbee2mqtt/issues/14857
-        if (e.message.includes('UNSUPPORTED_ATTRIBUTE')) {
-            logger.debug('configureMagicPacket failed, ignoring...', NS);
+        if (e.message.includes("UNSUPPORTED_ATTRIBUTE")) {
+            logger.debug("configureMagicPacket failed, ignoring...", NS);
         } else {
             throw e;
         }
@@ -487,27 +521,19 @@ class Base {
     }
 }
 
-export class Enum extends Base {
-    constructor(value: number) {
-        super(value);
-    }
-}
+export class Enum extends Base {}
 const enumConstructor = (value: number) => new Enum(value);
 export {enumConstructor as enum};
 
-export class Bitmap extends Base {
-    constructor(value: number) {
-        super(value);
-    }
-}
+export class Bitmap extends Base {}
 
 type LookupMap = {[s: string]: number | boolean | Enum | string};
 export const valueConverterBasic = {
     lookup: (map: LookupMap | ((options: KeyValue, device: Zh.Device) => LookupMap), fallbackValue?: number | boolean | KeyValue | string | null) => {
         return {
-            to: (v: string, meta: Tz.Meta) => utils.getFromLookup(v, typeof map === 'function' ? map(meta.options, meta.device) : map),
+            to: (v: string, meta: Tz.Meta) => utils.getFromLookup(v, typeof map === "function" ? map(meta.options, meta.device) : map),
             from: (v: number, _meta: Fz.Meta, options: KeyValue) => {
-                const m = typeof map === 'function' ? map(options, _meta.device) : map;
+                const m = typeof map === "function" ? map(options, _meta.device) : map;
                 const value = Object.entries(m).find((i) => i[1].valueOf() === v);
                 if (!value) {
                     if (fallbackValue !== undefined) return fallbackValue;
@@ -573,30 +599,35 @@ export const valueConverter = {
         from: (value: number) => (value > 4000 ? value - 4096 : value),
         to: (value: number) => (value < 0 ? 4096 + value : value),
     },
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    localTemperatureCalibration_256: {
+        from: (value: number) => (value > 200 ? value - 256 : value),
+        to: (value: number) => (value < 0 ? 256 + value : value),
+    },
     setLimit: {
         to: (v: number) => {
-            if (!v) throw new Error('Limit cannot be unset, use factory_reset');
+            if (!v) throw new Error("Limit cannot be unset, use factory_reset");
             return v;
         },
         from: (v: number) => v,
     },
     coverPosition: {
-        to: async (v: number, meta: Tz.Meta) => {
+        to: (v: number, meta: Tz.Meta) => {
             return meta.options.invert_cover ? 100 - v : v;
         },
         from: (v: number, meta: Fz.Meta, options: KeyValue, publish: Publish) => {
             const position = options.invert_cover ? 100 - v : v;
-            publish({state: position === 0 ? 'CLOSE' : 'OPEN'});
+            publish({state: position === 0 ? "CLOSE" : "OPEN"});
             return position;
         },
     },
     coverPositionInverted: {
-        to: async (v: number, meta: Tz.Meta) => {
+        to: (v: number, meta: Tz.Meta) => {
             return meta.options.invert_cover ? v : 100 - v;
         },
         from: (v: number, meta: Fz.Meta, options: KeyValue, publish: Publish) => {
             const position = options.invert_cover ? v : 100 - v;
-            publish({state: position === 0 ? 'CLOSE' : 'OPEN'});
+            publish({state: position === 0 ? "CLOSE" : "OPEN"});
             return position;
         },
     },
@@ -614,13 +645,13 @@ export const valueConverter = {
     },
     phaseVariant1: {
         from: (v: string) => {
-            const buffer = Buffer.from(v, 'base64');
+            const buffer = Buffer.from(v, "base64");
             return {voltage: (buffer[14] | (buffer[13] << 8)) / 10, current: (buffer[12] | (buffer[11] << 8)) / 1000};
         },
     },
     phaseVariant2: {
         from: (v: string) => {
-            const buf = Buffer.from(v, 'base64');
+            const buf = Buffer.from(v, "base64");
             return {voltage: (buf[1] | (buf[0] << 8)) / 10, current: (buf[4] | (buf[3] << 8)) / 1000, power: buf[7] | (buf[6] << 8)};
         },
     },
@@ -629,7 +660,7 @@ export const valueConverter = {
             from: (v: string) => {
                 // Support negative power readings
                 // https://github.com/Koenkk/zigbee2mqtt/issues/18603#issuecomment-2277697295
-                const buf = Buffer.from(v, 'base64');
+                const buf = Buffer.from(v, "base64");
                 let power = buf[7] | (buf[6] << 8);
                 if (power > 0x7fff) {
                     power = (0x999a - power) * -1;
@@ -645,7 +676,7 @@ export const valueConverter = {
     },
     phaseVariant3: {
         from: (v: string) => {
-            const buf = Buffer.from(v, 'base64');
+            const buf = Buffer.from(v, "base64");
             return {
                 voltage: ((buf[0] << 8) | buf[1]) / 10,
                 current: ((buf[2] << 16) | (buf[3] << 8) | buf[4]) / 1000,
@@ -662,9 +693,9 @@ export const valueConverter = {
     },
     threshold: {
         from: (v: string) => {
-            const buffer = Buffer.from(v, 'base64');
-            const stateLookup: KeyValue = {0: 'not_set', 1: 'over_current_threshold', 3: 'over_voltage_threshold'};
-            const protectionLookup: KeyValue = {0: 'OFF', 1: 'ON'};
+            const buffer = Buffer.from(v, "base64");
+            const stateLookup: KeyValue = {0: "not_set", 1: "over_current_threshold", 3: "over_voltage_threshold"};
+            const protectionLookup: KeyValue = {0: "OFF", 1: "ON"};
             return {
                 threshold_1_protection: protectionLookup[buffer[1]],
                 threshold_1: stateLookup[buffer[0]],
@@ -679,66 +710,66 @@ export const valueConverter = {
         to: async (v: number, meta: Tz.Meta) => {
             const entity = meta.device.endpoints[0];
             const onOffLookup = {on: 1, off: 0};
-            const sendCommand = utils.getMetaValue(entity, meta.mapped, 'tuyaSendCommand', undefined, 'dataRequest');
+            const sendCommand = utils.getMetaValue(entity, meta.mapped, "tuyaSendCommand", undefined, "dataRequest");
 
             if (meta.message.overload_breaker) {
-                const threshold = meta.state['overload_threshold'];
+                const threshold = meta.state.overload_threshold;
                 const buf = Buffer.from([
                     3,
                     utils.getFromLookup(meta.message.overload_breaker, onOffLookup),
                     0,
-                    utils.toNumber(threshold, 'overload_threshold'),
+                    utils.toNumber(threshold, "overload_threshold"),
                 ]);
                 await sendDataPointRaw(entity, 17, Array.from(buf), sendCommand, 1);
             } else if (meta.message.overload_threshold) {
-                const state = meta.state['overload_breaker'];
+                const state = meta.state.overload_breaker;
                 const buf = Buffer.from([
                     3,
                     utils.getFromLookup(state, onOffLookup),
                     0,
-                    utils.toNumber(meta.message.overload_threshold, 'overload_threshold'),
+                    utils.toNumber(meta.message.overload_threshold, "overload_threshold"),
                 ]);
                 await sendDataPointRaw(entity, 17, Array.from(buf), sendCommand, 1);
             } else if (meta.message.leakage_threshold) {
-                const state = meta.state['leakage_breaker'];
+                const state = meta.state.leakage_breaker;
                 const buf = Buffer.alloc(8);
                 buf.writeUInt8(4, 4);
                 buf.writeUInt8(utils.getFromLookup(state, onOffLookup), 5);
-                buf.writeUInt16BE(utils.toNumber(meta.message.leakage_threshold, 'leakage_threshold'), 6);
+                buf.writeUInt16BE(utils.toNumber(meta.message.leakage_threshold, "leakage_threshold"), 6);
                 await sendDataPointRaw(entity, 17, Array.from(buf), sendCommand, 1);
             } else if (meta.message.leakage_breaker) {
-                const threshold = meta.state['leakage_threshold'];
+                const threshold = meta.state.leakage_threshold;
                 const buf = Buffer.alloc(8);
                 buf.writeUInt8(4, 4);
                 buf.writeUInt8(utils.getFromLookup(meta.message.leakage_breaker, onOffLookup), 5);
-                buf.writeUInt16BE(utils.toNumber(threshold, 'leakage_threshold'), 6);
+                buf.writeUInt16BE(utils.toNumber(threshold, "leakage_threshold"), 6);
                 await sendDataPointRaw(entity, 17, Array.from(buf), sendCommand, 1);
             } else if (meta.message.high_temperature_threshold) {
-                const state = meta.state['high_temperature_breaker'];
+                const state = meta.state.high_temperature_breaker;
                 const buf = Buffer.alloc(12);
                 buf.writeUInt8(5, 8);
                 buf.writeUInt8(utils.getFromLookup(state, onOffLookup), 9);
-                buf.writeUInt16BE(utils.toNumber(meta.message.high_temperature_threshold, 'high_temperature_threshold'), 10);
+                buf.writeUInt16BE(utils.toNumber(meta.message.high_temperature_threshold, "high_temperature_threshold"), 10);
                 await sendDataPointRaw(entity, 17, Array.from(buf), sendCommand, 1);
             } else if (meta.message.high_temperature_breaker) {
-                const threshold = meta.state['high_temperature_threshold'];
+                const threshold = meta.state.high_temperature_threshold;
                 const buf = Buffer.alloc(12);
                 buf.writeUInt8(5, 8);
                 buf.writeUInt8(utils.getFromLookup(meta.message.high_temperature_breaker, onOffLookup), 9);
-                buf.writeUInt16BE(utils.toNumber(threshold, 'high_temperature_threshold'), 10);
+                buf.writeUInt16BE(utils.toNumber(threshold, "high_temperature_threshold"), 10);
                 await sendDataPointRaw(entity, 17, Array.from(buf), sendCommand, 1);
             }
         },
         from: (v: string) => {
-            const data = Buffer.from(v, 'base64');
+            const data = Buffer.from(v, "base64");
             const result: KeyValue = {};
-            const lookup: KeyValue = {0: 'OFF', 1: 'ON'};
-            const alarmLookup: KeyValue = {3: 'overload', 4: 'leakage', 5: 'high_temperature'};
+            const lookup: KeyValue = {0: "OFF", 1: "ON"};
+            const alarmLookup: KeyValue = {3: "overload", 4: "leakage", 5: "high_temperature"};
 
             const len = data.length;
             let i = 0;
             while (i < len) {
-                if (Object.prototype.hasOwnProperty.call(alarmLookup, data[i])) {
+                if (Object.hasOwn(alarmLookup, data[i])) {
                     const alarm = alarmLookup[data[i]];
                     const state = lookup[data[i + 1]];
                     const threshold = data[i + 3] | (data[i + 2] << 8);
@@ -754,80 +785,80 @@ export const valueConverter = {
         to: async (v: number, meta: Tz.Meta) => {
             const entity = meta.device.endpoints[0];
             const onOffLookup = {on: 1, off: 0};
-            const sendCommand = utils.getMetaValue(entity, meta.mapped, 'tuyaSendCommand', undefined, 'dataRequest');
+            const sendCommand = utils.getMetaValue(entity, meta.mapped, "tuyaSendCommand", undefined, "dataRequest");
 
             if (meta.message.over_current_threshold) {
-                const state = meta.state['over_current_breaker'];
+                const state = meta.state.over_current_breaker;
                 const buf = Buffer.from([
                     1,
                     utils.getFromLookup(state, onOffLookup),
                     0,
-                    utils.toNumber(meta.message.over_current_threshold, 'over_current_threshold'),
+                    utils.toNumber(meta.message.over_current_threshold, "over_current_threshold"),
                 ]);
                 await sendDataPointRaw(entity, 18, Array.from(buf), sendCommand, 1);
             } else if (meta.message.over_current_breaker) {
-                const threshold = meta.state['over_current_threshold'];
+                const threshold = meta.state.over_current_threshold;
                 const buf = Buffer.from([
                     1,
                     utils.getFromLookup(meta.message.over_current_breaker, onOffLookup),
                     0,
-                    utils.toNumber(threshold, 'over_current_threshold'),
+                    utils.toNumber(threshold, "over_current_threshold"),
                 ]);
                 await sendDataPointRaw(entity, 18, Array.from(buf), sendCommand, 1);
             } else if (meta.message.over_voltage_threshold) {
-                const state = meta.state['over_voltage_breaker'];
+                const state = meta.state.over_voltage_breaker;
                 const buf = Buffer.alloc(8);
                 buf.writeUInt8(3, 4);
                 buf.writeUInt8(utils.getFromLookup(state, onOffLookup), 5);
-                buf.writeUInt16BE(utils.toNumber(meta.message.over_voltage_threshold, 'over_voltage_threshold'), 6);
+                buf.writeUInt16BE(utils.toNumber(meta.message.over_voltage_threshold, "over_voltage_threshold"), 6);
                 await sendDataPointRaw(entity, 18, Array.from(buf), sendCommand, 1);
             } else if (meta.message.over_voltage_breaker) {
-                const threshold = meta.state['over_voltage_threshold'];
+                const threshold = meta.state.over_voltage_threshold;
                 const buf = Buffer.alloc(8);
                 buf.writeUInt8(3, 4);
                 buf.writeUInt8(utils.getFromLookup(meta.message.over_voltage_breaker, onOffLookup), 5);
-                buf.writeUInt16BE(utils.toNumber(threshold, 'over_voltage_threshold'), 6);
+                buf.writeUInt16BE(utils.toNumber(threshold, "over_voltage_threshold"), 6);
                 await sendDataPointRaw(entity, 18, Array.from(buf), sendCommand, 1);
             } else if (meta.message.under_voltage_threshold) {
-                const state = meta.state['under_voltage_breaker'];
+                const state = meta.state.under_voltage_breaker;
                 const buf = Buffer.alloc(12);
                 buf.writeUInt8(4, 8);
                 buf.writeUInt8(utils.getFromLookup(state, onOffLookup), 9);
-                buf.writeUInt16BE(utils.toNumber(meta.message.under_voltage_threshold, 'under_voltage_threshold'), 10);
+                buf.writeUInt16BE(utils.toNumber(meta.message.under_voltage_threshold, "under_voltage_threshold"), 10);
                 await sendDataPointRaw(entity, 18, Array.from(buf), sendCommand, 1);
             } else if (meta.message.under_voltage_breaker) {
-                const threshold = meta.state['under_voltage_threshold'];
+                const threshold = meta.state.under_voltage_threshold;
                 const buf = Buffer.alloc(12);
                 buf.writeUInt8(4, 8);
                 buf.writeUInt8(utils.getFromLookup(meta.message.under_voltage_breaker, onOffLookup), 9);
-                buf.writeUInt16BE(utils.toNumber(threshold, 'under_voltage_threshold'), 10);
+                buf.writeUInt16BE(utils.toNumber(threshold, "under_voltage_threshold"), 10);
                 await sendDataPointRaw(entity, 18, Array.from(buf), sendCommand, 1);
             } else if (meta.message.insufficient_balance_threshold) {
-                const state = meta.state['insufficient_balance_breaker'];
+                const state = meta.state.insufficient_balance_breaker;
                 const buf = Buffer.alloc(16);
                 buf.writeUInt8(8, 12);
                 buf.writeUInt8(utils.getFromLookup(state, onOffLookup), 13);
-                buf.writeUInt16BE(utils.toNumber(meta.message.insufficient_balance_threshold, 'insufficient_balance_threshold'), 14);
+                buf.writeUInt16BE(utils.toNumber(meta.message.insufficient_balance_threshold, "insufficient_balance_threshold"), 14);
                 await sendDataPointRaw(entity, 18, Array.from(buf), sendCommand, 1);
             } else if (meta.message.insufficient_balance_breaker) {
-                const threshold = meta.state['insufficient_balance_threshold'];
+                const threshold = meta.state.insufficient_balance_threshold;
                 const buf = Buffer.alloc(16);
                 buf.writeUInt8(8, 12);
                 buf.writeUInt8(utils.getFromLookup(meta.message.insufficient_balance_breaker, onOffLookup), 13);
-                buf.writeUInt16BE(utils.toNumber(threshold, 'insufficient_balance_threshold'), 14);
+                buf.writeUInt16BE(utils.toNumber(threshold, "insufficient_balance_threshold"), 14);
                 await sendDataPointRaw(entity, 18, Array.from(buf), sendCommand, 1);
             }
         },
         from: (v: string) => {
-            const data = Buffer.from(v, 'base64');
+            const data = Buffer.from(v, "base64");
             const result: KeyValue = {};
-            const lookup: KeyValue = {0: 'OFF', 1: 'ON'};
-            const alarmLookup: KeyValue = {1: 'over_current', 3: 'over_voltage', 4: 'under_voltage', 8: 'insufficient_balance'};
+            const lookup: KeyValue = {0: "OFF", 1: "ON"};
+            const alarmLookup: KeyValue = {1: "over_current", 3: "over_voltage", 4: "under_voltage", 8: "insufficient_balance"};
 
             const len = data.length;
             let i = 0;
             while (i < len) {
-                if (Object.prototype.hasOwnProperty.call(alarmLookup, data[i])) {
+                if (Object.hasOwn(alarmLookup, data[i])) {
                     const alarm = alarmLookup[data[i]];
                     const state = lookup[data[i + 1]];
                     const threshold = data[i + 3] | (data[i + 2] << 8);
@@ -843,6 +874,7 @@ export const valueConverter = {
     lockUnlock: valueConverterBasic.lookup({LOCK: true, UNLOCK: false}),
     localTempCalibration1: {
         from: (v: number) => {
+            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             if (v > 55) v -= 0x100000000;
             return v / 10;
         },
@@ -861,6 +893,7 @@ export const valueConverter = {
     },
     localTempCalibration3: {
         from: (v: number) => {
+            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             if (v > 0x7fffffff) v -= 0x100000000;
             return v / 10;
         },
@@ -910,8 +943,8 @@ export const valueConverter = {
                 const rHours = Math.floor(hours);
                 const minutes = (hours - rHours) * 60;
                 const rMinutes = Math.round(minutes);
-                const strHours = rHours.toString().padStart(2, '0');
-                const strMinutes = rMinutes.toString().padStart(2, '0');
+                const strHours = rHours.toString().padStart(2, "0");
+                const strMinutes = rMinutes.toString().padStart(2, "0");
                 const tempHexArray = [v[i * periodSize + 1], v[i * periodSize + 2]];
                 const tempRaw = Buffer.from(tempHexArray).readUIntBE(0, tempHexArray.length);
                 const temp = tempRaw / 10;
@@ -919,7 +952,7 @@ export const valueConverter = {
                 if (rHours === 24) break;
             }
 
-            return schedule.join(' ');
+            return schedule.join(" ");
         },
         to: (v: KeyValue, meta: Tz.Meta) => {
             const dayByte: KeyValue = {
@@ -932,28 +965,28 @@ export const valueConverter = {
                 sunday: 64,
             };
             const weekDay = v.week_day;
-            utils.assertString(weekDay, 'week_day');
+            utils.assertString(weekDay, "week_day");
             if (Object.keys(dayByte).indexOf(weekDay) === -1) {
-                throw new Error('Invalid "week_day" property value: ' + weekDay);
+                throw new Error(`Invalid "week_day" property value: ${weekDay}`);
             }
-            let weekScheduleType = 'separate';
-            if (meta.state && meta.state.working_day) {
+            let weekScheduleType = "separate";
+            if (meta.state?.working_day) {
                 weekScheduleType = String(meta.state.working_day);
             }
             const payload = [];
 
             switch (weekScheduleType) {
-                case 'mon_sun':
+                case "mon_sun":
                     payload.push(127);
                     break;
-                case 'mon_fri+sat+sun':
-                    if (['saturday', 'sunday'].indexOf(weekDay) === -1) {
+                case "mon_fri+sat+sun":
+                    if (["saturday", "sunday"].indexOf(weekDay) === -1) {
                         payload.push(31);
                         break;
                     }
                     payload.push(dayByte[weekDay]);
                     break;
-                case 'separate':
+                case "separate":
                     payload.push(dayByte[weekDay]);
                     break;
                 default:
@@ -962,22 +995,24 @@ export const valueConverter = {
 
             // day split to 10 min segments = total 144 segments
             const maxPeriodsInDay = 10;
-            utils.assertString(v.schedule, 'schedule');
-            const schedule = v.schedule.split(' ');
+            utils.assertString(v.schedule, "schedule");
+            const schedule = v.schedule.split(" ");
             const schedulePeriods = schedule.length;
-            if (schedulePeriods > 10) throw new Error('There cannot be more than 10 periods in the schedule: ' + v);
-            if (schedulePeriods < 2) throw new Error('There cannot be less than 2 periods in the schedule: ' + v);
+            if (schedulePeriods > 10) throw new Error(`There cannot be more than 10 periods in the schedule: ${v}`);
+            if (schedulePeriods < 2) throw new Error(`There cannot be less than 2 periods in the schedule: ${v}`);
+            // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
             let prevHour;
 
             for (const period of schedule) {
-                const timeTemp = period.split('/');
-                const hm = timeTemp[0].split(':', 2);
-                const h = parseInt(hm[0]);
-                const m = parseInt(hm[1]);
-                const temp = parseFloat(timeTemp[1]);
+                const timeTemp = period.split("/");
+                const hm = timeTemp[0].split(":", 2);
+                const h = Number.parseInt(hm[0]);
+                const m = Number.parseInt(hm[1]);
+                const temp = Number.parseFloat(timeTemp[1]);
                 if (h < 0 || h > 24 || m < 0 || m >= 60 || m % 10 !== 0 || temp < 5 || temp > 30 || temp % 0.5 !== 0) {
-                    throw new Error('Invalid hour, minute or temperature of: ' + period);
-                } else if (prevHour > h) {
+                    throw new Error(`Invalid hour, minute or temperature of: ${period}`);
+                }
+                if (prevHour > h) {
                     throw new Error(`The hour of the next segment can't be less than the previous one: ${prevHour} > ${h}`);
                 }
                 prevHour = h;
@@ -999,39 +1034,35 @@ export const valueConverter = {
         from: (v: string) => valueConverter.thermostatScheduleDayMultiDPWithTransitionCount().from(v),
         to: (v: string) => valueConverter.thermostatScheduleDayMultiDPWithTransitionCount().to(v),
     },
-    thermostatScheduleDayMultiDPWithTransitionCount: (transitionCount: number = 4) => {
+    thermostatScheduleDayMultiDPWithTransitionCount: (transitionCount = 4) => {
         return {
             from: (v: string) => {
                 const schedule = [];
                 for (let index = 1; index < transitionCount * 4 - 1; index = index + 4) {
                     schedule.push(
-                        String(parseInt(v[index + 0])).padStart(2, '0') +
-                            ':' +
-                            String(parseInt(v[index + 1])).padStart(2, '0') +
-                            '/' +
-                            // @ts-expect-error ignore
-                            (parseFloat((v[index + 2] << 8) + v[index + 3]) / 10.0).toFixed(1),
+                        // @ts-expect-error
+                        `${String(Number.parseInt(v[index + 0])).padStart(2, "0")}:${String(Number.parseInt(v[index + 1])).padStart(2, "0")}/${(Number.parseFloat((v[index + 2] << 8) + v[index + 3]) / 10.0).toFixed(1)}`,
                     );
                 }
-                return schedule.join(' ');
+                return schedule.join(" ");
             },
             to: (v: string) => {
                 const payload = [0];
-                const transitions = v.split(' ');
-                if (transitions.length != transitionCount) {
+                const transitions = v.split(" ");
+                if (transitions.length !== transitionCount) {
                     throw new Error(`Invalid schedule: there should be ${transitionCount} transitions`);
                 }
                 for (const transition of transitions) {
-                    const timeTemp = transition.split('/');
-                    if (timeTemp.length != 2) {
-                        throw new Error('Invalid schedule: wrong transition format: ' + transition);
+                    const timeTemp = transition.split("/");
+                    if (timeTemp.length !== 2) {
+                        throw new Error(`Invalid schedule: wrong transition format: ${transition}`);
                     }
-                    const hourMin = timeTemp[0].split(':');
-                    const hour = parseInt(hourMin[0]);
-                    const min = parseInt(hourMin[1]);
-                    const temperature = Math.floor(parseFloat(timeTemp[1]) * 10);
-                    if (hour < 0 || hour > 24 || min < 0 || min > 60 || temperature < 50 || temperature > 300) {
-                        throw new Error('Invalid hour, minute or temperature of: ' + transition);
+                    const hourMin = timeTemp[0].split(":");
+                    const hour = Number.parseInt(hourMin[0]);
+                    const min = Number.parseInt(hourMin[1]);
+                    const temperature = Math.floor(Number.parseFloat(timeTemp[1]) * 10);
+                    if (hour < 0 || hour > 24 || min < 0 || min > 60 || temperature < 50 || temperature > 350) {
+                        throw new Error(`Invalid hour, minute or temperature of: ${transition}`);
                     }
                     payload.push(hour, min, (temperature & 0xff00) >> 8, temperature & 0xff);
                 }
@@ -1039,7 +1070,7 @@ export const valueConverter = {
             },
         };
     },
-    thermostatScheduleDayMultiDPWithDayNumber: (dayNum: number, transitionCount: number = 4) => {
+    thermostatScheduleDayMultiDPWithDayNumber: (dayNum: number, transitionCount = 4) => {
         return {
             from: (v: string) => valueConverter.thermostatScheduleDayMultiDPWithTransitionCount(transitionCount).from(v),
             to: (v: string) => {
@@ -1049,12 +1080,13 @@ export const valueConverter = {
             },
         };
     },
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     thermostatScheduleDayMultiDP_TRV602Z: {
         from: (v: string) => {
             const schedule = [];
             for (let index = 1; index < 24; index = index + 4) {
-                const firstByte = (parseInt(v[index + 0]) - 192) << 8;
-                const secondByte = parseInt(v[index + 1]);
+                const firstByte = (Number.parseInt(v[index + 0]) - 192) << 8;
+                const secondByte = Number.parseInt(v[index + 1]);
 
                 const minutesSinceMidnight = firstByte | secondByte;
 
@@ -1062,28 +1094,28 @@ export const valueConverter = {
                 const minutes = minutesSinceMidnight % 60;
 
                 schedule.push(
-                    String(hour).padStart(2, '0') + ':' + String(minutes).padStart(2, '0') + '/' + (parseFloat(v[index + 3]) / 10.0).toFixed(1),
+                    `${String(hour).padStart(2, "0")}:${String(minutes).padStart(2, "0")}/${(Number.parseFloat(v[index + 3]) / 10.0).toFixed(1)}`,
                 );
             }
-            return schedule.join(' ');
+            return schedule.join(" ");
         },
         to: (v: string) => {
             const payload = [];
-            const transitions = v.split(' ');
-            if (transitions.length != 6) {
-                throw new Error('Invalid schedule: there should be 6 transitions');
+            const transitions = v.split(" ");
+            if (transitions.length !== 6) {
+                throw new Error("Invalid schedule: there should be 6 transitions");
             }
             for (const transition of transitions) {
-                const timeTemp = transition.split('/');
-                if (timeTemp.length != 2) {
-                    throw new Error('Invalid schedule: wrong transition format: ' + transition);
+                const timeTemp = transition.split("/");
+                if (timeTemp.length !== 2) {
+                    throw new Error(`Invalid schedule: wrong transition format: ${transition}`);
                 }
-                const hourMin = timeTemp[0].split(':');
-                const hour = parseInt(hourMin[0]);
-                const min = parseInt(hourMin[1]);
-                const temperature = Math.floor(parseFloat(timeTemp[1]) * 10);
+                const hourMin = timeTemp[0].split(":");
+                const hour = Number.parseInt(hourMin[0]);
+                const min = Number.parseInt(hourMin[1]);
+                const temperature = Math.floor(Number.parseFloat(timeTemp[1]) * 10);
                 if (hour < 0 || hour > 24 || min < 0 || min > 60 || temperature < 50 || temperature > 300) {
-                    throw new Error('Invalid hour, minute or temperature of: ' + transition);
+                    throw new Error(`Invalid hour, minute or temperature of: ${transition}`);
                 }
 
                 const minutesSinceMidnight = hour * 60 + min;
@@ -1096,6 +1128,7 @@ export const valueConverter = {
             return payload;
         },
     },
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     thermostatScheduleDayMultiDP_TRV602Z_WithDayNumber: (dayNum: number) => {
         return {
             from: (v: string) => valueConverter.thermostatScheduleDayMultiDP_TRV602Z.from(v),
@@ -1109,75 +1142,40 @@ export const valueConverter = {
     tv02Preset: () => {
         return {
             from: (v: number) => {
-                if (v === 0) return 'auto';
-                else if (v === 1) return 'manual';
-                else return 'holiday'; // 2 and 3 are holiday
+                if (v === 0) return "auto";
+                if (v === 1) return "manual";
+                return "holiday"; // 2 and 3 are holiday
             },
             to: (v: string, meta: Tz.Meta) => {
-                if (v === 'auto') return new Enum(0);
-                else if (v === 'manual') return new Enum(1);
-                else if (v === 'holiday') {
+                if (v === "auto") return new Enum(0);
+                if (v === "manual") return new Enum(1);
+                if (v === "holiday") {
                     // https://github.com/Koenkk/zigbee2mqtt/issues/20486
-                    if (meta.device.manufacturerName === '_TZE200_mudxchsu') return new Enum(2);
-                    else return new Enum(3);
-                } else throw new Error(`Unsupported preset '${v}'`);
+                    if (meta.device.manufacturerName === "_TZE200_mudxchsu") return new Enum(2);
+                    return new Enum(3);
+                }
+                throw new Error(`Unsupported preset '${v}'`);
             },
         };
     },
+    /** @deprecated left for compatibility, use {@link thermostatSystemModeAndPresetMap} */
     thermostatSystemModeAndPreset: (toKey: string) => {
         return {
             from: (v: string) => {
-                utils.assertNumber(v, 'system_mode');
-                const presetLookup: KeyValueNumberString = {0: 'auto', 1: 'manual', 2: 'off', 3: 'on'};
-                const systemModeLookup: KeyValueNumberString = {0: 'auto', 1: 'auto', 2: 'off', 3: 'heat'};
+                utils.assertNumber(v, "system_mode");
+                const presetLookup: KeyValueNumberString = {0: "auto", 1: "manual", 2: "off", 3: "on"};
+                const systemModeLookup: KeyValueNumberString = {0: "auto", 1: "auto", 2: "off", 3: "heat"};
                 return {preset: presetLookup[v], system_mode: systemModeLookup[v]};
             },
             to: (v: string) => {
                 const presetLookup: KeyValueStringEnum = {auto: new Enum(0), manual: new Enum(1), off: new Enum(2), on: new Enum(3)};
                 const systemModeLookup: KeyValueStringEnum = {auto: new Enum(1), off: new Enum(2), heat: new Enum(3)};
-                const lookup: KeyValueStringEnum = toKey === 'preset' ? presetLookup : systemModeLookup;
+                const lookup: KeyValueStringEnum = toKey === "preset" ? presetLookup : systemModeLookup;
                 return utils.getFromLookup(v, lookup);
             },
         };
     },
-    thermostatGtz10SystemModeAndPreset: (toKey: string) => {
-        return {
-            from: (v: string) => {
-                utils.assertNumber(v, 'system_mode');
-                const presetLookup = {
-                    0: 'manual',
-                    1: 'auto',
-                    2: 'holiday',
-                    3: 'comfort',
-                    4: 'eco',
-                    5: 'off',
-                };
-                const systemModeLookup = {
-                    0: 'heat',
-                    1: 'auto',
-                    5: 'off',
-                };
-                return {preset: presetLookup[v], system_mode: systemModeLookup[v]};
-            },
-            to: (v: string) => {
-                const presetLookup = {
-                    manual: new Enum(0),
-                    auto: new Enum(1),
-                    holiday: new Enum(2),
-                    comfort: new Enum(3),
-                    eco: new Enum(4),
-                    off: new Enum(5),
-                };
-                const systemModeLookup = {
-                    heat: new Enum(0),
-                    auto: new Enum(1),
-                    off: new Enum(5),
-                };
-                const lookup = toKey === 'preset' ? presetLookup : systemModeLookup;
-                return utils.getFromLookup(v, lookup);
-            },
-        };
-    },
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     ZWT198_schedule: {
         from: (value: number[], meta: Fz.Meta, options: KeyValue) => {
             const programmingMode = [];
@@ -1185,14 +1183,14 @@ export const valueConverter = {
             for (let i = 0; i < 8; i++) {
                 const start = i * 4;
 
-                const time = value[start].toString().padStart(2, '0') + ':' + value[start + 1].toString().padStart(2, '0');
+                const time = `${value[start].toString().padStart(2, "0")}:${value[start + 1].toString().padStart(2, "0")}`;
                 const temp = (value[start + 2] * 256 + value[start + 3]) / 10;
-                const tempStr = temp.toFixed(1) + '°C';
-                programmingMode.push(time + '/' + tempStr);
+                const tempStr = `${temp.toFixed(1)}°C`;
+                programmingMode.push(`${time}/${tempStr}`);
             }
             return {
-                schedule_weekday: programmingMode.slice(0, 6).join(' '),
-                schedule_holiday: programmingMode.slice(6, 8).join(' '),
+                schedule_weekday: programmingMode.slice(0, 6).join(" "),
+                schedule_holiday: programmingMode.slice(6, 8).join(" "),
             };
         },
         to: async (v: string, meta: Tz.Meta) => {
@@ -1203,63 +1201,59 @@ export const valueConverter = {
 
             if (meta.message.schedule_weekday !== undefined) {
                 weekdayFormat = v;
-                holidayFormat = meta.state['schedule_holiday'] as string;
+                holidayFormat = meta.state.schedule_holiday as string;
             } else {
-                weekdayFormat = meta.state['schedule_weekday'] as string;
+                weekdayFormat = meta.state.schedule_weekday as string;
                 holidayFormat = v;
             }
 
             function scheduleToRaw(key: string, input: string, number: number, payload: number[], meta: Tz.Meta) {
                 const items = input.trim().split(/\s+/);
 
-                if (items.length != number) {
-                    throw new Error('Wrong number of items for ' + key + ' :' + items.length);
-                } else {
-                    for (let i = 0; i < number; i++) {
-                        const timeTemperature = items[i].split('/');
-                        if (timeTemperature.length != 2) {
-                            throw new Error('Invalid schedule: wrong transition format: ' + items[i]);
-                        }
-                        const hourMinute = timeTemperature[0].split(':', 2);
-                        const hour = parseInt(hourMinute[0]);
-                        const minute = parseInt(hourMinute[1]);
-                        const temperature = parseFloat(timeTemperature[1]);
-
-                        if (
-                            !utils.isNumber(hour) ||
-                            !utils.isNumber(temperature) ||
-                            !utils.isNumber(minute) ||
-                            hour < 0 ||
-                            hour >= 24 ||
-                            minute < 0 ||
-                            minute >= 60 ||
-                            temperature < 5 ||
-                            temperature >= 35
-                        ) {
-                            throw new Error(
-                                'Invalid hour, minute or temperature (5<t<35) in ' +
-                                    key +
-                                    ' of: `' +
-                                    items[i] +
-                                    '`; Format is `hh:m/cc.c` or `hh:mm/cc.c°C`',
-                            );
-                        }
-                        const temperature10 = Math.round(temperature * 10);
-
-                        payload.push(hour, minute, (temperature10 >> 8) & 0xff, temperature10 & 0xff);
+                if (items.length !== number) {
+                    throw new Error(`Wrong number of items for ${key} :${items.length}`);
+                }
+                for (let i = 0; i < number; i++) {
+                    const timeTemperature = items[i].split("/");
+                    if (timeTemperature.length !== 2) {
+                        throw new Error(`Invalid schedule: wrong transition format: ${items[i]}`);
                     }
+                    const hourMinute = timeTemperature[0].split(":", 2);
+                    const hour = Number.parseInt(hourMinute[0]);
+                    const minute = Number.parseInt(hourMinute[1]);
+                    const temperature = Number.parseFloat(timeTemperature[1]);
+
+                    if (
+                        !utils.isNumber(hour) ||
+                        !utils.isNumber(temperature) ||
+                        !utils.isNumber(minute) ||
+                        hour < 0 ||
+                        hour >= 24 ||
+                        minute < 0 ||
+                        minute >= 60 ||
+                        temperature < 5 ||
+                        temperature >= 35
+                    ) {
+                        throw new Error(
+                            `Invalid hour, minute or temperature (5<t<35) in ${key} of: \`${items[i]}\`; Format is \`hh:m/cc.c\` or \`hh:mm/cc.c°C\``,
+                        );
+                    }
+                    const temperature10 = Math.round(temperature * 10);
+
+                    payload.push(hour, minute, (temperature10 >> 8) & 0xff, temperature10 & 0xff);
                 }
                 return;
             }
 
-            scheduleToRaw('schedule_weekday', weekdayFormat, 6, payload, meta);
-            scheduleToRaw('schedule_holiday', holidayFormat, 2, payload, meta);
+            scheduleToRaw("schedule_weekday", weekdayFormat, 6, payload, meta);
+            scheduleToRaw("schedule_holiday", holidayFormat, 2, payload, meta);
 
             const entity = meta.device.endpoints[0];
-            const sendCommand = utils.getMetaValue(entity, meta.mapped, 'tuyaSendCommand', undefined, 'dataRequest');
+            const sendCommand = utils.getMetaValue(entity, meta.mapped, "tuyaSendCommand", undefined, "dataRequest");
             await sendDataPointRaw(entity, dpId, payload, sendCommand, 1);
         },
     },
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     PO_BOCO_ELEC_schedule: (day: number) => ({
         to: (v: string) => {
             const payload = [80 + day];
@@ -1267,19 +1261,20 @@ export const valueConverter = {
                 off: 5,
                 antifrost: 4,
                 eco: 3,
-                'comfort_-2': 2,
-                'comfort_-1': 1,
+                "comfort_-2": 2,
+                "comfort_-1": 1,
                 comfort: 0,
             };
 
-            const items = v.split(' / ');
+            const items = v.split(" / ");
+            // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
             items.forEach((item) => {
                 if (Object.keys(modeMapping).includes(item)) {
                     payload.push(modeMapping[item]);
                 } else {
-                    const time = item.split(':');
-                    const hours = parseInt(time[0]);
-                    const minutes = Math.floor(parseInt(time[1]) / 5);
+                    const time = item.split(":");
+                    const hours = Number.parseInt(time[0]);
+                    const minutes = Math.floor(Number.parseInt(time[1]) / 5);
                     const total = hours * 12 + minutes;
                     if (total > 0) payload.push(total);
                 }
@@ -1290,12 +1285,12 @@ export const valueConverter = {
         from: (v: number[]) => {
             const payload = [];
             const modeMapping: Record<number, string> = {
-                5: 'off',
-                4: 'antifrost',
-                3: 'eco',
-                2: 'comfort_-2',
-                1: 'comfort_-1',
-                0: 'comfort',
+                5: "off",
+                4: "antifrost",
+                3: "eco",
+                2: "comfort_-2",
+                1: "comfort_-1",
+                0: "comfort",
             };
 
             for (let index = 1; index < v.length; index++) {
@@ -1311,14 +1306,15 @@ export const valueConverter = {
 
                     const date = new Date();
                     date.setHours(0, item * 5);
-                    const hours = date.getHours().toString().padStart(2, '0');
-                    const minutes = date.getMinutes().toString().padStart(2, '0');
+                    const hours = date.getHours().toString().padStart(2, "0");
+                    const minutes = date.getMinutes().toString().padStart(2, "0");
                     payload.push(`${hours}:${minutes}`);
                 }
             }
-            return payload.join(' / ');
+            return payload.join(" / ");
         },
     }),
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     PO_BOCO_ELEC_holiday: {
         to: (v: string) => {
             const payload = [];
@@ -1328,41 +1324,47 @@ export const valueConverter = {
 
             if (!regexResult)
                 throw new Error(
-                    'Invalid syntax. Should be' +
-                        '`startYear/startMonth/startDay startHours:startMinutes | endYear/endMonth/endDay endHours:endMinutes  | mode`. ' +
-                        'For example: `2024/12/12 09:00 | 2024/12/14 10:00 | comfort`',
+                    "Invalid syntax. Should be" +
+                        "`startYear/startMonth/startDay startHours:startMinutes | endYear/endMonth/endDay endHours:endMinutes  | mode`. " +
+                        "For example: `2024/12/12 09:00 | 2024/12/14 10:00 | comfort`",
                 );
 
             const {startYear, startMonth, startDay, startHours, startMinutes, endYear, endMonth, endDay, endHours, endMin, mode} = regexResult.groups;
             const startDate = new Date(
-                parseInt(startYear),
-                parseInt(startMonth) - 1,
-                parseInt(startDay),
-                parseInt(startHours),
-                parseInt(startMinutes),
+                Number.parseInt(startYear),
+                Number.parseInt(startMonth) - 1,
+                Number.parseInt(startDay),
+                Number.parseInt(startHours),
+                Number.parseInt(startMinutes),
             );
-            const endDate = new Date(parseInt(endYear), parseInt(endMonth) - 1, parseInt(endDay), parseInt(endHours), parseInt(startMinutes));
+            const endDate = new Date(
+                Number.parseInt(endYear),
+                Number.parseInt(endMonth) - 1,
+                Number.parseInt(endDay),
+                Number.parseInt(endHours),
+                Number.parseInt(startMinutes),
+            );
             const diffHours = Math.abs(startDate.getTime() - endDate.getTime()) / 36e5;
             const modeMapping: Record<string, number> = {
                 off: 5,
                 antifrost: 4,
                 eco: 3,
-                'comfort_-2': 2,
-                'comfort_-1': 1,
+                "comfort_-2": 2,
+                "comfort_-1": 1,
                 comfort: 0,
             };
 
-            if (endMin) logger.warning('The end date minutes will be ignore.', NS);
+            if (endMin) logger.warning("The end date minutes will be ignore.", NS);
 
-            if (diffHours > 255) throw new Error('You cannot set an interval superior at 255 hours.');
-            else if (startDate.getTime() > endDate.getTime()) throw new Error('You cannot set a negative interval.');
+            if (diffHours > 255) throw new Error("You cannot set an interval superior at 255 hours.");
+            if (startDate.getTime() > endDate.getTime()) throw new Error("You cannot set a negative interval.");
 
             payload.push(
-                parseInt(startYear.slice(2)),
-                parseInt(startMonth),
-                parseInt(startDay),
-                parseInt(startHours),
-                parseInt(startMinutes),
+                Number.parseInt(startYear.slice(2)),
+                Number.parseInt(startMonth),
+                Number.parseInt(startDay),
+                Number.parseInt(startHours),
+                Number.parseInt(startMinutes),
                 modeMapping[mode],
                 0,
                 diffHours,
@@ -1371,27 +1373,33 @@ export const valueConverter = {
             return payload;
         },
         from: (v: number[]) => {
-            const startYear = '2' + v[0].toString().padStart(3, '0');
-            const startMonth = v[1].toString().padStart(2, '0');
-            const startDay = v[2].toString().padStart(2, '0');
-            const startHours = v[3].toString().padStart(2, '0');
-            const startMinutes = v[4].toString().padStart(2, '0');
+            const startYear = `2${v[0].toString().padStart(3, "0")}`;
+            const startMonth = v[1].toString().padStart(2, "0");
+            const startDay = v[2].toString().padStart(2, "0");
+            const startHours = v[3].toString().padStart(2, "0");
+            const startMinutes = v[4].toString().padStart(2, "0");
             const mode = v[5];
             const diffHours = v[7];
             const modeMapping: Record<number, string> = {
-                5: 'off',
-                4: 'antifrost',
-                3: 'eco',
-                2: 'comfort_-2',
-                1: 'comfort_-1',
-                0: 'comfort',
+                5: "off",
+                4: "antifrost",
+                3: "eco",
+                2: "comfort_-2",
+                1: "comfort_-1",
+                0: "comfort",
             };
-            const endDate = new Date(parseInt(startYear), parseInt(startMonth) - 1, parseInt(startDay), parseInt(startHours), parseInt(startMinutes));
+            const endDate = new Date(
+                Number.parseInt(startYear),
+                Number.parseInt(startMonth) - 1,
+                Number.parseInt(startDay),
+                Number.parseInt(startHours),
+                Number.parseInt(startMinutes),
+            );
             endDate.setHours(endDate.getHours() + diffHours);
             const endYear = endDate.getFullYear().toString();
-            const endMonth = (endDate.getMonth() + 1).toString().padStart(2, '0');
-            const endDay = endDate.getDate().toString().padStart(2, '0');
-            const endHours = endDate.getHours().toString().padStart(2, '0');
+            const endMonth = (endDate.getMonth() + 1).toString().padStart(2, "0");
+            const endDay = endDate.getDate().toString().padStart(2, "0");
+            const endHours = endDate.getHours().toString().padStart(2, "0");
 
             return (
                 `${startYear}/${startMonth}/${startDay} ${startHours}:${startMinutes}` +
@@ -1404,38 +1412,38 @@ export const valueConverter = {
         to: async (v: number, meta: Tz.Meta) => {
             const entity = meta.device.endpoints[0];
             if (meta.message.system_mode) {
-                if (meta.message.system_mode === 'off') {
-                    await sendDataPointBool(entity, 107, true, 'dataRequest', 1);
+                if (meta.message.system_mode === "off") {
+                    await sendDataPointBool(entity, 107, true, "dataRequest", 1);
                 } else {
-                    await sendDataPointEnum(entity, 2, 1, 'dataRequest', 1); // manual
+                    await sendDataPointEnum(entity, 2, 1, "dataRequest", 1); // manual
                 }
             } else if (meta.message.heating_stop) {
-                if (meta.message.heating_stop === 'ON') {
-                    await sendDataPointBool(entity, 107, true, 'dataRequest', 1);
+                if (meta.message.heating_stop === "ON") {
+                    await sendDataPointBool(entity, 107, true, "dataRequest", 1);
                 } else {
-                    await sendDataPointEnum(entity, 2, 1, 'dataRequest', 1); // manual
+                    await sendDataPointEnum(entity, 2, 1, "dataRequest", 1); // manual
                 }
             }
         },
         from: (v: boolean) => {
-            return {system_mode: v === false ? 'heat' : 'off', heating_stop: v === false ? 'OFF' : 'ON'};
+            return {system_mode: v === false ? "heat" : "off", heating_stop: v === false ? "OFF" : "ON"};
         },
     },
     TV02FrostProtection: {
         to: async (v: unknown, meta: Tz.Meta) => {
             const entity = meta.device.endpoints[0];
-            if (v === 'ON') {
-                await sendDataPointBool(entity, 10, true, 'dataRequest', 1);
+            if (v === "ON") {
+                await sendDataPointBool(entity, 10, true, "dataRequest", 1);
             } else {
-                await sendDataPointEnum(entity, 2, 1, 'dataRequest', 1); // manual
+                await sendDataPointEnum(entity, 2, 1, "dataRequest", 1); // manual
             }
         },
         from: (v: unknown) => {
-            return {frost_protection: v === false ? 'OFF' : 'ON'};
+            return {frost_protection: v === false ? "OFF" : "ON"};
         },
     },
     inverse: {to: (v: boolean) => !v, from: (v: boolean) => !v},
-    onOffNotStrict: {from: (v: string) => (v ? 'ON' : 'OFF'), to: (v: string) => v === 'ON'},
+    onOffNotStrict: {from: (v: string) => (v ? "ON" : "OFF"), to: (v: string) => v === "ON"},
     errorOrBatteryLow: {
         from: (v: number) => {
             if (v === 0) return {battery_low: false};
@@ -1446,20 +1454,20 @@ export const valueConverter = {
     // https://developer.tuya.com/en/docs/connect-subdevices-to-gateways/tuya-zigbee-multiple-switch-access-standard?id=K9ik6zvnqr09m
     inchingSwitch: {
         to: (value: KeyValueAny) => {
-            let result = '';
+            let result = "";
             for (let i = 1; i <= 6; i++) {
-                if (value['inching_control_' + i] == undefined || value['inching_time_' + i] == undefined) continue;
+                if (value[`inching_control_${i}`] === undefined || value[`inching_time_${i}`] === undefined) continue;
 
-                let state = value['inching_control_' + i] == 'ENABLE' ? 1 : 0;
-                if (i != 1) {
+                let state = value[`inching_control_${i}`] === "ENABLE" ? 1 : 0;
+                if (i !== 1) {
                     // Second endpoint onwards base number is determined by 2 powered by endpoint number less 1
                     state += 2 ** (i - 1);
                 }
-                const secs: number = parseInt(value['inching_time_' + i]);
+                const secs: number = Number.parseInt(value[`inching_time_${i}`]);
                 const byte1 = secs >> 8; // Equivalent to Math.truc(secs / 256)
                 const byte2 = secs % 256;
                 const ascii = String.fromCharCode(state, byte1, byte2);
-                result += Buffer.from(ascii).toString('base64');
+                result += Buffer.from(ascii).toString("base64");
             }
             return result;
         },
@@ -1469,127 +1477,145 @@ export const valueConverter = {
             const data: KeyValue = {};
             for (let i = 0; i < value.length; i += 4) {
                 const b64asc = value.substring(i, i + 4);
-                const str = Buffer.from(b64asc, 'base64').toString('utf8');
+                const str = Buffer.from(b64asc, "base64").toString("utf8");
                 const cca0 = str.charCodeAt(0);
                 const cca1 = str.charCodeAt(1);
                 const cca2 = str.charCodeAt(2);
                 let tmp = 0;
-                let status = '';
+                let status = "";
                 // first value indicates the endpoint and if it is on or off
                 // 0-1 - 1st endpoint, 2-3 - 2nd endpoint, ...
                 switch (cca0) {
                     case 0:
-                        data['inching_control_1'] = 'DISABLE';
-                        data['inching_time_1'] = (cca1 << 8) + cca2;
+                        data.inching_control_1 = "DISABLE";
+                        data.inching_time_1 = (cca1 << 8) + cca2;
                         break;
                     case 1:
-                        data['inching_control_1'] = 'ENABLE';
-                        data['inching_time_1'] = (cca1 << 8) + cca2;
+                        data.inching_control_1 = "ENABLE";
+                        data.inching_time_1 = (cca1 << 8) + cca2;
                         break;
                     default:
                         // endpoint #
                         tmp = Math.trunc(Math.log2(cca0)) + 1;
-                        status = cca0 % 2 ? 'ENABLE' : 'DISABLE';
-                        data['inching_control_' + tmp] = status;
-                        data['inching_time_' + tmp] = (cca1 << 8) + cca2;
+                        status = cca0 % 2 ? "ENABLE" : "DISABLE";
+                        data[`inching_control_${tmp}`] = status;
+                        data[`inching_time_${tmp}`] = (cca1 << 8) + cca2;
                 }
             }
             return data;
         },
     },
+    /** @param toMap the key is 'system_mode' or 'preset' related value */
+    thermostatSystemModeAndPresetMap: ({
+        fromMap = {},
+        toMap = {},
+    }: {
+        fromMap?: {[modeId: number]: {deviceMode: string; systemMode: string; preset: string}};
+        toMap?: {[key: string]: Enum};
+    }) => {
+        return {
+            from: (v: string) => {
+                utils.assertNumber(v, "system_mode");
+                return {running_mode: fromMap[v].deviceMode, system_mode: fromMap[v].systemMode, preset: fromMap[v].preset};
+            },
+            to: (v: string) => {
+                return utils.getFromLookup(v, toMap);
+            },
+        };
+    },
 };
 
 const tuyaTz = {
     power_on_behavior_1: {
-        key: ['power_on_behavior', 'power_outage_memory'],
+        key: ["power_on_behavior", "power_outage_memory"],
         convertSet: async (entity, key, value, meta) => {
             // Deprecated: remove power_outage_memory
             const moesStartUpOnOff = utils.getFromLookup(
                 value,
-                key === 'power_on_behavior' ? {off: 0, on: 1, previous: 2} : {off: 0, on: 1, restore: 2},
+                key === "power_on_behavior" ? {off: 0, on: 1, previous: 2} : {off: 0, on: 1, restore: 2},
             );
-            await entity.write('genOnOff', {moesStartUpOnOff});
+            await entity.write("genOnOff", {moesStartUpOnOff});
             return {state: {[key]: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('genOnOff', ['moesStartUpOnOff']);
+            await entity.read("genOnOff", ["moesStartUpOnOff"]);
         },
     } satisfies Tz.Converter,
     power_on_behavior_2: {
-        key: ['power_on_behavior'],
+        key: ["power_on_behavior"],
         convertSet: async (entity, key, value, meta) => {
             const powerOnBehavior = utils.getFromLookup(value, {off: 0, on: 1, previous: 2});
-            await entity.write('manuSpecificTuya_3', {powerOnBehavior});
+            await entity.write("manuSpecificTuya_3", {powerOnBehavior});
             return {state: {[key]: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('manuSpecificTuya_3', ['powerOnBehavior']);
+            await entity.read("manuSpecificTuya_3", ["powerOnBehavior"]);
         },
     } satisfies Tz.Converter,
     switch_type: {
-        key: ['switch_type'],
+        key: ["switch_type"],
         convertSet: async (entity, key, value, meta) => {
             const switchType = utils.getFromLookup(value, {toggle: 0, state: 1, momentary: 2});
-            await entity.write('manuSpecificTuya_3', {switchType}, {disableDefaultResponse: true});
+            await entity.write("manuSpecificTuya_3", {switchType}, {disableDefaultResponse: true});
             return {state: {[key]: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('manuSpecificTuya_3', ['switchType']);
+            await entity.read("manuSpecificTuya_3", ["switchType"]);
         },
     } satisfies Tz.Converter,
     backlight_indicator_mode_1: {
-        key: ['backlight_mode', 'indicator_mode'],
+        key: ["backlight_mode", "indicator_mode"],
         convertSet: async (entity, key, value, meta) => {
             const tuyaBacklightMode = utils.getFromLookup(
                 value,
-                key === 'backlight_mode' ? {low: 0, medium: 1, high: 2, off: 0, normal: 1, inverted: 2} : {off: 0, 'off/on': 1, 'on/off': 2, on: 3},
+                key === "backlight_mode" ? {low: 0, medium: 1, high: 2, off: 0, normal: 1, inverted: 2} : {off: 0, "off/on": 1, "on/off": 2, on: 3},
             );
-            await entity.write('genOnOff', {tuyaBacklightMode});
+            await entity.write("genOnOff", {tuyaBacklightMode});
             return {state: {[key]: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('genOnOff', ['tuyaBacklightMode']);
+            await entity.read("genOnOff", ["tuyaBacklightMode"]);
         },
     } satisfies Tz.Converter,
     backlight_indicator_mode_2: {
-        key: ['backlight_mode'],
+        key: ["backlight_mode"],
         convertSet: async (entity, key, value, meta) => {
             const tuyaBacklightSwitch = utils.getFromLookup(value, {off: 0, on: 1});
-            await entity.write('genOnOff', {tuyaBacklightSwitch});
+            await entity.write("genOnOff", {tuyaBacklightSwitch});
             return {state: {[key]: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('genOnOff', ['tuyaBacklightSwitch']);
+            await entity.read("genOnOff", ["tuyaBacklightSwitch"]);
         },
     } satisfies Tz.Converter,
     child_lock: {
-        key: ['child_lock'],
+        key: ["child_lock"],
         convertSet: async (entity, key, value, meta) => {
             const v = utils.getFromLookup(value, {lock: true, unlock: false});
-            await entity.write('genOnOff', {0x8000: {value: v, type: 0x10}});
+            await entity.write("genOnOff", {32768: {value: v, type: 0x10}});
         },
     } satisfies Tz.Converter,
     min_brightness_attribute: {
-        key: ['min_brightness'],
+        key: ["min_brightness"],
         convertSet: async (entity, key, value, meta) => {
-            const number = utils.toNumber(value, `min_brightness`);
+            const number = utils.toNumber(value, "min_brightness");
             const minValueHex = number.toString(16);
-            const maxValueHex = 'ff';
-            const minMaxValue = parseInt(`${minValueHex}${maxValueHex}`, 16);
-            const payload = {0xfc00: {value: minMaxValue, type: 0x21}};
-            await entity.write('genLevelCtrl', payload, {disableDefaultResponse: true});
+            const maxValueHex = "ff";
+            const minMaxValue = Number.parseInt(`${minValueHex}${maxValueHex}`, 16);
+            const payload = {64512: {value: minMaxValue, type: 0x21}};
+            await entity.write("genLevelCtrl", payload, {disableDefaultResponse: true});
             return {state: {min_brightness: number}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('genLevelCtrl', [0xfc00]);
+            await entity.read("genLevelCtrl", [0xfc00]);
         },
     } satisfies Tz.Converter,
     min_brightness_command: {
-        key: ['min_brightness'],
+        key: ["min_brightness"],
         convertSet: async (entity, key, value, meta) => {
             utils.assertNumber(value, key);
             const payload = {minimum: value};
-            await entity.command('lightingColorCtrl', 'tuyaSetMinimumBrightness', payload);
+            await entity.command("lightingColorCtrl", "tuyaSetMinimumBrightness", payload);
             return {state: {min_brightness: value}};
         },
         // The response contains the value but as the data type, randomly
@@ -1599,10 +1625,10 @@ const tuyaTz = {
         // },
     } satisfies Tz.Converter,
     color_power_on_behavior: {
-        key: ['color_power_on_behavior'],
+        key: ["color_power_on_behavior"],
         convertSet: async (entity, key, value, meta) => {
             const v = utils.getFromLookup(value, {initial: 0, previous: 1, customized: 2});
-            await entity.command('lightingColorCtrl', 'tuyaOnStartUp', {mode: v * 256, data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]});
+            await entity.command("lightingColorCtrl", "tuyaOnStartUp", {mode: v * 256, data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]});
             return {state: {color_power_on_behavior: value}};
         },
     } satisfies Tz.Converter,
@@ -1610,9 +1636,9 @@ const tuyaTz = {
         convertSet: async (entity, key, value, meta) => {
             // A set converter is only called once; therefore we need to loop
             const state: KeyValue = {};
-            if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
+            if (Array.isArray(meta.mapped)) throw new Error("Not supported for groups");
             const datapoints = meta.mapped.meta?.tuyaDatapoints;
-            if (!datapoints) throw new Error('No datapoints map defined');
+            if (!datapoints) throw new Error("No datapoints map defined");
             for (const [attr, value] of Object.entries(meta.message)) {
                 const convertedKey: string =
                     meta.mapped.meta.multiEndpoint && meta.endpoint_name && !attr.startsWith(`${key}_`) ? `${attr}_${meta.endpoint_name}` : attr;
@@ -1620,17 +1646,17 @@ const tuyaTz = {
                 if (!dpEntry?.[1] || !dpEntry?.[2].to) {
                     throw new Error(`No datapoint defined for '${attr}'`);
                 }
-                if (dpEntry[3] && dpEntry[3].skip && dpEntry[3].skip(meta)) continue;
+                if (dpEntry[3]?.skip?.(meta)) continue;
                 const dpId = dpEntry[0];
                 const convertedValue = await dpEntry[2].to(value, meta);
-                const sendCommand = utils.getMetaValue(entity, meta.mapped, 'tuyaSendCommand', undefined, 'dataRequest');
+                const sendCommand = utils.getMetaValue(entity, meta.mapped, "tuyaSendCommand", undefined, "dataRequest");
                 if (convertedValue === undefined) {
                     // conversion done inside converter, ignore.
-                } else if (typeof convertedValue === 'boolean') {
+                } else if (typeof convertedValue === "boolean") {
                     await sendDataPointBool(entity, dpId, convertedValue, sendCommand, 1);
-                } else if (typeof convertedValue === 'number') {
+                } else if (typeof convertedValue === "number") {
                     await sendDataPointValue(entity, dpId, convertedValue, sendCommand, 1);
-                } else if (typeof convertedValue === 'string') {
+                } else if (typeof convertedValue === "string") {
                     await sendDataPointStringBuffer(entity, dpId, convertedValue, sendCommand, 1);
                 } else if (Array.isArray(convertedValue)) {
                     await sendDataPointRaw(entity, dpId, convertedValue, sendCommand, 1);
@@ -1650,9 +1676,9 @@ const tuyaTz = {
         },
     } satisfies Tz.Converter,
     do_not_disturb: {
-        key: ['do_not_disturb'],
+        key: ["do_not_disturb"],
         convertSet: async (entity, key, value, meta) => {
-            await entity.command('lightingColorCtrl', 'tuyaDoNotDisturb', {enable: value ? 1 : 0});
+            await entity.command("lightingColorCtrl", "tuyaDoNotDisturb", {enable: value ? 1 : 0});
             return {state: {do_not_disturb: value}};
         },
     } satisfies Tz.Converter,
@@ -1662,7 +1688,7 @@ const tuyaTz = {
         //       There is also an alternative on-off countdown implementation mostly for for Tuya Lighting
         //       products that uses private commands and attributes. However, those devices should also
         //       provide datapoints so there is little reason to provide support.
-        key: ['state', 'countdown'],
+        key: ["state", "countdown"],
         convertSet: async (entity, key, value, meta) => {
             const state =
                 meta.message.state !== undefined ? (utils.isString(meta.message.state) ? meta.message.state.toLowerCase() : undefined) : undefined;
@@ -1673,17 +1699,17 @@ const tuyaTz = {
                 // the Tuya documentation says that the maximum is 43200 (so 12 hours).
                 // @ts-expect-error ignore
                 if (!Number.isInteger(countdown) || countdown < 0 || countdown > 12 * 3600) {
-                    throw new Error('countdown must be an integer between 1 and 43200 (12 hours) or 0 to cancel');
+                    throw new Error("countdown must be an integer between 1 and 43200 (12 hours) or 0 to cancel");
                 }
             }
             // The order of the commands matters because 'on/off/toggle' cancels 'onWithTimedOff'.
             if (state !== undefined) {
-                utils.validateValue(state, ['toggle', 'off', 'on']);
-                await entity.command('genOnOff', state, {}, utils.getOptions(meta.mapped, entity));
-                if (state === 'toggle') {
-                    const currentState = meta.state[`state${meta.endpoint_name ? `_${meta.endpoint_name}` : ''}`];
+                utils.validateValue(state, ["toggle", "off", "on"]);
+                await entity.command("genOnOff", state, {}, utils.getOptions(meta.mapped, entity));
+                if (state === "toggle") {
+                    const currentState = meta.state[`state${meta.endpoint_name ? `_${meta.endpoint_name}` : ""}`];
                     if (currentState) {
-                        result.state = currentState === 'OFF' ? 'ON' : 'OFF';
+                        result.state = currentState === "OFF" ? "ON" : "OFF";
                     }
                 } else {
                     result.state = state.toUpperCase();
@@ -1695,7 +1721,7 @@ const tuyaTz = {
                 // offwaittime is probably not used but according to the Tuya documentation, it should
                 // be set to the same value than ontime.
                 const payload = {ctrlbits: 0, ontime: countdown, offwaittime: countdown};
-                await entity.command('genOnOff', 'onWithTimedOff', payload, utils.getOptions(meta.mapped, entity));
+                await entity.command("genOnOff", "onWithTimedOff", payload, utils.getOptions(meta.mapped, entity));
                 if (result.state !== undefined) {
                     result.countdown = countdown;
                 }
@@ -1703,20 +1729,20 @@ const tuyaTz = {
             return {state: result};
         },
         convertGet: async (entity, key, meta) => {
-            if (key == 'state') {
-                await entity.read('genOnOff', ['onOff']);
-            } else if (key == 'countdown') {
-                await entity.read('genOnOff', ['onTime']);
+            if (key === "state") {
+                await entity.read("genOnOff", ["onOff"]);
+            } else if (key === "countdown") {
+                await entity.read("genOnOff", ["onTime"]);
             }
         },
     } satisfies Tz.Converter,
     inchingSwitch: {
-        key: ['inching_control_set'],
+        key: ["inching_control_set"],
         convertSet: async (entity, key, value: KeyValue, meta) => {
             const inching = valueConverter.inchingSwitch.to(value);
             const payload = {payload: inching};
             const endpoint = meta.device.getEndpoint(1);
-            await endpoint.command('manuSpecificTuya_4', 'setInchingSwitch', payload, utils.getOptions(meta.mapped, endpoint));
+            await endpoint.command("manuSpecificTuya_4", "setInchingSwitch", payload, utils.getOptions(meta.mapped, endpoint));
 
             return {state: {inching_control_set: value}};
         },
@@ -1726,137 +1752,137 @@ export {tuyaTz as tz};
 
 const tuyaFz = {
     brightness: {
-        cluster: 'genLevelCtrl',
-        type: ['attributeReport', 'readResponse'],
+        cluster: "genLevelCtrl",
+        type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data['61440'] !== undefined) {
-                const property = utils.postfixWithEndpointName('brightness', msg, model, meta);
-                return {[property]: utils.mapNumberRange(msg.data['61440'], 0, 1000, 0, 255)};
+            if (msg.data["61440"] !== undefined) {
+                const property = utils.postfixWithEndpointName("brightness", msg, model, meta);
+                return {[property]: utils.mapNumberRange(msg.data["61440"], 0, 1000, 0, 255)};
             }
         },
     } satisfies Fz.Converter,
     gateway_connection_status: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandMcuGatewayConnectionStatus'],
+        cluster: "manuSpecificTuya",
+        type: ["commandMcuGatewayConnectionStatus"],
         convert: async (model, msg, publish, options, meta) => {
             // "payload" can have the following values:
             // 0x00: The gateway is not connected to the internet.
             // 0x01: The gateway is connected to the internet.
             // 0x02: The request timed out after three seconds.
             const payload = {payloadSize: 1, payload: 1};
-            await msg.endpoint.command('manuSpecificTuya', 'mcuGatewayConnectionStatus', payload, {});
+            await msg.endpoint.command("manuSpecificTuya", "mcuGatewayConnectionStatus", payload, {});
         },
     } satisfies Fz.Converter,
     power_on_behavior_1: {
-        cluster: 'genOnOff',
-        type: ['attributeReport', 'readResponse'],
+        cluster: "genOnOff",
+        type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.moesStartUpOnOff !== undefined) {
-                const lookup: KeyValue = {0: 'off', 1: 'on', 2: 'previous'};
-                const property = utils.postfixWithEndpointName('power_on_behavior', msg, model, meta);
-                return {[property]: lookup[msg.data['moesStartUpOnOff']]};
+                const lookup: KeyValue = {0: "off", 1: "on", 2: "previous"};
+                const property = utils.postfixWithEndpointName("power_on_behavior", msg, model, meta);
+                return {[property]: lookup[msg.data.moesStartUpOnOff]};
             }
         },
     } satisfies Fz.Converter,
     power_on_behavior_2: {
-        cluster: 'manuSpecificTuya_3',
-        type: ['attributeReport', 'readResponse'],
+        cluster: "manuSpecificTuya_3",
+        type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
-            const attribute = 'powerOnBehavior';
-            const lookup: KeyValue = {0: 'off', 1: 'on', 2: 'previous'};
+            const attribute = "powerOnBehavior";
+            const lookup: KeyValue = {0: "off", 1: "on", 2: "previous"};
             if (msg.data[attribute] !== undefined) {
-                const property = utils.postfixWithEndpointName('power_on_behavior', msg, model, meta);
+                const property = utils.postfixWithEndpointName("power_on_behavior", msg, model, meta);
                 return {[property]: lookup[msg.data[attribute]]};
             }
         },
     } satisfies Fz.Converter,
     power_outage_memory: {
-        cluster: 'genOnOff',
-        type: ['attributeReport', 'readResponse'],
+        cluster: "genOnOff",
+        type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.moesStartUpOnOff !== undefined) {
-                const lookup: KeyValue = {0x00: 'off', 0x01: 'on', 0x02: 'restore'};
-                const property = utils.postfixWithEndpointName('power_outage_memory', msg, model, meta);
-                return {[property]: lookup[msg.data['moesStartUpOnOff']]};
+                const lookup: KeyValue = {0: "off", 1: "on", 2: "restore"};
+                const property = utils.postfixWithEndpointName("power_outage_memory", msg, model, meta);
+                return {[property]: lookup[msg.data.moesStartUpOnOff]};
             }
         },
     } satisfies Fz.Converter,
     switch_type: {
-        cluster: 'manuSpecificTuya_3',
-        type: ['attributeReport', 'readResponse'],
+        cluster: "manuSpecificTuya_3",
+        type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.switchType !== undefined) {
-                const lookup: KeyValue = {0: 'toggle', 1: 'state', 2: 'momentary'};
-                return {switch_type: lookup[msg.data['switchType']]};
+                const lookup: KeyValue = {0: "toggle", 1: "state", 2: "momentary"};
+                return {switch_type: lookup[msg.data.switchType]};
             }
         },
     } satisfies Fz.Converter,
     backlight_mode_low_medium_high: {
-        cluster: 'genOnOff',
-        type: ['attributeReport', 'readResponse'],
+        cluster: "genOnOff",
+        type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.tuyaBacklightMode !== undefined) {
-                const value = msg.data['tuyaBacklightMode'];
-                const backlightLookup: KeyValue = {0: 'low', 1: 'medium', 2: 'high'};
+                const value = msg.data.tuyaBacklightMode;
+                const backlightLookup: KeyValue = {0: "low", 1: "medium", 2: "high"};
                 return {backlight_mode: backlightLookup[value]};
             }
         },
     } satisfies Fz.Converter,
     backlight_mode_off_normal_inverted: {
-        cluster: 'genOnOff',
-        type: ['attributeReport', 'readResponse'],
+        cluster: "genOnOff",
+        type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.tuyaBacklightMode !== undefined) {
-                return {backlight_mode: utils.getFromLookup(msg.data['tuyaBacklightMode'], {0: 'off', 1: 'normal', 2: 'inverted'})};
+                return {backlight_mode: utils.getFromLookup(msg.data.tuyaBacklightMode, {0: "off", 1: "normal", 2: "inverted"})};
             }
         },
     } satisfies Fz.Converter,
     backlight_mode_off_on: {
-        cluster: 'genOnOff',
-        type: ['attributeReport', 'readResponse'],
+        cluster: "genOnOff",
+        type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.tuyaBacklightSwitch !== undefined) {
-                return {backlight_mode: utils.getFromLookup(msg.data['tuyaBacklightSwitch'], {0: 'OFF', 1: 'ON'})};
+                return {backlight_mode: utils.getFromLookup(msg.data.tuyaBacklightSwitch, {0: "OFF", 1: "ON"})};
             }
         },
     } satisfies Fz.Converter,
     indicator_mode: {
-        cluster: 'genOnOff',
-        type: ['attributeReport', 'readResponse'],
+        cluster: "genOnOff",
+        type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.tuyaBacklightMode !== undefined) {
-                return {indicator_mode: utils.getFromLookup(msg.data['tuyaBacklightMode'], {0: 'off', 1: 'off/on', 2: 'on/off', 3: 'on'})};
+                return {indicator_mode: utils.getFromLookup(msg.data.tuyaBacklightMode, {0: "off", 1: "off/on", 2: "on/off", 3: "on"})};
             }
         },
     } satisfies Fz.Converter,
     child_lock: {
-        cluster: 'genOnOff',
-        type: ['attributeReport', 'readResponse'],
+        cluster: "genOnOff",
+        type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data['32768'] !== undefined) {
-                const value = msg.data['32768'];
-                return {child_lock: value ? 'LOCK' : 'UNLOCK'};
+            if (msg.data["32768"] !== undefined) {
+                const value = msg.data["32768"];
+                return {child_lock: value ? "LOCK" : "UNLOCK"};
             }
         },
     } satisfies Fz.Converter,
     min_brightness_attribute: {
-        cluster: 'genLevelCtrl',
-        type: ['attributeReport', 'readResponse'],
+        cluster: "genLevelCtrl",
+        type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data[0xfc00] !== undefined) {
-                const property = utils.postfixWithEndpointName('min_brightness', msg, model, meta);
-                const value = parseInt(msg.data[0xfc00].toString(16).slice(0, 2), 16);
+                const property = utils.postfixWithEndpointName("min_brightness", msg, model, meta);
+                const value = Number.parseInt(msg.data[0xfc00].toString(16).slice(0, 2), 16);
                 return {[property]: value};
             }
         },
     } satisfies Fz.Converter,
     datapoints: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandDataResponse', 'commandDataReport', 'commandActiveStatusReport', 'commandActiveStatusReportAlt'],
+        cluster: "manuSpecificTuya",
+        type: ["commandDataResponse", "commandDataReport", "commandActiveStatusReport", "commandActiveStatusReportAlt"],
         convert: (model, msg, publish, options, meta) => {
-            if (utils.hasAlreadyProcessedMessage(msg, model, msg.data.seq)) return;
+            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
             const result: KeyValue = {};
-            if (!model.meta || !model.meta.tuyaDatapoints) throw new Error('No datapoints map defined');
+            if (!model.meta || !model.meta.tuyaDatapoints) throw new Error("No datapoints map defined");
             const datapoints = model.meta.tuyaDatapoints;
             for (const dpValue of msg.data.dpValues) {
                 const dpId = dpValue.dp;
@@ -1876,15 +1902,15 @@ const tuyaFz = {
         },
     } satisfies Fz.Converter,
     on_off_action: {
-        cluster: 'genOnOff',
-        type: 'commandTuyaAction',
+        cluster: "genOnOff",
+        type: "commandTuyaAction",
         convert: (model, msg, publish, options, meta) => {
             if (utils.hasAlreadyProcessedMessage(msg, model, msg.data[0])) return;
-            const clickMapping: KeyValueNumberString = {0: 'single', 1: 'double', 2: 'hold'};
-            const buttonMapping: KeyValueNumberString = {1: '1', 2: '2', 3: '3', 4: '4', 5: '5', 6: '6', 7: '7', 8: '8'};
+            const clickMapping: KeyValueNumberString = {0: "single", 1: "double", 2: "hold"};
+            const buttonMapping: KeyValueNumberString = {1: "1", 2: "2", 3: "3", 4: "4", 5: "5", 6: "6", 7: "7", 8: "8"};
             // TS004F has single endpoint, TS0041A/TS0041 can have multiple but have just one button
             const button =
-                msg.device.endpoints.length == 1 || ['TS0041A', 'TS0041'].includes(msg.device.modelID) ? '' : `${buttonMapping[msg.endpoint.ID]}_`;
+                msg.device.endpoints.length === 1 || ["TS0041A", "TS0041"].includes(msg.device.modelID) ? "" : `${buttonMapping[msg.endpoint.ID]}_`;
             return {action: `${button}${clickMapping[msg.data.value]}`};
         },
     } satisfies Fz.Converter,
@@ -1892,26 +1918,26 @@ const tuyaFz = {
         // While a countdown is in progress, the device will report onTime at all multiples of 60.
         // More reportings can be configured for 'onTime` but they will happen independently of
         // the builtin 60s reporting.
-        cluster: 'genOnOff',
-        type: ['attributeReport', 'readResponse'],
+        cluster: "genOnOff",
+        type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.onTime !== undefined) {
                 const payload: KeyValue = {};
-                const property = utils.postfixWithEndpointName('countdown', msg, model, meta);
-                const countdown = msg.data['onTime'];
+                const property = utils.postfixWithEndpointName("countdown", msg, model, meta);
+                const countdown = msg.data.onTime;
                 payload[property] = countdown;
                 return payload;
             }
         },
     } satisfies Fz.Converter,
     inchingSwitch: {
-        cluster: 'manuSpecificTuya_4',
-        type: ['attributeReport', 'readResponse'],
+        cluster: "manuSpecificTuya_4",
+        type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.inching !== undefined) {
                 const payload: KeyValue = {};
-                const value = valueConverter.inchingSwitch.from(msg.data['inching']);
-                payload['inching_control_set'] = value;
+                const value = valueConverter.inchingSwitch.from(msg.data.inching);
+                payload.inching_control_set = value;
                 return payload;
             }
         },
@@ -1932,8 +1958,8 @@ export function getHandlersForDP(
     const keyName = endpoint ? `${name}_${endpoint}` : name;
     const fromZigbee: Fz.Converter[] = [
         {
-            cluster: 'manuSpecificTuya',
-            type: ['commandDataResponse', 'commandDataReport', 'commandActiveStatusReport', 'commandActiveStatusReportAlt'],
+            cluster: "manuSpecificTuya",
+            type: ["commandDataResponse", "commandDataReport", "commandActiveStatusReport", "commandActiveStatusReportAlt"],
             convert: (model, msg, publish, options, meta) => {
                 const dpValue = msg.data.dpValues.find((d: Tuya.DpValue) => d.dp === dp);
                 if (dpValue) {
@@ -1952,34 +1978,34 @@ export function getHandlersForDP(
                   convertSet: async (entity, key, value, meta) => {
                       // A set converter is only called once; therefore we need to loop
                       const state: KeyValue = {};
-                      if (Array.isArray(meta.mapped)) throw new Error(`Not supported for groups`);
+                      if (Array.isArray(meta.mapped)) throw new Error("Not supported for groups");
                       for (const [attr, value] of Object.entries(meta.message)) {
                           const convertedKey: string =
-                              meta.mapped.meta && meta.mapped.meta.multiEndpoint && meta.endpoint_name && !attr.startsWith(`${key}_`)
+                              meta.mapped.meta?.multiEndpoint && meta.endpoint_name && !attr.startsWith(`${key}_`)
                                   ? `${attr}_${meta.endpoint_name}`
                                   : attr;
                           // logger.debug(`key: ${key}, convertedKey: ${convertedKey}, keyName: ${keyName}`);
                           if (convertedKey !== keyName) continue;
-                          if (skip && skip(meta)) continue;
+                          if (skip?.(meta)) continue;
 
                           const convertedValue = await converter.to(value, meta);
-                          const sendCommand = utils.getMetaValue(entity, meta.mapped, 'tuyaSendCommand', undefined, 'dataRequest');
+                          const sendCommand = utils.getMetaValue(entity, meta.mapped, "tuyaSendCommand", undefined, "dataRequest");
                           const seq = useGlobalSequence ? undefined : 1;
                           // logger.debug(`dp: ${dp}, value: ${value}, convertedValue: ${convertedValue}`);
 
                           if (convertedValue === undefined) {
                               // conversion done inside converter, ignore.
-                          } else if (type == dataTypes.bool) {
+                          } else if (type === dataTypes.bool) {
                               await sendDataPointBool(entity, dp, convertedValue as boolean, sendCommand, seq);
-                          } else if (type == dataTypes.number) {
+                          } else if (type === dataTypes.number) {
                               await sendDataPointValue(entity, dp, convertedValue as number, sendCommand, seq);
-                          } else if (type == dataTypes.string) {
+                          } else if (type === dataTypes.string) {
                               await sendDataPointStringBuffer(entity, dp, convertedValue as string, sendCommand, seq);
-                          } else if (type == dataTypes.raw) {
+                          } else if (type === dataTypes.raw) {
                               await sendDataPointRaw(entity, dp, convertedValue as number[], sendCommand, seq);
-                          } else if (type == dataTypes.enum) {
+                          } else if (type === dataTypes.enum) {
                               await sendDataPointEnum(entity, dp, convertedValue as number, sendCommand, seq);
-                          } else if (type == dataTypes.bitmap) {
+                          } else if (type === dataTypes.bitmap) {
                               await sendDataPointBitmap(entity, dp, convertedValue as number, sendCommand, seq);
                           } else {
                               throw new Error(`Don't know how to send type '${typeof convertedValue}'`);
@@ -2049,7 +2075,7 @@ const tuyaModernExtend = {
     tuyaBase(args?: {onEvent?: OnEventArgs; dp: true}): ModernExtend {
         const result: ModernExtend = {
             configure: [configureMagicPacket],
-            onEvent: onEvent(args.onEvent),
+            onEvent: [onEvent(args.onEvent)],
             isModernExtend: true,
         };
 
@@ -2123,6 +2149,7 @@ const tuyaModernExtend = {
         if (valueMax !== undefined) exp = exp.withValueMax(valueMax);
         if (valueStep !== undefined) exp = exp.withValueStep(valueStep);
 
+        // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
         let converter;
         if (scale === undefined) {
             converter = valueConverterBasic.raw();
@@ -2140,25 +2167,25 @@ const tuyaModernExtend = {
     },
     dpLight(args: TuyaDPLightArgs): ModernExtend {
         const {state, brightness, min, max, colorTemp, endpoint} = args;
-        let exp = e.light_brightness().setAccess('state', ea.STATE_SET).setAccess('brightness', ea.STATE_SET);
+        let exp = e.light_brightness().setAccess("state", ea.STATE_SET).setAccess("brightness", ea.STATE_SET);
         let fromZigbee: Fz.Converter[] = [];
         let toZigbee: Tz.Converter[] = [];
         let ext: ModernExtend;
         if (min) {
-            exp = exp.withMinBrightness().setAccess('min_brightness', ea.STATE_SET);
+            exp = exp.withMinBrightness().setAccess("min_brightness", ea.STATE_SET);
         }
         if (max) {
-            exp = exp.withMaxBrightness().setAccess('max_brightness', ea.STATE_SET);
+            exp = exp.withMaxBrightness().setAccess("max_brightness", ea.STATE_SET);
         }
         if (colorTemp) {
-            exp = exp.withColorTemp(colorTemp.range).setAccess('color_temp', ea.STATE_SET);
+            exp = exp.withColorTemp(colorTemp.range).setAccess("color_temp", ea.STATE_SET);
         }
         // if (color) {
         //     exp = exp.withColor(['hs']).setAccess('color_hs', ea.STATE_SET);
         // }
         if (endpoint) exp = exp.withEndpoint(endpoint);
         ext = tuyaModernExtend.dpBinary({
-            name: 'state',
+            name: "state",
             dp: state.dp,
             type: state.type,
             valueOn: state.valueOn,
@@ -2168,22 +2195,22 @@ const tuyaModernExtend = {
         });
         fromZigbee = [...fromZigbee, ...ext.fromZigbee];
         toZigbee = [...toZigbee, ...ext.toZigbee];
-        ext = tuyaModernExtend.dpNumeric({name: 'brightness', dp: brightness.dp, type: brightness.type, scale: brightness.scale, endpoint: endpoint});
+        ext = tuyaModernExtend.dpNumeric({name: "brightness", dp: brightness.dp, type: brightness.type, scale: brightness.scale, endpoint: endpoint});
         fromZigbee = [...fromZigbee, ...ext.fromZigbee];
         toZigbee = [...toZigbee, ...ext.toZigbee];
         if (min) {
-            ext = tuyaModernExtend.dpNumeric({name: 'min_brightness', dp: min.dp, type: min.type, scale: min.scale, endpoint: endpoint});
+            ext = tuyaModernExtend.dpNumeric({name: "min_brightness", dp: min.dp, type: min.type, scale: min.scale, endpoint: endpoint});
             fromZigbee = [...fromZigbee, ...ext.fromZigbee];
             toZigbee = [...toZigbee, ...ext.toZigbee];
         }
         if (max) {
-            ext = tuyaModernExtend.dpNumeric({name: 'max_brightness', dp: max.dp, type: max.type, scale: max.scale, endpoint: endpoint});
+            ext = tuyaModernExtend.dpNumeric({name: "max_brightness", dp: max.dp, type: max.type, scale: max.scale, endpoint: endpoint});
             fromZigbee = [...fromZigbee, ...ext.fromZigbee];
             toZigbee = [...toZigbee, ...ext.toZigbee];
         }
         if (colorTemp) {
             ext = tuyaModernExtend.dpNumeric({
-                name: 'color_temp',
+                name: "color_temp",
                 dp: colorTemp.dp,
                 type: colorTemp.type,
                 scale: colorTemp.scale,
@@ -2204,17 +2231,17 @@ const tuyaModernExtend = {
         return {exposes: [exp], fromZigbee, toZigbee, isModernExtend: true};
     },
     dpTemperature(args?: Partial<TuyaDPNumericArgs>): ModernExtend {
-        return tuyaModernExtend.dpNumeric({name: 'temperature', type: dataTypes.number, readOnly: true, scale: 10, expose: e.temperature(), ...args});
+        return tuyaModernExtend.dpNumeric({name: "temperature", type: dataTypes.number, readOnly: true, scale: 10, expose: e.temperature(), ...args});
     },
     dpHumidity(args?: Partial<TuyaDPNumericArgs>): ModernExtend {
-        return tuyaModernExtend.dpNumeric({name: 'humidity', type: dataTypes.number, readOnly: true, expose: e.humidity(), ...args});
+        return tuyaModernExtend.dpNumeric({name: "humidity", type: dataTypes.number, readOnly: true, expose: e.humidity(), ...args});
     },
     dpBattery(args?: Partial<TuyaDPNumericArgs>): ModernExtend {
-        return tuyaModernExtend.dpNumeric({name: 'battery', type: dataTypes.number, readOnly: true, expose: e.battery(), ...args});
+        return tuyaModernExtend.dpNumeric({name: "battery", type: dataTypes.number, readOnly: true, expose: e.battery(), ...args});
     },
     dpBatteryState(args?: Partial<TuyaDPEnumLookupArgs>): ModernExtend {
         return tuyaModernExtend.dpEnumLookup({
-            name: 'battery_state',
+            name: "battery_state",
             type: dataTypes.number,
             lookup: {low: 0, medium: 1, high: 2},
             readOnly: true,
@@ -2224,7 +2251,7 @@ const tuyaModernExtend = {
     },
     dpTemperatureUnit(args?: Partial<TuyaDPEnumLookupArgs>): ModernExtend {
         return tuyaModernExtend.dpEnumLookup({
-            name: 'temperature_unit',
+            name: "temperature_unit",
             type: dataTypes.enum,
             lookup: {celsius: 0, fahrenheit: 1},
             readOnly: true,
@@ -2234,7 +2261,7 @@ const tuyaModernExtend = {
     },
     dpContact(args?: Partial<TuyaDPBinaryArgs>, invert?: boolean): ModernExtend {
         return tuyaModernExtend.dpBinary({
-            name: 'contact',
+            name: "contact",
             type: dataTypes.bool,
             valueOn: invert ? [true, true] : [true, false],
             valueOff: invert ? [false, false] : [false, true],
@@ -2246,7 +2273,7 @@ const tuyaModernExtend = {
     dpAction(args?: Partial<TuyaDPEnumLookupArgs>): ModernExtend {
         const {lookup} = args;
         return tuyaModernExtend.dpEnumLookup({
-            name: 'action',
+            name: "action",
             type: dataTypes.number,
             readOnly: true,
             expose: e.action(Object.keys(lookup)),
@@ -2254,11 +2281,11 @@ const tuyaModernExtend = {
         });
     },
     dpIlluminance(args?: Partial<TuyaDPNumericArgs>): ModernExtend {
-        return tuyaModernExtend.dpNumeric({name: 'illuminance', type: dataTypes.number, readOnly: true, expose: e.illuminance(), ...args});
+        return tuyaModernExtend.dpNumeric({name: "illuminance", type: dataTypes.number, readOnly: true, expose: e.illuminance(), ...args});
     },
     dpGas(args?: Partial<TuyaDPBinaryArgs>, invert?: boolean): ModernExtend {
         return tuyaModernExtend.dpBinary({
-            name: 'gas',
+            name: "gas",
             type: dataTypes.enum,
             valueOn: invert ? [true, 1] : [true, 0],
             valueOff: invert ? [false, 0] : [false, 1],
@@ -2270,11 +2297,11 @@ const tuyaModernExtend = {
     dpOnOff(args?: Partial<TuyaDPBinaryArgs>): ModernExtend {
         const {readOnly} = args;
         return tuyaModernExtend.dpBinary({
-            name: 'state',
+            name: "state",
             type: dataTypes.bool,
-            valueOn: ['ON', true],
-            valueOff: ['OFF', false],
-            expose: e.switch().setAccess('state', readOnly ? ea.STATE : ea.STATE_SET),
+            valueOn: ["ON", true],
+            valueOff: ["OFF", false],
+            expose: e.switch().setAccess("state", readOnly ? ea.STATE : ea.STATE_SET),
             ...args,
         });
     },
@@ -2283,15 +2310,16 @@ const tuyaModernExtend = {
         let {lookup} = args;
         lookup = lookup || {off: 0, on: 1, previous: 2};
         return tuyaModernExtend.dpEnumLookup({
-            name: 'power_on_behavior',
+            name: "power_on_behavior",
             lookup: lookup,
             type: dataTypes.enum,
             expose: e.power_on_behavior(Object.keys(lookup)).withAccess(readOnly ? ea.STATE : ea.STATE_SET),
             ...args,
         });
     },
-    tuyaLight(args?: modernExtend.LightArgs & {minBrightness?: 'none' | 'attribute' | 'command'; switchType?: boolean}) {
-        args = {minBrightness: 'none', powerOnBehavior: false, switchType: false, ...args};
+    tuyaLight(args?: modernExtend.LightArgs & {minBrightness?: "none" | "attribute" | "command"; switchType?: boolean}) {
+        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
+        args = {minBrightness: "none", powerOnBehavior: false, switchType: false, ...args};
         if (args.colorTemp) {
             args.colorTemp = {startup: false, ...args.colorTemp};
         }
@@ -2321,14 +2349,14 @@ const tuyaModernExtend = {
             result.exposes.push(tuyaExposes.switchType());
         }
 
-        if (args.minBrightness === 'attribute') {
+        if (args.minBrightness === "attribute") {
             result.fromZigbee.push(tuyaFz.min_brightness_attribute);
             result.toZigbee.push(tuyaTz.min_brightness_attribute);
-            result.exposes = result.exposes.map((e) => (typeof e !== 'function' && utils.isLightExpose(e) ? e.withMinBrightness() : e));
-        } else if (args.minBrightness === 'command') {
+            result.exposes = result.exposes.map((e) => (typeof e !== "function" && utils.isLightExpose(e) ? e.withMinBrightness() : e));
+        } else if (args.minBrightness === "command") {
             result.toZigbee.push(tuyaTz.min_brightness_command);
             result.exposes = result.exposes.map((e) =>
-                typeof e !== 'function' && utils.isLightExpose(e) ? e.withMinBrightness().setAccess('min_brightness', ea.STATE_SET) : e,
+                typeof e !== "function" && utils.isLightExpose(e) ? e.withMinBrightness().setAccess("min_brightness", ea.STATE_SET) : e,
             );
         }
 
@@ -2337,7 +2365,7 @@ const tuyaModernExtend = {
             result.exposes.push(tuyaExposes.colorPowerOnBehavior());
         }
 
-        result.configure = [configureSetPowerSourceWhenUnknown('Mains (single phase)')];
+        result.configure = [configureSetPowerSourceWhenUnknown("Mains (single phase)")];
 
         return result;
     },
@@ -2433,7 +2461,8 @@ const tuyaModernExtend = {
 
         if (args.switchMode) {
             if (args.endpoints) {
-                args.endpoints.forEach(function (ep) {
+                // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
+                args.endpoints.forEach((ep) => {
                     const epExtend = tuyaModernExtend.tuyaSwitchMode({
                         description: `Switch mode ${ep}`,
                         endpointName: ep,
@@ -2443,7 +2472,7 @@ const tuyaModernExtend = {
                     exposes.push(...epExtend.exposes);
                 });
             } else {
-                const extend = tuyaModernExtend.tuyaSwitchMode({description: 'Switch mode'});
+                const extend = tuyaModernExtend.tuyaSwitchMode({description: "Switch mode"});
                 fromZigbee.push(...extend.fromZigbee);
                 toZigbee.push(...extend.toZigbee);
                 exposes.push(...extend.exposes);
@@ -2460,7 +2489,7 @@ const tuyaModernExtend = {
             toZigbee.push(tuyaTz.inchingSwitch);
         }
 
-        const configure = [configureSetPowerSourceWhenUnknown('Mains (single phase)')];
+        const configure = [configureSetPowerSourceWhenUnknown("Mains (single phase)")];
 
         return {exposes, fromZigbee, toZigbee, isModernExtend: true, configure};
     },
@@ -2469,7 +2498,7 @@ const tuyaModernExtend = {
         let {lookup} = args;
         lookup = lookup || {off: 0, normal: 1, inverted: 2};
         return tuyaModernExtend.dpEnumLookup({
-            name: 'backlight_mode',
+            name: "backlight_mode",
             lookup: lookup,
             type: dataTypes.enum,
             expose: tuyaExposes.backlightModeOffNormalInverted().withAccess(readOnly ? ea.STATE : ea.STATE_SET),
@@ -2489,18 +2518,18 @@ const tuyaModernExtend = {
         }
 
         // create single enum-expose
-        const exp = new exposes.Enum('action', ea.STATE, newValues).withDescription(description);
+        const exp = new exposes.Enum("action", ea.STATE, newValues).withDescription(description);
 
         return {exposes: [exp], fromZigbee: newFromZigbee, isModernExtend: true};
     },
     tuyaSwitchMode: (args?: Partial<modernExtend.EnumLookupArgs>) =>
         modernExtend.enumLookup({
-            name: 'switch_mode',
+            name: "switch_mode",
             lookup: {switch: 0, scene: 1},
-            cluster: 'manuSpecificTuya_3',
-            attribute: 'switchMode',
-            description: 'Work mode for switch',
-            entityCategory: 'config',
+            cluster: "manuSpecificTuya_3",
+            attribute: "switchMode",
+            description: "Work mode for switch",
+            entityCategory: "config",
             ...args,
         }),
     tuyaLedIndicator(): ModernExtend {
@@ -2515,25 +2544,25 @@ const tuyaModernExtend = {
     },
     tuyaOnOffAction(args?: Partial<modernExtend.ActionEnumLookupArgs>): ModernExtend {
         return modernExtend.actionEnumLookup({
-            actionLookup: {0: 'single', 1: 'double', 2: 'hold'},
-            cluster: 'genOnOff',
-            commands: ['commandTuyaAction'],
-            attribute: 'value',
+            actionLookup: {0: "single", 1: "double", 2: "hold"},
+            cluster: "genOnOff",
+            commands: ["commandTuyaAction"],
+            attribute: "value",
         });
     },
-    tuyaOnOffActionLegacy(args: {actions: ('single' | 'double' | 'hold')[]; endpointNames?: string[]}): ModernExtend {
+    tuyaOnOffActionLegacy(args: {actions: ("single" | "double" | "hold")[]; endpointNames?: string[]}): ModernExtend {
         // For new devices use tuyaOnOffAction instead
-        const actions = args.actions.map((a) => (args.endpointNames ? args.endpointNames.map((e) => `${e}_${a}`) : [a])).flat();
+        const actions = args.actions.flatMap((a) => (args.endpointNames ? args.endpointNames.map((e) => `${e}_${a}`) : [a]));
         const exposes: Expose[] = [e.action(actions)];
         const fromZigbee: Fz.Converter[] = [tuyaFz.on_off_action];
         return {exposes, fromZigbee, isModernExtend: true};
     },
     dpChildLock(args?: Partial<TuyaDPBinaryArgs>): ModernExtend {
         return tuyaModernExtend.dpBinary({
-            name: 'child_lock',
+            name: "child_lock",
             type: dataTypes.bool,
-            valueOn: ['LOCK', true],
-            valueOff: ['UNLOCK', false],
+            valueOn: ["LOCK", true],
+            valueOff: ["UNLOCK", false],
             expose: e.child_lock(),
             ...args,
         });
@@ -2543,7 +2572,7 @@ export {tuyaModernExtend as modernExtend};
 
 const tuyaClusters = {
     addTuyaCommonPrivateCluster: (): ModernExtend =>
-        modernExtend.deviceAddCustomCluster('manuSpecificTuya_4', {
+        modernExtend.deviceAddCustomCluster("manuSpecificTuya_4", {
             ID: 0xe000,
             attributes: {
                 random_timing: {ID: 0xd001, type: Zcl.DataType.CHAR_STR},
@@ -2553,15 +2582,15 @@ const tuyaClusters = {
             commands: {
                 setRandomTiming: {
                     ID: 0xf7,
-                    parameters: [{name: 'payload', type: Zcl.BuffaloZclDataType.BUFFER}],
+                    parameters: [{name: "payload", type: Zcl.BuffaloZclDataType.BUFFER}],
                 },
                 setCycleTiming: {
                     ID: 0xf8,
-                    parameters: [{name: 'payload', type: Zcl.BuffaloZclDataType.BUFFER}],
+                    parameters: [{name: "payload", type: Zcl.BuffaloZclDataType.BUFFER}],
                 },
                 setInchingSwitch: {
                     ID: 0xfb,
-                    parameters: [{name: 'payload', type: Zcl.BuffaloZclDataType.BUFFER}],
+                    parameters: [{name: "payload", type: Zcl.BuffaloZclDataType.BUFFER}],
                 },
             },
             commandsResponse: {},
@@ -2569,23 +2598,3 @@ const tuyaClusters = {
 };
 
 export {tuyaClusters as clusters};
-
-exports.exposes = tuyaExposes;
-exports.modernExtend = tuyaModernExtend;
-exports.tz = tuyaTz;
-exports.fz = tuyaFz;
-exports.clusters = tuyaClusters;
-exports.enum = (value: number) => new Enum(value);
-exports.bitmap = (value: number) => new Bitmap(value);
-exports.valueConverter = valueConverter;
-exports.valueConverterBasic = valueConverterBasic;
-exports.sendDataPointBool = sendDataPointBool;
-exports.sendDataPointEnum = sendDataPointEnum;
-exports.onEventSetTime = onEventSetTime;
-exports.onEventSetLocalTime = onEventSetLocalTime;
-exports.onEventMeasurementPoll = onEventMeasurementPoll;
-exports.skip = skip;
-exports.configureMagicPacket = configureMagicPacket;
-exports.fingerprint = fingerprint;
-exports.whitelabel = whitelabel;
-exports.dataTypes = dataTypes;

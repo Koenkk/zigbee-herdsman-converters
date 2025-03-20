@@ -1,29 +1,29 @@
-import fz from '../converters/fromZigbee';
-import * as exposes from '../lib/exposes';
-import * as legacy from '../lib/legacy';
-import * as tuya from '../lib/tuya';
-import {DefinitionWithExtend} from '../lib/types';
+import * as fz from "../converters/fromZigbee";
+import * as exposes from "../lib/exposes";
+import * as legacy from "../lib/legacy";
+import * as tuya from "../lib/tuya";
+import type {DefinitionWithExtend} from "../lib/types";
 
 const e = exposes.presets;
 const ea = exposes.access;
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
-        zigbeeModel: ['ivfvd7h', 'eaxp72v\u0000', 'kfvq6avy\u0000', 'fvq6avy\u0000', 'fvq6avy', 'zk78ptr\u0000', '4yfvweb\u0000'],
-        fingerprint: [
-            {modelID: 'TS0601', manufacturerName: '_TZE200_zivfvd7h'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_kfvq6avy'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_hhrtiq0x'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_ps5v5jor'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_jeaxp72v'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_owwdxjbx'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_2cs6g9i7'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_04yfvweb'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_lrznf59v'},
-        ],
-        model: 'GS361A-H04',
-        vendor: 'Siterwell',
-        description: 'Radiator valve with thermostat',
+        zigbeeModel: ["ivfvd7h", "eaxp72v\u0000", "kfvq6avy\u0000", "fvq6avy\u0000", "fvq6avy", "zk78ptr\u0000", "4yfvweb\u0000"],
+        fingerprint: tuya.fingerprint("TS0601", [
+            "_TZE200_zivfvd7h",
+            "_TZE200_kfvq6avy",
+            "_TZE200_hhrtiq0x",
+            "_TZE200_ps5v5jor",
+            "_TZE200_jeaxp72v",
+            "_TZE200_owwdxjbx",
+            "_TZE200_2cs6g9i7",
+            "_TZE200_04yfvweb",
+            "_TZE200_lrznf59v",
+        ]),
+        model: "GS361A-H04",
+        vendor: "Siterwell",
+        description: "Radiator valve with thermostat",
         fromZigbee: [legacy.fz.tuya_thermostat, fz.ignore_basic_report],
         meta: {
             tuyaThermostatSystemMode: legacy.thermostatSystemModes4,
@@ -47,15 +47,15 @@ const definitions: DefinitionWithExtend[] = [
             legacy.tz.tuya_thermostat_boost_time,
         ],
         whiteLabel: [
-            {vendor: 'Essentials', description: 'Smart home heizkörperthermostat premium', model: '120112'},
-            {vendor: 'Tuya', description: 'Głowica termostatyczna', model: 'GTZ02'},
-            {vendor: 'Revolt', description: 'Thermostatic Radiator Valve Controller', model: 'NX-4911'},
-            {vendor: 'Unitec', description: 'Thermostatic Radiator Valve Controller', model: '30946'},
-            {vendor: 'Tesla Smart', description: 'Thermostatic Radiator Valve Controller', model: 'TSL-TRV-GS361A'},
-            {vendor: 'Nedis', description: 'Thermostatic Radiator Valve Controller', model: 'ZBHTR10WT'},
-            {vendor: 'TCP Smart', description: 'Smart Thermostatic Radiator Valve', model: 'TBUWTRV'},
-            tuya.whitelabel('Brennenstuhl', 'HT CZ 01', 'Radiator thermostat', ['_TZE200_lrznf59v']),
-            {vendor: 'Appartme', description: 'Głowica termostatyczna', model: 'APRM-04-001'},
+            {vendor: "Essentials", description: "Smart home heizkörperthermostat premium", model: "120112"},
+            {vendor: "Tuya", description: "Głowica termostatyczna", model: "GTZ02"},
+            {vendor: "Revolt", description: "Thermostatic Radiator Valve Controller", model: "NX-4911"},
+            {vendor: "Unitec", description: "Thermostatic Radiator Valve Controller", model: "30946"},
+            {vendor: "Tesla Smart", description: "Thermostatic Radiator Valve Controller", model: "TSL-TRV-GS361A"},
+            {vendor: "Nedis", description: "Thermostatic Radiator Valve Controller", model: "ZBHTR10WT"},
+            {vendor: "TCP Smart", description: "Smart Thermostatic Radiator Valve", model: "TBUWTRV"},
+            tuya.whitelabel("Brennenstuhl", "HT CZ 01", "Radiator thermostat", ["_TZE200_lrznf59v"]),
+            {vendor: "Appartme", description: "Głowica termostatyczna", model: "APRM-04-001"},
         ],
         exposes: [
             e.child_lock(),
@@ -64,13 +64,10 @@ const definitions: DefinitionWithExtend[] = [
             e.valve_detection(),
             e
                 .climate()
-                .withSetpoint('current_heating_setpoint', 5, 30, 0.5, ea.STATE_SET)
+                .withSetpoint("current_heating_setpoint", 5, 30, 0.5, ea.STATE_SET)
                 .withLocalTemperature(ea.STATE)
-                .withSystemMode(['off', 'auto', 'heat'], ea.STATE_SET)
-                .withRunningState(['idle', 'heat'], ea.STATE),
+                .withSystemMode(["off", "auto", "heat"], ea.STATE_SET)
+                .withRunningState(["idle", "heat"], ea.STATE),
         ],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

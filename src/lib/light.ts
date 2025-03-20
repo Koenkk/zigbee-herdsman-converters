@@ -1,15 +1,15 @@
-import {logger} from './logger';
-import {Tz, Zh} from './types';
-import * as utils from './utils';
+import {logger} from "./logger";
+import type {Tz, Zh} from "./types";
+import * as utils from "./utils";
 
-const NS = 'zhc:light';
+const NS = "zhc:light";
 
-async function readColorCapabilities(endpoint: Zh.Endpoint) {
-    await endpoint.read('lightingColorCtrl', ['colorCapabilities']);
+export async function readColorCapabilities(endpoint: Zh.Endpoint) {
+    await endpoint.read("lightingColorCtrl", ["colorCapabilities"]);
 }
 
-async function readColorTempMinMax(endpoint: Zh.Endpoint) {
-    await endpoint.read('lightingColorCtrl', ['colorTempPhysicalMin', 'colorTempPhysicalMax']);
+export async function readColorTempMinMax(endpoint: Zh.Endpoint) {
+    await endpoint.read("lightingColorCtrl", ["colorTempPhysicalMin", "colorTempPhysicalMax"]);
 }
 
 export function readColorAttributes(entity: Zh.Endpoint | Zh.Group, meta: Tz.Meta, additionalAttributes: string[] = []) {
@@ -22,25 +22,25 @@ export function readColorAttributes(entity: Zh.Endpoint | Zh.Group, meta: Tz.Met
      *
      * Additionally when we get a "get payload", only request the fields included.
      */
-    const attributes = ['colorMode'];
-    if (meta && meta.message) {
+    const attributes = ["colorMode"];
+    if (meta?.message) {
         if (!meta.message.color || (utils.isObject(meta.message.color) && meta.message.color.x !== undefined)) {
-            attributes.push('currentX');
+            attributes.push("currentX");
         }
         if (!meta.message.color || (utils.isObject(meta.message.color) && meta.message.color.y !== undefined)) {
-            attributes.push('currentY');
+            attributes.push("currentY");
         }
 
-        if (utils.getMetaValue(entity, meta.mapped, 'supportsHueAndSaturation', 'allEqual', true)) {
+        if (utils.getMetaValue(entity, meta.mapped, "supportsHueAndSaturation", "allEqual", true)) {
             if (!meta.message.color || (utils.isObject(meta.message.color) && meta.message.color.hue !== undefined)) {
-                if (utils.getMetaValue(entity, meta.mapped, 'supportsEnhancedHue', 'allEqual', true)) {
-                    attributes.push('enhancedCurrentHue');
+                if (utils.getMetaValue(entity, meta.mapped, "supportsEnhancedHue", "allEqual", true)) {
+                    attributes.push("enhancedCurrentHue");
                 } else {
-                    attributes.push('currentHue');
+                    attributes.push("currentHue");
                 }
             }
             if (!meta.message.color || (utils.isObject(meta.message.color) && meta.message.color.saturation !== undefined)) {
-                attributes.push('currentSaturation');
+                attributes.push("currentSaturation");
             }
         }
     }
@@ -49,30 +49,32 @@ export function readColorAttributes(entity: Zh.Endpoint | Zh.Group, meta: Tz.Met
 }
 
 export function findColorTempRange(entity: Zh.Endpoint | Zh.Group) {
+    // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
     let colorTempMin;
+    // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
     let colorTempMax;
     if (utils.isGroup(entity)) {
         const minCandidates = entity.members
-            .map((m) => m.getClusterAttributeValue('lightingColorCtrl', 'colorTempPhysicalMin'))
+            .map((m) => m.getClusterAttributeValue("lightingColorCtrl", "colorTempPhysicalMin"))
             .filter((v) => v != null)
             .map((v) => Number(v));
         if (minCandidates.length > 0) {
             colorTempMin = Math.max(...minCandidates);
         }
         const maxCandidates = entity.members
-            .map((m) => m.getClusterAttributeValue('lightingColorCtrl', 'colorTempPhysicalMax'))
+            .map((m) => m.getClusterAttributeValue("lightingColorCtrl", "colorTempPhysicalMax"))
             .filter((v) => v != null)
             .map((v) => Number(v));
         if (maxCandidates.length > 0) {
             colorTempMax = Math.min(...maxCandidates);
         }
     } else {
-        colorTempMin = entity.getClusterAttributeValue('lightingColorCtrl', 'colorTempPhysicalMin') as number;
-        colorTempMax = entity.getClusterAttributeValue('lightingColorCtrl', 'colorTempPhysicalMax') as number;
+        colorTempMin = entity.getClusterAttributeValue("lightingColorCtrl", "colorTempPhysicalMin") as number;
+        colorTempMax = entity.getClusterAttributeValue("lightingColorCtrl", "colorTempPhysicalMax") as number;
     }
     if (colorTempMin == null || colorTempMax == null) {
         const entityId = utils.isGroup(entity) ? entity.groupID : entity.deviceIeeeAddress;
-        logger.debug(`Missing colorTempPhysicalMin and/or colorTempPhysicalMax for ${utils.isGroup(entity) ? 'group' : 'endpoint'} ${entityId}!`, NS);
+        logger.debug(`Missing colorTempPhysicalMin and/or colorTempPhysicalMax for ${utils.isGroup(entity) ? "group" : "endpoint"} ${entityId}!`, NS);
     }
     return [colorTempMin, colorTempMax];
 }
@@ -89,12 +91,12 @@ export function clampColorTemp(colorTemp: number, colorTempMin: number, colorTem
     return colorTemp;
 }
 export async function configure(device: Zh.Device, coordinatorEndpoint: Zh.Endpoint, readColorTempMinMaxAttribute: boolean) {
-    if (device.powerSource === 'Unknown') {
-        device.powerSource = 'Mains (single phase)';
+    if (device.powerSource === "Unknown") {
+        device.powerSource = "Mains (single phase)";
         device.save();
     }
 
-    for (const endpoint of device.endpoints.filter((e) => e.supportsInputCluster('lightingColorCtrl'))) {
+    for (const endpoint of device.endpoints.filter((e) => e.supportsInputCluster("lightingColorCtrl"))) {
         try {
             await readColorCapabilities(endpoint);
 
@@ -106,10 +108,3 @@ export async function configure(device: Zh.Device, coordinatorEndpoint: Zh.Endpo
         }
     }
 }
-
-exports.readColorCapabilities = readColorCapabilities;
-exports.readColorTempMinMax = readColorTempMinMax;
-exports.readColorAttributes = readColorAttributes;
-exports.findColorTempRange = findColorTempRange;
-exports.clampColorTemp = clampColorTemp;
-exports.configure = configure;

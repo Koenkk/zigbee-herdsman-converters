@@ -1,25 +1,19 @@
-import * as exposes from '../lib/exposes';
-import * as legacy from '../lib/legacy';
-import {DefinitionWithExtend} from '../lib/types';
+import * as exposes from "../lib/exposes";
+import * as legacy from "../lib/legacy";
+import * as tuya from "../lib/tuya";
+import type {DefinitionWithExtend} from "../lib/types";
 
 const e = exposes.presets;
 const ea = exposes.access;
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
-        fingerprint: [
-            {modelID: 'TS0601', manufacturerName: '_TZE200_yenbr4om'},
-            {modelID: 'TS0601', manufacturerName: '_TZE204_bdblidq3'},
-            {modelID: 'TS0601', manufacturerName: '_TZE200_bdblidq3'},
-        ],
-        model: 'BSEED_TS0601_cover',
-        vendor: 'BSEED',
-        description: 'Zigbee curtain switch',
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_yenbr4om", "_TZE204_bdblidq3", "_TZE200_bdblidq3"]),
+        model: "BSEED_TS0601_cover",
+        vendor: "BSEED",
+        description: "Zigbee curtain switch",
         fromZigbee: [legacy.fz.tuya_cover],
         toZigbee: [legacy.tz.tuya_cover_control],
-        exposes: [e.cover_position().setAccess('position', ea.STATE_SET)],
+        exposes: [e.cover_position().setAccess("position", ea.STATE_SET)],
     },
 ];
-
-export default definitions;
-module.exports = definitions;
