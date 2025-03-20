@@ -22,12 +22,16 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [
             e.battery(),
             e.child_lock(),
-            e.window_detection_bool(),
+            e
+                .binary("window_detection", ea.STATE_SET, "ON", "OFF")
+                .withDescription("Enables/disables window detection on the device")
+                .withCategory("config"),
+            e.window_open(),
             tuya.exposes.frostProtection(),
             e.binary("alarm_switch", ea.STATE, "ON", "OFF").withDescription("Thermostat in error state"),
-            e.comfort_temperature().withValueMin(5).withValueMax(35).withDescription("Comfort mode temperature"),
-            e.eco_temperature().withValueMin(5).withValueMax(35).withDescription("Eco mode temperature"),
-            e.holiday_temperature().withValueMin(5).withValueMax(35).withDescription("Holiday mode temperature"),
+            e.comfort_temperature().withValueMin(5).withValueMax(35).withDescription("Comfort mode temperature").withCategory("config"),
+            e.eco_temperature().withValueMin(5).withValueMax(35).withDescription("Eco mode temperature").withCategory("config"),
+            e.holiday_temperature().withValueMin(5).withValueMax(35).withDescription("Holiday mode temperature").withCategory("config"),
             e
                 .numeric("temperature_sensitivity", ea.STATE_SET)
                 .withUnit("°C")
@@ -40,7 +44,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withSystemMode(["off", "heat"], ea.STATE_SET, "Basic modes")
                 .withLocalTemperature(ea.STATE)
                 .withSetpoint("current_heating_setpoint", 5, 35, 0.5, ea.STATE_SET)
-                .withPreset(["none", "schedule", "eco", "comfort", "frost_protection", "holiday"])
+                .withPreset(["schedule", "eco", "comfort", "frost_protection", "holiday"])
                 .withRunningState(["idle", "heat"], ea.STATE)
                 .withSystemMode(["off", "heat"], ea.STATE, "Only for Homeassistant")
                 .withLocalTemperatureCalibration(-9.5, 9.5, 0.5, ea.STATE_SET),
@@ -97,8 +101,8 @@ export const definitions: DefinitionWithExtend[] = [
                 [105, "frost_temperature", tuya.valueConverter.divideBy10],
                 [102, "temperature_sensitivity", tuya.valueConverter.divideBy10],
                 [21, "holiday_temperature", tuya.valueConverter.divideBy10],
-                [15, "window", tuya.valueConverterBasic.lookup({OPEN: 1, CLOSE: 0})],
                 [14, "window_detection", tuya.valueConverter.onOff],
+                [15, "window_open", tuya.valueConverter.trueFalseEnum0],
                 [35, "alarm_switch", tuya.valueConverter.onOff],
                 [36, "frost_protection", tuya.valueConverter.onOff],
                 [28, "schedule_monday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(1, 6)],
