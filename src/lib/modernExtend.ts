@@ -2222,10 +2222,7 @@ export const GPDF_COMMANDS: Record<number, string> = {
 export function genericGreenPower(): ModernExtend {
     const exposes = [
         e.action(Object.values(GPDF_COMMANDS)),
-        // e.numeric("payload", ea.STATE).withDescription("Payload received with the command (hexadecimal)"),
-        e
-            .list("payload", ea.STATE, e.numeric("payload", ea.STATE).withDescription("Byte"))
-            .withDescription("Payload of the command"),
+        e.list("payload", ea.STATE, e.numeric("payload", ea.STATE).withDescription("Byte")).withDescription("Payload of the command"),
     ];
     const fromZigbee: Fz.Converter[] = [
         {

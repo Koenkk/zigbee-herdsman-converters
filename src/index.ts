@@ -529,7 +529,7 @@ export async function findDefinition(device: Zh.Device, generateForUnknown = fal
         }
 
         // Do not add this definition to cache, as device configuration might change.
-        const {definition} = device.type === "GreenPower" ? generateGreenPowerDefinition(device) : await generateDefinition(device);
+        const {definition} = await generateDefinition(device);
 
         return definition;
     }
@@ -569,13 +569,11 @@ export async function findDefinition(device: Zh.Device, generateForUnknown = fal
 }
 
 export async function generateExternalDefinitionSource(device: Zh.Device): Promise<string> {
-    return device.type === "GreenPower"
-        ? generateGreenPowerDefinition(device).externalDefinitionSource
-        : (await generateDefinition(device)).externalDefinitionSource;
+    return (await generateDefinition(device)).externalDefinitionSource;
 }
 
 export async function generateExternalDefinition(device: Zh.Device): Promise<Definition> {
-    const {definition} = await generateDefinition(device);
+    const {definition} = device.type === "GreenPower" ? generateGreenPowerDefinition(device) : await generateDefinition(device);
 
     return prepareDefinition(definition);
 }
