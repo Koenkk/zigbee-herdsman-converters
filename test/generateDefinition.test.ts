@@ -6,16 +6,16 @@ import {findByDevice, generateExternalDefinitionSource} from "../src";
 import * as fz from "../src/converters/fromZigbee";
 import {repInterval} from "../src/lib/constants";
 import type {Definition} from "../src/lib/types";
-import {type AssertDefinitionArgs, assertDefintion, mockDevice, reportingItem} from "./utils";
+import {type AssertDefinitionArgs, assertDefinition, mockDevice, reportingItem} from "./utils";
 
-const assertGeneratedDefinition = async (args: AssertDefinitionArgs & {externalDefintionSource?: string}) => {
+const assertGeneratedDefinition = async (args: AssertDefinitionArgs & {externalDefinitionSource?: string}) => {
     const getDefinition = async (device: ZHModels.Device): Promise<Definition> => findByDevice(device, true);
     const definition = await getDefinition(args.device);
     expect(definition.model).toEqual(args.device.modelID);
-    if (args.externalDefintionSource) {
-        expect((await generateExternalDefinitionSource(args.device)).trim()).toEqual(args.externalDefintionSource.trim());
+    if (args.externalDefinitionSource) {
+        expect((await generateExternalDefinitionSource(args.device)).trim()).toEqual(args.externalDefinitionSource.trim());
     }
-    return await assertDefintion({findByDeviceFn: getDefinition, ...args});
+    return await assertDefinition({findByDeviceFn: getDefinition, ...args});
 };
 
 describe("GenerateDefinition", () => {
@@ -101,10 +101,10 @@ describe("GenerateDefinition", () => {
                     ["genOnOff", [reportingItem("onOff", 0, repInterval.MAX, 1)]],
                 ],
             },
-            externalDefintionSource: `
-const m = require('zigbee-herdsman-converters/lib/modernExtend');
+            externalDefinitionSource: `
+import * as m from 'zigbee-herdsman-converters/lib/modernExtend';
 
-const definition = {
+export default {
     zigbeeModel: ['combo'],
     model: 'combo',
     vendor: 'vendor',
@@ -112,8 +112,6 @@ const definition = {
     extend: [m.temperature(), m.onOff({"powerOnBehavior":false})],
     meta: {},
 };
-
-module.exports = definition;
             `,
         });
     });
@@ -142,10 +140,10 @@ module.exports = definition;
                     ["genOnOff", [reportingItem("onOff", 0, repInterval.MAX, 1)]],
                 ],
             },
-            externalDefintionSource: `
-const m = require('zigbee-herdsman-converters/lib/modernExtend');
+            externalDefinitionSource: `
+import * as m from 'zigbee-herdsman-converters/lib/modernExtend';
 
-const definition = {
+export default {
     zigbeeModel: ['combo'],
     model: 'combo',
     vendor: 'vendor',
@@ -153,8 +151,6 @@ const definition = {
     extend: [m.temperature(), m.onOff({"powerOnBehavior":false})],
     meta: {},
 };
-
-module.exports = definition;
             `,
         });
     });
@@ -188,10 +184,10 @@ module.exports = definition;
                 ],
                 2: [["msTemperatureMeasurement", [reportingItem("measuredValue", 10, repInterval.HOUR, 100)]]],
             },
-            externalDefintionSource: `
-const m = require('zigbee-herdsman-converters/lib/modernExtend');
+            externalDefinitionSource: `
+import * as m from 'zigbee-herdsman-converters/lib/modernExtend';
 
-const definition = {
+export default {
     zigbeeModel: ['combo'],
     model: 'combo',
     vendor: '',
@@ -199,8 +195,6 @@ const definition = {
     extend: [m.deviceEndpoints({"endpoints":{"1":1,"2":2}}), m.temperature({"endpointNames":["1","2"]}), m.onOff({"powerOnBehavior":false})],
     meta: {"multiEndpoint":true},
 };
-
-module.exports = definition;
             `,
         });
     });
@@ -258,10 +252,10 @@ module.exports = definition;
                 ],
             },
             configureReporting: {},
-            externalDefintionSource: `
-const m = require('zigbee-herdsman-converters/lib/modernExtend');
+            externalDefinitionSource: `
+import * as m from 'zigbee-herdsman-converters/lib/modernExtend';
 
-const definition = {
+export default {
     zigbeeModel: ['combo'],
     model: 'combo',
     vendor: '',
@@ -269,8 +263,6 @@ const definition = {
     extend: [m.light({"colorTemp":{"range":[100,500]},"color":{"enhancedHue":true}})],
     meta: {},
 };
-
-module.exports = definition;
             `,
         });
     });
@@ -328,10 +320,10 @@ module.exports = definition;
                 ],
             },
             configureReporting: {},
-            externalDefintionSource: `
-const m = require('zigbee-herdsman-converters/lib/modernExtend');
+            externalDefinitionSource: `
+import * as m from 'zigbee-herdsman-converters/lib/modernExtend';
 
-const definition = {
+export default {
     zigbeeModel: ['combo'],
     model: 'combo',
     vendor: '',
@@ -339,8 +331,6 @@ const definition = {
     extend: [m.light({"colorTemp":{"range":[100,500]},"color":{"enhancedHue":true}})],
     meta: {},
 };
-
-module.exports = definition;
             `,
         });
     });
@@ -404,10 +394,10 @@ module.exports = definition;
                 ],
             },
             configureReporting: [],
-            externalDefintionSource: `
-const philips = require('zigbee-herdsman-converters/lib/philips');
+            externalDefinitionSource: `
+import * as philips from 'zigbee-herdsman-converters/lib/philips';
 
-const definition = {
+export default {
     zigbeeModel: ['combo'],
     model: 'combo',
     vendor: '',
@@ -415,8 +405,6 @@ const definition = {
     extend: [philips.m.light({"colorTemp":{"range":[100,500]},"color":{"enhancedHue":true}})],
     meta: {},
 };
-
-module.exports = definition;
             `,
         });
     });
@@ -483,10 +471,10 @@ module.exports = definition;
                     ["seMetering", [reportingItem("currentSummDelivered", 10, 65000, 100)]],
                 ],
             },
-            externalDefintionSource: `
-const m = require('zigbee-herdsman-converters/lib/modernExtend');
+            externalDefinitionSource: `
+import * as m from 'zigbee-herdsman-converters/lib/modernExtend';
 
-const definition = {
+export default {
     zigbeeModel: ['combo'],
     model: 'combo',
     vendor: '',
@@ -494,8 +482,6 @@ const definition = {
     extend: [m.onOff({"powerOnBehavior":false}), m.electricityMeter()],
     meta: {},
 };
-
-module.exports = definition;
             `,
         });
     });

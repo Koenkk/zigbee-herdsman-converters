@@ -122,10 +122,10 @@ const OUTPUT_EXTENDERS: Extender[] = [
 
 function generateSource(definition: DefinitionWithZigbeeModel, generatedExtend: GeneratedExtend[]): string {
     const imports = [...new Set(generatedExtend.map((e) => e.lib ?? "modernExtend"))];
-    const importsStr = imports.map((e) => `const ${e === "modernExtend" ? "m" : e} = require('zigbee-herdsman-converters/lib/${e}');`).join("\n");
+    const importsStr = imports.map((e) => `import * as ${e === "modernExtend" ? "m" : e} from 'zigbee-herdsman-converters/lib/${e}';`).join("\n");
     return `${importsStr}
 
-const definition = {
+export default {
     zigbeeModel: ['${definition.zigbeeModel}'],
     model: '${definition.model}',
     vendor: '${definition.vendor}',
@@ -133,8 +133,7 @@ const definition = {
     extend: [${generatedExtend.map((e) => `${e.lib ?? "m"}.${e.getSource()}`).join(", ")}],
     meta: ${JSON.stringify(definition.meta || {})},
 };
-
-module.exports = definition;`;
+`;
 }
 
 function generateGreenPowerSource(definition: DefinitionWithExtend, ieeeAddr: string): string {
@@ -203,10 +202,9 @@ export async function generateDefinition(device: Zh.Device): Promise<{externalDe
 
     const extenders = generatedExtend.map((e) => e.getExtend());
     // Generated definition below will provide this.
-    // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
-    extenders.forEach((extender) => {
+    for (const extender of extenders) {
         extender.endpoint = undefined;
-    });
+    }
 
     // Currently multiEndpoint is enabled if device has more then 1 endpoint.
     // It is possible to better check if device should be considered multiEndpoint
