@@ -989,6 +989,7 @@ export interface LightArgs {
     endpointNames?: string[];
     ota?: ModernExtend["ota"];
     levelConfig?: {disabledFeatures?: LevelConfigFeatures};
+    levelConfigureReporting?: ReportingConfigWithoutAttribute;
 }
 export function light(args?: LightArgs): ModernExtend {
     // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
@@ -1087,7 +1088,7 @@ export function light(args?: LightArgs): ModernExtend {
             if (args.configureReporting) {
                 await setupAttributes(device, coordinatorEndpoint, "genOnOff", [{attribute: "onOff", min: "MIN", max: "MAX", change: 1}]);
                 await setupAttributes(device, coordinatorEndpoint, "genLevelCtrl", [
-                    {attribute: "currentLevel", min: "10_SECONDS", max: "MAX", change: 1},
+                    {attribute: "currentLevel", min: "10_SECONDS", max: "MAX", change: 1, ...args.levelConfigureReporting},
                 ]);
                 if (args.colorTemp) {
                     await setupAttributes(device, coordinatorEndpoint, "lightingColorCtrl", [
@@ -2689,19 +2690,6 @@ export function ignoreClusterReport(args: {cluster: string | number}): ModernExt
 
 export function bindCluster(args: {cluster: string | number; clusterType: "input" | "output"; endpointNames?: string[]}): ModernExtend {
     const configure: Configure[] = [setupConfigureForBinding(args.cluster, args.clusterType, args.endpointNames)];
-    return {configure, isModernExtend: true};
-}
-
-export function reportAttribute(args: {
-    cluster: string | number;
-    attribute: ReportingConfigAttribute;
-    config: ReportingConfigWithoutAttribute;
-    access?: Access;
-    endpointNames?: string[];
-}): ModernExtend {
-    const configure: Configure[] = [
-        setupConfigureForReporting(args.cluster, args.attribute, args.config, args.access || ea.STATE_GET, args.endpointNames),
-    ];
     return {configure, isModernExtend: true};
 }
 

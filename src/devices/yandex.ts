@@ -447,6 +447,7 @@ export const definitions: DefinitionWithExtend[] = [
                 effect: true,
                 powerOnBehavior: true,
                 configureReporting: true,
+                levelConfigureReporting: {min: "MIN", max: "MAX", change: 1},
             }),
             m.lightingBallast(),
             binaryWithSetCommand({
@@ -472,11 +473,6 @@ export const definitions: DefinitionWithExtend[] = [
                     alternative: 0x01,
                 },
                 entityCategory: "config",
-            }),
-            m.reportAttribute({
-                cluster: "genLevelCtrl",
-                attribute: "currentLevel",
-                config: {min: "MIN", max: "MAX", change: 1},
             }),
         ],
     },
