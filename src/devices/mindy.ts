@@ -10,6 +10,43 @@ import * as globalStore from "../lib/store";
 const e = exposes.presets;
 const ea = exposes.access;
 
+type CustomAttrIds = Record<string, Record<string, number>>;
+
+const customAttrIds: CustomAttrIds = {
+    genBasic: {
+        readInterval: 0x0200,
+        nightMode: 0x0240,
+        nightOnTime: 0x0241,
+        nightOffTime: 0x0242,
+    },
+    msCO2: {
+        control: 0x0220,
+        invert: 0x0221,
+        levelHigh: 0x0222,
+        levelLow: 0x0223,
+        factoryReset: 0x0230,
+        forcedRecalibration: 0x0231,
+        autoCalibration: 0x0232,
+    },
+    msIlluminanceMeasurement: {
+        control: 0x0220,
+        invert: 0x0221,
+        levelHigh: 0x0222,
+        levelLow: 0x0223,
+        offset: 0x0210,
+    },
+    msTemperatureMeasurement: {
+        offset: 0x0210,
+        sensor: 0x0211,
+    },
+    msRelativeHumidity: {
+        offset: 0x0210,
+    },
+    msPressureMeasurement: {
+        offset: 0x0210,
+    },
+};
+
 const tzLocal = {
     last_boot: {
         key: ["last_boot"],
@@ -93,58 +130,20 @@ export const definitions: DefinitionWithExtend[] = [
         options: [optionsLocal.last_boot_update()],
         onEvent: (type, data, device, options) => {
             const endpoint = device.getEndpoint(1);
-            if (type === "stop") {
-                clearInterval(globalStore.getValue(device, "interval"));
-                globalStore.clearValue(device, "interval");
-            } else if (!globalStore.hasValue(device, "interval")) {
-                const seconds = options?.last_boot_update ? options.last_boot_update : 60;
-                utils.assertNumber(seconds);
-                if (seconds === -1) return;
-                const interval = setInterval(async () => {
-                    try {
-                        await endpoint.read("genTime", ["lastSetTime"]);
-                        await endpoint.read("genBasic", ["locationDesc"]);
-                    } catch (error) {
-                        /* Do nothing */
-                    }
-                }, seconds * 1000);
-                globalStore.putValue(device, "interval", interval);
-            }
+            const poll = async () => {
+                await endpoint.read("genTime", ["lastSetTime"]);
+                await endpoint.read("genBasic", ["locationDesc"]);
+            };
+            utils.onEventPoll(type, data, device, options, "last_boot_update", 60, poll);
         },
-
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
 
-            await endpoint.read("genTime", ["lastSetTime"]);
-
-            await endpoint.read("genBasic", ["locationDesc"]);
-
-            await endpoint.read("genBasic", [0x0200]);
-            await endpoint.read("genBasic", [0x0240]);
-            await endpoint.read("genBasic", [0x0241]);
-            await endpoint.read("genBasic", [0x0242]);
-
-            await endpoint.read("msCO2", [0x0220]);
-            await endpoint.read("msCO2", [0x0221]);
-            await endpoint.read("msCO2", [0x0222]);
-            await endpoint.read("msCO2", [0x0223]);
-
-            await endpoint.read("msCO2", [0x0230]);
-            await endpoint.read("msCO2", [0x0231]);
-            await endpoint.read("msCO2", [0x0232]);
-
-            await endpoint.read("msIlluminanceMeasurement", [0x0220]);
-            await endpoint.read("msIlluminanceMeasurement", [0x0221]);
-            await endpoint.read("msIlluminanceMeasurement", [0x0222]);
-            await endpoint.read("msIlluminanceMeasurement", [0x0223]);
-            await endpoint.read("msIlluminanceMeasurement", [0x0210]);
-
-            await endpoint.read("msTemperatureMeasurement", [0x0210]);
-            await endpoint.read("msTemperatureMeasurement", [0x0211]);
-
-            await endpoint.read("msRelativeHumidity", [0x0210]);
-
-            await endpoint.read("msPressureMeasurement", [0x0210]);
+            for (const [cluster, attributes] of Object.entries(customAttrIds)) {
+                for (const attributeName in attributes) {
+                    await endpoint.read(cluster, [attributes[attributeName]]);
+                }
+            }
         },
         extend: [
             m.temperature(),
@@ -161,7 +160,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueMax: 600,
                 access: "ALL",
                 cluster: "genBasic",
-                attribute: {ID: 0x0200, type: Zcl.DataType.UINT16},
+                attribute: {ID: customAttrIds.genBasic.readInterval, type: Zcl.DataType.UINT16},
                 description: "Read interval of sensors. Default 30",
                 entityCategory: "config",
             }),
@@ -170,7 +169,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
                 cluster: "genBasic",
-                attribute: {ID: 0x0240, type: Zcl.DataType.BOOLEAN},
+                attribute: {ID: customAttrIds.genBasic.nightMode, type: Zcl.DataType.BOOLEAN},
                 description: "Turn OFF LED at night",
             }),
             m.numeric({
@@ -179,7 +178,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueMin: 0,
                 valueMax: 23,
                 cluster: "genBasic",
-                attribute: {ID: 0x0241, type: Zcl.DataType.UINT8},
+                attribute: {ID: customAttrIds.genBasic.nightOnTime, type: Zcl.DataType.UINT8},
                 description: "Night mode activation time",
             }),
             m.numeric({
@@ -188,7 +187,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueMin: 0,
                 valueMax: 23,
                 cluster: "genBasic",
-                attribute: {ID: 0x0242, type: Zcl.DataType.UINT8},
+                attribute: {ID: customAttrIds.genBasic.nightOffTime, type: Zcl.DataType.UINT8},
                 description: "Night mode deactivation time",
             }),
             m.binary({
@@ -196,7 +195,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
                 cluster: "msCO2",
-                attribute: {ID: 0x0220, type: Zcl.DataType.BOOLEAN},
+                attribute: {ID: customAttrIds.msCO2.control, type: Zcl.DataType.BOOLEAN},
                 description: "Enable CO2 bind-control",
             }),
             m.binary({
@@ -204,7 +203,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
                 cluster: "msCO2",
-                attribute: {ID: 0x0221, type: Zcl.DataType.BOOLEAN},
+                attribute: {ID: customAttrIds.msCO2.invert, type: Zcl.DataType.BOOLEAN},
                 description: "Invert CO2 control logic",
             }),
             m.numeric({
@@ -212,7 +211,7 @@ export const definitions: DefinitionWithExtend[] = [
                 unit: "ppm",
                 access: "ALL",
                 cluster: "msCO2",
-                attribute: {ID: 0x0222, type: Zcl.DataType.UINT16},
+                attribute: {ID: customAttrIds.msCO2.levelHigh, type: Zcl.DataType.UINT16},
                 description: "High CO2 threshold",
                 precision: 0,
                 valueMin: 400,
@@ -223,7 +222,7 @@ export const definitions: DefinitionWithExtend[] = [
                 unit: "ppm",
                 access: "ALL",
                 cluster: "msCO2",
-                attribute: {ID: 0x0223, type: Zcl.DataType.UINT16},
+                attribute: {ID: customAttrIds.msCO2.levelLow, type: Zcl.DataType.UINT16},
                 description: "Low CO2 threshold",
                 precision: 0,
                 valueMin: 400,
@@ -234,7 +233,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
                 cluster: "msCO2",
-                attribute: {ID: 0x0232, type: Zcl.DataType.BOOLEAN},
+                attribute: {ID: customAttrIds.msCO2.autoCalibration, type: Zcl.DataType.BOOLEAN},
                 description: "Automatic self calibration",
                 entityCategory: "config",
             }),
@@ -244,7 +243,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueMin: 0,
                 valueMax: 5000,
                 cluster: "msCO2",
-                attribute: {ID: 0x0231, type: Zcl.DataType.UINT16},
+                attribute: {ID: customAttrIds.msCO2.forcedRecalibration, type: Zcl.DataType.UINT16},
                 description: "Start FRC by setting the value",
                 entityCategory: "config",
             }),
@@ -253,7 +252,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
                 cluster: "msCO2",
-                attribute: {ID: 0x0230, type: Zcl.DataType.BOOLEAN},
+                attribute: {ID: customAttrIds.msCO2.factoryReset, type: Zcl.DataType.BOOLEAN},
                 description: "Factory Reset CO2 sensor",
                 entityCategory: "config",
             }),
@@ -262,7 +261,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
                 cluster: "msIlluminanceMeasurement",
-                attribute: {ID: 0x0220, type: Zcl.DataType.BOOLEAN},
+                attribute: {ID: customAttrIds.msIlluminanceMeasurement.control, type: Zcl.DataType.BOOLEAN},
                 description: "Enable illuminance bind-control",
             }),
             m.binary({
@@ -270,7 +269,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
                 cluster: "msIlluminanceMeasurement",
-                attribute: {ID: 0x0221, type: Zcl.DataType.BOOLEAN},
+                attribute: {ID: customAttrIds.msIlluminanceMeasurement.invert, type: Zcl.DataType.BOOLEAN},
                 description: "Invert illuminance control logic",
             }),
             m.numeric({
@@ -278,7 +277,7 @@ export const definitions: DefinitionWithExtend[] = [
                 unit: "lx",
                 access: "ALL",
                 cluster: "msIlluminanceMeasurement",
-                attribute: {ID: 0x0222, type: Zcl.DataType.UINT16},
+                attribute: {ID: customAttrIds.msIlluminanceMeasurement.levelHigh, type: Zcl.DataType.UINT16},
                 description: "High illuminance threshold",
                 valueMin: 100,
                 valueMax: 10000,
@@ -289,7 +288,7 @@ export const definitions: DefinitionWithExtend[] = [
                 unit: "lx",
                 access: "ALL",
                 cluster: "msIlluminanceMeasurement",
-                attribute: {ID: 0x0223, type: Zcl.DataType.UINT16},
+                attribute: {ID: customAttrIds.msIlluminanceMeasurement.levelLow, type: Zcl.DataType.UINT16},
                 description: "Low illuminance threshold",
                 valueMin: 100,
                 valueMax: 10000,
@@ -304,7 +303,7 @@ export const definitions: DefinitionWithExtend[] = [
                 scale: 1,
                 access: "ALL",
                 cluster: "msIlluminanceMeasurement",
-                attribute: {ID: 0x0210, type: Zcl.DataType.INT16},
+                attribute: {ID: customAttrIds.msIlluminanceMeasurement.offset, type: Zcl.DataType.INT16},
                 description: "Adjust illuminance",
                 entityCategory: "config",
             }),
@@ -312,7 +311,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "temperature_sensor",
                 lookup: {CPU: 0, SCD4X: 1, BMP280: 2},
                 cluster: "msTemperatureMeasurement",
-                attribute: {ID: 0x0211, type: Zcl.DataType.UINT8},
+                attribute: {ID: customAttrIds.msTemperatureMeasurement.sensor, type: Zcl.DataType.UINT8},
                 description: "Active temperature sensor",
                 entityCategory: "config",
             }),
@@ -325,7 +324,7 @@ export const definitions: DefinitionWithExtend[] = [
                 scale: 10,
                 access: "ALL",
                 cluster: "msTemperatureMeasurement",
-                attribute: {ID: 0x0210, type: Zcl.DataType.INT16},
+                attribute: {ID: customAttrIds.msTemperatureMeasurement.offset, type: Zcl.DataType.INT16},
                 description: "Adjust temperature",
                 entityCategory: "config",
             }),
@@ -338,7 +337,7 @@ export const definitions: DefinitionWithExtend[] = [
                 scale: 10,
                 access: "ALL",
                 cluster: "msRelativeHumidity",
-                attribute: {ID: 0x0210, type: Zcl.DataType.INT16},
+                attribute: {ID: customAttrIds.msRelativeHumidity.offset, type: Zcl.DataType.INT16},
                 description: "Adjust humidity",
                 entityCategory: "config",
             }),
@@ -351,7 +350,7 @@ export const definitions: DefinitionWithExtend[] = [
                 scale: 100,
                 access: "ALL",
                 cluster: "msPressureMeasurement",
-                attribute: {ID: 0x0210, type: Zcl.DataType.INT16},
+                attribute: {ID: customAttrIds.msPressureMeasurement.offset, type: Zcl.DataType.INT16},
                 description: "Adjust pressure",
                 entityCategory: "config",
             }),
@@ -361,6 +360,5 @@ export const definitions: DefinitionWithExtend[] = [
             e.binary("wifi", ea.ALL, "ON", "OFF").withDescription("Device WiFi state").withCategory("config"),
             e.text("ip_address", ea.STATE).withDescription("Device IP address").withCategory("diagnostic"),
         ],
-        meta: {multiEndpoint: false},
     },
 ];
