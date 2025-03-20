@@ -192,7 +192,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Night mode deactivation time",
             }),
             m.binary({
-                name: "CO2_control",
+                name: "co2_control",
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
                 cluster: "msCO2",
@@ -200,7 +200,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Enable CO2 bind-control",
             }),
             m.binary({
-                name: "CO2_invert",
+                name: "co2_invert",
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
                 cluster: "msCO2",
@@ -208,7 +208,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Invert CO2 control logic",
             }),
             m.numeric({
-                name: "CO2_level_high",
+                name: "co2_level_high",
                 unit: "ppm",
                 access: "ALL",
                 cluster: "msCO2",
@@ -219,7 +219,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueMax: 2000,
             }),
             m.numeric({
-                name: "CO2_level_low",
+                name: "co2_level_low",
                 unit: "ppm",
                 access: "ALL",
                 cluster: "msCO2",
@@ -230,7 +230,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueMax: 2000,
             }),
             m.binary({
-                name: "CO2_auto_calibration",
+                name: "co2_auto_calibration",
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
                 cluster: "msCO2",
@@ -239,7 +239,7 @@ export const definitions: DefinitionWithExtend[] = [
                 entityCategory: "config",
             }),
             m.numeric({
-                name: "CO2_forced_recalibration",
+                name: "co2_forced_recalibration",
                 unit: "ppm",
                 valueMin: 0,
                 valueMax: 5000,
@@ -249,7 +249,7 @@ export const definitions: DefinitionWithExtend[] = [
                 entityCategory: "config",
             }),
             m.binary({
-                name: "CO2_factory_reset",
+                name: "co2_factory_reset",
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
                 cluster: "msCO2",
