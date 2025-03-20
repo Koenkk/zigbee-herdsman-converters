@@ -1791,6 +1791,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.power_outage_count(),
             e.motion_sensitivity_select(["low", "medium", "high"]).withDescription("Select motion sensitivity to use."),
         ],
+        ota: true,
         configure: async (device, coordinatorEndpoint) => {
             // Retrieve motion sensitivity value
             const endpoint = device.getEndpoint(1);
