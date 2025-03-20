@@ -4660,13 +4660,10 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
         whiteLabel: [
-            // https://www.amazon.ae/dp/B09JG92Z88
-            // Tuya ZigBee Intelligent Curtain Blind Switch Electric Motorized Curtain Roller
             tuya.whitelabel("Lilistore", "TS0601_lilistore", "Cover motor", ["_TZE204_r0jdjrvi"]),
             tuya.whitelabel("Zemismart", "ZM90E-DT250N/A400", "Window opener", ["_TZE204_r0jdjrvi"]),
             tuya.whitelabel("Nova Digital", "CMR-1", "Roller Blind Motor", ["_TZE200_9vpe3fl1"]),
         ],
-    },
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_p2qzzazi"]),
