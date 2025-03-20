@@ -37,9 +37,10 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription("Temperature sensitivity"),
             e
                 .climate()
+                .withSystemMode(["off", "heat"], ea.STATE_SET, "Basic modes")
                 .withLocalTemperature(ea.STATE)
                 .withSetpoint("current_heating_setpoint", 5, 35, 0.5, ea.STATE_SET)
-                .withPreset(["manual", "schedule", "eco", "comfort", "frost_protection", "holiday", "off"])
+                .withPreset(["none", "schedule", "eco", "comfort", "frost_protection", "holiday"])
                 .withRunningState(["idle", "heat"], ea.STATE)
                 .withSystemMode(["off", "heat"], ea.STATE, "Only for Homeassistant")
                 .withLocalTemperatureCalibration(-9.5, 9.5, 0.5, ea.STATE_SET),
@@ -49,60 +50,42 @@ export const definitions: DefinitionWithExtend[] = [
             tuyaDatapoints: [
                 [
                     2,
-                    "preset",
-                    {
-                        from: (v: string) => {
-                            utils.assertNumber(v, "system_mode");
-                            const presetLookup: KeyValueNumberString = {
-                                0: "manual",
-                                1: "schedule",
-                                2: "eco",
-                                3: "comfort",
-                                4: "frost_protection",
-                                5: "holiday",
-                                6: "off",
-                            };
-                            return presetLookup[v];
+                    null,
+                    tuya.valueConverter.thermostatSystemModeAndPresetMap({
+                        fromMap: {
+                            0: {deviceMode: "manual", systemMode: "heat", preset: "none"},
+                            1: {deviceMode: "schedule", systemMode: "heat", preset: "schedule"},
+                            2: {deviceMode: "eco", systemMode: "heat", preset: "eco"},
+                            3: {deviceMode: "comfort", systemMode: "heat", preset: "comfort"},
+                            4: {deviceMode: "frost_protection", systemMode: "heat", preset: "frost_protection"},
+                            5: {deviceMode: "holiday", systemMode: "heat", preset: "holiday"},
+                            6: {deviceMode: "off", systemMode: "off", preset: "none"},
                         },
-                        to: (v: string, meta: Tz.Meta) => {
-                            const lookup: KeyValueStringEnum = {
-                                manual: tuya.enum(0),
-                                schedule: tuya.enum(1),
-                                eco: tuya.enum(2),
-                                comfort: tuya.enum(3),
-                                frost_protection: tuya.enum(4),
-                                holiday: tuya.enum(5),
-                            };
-                            // Update system_mode when preset changes
-                            if (meta) {
-                                meta.state.system_mode = v === "off" ? "off" : "heat";
-                            }
-                            return utils.getFromLookup(v, lookup);
-                        },
-                    },
+                    }),
                 ],
                 [
                     2,
                     "system_mode",
-                    {
-                        from: (v: tuya.Enum) => {
-                            return v === tuya.enum(6) ? "off" : "heat";
+                    tuya.valueConverter.thermostatSystemModeAndPresetMap({
+                        toMap: {
+                            heat: new tuya.Enum(0), // manual
+                            off: new tuya.Enum(6), // off
                         },
-                        to: (v: string, meta: Tz.Meta) => {
-                            if (meta) {
-                                const currentPreset = meta.state.preset;
-                                if (v === "heat" && currentPreset === "off") {
-                                    meta.state.preset = "manual";
-                                    return tuya.enum(0);
-                                }
-                                if (v === "off") {
-                                    meta.state.preset = "off";
-                                    return tuya.enum(6);
-                                }
-                            }
-                            return v === "off" ? tuya.enum(6) : tuya.enum(1);
+                    }),
+                ],
+                [
+                    2,
+                    "preset",
+                    tuya.valueConverter.thermostatSystemModeAndPresetMap({
+                        toMap: {
+                            none: new tuya.Enum(0), // manual
+                            schedule: new tuya.Enum(1), // schedule
+                            eco: new tuya.Enum(2), // eco
+                            comfort: new tuya.Enum(3), // comfort
+                            frost_protection: new tuya.Enum(4), // frost_protection
+                            holiday: new tuya.Enum(5), // holiday
                         },
-                    },
+                    }),
                 ],
                 [3, "running_state", tuya.valueConverterBasic.lookup({heat: 1, idle: 0})],
                 [4, "current_heating_setpoint", tuya.valueConverter.divideBy10],
