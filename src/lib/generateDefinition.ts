@@ -150,6 +150,10 @@ export default {
 }
 
 export async function generateDefinition(device: Zh.Device): Promise<{externalDefinitionSource: string; definition: DefinitionWithExtend}> {
+    if (device.type === "GreenPower") {
+        return generateGreenPowerDefinition(device);
+    }
+
     // Map cluster to all endpoints that have this cluster.
     const mapClusters = (endpoint: ZHModels.Endpoint, clusters: Cluster[], clusterMap: Map<string, ZHModels.Endpoint[]>) => {
         for (const cluster of clusters) {

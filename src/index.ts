@@ -22,7 +22,7 @@ import {
     access,
 } from "./lib/exposes";
 import * as exposesLib from "./lib/exposes";
-import {generateDefinition, generateGreenPowerDefinition} from "./lib/generateDefinition";
+import {generateDefinition} from "./lib/generateDefinition";
 import {logger} from "./lib/logger";
 import {
     type Configure,
@@ -573,7 +573,7 @@ export async function generateExternalDefinitionSource(device: Zh.Device): Promi
 }
 
 export async function generateExternalDefinition(device: Zh.Device): Promise<Definition> {
-    const {definition} = device.type === "GreenPower" ? generateGreenPowerDefinition(device) : await generateDefinition(device);
+    const {definition} = await generateDefinition(device);
 
     return prepareDefinition(definition);
 }
