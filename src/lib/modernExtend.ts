@@ -989,6 +989,7 @@ export interface LightArgs {
     endpointNames?: string[];
     ota?: ModernExtend["ota"];
     levelConfig?: {disabledFeatures?: LevelConfigFeatures};
+    levelReportingConfig?: ReportingConfigWithoutAttribute;
 }
 export function light(args?: LightArgs): ModernExtend {
     // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
@@ -1087,7 +1088,7 @@ export function light(args?: LightArgs): ModernExtend {
             if (args.configureReporting) {
                 await setupAttributes(device, coordinatorEndpoint, "genOnOff", [{attribute: "onOff", min: "MIN", max: "MAX", change: 1}]);
                 await setupAttributes(device, coordinatorEndpoint, "genLevelCtrl", [
-                    {attribute: "currentLevel", min: "10_SECONDS", max: "MAX", change: 1},
+                    {attribute: "currentLevel", min: "10_SECONDS", max: "MAX", change: 1, ...(args.levelReportingConfig || {})},
                 ]);
                 if (args.colorTemp) {
                     await setupAttributes(device, coordinatorEndpoint, "lightingColorCtrl", [
