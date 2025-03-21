@@ -2138,6 +2138,115 @@ export function gasMeter(args?: GasMeterArgs): ModernExtend {
 
 // #region Other extends
 
+/**
+ * Version of the GP spec: 1.1.1
+ */
+export const GPDF_COMMANDS: Record<number, string> = {
+    /*0x00*/ 0: "identify",
+    /*0x10*/ 16: "recall_scene0",
+    /*0x11*/ 17: "recall_scene1",
+    /*0x12*/ 18: "recall_scene2",
+    /*0x13*/ 19: "recall_scene3",
+    /*0x14*/ 20: "recall_scene4",
+    /*0x15*/ 21: "recall_scene5",
+    /*0x16*/ 22: "recall_scene6",
+    /*0x17*/ 23: "recall_scene7",
+    /*0x18*/ 24: "store_scene0",
+    /*0x19*/ 25: "store_scene1",
+    /*0x1a*/ 26: "store_scene2",
+    /*0x1b*/ 27: "store_scene3",
+    /*0x1c*/ 28: "store_scene4",
+    /*0x1d*/ 29: "store_scene5",
+    /*0x1e*/ 30: "store_scene6",
+    /*0x1f*/ 31: "store_scene7",
+    /*0x20*/ 32: "off",
+    /*0x21*/ 33: "on",
+    /*0x22*/ 34: "toggle",
+    /*0x23*/ 35: "release",
+    /*0x30*/ 48: "move_up", // with payload
+    /*0x31*/ 49: "move_down", // with payload
+    /*0x32*/ 50: "step_up", // with payload
+    /*0x33*/ 51: "step_down", // with payload
+    /*0x34*/ 52: "level_control_stop",
+    /*0x35*/ 53: "move_up_with_on_off", // with payload
+    /*0x36*/ 54: "move_down_with_on_off", // with payload
+    /*0x37*/ 55: "step_up_with_on_off", // with payload
+    /*0x38*/ 56: "step_down_with_on_off", // with payload
+    /*0x40*/ 64: "move_hue_stop",
+    /*0x41*/ 65: "move_hue_up", // with payload
+    /*0x42*/ 66: "move_hue_down", // with payload
+    /*0x43*/ 67: "step_hue_up", // with payload
+    /*0x44*/ 68: "step_huw_down", // with payload
+    /*0x45*/ 69: "move_saturation_stop",
+    /*0x46*/ 70: "move_saturation_up", // with payload
+    /*0x47*/ 71: "move_saturation_down", // with payload
+    /*0x48*/ 72: "step_saturation_up", // with payload
+    /*0x49*/ 73: "step_saturation_down", // with payload
+    /*0x4a*/ 74: "move_color", // with payload
+    /*0x4b*/ 75: "step_color", // with payload
+    /*0x50*/ 80: "lock_door",
+    /*0x51*/ 81: "unlock_door",
+    /*0x60*/ 96: "press11",
+    /*0x61*/ 97: "release11",
+    /*0x62*/ 98: "press12",
+    /*0x63*/ 99: "release12",
+    /*0x64*/ 100: "press22",
+    /*0x65*/ 101: "release22",
+    /*0x66*/ 102: "short_press11",
+    /*0x67*/ 103: "short_press12",
+    /*0x68*/ 104: "short_press22",
+    /*0x69*/ 105: "press_8bit_vector", // with payload
+    /*0x6a*/ 106: "release_8bit_vector", // with payload
+    /*0xa0*/ 160: "attribute_reporting", // with payload
+    /*0xa1*/ 161: "manufacture_specific_attr_reporting", // with payload
+    /*0xa2*/ 162: "multi_cluster_reporting", // with payload
+    /*0xa3*/ 163: "manufacturer_specific_mcluster_reporting", // with payload
+    /*0xa4*/ 164: "request_attributes", // with payload
+    /*0xa5*/ 165: "read_attributes_response", // with payload
+    /*0xa6*/ 166: "zcl_tunneling", // with payload
+    /*0xa8*/ 168: "compact_attribute_reporting", // with payload
+    /*0xaf*/ 175: "any_sensor_command_a0_a3", // with payload
+    /*0xe0*/ 224: "commissioning", // with payload
+    /*0xe1*/ 225: "decommissioning",
+    /*0xe2*/ 226: "success",
+    /*0xe3*/ 227: "channel_request", // with payload
+    /*0xe4*/ 228: "application_description", // with payload
+    //-- sent to GPD
+    // /*0xf0*/ 240: "commissioning_reply",
+    // /*0xf1*/ 241: "write_attributes",
+    // /*0xf2*/ 242: "read_attributes",
+    // /*0xf3*/ 243: "channel_configuration",
+    // /*0xf6*/ 246: "zcl_tunneling",
+};
+
+export function genericGreenPower(): ModernExtend {
+    const exposes = [
+        e.action(Object.values(GPDF_COMMANDS)),
+        e.list("payload", ea.STATE, e.numeric("payload", ea.STATE).withDescription("Byte")).withDescription("Payload of the command"),
+    ];
+    const fromZigbee: Fz.Converter[] = [
+        {
+            cluster: "greenPower",
+            type: ["commandNotification", "commandCommissioningNotification"],
+            convert: (model, msg, publish, options, meta) => {
+                const commandID = msg.data.commandID as number;
+                if (hasAlreadyProcessedMessage(msg, model, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
+                if (commandID >= 0xe0) return; // Skip op commands
+
+                const gpdfCommandStr = GPDF_COMMANDS[commandID];
+                const payloadBuf = msg.data.commandFrame.raw as Buffer | undefined;
+
+                return {
+                    action: gpdfCommandStr ?? `unknown_${commandID}`,
+                    payload: payloadBuf?.length > 0 ? Array.from(payloadBuf) : [],
+                };
+            },
+        },
+    ];
+
+    return {exposes, fromZigbee, isModernExtend: true};
+}
+
 export interface CommandsScenesArgs {
     commands?: string[];
     bind?: boolean;

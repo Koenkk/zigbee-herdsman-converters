@@ -4463,48 +4463,6 @@ export const light_onoff_restorable_brightness: Tz.Converter = {
         return await light_onoff_brightness.convertGet(entity, key, meta);
     },
 };
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const RM01_light_onoff_brightness: Tz.Converter = {
-    key: ["state", "brightness", "brightness_percent"],
-    options: [exposes.options.transition()],
-    convertSet: async (entity, key, value, meta) => {
-        if (utils.hasEndpoints(meta.device, [0x12])) {
-            const endpoint = meta.device.getEndpoint(0x12);
-            return await light_onoff_brightness.convertSet(endpoint, key, value, meta);
-        }
-        throw new Error("OnOff and LevelControl not supported on this RM01 device.");
-    },
-    convertGet: async (entity, key, meta) => {
-        if (utils.hasEndpoints(meta.device, [0x12])) {
-            const endpoint = meta.device.getEndpoint(0x12);
-            return await light_onoff_brightness.convertGet(endpoint, key, meta);
-        }
-        throw new Error("OnOff and LevelControl not supported on this RM01 device.");
-    },
-};
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const RM01_light_brightness_step: Tz.Converter = {
-    options: [exposes.options.transition()],
-    key: ["brightness_step", "brightness_step_onoff"],
-    convertSet: async (entity, key, value, meta) => {
-        if (utils.hasEndpoints(meta.device, [0x12])) {
-            const endpoint = meta.device.getEndpoint(0x12);
-            return await light_brightness_step.convertSet(endpoint, key, value, meta);
-        }
-        throw new Error("LevelControl not supported on this RM01 device.");
-    },
-};
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const RM01_light_brightness_move: Tz.Converter = {
-    key: ["brightness_move", "brightness_move_onoff"],
-    convertSet: async (entity, key, value, meta) => {
-        if (utils.hasEndpoints(meta.device, [0x12])) {
-            const endpoint = meta.device.getEndpoint(0x12);
-            return await light_brightness_move.convertSet(endpoint, key, value, meta);
-        }
-        throw new Error("LevelControl not supported on this RM01 device.");
-    },
-};
 export const ptvo_switch_light_brightness: Tz.Converter = {
     key: ["brightness", "brightness_percent", "transition"],
     options: [exposes.options.transition()],
