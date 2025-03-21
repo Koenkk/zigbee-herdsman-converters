@@ -65,23 +65,15 @@ const attrElCityMeterModelName = 0xf004;
 const attrElCityMeterPasswordPreset = 0xf005;
 
 const fzLocal = {
-    thermostat_sensor_used: {
+    thermostat_custom_fw: {
         cluster: "hvacThermostat",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
-            const lookup = {0: "Inner (IN)", 1: "All (AL)", 2: "Outer (OU)"};
             if (msg.data[attrThermSensorUser] !== undefined) {
+                const lookup = {0: "Inner (IN)", 1: "All (AL)", 2: "Outer (OU)"};
                 result.sensor = utils.getFromLookup(msg.data[attrThermSensorUser], lookup);
             }
-            return result;
-        },
-    } satisfies Fz.Converter,
-    thermostat_deadzone: {
-        cluster: "hvacThermostat",
-        type: ["attributeReport", "readResponse"],
-        convert: (model, msg, publish, options, meta) => {
-            const result: KeyValue = {};
             if (msg.data.minSetpointDeadBand !== undefined) {
                 let data: number;
                 if (model.model === model_r06) {
@@ -92,147 +84,45 @@ const fzLocal = {
                     result.deadzone_temperature = data;
                 }
             }
-            return result;
-        },
-    } satisfies Fz.Converter,
-    thermostat_frost_protect: {
-        cluster: "hvacThermostat",
-        type: ["attributeReport", "readResponse"],
-        convert: (model, msg, publish, options, meta) => {
-            const result: KeyValue = {};
             if (msg.data[attrThermFrostProtect] !== undefined) {
                 const data = Number.parseInt(msg.data[attrThermFrostProtect]) / 100;
                 result.frost_protect = data;
             }
-            return result;
-        },
-    } satisfies Fz.Converter,
-    thermostat_heat_protect: {
-        cluster: "hvacThermostat",
-        type: ["attributeReport", "readResponse"],
-        convert: (model, msg, publish, options, meta) => {
-            const result: KeyValue = {};
             if (msg.data[attrThermHeatProtect] !== undefined) {
                 const data = Number.parseInt(msg.data[attrThermHeatProtect]) / 100;
                 result.heat_protect = data;
             }
-            return result;
-        },
-    } satisfies Fz.Converter,
-    fancontrol_control: {
-        cluster: "hvacFanCtrl",
-        type: ["attributeReport", "readResponse"],
-        convert: (model, msg, publish, options, meta) => {
-            const result: KeyValue = {};
-            if (msg.data[attrFanCtrlControl] !== undefined) {
-                result.fan_control = msg.data[attrFanCtrlControl] === 1 ? "On" : "Off";
-            }
-            return result;
-        },
-    } satisfies Fz.Converter,
-    thermostat_eco_mode: {
-        cluster: "hvacThermostat",
-        type: ["attributeReport", "readResponse"],
-        convert: (model, msg, publish, options, meta) => {
-            const result: KeyValue = {};
             if (msg.data[attrThermEcoMode] !== undefined) {
                 result.eco_mode = msg.data[attrThermEcoMode] === 1 ? "On" : "Off";
             }
-            return result;
-        },
-    } satisfies Fz.Converter,
-    thermostat_eco_mode_cool_temperature: {
-        cluster: "hvacThermostat",
-        type: ["attributeReport", "readResponse"],
-        convert: (model, msg, publish, options, meta) => {
-            const result: KeyValue = {};
             if (msg.data[attrThermEcoModeCoolTemperature] !== undefined) {
                 const data = Number.parseInt(msg.data[attrThermEcoModeCoolTemperature]) / 100;
                 result.eco_mode_cool_temperature = data;
             }
-            return result;
-        },
-    } satisfies Fz.Converter,
-    thermostat_eco_mode_heat_temperature: {
-        cluster: "hvacThermostat",
-        type: ["attributeReport", "readResponse"],
-        convert: (model, msg, publish, options, meta) => {
-            const result: KeyValue = {};
             if (msg.data[attrThermEcoModeHeatTemperature] !== undefined) {
                 const data = Number.parseInt(msg.data[attrThermEcoModeHeatTemperature]) / 100;
                 result.eco_mode_heat_temperature = data;
             }
-            return result;
-        },
-    } satisfies Fz.Converter,
-    display_brightness: {
-        cluster: "genLevelCtrl",
-        type: ["attributeReport", "readResponse"],
-        convert: (model, msg, publish, options, meta) => {
-            const result: KeyValue = {};
-            if (msg.data.currentLevel !== undefined) {
-                const property = `brightness_${utils.getEndpointName(msg, model, meta)}`;
-                //logger.info('property: ' + property);
-                return {[property]: msg.data.currentLevel};
-            }
-            return result;
-        },
-    } satisfies Fz.Converter,
-    thermostat_frost_protect_onoff: {
-        cluster: "hvacThermostat",
-        type: ["attributeReport", "readResponse"],
-        convert: (model, msg, publish, options, meta) => {
-            const result: KeyValue = {};
             if (msg.data[attrThermFrostProtectOnOff] !== undefined) {
                 result.frost_protect_on_off = msg.data[attrThermFrostProtectOnOff] === 1 ? "On" : "Off";
             }
-            return result;
-        },
-    } satisfies Fz.Converter,
-    thermostat_brightness_level: {
-        cluster: "hvacThermostat",
-        type: ["attributeReport", "readResponse"],
-        convert: (model, msg, publish, options, meta) => {
-            const result: KeyValueAny = {};
-            const data = msg.data;
             if (msg.data[attrThermLevel] !== undefined) {
                 const lookup = {0: "Off", 1: "Low", 2: "Medium", 3: "High"};
                 result.brightness_level = utils.getFromLookup(msg.data[attrThermLevel], lookup);
             }
-            return result;
-        },
-    } satisfies Fz.Converter,
-    thermostat_sound: {
-        cluster: "hvacThermostat",
-        type: ["attributeReport", "readResponse"],
-        convert: (model, msg, publish, options, meta) => {
-            const result: KeyValue = {};
             if (msg.data[attrThermSound] !== undefined) {
                 result.sound = msg.data[attrThermSound] === 1 ? "On" : "Off";
             }
-            return result;
-        },
-    } satisfies Fz.Converter,
-    thermostat_inversion: {
-        cluster: "hvacThermostat",
-        type: ["attributeReport", "readResponse"],
-        convert: (model, msg, publish, options, meta) => {
-            const result: KeyValue = {};
             if (msg.data[attrThermInversion] !== undefined) {
                 result.inversion = msg.data[attrThermInversion] === 1 ? "On" : "Off";
             }
-            return result;
-        },
-    } satisfies Fz.Converter,
-    thermostat_schedule_mode: {
-        cluster: "hvacThermostat",
-        type: ["attributeReport", "readResponse"],
-        convert: (model, msg, publish, options, meta) => {
-            const result: KeyValueAny = {};
-            const data = msg.data;
             if (msg.data[attrThermScheduleMode] !== undefined) {
                 const lookup = {0: "Off", 1: "5+2", 2: "6+1", 3: "7"};
                 result.schedule_mode = utils.getFromLookup(msg.data[attrThermScheduleMode], lookup);
+            }
+            if (msg.data[attrThermExtTemperatureCalibration] !== undefined) {
+                const data = Number.parseInt(msg.data[attrThermExtTemperatureCalibration]) / 10;
+                result.external_temperature_calibration = data;
             }
             return result;
         },
@@ -252,14 +142,26 @@ const fzLocal = {
             return Object.fromEntries(daysOfWeekNums.map((d) => [`schedule_${daysOfWeek[d]}`, schedule]));
         },
     } satisfies Fz.Converter,
-    thermostat_ext_temperature_calibration: {
-        cluster: "hvacThermostat",
+    fancontrol_control: {
+        cluster: "hvacFanCtrl",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
-            if (msg.data[attrThermExtTemperatureCalibration] !== undefined) {
-                const data = Number.parseInt(msg.data[attrThermExtTemperatureCalibration]) / 10;
-                result.external_temperature_calibration = data;
+            if (msg.data[attrFanCtrlControl] !== undefined) {
+                result.fan_control = msg.data[attrFanCtrlControl] === 1 ? "On" : "Off";
+            }
+            return result;
+        },
+    } satisfies Fz.Converter,
+    display_brightness: {
+        cluster: "genLevelCtrl",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const result: KeyValue = {};
+            if (msg.data.currentLevel !== undefined) {
+                const property = `brightness_${utils.getEndpointName(msg, model, meta)}`;
+                //logger.info('property: ' + property);
+                return {[property]: msg.data.currentLevel};
             }
             return result;
         },
@@ -477,21 +379,9 @@ const localFromZigbeeThermostat = [
     fz.fan,
     fz.namron_hvac_user_interface,
     fz.thermostat_weekly_schedule,
-    fzLocal.thermostat_sensor_used,
-    fzLocal.thermostat_deadzone,
-    fzLocal.thermostat_frost_protect,
-    fzLocal.thermostat_heat_protect,
-    fzLocal.display_brightness,
-    fzLocal.thermostat_eco_mode,
-    fzLocal.thermostat_eco_mode_cool_temperature,
-    fzLocal.thermostat_eco_mode_heat_temperature,
-    fzLocal.thermostat_frost_protect_onoff,
-    fzLocal.thermostat_brightness_level,
-    fzLocal.thermostat_sound,
-    fzLocal.thermostat_inversion,
-    fzLocal.thermostat_schedule_mode,
+    fzLocal.thermostat_custom_fw,
     fzLocal.thermostat_schedule,
-    fzLocal.thermostat_ext_temperature_calibration,
+    fzLocal.display_brightness,
     fzLocal.fancontrol_control,
 ];
 
