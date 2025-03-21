@@ -5266,7 +5266,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Upper level of soil moisture 100% is:",
                 access: "STATE_SET",
             }),
-			m.enumLookup({
+            m.enumLookup({
                 name: "invert",
                 lookup: {BW: 0, WB: 1},
                 cluster: "genPowerCfg",
@@ -5285,7 +5285,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
         ],
     },
-	{
+    {
         zigbeeModel: ["EFEKTA_eFlora_Pro"],
         model: "EFEKTA_eFlora_Pro",
         vendor: "EFEKTA",
@@ -5326,7 +5326,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Setting the time in minutes, by default 5 minutes",
                 access: "STATE_SET",
             }),
-			m.enumLookup({
+            m.enumLookup({
                 name: "tx_radio_power",
                 lookup: {"4dbm": 4, "19dbm": 19},
                 cluster: "genPowerCfg",
@@ -5381,7 +5381,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
         ],
     },
-	{
+    {
         zigbeeModel: ["EFEKTA_eTH102zex"],
         model: "EFEKTA_eTH102zex",
         vendor: "EFEKTA",
@@ -5448,7 +5448,7 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: {ID: 0x0225, type: Zcl.DataType.BOOLEAN},
                 description: "Invert Logic Temperature Control",
             }),
-			m.enumLookup({
+            m.enumLookup({
                 name: "invert",
                 lookup: {BW: 0, WB: 1},
                 cluster: "genPowerCfg",
@@ -5510,7 +5510,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
         ],
     },
-	{
+    {
         zigbeeModel: ["EFEKTA_eTH102z"],
         model: "EFEKTA_eTH102z",
         vendor: "EFEKTA",
@@ -5577,7 +5577,7 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: {ID: 0x0225, type: Zcl.DataType.BOOLEAN},
                 description: "Invert Logic Temperature Control",
             }),
-			m.enumLookup({
+            m.enumLookup({
                 name: "invert",
                 lookup: {BW: 0, WB: 1},
                 cluster: "genPowerCfg",
@@ -5639,85 +5639,85 @@ export const definitions: DefinitionWithExtend[] = [
             }),
         ],
     },
-	{
-        zigbeeModel: ['EFEKTA_Air_Monitor'],
-        model: 'EFEKTA_Air_Monitor',
-        vendor: 'EfektaLab',
-        description: 'CO2 smart monitor, AA battery',
+    {
+        zigbeeModel: ["EFEKTA_Air_Monitor"],
+        model: "EFEKTA_Air_Monitor",
+        vendor: "EfektaLab",
+        description: "CO2 smart monitor, AA battery",
         extend: [
-		    m.co2({
-				reporting: false,
-				access: 'STATE',
+            m.co2({
+                reporting: false,
+                access: "STATE",
             }),
             m.temperature({
                 reporting: false,
-                access: 'STATE',
+                access: "STATE",
             }),
-			m.humidity({
+            m.humidity({
                 reporting: false,
-                access: 'STATE',
+                access: "STATE",
             }),
             m.battery({
                 percentage: true,
                 lowStatus: true,
                 voltage: false,
                 percentageReporting: false,
-				access: 'STATE',
+                access: "STATE",
             }),
-			m.numeric({
-                name: 'uptime',
-                unit: 'Hours',
-                cluster: 'genTime',
-                attribute: 'localTime',
-                description: 'Uptime',
-                access: 'STATE',
+            m.numeric({
+                name: "uptime",
+                unit: "Hours",
+                cluster: "genTime",
+                attribute: "localTime",
+                description: "Uptime",
+                access: "STATE",
             }),
-			m.numeric({
-                name: 'report_delay',
-                unit: 'sec',
+            m.numeric({
+                name: "report_delay",
+                unit: "sec",
                 valueMin: 20,
                 valueMax: 1800,
-                cluster: 'genPowerCfg',
+                cluster: "genPowerCfg",
                 attribute: {ID: 0x0201, type: Zcl.DataType.UINT16},
-                description: 'Setting the sensor report delay. Setting the time in seconds (20-1800), by default 60 seconds',
-				access: 'STATE_SET',
+                description: "Setting the sensor report delay. Setting the time in seconds (20-1800), by default 60 seconds",
+                access: "STATE_SET",
             }),
-			m.binary({
-                name: 'forced_recalibration',
-                valueOn: ['ON', 1],
-                valueOff: ['OFF', 0],
-                cluster: 'msCO2',
+            m.binary({
+                name: "forced_recalibration",
+                valueOn: ["ON", 1],
+                valueOff: ["OFF", 0],
+                cluster: "msCO2",
                 attribute: {ID: 0x0202, type: Zcl.DataType.BOOLEAN},
-                description: 'Start FRC (Perform Forced Recalibration of the CO2 Sensor)',
-				access: 'STATE_SET',
+                description: "Start FRC (Perform Forced Recalibration of the CO2 Sensor)",
+                access: "STATE_SET",
             }),
-			m.numeric({
-                name: 'manual_forced_recalibration',
-                unit: 'ppm',
+            m.numeric({
+                name: "manual_forced_recalibration",
+                unit: "ppm",
                 valueMin: 0,
                 valueMax: 5000,
-                cluster: 'msCO2',
+                cluster: "msCO2",
                 attribute: {ID: 0x0207, type: Zcl.DataType.UINT16},
-                description: 'Start Manual FRC (Perform Forced Recalibration of the CO2 Sensor)',
-				access: 'STATE_SET',
+                description: "Start Manual FRC (Perform Forced Recalibration of the CO2 Sensor)",
+                access: "STATE_SET",
             }),
-			m.binary({
-                name: 'automatic_scal',
-                valueOn: ['ON', 1],
-                valueOff: ['OFF', 0],
-                cluster: 'msCO2',
+            m.binary({
+                name: "automatic_scal",
+                valueOn: ["ON", 1],
+                valueOff: ["OFF", 0],
+                cluster: "msCO2",
                 attribute: {ID: 0x0402, type: Zcl.DataType.BOOLEAN},
-                description: 'Automatic self calibration',
-				access: 'STATE_SET',
+                description: "Automatic self calibration",
+                access: "STATE_SET",
             }),
-			m.binary({
-                name: 'factory_reset_co2',
-                valueOn: ['ON', 1],
-                valueOff: ['OFF', 0],
-                cluster: 'msCO2',
+            m.binary({
+                name: "factory_reset_co2",
+                valueOn: ["ON", 1],
+                valueOff: ["OFF", 0],
+                cluster: "msCO2",
                 attribute: {ID: 0x0206, type: Zcl.DataType.BOOLEAN},
-                description: 'Factory Reset CO2 sensor',
-				access: 'STATE_SET',
+                description: "Factory Reset CO2 sensor",
+                access: "STATE_SET",
             }),
         ],
     },
