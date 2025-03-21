@@ -1,5 +1,22 @@
 # Changelog
 
+## [23.11.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.10.0...v23.11.0) (2025-03-21)
+
+
+### Features
+
+* **add:** EFEKTA_eFlora, EFEKTA_eFlora_Pro, EFEKTA_eTH102zex ([#9043](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9043)) ([17822f8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/17822f87130cd7f1a7ee3bd22dbe952e5450afa2))
+* **add:** Leleka ([#9001](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9001)) ([5d56367](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5d56367bcffdcf33954e6e915fc1846984ace797))
+* **add:** RemoteControl_v1.0 ([#9044](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9044)) ([94ff86d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/94ff86d3faa55830a60f61eb1d9247bb5d5a5537))
+* **add:** YNDX_00530 ([#9017](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9017)) ([0c7f856](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0c7f856eb5f311429dd79a777b0436dcd51311fc))
+
+
+### Bug Fixes
+
+* MAZDA TR-M2Z: improve system mode and presets ([#9040](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9040)) ([52969df](https://github.com/Koenkk/zigbee-herdsman-converters/commit/52969dfb4eec15356d4f58ddf155478981fa3fbf))
+* Rename some Tongou devices ([#9041](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9041)) ([68d9d8b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/68d9d8bd731dcd447bed181c0f9d0adbf4de6d98))
+* Third Reality 3RSMR01067Z: expose voltage and battery low ([#9042](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9042)) ([7a55249](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7a552494a474f3c4345961e41f6d261bdae7f4be))
+
 ## [23.10.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.9.1...v23.10.0) (2025-03-20)
 
 
