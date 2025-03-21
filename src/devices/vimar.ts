@@ -100,7 +100,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["RemoteControl_v1.0"],
         model: "RemoteControl_v1.0",
         vendor: "Vimar",
-        description: "Vimar Remote Control IoT",
+        description: "Remote control IoT",
         extend: [m.commandsOnOff(), m.commandsWindowCovering(), m.commandsLevelCtrl()],
     },
 ];
