@@ -447,7 +447,7 @@ export const definitions: DefinitionWithExtend[] = [
                 effect: true,
                 powerOnBehavior: true,
                 configureReporting: true,
-                levelConfigureReporting: {min: "MIN", max: "MAX", change: 1},
+                levelReportingConfig: {min: "MIN", max: "MAX", change: 1},
             }),
             m.lightingBallast(),
             binaryWithSetCommand({
