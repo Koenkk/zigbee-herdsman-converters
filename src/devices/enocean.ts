@@ -34,6 +34,7 @@ export const definitions: DefinitionWithExtend[] = [
             {vendor: "NodOn", description: "Smart switch for Philips Hue", model: "CWS-4-1-01_HUE"},
             {vendor: "Vimar", description: "Zigbee Friends of Hue RF switch", model: "03906"},
             {vendor: "Sunricher", model: "SR-ZGP2801K4-FOH-E"},
+            {vendor: "Sunricher", model: "SR-ZG2833PAC"},
             {vendor: "LED-Trading", model: "9125"},
             {vendor: "Feller", description: "Smart light control for Philips Hue", model: "4120.2.S.FMI.61"},
             {vendor: "Namron", description: " ZigBee FOH Green Bryter K4", model: "4512727"},
