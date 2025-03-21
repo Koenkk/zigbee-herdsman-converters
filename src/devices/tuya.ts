@@ -10318,7 +10318,7 @@ export const definitions: DefinitionWithExtend[] = [
                         .withValueMin(40)
                         .withValueMax(100)
                         .withValueStep(1)
-                        .withUnit("*C")
+                        .withUnit("°C")
                         .withDescription("High temperature threshold"),
                     e.binary("temperature_breaker", ea.STATE_SET, "ON", "OFF").withDescription("High temperature breaker"),
                 );
@@ -13541,7 +13541,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: [{modelID: "TS0601", manufacturerName: "_TZE284_6ocnqlhn"}],
-        model: "TO-Q-SYS-J2T",
+        model: "TO-Q-SYS-JZT",
         vendor: "Tongou",
         description: "Din rail smart meter",
         fromZigbee: [tuya.fz.datapoints, tuya.fz.gateway_connection_status],
@@ -14335,7 +14335,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_q22avxbv", "_TZE204_mrffaamu", "_TZE204_tzreobvu", "_TZE284_mrffaamu"]),
         model: "TOQCB2-80",
-        vendor: "Tuya",
+        vendor: "Tongou",
         description: "Smart circuit breaker",
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
