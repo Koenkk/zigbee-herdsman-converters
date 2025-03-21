@@ -114,7 +114,7 @@ export type AssertDefinitionArgs = {
     endpoints?: {[s: string]: number};
     findByDeviceFn?: (device: Device) => Promise<Definition>;
 };
-export async function assertDefintion(args: AssertDefinitionArgs) {
+export async function assertDefinition(args: AssertDefinitionArgs) {
     args.findByDeviceFn = args.findByDeviceFn ?? findByDevice;
     const coordinatorEndpoint = mockEndpoint({}, undefined);
     const definition = await args.findByDeviceFn(args.device);
