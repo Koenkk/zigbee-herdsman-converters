@@ -5662,7 +5662,6 @@ export const definitions: DefinitionWithExtend[] = [
                 lowStatus: true,
                 voltage: false,
                 percentageReporting: false,
-                access: "STATE",
             }),
             m.numeric({
                 name: "uptime",
