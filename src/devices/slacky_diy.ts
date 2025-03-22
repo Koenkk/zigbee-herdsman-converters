@@ -1121,7 +1121,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["Tuya_Thermostat_r01"],
-        model: "Tuya_Thermostat_r01",
+        model: "THERM_SLACKY_DIY_R01",
         vendor: "Slacky-DIY",
         description: "Tuya Thermostat for Floor Heating with custom Firmware",
         endpoint: (device) => {
@@ -1166,7 +1166,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["Tuya_Thermostat_r02"],
-        model: "Tuya_Thermostat_r02",
+        model: "THERM_SLACKY_DIY_R02",
         vendor: "Slacky-DIY",
         description: "Tuya Thermostat for Floor Heating with custom Firmware",
         endpoint: (device) => {
@@ -1237,7 +1237,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["Tuya_Thermostat_r03"],
-        model: "Tuya_Thermostat_r03",
+        model: "THERM_SLACKY_DIY_R03",
         vendor: "Slacky-DIY",
         description: "Tuya Thermostat for Floor Heating with custom Firmware",
         endpoint: (device) => {
@@ -1318,7 +1318,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["Tuya_Thermostat_r04"],
-        model: "Tuya_Thermostat_r04",
+        model: "THERM_SLACKY_DIY_R04",
         vendor: "Slacky-DIY",
         description: "Tuya Thermostat for Floor Heating with custom Firmware",
         endpoint: (device) => {
@@ -1398,7 +1398,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["Tuya_Thermostat_r05"],
-        model: "Tuya_Thermostat_r05",
+        model: "THERM_SLACKY_DIY_R05",
         vendor: "Slacky-DIY",
         description: "Tuya Thermostat for Floor Heating with custom Firmware",
         endpoint: (device) => {
@@ -1462,7 +1462,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["Tuya_Thermostat_r06"],
-        model: "Tuya_Thermostat_r06",
+        model: "THERM_SLACKY_DIY_R06",
         vendor: "Slacky-DIY",
         description: "Tuya Thermostat for Floor Heating with custom Firmware",
         endpoint: (device) => {
@@ -1518,7 +1518,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["Tuya_Thermostat_r07"],
-        model: "Tuya_Thermostat_r07",
+        model: "THERM_SLACKY_DIY_R07",
         vendor: "Slacky-DIY",
         description: "Tuya Thermostat for Floor Heating with custom Firmware",
         endpoint: (device) => {
@@ -1590,7 +1590,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["Tuya_Thermostat_r08"],
-        model: "Tuya_Thermostat_r08",
+        model: "THERM_SLACKY_DIY_R08",
         vendor: "Slacky-DIY",
         description: "Tuya Thermostat for Floor Heating with custom Firmware",
         endpoint: (device) => {
