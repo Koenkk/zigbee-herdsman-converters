@@ -1,5 +1,13 @@
 # Changelog
 
+## [23.11.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.11.0...v23.11.1) (2025-03-22)
+
+
+### Bug Fixes
+
+* Generate definition when candidates present but no match found ([#9046](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9046)) ([a4c9ae8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a4c9ae856eecf0698bf96c96d507f7c670ec0b8f))
+* Gledopto GL-C-009P: configure reporting ([#9047](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9047)) ([2bb3beb](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2bb3bebf6ab72c359b9e486611cd8614162dabf0))
+
 ## [23.11.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.10.0...v23.11.0) (2025-03-21)
 
 
