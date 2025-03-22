@@ -494,7 +494,7 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         description: "Zigbee LED Controller W (pro)",
         whiteLabel: [{vendor: "Gledopto", model: "GL-C-009P_mini", description: "Zigbee LED Controller W (pro) (mini)"}],
-        extend: [m.light(), m.identify(), gledoptoConfigureReadModelID()],
+        extend: [m.light({configureReporting: true}), m.identify(), gledoptoConfigureReadModelID()],
     },
     {
         zigbeeModel: ["GL-C-009S"],
