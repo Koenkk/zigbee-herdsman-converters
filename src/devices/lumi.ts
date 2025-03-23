@@ -4501,10 +4501,10 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        zigbeeModel: ['lumi.switch.agl006'],
-        model: 'WS-K04E',
-        vendor: 'Aqara',
-        description: 'Light Switch H2 US (quadruple rocker)',
+        zigbeeModel: ["lumi.switch.agl006"],
+        model: "WS-K04E",
+        vendor: "Aqara",
+        description: "Light Switch H2 US (quadruple rocker)",
         fromZigbee: [fz.on_off, lumi.fromZigbee.lumi_action_multistate, lumi.fromZigbee.lumi_specific],
         extend: [
             lumiZigbeeOTA(),
@@ -4512,7 +4512,6 @@ export const definitions: DefinitionWithExtend[] = [
             m.deviceEndpoints({endpoints: {top: 1, center: 2, bottom: 3, wireless: 4}}),
             m.bindCluster({endpointNames: ["top", "center", "bottom", "wireless"], cluster: "manuSpecificLumi", clusterType: "input"}),
             m.bindCluster({endpointNames: ["top", "center", "bottom"], cluster: "genOnOff", clusterType: "input"}),
-            m.electricityMeter({voltage: false}),
             lumiPower(),
             lumiOnOff({
                 operationMode: true,
