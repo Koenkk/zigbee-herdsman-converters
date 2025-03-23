@@ -10002,6 +10002,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.light_brightness().withMinBrightness().withMaxBrightness().withEndpoint("l1"),
             e.light_brightness().withMinBrightness().withMaxBrightness().withEndpoint("l2"),
             e.power_on_behavior().withAccess(ea.ALL),
+            tuya.exposes.lightType().withAccess(ea.ALL),
             tuya.exposes.switchType().withEndpoint("l1"),
             tuya.exposes.switchType().withEndpoint("l2"),
         ],
