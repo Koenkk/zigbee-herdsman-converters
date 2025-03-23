@@ -4523,7 +4523,7 @@ export const definitions: DefinitionWithExtend[] = [
                 actionLookup: {hold: 0, single: 1, double: 2, release: 255},
                 endpointNames: ["top", "center", "bottom", "wireless"],
             }),
-            lumiClickMode({attribute: {ID: 0x0286, type: 0x20}}),
+            lumiMultiClick({description: "Multi-click mode for wireless button", endpointName: "wireless"}),
             lumiLedDisabledNight(),
             lumiFlipIndicatorLight(),
             lumiSwitchMode(),
