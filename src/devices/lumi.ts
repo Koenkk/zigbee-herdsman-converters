@@ -4501,10 +4501,10 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        zigbeeModel: ['lumi.switch.agl006'],
-        model: 'WS-K04E',
-        vendor: 'Aqara',
-        description: 'Light Switch H2 US (quadruple rocker)',
+        zigbeeModel: ["lumi.switch.agl006"],
+        model: "WS-K04E",
+        vendor: "Aqara",
+        description: "Light Switch H2 US (quadruple rocker)",
         fromZigbee: [fz.on_off, lumi.fromZigbee.lumi_action_multistate, lumi.fromZigbee.lumi_specific],
         extend: [
             lumiZigbeeOTA(),
