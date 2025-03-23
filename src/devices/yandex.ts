@@ -287,6 +287,7 @@ export const definitions: DefinitionWithExtend[] = [
                 endpoints: {down: 1, up: 2},
             }),
             m.commandsOnOff({endpointNames: ["up", "down"]}),
+            m.battery(),
         ],
     },
     {
@@ -300,6 +301,7 @@ export const definitions: DefinitionWithExtend[] = [
                 endpoints: {b1_down: 1, b2_down: 2, b1_up: 3, b2_up: 4},
             }),
             m.commandsOnOff({endpointNames: ["b1_up", "b1_down", "b2_up", "b2_down"]}),
+            m.battery(),
         ],
     },
     {
