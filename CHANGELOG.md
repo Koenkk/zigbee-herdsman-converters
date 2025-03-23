@@ -1,5 +1,21 @@
 # Changelog
 
+## [23.12.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.11.0...v23.12.0) (2025-03-23)
+
+
+### Features
+
+* **add:** 929003103601 https://github.com/Koenkk/zigbee2mqtt/issues/26750 ([c9a067a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c9a067a9b0cf26dc4d8419020f4a7fad4769223c))
+
+
+### Bug Fixes
+
+* Battery for Yandex wireless switch ([#9051](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9051)) ([b017e58](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b017e58468a6550af0a260c6ce02037c5469b89b))
+* Generate definition when candidates present but no match found ([#9046](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9046)) ([a4c9ae8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a4c9ae856eecf0698bf96c96d507f7c670ec0b8f))
+* Gledopto GL-C-009P: configure reporting ([#9047](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9047)) ([2bb3beb](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2bb3bebf6ab72c359b9e486611cd8614162dabf0))
+* **ignore:** update dependencies ([#9050](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9050)) ([0f46b24](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0f46b24a948cef7c9eeef53cda0765ca0f231131))
+* Tuya TS110E_2gang_2: expose light type and power on behaviour for l2 ([#9052](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9052)) ([d7829b3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d7829b39b8c8ce0b4686985a63fcbabe7bc7a16c))
+
 ## [23.11.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.10.0...v23.11.0) (2025-03-21)
 
 
