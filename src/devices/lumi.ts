@@ -4500,4 +4500,33 @@ export const definitions: DefinitionWithExtend[] = [
             }),
         ],
     },
+    {
+        zigbeeModel: ['lumi.switch.agl006'],
+        model: 'WS-K04E',
+        vendor: 'Aqara',
+        description: 'Light Switch H2 US (quadruple rocker)',
+        fromZigbee: [fz.on_off, lumi.fromZigbee.lumi_action_multistate, lumi.fromZigbee.lumi_specific],
+        extend: [
+            lumiZigbeeOTA(),
+            lumiPreventReset(),
+            m.deviceEndpoints({endpoints: {top: 1, center: 2, bottom: 3, wireless: 4}}),
+            m.bindCluster({endpointNames: ["top", "center", "bottom", "wireless"], cluster: "manuSpecificLumi", clusterType: "input"}),
+            m.bindCluster({endpointNames: ["top", "center", "bottom"], cluster: "genOnOff", clusterType: "input"}),
+            m.electricityMeter({voltage: false}),
+            lumiPower(),
+            lumiOnOff({
+                operationMode: true,
+                powerOutageMemory: "enum",
+                lockRelay: true,
+                endpointNames: ["top", "center", "bottom"],
+            }),
+            lumiAction({
+                endpointNames: ["top", "center", "bottom", "wireless"],
+                actionLookup: {hold: 0, single: 1, double: 2, release: 255},
+            }),
+            lumiClickMode({attribute: {ID: 0x0286, type: 0x20}}),
+            lumiLedDisabledNight(),
+            lumiFlipIndicatorLight(),
+            lumiSwitchMode(),
+    },
 ];
