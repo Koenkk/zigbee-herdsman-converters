@@ -779,8 +779,13 @@ export async function update(
     onProgress: Ota.OnProgress,
     requestPayload: Ota.ImageInfo,
     reqTransNum: number,
-): Promise<number>;
-export async function update(device: Zh.Device, extraMetas: Ota.ExtraMetas, previous: boolean, onProgress: Ota.OnProgress): Promise<number>;
+): Promise<number | undefined>;
+export async function update(
+    device: Zh.Device,
+    extraMetas: Ota.ExtraMetas,
+    previous: boolean,
+    onProgress: Ota.OnProgress,
+): Promise<number | undefined>;
 export async function update(
     device: Zh.Device,
     extraMetas: Ota.ExtraMetas,
@@ -788,7 +793,7 @@ export async function update(
     onProgress: Ota.OnProgress,
     requestPayload?: Ota.ImageInfo,
     reqTransNum?: number,
-): Promise<number> {
+): Promise<number | undefined> {
     const imageSet = previous ? "previous" : "latest";
 
     logger.debug(() => `${deviceLogString(device)} Updating to ${imageSet}`, NS);
@@ -821,7 +826,7 @@ export async function update(
 
         logger.debug(() => `${deviceLogString(device)} Got ${imageSet} image`, NS);
     } catch (error) {
-        logger.info(() => `${deviceLogString(device)} No image currently available`, NS);
+        logger.info(() => `${deviceLogString(device)} No image currently available (${(error as Error).message})`, NS);
     }
 
     // reply to `queryNextImageRequest` in `requestOTA` now that we have the data for it,
@@ -829,7 +834,7 @@ export async function update(
     await sendQueryNextImageResponse(device, endpoint, image, reqTransNum);
 
     if (!image) {
-        return;
+        return undefined;
     }
 
     const waiters: Waiters = {};
@@ -982,6 +987,7 @@ export async function update(
             onProgress(100, undefined);
 
             let timer: NodeJS.Timeout;
+            const newFileVersion = image.header.fileVersion;
 
             return await new Promise<number>((resolve) => {
                 // XXX: annoying to test since using fake timers, same result anyway
@@ -989,14 +995,14 @@ export async function update(
                 const onDeviceAnnounce = () => {
                     clearTimeout(timer);
                     logger.debug(() => `${deviceLogString(device)} Received device announce, update finished.`, NS);
-                    resolve(image.header.fileVersion);
+                    resolve(newFileVersion);
                 };
 
                 // force "finished" after given time
                 timer = setTimeout(() => {
                     device.removeListener("deviceAnnounce", onDeviceAnnounce);
                     logger.debug(() => `${deviceLogString(device)} Timed out waiting for device announce, update considered finished.`, NS);
-                    resolve(image.header.fileVersion);
+                    resolve(newFileVersion);
                 }, UPDATE_END_FORCE_RESOLVE_TIME);
 
                 device.once("deviceAnnounce", onDeviceAnnounce);
