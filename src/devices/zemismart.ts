@@ -581,7 +581,7 @@ export const definitions: DefinitionWithExtend[] = [
                     "cycle_schedule",
                     {
                         to: (v, meta) => {
-                            const stringValue = String(v || "");
+                            const stringValue = String(v ?? "");
                             const limitedString = stringValue.slice(0, 12);
                             return limitedString.split("").map((char) => char.charCodeAt(0));
                         },
