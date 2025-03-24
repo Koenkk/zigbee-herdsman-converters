@@ -389,9 +389,9 @@ export const definitions: DefinitionWithExtend[] = [
             e
                 .enum("delay_off_schedule", ea.STATE_SET, ["Red", "Blue", "Green", "White", "Yellow", "Magenta", "Cyan", "WarmWhite", "WarmYellow"])
                 .withDescription("Switch lightcolor while delayed"),
-            e.text("name", ea.STATE_ALL).withEndpoint("l1").withDescription("Name for Switch 1"),
-            e.text("name", ea.STATE_ALL).withEndpoint("l2").withDescription("Name for Switch 2"),
-            e.text("name", ea.STATE_ALL).withEndpoint("l3").withDescription("Name for Switch 3"),
+            e.text("name", ea.STATE_SET).withEndpoint("l1").withDescription("Name for Switch 1"),
+            e.text("name", ea.STATE_SET).withEndpoint("l2").withDescription("Name for Switch 2"),
+            e.text("name", ea.STATE_SET).withEndpoint("l3").withDescription("Name for Switch 3"),
             e
                 .enum("relay_status", ea.STATE_SET, ["Power-on", "Power-off", "Restart Memory"])
                 .withEndpoint("l1")
