@@ -16472,4 +16472,38 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Battery powered light",
         extend: [m.battery(), m.light()],
     },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_atdqo4nj"]),
+        model: "ZG-WK-DA-Wh-Zigbee",
+        vendor: "Tuya",
+        description: "Wall thermostat with humidity sensor",
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.humidity(),
+            e.child_lock(),
+            //e.temperature_sensor_select(['internal', 'external', 'both']),
+            e
+                .climate()
+                .withSystemMode(["off", "heat"], ea.STATE_SET)
+                .withPreset(["manual", "auto"])
+                .withSetpoint("current_heating_setpoint", 5, 35, 0.5, ea.STATE_SET)
+                .withRunningState(["idle", "heat"], ea.STATE)
+                .withLocalTemperature(ea.STATE)
+                .withLocalTemperatureCalibration(-9, 9, 1, ea.STATE_SET),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "system_mode", tuya.valueConverterBasic.lookup({heat: true, off: false})],
+                [2, "current_heating_setpoint", tuya.valueConverter.divideBy10],
+                [3, "local_temperature", tuya.valueConverter.divideBy10],
+                [4, "preset", tuya.valueConverterBasic.lookup({manual: 0, auto: 1})],
+                [9, "child_lock", tuya.valueConverter.lockUnlock],
+                //[11, 'unknown', null],
+                [19, "local_temperature_calibration", tuya.valueConverterBasic.divideBy(1)],
+                [102, "running_state", tuya.valueConverterBasic.lookup({heat: 0, idle: 1})],
+            ],
+        },
+    },
 ];
