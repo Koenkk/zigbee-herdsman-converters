@@ -1700,6 +1700,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "EFEKTA",
         description: "Temperature sensors with a signal amplifier. External DS18b20 sensor. Simple Thermostat.",
         extend: [
+            m.identify(),
             m.temperature({
                 reporting: fourReporting,
                 access: "STATE",
@@ -1822,6 +1823,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "EFEKTA",
         description: "Temperature sensors. External DS18b20 sensor. Simple Thermostat.",
         extend: [
+            m.identify(),
             m.temperature({
                 reporting: fourReporting,
                 access: "STATE",
@@ -1936,6 +1938,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "EFEKTA",
         description: "Temperature and humidity sensors with a signal amplifier. Simple Thermostat.",
         extend: [
+            m.identify(),
             m.temperature({
                 reporting: fourReporting,
                 access: "STATE",
@@ -2092,6 +2095,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "EFEKTA",
         description: "Temperature and humidity sensors. Simple Thermostat.",
         extend: [
+            m.identify(),
             m.temperature({
                 reporting: fourReporting,
                 access: "STATE",
@@ -2240,6 +2244,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "EFEKTA",
         description: "Temperature and humidity sensors with a signal amplifier. Simple Thermostat.",
         extend: [
+            m.identify(),
             m.temperature({
                 reporting: fourReporting,
                 access: "STATE",
@@ -2396,6 +2401,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "EFEKTA",
         description: "Temperature and humidity sensors. Simple Thermostat.",
         extend: [
+            m.identify(),
             m.temperature({
                 reporting: fourReporting,
                 access: "STATE",
