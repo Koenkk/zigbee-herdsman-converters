@@ -357,7 +357,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.identify(), tuya.modernExtend.tuyaOnOff({indicatorMode: true, onOffCountdown: true, childLock: true})],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_k7v0eqke"]},
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_k7v0eqke"]),
         model: 'ZMS-206EU-3',
         vendor: 'Zemismart',
         description: 'Smart Screen Switch 3 gang',
