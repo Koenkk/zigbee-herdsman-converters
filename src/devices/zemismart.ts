@@ -383,11 +383,11 @@ export const definitions: DefinitionWithExtend[] = [
                 .enum("switch_color_on", ea.STATE_SET, ["red", "blue", "green", "white", "yellow", "magenta", "cyan", "warm_white", "warm_yellow"])
                 .withDescription("Switch lightcolor when on"),
             e
-                .enum("switch_color_off", ea.STATE_SET, ["Red", "Blue", "Green", "White", "Yellow", "Magenta", "Cyan", "WarmWhite", "WarmYellow"])
+                .enum("switch_color_off", ea.STATE_SET, ["red", "blue", "green", "white", "yellow", "magenta", "cyan", "warm_white", "warm_yellow"])
                 .withDescription("Switch lightcolor when off"),
-            e.enum("indicator_status", ea.STATE_SET, ["Off", "On/Off Status", "Switch Position"]).withDescription("Indicator Light Status"),
+            e.enum("indicator_status", ea.STATE_SET, ["Off", "on/off Status", "switch position"]).withDescription("Indicator Light Status"),
             e
-                .enum("delay_off_schedule", ea.STATE_SET, ["Red", "Blue", "Green", "White", "Yellow", "Magenta", "Cyan", "WarmWhite", "WarmYellow"])
+                .enum("delay_off_schedule", ea.STATE_SET, ["red", "blue", "green", "white", "yellow", "magenta", "cyan", "warm_white", "warm_yellow"])
                 .withDescription("Switch lightcolor while delayed"),
             e.text("name", ea.STATE_SET).withEndpoint("l1").withDescription("Name for Switch 1"),
             e.text("name", ea.STATE_SET).withEndpoint("l2").withDescription("Name for Switch 2"),
@@ -457,15 +457,15 @@ export const definitions: DefinitionWithExtend[] = [
                     19,
                     "delay_off_schedule",
                     tuya.valueConverterBasic.lookup({
-                        Red: tuya.enum(0),
-                        Blue: tuya.enum(1),
-                        Green: tuya.enum(2),
-                        White: tuya.enum(3),
-                        Yellow: tuya.enum(4),
-                        Magenta: tuya.enum(5),
-                        Cyan: tuya.enum(6),
-                        WarmWhite: tuya.enum(7),
-                        WarmYellow: tuya.enum(8),
+                        red: tuya.enum(0),
+                        blue: tuya.enum(1),
+                        green: tuya.enum(2),
+                        white: tuya.enum(3),
+                        yellow: tuya.enum(4),
+                        magenta: tuya.enum(5),
+                        cyan: tuya.enum(6),
+                        warmwhite: tuya.enum(7),
+                        warmyellow: tuya.enum(8),
                     }),
                 ],
                 [24, "test_bit", tuya.valueConverter.raw],
@@ -502,30 +502,30 @@ export const definitions: DefinitionWithExtend[] = [
                     103,
                     "switch_color_off",
                     tuya.valueConverterBasic.lookup({
-                        Red: tuya.enum(0),
-                        Blue: tuya.enum(1),
-                        Green: tuya.enum(2),
-                        White: tuya.enum(3),
-                        Yellow: tuya.enum(4),
-                        Magenta: tuya.enum(5),
-                        Cyan: tuya.enum(6),
-                        WarmWhite: tuya.enum(7),
-                        WarmYellow: tuya.enum(8),
+                        red: tuya.enum(0),
+                        blue: tuya.enum(1),
+                        green: tuya.enum(2),
+                        white: tuya.enum(3),
+                        yellow: tuya.enum(4),
+                        magenta: tuya.enum(5),
+                        cyan: tuya.enum(6),
+                        warmwhite: tuya.enum(7),
+                        warmyellow: tuya.enum(8),
                     }),
                 ],
                 [
                     104,
                     "switch_color_on",
                     tuya.valueConverterBasic.lookup({
-                        Red: tuya.enum(0),
-                        Blue: tuya.enum(1),
-                        Green: tuya.enum(2),
-                        White: tuya.enum(3),
-                        Yellow: tuya.enum(4),
-                        Magenta: tuya.enum(5),
-                        Cyan: tuya.enum(6),
-                        WarmWhite: tuya.enum(7),
-                        WarmYellow: tuya.enum(8),
+                        red: tuya.enum(0),
+                        blue: tuya.enum(1),
+                        green: tuya.enum(2),
+                        white: tuya.enum(3),
+                        yellow: tuya.enum(4),
+                        magenta: tuya.enum(5),
+                        cyan: tuya.enum(6),
+                        warmwhite: tuya.enum(7),
+                        warmyellow: tuya.enum(8),
                     }),
                 ],
                 [
@@ -533,7 +533,7 @@ export const definitions: DefinitionWithExtend[] = [
                     "name_l1",
                     {
                         to: (v, meta) => {
-                            const stringValue = String(v || "");
+                            const stringValue = String(v ?? "");
                             const limitedString = stringValue.slice(0, 12);
                             return limitedString.split("").map((char) => char.charCodeAt(0));
                         },
@@ -549,7 +549,7 @@ export const definitions: DefinitionWithExtend[] = [
                     "name_l2",
                     {
                         to: (v, meta) => {
-                            const stringValue = String(v || "");
+                            const stringValue = String(v ?? "");
                             const limitedString = stringValue.slice(0, 12);
                             return limitedString.split("").map((char) => char.charCodeAt(0));
                         },
@@ -565,7 +565,7 @@ export const definitions: DefinitionWithExtend[] = [
                     "name_l3",
                     {
                         to: (v, meta) => {
-                            const stringValue = String(v || "");
+                            const stringValue = String(v ?? "");
                             const limitedString = stringValue.slice(0, 12);
                             return limitedString.split("").map((char) => char.charCodeAt(0));
                         },
