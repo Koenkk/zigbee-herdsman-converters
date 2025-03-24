@@ -541,4 +541,5 @@ export const definitions: DefinitionWithExtend[] = [
                 ],
             ],
         },
-    ]
+    },
+];
