@@ -16476,11 +16476,10 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_atdqo4nj"]),
         model: "ZG-WK-DA-Wh-Zigbee",
         vendor: "Tuya",
-        description: "Tuya Wall Thermostat With Humidity Sensor",
+        description: "Wall thermostat with humidity sensor",
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
-        whiteLabel: [{vendor: "Tuya", model: "ZG-WK-DA-Wh-Zigbee"}],
         exposes: [
             e.humidity(),
             e.child_lock(),
