@@ -380,7 +380,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueStep(1),
             e.child_lock(),
             e
-                .enum("switch_color_on", ea.STATE_SET, ["Red", "Blue", "Green", "White", "Yellow", "Magenta", "Cyan", "WarmWhite", "WarmYellow"])
+                .enum("switch_color_on", ea.STATE_SET, ["red", "blue", "green", "white", "yellow", "magenta", "cyan", "warm_white", "warm_yellow"])
                 .withDescription("Switch lightcolor when on"),
             e
                 .enum("switch_color_off", ea.STATE_SET, ["Red", "Blue", "Green", "White", "Yellow", "Magenta", "Cyan", "WarmWhite", "WarmYellow"])
