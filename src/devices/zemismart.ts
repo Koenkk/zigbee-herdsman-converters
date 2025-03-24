@@ -358,33 +358,79 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_k7v0eqke"]),
-        model: 'ZMS-206EU-3',
-        vendor: 'Zemismart',
-        description: 'Smart Screen Switch 3 gang',
+        model: "ZMS-206EU-3",
+        vendor: "Zemismart",
+        description: "Smart Screen Switch 3 gang",
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         onEvent: tuya.onEventSetTime, // Add this if you are getting no converter for 'commandMcuSyncTime'
         configure: tuya.configureMagicPacket,
         exposes: [
-            tuya.exposes.backlightModeOffOn().withAccess(ea.STATE_SET), e.switch(), e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'), e.switch().withEndpoint('l3'),
-            e.numeric('backlight_brightness', ea.STATE_SET).withDescription('Brightness of the light').withUnit("%").withValueMin(0).withValueMax(100).withValueStep(1),
+            tuya.exposes.backlightModeOffOn().withAccess(ea.STATE_SET),
+            e.switch(),
+            e.switch().withEndpoint("l1"),
+            e.switch().withEndpoint("l2"),
+            e.switch().withEndpoint("l3"),
+            e
+                .numeric("backlight_brightness", ea.STATE_SET)
+                .withDescription("Brightness of the light")
+                .withUnit("%")
+                .withValueMin(0)
+                .withValueMax(100)
+                .withValueStep(1),
             e.child_lock(),
-            e.enum("switch_color_on", ea.STATE_SET, ["Red", "Blue", "Green", "White", "Yellow", "Magenta", "Cyan", "WarmWhite", "WarmYellow"]).withDescription("Switch lightcolor when on"),
-            e.enum("switch_color_off", ea.STATE_SET, ["Red", "Blue", "Green", "White", "Yellow", "Magenta", "Cyan", "WarmWhite", "WarmYellow"]).withDescription("Switch lightcolor when off"),
+            e
+                .enum("switch_color_on", ea.STATE_SET, ["Red", "Blue", "Green", "White", "Yellow", "Magenta", "Cyan", "WarmWhite", "WarmYellow"])
+                .withDescription("Switch lightcolor when on"),
+            e
+                .enum("switch_color_off", ea.STATE_SET, ["Red", "Blue", "Green", "White", "Yellow", "Magenta", "Cyan", "WarmWhite", "WarmYellow"])
+                .withDescription("Switch lightcolor when off"),
             e.enum("indicator_status", ea.STATE_SET, ["Off", "On/Off Status", "Switch Position"]).withDescription("Indicator Light Status"),
-            e.enum("delay_off_schedule", ea.STATE_SET, ["Red", "Blue", "Green", "White", "Yellow", "Magenta", "Cyan", "WarmWhite", "WarmYellow"]).withDescription("Switch lightcolor while delayed"),
-            e.text('name', ea.STATE_ALL).withEndpoint("l1").withDescription('Name for Switch 1'),
-            e.text('name', ea.STATE_ALL).withEndpoint("l2").withDescription('Name for Switch 2'),
-            e.text('name', ea.STATE_ALL).withEndpoint("l3").withDescription('Name for Switch 3'),
-            e.enum('relay_status', ea.STATE_SET, ["Power-on", "Power-off", "Restart Memory"]).withEndpoint("l1").withDescription('Relay Status for Switch 1'),
-            e.enum('relay_status', ea.STATE_SET, ["Power-on", "Power-off", "Restart Memory"]).withEndpoint("l2").withDescription('Relay Status for Switch 2'),
-            e.enum('relay_status', ea.STATE_SET, ["Power-on", "Power-off", "Restart Memory"]).withEndpoint("l3").withDescription('Relay Status for Switch 3'),
-            e.numeric('countdown', ea.STATE_SET).withEndpoint("l1").withDescription('Countdown for Switch 1').withUnit("s").withValueMin(0).withValueMax(43200).withValueStep(1),
-            e.numeric('countdown', ea.STATE_SET).withEndpoint("l2").withDescription('Countdown for Switch 2').withUnit("s").withValueMin(0).withValueMax(43200).withValueStep(1),
-            e.numeric('countdown', ea.STATE_SET).withEndpoint("l3").withDescription('Countdown for Switch 3').withUnit("s").withValueMin(0).withValueMax(43200).withValueStep(1)
+            e
+                .enum("delay_off_schedule", ea.STATE_SET, ["Red", "Blue", "Green", "White", "Yellow", "Magenta", "Cyan", "WarmWhite", "WarmYellow"])
+                .withDescription("Switch lightcolor while delayed"),
+            e.text("name", ea.STATE_ALL).withEndpoint("l1").withDescription("Name for Switch 1"),
+            e.text("name", ea.STATE_ALL).withEndpoint("l2").withDescription("Name for Switch 2"),
+            e.text("name", ea.STATE_ALL).withEndpoint("l3").withDescription("Name for Switch 3"),
+            e
+                .enum("relay_status", ea.STATE_SET, ["Power-on", "Power-off", "Restart Memory"])
+                .withEndpoint("l1")
+                .withDescription("Relay Status for Switch 1"),
+            e
+                .enum("relay_status", ea.STATE_SET, ["Power-on", "Power-off", "Restart Memory"])
+                .withEndpoint("l2")
+                .withDescription("Relay Status for Switch 2"),
+            e
+                .enum("relay_status", ea.STATE_SET, ["Power-on", "Power-off", "Restart Memory"])
+                .withEndpoint("l3")
+                .withDescription("Relay Status for Switch 3"),
+            e
+                .numeric("countdown", ea.STATE_SET)
+                .withEndpoint("l1")
+                .withDescription("Countdown for Switch 1")
+                .withUnit("s")
+                .withValueMin(0)
+                .withValueMax(43200)
+                .withValueStep(1),
+            e
+                .numeric("countdown", ea.STATE_SET)
+                .withEndpoint("l2")
+                .withDescription("Countdown for Switch 2")
+                .withUnit("s")
+                .withValueMin(0)
+                .withValueMax(43200)
+                .withValueStep(1),
+            e
+                .numeric("countdown", ea.STATE_SET)
+                .withEndpoint("l3")
+                .withDescription("Countdown for Switch 3")
+                .withUnit("s")
+                .withValueMin(0)
+                .withValueMax(43200)
+                .withValueStep(1),
         ],
         endpoint: (device) => {
-            return { l1: 1, l2: 1, l3: 1 };
+            return {l1: 1, l2: 1, l3: 1};
         },
         meta: {
             multiEndpoint: true,
@@ -401,10 +447,9 @@ export const definitions: DefinitionWithExtend[] = [
                     15,
                     "indicator_status",
                     tuya.valueConverterBasic.lookup({
-                        "Off": tuya.enum(0),
+                        Off: tuya.enum(0),
                         "On/Off Status": tuya.enum(1),
                         "Switch Position": tuya.enum(2),
-
                     }),
                 ],
                 [16, "backlight_mode", tuya.valueConverter.onOff],
@@ -488,12 +533,14 @@ export const definitions: DefinitionWithExtend[] = [
                     "name_l1",
                     {
                         to: (v, meta) => {
-                            const stringValue = String(v || '');
+                            const stringValue = String(v || "");
                             const limitedString = stringValue.slice(0, 12);
-                            return limitedString.split('').map(char => char.charCodeAt(0));
+                            return limitedString.split("").map((char) => char.charCodeAt(0));
                         },
                         from: (v, meta) => {
-                            return Object.values(v).map(code => String.fromCharCode(code)).join('');
+                            return Object.values(v)
+                                .map((code) => String.fromCharCode(code))
+                                .join("");
                         },
                     },
                 ],
@@ -502,12 +549,14 @@ export const definitions: DefinitionWithExtend[] = [
                     "name_l2",
                     {
                         to: (v, meta) => {
-                            const stringValue = String(v || '');
+                            const stringValue = String(v || "");
                             const limitedString = stringValue.slice(0, 12);
-                            return limitedString.split('').map(char => char.charCodeAt(0));
+                            return limitedString.split("").map((char) => char.charCodeAt(0));
                         },
                         from: (v, meta) => {
-                            return Object.values(v).map(code => String.fromCharCode(code)).join('');
+                            return Object.values(v)
+                                .map((code) => String.fromCharCode(code))
+                                .join("");
                         },
                     },
                 ],
@@ -516,12 +565,14 @@ export const definitions: DefinitionWithExtend[] = [
                     "name_l3",
                     {
                         to: (v, meta) => {
-                            const stringValue = String(v || '');
+                            const stringValue = String(v || "");
                             const limitedString = stringValue.slice(0, 12);
-                            return limitedString.split('').map(char => char.charCodeAt(0));
+                            return limitedString.split("").map((char) => char.charCodeAt(0));
                         },
                         from: (v, meta) => {
-                            return Object.values(v).map(code => String.fromCharCode(code)).join('');
+                            return Object.values(v)
+                                .map((code) => String.fromCharCode(code))
+                                .join("");
                         },
                     },
                 ],
@@ -530,12 +581,14 @@ export const definitions: DefinitionWithExtend[] = [
                     "cycle-schedule",
                     {
                         to: (v, meta) => {
-                            const stringValue = String(v || '');
+                            const stringValue = String(v || "");
                             const limitedString = stringValue.slice(0, 12);
-                            return limitedString.split('').map(char => char.charCodeAt(0));
+                            return limitedString.split("").map((char) => char.charCodeAt(0));
                         },
                         from: (v, meta) => {
-                            return Object.values(v).map(code => String.fromCharCode(code)).join('');
+                            return Object.values(v)
+                                .map((code) => String.fromCharCode(code))
+                                .join("");
                         },
                     },
                 ],
