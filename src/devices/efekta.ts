@@ -26,26 +26,33 @@ export const definitions: DefinitionWithExtend[] = [
         description: "CO2 Monitor with IPS TFT Display, outdoor temperature and humidity, date and time",
         extend: [
             m.deviceEndpoints({endpoints: {"1": 1, "2": 2}}),
-            m.co2({reporting: co2Reporting}),
+            m.co2({
+                reporting: co2Reporting,
+                access: "STATE",
+            }),
             m.temperature({
                 endpointNames: ["1"],
                 description: "Measured value of the built-in temperature sensor",
                 reporting: fourReporting,
+                access: "STATE",
             }),
             m.temperature({
                 endpointNames: ["2"],
                 description: "Measured value of the external temperature sensor",
                 reporting: fourReporting,
+                access: "STATE",
             }),
             m.humidity({
                 endpointNames: ["1"],
                 description: "Measured value of the built-in humidity sensor",
                 reporting: fourReporting,
+                access: "STATE",
             }),
             m.humidity({
                 endpointNames: ["2"],
                 description: "Measured value of the external humidity sensor",
                 reporting: fourReporting,
+                access: "STATE",
             }),
             m.numeric({
                 name: "voc_index",
@@ -455,28 +462,38 @@ export const definitions: DefinitionWithExtend[] = [
         description: "CO2 Monitor with IPS TFT Display, outdoor temperature and humidity, date and time",
         extend: [
             m.deviceEndpoints({endpoints: {"1": 1, "2": 2}}),
-            m.co2({reporting: co2Reporting}),
+            m.co2({
+                reporting: co2Reporting,
+                access: "STATE",
+            }),
             m.temperature({
                 endpointNames: ["1"],
                 description: "Measured value of the built-in temperature sensor",
                 reporting: fourReporting,
+                access: "STATE",
             }),
             m.temperature({
                 endpointNames: ["2"],
                 description: "Measured value of the external temperature sensor",
                 reporting: fourReporting,
+                access: "STATE",
             }),
             m.humidity({
                 endpointNames: ["1"],
                 description: "Measured value of the built-in humidity sensor",
                 reporting: fourReporting,
+                access: "STATE",
             }),
             m.humidity({
                 endpointNames: ["2"],
                 description: "Measured value of the external humidity sensor",
                 reporting: fourReporting,
+                access: "STATE",
             }),
-            m.illuminance({reporting: fourReporting}),
+            m.illuminance({
+                reporting: fourReporting,
+                access: "STATE",
+            }),
             m.numeric({
                 name: "reading_interval",
                 unit: "seconds",
@@ -485,6 +502,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msCO2",
                 attribute: {ID: 0x0201, type: Zcl.DataType.UINT16},
                 description: "Setting the sensor reading interval.",
+                access: "STATE_SET",
             }),
             m.binary({
                 name: "auto_brightness",
@@ -493,6 +511,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msCO2",
                 attribute: {ID: 0x0203, type: Zcl.DataType.BOOLEAN},
                 description: "Enable or Disable Auto Brightness of the Display",
+                access: "STATE_SET",
             }),
             m.binary({
                 name: "night_onoff_backlight",
@@ -501,6 +520,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msCO2",
                 attribute: {ID: 0x0401, type: Zcl.DataType.BOOLEAN},
                 description: "Complete shutdown of the backlight at night mode",
+                access: "STATE_SET",
             }),
             m.numeric({
                 name: "night_on_backlight",
@@ -510,6 +530,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msCO2",
                 attribute: {ID: 0x0405, type: Zcl.DataType.UINT8},
                 description: "Night mode activation time",
+                access: "STATE_SET",
             }),
             m.numeric({
                 name: "night_off_backlight",
@@ -519,6 +540,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msCO2",
                 attribute: {ID: 0x0406, type: Zcl.DataType.UINT8},
                 description: "Night mode deactivation time",
+                access: "STATE_SET",
             }),
             m.enumLookup({
                 name: "rotate",
@@ -526,6 +548,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msCO2",
                 attribute: {ID: 0x0285, type: Zcl.DataType.UINT16},
                 description: "Display rotation angle",
+                access: "STATE_SET",
             }),
             m.binary({
                 name: "long_chart_period",
@@ -534,6 +557,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msCO2",
                 attribute: {ID: 0x0204, type: Zcl.DataType.BOOLEAN},
                 description: "The period of plotting the CO2 level(OFF - 1H | ON - 24H)",
+                access: "STATE_SET",
             }),
             m.numeric({
                 name: "set_altitude",
@@ -543,6 +567,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msCO2",
                 attribute: {ID: 0x0205, type: Zcl.DataType.UINT16},
                 description: "Setting the altitude above sea level (for high accuracy of the CO2 sensor)",
+                access: "STATE_SET",
             }),
             m.numeric({
                 name: "temperature_offset",
@@ -554,6 +579,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: 0x0210, type: Zcl.DataType.INT16},
                 description: "Adjust temperature",
+                access: "STATE_SET",
             }),
             m.numeric({
                 name: "humidity_offset",
@@ -564,6 +590,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msRelativeHumidity",
                 attribute: {ID: 0x0210, type: Zcl.DataType.INT16},
                 description: "Adjust humidity",
+                access: "STATE_SET",
             }),
             m.binary({
                 name: "automatic_calibrations",
@@ -572,6 +599,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msCO2",
                 attribute: {ID: 0x0402, type: Zcl.DataType.BOOLEAN},
                 description: "Automatic calibration of the CO2 sensor",
+                access: "STATE_SET",
             }),
             m.binary({
                 name: "forced_recalibration",
@@ -580,6 +608,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msCO2",
                 attribute: {ID: 0x0202, type: Zcl.DataType.BOOLEAN},
                 description: "Start FRC (Perform Forced Recalibration of the CO2 Sensor)",
+                access: "STATE_SET",
             }),
             m.binary({
                 name: "factory_reset_co2",
@@ -588,6 +617,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msCO2",
                 attribute: {ID: 0x0206, type: Zcl.DataType.BOOLEAN},
                 description: "Factory Reset CO2 sensor",
+                access: "STATE_SET",
             }),
             m.numeric({
                 name: "manual_forced_recalibration",
@@ -597,6 +627,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msCO2",
                 attribute: {ID: 0x0207, type: Zcl.DataType.UINT16},
                 description: "Start Manual FRC (Perform Forced Recalibration of the CO2 Sensor)",
+                access: "STATE_SET",
             }),
             m.binary({
                 name: "enable_gas",
@@ -605,6 +636,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msCO2",
                 attribute: {ID: 0x0220, type: Zcl.DataType.BOOLEAN},
                 description: "Enable CO2 Gas Control",
+                access: "STATE_SET",
             }),
             m.binary({
                 name: "invert_logic_gas",
@@ -613,6 +645,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msCO2",
                 attribute: {ID: 0x0225, type: Zcl.DataType.BOOLEAN},
                 description: "Enable invert logic CO2 Gas Control",
+                access: "STATE_SET",
             }),
             m.numeric({
                 name: "high_gas",
@@ -622,6 +655,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msCO2",
                 attribute: {ID: 0x0221, type: Zcl.DataType.UINT16},
                 description: "Setting High CO2 Gas Border",
+                access: "STATE_SET",
             }),
             m.numeric({
                 name: "low_gas",
@@ -631,6 +665,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msCO2",
                 attribute: {ID: 0x0222, type: Zcl.DataType.UINT16},
                 description: "Setting Low CO2 Gas Border",
+                access: "STATE_SET",
             }),
         ],
     },
@@ -640,9 +675,18 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "EFEKTA",
         description: "EFEKTA CO2 Smart Monitor, rgb indicator, can control the relay, binding",
         extend: [
-            m.co2({reporting: co2Reporting}),
-            m.temperature({reporting: fourReporting}),
-            m.humidity({reporting: fourReporting}),
+            m.co2({
+                reporting: co2Reporting,
+                access: "STATE",
+            }),
+            m.temperature({
+                reporting: fourReporting,
+                access: "STATE",
+            }),
+            m.humidity({
+                reporting: fourReporting,
+                access: "STATE",
+            }),
             m.numeric({
                 name: "reading_interval",
                 unit: "seconds",
@@ -651,6 +695,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msCO2",
                 attribute: {ID: 0x0201, type: Zcl.DataType.UINT16},
                 description: "Setting the sensor reading interval.",
+                access: "STATE_SET",
             }),
             m.binary({
                 name: "light_indicator",
@@ -659,6 +704,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msCO2",
                 attribute: {ID: 0x0211, type: Zcl.DataType.BOOLEAN},
                 description: "Enable or Disable light indicator",
+                access: "STATE_SET",
             }),
             m.numeric({
                 name: "light_indicator_level",
@@ -668,6 +714,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msCO2",
                 attribute: {ID: 0x0209, type: Zcl.DataType.UINT8},
                 description: "Light indicator level",
+                access: "STATE_SET",
             }),
             m.numeric({
                 name: "set_altitude",
@@ -677,6 +724,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msCO2",
                 attribute: {ID: 0x0205, type: Zcl.DataType.UINT16},
                 description: "Setting the altitude above sea level (for high accuracy of the CO2 sensor)",
+                access: "STATE_SET",
             }),
             m.numeric({
                 name: "temperature_offset",
@@ -688,6 +736,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: 0x0410, type: Zcl.DataType.INT16},
                 description: "Adjust temperature",
+                access: "STATE_SET",
             }),
             m.numeric({
                 name: "humidity_offset",
@@ -698,6 +747,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msRelativeHumidity",
                 attribute: {ID: 0x0210, type: Zcl.DataType.INT16},
                 description: "Adjust humidity",
+                access: "STATE_SET",
             }),
             m.binary({
                 name: "automatic_calibrations",
@@ -706,6 +756,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msCO2",
                 attribute: {ID: 0x0402, type: Zcl.DataType.BOOLEAN},
                 description: "Automatic calibration of the CO2 sensor",
+                access: "STATE_SET",
             }),
             m.binary({
                 name: "forced_recalibration",
@@ -714,6 +765,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msCO2",
                 attribute: {ID: 0x0202, type: Zcl.DataType.BOOLEAN},
                 description: "Start FRC (Perform Forced Recalibration of the CO2 Sensor)",
+                access: "STATE_SET",
             }),
             m.binary({
                 name: "factory_reset_co2",
@@ -722,6 +774,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msCO2",
                 attribute: {ID: 0x0206, type: Zcl.DataType.BOOLEAN},
                 description: "Factory Reset CO2 sensor",
+                access: "STATE_SET",
             }),
             m.numeric({
                 name: "manual_forced_recalibration",
@@ -731,6 +784,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msCO2",
                 attribute: {ID: 0x0207, type: Zcl.DataType.UINT16},
                 description: "Start Manual FRC (Perform Forced Recalibration of the CO2 Sensor)",
+                access: "STATE_SET",
             }),
             m.binary({
                 name: "enable_gas",
@@ -739,6 +793,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msCO2",
                 attribute: {ID: 0x0220, type: Zcl.DataType.BOOLEAN},
                 description: "Enable CO2 Gas Control",
+                access: "STATE_SET",
             }),
             m.binary({
                 name: "invert_logic_gas",
@@ -747,6 +802,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msCO2",
                 attribute: {ID: 0x0225, type: Zcl.DataType.BOOLEAN},
                 description: "Enable invert logic CO2 Gas Control",
+                access: "STATE_SET",
             }),
             m.numeric({
                 name: "high_gas",
@@ -756,6 +812,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msCO2",
                 attribute: {ID: 0x0221, type: Zcl.DataType.UINT16},
                 description: "Setting High CO2 Gas Border",
+                access: "STATE_SET",
             }),
             m.numeric({
                 name: "low_gas",
@@ -765,6 +822,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msCO2",
                 attribute: {ID: 0x0222, type: Zcl.DataType.UINT16},
                 description: "Setting Low CO2 Gas Border",
+                access: "STATE_SET",
             }),
         ],
     },
@@ -774,9 +832,18 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "EFEKTA",
         description: "EFEKTA CO2 & VOC Index Smart Monitor, rgb indicator, can control the relay, binding",
         extend: [
-            m.co2({reporting: co2Reporting}),
-            m.temperature({reporting: fourReporting}),
-            m.humidity({reporting: fourReporting}),
+            m.co2({
+                reporting: co2Reporting,
+                access: "STATE",
+            }),
+            m.temperature({
+                reporting: fourReporting,
+                access: "STATE",
+            }),
+            m.humidity({
+                reporting: fourReporting,
+                access: "STATE",
+            }),
             m.numeric({
                 name: "voc_index",
                 unit: "VOC Index points",
@@ -794,6 +861,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msCO2",
                 attribute: {ID: 0x0201, type: Zcl.DataType.UINT16},
                 description: "Setting the sensor reading interval.",
+                access: "STATE_SET",
             }),
             m.binary({
                 name: "light_indicator",
@@ -802,6 +870,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msCO2",
                 attribute: {ID: 0x0211, type: Zcl.DataType.BOOLEAN},
                 description: "Enable or Disable light indicator",
+                access: "STATE_SET",
             }),
             m.numeric({
                 name: "light_indicator_level",
@@ -811,6 +880,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msCO2",
                 attribute: {ID: 0x0209, type: Zcl.DataType.UINT8},
                 description: "Light indicator level",
+                access: "STATE_SET",
             }),
             m.numeric({
                 name: "set_altitude",
@@ -820,6 +890,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msCO2",
                 attribute: {ID: 0x0205, type: Zcl.DataType.UINT16},
                 description: "Setting the altitude above sea level (for high accuracy of the CO2 sensor)",
+                access: "STATE_SET",
             }),
             m.numeric({
                 name: "temperature_offset",
@@ -831,6 +902,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: 0x0410, type: Zcl.DataType.INT16},
                 description: "Adjust temperature",
+                access: "STATE_SET",
             }),
             m.numeric({
                 name: "humidity_offset",
@@ -841,6 +913,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msRelativeHumidity",
                 attribute: {ID: 0x0210, type: Zcl.DataType.INT16},
                 description: "Adjust humidity",
+                access: "STATE_SET",
             }),
             m.binary({
                 name: "automatic_calibrations",
@@ -849,6 +922,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msCO2",
                 attribute: {ID: 0x0402, type: Zcl.DataType.BOOLEAN},
                 description: "Automatic calibration of the CO2 sensor",
+                access: "STATE_SET",
             }),
             m.binary({
                 name: "forced_recalibration",
@@ -857,6 +931,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msCO2",
                 attribute: {ID: 0x0202, type: Zcl.DataType.BOOLEAN},
                 description: "Start FRC (Perform Forced Recalibration of the CO2 Sensor)",
+                access: "STATE_SET",
             }),
             m.binary({
                 name: "factory_reset_co2",
@@ -865,6 +940,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msCO2",
                 attribute: {ID: 0x0206, type: Zcl.DataType.BOOLEAN},
                 description: "Factory Reset CO2 sensor",
+                access: "STATE_SET",
             }),
             m.numeric({
                 name: "manual_forced_recalibration",
@@ -874,6 +950,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msCO2",
                 attribute: {ID: 0x0207, type: Zcl.DataType.UINT16},
                 description: "Start Manual FRC (Perform Forced Recalibration of the CO2 Sensor)",
+                access: "STATE_SET",
             }),
             m.binary({
                 name: "enable_co2_gas",
@@ -882,6 +959,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msCO2",
                 attribute: {ID: 0x0220, type: Zcl.DataType.BOOLEAN},
                 description: "Enable CO2 Gas Control",
+                access: "STATE_SET",
             }),
             m.binary({
                 name: "invert_logic_co2_gas",
@@ -890,6 +968,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msCO2",
                 attribute: {ID: 0x0225, type: Zcl.DataType.BOOLEAN},
                 description: "Enable invert logic CO2 Gas Control",
+                access: "STATE_SET",
             }),
             m.numeric({
                 name: "high_co2_gas",
@@ -899,6 +978,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msCO2",
                 attribute: {ID: 0x0221, type: Zcl.DataType.UINT16},
                 description: "Setting High CO2 Gas Border",
+                access: "STATE_SET",
             }),
             m.numeric({
                 name: "low_co2_gas",
@@ -908,6 +988,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msCO2",
                 attribute: {ID: 0x0222, type: Zcl.DataType.UINT16},
                 description: "Setting Low CO2 Gas Border",
+                access: "STATE_SET",
             }),
             m.binary({
                 name: "enable_voc",
@@ -916,6 +997,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "genAnalogInput",
                 attribute: {ID: 0x0220, type: Zcl.DataType.BOOLEAN},
                 description: "Enable VOC Control",
+                access: "STATE_SET",
             }),
             m.binary({
                 name: "invert_logic_voc",
@@ -924,6 +1006,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "genAnalogInput",
                 attribute: {ID: 0x0225, type: Zcl.DataType.BOOLEAN},
                 description: "Enable invert logic VOC Control",
+                access: "STATE_SET",
             }),
             m.numeric({
                 name: "high_voc",
@@ -933,6 +1016,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "genAnalogInput",
                 attribute: {ID: 0x0221, type: Zcl.DataType.UINT16},
                 description: "Setting High VOC Border",
+                access: "STATE_SET",
             }),
             m.numeric({
                 name: "low_voc",
@@ -942,6 +1026,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "genAnalogInput",
                 attribute: {ID: 0x0222, type: Zcl.DataType.UINT16},
                 description: "Setting Low VOC Border",
+                access: "STATE_SET",
             }),
         ],
     },
@@ -1588,6 +1673,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "genPowerCfg",
                 attribute: {ID: 0x0201, type: Zcl.DataType.UINT16},
                 description: "Setting the sensor reading interval in seconds, by default 15 seconds",
+                access: "STATE_SET",
             }),
             m.enumLookup({
                 name: "tx_radio_power",
@@ -1604,6 +1690,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "genPowerCfg",
                 attribute: {ID: 0x0216, type: Zcl.DataType.BOOLEAN},
                 description: "Enable Smart Sleep, short wakeup every 2-7 seconds",
+                access: "STATE_SET",
             }),
         ],
     },
@@ -1657,7 +1744,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "uptime",
                 unit: "Hours",
                 cluster: "genTime",
-                attribute: "localTime",
+                attribute: "StandartTime",
                 description: "Uptime",
                 scale: 3600,
                 precision: 1,
@@ -1696,6 +1783,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: 0x0220, type: Zcl.DataType.BOOLEAN},
                 description: "Enable Temperature Control",
+                access: "STATE_SET",
             }),
             m.binary({
                 name: "invert_logic_temperature",
@@ -1704,6 +1792,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: 0x0225, type: Zcl.DataType.BOOLEAN},
                 description: "Invert Logic Temperature Control",
+                access: "STATE_SET",
             }),
             m.numeric({
                 name: "high_temperature",
@@ -1713,6 +1802,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: 0x0221, type: Zcl.DataType.INT16},
                 description: "Setting High Temperature Border",
+                access: "STATE_SET",
             }),
             m.numeric({
                 name: "low_temperature",
@@ -1722,6 +1812,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: 0x0222, type: Zcl.DataType.INT16},
                 description: "Setting Low Temperature Border",
+                access: "STATE_SET",
             }),
         ],
     },
@@ -1767,7 +1858,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "uptime",
                 unit: "Hours",
                 cluster: "genTime",
-                attribute: "localTime",
+                attribute: "StandartTime",
                 description: "Uptime",
                 scale: 3600,
                 precision: 1,
@@ -1806,6 +1897,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: 0x0220, type: Zcl.DataType.BOOLEAN},
                 description: "Enable Temperature Control",
+                access: "STATE_SET",
             }),
             m.binary({
                 name: "invert_logic_temperature",
@@ -1814,6 +1906,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: 0x0225, type: Zcl.DataType.BOOLEAN},
                 description: "Invert Logic Temperature Control",
+                access: "STATE_SET",
             }),
             m.numeric({
                 name: "high_temperature",
@@ -1823,6 +1916,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: 0x0221, type: Zcl.DataType.INT16},
                 description: "Setting High Temperature Border",
+                access: "STATE_SET",
             }),
             m.numeric({
                 name: "low_temperature",
@@ -1832,6 +1926,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: 0x0222, type: Zcl.DataType.INT16},
                 description: "Setting Low Temperature Border",
+                access: "STATE_SET",
             }),
         ],
     },
@@ -1889,7 +1984,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "uptime",
                 unit: "Hours",
                 cluster: "genTime",
-                attribute: "localTime",
+                attribute: "StandartTime",
                 description: "Uptime",
                 scale: 3600,
                 precision: 1,
@@ -1920,6 +2015,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: 0x0220, type: Zcl.DataType.BOOLEAN},
                 description: "Enable Temperature Control",
+                access: "STATE_SET",
             }),
             m.binary({
                 name: "invert_logic_temperature",
@@ -1928,6 +2024,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: 0x0225, type: Zcl.DataType.BOOLEAN},
                 description: "Invert Logic Temperature Control",
+                access: "STATE_SET",
             }),
             m.numeric({
                 name: "high_temperature",
@@ -1937,6 +2034,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: 0x0221, type: Zcl.DataType.INT16},
                 description: "Setting High Temperature Border",
+                access: "STATE_SET",
             }),
             m.numeric({
                 name: "low_temperature",
@@ -1946,6 +2044,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: 0x0222, type: Zcl.DataType.INT16},
                 description: "Setting Low Temperature Border",
+                access: "STATE_SET",
             }),
             m.binary({
                 name: "enable_humidity",
@@ -1954,6 +2053,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msRelativeHumidity",
                 attribute: {ID: 0x0220, type: Zcl.DataType.BOOLEAN},
                 description: "Enable Humidity Control",
+                access: "STATE_SET",
             }),
             m.binary({
                 name: "invert_logic_humidity",
@@ -1962,6 +2062,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msRelativeHumidity",
                 attribute: {ID: 0x0225, type: Zcl.DataType.BOOLEAN},
                 description: "Invert Logic Humidity Control",
+                access: "STATE_SET",
             }),
             m.numeric({
                 name: "high_humidity",
@@ -1971,6 +2072,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msRelativeHumidity",
                 attribute: {ID: 0x0221, type: Zcl.DataType.INT16},
                 description: "Setting High Humidity Border",
+                access: "STATE_SET",
             }),
             m.numeric({
                 name: "low_humidity",
@@ -1980,6 +2082,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msRelativeHumidity",
                 attribute: {ID: 0x0222, type: Zcl.DataType.INT16},
                 description: "Setting Low Humidity Border",
+                access: "STATE_SET",
             }),
         ],
     },
@@ -2029,7 +2132,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "uptime",
                 unit: "Hours",
                 cluster: "genTime",
-                attribute: "localTime",
+                attribute: "StandartTime",
                 description: "Uptime",
                 scale: 3600,
                 precision: 1,
@@ -2060,6 +2163,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: 0x0220, type: Zcl.DataType.BOOLEAN},
                 description: "Enable Temperature Control",
+                access: "STATE_SET",
             }),
             m.binary({
                 name: "invert_logic_temperature",
@@ -2068,6 +2172,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: 0x0225, type: Zcl.DataType.BOOLEAN},
                 description: "Invert Logic Temperature Control",
+                access: "STATE_SET",
             }),
             m.numeric({
                 name: "high_temperature",
@@ -2077,6 +2182,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: 0x0221, type: Zcl.DataType.INT16},
                 description: "Setting High Temperature Border",
+                access: "STATE_SET",
             }),
             m.numeric({
                 name: "low_temperature",
@@ -2086,6 +2192,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: 0x0222, type: Zcl.DataType.INT16},
                 description: "Setting Low Temperature Border",
+                access: "STATE_SET",
             }),
             m.binary({
                 name: "enable_humidity",
@@ -2094,6 +2201,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msRelativeHumidity",
                 attribute: {ID: 0x0220, type: Zcl.DataType.BOOLEAN},
                 description: "Enable Humidity Control",
+                access: "STATE_SET",
             }),
             m.binary({
                 name: "invert_logic_humidity",
@@ -2102,6 +2210,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msRelativeHumidity",
                 attribute: {ID: 0x0225, type: Zcl.DataType.BOOLEAN},
                 description: "Invert Logic Humidity Control",
+                access: "STATE_SET",
             }),
             m.numeric({
                 name: "high_humidity",
@@ -2111,6 +2220,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msRelativeHumidity",
                 attribute: {ID: 0x0221, type: Zcl.DataType.INT16},
                 description: "Setting High Humidity Border",
+                access: "STATE_SET",
             }),
             m.numeric({
                 name: "low_humidity",
@@ -2120,6 +2230,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msRelativeHumidity",
                 attribute: {ID: 0x0222, type: Zcl.DataType.INT16},
                 description: "Setting Low Humidity Border",
+                access: "STATE_SET",
             }),
         ],
     },
@@ -2177,7 +2288,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "uptime",
                 unit: "Hours",
                 cluster: "genTime",
-                attribute: "localTime",
+                attribute: "StandartTime",
                 description: "Uptime",
                 scale: 3600,
                 precision: 1,
@@ -2208,6 +2319,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: 0x0220, type: Zcl.DataType.BOOLEAN},
                 description: "Enable Temperature Control",
+                access: "STATE_SET",
             }),
             m.binary({
                 name: "invert_logic_temperature",
@@ -2216,6 +2328,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: 0x0225, type: Zcl.DataType.BOOLEAN},
                 description: "Invert Logic Temperature Control",
+                access: "STATE_SET",
             }),
             m.numeric({
                 name: "high_temperature",
@@ -2225,6 +2338,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: 0x0221, type: Zcl.DataType.INT16},
                 description: "Setting High Temperature Border",
+                access: "STATE_SET",
             }),
             m.numeric({
                 name: "low_temperature",
@@ -2234,6 +2348,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: 0x0222, type: Zcl.DataType.INT16},
                 description: "Setting Low Temperature Border",
+                access: "STATE_SET",
             }),
             m.binary({
                 name: "enable_humidity",
@@ -2242,6 +2357,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msRelativeHumidity",
                 attribute: {ID: 0x0220, type: Zcl.DataType.BOOLEAN},
                 description: "Enable Humidity Control",
+                access: "STATE_SET",
             }),
             m.binary({
                 name: "invert_logic_humidity",
@@ -2250,6 +2366,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msRelativeHumidity",
                 attribute: {ID: 0x0225, type: Zcl.DataType.BOOLEAN},
                 description: "Invert Logic Humidity Control",
+                access: "STATE_SET",
             }),
             m.numeric({
                 name: "high_humidity",
@@ -2259,6 +2376,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msRelativeHumidity",
                 attribute: {ID: 0x0221, type: Zcl.DataType.INT16},
                 description: "Setting High Humidity Border",
+                access: "STATE_SET",
             }),
             m.numeric({
                 name: "low_humidity",
@@ -2268,6 +2386,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msRelativeHumidity",
                 attribute: {ID: 0x0222, type: Zcl.DataType.INT16},
                 description: "Setting Low Humidity Border",
+                access: "STATE_SET",
             }),
         ],
     },
@@ -2317,7 +2436,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "uptime",
                 unit: "Hours",
                 cluster: "genTime",
-                attribute: "localTime",
+                attribute: "StandartTime",
                 description: "Uptime",
                 scale: 3600,
                 precision: 1,
@@ -2348,6 +2467,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: 0x0220, type: Zcl.DataType.BOOLEAN},
                 description: "Enable Temperature Control",
+                access: "STATE_SET",
             }),
             m.binary({
                 name: "invert_logic_temperature",
@@ -2356,6 +2476,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: 0x0225, type: Zcl.DataType.BOOLEAN},
                 description: "Invert Logic Temperature Control",
+                access: "STATE_SET",
             }),
             m.numeric({
                 name: "high_temperature",
@@ -2365,6 +2486,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: 0x0221, type: Zcl.DataType.INT16},
                 description: "Setting High Temperature Border",
+                access: "STATE_SET",
             }),
             m.numeric({
                 name: "low_temperature",
@@ -2374,6 +2496,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: 0x0222, type: Zcl.DataType.INT16},
                 description: "Setting Low Temperature Border",
+                access: "STATE_SET",
             }),
             m.binary({
                 name: "enable_humidity",
@@ -2382,6 +2505,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msRelativeHumidity",
                 attribute: {ID: 0x0220, type: Zcl.DataType.BOOLEAN},
                 description: "Enable Humidity Control",
+                access: "STATE_SET",
             }),
             m.binary({
                 name: "invert_logic_humidity",
@@ -2390,6 +2514,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msRelativeHumidity",
                 attribute: {ID: 0x0225, type: Zcl.DataType.BOOLEAN},
                 description: "Invert Logic Humidity Control",
+                access: "STATE_SET",
             }),
             m.numeric({
                 name: "high_humidity",
@@ -2399,6 +2524,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msRelativeHumidity",
                 attribute: {ID: 0x0221, type: Zcl.DataType.INT16},
                 description: "Setting High Humidity Border",
+                access: "STATE_SET",
             }),
             m.numeric({
                 name: "low_humidity",
@@ -2408,6 +2534,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msRelativeHumidity",
                 attribute: {ID: 0x0222, type: Zcl.DataType.INT16},
                 description: "Setting Low Humidity Border",
+                access: "STATE_SET",
             }),
         ],
     },
@@ -2422,21 +2549,25 @@ export const definitions: DefinitionWithExtend[] = [
                 endpointNames: ["1"],
                 description: "Measured value of the built-in temperature sensor",
                 reporting: fourReporting,
+                access: "STATE",
             }),
             m.temperature({
                 endpointNames: ["2"],
                 description: "Measured value of the external temperature sensor",
                 reporting: fourReporting,
+                access: "STATE",
             }),
             m.humidity({
                 endpointNames: ["1"],
                 description: "Measured value of the built-in humidity sensor",
                 reporting: fourReporting,
+                access: "STATE",
             }),
             m.humidity({
                 endpointNames: ["2"],
                 description: "Measured value of the external humidity sensor",
                 reporting: fourReporting,
+                access: "STATE",
             }),
             m.battery({
                 percentage: true,
@@ -2478,7 +2609,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "uptime",
                 unit: "Hours",
                 cluster: "genTime",
-                attribute: "localTime",
+                attribute: "StandartTime",
                 description: "Uptime",
                 scale: 3600,
                 precision: 1,
@@ -2509,6 +2640,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: 0x0220, type: Zcl.DataType.BOOLEAN},
                 description: "Enable Temperature Control",
+                access: "STATE_SET",
             }),
             m.binary({
                 name: "switching_temperature_sensor",
@@ -2517,6 +2649,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: 0x0229, type: Zcl.DataType.BOOLEAN},
                 description: "Enable internal or external sensor control",
+                access: "STATE_SET",
             }),
             m.binary({
                 name: "invert_logic_temperature",
@@ -2525,6 +2658,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: 0x0225, type: Zcl.DataType.BOOLEAN},
                 description: "Invert Logic Temperature Control",
+                access: "STATE_SET",
             }),
             m.numeric({
                 name: "high_temperature",
@@ -2534,6 +2668,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: 0x0221, type: Zcl.DataType.INT16},
                 description: "Setting High Temperature Border",
+                access: "STATE_SET",
             }),
             m.numeric({
                 name: "low_temperature",
@@ -2543,6 +2678,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: 0x0222, type: Zcl.DataType.INT16},
                 description: "Setting Low Temperature Border",
+                access: "STATE_SET",
             }),
             m.binary({
                 name: "enable_humidity",
@@ -2551,6 +2687,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msRelativeHumidity",
                 attribute: {ID: 0x0220, type: Zcl.DataType.BOOLEAN},
                 description: "Enable Humidity Control",
+                access: "STATE_SET",
             }),
             m.binary({
                 name: "switching_humidity_sensor",
@@ -2559,6 +2696,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msRelativeHumidity",
                 attribute: {ID: 0x0229, type: Zcl.DataType.BOOLEAN},
                 description: "Enable internal or external sensor control",
+                access: "STATE_SET",
             }),
             m.binary({
                 name: "invert_logic_humidity",
@@ -2567,6 +2705,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msRelativeHumidity",
                 attribute: {ID: 0x0225, type: Zcl.DataType.BOOLEAN},
                 description: "Invert Logic Humidity Control",
+                access: "STATE_SET",
             }),
             m.numeric({
                 name: "high_humidity",
@@ -2576,6 +2715,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msRelativeHumidity",
                 attribute: {ID: 0x0221, type: Zcl.DataType.INT16},
                 description: "Setting High Humidity Border",
+                access: "STATE_SET",
             }),
             m.numeric({
                 name: "low_humidity",
@@ -2585,6 +2725,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msRelativeHumidity",
                 attribute: {ID: 0x0222, type: Zcl.DataType.INT16},
                 description: "Setting Low Humidity Border",
+                access: "STATE_SET",
             }),
         ],
     },
@@ -2599,21 +2740,25 @@ export const definitions: DefinitionWithExtend[] = [
                 endpointNames: ["1"],
                 description: "Measured value of the built-in temperature sensor",
                 reporting: fourReporting,
+                access: "STATE",
             }),
             m.temperature({
                 endpointNames: ["2"],
                 description: "Measured value of the external temperature sensor",
                 reporting: fourReporting,
+                access: "STATE",
             }),
             m.humidity({
                 endpointNames: ["1"],
                 description: "Measured value of the built-in humidity sensor",
                 reporting: fourReporting,
+                access: "STATE",
             }),
             m.humidity({
                 endpointNames: ["2"],
                 description: "Measured value of the external humidity sensor",
                 reporting: fourReporting,
+                access: "STATE",
             }),
             m.battery({
                 percentage: true,
@@ -2647,7 +2792,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "uptime",
                 unit: "Hours",
                 cluster: "genTime",
-                attribute: "localTime",
+                attribute: "StandartTime",
                 description: "Uptime",
                 scale: 3600,
                 precision: 1,
@@ -2678,6 +2823,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: 0x0220, type: Zcl.DataType.BOOLEAN},
                 description: "Enable Temperature Control",
+                access: "STATE_SET",
             }),
             m.binary({
                 name: "switching_temperature_sensor",
@@ -2686,6 +2832,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: 0x0229, type: Zcl.DataType.BOOLEAN},
                 description: "Enable internal or external sensor control",
+                access: "STATE_SET",
             }),
             m.binary({
                 name: "invert_logic_temperature",
@@ -2694,6 +2841,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: 0x0225, type: Zcl.DataType.BOOLEAN},
                 description: "Invert Logic Temperature Control",
+                access: "STATE_SET",
             }),
             m.numeric({
                 name: "high_temperature",
@@ -2703,6 +2851,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: 0x0221, type: Zcl.DataType.INT16},
                 description: "Setting High Temperature Border",
+                access: "STATE_SET",
             }),
             m.numeric({
                 name: "low_temperature",
@@ -2712,6 +2861,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: 0x0222, type: Zcl.DataType.INT16},
                 description: "Setting Low Temperature Border",
+                access: "STATE_SET",
             }),
             m.binary({
                 name: "enable_humidity",
@@ -2720,6 +2870,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msRelativeHumidity",
                 attribute: {ID: 0x0220, type: Zcl.DataType.BOOLEAN},
                 description: "Enable Humidity Control",
+                access: "STATE_SET",
             }),
             m.binary({
                 name: "switching_humidity_sensor",
@@ -2728,6 +2879,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msRelativeHumidity",
                 attribute: {ID: 0x0229, type: Zcl.DataType.BOOLEAN},
                 description: "Enable internal or external sensor control",
+                access: "STATE_SET",
             }),
             m.binary({
                 name: "invert_logic_humidity",
@@ -2736,6 +2888,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msRelativeHumidity",
                 attribute: {ID: 0x0225, type: Zcl.DataType.BOOLEAN},
                 description: "Invert Logic Humidity Control",
+                access: "STATE_SET",
             }),
             m.numeric({
                 name: "high_humidity",
@@ -2745,6 +2898,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msRelativeHumidity",
                 attribute: {ID: 0x0221, type: Zcl.DataType.INT16},
                 description: "Setting High Humidity Border",
+                access: "STATE_SET",
             }),
             m.numeric({
                 name: "low_humidity",
@@ -2754,6 +2908,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msRelativeHumidity",
                 attribute: {ID: 0x0222, type: Zcl.DataType.INT16},
                 description: "Setting Low Humidity Border",
+                access: "STATE_SET",
             }),
         ],
     },
@@ -5439,6 +5594,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: 0x0220, type: Zcl.DataType.BOOLEAN},
                 description: "Enable Temperature Control",
+                access: "STATE_SET",
             }),
             m.binary({
                 name: "invert_logic_temperature",
@@ -5447,6 +5603,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: 0x0225, type: Zcl.DataType.BOOLEAN},
                 description: "Invert Logic Temperature Control",
+                access: "STATE_SET",
             }),
             m.enumLookup({
                 name: "invert",
@@ -5464,6 +5621,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: 0x0221, type: Zcl.DataType.INT16},
                 description: "Setting High Temperature Border",
+                access: "STATE_SET",
             }),
             m.numeric({
                 name: "low_temperature",
@@ -5473,6 +5631,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: 0x0222, type: Zcl.DataType.INT16},
                 description: "Setting Low Temperature Border",
+                access: "STATE_SET",
             }),
             m.binary({
                 name: "enable_humidity",
@@ -5481,6 +5640,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msRelativeHumidity",
                 attribute: {ID: 0x0220, type: Zcl.DataType.BOOLEAN},
                 description: "Enable Humidity Control",
+                access: "STATE_SET",
             }),
             m.binary({
                 name: "invert_logic_humidity",
@@ -5489,6 +5649,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msRelativeHumidity",
                 attribute: {ID: 0x0225, type: Zcl.DataType.BOOLEAN},
                 description: "Invert Logic Humidity Control",
+                access: "STATE_SET",
             }),
             m.numeric({
                 name: "high_humidity",
@@ -5498,6 +5659,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msRelativeHumidity",
                 attribute: {ID: 0x0221, type: Zcl.DataType.INT16},
                 description: "Setting High Humidity Border",
+                access: "STATE_SET",
             }),
             m.numeric({
                 name: "low_humidity",
@@ -5507,6 +5669,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msRelativeHumidity",
                 attribute: {ID: 0x0222, type: Zcl.DataType.INT16},
                 description: "Setting Low Humidity Border",
+                access: "STATE_SET",
             }),
         ],
     },
@@ -5568,6 +5731,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: 0x0220, type: Zcl.DataType.BOOLEAN},
                 description: "Enable Temperature Control",
+                access: "STATE_SET",
             }),
             m.binary({
                 name: "invert_logic_temperature",
@@ -5576,6 +5740,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: 0x0225, type: Zcl.DataType.BOOLEAN},
                 description: "Invert Logic Temperature Control",
+                access: "STATE_SET",
             }),
             m.enumLookup({
                 name: "invert",
@@ -5593,6 +5758,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: 0x0221, type: Zcl.DataType.INT16},
                 description: "Setting High Temperature Border",
+                access: "STATE_SET",
             }),
             m.numeric({
                 name: "low_temperature",
@@ -5602,6 +5768,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: 0x0222, type: Zcl.DataType.INT16},
                 description: "Setting Low Temperature Border",
+                access: "STATE_SET",
             }),
             m.binary({
                 name: "enable_humidity",
@@ -5610,6 +5777,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msRelativeHumidity",
                 attribute: {ID: 0x0220, type: Zcl.DataType.BOOLEAN},
                 description: "Enable Humidity Control",
+                access: "STATE_SET",
             }),
             m.binary({
                 name: "invert_logic_humidity",
@@ -5618,6 +5786,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msRelativeHumidity",
                 attribute: {ID: 0x0225, type: Zcl.DataType.BOOLEAN},
                 description: "Invert Logic Humidity Control",
+                access: "STATE_SET",
             }),
             m.numeric({
                 name: "high_humidity",
@@ -5627,6 +5796,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msRelativeHumidity",
                 attribute: {ID: 0x0221, type: Zcl.DataType.INT16},
                 description: "Setting High Humidity Border",
+                access: "STATE_SET",
             }),
             m.numeric({
                 name: "low_humidity",
@@ -5636,6 +5806,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msRelativeHumidity",
                 attribute: {ID: 0x0222, type: Zcl.DataType.INT16},
                 description: "Setting Low Humidity Border",
+                access: "STATE_SET",
             }),
         ],
     },
