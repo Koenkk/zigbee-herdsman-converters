@@ -578,7 +578,7 @@ export const definitions: DefinitionWithExtend[] = [
                 ],
                 [
                     209,
-                    "cycle-schedule",
+                    "cycle_schedule",
                     {
                         to: (v, meta) => {
                             const stringValue = String(v || "");
