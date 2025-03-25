@@ -1,5 +1,24 @@
 # Changelog
 
+## [23.13.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.12.0...v23.13.0) (2025-03-25)
+
+
+### Features
+
+* **add:** S4SW-001X8EU https://github.com/Koenkk/zigbee-herdsman-converters/issues/9057 ([5a60855](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5a60855bd45a16d54d0bebd2bc744add75e8786a))
+* **add:** TS0601_dimmer_1_gang_3 https://github.com/Koenkk/zigbee2mqtt/issues/26526 ([60f5605](https://github.com/Koenkk/zigbee-herdsman-converters/commit/60f5605715fbd75d3aa0ca14d87962f983739885))
+* **add:** WS-K04E ([#9054](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9054)) ([8547aa5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8547aa5942ebaf2b518c54d17155755527d01930))
+* **add:** ZG-WK-DA-Wh-Zigbee ([#9058](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9058)) ([db9f408](https://github.com/Koenkk/zigbee-herdsman-converters/commit/db9f408abf87d6d6ccd45115ae056458db08c135))
+* **add:** ZMS-206EU-3 ([#9056](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9056)) ([ae43c5a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ae43c5a1ffb6324c58495462f4e23680a9cf64f6))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZE204_oh8y8pv8` as Tuya ZWT198/ZWT100-BH ([#9063](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9063)) ([f68a3b6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f68a3b620beeaabe24ad565f82ce9008a4bec562))
+* EFEKTA: various fixes ([#9055](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9055)) ([ab9edb4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ab9edb4a4a04b282eb966b12d8201faeb4985a3f))
+* Fix soil electrical conductivity unit is µS/cm (microsiemens per centimetre) ([#9061](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9061)) ([2831099](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2831099f376f5d2f3bcb1660bc5973e7d7e278fd))
+* Namron 4512788: disable effects and enable configuring reporting ([#9062](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9062)) ([24c0608](https://github.com/Koenkk/zigbee-herdsman-converters/commit/24c06080b7c0e31c1394aa3793a4959a875d3ff4))
+
 ## [23.12.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.11.0...v23.12.0) (2025-03-23)
 
 
