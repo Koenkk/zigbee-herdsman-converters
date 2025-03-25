@@ -510,7 +510,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.binary("output_switch", ea.STATE_SET, "ON", "OFF").withDescription("Output Switch"),
             e.numeric("output_time", ea.STATE_SET).withUnit("s").withValueMin(10).withValueMax(1800).withDescription("Output Times"),
             e.binary("led_switch", ea.STATE_SET, "ON", "OFF").withDescription("Led Switch"),
-            e.enum("lux_value", ea.STATE_SET, ["10 lux", "20 lux", "50 lux", "24h"]).withDescription("Lux Value"),
+            e.enum("lux_value", ea.STATE_SET, ["10_lux", "20_lux", "50_lux", "24h"]).withDescription("Lux Value"),
         ],
         meta: {
             tuyaDatapoints: [
