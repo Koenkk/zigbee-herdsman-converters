@@ -1500,7 +1500,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "4512788",
         vendor: "Namron",
         description: "Zigbee smart plug dimmer 150W",
-        extend: [m.light(), m.electricityMeter({cluster: "electrical"})],
+        extend: [m.light({effect: false, configureReporting: true}), m.electricityMeter({cluster: "electrical"})],
     },
     {
         zigbeeModel: ["4512783", "4512784"],
