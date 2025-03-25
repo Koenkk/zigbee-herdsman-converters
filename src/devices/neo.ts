@@ -375,7 +375,7 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
         exposes: [
-            e.numeric("ec", ea.STATE).withUnit("us/cm").withValueMin(0).withValueMax(20000).withDescription("Soil electrical conductivity"),
+            e.numeric("ec", ea.STATE).withUnit("µS/cm").withValueMin(0).withValueMax(20000).withDescription("Soil electrical conductivity"),
             e.enum("fertility", ea.STATE, ["normal", "lower", "low", "middle", "high", "higher"]).withDescription("Soil fertility"),
             e.numeric("humidity", ea.STATE).withUnit("%").withValueMin(0).withValueMax(100).withDescription("Soil humidity"),
             e.numeric("temperature", ea.STATE).withUnit("°C").withValueMin(-10).withValueMax(60).withDescription("Soil temperature"),
