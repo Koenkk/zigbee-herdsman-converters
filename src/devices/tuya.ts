@@ -2376,6 +2376,31 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_qzaing2g"]),
+        model: "TS0601_dimmer_1_gang_3",
+        vendor: "Tuya",
+        description: "1 gang smart dimmer",
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [tuya.exposes.lightBrightness(), e.voltage(), e.current(), e.power(), e.child_lock(), tuya.exposes.backlightModeOffOn()],
+        meta: {
+            tuyaDatapoints: [
+                [16, "backlight_mode", tuya.valueConverter.onOff],
+                [21, "current", tuya.valueConverter.divideBy1000],
+                [22, "power", tuya.valueConverter.divideBy10],
+                [23, "voltage", tuya.valueConverter.divideBy10],
+                [101, "child_lock", tuya.valueConverter.lockUnlock],
+                [141, "state", tuya.valueConverter.onOff, {skip: tuya.skip.stateOnAndBrightnessPresent}],
+                [142, "brightness", tuya.valueConverter.scale0_254to0_1000],
+                // Doesn't seem to work
+                // https://github.com/Koenkk/zigbee2mqtt/issues/26526#issuecomment-2749559071
+                // [143, "min_brightness", tuya.valueConverter.scale0_254to0_1000],
+                // [144, "max_brightness", tuya.valueConverter.scale0_254to0_1000],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_fjjbhx9d", "_TZE200_e3oitdyu", "_TZE200_gwkapsoq", "_TZE204_zenj4lxv"]),
         model: "TS0601_dimmer_2",
         vendor: "Tuya",
