@@ -3,11 +3,11 @@ import {repInterval} from "../src/lib/constants";
 import {fromZigbee as lumiFz} from "../src/lib/lumi";
 import {setupAttributes} from "../src/lib/modernExtend";
 import * as philips from "../src/lib/philips";
-import {assertDefintion, mockDevice, reportingItem} from "./utils";
+import {assertDefinition, mockDevice, reportingItem} from "./utils";
 
 describe("ModernExtend", () => {
     test("light({turnsOffAtBrightness1: true})", async () => {
-        await assertDefintion({
+        await assertDefinition({
             device: mockDevice({modelID: "FWG125Bulb50AU", endpoints: [{inputClusters: ["genOnOff", "genLevelCtrl"]}]}),
             meta: {turnsOffAtBrightness1: true},
             fromZigbee: [fz.on_off, fz.brightness, fz.ignore_basic_report, fz.level_config, fz.power_on_behavior],
@@ -37,7 +37,7 @@ describe("ModernExtend", () => {
     });
 
     test("light({colorTemp: {range: undefined}})", async () => {
-        await assertDefintion({
+        await assertDefinition({
             device: mockDevice({modelID: "TWGU10Bulb50AU", endpoints: [{inputClusters: ["genOnOff", "genLevelCtrl", "lightingColorCtrl"]}]}),
             meta: {},
             fromZigbee: [fz.on_off, fz.brightness, fz.ignore_basic_report, fz.level_config, fz.color_colortemp, fz.power_on_behavior],
@@ -80,7 +80,7 @@ describe("ModernExtend", () => {
     });
 
     test('light({color: {modes: ["xy", "hs"], applyRedFix: true}, colorTemp: {range: [153, 555], startup: false}, turnsOffAtBrightness1: true}', async () => {
-        await assertDefintion({
+        await assertDefinition({
             device: mockDevice({modelID: "OPL 130 C", endpoints: [{inputClusters: ["genOnOff", "genLevelCtrl", "lightingColorCtrl"]}]}),
             meta: {applyRedFix: true, supportsHueAndSaturation: true, turnsOffAtBrightness1: true},
             fromZigbee: [fz.on_off, fz.brightness, fz.ignore_basic_report, fz.level_config, fz.color_colortemp, fz.power_on_behavior],
@@ -127,7 +127,7 @@ describe("ModernExtend", () => {
     });
 
     test("light({color: true})", async () => {
-        await assertDefintion({
+        await assertDefinition({
             device: mockDevice({modelID: "ZBEK-1", endpoints: [{inputClusters: ["genOnOff", "genLevelCtrl", "lightingColorCtrl"]}]}),
             meta: {},
             fromZigbee: [fz.on_off, fz.brightness, fz.ignore_basic_report, fz.level_config, fz.color_colortemp, fz.power_on_behavior],
@@ -175,7 +175,7 @@ describe("ModernExtend", () => {
     });
 
     test("onOff({powerOnBehavior: false}), electricalMeasurements({current: {divisor: 1000}, voltage: {divisor: 1}, power: {divisor: 1}, energy: {divisor: 100}})", async () => {
-        await assertDefintion({
+        await assertDefinition({
             device: mockDevice({modelID: "SP 120", endpoints: [{inputClusters: ["genOnOff", "haElectricalMeasurement", "seMetering"]}]}),
             meta: undefined,
             fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering],
@@ -218,7 +218,7 @@ describe("ModernExtend", () => {
     });
 
     test(`philipsLight({gradient: {extraEffects: ['sparkle', 'opal', 'glisten']}, colorTemp: {range: [153, 500]}})`, async () => {
-        await assertDefintion({
+        await assertDefinition({
             device: mockDevice({
                 modelID: "LCX012",
                 endpoints: [{ID: 1, inputClusters: ["genOnOff", "genLevelCtrl", "lightingColorCtrl", "manuSpecificPhilips2"]}, {ID: 242}],
@@ -288,7 +288,7 @@ describe("ModernExtend", () => {
     });
 
     test(`ledvanceLight({configureReporting: true, endpoints: {'l1': 10, 'l2': 11, 's1': 25}, ota: true})`, async () => {
-        await assertDefintion({
+        await assertDefinition({
             device: mockDevice({
                 modelID: "Zigbee 3.0 DALI CONV LI",
                 endpoints: [
@@ -368,7 +368,7 @@ describe("ModernExtend", () => {
     });
 
     test("onOff({endpoints: {top: 1, bottom: 2}})", async () => {
-        await assertDefintion({
+        await assertDefinition({
             device: mockDevice({
                 modelID: "PM-S240R-ZB",
                 endpoints: [
@@ -397,7 +397,7 @@ describe("ModernExtend", () => {
     });
 
     test("VOCKQJK11LM", async () => {
-        await assertDefintion({
+        await assertDefinition({
             device: mockDevice({modelID: "lumi.airmonitor.acn01", endpoints: [{ID: 1, inputClusters: []}]}),
             meta: {battery: {voltageToPercentage: {min: 2850, max: 3000}}},
             fromZigbee: [

@@ -261,6 +261,41 @@ describe("ZHC", () => {
         expect(definition.model).toStrictEqual("BHT-002/BHT-006");
     });
 
+    it("finds definition by fingerprint - GP", async () => {
+        const device = mockDevice(
+            {
+                modelID: "GreenPower_7",
+                endpoints: [{ID: 242, profileID: undefined, deviceID: undefined, inputClusters: [], outputClusters: []}],
+            },
+            "GreenPower",
+            {
+                ieeeAddr: "0x0000000001511223",
+            },
+        );
+        const definition = await findByDevice(device);
+
+        expect(definition.model).toStrictEqual("PTM 216Z");
+    });
+
+    it("generates definition - GP - with no matching fingerprint from candidates", async () => {
+        const device = mockDevice(
+            {
+                modelID: "GreenPower_2",
+                endpoints: [{ID: 242, profileID: undefined, deviceID: undefined, inputClusters: [], outputClusters: []}],
+            },
+            "GreenPower",
+            {
+                ieeeAddr: "0x0000000052373160",
+            },
+        );
+
+        const definition = await findByDevice(device, true);
+        expect(definition.model).toStrictEqual("GreenPower_2");
+        expect(definition.vendor).toStrictEqual("");
+        expect(definition.description).toStrictEqual("Automatically generated definition for Green Power");
+        expect(definition.generated).toStrictEqual(true);
+    });
+
     it("allows definition with both modern extend and exposes as function", async () => {
         const device = mockDevice({modelID: "MOSZB-140", endpoints: []});
         const MOSZB140 = await findByDevice(device);
@@ -537,7 +572,7 @@ describe("ZHC", () => {
         const importRegex = /^import {definitions as .+} from "\.\/(.+)";$/gm;
         const imports = Array.from(index.matchAll(importRegex)).map((r) => r[1]);
         files.splice(files.indexOf("index"), 1);
-        expect(files).toEqual(imports);
+        expect(files.sort()).toStrictEqual(imports.sort());
     });
 
     it("instantiates list expose of composite type", () => {

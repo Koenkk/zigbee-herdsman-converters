@@ -4622,7 +4622,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_r0jdjrvi", "_TZE200_g5xqosu7", "_TZE204_g5xqosu7", "_TZE284_fzo2pocs"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_r0jdjrvi", "_TZE200_g5xqosu7", "_TZE204_g5xqosu7", "_TZE284_fzo2pocs", "_TZE200_9vpe3fl1"]),
         model: "TS0601_cover_8",
         vendor: "Tuya",
         description: "Cover motor",
@@ -4660,10 +4660,9 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
         whiteLabel: [
-            // https://www.amazon.ae/dp/B09JG92Z88
-            // Tuya ZigBee Intelligent Curtain Blind Switch Electric Motorized Curtain Roller
             tuya.whitelabel("Lilistore", "TS0601_lilistore", "Cover motor", ["_TZE204_r0jdjrvi"]),
             tuya.whitelabel("Zemismart", "ZM90E-DT250N/A400", "Window opener", ["_TZE204_r0jdjrvi"]),
+            tuya.whitelabel("Nova Digital", "CMR-1", "Roller Blind Motor", ["_TZE200_9vpe3fl1"]),
         ],
     },
     {
@@ -10002,7 +10001,9 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [
             e.light_brightness().withMinBrightness().withMaxBrightness().withEndpoint("l1"),
             e.light_brightness().withMinBrightness().withMaxBrightness().withEndpoint("l2"),
-            e.power_on_behavior().withAccess(ea.ALL),
+            e.power_on_behavior().withEndpoint("l1"),
+            e.power_on_behavior().withEndpoint("l2"),
+            tuya.exposes.lightType().withAccess(ea.ALL),
             tuya.exposes.switchType().withEndpoint("l1"),
             tuya.exposes.switchType().withEndpoint("l2"),
         ],
@@ -10319,7 +10320,7 @@ export const definitions: DefinitionWithExtend[] = [
                         .withValueMin(40)
                         .withValueMax(100)
                         .withValueStep(1)
-                        .withUnit("*C")
+                        .withUnit("°C")
                         .withDescription("High temperature threshold"),
                     e.binary("temperature_breaker", ea.STATE_SET, "ON", "OFF").withDescription("High temperature breaker"),
                 );
@@ -13542,7 +13543,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: [{modelID: "TS0601", manufacturerName: "_TZE284_6ocnqlhn"}],
-        model: "TO-Q-SYS-J2T",
+        model: "TO-Q-SYS-JZT",
         vendor: "Tongou",
         description: "Din rail smart meter",
         fromZigbee: [tuya.fz.datapoints, tuya.fz.gateway_connection_status],
@@ -14334,9 +14335,9 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_q22avxbv", "_TZE204_mrffaamu", "_TZE204_tzreobvu"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_q22avxbv", "_TZE204_mrffaamu", "_TZE204_tzreobvu", "_TZE284_mrffaamu"]),
         model: "TOQCB2-80",
-        vendor: "Tuya",
+        vendor: "Tongou",
         description: "Smart circuit breaker",
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
@@ -16470,5 +16471,39 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Tuya",
         description: "Battery powered light",
         extend: [m.battery(), m.light()],
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_atdqo4nj"]),
+        model: "ZG-WK-DA-Wh-Zigbee",
+        vendor: "Tuya",
+        description: "Wall thermostat with humidity sensor",
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.humidity(),
+            e.child_lock(),
+            //e.temperature_sensor_select(['internal', 'external', 'both']),
+            e
+                .climate()
+                .withSystemMode(["off", "heat"], ea.STATE_SET)
+                .withPreset(["manual", "auto"])
+                .withSetpoint("current_heating_setpoint", 5, 35, 0.5, ea.STATE_SET)
+                .withRunningState(["idle", "heat"], ea.STATE)
+                .withLocalTemperature(ea.STATE)
+                .withLocalTemperatureCalibration(-9, 9, 1, ea.STATE_SET),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "system_mode", tuya.valueConverterBasic.lookup({heat: true, off: false})],
+                [2, "current_heating_setpoint", tuya.valueConverter.divideBy10],
+                [3, "local_temperature", tuya.valueConverter.divideBy10],
+                [4, "preset", tuya.valueConverterBasic.lookup({manual: 0, auto: 1})],
+                [9, "child_lock", tuya.valueConverter.lockUnlock],
+                //[11, 'unknown', null],
+                [19, "local_temperature_calibration", tuya.valueConverterBasic.divideBy(1)],
+                [102, "running_state", tuya.valueConverterBasic.lookup({heat: 0, idle: 1})],
+            ],
+        },
     },
 ];

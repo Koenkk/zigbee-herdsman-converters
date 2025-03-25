@@ -623,7 +623,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "AE 270 T",
         vendor: "Innr",
         description: "E26/24 bulb 1100lm, dimmable, white spectrum",
-        extend: [m.light({colorTemp: {range: [154, 500]}, turnsOffAtBrightness1: true, powerOnBehavior: false})],
+        extend: [m.light({colorTemp: {range: [154, 500]}, turnsOffAtBrightness1: true})],
         ota: true,
     },
     {
