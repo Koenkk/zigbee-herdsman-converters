@@ -360,7 +360,7 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_k7v0eqke"]),
         model: "ZMS-206EU-3",
         vendor: "Zemismart",
-        description: "Smart Screen Switch 3 gang",
+        description: "Smart screen switch 3 gang",
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         onEvent: tuya.onEventSetTime, // Add this if you are getting no converter for 'commandMcuSyncTime'
@@ -385,7 +385,7 @@ export const definitions: DefinitionWithExtend[] = [
             e
                 .enum("switch_color_off", ea.STATE_SET, ["red", "blue", "green", "white", "yellow", "magenta", "cyan", "warm_white", "warm_yellow"])
                 .withDescription("Switch lightcolor when off"),
-            e.enum("indicator_status", ea.STATE_SET, ["Off", "on/off Status", "switch position"]).withDescription("Indicator Light Status"),
+            e.enum("indicator_status", ea.STATE_SET, ["off", "on_off_status", "switch_position"]).withDescription("Indicator Light Status"),
             e
                 .enum("delay_off_schedule", ea.STATE_SET, ["red", "blue", "green", "white", "yellow", "magenta", "cyan", "warm_white", "warm_yellow"])
                 .withDescription("Switch lightcolor while delayed"),
@@ -393,15 +393,15 @@ export const definitions: DefinitionWithExtend[] = [
             e.text("name", ea.STATE_SET).withEndpoint("l2").withDescription("Name for Switch 2"),
             e.text("name", ea.STATE_SET).withEndpoint("l3").withDescription("Name for Switch 3"),
             e
-                .enum("relay_status", ea.STATE_SET, ["Power-on", "Power-off", "Restart Memory"])
+                .enum("relay_status", ea.STATE_SET, ["power_on", "power_off", "restart_memory"])
                 .withEndpoint("l1")
                 .withDescription("Relay Status for Switch 1"),
             e
-                .enum("relay_status", ea.STATE_SET, ["Power-on", "Power-off", "Restart Memory"])
+                .enum("relay_status", ea.STATE_SET, ["power_on", "power_off", "restart_memory"])
                 .withEndpoint("l2")
                 .withDescription("Relay Status for Switch 2"),
             e
-                .enum("relay_status", ea.STATE_SET, ["Power-on", "Power-off", "Restart Memory"])
+                .enum("relay_status", ea.STATE_SET, ["power_on", "power_off", "restart_memory"])
                 .withEndpoint("l3")
                 .withDescription("Relay Status for Switch 3"),
             e
@@ -447,9 +447,9 @@ export const definitions: DefinitionWithExtend[] = [
                     15,
                     "indicator_status",
                     tuya.valueConverterBasic.lookup({
-                        Off: tuya.enum(0),
-                        "On/Off Status": tuya.enum(1),
-                        "Switch Position": tuya.enum(2),
+                        off: tuya.enum(0),
+                        "on_off_status": tuya.enum(1),
+                        "switch_position": tuya.enum(2),
                     }),
                 ],
                 [16, "backlight_mode", tuya.valueConverter.onOff],
@@ -473,27 +473,27 @@ export const definitions: DefinitionWithExtend[] = [
                     29,
                     "relay_status_l1",
                     tuya.valueConverterBasic.lookup({
-                        "Power-off": tuya.enum(0),
-                        "Power-on": tuya.enum(1),
-                        "Restart Memory": tuya.enum(2),
+                        "power_off": tuya.enum(0),
+                        "power_on": tuya.enum(1),
+                        "restart_memory": tuya.enum(2),
                     }),
                 ],
                 [
                     30,
                     "relay_status_l2",
                     tuya.valueConverterBasic.lookup({
-                        "Power-off": tuya.enum(0),
-                        "Power-on": tuya.enum(1),
-                        "Restart Memory": tuya.enum(2),
+                        "power_off": tuya.enum(0),
+                        "power_on": tuya.enum(1),
+                        "restart_memory": tuya.enum(2),
                     }),
                 ],
                 [
                     31,
                     "relay_status_l3",
                     tuya.valueConverterBasic.lookup({
-                        "Power-off": tuya.enum(0),
-                        "Power-on": tuya.enum(1),
-                        "Restart Memory": tuya.enum(2),
+                        "power_off": tuya.enum(0),
+                        "power_on": tuya.enum(1),
+                        "restart_memory": tuya.enum(2),
                     }),
                 ],
                 [101, "child_lock", tuya.valueConverter.lockUnlock],
