@@ -40,8 +40,8 @@ const fzLocal = {
         cluster: "msIlluminanceMeasurement",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
-            let result = 10 ** ((msg.data.measuredValue - 1) / 10000);
-            return { illuminance: result };
+            const result = 10 ** ((msg.data.measuredValue - 1) / 10000);
+            return {illuminance: result};
         },
     } satisfies Fz.Converter,
 };
@@ -328,18 +328,12 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [
-            { modelID: "C-ZB-SEWA", manufacturerName: "Candeo" }
-        ],
+        fingerprint: [{modelID: "C-ZB-SEWA", manufacturerName: "Candeo"}],
         model: "C-ZB-SEWA",
         vendor: "Candeo",
         description: "Candeo C-ZB-SEWA Water Sensor",
         extend: [m.battery()],
-        fromZigbee: [
-            fz.ias_enroll,
-            fz.ias_water_leak_alarm_1,
-            fz.ias_water_leak_alarm_1_report,
-        ],
+        fromZigbee: [fz.ias_enroll, fz.ias_water_leak_alarm_1, fz.ias_water_leak_alarm_1_report],
         exposes: [e.water_leak()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -352,11 +346,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "C-ZB-SETE",
         vendor: "Candeo",
         description: "Temperature & humidity sensor",
-        extend: [
-            m.temperature(),
-            m.humidity(),
-            m.battery(),
-        ],
+        extend: [m.temperature(), m.humidity(), m.battery()],
     },
     {
         fingerprint: [{modelID: "C-ZB-SEDC", manufacturerName: "Candeo"}],
@@ -364,10 +354,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Candeo",
         description: "Door contact sensor",
         extend: [m.battery()],
-        fromZigbee: [
-            fz.ias_contact_alarm_1, 
-            fz.ias_contact_alarm_1_report,
-        ],
+        fromZigbee: [fz.ias_contact_alarm_1, fz.ias_contact_alarm_1_report],
         exposes: [e.contact()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -381,20 +368,13 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Candeo",
         description: "Motion sensor",
         extend: [m.battery()],
-        fromZigbee: [
-            fz.ias_occupancy_alarm_1, 
-            fz.ias_occupancy_alarm_1_report, 
-            fzLocal.illuminance_report, 
-        ],
-        exposes: [
-            e.occupancy(), 
-            e.illuminance(), 
-        ],
+        fromZigbee: [fz.ias_occupancy_alarm_1, fz.ias_occupancy_alarm_1_report, fzLocal.illuminance_report],
+        exposes: [e.occupancy(), e.illuminance()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["ssIasZone", "msIlluminanceMeasurement"]);
             await endpoint.read("ssIasZone", ["zoneStatus"]);
-            await reporting.illuminance(endpoint, { min: 1, max: 65535, change: 1 });
+            await reporting.illuminance(endpoint, {min: 1, max: 65535, change: 1});
             await endpoint.read("msIlluminanceMeasurement", ["measuredValue"]);
         },
     },
