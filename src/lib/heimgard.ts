@@ -92,11 +92,14 @@ export const fromZigbee = {
 
             if (msg.data.lockState !== undefined) {
                 //Perform a lookup
-                if (isInteriorLocked && isExteriorLocked && msg.data.lockState === 2 && enforceLockingIfBogus) {
+                if (enforceLockingIfBogus && isInteriorLocked && isExteriorLocked && msg.data.lockState === 2) {
                     // In cases where the lockState reports unlocked while there is no history, we should perform a locking action to ensure that it is actually locked. This is to ensure that the state and physical state is correct. This is due to faulty product code.
                     void lock.convertSet(msg.endpoint, "state", "LOCK", null);
                     return;
                 }
+
+                result.state = msg.data.lockState === 1 ? "LOCK" : "UNLOCK";
+                result.lock_state = result.state === 1 ? "locked" : "unlocked";
             }
             return result;
         },
