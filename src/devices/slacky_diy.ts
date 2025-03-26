@@ -925,7 +925,7 @@ function waterPreset(): ModernExtend {
 export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["Tuya_CO2Sensor_r01"],
-        model: "Tuya_CO2Sensor_r01",
+        model: "SLACKY_DIY_CO2_SENSOR_R01",
         vendor: "Slacky-DIY",
         description: "Tuya CO2 sensor with custom Firmware",
         extend: [m.co2({reporting: co2Reporting})],
