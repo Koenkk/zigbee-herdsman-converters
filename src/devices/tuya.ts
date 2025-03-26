@@ -3517,19 +3517,33 @@ export const definitions: DefinitionWithExtend[] = [
          */
     },
     {
-        zigbeeModel: ["TS0043"],
-        model: "TS0043",
-        vendor: "Tuya",
-        description: "Wireless switch with 3 buttons",
-        whiteLabel: [
-            {vendor: "Smart9", model: "S9TSZGB"},
-            {vendor: "Lonsonho", model: "TS0043"},
-            {vendor: "LoraTap", model: "SS600ZB"},
-        ],
-        exposes: [e.battery(), e.action(["1_single", "1_double", "1_hold", "2_single", "2_double", "2_hold", "3_single", "3_double", "3_hold"])],
-        fromZigbee: [tuya.fz.on_off_action, fz.battery],
-        toZigbee: [],
-        configure: tuya.configureMagicPacket,
+            fingerprint: [{
+                modelID: 'TS0043',
+                manufacturerName: '_TZ3000_bi6lpsew',
+            }],
+            model: 'TS0043',
+            vendor: 'Tuya',
+            description: 'Wireless switch with 3 buttons',
+            fromZigbee: [fz.battery, {
+                cluster: 'genOnOff',
+                type: 'commandTuyaAction',
+                convert: (model, msg, publish, options, meta) => {
+                    const button = msg.endpoint.ID;
+                    const value = msg.data.value;
+                    let action;
+                    if (value === 0) action = 'single';
+                    else if (value === 1) action = 'double';
+                    else if (value === 2) action = 'hold';
+                    return {action: `${button}_${action}`};
+                },
+            }],
+            toZigbee: [],
+            exposes: [e.battery(), e.battery_voltage(), e.action(['1_single', '1_double', '1_hold',
+                                '2_single', '2_double', '2_hold',
+                                '3_single', '3_double', '3_hold'])],
+            meta: {
+                multiEndpoint: true,
+            },
         /*
          * reporting.batteryPercentageRemaining removed as it was causing devices to fall of the network
          * every 1 hour, with light flashing when it happened, extremely short battery life, 2 presses for
