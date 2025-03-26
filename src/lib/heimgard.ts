@@ -98,8 +98,9 @@ export const fromZigbee = {
                     return;
                 }
 
+                const lookup = ["not_fully_locked", "locked", "unlocked"];
                 result.state = msg.data.lockState === 1 ? "LOCK" : "UNLOCK";
-                result.lock_state = result.state === 1 ? "locked" : "unlocked";
+                result.lock_state = lookup[msg.data.lockState];
             }
             return result;
         },
