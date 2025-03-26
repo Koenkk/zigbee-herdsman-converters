@@ -1,3 +1,5 @@
+import assert from "node:assert";
+
 import type {Endpoint, Group} from "zigbee-herdsman/dist/controller/model";
 
 import * as constants from "./constants";
@@ -13,7 +15,8 @@ import {precisionRound} from "./utils";
 const e = exposes.presets;
 const ea = exposes.access;
 
-const sunricherManufacturerCode = 0x1224;
+const manufacturerCode = 0x1224;
+const allowedSwitchTypes = ["push_button", "normal_on_off", "three_way"];
 
 const tz = {
     setModel: {
@@ -26,7 +29,11 @@ const tz = {
 };
 
 const extend = {
-    externalSwitchType: (): ModernExtend => {
+    externalSwitchType: (switchTypes: string[] = allowedSwitchTypes): ModernExtend => {
+        for (const switchType of switchTypes) {
+            assert(allowedSwitchTypes.includes(switchType));
+        }
+
         const attribute = 0x8803;
         const data_type = 0x20;
         const value_map: {[key: number]: string} = {
@@ -62,31 +69,25 @@ const extend = {
                 key: ["external_switch_type"],
                 convertSet: async (entity, key, value: string, meta) => {
                     const numericValue = value_lookup[value] ?? Number.parseInt(value, 10);
-                    await entity.write(
-                        "genBasic",
-                        {[attribute]: {value: numericValue, type: data_type}},
-                        {manufacturerCode: sunricherManufacturerCode},
-                    );
+                    await entity.write("genBasic", {[attribute]: {value: numericValue, type: data_type}}, {manufacturerCode});
                     return {state: {external_switch_type: value}};
                 },
                 convertGet: async (entity, key, meta) => {
                     await entity.read("genBasic", [attribute], {
-                        manufacturerCode: sunricherManufacturerCode,
+                        manufacturerCode,
                     });
                 },
             } satisfies Tz.Converter,
         ];
 
-        const exposes: Expose[] = [
-            e.enum("external_switch_type", ea.ALL, ["push_button", "normal_on_off", "three_way"]).withLabel("External switch type"),
-        ];
+        const exposes: Expose[] = [e.enum("external_switch_type", ea.ALL, switchTypes).withLabel("External switch type")];
 
         const configure: [Configure] = [
             async (device, coordinatorEndpoint, definition) => {
                 const endpoint = device.getEndpoint(1);
                 try {
                     await endpoint.read("genBasic", [attribute], {
-                        manufacturerCode: sunricherManufacturerCode,
+                        manufacturerCode,
                     });
                 } catch (error) {
                     console.warn(`Failed to read external switch type attribute: ${error}`);
@@ -131,12 +132,12 @@ const extend = {
                     console.log("to ", value);
                     const numValue = typeof value === "string" ? Number.parseInt(value) : value;
                     const zgValue = Math.round(numValue * 5.1);
-                    await entity.write("genBasic", {[attribute]: {value: zgValue, type: data_type}}, {manufacturerCode: sunricherManufacturerCode});
+                    await entity.write("genBasic", {[attribute]: {value: zgValue, type: data_type}}, {manufacturerCode});
                     return {state: {minimum_pwm: numValue}};
                 },
                 convertGet: async (entity: Zh.Endpoint, key: string, meta) => {
                     await entity.read("genBasic", [attribute], {
-                        manufacturerCode: sunricherManufacturerCode,
+                        manufacturerCode,
                     });
                 },
             },
@@ -158,7 +159,7 @@ const extend = {
                 const endpoint = device.getEndpoint(1);
                 try {
                     await endpoint.read("genBasic", [attribute], {
-                        manufacturerCode: sunricherManufacturerCode,
+                        manufacturerCode,
                     });
                 } catch (error) {
                     console.warn(`Failed to read external switch type attribute: ${error}`);
