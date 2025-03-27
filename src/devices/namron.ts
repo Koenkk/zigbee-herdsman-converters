@@ -1639,7 +1639,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["1402790"],
         model: "1402790",
-        vendor: "NAMRON AS",
+        vendor: "Namron",
         description: "Stove guard for safe cooking",
         extend: [
             m.deviceEndpoints({endpoints: {main_switch: 1, short_override: 2}}),
