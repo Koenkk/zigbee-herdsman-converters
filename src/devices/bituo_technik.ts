@@ -20,7 +20,7 @@ const bituo_fz = {
                 const lowerField = field.toLowerCase();
                 if (
                     lowerField.includes("power") && // Fields containing "power" are included
-                    lowerField !== "powerfactor" // excluding "powerFactor" (case-sensitive, lowercase comparison）
+                    !lowerField.includes("powerfactor") // excluding "powerFactor" (case-sensitive, lowercase comparison）
                 ) {
                     if (msg.data[field] !== undefined) {
                         msg.data[field] = msg.data[field] * divisor;
