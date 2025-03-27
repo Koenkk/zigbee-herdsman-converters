@@ -7544,7 +7544,8 @@ export const definitions: DefinitionWithExtend[] = [
             }
         },
     },
-    {//Don not merge with _TZ3000_m3pafcnk! Otherwise, the wrong model will be identified, resulting in redundant endpoints and an error message.
+    {
+        //Don not merge with _TZ3000_m3pafcnk! Otherwise, the wrong model will be identified, resulting in redundant endpoints and an error message.
         fingerprint: tuya.fingerprint("TS0726", ["_TZ3002_9vcekkp1"]),
         model: "TS0726_multi_1_gang",
         vendor: "Tuya",
@@ -7594,7 +7595,8 @@ export const definitions: DefinitionWithExtend[] = [
             }
         },
     },
-    {//Don not merge with _TZ3000_qhyadm57! Otherwise, the wrong model will be identified, resulting in redundant endpoints and an error message.
+    {
+        //Don not merge with _TZ3000_qhyadm57! Otherwise, the wrong model will be identified, resulting in redundant endpoints and an error message.
         fingerprint: tuya.fingerprint("TS0726", ["_TZ3002_aewsvjcu"]),
         model: "TS0726_multi_4_gang",
         vendor: "Tuya",
