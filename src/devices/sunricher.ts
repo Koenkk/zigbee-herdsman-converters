@@ -477,7 +477,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SR-ZG2835RAC-UK",
         vendor: "Sunricher",
         description: "Push compatible zigBee knob smart dimmer",
-        extend: [m.light(), m.electricityMeter(), sunricher.extend.externalSwitchType()],
+        extend: [m.light(), m.electricityMeter(), sunricher.extend.externalSwitchType(["push_button", "normal_on_off"])],
     },
     {
         zigbeeModel: ["ZG2837RAC-K4"],
