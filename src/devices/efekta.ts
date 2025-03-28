@@ -5952,7 +5952,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Device lifetime in hours",
                 access: "STATE",
             }),
-			m.enumLookup({
+            m.enumLookup({
                 name: "resolution",
                 lookup: {"9 bit": 9, "10 bit": 10, "11 bit": 11, "12 bit": 12},
                 cluster: "msTemperatureMeasurement",
