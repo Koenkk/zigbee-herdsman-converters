@@ -7551,7 +7551,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0726", ["_TZ3002_9vcekkp1"]),
+        fingerprint: tuya.fingerprint("TS0726", ["_TZ3002_9vcekkp1", "_TZ3000_m4ah6bcz"]),
         model: "TS0726_multi_1_gang",
         vendor: "Tuya",
         description: "Multi 1 gang switch with backlight",
