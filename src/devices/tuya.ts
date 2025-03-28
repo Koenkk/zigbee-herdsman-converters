@@ -10404,6 +10404,7 @@ export const definitions: DefinitionWithExtend[] = [
                 electricalMeasurementsFzConverter: fzLocal.TS011F_electrical_measurement,
                 powerOutageMemory: true,
                 indicatorMode: true,
+                onOffCountdown: true,
             }),
         ],
         fromZigbee: [fz.temperature, fzLocal.TS011F_threshold],
