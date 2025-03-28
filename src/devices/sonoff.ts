@@ -1312,6 +1312,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueStep: 0.1,
                 unit: "°C",
                 scale: 100,
+                precision: 1,
             }),
             m.numeric({
                 name: "idle_steps",

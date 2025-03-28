@@ -255,6 +255,7 @@ import {definitions as securifi} from "./securifi";
 import {definitions as sengled} from "./sengled";
 import {definitions as sercomm} from "./sercomm";
 import {definitions as shadeControl} from "./shade_control";
+import {definitions as shelly} from "./shelly";
 import {definitions as shenzhenHoma} from "./shenzhen_homa";
 import {definitions as shinasystem} from "./shinasystem";
 import {definitions as shyugj} from "./shyugj";
@@ -264,6 +265,7 @@ import {definitions as simon} from "./simon";
 import {definitions as sinope} from "./sinope";
 import {definitions as siterwell} from "./siterwell";
 import {definitions as skydance} from "./skydance";
+import {definitions as slackyDiy} from "./slacky_diy";
 import {definitions as slv} from "./slv";
 import {definitions as smart9} from "./smart9";
 import {definitions as smartHomePty} from "./smart_home_pty";
@@ -572,6 +574,7 @@ const definitions: DefinitionWithExtend[] = [
     ...rgbGenie,
     ...robb,
     ...roome,
+    ...lumi,
     ...rtx,
     ...salusControls,
     ...samotech,
@@ -586,6 +589,7 @@ const definitions: DefinitionWithExtend[] = [
     ...sengled,
     ...sercomm,
     ...shadeControl,
+    ...shelly,
     ...shenzhenHoma,
     ...shinasystem,
     ...shyugj,
@@ -595,10 +599,11 @@ const definitions: DefinitionWithExtend[] = [
     ...sinope,
     ...siterwell,
     ...skydance,
+    ...slackyDiy,
     ...slv,
-    ...smartHomePty,
     ...smart9,
     ...smartenit,
+    ...smartHomePty,
     ...smartthings,
     ...smartwings,
     ...smlight,
@@ -630,7 +635,6 @@ const definitions: DefinitionWithExtend[] = [
     ...tuya,
     ...ubisys,
     ...uhome,
-    ...lumi,
     ...universalElectronicsInc,
     ...vbled,
     ...vesternet,

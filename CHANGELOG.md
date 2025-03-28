@@ -1,5 +1,44 @@
 # Changelog
 
+## [23.14.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.13.0...v23.14.0) (2025-03-27)
+
+
+### Features
+
+* **add:** 1402790 ([#9079](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9079)) ([28b0ed4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/28b0ed4915d7c0f0a0aac63b11017ed14d0a2cbb))
+* **add:** feat(add): SLACKY_DIY_CO2_SENSOR_R01, Watermeter_TLSR8258, Smoke Sensor TLSR8258, Electricity Meter TLSR8258, THERM_SLACKY_DIY_R01, THERM_SLACKY_DIY_R02, THERM_SLACKY_DIY_R03, THERM_SLACKY_DIY_R04, THERM_SLACKY_DIY_R05, THERM_SLACKY_DIY_R06, THERM_SLACKY_DIY_R07, THERM_SLACKY_DIY_R08 ([#8949](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8949)) ([9206ecc](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9206eccf1644dd385afdf8bbd0070c9bf01cccf6))
+* **add:** Push_LE, Push_LO ([#9073](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9073)) ([4e23f72](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4e23f72096d3064853486120b8a33d22b426b3c2))
+* **add:** Push_LE, Push_LO ([#9082](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9082)) ([a43635a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a43635ad52494a84da28e4d5888f21a756eebc6b))
+* **add:** SPM02-U00, SDM02-U00, SPM01-U00, SPM02-U02, SDM02-U02 ([#9069](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9069)) ([9f1e179](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9f1e179142501fb7647b2664f984edc38c67656b))
+* **add:** TS0726_multi_1_gang, TS0726_multi_4_gang ([#9077](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9077)) ([3ec928e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3ec928eb1f2fbf06dcd85522dcc4a3074ace5695))
+* **add:** TS0726_multi_3_gang ([#9066](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9066)) ([2a66be2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2a66be223df055f3b04e9a912f573508a9519c90))
+
+
+### Bug Fixes
+
+* Fix the issue of incorrectly identifying powerFactor Phase B/Phase C ([#9074](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9074)) ([f529236](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f5292368d1bc54fd011914633b1fe849dc05f10e))
+* NEO NAS-PS10B2: fix `lux_value` ([#9064](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9064)) ([5182726](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5182726dcbb2053fb390ccdd947b404f2cf18833))
+* Sonoff TRVZB: fix rounding of externalTemperatureInput ([#9072](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9072)) ([e7f477e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e7f477ebb76f5020fc2a70cfca5a27735b1a0d8f))
+
+## [23.13.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.12.0...v23.13.0) (2025-03-25)
+
+
+### Features
+
+* **add:** S4SW-001X8EU https://github.com/Koenkk/zigbee-herdsman-converters/issues/9057 ([5a60855](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5a60855bd45a16d54d0bebd2bc744add75e8786a))
+* **add:** TS0601_dimmer_1_gang_3 https://github.com/Koenkk/zigbee2mqtt/issues/26526 ([60f5605](https://github.com/Koenkk/zigbee-herdsman-converters/commit/60f5605715fbd75d3aa0ca14d87962f983739885))
+* **add:** WS-K04E ([#9054](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9054)) ([8547aa5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8547aa5942ebaf2b518c54d17155755527d01930))
+* **add:** ZG-WK-DA-Wh-Zigbee ([#9058](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9058)) ([db9f408](https://github.com/Koenkk/zigbee-herdsman-converters/commit/db9f408abf87d6d6ccd45115ae056458db08c135))
+* **add:** ZMS-206EU-3 ([#9056](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9056)) ([ae43c5a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ae43c5a1ffb6324c58495462f4e23680a9cf64f6))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZE204_oh8y8pv8` as Tuya ZWT198/ZWT100-BH ([#9063](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9063)) ([f68a3b6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f68a3b620beeaabe24ad565f82ce9008a4bec562))
+* EFEKTA: various fixes ([#9055](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9055)) ([ab9edb4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ab9edb4a4a04b282eb966b12d8201faeb4985a3f))
+* Fix soil electrical conductivity unit is µS/cm (microsiemens per centimetre) ([#9061](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9061)) ([2831099](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2831099f376f5d2f3bcb1660bc5973e7d7e278fd))
+* Namron 4512788: disable effects and enable configuring reporting ([#9062](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9062)) ([24c0608](https://github.com/Koenkk/zigbee-herdsman-converters/commit/24c06080b7c0e31c1394aa3793a4959a875d3ff4))
+
 ## [23.12.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.11.0...v23.12.0) (2025-03-23)
 
 
