@@ -1,5 +1,22 @@
 # Changelog
 
+## [23.15.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.14.0...v23.15.0) (2025-03-28)
+
+
+### Features
+
+* **add:** 929003777301 ([#9084](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9084)) ([eb466ac](https://github.com/Koenkk/zigbee-herdsman-converters/commit/eb466acd15143293eb71d500f3f60848ffa4fb86))
+* **add:** Egony_Flower ([#9085](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9085)) ([2a46236](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2a46236afffd849cea3ee3362470a41e9b3efc26))
+* **add:** PZ2 ([#9083](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9083)) ([331654e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/331654e11b605127989047acdae5216f80a66c3c))
+* **add:** ZSS-S01-TH https://github.com/Koenkk/zigbee2mqtt/issues/25849 ([0a49588](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0a49588fe5c514fbfa80633ed8b626d0fe8da401))
+* **add:** ZTH08 ([#9090](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9090)) ([2b146b9](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2b146b9069f72ddbf43c5842e11fc4e73128c37d))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3000_m4ah6bcz` as Tuya TS0726_multi_1_gang ([#9089](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9089)) ([2a7ca11](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2a7ca1131af42ce2442ca3345e39670ded2224ce))
+* Tuya TS011F_with_threshold: enable onOffCountdown ([#9086](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9086)) ([63e418d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/63e418d0ddcd24b520dcf169699f3a76050af8e2))
+
 ## [23.14.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.13.0...v23.14.0) (2025-03-27)
 
 
