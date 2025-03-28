@@ -1096,6 +1096,7 @@ describe("OTA", () => {
 
     describe("Updating", () => {
         it("fails to get latest manifest", async () => {
+            const consoleInfoSpy = vi.spyOn(console, "info");
             fetchReturnedStatus.ok = false;
             fetchReturnedStatus.status = 429;
             const [device, image] = await getBoschDevice(-1);
@@ -1103,10 +1104,14 @@ describe("OTA", () => {
 
             await vi.runAllTimersAsync();
 
-            await expect(result).rejects.toThrow(`Invalid response from ${ZIGBEE_OTA_LATEST_URL} status=429.`);
+            await expect(result).resolves.toStrictEqual(undefined);
+            expect(consoleInfoSpy).toHaveBeenCalledWith(
+                expect.stringContaining(`No image currently available (Invalid response from ${ZIGBEE_OTA_LATEST_URL} status=429.)`),
+            );
         });
 
         it("fails to get previous manifest", async () => {
+            const consoleInfoSpy = vi.spyOn(console, "info");
             fetchReturnedStatus.ok = false;
             fetchReturnedStatus.status = 403;
             const [device, image] = await getInovelliDevice(-1);
@@ -1114,10 +1119,14 @@ describe("OTA", () => {
 
             await vi.runAllTimersAsync();
 
-            await expect(result).rejects.toThrow(`Invalid response from ${ZIGBEE_OTA_PREVIOUS_URL} status=403.`);
+            await expect(result).resolves.toStrictEqual(undefined);
+            expect(consoleInfoSpy).toHaveBeenCalledWith(
+                expect.stringContaining(`No image currently available (Invalid response from ${ZIGBEE_OTA_PREVIOUS_URL} status=403.)`),
+            );
         });
 
         it("fails to get firmware file from URL", async () => {
+            const consoleInfoSpy = vi.spyOn(console, "info");
             const [device, image] = await getInnrDevice(-1);
 
             // first call is to manifest, let that resolve
@@ -1139,10 +1148,14 @@ describe("OTA", () => {
 
             await vi.runAllTimersAsync();
 
-            await expect(result).rejects.toThrow(`Invalid response from ${INNR_BASE_URL} status=200.`);
+            await expect(result).resolves.toStrictEqual(undefined);
+            expect(consoleInfoSpy).toHaveBeenCalledWith(
+                expect.stringContaining(`No image currently available (Invalid response from ${INNR_BASE_URL} status=200.)`),
+            );
         });
 
         it("executes workaround for Securifi modelID=PP-WHT-US to trigger OTA with genScenes cluster", async () => {
+            const consoleInfoSpy = vi.spyOn(console, "info");
             // same version, short-circuit since tested logic already done
             const [device, image] = await getSecurifiDevice(0);
             const mockEndpointWrite = vi.fn();
@@ -1157,7 +1170,8 @@ describe("OTA", () => {
 
             await vi.runAllTimersAsync();
 
-            await expect(result).rejects.toThrow("No new image available");
+            await expect(result).resolves.toStrictEqual(undefined);
+            expect(consoleInfoSpy).toHaveBeenCalledWith(expect.stringContaining("No image currently available (No new image available)"));
             expect(mockEndpointWrite).toHaveBeenCalledTimes(1);
             expect(mockEndpointWrite).toHaveBeenCalledWith("genScenes", {currentGroup: 49502});
         });
