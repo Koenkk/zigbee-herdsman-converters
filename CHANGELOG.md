@@ -1,5 +1,12 @@
 # Changelog
 
+## [23.15.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.15.0...v23.15.1) (2025-03-29)
+
+
+### Bug Fixes
+
+* Tuya TYZGTH1CH-D1RF: auto settings ([#9091](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9091)) ([3cd11cc](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3cd11cce570a92db10ed34533df27905230661a6))
+
 ## [23.15.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.14.0...v23.15.0) (2025-03-28)
 
 
