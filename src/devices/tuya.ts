@@ -769,102 +769,6 @@ const fzLocal = {
     } satisfies Fz.Converter,
 };
 
-const modernExtendLocal = {
-    dpTHZBSettings(): ModernExtend {
-        const exp = e
-            .composite("auto_settings", "auto_settings", ea.STATE_SET)
-            .withFeature(e.enum("enabled", ea.STATE_SET, ["on", "off", "none"]).withDescription("Enable auto settings"))
-            .withFeature(e.enum("temp_greater_then", ea.STATE_SET, ["on", "off", "none"]).withDescription("Greater action"))
-            .withFeature(
-                e
-                    .numeric("temp_greater_value", ea.STATE_SET)
-                    .withValueMin(-20)
-                    .withValueMax(80)
-                    .withValueStep(0.1)
-                    .withUnit("*C")
-                    .withDescription("Temperature greater than value"),
-            )
-            .withFeature(e.enum("temp_lower_then", ea.STATE_SET, ["on", "off", "none"]).withDescription("Lower action"))
-            .withFeature(
-                e
-                    .numeric("temp_lower_value", ea.STATE_SET)
-                    .withValueMin(-20)
-                    .withValueMax(80)
-                    .withValueStep(0.1)
-                    .withUnit("*C")
-                    .withDescription("Temperature lower than value"),
-            );
-
-        const handlers: [Fz.Converter[], Tz.Converter[]] = tuya.getHandlersForDP("auto_settings", 0x77, tuya.dataTypes.string, {
-            from: (value: string) => {
-                let result = {
-                    enabled: "none",
-                    temp_greater_then: "none",
-                    temp_greater_value: 0,
-                    temp_lower_then: "none",
-                    temp_lower_value: 0,
-                };
-                const buf = Buffer.from(value, "hex");
-                if (buf.length > 0) {
-                    const enabled = buf[0];
-                    const gr = buf[1];
-                    const grValue = buf.readInt32LE(2) / 10;
-                    const grAction = buf[6];
-                    const lo = buf[7];
-                    const loValue = buf.readInt32LE(8) / 10;
-                    const loAction = buf[13];
-                    result = {
-                        enabled: {0: "on", 128: "off"}[enabled],
-                        temp_greater_then: gr !== 0xff ? {1: "on", 0: "off"}[grAction] : "none",
-                        temp_greater_value: grValue,
-                        temp_lower_then: lo !== 0xff ? {1: "on", 0: "off"}[loAction] : "none",
-                        temp_lower_value: loValue,
-                    };
-                }
-                return result;
-            },
-            to: (value: KeyValueAny) => {
-                let result = "";
-                if (value.enabled !== "none") {
-                    const enabled = utils.getFromLookup(value.enabled, {
-                        on: 0x00,
-                        off: 0x80,
-                    });
-                    const gr = value.temp_greater_then === "none" ? 0xff : 0x00;
-                    const grAction = utils.getFromLookup(value.temp_greater_then, {
-                        on: 0x01,
-                        off: 0x00,
-                        none: 0x00,
-                    });
-                    const lo = value.temp_lower_then === "none" ? 0xff : 0x00;
-                    const loAction = utils.getFromLookup(value.temp_lower_then, {
-                        on: 0x01,
-                        off: 0x00,
-                        none: 0x00,
-                    });
-                    const buf = Buffer.alloc(13);
-                    buf.writeUInt8(enabled, 0);
-                    buf.writeUInt8(gr, 1);
-                    buf.writeInt32LE(value.temp_greater_value * 10, 2);
-                    buf.writeUInt8(grAction, 6);
-                    buf.writeUInt8(lo, 7);
-                    buf.writeInt32LE(value.temp_lower_value * 10, 8);
-                    buf.writeUInt8(loAction, 12);
-                    result = buf.toString("hex");
-                }
-                return result;
-            },
-        });
-
-        return {
-            exposes: [exp],
-            fromZigbee: handlers[0],
-            toZigbee: handlers[1],
-            isModernExtend: true,
-        };
-    },
-};
-
 export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["TS0204"],
@@ -14364,9 +14268,9 @@ export const definitions: DefinitionWithExtend[] = [
                 type: tuya.dataTypes.enum,
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
-                description: "Manual mode or automatic",
+                description: "Manual mode, ON = auto settings disabled, OFF = auto settings enabled",
             }),
-            modernExtendLocal.dpTHZBSettings(),
+            tuya.modernExtend.dpTHZBSettings(),
         ],
     },
     {
