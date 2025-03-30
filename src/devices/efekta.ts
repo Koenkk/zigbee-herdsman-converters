@@ -6040,7 +6040,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Night mode deactivation time",
                 access: "STATE_SET",
             }),
-			m.numeric({
+            m.numeric({
                 name: "contrast",
                 valueMin: 0,
                 valueMax: 40,
@@ -6128,7 +6128,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
         ],
     },
-	{
+    {
         zigbeeModel: ["EFEKTA_Pixel_Open_Air"],
         model: "EFEKTA_Pixel_Open_Air",
         vendor: "EFEKTA",
@@ -6185,7 +6185,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Night mode deactivation time",
                 access: "STATE_SET",
             }),
-			m.numeric({
+            m.numeric({
                 name: "contrast",
                 valueMin: 0,
                 valueMax: 40,
@@ -6226,7 +6226,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Automatic calibration of the CO2 sensor",
                 access: "STATE_SET",
             }),
-			m.binary({
+            m.binary({
                 name: "forced_recalibration_on_air",
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
