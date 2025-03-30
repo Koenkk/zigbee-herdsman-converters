@@ -1,5 +1,22 @@
 # Changelog
 
+## [23.16.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.15.0...v23.16.0) (2025-03-30)
+
+
+### Features
+
+* **add:** 929003056801 ([#9094](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9094)) ([d595176](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d595176ef74771625bc7a9098414a30a35346dc4))
+* **add:** EFEKTA_Pixel_Open_Air_II ([#9096](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9096)) ([4ef31b0](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4ef31b0e139a269ec38b3b2412e4fb3949bc2ec4))
+* **add:** SR-ZG9101CS ([#9080](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9080)) ([8894142](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8894142a83bedafe65eebac1fb4498922ccaa869))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZE200_clrdrnya` as Tuya MTG235-ZB-RL https://github.com/Koenkk/zigbee2mqtt/discussions/25712 ([3976c8d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3976c8db0c3ce5e76b11d8f8e628a61156957a06))
+* **ignore:** update dependencies ([#9093](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9093)) ([2e048d0](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2e048d0d4207a7b5c2854292e8a23247d34b08b3))
+* Schneider S520567: expose tilt ([#9095](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9095)) ([23074f1](https://github.com/Koenkk/zigbee-herdsman-converters/commit/23074f17702c7154187ac351a9af84405efe2e89))
+* Tuya TYZGTH1CH-D1RF: auto settings ([#9091](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9091)) ([3cd11cc](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3cd11cce570a92db10ed34533df27905230661a6))
+
 ## [23.15.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.14.0...v23.15.0) (2025-03-28)
 
 
