@@ -72,6 +72,7 @@ function mockEndpoint(args: MockEndpointArgs, device: Zh.Device | undefined): Zh
         bind: vi.fn(),
         configureReporting: vi.fn(),
         read: vi.fn(),
+        command: vi.fn(),
         getDevice: () => device,
         inputClusters,
         outputClusters,
