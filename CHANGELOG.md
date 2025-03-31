@@ -1,5 +1,18 @@
 # Changelog
 
+## [23.17.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.16.0...v23.17.0) (2025-03-31)
+
+
+### Features
+
+* Tuya TS110E_1gang_2: expose countdown https://github.com/Koenkk/zigbee2mqtt/issues/26791 ([c37e999](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c37e999e75254ca44e64dd35ee8cfaabd2a776be))
+
+
+### Bug Fixes
+
+* Paulmann 501.34: fix action values [#9075](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9075) ([#9099](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9099)) ([8eb7016](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8eb7016652da620ddafd1ffcf646c6a2d0cd2b6d))
+* Philips Hue Wall Switch 929003017102: re-add brightness actions ([#9098](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9098)) ([b41b7c6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b41b7c62e9d7e430d61c20718d9a018ec63db334))
+
 ## [23.16.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.15.0...v23.16.0) (2025-03-30)
 
 

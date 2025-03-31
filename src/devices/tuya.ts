@@ -1,3 +1,4 @@
+import {Zcl} from "zigbee-herdsman";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as libColor from "../lib/color";
@@ -244,6 +245,15 @@ const convLocal = {
 };
 
 const tzLocal = {
+    ts110eCountdown: {
+        key: ["countdown"],
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertNumber(value);
+            const data = Buffer.alloc(4);
+            data.writeUInt32LE(value);
+            await entity.command("genOnOff", "tuyaCountdown", {data});
+        },
+    } satisfies Tz.Converter,
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     TS030F_border: {
         key: ["border"],
@@ -9941,12 +9951,30 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         ota: true,
         fromZigbee: [fz.TS110E, fz.TS110E_light_type, tuya.fz.power_on_behavior_1, fz.on_off],
-        toZigbee: [tz.TS110E_onoff_brightness, tz.TS110E_options, tuya.tz.power_on_behavior_1, tz.light_brightness_move],
-        exposes: [
-            e.light_brightness().withMinBrightness().withMaxBrightness(),
-            tuya.exposes.lightType().withAccess(ea.ALL),
-            e.power_on_behavior().withAccess(ea.ALL),
-            tuya.exposes.switchType(),
+        toZigbee: [tz.TS110E_onoff_brightness, tz.TS110E_options, tuya.tz.power_on_behavior_1, tz.light_brightness_move, tzLocal.ts110eCountdown],
+        exposes: (device, options) => {
+            // https://github.com/Koenkk/zigbee2mqtt/issues/26791#issuecomment-2765734859
+            const countdownValueStep = device?.manufacturerName === "_TZ3210_ngqk6jia" ? 30 : 1;
+            return [
+                e.light_brightness().withMinBrightness().withMaxBrightness(),
+                tuya.exposes.lightType().withAccess(ea.ALL),
+                e.power_on_behavior().withAccess(ea.ALL),
+                tuya.exposes.switchType(),
+                tuya.exposes.countdown().withValueStep(countdownValueStep),
+            ];
+        },
+        extend: [
+            m.deviceAddCustomCluster("genOnOff", {
+                ID: Zcl.Clusters.genOnOff.ID,
+                attributes: {},
+                commands: {
+                    tuyaCountdown: {
+                        ID: 0xf0,
+                        parameters: [{name: "data", type: 1008 /* BUFFER */}],
+                    },
+                },
+                commandsResponse: {},
+            }),
         ],
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
