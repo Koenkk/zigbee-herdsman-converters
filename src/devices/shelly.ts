@@ -10,10 +10,10 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.onOff({powerOnBehavior: false})],
     },
     {
-        zigbeeModel: ['1'],
-        model: 'S4SW-001X16EU',
-        vendor: 'Shelly',
-        description: 'Shelly 1 gen 4',
-        extend: [m.onOff({"powerOnBehavior":false})],
-    }
+        zigbeeModel: ["1"],
+        model: "S4SW-001X16EU",
+        vendor: "Shelly",
+        description: "Shelly 1 gen 4",
+        extend: [m.onOff({powerOnBehavior: false})],
+    },
 ];
