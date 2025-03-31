@@ -13,7 +13,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["1"],
         model: "S4SW-001X16EU",
         vendor: "Shelly",
-        description: "Shelly 1 gen 4",
+        description: "1 gen 4",
         extend: [m.onOff({powerOnBehavior: false})],
     },
 ];
