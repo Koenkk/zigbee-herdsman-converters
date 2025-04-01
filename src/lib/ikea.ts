@@ -838,6 +838,7 @@ export const unfreezeMechanisms: {
     // Color lights:
     //   Do not support this command.
     moveColorTemp: async function (this: {entity: Endpoint | Group}) {
+        logger.debug("unfreezing ikea bulb via moveColorTemp", NS);
         await this.entity.command("lightingColorCtrl", "moveColorTemp", {rate: 1, movemode: 0, minimum: 0, maximum: 600}, {});
     },
 
@@ -847,6 +848,7 @@ export const unfreezeMechanisms: {
     //   Finishes the color transition instantly: light will instantly
     //   "fast forward" to the final state, post-transition.
     genLevelCtrl: async function (this: {entity: Endpoint | Group}) {
+        logger.debug("unfreezing ikea bulb via genLevelCtrl", NS);
         await this.entity.command("genLevelCtrl", "stop", {}, {});
     },
 };
@@ -870,6 +872,7 @@ const ikea_bulb_unfreeze: Tz.Converter = {
 
         const wasFrozenUntil: number | null = globalStore.getValue(entity, "frozenUntil");
         if (wasFrozenUntil != null && now <= wasFrozenUntil) {
+            logger.debug(`bulb is frozen until ${new Date(wasFrozenUntil).toISOString()}`, NS);
             // need to unfreeze the light
             await unfreezeMechanisms.moveColorTemp.call(entity);
         }
@@ -879,8 +882,11 @@ const ikea_bulb_unfreeze: Tz.Converter = {
             const millis = message.transtime * 100;
             const frozenUntil = Date.now() + millis;
 
+            logger.debug(`marking bulb as frozen until ${new Date(frozenUntil).toISOString()}`, NS);
+
             globalStore.putValue(entity, "frozenUntil", frozenUntil);
         } else if (wasFrozenUntil != null) {
+            logger.debug("marking bulb as unfrozen", NS);
             globalStore.clearValue(entity, "frozenUntil");
         }
     },
