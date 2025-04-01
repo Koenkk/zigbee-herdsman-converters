@@ -10,10 +10,10 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.onOff({powerOnBehavior: false})],
     },
     {
-        zigbeeModel: ["1"],
+        fingerprint: [{modelID: "1", manufacturerName: "Shelly"}],
         model: "S4SW-001X16EU",
         vendor: "Shelly",
-        description: "1 Gen 4",
+        description: "1 gen 4",
         extend: [m.onOff({powerOnBehavior: false})],
     },
     {
@@ -31,4 +31,6 @@ export const definitions: DefinitionWithExtend[] = [
         description: "1PM Gen 4",
         extend: [m.onOff({powerOnBehavior: false}), m.electricityMeter({energy: false, producedEnergy: true, acFrequency: true})],
   },
+
+    
 ];
