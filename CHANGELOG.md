@@ -1,5 +1,17 @@
 # Changelog
 
+## [23.19.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.18.0...v23.19.0) (2025-04-01)
+
+
+### Features
+
+* **add:** S4SW-001P8EU, S4SW-001P16EU ([#9107](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9107)) ([e806be7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e806be7fea6cb8dc8656a94a95c78f05e2a2ff17))
+
+
+### Bug Fixes
+
+* Fix GL-C-007-2ID not being detected correctly ([#9103](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9103)) ([458adf7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/458adf705043b238cf95f6aab72ac66813107792))
+
 ## [23.18.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.17.0...v23.18.0) (2025-04-01)
 
 
