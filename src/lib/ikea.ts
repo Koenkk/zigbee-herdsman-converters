@@ -1,7 +1,7 @@
 import * as semver from "semver";
 
 import {Zcl} from "zigbee-herdsman";
-import {Endpoint, Group} from "zigbee-herdsman/dist/controller/model";
+import type {Endpoint, Group} from "zigbee-herdsman/dist/controller/model";
 
 import * as tz from "../converters/toZigbee";
 import * as constants from "../lib/constants";
@@ -87,6 +87,9 @@ export function ikeaLight(args?: Omit<m.LightArgs, "colorTemp"> & {colorTemp?: t
     const result = m.light({...args, colorTemp, levelConfig});
     result.ota = true;
     result.onEvent = [bulbOnEvent];
+
+    result.toZigbee.unshift(ikea_bulb_unfreeze);
+
     if (isObject(args?.colorTemp) && args.colorTemp.viaColor) {
         result.toZigbee = replaceToZigbeeConvertersInArray(result.toZigbee, [tz.light_color_colortemp], [tz.light_color_and_colortemp_via_color]);
     }
@@ -835,54 +838,50 @@ export const unfreezeMechanisms: {
     // Color lights:
     //   Do not support this command.
     moveColorTemp: async function (this: {entity: Endpoint | Group}) {
-        await this.entity.command('lightingColorCtrl', 'moveColorTemp', {rate: 1, movemode: 0, minimum: 0, maximum: 600}, {});
+        await this.entity.command("lightingColorCtrl", "moveColorTemp", {rate: 1, movemode: 0, minimum: 0, maximum: 600}, {});
     },
 
     // WS lights:
-    //   Same as 'moveColorTemp'.
+    //   Same as "moveColorTemp".
     // Color lights:
     //   Finishes the color transition instantly: light will instantly
     //   "fast forward" to the final state, post-transition.
     genLevelCtrl: async function (this: {entity: Endpoint | Group}) {
-        await this.entity.command('genLevelCtrl', 'stop', {}, {});
+        await this.entity.command("genLevelCtrl", "stop", {}, {});
     },
 };
 
-const willFreeze = (clusterKey: string, payload: KeyValue): payload is KeyValue & {transtime: number} =>
-    payload &&
+const setWillFreeze = (payload: KeyValue): payload is KeyValue & {transtime: number} =>
     // any color command with a transition will freeze the light...
-    typeof payload.transtime === 'number' &&
+    "transition" in payload &&
+    typeof payload.transition === "number" &&
+    ("brightness" in payload || "color_temp" in payload) &&
+    typeof payload.transtime === "number" &&
     payload.transtime > 0 &&
-    clusterKey == 'lightingColorCtrl' &&
-    // ...except for 'stop' commands:
-    payload.rate != 1 &&
-    payload.movemode != 0;
+    // ...except for "stop" commands:
+    payload.rate !== 1 &&
+    payload.movemode !== 0;
 
-export class UnfreezeSupport {
-    readonly entity: Endpoint | Group;
-    readonly unfreeze: UnfreezeMechanism;
+const ikea_bulb_unfreeze: Tz.Converter = {
+    key: ["transition", "brightness", "brightness_percent", "color_temp", "color_temp_percent"],
+    convertSet: async (entity, _key, _value, meta) => {
+        const {message} = meta;
+        const now = Date.now();
 
-    constructor(entity: Endpoint | Group, mechanism: UnfreezeMechanism) {
-        this.entity = entity;
-        this.unfreeze = mechanism;
-    }
-
-    async command(clusterKey: string, commandKey: string, payload: KeyValue, options: KeyValue) {
-        const frozenUtil = globalStore.getValue(this.entity, 'frozenUntil');
-        if (frozenUtil != null) {
-            if (Date.now() <= frozenUtil) {
-                console.log('Light is frozen, will attempt to unfreeze');
-                await this.unfreeze();
-            }
-            globalStore.clearValue(this.entity, 'frozenUntil');
+        const wasFrozenUntil: number | null = globalStore.getValue(entity, "frozenUntil");
+        if (wasFrozenUntil != null && now <= wasFrozenUntil) {
+            // need to unfreeze the light
+            await unfreezeMechanisms.moveColorTemp.call(entity);
         }
-        const returnValue = await this.entity.command(clusterKey, commandKey, payload, options);
-        if (willFreeze(clusterKey, payload)) {
-            const millis = payload.transtime * 100;
+
+        if (setWillFreeze(message)) {
+            // remember that the bulb is now frozen
+            const millis = message.transtime * 100;
             const frozenUntil = Date.now() + millis;
-            globalStore.putValue(this.entity, 'frozenUntil', frozenUntil);
-            console.log('Command', clusterKey + '.' + commandKey, payload, options, 'will freeze the light until', frozenUntil);
+
+            globalStore.putValue(entity, "frozenUntil", frozenUntil);
+        } else if (wasFrozenUntil != null) {
+            globalStore.clearValue(entity, "frozenUntil");
         }
-        return returnValue;
-    }
-}
+    },
+};
