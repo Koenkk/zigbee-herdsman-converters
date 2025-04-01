@@ -30,4 +30,5 @@ export const definitions: DefinitionWithExtend[] = [
         description: "1PM Gen 4",
         extend: [m.onOff({powerOnBehavior: false}), m.electricityMeter({energy: false, producedEnergy: true, acFrequency: true})],
     },
+
 ];
