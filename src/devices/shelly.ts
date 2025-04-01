@@ -9,4 +9,11 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Mini gen 4",
         extend: [m.onOff({powerOnBehavior: false})],
     },
+    {
+        fingerprint: [{modelID: "1", manufacturerName: "Shelly"}],
+        model: "S4SW-001X16EU",
+        vendor: "Shelly",
+        description: "1 gen 4",
+        extend: [m.onOff({powerOnBehavior: false})],
+    },
 ];
