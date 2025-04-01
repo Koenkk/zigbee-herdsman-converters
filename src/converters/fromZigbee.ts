@@ -3406,7 +3406,7 @@ export const enocean_ptm216z: Fz.Converter = {
             "105_3": "press_1_and_2",
             "105_4": "press_3",
             "105_5": "press_1_and_3",
-            "105_6": "press_3_and_4",
+            "105_6": "press_2_and_3",
             "105_7": "press_1_and_2_and_3",
             "105_8": "press_4",
             "105_9": "press_1_and_4",

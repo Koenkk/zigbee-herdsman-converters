@@ -1,5 +1,19 @@
 # Changelog
 
+## [23.18.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.17.0...v23.18.0) (2025-04-01)
+
+
+### Features
+
+* **add:** RS 241 T https://github.com/Koenkk/zigbee2mqtt/issues/26926 ([b22c9b8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b22c9b8c34c8f1f3afb4da9fa88e8cc5351c249c))
+* **add:** S4SW-001X16EU ([#9097](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9097)) ([74bec68](https://github.com/Koenkk/zigbee-herdsman-converters/commit/74bec6846e906f3b68c4d56b31b59ef43bcf57d8))
+
+
+### Bug Fixes
+
+* **ignore:** update dependencies ([#9106](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9106)) ([d3a953d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d3a953dcba5028271bace4df25e9cc4a721dc612))
+* PTM216Z: fix action value ([#9102](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9102)) ([8a796ed](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8a796edfe1ba28aa45243d3d194c65076e6de5c1))
+
 ## [23.17.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.16.0...v23.17.0) (2025-03-31)
 
 
