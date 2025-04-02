@@ -170,6 +170,7 @@ const fzLocal = {
                 /* 0x0228 */ "daysProfileNextCalendar",
             ];
             const kWhP = options?.kWh_precision ? options.kWh_precision : 0;
+            utils.assertNumber(kWhP);
             for (const at of elements) {
                 const at_snake = at
                     .split(/(?=[A-Z])/)
@@ -192,8 +193,7 @@ const fzLocal = {
                         case "activeEnergyOutD02":
                         case "activeEnergyOutD03":
                         case "activeEnergyOutD04":
-                            // @ts-expect-error ignore
-                            val = utils.precisionRound(val / 1000, kwhPrecision); // from Wh to kWh
+                            val = utils.precisionRound(val / 1000, kWhP); // from Wh to kWh
                             break;
                         case "relais": {
                             // relais is a decimal value representing the bits
