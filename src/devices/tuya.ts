@@ -1361,7 +1361,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_yojqa8xn", "_TZE204_zougpkpy", "_TZE204_chbyv06x", "_TZE204_yojqa8xn"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_yojqa8xn", "_TZE204_zougpkpy", "_TZE204_chbyv06x", "_TZE204_yojqa8xn", "_TZE284_chbyv06x"]),
         model: "TS0601_gas_sensor_2",
         vendor: "Tuya",
         description: "Gas sensor",
