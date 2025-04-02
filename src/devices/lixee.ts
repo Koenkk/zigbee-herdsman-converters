@@ -1901,7 +1901,7 @@ export const definitions: DefinitionWithExtend[] = [
                             );
 
                             for (const key in clustersDef) {
-                                if (Object.hasOwn(clustersDef, key)) {
+                                if (Object.hasOwnProperty.call(clustersDef, key)) {
                                     // @ts-expect-error ignore
                                     const cluster = clustersDef[key];
                                     const targ = currentExposes.filter((e) => e.cluster === cluster).map((e) => e.att);
