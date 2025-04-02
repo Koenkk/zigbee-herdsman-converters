@@ -4106,6 +4106,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             tuya.modernExtend.tuyaOnOff({
                 switchType: true,
+                onOffCountdown: true,
                 indicatorMode: true,
                 backlightModeOffOn: true,
                 endpoints: ["l1", "l2"],
