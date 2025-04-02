@@ -1,5 +1,16 @@
 # Changelog
 
+## [23.19.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.19.0...v23.19.1) (2025-04-02)
+
+
+### Bug Fixes
+
+* Configure reporting for various Sunricher devices ([#9110](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9110)) ([4b11bdc](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4b11bdcb75feb345c99857fcf59d9cc6235c82b2))
+* **detect:** Detect `_TZE284_chbyv06x` as DYGSM DY-RQ500A https://github.com/Koenkk/zigbee2mqtt/issues/26940 ([3cf11ea](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3cf11ea2cbd9e976e7ec70257b885fd5ac351af7))
+* Fix LiXee devices causing `mqtt disconnected due to malformed` https://github.com/Koenkk/zigbee2mqtt/issues/26939 ([a04fe79](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a04fe79ec1c074da30b8b07257901cbb3b0ce094))
+* LiXee: fix `kwhPrecision is not defined` error https://github.com/Koenkk/zigbee-herdsman-converters/issues/9109 ([8a979de](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8a979de634ba4b3e04a04ca8fda06ac6b30dfb09))
+* Tuya TS0002_limited: support countdown ([#9111](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9111)) ([0424844](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0424844760aa7207ce33d448d608719d14054464))
+
 ## [23.19.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.18.0...v23.19.0) (2025-04-01)
 
 
