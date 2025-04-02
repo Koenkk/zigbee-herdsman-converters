@@ -477,14 +477,14 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SR-ZG2835RAC-UK",
         vendor: "Sunricher",
         description: "Push compatible zigBee knob smart dimmer",
-        extend: [m.light(), m.electricityMeter(), sunricher.extend.externalSwitchType()],
+        extend: [m.light({configureReporting: true}), m.electricityMeter(), sunricher.extend.externalSwitchType()],
     },
     {
         zigbeeModel: ["ZG2837RAC-K4"],
         model: "SR-ZG2835RAC-NK4",
         vendor: "Sunricher",
         description: "4-Key zigbee rotary & push button smart dimmer",
-        extend: [m.light(), m.electricityMeter(), m.commandsScenes()],
+        extend: [m.light({configureReporting: true}), m.electricityMeter(), m.commandsScenes()],
     },
     {
         zigbeeModel: ["HK-ZRC-K5&RS-TL"],
@@ -751,7 +751,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "ALL",
             }),
             m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3}}),
-            m.light(),
+            m.light({configureReporting: true}),
             m.occupancy({endpointNames: ["2"]}),
             m.illuminance({endpointNames: ["3"]}),
             m.commandsOnOff(),
@@ -895,7 +895,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "HK-ZD-CCT-A",
         vendor: "Sunricher",
         description: "50W Zigbee CCT LED driver (constant current)",
-        extend: [m.light({colorTemp: {range: [160, 450]}})],
+        extend: [m.light({colorTemp: {range: [160, 450]}, configureReporting: true})],
     },
     {
         zigbeeModel: ["ZGRC-KEY-004"],
@@ -1052,7 +1052,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZG192910-4",
         vendor: "Sunricher",
         description: "Zigbee LED-controller",
-        extend: [m.light({colorTemp: {range: undefined}})],
+        extend: [m.light({colorTemp: {range: undefined}, configureReporting: true})],
     },
     {
         zigbeeModel: ["ZG9101SAC-HP"],
@@ -1107,7 +1107,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SRP-ZG9105-CC",
         vendor: "Sunricher",
         description: "Constant Current Zigbee LED dimmable driver",
-        extend: [m.light()],
+        extend: [m.light({configureReporting: true})],
     },
     {
         fingerprint: [{modelID: "HK-ZD-DIM-A", softwareBuildID: "2.9.2_r72"}],
@@ -1121,7 +1121,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "50208702",
         vendor: "Sunricher",
         description: "LED dimmable driver",
-        extend: [m.light()],
+        extend: [m.light({configureReporting: true})],
         whiteLabel: [{vendor: "Yphix", model: "50208702"}],
         toZigbee: [sunricher.tz.setModel],
         // Some ZG9030A-MW devices were mistakenly set with the modelId HK-DIM during manufacturing.
