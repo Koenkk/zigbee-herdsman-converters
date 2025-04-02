@@ -1107,14 +1107,14 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SRP-ZG9105-CC",
         vendor: "Sunricher",
         description: "Constant Current Zigbee LED dimmable driver",
-        extend: [m.light({configureReporting: true})],
+        extend: [m.light({configureReporting: true}), sunricher.extend.externalSwitchType()],
     },
     {
         fingerprint: [{modelID: "HK-ZD-DIM-A", softwareBuildID: "2.9.2_r72"}],
         model: "SR-ZG9101CS",
         vendor: "Sunricher",
         description: "Constant Current Zigbee LED dimmable driver",
-        extend: [m.light({configureReporting: true})],
+        extend: [m.light({configureReporting: true}), sunricher.extend.externalSwitchType()],
     },
     {
         zigbeeModel: ["HK-DIM"],
