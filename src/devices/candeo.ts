@@ -359,10 +359,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "C-ZB-SEMO",
         vendor: "Candeo",
         description: "Motion sensor",
-        extend: [
-            m.battery(), 
-            m.illuminance({reporting: {min: 1, max: 65535, change: 1}}),
-        ],
+        extend: [m.battery(), m.illuminance({reporting: {min: 1, max: 65535, change: 1}})],
         fromZigbee: [fz.ias_occupancy_alarm_1, fz.ias_occupancy_alarm_1_report],
         exposes: [e.occupancy()],
         configure: async (device, coordinatorEndpoint, logger) => {
