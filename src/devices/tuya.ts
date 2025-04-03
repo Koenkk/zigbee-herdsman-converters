@@ -9067,9 +9067,9 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         meta: {
             tuyaDatapoints: [
-                [1, "presence", tuya.valueConverter.trueFalse1],
+                [1, "presence", tuya.valueConverterBasic.lookup({True: 0, False: 1})],
                 [9, "target_distance", tuya.valueConverter.divideBy100],
-                [104, "illuminance", tuya.valueConverter.raw],
+                [12, "illuminance", tuya.valueConverter.raw],
                 [2, "radar_sensitivity", tuya.valueConverter.raw],
                 [4, "maximum_range", tuya.valueConverter.divideBy100],
                 [3, "minimum_range", tuya.valueConverter.divideBy100],
