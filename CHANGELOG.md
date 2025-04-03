@@ -1,5 +1,18 @@
 # Changelog
 
+## [23.20.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.19.1...v23.20.0) (2025-04-03)
+
+
+### Features
+
+* **add:** ZG-101Z/D https://github.com/Koenkk/zigbee2mqtt/issues/25053 ([aaa251d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/aaa251d4df3a8cac5190d9b0166413dfd7cae421))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3000_bmhwnl7s` as Lonsonho TS130F_dual ([#9113](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9113)) ([c44809e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c44809ea6c923020579f128713fa475f954040e7))
+* Tuya ZY-M100-S_2: fix presence and illuminance https://github.com/Koenkk/zigbee-herdsman-converters/pull/9115 [@jernau](https://github.com/jernau)H ([e0d8975](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e0d8975a98f49860b8e8dee85cae171632fbdf51))
+
 ## [23.19.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.19.0...v23.19.1) (2025-04-02)
 
 
