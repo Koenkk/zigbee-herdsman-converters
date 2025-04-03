@@ -36,14 +36,6 @@ const fzLocal = {
             return undefined;
         },
     } satisfies Fz.Converter,
-    illuminance_report: {
-        cluster: "msIlluminanceMeasurement",
-        type: ["attributeReport", "readResponse"],
-        convert: (model, msg, publish, options, meta) => {
-            const result = 10 ** ((msg.data.measuredValue - 1) / 10000);
-            return {illuminance: result};
-        },
-    } satisfies Fz.Converter,
 };
 
 const tzLocal = {
@@ -367,15 +359,16 @@ export const definitions: DefinitionWithExtend[] = [
         model: "C-ZB-SEMO",
         vendor: "Candeo",
         description: "Motion sensor",
-        extend: [m.battery()],
-        fromZigbee: [fz.ias_occupancy_alarm_1, fz.ias_occupancy_alarm_1_report, fzLocal.illuminance_report],
-        exposes: [e.occupancy(), e.illuminance()],
+        extend: [
+            m.battery(), 
+            m.illuminance({reporting: {min: 1, max: 65535, change: 1}}),
+        ],
+        fromZigbee: [fz.ias_occupancy_alarm_1, fz.ias_occupancy_alarm_1_report],
+        exposes: [e.occupancy()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["ssIasZone", "msIlluminanceMeasurement"]);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["ssIasZone"]);
             await endpoint.read("ssIasZone", ["zoneStatus"]);
-            await reporting.illuminance(endpoint, {min: 1, max: 65535, change: 1});
-            await endpoint.read("msIlluminanceMeasurement", ["measuredValue"]);
         },
     },
 ];
