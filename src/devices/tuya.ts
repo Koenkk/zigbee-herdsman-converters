@@ -8714,14 +8714,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint("TS004F", [
-            "_TZ3000_4fjiwweb",
-            "_TZ3000_uri7ongn",
-            "_TZ3000_ixla93vd",
-            "_TZ3000_qja6nq5z",
-            "_TZ3000_abrsvsou",
-            "_TZ3000_402vrq2i",
-        ]),
+        fingerprint: tuya.fingerprint("TS004F", ["_TZ3000_4fjiwweb", "_TZ3000_uri7ongn", "_TZ3000_ixla93vd", "_TZ3000_qja6nq5z", "_TZ3000_402vrq2i"]),
         model: "ERS-10TZBVK-AA",
         vendor: "Tuya",
         description: "Smart knob",
@@ -8775,6 +8768,15 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff"]);
             await reporting.batteryPercentageRemaining(endpoint);
         },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS004F", ["_TZ3000_abrsvsou"]),
+        model: "ZG-101Z/D",
+        vendor: "Tuya",
+        description: "Smart knob",
+        fromZigbee: [fz.tuya_multi_action, fz.battery],
+        exposes: [e.action(["rotate_left", "rotate_right"])],
+        extend: [m.battery(), tuya.modernExtend.tuyaMagicPacket()],
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_kzm5w4iz"]),
