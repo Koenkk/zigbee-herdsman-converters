@@ -45,7 +45,14 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint("TS130F", ["_TZ3000_j1xl73iw", "_TZ3000_kmsbwdol", "_TZ3000_esynmmox", "_TZ3000_l6iqph4f", "_TZ3000_xdo0hj1k", "_TZ3000_bmhwnl7s"]),
+        fingerprint: tuya.fingerprint("TS130F", [
+            "_TZ3000_j1xl73iw",
+            "_TZ3000_kmsbwdol",
+            "_TZ3000_esynmmox",
+            "_TZ3000_l6iqph4f",
+            "_TZ3000_xdo0hj1k",
+            "_TZ3000_bmhwnl7s",
+        ]),
         model: "TS130F_dual",
         vendor: "Lonsonho",
         description: "Dual curtain/blind module",
