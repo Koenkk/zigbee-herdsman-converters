@@ -9069,9 +9069,20 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         meta: {
             tuyaDatapoints: [
-                [1, "presence", tuya.valueConverter.trueFalse1],
+                [
+                    1,
+                    "presence",
+                    {
+                        from: (v: number, meta, options) => {
+                            if (meta.device.manufacturerName === "_TZE284_iadro9bf") {
+                                return tuya.valueConverter.trueFalse0.from(v);
+                            }
+                            return tuya.valueConverter.trueFalse1.from(v);
+                        },
+                    },
+                ],
                 [9, "target_distance", tuya.valueConverter.divideBy100],
-                [104, "illuminance", tuya.valueConverter.raw],
+                [12, "illuminance", tuya.valueConverter.raw], // _TZE284_iadro9bf
                 [2, "radar_sensitivity", tuya.valueConverter.raw],
                 [4, "maximum_range", tuya.valueConverter.divideBy100],
                 [3, "minimum_range", tuya.valueConverter.divideBy100],
