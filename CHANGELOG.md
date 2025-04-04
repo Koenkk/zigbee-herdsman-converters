@@ -1,5 +1,12 @@
 # Changelog
 
+## [23.20.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.20.0...v23.20.1) (2025-04-04)
+
+
+### Bug Fixes
+
+* Fixed pairing of Livolo TI0001 switches ([#9116](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9116)) ([da402f5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/da402f5dbd0b9079977ab95199e0e49986372b91))
+
 ## [23.20.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.19.1...v23.20.0) (2025-04-03)
 
 
