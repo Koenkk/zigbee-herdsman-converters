@@ -1,6 +1,7 @@
 import * as semver from "semver";
 
 import {Zcl} from "zigbee-herdsman";
+import type {Endpoint, Group} from "zigbee-herdsman/dist/controller/model";
 
 import * as tz from "../converters/toZigbee";
 import * as constants from "../lib/constants";
@@ -86,6 +87,9 @@ export function ikeaLight(args?: Omit<m.LightArgs, "colorTemp"> & {colorTemp?: t
     const result = m.light({...args, colorTemp, levelConfig});
     result.ota = true;
     result.onEvent = [bulbOnEvent];
+
+    result.toZigbee.unshift(ikea_bulb_unfreeze);
+
     if (isObject(args?.colorTemp) && args.colorTemp.viaColor) {
         result.toZigbee = replaceToZigbeeConvertersInArray(result.toZigbee, [tz.light_color_colortemp], [tz.light_color_and_colortemp_via_color]);
     }
@@ -822,3 +826,68 @@ export function addCustomClusterManuSpecificIkeaUnknown(): ModernExtend {
         commandsResponse: {},
     });
 }
+
+type UnfreezeMechanism = () => Promise<void>;
+
+export const unfreezeMechanisms: {
+    [key: string]: UnfreezeMechanism;
+} = {
+    // WS lights:
+    //   Aborts the color transition midway: light will stay at the intermediary
+    //   state it was when it received the command.
+    // Color lights:
+    //   Do not support this command.
+    moveColorTemp: async function (this: {entity: Endpoint | Group}) {
+        logger.debug("unfreezing ikea bulb via moveColorTemp", NS);
+        await this.entity.command("lightingColorCtrl", "moveColorTemp", {rate: 1, movemode: 0, minimum: 0, maximum: 600}, {});
+    },
+
+    // WS lights:
+    //   Same as "moveColorTemp".
+    // Color lights:
+    //   Finishes the color transition instantly: light will instantly
+    //   "fast forward" to the final state, post-transition.
+    genLevelCtrl: async function (this: {entity: Endpoint | Group}) {
+        logger.debug("unfreezing ikea bulb via genLevelCtrl", NS);
+        await this.entity.command("genLevelCtrl", "stop", {}, {});
+    },
+};
+
+const setWillFreeze = (payload: KeyValue): payload is KeyValue & {transtime: number} =>
+    // any color command with a transition will freeze the light...
+    "transition" in payload &&
+    typeof payload.transition === "number" &&
+    ("brightness" in payload || "color_temp" in payload) &&
+    typeof payload.transtime === "number" &&
+    payload.transtime > 0 &&
+    // ...except for "stop" commands:
+    payload.rate !== 1 &&
+    payload.movemode !== 0;
+
+const ikea_bulb_unfreeze: Tz.Converter = {
+    key: ["transition", "brightness", "brightness_percent", "color_temp", "color_temp_percent"],
+    convertSet: async (entity, _key, _value, meta) => {
+        const {message} = meta;
+        const now = Date.now();
+
+        const wasFrozenUntil: number | null = globalStore.getValue(entity, "frozenUntil");
+        if (wasFrozenUntil != null && now <= wasFrozenUntil) {
+            logger.debug(`bulb is frozen until ${new Date(wasFrozenUntil).toISOString()}`, NS);
+            // need to unfreeze the light
+            await unfreezeMechanisms.moveColorTemp.call(entity);
+        }
+
+        if (setWillFreeze(message)) {
+            // remember that the bulb is now frozen
+            const millis = message.transtime * 100;
+            const frozenUntil = Date.now() + millis;
+
+            logger.debug(`marking bulb as frozen until ${new Date(frozenUntil).toISOString()}`, NS);
+
+            globalStore.putValue(entity, "frozenUntil", frozenUntil);
+        } else if (wasFrozenUntil != null) {
+            logger.debug("marking bulb as unfrozen", NS);
+            globalStore.clearValue(entity, "frozenUntil");
+        }
+    },
+};
