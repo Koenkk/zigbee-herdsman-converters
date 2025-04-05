@@ -16266,7 +16266,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_eekpf0ft"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_eekpf0ft", "_TZE284_eekpf0ft"]),
         model: "TR-M3Z",
         vendor: "Tuya",
         description: "Thermostatic radiator valve actuator",
