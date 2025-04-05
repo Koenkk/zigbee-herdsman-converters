@@ -4065,7 +4065,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "2 gang switch module",
         whiteLabel: [
             {vendor: "OXT", model: "SWTZ22"},
-            {vendor: "Moes", model: "ZM-104B-M"},
+            tuya.whitelabel("Moes", "ZM-104B-M", "2 gang switch", ["_TZ3000_qaa59zqd"]),
             tuya.whitelabel("pcblab.io", "RR620ZB", "2 gang Zigbee switch module", ["_TZ3000_4xfqlgqo"]),
             tuya.whitelabel("Nous", "L13Z", "2 gang switch", ["_TZ3000_ruxexjfz", "_TZ3000_hojntt34"]),
             tuya.whitelabel("Tuya", "ZG-2002-RF", "Three mode Zigbee Switch", ["_TZ3000_lugaswf8"]),
