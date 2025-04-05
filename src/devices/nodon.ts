@@ -8,10 +8,14 @@ import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import {nodonPilotWire} from "../lib/nodon";
 import * as reporting from "../lib/reporting";
-import type {DefinitionExposes, DefinitionWithExtend, ModernExtend} from "../lib/types";
+import type {DefinitionExposes, DefinitionWithExtend, ModernExtend, EnumLookupArgs} from "../lib/types";
 
 const e = exposes.presets;
 const ea = exposes.access;
+
+interface NodonSwitchTypeArgs extends Partial<EnumLookupArgs> {
+    cluster?: 'genOnOff' | 'closuresWindowCovering';
+}
 
 const nodonModernExtend = {
     calibrationVerticalRunTimeUp: (args?: Partial<m.NumericArgs>) =>
@@ -109,7 +113,7 @@ const nodonModernExtend = {
         // NOTE: make exposes dynamic based on fw version
         result.exposes = [
             (device, options) => {
-                if (device && semver.gt(device.softwareBuildID, "3.4.0")) {
+                if (device && device.softwareBuildID && semver.gt(device.softwareBuildID, "3.4.0")) {
                     return [
                         e
                             .numeric(resultName, ea.ALL)
@@ -125,35 +129,23 @@ const nodonModernExtend = {
 
         return result;
     },
-    switchType: (cluster = "genOnOff", endpointName?: string, args?: Partial<m.EnumLookupArgs>) => {
+    switchType: (args?: NodonSwitchTypeArgs) => {
+        const { cluster = 'genOnOff', ...otherArgs } = args ?? {};
         const resultName = "switch_type";
-        const resultLookup = {bistable: 0x00, monostable: 0x01, auto_detect: 0x02};
-        const resultDescription = "Select the switch type wired to the device.";
+        const resultLookup = {bistable: 0x00, monostable: 0x01};
+        const resultDescription = "Select the switch type wired to the device input.";
 
-        const enumLookupResult: ModernExtend = m.enumLookup({
+        const result: ModernExtend = m.enumLookup({
             name: resultName,
             lookup: resultLookup,
             cluster: cluster,
             attribute: {ID: 0x1001, type: Zcl.DataType.ENUM8},
             description: resultDescription,
             zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.NODON},
-            ...args,
+            ...otherArgs,
         });
 
-        const result = endpointName ? m.withEndpoint(endpointName, enumLookupResult) : enumLookupResult;
-
-        result.exposes = [
-            (device, options) => {
-                if (device && semver.gt(device.softwareBuildID, "3.4.0")) {
-                    const expose = e.enum(resultName, ea.ALL, Object.keys(resultLookup)).withDescription(resultDescription);
-                    if (endpointName) {
-                        expose.withEndpoint(endpointName);
-                    }
-                    return [expose];
-                }
-                return [];
-            },
-        ];
+        result.exposes = [e.enum(resultName, ea.ALL, Object.keys(resultLookup)).withDescription(resultDescription)];
 
         return result;
     },
@@ -220,7 +212,7 @@ export const definitions: DefinitionWithExtend[] = [
             nodonModernExtend.calibrationVerticalRunTimeDowm(),
             nodonModernExtend.calibrationRotationRunTimeUp(),
             nodonModernExtend.calibrationRotationRunTimeDown(),
-            nodonModernExtend.switchType("closuresWindowCovering"),
+            nodonModernExtend.switchType({ cluster: 'closuresWindowCovering' }),
         ],
         ota: true,
     },
@@ -235,7 +227,7 @@ export const definitions: DefinitionWithExtend[] = [
             nodonModernExtend.calibrationVerticalRunTimeDowm(),
             nodonModernExtend.calibrationRotationRunTimeUp(),
             nodonModernExtend.calibrationRotationRunTimeDown(),
-            nodonModernExtend.switchType("closuresWindowCovering"),
+            nodonModernExtend.switchType({ cluster: 'closuresWindowCovering' }),
         ],
         ota: true,
     },
@@ -276,8 +268,8 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
             m.onOff({endpointNames: ["l1", "l2"]}),
-            nodonModernExtend.switchType("genOnOff", "l1"),
-            nodonModernExtend.switchType("genOnOff", "l2"),
+            nodonModernExtend.switchType({endpointName: "l1"}),
+            nodonModernExtend.switchType({endpointName: "l2"}),
         ],
         ota: true,
     },
@@ -289,8 +281,8 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
             m.onOff({endpointNames: ["l1", "l2"]}),
-            nodonModernExtend.switchType("genOnOff", "l1"),
-            nodonModernExtend.switchType("genOnOff", "l2"),
+            nodonModernExtend.switchType({endpointName: "l1"}),
+            nodonModernExtend.switchType({endpointName: "l2"}),
         ],
         ota: true,
     },
