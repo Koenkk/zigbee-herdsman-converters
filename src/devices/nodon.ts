@@ -125,11 +125,11 @@ const nodonModernExtend = {
 
         return result;
     },
-    switchType: (cluster = "genOnOff", args?: Partial<m.EnumLookupArgs>) => {
+    switchType: (cluster: string = "genOnOff", endpointName?: string, args?: Partial<m.EnumLookupArgs>) => {
         const resultName = "switch_type";
         const resultLookup = {bistable: 0x00, monostable: 0x01, auto_detect: 0x02};
-        const resultDescription = "Select the switch type wire to the device.";
-
+        const resultDescription = "Select the switch type wired to the device.";
+    
         const result: ModernExtend = m.enumLookup({
             name: resultName,
             lookup: resultLookup,
@@ -137,18 +137,21 @@ const nodonModernExtend = {
             attribute: {ID: 0x1001, type: Zcl.DataType.ENUM8},
             description: resultDescription,
             zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.NODON},
+            endpoint: endpointName,
             ...args,
         });
-
+    
         result.exposes = [
             (device, options) => {
                 if (device && semver.gt(device.softwareBuildID, "3.4.0")) {
-                    return [e.enum(resultName, ea.ALL, Object.keys(resultLookup)).withDescription(resultDescription)];
+                    return [e.enum(resultName, ea.ALL, Object.keys(resultLookup))
+                        .withDescription(resultDescription)
+                        .withEndpoint(endpointName)];
                 }
                 return [];
             },
         ];
-
+    
         return result;
     },
     trvMode: (args?: Partial<m.EnumLookupArgs>) =>
@@ -270,8 +273,8 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
             m.onOff({endpointNames: ["l1", "l2"]}),
-            nodonModernExtend.switchType({endpointName: "l1"}),
-            nodonModernExtend.switchType({endpointName: "l2"}),
+            nodonModernExtend.switchType("genOnOff", "l1"),
+            nodonModernExtend.switchType("genOnOff", "l2"),
         ],
         ota: true,
     },
@@ -283,8 +286,8 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
             m.onOff({endpointNames: ["l1", "l2"]}),
-            nodonModernExtend.switchType({endpointName: "l1"}),
-            nodonModernExtend.switchType({endpointName: "l2"}),
+            nodonModernExtend.switchType("genOnOff", "l1"),
+            nodonModernExtend.switchType("genOnOff", "l2"),
         ],
         ota: true,
     },
