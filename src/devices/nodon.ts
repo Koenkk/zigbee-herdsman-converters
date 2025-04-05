@@ -139,7 +139,7 @@ const nodonModernExtend = {
             zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.NODON},
             ...args,
         });
-    
+
         result.exposes = [
             (device, options) => {
                 if (device && semver.gt(device.softwareBuildID, "3.4.0")) {
@@ -148,7 +148,7 @@ const nodonModernExtend = {
                 return [];
             },
         ];
-    
+
         return result;
     },
     trvMode: (args?: Partial<m.EnumLookupArgs>) =>
