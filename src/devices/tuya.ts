@@ -4613,7 +4613,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_a8z0g46u", "_TZE204_a8z0g46u"]),
-        model: "TS0601",
+        model: "YY-LT500",
         vendor: "Tuya",
         description: "Window opener",
         options: [exposes.options.invert_cover()],
