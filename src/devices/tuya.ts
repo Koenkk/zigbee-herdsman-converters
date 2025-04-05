@@ -1361,7 +1361,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_yojqa8xn", "_TZE204_zougpkpy", "_TZE204_chbyv06x", "_TZE204_yojqa8xn"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_yojqa8xn", "_TZE204_zougpkpy", "_TZE204_chbyv06x", "_TZE204_yojqa8xn", "_TZE284_chbyv06x"]),
         model: "TS0601_gas_sensor_2",
         vendor: "Tuya",
         description: "Gas sensor",
@@ -4065,7 +4065,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "2 gang switch module",
         whiteLabel: [
             {vendor: "OXT", model: "SWTZ22"},
-            {vendor: "Moes", model: "ZM-104B-M"},
+            tuya.whitelabel("Moes", "ZM-104B-M", "2 gang switch", ["_TZ3000_qaa59zqd"]),
             tuya.whitelabel("pcblab.io", "RR620ZB", "2 gang Zigbee switch module", ["_TZ3000_4xfqlgqo"]),
             tuya.whitelabel("Nous", "L13Z", "2 gang switch", ["_TZ3000_ruxexjfz", "_TZ3000_hojntt34"]),
             tuya.whitelabel("Tuya", "ZG-2002-RF", "Three mode Zigbee Switch", ["_TZ3000_lugaswf8"]),
@@ -4610,6 +4610,25 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Zemismart", "ZM90E-DT250N/A400", "Window opener", ["_TZE204_r0jdjrvi"]),
             tuya.whitelabel("Nova Digital", "CMR-1", "Roller Blind Motor", ["_TZE200_9vpe3fl1"]),
         ],
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_a8z0g46u", "_TZE204_a8z0g46u"]),
+        model: "YY-LT500",
+        vendor: "Tuya",
+        description: "Window opener",
+        options: [exposes.options.invert_cover()],
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEventSetTime,
+        configure: tuya.configureMagicPacket,
+        exposes: [e.cover_position().setAccess("position", ea.STATE_SET)],
+        meta: {
+            tuyaDatapoints: [
+                [2, "state", tuya.valueConverterBasic.lookup({OPEN: tuya.enum(0), STOP: tuya.enum(1), CLOSE: tuya.enum(2)})],
+                [7, "position", tuya.valueConverter.coverPosition],
+                [8, "position", tuya.valueConverter.coverPosition],
+            ],
+        },
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_p2qzzazi"]),
@@ -8714,14 +8733,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint("TS004F", [
-            "_TZ3000_4fjiwweb",
-            "_TZ3000_uri7ongn",
-            "_TZ3000_ixla93vd",
-            "_TZ3000_qja6nq5z",
-            "_TZ3000_abrsvsou",
-            "_TZ3000_402vrq2i",
-        ]),
+        fingerprint: tuya.fingerprint("TS004F", ["_TZ3000_4fjiwweb", "_TZ3000_uri7ongn", "_TZ3000_ixla93vd", "_TZ3000_qja6nq5z", "_TZ3000_402vrq2i"]),
         model: "ERS-10TZBVK-AA",
         vendor: "Tuya",
         description: "Smart knob",
@@ -8775,6 +8787,15 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff"]);
             await reporting.batteryPercentageRemaining(endpoint);
         },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS004F", ["_TZ3000_abrsvsou"]),
+        model: "ZG-101Z/D",
+        vendor: "Tuya",
+        description: "Smart knob",
+        fromZigbee: [fz.tuya_multi_action, fz.battery],
+        exposes: [e.action(["rotate_left", "rotate_right"])],
+        extend: [m.battery(), tuya.modernExtend.tuyaMagicPacket()],
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_kzm5w4iz"]),
@@ -9067,8 +9088,20 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         meta: {
             tuyaDatapoints: [
-                [1, "presence", tuya.valueConverter.trueFalse1],
+                [
+                    1,
+                    "presence",
+                    {
+                        from: (v: number, meta, options) => {
+                            if (meta.device.manufacturerName === "_TZE284_iadro9bf") {
+                                return tuya.valueConverter.trueFalse0.from(v);
+                            }
+                            return tuya.valueConverter.trueFalse1.from(v);
+                        },
+                    },
+                ],
                 [9, "target_distance", tuya.valueConverter.divideBy100],
+                [12, "illuminance", tuya.valueConverter.raw], // _TZE284_iadro9bf
                 [104, "illuminance", tuya.valueConverter.raw],
                 [2, "radar_sensitivity", tuya.valueConverter.raw],
                 [4, "maximum_range", tuya.valueConverter.divideBy100],
@@ -16253,7 +16286,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_eekpf0ft"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_eekpf0ft", "_TZE284_eekpf0ft"]),
         model: "TR-M3Z",
         vendor: "Tuya",
         description: "Thermostatic radiator valve actuator",
