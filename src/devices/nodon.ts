@@ -125,11 +125,11 @@ const nodonModernExtend = {
 
         return result;
     },
-    switchType: (cluster: string = "genOnOff", args?: Partial<m.EnumLookupArgs>) => {
+    switchType: (cluster = "genOnOff", args?: Partial<m.EnumLookupArgs>) => {
         const resultName = "switch_type";
         const resultLookup = {bistable: 0x00, monostable: 0x01, auto_detect: 0x02};
         const resultDescription = "Select the switch type wire to the device.";
-    
+
         const result: ModernExtend = m.enumLookup({
             name: resultName,
             lookup: resultLookup,
