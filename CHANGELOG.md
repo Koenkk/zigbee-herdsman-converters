@@ -1,5 +1,21 @@
 # Changelog
 
+## [23.21.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.20.1...v23.21.0) (2025-04-05)
+
+
+### Features
+
+* **add:** YY-LT500 ([#9117](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9117)) ([c8e89a7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c8e89a754a6ab23f4b7077a0b6e48402c7bc92b1))
+
+
+### Bug Fixes
+
+* Add battery voltage to pvvx/ZigbeeTLc devices ([#9120](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9120)) ([c09f072](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c09f072f7037fce29c8184a3e38395118f12cf08))
+* **detect:** Detect `_TZ3000_qaa59zqd` as Moes ZM-104B-M https://github.com/Koenkk/zigbee2mqtt.io/pull/3658 ([7a828de](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7a828dea3d970dfd0d3f751fb4953130f722ff91))
+* **detect:** Detect `_TZE284_eekpf0ft` as Tuya TR-M3Z https://github.com/Koenkk/zigbee2mqtt/discussions/26997 ([1b9d7fb](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1b9d7fb99b4d5bedd607d7cbf8f9377fd1999048))
+* **ignore:** naming style in easyiot converter ([#9118](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9118)) ([a2c60c2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a2c60c2ecba11eab60a50240f0e07944de099790))
+* Tuya ZY-M100-S_2: fix illuminance not updating https://github.com/Koenkk/zigbee2mqtt/issues/26993 ([1ba52d8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1ba52d838290fbf6381900ac2f261c712bd790be))
+
 ## [23.20.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.20.0...v23.20.1) (2025-04-04)
 
 
