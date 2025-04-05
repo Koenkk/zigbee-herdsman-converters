@@ -125,22 +125,21 @@ const nodonModernExtend = {
 
         return result;
     },
-    switchType: (args?: Partial<m.EnumLookupArgs>) => {
+    switchType: (cluster: string = "genOnOff", args?: Partial<m.EnumLookupArgs>) => {
         const resultName = "switch_type";
         const resultLookup = {bistable: 0x00, monostable: 0x01, auto_detect: 0x02};
         const resultDescription = "Select the switch type wire to the device.";
-
+    
         const result: ModernExtend = m.enumLookup({
             name: resultName,
             lookup: resultLookup,
-            cluster: "genOnOff",
+            cluster: cluster,
             attribute: {ID: 0x1001, type: Zcl.DataType.ENUM8},
             description: resultDescription,
             zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.NODON},
             ...args,
         });
-
-        // NOTE: make exposes dynamic based on fw version
+    
         result.exposes = [
             (device, options) => {
                 if (device && semver.gt(device.softwareBuildID, "3.4.0")) {
@@ -149,7 +148,7 @@ const nodonModernExtend = {
                 return [];
             },
         ];
-
+    
         return result;
     },
     trvMode: (args?: Partial<m.EnumLookupArgs>) =>
@@ -215,6 +214,7 @@ export const definitions: DefinitionWithExtend[] = [
             nodonModernExtend.calibrationVerticalRunTimeDowm(),
             nodonModernExtend.calibrationRotationRunTimeUp(),
             nodonModernExtend.calibrationRotationRunTimeDown(),
+            nodonModernExtend.switchType("closuresWindowCovering"),
         ],
         ota: true,
     },
@@ -229,6 +229,7 @@ export const definitions: DefinitionWithExtend[] = [
             nodonModernExtend.calibrationVerticalRunTimeDowm(),
             nodonModernExtend.calibrationRotationRunTimeUp(),
             nodonModernExtend.calibrationRotationRunTimeDown(),
+            nodonModernExtend.switchType("closuresWindowCovering"),
         ],
         ota: true,
     },
