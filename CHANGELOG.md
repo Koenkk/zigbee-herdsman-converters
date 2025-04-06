@@ -1,5 +1,25 @@
 # Changelog
 
+## [23.22.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.21.0...v23.22.0) (2025-04-06)
+
+
+### Features
+
+* **add:** Flower_Sensor_v2 ([#9121](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9121)) ([f41d471](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f41d4711b644b6edb297a2cd31022b97b4d5a066))
+* **add:** FLS-M [@blastwavehosting](https://github.com/blastwavehosting) https://github.com/Koenkk/zigbee2mqtt/issues/26982 ([7d6672b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7d6672b82a539ab5e40db339383444ee862c06b4))
+* **add:** PN16 ([#9134](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9134)) ([c3b915f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c3b915f2a917e8fea79bb8a05171d048548b03bc))
+* Tuya TS0001_power: support OTA ([#9133](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9133)) ([c33147c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c33147c7015f1fc561e93cdd350db3467a1ece90))
+* Zen Zen-01-W: support fan mode and state ([#9125](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9125)) ([10595c5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/10595c50ac8b7a44d05a28074a4a99d6889814fe))
+
+
+### Bug Fixes
+
+* Bosch BSIR-EZ: fix tamper https://github.com/Koenkk/zigbee-herdsman-converters/issues/8741 ([190f427](https://github.com/Koenkk/zigbee-herdsman-converters/commit/190f4273e5e8ca0bdc8f42e4888663a492c939e1))
+* **detect:** Detect `_TZB210_6eed09b9` as MiBoxer FUT103ZR ([#9124](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9124)) ([ae59ecd](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ae59ecdff871754050889ff9dfedeed6f81b8423))
+* **detect:** Detect `_TZE200_uiyqstza` as Lidl 368308_2010 ([#9127](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9127)) ([d0193cf](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d0193cf186e8091ec8365fb604d0434cb0f24926))
+* **ignore:** update dependencies ([#9128](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9128)) ([f055b02](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f055b029c31c43f9826c752ca64136cb359a47c5))
+* Semver validation before comparison ([#9130](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9130)) ([138099a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/138099a1660d1a704af9e20bc70db82326cccac1))
+
 ## [23.21.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.20.1...v23.21.0) (2025-04-05)
 
 
