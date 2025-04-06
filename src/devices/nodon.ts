@@ -1,6 +1,6 @@
 import {Zcl} from "zigbee-herdsman";
 
-import * as semver from "semver";
+import {gt as semverGt, valid as semverValid} from "semver";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as constants from "../lib/constants";
@@ -109,7 +109,7 @@ const nodonModernExtend = {
         // NOTE: make exposes dynamic based on fw version
         result.exposes = [
             (device, options) => {
-                if (device && semver.gt(device.softwareBuildID, "3.4.0")) {
+                if (semverValid(device?.softwareBuildID) && semverGt(device.softwareBuildID, "3.4.0")) {
                     return [
                         e
                             .numeric(resultName, ea.ALL)
@@ -143,7 +143,7 @@ const nodonModernExtend = {
         // NOTE: make exposes dynamic based on fw version
         result.exposes = [
             (device, options) => {
-                if (device && semver.gt(device.softwareBuildID, "3.4.0")) {
+                if (semverValid(device?.softwareBuildID) && semverGt(device.softwareBuildID, "3.4.0")) {
                     return [e.enum(resultName, ea.ALL, Object.keys(resultLookup)).withDescription(resultDescription)];
                 }
                 return [];
