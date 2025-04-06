@@ -542,7 +542,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [tuya.modernExtend.tuyaLight({colorTemp: {range: [153, 500]}, color: {modes: ["hs", "xy"]}})],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_chyvmhay"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_chyvmhay", "_TZE200_uiyqstza"]),
         model: "368308_2010",
         vendor: "Lidl",
         description: "Silvercrest radiator valve with thermostat",
