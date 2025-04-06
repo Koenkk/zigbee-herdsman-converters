@@ -103,7 +103,7 @@ export function ikeaLight(args?: Omit<m.LightArgs, "colorTemp"> & {colorTemp?: t
         ...result.meta,
         noOffTransitionWhenOff: (entity) => {
             const softwareBuildID = entity.getDevice().softwareBuildID;
-            return semverValid(softwareBuildID, true) && semverGt(softwareBuildID, "1.0.021", true);
+            return softwareBuildID && semverValid(softwareBuildID, true) && semverGt(softwareBuildID, "1.0.021", true);
         },
     };
 
@@ -132,7 +132,7 @@ export function ikeaBattery(): ModernExtend {
                     // batteryPercentageRemaining of 100 when the battery is full (should be 200).
                     let dividePercentage = true;
 
-                    if (semverValid(meta.device.softwareBuildID, true)) {
+                    if (meta.device.softwareBuildID && semverValid(meta.device.softwareBuildID, true)) {
                         if (model.model === "E2103") {
                             if (semverLt(meta.device.softwareBuildID, "24.4.13", true)) {
                                 dividePercentage = false;
@@ -181,7 +181,7 @@ export function ikeaConfigureStyrbar(): ModernExtend {
     const configure: Configure[] = [
         async (device, coordinatorEndpoint, definition) => {
             // https://github.com/Koenkk/zigbee2mqtt/issues/15725
-            if (semverValid(device.softwareBuildID, true) && semverGte(device.softwareBuildID, "2.4.0", true)) {
+            if (device.softwareBuildID && semverValid(device.softwareBuildID, true) && semverGte(device.softwareBuildID, "2.4.0", true)) {
                 const endpoint = device.getEndpoint(1);
                 await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "genLevelCtrl", "genScenes"]);
             }
