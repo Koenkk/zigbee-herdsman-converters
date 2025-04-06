@@ -14,6 +14,13 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
+        zigbeeModel: ["FLS-M"],
+        model: "FLS-M",
+        vendor: "Dresden Elektronik",
+        description: "Universal led controller",
+        extend: [m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4, l5: 5}}), m.light({endpointNames: ["l1", "l2", "l3", "l4", "l5"]})],
+    },
+    {
         zigbeeModel: ["FLS-CT"],
         model: "XVV-Mega23M12",
         vendor: "Dresden Elektronik",

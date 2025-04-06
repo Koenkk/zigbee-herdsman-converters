@@ -22,6 +22,7 @@ import {definitions as automaton} from "./automaton";
 import {definitions as avatto} from "./avatto";
 import {definitions as awox} from "./awox";
 import {definitions as axis} from "./axis";
+import {definitions as bacchus} from "./bacchus";
 import {definitions as bankamp} from "./bankamp";
 import {definitions as bega} from "./bega";
 import {definitions as belkin} from "./belkin";
@@ -356,6 +357,7 @@ const definitions: DefinitionWithExtend[] = [
     ...avatto,
     ...awox,
     ...axis,
+    ...bacchus,
     ...bankamp,
     ...bega,
     ...belkin,
