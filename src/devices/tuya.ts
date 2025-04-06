@@ -3869,6 +3869,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0001_power",
         description: "Switch with power monitoring",
         vendor: "Tuya",
+        ota: true,
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.ignore_basic_report, tuya.fz.power_outage_memory, tuya.fz.switch_type],
         toZigbee: [tz.on_off, tuya.tz.power_on_behavior_1, tuya.tz.switch_type],
         configure: async (device, coordinatorEndpoint) => {
