@@ -2347,6 +2347,9 @@ export const definitions: DefinitionWithExtend[] = [
                 "right_hold",
                 "right_hold_release",
                 "toggle",
+                "brightness_move_up",
+                "brightness_move_down",
+                "brightness_stop",
             ]),
             e.enum("device_mode", ea.ALL, ["single_rocker", "single_push_button", "dual_rocker", "dual_push_button"]),
         ],
@@ -4053,6 +4056,13 @@ export const definitions: DefinitionWithExtend[] = [
         model: "046677584719",
         vendor: "Philips",
         description: "Hue White ambiance GU10 - smart spotlight ",
+        extend: [philips.m.light({colorTemp: {range: [153, 454]}})],
+    },
+    {
+        zigbeeModel: ["929003056801"],
+        model: "929003056801",
+        vendor: "Philips",
+        description: "Hue Adore white ambiance bathroom mirror",
         extend: [philips.m.light({colorTemp: {range: [153, 454]}})],
     },
 ];

@@ -352,15 +352,15 @@ describe("ModernExtend", () => {
             configureReporting: {
                 10: [
                     ["genOnOff", [reportingItem("onOff", 0, repInterval.MAX, 1)]],
-                    ["genLevelCtrl", [reportingItem("currentLevel", 10, 65000, 1)]],
+                    ["genLevelCtrl", [reportingItem("currentLevel", 5, 65000, 1)]],
                 ],
                 11: [
                     ["genOnOff", [reportingItem("onOff", 0, repInterval.MAX, 1)]],
-                    ["genLevelCtrl", [reportingItem("currentLevel", 10, 65000, 1)]],
+                    ["genLevelCtrl", [reportingItem("currentLevel", 5, 65000, 1)]],
                 ],
                 25: [
                     ["genOnOff", [reportingItem("onOff", 0, repInterval.MAX, 1)]],
-                    ["genLevelCtrl", [reportingItem("currentLevel", 10, 65000, 1)]],
+                    ["genLevelCtrl", [reportingItem("currentLevel", 5, 65000, 1)]],
                 ],
             },
             endpoints: {l1: 10, l2: 11, s1: 25},

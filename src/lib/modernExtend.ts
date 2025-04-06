@@ -1088,7 +1088,7 @@ export function light(args?: LightArgs): ModernExtend {
             if (args.configureReporting) {
                 await setupAttributes(device, coordinatorEndpoint, "genOnOff", [{attribute: "onOff", min: "MIN", max: "MAX", change: 1}]);
                 await setupAttributes(device, coordinatorEndpoint, "genLevelCtrl", [
-                    {attribute: "currentLevel", min: "10_SECONDS", max: "MAX", change: 1, ...(args.levelReportingConfig || {})},
+                    {attribute: "currentLevel", min: "5_SECONDS", max: "MAX", change: 1, ...(args.levelReportingConfig || {})},
                 ]);
                 if (args.colorTemp) {
                     await setupAttributes(device, coordinatorEndpoint, "lightingColorCtrl", [

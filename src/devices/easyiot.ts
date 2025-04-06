@@ -82,7 +82,7 @@ const tzLocal = {
                 "tunneling",
                 "transferData",
                 {
-                    tunnelID: 0x0000,
+                    tunnelId: 0x0000,
                     data: Buffer.from(value as string, "hex"),
                 },
                 {disableDefaultResponse: true},
@@ -112,7 +112,7 @@ const tzLocal = {
                 "tunneling",
                 "transferData",
                 {
-                    tunnelID: 0x0000,
+                    tunnelId: 0x0000,
                     data: protocolFrame,
                 },
                 {disableDefaultResponse: true},
@@ -139,7 +139,7 @@ const tzLocal = {
                 "tunneling",
                 "transferData",
                 {
-                    tunnelID: 0x0001,
+                    tunnelId: 0x0001,
                     data: protocolFrame,
                 },
                 {disableDefaultResponse: true},
@@ -166,7 +166,7 @@ const tzLocal = {
                 "tunneling",
                 "transferData",
                 {
-                    tunnelID: 0x0001,
+                    tunnelId: 0x0001,
                     data: protocolFrame,
                 },
                 {disableDefaultResponse: true},
