@@ -43,5 +43,12 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Zigbee controller for 1-10V/PWM",
         extend: [m.deviceEndpoints({endpoints: {l1: 11, l2: 12, l3: 13, l4: 14}}), m.light({endpointNames: ["l1", "l2", "l3", "l4"]})],
         meta: {disableDefaultResponse: true},
+
+        zigbeeModel: ['FLS-M'],
+        model: 'FLS-M',
+        vendor: 'dresden elektronik',
+        description: 'Automatically generated definition',
+        extend: [m.deviceEndpoints({"endpoints":{"1":1,"2":2,"3":3,"4":4,"5":5}}), m.light({endpointNames: ['1', '2', '3', '4', '5']})],
+        meta: {"multiEndpoint":true},
     },
 ];
