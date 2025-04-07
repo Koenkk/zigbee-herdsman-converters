@@ -783,11 +783,11 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        zigbeeModel: ['HS15A-M'],
-	model: 'HS15A-M',
-	vendor: 'Heiman',
-	description: 'Smoke detector relabeled for zipato',
-	extend: [m.iasZoneAlarm({"zoneType":"generic","zoneAttributes":["alarm_1","alarm_2","tamper","battery_low"]}), m.battery(), m.iasWarning()],
-	meta: {},
-    }
+        zigbeeModel: ["HS15A-M"],
+        model: "HS15A-M",
+        vendor: "Heiman",
+        description: "Smoke detector relabeled for zipato",
+        extend: [m.iasZoneAlarm({zoneType: "generic", zoneAttributes: ["alarm_1", "alarm_2", "tamper", "battery_low"]}), m.battery(), m.iasWarning()],
+        meta: {},
+    },
 ];
