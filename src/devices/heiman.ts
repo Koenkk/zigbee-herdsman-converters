@@ -788,6 +788,5 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Heiman",
         description: "Smoke detector relabeled for zipato",
         extend: [m.iasZoneAlarm({zoneType: "generic", zoneAttributes: ["alarm_1", "alarm_2", "tamper", "battery_low"]}), m.battery(), m.iasWarning()],
-        meta: {},
     },
 ];
