@@ -1,5 +1,19 @@
 # Changelog
 
+## [23.23.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.22.0...v23.23.0) (2025-04-07)
+
+
+### Features
+
+* **add:** 07527L ([#9136](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9136)) ([2642539](https://github.com/Koenkk/zigbee-herdsman-converters/commit/26425398822805e3386163d5dd2eb5114acd6dc7))
+* **add:** HS09 ([#9137](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9137)) ([7e94c08](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7e94c0835f1371d3692a34b9d289ee5ad3d6a049))
+* **add:** WS-K02E ([#9139](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9139)) ([3529740](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3529740657aea2241fe647062327a0be616cb519))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3002_m3pafcnk` as Tuya TS0726_multi_3_gang https://github.com/Koenkk/zigbee-herdsman-converters/issues/9138 ([faecab0](https://github.com/Koenkk/zigbee-herdsman-converters/commit/faecab07bf7c0a8c8055dee129730b4b118b8317))
+
 ## [23.22.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.21.0...v23.22.0) (2025-04-06)
 
 
