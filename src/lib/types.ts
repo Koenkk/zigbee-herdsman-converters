@@ -356,25 +356,37 @@ export namespace Tuya {
         datatype: number;
         data: Buffer | number[];
     }
-    export interface ValueConverterSingle {
-        to?: (value: unknown, meta?: Tz.Meta) => unknown;
-        from?: (
-            value: unknown,
-            meta?: Fz.Meta,
-            options?: KeyValue,
-            publish?: Publish,
-            msg?: Fz.Message,
-        ) => number | string | boolean | KeyValue | null;
+    export interface ValueConverterSingle<Tto = unknown, Tfrom = unknown> {
+        to?: (value: Tto, meta?: Tz.Meta) => unknown;
+        from?: (value: Tfrom, meta?: Fz.Meta, options?: KeyValue, publish?: Publish, msg?: Fz.Message) => number | string | boolean | KeyValue | null;
     }
-    export interface ValueConverterMulti {
-        to?: (value: unknown, meta?: Tz.Meta) => unknown;
-        from?: (value: unknown, meta?: Fz.Meta, options?: KeyValue, publish?: Publish, msg?: Fz.Message) => KeyValue;
-    }
+    export type ValueConverterSingleUnknown =
+        | Tuya.ValueConverterSingle<unknown, unknown>
+        | Tuya.ValueConverterSingle<string, string>
+        | Tuya.ValueConverterSingle<string, boolean>
+        | Tuya.ValueConverterSingle<string, number>
+        | Tuya.ValueConverterSingle<number, number>
+        | Tuya.ValueConverterSingle<number, boolean>
+        | Tuya.ValueConverterSingle<number, string>
+        | Tuya.ValueConverterSingle<boolean, boolean>
+        | Tuya.ValueConverterSingle<boolean, number>
+        | Tuya.ValueConverterSingle<boolean, string>
+        | Tuya.ValueConverterSingle<number[], number[]>
+        | Tuya.ValueConverterSingle<number[], string>
+        | Tuya.ValueConverterSingle<number[], number>
+        | Tuya.ValueConverterSingle<number[], boolean>
+        | Tuya.ValueConverterSingle<number[], KeyValue>
+        | Tuya.ValueConverterSingle<string, number[]>
+        | Tuya.ValueConverterSingle<number, number[]>
+        | Tuya.ValueConverterSingle<boolean, number[]>
+        | Tuya.ValueConverterSingle<KeyValueAny, string>
+        | Tuya.ValueConverterSingle<KeyValue, number[]>
+        | Tuya.ValueConverterSingle<Buffer, Buffer>;
     export interface MetaTuyaDataPointsMeta {
         skip?: (meta: Tz.Meta) => boolean;
         optimistic?: boolean;
     }
-    export type MetaTuyaDataPointsSingle = [number, string, Tuya.ValueConverterSingle, MetaTuyaDataPointsMeta?];
+    export type MetaTuyaDataPointsSingle = [number, string, ValueConverterSingleUnknown, MetaTuyaDataPointsMeta?];
     export type MetaTuyaDataPoints = MetaTuyaDataPointsSingle[];
 }
 

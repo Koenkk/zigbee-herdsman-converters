@@ -227,10 +227,18 @@ const ubisys = {
                 await writeAttrFromJson("ubisysInactivePowerThreshold");
                 await writeAttrFromJson("ubisysStartupSteps");
                 // some convenience functions to not have to calculate
-                await writeAttrFromJson("ubisysTotalSteps", "open_to_closed_s", (s: number) => s * stepsPerSecond);
-                await writeAttrFromJson("ubisysTotalSteps2", "closed_to_open_s", (s: number) => s * stepsPerSecond);
-                await writeAttrFromJson("ubisysLiftToTiltTransitionSteps", "lift_to_tilt_transition_ms", (s: number) => (s * stepsPerSecond) / 1000);
-                await writeAttrFromJson("ubisysLiftToTiltTransitionSteps2", "lift_to_tilt_transition_ms", (s: number) => (s * stepsPerSecond) / 1000);
+                await writeAttrFromJson("ubisysTotalSteps", "open_to_closed_s", (s) => (s as number) * stepsPerSecond);
+                await writeAttrFromJson("ubisysTotalSteps2", "closed_to_open_s", (s) => (s as number) * stepsPerSecond);
+                await writeAttrFromJson(
+                    "ubisysLiftToTiltTransitionSteps",
+                    "lift_to_tilt_transition_ms",
+                    (s) => ((s as number) * stepsPerSecond) / 1000,
+                );
+                await writeAttrFromJson(
+                    "ubisysLiftToTiltTransitionSteps2",
+                    "lift_to_tilt_transition_ms",
+                    (s) => ((s as number) * stepsPerSecond) / 1000,
+                );
                 if (hasCalibrate) {
                     log("  Finalizing calibration...");
                     // disable calibration mode again

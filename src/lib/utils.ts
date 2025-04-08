@@ -581,7 +581,7 @@ export function printNumbersAsHexSequence(numbers: number[], hexLength: number):
 }
 
 // biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
-export function assertObject(value: unknown, property?: string): asserts value is {[s: string]: any} {
+export function assertObject<T = Record<string, any>>(value: unknown, property?: string): asserts value is T {
     const isObject = typeof value === "object" && !Array.isArray(value) && value !== null;
     if (!isObject) {
         throw new Error(`${property} is not a object, got ${typeof value} (${JSON.stringify(value)})`);

@@ -18,7 +18,7 @@
         // "strictNullChecks": true,
         "strictBindCallApply": true,
         "strictBuiltinIteratorReturn": true,
-        // "strictFunctionTypes": true,
+        "strictFunctionTypes": true,
         // "strictPropertyInitialization": true,
         "noImplicitAny": true,
         "noImplicitThis": true,
