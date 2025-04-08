@@ -60,7 +60,7 @@ export const definitions: DefinitionWithExtend[] = [
                             direction: 1,
                             writeUndiv: true,
                         };
-                        const payload = {8194: {value: [0, 0, 0, 0, 0, 0, 0], type: 0x0e}};
+                        const payload = {8194: {value: 0n, type: 0x0e}};
                         await endpoint.readResponse("genPowerCfg", 0xe9, payload, options);
                     }
                 }

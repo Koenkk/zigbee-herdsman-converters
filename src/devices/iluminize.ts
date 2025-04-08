@@ -176,7 +176,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Iluminize",
         whiteLabel: [{vendor: "Sunricher", model: "HK-ZD-RGBCCT-A"}],
         description: "Zigbee 3.0 universal LED-controller, 5 channel, RGBCCT LED",
-        extend: [m.light({colorTemp: {range: undefined}, color: true})],
+        extend: [m.light({colorTemp: {range: undefined}, color: true, configureReporting: true})],
     },
     {
         zigbeeModel: ["ZG2819S-RGBW"],
