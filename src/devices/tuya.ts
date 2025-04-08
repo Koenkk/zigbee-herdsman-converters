@@ -6616,7 +6616,6 @@ export const definitions: DefinitionWithExtend[] = [
         },
         whiteLabel: [
             {vendor: "Tuya", model: "RC-MCB"},
-            tuya.whitelabel("RTX", "ZCR1-40EM", "Zigbee DIN energy meter", ["_TZE204_wbhaespm"]),
             tuya.whitelabel("Hiking", "DDS238-2", "Single phase DIN-rail energy meter with switch function", [
                 "_TZE200_bkkmqmyo",
                 "_TZE204_bkkmqmyo",
@@ -6749,7 +6748,7 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [{vendor: "TNCE", model: "RMDZB-1PNL63"}],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_wbhaespm"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_wbhaespm", "_TZE200_wbhaespm"]),
         model: "STB3L-125-ZJ",
         vendor: "SUTON",
         description: "Zigbee DIN RCBO energy meter",
