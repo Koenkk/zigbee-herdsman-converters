@@ -345,6 +345,10 @@ export const definitions: DefinitionWithExtend[] = [
         model: "C-ZB-SEMO",
         vendor: "Candeo",
         description: "Motion sensor",
-        extend: [m.battery(), m.illuminance({reporting: {min: 1, max: 65535, change: 1}}), m.iasZoneAlarm({zoneType: "occupancy", zoneAttributes: ["alarm_1"]})],
+        extend: [
+            m.battery(),
+            m.illuminance({reporting: {min: 1, max: 65535, change: 1}}),
+            m.iasZoneAlarm({zoneType: "occupancy", zoneAttributes: ["alarm_1"]}),
+        ],
     },
 ];
