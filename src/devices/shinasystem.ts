@@ -195,8 +195,8 @@ const tzLocal = {
     ct_direction: {
         key: ["ct_direction"],
         convertSet: async (entity, key, value, meta) => {
-            const lookup = {"Auto": 0, "Manual(Forward)": 1, "Manual(Reverse)": 2};
-            await entity.write("seMetering", {'0x9001': {value: utils.getFromLookup(value, lookup), type: 0x20}});
+            const lookup = {Auto: 0, "Manual(Forward)": 1, "Manual(Reverse)": 2};
+            await entity.write("seMetering", {"0x9001": {value: utils.getFromLookup(value, lookup), type: 0x20}});
         },
         convertGet: async (entity, key, meta) => {
             await entity.read("seMetering", [0x9001]);
@@ -678,15 +678,17 @@ export const definitions: DefinitionWithExtend[] = [
             const exposes = [];
             if (device?.applicationVersion >= 8) {
                 exposes.push(e.produced_energy().withAccess(ea.STATE_GET));
-                exposes.push(e.enum("ct_direction", ea.ALL, ["Auto", "Manual(Forward)", "Manual(Reverse)"])
-                              .withDescription(
-                                "Auto (Default):" +
+                exposes.push(
+                    e
+                        .enum("ct_direction", ea.ALL, ["Auto", "Manual(Forward)", "Manual(Reverse)"])
+                        .withDescription(
+                            "Auto (Default):" +
                                 " All measured power and energy values are treated as positive regardless of CT installation direction," +
                                 " And there is only energy consumption, not produced energy. " +
                                 "And Manual additionally displays produced energy(e.g. when solar power is installed, set it manually)." +
-                                " And it displays energy consumption and production according to the manual forward/reverse settings."
-                              )
-                            );
+                                " And it displays energy consumption and production according to the manual forward/reverse settings.",
+                        ),
+                );
             }
             return exposes;
         },
