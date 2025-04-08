@@ -324,14 +324,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "C-ZB-SEWA",
         vendor: "Candeo",
         description: "Candeo C-ZB-SEWA Water Sensor",
-        extend: [m.battery()],
-        fromZigbee: [fz.ias_enroll, fz.ias_water_leak_alarm_1, fz.ias_water_leak_alarm_1_report],
-        exposes: [e.water_leak()],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["ssIasZone"]);
-            await endpoint.read("ssIasZone", ["zoneStatus"]);
-        },
+        extend: [m.battery(), m.iasZoneAlarm({zoneType: "water_leak", zoneAttributes: ["alarm_1"]})],
     },
     {
         fingerprint: [{modelID: "C-ZB-SETE", manufacturerName: "Candeo"}],
@@ -345,27 +338,13 @@ export const definitions: DefinitionWithExtend[] = [
         model: "C-ZB-SEDC",
         vendor: "Candeo",
         description: "Door contact sensor",
-        extend: [m.battery()],
-        fromZigbee: [fz.ias_contact_alarm_1, fz.ias_contact_alarm_1_report],
-        exposes: [e.contact()],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["ssIasZone"]);
-            await endpoint.read("ssIasZone", ["zoneStatus"]);
-        },
+        extend: [m.battery(), m.iasZoneAlarm({zoneType: "contact", zoneAttributes: ["alarm_1"]})],
     },
     {
         fingerprint: [{modelID: "C-ZB-SEMO", manufacturerName: "Candeo"}],
         model: "C-ZB-SEMO",
         vendor: "Candeo",
         description: "Motion sensor",
-        extend: [m.battery(), m.illuminance({reporting: {min: 1, max: 65535, change: 1}})],
-        fromZigbee: [fz.ias_occupancy_alarm_1, fz.ias_occupancy_alarm_1_report],
-        exposes: [e.occupancy()],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["ssIasZone"]);
-            await endpoint.read("ssIasZone", ["zoneStatus"]);
-        },
+        extend: [m.battery(), m.illuminance({reporting: {min: 1, max: 65535, change: 1}}), m.iasZoneAlarm({zoneType: "occupancy", zoneAttributes: ["alarm_1"]})],
     },
 ];
