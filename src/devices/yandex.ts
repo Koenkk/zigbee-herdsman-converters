@@ -91,6 +91,7 @@ function YandexCluster(): ModernExtend {
             powerType: {ID: 0x0003, type: Zcl.DataType.ENUM8},
             ledIndicator: {ID: 0x0005, type: Zcl.DataType.BOOLEAN},
             interlock: {ID: 0x0007, type: Zcl.DataType.BOOLEAN},
+            buttonMode: {ID: 0x0008, type: Zcl.DataType.ENUM8},
         },
         commands: {
             switchMode: {
@@ -111,6 +112,10 @@ function YandexCluster(): ModernExtend {
             },
             interlock: {
                 ID: 0x07,
+                parameters: [{name: "value", type: Zcl.DataType.UINT8}],
+            },
+            buttonMode: {
+                ID: 0x08,
                 parameters: [{name: "value", type: Zcl.DataType.UINT8}],
             },
         },
@@ -282,6 +287,7 @@ export const definitions: DefinitionWithExtend[] = [
                 endpoints: {down: 1, up: 2},
             }),
             m.commandsOnOff({endpointNames: ["up", "down"]}),
+            m.battery(),
         ],
     },
     {
@@ -295,6 +301,7 @@ export const definitions: DefinitionWithExtend[] = [
                 endpoints: {b1_down: 1, b2_down: 2, b1_up: 3, b2_up: 4},
             }),
             m.commandsOnOff({endpointNames: ["b1_up", "b1_down", "b2_up", "b2_down"]}),
+            m.battery(),
         ],
     },
     {
@@ -427,6 +434,46 @@ export const definitions: DefinitionWithExtend[] = [
                 setCommand: "ledIndicator",
                 zigbeeCommandOptions: {manufacturerCode},
                 description: "Led indicator",
+                entityCategory: "config",
+            }),
+        ],
+    },
+    {
+        zigbeeModel: ["YNDX-00530"],
+        model: "YNDX_00530",
+        vendor: "Yandex",
+        description: "Dimmer",
+        extend: [
+            YandexCluster(),
+            m.light({
+                effect: true,
+                powerOnBehavior: true,
+                configureReporting: true,
+                levelReportingConfig: {min: "MIN", max: "MAX", change: 1},
+            }),
+            m.lightingBallast(),
+            binaryWithSetCommand({
+                name: "led_indicator",
+                cluster: "manuSpecificYandex",
+                attribute: "ledIndicator",
+                valueOn: ["ON", 1],
+                valueOff: ["OFF", 0],
+                setCommand: "ledIndicator",
+                zigbeeCommandOptions: {manufacturerCode},
+                description: "Led indicator",
+                entityCategory: "config",
+            }),
+            enumLookupWithSetCommand({
+                name: "button_mode",
+                cluster: "manuSpecificYandex",
+                attribute: "buttonMode",
+                setCommand: "buttonMode",
+                zigbeeCommandOptions: {manufacturerCode},
+                description: "Dimmer button mode",
+                lookup: {
+                    general: 0x00,
+                    alternative: 0x01,
+                },
                 entityCategory: "config",
             }),
         ],

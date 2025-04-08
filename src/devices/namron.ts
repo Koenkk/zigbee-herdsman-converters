@@ -1500,7 +1500,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "4512788",
         vendor: "Namron",
         description: "Zigbee smart plug dimmer 150W",
-        extend: [m.light(), m.electricityMeter({cluster: "electrical"})],
+        extend: [m.light({effect: false, configureReporting: true}), m.electricityMeter({cluster: "electrical"})],
     },
     {
         zigbeeModel: ["4512783", "4512784"],
@@ -1634,6 +1634,25 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription("Start date")
                 .withDescription("Supports dates starting with day or year with '. - /'"),
             e.text("vacation_end_date", ea.ALL).withDescription("End date").withDescription("Supports dates starting with day or year with '. - /'"),
+        ],
+    },
+    {
+        zigbeeModel: ["1402790"],
+        model: "1402790",
+        vendor: "Namron",
+        description: "Stove guard for safe cooking",
+        extend: [
+            m.deviceEndpoints({endpoints: {main_switch: 1, short_override: 2}}),
+            m.onOff({powerOnBehavior: false, endpointNames: ["main_switch"], description: "Main relay switch"}),
+            m.onOff({powerOnBehavior: false, endpointNames: ["short_override"], description: "Short override switch"}),
+            m.electricityMeter({
+                endpointNames: ["main_switch"],
+                power: {multiplier: 1, divisor: 1},
+                voltage: false,
+                current: false,
+            }),
+            m.battery(),
+            m.temperature({reporting: undefined}),
         ],
     },
 ];

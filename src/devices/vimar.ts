@@ -96,4 +96,11 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.thermostatTemperature(endpoint);
         },
     },
+    {
+        zigbeeModel: ["RemoteControl_v1.0"],
+        model: "RemoteControl_v1.0",
+        vendor: "Vimar",
+        description: "Remote control IoT",
+        extend: [m.commandsOnOff(), m.commandsWindowCovering(), m.commandsLevelCtrl()],
+    },
 ];
