@@ -319,4 +319,36 @@ export const definitions: DefinitionWithExtend[] = [
             await endpoint1.read("genBasic", [switchTypeAttribute], {manufacturerCode: manufacturerSpecificClusterCode});
         },
     },
+    {
+        fingerprint: [{modelID: "C-ZB-SEWA", manufacturerName: "Candeo"}],
+        model: "C-ZB-SEWA",
+        vendor: "Candeo",
+        description: "Water sensor",
+        extend: [m.battery(), m.iasZoneAlarm({zoneType: "water_leak", zoneAttributes: ["alarm_1"]})],
+    },
+    {
+        fingerprint: [{modelID: "C-ZB-SETE", manufacturerName: "Candeo"}],
+        model: "C-ZB-SETE",
+        vendor: "Candeo",
+        description: "Temperature & humidity sensor",
+        extend: [m.temperature(), m.humidity(), m.battery()],
+    },
+    {
+        fingerprint: [{modelID: "C-ZB-SEDC", manufacturerName: "Candeo"}],
+        model: "C-ZB-SEDC",
+        vendor: "Candeo",
+        description: "Door contact sensor",
+        extend: [m.battery(), m.iasZoneAlarm({zoneType: "contact", zoneAttributes: ["alarm_1"]})],
+    },
+    {
+        fingerprint: [{modelID: "C-ZB-SEMO", manufacturerName: "Candeo"}],
+        model: "C-ZB-SEMO",
+        vendor: "Candeo",
+        description: "Motion sensor",
+        extend: [
+            m.battery(),
+            m.illuminance({reporting: {min: 1, max: 65535, change: 1}}),
+            m.iasZoneAlarm({zoneType: "occupancy", zoneAttributes: ["alarm_1"]}),
+        ],
+    },
 ];
