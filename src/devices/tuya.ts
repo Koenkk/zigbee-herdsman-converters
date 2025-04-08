@@ -11087,10 +11087,57 @@ export const definitions: DefinitionWithExtend[] = [
             e.produced_energy().withDescription("Total reverse active energy"),
             e.power_factor().withUnit("%"),
             e.ac_frequency(),
+            e
+                .numeric("data_report_duration", ea.SET)
+                .withValueMin(5)
+                .withValueMax(3600)
+                .withDescription(
+                    "WARNING: You must update device firmware to V3.2.2 before changing this setting! Use Tuya gateway/app to update firmware. Data report duration set (Threshold value range 5~3600 seconds)",
+                ),
         ],
         meta: {
             tuyaDatapoints: [
                 [1, "energy", tuya.valueConverter.divideBy100],
+                [
+                    18,
+                    "data_report_duration",
+                    {
+                        to: (v: number) => {
+                            const value = Math.max(5, Math.min(3600, Math.round(v)));
+                            const byte1 = (value >> 8) & 0xff;
+                            const byte2 = value & 0xff;
+                            return [
+                                // Other settings of the device
+                                0x01,
+                                0x01,
+                                0x00,
+                                0x3c,
+                                0x03,
+                                0x01,
+                                0x00,
+                                0xfd,
+                                0x04,
+                                0x00,
+                                0x00,
+                                0xb4,
+                                0x07,
+                                0x01,
+                                0x00,
+                                0x00,
+                                0x08,
+                                0x01,
+                                // Report duration
+                                byte1,
+                                byte2,
+                                // Only modify the report duration
+                                0x09,
+                                0x00,
+                                0x00,
+                                0x00,
+                            ];
+                        },
+                    },
+                ],
                 [23, "produced_energy", tuya.valueConverter.divideBy100],
                 [32, "ac_frequency", tuya.valueConverter.divideBy100],
                 [50, "power_factor", tuya.valueConverter.raw],
@@ -11175,6 +11222,13 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.exposes.powerFactorWithPhase("a"),
             tuya.exposes.powerFactorWithPhase("b"),
             tuya.exposes.powerFactorWithPhase("c"),
+            e
+                .numeric("update_frequency", ea.STATE_SET)
+                .withUnit("s")
+                .withDescription("Update frequency")
+                .withValueMin(5)
+                .withValueMax(3600)
+                .withPreset("default", 10, "Default value"),
         ],
         meta: {
             tuyaDatapoints: [
@@ -11183,6 +11237,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [29, "power", tuya.valueConverter.raw],
                 [32, "ac_frequency", tuya.valueConverter.divideBy100],
                 [50, "power_factor", tuya.valueConverter.raw],
+                [102, "update_frequency", tuya.valueConverterBasic.divideBy(1)],
                 [103, "voltage_a", tuya.valueConverter.divideBy10],
                 [104, "current_a", tuya.valueConverter.divideBy1000],
                 [105, "power_a", tuya.valueConverter.raw],
@@ -11361,6 +11416,13 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.exposes.energyProducedWithPhase("l2"),
             tuya.exposes.powerFactorWithPhase("l1"),
             tuya.exposes.powerFactorWithPhase("l2"),
+            e
+                .numeric("update_frequency", ea.STATE_SET)
+                .withUnit("s")
+                .withDescription("Update frequency")
+                .withValueMin(5)
+                .withValueMax(3600)
+                .withPreset("default", 10, "Default value"),
         ],
         meta: {
             tuyaDatapoints: [
@@ -11369,6 +11431,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [29, "power", tuya.valueConverter.raw],
                 [32, "ac_frequency", tuya.valueConverter.divideBy100],
                 [50, "power_factor", tuya.valueConverter.raw],
+                [102, "update_frequency", tuya.valueConverterBasic.divideBy(1)],
                 [103, "voltage_l1", tuya.valueConverter.divideBy10],
                 [104, "current_l1", tuya.valueConverter.divideBy1000],
                 [105, "power_l1", tuya.valueConverter.raw],
