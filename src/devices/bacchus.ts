@@ -106,7 +106,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["Presence_Sensor_v2.6"],
         model: "Presence_Sensor_v2.6",
         vendor: "Bacchus",
-        description: "Bacchus presence sensor with illuminance",
+        description: "Presence sensor with illuminance",
         meta: {multiEndpoint: true},
         extend: [
             m.deviceEndpoints({
