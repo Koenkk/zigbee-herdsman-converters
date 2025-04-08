@@ -5,8 +5,6 @@
         "esModuleInterop": true,
         "target": "ES2022",
         "lib": ["ES2022"],
-        "noImplicitAny": true,
-        "noImplicitThis": true,
         "sourceMap": true,
         "declaration": true,
         "declarationMap": true,
@@ -15,7 +13,16 @@
         "rootDir": "src",
         "resolveJsonModule": true,
         "incremental": true,
-        "composite": true
+        "composite": true,
+        "alwaysStrict": true,
+        // "strictNullChecks": true,
+        "strictBindCallApply": true,
+        "strictBuiltinIteratorReturn": true,
+        // "strictFunctionTypes": true,
+        // "strictPropertyInitialization": true,
+        "noImplicitAny": true,
+        "noImplicitThis": true,
+        "useUnknownInCatchVariables": true
     },
     "include": ["./src/**/*"],
     "exclude": ["node_modules"]

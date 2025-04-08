@@ -2258,7 +2258,7 @@ export const definitions: DefinitionWithExtend[] = [
                     try {
                         await config;
                     } catch (error) {
-                        if (error.message.includes("UNSUPPORTED_ATTRIBUTE")) {
+                        if ((error as Error).message.includes("UNSUPPORTED_ATTRIBUTE")) {
                             // ignore: sometimes the attribute is not supported
                         } else {
                             logger.warning(`Configure failed: ${error}`, "TICMeter");

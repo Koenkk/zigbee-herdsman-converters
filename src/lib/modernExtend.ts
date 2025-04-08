@@ -555,7 +555,7 @@ export function onOff(args?: OnOffArgs): ModernExtend {
                             false,
                         );
                     } catch (e) {
-                        if (e.message.includes("UNSUPPORTED_ATTRIBUTE")) {
+                        if ((e as Error).message.includes("UNSUPPORTED_ATTRIBUTE")) {
                             logger.debug("Reading startUpOnOff failed, this features is unsupported", "zhc:onoff");
                         } else {
                             throw e;

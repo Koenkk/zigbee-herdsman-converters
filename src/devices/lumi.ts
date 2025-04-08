@@ -2013,16 +2013,16 @@ export const definitions: DefinitionWithExtend[] = [
                 await reporting.bind(endpoint, coordinatorEndpoint, ["haElectricalMeasurement"]);
                 await endpoint.read("haElectricalMeasurement", ["acPowerMultiplier", "acPowerDivisor"]);
             } catch (e) {
-                logger.warning(`SP-EUC01 failed to setup electricity measurements (${e.message})`, NS);
-                logger.debug(e.stack, NS);
+                logger.warning(`SP-EUC01 failed to setup electricity measurements (${(e as Error).message})`, NS);
+                logger.debug(`${(e as Error).stack}`, NS);
             }
             try {
                 await reporting.bind(endpoint, coordinatorEndpoint, ["seMetering"]);
                 await reporting.readMeteringMultiplierDivisor(endpoint);
                 await reporting.currentSummDelivered(endpoint, {change: 0});
             } catch (e) {
-                logger.warning(`SP-EUC01 failed to setup metering (${e.message})`, NS);
-                logger.debug(e.stack, NS);
+                logger.warning(`SP-EUC01 failed to setup metering (${(e as Error).message})`, NS);
+                logger.debug(`${(e as Error).stack}`, NS);
             }
         },
         onEvent: (type, data, device) => {

@@ -1641,7 +1641,7 @@ function getCurrentConfig(device: Zh.Device, options: KeyValue) {
     try {
         endpoint = device.getEndpoint(1);
     } catch (error) {
-        logger.debug(error, NS);
+        logger.debug(`${(error as Error).stack}`, NS);
     }
     // @ts-expect-error ignore
     function getConfig(targetOption, bitLinkyMode, valueTrue, valueFalse) {

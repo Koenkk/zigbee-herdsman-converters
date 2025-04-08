@@ -488,7 +488,7 @@ export const configureMagicPacket = async (device: Zh.Device, coordinatorEndpoin
     } catch (e) {
         // Fails for some Tuya devices with UNSUPPORTED_ATTRIBUTE, ignore that.
         // e.g. https://github.com/Koenkk/zigbee2mqtt/issues/14857
-        if (e.message.includes("UNSUPPORTED_ATTRIBUTE")) {
+        if ((e as Error).message.includes("UNSUPPORTED_ATTRIBUTE")) {
             logger.debug("configureMagicPacket failed, ignoring...", NS);
         } else {
             throw e;
