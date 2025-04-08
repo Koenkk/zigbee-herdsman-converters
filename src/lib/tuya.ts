@@ -1949,7 +1949,7 @@ export function getHandlersForDP(
     name: string,
     dp: number,
     type: number,
-    converter: Tuya.ValueConverterSingleUnknown,
+    converter: Tuya.ValueConverterSingle,
     readOnly?: boolean,
     skip?: (meta: Tz.Meta) => boolean,
     endpoint?: string,

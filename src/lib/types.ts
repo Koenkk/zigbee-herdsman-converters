@@ -356,37 +356,17 @@ export namespace Tuya {
         datatype: number;
         data: Buffer | number[];
     }
-    export interface ValueConverterSingle<Tto = unknown, Tfrom = unknown> {
-        to?: (value: Tto, meta?: Tz.Meta) => unknown;
-        from?: (value: Tfrom, meta?: Fz.Meta, options?: KeyValue, publish?: Publish, msg?: Fz.Message) => number | string | boolean | KeyValue | null;
+    export interface ValueConverterSingle {
+        // biome-ignore lint/suspicious/noExplicitAny: value is validated on per-case basis
+        to?: (value: any, meta?: Tz.Meta) => unknown;
+        // biome-ignore lint/suspicious/noExplicitAny: value is validated on per-case basis
+        from?: (value: any, meta?: Fz.Meta, options?: KeyValue, publish?: Publish, msg?: Fz.Message) => number | string | boolean | KeyValue | null;
     }
-    export type ValueConverterSingleUnknown =
-        | Tuya.ValueConverterSingle<unknown, unknown>
-        | Tuya.ValueConverterSingle<string, string>
-        | Tuya.ValueConverterSingle<string, boolean>
-        | Tuya.ValueConverterSingle<string, number>
-        | Tuya.ValueConverterSingle<number, number>
-        | Tuya.ValueConverterSingle<number, boolean>
-        | Tuya.ValueConverterSingle<number, string>
-        | Tuya.ValueConverterSingle<boolean, boolean>
-        | Tuya.ValueConverterSingle<boolean, number>
-        | Tuya.ValueConverterSingle<boolean, string>
-        | Tuya.ValueConverterSingle<number[], number[]>
-        | Tuya.ValueConverterSingle<number[], string>
-        | Tuya.ValueConverterSingle<number[], number>
-        | Tuya.ValueConverterSingle<number[], boolean>
-        | Tuya.ValueConverterSingle<number[], KeyValue>
-        | Tuya.ValueConverterSingle<string, number[]>
-        | Tuya.ValueConverterSingle<number, number[]>
-        | Tuya.ValueConverterSingle<boolean, number[]>
-        | Tuya.ValueConverterSingle<KeyValueAny, string>
-        | Tuya.ValueConverterSingle<KeyValue, number[]>
-        | Tuya.ValueConverterSingle<Buffer, Buffer>;
     export interface MetaTuyaDataPointsMeta {
         skip?: (meta: Tz.Meta) => boolean;
         optimistic?: boolean;
     }
-    export type MetaTuyaDataPointsSingle = [number, string, ValueConverterSingleUnknown, MetaTuyaDataPointsMeta?];
+    export type MetaTuyaDataPointsSingle = [number, string, ValueConverterSingle, MetaTuyaDataPointsMeta?];
     export type MetaTuyaDataPoints = MetaTuyaDataPointsSingle[];
 }
 
