@@ -54,6 +54,17 @@ const fzLocal = {
             }
         },
     } satisfies Fz.Converter,
+    ct_direction: {
+        cluster: "seMetering",
+        type: ["readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data[0x9001] !== undefined) {
+                const value = msg.data[0x9001];
+                const lookup = {0: "Auto", 1: "Manual(Forward)", 2: "Manual(Reverse)"};
+                return {ct_direction: utils.getFromLookup(value, lookup)};
+            }
+        },
+    } satisfies Fz.Converter,
 };
 
 const tzLocal = {
@@ -179,6 +190,16 @@ const tzLocal = {
         },
         convertGet: async (entity, key, meta) => {
             await entity.read("genOnOff", ["onOff"]);
+        },
+    } satisfies Tz.Converter,
+    ct_direction: {
+        key: ["ct_direction"],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = {"Auto": 0, "Manual(Forward)": 1, "Manual(Reverse)": 2};
+            await entity.write("seMetering", {'0x9001': {value: utils.getFromLookup(value, lookup), type: 0x20}});
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read("seMetering", [0x9001]);
         },
     } satisfies Tz.Converter,
 };
@@ -640,7 +661,52 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "ShinaSystem",
         ota: true,
         description: "SiHAS energy monitor",
-        extend: [m.electricityMeter({power: {cluster: "metering"}, acFrequency: {multiplier: 1, divisor: 10}, powerFactor: true}), m.temperature()],
+        fromZigbee: [fzLocal.ct_direction],
+        toZigbee: [tzLocal.ct_direction],
+        extend: [
+            m.electricityMeter({
+                power: {cluster: "metering", min: 30},
+                current: {min: 30, max: 600, change: 1},
+                voltage: {min: 60},
+                acFrequency: {multiplier: 1, divisor: 10, min: 60},
+                powerFactor: true,
+            }),
+            m.temperature({reporting: {min: 60, max: 3600, change: 100}}),
+        ],
+        // Produced_energy and ct_direction is supported in version 8 and above.
+        exposes: (device, options) => {
+            const exposes = [];
+            if (device?.applicationVersion >= 8) {
+                exposes.push(e.produced_energy().withAccess(ea.STATE_GET));
+                exposes.push(e.enum("ct_direction", ea.ALL, ["Auto", "Manual(Forward)", "Manual(Reverse)"])
+                              .withDescription(
+                                "Auto (Default):" +
+                                " All measured power and energy values are treated as positive regardless of CT installation direction," +
+                                " And there is only energy consumption, not produced energy. " +
+                                "And Manual additionally displays produced energy(e.g. when solar power is installed, set it manually)." +
+                                " And it displays energy consumption and production according to the manual forward/reverse settings."
+                              )
+                            );
+            }
+            return exposes;
+        },
+        // Additionally, this Produced_energy does not support reporting,
+        // so we implemented a read operation within onEvent upon receiving a 'current' message.
+        onEvent: async (type, data, device, options) => {
+            if (device?.applicationVersion >= 8) {
+                if (type === "message" && data.type === "attributeReport" && data.cluster === "haElectricalMeasurement" && data.data.rmsCurrent) {
+                    const endpoint = device.getEndpoint(1);
+                    await endpoint.read("seMetering", ["currentSummReceived"]);
+                }
+            }
+        },
+        // Ct direction(seMetering, 0x9001) is supported in version 8 and above.
+        configure: async (device, coordinatorEndpoint) => {
+            if (device?.applicationVersion >= 8) {
+                const endpoint = device.getEndpoint(1);
+                await endpoint.read("seMetering", [0x9001]);
+            }
+        },
     },
     {
         zigbeeModel: ["PMM-300Z3"],
@@ -648,7 +714,34 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "ShinaSystem",
         ota: true,
         description: "SiHAS 3phase energy monitor",
-        extend: [m.electricityMeter({power: {cluster: "metering"}, acFrequency: {multiplier: 1, divisor: 10}, powerFactor: true}), m.temperature()],
+        extend: [
+            m.electricityMeter({
+                power: {cluster: "metering", min: 30},
+                current: {min: 30, max: 600, change: 1},
+                voltage: {min: 60},
+                acFrequency: {multiplier: 1, divisor: 10, min: 60},
+                powerFactor: true,
+            }),
+            m.temperature({reporting: {min: 60, max: 3600, change: 100}}),
+        ],
+        // Produced_energy is supported in version 9 and above.
+        exposes: (device, options) => {
+            const exposes = [];
+            if (device?.applicationVersion >= 9) {
+                exposes.push(e.produced_energy().withAccess(ea.STATE_GET));
+            }
+            return exposes;
+        },
+        // Additionally, this device does not support reporting,
+        // so we implemented a read operation within onEvent upon receiving a 'current' message.
+        onEvent: async (type, data, device, options) => {
+            if (device?.applicationVersion >= 9) {
+                if (type === "message" && data.type === "attributeReport" && data.cluster === "haElectricalMeasurement" && data.data.rmsCurrent) {
+                    const endpoint = device.getEndpoint(1);
+                    await endpoint.read("seMetering", ["currentSummReceived"]);
+                }
+            }
+        },
     },
     {
         zigbeeModel: ["DLM-300Z"],
