@@ -323,7 +323,7 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: [{modelID: "C-ZB-SEWA", manufacturerName: "Candeo"}],
         model: "C-ZB-SEWA",
         vendor: "Candeo",
-        description: "Candeo C-ZB-SEWA Water Sensor",
+        description: "Water sensor",
         extend: [m.battery(), m.iasZoneAlarm({zoneType: "water_leak", zoneAttributes: ["alarm_1"]})],
     },
     {
