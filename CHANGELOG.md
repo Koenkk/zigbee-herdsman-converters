@@ -1,5 +1,28 @@
 # Changelog
 
+## [23.24.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.23.0...v23.24.0) (2025-04-09)
+
+
+### Features
+
+* **add:** C-ZB-SEWA, C-ZB-SETE, C-ZB-SEDC, C-ZB-SEMO ([#9060](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9060)) ([2127ccb](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2127ccb89b4d91df4c92a09ca2e7d7e184bf7f5c))
+* **add:** IRB-4-1-00, SEM-4-1-00 ([#9145](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9145)) ([5e090bb](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5e090bb930525b7fc0824ceec0ac5587b19a9ded))
+* **add:** Presence_Sensor_v2.6 ([#9146](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9146)) ([453e0e2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/453e0e2155e2d5a95d84c977ecb4ae74571d45fe))
+* Aqara Z1 Pro Led toggle ([#9152](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9152)) ([b1ea96f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b1ea96f097c53e78b363433e0b96e992afe7914d))
+* Update PMM-300Z2 and PMM-300Z3 ([#9144](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9144)) ([f9aef45](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f9aef455c972d8bd884cecd8da0046d922162576))
+
+
+### Bug Fixes
+
+* Added update frequency adjustment for some Bituo Tuya devices ([#9143](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9143)) ([c97d4c7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c97d4c7309dc415c1a8ce54c9575ac6332c34251))
+* Aqara WS-K02E: fix endpoints ([#9150](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9150)) ([b0b201a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b0b201a9a4e5b413aa227e41a3be4a95d61f08a4))
+* **detect:** Detect `_TZB210_eiwanbeb` as MiBoxer E2-ZR ([#9153](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9153)) ([96cb4a0](https://github.com/Koenkk/zigbee-herdsman-converters/commit/96cb4a0c12f5383150b3c69cd9125b15212302c8))
+* **detect:** Detect `_TZE200_wbhaespm` as SUTON STB3L-125-ZJ https://github.com/zigbee2mqtt/hassio-zigbee2mqtt/issues/753 ([d6cc664](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d6cc6643dd636b46e2bc2916a8cf1549f125d819))
+* **detect:** Detect `929003785001_01` and `929003785001_02` as Philips 4090330P9 ([#9149](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9149)) ([0d6175b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0d6175b64cf4e85969e2af32e0fb1ef0cea620b8))
+* Fix error in Zosung converter https://github.com/Koenkk/zigbee2mqtt/issues/27046 ([ceb76d2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ceb76d2cd98d1b4c4d0e35a791cbb642a532879d))
+* Third Reality 3RWK0148Z: fix `wateringTimes` type ([#9142](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9142)) ([a185394](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a1853946870fc7c14df19b9b2168d843919fbb51))
+* TS stricter ([#9147](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9147)) ([eeae452](https://github.com/Koenkk/zigbee-herdsman-converters/commit/eeae452a46a898e8d22d873844896b25a3ef95ba))
+
 ## [23.23.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.22.0...v23.23.0) (2025-04-07)
 
 
