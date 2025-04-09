@@ -197,6 +197,7 @@ const tzLocal = {
         convertSet: async (entity, key, value, meta) => {
             const lookup = {Auto: 0, "Manual(Forward)": 1, "Manual(Reverse)": 2};
             await entity.write("seMetering", {"0x9001": {value: utils.getFromLookup(value, lookup), type: 0x20}});
+            return {state: {[key]: value}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read("seMetering", [0x9001]);
