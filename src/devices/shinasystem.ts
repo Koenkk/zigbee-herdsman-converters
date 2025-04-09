@@ -663,16 +663,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "SiHAS energy monitor",
         fromZigbee: [fzLocal.ct_direction],
         toZigbee: [tzLocal.ct_direction],
-        extend: [
-            m.electricityMeter({
-                power: {cluster: "metering", min: 30},
-                current: {min: 30, max: 600, change: 1},
-                voltage: {min: 60},
-                acFrequency: {multiplier: 1, divisor: 10, min: 60},
-                powerFactor: true,
-            }),
-            m.temperature({reporting: {min: 60, max: 3600, change: 100}}),
-        ],
+        extend: [m.electricityMeter({power: {cluster: "metering"}, acFrequency: {multiplier: 1, divisor: 10}, powerFactor: true}), m.temperature()],
         // Produced_energy and ct_direction is supported in version 8 and above.
         exposes: (device, options) => {
             const exposes = [];
@@ -716,16 +707,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "ShinaSystem",
         ota: true,
         description: "SiHAS 3phase energy monitor",
-        extend: [
-            m.electricityMeter({
-                power: {cluster: "metering", min: 30},
-                current: {min: 30, max: 600, change: 1},
-                voltage: {min: 60},
-                acFrequency: {multiplier: 1, divisor: 10, min: 60},
-                powerFactor: true,
-            }),
-            m.temperature({reporting: {min: 60, max: 3600, change: 100}}),
-        ],
+        extend: [m.electricityMeter({power: {cluster: "metering"}, acFrequency: {multiplier: 1, divisor: 10}, powerFactor: true}), m.temperature()],
         // Produced_energy is supported in version 9 and above.
         exposes: (device, options) => {
             const exposes = [];
