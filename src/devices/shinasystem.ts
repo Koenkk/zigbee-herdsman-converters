@@ -286,7 +286,7 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.humidity(endpoint, {min: 20, max: 300, change: 40});
         },
         exposes: [e.battery(), e.battery_voltage(), e.temperature(), e.humidity(), e.occupancy()],
-        extend: [m.illuminance()],
+        extend: [m.illuminance({scale: (value) => value})],
     },
     {
         zigbeeModel: ["SBM300Z1"],
