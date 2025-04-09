@@ -567,7 +567,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
-        zigbeeModel: ["4090330P9_01", "4090330P9_02", "929003052501_01", "929003052501_02"],
+        zigbeeModel: ["4090330P9_01", "4090330P9_02", "929003052501_01", "929003052501_02", "929003785001_01", "929003785001_02"],
         model: "4090330P9",
         vendor: "Philips",
         description: "Hue Ensis (black)",
