@@ -3705,7 +3705,7 @@ export const definitions: DefinitionWithExtend[] = [
                     1,
                     "state",
                     {
-                        to: async (v, meta) => {
+                        to: async (v: string, meta: Tz.Meta) => {
                             if (meta.options?.expose_device_state === true) {
                                 await tuya.sendDataPointBool(
                                     meta.device.endpoints[0],
@@ -3716,7 +3716,7 @@ export const definitions: DefinitionWithExtend[] = [
                                 );
                             }
                         },
-                        from: (v, meta, options) => {
+                        from: (v: boolean, meta: Fz.Meta, options?: KeyValue) => {
                             meta.state.system_mode = v === true ? (meta.state.system_mode_device ?? "cool") : "off";
 
                             if (options?.expose_device_state === true) {
@@ -3733,7 +3733,7 @@ export const definitions: DefinitionWithExtend[] = [
                     "system_mode",
                     {
                         // Extend system_mode to support 'off' in addition to 'cool', 'heat' and 'fan_only'
-                        to: async (v: string, meta) => {
+                        to: async (v: string, meta: Tz.Meta) => {
                             const entity = meta.device.endpoints[0];
                             // Power State
                             await tuya.sendDataPointBool(entity, 1, v !== "off", "dataRequest", 1);
@@ -3749,7 +3749,7 @@ export const definitions: DefinitionWithExtend[] = [
                                     break;
                             }
                         },
-                        from: (v: number, meta) => {
+                        from: (v: number, meta: Fz.Meta) => {
                             const modes = ["cool", "heat", "fan_only"];
                             meta.state.system_mode_device = modes[v];
                             return modes[v];
@@ -3777,7 +3777,7 @@ export const definitions: DefinitionWithExtend[] = [
                     101,
                     "schedule",
                     {
-                        to: (v: {weekdays: string; saturday: string; sunday: string}, meta) => {
+                        to: (v: {weekdays: string; saturday: string; sunday: string}, meta: Tz.Meta) => {
                             const periods = (value: string) => {
                                 const regex = /((?<h>[01][0-9]|2[0-3]):(?<m>[0-5][0-9])\/(?<t>[0-3][0-9](\.[0,5]|)))/gm;
                                 const matches = [...value.matchAll(regex)];
@@ -3798,7 +3798,7 @@ export const definitions: DefinitionWithExtend[] = [
 
                             return schedule;
                         },
-                        from: (v: number[], meta) => {
+                        from: (v: number[], meta: Fz.Meta) => {
                             const format = (data: number[]) => {
                                 return data.reduce((a, v, i) => {
                                     switch (i % 3) {
@@ -9094,7 +9094,7 @@ export const definitions: DefinitionWithExtend[] = [
                     1,
                     "presence",
                     {
-                        from: (v: number, meta, options) => {
+                        from: (v: number, meta: Fz.Meta, options?: KeyValue) => {
                             if (meta.device.manufacturerName === "_TZE284_iadro9bf") {
                                 return tuya.valueConverter.trueFalse0.from(v);
                             }
@@ -12522,7 +12522,7 @@ export const definitions: DefinitionWithExtend[] = [
                     1,
                     null,
                     {
-                        from: (v, meta) => {
+                        from: (v: number, meta: Fz.Meta) => {
                             if (v === 0) {
                                 return {
                                     state: "none",
@@ -13002,7 +13002,7 @@ export const definitions: DefinitionWithExtend[] = [
                     1,
                     "state",
                     {
-                        to: async (v, meta) => {
+                        to: async (v: string, meta: Tz.Meta) => {
                             if (meta.options?.expose_device_state === true) {
                                 await tuya.sendDataPointBool(
                                     meta.device.endpoints[0],
@@ -13013,7 +13013,7 @@ export const definitions: DefinitionWithExtend[] = [
                                 );
                             }
                         },
-                        from: (v, meta, options) => {
+                        from: (v: boolean, meta: Fz.Meta, options?: KeyValue) => {
                             meta.state.system_mode = v === true ? (meta.state.system_mode_device ?? "cool") : "off";
 
                             if (options?.expose_device_state === true) {
@@ -13030,7 +13030,7 @@ export const definitions: DefinitionWithExtend[] = [
                     "system_mode",
                     {
                         // Extend system_mode to support 'off' in addition to 'cool', 'heat' and 'fan_only'
-                        to: async (v: string, meta) => {
+                        to: async (v: string, meta: Tz.Meta) => {
                             const entity = meta.device.endpoints[0];
                             // Power State
                             await tuya.sendDataPointBool(entity, 1, v !== "off", "dataRequest", 1);
@@ -13046,7 +13046,7 @@ export const definitions: DefinitionWithExtend[] = [
                                     break;
                             }
                         },
-                        from: (v: number, meta) => {
+                        from: (v: number, meta: Fz.Meta) => {
                             const modes = ["cool", "heat", "fan_only"];
                             meta.state.system_mode_device = modes[v];
                             return modes[v];
@@ -14785,7 +14785,7 @@ export const definitions: DefinitionWithExtend[] = [
                     1,
                     null,
                     {
-                        from: (v) => {
+                        from: (v: number) => {
                             const lookup = {
                                 none: tuya.enum(0),
                                 presence: tuya.enum(1),
@@ -16291,7 +16291,7 @@ export const definitions: DefinitionWithExtend[] = [
                     null,
                     "occupied_heating_setpoint",
                     {
-                        to: async (v: number, meta) => {
+                        to: async (v: number, meta: Tz.Meta) => {
                             const entity = meta.device.endpoints[0];
                             const mode = meta.state.mode_switching;
                             let temp = v;
@@ -16332,7 +16332,7 @@ export const definitions: DefinitionWithExtend[] = [
                     "system_mode",
                     {
                         // Extend system_mode to support 'off' in addition to 'heat' and 'auto'
-                        to: async (v, meta) => {
+                        to: async (v: string, meta: Tz.Meta) => {
                             const entity = meta.device.endpoints[0];
                             let temp = meta.state.occupied_heating_setpoint as number;
                             if (meta.state.temperature_unit === "fahrenheit") temp = ((temp - 32) * 5) / 9;

@@ -385,7 +385,6 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.ignore_basic_report, fz.ignore_tuya_set_time, fz.ignore_onoff_report, tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         onEvent: async (type, data, device) => {
-            // @ts-expect-error ignore
             await tuya.onEventSetLocalTime(type, data, device);
 
             // @ts-expect-error ignore

@@ -357,24 +357,16 @@ export namespace Tuya {
         data: Buffer | number[];
     }
     export interface ValueConverterSingle {
-        to?: (value: unknown, meta?: Tz.Meta) => unknown;
-        from?: (
-            value: unknown,
-            meta?: Fz.Meta,
-            options?: KeyValue,
-            publish?: Publish,
-            msg?: Fz.Message,
-        ) => number | string | boolean | KeyValue | null;
-    }
-    export interface ValueConverterMulti {
-        to?: (value: unknown, meta?: Tz.Meta) => unknown;
-        from?: (value: unknown, meta?: Fz.Meta, options?: KeyValue, publish?: Publish, msg?: Fz.Message) => KeyValue;
+        // biome-ignore lint/suspicious/noExplicitAny: value is validated on per-case basis
+        to?: (value: any, meta?: Tz.Meta) => unknown;
+        // biome-ignore lint/suspicious/noExplicitAny: value is validated on per-case basis
+        from?: (value: any, meta?: Fz.Meta, options?: KeyValue, publish?: Publish, msg?: Fz.Message) => number | string | boolean | KeyValue | null;
     }
     export interface MetaTuyaDataPointsMeta {
         skip?: (meta: Tz.Meta) => boolean;
         optimistic?: boolean;
     }
-    export type MetaTuyaDataPointsSingle = [number, string, Tuya.ValueConverterSingle, MetaTuyaDataPointsMeta?];
+    export type MetaTuyaDataPointsSingle = [number, string, ValueConverterSingle, MetaTuyaDataPointsMeta?];
     export type MetaTuyaDataPoints = MetaTuyaDataPointsSingle[];
 }
 

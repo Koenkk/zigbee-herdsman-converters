@@ -194,7 +194,8 @@ function privateMotorClbByPosition(clusterName: string, writeCommand: string): M
     const toZigbee: Tz.Converter[] = [
         {
             key: ["motor_clb_position"],
-            convertSet: async (entity: Zh.Endpoint, key, value, meta) => {
+            convertSet: async (entity, key, value, meta) => {
+                utils.assertEndpoint(entity);
                 const device: Zh.Device = entity.getDevice();
                 const modelID = device.modelID;
 
@@ -356,7 +357,8 @@ function privateMotorMode(clusterName: string, writeCommand: string): ModernExte
     const toZigbee: Tz.Converter[] = [
         {
             key: ["motor_mode"],
-            convertSet: async (entity: Zh.Endpoint, key, value, meta) => {
+            convertSet: async (entity, key, value, meta) => {
+                utils.assertEndpoint(entity);
                 const device: Zh.Device = entity.getDevice();
                 const modelID = device.modelID;
 
@@ -623,7 +625,8 @@ function privateMotorSpeed(clusterName: string, writeCommand: string, minSpeed: 
     const toZigbee: Tz.Converter[] = [
         {
             key: ["motor_speed"],
-            convertSet: async (entity: Zh.Endpoint, key, value, meta) => {
+            convertSet: async (entity, key, value, meta) => {
+                utils.assertEndpoint(entity);
                 const device: Zh.Device = entity.getDevice();
                 const modelID = device.modelID;
 
