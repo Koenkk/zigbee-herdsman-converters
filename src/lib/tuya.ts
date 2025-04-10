@@ -190,7 +190,7 @@ export function onEventMeasurementPoll(
     utils.onEventPoll(type, data, device, options, "measurement", 60, poll);
 }
 
-export async function onEventSetTime(type: OnEventType, data: KeyValue, device: Zh.Device) {
+export async function onEventSetTime(type: OnEventType, data: OnEventData, device: Zh.Device) {
     // FIXME: Need to join onEventSetTime/onEventSetLocalTime to one command
 
     if (data.type === "commandMcuSyncTime" && data.cluster === "manuSpecificTuya") {
@@ -214,7 +214,7 @@ export async function onEventSetTime(type: OnEventType, data: KeyValue, device: 
 
 // set UTC and Local Time as total number of seconds from 00: 00: 00 on January 01, 1970
 // force to update every device time every hour due to very poor clock
-export async function onEventSetLocalTime(type: OnEventType, data: KeyValue, device: Zh.Device) {
+export async function onEventSetLocalTime(type: OnEventType, data: OnEventData, device: Zh.Device) {
     // FIXME: What actually nextLocalTimeUpdate/forceTimeUpdate do?
     //  I did not find any timers or something else where it was used.
     //  Actually, there are two ways to set time on Tuya MCU devices:
@@ -488,7 +488,7 @@ export const configureMagicPacket = async (device: Zh.Device, coordinatorEndpoin
     } catch (e) {
         // Fails for some Tuya devices with UNSUPPORTED_ATTRIBUTE, ignore that.
         // e.g. https://github.com/Koenkk/zigbee2mqtt/issues/14857
-        if (e.message.includes("UNSUPPORTED_ATTRIBUTE")) {
+        if ((e as Error).message.includes("UNSUPPORTED_ATTRIBUTE")) {
             logger.debug("configureMagicPacket failed, ignoring...", NS);
         } else {
             throw e;
@@ -1738,7 +1738,7 @@ const tuyaTz = {
     } satisfies Tz.Converter,
     inchingSwitch: {
         key: ["inching_control_set"],
-        convertSet: async (entity, key, value: KeyValue, meta) => {
+        convertSet: async (entity, key, value, meta) => {
             const inching = valueConverter.inchingSwitch.to(value);
             const payload = {payload: inching};
             const endpoint = meta.device.getEndpoint(1);
@@ -2111,7 +2111,7 @@ const tuyaModernExtend = {
                     };
                 }
             },
-            to: async (value: KeyValueAny, meta) => {
+            to: async (value: KeyValueAny, meta: Tz.Meta) => {
                 const buffer = Buffer.alloc(13);
                 buffer.writeUint16LE(value.enabled ? 0x80 : 0x00, 0);
                 buffer.writeInt32LE(value.temp_greater_value * 10, 2);
@@ -2160,8 +2160,8 @@ const tuyaModernExtend = {
             dp,
             type,
             {
-                from: (value) => utils.getFromLookupByValue(value, lookup),
-                to: (value) => utils.getFromLookup(value, lookup),
+                from: (value: unknown) => utils.getFromLookupByValue(value, lookup),
+                to: (value: unknown) => utils.getFromLookup(value, lookup),
             },
             readOnly,
             skip,
@@ -2185,8 +2185,8 @@ const tuyaModernExtend = {
             dp,
             type,
             {
-                from: (value) => (value === valueOn[1] ? valueOn[0] : valueOff[0]),
-                to: (value) => (value === valueOn[0] ? valueOn[1] : valueOff[1]),
+                from: (value: unknown) => (value === valueOn[1] ? valueOn[0] : valueOff[0]),
+                to: (value: unknown) => (value === valueOn[0] ? valueOn[1] : valueOff[1]),
             },
             readOnly,
             skip,

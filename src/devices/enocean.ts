@@ -97,7 +97,7 @@ export const definitions: DefinitionWithExtend[] = [
                 "press_1_and_2",
                 "press_3",
                 "press_1_and_3",
-                "press_3_and_4",
+                "press_2_and_3",
                 "press_1_and_2_and_3",
                 "press_4",
                 "press_1_and_4",

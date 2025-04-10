@@ -848,7 +848,8 @@ const yokisCommandsExtend = {
         const toZigbee: Tz.Converter[] = [
             {
                 key: ["reset_to_factory_settings"],
-                convertSet: async (entity, key, value: string, meta) => {
+                convertSet: async (entity, key, value, meta) => {
+                    utils.assertString(value);
                     const commandWrapper = yokisExtendChecks.parseResetInput(value);
 
                     yokisExtendChecks.log(key, value);
@@ -1307,7 +1308,8 @@ const yokisCommandsExtend = {
         const toZigbee: Tz.Converter[] = [
             {
                 key: ["dimmer_Up_down_command"],
-                convertSet: async (entity, key, value: string, meta) => {
+                convertSet: async (entity, key, value, meta) => {
+                    utils.assertString(value);
                     yokisExtendChecks.log(key, value);
                     await entity.command("manuSpecificYokisDimmer", value, {});
                 },
@@ -1329,7 +1331,8 @@ const yokisCommandsExtend = {
         const toZigbee: Tz.Converter[] = [
             {
                 key: ["dimmer_move_to_favorite"],
-                convertSet: async (entity, key, value: string, meta) => {
+                convertSet: async (entity, key, value, meta) => {
+                    utils.assertString(value);
                     yokisExtendChecks.log(key, value);
                     await entity.command("manuSpecificYokisDimmer", value, {});
                 },
@@ -1351,7 +1354,8 @@ const yokisCommandsExtend = {
         const toZigbee: Tz.Converter[] = [
             {
                 key: ["dimmer_start_nightlight_command"],
-                convertSet: async (entity, key, value: string, meta) => {
+                convertSet: async (entity, key, value, meta) => {
+                    utils.assertString(value);
                     yokisExtendChecks.log(key, value);
                     await entity.command("manuSpecificYokisDimmer", value, {});
                 },

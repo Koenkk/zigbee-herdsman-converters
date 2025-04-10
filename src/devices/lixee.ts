@@ -170,6 +170,7 @@ const fzLocal = {
                 /* 0x0228 */ "daysProfileNextCalendar",
             ];
             const kWhP = options?.kWh_precision ? options.kWh_precision : 0;
+            utils.assertNumber(kWhP);
             for (const at of elements) {
                 const at_snake = at
                     .split(/(?=[A-Z])/)
@@ -192,8 +193,7 @@ const fzLocal = {
                         case "activeEnergyOutD02":
                         case "activeEnergyOutD03":
                         case "activeEnergyOutD04":
-                            // @ts-expect-error ignore
-                            val = utils.precisionRound(val / 1000, kwhPrecision); // from Wh to kWh
+                            val = utils.precisionRound(val / 1000, kWhP); // from Wh to kWh
                             break;
                         case "relais": {
                             // relais is a decimal value representing the bits
@@ -1641,7 +1641,7 @@ function getCurrentConfig(device: Zh.Device, options: KeyValue) {
     try {
         endpoint = device.getEndpoint(1);
     } catch (error) {
-        logger.debug(error, NS);
+        logger.debug(`${(error as Error).stack}`, NS);
     }
     // @ts-expect-error ignore
     function getConfig(targetOption, bitLinkyMode, valueTrue, valueFalse) {
@@ -1901,7 +1901,7 @@ export const definitions: DefinitionWithExtend[] = [
                             );
 
                             for (const key in clustersDef) {
-                                if (Object.hasOwn(clustersDef, key)) {
+                                if (Object.hasOwnProperty.call(clustersDef, key)) {
                                     // @ts-expect-error ignore
                                     const cluster = clustersDef[key];
                                     const targ = currentExposes.filter((e) => e.cluster === cluster).map((e) => e.att);

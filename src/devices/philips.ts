@@ -567,7 +567,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
-        zigbeeModel: ["4090330P9_01", "4090330P9_02", "929003052501_01", "929003052501_02"],
+        zigbeeModel: ["4090330P9_01", "4090330P9_02", "929003052501_01", "929003052501_02", "929003785001_01", "929003785001_02"],
         model: "4090330P9",
         vendor: "Philips",
         description: "Hue Ensis (black)",
@@ -2347,6 +2347,9 @@ export const definitions: DefinitionWithExtend[] = [
                 "right_hold",
                 "right_hold_release",
                 "toggle",
+                "brightness_move_up",
+                "brightness_move_down",
+                "brightness_stop",
             ]),
             e.enum("device_mode", ea.ALL, ["single_rocker", "single_push_button", "dual_rocker", "dual_push_button"]),
         ],
@@ -4053,6 +4056,13 @@ export const definitions: DefinitionWithExtend[] = [
         model: "046677584719",
         vendor: "Philips",
         description: "Hue White ambiance GU10 - smart spotlight ",
+        extend: [philips.m.light({colorTemp: {range: [153, 454]}})],
+    },
+    {
+        zigbeeModel: ["929003056801"],
+        model: "929003056801",
+        vendor: "Philips",
+        description: "Hue Adore white ambiance bathroom mirror",
         extend: [philips.m.light({colorTemp: {range: [153, 454]}})],
     },
 ];

@@ -1104,7 +1104,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "BSIR-EZ",
         vendor: "Bosch",
         description: "Outdoor siren",
-        fromZigbee: [fz.ias_alarm_only_alarm_1, fz.battery, fz.power_source],
+        fromZigbee: [fz.battery, fz.power_source],
         toZigbee: [tzLocal.rbshoszbeu, tz.warning],
         meta: {battery: {voltageToPercentage: {min: 2500, max: 4200}}},
         configure: async (device, coordinatorEndpoint) => {
@@ -1161,13 +1161,12 @@ export const definitions: DefinitionWithExtend[] = [
                 .removeFeature("level")
                 .removeFeature("duration"),
             e.test(),
-            e.tamper(),
             e.battery(),
             e.battery_voltage(),
-            e.battery_low(),
             e.binary("ac_status", ea.STATE, true, false).withDescription("Is the device plugged in"),
         ],
         extend: [
+            m.iasZoneAlarm({zoneType: "alarm", zoneAttributes: ["alarm_1", "tamper", "battery_low"]}),
             m.deviceAddCustomCluster("ssIasZone", {
                 ID: Zcl.Clusters.ssIasZone.ID,
                 attributes: {},

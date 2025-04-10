@@ -1,4 +1,4 @@
-import * as semver from "semver";
+import {gte as semverGte, valid as semverValid} from "semver";
 
 import {Zcl} from "zigbee-herdsman";
 
@@ -227,10 +227,18 @@ const ubisys = {
                 await writeAttrFromJson("ubisysInactivePowerThreshold");
                 await writeAttrFromJson("ubisysStartupSteps");
                 // some convenience functions to not have to calculate
-                await writeAttrFromJson("ubisysTotalSteps", "open_to_closed_s", (s: number) => s * stepsPerSecond);
-                await writeAttrFromJson("ubisysTotalSteps2", "closed_to_open_s", (s: number) => s * stepsPerSecond);
-                await writeAttrFromJson("ubisysLiftToTiltTransitionSteps", "lift_to_tilt_transition_ms", (s: number) => (s * stepsPerSecond) / 1000);
-                await writeAttrFromJson("ubisysLiftToTiltTransitionSteps2", "lift_to_tilt_transition_ms", (s: number) => (s * stepsPerSecond) / 1000);
+                await writeAttrFromJson("ubisysTotalSteps", "open_to_closed_s", (s) => (s as number) * stepsPerSecond);
+                await writeAttrFromJson("ubisysTotalSteps2", "closed_to_open_s", (s) => (s as number) * stepsPerSecond);
+                await writeAttrFromJson(
+                    "ubisysLiftToTiltTransitionSteps",
+                    "lift_to_tilt_transition_ms",
+                    (s) => ((s as number) * stepsPerSecond) / 1000,
+                );
+                await writeAttrFromJson(
+                    "ubisysLiftToTiltTransitionSteps2",
+                    "lift_to_tilt_transition_ms",
+                    (s) => ((s as number) * stepsPerSecond) / 1000,
+                );
                 if (hasCalibrate) {
                     log("  Finalizing calibration...");
                     // disable calibration mode again
@@ -344,8 +352,8 @@ const ubisys = {
                 // ubisys switched to writeStructure a while ago, change log only goes back to 1.9.x
                 // and it happened before that but to be safe we will only use writeStrucutre on 1.9.0 and up
                 let useWriteStruct = false;
-                if (meta.device.softwareBuildID !== undefined) {
-                    useWriteStruct = semver.gte(meta.device.softwareBuildID, "1.9.0", true);
+                if (meta.device.softwareBuildID && semverValid(meta.device.softwareBuildID, true)) {
+                    useWriteStruct = semverGte(meta.device.softwareBuildID, "1.9.0", true);
                 }
                 if (useWriteStruct) {
                     logger.debug(`ubisys: using writeStructure for '${meta.options.friendly_name}'.`, NS);

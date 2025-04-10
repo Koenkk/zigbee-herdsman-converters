@@ -385,7 +385,6 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.ignore_basic_report, fz.ignore_tuya_set_time, fz.ignore_onoff_report, tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         onEvent: async (type, data, device) => {
-            // @ts-expect-error ignore
             await tuya.onEventSetLocalTime(type, data, device);
 
             // @ts-expect-error ignore
@@ -542,7 +541,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [tuya.modernExtend.tuyaLight({colorTemp: {range: [153, 500]}, color: {modes: ["hs", "xy"]}})],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_chyvmhay"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_chyvmhay", "_TZE200_uiyqstza"]),
         model: "368308_2010",
         vendor: "Lidl",
         description: "Silvercrest radiator valve with thermostat",

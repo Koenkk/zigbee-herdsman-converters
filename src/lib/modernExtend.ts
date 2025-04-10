@@ -555,7 +555,7 @@ export function onOff(args?: OnOffArgs): ModernExtend {
                             false,
                         );
                     } catch (e) {
-                        if (e.message.includes("UNSUPPORTED_ATTRIBUTE")) {
+                        if ((e as Error).message.includes("UNSUPPORTED_ATTRIBUTE")) {
                             logger.debug("Reading startUpOnOff failed, this features is unsupported", "zhc:onoff");
                         } else {
                             throw e;
@@ -1088,7 +1088,7 @@ export function light(args?: LightArgs): ModernExtend {
             if (args.configureReporting) {
                 await setupAttributes(device, coordinatorEndpoint, "genOnOff", [{attribute: "onOff", min: "MIN", max: "MAX", change: 1}]);
                 await setupAttributes(device, coordinatorEndpoint, "genLevelCtrl", [
-                    {attribute: "currentLevel", min: "10_SECONDS", max: "MAX", change: 1, ...(args.levelReportingConfig || {})},
+                    {attribute: "currentLevel", min: "5_SECONDS", max: "MAX", change: 1, ...(args.levelReportingConfig || {})},
                 ]);
                 if (args.colorTemp) {
                     await setupAttributes(device, coordinatorEndpoint, "lightingColorCtrl", [
@@ -1993,7 +1993,8 @@ function genericMeter(args?: MeterArgs) {
                     const ep = determineEndpoint(entity, meta, "seMetering");
                     await ep.read("seMetering", ["currentSummDelivered"]);
                 },
-                convertSet: async (entity, key, value: number, meta) => {
+                convertSet: async (entity, key, value, meta) => {
+                    assertNumber(value);
                     await entity.write("seMetering", {currentSummDelivered: Math.round(value * 100)});
                     return {state: {energy: value}};
                 },
