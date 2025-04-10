@@ -461,7 +461,7 @@ export function getTransition(entity: Zh.Endpoint | Zh.Group, key: string, meta:
         manufacturerIDs = [entity.getDevice().manufacturerID];
     }
 
-    if (manufacturerIDs.includes(4476)) {
+    if (manufacturerIDs.includes(Zcl.ManufacturerCode.IKEA_OF_SWEDEN)) {
         /**
          * When setting both brightness and color temperature with a transition, the brightness is skipped
          * for IKEA TRADFRI bulbs.
