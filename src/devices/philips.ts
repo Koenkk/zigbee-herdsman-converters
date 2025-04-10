@@ -3777,7 +3777,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
-        zigbeeModel: ["929003115701"],
+        zigbeeModel: ["929003115701", "929003617901"],
         model: "929003115701",
         vendor: "Philips",
         description: "Hue Perifo cylinder spotlight (black)",
@@ -3791,7 +3791,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
-        zigbeeModel: ["929003116101"],
+        zigbeeModel: ["929003116101", "929003618201"],
         model: "929003116101",
         vendor: "Philips",
         description: "Hue Perifo linear light bar (black)",
