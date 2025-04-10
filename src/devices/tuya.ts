@@ -1334,7 +1334,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_7bztmfm1", "_TZE204_7bztmfm1"]),
-        model: "TS0601_smart_CO_air_box",
+        model: "DCR-CO",
         vendor: "Tuya",
         description: "Smart air box (carbon monoxide)",
         fromZigbee: [legacy.fromZigbee.tuya_CO],
