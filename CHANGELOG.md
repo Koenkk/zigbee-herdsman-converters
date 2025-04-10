@@ -1,5 +1,20 @@
 # Changelog
 
+## [23.25.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.24.0...v23.25.0) (2025-04-10)
+
+
+### Features
+
+* **add:** EFEKTA_eFlora_Max_Pro ([#9155](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9155)) ([bfc30ed](https://github.com/Koenkk/zigbee-herdsman-converters/commit/bfc30edf0c7ac6bf042b1a537f8fec4570de1edf))
+
+
+### Bug Fixes
+
+* **detect:** Detect `929003617901` as Philips 929003115701 and `929003618201` as Philips 929003116101 ([#9154](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9154)) ([8d7f62a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8d7f62a1d673a22a82c1b244bc7ecdbb57be8758))
+* Rename `TS0601_smart_CO_air_box` to `DCR-CO` https://github.com/Koenkk/zigbee2mqtt.io/pull/3681 ([e1060be](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e1060be944f1f381e81cfb415afc686c2bfdc8d2))
+* Tuya TS0601_smart_CO_air_box: fix `carbon_monodixe` expose ([#9159](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9159)) ([333f3e0](https://github.com/Koenkk/zigbee-herdsman-converters/commit/333f3e0198cd2535e6bbfee0f5ac7ac080b48e13))
+* Zen-01-W: expose battery voltage ([#9156](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9156)) ([1ab25a5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1ab25a53910f4b8e8ac3f62295ad10ceb663e654))
+
 ## [23.24.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.23.0...v23.24.0) (2025-04-09)
 
 
