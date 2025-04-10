@@ -564,6 +564,23 @@ const tzLocal = {
             }
         },
     } satisfies Tz.Converter,
+
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    BacklightNonRelayPos : {
+        key: ["backlight_mode", "indicator_mode"],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = key === "backlight_mode" ? { off: 0, on: 1 } : { none: 0, relay: 1, pos: 2 };
+            const attribute = key === "backlight_mode" ? "tuyaBacklightSwitch" : "tuyaBacklightMode";
+            const result = utils.getFromLookup(value, lookup);
+    
+            await entity.write("genOnOff", { [attribute]: result });
+            return { state: { [key]: value } };
+        },
+        convertGet: async (entity, key, meta) => {
+            const attribute = key === "backlight_mode" ? "tuyaBacklightSwitch" : "tuyaBacklightMode";
+            await entity.read('genOnOff', [attribute]);
+        },
+    } satisfies Tz.Converter,
 };
 
 const fzLocal = {
@@ -775,6 +792,31 @@ const fzLocal = {
             priv.last_seq = msg.data.seq;
             // And finally, process the datapoint using tuya.fz.datapoints
             return tuya.fz.datapoints.convert(model, msg, publish, options, meta);
+        },
+    } satisfies Fz.Converter,
+
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    BacklightNonRelayPos: {
+    cluster: "genOnOff",
+    type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const result: KeyValueAny = {};
+
+            if (msg.data.tuyaBacklightSwitch !== undefined) {
+                const backlightMode = utils.getFromLookup(msg.data.tuyaBacklightSwitch, { 0: 'off', 1: 'on' }, null);
+                if (backlightMode !== null) {
+                    result.backlight_mode = backlightMode;
+                }
+            }
+
+            if (msg.data.tuyaBacklightMode !== undefined) {
+                const indicatorMode = utils.getFromLookup(msg.data.tuyaBacklightMode, { 0: 'none', 1: 'relay', 2: 'pos' }, null);
+                if (indicatorMode !== null) {
+                    result.indicator_mode = indicatorMode;
+                }
+            }
+
+            return result;
         },
     } satisfies Fz.Converter,
 };
@@ -7458,30 +7500,6 @@ export const definitions: DefinitionWithExtend[] = [
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
             for (const ep of [1, 2]) {
-                await reporting.bind(device.getEndpoint(ep), coordinatorEndpoint, ["genOnOff"]);
-            }
-        },
-    },
-    {
-        fingerprint: tuya.fingerprint("TS0726", ["_TZ3002_rbnycsav"]),
-        model: "TS0726_3_gang",
-        vendor: "Tuya",
-        description: "3 gang switch with neutral wire",
-        fromZigbee: [fz.on_off, tuya.fz.power_on_behavior_2, fz.ignore_basic_report, fzLocal.TS0726_action],
-        toZigbee: [tz.on_off, tuya.tz.power_on_behavior_2, tzLocal.TS0726_switch_mode],
-        exposes: [
-            ...[1, 2, 3].map((ep) => e.switch().withEndpoint(`l${ep}`)),
-            ...[1, 2, 3].map((ep) => e.power_on_behavior().withEndpoint(`l${ep}`)),
-            ...[1, 2, 3].map((ep) => e.enum("switch_mode", ea.STATE_SET, ["switch", "scene"]).withEndpoint(`l${ep}`)),
-            e.action(["scene_1", "scene_2", "scene_3"]),
-        ],
-        endpoint: (device) => {
-            return {l1: 1, l2: 2, l3: 3};
-        },
-        meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint);
-            for (const ep of [1, 2, 3]) {
                 await reporting.bind(device.getEndpoint(ep), coordinatorEndpoint, ["genOnOff"]);
             }
         },
@@ -16728,6 +16746,125 @@ export const definitions: DefinitionWithExtend[] = [
                 [19, "local_temperature_calibration", tuya.valueConverterBasic.divideBy(1)],
                 [102, "running_state", tuya.valueConverterBasic.lookup({heat: 0, idle: 1})],
             ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0726", ["_TZ3000_ezqbvrqz", "_TZ3002_ymv5vytn"]),
+        model: "TS0726_2_gang_scene_switch",
+        vendor: "Tuya",
+        description: "2 gang switch with scene and backlight",
+        extend: [
+            tuya.modernExtend.tuyaOnOff({
+                switchMode: true,
+                powerOnBehavior2: true,
+                backlightModeOffOn: true,
+                onOffCountdown: true,
+                endpoints: ["l1", "l2"],
+            }),
+        ],
+        fromZigbee: [fzLocal.BacklightNonRelayPos],
+        toZigbee: [tzLocal.BacklightNonRelayPos],
+        exposes: [
+            exposes.enum("indicator_mode", ea.ALL, ["none", "relay", "pos"])
+                .withDescription("Indicator mode"),
+        ],
+        endpoint: (device) => ({ l1: 1, l2: 2 }),
+        meta: { 
+            multiEndpoint: true 
+        },
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+            for (const ep of [1, 2]) {
+                await reporting.bind(device.getEndpoint(ep), coordinatorEndpoint, ["genOnOff"]);
+            }
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0003", ["_TZ3000_g9chy2ib"]),
+        model: "TS0003_3_gang_switch",
+        vendor: "Tuya",
+        description: "3 gang switch with backlight",
+        extend: [
+            tuya.modernExtend.tuyaOnOff({
+                powerOnBehavior2: true,
+                backlightModeOffOn: true,
+                onOffCountdown: true,
+                endpoints: ["l1", "l2", "l3"],
+            }),
+        ],
+        fromZigbee: [],
+        toZigbee: [],
+        endpoint: (device) => ({ l1: 1, l2: 2, l3: 3 }),
+        meta: { 
+            multiEndpoint: true 
+        },
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+            for (const ep of [1, 2, 3]) {
+                await reporting.bind(device.getEndpoint(ep), coordinatorEndpoint, ["genOnOff"]);
+            }
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0726", ["_TZ3000_noru9tix", "_TZ3002_rbnycsav"]),
+        model: "TS0726_3_gang_scene_switch",
+        vendor: "Tuya",
+        description: "3 gang switch with scene and backlight",
+        extend: [
+            tuya.modernExtend.tuyaOnOff({
+                switchMode: true,
+                powerOnBehavior2: true,
+                backlightModeOffOn: true,
+                onOffCountdown: true,
+                endpoints: ["l1", "l2", "l3"],
+            }),
+        ],
+        fromZigbee: [fzLocal.BacklightNonRelayPos],
+        toZigbee: [tzLocal.BacklightNonRelayPos],
+        exposes: [
+            exposes.enum("indicator_mode", ea.ALL, ["none", "relay", "pos"])
+                .withDescription("Indicator mode"),
+        ],
+        endpoint: (device) => ({ l1: 1, l2: 2, l3: 3 }),
+        meta: { 
+            multiEndpoint: true 
+        },
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+            for (const ep of [1, 2, 3]) {
+                await reporting.bind(device.getEndpoint(ep), coordinatorEndpoint, ["genOnOff"]);
+            }
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0726", ["_TZ3000_rsylfthg"]),
+        model: "TS0726_4_gang_scene_switch",
+        vendor: "Tuya",
+        description: "4 gang switch with scene and backlight",
+        extend: [
+            tuya.modernExtend.tuyaOnOff({
+                switchMode: true,
+                powerOnBehavior2: true,
+                backlightModeOffOn: true,
+                onOffCountdown: true,
+                endpoints: ["l1", "l2", "l3", "l4"],
+            }),
+        ],
+        fromZigbee: [fzLocal.BacklightNonRelayPos],
+        toZigbee: [tzLocal.BacklightNonRelayPos],
+        exposes: [
+            exposes.enum("indicator_mode", ea.ALL, ["none", "relay", "pos"])
+                .withDescription("Indicator mode"),
+        ],
+        endpoint: (device) => ({ l1: 1, l2: 2, l3: 3, l4: 4 }),
+        meta: { 
+            multiEndpoint: true 
+        },
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+            for (const ep of [1, 2, 3, 4]) {
+                await reporting.bind(device.getEndpoint(ep), coordinatorEndpoint, ["genOnOff"]);
+            }
         },
     },
 ];
