@@ -34,9 +34,7 @@ const definitions = [
                 [101, "mode", tuya.valueConverterBasic.lookup({leakage: 0, shortage: 1})],
             ],
         },
-        extend: [
-            // A preferred new way of extending functionality.
-        ],
+
     },
 
     {
