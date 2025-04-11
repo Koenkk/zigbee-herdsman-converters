@@ -2,6 +2,7 @@ import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as constants from "../lib/constants";
 import * as exposes from "../lib/exposes";
+import {addCustomClusterHeimanSpecificAirQuality} from "../lib/heiman";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as tuya from "../lib/tuya";
@@ -427,7 +428,10 @@ export const definitions: DefinitionWithExtend[] = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg", "genOnOff", "genLevelCtrl", "lightingColorCtrl"]);
-            await reporting.batteryPercentageRemaining(endpoint, {min: constants.repInterval.MINUTES_5, max: constants.repInterval.HOUR});
+            await reporting.batteryPercentageRemaining(endpoint, {
+                min: constants.repInterval.MINUTES_5,
+                max: constants.repInterval.HOUR,
+            });
         },
     },
     {
@@ -441,7 +445,10 @@ export const definitions: DefinitionWithExtend[] = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg", "genOnOff", "genLevelCtrl", "lightingColorCtrl"]);
-            await reporting.batteryPercentageRemaining(endpoint, {min: constants.repInterval.MINUTES_5, max: constants.repInterval.HOUR});
+            await reporting.batteryPercentageRemaining(endpoint, {
+                min: constants.repInterval.MINUTES_5,
+                max: constants.repInterval.HOUR,
+            });
         },
     },
     {
@@ -520,6 +527,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "HS2AQ-EM",
         vendor: "HEIMAN",
         description: "Air quality monitor",
+        extend: [addCustomClusterHeimanSpecificAirQuality()],
         fromZigbee: [fz.battery, fz.temperature, fz.humidity, fz.pm25, fz.heiman_hcho, fz.heiman_air_quality],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint) => {
@@ -580,7 +588,11 @@ export const definitions: DefinitionWithExtend[] = [
             // So, we need to write time during configure
             const time = Math.round((new Date().getTime() - constants.OneJanuary2000) / 1000);
             // Time-master + synchronised
-            const values = {timeStatus: 3, time: time, timeZone: new Date().getTimezoneOffset() * -1 * 60};
+            const values = {
+                timeStatus: 3,
+                time: time,
+                timeZone: new Date().getTimezoneOffset() * -1 * 60,
+            };
             await endpoint.write("genTime", values);
         },
         exposes: [
@@ -751,9 +763,21 @@ export const definitions: DefinitionWithExtend[] = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["msRelativeHumidity", "genPowerCfg", "msTemperatureMeasurement", "msCO2"]);
             await reporting.batteryPercentageRemaining(endpoint);
-            await reporting.temperature(endpoint, {min: 1, max: constants.repInterval.MINUTES_5, change: 10}); // 0.1 degree change
-            await reporting.humidity(endpoint, {min: 1, max: constants.repInterval.MINUTES_5, change: 10}); // 0.1 % change
-            await reporting.co2(endpoint, {min: 5, max: constants.repInterval.MINUTES_5, change: 0.00005}); // 50 ppm change
+            await reporting.temperature(endpoint, {
+                min: 1,
+                max: constants.repInterval.MINUTES_5,
+                change: 10,
+            }); // 0.1 degree change
+            await reporting.humidity(endpoint, {
+                min: 1,
+                max: constants.repInterval.MINUTES_5,
+                change: 10,
+            }); // 0.1 % change
+            await reporting.co2(endpoint, {
+                min: 5,
+                max: constants.repInterval.MINUTES_5,
+                change: 0.00005,
+            }); // 50 ppm change
         },
         exposes: [e.co2(), e.battery(), e.humidity(), e.temperature()],
     },
@@ -778,8 +802,14 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "HEIMAN",
         description: "Motion sensor",
         extend: [
-            m.battery({voltageToPercentage: {min: 2500, max: 3000}, voltage: true}),
-            m.iasZoneAlarm({zoneType: "occupancy", zoneAttributes: ["alarm_1", "tamper", "battery_low"]}),
+            m.battery({
+                voltageToPercentage: {min: 2500, max: 3000},
+                voltage: true,
+            }),
+            m.iasZoneAlarm({
+                zoneType: "occupancy",
+                zoneAttributes: ["alarm_1", "tamper", "battery_low"],
+            }),
         ],
     },
 ];
