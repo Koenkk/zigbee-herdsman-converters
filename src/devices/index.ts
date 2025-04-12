@@ -505,6 +505,7 @@ const definitions: DefinitionWithExtend[] = [
     ...lidl,
     ...lifecontrol,
     ...lightsolutions,
+	...lincukoo,
     ...linkind,
     ...linptech,
     ...livingwise,
