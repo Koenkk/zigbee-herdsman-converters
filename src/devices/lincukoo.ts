@@ -6,8 +6,9 @@ const modernExtend = require("zigbee-herdsman-converters/lib/modernExtend");
 const e = exposes.presets;
 const ea = exposes.access;
 const tuya = require("zigbee-herdsman-converters/lib/tuya");
+import type {DefinitionWithExtend} from "../lib/types";
 
-const definitions = [
+export const definitions: DefinitionWithExtend[] = [
     {
         // Since a lot of Tuya devices use the same modelID, but use different datapoints
         // it's necessary to provide a fingerprint instead of a zigbeeModel
@@ -105,5 +106,3 @@ const definitions = [
         },
     },
 ];
-
-module.exports = definitions;
