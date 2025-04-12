@@ -871,7 +871,11 @@ const willFreeze = (clusterKey: string | number, payload: KeyValue): payload is 
     payload.rate !== 1 &&
     payload.movemode !== 0;
 
-// keys for whom we need to unfreeze the light before issuing a corresponding command to said light
+// Certain IKEA lights will freeze when given a brightness or temperature change with a transition
+// We track if a light is frozen and if so, before issuing further commands, we send a command known to unfreeze the light
+// https://github.com/Koenkk/zigbee2mqtt/issues/18574
+//
+// These are keys for whom we need to unfreeze the light before issuing a corresponding command to said light
 const keysNeedingUnfreeze = new Set(["state", "brightness", "brightness_percent", "color_temp", "color_temp_percent"]);
 
 const ikea_bulb_unfreeze = (next: Tz.Converter["convertSet"]) => {
