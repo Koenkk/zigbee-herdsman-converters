@@ -4,6 +4,39 @@
 
 Collection of device converters to be used with zigbee-herdsman.
 
+## Contributing
+
+See [Zigbee2MQTT how to support new devices](https://www.zigbee2mqtt.io/advanced/support-new-devices/01_support_new_devices.html).
+
+### Creating a pull request
+
+#### Github codespaces
+
+You can use Github codespaces to create pull requests with a fully setup editor, right from your web browser:
+- https://docs.github.com/en/codespaces/developing-in-a-codespace/creating-a-codespace-for-a-repository
+- https://docs.github.com/en/codespaces/developing-in-a-codespace/using-github-codespaces-for-pull-requests
+
+#### Locally
+
+Install the prerequisites:
+
+```sh
+npm install -g pnpm
+pnpm install --frozen-lockfile
+```
+
+#### Submitting your pull request
+
+Before you submit a pull request, you should run the following commands to ensure your changes will pass the tests:
+
+```sh
+pnpm run check --fix
+pnpm run build
+pnpm test
+```
+
+If any of those commands finish with an error your PR won't pass the tests and will likely be rejected.
+
 ## Breaking changes
 
 23.0.0
@@ -44,21 +77,3 @@ Collection of device converters to be used with zigbee-herdsman.
 
 - OTA `isUpdateAvailable` now returns an object instead of a boolean (e.g. `{available: true, currentFileVersion: 120, otaFileVersion: 125}`)
 - OTA `updateToLatest` now returns a number (`fileVersion` of the new OTA) instead of a void
-
-## Contributing
-
-See [Zigbee2MQTT how to support new devices](https://www.zigbee2mqtt.io/advanced/support-new-devices/01_support_new_devices.html).
-
-## Submitting a pull request
-
-If you'd like to submit a pull request, you should run the following commands to ensure your changes will pass the tests:
-
-```sh
-npm install -g pnpm
-pnpm install --frozen-lockfile
-pnpm run check --fix
-pnpm run build
-pnpm test
-```
-
-If any of those commands finish with an error your PR won't pass the tests and will likely be rejected.
