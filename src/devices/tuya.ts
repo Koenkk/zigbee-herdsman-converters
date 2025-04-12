@@ -564,22 +564,6 @@ const tzLocal = {
             }
         },
     } satisfies Tz.Converter,
-    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-    backlight_non_relay_pos: {
-        key: ["backlight_mode", "indicator_mode"],
-        convertSet: async (entity, key, value, meta) => {
-            const lookup = key === "backlight_mode" ? {off: 0, on: 1} : {none: 0, relay: 1, pos: 2};
-            const attribute = key === "backlight_mode" ? "tuyaBacklightSwitch" : "tuyaBacklightMode";
-            const result = utils.getFromLookup(value, lookup);
-
-            await entity.write("genOnOff", {[attribute]: result});
-            return {state: {[key]: value}};
-        },
-        convertGet: async (entity, key, meta) => {
-            const attribute = key === "backlight_mode" ? "tuyaBacklightSwitch" : "tuyaBacklightMode";
-            await entity.read("genOnOff", [attribute]);
-        },
-    } satisfies Tz.Converter,
 };
 
 const fzLocal = {
@@ -791,30 +775,6 @@ const fzLocal = {
             priv.last_seq = msg.data.seq;
             // And finally, process the datapoint using tuya.fz.datapoints
             return tuya.fz.datapoints.convert(model, msg, publish, options, meta);
-        },
-    } satisfies Fz.Converter,
-    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-    backlight_non_relay_pos: {
-        cluster: "genOnOff",
-        type: ["attributeReport", "readResponse"],
-        convert: (model, msg, publish, options, meta) => {
-            const result: KeyValueAny = {};
-
-            if (msg.data.tuyaBacklightSwitch !== undefined) {
-                const backlightMode = utils.getFromLookup(msg.data.tuyaBacklightSwitch, {0: "off", 1: "on"}, null);
-                if (backlightMode !== null) {
-                    result.backlight_mode = backlightMode;
-                }
-            }
-
-            if (msg.data.tuyaBacklightMode !== undefined) {
-                const indicatorMode = utils.getFromLookup(msg.data.tuyaBacklightMode, {0: "none", 1: "relay", 2: "pos"}, null);
-                if (indicatorMode !== null) {
-                    result.indicator_mode = indicatorMode;
-                }
-            }
-
-            return result;
         },
     } satisfies Fz.Converter,
 };
@@ -16782,13 +16742,11 @@ export const definitions: DefinitionWithExtend[] = [
                 switchMode: true,
                 powerOnBehavior2: true,
                 backlightModeOffOn: true,
+                indicatorNoneRelayPos: true,
                 onOffCountdown: true,
                 endpoints: ["l1", "l2"],
             }),
         ],
-        fromZigbee: [fzLocal.backlight_non_relay_pos],
-        toZigbee: [tzLocal.backlight_non_relay_pos],
-        exposes: [exposes.enum("indicator_mode", ea.ALL, ["none", "relay", "pos"]).withDescription("Indicator mode")],
         endpoint: (device) => ({l1: 1, l2: 2}),
         meta: {
             multiEndpoint: true,
@@ -16810,13 +16768,11 @@ export const definitions: DefinitionWithExtend[] = [
                 switchMode: true,
                 powerOnBehavior2: true,
                 backlightModeOffOn: true,
+                indicatorNoneRelayPos: true,
                 onOffCountdown: true,
                 endpoints: ["l1", "l2", "l3"],
             }),
         ],
-        fromZigbee: [fzLocal.backlight_non_relay_pos],
-        toZigbee: [tzLocal.backlight_non_relay_pos],
-        exposes: [exposes.enum("indicator_mode", ea.ALL, ["none", "relay", "pos"]).withDescription("Indicator mode")],
         endpoint: (device) => ({l1: 1, l2: 2, l3: 3}),
         meta: {
             multiEndpoint: true,
@@ -16838,13 +16794,11 @@ export const definitions: DefinitionWithExtend[] = [
                 switchMode: true,
                 powerOnBehavior2: true,
                 backlightModeOffOn: true,
+                indicatorNoneRelayPos: true,
                 onOffCountdown: true,
                 endpoints: ["l1", "l2", "l3", "l4"],
             }),
         ],
-        fromZigbee: [fzLocal.backlight_non_relay_pos],
-        toZigbee: [tzLocal.backlight_non_relay_pos],
-        exposes: [exposes.enum("indicator_mode", ea.ALL, ["none", "relay", "pos"]).withDescription("Indicator mode")],
         endpoint: (device) => ({l1: 1, l2: 2, l3: 3, l4: 4}),
         meta: {
             multiEndpoint: true,
