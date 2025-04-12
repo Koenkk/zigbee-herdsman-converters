@@ -277,6 +277,32 @@ describe("ZHC", () => {
         expect(definition.model).toStrictEqual("PTM 216Z");
     });
 
+    it("does not throw when exposes function throws", async () => {
+        const illuminanceRawSpy = vi.spyOn(presets, "illuminance_raw").mockImplementationOnce(() => {
+            throw new Error("Failed");
+        });
+        const device = mockDevice(
+            {
+                modelID: "RFDL-ZB-EU",
+                manufacturerName: "Bosch",
+                endpoints: [{ID: 1, profileID: undefined, deviceID: undefined, inputClusters: [], outputClusters: []}],
+            },
+            "EndDevice",
+        );
+        const definition = await findByDevice(device);
+
+        expect(definition.model).toStrictEqual("RADON TriTech ZB");
+
+        assert(typeof definition.exposes === "function");
+
+        const deviceExposes = definition.exposes(device, {illuminance_raw: true});
+
+        expect(deviceExposes.length).toBeGreaterThan(0);
+        expect(deviceExposes.find((exp) => exp.name === "illuminance_raw")).toStrictEqual(undefined);
+        expect(illuminanceRawSpy).toHaveBeenCalledTimes(1);
+        expect(illuminanceRawSpy.mock.results[0].value).toStrictEqual(new Error("Failed"));
+    });
+
     it("generates definition - GP - with no matching fingerprint from candidates", async () => {
         const device = mockDevice(
             {
@@ -510,9 +536,8 @@ describe("ZHC", () => {
     });
 
     it("computes calibration/precision", async () => {
-        // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-        const TS0601_soil = await findByDevice(mockDevice({modelID: "TS0601", manufacturerName: "_TZE200_myd45weu", endpoints: []}));
-        expect(TS0601_soil.options.map((t) => t.name)).toStrictEqual([
+        const ts0601Soil = await findByDevice(mockDevice({modelID: "TS0601", manufacturerName: "_TZE200_myd45weu", endpoints: []}));
+        expect(ts0601Soil.options.map((t) => t.name)).toStrictEqual([
             "temperature_calibration",
             "temperature_precision",
             "soil_moisture_calibration",
@@ -520,7 +545,7 @@ describe("ZHC", () => {
         ]);
         const payload1 = {temperature: 1.193};
         const options1 = {temperature_calibration: 2.5, temperature_precision: 1};
-        postProcessConvertedFromZigbeeMessage(TS0601_soil, payload1, options1);
+        postProcessConvertedFromZigbeeMessage(ts0601Soil, payload1, options1);
         expect(payload1).toStrictEqual({temperature: 3.7});
 
         // For multi endpoint property
@@ -531,9 +556,8 @@ describe("ZHC", () => {
         postProcessConvertedFromZigbeeMessage(AUA1ZBDSS, payload2, options2);
         expect(payload2).toStrictEqual({power_left: 11});
 
-        // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-        const TS011F_plug_1 = await findByDevice(mockDevice({modelID: "TS011F", endpoints: []}));
-        expect(TS011F_plug_1.options.map((t) => t.name)).toStrictEqual([
+        const ts011fPlug1 = await findByDevice(mockDevice({modelID: "TS011F", endpoints: []}));
+        expect(ts011fPlug1.options.map((t) => t.name)).toStrictEqual([
             "power_calibration",
             "power_precision",
             "current_calibration",
@@ -546,7 +570,7 @@ describe("ZHC", () => {
         ]);
         const payload3 = {current: 0.0585};
         const options3 = {current_calibration: -50};
-        postProcessConvertedFromZigbeeMessage(TS011F_plug_1, payload3, options3);
+        postProcessConvertedFromZigbeeMessage(ts011fPlug1, payload3, options3);
         expect(payload3).toStrictEqual({current: 0.03});
     });
 
