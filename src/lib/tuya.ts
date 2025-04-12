@@ -2463,7 +2463,7 @@ const tuyaModernExtend = {
             switchType?: boolean;
             backlightModeLowMediumHigh?: boolean;
             indicatorMode?: boolean;
-            indicatorNoneRelayPos?: boolean;
+            indicatorModeNoneRelayPos?: boolean;
             backlightModeOffNormalInverted?: boolean;
             backlightModeOffOn?: boolean;
             electricalMeasurements?: boolean;
@@ -2535,7 +2535,7 @@ const tuyaModernExtend = {
             exposes.push(tuyaExposes.indicatorMode());
             toZigbee.push(tuyaTz.backlight_indicator_mode_1);
         }
-        if (args.indicatorNoneRelayPos) {
+        if (args.indicatorModeNoneRelayPos) {
             fromZigbee.push(tuyaFz.indicator_mode_none_relay_pos);
             exposes.push(tuyaExposes.indicatorModeNoneRelayPos());
             toZigbee.push(tuyaTz.backlight_indicator_mode_none_relay_pos);
