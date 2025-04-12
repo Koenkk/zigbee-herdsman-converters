@@ -73,7 +73,7 @@ function identifyLockStateFromHistory(meta: Fz.Meta): LockSide {
         return LockSide.Exterior;
     }
 
-    console.error("Catch 22: Lock state could not be determined...");
+    logger.error("Catch 22: Lock state could not be determined...", NS);
     return LockSide.Unknown;
 }
 
