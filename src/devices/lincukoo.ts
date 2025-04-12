@@ -1,12 +1,12 @@
-const fz = require("zigbee-herdsman-converters/converters/fromZigbee");
-const tz = require("zigbee-herdsman-converters/converters/toZigbee");
-const exposes = require("zigbee-herdsman-converters/lib/exposes");
-const reporting = require("zigbee-herdsman-converters/lib/reporting");
-const modernExtend = require("zigbee-herdsman-converters/lib/modernExtend");
+import * as fz from "../converters/fromZigbee";
+import * as exposes from "../lib/exposes";
+import * as legacy from "../lib/legacy";
+import * as reporting from "../lib/reporting";
+import * as tuya from "../lib/tuya";
+import type {DefinitionWithExtend} from "../lib/types";
+
 const e = exposes.presets;
 const ea = exposes.access;
-const tuya = require("zigbee-herdsman-converters/lib/tuya");
-import type {DefinitionWithExtend} from "../lib/types";
 
 export const definitions: DefinitionWithExtend[] = [
     {
