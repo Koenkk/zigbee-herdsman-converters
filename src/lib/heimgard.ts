@@ -87,7 +87,7 @@ export const fromZigbee = {
             const {isInteriorLocked, isExteriorLocked, safety_locking} = meta.state;
             const enforceLockingIfBogus = safety_locking === "Enabled";
             if (enforceLockingIfBogus !== undefined) {
-                result.safety_locking = enforceLockingIfBogus === true ? "Enabled" : "Disabled";
+                result.safety_locking = enforceLockingIfBogus === true ? "ON" : "OFF";
             }
 
             if (msg.data.lockState !== undefined) {
