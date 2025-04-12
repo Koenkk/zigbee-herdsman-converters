@@ -33,7 +33,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "LED1545G12",
         vendor: "IKEA",
         description: "TRADFRI bulb E26/E27, white spectrum, globe, opal, 980 lm",
-        extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({colorTemp: true}), m.identify()],
+        extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({colorTemp: true, withUnfreezeSupport: true}), m.identify()],
     },
     {
         zigbeeModel: [
@@ -102,7 +102,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "LED1936G5",
         vendor: "IKEA",
         description: "TRADFRI bulb E26/E27, white spectrum, globe, opal, 440/450/470 lm",
-        extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({colorTemp: true}), m.identify()],
+        extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({colorTemp: true, withUnfreezeSupport: true}), m.identify()],
     },
     {
         zigbeeModel: [
@@ -114,14 +114,14 @@ export const definitions: DefinitionWithExtend[] = [
         model: "LED2003G10",
         vendor: "IKEA",
         description: "TRADFRI bulb E26/27, white spectrum, globe, opal, 1055/1100/1160 lm",
-        extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({colorTemp: true}), m.identify()],
+        extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({colorTemp: true, withUnfreezeSupport: true}), m.identify()],
     },
     {
         zigbeeModel: ["TRADFRIbulbE26WSglobeclear800lm", "TRADFRIbulbE27WSglobeclear806lm", "TRADFRIbulbE26WSglobeclear806lm"],
         model: "LED2004G8",
         vendor: "IKEA",
         description: "TRADFRI bulb E26/E27, white spectrum, globe, clear, 800/806 lm",
-        extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({colorTemp: true}), m.identify()],
+        extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({colorTemp: true, withUnfreezeSupport: true}), m.identify()],
     },
     {
         zigbeeModel: [
@@ -169,14 +169,14 @@ export const definitions: DefinitionWithExtend[] = [
         model: "LED1732G11",
         vendor: "IKEA",
         description: "TRADFRI bulb E26/E27, white spectrum, globe, opal, 1000 lm",
-        extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({colorTemp: true}), m.identify()],
+        extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({colorTemp: true, withUnfreezeSupport: true}), m.identify()],
     },
     {
         zigbeeModel: ["TRADFRI bulb E27 WW 806lm", "TRADFRI bulb E26 WW 806lm"],
         model: "LED1836G9",
         vendor: "IKEA",
         description: "TRADFRI bulb E26/E27, warm white, globe, opal, 806 lm",
-        extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({turnsOffAtBrightness1: true}), m.identify()],
+        extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({turnsOffAtBrightness1: true, withUnfreezeSupport: true}), m.identify()],
     },
     {
         zigbeeModel: ["TRADFRI bulb E27 WS clear 806lm", "TRADFRI bulb E26 WS clear 806lm"],
@@ -209,7 +209,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "LED2035G10",
         vendor: "IKEA",
         description: "TRADFRI bulb B22, white spectrum, globe, opal, 1055 lm",
-        extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({colorTemp: true}), m.identify()],
+        extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({colorTemp: true, withUnfreezeSupport: true}), m.identify()],
     },
     // #endregion E26/E27/B22
     {
@@ -225,7 +225,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "TRADFRI bulb E12/E14/E26/E27, color/white spectum, globe, opal, 600 lm",
         extend: [
             addCustomClusterManuSpecificIkeaUnknown(),
-            ikeaLight({colorTemp: {range: [153, 500], viaColor: true}, color: true}), // light is pure RGB (XY), advertise 2000K-6500K
+            ikeaLight({colorTemp: {range: [153, 500], viaColor: true}, color: true, withUnfreezeSupport: true}), // light is pure RGB (XY), advertise 2000K-6500K
             m.identify(),
         ],
     },
@@ -249,7 +249,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "LED1835C6",
         vendor: "IKEA",
         description: "TRADFRI bulb E12/E14/E17, white spectrum, candle, opal, 450/470/440 lm",
-        extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({colorTemp: true}), m.identify()],
+        extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({colorTemp: true, withUnfreezeSupport: true}), m.identify()],
     },
     {
         zigbeeModel: ["TRADFRI bulb E14 WS globe 470lm", "TRADFRI bulb E12 WS globe 450lm"],
@@ -263,7 +263,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "LED1733G7",
         vendor: "IKEA",
         description: "TRADFRI bulb E14, white spectrum, globe, opal, 600 lm",
-        extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({colorTemp: true}), m.identify()],
+        extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({colorTemp: true, withUnfreezeSupport: true}), m.identify()],
     },
     {
         zigbeeModel: ["TRADFRI bulb E14 W op/ch 400lm", "TRADFRI bulb E12 W op/ch 400lm", "TRADFRI bulb E17 W op/ch 400lm"],
@@ -317,7 +317,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "LED1949C5",
         vendor: "IKEA",
         description: "TRADFRI bulb E12/E14/E17, white spectrum, candle, opal, 450/470/440 lm",
-        extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({colorTemp: true}), m.identify()],
+        extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({colorTemp: true, withUnfreezeSupport: true}), m.identify()],
     },
     {
         zigbeeModel: ["TRADFRI bulb E14 CWS globe 806lm", "TRADFRI bulb E12 CWS globe 800lm", "TRADFRI bulb E17 CWS globe 810lm"],
@@ -346,7 +346,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "LED1537R6/LED1739R5",
         vendor: "IKEA",
         description: "TRADFRI bulb GU10, white spectrum, 400 lm",
-        extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({colorTemp: true}), m.identify()],
+        extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({colorTemp: true, withUnfreezeSupport: true}), m.identify()],
     },
     {
         zigbeeModel: ["TRADFRI bulb GU10 W 400lm"],

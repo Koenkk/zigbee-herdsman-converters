@@ -78,7 +78,7 @@ const bulbOnEvent: OnEvent = async (type, data, device, options, state: KeyValue
     }
 };
 
-export function ikeaLight(args?: Omit<m.LightArgs, "colorTemp"> & {colorTemp?: true | {range: Range; viaColor: true}}) {
+export function ikeaLight(args?: Omit<m.LightArgs, "colorTemp"> & {colorTemp?: true | {range: Range; viaColor: true}; withUnfreezeSupport?: true}) {
     const colorTemp: {range: Range} = args?.colorTemp ? (args.colorTemp === true ? {range: [250, 454]} : args.colorTemp) : undefined;
     const levelConfig: {disabledFeatures?: LevelConfigFeatures} = args?.levelConfig
         ? args.levelConfig
@@ -93,7 +93,7 @@ export function ikeaLight(args?: Omit<m.LightArgs, "colorTemp"> & {colorTemp?: t
         result.exposes.push(presets.light_color_options());
     }
 
-    if (result.toZigbee) {
+    if (args?.withUnfreezeSupport && result.toZigbee) {
         result.toZigbee = result.toZigbee.map((orig) => {
             if (orig.key?.some((k) => keysNeedingUnfreeze.has(k))) {
                 return {
