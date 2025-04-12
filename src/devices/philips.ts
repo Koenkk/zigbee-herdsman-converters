@@ -161,6 +161,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
+        zigbeeModel: ["929003808501_01", "929003808501_02", "929003808501_03"],
+        model: "929003808501",
+        vendor: "Philips",
+        description: "Centris Hue 2-spot white",
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+    },
+    {
         zigbeeModel: ["929003809501_01", "929003809501_02", "929003809501_03"],
         model: "929003809501",
         vendor: "Philips",
@@ -567,7 +574,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
-        zigbeeModel: ["4090330P9_01", "4090330P9_02", "929003052501_01", "929003052501_02"],
+        zigbeeModel: ["4090330P9_01", "4090330P9_02", "929003052501_01", "929003052501_02", "929003785001_01", "929003785001_02"],
         model: "4090330P9",
         vendor: "Philips",
         description: "Hue Ensis (black)",
@@ -693,7 +700,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light()],
     },
     {
-        zigbeeModel: ["LCT026", "7602031P7", "7602031U7", "7602031PU", "7602031J6"],
+        zigbeeModel: ["LCT026", "7602031P7", "7602031U7", "7602031PU", "7602031J6", "915005822501"],
         model: "7602031P7",
         vendor: "Philips",
         description: "Hue Go with Bluetooth",
@@ -2309,11 +2316,25 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: undefined}, color: true})],
     },
     {
+        zigbeeModel: ["929003103601"],
+        model: "929003103601",
+        vendor: "Philips",
+        description: "Hue Signe floor lamp",
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
+    },
+    {
         zigbeeModel: ["5055131P7"],
         model: "5055131P7",
         vendor: "Philips",
         description: "Hue Centura White (square)",
         extend: [philips.m.light({colorTemp: {range: undefined}, color: true})],
+    },
+    {
+        zigbeeModel: ["929003777301"],
+        model: "929003777301",
+        vendor: "Philips",
+        description: "Hue Being ceiling light",
+        extend: [philips.m.light({colorTemp: {range: [153, 454]}})],
     },
     {
         zigbeeModel: ["RDM001", "9290030171", "RDM004"],
@@ -2333,6 +2354,9 @@ export const definitions: DefinitionWithExtend[] = [
                 "right_hold",
                 "right_hold_release",
                 "toggle",
+                "brightness_move_up",
+                "brightness_move_down",
+                "brightness_stop",
             ]),
             e.enum("device_mode", ea.ALL, ["single_rocker", "single_push_button", "dual_rocker", "dual_push_button"]),
         ],
@@ -2728,6 +2752,13 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["1744530P7", "1744630P7", "1744430P7", "1744730P7"],
         model: "8718696170625",
+        vendor: "Philips",
+        description: "Hue Fuzo outdoor wall light",
+        extend: [philips.m.light()],
+    },
+    {
+        zigbeeModel: ["PWM003"],
+        model: "915005732902",
         vendor: "Philips",
         description: "Hue Fuzo outdoor wall light",
         extend: [philips.m.light()],
@@ -3753,7 +3784,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
-        zigbeeModel: ["929003115701"],
+        zigbeeModel: ["929003115701", "929003617901"],
         model: "929003115701",
         vendor: "Philips",
         description: "Hue Perifo cylinder spotlight (black)",
@@ -3767,7 +3798,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
-        zigbeeModel: ["929003116101"],
+        zigbeeModel: ["929003116101", "929003618201"],
         model: "929003116101",
         vendor: "Philips",
         description: "Hue Perifo linear light bar (black)",
@@ -4032,6 +4063,13 @@ export const definitions: DefinitionWithExtend[] = [
         model: "046677584719",
         vendor: "Philips",
         description: "Hue White ambiance GU10 - smart spotlight ",
+        extend: [philips.m.light({colorTemp: {range: [153, 454]}})],
+    },
+    {
+        zigbeeModel: ["929003056801"],
+        model: "929003056801",
+        vendor: "Philips",
+        description: "Hue Adore white ambiance bathroom mirror",
         extend: [philips.m.light({colorTemp: {range: [153, 454]}})],
     },
 ];

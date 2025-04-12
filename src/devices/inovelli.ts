@@ -1527,7 +1527,8 @@ const tzLocal = {
     fan_mode: (endpointId: number) =>
         ({
             key: ["fan_mode"],
-            convertSet: async (entity, key, value: string, meta) => {
+            convertSet: async (entity, key, value, meta) => {
+                utils.assertString(value);
                 const endpoint = meta.device.getEndpoint(endpointId);
                 await endpoint.command(
                     "genLevelCtrl",
@@ -1624,45 +1625,46 @@ const tzLocal = {
     breezeMode: (endpointId: number) =>
         ({
             key: ["breezeMode"],
-            convertSet: async (entity, key, values: BreezeModeValues, meta) => {
+            convertSet: async (entity, key, value, meta) => {
+                utils.assertObject<BreezeModeValues>(value);
                 // Calculate the value..
                 let configValue = 0;
                 let term = false;
-                configValue += speedToInt(values.speed1);
-                configValue += (Number(values.time1) / 5) * 4;
+                configValue += speedToInt(value.speed1);
+                configValue += (Number(value.time1) / 5) * 4;
 
-                let speed = speedToInt(values.speed2);
+                let speed = speedToInt(value.speed2);
 
                 if (speed !== 0) {
                     configValue += speed * 64;
-                    configValue += (values.time2 / 5) * 256;
+                    configValue += (value.time2 / 5) * 256;
                 } else {
                     term = true;
                 }
 
-                speed = speedToInt(values.speed3);
+                speed = speedToInt(value.speed3);
 
                 if (speed !== 0 && !term) {
                     configValue += speed * 4096;
-                    configValue += (values.time3 / 5) * 16384;
+                    configValue += (value.time3 / 5) * 16384;
                 } else {
                     term = true;
                 }
 
-                speed = speedToInt(values.speed4);
+                speed = speedToInt(value.speed4);
 
                 if (speed !== 0 && !term) {
                     configValue += speed * 262144;
-                    configValue += (values.time4 / 5) * 1048576;
+                    configValue += (value.time4 / 5) * 1048576;
                 } else {
                     term = true;
                 }
 
-                speed = speedToInt(values.speed5);
+                speed = speedToInt(value.speed5);
 
                 if (speed !== 0 && !term) {
                     configValue += speed * 16777216;
-                    configValue += (values.time5 / 5) * 67108864;
+                    configValue += (value.time5 / 5) * 67108864;
                 } else {
                     term = true;
                 }
@@ -1674,7 +1676,7 @@ const tzLocal = {
                     manufacturerCode: INOVELLI,
                 });
 
-                return {state: {[key]: values}};
+                return {state: {[key]: value}};
             },
         }) satisfies Tz.Converter,
 };

@@ -17,8 +17,12 @@ function messagesGet(entity: Zh.Endpoint | Zh.Group, seq: number) {
     if (expected !== seq) {
         throw new Error(`Unexpected sequence value (expected: ${expected} current: ${seq}).`);
     }
-    return info.data;
+    if (info) {
+        return info.data;
+    }
+    logger.debug("Ignoring, no message send yet", NS);
 }
+
 function messagesSet(entity: Zh.Endpoint | Zh.Group, seq: number, data: unknown) {
     globalStore.putValue(entity, "irMessageInfo", {seq: seq, data: data});
 }
@@ -53,7 +57,9 @@ export const fzZosung = {
             logger.debug(`"IR-Message-Code01" received (msg:${JSON.stringify(msg.data)})`, NS);
             const seq = msg.data.seq;
             const irMsg = messagesGet(msg.endpoint, seq);
-            logger.debug(`IRCode to send: ${JSON.stringify(irMsg)} (seq:${seq})`, NS);
+            if (irMsg) {
+                logger.debug(`IRCode to send: ${JSON.stringify(irMsg)} (seq:${seq})`, NS);
+            }
         },
     } satisfies Fz.Converter,
     zosung_send_ir_code_02: {
@@ -64,21 +70,23 @@ export const fzZosung = {
             const seq = msg.data.seq;
             const position = msg.data.position;
             const irMsg = messagesGet(msg.endpoint, seq);
-            const part = irMsg.substring(position, position + 0x32);
-            const sum = calcStringCrc(part);
-            await msg.endpoint.command(
-                "zosungIRTransmit",
-                "zosungSendIRCode03",
-                {
-                    zero: 0,
-                    seq: seq,
-                    position: position,
-                    msgpart: Buffer.from(part),
-                    msgpartcrc: sum,
-                },
-                {disableDefaultResponse: true},
-            );
-            logger.debug(`Sent IRCode part: ${part} (sum: ${sum}, seq:${seq})`, NS);
+            if (irMsg) {
+                const part = irMsg.substring(position, position + 0x32);
+                const sum = calcStringCrc(part);
+                await msg.endpoint.command(
+                    "zosungIRTransmit",
+                    "zosungSendIRCode03",
+                    {
+                        zero: 0,
+                        seq: seq,
+                        position: position,
+                        msgpart: Buffer.from(part),
+                        msgpartcrc: sum,
+                    },
+                    {disableDefaultResponse: true},
+                );
+                logger.debug(`Sent IRCode part: ${part} (sum: ${sum}, seq:${seq})`, NS);
+            }
         },
     } satisfies Fz.Converter,
     zosung_send_ir_code_04: {
@@ -144,42 +152,44 @@ export const fzZosung = {
             logger.debug(`"IR-Message-Code03" received (msg:${JSON.stringify(msg.data)})`, NS);
             const seq = msg.data.seq;
             const rcv = messagesGet(msg.endpoint, seq);
-            if (rcv.position === msg.data.position) {
-                const rcvMsgPart = msg.data.msgpart;
-                const sum = calcArrayCrc(rcvMsgPart);
-                const expectedPartCrc = msg.data.msgpartcrc;
-                if (sum === expectedPartCrc) {
-                    const position = rcvMsgPart.copy(rcv.buf, rcv.position);
-                    rcv.position += position;
-                    if (rcv.position < rcv.buf.length) {
-                        await msg.endpoint.command(
-                            "zosungIRTransmit",
-                            "zosungSendIRCode02",
-                            {
-                                seq: seq,
-                                position: rcv.position,
-                                maxlen: 0x38,
-                            },
-                            {disableDefaultResponse: true},
-                        );
+            if (rcv) {
+                if (rcv.position === msg.data.position) {
+                    const rcvMsgPart = msg.data.msgpart;
+                    const sum = calcArrayCrc(rcvMsgPart);
+                    const expectedPartCrc = msg.data.msgpartcrc;
+                    if (sum === expectedPartCrc) {
+                        const position = rcvMsgPart.copy(rcv.buf, rcv.position);
+                        rcv.position += position;
+                        if (rcv.position < rcv.buf.length) {
+                            await msg.endpoint.command(
+                                "zosungIRTransmit",
+                                "zosungSendIRCode02",
+                                {
+                                    seq: seq,
+                                    position: rcv.position,
+                                    maxlen: 0x38,
+                                },
+                                {disableDefaultResponse: true},
+                            );
+                        } else {
+                            await msg.endpoint.command(
+                                "zosungIRTransmit",
+                                "zosungSendIRCode04",
+                                {
+                                    zero0: 0,
+                                    seq: seq,
+                                    zero1: 0,
+                                },
+                                {disableDefaultResponse: true},
+                            );
+                        }
+                        logger.debug(`${rcvMsgPart.length} bytes received.`, NS);
                     } else {
-                        await msg.endpoint.command(
-                            "zosungIRTransmit",
-                            "zosungSendIRCode04",
-                            {
-                                zero0: 0,
-                                seq: seq,
-                                zero1: 0,
-                            },
-                            {disableDefaultResponse: true},
-                        );
+                        logger.error(`Invalid msg part CRC: ${sum} expecting: ${expectedPartCrc}.`, NS);
                     }
-                    logger.debug(`${rcvMsgPart.length} bytes received.`, NS);
                 } else {
-                    logger.error(`Invalid msg part CRC: ${sum} expecting: ${expectedPartCrc}.`, NS);
+                    logger.error(`Unexpected IR code position: ${JSON.stringify(msg.data)}, expecting: ${rcv.position}.`, NS);
                 }
-            } else {
-                logger.error(`Unexpected IR code position: ${JSON.stringify(msg.data)}, expecting: ${rcv.position}.`, NS);
             }
         },
     } satisfies Fz.Converter,
@@ -190,20 +200,22 @@ export const fzZosung = {
             logger.debug(`"IR-Message-Code05" received (msg:${JSON.stringify(msg.data)})`, NS);
             const seq = msg.data.seq;
             const rcv = messagesGet(msg.endpoint, seq);
-            const learnedIRCode = rcv.buf.toString("base64");
-            logger.debug(`Received: ${learnedIRCode}`, NS);
-            messagesClear(msg.endpoint, seq);
-            await msg.endpoint.command(
-                "zosungIRControl",
-                "zosungControlIRCommand00",
-                {
-                    data: Buffer.from(JSON.stringify({study: 1})),
-                },
-                {disableDefaultResponse: true},
-            );
-            return {
-                learned_ir_code: learnedIRCode,
-            };
+            if (rcv) {
+                const learnedIRCode = rcv.buf.toString("base64");
+                logger.debug(`Received: ${learnedIRCode}`, NS);
+                messagesClear(msg.endpoint, seq);
+                await msg.endpoint.command(
+                    "zosungIRControl",
+                    "zosungControlIRCommand00",
+                    {
+                        data: Buffer.from(JSON.stringify({study: 1})),
+                    },
+                    {disableDefaultResponse: true},
+                );
+                return {
+                    learned_ir_code: learnedIRCode,
+                };
+            }
         },
     } satisfies Fz.Converter,
 };

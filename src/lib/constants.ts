@@ -88,6 +88,8 @@ export const thermostatRunningStates: KeyValueAny = {
     34: "cool",
     65: "heat",
     66: "cool",
+    32768: "idle",
+    32769: "heat",
 };
 
 export const thermostatAcLouverPositions: KeyValueNumberString = {

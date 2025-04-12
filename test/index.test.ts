@@ -1,3 +1,5 @@
+import fs from "node:fs";
+import path from "node:path";
 import {
     type Definition,
     addExternalDefinition,
@@ -259,6 +261,41 @@ describe("ZHC", () => {
         expect(definition.model).toStrictEqual("BHT-002/BHT-006");
     });
 
+    it("finds definition by fingerprint - GP", async () => {
+        const device = mockDevice(
+            {
+                modelID: "GreenPower_7",
+                endpoints: [{ID: 242, profileID: undefined, deviceID: undefined, inputClusters: [], outputClusters: []}],
+            },
+            "GreenPower",
+            {
+                ieeeAddr: "0x0000000001511223",
+            },
+        );
+        const definition = await findByDevice(device);
+
+        expect(definition.model).toStrictEqual("PTM 216Z");
+    });
+
+    it("generates definition - GP - with no matching fingerprint from candidates", async () => {
+        const device = mockDevice(
+            {
+                modelID: "GreenPower_2",
+                endpoints: [{ID: 242, profileID: undefined, deviceID: undefined, inputClusters: [], outputClusters: []}],
+            },
+            "GreenPower",
+            {
+                ieeeAddr: "0x0000000052373160",
+            },
+        );
+
+        const definition = await findByDevice(device, true);
+        expect(definition.model).toStrictEqual("GreenPower_2");
+        expect(definition.vendor).toStrictEqual("");
+        expect(definition.description).toStrictEqual("Automatically generated definition for Green Power");
+        expect(definition.generated).toStrictEqual(true);
+    });
+
     it("allows definition with both modern extend and exposes as function", async () => {
         const device = mockDevice({modelID: "MOSZB-140", endpoints: []});
         const MOSZB140 = await findByDevice(device);
@@ -324,6 +361,18 @@ describe("ZHC", () => {
         expect((await findByDevice(device)).vendor).toStrictEqual("other-vendor");
         removeExternalDefinitions("mock-model.js");
         expect((await findByDevice(device)).vendor).toStrictEqual("Aqara");
+    });
+
+    it("should not add toZigbee converters/options multiple times if findByDevice is called multiple times for the same device", async () => {
+        const device = mockDevice({modelID: "TS0601", manufacturerName: "_TZE200_3towulqd", endpoints: []});
+        const definition1 = await findByDevice(device);
+        const definition1TzLength = definition1.toZigbee.length;
+        const definition1OptionsLength = definition1.toZigbee.length;
+        const definition2 = await findByDevice(device);
+        const definition2TzLength = definition2.toZigbee.length;
+        const definition2OptionsLength = definition2.toZigbee.length;
+        expect(definition1TzLength).toStrictEqual(definition2TzLength);
+        expect(definition1OptionsLength).toStrictEqual(definition2OptionsLength);
     });
 
     it("adds external converter with same model built-in", async () => {
@@ -514,6 +563,16 @@ describe("ZHC", () => {
             property: "temperatures",
             type: "list",
         });
+    });
+
+    it("check if all definitions are imported in devices/index.ts", () => {
+        const devicesDir = path.join(__dirname, "..", "src", "devices");
+        const files = fs.readdirSync(devicesDir).map((f) => f.replace(".ts", ""));
+        const index = fs.readFileSync(path.join(__dirname, "..", "src", "devices", "index.ts"), "utf-8");
+        const importRegex = /^import {definitions as .+} from "\.\/(.+)";$/gm;
+        const imports = Array.from(index.matchAll(importRegex)).map((r) => r[1]);
+        files.splice(files.indexOf("index"), 1);
+        expect(files.sort()).toStrictEqual(imports.sort());
     });
 
     it("instantiates list expose of composite type", () => {

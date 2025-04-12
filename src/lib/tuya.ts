@@ -190,7 +190,7 @@ export function onEventMeasurementPoll(
     utils.onEventPoll(type, data, device, options, "measurement", 60, poll);
 }
 
-export async function onEventSetTime(type: OnEventType, data: KeyValue, device: Zh.Device) {
+export async function onEventSetTime(type: OnEventType, data: OnEventData, device: Zh.Device) {
     // FIXME: Need to join onEventSetTime/onEventSetLocalTime to one command
 
     if (data.type === "commandMcuSyncTime" && data.cluster === "manuSpecificTuya") {
@@ -214,7 +214,7 @@ export async function onEventSetTime(type: OnEventType, data: KeyValue, device: 
 
 // set UTC and Local Time as total number of seconds from 00: 00: 00 on January 01, 1970
 // force to update every device time every hour due to very poor clock
-export async function onEventSetLocalTime(type: OnEventType, data: KeyValue, device: Zh.Device) {
+export async function onEventSetLocalTime(type: OnEventType, data: OnEventData, device: Zh.Device) {
     // FIXME: What actually nextLocalTimeUpdate/forceTimeUpdate do?
     //  I did not find any timers or something else where it was used.
     //  Actually, there are two ways to set time on Tuya MCU devices:
@@ -269,7 +269,7 @@ function dpValueFromEnum(dp: number, value: number) {
     return {dp, datatype: dataTypes.enum, data: [value]};
 }
 
-function dpValueFromString(dp: number, string: string) {
+export function dpValueFromString(dp: number, string: string) {
     return {dp, datatype: dataTypes.string, data: convertStringToHexArray(string)};
 }
 
@@ -488,7 +488,7 @@ export const configureMagicPacket = async (device: Zh.Device, coordinatorEndpoin
     } catch (e) {
         // Fails for some Tuya devices with UNSUPPORTED_ATTRIBUTE, ignore that.
         // e.g. https://github.com/Koenkk/zigbee2mqtt/issues/14857
-        if (e.message.includes("UNSUPPORTED_ATTRIBUTE")) {
+        if ((e as Error).message.includes("UNSUPPORTED_ATTRIBUTE")) {
             logger.debug("configureMagicPacket failed, ignoring...", NS);
         } else {
             throw e;
@@ -1738,7 +1738,7 @@ const tuyaTz = {
     } satisfies Tz.Converter,
     inchingSwitch: {
         key: ["inching_control_set"],
-        convertSet: async (entity, key, value: KeyValue, meta) => {
+        convertSet: async (entity, key, value, meta) => {
             const inching = valueConverter.inchingSwitch.to(value);
             const payload = {payload: inching};
             const endpoint = meta.device.getEndpoint(1);
@@ -2072,6 +2072,66 @@ export interface TuyaDPLightArgs {
 }
 
 const tuyaModernExtend = {
+    dpTHZBSettings(): ModernExtend {
+        const exp = e
+            .composite("auto_settings", "auto_settings", ea.STATE_SET)
+            .withDescription("Automatically switch ON/OFF, make sure manual mode is turned OFF otherwise auto settings are not applied.")
+            .withFeature(e.binary("enabled", ea.STATE_SET, true, false).withDescription("Enable auto settings"))
+            .withFeature(e.enum("temp_greater_then", ea.STATE_SET, ["ON", "OFF"]).withDescription("Greater action"))
+            .withFeature(
+                e
+                    .numeric("temp_greater_value", ea.STATE_SET)
+                    .withValueMin(-20)
+                    .withValueMax(80)
+                    .withValueStep(0.1)
+                    .withUnit("°C")
+                    .withDescription("Temperature greater than value"),
+            )
+            .withFeature(e.enum("temp_lower_then", ea.STATE_SET, ["ON", "OFF"]).withDescription("Lower action"))
+            .withFeature(
+                e
+                    .numeric("temp_lower_value", ea.STATE_SET)
+                    .withValueMin(-20)
+                    .withValueMax(80)
+                    .withValueStep(0.1)
+                    .withUnit("°C")
+                    .withDescription("Temperature lower than value"),
+            );
+
+        const handlers: [Fz.Converter[], Tz.Converter[]] = getHandlersForDP("auto_settings", 0x77, dataTypes.string, {
+            from: (value: string) => {
+                const buffer = Buffer.from(value, "hex");
+                if (buffer.length > 0) {
+                    return {
+                        enabled: buffer.readUint16LE(0) === 0x80,
+                        temp_greater_value: buffer.readInt32LE(2) / 10,
+                        temp_greater_then: buffer.readUint8(6) ? "ON" : "OFF",
+                        temp_lower_value: buffer.readInt32LE(8) / 10,
+                        temp_lower_then: buffer.readUint8(12) ? "ON" : "OFF",
+                    };
+                }
+            },
+            to: async (value: KeyValueAny, meta: Tz.Meta) => {
+                const buffer = Buffer.alloc(13);
+                buffer.writeUint16LE(value.enabled ? 0x80 : 0x00, 0);
+                buffer.writeInt32LE(value.temp_greater_value * 10, 2);
+                buffer.writeUInt8(value.temp_greater_then === "ON" ? 1 : 0, 6);
+                buffer.writeUInt8(1, 7);
+                buffer.writeInt32LE(value.temp_lower_value * 10, 8);
+                buffer.writeUInt8(value.temp_lower_then === "ON" ? 1 : 0, 12);
+                // Disable manual mode, otherwise auto settings is not applied.
+                await sendDataPointEnum(meta.device.endpoints[0], 0x65, 0, "sendData", 1);
+                return buffer.toString("hex");
+            },
+        });
+
+        return {
+            exposes: [exp],
+            fromZigbee: handlers[0],
+            toZigbee: handlers[1],
+            isModernExtend: true,
+        };
+    },
     tuyaBase(args?: {onEvent?: OnEventArgs; dp: true}): ModernExtend {
         const result: ModernExtend = {
             configure: [configureMagicPacket],
@@ -2100,8 +2160,8 @@ const tuyaModernExtend = {
             dp,
             type,
             {
-                from: (value) => utils.getFromLookupByValue(value, lookup),
-                to: (value) => utils.getFromLookup(value, lookup),
+                from: (value: unknown) => utils.getFromLookupByValue(value, lookup),
+                to: (value: unknown) => utils.getFromLookup(value, lookup),
             },
             readOnly,
             skip,
@@ -2125,8 +2185,8 @@ const tuyaModernExtend = {
             dp,
             type,
             {
-                from: (value) => (value === valueOn[1] ? valueOn[0] : valueOff[0]),
-                to: (value) => (value === valueOn[0] ? valueOn[1] : valueOff[1]),
+                from: (value: unknown) => (value === valueOn[1] ? valueOn[0] : valueOff[0]),
+                to: (value: unknown) => (value === valueOn[0] ? valueOn[1] : valueOff[1]),
             },
             readOnly,
             skip,

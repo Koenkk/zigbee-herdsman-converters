@@ -154,7 +154,8 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Smart motion sensor R1",
         ota: true,
         extend: [
-            m.battery(),
+            m.iasZoneAlarm({zoneType: "occupancy", zoneAttributes: ["alarm_1", "battery_low"]}),
+            m.battery({voltage: true}),
             m.deviceAddCustomCluster("3rRadarSpecialCluster", {
                 ID: 0xff01,
                 manufacturerCode: 0x1407,
@@ -378,7 +379,7 @@ export const definitions: DefinitionWithExtend[] = [
                 ID: 0xfff2,
                 manufacturerCode: 0x1407,
                 attributes: {
-                    wateringTimes: {ID: 0x0000, type: Zcl.DataType.UINT8},
+                    wateringTimes: {ID: 0x0000, type: Zcl.DataType.UINT16},
                     intervalDay: {ID: 0x0001, type: Zcl.DataType.UINT8},
                 },
                 commands: {},

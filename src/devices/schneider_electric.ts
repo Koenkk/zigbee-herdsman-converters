@@ -575,7 +575,7 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.cover_position_tilt],
         toZigbee: [tz.cover_position_tilt, tz.cover_state, tzLocal.lift_duration],
         exposes: [
-            e.cover_position(),
+            e.cover_position_tilt(),
             e.numeric("lift_duration", ea.STATE_SET).withUnit("s").withValueMin(0).withValueMax(300).withDescription("Duration of lift"),
         ],
         meta: {coverInverted: true},

@@ -1,3 +1,4 @@
+import type {DefinitionWithExtend} from "../lib/types";
 import {definitions as ITCommander} from "./ITCommander";
 import {definitions as acova} from "./acova";
 import {definitions as acuityBrandsLighting} from "./acuity_brands_lighting";
@@ -21,6 +22,7 @@ import {definitions as automaton} from "./automaton";
 import {definitions as avatto} from "./avatto";
 import {definitions as awox} from "./awox";
 import {definitions as axis} from "./axis";
+import {definitions as bacchus} from "./bacchus";
 import {definitions as bankamp} from "./bankamp";
 import {definitions as bega} from "./bega";
 import {definitions as belkin} from "./belkin";
@@ -50,6 +52,7 @@ import {definitions as cree} from "./cree";
 import {definitions as ctm} from "./ctm";
 import {definitions as currentProductsCorp} from "./current_products_corp";
 import {definitions as customDevicesDiy} from "./custom_devices_diy";
+import {definitions as cwd} from "./cwd";
 import {definitions as cyLighting} from "./cy_lighting";
 import {definitions as danalock} from "./danalock";
 import {definitions as danfoss} from "./danfoss";
@@ -166,6 +169,7 @@ import {definitions as lg} from "./lg";
 import {definitions as lidl} from "./lidl";
 import {definitions as lifecontrol} from "./lifecontrol";
 import {definitions as lightsolutions} from "./lightsolutions";
+import {definitions as lincukoo} from "./lincukoo";
 import {definitions as linkind} from "./linkind";
 import {definitions as linptech} from "./linptech";
 import {definitions as livingwise} from "./livingwise";
@@ -187,6 +191,7 @@ import {definitions as meazon} from "./meazon";
 import {definitions as mercator} from "./mercator";
 import {definitions as miboxer} from "./miboxer";
 import {definitions as micromatic} from "./micromatic";
+import {definitions as mindy} from "./mindy";
 import {definitions as modular} from "./modular";
 import {definitions as moes} from "./moes";
 import {definitions as mullerLicht} from "./muller_licht";
@@ -230,8 +235,10 @@ import {definitions as pushok} from "./pushok";
 import {definitions as qa} from "./qa";
 import {definitions as qmotion} from "./qmotion";
 import {definitions as qoto} from "./qoto";
+import {definitions as quirky} from "./quirky";
 import {definitions as quotra} from "./quotra";
 import {definitions as rademacher} from "./rademacher";
+import {definitions as radium} from "./radium";
 import {definitions as raex} from "./raex";
 import {definitions as rgbGenie} from "./rgb_genie";
 import {definitions as robb} from "./robb";
@@ -250,6 +257,7 @@ import {definitions as securifi} from "./securifi";
 import {definitions as sengled} from "./sengled";
 import {definitions as sercomm} from "./sercomm";
 import {definitions as shadeControl} from "./shade_control";
+import {definitions as shelly} from "./shelly";
 import {definitions as shenzhenHoma} from "./shenzhen_homa";
 import {definitions as shinasystem} from "./shinasystem";
 import {definitions as shyugj} from "./shyugj";
@@ -259,6 +267,7 @@ import {definitions as simon} from "./simon";
 import {definitions as sinope} from "./sinope";
 import {definitions as siterwell} from "./siterwell";
 import {definitions as skydance} from "./skydance";
+import {definitions as slackyDiy} from "./slacky_diy";
 import {definitions as slv} from "./slv";
 import {definitions as smart9} from "./smart9";
 import {definitions as smartHomePty} from "./smart_home_pty";
@@ -326,7 +335,7 @@ import {definitions as zen} from "./zen";
 import {definitions as zigbeetlc} from "./zigbeetlc";
 import {definitions as zipato} from "./zipato";
 
-export default [
+const definitions: DefinitionWithExtend[] = [
     ...acova,
     ...acuityBrandsLighting,
     ...adeo,
@@ -349,6 +358,7 @@ export default [
     ...avatto,
     ...awox,
     ...axis,
+    ...bacchus,
     ...bankamp,
     ...bega,
     ...belkin,
@@ -378,6 +388,7 @@ export default [
     ...ctm,
     ...currentProductsCorp,
     ...customDevicesDiy,
+    ...cwd,
     ...cyLighting,
     ...danalock,
     ...danfoss,
@@ -495,6 +506,7 @@ export default [
     ...lidl,
     ...lifecontrol,
     ...lightsolutions,
+    ...lincukoo,
     ...linkind,
     ...linptech,
     ...livingwise,
@@ -515,6 +527,7 @@ export default [
     ...mercator,
     ...miboxer,
     ...micromatic,
+    ...mindy,
     ...modular,
     ...moes,
     ...mullerLicht,
@@ -557,12 +570,15 @@ export default [
     ...pushok,
     ...qmotion,
     ...qoto,
+    ...quirky,
     ...quotra,
     ...rademacher,
+    ...radium,
     ...raex,
     ...rgbGenie,
     ...robb,
     ...roome,
+    ...lumi,
     ...rtx,
     ...salusControls,
     ...samotech,
@@ -577,6 +593,7 @@ export default [
     ...sengled,
     ...sercomm,
     ...shadeControl,
+    ...shelly,
     ...shenzhenHoma,
     ...shinasystem,
     ...shyugj,
@@ -586,10 +603,11 @@ export default [
     ...sinope,
     ...siterwell,
     ...skydance,
+    ...slackyDiy,
     ...slv,
-    ...smartHomePty,
     ...smart9,
     ...smartenit,
+    ...smartHomePty,
     ...smartthings,
     ...smartwings,
     ...smlight,
@@ -621,7 +639,6 @@ export default [
     ...tuya,
     ...ubisys,
     ...uhome,
-    ...lumi,
     ...universalElectronicsInc,
     ...vbled,
     ...vesternet,
@@ -655,3 +672,5 @@ export default [
     ...zipato,
     ...qa,
 ];
+
+export default definitions;
