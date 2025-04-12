@@ -2536,7 +2536,7 @@ const tuyaModernExtend = {
             toZigbee.push(tuyaTz.backlight_indicator_mode_1);
         }
         if (args.indicatorNoneRelayPos) {
-            fromZigbee.push(tuyaFz.indicator_mode_non_relay_pos)
+            fromZigbee.push(tuyaFz.indicator_mode_non_relay_pos);
             exposes.push(tuyaExposes.indicatorModeNoneRelayPos());
             toZigbee.push(tuyaTz.backlight_indicator_mode_none_relay_pos);
         }
