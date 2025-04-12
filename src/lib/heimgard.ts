@@ -33,7 +33,7 @@ export enum LockSide {
 }
 
 function identifyLockStateFromHistory(meta: Fz.Meta): LockSide {
-    const history: LockStateHistory[] = (meta.state?.history as LockStateHistory[]) ?? [];
+    const history: LockStateHistory[] = (meta.device?.meta?.history as LockStateHistory[]) ?? [];
 
     const filteredHistory: LockStateHistory[] = [];
     let lastEntry: LockStateHistory | null = null;
@@ -169,10 +169,10 @@ export const fromZigbee = {
                 interiorLockState: isInteriorLocked ? "locked" : "unlocked",
                 exteriorLockState: isExteriorLocked ? "locked" : "unlocked",
             };
-            const historyCache = (meta.state.history as LockStateHistory[]) ?? [];
+            const historyCache = (meta.device?.meta?.history as LockStateHistory[]) ?? [];
             historyCache.push(newHistoryEntry);
             // Keeping only the last 5 entries
-            meta.state.history = historyCache.slice(-5);
+            meta.device.meta.history = historyCache.slice(-5);
 
             meta.state.isInteriorLocked = isInteriorLocked;
             meta.state.isExteriorLocked = isExteriorLocked;
