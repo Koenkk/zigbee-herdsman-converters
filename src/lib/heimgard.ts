@@ -5,6 +5,9 @@ import {Zcl} from "zigbee-herdsman";
 import {lock} from "../converters/toZigbee";
 import * as utils from "../lib/utils";
 import * as modernExtend from "./modernExtend";
+import { logger } from "./logger";
+
+const NS = "zhc";
 
 // Lock state changes requested by the following. Tested against device HT-SLM-2.
 // remote = executed from zigbee2mqtt
