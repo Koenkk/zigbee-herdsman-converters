@@ -1,5 +1,23 @@
 # Changelog
 
+## [23.26.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.25.0...v23.26.0) (2025-04-13)
+
+
+### Features
+
+* **add:** 404122/404123 ([#9172](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9172)) ([9bb704d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9bb704d01d3b204738493c0bba328bee059ee1a3))
+* **add:** 929003808501 ([#9163](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9163)) ([0549838](https://github.com/Koenkk/zigbee-herdsman-converters/commit/05498380f1bcf3cc4463133d60859920f642c8bd))
+* **add:** SZW08, SZLR08, SZLM04U ([#9167](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9167)) ([53ef9cb](https://github.com/Koenkk/zigbee-herdsman-converters/commit/53ef9cb0b38afa71d4acf46d7c85c806f1ece382))
+* **add:** TS0726_4_gang_scene_switch, TS0726_3_gang_scene_switch, TS0726_2_gang_scene_switch, TS0003_3_gang_switch ([#9158](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9158)) ([7a5cd1c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7a5cd1c1f6b10ec3d6da3d3e1da15bd8028e7364))
+
+
+### Bug Fixes
+
+* Allow scheduling OTA on device request ([#9048](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9048)) ([7286e85](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7286e8572c4cba1546273011eeb4962c272553f4))
+* **detect:** Detect `_TZ3000_s678wazd` as Tuya TS0726_4_gang https://github.com/Koenkk/zigbee-herdsman-converters/issues/9138 ([55a5202](https://github.com/Koenkk/zigbee-herdsman-converters/commit/55a52021cde6c6d118eae7d9753f2f7795ec753a))
+* do not throw when exposes function throws ([#9169](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9169)) ([625a913](https://github.com/Koenkk/zigbee-herdsman-converters/commit/625a9130552c4213f2ecd4ee6c1d5ee3845299bf))
+* **ignore:** update dependencies ([#9170](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9170)) ([8c8cae8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8c8cae87ca900c4c00e00a237bb66146dce334e5))
+
 ## [23.25.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.24.0...v23.25.0) (2025-04-10)
 
 
