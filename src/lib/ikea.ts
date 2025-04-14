@@ -79,7 +79,7 @@ const bulbOnEvent: OnEvent = async (type, data, device, options, state: KeyValue
     }
 };
 
-export function ikeaLight(args?: Omit<m.LightArgs, "colorTemp"> & {colorTemp?: true | {range: Range; viaColor: true}; withUnfreezeSupport?: true}) {
+export function ikeaLight(args?: Omit<m.LightArgs, "colorTemp"> & {colorTemp?: true | {range: Range; viaColor: true}}) {
     const colorTemp: {range: Range} = args?.colorTemp ? (args.colorTemp === true ? {range: [250, 454]} : args.colorTemp) : undefined;
     const levelConfig: {disabledFeatures?: LevelConfigFeatures} = args?.levelConfig
         ? args.levelConfig
@@ -92,19 +92,26 @@ export function ikeaLight(args?: Omit<m.LightArgs, "colorTemp"> & {colorTemp?: t
     }
     if (args?.colorTemp || args?.color) {
         result.exposes.push(presets.light_color_options());
-    }
 
-    if (args?.withUnfreezeSupport && result.toZigbee) {
-        result.toZigbee = result.toZigbee.map((orig) => {
-            if (orig.key?.some((k) => keysNeedingUnfreeze.has(k))) {
-                return {
-                    ...orig,
-                    convertSet: ikea_bulb_unfreeze(orig.convertSet),
-                };
-            }
+        if (result.toZigbee) {
+            // add unfreeze support for color lights
+            result.toZigbee = result.toZigbee.map((orig) => {
+                if (orig.key?.some((k) => keysNeedingUnfreeze.has(k))) {
+                    const origOptions = orig.options;
 
-            return orig;
-        });
+                    return {
+                        ...orig,
+                        options:
+                            typeof origOptions === "function"
+                                ? (def) => [...origOptions(def), options.unfreeze_support()]
+                                : [...origOptions, options.unfreeze_support()],
+                        convertSet: ikea_bulb_unfreeze(orig.convertSet),
+                    };
+                }
+
+                return orig;
+            });
+        }
     }
 
     // Never use a transition when transitioning to OFF as this turns on the light when sending OFF twice
@@ -888,7 +895,7 @@ const keysNeedingUnfreeze = new Set(["state", "brightness", "brightness_percent"
 
 const ikea_bulb_unfreeze = (next: Tz.Converter["convertSet"]) => {
     const converter: Tz.Converter["convertSet"] = async (entity, key, value, meta) => {
-        if (!keysNeedingUnfreeze.has(key)) {
+        if (!keysNeedingUnfreeze.has(key) || meta.options.unfreeze_support === false) {
             return await next(entity, key, value, meta);
         }
 
