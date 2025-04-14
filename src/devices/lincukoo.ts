@@ -67,8 +67,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.binary("Radar_switch", ea.STATE_SET, "ON", "OFF").withDescription("Radar switch"),
             e.binary("indicator", ea.STATE_SET, "ON", "OFF").withDescription("LED indicator"),
             e.enum("relay_mode", ea.STATE_SET, ["auto", "manual"]).withDescription("control mode of the relay"),
-			e.enum("radar_mode", ea.STATE_SET, ["people_on", "people_off"]).withDescription("radar mode for the relay controlling"),
-
+            e.enum("radar_mode", ea.STATE_SET, ["people_on", "people_off"]).withDescription("radar mode for the relay controlling"),
         ],
         meta: {
             tuyaDatapoints: [
@@ -81,8 +80,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [104, "Relay_switch", tuya.valueConverter.onOff],
                 [102, "Radar_switch", tuya.valueConverter.onOff], // toggle to enable presence notifications in app is ignored
                 [106, "relay_mode", tuya.valueConverterBasic.lookup({auto: 0, manual: 1})],
-				[107, "radar_mode", tuya.valueConverterBasic.lookup({people_on: 0, people_off: 1})],
-
+                [107, "radar_mode", tuya.valueConverterBasic.lookup({people_on: 0, people_off: 1})],
             ],
         },
     },
