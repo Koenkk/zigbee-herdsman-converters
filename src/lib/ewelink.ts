@@ -123,7 +123,7 @@ function privateMotorClbByPosition(clusterName: string, writeCommand: string): M
         {
             cluster: clusterName,
             type: ["raw"],
-            convert: (model, msg, publish, otions, meta) => {
+            convert: (model, msg, publish, options, meta) => {
                 if (msg.type === "raw" && msg.data instanceof Buffer) {
                     // Raex Protocol，updated Report only through 'motor_info'.
                     if (protocol.dooya.supportModel.includes(model.model)) {
@@ -204,12 +204,12 @@ function privateMotorClbByPosition(clusterName: string, writeCommand: string): M
                     // Dooya Protocol
                     const payloadValue = [];
                     if (value === "clear") {
-                        // Clear limit postion
+                        // Clear limit position
                         payloadValue[0] = deleteMotorClbCommand.privateCmd;
                         payloadValue[1] = deleteMotorClbCommand.subCmd;
                         payloadValue[2] = mapping[value as keyof typeof mapping];
                     } else if (["open", "close", "other"].includes(value as string)) {
-                        // Set limit postion
+                        // Set limit position
                         payloadValue[0] = updateMotorClbCommand.privateCmd;
                         payloadValue[1] = updateMotorClbCommand.subCmd;
                         payloadValue[2] = mapping[value as keyof typeof mapping];
@@ -221,13 +221,13 @@ function privateMotorClbByPosition(clusterName: string, writeCommand: string): M
                     // Raex Protocol
                     const payloadValue = [];
                     if (value === "clear") {
-                        // Clear limit postion
+                        // Clear limit position
                         payloadValue[0] = deleteMotorClbCommand.privateCmd;
                         payloadValue[1] = deleteMotorClbCommand.dataLength;
                         payloadValue[2] = deleteMotorClbCommand.subCmd;
                         payloadValue[3] = mapping[value as keyof typeof mapping];
                     } else if (["open", "close", "other"].includes(value as string)) {
-                        // Set limit postion
+                        // Set limit position
                         payloadValue[0] = updateMotorClbCommand.privateCmd;
                         payloadValue[1] = updateMotorClbCommand.dataLength;
                         payloadValue[2] = updateMotorClbCommand.subCmd;
@@ -309,7 +309,7 @@ function privateMotorMode(clusterName: string, writeCommand: string): ModernExte
         {
             cluster: clusterName,
             type: ["raw"],
-            convert: (model, msg, publish, otions, meta) => {
+            convert: (model, msg, publish, options, meta) => {
                 if (msg.type === "raw" && msg.data instanceof Buffer) {
                     if (protocol.dooya.supportModel.includes(model.model)) {
                         const bufferObj = msg.data.subarray(3, msg.data.length).toJSON();
@@ -489,7 +489,7 @@ function privateReportMotorInfo(clusterName: string): ModernExtend {
         {
             cluster: clusterName,
             type: ["raw"],
-            convert: (model, msg, publish, otions, meta) => {
+            convert: (model, msg, publish, options, meta) => {
                 if (msg.type === "raw" && msg.data instanceof Buffer) {
                     if (protocol.dooya.supportModel.includes(model.model)) {
                         // Dooya Protocol
@@ -595,7 +595,7 @@ function privateMotorSpeed(clusterName: string, writeCommand: string, minSpeed: 
         {
             cluster: clusterName,
             type: ["raw"],
-            convert: (model, msg, publish, otions, meta) => {
+            convert: (model, msg, publish, options, meta) => {
                 if (msg.type === "raw" && msg.data instanceof Buffer) {
                     if (protocol.dooya.supportModel.includes(model.model)) {
                         const bufferObj = msg.data.subarray(3, msg.data.length).toJSON();

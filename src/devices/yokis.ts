@@ -86,7 +86,7 @@ const YokisClustersDefinition: {
         ID: 0xfc02,
         manufacturerCode: Zcl.ManufacturerCode.YOKIS,
         attributes: {
-            // Indicate how the input should be handle: 0 -> Unknow, 1 -> Push button, 2 -> Switch, 3 -> Relay, 4 -> FP_IN
+            // Indicate how the input should be handle: 0 -> Unknown, 1 -> Push button, 2 -> Switch, 3 -> Relay, 4 -> FP_IN
             inputMode: {ID: 0x0000, type: Zcl.DataType.ENUM8},
             // Indicate the contact nature of the entry: 0 -> NC, 1 -> NO
             contactMode: {ID: 0x0001, type: Zcl.DataType.BOOLEAN},
@@ -240,7 +240,7 @@ const YokisClustersDefinition: {
                     {name: "b_DoPeriodicCycle", type: Zcl.DataType.BOOLEAN},
                 ],
             },
-            // Start a deaf sequene on a device only if the attribute “eDeaf” is set to Enable.
+            // Start a deaf sequence on a device only if the attribute “eDeaf” is set to Enable.
             deafBlink: {
                 ID: 0x06,
                 parameters: [
@@ -433,7 +433,7 @@ const YokisClustersDefinition: {
             orderTimer: {ID: 0x0001, type: Zcl.DataType.UINT32},
             // Define the duration before an order is set. This timer is used when a new order is asked, it corresponds to the time before this order is applied. The duration is set in second. Default: 0x00000000, Min-Max: 0x00000000 - 0xFFFFFFFF
             preOrderTimer: {ID: 0x0002, type: Zcl.DataType.UINT32},
-            // Represent the actual unit used for local command configuration : 0x00 -> Second, 0x01 -> Minutes. Default: 0x00, Min-Max: 0x00 - 0x01.
+            // Represent the actual unit used for local command configuration: 0x00 -> Second, 0x01 -> Minutes. Default: 0x00, Min-Max: 0x00 - 0x01.
             timerUnit: {ID: 0x0003, type: Zcl.DataType.UINT8},
             // Define the product’s LED behavior: 0x00 -> LED is always ON and blink during radio activity, 0x01 -> LED is only OFF during few seconds after a mode transition. Default: 0x00, Min-Max: 0x00 - 0x01.
             ledMode: {ID: 0x0004, type: Zcl.DataType.UINT8},
@@ -451,7 +451,7 @@ const YokisClustersDefinition: {
             setOrder: {
                 ID: 0x00,
                 parameters: [
-                    // Order to be set : 0x00 -> Stop, 0x01 -> Frost-off, 0x02 -> Eco, 0x03 -> Confort-2, 0x04 -> Confort-1, 0x05 -> Confort
+                    // Order to be set: 0x00 -> Stop, 0x01 -> Frost-off, 0x02 -> Eco, 0x03 -> Confort-2, 0x04 -> Confort-1, 0x05 -> Confort
                     {name: "uc_Order", type: Zcl.DataType.UINT8},
                 ],
             },
@@ -691,7 +691,7 @@ const yokisExtendChecks = {
             // }
 
             // if (input.uc_SequenceAmount > input.tuc_BlinkAmount.length) {
-            //     // more sequences than configured, pad with additionals
+            //     // more sequences than configured, pad with additional
             //     for(let i = 0; i < input.uc_SequenceAmount - input.tuc_BlinkAmount.length; i++) {
             //         input.tuc_BlinkAmount.push({"uc_BlinkAmountItem":1}); //puke
             //     }
@@ -1077,7 +1077,7 @@ const yokisCommandsExtend = {
     deafBlink: (): ModernExtend => {
         const exposes = e
             .composite("deaf_blink_command", "deaf_blink_prop", ea.SET)
-            .withDescription("Start a deaf sequene on a device only if the attribute “eDeaf” is set to Enable")
+            .withDescription("Start a deaf sequence on a device only if the attribute “eDeaf” is set to Enable")
             .withFeature(
                 e
                     .numeric("blink_amount", ea.SET) // uc_BlinkAmount
@@ -1493,7 +1493,7 @@ const YokisInputExtend: ModernExtend[] = [
         cluster: "manuSpecificYokisInput",
         attribute: "inputMode",
         description: `Indicate how the input should be handle:
-        - 0 -> Unknow
+        - 0 -> Unknown
         - 1 -> Push button
         - 2 -> Switch
         - 3 -> Relay
@@ -1904,7 +1904,7 @@ const yokisLightControlExtend: ModernExtend[] = [
         name: "enable_nc_command",
         cluster: "manuSpecificYokisLightControl",
         attribute: "eNcCommand",
-        description: "Define the output relay as Normaly close",
+        description: "Define the output relay as Normally close",
         valueOn: ["ON", 0x01],
         valueOff: ["OFF", 0x00],
         entityCategory: "config",
@@ -2208,11 +2208,11 @@ const YokisChannelExtend: ModernExtend[] = [
         lookup: {toggle: 0x00, on: 0x01, off: 0x02, off2: 0x03},
         cluster: 'manuSpecificYokisChannel',
         attribute: 'onOffClusterMode',
-        description: `Define the command to send to the servers using cluster On/Off. Values are: 
+        description: `Define the command to send to the servers using cluster On/Off. Values are:
 -	0x00 – TOGGLE (1)
 -	0x01 – ON
 -	0x02 – OFF
--	0x03 – OFF 
+-	0x03 – OFF
 `,
         entityCategory: 'config',
     }),
@@ -2223,8 +2223,8 @@ const YokisChannelExtend: ModernExtend[] = [
         lookup: {nothing: 0x00, move_up: 0x01, move_down: 0x02, stop: 0x03},
         cluster: 'manuSpecificYokisChannel',
         attribute: 'levelControlClusterMode',
-        description: `Define the command to send to the servers using cluster Level control. Values are: 
--	0x00 – Nothing 
+        description: `Define the command to send to the servers using cluster Level control. Values are:
+-	0x00 – Nothing
 -	0x01 – Move up
 -	0x02 – Move down
 -	0x03 – Stop
@@ -2238,7 +2238,7 @@ const YokisChannelExtend: ModernExtend[] = [
         lookup: {toggle: 0x00, up_open: 0x01, down_close: 0x02, stop: 0x03},
         cluster: 'manuSpecificYokisChannel',
         attribute: 'windowCoveringClusterMode',
-        description: `Define the command to send to the servers using cluster Window Covering. Values are: 
+        description: `Define the command to send to the servers using cluster Window Covering. Values are:
 -	0x00 – TOGGLE (1)
 -	0x01 – UP/OPEN
 -	0x02 – DOWN/CLOSE
@@ -2253,7 +2253,7 @@ const YokisChannelExtend: ModernExtend[] = [
         name: 'cluster_to_be_used',
         cluster: 'manuSpecificYokisChannel',
         attribute: 'clusterToBeUsed',
-        description: `Defines the cluster that will be used by the channel to create an order. 
+        description: `Defines the cluster that will be used by the channel to create an order.
 
 If the value is set to 0xFFF0 the device will use a cluster priority list in order to choose the correct cluster and create the order associate depending on the target binded to the channel. The device will check which cluster the target declares and use the highest priority
 
@@ -2292,7 +2292,7 @@ When a cluster is specified, the channel will only “control” the device bind
         lookup: {pulse: 0x00, deaf: 0x01},
         cluster: 'manuSpecificYokisChannel',
         attribute: 'yokisLightControlMode',
-        description: `Define the light control mode used between remote and the binded device. Values are: 
+        description: `Define the light control mode used between remote and the binded device. Values are:
 -	0x00 – Mode pulse
 -	0x01 – Mode deaf
 `,
@@ -2305,8 +2305,8 @@ When a cluster is specified, the channel will only “control” the device bind
         lookup: {toggle: 0x00, confort: 0x01, eco: 0x02},
         cluster: 'manuSpecificYokisChannel',
         attribute: 'yokisPilotWireClusterMode',
-        description: `Define the command to send to the servers using cluster Yokis Pilot Wire. Values are: 
--	0x00 – TOGGLE (1) 
+        description: `Define the command to send to the servers using cluster Yokis Pilot Wire. Values are:
+-	0x00 – TOGGLE (1)
 -	0x01 – CONFORT
 -	0x02 – ECO
 `,

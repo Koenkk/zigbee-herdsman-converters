@@ -729,14 +729,14 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
         dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 101,
-        description: "Intesity of LED strip when on. 101 = Synchronized with default all LED strip intensity parameter.",
+        description: "Intensity of LED strip when on. 101 = Synchronized with default all LED strip intensity parameter.",
     },
     defaultLed1IntensityWhenOff: {
         ID: 63,
         dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 101,
-        description: "Intesity of LED strip when off. 101 = Synchronized with default all LED strip intensity parameter.",
+        description: "Intensity of LED strip when off. 101 = Synchronized with default all LED strip intensity parameter.",
     },
     defaultLed2ColorWhenOn: {
         ID: 65,
@@ -759,14 +759,14 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
         dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 101,
-        description: "Intesity of LED strip when on. 101 = Synchronized with default all LED strip intensity parameter.",
+        description: "Intensity of LED strip when on. 101 = Synchronized with default all LED strip intensity parameter.",
     },
     defaultLed2IntensityWhenOff: {
         ID: 68,
         dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 101,
-        description: "Intesity of LED strip when off. 101 = Synchronized with default all LED strip intensity parameter.",
+        description: "Intensity of LED strip when off. 101 = Synchronized with default all LED strip intensity parameter.",
     },
     defaultLed3ColorWhenOn: {
         ID: 70,
@@ -789,14 +789,14 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
         dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 101,
-        description: "Intesity of LED strip when on. 101 = Synchronized with default all LED strip intensity parameter.",
+        description: "Intensity of LED strip when on. 101 = Synchronized with default all LED strip intensity parameter.",
     },
     defaultLed3IntensityWhenOff: {
         ID: 73,
         dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 101,
-        description: "Intesity of LED strip when off. 101 = Synchronized with default all LED strip intensity parameter.",
+        description: "Intensity of LED strip when off. 101 = Synchronized with default all LED strip intensity parameter.",
     },
     defaultLed4ColorWhenOn: {
         ID: 75,
@@ -819,14 +819,14 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
         dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 101,
-        description: "Intesity of LED strip when on. 101 = Synchronized with default all LED strip intensity parameter.",
+        description: "Intensity of LED strip when on. 101 = Synchronized with default all LED strip intensity parameter.",
     },
     defaultLed4IntensityWhenOff: {
         ID: 78,
         dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 101,
-        description: "Intesity of LED strip when off. 101 = Synchronized with default all LED strip intensity parameter.",
+        description: "Intensity of LED strip when off. 101 = Synchronized with default all LED strip intensity parameter.",
     },
     defaultLed5ColorWhenOn: {
         ID: 80,
@@ -849,14 +849,14 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
         dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 101,
-        description: "Intesity of LED strip when on. 101 = Synchronized with default all LED strip intensity parameter.",
+        description: "Intensity of LED strip when on. 101 = Synchronized with default all LED strip intensity parameter.",
     },
     defaultLed5IntensityWhenOff: {
         ID: 83,
         dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 101,
-        description: "Intesity of LED strip when off. 101 = Synchronized with default all LED strip intensity parameter.",
+        description: "Intensity of LED strip when off. 101 = Synchronized with default all LED strip intensity parameter.",
     },
     defaultLed6ColorWhenOn: {
         ID: 85,
@@ -879,14 +879,14 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
         dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 101,
-        description: "Intesity of LED strip when on. 101 = Synchronized with default all LED strip intensity parameter.",
+        description: "Intensity of LED strip when on. 101 = Synchronized with default all LED strip intensity parameter.",
     },
     defaultLed6IntensityWhenOff: {
         ID: 88,
         dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 101,
-        description: "Intesity of LED strip when off. 101 = Synchronized with default all LED strip intensity parameter.",
+        description: "Intensity of LED strip when off. 101 = Synchronized with default all LED strip intensity parameter.",
     },
     defaultLed7ColorWhenOn: {
         ID: 90,
@@ -909,14 +909,14 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
         dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 101,
-        description: "Intesity of LED strip when on. 101 = Synchronized with default all LED strip intensity parameter.",
+        description: "Intensity of LED strip when on. 101 = Synchronized with default all LED strip intensity parameter.",
     },
     defaultLed7IntensityWhenOff: {
         ID: 93,
         dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 101,
-        description: "Intesity of LED strip when off. 101 = Synchronized with default all LED strip intensity parameter.",
+        description: "Intensity of LED strip when off. 101 = Synchronized with default all LED strip intensity parameter.",
     },
     doubleTapClearNotifications: {
         ID: 262,
@@ -1807,7 +1807,7 @@ const fzLocal = {
      * Setting byte: 00-off, 01-low, 10-meduim, 11-high
      * Each 6 bit word is stored in ascending order, step one word being LSB
      *
-     * Extract each nybble of the word, then reverse the calculation to get the settig for each.
+     * Extract each nybble of the word, then reverse the calculation to get the setting for each.
      */
     breeze_mode: (endpointId: number) =>
         ({

@@ -31,7 +31,7 @@ const bulbOnEvent: OnEvent = async (type, data, device, options, state: KeyValue
     /**
      * IKEA bulbs lose their configured reportings when losing power.
      * A deviceAnnounce indicates they are powered on again.
-     * Reconfigure the configured reoprting here.
+     * Reconfigure the configured reporting here.
      *
      * Additionally some other information is lost like
      *   color_options.execute_if_off. We also restore these.
