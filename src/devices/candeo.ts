@@ -2,9 +2,8 @@ import * as m from "../lib/modernExtend";
 import type {DefinitionWithExtend, Fz, Tz} from "../lib/types";
 
 import * as fz from "../converters/fromZigbee";
-import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
-import * as reporting from "../lib/reporting";
+import {assertString} from "../lib/utils";
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -41,7 +40,8 @@ const fzLocal = {
 const tzLocal = {
     switch_type: {
         key: ["external_switch_type"],
-        convertSet: async (entity, key, value: string, meta) => {
+        convertSet: async (entity, key, value, meta) => {
+            assertString(value);
             const numericValue = valueLookup[value] ?? Number.parseInt(value, 10);
             await entity.write(
                 "genBasic",
@@ -318,5 +318,37 @@ export const definitions: DefinitionWithExtend[] = [
             await endpoint1.read("genLevelCtrl", ["startUpCurrentLevel"]);
             await endpoint1.read("genBasic", [switchTypeAttribute], {manufacturerCode: manufacturerSpecificClusterCode});
         },
+    },
+    {
+        fingerprint: [{modelID: "C-ZB-SEWA", manufacturerName: "Candeo"}],
+        model: "C-ZB-SEWA",
+        vendor: "Candeo",
+        description: "Water sensor",
+        extend: [m.battery(), m.iasZoneAlarm({zoneType: "water_leak", zoneAttributes: ["alarm_1"]})],
+    },
+    {
+        fingerprint: [{modelID: "C-ZB-SETE", manufacturerName: "Candeo"}],
+        model: "C-ZB-SETE",
+        vendor: "Candeo",
+        description: "Temperature & humidity sensor",
+        extend: [m.temperature(), m.humidity(), m.battery()],
+    },
+    {
+        fingerprint: [{modelID: "C-ZB-SEDC", manufacturerName: "Candeo"}],
+        model: "C-ZB-SEDC",
+        vendor: "Candeo",
+        description: "Door contact sensor",
+        extend: [m.battery(), m.iasZoneAlarm({zoneType: "contact", zoneAttributes: ["alarm_1"]})],
+    },
+    {
+        fingerprint: [{modelID: "C-ZB-SEMO", manufacturerName: "Candeo"}],
+        model: "C-ZB-SEMO",
+        vendor: "Candeo",
+        description: "Motion sensor",
+        extend: [
+            m.battery(),
+            m.illuminance({reporting: {min: 1, max: 65535, change: 1}}),
+            m.iasZoneAlarm({zoneType: "occupancy", zoneAttributes: ["alarm_1"]}),
+        ],
     },
 ];

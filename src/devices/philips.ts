@@ -161,6 +161,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
+        zigbeeModel: ["929003808501_01", "929003808501_02", "929003808501_03"],
+        model: "929003808501",
+        vendor: "Philips",
+        description: "Centris Hue 2-spot white",
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+    },
+    {
         zigbeeModel: ["929003809501_01", "929003809501_02", "929003809501_03"],
         model: "929003809501",
         vendor: "Philips",
@@ -567,7 +574,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
-        zigbeeModel: ["4090330P9_01", "4090330P9_02", "929003052501_01", "929003052501_02"],
+        zigbeeModel: ["4090330P9_01", "4090330P9_02", "929003052501_01", "929003052501_02", "929003785001_01", "929003785001_02"],
         model: "4090330P9",
         vendor: "Philips",
         description: "Hue Ensis (black)",
@@ -3777,7 +3784,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
-        zigbeeModel: ["929003115701"],
+        zigbeeModel: ["929003115701", "929003617901"],
         model: "929003115701",
         vendor: "Philips",
         description: "Hue Perifo cylinder spotlight (black)",
@@ -3791,7 +3798,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
-        zigbeeModel: ["929003116101"],
+        zigbeeModel: ["929003116101", "929003618201"],
         model: "929003116101",
         vendor: "Philips",
         description: "Hue Perifo linear light bar (black)",
