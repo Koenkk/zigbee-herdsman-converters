@@ -16,8 +16,7 @@ const e = exposes.presets;
 
 export const definitions: DefinitionWithExtend[] = [
     {
-        zigbeeModel: ["TS0601"],
-        model: "_TZE200_b0ihkhxh",
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_b0ihkhxh"]),
         vendor: "Orztech",
         description: "1 gang touch wall switch",
         fromZigbee: [tuya.fz.datapoints],
@@ -50,8 +49,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        zigbeeModel: ["TS0601"],
-        model: "_TZE200_htj3hcpl",
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_htj3hcpl"]),
         vendor: "Orztech",
         description: "2 gang touch wall switch",
         fromZigbee: [tuya.fz.datapoints],
@@ -87,8 +85,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        zigbeeModel: ["TS0601"],
-        model: "_TZE200_pcg0rykt",
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_pcg0rykt"]),
         vendor: "Orztech",
         description: "3 gang touch wall switch",
         fromZigbee: [tuya.fz.datapoints],
@@ -127,8 +124,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        zigbeeModel: ["TS0601"],
-        model: "_TZE200_7a5ob7xq",
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_7a5ob7xq"]),
         vendor: "Orztech",
         description: "4 gang touch wall switch",
         fromZigbee: [tuya.fz.datapoints],
@@ -170,8 +166,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        zigbeeModel: ["TS0601"],
-        model: "_TZE200_xo3vpoah",
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_xo3vpoah"]),
         vendor: "Orztech",
         description: "6 gang touch wall switch",
         fromZigbee: [tuya.fz.datapoints],
