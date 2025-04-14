@@ -1,18 +1,18 @@
-const fz = require('zigbee-herdsman-converters/converters/fromZigbee');
-const tz = require('zigbee-herdsman-converters/converters/toZigbee');
-const exposes = require('zigbee-herdsman-converters/lib/exposes');
-const tuya = require('zigbee-herdsman-converters/lib/tuya');
+const fz = require("zigbee-herdsman-converters/converters/fromZigbee");
+const tz = require("zigbee-herdsman-converters/converters/toZigbee");
+const exposes = require("zigbee-herdsman-converters/lib/exposes");
+const tuya = require("zigbee-herdsman-converters/lib/tuya");
 
 const e = exposes.presets;
 
 /* For the touch wall switches, it is generally this:
-* DPs:
-* 1 (up to 6) - main switch state by position on panel (0 or 1)
-* 13 - switch all (0 or 1)
-* 16 - backlight state (0 or 1)
-* 101 - child lock - no physical switch, only digital (0 or 1)
-* 102 - TT switch (momentary press setting) - (0 or 1)
-*/
+ * DPs:
+ * 1 (up to 6) - main switch state by position on panel (0 or 1)
+ * 13 - switch all (0 or 1)
+ * 16 - backlight state (0 or 1)
+ * 101 - child lock - no physical switch, only digital (0 or 1)
+ * 102 - TT switch (momentary press setting) - (0 or 1)
+ */
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -25,10 +25,13 @@ export const definitions: DefinitionWithExtend[] = [
         onEvent: tuya.onEventSetTime,
         configure: tuya.configureMagicPacket,
         exposes: [
-            e.switch().withEndpoint('t1').withDescription('switch'),
-            e.switch().withEndpoint('c1').withDescription('switch_all'),
-            e.switch().withEndpoint('c2').withDescription('backlight'),
-            e.switch().withEndpoint('c3').withDescription('child_lock'),
+            e.switch().withEndpoint("t1").withDescription("switch"),
+            e.switch().withEndpoint("c1").withDescription("switch_all"),
+            e.switch().withEndpoint("c2").withDescription("backlight"),
+            e
+                .switch()
+                .withEndpoint("c3")
+                .withDescription("child_lock"),
             //e.switch().withEndpoint('c4').withDescription('TT_switch'),
         ],
         endpoint: (device) => ({
@@ -41,10 +44,10 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {
             multiEndpoint: true,
             tuyaDatapoints: [
-                [1, 'state_t1', tuya.valueConverter.onOff],
-                [13, 'state_c1', tuya.valueConverter.onOff],
-                [16, 'state_c2', tuya.valueConverter.onOff],
-                [101, 'state_c3', tuya.valueConverter.onOff],
+                [1, "state_t1", tuya.valueConverter.onOff],
+                [13, "state_c1", tuya.valueConverter.onOff],
+                [16, "state_c2", tuya.valueConverter.onOff],
+                [101, "state_c3", tuya.valueConverter.onOff],
                 //[102, 'state_c4', tuya.valueConverter.onOff],
             ],
         },
@@ -59,12 +62,12 @@ export const definitions: DefinitionWithExtend[] = [
         onEvent: tuya.onEventSetTime,
         configure: tuya.configureMagicPacket,
         exposes: [
-            e.switch().withEndpoint('t1').withDescription('Left'),
-            e.switch().withEndpoint('t2').withDescription('Right'),
-            e.switch().withEndpoint('c1').withDescription('switch_all'),
-            e.switch().withEndpoint('c2').withDescription('backlight'),
-            e.switch().withEndpoint('c3').withDescription('child_lock'),
-            e.switch().withEndpoint('c4').withDescription('TT_switch'),
+            e.switch().withEndpoint("t1").withDescription("Left"),
+            e.switch().withEndpoint("t2").withDescription("Right"),
+            e.switch().withEndpoint("c1").withDescription("switch_all"),
+            e.switch().withEndpoint("c2").withDescription("backlight"),
+            e.switch().withEndpoint("c3").withDescription("child_lock"),
+            e.switch().withEndpoint("c4").withDescription("TT_switch"),
         ],
         endpoint: (device) => ({
             t1: 1,
@@ -77,12 +80,12 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {
             multiEndpoint: true,
             tuyaDatapoints: [
-                [1, 'state_t1', tuya.valueConverter.onOff],
-                [2, 'state_t2', tuya.valueConverter.onOff],
-                [13, 'state_c1', tuya.valueConverter.onOff],
-                [16, 'state_c2', tuya.valueConverter.onOff],
-                [101, 'state_c3', tuya.valueConverter.onOff],
-                [102, 'state_c4', tuya.valueConverter.onOff],
+                [1, "state_t1", tuya.valueConverter.onOff],
+                [2, "state_t2", tuya.valueConverter.onOff],
+                [13, "state_c1", tuya.valueConverter.onOff],
+                [16, "state_c2", tuya.valueConverter.onOff],
+                [101, "state_c3", tuya.valueConverter.onOff],
+                [102, "state_c4", tuya.valueConverter.onOff],
             ],
         },
     },
@@ -96,13 +99,13 @@ export const definitions: DefinitionWithExtend[] = [
         onEvent: tuya.onEventSetTime,
         configure: tuya.configureMagicPacket,
         exposes: [
-            e.switch().withEndpoint('t1').withDescription('Left'),
-            e.switch().withEndpoint('t2').withDescription('Middle'),
-            e.switch().withEndpoint('t3').withDescription('Right'),
-            e.switch().withEndpoint('c1').withDescription('switch_all'),
-            e.switch().withEndpoint('c2').withDescription('backlight'),
-            e.switch().withEndpoint('c3').withDescription('child_lock'),
-            e.switch().withEndpoint('c4').withDescription('TT_switch'),
+            e.switch().withEndpoint("t1").withDescription("Left"),
+            e.switch().withEndpoint("t2").withDescription("Middle"),
+            e.switch().withEndpoint("t3").withDescription("Right"),
+            e.switch().withEndpoint("c1").withDescription("switch_all"),
+            e.switch().withEndpoint("c2").withDescription("backlight"),
+            e.switch().withEndpoint("c3").withDescription("child_lock"),
+            e.switch().withEndpoint("c4").withDescription("TT_switch"),
         ],
         endpoint: (device) => ({
             t1: 1,
@@ -116,13 +119,13 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {
             multiEndpoint: true,
             tuyaDatapoints: [
-                [1, 'state_t1', tuya.valueConverter.onOff],
-                [2, 'state_t2', tuya.valueConverter.onOff],
-                [3, 'state_t3', tuya.valueConverter.onOff],
-                [13, 'state_c1', tuya.valueConverter.onOff],
-                [16, 'state_c2', tuya.valueConverter.onOff],
-                [101, 'state_c3', tuya.valueConverter.onOff],
-                [102, 'state_c4', tuya.valueConverter.onOff],
+                [1, "state_t1", tuya.valueConverter.onOff],
+                [2, "state_t2", tuya.valueConverter.onOff],
+                [3, "state_t3", tuya.valueConverter.onOff],
+                [13, "state_c1", tuya.valueConverter.onOff],
+                [16, "state_c2", tuya.valueConverter.onOff],
+                [101, "state_c3", tuya.valueConverter.onOff],
+                [102, "state_c4", tuya.valueConverter.onOff],
             ],
         },
     },
@@ -136,14 +139,14 @@ export const definitions: DefinitionWithExtend[] = [
         onEvent: tuya.onEventSetTime,
         configure: tuya.configureMagicPacket,
         exposes: [
-            e.switch().withEndpoint('t1').withDescription('top left'),
-            e.switch().withEndpoint('t2').withDescription('top right'),
-            e.switch().withEndpoint('b1').withDescription('bottom left'),
-            e.switch().withEndpoint('b2').withDescription('bottom right'),
-            e.switch().withEndpoint('c1').withDescription('switch_all'),
-            e.switch().withEndpoint('c2').withDescription('backlight'),
-            e.switch().withEndpoint('c3').withDescription('child_lock'),
-            e.switch().withEndpoint('c4').withDescription('TT_switch'),
+            e.switch().withEndpoint("t1").withDescription("top left"),
+            e.switch().withEndpoint("t2").withDescription("top right"),
+            e.switch().withEndpoint("b1").withDescription("bottom left"),
+            e.switch().withEndpoint("b2").withDescription("bottom right"),
+            e.switch().withEndpoint("c1").withDescription("switch_all"),
+            e.switch().withEndpoint("c2").withDescription("backlight"),
+            e.switch().withEndpoint("c3").withDescription("child_lock"),
+            e.switch().withEndpoint("c4").withDescription("TT_switch"),
         ],
         endpoint: (device) => ({
             t1: 1,
@@ -158,14 +161,14 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {
             multiEndpoint: true,
             tuyaDatapoints: [
-                [1, 'state_t1', tuya.valueConverter.onOff],
-                [2, 'state_t2', tuya.valueConverter.onOff],
-                [3, 'state_b1', tuya.valueConverter.onOff],
-                [4, 'state_b2', tuya.valueConverter.onOff],
-                [13, 'state_c1', tuya.valueConverter.onOff],
-                [16, 'state_c2', tuya.valueConverter.onOff],
-                [101, 'state_c3', tuya.valueConverter.onOff],
-                [102, 'state_c4', tuya.valueConverter.onOff],
+                [1, "state_t1", tuya.valueConverter.onOff],
+                [2, "state_t2", tuya.valueConverter.onOff],
+                [3, "state_b1", tuya.valueConverter.onOff],
+                [4, "state_b2", tuya.valueConverter.onOff],
+                [13, "state_c1", tuya.valueConverter.onOff],
+                [16, "state_c2", tuya.valueConverter.onOff],
+                [101, "state_c3", tuya.valueConverter.onOff],
+                [102, "state_c4", tuya.valueConverter.onOff],
             ],
         },
     },
@@ -179,16 +182,16 @@ export const definitions: DefinitionWithExtend[] = [
         onEvent: tuya.onEventSetTime,
         configure: tuya.configureMagicPacket,
         exposes: [
-            e.switch().withEndpoint('t1').withDescription('Top Left'),
-            e.switch().withEndpoint('t2').withDescription('Top Middle'),
-            e.switch().withEndpoint('t3').withDescription('Top Right'),
-            e.switch().withEndpoint('b1').withDescription('Bottom Left'),
-            e.switch().withEndpoint('b2').withDescription('Bottom Middle'),
-            e.switch().withEndpoint('b3').withDescription('Bottom Right'),
-            e.switch().withEndpoint('c1').withDescription('switch_all'),
-            e.switch().withEndpoint('c2').withDescription('backlight'),
-            e.switch().withEndpoint('c3').withDescription('child_lock'),
-            e.switch().withEndpoint('c4').withDescription('TT_switch'),
+            e.switch().withEndpoint("t1").withDescription("Top Left"),
+            e.switch().withEndpoint("t2").withDescription("Top Middle"),
+            e.switch().withEndpoint("t3").withDescription("Top Right"),
+            e.switch().withEndpoint("b1").withDescription("Bottom Left"),
+            e.switch().withEndpoint("b2").withDescription("Bottom Middle"),
+            e.switch().withEndpoint("b3").withDescription("Bottom Right"),
+            e.switch().withEndpoint("c1").withDescription("switch_all"),
+            e.switch().withEndpoint("c2").withDescription("backlight"),
+            e.switch().withEndpoint("c3").withDescription("child_lock"),
+            e.switch().withEndpoint("c4").withDescription("TT_switch"),
         ],
         endpoint: (device) => ({
             t1: 1,
@@ -205,18 +208,17 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {
             multiEndpoint: true,
             tuyaDatapoints: [
-                [1, 'state_t1', tuya.valueConverter.onOff],
-                [2, 'state_t2', tuya.valueConverter.onOff],
-                [3, 'state_t3', tuya.valueConverter.onOff],
-                [4, 'state_b1', tuya.valueConverter.onOff],
-                [5, 'state_b2', tuya.valueConverter.onOff],
-                [6, 'state_b3', tuya.valueConverter.onOff],
-                [13, 'state_c1', tuya.valueConverter.onOff],
-                [16, 'state_c2', tuya.valueConverter.onOff],
-                [101, 'state_c3', tuya.valueConverter.onOff],
-                [102, 'state_c4', tuya.valueConverter.onOff],
+                [1, "state_t1", tuya.valueConverter.onOff],
+                [2, "state_t2", tuya.valueConverter.onOff],
+                [3, "state_t3", tuya.valueConverter.onOff],
+                [4, "state_b1", tuya.valueConverter.onOff],
+                [5, "state_b2", tuya.valueConverter.onOff],
+                [6, "state_b3", tuya.valueConverter.onOff],
+                [13, "state_c1", tuya.valueConverter.onOff],
+                [16, "state_c2", tuya.valueConverter.onOff],
+                [101, "state_c3", tuya.valueConverter.onOff],
+                [102, "state_c4", tuya.valueConverter.onOff],
             ],
         },
     },
 ];
-
