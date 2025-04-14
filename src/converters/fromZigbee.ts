@@ -3689,7 +3689,7 @@ export const ptvo_multistate_action: Fz.Converter = {
     cluster: "genMultistateInput",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
-        const actionLookup: KeyValueAny = {0: "release", 1: "single", 2: "double", 3: "tripple", 4: "hold"};
+        const actionLookup: KeyValueAny = {0: "release", 1: "single", 2: "double", 3: "triple", 4: "hold"};
         const value = msg.data.presentValue;
         const action = actionLookup[value];
         return {action: postfixWithEndpointName(action, msg, model, meta)};
@@ -3709,7 +3709,7 @@ export const qlwz_letv8key_switch: Fz.Converter = {
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
         const buttonLookup: KeyValueAny = {4: "up", 2: "down", 5: "left", 3: "right", 8: "center", 1: "back", 7: "play", 6: "voice"};
-        const actionLookup: KeyValueAny = {0: "hold", 1: "single", 2: "double", 3: "tripple"};
+        const actionLookup: KeyValueAny = {0: "hold", 1: "single", 2: "double", 3: "triple"};
         const button = buttonLookup[msg.endpoint.ID];
         const action = actionLookup[msg.data.presentValue] || msg.data.presentValue;
         if (button) {
