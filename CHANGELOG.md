@@ -1,5 +1,22 @@
 # Changelog
 
+## [23.27.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.26.0...v23.27.0) (2025-04-14)
+
+
+### Features
+
+* **add:** HS15A-M ([#9140](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9140)) ([bc94e15](https://github.com/Koenkk/zigbee-herdsman-converters/commit/bc94e15df0adfa211f8474bfd808b894297192df))
+* **add:** SNZB-02LD ([#9177](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9177)) ([097ee4c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/097ee4c34f52650d874ff7ebb20a2b47d68d0ced))
+* Gledopto GL-D-015P: support power on behaviour ([#9174](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9174)) ([88c0070](https://github.com/Koenkk/zigbee-herdsman-converters/commit/88c0070a5ca53ffbcb5a6e8a65e0d4c1379ba024))
+* Workaround IKEA bulbs freezing during a brightness & color transition ([#8637](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8637)) ([861282e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/861282e7f6c5d2276fb18cad9278d8c5396248d2))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZE200_2imwyigp` as Tuya MG-ZG03W https://github.com/Koenkk/zigbee2mqtt/issues/27103 ([6ad4a9e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6ad4a9e87c0fbd31508457116196e62802270016))
+* Fix typos ([#9178](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9178)) ([78f65a1](https://github.com/Koenkk/zigbee-herdsman-converters/commit/78f65a198476978235afbf0d6b1a0e12c9b8386c))
+* **ignore:** Update sonoff.ts ([#9180](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9180)) ([ccf74d8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ccf74d835df80e4c3b5d3c2fdfb826a41d434fa0))
+
 ## [23.26.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.25.0...v23.26.0) (2025-04-13)
 
 
