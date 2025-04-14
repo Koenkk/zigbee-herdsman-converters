@@ -953,7 +953,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.enumLookup({
                 name: "temperature_units",
-                lookup: {Celsius: 0, Fahrenheit: 1},
+                lookup: {celsius: 0, fahrenheit: 1},
                 cluster: "customSonoffSnzb02d",
                 attribute: "temperatureUnits",
                 description:
