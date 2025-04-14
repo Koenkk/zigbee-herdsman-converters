@@ -1771,9 +1771,9 @@ export const lumiModernExtend = {
                 cluster: "manuSpecificLumi",
                 type: ["attributeReport", "readResponse"],
                 convert: async (model, msg, publish, options, meta) => {
-                    // At least the Aqara TVOC sensor does not send a deviceAnnounce after comming back online.
+                    // At least the Aqara TVOC sensor does not send a deviceAnnounce after coming back online.
                     // The reconfigureReportingsOnDeviceAnnounce modernExtend is not usable because of this,
-                    //  there is however an outage counter published in the 'special' buffer  data reported
+                    //  there is however an outage counter published in the 'special' buffer data reported
                     //  under the manuSpecificLumi cluster as attribute 247, we simple decode and grab value with ID 5.
                     // Normal attribute publishing and decoding will be left to the classic fromZigbee or modernExtends.
                     if (msg.data["247"] !== undefined) {
@@ -1970,7 +1970,7 @@ export const lumiModernExtend = {
             cluster: "manuSpecificLumi",
             attribute: {ID: 0x0125, type: 0x20},
             description:
-                "Click mode for wireless button. fast: only supports single click but allows faster reponse time." +
+                "Click mode for wireless button. fast: only supports single click but allows faster response time." +
                 "multi: supports multiple types of clicks but is slower, because it awaits multiple clicks.",
             entityCategory: "config",
             zigbeeCommandOptions: {manufacturerCode},
@@ -2194,7 +2194,7 @@ export const lumiModernExtend = {
         const exposes: Expose[] = [
             e
                 .enum("operation_mode", ea.ALL, ["event", "command"])
-                .withDescription("Command mode is usefull for binding. Event mode is usefull for processing."),
+                .withDescription("Command mode is useful for binding. Event mode is useful for processing."),
         ];
 
         const toZigbee: Tz.Converter[] = [
