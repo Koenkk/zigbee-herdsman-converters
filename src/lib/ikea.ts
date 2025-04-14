@@ -8,12 +8,13 @@ import {access, options, presets} from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as globalStore from "../lib/store";
-import type {Configure, Expose, Fz, KeyValue, KeyValueAny, LevelConfigFeatures, ModernExtend, OnEvent, Range, Tz} from "../lib/types";
+import type {Configure, Expose, Fz, KeyValue, KeyValueAny, LevelConfigFeatures, ModernExtend, OnEvent, Range, Tz, Zh} from "../lib/types";
 import {
     assertString,
     configureSetPowerSourceWhenUnknown,
     getEndpointName,
     getFromLookup,
+    getTransition,
     hasAlreadyProcessedMessage,
     isObject,
     mapNumberRange,
@@ -91,6 +92,26 @@ export function ikeaLight(args?: Omit<m.LightArgs, "colorTemp"> & {colorTemp?: t
     }
     if (args?.colorTemp || args?.color) {
         result.exposes.push(presets.light_color_options());
+
+        if (result.toZigbee) {
+            // add unfreeze support for color lights
+            result.toZigbee = result.toZigbee.map((orig) => {
+                if (orig.key?.some((k) => keysNeedingUnfreeze.has(k))) {
+                    const origOptions = orig.options;
+
+                    return {
+                        ...orig,
+                        options:
+                            typeof origOptions === "function"
+                                ? (def) => [...origOptions(def), options.unfreeze_support()]
+                                : [...origOptions, options.unfreeze_support()],
+                        convertSet: ikea_bulb_unfreeze(orig.convertSet),
+                    };
+                }
+
+                return orig;
+            });
+        }
     }
 
     // Never use a transition when transitioning to OFF as this turns on the light when sending OFF twice
@@ -825,3 +846,89 @@ export function addCustomClusterManuSpecificIkeaUnknown(): ModernExtend {
         commandsResponse: {},
     });
 }
+
+const unfreezeMechanisms: {
+    [key: string]: (entity: Zh.Endpoint | Zh.Group) => Promise<void>;
+} = {
+    // WS lights:
+    //   Aborts the color transition midway: light will stay at the intermediary
+    //   state it was when it received the command.
+    // Color lights:
+    //   Do not support this command.
+    moveColorTemp: async (entity) => {
+        await entity.command("lightingColorCtrl", "moveColorTemp", {rate: 1, movemode: 0, minimum: 0, maximum: 600}, {});
+    },
+
+    // WS lights:
+    //   Same as "moveColorTemp".
+    // Color lights:
+    //   Finishes the color transition instantly: light will instantly
+    //   "fast forward" to the final state, post-transition.
+    genLevelCtrl: async (entity) => {
+        await entity.command("genLevelCtrl", "stop", {}, {});
+    },
+};
+
+// zigbee commands which will freeze an IKEA light
+const willFreeze = (payload: KeyValue, transition: number, value: unknown) =>
+    // any color command with a transition will freeze the light...
+    transition > 0 &&
+    ("color" in payload ||
+        "color_temp" in payload ||
+        "color_temp_move" in payload ||
+        "color_temp_percent" in payload ||
+        "color_temp_startup" in payload ||
+        "color_temp_step" in payload ||
+        "colortemp_move" in payload) &&
+    // ...except for 'stop' commands:
+    // aka { rate: 1, movemode: 0 }, which are generated
+    // in light_colortemp_move() from these arguments:
+    value !== "stop" &&
+    value !== 0;
+
+// Certain IKEA lights will freeze when given a brightness or temperature change with a transition
+// We track if a light is frozen and if so, before issuing further commands, we send a command known to unfreeze the light
+// https://github.com/Koenkk/zigbee2mqtt/issues/18574
+//
+// These are keys for whom we need to unfreeze the light before issuing a corresponding command to said light
+const keysNeedingUnfreeze = new Set(["state", "brightness", "brightness_percent", "color_temp", "color_temp_percent"]);
+
+const ikea_bulb_unfreeze = (next: Tz.Converter["convertSet"]) => {
+    const converter: Tz.Converter["convertSet"] = async (entity, key, value, meta) => {
+        if (!keysNeedingUnfreeze.has(key) || meta.options.unfreeze_support === false) {
+            return await next(entity, key, value, meta);
+        }
+
+        const id = "deviceIeeeAddress" in entity ? entity.deviceIeeeAddress : entity.groupID;
+        const now = Date.now();
+
+        const wasFrozenUntil: number | null = globalStore.getValue(entity, "frozenUntil");
+        if (wasFrozenUntil != null && now <= wasFrozenUntil) {
+            logger.debug(`${id}: light is frozen until ${new Date(wasFrozenUntil).toISOString()}, unfreezing via "genLevelCtrl"`, NS);
+
+            // hardcoded to a single unfreeze mechanism for now
+            await unfreezeMechanisms.genLevelCtrl(entity);
+        }
+
+        const ret = await next(entity, key, value, meta);
+
+        const transition = getTransition(entity, key, meta);
+        if (willFreeze(meta.message, transition.time, value)) {
+            // remember that the light is now frozen
+            const millis = transition.time * 100;
+            const frozenUntil = Date.now() + millis;
+
+            logger.debug(`${id}: marking light as frozen until ${new Date(frozenUntil).toISOString()} because of "${key}"`, NS);
+
+            globalStore.putValue(entity, "frozenUntil", frozenUntil);
+        } else if (wasFrozenUntil != null) {
+            logger.debug(`${id}: marking light as unfrozen`, NS);
+
+            globalStore.clearValue(entity, "frozenUntil");
+        }
+
+        return ret;
+    };
+
+    return converter;
+};
