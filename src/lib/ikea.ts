@@ -14,6 +14,7 @@ import {
     configureSetPowerSourceWhenUnknown,
     getEndpointName,
     getFromLookup,
+    getTransition,
     hasAlreadyProcessedMessage,
     isObject,
     mapNumberRange,
@@ -862,14 +863,21 @@ const unfreezeMechanisms: {
 };
 
 // zigbee commands which will freeze an IKEA light
-const willFreeze = (clusterKey: string | number, payload: KeyValue): payload is KeyValue & {transtime: number} =>
-    payload &&
+const willFreeze = (payload: KeyValue, transition: number, value: unknown) =>
     // any color command with a transition will freeze the light...
-    (payload.transtime as number) > 0 &&
-    clusterKey === "lightingColorCtrl" &&
+    transition > 0 &&
+    ("color" in payload ||
+        "color_temp" in payload ||
+        "color_temp_move" in payload ||
+        "color_temp_percent" in payload ||
+        "color_temp_startup" in payload ||
+        "color_temp_step" in payload ||
+        "colortemp_move" in payload) &&
     // ...except for 'stop' commands:
-    payload.rate !== 1 &&
-    payload.movemode !== 0;
+    // aka { rate: 1, movemode: 0 }, which are generated
+    // in light_colortemp_move() from these arguments:
+    value !== "stop" &&
+    value !== 0;
 
 // Certain IKEA lights will freeze when given a brightness or temperature change with a transition
 // We track if a light is frozen and if so, before issuing further commands, we send a command known to unfreeze the light
@@ -885,43 +893,34 @@ const ikea_bulb_unfreeze = (next: Tz.Converter["convertSet"]) => {
         }
 
         const id = "deviceIeeeAddress" in entity ? entity.deviceIeeeAddress : entity.groupID;
+        const now = Date.now();
 
-        const proxyCommand: Zh.Endpoint["command"] = async (clusterKey, commandKey, payload, options) => {
-            const now = Date.now();
+        const wasFrozenUntil: number | null = globalStore.getValue(entity, "frozenUntil");
+        if (wasFrozenUntil != null && now <= wasFrozenUntil) {
+            logger.debug(`${id}: light is frozen until ${new Date(wasFrozenUntil).toISOString()}, unfreezing via "genLevelCtrl"`, NS);
 
-            const wasFrozenUntil: number | null = globalStore.getValue(entity, "frozenUntil");
-            if (wasFrozenUntil != null && now <= wasFrozenUntil) {
-                logger.debug(`${id}: light is frozen until ${new Date(wasFrozenUntil).toISOString()}, unfreezing via "genLevelCtrl"`, NS);
+            // hardcoded to a single unfreeze mechanism for now
+            await unfreezeMechanisms.genLevelCtrl(entity);
+        }
 
-                // hardcoded to a single unfreeze mechanism for now
-                await unfreezeMechanisms.genLevelCtrl(entity);
-            }
+        const ret = await next(entity, key, value, meta);
 
-            const ret = entity.command(clusterKey, commandKey, payload, options);
+        const transition = getTransition(entity, key, meta);
+        if (willFreeze(meta.message, transition.time, value)) {
+            // remember that the light is now frozen
+            const millis = transition.time * 100;
+            const frozenUntil = Date.now() + millis;
 
-            if (willFreeze(clusterKey, payload)) {
-                // remember that the light is now frozen
-                const millis = payload.transtime * 100;
-                const frozenUntil = Date.now() + millis;
+            logger.debug(`${id}: marking light as frozen until ${new Date(frozenUntil).toISOString()} because of "${key}"`, NS);
 
-                logger.debug(
-                    `${id}: marking light as frozen until ${new Date(frozenUntil).toISOString()} because of ${clusterKey}.${commandKey} from "${key}"`,
-                    NS,
-                );
+            globalStore.putValue(entity, "frozenUntil", frozenUntil);
+        } else if (wasFrozenUntil != null) {
+            logger.debug(`${id}: marking light as unfrozen`, NS);
 
-                globalStore.putValue(entity, "frozenUntil", frozenUntil);
-            } else if (wasFrozenUntil != null) {
-                logger.debug(`${id}: marking light as unfrozen`, NS);
+            globalStore.clearValue(entity, "frozenUntil");
+        }
 
-                globalStore.clearValue(entity, "frozenUntil");
-            }
-
-            return ret;
-        };
-
-        const proxyEntity = Object.create(entity);
-        proxyEntity.command = proxyCommand;
-        return await next(proxyEntity, key, value, meta);
+        return ret;
     };
 
     return converter;
