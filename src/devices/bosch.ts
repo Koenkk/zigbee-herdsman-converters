@@ -1367,8 +1367,8 @@ export const definitions: DefinitionWithExtend[] = [
                 .withLocalTemperatureCalibration(-5, 5, 0.1)
                 .withSetpoint("occupied_heating_setpoint", 5, 30, 0.5)
                 .withSystemMode(["heat"])
-                .withPiHeatingDemand(ea.ALL)
                 .withRunningState(["idle", "heat"], ea.STATE_GET),
+            e.pi_heating_demand().withAccess(ea.ALL),
         ],
         fromZigbee: [fz.thermostat],
         toZigbee: [
