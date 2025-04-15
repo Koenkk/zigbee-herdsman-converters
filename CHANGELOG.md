@@ -1,5 +1,22 @@
 # Changelog
 
+## [23.28.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.27.0...v23.28.0) (2025-04-15)
+
+
+### Features
+
+* **add:** 4058075364547 ([#9185](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9185)) ([5a41a6f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5a41a6fb19706b2134d7fb13262fa124bb06dbcb))
+* **add:** HY-SZLUMPIR ([#9173](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9173)) ([71164b7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/71164b720b522557bd1c93eb82880d842c56eae0))
+* **add:** SBDV-00202, SBDV-00199, SBDV-00196 ([#9182](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9182)) ([9a8de45](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9a8de451e568e8eaf36a19c58722612e8f889ad4))
+
+
+### Bug Fixes
+
+* Bosch BTH-RA: fix `pi_heating_deman` not settable via HA https://github.com/Koenkk/zigbee2mqtt/issues/25971 ([e530087](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e530087218aa98fffc088ec988953e235d465ff3))
+* **detect:** Detect `_TZE284_ac0fhfiq` as Tuya TS0601_bidirectional_energy https://github.com/Koenkk/zigbee2mqtt/issues/27126 ([0196f4b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0196f4bc713b17b4dedc87a13364f75ffa1eba71))
+* Lincukoo SZLR08 and SZLM04U improvements ([#9175](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9175)) ([462dcad](https://github.com/Koenkk/zigbee-herdsman-converters/commit/462dcad0e779eadce72f72242abc222beddc50bb))
+* Vimar 14595.0: fix endpoint ([#9183](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9183)) ([f85b241](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f85b241be16ea00a94381913c535bf58a9f006f6))
+
 ## [23.27.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.26.0...v23.27.0) (2025-04-14)
 
 
