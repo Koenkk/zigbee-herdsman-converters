@@ -679,7 +679,7 @@ const clustersDef = {
 };
 
 // full list available on https://github.com/fairecasoimeme/Zlinky_TIC/blob/master/README.md
-// Properties must be EAXCTLY ".split(/(?=[A-Z])/).join('_').toLowerCase()" of att
+// Properties must be EXACTLY ".split(/(?=[A-Z])/).join('_').toLowerCase()" of att
 const allPhaseData = [
     {
         cluster: clustersDef._0x0702,

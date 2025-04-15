@@ -99,7 +99,7 @@ const IAS_EXPOSE_LOOKUP = {
         .withCategory("diagnostic"),
     trouble: e
         .binary("trouble", ea.STATE, true, false)
-        .withDescription("Indicates whether the device is currently havin trouble")
+        .withDescription("Indicates whether the device is currently having trouble")
         .withCategory("diagnostic"),
     battery_defect: e
         .binary("battery_defect", ea.STATE, true, false)
@@ -417,7 +417,7 @@ export function battery(args?: BatteryArgs): ModernExtend {
         {
             key: ["battery", "voltage"],
             convertGet: async (entity, key, meta) => {
-                // Don't fail GET reqest if reading fails
+                // Don't fail GET request if reading fails
                 // Split reading is needed for more clear debug logs
                 const ep = determineEndpoint(entity, meta, "genPowerCfg");
                 try {

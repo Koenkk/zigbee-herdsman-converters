@@ -83,7 +83,7 @@ export const develcoModernExtend = {
             ...args,
         }),
     airQuality: (): ModernExtend => {
-        // NOTE: do not setup reporting, this is hanled by the voc() modernExtend
+        // NOTE: do not setup reporting, this is handled by the voc() modernExtend
 
         const clusterName = "manuSpecificDevelcoAirQuality";
         const attributeName = "measuredValue";

@@ -921,6 +921,10 @@ export const options = {
         new Binary("local_temperature_based_on_sensor", access.SET, true, false)
             .withLabel("Local temperature sensor reporting")
             .withDescription("Base local temperature on sensor choice (default false)."),
+    unfreeze_support: () =>
+        new Binary("unfreeze_support", access.SET, true, false).withDescription(
+            "Whether to unfreeze IKEA lights (that are known to be frozen) before issuing a command, false: no unfreeze support, true: unfreeze support (default true).",
+        ),
 };
 
 export const presets = {
