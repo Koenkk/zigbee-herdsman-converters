@@ -7891,95 +7891,136 @@ export const definitions: DefinitionWithExtend[] = [
         onEvent: tuya.onEventSetTime,
     },
     {
-    fingerprint: tuya.fingerprint('TS0601', ['_TZE200_mzik0ov2']),
-    model: 'HY09RF-Zigbee',
-    vendor: 'Tuya',
-    description: 'Smart thermostat Daver (Cool/Heat/Schedule)',
-    fromZigbee: [tuya.fz.datapoints],
-    toZigbee: [tuya.tz.datapoints],
-    exposes: [
-        exposes.binary('power', ea.STATE_SET, 'ON', 'OFF').withDescription('Main power control (DP 125)'), // VERIFICĂ! Tip Bool/Enum?
-        e.climate()
-            .withSetpoint('occupied_heating_setpoint', 5, 35, 0.5, ea.STATE_SET) // DP 50, Scale 10
-            .withLocalTemperature(ea.STATE) // DP 16, Scale 10
-            .withSystemMode(['off', 'cool', 'heat'], ea.STATE_SET) // DP 49 + DP 125
-            .withRunningState(['idle', 'heat', 'cool'], ea.STATE) // DP 102 (Verifică valoare cool!)
-            .withLocalTemperatureCalibration(-9, 9, 0.1, ea.STATE_SET) // DP 109, Scale 10
-            .withPreset(['manual', 'program', 'holiday', 'temporary_manual'], ea.STATE_SET) // DP 128
-            ,
-        exposes.numeric('floor_sensor_temperature', ea.STATE).withUnit('°C').withDescription('Temperature reported by floor sensor (DP 103)'), // VERIFICĂ! Scalare 10? ReadOnly
-        e.child_lock(), // DP 129, Bool? VERIFICĂ!
-        e.numeric('max_temperature_limit', ea.STATE_SET).withUnit('°C').withValueMin(15).withValueMax(45).withValueStep(1).withDescription('Maximum heating temperature limit setting (DP 114)'), // VERIFICĂ! Scalare 1? Limite?
-        e.numeric('min_temperature_limit', ea.STATE_SET).withUnit('°C').withValueMin(1).withValueMax(15).withValueStep(1).withDescription('Minimum heating temperature limit setting (DP 115)'), // VERIFICĂ! Scalare 1? Limite?
-        e.numeric('deadzone_temperature', ea.STATE_SET).withUnit('°C').withValueMin(0.5).withValueMax(2.5).withValueStep(0.1).withDescription('Temperature deadzone (hysteresis)'), // DP 110, Scalare 10
-        e.enum('power_on_behavior', ea.STATE_SET, ['previous', 'off', 'on']).withDescription('State after power loss'), // DP 117
-        e.enum('temperature_unit', ea.STATE_SET, ['celsius', 'fahrenheit']).withDescription('Device temperature unit'), // DP 101
-        e.numeric('fault_code', ea.STATE).withDescription('Device fault code (0 = OK)'), // DP 130
-        e.enum('schedule_type', ea.STATE_SET, ['5+2', '6+1', '7']).withDescription('Schedule mode type (DP 118)'),
-        exposes.numeric('holiday_days', ea.STATE_SET).withUnit('days').withValueMin(1).withValueMax(60).withValueStep(1).withDescription('Duration for holiday mode (DP 104)'), // VERIFICĂ Max!
-        exposes.numeric('holiday_temperature', ea.STATE_SET).withUnit('°C').withValueMin(5).withValueMax(30).withValueStep(1).withDescription('Target temperature for holiday mode (DP 105)'), // VERIFICĂ Min/Max/Step!
-        exposes.text('schedule_workday', ea.STATE_SET | ea.STATE).withDescription('Workday schedule (6 periods HH:MM/TT.T separated by space)'),
-        exposes.text('schedule_restday', ea.STATE_SET | ea.STATE).withDescription('Restday schedule (6 periods HH:MM/TT.T separated by space)'),
-    ],
-
-    // Meta: Conține definițiile DP-urilor simple și mapările
-    meta: {
-        // Mapări folosite de lookup-uri
-        tuyaThermostatSystemModeDp49: { 0: 'cool', 1: 'heat' }, // VERIFICĂ! Map 0/1?
-        tuyaThermostatPreset: { 0: 'manual', 1: 'program', 2: 'holiday', 3: 'temporary_manual' },
-        tuyaThermostatPowerOnState: { 0: 'previous', 1: 'off', 2: 'on' },
-        tuyaScheduleTypeMap: { 0: '5+2', 1: '6+1', 2: '7' },
-        // Definiții DP pentru tuya.fz/tz.datapoints
-        tuyaDatapoints: [
-             // DP 16: Temp Curentă (Necesită fz_local pt a ignora 0)
-             [16, 'local_temperature', tuya.valueConverter.divideBy10], // fz standard (NU ignoră 0)
-            // DP 50: Setpoint Heat (Scale 10)
-            [50, 'occupied_heating_setpoint', tuya.valueConverter.divideBy10], // fz
-            [50, 'occupied_heating_setpoint', tuya.valueConverter.multiplyBy10], // tz
-            // DP 109: Temp Calibration (Scale 10)
-            [109, 'local_temperature_calibration', tuya.valueConverter.divideBy10], // fz
-            [109, 'local_temperature_calibration', tuya.valueConverter.multiplyBy10], // tz
-            // DP 114: Max Temp Limit (Scale 1? VERIFICĂ!)
-            [114, 'max_temperature_limit', tuya.valueConverter.raw], // fz
-            [114, 'max_temperature_limit', tuya.valueConverter.raw, {min: 15, max: 45}], // tz - VERIFICĂ Limite!
-            // DP 115: Min Temp Limit (Scale 1? VERIFICĂ!)
-            [115, 'min_temperature_limit', tuya.valueConverter.raw], // fz
-            [115, 'min_temperature_limit', tuya.valueConverter.raw, {min: 1, max: 15}], // tz - VERIFICĂ Limite!
-            // DP 110: Deadzone Temp (Scale 10)
-            [110, 'deadzone_temperature', tuya.valueConverter.divideBy10], // fz
-            [110, 'deadzone_temperature', tuya.valueConverter.multiplyBy10], // tz
-            // DP 129: Child Lock (Bool? VERIFICĂ!)
-            [129, 'child_lock', tuya.valueConverter.lockUnlock],
-            // DP 101: Temp Unit (Bool)
-            [101, 'temperature_unit', tuya.valueConverter.celsiusFahrenheit],
-            // DP 117: Power On Behavior (Enum)
-            [117, 'power_on_behavior', tuya.valueConverter.lookup({lookup: 'tuyaThermostatPowerOnState'})],
-            // DP 130: Fault Code (Raw Number)
-            [130, 'fault_code', tuya.valueConverter.raw],
-            // DP 128: Preset (Enum)
-            [128, 'preset', tuya.valueConverter.lookup({lookup: 'tuyaThermostatPreset'})],
-            // DP 118: Schedule Type (Enum)
-            [118, 'schedule_type', tuya.valueConverter.lookup({lookup: 'tuyaScheduleTypeMap'})],
-            // DP 104: Holiday Days (Raw Number, Scale 1)
-            [104, 'holiday_days', tuya.valueConverter.raw], // fz
-            [104, 'holiday_days', tuya.valueConverter.raw, {min: 1, max: 60}], // tz (VERIFICĂ MAX!)
-            // DP 105: Holiday Temp (Raw Number, Scale 1)
-            [105, 'holiday_temperature', tuya.valueConverter.raw], // fz
-            [105, 'holiday_temperature', tuya.valueConverter.raw, {min: 5, max: 30}], // tz (VERIFICĂ MIN/MAX!)
-            // DP 103: Floor Sensor Temp (Scale 10? VERIFICĂ!) - Read Only
-            [103, 'floor_sensor_temperature', tuya.valueConverter.divideBy10], // fz only
-
-            // DP-uri gestionate de convertoare custom (listate aici doar pt referință, fz/tz.datapoints le vor ignora dacă key/name lipsește)
-            // [49, 'system_mode', ...], // Gestionat de tz/fz_local
-            // [102, 'running_state', ...], // Gestionat de fz_local
-            // [125, 'power', ...], // Gestionat de tz/fz_local
-            // [119, null, ...], // Gestionat de tz/fz_local (schedule)
-            // [120, null, ...], // Gestionat de tz/fz_local (schedule)
-            // [121, null, ...], // Gestionat de tz/fz_local (schedule)
-            // [122, null, ...], // Gestionat de tz/fz_local (schedule)
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_mzik0ov2"]),
+        model: "HY09RF-Zigbee",
+        vendor: "Tuya",
+        description: "Smart thermostat Daver (Cool/Heat/Schedule)",
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        exposes: [
+            exposes
+                .binary("power", ea.STATE_SET, "ON", "OFF")
+                .withDescription("Main power control (DP 125)"), // VERIFICĂ! Tip Bool/Enum?
+            e
+                .climate()
+                .withSetpoint("occupied_heating_setpoint", 5, 35, 0.5, ea.STATE_SET) // DP 50, Scale 10
+                .withLocalTemperature(ea.STATE) // DP 16, Scale 10
+                .withSystemMode(["off", "cool", "heat"], ea.STATE_SET) // DP 49 + DP 125
+                .withRunningState(["idle", "heat", "cool"], ea.STATE) // DP 102 (Verifică valoare cool!)
+                .withLocalTemperatureCalibration(-9, 9, 0.1, ea.STATE_SET) // DP 109, Scale 10
+                .withPreset(["manual", "program", "holiday", "temporary_manual"], ea.STATE_SET), // DP 128
+            exposes
+                .numeric("floor_sensor_temperature", ea.STATE)
+                .withUnit("°C")
+                .withDescription("Temperature reported by floor sensor (DP 103)"), // VERIFICĂ! Scalare 10? ReadOnly
+            e.child_lock(), // DP 129, Bool? VERIFICĂ!
+            e
+                .numeric("max_temperature_limit", ea.STATE_SET)
+                .withUnit("°C")
+                .withValueMin(15)
+                .withValueMax(45)
+                .withValueStep(1)
+                .withDescription("Maximum heating temperature limit setting (DP 114)"), // VERIFICĂ! Scalare 1? Limite?
+            e
+                .numeric("min_temperature_limit", ea.STATE_SET)
+                .withUnit("°C")
+                .withValueMin(1)
+                .withValueMax(15)
+                .withValueStep(1)
+                .withDescription("Minimum heating temperature limit setting (DP 115)"), // VERIFICĂ! Scalare 1? Limite?
+            e
+                .numeric("deadzone_temperature", ea.STATE_SET)
+                .withUnit("°C")
+                .withValueMin(0.5)
+                .withValueMax(2.5)
+                .withValueStep(0.1)
+                .withDescription("Temperature deadzone (hysteresis)"), // DP 110, Scalare 10
+            e
+                .enum("power_on_behavior", ea.STATE_SET, ["previous", "off", "on"])
+                .withDescription("State after power loss"), // DP 117
+            e
+                .enum("temperature_unit", ea.STATE_SET, ["celsius", "fahrenheit"])
+                .withDescription("Device temperature unit"), // DP 101
+            e
+                .numeric("fault_code", ea.STATE)
+                .withDescription("Device fault code (0 = OK)"), // DP 130
+            e.enum("schedule_type", ea.STATE_SET, ["5+2", "6+1", "7"]).withDescription("Schedule mode type (DP 118)"),
+            exposes
+                .numeric("holiday_days", ea.STATE_SET)
+                .withUnit("days")
+                .withValueMin(1)
+                .withValueMax(60)
+                .withValueStep(1)
+                .withDescription("Duration for holiday mode (DP 104)"), // VERIFICĂ Max!
+            exposes
+                .numeric("holiday_temperature", ea.STATE_SET)
+                .withUnit("°C")
+                .withValueMin(5)
+                .withValueMax(30)
+                .withValueStep(1)
+                .withDescription("Target temperature for holiday mode (DP 105)"), // VERIFICĂ Min/Max/Step!
+            exposes.text("schedule_workday", ea.STATE_SET | ea.STATE).withDescription("Workday schedule (6 periods HH:MM/TT.T separated by space)"),
+            exposes.text("schedule_restday", ea.STATE_SET | ea.STATE).withDescription("Restday schedule (6 periods HH:MM/TT.T separated by space)"),
         ],
+
+        // Meta: Conține definițiile DP-urilor simple și mapările
+        meta: {
+            // Mapări folosite de lookup-uri
+            tuyaThermostatSystemModeDp49: {0: "cool", 1: "heat"}, // VERIFICĂ! Map 0/1?
+            tuyaThermostatPreset: {0: "manual", 1: "program", 2: "holiday", 3: "temporary_manual"},
+            tuyaThermostatPowerOnState: {0: "previous", 1: "off", 2: "on"},
+            tuyaScheduleTypeMap: {0: "5+2", 1: "6+1", 2: "7"},
+            // Definiții DP pentru tuya.fz/tz.datapoints
+            tuyaDatapoints: [
+                // DP 16: Temp Curentă (Necesită fz_local pt a ignora 0)
+                [16, "local_temperature", tuya.valueConverter.divideBy10], // fz standard (NU ignoră 0)
+                // DP 50: Setpoint Heat (Scale 10)
+                [50, "occupied_heating_setpoint", tuya.valueConverter.divideBy10], // fz
+                [50, "occupied_heating_setpoint", tuya.valueConverter.multiplyBy10], // tz
+                // DP 109: Temp Calibration (Scale 10)
+                [109, "local_temperature_calibration", tuya.valueConverter.divideBy10], // fz
+                [109, "local_temperature_calibration", tuya.valueConverter.multiplyBy10], // tz
+                // DP 114: Max Temp Limit (Scale 1? VERIFICĂ!)
+                [114, "max_temperature_limit", tuya.valueConverter.raw], // fz
+                [114, "max_temperature_limit", tuya.valueConverter.raw, {min: 15, max: 45}], // tz - VERIFICĂ Limite!
+                // DP 115: Min Temp Limit (Scale 1? VERIFICĂ!)
+                [115, "min_temperature_limit", tuya.valueConverter.raw], // fz
+                [115, "min_temperature_limit", tuya.valueConverter.raw, {min: 1, max: 15}], // tz - VERIFICĂ Limite!
+                // DP 110: Deadzone Temp (Scale 10)
+                [110, "deadzone_temperature", tuya.valueConverter.divideBy10], // fz
+                [110, "deadzone_temperature", tuya.valueConverter.multiplyBy10], // tz
+                // DP 129: Child Lock (Bool? VERIFICĂ!)
+                [129, "child_lock", tuya.valueConverter.lockUnlock],
+                // DP 101: Temp Unit (Bool)
+                [101, "temperature_unit", tuya.valueConverter.celsiusFahrenheit],
+                // DP 117: Power On Behavior (Enum)
+                [117, "power_on_behavior", tuya.valueConverter.lookup({lookup: "tuyaThermostatPowerOnState"})],
+                // DP 130: Fault Code (Raw Number)
+                [130, "fault_code", tuya.valueConverter.raw],
+                // DP 128: Preset (Enum)
+                [128, "preset", tuya.valueConverter.lookup({lookup: "tuyaThermostatPreset"})],
+                // DP 118: Schedule Type (Enum)
+                [118, "schedule_type", tuya.valueConverter.lookup({lookup: "tuyaScheduleTypeMap"})],
+                // DP 104: Holiday Days (Raw Number, Scale 1)
+                [104, "holiday_days", tuya.valueConverter.raw], // fz
+                [104, "holiday_days", tuya.valueConverter.raw, {min: 1, max: 60}], // tz (VERIFICĂ MAX!)
+                // DP 105: Holiday Temp (Raw Number, Scale 1)
+                [105, "holiday_temperature", tuya.valueConverter.raw], // fz
+                [105, "holiday_temperature", tuya.valueConverter.raw, {min: 5, max: 30}], // tz (VERIFICĂ MIN/MAX!)
+                // DP 103: Floor Sensor Temp (Scale 10? VERIFICĂ!) - Read Only
+                [103, "floor_sensor_temperature", tuya.valueConverter.divideBy10], // fz only
+
+                // DP-uri gestionate de convertoare custom (listate aici doar pt referință, fz/tz.datapoints le vor ignora dacă key/name lipsește)
+                // [49, 'system_mode', ...], // Gestionat de tz/fz_local
+                // [102, 'running_state', ...], // Gestionat de fz_local
+                // [125, 'power', ...], // Gestionat de tz/fz_local
+                // [119, null, ...], // Gestionat de tz/fz_local (schedule)
+                // [120, null, ...], // Gestionat de tz/fz_local (schedule)
+                // [121, null, ...], // Gestionat de tz/fz_local (schedule)
+                // [122, null, ...], // Gestionat de tz/fz_local (schedule)
+            ],
+        },
     },
-},    
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_viy9ihs7", "_TZE204_lzriup1j", "_TZE204_xnbkhhdr", "_TZE284_xnbkhhdr", "_TZE204_oh8y8pv8"]),
         model: "ZWT198/ZWT100-BH",
