@@ -16810,4 +16810,22 @@ export const definitions: DefinitionWithExtend[] = [
             }
         },
     },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_oc7xqqbs"]),
+        model: "HY-SZLUMPIR",
+        vendor: "Homcloud",
+        description: "PIR sensor",
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEvent(),
+        configure: tuya.configureMagicPacket,
+        exposes: [e.occupancy(), e.illuminance(), e.battery()],
+        meta: {
+            tuyaDatapoints: [
+                [1, "occupancy", tuya.valueConverter.trueFalse0],
+                [4, "battery", tuya.valueConverter.raw],
+                [101, "illuminance", tuya.valueConverter.raw],
+            ],
+        },
+    },
 ];
