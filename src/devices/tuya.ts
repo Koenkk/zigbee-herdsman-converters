@@ -15872,7 +15872,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [14, "countdown_2", tuya.valueConverter.raw],
             ],
         },
-        whiteLabel: [tuya.whitelabel"Nova Digital", "ZVL-DUAL", "Valvula Inteligente de Irrigação com saida dupla", ["_TZE284_iilebqoo"])],
+        whiteLabel: [tuya.whitelabel("Nova Digital", "ZVL-DUAL", "Valvula Inteligente de Irrigação com saida dupla", ["_TZE284_iilebqoo"])],
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_eaulras5"]),
