@@ -1,6 +1,6 @@
 import * as exposes from "../lib/exposes";
-import type {DefinitionWithExtend} from "../lib/types";
 import * as tuya from "../lib/tuya";
+import type {DefinitionWithExtend} from "../lib/types";
 
 const e = exposes.presets;
 
