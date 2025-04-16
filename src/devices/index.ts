@@ -216,12 +216,13 @@ import {definitions as onenuo} from "./onenuo";
 import {definitions as onesti} from "./onesti";
 import {definitions as openlumi} from "./openlumi";
 import {definitions as orvibo} from "./orvibo";
+import {definitions as orztech} from "./orztech";
 import {definitions as osram} from "./osram";
 import {definitions as oujiabao} from "./oujiabao";
 import {definitions as owon} from "./owon";
 import {definitions as ozsmartthings} from "./ozsmartthings";
-import {definitions as paulNeuhaus} from "./paul_neuhaus";
 import {definitions as paulmann} from "./paulmann";
+import {definitions as paulNeuhaus} from "./paul_neuhaus";
 import {definitions as peq} from "./peq";
 import {definitions as perenio} from "./perenio";
 import {definitions as philio} from "./philio";
@@ -552,12 +553,13 @@ const definitions: DefinitionWithExtend[] = [
     ...onesti,
     ...openlumi,
     ...orvibo,
+    ...orztech,
     ...osram,
     ...oujiabao,
     ...owon,
     ...ozsmartthings,
-    ...paulNeuhaus,
     ...paulmann,
+    ...paulNeuhaus,
     ...peq,
     ...perenio,
     ...philio,
