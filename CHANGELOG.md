@@ -1,5 +1,21 @@
 # Changelog
 
+## [23.29.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.28.0...v23.29.0) (2025-04-16)
+
+
+### Features
+
+* **add:** _TZE200_b0ihkhxh, _TZE200_htj3hcpl, _TZE200_pcg0rykt, _TZE200_7a5ob7xq, _TZE200_xo3vpoah ([#9176](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9176)) ([6769400](https://github.com/Koenkk/zigbee-herdsman-converters/commit/67694003565fbb1b66a153d54b391a71c449b520))
+* **add:** 915005988602 https://github.com/Koenkk/zigbee2mqtt/issues/27073 ([cd3e734](https://github.com/Koenkk/zigbee-herdsman-converters/commit/cd3e734b9d4e02fff852a73a0f4c0e61de3dd982))
+* **add:** ZVL-DUAL ([#9188](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9188)) ([49fbe7d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/49fbe7d1fbc50717724cb94e36354d3a773e2add))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3210_bfwvfyx1` as CK-BL702-AL-01_1  https://github.com/Koenkk/zigbee2mqtt/issues/25904 ([7d7063d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7d7063d5d2f0566d871cabb887cdda94eab8c37e))
+* **detect:** Detect `_TZE284_1youk3hj` as NEO NAS-PS10B2 https://github.com/Koenkk/zigbee2mqtt/discussions/27132 ([87e7260](https://github.com/Koenkk/zigbee-herdsman-converters/commit/87e72604a5c4a6e8fe74da7fb3795522e2e9c155))
+* Fix some `_TZ3000_abrsvsou` incorrectly detected as ZG-101Z/D https://github.com/Koenkk/zigbee2mqtt/issues/25053 ([e3a7a58](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e3a7a58220f3caeb06e3263b3e90f19cd2da217f))
+
 ## [23.28.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.27.0...v23.28.0) (2025-04-15)
 
 
