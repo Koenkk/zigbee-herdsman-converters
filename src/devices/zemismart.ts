@@ -5,7 +5,7 @@ import * as legacy from "../lib/legacy";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as tuya from "../lib/tuya";
-import type {DefinitionWithExtend} from "../lib/types";
+import type {DefinitionWithExtend, Fz, Tz} from "../lib/types";
 
 const e = exposes.presets;
 
@@ -532,12 +532,12 @@ export const definitions: DefinitionWithExtend[] = [
                     105,
                     "name_l1",
                     {
-                        to: (v, meta) => {
+                        to: (v: string, meta: Tz.Meta) => {
                             const stringValue = String(v ?? "");
                             const limitedString = stringValue.slice(0, 12);
                             return limitedString.split("").map((char) => char.charCodeAt(0));
                         },
-                        from: (v, meta) => {
+                        from: (v: number, meta: Fz.Meta) => {
                             return Object.values(v)
                                 .map((code) => String.fromCharCode(code))
                                 .join("");
@@ -548,12 +548,12 @@ export const definitions: DefinitionWithExtend[] = [
                     106,
                     "name_l2",
                     {
-                        to: (v, meta) => {
+                        to: (v: string, meta: Tz.Meta) => {
                             const stringValue = String(v ?? "");
                             const limitedString = stringValue.slice(0, 12);
                             return limitedString.split("").map((char) => char.charCodeAt(0));
                         },
-                        from: (v, meta) => {
+                        from: (v: number, meta: Fz.Meta) => {
                             return Object.values(v)
                                 .map((code) => String.fromCharCode(code))
                                 .join("");
@@ -564,12 +564,12 @@ export const definitions: DefinitionWithExtend[] = [
                     107,
                     "name_l3",
                     {
-                        to: (v, meta) => {
+                        to: (v: string, meta: Tz.Meta) => {
                             const stringValue = String(v ?? "");
                             const limitedString = stringValue.slice(0, 12);
                             return limitedString.split("").map((char) => char.charCodeAt(0));
                         },
-                        from: (v, meta) => {
+                        from: (v: number, meta: Fz.Meta) => {
                             return Object.values(v)
                                 .map((code) => String.fromCharCode(code))
                                 .join("");
@@ -580,12 +580,12 @@ export const definitions: DefinitionWithExtend[] = [
                     209,
                     "cycle_schedule",
                     {
-                        to: (v, meta) => {
+                        to: (v: string, meta: Tz.Meta) => {
                             const stringValue = String(v ?? "");
                             const limitedString = stringValue.slice(0, 12);
                             return limitedString.split("").map((char) => char.charCodeAt(0));
                         },
-                        from: (v, meta) => {
+                        from: (v: number, meta: Fz.Meta) => {
                             return Object.values(v)
                                 .map((code) => String.fromCharCode(code))
                                 .join("");

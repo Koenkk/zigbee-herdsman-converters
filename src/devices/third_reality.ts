@@ -379,7 +379,7 @@ export const definitions: DefinitionWithExtend[] = [
                 ID: 0xfff2,
                 manufacturerCode: 0x1407,
                 attributes: {
-                    wateringTimes: {ID: 0x0000, type: Zcl.DataType.UINT8},
+                    wateringTimes: {ID: 0x0000, type: Zcl.DataType.UINT16},
                     intervalDay: {ID: 0x0001, type: Zcl.DataType.UINT8},
                 },
                 commands: {},

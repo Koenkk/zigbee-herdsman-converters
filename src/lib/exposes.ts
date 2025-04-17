@@ -921,6 +921,10 @@ export const options = {
         new Binary("local_temperature_based_on_sensor", access.SET, true, false)
             .withLabel("Local temperature sensor reporting")
             .withDescription("Base local temperature on sensor choice (default false)."),
+    unfreeze_support: () =>
+        new Binary("unfreeze_support", access.SET, true, false).withDescription(
+            "Whether to unfreeze IKEA lights (that are known to be frozen) before issuing a command, false: no unfreeze support, true: unfreeze support (default true).",
+        ),
 };
 
 export const presets = {
@@ -1297,6 +1301,13 @@ export const presets = {
     tilt: () => new Binary("tilt", access.STATE, true, false).withDescription("Indicates whether the device detected tilt"),
     voc: () => new Numeric("voc", access.STATE).withLabel("VOC").withUnit("µg/m³").withDescription("Measured VOC value"),
     voc_index: () => new Numeric("voc_index", access.STATE).withLabel("VOC index").withDescription("VOC index"),
+    pi_heating_demand: () =>
+        new Numeric("pi_heating_demand", access.STATE)
+            .withLabel("PI heating demand")
+            .withValueMin(0)
+            .withValueMax(100)
+            .withUnit("%")
+            .withDescription("Position of the valve (= demanded heat) where 0% is fully closed and 100% is fully open"),
     voltage: () => new Numeric("voltage", access.STATE).withUnit("V").withDescription("Measured electrical potential value"),
     voltage_phase_b: () =>
         new Numeric("voltage_phase_b", access.STATE)

@@ -4301,7 +4301,8 @@ const toZigbee2 = {
     } satisfies Tz.Converter,
     zs_thermostat_current_heating_setpoint: {
         key: ["current_heating_setpoint"],
-        convertSet: async (entity, key, value: number, meta) => {
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertNumber(value);
             let temp = Math.round(value * 2);
             if (temp <= 0) temp = 1;
             if (temp >= 60) temp = 59;
@@ -4310,7 +4311,8 @@ const toZigbee2 = {
     } satisfies Tz.Converter,
     zs_thermostat_current_heating_setpoint_auto: {
         key: ["current_heating_setpoint_auto"],
-        convertSet: async (entity, key, value: number, meta) => {
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertNumber(value);
             let temp = Math.round(value * 2);
             if (temp <= 0) temp = 1;
             if (temp >= 60) temp = 59;
@@ -4319,7 +4321,8 @@ const toZigbee2 = {
     } satisfies Tz.Converter,
     zs_thermostat_comfort_temp: {
         key: ["comfort_temperature"],
-        convertSet: async (entity, key, value: number, meta) => {
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertNumber(value);
             logger.debug(JSON.stringify(entity), "zhc:legacy:tz:zs_thermostat_comfort_temp");
             const temp = Math.round(value * 2);
             await sendDataPointValue(entity, dataPoints.zsComfortTemp, temp);
@@ -4327,7 +4330,8 @@ const toZigbee2 = {
     } satisfies Tz.Converter,
     zs_thermostat_openwindow_temp: {
         key: ["detectwindow_temperature"],
-        convertSet: async (entity, key, value: number, meta) => {
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertNumber(value);
             let temp = Math.round(value * 2);
             if (temp <= 0) temp = 1;
             if (temp >= 60) temp = 59;
@@ -4342,7 +4346,8 @@ const toZigbee2 = {
     } satisfies Tz.Converter,
     zs_thermostat_eco_temp: {
         key: ["eco_temperature"],
-        convertSet: async (entity, key, value: number, meta) => {
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertNumber(value);
             const temp = Math.round(value * 2);
             await sendDataPointValue(entity, dataPoints.zsEcoTemp, temp);
         },
@@ -4382,12 +4387,12 @@ const toZigbee2 = {
     } satisfies Tz.Converter,
     zs_thermostat_local_temperature_calibration: {
         key: ["local_temperature_calibration"],
-        convertSet: async (entity, key, value: number, meta) => {
-            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
-            if (value > 0) value = value * 10;
-            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
-            if (value < 0) value = value * 10 + 0x100000000;
-            await sendDataPointValue(entity, dataPoints.zsTempCalibration, value);
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertNumber(value);
+            let calValue = value;
+            if (calValue > 0) calValue = calValue * 10;
+            if (calValue < 0) calValue = calValue * 10 + 0x100000000;
+            await sendDataPointValue(entity, dataPoints.zsTempCalibration, calValue);
         },
     } satisfies Tz.Converter,
     zs_thermostat_away_setting: {
@@ -4820,7 +4825,8 @@ const toZigbee2 = {
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     moesS_thermostat_current_heating_setpoint: {
         key: ["current_heating_setpoint"],
-        convertSet: async (entity, key, value: number, meta) => {
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertNumber(value);
             const temp = Math.round(value);
             await sendDataPointValue(entity, dataPoints.moesSheatingSetpoint, temp);
         },
@@ -4856,7 +4862,8 @@ const toZigbee2 = {
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     moesS_thermostat_temperature_calibration: {
         key: ["local_temperature_calibration"],
-        convertSet: async (entity, key, value: number, meta) => {
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertNumber(value);
             let temp = Math.round(value * 1);
             if (temp < 0) {
                 temp = 0xffffffff + temp + 1;
@@ -4901,7 +4908,8 @@ const toZigbee2 = {
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     moesS_thermostat_schedule_programming: {
         key: ["programming_mode"],
-        convertSet: async (entity, key, value: string, meta) => {
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertString(value);
             const payload = [];
             const items = value.split("  ");
             for (let i = 0; i < 12; i++) {
@@ -5047,7 +5055,8 @@ const toZigbee2 = {
     } satisfies Tz.Converter,
     frankever_threshold: {
         key: ["threshold"],
-        convertSet: async (entity, key, value: number, meta) => {
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertNumber(value);
             // input to multiple of 10 with max value of 100
             const thresh = Math.abs(Math.min(10 * Math.floor(value / 10), 100));
             await sendDataPointValue(entity, dataPoints.frankEverTreshold, thresh, "dataRequest", 1);
@@ -5056,7 +5065,8 @@ const toZigbee2 = {
     } satisfies Tz.Converter,
     frankever_timer: {
         key: ["timer"],
-        convertSet: async (entity, key, value: number, meta) => {
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertNumber(value);
             // input in minutes with maximum of 600 minutes (equals 10 hours)
             const timer = 60 * Math.abs(Math.min(value, 600));
             // sendTuyaDataPoint* functions take care of converting the data to proper format
@@ -5067,7 +5077,8 @@ const toZigbee2 = {
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     ZVG1_timer: {
         key: ["timer"],
-        convertSet: async (entity, key, value: number, meta) => {
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertNumber(value);
             // input in minutes with maximum of 600 minutes (equals 10 hours)
             const timer = 60 * Math.abs(Math.min(value, 600));
             // sendTuyaDataPoint* functions take care of converting the data to proper format
@@ -5078,7 +5089,8 @@ const toZigbee2 = {
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     ZVG1_weather_delay: {
         key: ["weather_delay"],
-        convertSet: async (entity, key, value: string, meta) => {
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertString(value);
             const lookup: KeyValueAny = {disabled: 0, "24h": 1, "48h": 2, "72h": 3};
             await sendDataPointEnum(entity, 10, lookup[value]);
         },
@@ -5086,7 +5098,8 @@ const toZigbee2 = {
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     ZVG1_cycle_timer: {
         key: ["cycle_timer_1", "cycle_timer_2", "cycle_timer_3", "cycle_timer_4"],
-        convertSet: async (entity, key, value: string, meta) => {
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertString(value);
             let data = [0];
             const footer = [0x64];
             if (value === "") {
@@ -5148,7 +5161,8 @@ const toZigbee2 = {
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     ZVG1_normal_schedule_timer: {
         key: ["normal_schedule_timer_1", "normal_schedule_timer_2", "normal_schedule_timer_3", "normal_schedule_timer_4"],
-        convertSet: async (entity, key, value: string, meta) => {
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertString(value);
             let data = [0];
             const footer = [0x07, 0xe6, 0x08, 0x01, 0x01];
             if (value === "") {
@@ -5346,7 +5360,8 @@ const toZigbee2 = {
     } satisfies Tz.Converter,
     tuya_thermostat_current_heating_setpoint: {
         key: ["current_heating_setpoint"],
-        convertSet: async (entity, key, value: number, meta) => {
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertNumber(value);
             const temp = Math.round(value * 10);
             await sendDataPointValue(entity, dataPoints.heatingSetpoint, temp);
         },
@@ -5432,7 +5447,8 @@ const toZigbee2 = {
     } satisfies Tz.Converter,
     tuya_thermostat_calibration: {
         key: ["local_temperature_calibration"],
-        convertSet: async (entity, key, value: number, meta) => {
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertNumber(value);
             let temp = Math.round(value * 10);
             if (temp < 0) {
                 temp = 0xffffffff + temp + 1;
@@ -6013,7 +6029,8 @@ const toZigbee2 = {
     } satisfies Tz.Converter,
     tuya_data_point_test: {
         key: ["tuya_data_point_test"],
-        convertSet: async (entity, key, value: string, meta) => {
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertString(value);
             const args = value.split(",");
             const mode = args[0];
             const dp = Number.parseInt(args[1]);

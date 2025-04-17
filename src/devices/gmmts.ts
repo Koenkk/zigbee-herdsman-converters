@@ -2258,7 +2258,7 @@ export const definitions: DefinitionWithExtend[] = [
                     try {
                         await config;
                     } catch (error) {
-                        if (error.message.includes("UNSUPPORTED_ATTRIBUTE")) {
+                        if ((error as Error).message.includes("UNSUPPORTED_ATTRIBUTE")) {
                             // ignore: sometimes the attribute is not supported
                         } else {
                             logger.warning(`Configure failed: ${error}`, "TICMeter");
@@ -2301,7 +2301,7 @@ export const definitions: DefinitionWithExtend[] = [
                 clearInterval(globalStore.getValue(device, "interval"));
                 globalStore.clearValue(device, "interval");
             } else if (!intervalDefined) {
-                // periodic scan for non-reportable attributs
+                // periodic scan for non-reportable attributes
                 const seconds: number = options?.refresh_rate ? Number(options.refresh_rate) : DEFAULT_POLL_INTERVAL;
                 const interval = setInterval(async () => {
                     try {

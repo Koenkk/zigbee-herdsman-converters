@@ -4,7 +4,7 @@ import * as exposes from "../lib/exposes";
 import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
 import * as globalStore from "../lib/store";
-import type {Configure, DefinitionWithExtend, KeyValue, ModernExtend, OnEventType, Tz, Zh} from "../lib/types";
+import type {Configure, DefinitionWithExtend, ModernExtend, OnEventData, OnEventType, Tz, Zh} from "../lib/types";
 import * as utils from "../lib/utils";
 
 const NS = "zhc:gledopto";
@@ -141,7 +141,7 @@ function gledoptoLight(args?: m.LightArgs) {
 function gledoptoOnOff(args?: m.OnOffArgs) {
     const result = m.onOff({powerOnBehavior: false, ...args});
     result.onEvent = [
-        (type: OnEventType, data: KeyValue, device: Zh.Device) => {
+        (type: OnEventType, data: OnEventData, device: Zh.Device) => {
             // This device doesn't support reporting.
             // Therefore we read the on/off state every 5 seconds.
             // This is the same way as the Hue bridge does it.
@@ -810,7 +810,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Gledopto",
         ota: true,
         description: "Zigbee 12W Downlight RGB+CCT (pro)",
-        extend: [gledoptoLight({colorTemp: {range: [158, 495]}, color: true})],
+        extend: [gledoptoLight({colorTemp: {range: [158, 495]}, color: true, powerOnBehavior: true})],
     },
     {
         zigbeeModel: ["GL-D-010P"],

@@ -461,7 +461,7 @@ export function getTransition(entity: Zh.Endpoint | Zh.Group, key: string, meta:
         manufacturerIDs = [entity.getDevice().manufacturerID];
     }
 
-    if (manufacturerIDs.includes(4476)) {
+    if (manufacturerIDs.includes(Zcl.ManufacturerCode.IKEA_OF_SWEDEN)) {
         /**
          * When setting both brightness and color temperature with a transition, the brightness is skipped
          * for IKEA TRADFRI bulbs.
@@ -581,7 +581,7 @@ export function printNumbersAsHexSequence(numbers: number[], hexLength: number):
 }
 
 // biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
-export function assertObject(value: unknown, property?: string): asserts value is {[s: string]: any} {
+export function assertObject<T extends Record<string, any>>(value: unknown, property?: string): asserts value is T {
     const isObject = typeof value === "object" && !Array.isArray(value) && value !== null;
     if (!isObject) {
         throw new Error(`${property} is not a object, got ${typeof value} (${JSON.stringify(value)})`);

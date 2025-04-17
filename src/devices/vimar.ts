@@ -22,7 +22,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "IoT connected dimmer mechanism 220-240V",
         extend: [m.light({configureReporting: true, powerOnBehavior: false})],
         endpoint: (device) => {
-            return {default: 11};
+            return {default: 10};
         },
     },
     {

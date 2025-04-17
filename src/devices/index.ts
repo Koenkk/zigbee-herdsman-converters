@@ -22,6 +22,7 @@ import {definitions as automaton} from "./automaton";
 import {definitions as avatto} from "./avatto";
 import {definitions as awox} from "./awox";
 import {definitions as axis} from "./axis";
+import {definitions as bacchus} from "./bacchus";
 import {definitions as bankamp} from "./bankamp";
 import {definitions as bega} from "./bega";
 import {definitions as belkin} from "./belkin";
@@ -168,6 +169,7 @@ import {definitions as lg} from "./lg";
 import {definitions as lidl} from "./lidl";
 import {definitions as lifecontrol} from "./lifecontrol";
 import {definitions as lightsolutions} from "./lightsolutions";
+import {definitions as lincukoo} from "./lincukoo";
 import {definitions as linkind} from "./linkind";
 import {definitions as linptech} from "./linptech";
 import {definitions as livingwise} from "./livingwise";
@@ -214,6 +216,7 @@ import {definitions as onenuo} from "./onenuo";
 import {definitions as onesti} from "./onesti";
 import {definitions as openlumi} from "./openlumi";
 import {definitions as orvibo} from "./orvibo";
+import {definitions as orztech} from "./orztech";
 import {definitions as osram} from "./osram";
 import {definitions as oujiabao} from "./oujiabao";
 import {definitions as owon} from "./owon";
@@ -356,6 +359,7 @@ const definitions: DefinitionWithExtend[] = [
     ...avatto,
     ...awox,
     ...axis,
+    ...bacchus,
     ...bankamp,
     ...bega,
     ...belkin,
@@ -503,6 +507,7 @@ const definitions: DefinitionWithExtend[] = [
     ...lidl,
     ...lifecontrol,
     ...lightsolutions,
+    ...lincukoo,
     ...linkind,
     ...linptech,
     ...livingwise,
@@ -548,12 +553,13 @@ const definitions: DefinitionWithExtend[] = [
     ...onesti,
     ...openlumi,
     ...orvibo,
+    ...orztech,
     ...osram,
     ...oujiabao,
     ...owon,
     ...ozsmartthings,
-    ...paulNeuhaus,
     ...paulmann,
+    ...paulNeuhaus,
     ...peq,
     ...perenio,
     ...philio,

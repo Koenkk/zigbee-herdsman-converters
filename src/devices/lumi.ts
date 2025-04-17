@@ -2013,16 +2013,16 @@ export const definitions: DefinitionWithExtend[] = [
                 await reporting.bind(endpoint, coordinatorEndpoint, ["haElectricalMeasurement"]);
                 await endpoint.read("haElectricalMeasurement", ["acPowerMultiplier", "acPowerDivisor"]);
             } catch (e) {
-                logger.warning(`SP-EUC01 failed to setup electricity measurements (${e.message})`, NS);
-                logger.debug(e.stack, NS);
+                logger.warning(`SP-EUC01 failed to setup electricity measurements (${(e as Error).message})`, NS);
+                logger.debug(`${(e as Error).stack}`, NS);
             }
             try {
                 await reporting.bind(endpoint, coordinatorEndpoint, ["seMetering"]);
                 await reporting.readMeteringMultiplierDivisor(endpoint);
                 await reporting.currentSummDelivered(endpoint, {change: 0});
             } catch (e) {
-                logger.warning(`SP-EUC01 failed to setup metering (${e.message})`, NS);
-                logger.debug(e.stack, NS);
+                logger.warning(`SP-EUC01 failed to setup metering (${(e as Error).message})`, NS);
+                logger.debug(`${(e as Error).stack}`, NS);
             }
         },
         onEvent: (type, data, device) => {
@@ -3958,6 +3958,7 @@ export const definitions: DefinitionWithExtend[] = [
             lumiAction({extraActions: ["slider_single", "slider_double", "slider_hold", "slider_up", "slider_down"]}),
             lumiElectricityMeter(),
             lumiPower(),
+            lumiLedDisabledNight(),
             lumiClickMode({attribute: {ID: 0x0286, type: 0x20}}),
             lumiSlider(),
             lumiSwitchMode(),
@@ -3984,6 +3985,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             lumiElectricityMeter(),
             lumiPower(),
+            lumiLedDisabledNight(),
             lumiClickMode({attribute: {ID: 0x0286, type: 0x20}}),
             lumiSlider(),
             lumiSwitchMode(),
@@ -4010,6 +4012,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             lumiElectricityMeter(),
             lumiPower(),
+            lumiLedDisabledNight(),
             lumiClickMode({attribute: {ID: 0x0286, type: 0x20}}),
             lumiSlider(),
             lumiSwitchMode(),
@@ -4037,6 +4040,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             lumiElectricityMeter(),
             lumiPower(),
+            lumiLedDisabledNight(),
             lumiClickMode({attribute: {ID: 0x0286, type: 0x20}}),
             lumiSlider(),
             lumiSwitchMode(),
@@ -4522,6 +4526,35 @@ export const definitions: DefinitionWithExtend[] = [
             lumiAction({
                 actionLookup: {hold: 0, single: 1, double: 2, release: 255},
                 endpointNames: ["top", "center", "bottom", "wireless"],
+            }),
+            lumiMultiClick({description: "Multi-click mode for wireless button", endpointName: "wireless"}),
+            lumiLedDisabledNight(),
+            lumiFlipIndicatorLight(),
+            lumiSwitchMode(),
+        ],
+    },
+    {
+        zigbeeModel: ["lumi.switch.agl004"],
+        model: "WS-K02E",
+        vendor: "Aqara",
+        description: "Light Switch H2 US (double rocker)",
+        fromZigbee: [fz.on_off, lumi.fromZigbee.lumi_action_multistate, lumi.fromZigbee.lumi_specific],
+        extend: [
+            lumiZigbeeOTA(),
+            lumiPreventReset(),
+            m.deviceEndpoints({endpoints: {top: 1, wireless: 2}}),
+            m.bindCluster({endpointNames: ["top", "wireless"], cluster: "manuSpecificLumi", clusterType: "input"}),
+            m.bindCluster({endpointNames: ["top"], cluster: "genOnOff", clusterType: "input"}),
+            lumiPower(),
+            lumiOnOff({
+                operationMode: true,
+                powerOutageMemory: "enum",
+                lockRelay: true,
+                endpointNames: ["top"],
+            }),
+            lumiAction({
+                actionLookup: {hold: 0, single: 1, double: 2, release: 255},
+                endpointNames: ["top", "wireless"],
             }),
             lumiMultiClick({description: "Multi-click mode for wireless button", endpointName: "wireless"}),
             lumiLedDisabledNight(),
