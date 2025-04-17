@@ -168,7 +168,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "5110.40",
         vendor: "Iluminize",
         description: "Zigbee 3.0 LED controller multi 5 - 4A,RGB W/CCT LED",
-        extend: [m.light({colorTemp: {range: [160, 450]}, color: true})],
+        extend: [m.light({colorTemp: {range: [160, 450]}, color: true, configureReporting: true})],
     },
     {
         zigbeeModel: ["HK-ZD-RGBCCT-A", "511.000"],
