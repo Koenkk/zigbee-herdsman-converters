@@ -912,111 +912,141 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
 
-// --- START: Definitions HY09RF-Zigbee ---
+    // --- START: Definitions HY09RF-Zigbee ---
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_mzik0ov2']),
-        model: 'HY09RF-Zigbee',
-        vendor: 'Tuya', 
-        description: 'Smart thermostat DAver (Cool/Heat)',
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_mzik0ov2"]),
+        model: "HY09RF-Zigbee",
+        vendor: "Tuya",
+        description: "Smart thermostat DAver (Cool/Heat)",
 
-        fromZigbee: [
-            tuya.fz.datapoints,
-            fz.ignore_basic_report,
-            fz.ignore_tuya_set_time,
-        ],
+        fromZigbee: [tuya.fz.datapoints, fz.ignore_basic_report, fz.ignore_tuya_set_time],
         toZigbee: [
             // Convertoare specifice
             storeLocal.hy09rfTzLocalSchedule,
             storeLocal.hy09rfTzLocalSystemMode,
-            storeLocal.hy09rfTzLocalPreset,     
-            storeLocal.hy09rfTzLocalScheduleType, 
-            storeLocal.hy09rfTzLocalPowerOnBehavior, 
+            storeLocal.hy09rfTzLocalPreset,
+            storeLocal.hy09rfTzLocalScheduleType,
+            storeLocal.hy09rfTzLocalPowerOnBehavior,
             // Handler standard
             tuya.tz.datapoints,
         ],
         onEvent: tuya.onEventSetLocalTime,
 
         configure: async (device, coordinatorEndpoint) => {
-             const endpoint = device.getEndpoint(1);
-             try {
-                await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic', 'hvacThermostat']);
+            const endpoint = device.getEndpoint(1);
+            try {
+                await reporting.bind(endpoint, coordinatorEndpoint, ["genBasic", "hvacThermostat"]);
                 logger.info(`Successfully bound clusters for ${device.ieeeAddr}`);
-             } catch (error) {
-                 logger.warn(`Failed to bind clusters for ${device.ieeeAddr}: ${error}`);
-             }
-             await tuya.configureMagicPacket(device, coordinatorEndpoint);
-             const dpToQuery = [
-                 16, 50, 125, 49, 102, 109, 128, 103, 129, 114, 115, 110,
-                 117, 101, 130, 118, 104, 105, 119, 120, 121, 122,
-             ];
-             try {
-                 await utils.sleep(1000); // Folosește utils.sleep
-                 await tuya.sendDataPointQuery(endpoint, dpToQuery);
-                 logger.info(`Successfully queried DPs for ${device.ieeeAddr}`);
-             } catch (error) {
-                 logger.warn(`Failed to query DPs for ${device.ieeeAddr} during configure (device might report later): ${error}`);
-             }
-             device.save();
-         },
+            } catch (error) {
+                logger.warn(`Failed to bind clusters for ${device.ieeeAddr}: ${error}`);
+            }
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+            const dpToQuery = [16, 50, 125, 49, 102, 109, 128, 103, 129, 114, 115, 110, 117, 101, 130, 118, 104, 105, 119, 120, 121, 122];
+            try {
+                await utils.sleep(1000); // Folosește utils.sleep
+                await tuya.sendDataPointQuery(endpoint, dpToQuery);
+                logger.info(`Successfully queried DPs for ${device.ieeeAddr}`);
+            } catch (error) {
+                logger.warn(`Failed to query DPs for ${device.ieeeAddr} during configure (device might report later): ${error}`);
+            }
+            device.save();
+        },
 
         exposes: [
-            e.climate()
-                .withSetpoint('occupied_heating_setpoint', 5, 35, 0.5, ea.STATE_SET)
+            e
+                .climate()
+                .withSetpoint("occupied_heating_setpoint", 5, 35, 0.5, ea.STATE_SET)
                 .withLocalTemperature(ea.STATE)
-                .withSystemMode(['off', 'cool', 'heat'], ea.STATE_SET)
-                .withRunningState(['idle', 'heat', 'cool'], ea.STATE)
+                .withSystemMode(["off", "cool", "heat"], ea.STATE_SET)
+                .withRunningState(["idle", "heat", "cool"], ea.STATE)
                 .withLocalTemperatureCalibration(-9, 9, 0.1, ea.STATE_SET)
                 // !!! VERIFICĂ: Este 'temporary_manual' suportat? !!!
-                .withPreset(['manual', 'program', 'holiday', 'temporary_manual'], ea.STATE_SET),
-            exposes.numeric('floor_temperature_sensor', ea.STATE).withUnit('°C').withDescription('Floor sensor temp (DP 103)'),
+                .withPreset(["manual", "program", "holiday", "temporary_manual"], ea.STATE_SET),
+            exposes.numeric("floor_temperature_sensor", ea.STATE).withUnit("°C").withDescription("Floor sensor temp (DP 103)"),
             e.child_lock(),
-            e.numeric('max_temperature_limit', ea.STATE_SET).withUnit('°C').withValueMin(20).withValueMax(70).withValueStep(1).withDescription('Max temp limit (DP 114)'),
-            e.numeric('min_temperature_limit', ea.STATE_SET).withUnit('°C').withValueMin(1).withValueMax(15).withValueStep(1).withDescription('Min temp limit (DP 115)'),
-            e.numeric('deadzone_temperature', ea.STATE_SET).withUnit('°C').withValueMin(0.5).withValueMax(2.5).withValueStep(0.1).withDescription('Deadzone/Hysteresis (DP 110)'),
-            e.enum('power_on_behavior', ea.STATE_SET, ['previous', 'off', 'on']).withDescription('State after power loss (DP 117)'),
-            e.enum('temperature_unit', ea.STATE_SET, ['celsius', 'fahrenheit']).withDescription('Device temp unit setting (DP 101)'),
-            e.numeric('fault_code', ea.STATE).withDescription('Device fault code (DP 130)'),
-             // !!! VERIFICĂ: Este '7' suportat? !!!
-            e.enum('schedule_type', ea.STATE_SET, ['5+2', '6+1', '7']).withDescription('Schedule mode type (DP 118)'),
-            exposes.numeric('holiday_days', ea.STATE_SET).withValueMin(1).withValueMax(60).withValueStep(1).withUnit('days').withDescription('Holiday mode duration (DP 104)'),
-            exposes.numeric('holiday_temperature', ea.STATE_SET).withValueMin(5).withValueMax(30).withValueStep(1).withUnit('°C').withDescription('Holiday mode temp (DP 105)'),
-            exposes.text('schedule_workday', ea.STATE_SET | ea.STATE).withDescription(`Workday schedule (${storeLocal.hy09rfTotalPeriodsPerDay} periods HH:MM/TT.T, DP 119+120)`),
-            exposes.text('schedule_restday', ea.STATE_SET | ea.STATE).withDescription(`Restday schedule (${storeLocal.hy09rfTotalPeriodsPerDay} periods HH:MM/TT.T, DP 121+122)`),
+            e
+                .numeric("max_temperature_limit", ea.STATE_SET)
+                .withUnit("°C")
+                .withValueMin(20)
+                .withValueMax(70)
+                .withValueStep(1)
+                .withDescription("Max temp limit (DP 114)"),
+            e
+                .numeric("min_temperature_limit", ea.STATE_SET)
+                .withUnit("°C")
+                .withValueMin(1)
+                .withValueMax(15)
+                .withValueStep(1)
+                .withDescription("Min temp limit (DP 115)"),
+            e
+                .numeric("deadzone_temperature", ea.STATE_SET)
+                .withUnit("°C")
+                .withValueMin(0.5)
+                .withValueMax(2.5)
+                .withValueStep(0.1)
+                .withDescription("Deadzone/Hysteresis (DP 110)"),
+            e.enum("power_on_behavior", ea.STATE_SET, ["previous", "off", "on"]).withDescription("State after power loss (DP 117)"),
+            e.enum("temperature_unit", ea.STATE_SET, ["celsius", "fahrenheit"]).withDescription("Device temp unit setting (DP 101)"),
+            e.numeric("fault_code", ea.STATE).withDescription("Device fault code (DP 130)"),
+            // !!! VERIFICĂ: Este '7' suportat? !!!
+            e
+                .enum("schedule_type", ea.STATE_SET, ["5+2", "6+1", "7"])
+                .withDescription("Schedule mode type (DP 118)"),
+            exposes
+                .numeric("holiday_days", ea.STATE_SET)
+                .withValueMin(1)
+                .withValueMax(60)
+                .withValueStep(1)
+                .withUnit("days")
+                .withDescription("Holiday mode duration (DP 104)"),
+            exposes
+                .numeric("holiday_temperature", ea.STATE_SET)
+                .withValueMin(5)
+                .withValueMax(30)
+                .withValueStep(1)
+                .withUnit("°C")
+                .withDescription("Holiday mode temp (DP 105)"),
+            exposes
+                .text("schedule_workday", ea.STATE_SET | ea.STATE)
+                .withDescription(`Workday schedule (${storeLocal.hy09rfTotalPeriodsPerDay} periods HH:MM/TT.T, DP 119+120)`),
+            exposes
+                .text("schedule_restday", ea.STATE_SET | ea.STATE)
+                .withDescription(`Restday schedule (${storeLocal.hy09rfTotalPeriodsPerDay} periods HH:MM/TT.T, DP 121+122)`),
         ],
 
         meta: {
             tuyaDatapoints: [
                 // Climate related DPs
-                [16,    'local_temperature',         tuya.valueConverter.divideBy10],
-                [50,    'occupied_heating_setpoint', tuya.valueConverter.divideBy10],
-                [125,   'state',                     tuya.valueConverter.onOff],
-                [49,    'system_mode',               tuya.valueConverterBasic.lookup({'cool': 0, 'heat': 1})], // Cool=0, Heat=1
-                [102,   'running_state',             storeLocal.hy09rfTuyaRunningStateConverter],
-                [109,   'local_temperature_calibration', tuya.valueConverter.divideBy10],
+                [16, "local_temperature", tuya.valueConverter.divideBy10],
+                [50, "occupied_heating_setpoint", tuya.valueConverter.divideBy10],
+                [125, "state", tuya.valueConverter.onOff],
+                [49, "system_mode", tuya.valueConverterBasic.lookup({cool: 0, heat: 1})], // Cool=0, Heat=1
+                [102, "running_state", storeLocal.hy09rfTuyaRunningStateConverter],
+                [109, "local_temperature_calibration", tuya.valueConverter.divideBy10],
                 // !!! VERIFICĂ: Este 'temporary_manual' (3) suportat? !!!
-                [128,   'preset',                    tuya.valueConverterBasic.lookup({'manual': 0, 'program': 1, 'holiday': 2, 'temporary_manual': 3})],
+                [128, "preset", tuya.valueConverterBasic.lookup({manual: 0, program: 1, holiday: 2, temporary_manual: 3})],
                 // Other DPs
-                [103,   'floor_temperature_sensor',  tuya.valueConverter.divideBy10],
-                [129,   'child_lock',                tuya.valueConverter.lockUnlock],
-                [114,   'max_temperature_limit',     tuya.valueConverter.raw],
-                [115,   'min_temperature_limit',     tuya.valueConverter.raw],
-                [110,   'deadzone_temperature',      tuya.valueConverter.divideBy10],
-                [117,   'power_on_behavior',         tuya.valueConverterBasic.lookup({'previous': 0, 'off': 1, 'on': 2})],
-                [101,   'temperature_unit',          storeLocal.hy09rfTuyaTempUnitConverter],
-                [130,   'fault_code',                tuya.valueConverter.raw],
+                [103, "floor_temperature_sensor", tuya.valueConverter.divideBy10],
+                [129, "child_lock", tuya.valueConverter.lockUnlock],
+                [114, "max_temperature_limit", tuya.valueConverter.raw],
+                [115, "min_temperature_limit", tuya.valueConverter.raw],
+                [110, "deadzone_temperature", tuya.valueConverter.divideBy10],
+                [117, "power_on_behavior", tuya.valueConverterBasic.lookup({previous: 0, off: 1, on: 2})],
+                [101, "temperature_unit", storeLocal.hy09rfTuyaTempUnitConverter],
+                [130, "fault_code", tuya.valueConverter.raw],
                 // !!! VERIFICĂ: Este '7' (2) suportat? !!!
-                [118,   'schedule_type',             tuya.valueConverterBasic.lookup({'5+2': 0, '6+1': 1, '7': 2})],
+                [118, "schedule_type", tuya.valueConverterBasic.lookup({"5+2": 0, "6+1": 1, "7": 2})],
                 // Holiday DPs
-                [104,   'holiday_days',              tuya.valueConverter.raw],
-                [105,   'holiday_temperature',       tuya.valueConverter.raw],
+                [104, "holiday_days", tuya.valueConverter.raw],
+                [105, "holiday_temperature", tuya.valueConverter.raw],
                 // Schedule DPs (Reading handled by fzScheduleConverter)
-                [119,   'schedule_workday',          storeLocal.hy09rfFzScheduleConverter],
-                [121,   'schedule_restday',          storeLocal.hy09rfFzScheduleConverter],
-                [120,   null,                        storeLocal.hy09rfFzScheduleConverter],
-                [122,   null,                        storeLocal.hy09rfFzScheduleConverter],
-             ],
-         },
-    }, 
+                [119, "schedule_workday", storeLocal.hy09rfFzScheduleConverter],
+                [121, "schedule_restday", storeLocal.hy09rfFzScheduleConverter],
+                [120, null, storeLocal.hy09rfFzScheduleConverter],
+                [122, null, storeLocal.hy09rfFzScheduleConverter],
+            ],
+        },
+    },
     // --- END: Definitions HY09RF-Zigbee ---
 
     {
