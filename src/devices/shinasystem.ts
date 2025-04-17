@@ -65,6 +65,30 @@ const fzLocal = {
             }
         },
     } satisfies Fz.Converter,
+    smoke_battery: {
+        cluster: "genPowerCfg",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.batteryVoltage !== undefined) {
+                return { smoke_battery: utils.batteryVoltageToPercentage(msg.data.batteryVoltage * 100, {min: 2300, max: 3100})};
+            }
+        },
+    } satisfies Fz.Converter,
+    remote_control: {
+        cluster: "ssIasZone",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data && msg.data.currentZoneSensitivityLevel !== undefined && msg.endpoint) {
+                const value = msg.data.currentZoneSensitivityLevel;
+                msg.endpoint.saveClusterAttributeKeyValue("ssIasZone", {currentZoneSensitivityLevel: value});
+                meta.device.save();
+                return {
+                    remote_control_permission: (value & 0x01) > 0,
+                    force_smoke_alarm: (value & 0x02) > 0
+                };
+            }
+        },
+    } satisfies Fz.Converter,
 };
 
 const tzLocal = {
@@ -201,6 +225,22 @@ const tzLocal = {
         },
         convertGet: async (entity, key, meta) => {
             await entity.read("seMetering", [0x9001]);
+        },
+    } satisfies Tz.Converter,
+    remote_control: {
+        key: ["force_smoke_alarm"],
+        convertSet: async (entity, key, value, meta) => {
+            const endpoint = meta.device.getEndpoint(1);
+            const currentZoneSensitivityLevel = endpoint.getClusterAttributeValue("ssIasZone", "currentZoneSensitivityLevel");
+            if(currentZoneSensitivityLevel & 0x01) { // if remote control permission is true
+                await entity.write("ssIasZone", {currentZoneSensitivityLevel: utils.getFromLookup(value, {"OFF": 1, "ON": 3})});
+            }
+            else {
+                return {state: {[key]: "OFF"}};
+            }
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read("ssIasZone", ["currentZoneSensitivityLevel"]);
         },
     } satisfies Tz.Converter,
 };
@@ -1037,5 +1077,50 @@ export const definitions: DefinitionWithExtend[] = [
                 powerOnBehavior: false,
             }),
         ],
+    },
+    {
+        zigbeeModel: ["FAM-300Z"],
+        model: "FAM-300Z",
+        vendor: "ShinaSystem",
+        ota: true,
+        description: "SiHAS Smoke detector",
+        fromZigbee: [fzLocal.smoke_battery, fzLocal.remote_control],
+        toZigbee: [tzLocal.remote_control],
+        exposes: [
+            e
+                .numeric("smoke_battery", ea.STATE)
+                .withUnit("%")
+                .withValueMin(0)
+                .withValueMax(100)
+                .withDescription("Remaining battery in % for smoke sensor, For reference, two batteries are used. " +
+                    "One is for Smoke sensor, the other is for Zigbee.")
+                .withCategory("diagnostic"),
+            e
+                .binary("force_smoke_alarm", ea.STATE_SET, "ON", "OFF")
+                .withDescription("Forcibly activating/deactivating smoke alarms. This command is only available " +
+                    "when Remote control permission is True."),
+        ],
+        extend: [
+            m.battery(),
+            m.iasZoneAlarm({
+                zoneType: "smoke",
+                zoneAttributes: ["alarm_1"],
+                zoneStatusReporting: true,
+            }),
+            m.binary({
+                name: "remote_control_permission",
+                cluster: "ssIasZone",
+                attribute: "currentZoneSensitivityLevel",
+                description: "Indicate whether remote control is permitted or denied.",
+                valueOn: [true, 1],
+                valueOff: [false, 0],
+                access: "STATE",
+                reporting: {attribute: "currentZoneSensitivityLevel", min: 0, max: 7200, change: 1},
+            }),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.batteryVoltage(endpoint, {min: 30, max: 21600, change: 1});
+        },
     },
 ];
