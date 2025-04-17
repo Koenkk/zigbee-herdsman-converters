@@ -42,6 +42,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withRunningState(["idle", "heat", "cool"])
                 .withLocalTemperatureCalibration()
                 .withFanMode(["auto", "on"]),
+            e.battery_voltage(),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(3) || device.getEndpoint(1);

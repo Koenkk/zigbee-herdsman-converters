@@ -313,7 +313,7 @@ export const power_on_behavior: Tz.Converter = {
         try {
             await entity.write("genOnOff", {startUpOnOff: utils.getFromLookup(value, lookup)}, utils.getOptions(meta.mapped, entity));
         } catch (e) {
-            if (e.message.includes("UNSUPPORTED_ATTRIBUTE")) {
+            if ((e as Error).message.includes("UNSUPPORTED_ATTRIBUTE")) {
                 throw new Error("Got `UNSUPPORTED_ATTRIBUTE` error, device does not support power on behaviour");
             }
             throw e;
@@ -1131,7 +1131,7 @@ export const light_onoff_brightness: Tz.Converter = {
                 meta.state.state === "OFF" &&
                 utils.getMetaValue(entity, meta.mapped, "noOffTransitionWhenOff", {atLeastOnce: true}, false)
             ) {
-                logger.debug("Supressing OFF transition since entity is OFF and has noOffTransitionWhenOff=true", NS);
+                logger.debug("Suppressing OFF transition since entity is OFF and has noOffTransitionWhenOff=true", NS);
                 brightness = undefined;
             }
             if (meta.state.brightness !== undefined && meta.state.state === "ON") {

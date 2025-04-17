@@ -222,7 +222,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         model: "LED1624G9",
         vendor: "IKEA",
-        description: "TRADFRI bulb E12/E14/E26/E27, color/white spectum, globe, opal, 600 lm",
+        description: "TRADFRI bulb E12/E14/E26/E27, color/white spectrum, globe, opal, 600 lm",
         extend: [
             addCustomClusterManuSpecificIkeaUnknown(),
             ikeaLight({colorTemp: {range: [153, 500], viaColor: true}, color: true}), // light is pure RGB (XY), advertise 2000K-6500K
