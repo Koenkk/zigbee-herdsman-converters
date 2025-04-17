@@ -1154,7 +1154,7 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: tuya.fingerprint('TS0601', ['_TZE200_mzik0ov2']),
         model: 'HY09RF-Zigbee',
         vendor: 'Tuya', 
-        description: 'Smart thermostat (Cool/Heat/Schedule capable)',
+        description: 'Smart thermostat DAver (Cool/Heat)',
 
         fromZigbee: [
             tuya.fz.datapoints,
