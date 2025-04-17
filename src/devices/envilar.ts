@@ -66,4 +66,11 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Dimmable LED driver",
         extend: [m.light()],
     },
+    {
+        zigbeeModel: ["5480"],
+        model: "5480",
+        vendor: "Envilar",
+        description: "Zigbee CV dimmable LED driver",
+        extend: [m.light()],
+    },
 ];
