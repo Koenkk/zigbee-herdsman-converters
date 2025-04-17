@@ -1176,6 +1176,243 @@ export const valueConverter = {
         };
     },
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+// --- START: Code for HY09RF-Zigbee ---
+    hy09rfTotalPeriodsPerDay: 6,
+
+    hy09rfParseScheduleData: (buffer) => {
+        // Helper function to parse schedule data buffer from HY09RF
+        if (!Buffer.isBuffer(buffer) || buffer.length === 0 || buffer.length % 3 !== 0) return null;
+        const periods = [];
+        try {
+            for (let i = 0; i < buffer.length; i += 3) {
+                const hour = buffer.readUInt8(i), minute = buffer.readUInt8(i + 1), tempRaw = buffer.readUInt8(i + 2);
+                // !!! VERIFICĂ SCALAREA: Folosim /1 conform codului tău. Dacă e /2, modifică !!!
+                const tempCelsius = utils.precisionRound(tempRaw / 1, 1);
+                if (hour > 23 || minute > 59) continue; // Skip invalid time
+                const timeStr = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+                periods.push(`${timeStr}/${tempCelsius.toFixed(1)}°C`);
+            }
+            return periods.length > 0 ? periods.join(' ') : null;
+        } catch (e) {
+             logger.error(`HY09RF: Error parsing schedule buffer: ${e}`);
+             return null;
+         }
+    },
+
+    hy09rfParseInputScheduleString: (scheduleString, expectedPeriods) => {
+        // Helper function to parse schedule string to buffer for HY09RF
+        if (typeof scheduleString !== 'string') return null;
+        const periods = scheduleString.trim().split(/\s+/);
+        if (periods.length === 1 && periods[0] === '') periods.shift();
+        if (periods.length !== expectedPeriods) {
+            logger.warn(`HY09RF: Schedule string parse error - Expected ${expectedPeriods} periods, got ${periods.length}`);
+            return null;
+        }
+
+        const dataBytes = [];
+        for (const period of periods) {
+            const parts = period.split('/'); if (parts.length !== 2) return null;
+            const timeParts = parts[0].split(':'); if (timeParts.length !== 2) return null;
+            const hour = parseInt(timeParts[0], 10), minute = parseInt(timeParts[1], 10);
+            const tempStr = parts[1].replace(/°C/i, ''), tempCelsius = parseFloat(tempStr);
+            if (isNaN(hour) || hour < 0 || hour > 23 || isNaN(minute) || minute < 0 || minute > 59 || isNaN(tempCelsius)) return null;
+            // !!! VERIFICĂ SCALAREA: Folosim *1 conform codului tău. Dacă e *2, modifică !!!
+            const tempRaw = Math.round(tempCelsius * 1);
+            if (tempRaw < 0 || tempRaw > 255) return null;
+            dataBytes.push(hour, minute, tempRaw);
+        }
+        return Buffer.from(dataBytes);
+    },
+
+    hy09rfFzScheduleConverter: {
+        // Custom fz converter for HY09RF schedule (DP 119, 120, 121, 122)
+        // cluster: 'manuSpecificTuya', // Not needed when used in meta.tuyaDatapoints
+        // type: ['commandDataResponse', 'commandDataReport'], // Not needed when used in meta.tuyaDatapoints
+        convert: (model, msg, publish, options, meta) => {
+            if (!msg.data || typeof msg.data.dp === 'undefined') {
+                 // Try to parse directly if dp info is missing (initial query?)
+                 const dpValue = msg.data?.data; // Assuming raw value is here
+                 if (Buffer.isBuffer(dpValue)) {
+                    const parsedDirect = storeLocal.hy09rfParseScheduleData(dpValue);
+                    // Cannot determine targetKey without DP, maybe return a generic key or handle differently
+                    if(parsedDirect) logger.warn(`HY09RF: Parsed schedule data without DP context: ${parsedDirect}`);
+                 }
+                 return undefined;
+             }
+
+             const dp = msg.data.dp;
+             const value = msg.data.data;
+
+             if (!meta.state) meta.state = {};
+
+            const isWorkday = (dp === 119 || dp === 120);
+            const stateKeyPart1 = isWorkday ? 'hy09rf_schedule_workday_part1_parsed' : 'hy09rf_schedule_restday_part1_parsed';
+            const stateKeyPart2 = isWorkday ? 'hy09rf_schedule_workday_part2_parsed' : 'hy09rf_schedule_restday_part2_parsed';
+            const targetKey = isWorkday ? 'schedule_workday' : 'schedule_restday';
+
+            const isPart1 = (dp === 119 || dp === 121);
+            const currentKey = isPart1 ? stateKeyPart1 : stateKeyPart2;
+
+            const parsedValue = storeLocal.hy09rfParseScheduleData(value);
+
+            if (parsedValue !== null) {
+                meta.state[currentKey] = parsedValue;
+            } else {
+                logger.warn(`HY09RF: Failed to parse schedule data for DP ${dp}`);
+            }
+
+            const part1Stored = meta.state[stateKeyPart1];
+            const part2Stored = meta.state[stateKeyPart2];
+
+            // Use the currently parsed value if available, otherwise the stored one
+            const finalPart1 = isPart1 ? parsedValue : part1Stored;
+            const finalPart2 = !isPart1 ? parsedValue : part2Stored;
+
+            if (finalPart1 && finalPart2) {
+                // Both parts are available, combine and return
+                delete meta.state[stateKeyPart1];
+                delete meta.state[stateKeyPart2];
+                return { [targetKey]: `${finalPart1} ${finalPart2}` };
+            } else {
+                // Waiting for the other part
+                return undefined;
+            }
+        }
+    },
+
+    hy09rfTzLocalSchedule: {
+        // Custom tz converter for HY09RF schedule (DP 119, 120, 121, 122)
+        key: ['schedule_workday', 'schedule_restday'],
+        convertSet: async (entity, key, value, meta) => {
+            const isWorkday = (key === 'schedule_workday');
+            const dpPart1 = isWorkday ? 119 : 121;
+            const dpPart2 = isWorkday ? 120 : 122;
+            const expectedPeriods = storeLocal.hy09rfTotalPeriodsPerDay;
+
+            const buffer = storeLocal.hy09rfParseInputScheduleString(value, expectedPeriods);
+            if (!buffer) throw new Error(`HY09RF: Invalid schedule format for ${key}: "${value}". Expected ${expectedPeriods} periods like "HH:MM/TT.T ..."`);
+
+            const periodsPerPart = expectedPeriods / 2;
+            if (expectedPeriods % 2 !== 0) logger.warn(`HY09RF: Schedule periods (${expectedPeriods}) is odd. Splitting might be uneven.`);
+            const bytesPerPeriod = 3;
+            const splitIndex = Math.ceil(periodsPerPart) * bytesPerPeriod;
+            if (buffer.length !== expectedPeriods * bytesPerPeriod) throw new Error(`HY09RF: Internal Error - Buffer length mismatch for ${key}.`);
+            if (splitIndex > buffer.length) throw new Error(`HY09RF: Internal Error - Split index out of bounds for ${key}.`);
+
+            const bufferPart1 = buffer.subarray(0, splitIndex);
+            const bufferPart2 = buffer.subarray(splitIndex);
+
+            await tuya.sendDataPointRaw(entity, dpPart1, bufferPart1);
+            await utils.sleep(200); // Optional delay using utils.sleep
+            await tuya.sendDataPointRaw(entity, dpPart2, bufferPart2);
+
+            return { state: { [key]: value } }; // Optimistic update
+        },
+    },
+
+    hy09rfTuyaTempUnitConverter: {
+        // Custom converter for Temp Unit (DP 101)
+        from: (value, meta, options) => {
+            if (typeof value === 'boolean') return value ? 'fahrenheit' : 'celsius';
+            logger.warn(`HY09RF DP 101 (temperature_unit): Received non-boolean value: ${value}`); return undefined;
+        },
+        to: (value, meta, options) => {
+            if (value === 'celsius') return false;
+            else if (value === 'fahrenheit') return true;
+            logger.warn(`HY09RF DP 101 (temperature_unit): Cannot set invalid value: ${value}`); return undefined;
+        },
+    },
+
+    hy09rfTuyaRunningStateConverter: {
+        // Custom converter for Running State (DP 102)
+        from: (value, meta, options) => {
+            if (typeof value === 'boolean') {
+                if (value === false) {
+                    return 'idle';
+                } else {
+                    const currentSystemMode = meta.state?.system_mode;
+                    if (currentSystemMode === 'heat') return 'heat';
+                    else if (currentSystemMode === 'cool') return 'cool';
+                    else {
+                        logger.warn(`HY09RF DP 102 (running_state) is TRUE, but system_mode is '${currentSystemMode}'. Reporting 'idle'.`);
+                        return 'idle';
+                    }
+                }
+            }
+            logger.warn(`HY09RF DP 102 (running_state): Received non-boolean value: ${value} (Type: ${typeof value})`);
+            return undefined;
+        },
+    },
+
+    hy09rfTzLocalSystemMode: {
+        // Custom tz converter for System Mode (DP 49 + DP 125)
+        key: ['system_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            if (value === 'off') {
+                await tuya.sendDataPointBool(entity, 125, false);
+                return { state: { system_mode: 'off', state: 'OFF' } };
+            } else if (value === 'cool' || value === 'heat') {
+                await tuya.sendDataPointBool(entity, 125, true);
+                const dpValue = (value === 'cool') ? 0 : 1;
+                await tuya.sendDataPointEnum(entity, 49, dpValue);
+                return { state: { system_mode: value, state: 'ON' } };
+            } else {
+                logger.warn(`HY09RF: Cannot set invalid system_mode: ${value}`);
+                return {};
+            }
+        },
+    },
+
+    hy09rfTzLocalPreset: {
+        // Custom tz converter for Preset (DP 128) - Optimistic Update
+        key: ['preset'],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = {'manual': 0, 'program': 1, 'holiday': 2, 'temporary_manual': 3};
+            // VERIFICĂ: Este 'temporary_manual' (3) suportat real?
+            if (lookup.hasOwnProperty(value)) {
+                const dpValue = lookup[value];
+                await tuya.sendDataPointEnum(entity, 128, dpValue);
+                return { state: { [key]: value } };
+            } else {
+                logger.warn(`HY09RF tzLocal_preset: Cannot set invalid preset value: ${value}`);
+                return {};
+            }
+        },
+    },
+
+    hy09rfTzLocalScheduleType: {
+         // Custom tz converter for Schedule Type (DP 118) - Optimistic Update
+        key: ['schedule_type'],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = {'5+2': 0, '6+1': 1, '7': 2};
+             // VERIFICĂ: Este '7' (2) suportat real?
+            if (lookup.hasOwnProperty(value)) {
+                const dpValue = lookup[value];
+                await tuya.sendDataPointEnum(entity, 118, dpValue);
+                return { state: { [key]: value } };
+            } else {
+                logger.warn(`HY09RF tzLocal_schedule_type: Cannot set invalid schedule_type value: ${value}`);
+                return {};
+            }
+        },
+    },
+
+    hy09rfTzLocalPowerOnBehavior: {
+        // Custom tz converter for Power On Behavior (DP 117) - Optimistic Update
+        key: ['power_on_behavior'],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = {'previous': 0, 'off': 1, 'on': 2};
+            if (lookup.hasOwnProperty(value)) {
+                const dpValue = lookup[value];
+                await tuya.sendDataPointEnum(entity, 117, dpValue);
+                return { state: { [key]: value } };
+            } else {
+                logger.warn(`HY09RF tzLocal_power_on_behavior: Cannot set invalid power_on_behavior value: ${value}`);
+                return {};
+            }
+        },
+    },
+    // --- END: Code for HY09RF-Zigbee ---
     ZWT198_schedule: {
         from: (value: number[], meta: Fz.Meta, options: KeyValue) => {
             const programmingMode = [];
