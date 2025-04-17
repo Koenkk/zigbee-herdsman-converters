@@ -70,7 +70,7 @@ const fzLocal = {
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.batteryVoltage !== undefined) {
-                return { smoke_battery: utils.batteryVoltageToPercentage(msg.data.batteryVoltage * 100, {min: 2300, max: 3100})};
+                return {smoke_battery: utils.batteryVoltageToPercentage(msg.data.batteryVoltage * 100, {min: 2300, max: 3100})};
             }
         },
     } satisfies Fz.Converter,
@@ -84,7 +84,7 @@ const fzLocal = {
                 meta.device.save();
                 return {
                     remote_control_permission: (value & 0x01) > 0,
-                    force_smoke_alarm: (value & 0x02) > 0
+                    force_smoke_alarm: (value & 0x02) > 0,
                 };
             }
         },
@@ -232,10 +232,10 @@ const tzLocal = {
         convertSet: async (entity, key, value, meta) => {
             const endpoint = meta.device.getEndpoint(1);
             const currentZoneSensitivityLevel = endpoint.getClusterAttributeValue("ssIasZone", "currentZoneSensitivityLevel");
-            if(currentZoneSensitivityLevel & 0x01) { // if remote control permission is true
-                await entity.write("ssIasZone", {currentZoneSensitivityLevel: utils.getFromLookup(value, {"OFF": 1, "ON": 3})});
-            }
-            else {
+            if (currentZoneSensitivityLevel & 0x01) {
+                // if remote control permission is true
+                await entity.write("ssIasZone", {currentZoneSensitivityLevel: utils.getFromLookup(value, {OFF: 1, ON: 3})});
+            } else {
                 return {state: {[key]: "OFF"}};
             }
         },
@@ -1092,13 +1092,16 @@ export const definitions: DefinitionWithExtend[] = [
                 .withUnit("%")
                 .withValueMin(0)
                 .withValueMax(100)
-                .withDescription("Remaining battery in % for smoke sensor, For reference, two batteries are used. " +
-                    "One is for Smoke sensor, the other is for Zigbee.")
+                .withDescription(
+                    "Remaining battery in % for smoke sensor, For reference, two batteries are used. " +
+                        "One is for Smoke sensor, the other is for Zigbee.",
+                )
                 .withCategory("diagnostic"),
             e
                 .binary("force_smoke_alarm", ea.STATE_SET, "ON", "OFF")
-                .withDescription("Forcibly activating/deactivating smoke alarms. This command is only available " +
-                    "when Remote control permission is True."),
+                .withDescription(
+                    "Forcibly activating/deactivating smoke alarms. This command is only available " + "when Remote control permission is True.",
+                ),
         ],
         extend: [
             m.battery(),
