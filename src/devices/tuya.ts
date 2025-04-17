@@ -7264,7 +7264,8 @@ export const definitions: DefinitionWithExtend[] = [
                 switchType: true,
                 onOffCountdown: true,
                 endpoints: ["left", "right"],
-            }),
+            }), 
+        m.forcePowerSource({powerSource: "Mains (single phase)"})
         ],
         endpoint: (device) => {
             return {left: 1, right: 2};
@@ -7324,6 +7325,7 @@ export const definitions: DefinitionWithExtend[] = [
                 onOffCountdown: true,
                 endpoints: ["left", "center", "right"],
             }),
+            m.forcePowerSource({powerSource: "Mains (single phase)"})
         ],
         endpoint: (device) => {
             return {left: 1, center: 2, right: 3};
