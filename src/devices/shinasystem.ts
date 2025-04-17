@@ -231,7 +231,7 @@ const tzLocal = {
         key: ["force_smoke_alarm"],
         convertSet: async (entity, key, value, meta) => {
             const endpoint = meta.device.getEndpoint(1);
-            const currentZoneSensitivityLevel = endpoint.getClusterAttributeValue("ssIasZone", "currentZoneSensitivityLevel");
+            const currentZoneSensitivityLevel = endpoint.getClusterAttributeValue("ssIasZone", "currentZoneSensitivityLevel") as number;
             if (currentZoneSensitivityLevel & 0x01) {
                 // if remote control permission is true
                 await entity.write("ssIasZone", {currentZoneSensitivityLevel: utils.getFromLookup(value, {OFF: 1, ON: 3})});
