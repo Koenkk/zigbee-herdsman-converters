@@ -672,15 +672,18 @@ export const color_colortemp: Fz.Converter = {
         const result: KeyValueAny = {};
 
         if (msg.data.colorTemperature !== undefined) {
-            result.color_temp = msg.data.colorTemperature;
+            const color_temp = postfixWithEndpointName("color_temp", msg, model, meta);
+            result[color_temp] = msg.data.colorTemperature;
         }
 
         if (msg.data.startUpColorTemperature !== undefined) {
-            result.color_temp_startup = msg.data.startUpColorTemperature;
+            const color_temp_startup = postfixWithEndpointName("color_temp_startup", msg, model, meta);
+            result[color_temp_startup] = msg.data.startUpColorTemperature;
         }
 
         if (msg.data.colorMode !== undefined) {
-            result.color_mode =
+            const color_mode = postfixWithEndpointName("color_mode", msg, model, meta);
+            result[color_mode] =
                 constants.colorModeLookup[msg.data.colorMode] !== undefined ? constants.colorModeLookup[msg.data.colorMode] : msg.data.colorMode;
         }
 
@@ -691,22 +694,23 @@ export const color_colortemp: Fz.Converter = {
             msg.data.currentHue !== undefined ||
             msg.data.enhancedCurrentHue !== undefined
         ) {
-            result.color = {};
+            const color = postfixWithEndpointName("color", msg, model, meta);
+            result[color] = {};
 
             if (msg.data.currentX !== undefined) {
-                result.color.x = mapNumberRange(msg.data.currentX, 0, 65535, 0, 1, 4);
+                result[color].x = mapNumberRange(msg.data.currentX, 0, 65535, 0, 1, 4);
             }
             if (msg.data.currentY !== undefined) {
-                result.color.y = mapNumberRange(msg.data.currentY, 0, 65535, 0, 1, 4);
+                result[color].y = mapNumberRange(msg.data.currentY, 0, 65535, 0, 1, 4);
             }
             if (msg.data.currentSaturation !== undefined) {
-                result.color.saturation = mapNumberRange(msg.data.currentSaturation, 0, 254, 0, 100);
+                result[color].saturation = mapNumberRange(msg.data.currentSaturation, 0, 254, 0, 100);
             }
             if (msg.data.currentHue !== undefined) {
-                result.color.hue = mapNumberRange(msg.data.currentHue, 0, 254, 0, 360, 0);
+                result[color].hue = mapNumberRange(msg.data.currentHue, 0, 254, 0, 360, 0);
             }
             if (msg.data.enhancedCurrentHue !== undefined) {
-                result.color.hue = mapNumberRange(msg.data.enhancedCurrentHue, 0, 65535, 0, 360, 1);
+                result[color].hue = mapNumberRange(msg.data.enhancedCurrentHue, 0, 65535, 0, 360, 1);
             }
         }
 
@@ -717,7 +721,8 @@ export const color_colortemp: Fz.Converter = {
              * 0   | 0: Do not execute command if the On/Off cluster, OnOff attribute is 0x00 (FALSE)
              *     | 1: Execute command if the On/Off cluster, OnOff attribute is 0x00 (FALSE)
              */
-            result.color_options = {execute_if_off: (msg.data.options & (1 << 0)) > 0};
+            const color_options = postfixWithEndpointName("color_options", msg, model, meta);
+            result[color_options] = {execute_if_off: (msg.data.options & (1 << 0)) > 0};
         }
 
         // handle color property sync
