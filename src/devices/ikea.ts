@@ -363,10 +363,10 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight(), m.identify()],
     },
     {
-        zigbeeModel: ["TRADFRI bulb GU10 CWS 345lm", "TRADFRI bulb GU10 CWS 380lm"],
+        zigbeeModel: ["TRADFRI bulb GU10 CWS 380lm"],
         model: "LED1923R5",
         vendor: "IKEA",
-        description: "TRADFRI bulb GU10, color/white spectrum, 345/380 lm",
+        description: "TRADFRI bulb GU10, color/white spectrum, 380 lm",
         extend: [
             addCustomClusterManuSpecificIkeaUnknown(),
             ikeaLight({colorTemp: {range: [153, 500], viaColor: true}, color: true}), // light is pure RGB (XY), advertise 2000K-6500K
@@ -385,6 +385,13 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "IKEA",
         description: "TRADFRI bulb GU10, white spectrum, 345/380 lm",
         extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({colorTemp: true}), m.identify()],
+    },
+    {
+        zigbeeModel: ["TRADFRI bulb GU10 CWS 345lm"],
+        model: "LED2110R3",
+        vendor: "IKEA",
+        description: "TRADFRI bulb GU10, color/white spectrum, 345 lm",
+        extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({colorTemp: {range: [250, 454]}, color: true}), m.identify()],
     },
     // #endregion GU10
     // #region light panels
