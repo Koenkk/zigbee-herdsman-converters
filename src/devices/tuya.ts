@@ -3875,11 +3875,20 @@ export const definitions: DefinitionWithExtend[] = [
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "haElectricalMeasurement", "seMetering"]);
-            await reporting.rmsVoltage(endpoint, {change: 5});
-            await reporting.rmsCurrent(endpoint, {change: 50});
-            await reporting.activePower(endpoint, {change: 10});
-            await reporting.currentSummDelivered(endpoint);
+            /*
+            https://github.com/Koenkk/zigbee2mqtt/issues/27090
+            INVALID_DATA_TYPE error for _TZ3000_xkap8wtb, appVersion:162 softwareBuildID: 0122052017
+            */
+            if ("_TZ3000_xkap8wtb" == device.manufacturerName && 162 == device.applicationVersion) {
+                logger.warning('Detected TS0001 _TZ3000_xkap8wtb switch appVersion:162. Skip reporting for haElectricalMeasurement and seMeteringreporting');
+                await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff"]);
+            } else {
+                await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "haElectricalMeasurement", "seMetering"]);
+                await reporting.rmsVoltage(endpoint, {change: 5});
+                await reporting.rmsCurrent(endpoint, {change: 50});
+                await reporting.activePower(endpoint, {change: 10});
+                await reporting.currentSummDelivered(endpoint);
+            }
             endpoint.saveClusterAttributeKeyValue("haElectricalMeasurement", {
                 acCurrentDivisor: 1000,
                 acCurrentMultiplier: 1,
