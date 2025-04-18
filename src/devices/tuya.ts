@@ -3880,7 +3880,6 @@ export const definitions: DefinitionWithExtend[] = [
             INVALID_DATA_TYPE error for _TZ3000_xkap8wtb, appVersion:162 softwareBuildID: 0122052017
             */
             if ("_TZ3000_xkap8wtb" === device.manufacturerName && 162 === device.applicationVersion) {
-                logger.warning('Detected TS0001 _TZ3000_xkap8wtb switch appVersion:162. Skip reporting for haElectricalMeasurement and seMeteringreporting');
                 await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff"]);
             } else {
                 await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "haElectricalMeasurement", "seMetering"]);
