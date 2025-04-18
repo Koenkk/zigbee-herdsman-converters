@@ -1,5 +1,23 @@
 # Changelog
 
+## [23.30.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.29.0...v23.30.0) (2025-04-18)
+
+
+### Features
+
+* **add:** 3RSPE02065Z, 3RSPU01080Z ([#9192](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9192)) ([c9281ca](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c9281ca7c1c7df60fcadca496c3f5b7a0758dac1))
+* **add:** 5480 ([#9190](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9190)) ([141de11](https://github.com/Koenkk/zigbee-herdsman-converters/commit/141de115c2d379a9dc948556316baeb77e266b06))
+* **add:** FAM-300Z ([#9201](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9201)) ([9936e80](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9936e8022660c52ebe2d48242e15857b519ae2b2))
+* **add:** LED2110R3 ([#9199](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9199)) ([eded590](https://github.com/Koenkk/zigbee-herdsman-converters/commit/eded59090ab9560c133999d25175762d282e7ba0))
+* **add:** LZWSM16-1 ([#9194](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9194)) ([4ba993e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4ba993e416fbfd71e6d48d640ae2762c88e067b2))
+
+
+### Bug Fixes
+
+* AVATTO LZWSM16-2 & LZWSM16-3: fix power source ([#9198](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9198)) ([b008a5a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b008a5a0dd077a609fe1b25adf013a29233fd9a3))
+* Fix color temp not reported correctly for multi endpoint lights ([#9196](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9196)) ([e2a08b4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e2a08b4eb1aaa23a2444a57b14ed37f793ac03ff))
+* Iluminize 5110.40: enable reporting ([#9200](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9200)) ([83721f0](https://github.com/Koenkk/zigbee-herdsman-converters/commit/83721f0b220ced17ee446c674fad0598a873edb3))
+
 ## [23.29.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.28.0...v23.29.0) (2025-04-16)
 
 
