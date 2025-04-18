@@ -83,7 +83,7 @@ const fzLocal = {
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.batteryVoltage !== undefined) {
-                return { smoke_battery: utils.batteryVoltageToPercentage(msg.data.batteryVoltage * 100, {min: 2300, max: 3100})};
+                return {smoke_battery: utils.batteryVoltageToPercentage(msg.data.batteryVoltage * 100, {min: 2300, max: 3100})};
             }
         },
     } satisfies Fz.Converter,
@@ -230,11 +230,10 @@ const tzLocal = {
         convertSet: async (entity, key, value, meta) => {
             const endpoint = meta.device.getEndpoint(1);
             const remote_control_permission = Number(endpoint.getClusterAttributeValue("ssIasZone", "currentZoneSensitivityLevel"));
-            if(remote_control_permission & 1) {
+            if (remote_control_permission & 1) {
                 // if remote control permission is true
-                await entity.write("ssIasZone", {currentZoneSensitivityLevel: utils.getFromLookup(value, {"OFF": 1, "ON": 3})});
-            }
-            else {
+                await entity.write("ssIasZone", {currentZoneSensitivityLevel: utils.getFromLookup(value, {OFF: 1, ON: 3})});
+            } else {
                 return {state: {[key]: "OFF"}};
             }
         },
@@ -1075,46 +1074,49 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-            zigbeeModel: ["FAM-300Z"],
-            model: "FAM-300Z",
-            vendor: "ShinaSystem",
-            ota: true,
-            description: "SiHAS Smoke detector",
-            fromZigbee: [fzLocal.ias_zone_sensitivity, fzLocal.smoke_battery],
-            toZigbee: [tzLocal.force_smoke_alarm],
-            extend: [
-                m.iasZoneAlarm({
-                    zoneType: "smoke",
-                    zoneAttributes: ["alarm_1"],
-                    zoneStatusReporting: true,
-                }),
-                m.battery(),
-            ],
-            exposes: [
-                e
-                    .binary("remote_control_permission", ea.STATE, "True", "False")
-                    .withDescription("Indicate whether remote control is permitted or denied."),
-                e
-                    .binary("force_smoke_alarm", ea.STATE_SET, "ON", "OFF")
-                    .withDescription("Forcibly activating/deactivating smoke alarms. This command is only available " +
-                        "when Remote control permission is True."),
-                e
-                    .numeric("smoke_battery", ea.STATE)
-                    .withUnit("%")
-                    .withValueMin(0)
-                    .withValueMax(100)
-                    .withDescription("Remaining battery in % for smoke sensor, For reference, two batteries are used. " +
-                        "One is for Smoke sensor, the other is for Zigbee.")
-                    .withCategory("diagnostic"),
-            ],
-            configure: async (device, coordinatorEndpoint) => {
-                const endpoint = device.getEndpoint(1);
-                const binds = ["genPowerCfg", "ssIasZone"];
-                await reporting.bind(endpoint, coordinatorEndpoint, binds);
-                await reporting.batteryVoltage(endpoint, {min: 30, max: 21600, change: 1});
-                const payload = reporting.payload("currentZoneSensitivityLevel", 0, 7200, 1);
-                await endpoint.configureReporting("ssIasZone", payload);
-                await endpoint.read("ssIasZone", ["currentZoneSensitivityLevel"]);
-            },
+        zigbeeModel: ["FAM-300Z"],
+        model: "FAM-300Z",
+        vendor: "ShinaSystem",
+        ota: true,
+        description: "SiHAS Smoke detector",
+        fromZigbee: [fzLocal.ias_zone_sensitivity, fzLocal.smoke_battery],
+        toZigbee: [tzLocal.force_smoke_alarm],
+        extend: [
+            m.iasZoneAlarm({
+                zoneType: "smoke",
+                zoneAttributes: ["alarm_1"],
+                zoneStatusReporting: true,
+            }),
+            m.battery(),
+        ],
+        exposes: [
+            e
+                .binary("remote_control_permission", ea.STATE, "True", "False")
+                .withDescription("Indicate whether remote control is permitted or denied."),
+            e
+                .binary("force_smoke_alarm", ea.STATE_SET, "ON", "OFF")
+                .withDescription(
+                    "Forcibly activating/deactivating smoke alarms. This command is only available " + "when Remote control permission is True.",
+                ),
+            e
+                .numeric("smoke_battery", ea.STATE)
+                .withUnit("%")
+                .withValueMin(0)
+                .withValueMax(100)
+                .withDescription(
+                    "Remaining battery in % for smoke sensor, For reference, two batteries are used. " +
+                        "One is for Smoke sensor, the other is for Zigbee.",
+                )
+                .withCategory("diagnostic"),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            const binds = ["genPowerCfg", "ssIasZone"];
+            await reporting.bind(endpoint, coordinatorEndpoint, binds);
+            await reporting.batteryVoltage(endpoint, {min: 30, max: 21600, change: 1});
+            const payload = reporting.payload("currentZoneSensitivityLevel", 0, 7200, 1);
+            await endpoint.configureReporting("ssIasZone", payload);
+            await endpoint.read("ssIasZone", ["currentZoneSensitivityLevel"]);
         },
+    },
 ];
