@@ -683,7 +683,13 @@ export class Color {
  * @returns state with color, color_temp, and color_mode set and synchronized from newState's attributes
  *          (other attributes are not included make sure to merge yourself)
  */
-export function syncColorState(newState: KeyValueAny, oldState: KeyValueAny, endpoint: Zh.Endpoint | Zh.Group, options: KeyValue, epPostfix?: String): KeyValueAny {
+export function syncColorState(
+    newState: KeyValueAny,
+    oldState: KeyValueAny,
+    endpoint: Zh.Endpoint | Zh.Group,
+    options: KeyValue,
+    epPostfix?: string,
+): KeyValueAny {
     const colorTargets = [];
     const colorSync = options && options.color_sync !== undefined ? options.color_sync : true;
     const result: KeyValueAny = {};
@@ -691,10 +697,10 @@ export function syncColorState(newState: KeyValueAny, oldState: KeyValueAny, end
 
     const keyPostfix = epPostfix ? epPostfix : "";
     const keys = {
-        "color": `color${keyPostfix}`,
-        "color_mode": `color_mode${keyPostfix}`,
-        "color_temp": `color_temp${keyPostfix}`,
-    }
+        color: `color${keyPostfix}`,
+        color_mode: `color_mode${keyPostfix}`,
+        color_temp: `color_temp${keyPostfix}`,
+    };
 
     // check if color sync is enabled
     if (!colorSync) {
