@@ -28,7 +28,7 @@ const e = exposes.presets;
 const ea = exposes.access;
 
 const defaultReporting = {min: 0, max: 300, change: 0};
-const co2Reporting = {min: 10, max: 300, change: 0.000001};
+const ppmReporting = {min: 10, max: 300, change: 0.000001};
 const batteryReporting = {min: 3600, max: 0, change: 0};
 
 const model_r01 = "Tuya_Thermostat_r01";
@@ -940,7 +940,41 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SLACKY_DIY_CO2_SENSOR_R01",
         vendor: "Slacky-DIY",
         description: "Tuya CO2 sensor with custom Firmware",
-        extend: [m.co2({reporting: co2Reporting})],
+        extend: [m.co2({reporting: ppmReporting})],
+        ota: true,
+    },
+    {
+        zigbeeModel: ["Tuya_CO2Sensor_r02"],
+        model: "SLACKY_DIY_CO2_SENSOR_R02",
+        vendor: "Slacky-DIY",
+        description: "Tuya CO2 sensor with custom Firmware",
+        extend: [
+            m.co2({reporting: ppmReporting}),
+            m.numeric({
+                name: "Formaldehyde",
+                access: "STATE_GET",
+                cluster: "msFormaldehyde",
+                attribute: "measuredValue",
+                reporting: ppmReporting,
+                unit: "ppm",
+                scale: 0.000001,
+                precision: 2,
+                description: "Measured Formaldehyde value",
+            }),
+            m.numeric({
+                name: "VOC",
+                access: "STATE_GET",
+                cluster: "genAnalogInput",
+                attribute: "presentValue",
+                reporting: ppmReporting,
+                unit: "ppm",
+                scale: 0.000001,
+                precision: 2,
+                description: "Measured VOC value",
+            }),
+            m.temperature(),
+            m.humidity(),
+        ],
         ota: true,
     },
     {
