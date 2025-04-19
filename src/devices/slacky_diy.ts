@@ -951,7 +951,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.co2({reporting: ppmReporting}),
             m.numeric({
-                name: "Formaldehyde",
+                name: "formaldehyde",
                 access: "STATE_GET",
                 cluster: "msFormaldehyde",
                 attribute: "measuredValue",
