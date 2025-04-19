@@ -16864,4 +16864,61 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_1drr8tab"]),
+        model: "XZ-AKT101",
+        vendor: "Tuya",
+        description: "Intelligent air conditioning wall switch",
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEventSetTime,
+        configure: tuya.configureMagicPacket,
+        ota: true,
+        exposes: [
+            e.binary("air_switch", ea.STATE_SET, true, false),
+            e.child_lock(),
+            e
+                .climate()
+                .withLocalTemperature(ea.STATE)
+                .withSetpoint("current_heating_setpoint", 20, 30, 0.5, ea.STATE_SET)
+                .withSystemMode(["cool", "heat", "fan_only"], ea.STATE_SET, "Only for Homeassistant")
+                .withFanMode(["low", "medium", "high", "auto"]),
+            e
+                .numeric("boost_time", ea.STATE_SET)
+                .withUnit("H")
+                .withDescription("Boost running time. Minimum 0 - maximum 24 hours")
+                .withValueMin(0)
+                .withValueMax(24)
+                .withValueStep(0.5)
+                .withCategory("config"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "air_switch", tuya.valueConverter.raw],
+                [
+                    2,
+                    "system_mode",
+                    tuya.valueConverterBasic.lookup({
+                        heat: tuya.enum(1),
+                        cool: tuya.enum(0),
+                        fan_only: tuya.enum(2),
+                    }),
+                ],
+                [
+                    28,
+                    "fan_mode",
+                    tuya.valueConverterBasic.lookup({
+                        low: tuya.enum(0),
+                        medium: tuya.enum(1),
+                        high: tuya.enum(2),
+                        auto: tuya.enum(3),
+                    }),
+                ],
+                [16, "current_heating_setpoint", tuya.valueConverter.divideBy10],
+                [24, "local_temperature", tuya.valueConverter.divideBy10],
+                [40, "child_lock", tuya.valueConverter.lockUnlock],
+                [101, "boost_time", tuya.valueConverter.divideBy10],
+            ],
+        },
+    },
 ];
