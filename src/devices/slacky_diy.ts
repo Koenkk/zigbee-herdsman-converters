@@ -962,7 +962,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Measured Formaldehyde value",
             }),
             m.numeric({
-                name: "VOC",
+                name: "voc",
                 access: "STATE_GET",
                 cluster: "genAnalogInput",
                 attribute: "presentValue",
