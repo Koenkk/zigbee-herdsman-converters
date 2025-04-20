@@ -2309,6 +2309,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light()],
     },
     {
+        zigbeeModel: ["915005988602"],
+        model: "915005988602",
+        vendor: "Philips",
+        description: "Hue Play gradient light tube large",
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true, gradient: true})],
+    },
+    {
         zigbeeModel: ["5055148P7"],
         model: "5055148P7",
         vendor: "Philips",

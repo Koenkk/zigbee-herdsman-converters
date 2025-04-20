@@ -672,15 +672,18 @@ export const color_colortemp: Fz.Converter = {
         const result: KeyValueAny = {};
 
         if (msg.data.colorTemperature !== undefined) {
-            result.color_temp = msg.data.colorTemperature;
+            const color_temp = postfixWithEndpointName("color_temp", msg, model, meta);
+            result[color_temp] = msg.data.colorTemperature;
         }
 
         if (msg.data.startUpColorTemperature !== undefined) {
-            result.color_temp_startup = msg.data.startUpColorTemperature;
+            const color_temp_startup = postfixWithEndpointName("color_temp_startup", msg, model, meta);
+            result[color_temp_startup] = msg.data.startUpColorTemperature;
         }
 
         if (msg.data.colorMode !== undefined) {
-            result.color_mode =
+            const color_mode = postfixWithEndpointName("color_mode", msg, model, meta);
+            result[color_mode] =
                 constants.colorModeLookup[msg.data.colorMode] !== undefined ? constants.colorModeLookup[msg.data.colorMode] : msg.data.colorMode;
         }
 
@@ -691,22 +694,23 @@ export const color_colortemp: Fz.Converter = {
             msg.data.currentHue !== undefined ||
             msg.data.enhancedCurrentHue !== undefined
         ) {
-            result.color = {};
+            const color = postfixWithEndpointName("color", msg, model, meta);
+            result[color] = {};
 
             if (msg.data.currentX !== undefined) {
-                result.color.x = mapNumberRange(msg.data.currentX, 0, 65535, 0, 1, 4);
+                result[color].x = mapNumberRange(msg.data.currentX, 0, 65535, 0, 1, 4);
             }
             if (msg.data.currentY !== undefined) {
-                result.color.y = mapNumberRange(msg.data.currentY, 0, 65535, 0, 1, 4);
+                result[color].y = mapNumberRange(msg.data.currentY, 0, 65535, 0, 1, 4);
             }
             if (msg.data.currentSaturation !== undefined) {
-                result.color.saturation = mapNumberRange(msg.data.currentSaturation, 0, 254, 0, 100);
+                result[color].saturation = mapNumberRange(msg.data.currentSaturation, 0, 254, 0, 100);
             }
             if (msg.data.currentHue !== undefined) {
-                result.color.hue = mapNumberRange(msg.data.currentHue, 0, 254, 0, 360, 0);
+                result[color].hue = mapNumberRange(msg.data.currentHue, 0, 254, 0, 360, 0);
             }
             if (msg.data.enhancedCurrentHue !== undefined) {
-                result.color.hue = mapNumberRange(msg.data.enhancedCurrentHue, 0, 65535, 0, 360, 1);
+                result[color].hue = mapNumberRange(msg.data.enhancedCurrentHue, 0, 65535, 0, 360, 1);
             }
         }
 
@@ -717,13 +721,18 @@ export const color_colortemp: Fz.Converter = {
              * 0   | 0: Do not execute command if the On/Off cluster, OnOff attribute is 0x00 (FALSE)
              *     | 1: Execute command if the On/Off cluster, OnOff attribute is 0x00 (FALSE)
              */
-            result.color_options = {execute_if_off: (msg.data.options & (1 << 0)) > 0};
+            const color_options = postfixWithEndpointName("color_options", msg, model, meta);
+            result[color_options] = {execute_if_off: (msg.data.options & (1 << 0)) > 0};
         }
+
+        // Use postfixWithEndpointName with an empty value to get just the postfix that
+        // needs to be added to the result key.
+        const epPostfix = postfixWithEndpointName("", msg, model, meta);
 
         // handle color property sync
         // NOTE: this should the last thing we do, as we need to have processed all attributes,
         //       we use assign here so we do not lose other attributes.
-        return Object.assign(result, libColor.syncColorState(result, meta.state, msg.endpoint, options));
+        return Object.assign(result, libColor.syncColorState(result, meta.state, msg.endpoint, options, epPostfix));
     },
 };
 export const meter_identification: Fz.Converter = {
@@ -2101,34 +2110,41 @@ export const tuya_led_controller: Fz.Converter = {
 
         if (msg.data.colorTemperature !== undefined) {
             const value = Number(msg.data.colorTemperature);
-            result.color_temp = mapNumberRange(value, 0, 255, 500, 153);
+            const color_temp = postfixWithEndpointName("color_temp", msg, model, meta);
+            result[color_temp] = mapNumberRange(value, 0, 255, 500, 153);
         }
 
         if (msg.data.tuyaBrightness !== undefined) {
-            result.brightness = msg.data.tuyaBrightness;
+            const brightness = postfixWithEndpointName("brightness", msg, model, meta);
+            result[brightness] = msg.data.tuyaBrightness;
         }
 
         if (msg.data.tuyaRgbMode !== undefined) {
+            const color_mode = postfixWithEndpointName("color_mode", msg, model, meta);
             if (msg.data.tuyaRgbMode === 1) {
-                result.color_mode = constants.colorModeLookup[0];
+                result[color_mode] = constants.colorModeLookup[0];
             } else {
-                result.color_mode = constants.colorModeLookup[2];
+                result[color_mode] = constants.colorModeLookup[2];
             }
         }
 
-        result.color = {};
+        const color = postfixWithEndpointName("color", msg, model, meta);
+        result[color] = {};
 
         if (msg.data.currentHue !== undefined) {
-            result.color.hue = mapNumberRange(msg.data.currentHue, 0, 254, 0, 360);
-            result.color.h = result.color.hue;
+            result[color].hue = mapNumberRange(msg.data.currentHue, 0, 254, 0, 360);
+            result[color].h = result[color].hue;
         }
 
         if (msg.data.currentSaturation !== undefined) {
-            result.color.saturation = mapNumberRange(msg.data.currentSaturation, 0, 254, 0, 100);
-            result.color.s = result.color.saturation;
+            result[color].saturation = mapNumberRange(msg.data.currentSaturation, 0, 254, 0, 100);
+            result[color].s = result[color].saturation;
         }
 
-        return Object.assign(result, libColor.syncColorState(result, meta.state, msg.endpoint, options));
+        // Use postfixWithEndpointName with an empty value to get just the postfix that
+        // can be added to the result keys.
+        const epPostfix = postfixWithEndpointName("", msg, model, meta);
+        return Object.assign(result, libColor.syncColorState(result, meta.state, msg.endpoint, options, epPostfix));
     },
 };
 export const wiser_device_info: Fz.Converter = {

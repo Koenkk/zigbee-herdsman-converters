@@ -216,6 +216,7 @@ import {definitions as onenuo} from "./onenuo";
 import {definitions as onesti} from "./onesti";
 import {definitions as openlumi} from "./openlumi";
 import {definitions as orvibo} from "./orvibo";
+import {definitions as orztech} from "./orztech";
 import {definitions as osram} from "./osram";
 import {definitions as oujiabao} from "./oujiabao";
 import {definitions as owon} from "./owon";
@@ -552,12 +553,13 @@ const definitions: DefinitionWithExtend[] = [
     ...onesti,
     ...openlumi,
     ...orvibo,
+    ...orztech,
     ...osram,
     ...oujiabao,
     ...owon,
     ...ozsmartthings,
-    ...paulNeuhaus,
     ...paulmann,
+    ...paulNeuhaus,
     ...peq,
     ...perenio,
     ...philio,
