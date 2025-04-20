@@ -25,6 +25,323 @@ const fzZosung = zosung.fzZosung;
 const tzZosung = zosung.tzZosung;
 const ez = zosung.presetsZosung;
 
+//START @Liionboy
+
+import { Buffer } from 'buffer'; // Necesită Buffer
+import { precisionRound } from '../lib/utils'; // Necesită precisionRound
+
+const parseScheduleData = (buffer: Buffer | number[]): string | null => {
+    if (!Buffer.isBuffer(buffer) || buffer.length === 0 || buffer.length % 3 !== 0) return null;
+    const periods: string[] = [];
+    try {
+        for (let i = 0; i < buffer.length; i += 3) {
+            const hour = buffer.readUInt8(i);
+            const minute = buffer.readUInt8(i + 1);
+            const tempRaw = buffer.readUInt8(i + 2);
+            const tempCelsius = precisionRound(tempRaw / 1, 1);
+            if (hour > 23 || minute > 59) continue;
+            const timeStr = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+            periods.push(`${timeStr}/${tempCelsius.toFixed(1)}°C`);
+        }
+        return periods.length > 0 ? periods.join(' ') : null;
+    } catch (e: any) {
+        logger.warning(`parseScheduleData failed: ${e}`, NS); // Utilizează logger.warning
+        return null;
+    }
+};
+
+// Folosește tipuri de bază disponibile global
+const parseInputScheduleString = (scheduleString: string, expectedPeriods: number): Buffer | null => {
+    if (typeof scheduleString !== 'string') return null;
+    const periods = scheduleString.trim().split(/\s+/);
+    if (periods.length === 1 && periods[0] === '' && scheduleString.trim() === '') periods.shift();
+    if (periods.length !== expectedPeriods) {
+        if (scheduleString.trim() === '' && expectedPeriods > 0) {
+             return Buffer.from([]);
+        }
+        logger.warning(`parseInputScheduleString: Invalid number of periods: ${periods.length}. Expected ${expectedPeriods}. Input: "${scheduleString}"`, NS); // Utilizează logger.warning
+        return null;
+    }
+
+    const dataBytes: number[] = [];
+    for (const period of periods) {
+        const parts = period.split('/'); if (parts.length !== 2) { logger.warning(`Invalid period format: ${period}`, NS); return null; } // Utilizează logger.warning
+        const timeParts = parts[0].split(':'); if (timeParts.length !== 2) { logger.warning(`Invalid time format in period: ${period}`, NS); return null; } // Utilizează logger.warning
+        const hour = parseInt(timeParts[0], 10);
+        const minute = parseInt(timeParts[1], 10);
+        const tempStr = parts[1].replace(/°C/i, '');
+        const tempCelsius = parseFloat(tempStr);
+        if (isNaN(hour) || hour < 0 || hour > 23 || isNaN(minute) || minute < 0 || minute > 59 || isNaN(tempCelsius)) {
+             logger.warning(`Invalid time or temp value in period: ${period}`, NS); return null; // Utilizează logger.warning
+        }
+        const tempRaw = Math.round(tempCelsius * 1);
+        if (tempRaw < 0 || tempRaw > 255) {
+             logger.warning(`Calculated raw temp out of bounds (0-255) for period ${period}: ${tempRaw}`, NS); return null; // Utilizează logger.warning
+        }
+        dataBytes.push(hour, minute, tempRaw);
+    }
+    return Buffer.from(dataBytes);
+};
+const totalPeriodsPerDay = 6;
+
+// --- Convertoare Custom folosite în meta.tuyaDatapoints (apelate de tuya.fz.datapoints / tuya.tz.datapoints) ---
+// Castează la `any` pentru a ocoli problemas de tipare cu "Converter", "Tuya.DpValue", "Fz.Message"
+const fzScheduleConverter: any = { // Castează aicea
+    from: (value: any, meta: any, options: any, publish: any, msg: any) => { // Castează parametrii la any
+        const tuyaData = msg?.data; // Accesează data
+        const dpValue = tuyaData?.dpValues?.find((d: any) => d.dp === tuyaData?.dp); // Castează DpValue la any
+
+        let buffer: Buffer | number[] | undefined;
+        if (dpValue && Buffer.isBuffer(dpValue.data)) {
+             buffer = dpValue.data;
+        } else if (Buffer.isBuffer(tuyaData)) {
+             buffer = tuyaData;
+        }
+
+        if (!buffer) {
+            logger.warning(`fzScheduleConverter received non-buffer data`, NS);
+            return {};
+        }
+
+        if (!meta || typeof meta.state === 'undefined') meta.state = {}; // Initializează meta.state
+
+        const dp = tuyaData?.dp; // Accesează dp
+        if (typeof dp === 'undefined') {
+             logger.warning(`fzScheduleConverter could not determine DP ID from message`, NS);
+             return {};
+        }
+
+        const isWorkday = (dp === 119 || dp === 120);
+        const stateKeyPart1 = isWorkday ? 'schedule_workday_part1_parsed' : 'schedule_restday_part1_parsed';
+        const stateKeyPart2 = isWorkday ? 'schedule_restday_part2_parsed' : 'schedule_restday_part2_parsed';
+        const isPart1 = (dp === 119 || dp === 121);
+        const currentKey = isPart1 ? stateKeyPart1 : stateKeyPart2;
+
+        const parsedValue = parseScheduleData(buffer);
+
+        if (typeof meta.state === 'object') {
+             meta.state[currentKey] = parsedValue;
+        } else {
+             meta.state = { [currentKey]: parsedValue };
+        }
+
+        const part1Stored = meta.state?.[stateKeyPart1];
+        const part2Stored = meta.state?.[stateKeyPart2];
+
+        const finalPart1 = isPart1 ? parsedValue : part1Stored;
+        const finalPart2 = !isPart1 ? parsedValue : part2Stored;
+
+        if (finalPart1 && finalPart2) {
+             const finalKey = isWorkday ? 'schedule_workday' : 'schedule_restday';
+             const combinedSchedule = `${finalPart1} ${finalPart2}`;
+             return {[finalKey]: combinedSchedule};
+        } else {
+             return {};
+        }
+    }
+};
+
+// Castează la `any`
+const tuyaTempUnitConverter: any = {
+    from: (value: any, meta: any, options: any, publish: any, msg: any) => { // Castează parametrii
+        const dp = msg?.data?.dp; // Accesează dp
+        if (typeof value === 'boolean') {
+            return { temperature_unit: value ? 'fahrenheit' : 'celsius' };
+        }
+        logger.warning(`DP ${dp} (temperature_unit): Received non-boolean value: ${value} (Type: ${typeof value})`, NS);
+        return {};
+    },
+    to: (value: unknown, meta: any): boolean | undefined => { // Value unknown, Castează meta
+        if (value === 'celsius') return false;
+        else if (value === 'fahrenheit') return true;
+        logger.warning(`DP 101 (temperature_unit): Cannot set invalid value: ${value}`, NS);
+        return undefined;
+    },
+};
+
+// Castează la `any`
+const tuyaRunningStateConverter: any = {
+    from: (value: any, meta: any, options: any, publish: any, msg: any) => { // Castează parametrii
+        const dp = msg?.data?.dp; // Accesează dp
+        if (typeof value === 'boolean') {
+            if (value === false) {
+                return { running_state: 'idle' };
+            } else {
+                 const currentSystemMode = meta.state?.system_mode;
+                 if (meta.state?.state === 'ON' && (currentSystemMode === 'heat' || currentSystemMode === 'cool')) {
+                      // ok
+                 } else {
+                     logger.warning(`DP ${dp} (running_state) is TRUE, but system_mode is '${currentSystemMode}' and state is '${meta.state?.state}'. Reporting 'idle'.`, NS);
+                 }
+                 if (currentSystemMode === 'heat') return { running_state: 'heat' };
+                 else if (currentSystemMode === 'cool') return { running_state: 'cool' };
+                 else {
+                     return { running_state: 'idle' };
+                 }
+            }
+        }
+        logger.warning(`DP ${dp} (running_state): Received non-boolean value: ${value} (Type: ${typeof value})`, NS);
+        return {};
+    },
+};
+
+
+// --- Convertoare Custom listate direct în array-ul toZigbee ---
+// Castează la `any` pentru a ocoli problemas de tipare
+const tzLocal_schedule_type: any = { // Castează aicea
+    key: ['schedule_type'],
+    convertSet: async (entity: any, key: string, value: unknown, meta: any): Promise<any> => { // Castează entity, meta, tipul returnat
+        const lookup: {[s: string]: number} = {'5+2': 0, '6+1': 1, '7': 2};
+        if (typeof value === 'string' && lookup.hasOwnProperty(value)) {
+            const dpValue = lookup[value];
+            // Apel prin obiectul tuya (castat la any)
+            await (tuya as any).sendDataPointEnum(entity, 118, dpValue);
+            return { state: { [key]: value } };
+        } else {
+            logger.warning(`tzLocal_schedule_type: Cannot set invalid preset value: ${value}`, NS);
+            return {};
+        }
+    },
+    convertGet: async (entity: any, key: string, meta: any) => { // Castează entity, meta
+        // Apel prin obiectul tuya (castat la any)
+        await (tuya as any).getDataPointValue(entity, 118);
+    },
+};
+
+// Castează la `any`
+const tzLocal_power_on_behavior: any = {
+    key: ['power_on_behavior'],
+    convertSet: async (entity: any, key: string, value: unknown, meta: any): Promise<any> => { // Castează entity, meta, tipul returnat
+        const lookup: {[s: string]: number} = {'previous': 0, 'off': 1, 'on': 2};
+        if (typeof value === 'string' && lookup.hasOwnProperty(value)) {
+            const dpValue = lookup[value];
+            // Apel prin obiectul tuya (castat la any)
+            await (tuya as any).sendDataPointEnum(entity, 117, dpValue);
+            return { state: { [key]: value } };
+        } else {
+            logger.warning(`tzLocal_power_on_behavior: Cannot set invalid value: ${value}`, NS);
+            return {};
+        }
+    },
+    convertGet: async (entity: any, key: string, meta: any) => { // Castează entity, meta
+        // Apel prin obiectul tuya (castat la any)
+        await (tuya as any).getDataPointValue(entity, 117);
+    },
+};
+
+// Castează la `any`
+const tzLocal_schedule: any = {
+    key: ['schedule_workday', 'schedule_restday'],
+    convertSet: async (entity: any, key: string, value: unknown, meta: any): Promise<any> => { // Castează entity, meta, tipul returnat
+        if (typeof value !== 'string') {
+             logger.warning(`tzLocal_schedule: Received non-string value for ${key}: ${value}`, NS);
+             return {};
+        }
+        const scheduleString = value as string;
+
+        const isWorkday = (key === 'schedule_workday');
+        const dpPart1 = isWorkday ? 119 : 121;
+        const dpPart2 = isWorkday ? 120 : 122;
+        const expectedPeriods = totalPeriodsPerDay;
+
+        const buffer = parseInputScheduleString(scheduleString, expectedPeriods);
+        if (!buffer && buffer !== Buffer.from([])) {
+            throw new Error(`Invalid schedule format for ${key}: "${scheduleString}". Expected ${expectedPeriods} periods like "HH:MM/TT.T ..."`);
+        }
+
+        const periodsPerPart = expectedPeriods / 2;
+        const bytesPerPeriod = 3;
+        const splitIndex = Math.ceil(periodsPerPart) * bytesPerPeriod;
+
+         if (buffer.length !== expectedPeriods * bytesPerPeriod && buffer.length !== 0) {
+            logger.error(`Internal Error: Buffer length mismatch for ${key}. Expected ${expectedPeriods * bytesPerPeriod} or 0, got ${buffer.length}.`, NS);
+            throw new Error(`Internal Error: Buffer length mismatch for ${key}.`);
+         }
+
+         if (buffer.length === 0) {
+            logger.debug(`Setting empty schedule for ${key}. Sending empty buffer.`, NS);
+            // Apel prin obiectul tuya (castat la any)
+            await (tuya as any).sendDataPointRaw(entity, dpPart1, Buffer.from([]).toJSON().data);
+            await new Promise(resolve => setTimeout(resolve, 200));
+            // Apel prin obiectul tuya (castat la any)
+            await (tuya as any).sendDataPointRaw(entity, dpPart2, Buffer.from([]).toJSON().data);
+         } else {
+            if (splitIndex > buffer.length) {
+                logger.error(`Internal Error: Split index out of bounds for ${key}. Buffer length: ${buffer.length}, Split index: ${splitIndex}`, NS);
+                throw new Error(`Internal Error: Split index out of bounds for ${key}.`);
+            }
+
+            const bufferPart1 = buffer.subarray(0, splitIndex);
+            const bufferPart2 = buffer.subarray(splitIndex);
+
+            // Apel prin obiectul tuya (castat la any)
+            await (tuya as any).sendDataPointRaw(entity, dpPart1, bufferPart1.toJSON().data);
+            await new Promise(resolve => setTimeout(resolve, 200));
+            // Apel prin obiectul tuya (castat la any)
+            await (tuya as any).sendDataPointRaw(entity, dpPart2, bufferPart2.toJSON().data);
+         }
+
+        return { state: { [key]: scheduleString } };
+    },
+};
+
+// Castează la `any`
+const tzLocal_system_mode: any = {
+    key: ['system_mode'],
+    convertSet: async (entity: any, key: string, value: unknown, meta: any): Promise<any> => { // Castează entity, meta, tipul returnat
+         if (typeof value !== 'string') {
+             logger.warning(`tzLocal_system_mode: Received non-string value for ${key}: ${value}`, NS);
+             return {};
+         }
+         const modeValue = value as string;
+
+        if (modeValue === 'off') {
+            // Apel prin obiectul tuya (castat la any)
+            await (tuya as any).sendDataPointBool(entity, 125, false);
+            return { state: { system_mode: 'off', state: 'OFF' } };
+        } else if (modeValue === 'cool' || modeValue === 'heat') {
+            // Apel prin obiectul tuya (castat la any)
+            await (tuya as any).sendDataPointBool(entity, 125, true);
+            await new Promise(resolve => setTimeout(resolve, 150));
+            const dpValue = (modeValue === 'cool') ? 0 : 1;
+            // Apel prin obiectul tuya (castat la any)
+            await (tuya as any).sendDataPointEnum(entity, 49, dpValue);
+            return { state: { system_mode: modeValue, state: 'ON' } };
+        } else {
+            logger.warning(`Cannot set invalid system_mode: ${modeValue}`, NS);
+            return {};
+        }
+    },
+    convertGet: async (entity: any, key: string, meta: any) => { // Castează entity, meta
+        // Apel prin obiectul tuya (castat la any)
+        await (tuya as any).getDataPointValue(entity, 125);
+        await (tuya as any).getDataPointValue(entity, 49);
+    },
+};
+
+// Castează la `any`
+const tzLocal_preset: any = {
+    key: ['preset'],
+    convertSet: async (entity: any, key: string, value: unknown, meta: any): Promise<any> => { // Castează entity, meta, tipul returnat
+        const lookup: {[s: string]: number} = {'manual': 0, 'program': 1, 'holiday': 2, 'temporary_manual': 3};
+        if (typeof value === 'string' && lookup.hasOwnProperty(value)) {
+            const dpValue = lookup[value];
+            // Apel prin obiectul tuya (castat la any)
+            await (tuya as any).sendDataPointEnum(entity, 128, dpValue);
+            return { state: { [key]: value } };
+        } else {
+            logger.warning(`tzLocal_preset: Cannot set invalid preset value: ${value}`, NS);
+            return {};
+        }
+    },
+    convertGet: async (entity: any, key: string, meta: any) => { // Castează entity, meta
+        // Apel prin obiectul tuya (castat la any)
+        await (tuya as any).getDataPointValue(entity, 128);
+    },
+};
+
+//END @Liionboy
+
 const storeLocal = {
     getPrivatePJ1203A: (device: Zh.Device) => {
         let priv = globalStore.getValue(device, "private_state");
@@ -16918,6 +17235,113 @@ export const definitions: DefinitionWithExtend[] = [
                 [24, "local_temperature", tuya.valueConverter.divideBy10],
                 [40, "child_lock", tuya.valueConverter.lockUnlock],
                 [101, "boost_time", tuya.valueConverter.divideBy10],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_mzik0ov2']),
+        model: 'HY09RF-Zigbee',
+        vendor: 'Tuya',
+        description: 'Smart Thermostat Daver (Cool/Heat)',
+
+        fromZigbee: [
+            tuya.fz.datapoints, 
+            fz.ignore_basic_report, 
+            fz.ignore_tuya_set_time, 
+        ],
+
+        toZigbee: [
+            tzLocal_schedule_type,
+            tzLocal_power_on_behavior,
+            tzLocal_schedule,
+            tzLocal_system_mode,
+            tzLocal_preset,
+
+            tuya.tz.datapoints, 
+        ],
+
+        onEvent: tuya.onEventSetLocalTime, 
+
+        configure: async (device: any, coordinatorEndpoint: any) => { // Castează parametrii la any
+            const endpoint = device.getEndpoint(1);
+            try {
+                await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic', 'hvacThermostat']);
+                logger.info(`Successfully bound clusters for ${device.ieeeAddr}`, NS);
+            } catch (error: any) {
+                logger.warning(`Failed to bind clusters for ${device.ieeeAddr}: ${error}`, NS); // Utilizează logger.warning
+            }
+
+            await tuya.configureMagicPacket(device, coordinatorEndpoint); // Utilizează tuya.configureMagicPacket
+
+            const dpToQuery = [
+                 16, 50, 125, 49, 102, 109, 128, 103, 129, 114, 115, 110,
+                 117, 101, 130, 118, 104, 105, 119, 120, 121, 122
+             ];
+             try {
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                for (const dp of dpToQuery) {
+                     // Apelarea lui getDataPointValue prin obiectul tuya (castat la any)
+                     await (tuya as any).getDataPointValue(endpoint, dp); // Apel prin cast aici
+                     await new Promise(resolve => setTimeout(resolve, 50));
+                }
+                 logger.info(`Successfully queried DPs for ${device.ieeeAddr} during configure.`, NS);
+            } catch (error: any) {
+                logger.warning(`Failed to query DPs for ${device.ieeeAddr} during configure (device might report later): ${error}`, NS); // Utilizează logger.warning
+            }
+            device.save();
+        },
+
+        exposes: [
+            // Utilizează exposes.presets și exposes.access explicit dacă e și ele importate la început
+            exposes.presets.climate()
+                .withSetpoint('occupied_heating_setpoint', 5, 35, 0.5, ea.STATE_SET)
+                .withLocalTemperature(ea.STATE_SET)
+                .withSystemMode(['off', 'cool', 'heat'], ea.STATE_SET)
+                .withRunningState(['idle', 'heat', 'cool'], ea.STATE_SET)
+                .withLocalTemperatureCalibration(-9, 9, 0.1, ea.STATE_SET)
+                // Cast la string pentru a ocoli eroarea TS2345
+                .withPreset(['manual', 'program', 'holiday', 'temporary_manual'])
+                ,
+            exposes.numeric('floor_temperature_sensor', ea.STATE_SET).withUnit('°C').withDescription('Floor sensor temp (DP 103)'),
+            exposes.presets.child_lock(),
+            exposes.numeric('max_temperature_limit', ea.STATE_SET).withUnit('°C').withValueMin(20).withValueMax(70).withValueStep(1).withDescription('Max temp limit (DP 114)'),
+            exposes.numeric('min_temperature_limit', ea.STATE_SET).withUnit('°C').withValueMin(1).withValueMax(15).withValueStep(1).withDescription('Min temp limit (DP 115)'),
+            exposes.numeric('deadzone_temperature', ea.STATE_SET).withUnit('°C').withValueMin(0.5).withValueMax(2.5).withValueStep(0.1).withDescription('Deadzone/Hysteresis (DP 110)'),
+            exposes.presets.enum('power_on_behavior', ea.STATE_SET, ['previous', 'off', 'on']).withDescription('State after power loss (DP 117)'),
+            exposes.presets.enum('temperature_unit', ea.STATE_SET, ['celsius', 'fahrenheit']).withDescription('Device temp unit setting (DP 101)'),
+            exposes.presets.numeric('fault_code', ea.STATE_SET).withDescription('Device fault code (DP 130)'),
+            exposes.presets.enum('schedule_type', ea.STATE_SET, ['5+2', '6+1', '7']).withDescription('Schedule mode type (DP 118)'),
+            exposes.numeric('holiday_days', ea.STATE_SET).withValueMin(1).withValueMax(60).withValueStep(1).withUnit('days').withDescription('Holiday mode duration (DP 104)'),
+            exposes.numeric('holiday_temperature', ea.STATE_SET).withValueMin(5).withValueMax(30).withValueStep(1).withUnit('°C').withDescription('Holiday mode temp (DP 105)'),
+            exposes.text('schedule_workday', ea.STATE_SET | ea.STATE_SET).withDescription(`Workday schedule (${totalPeriodsPerDay} periods HH:MM/TT.T, DP 119+120)`),
+            exposes.text('schedule_restday', ea.STATE_SET | ea.STATE_SET).withDescription(`Restday schedule (${totalPeriodsPerDay} periods HH:MM/TT.T, DP 121+122)`),
+        ],
+
+        meta: {
+            tuyaDatapoints: [
+                // Referențiem valueConverter e valueConverterBasic prin obiectul tuya
+                [16, 'local_temperature', tuya.valueConverter.divideBy10],
+                [50, 'occupied_heating_setpoint', tuya.valueConverter.divideBy10],
+                [125, null, tuya.valueConverter.onOff],
+                [49, 'system_mode', tuya.valueConverterBasic.lookup({'cool': 0, 'heat': 1})],
+                [102, null, tuyaRunningStateConverter], // Referință la obiectul convertor local (castat la any)
+                [109, 'local_temperature_calibration', tuya.valueConverter.divideBy10],
+                [128, 'preset', tuya.valueConverterBasic.lookup({'manual': 0, 'program': 1, 'holiday': 2, 'temporary_manual': 3})],
+                [103, 'floor_temperature_sensor', tuya.valueConverter.divideBy10],
+                [129, 'child_lock', tuya.valueConverter.lockUnlock],
+                [114, 'max_temperature_limit', tuya.valueConverter.raw],
+                [115, 'min_temperature_limit', tuya.valueConverter.raw],
+                [110, 'deadzone_temperature', tuya.valueConverter.divideBy10],
+                [117, 'power_on_behavior', tuya.valueConverterBasic.lookup({'previous': 0, 'off': 1, 'on': 2})],
+                [101, 'temperature_unit', tuyaTempUnitConverter], // Referință la obiectul convertor local (castat la any)
+                [130, 'fault_code', tuya.valueConverter.raw],
+                [118, 'schedule_type', tuya.valueConverterBasic.lookup({'5+2': 0, '6+1': 1, '7': 2})],
+                [104, 'holiday_days', tuya.valueConverter.raw],
+                [105, 'holiday_temperature', tuya.valueConverter.raw],
+                [119, null, fzScheduleConverter], // Referință la obiectul convertor FZ local (castat la any)
+                [120, null, fzScheduleConverter], // Referință la obiectul convertor FZ local
+                [121, null, fzScheduleConverter], // Referință la obiectul convertor FZ local
+                [122, null, fzScheduleConverter], // Referință la obiectul convertor FZ local
             ],
         },
     },
