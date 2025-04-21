@@ -38,7 +38,7 @@ export const definitions: DefinitionWithExtend[] = [
             e
                 .numeric("temperature_sensitivity", ea.STATE_SET)
                 .withUnit("°C")
-                .withDescription("Temperature sensivity")
+                .withDescription("Temperature sensitivity")
                 .withValueMin(0.5)
                 .withValueMax(5)
                 .withValueStep(0.5),
@@ -125,7 +125,7 @@ export const definitions: DefinitionWithExtend[] = [
             e
                 .numeric("temperature_sensitivity", ea.STATE_SET)
                 .withUnit("°C")
-                .withDescription("Temperature sensivity")
+                .withDescription("Temperature sensitivity")
                 .withValueMin(0.5)
                 .withValueMax(5)
                 .withValueStep(0.5),

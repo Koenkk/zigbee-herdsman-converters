@@ -28,7 +28,7 @@ const e = exposes.presets;
 const ea = exposes.access;
 
 const defaultReporting = {min: 0, max: 300, change: 0};
-const co2Reporting = {min: 10, max: 300, change: 0.000001};
+const ppmReporting = {min: 10, max: 300, change: 0.000001};
 const batteryReporting = {min: 3600, max: 0, change: 0};
 
 const model_r01 = "Tuya_Thermostat_r01";
@@ -197,7 +197,8 @@ const tzLocal = {
     } satisfies Tz.Converter,
     thermostat_deadzone: {
         key: ["deadzone_temperature"],
-        convertSet: async (entity, key, value: string, meta) => {
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertString(value);
             const minSetpointDeadBand = Number.parseInt(value, 10);
             await entity.write("hvacThermostat", {minSetpointDeadBand});
             return {readAfterWriteTime: 250, state: {minSetpointDeadBand: value}};
@@ -208,7 +209,8 @@ const tzLocal = {
     } satisfies Tz.Converter,
     thermostat_deadzone_10: {
         key: ["histeresis_temperature"],
-        convertSet: async (entity, key, value: string, meta) => {
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertString(value);
             const minSetpointDeadBand = Number.parseFloat(value) * 10;
             await entity.write("hvacThermostat", {minSetpointDeadBand});
             return {readAfterWriteTime: 250, state: {minSetpointDeadBand: value}};
@@ -219,7 +221,8 @@ const tzLocal = {
     } satisfies Tz.Converter,
     thermostat_frost_protect: {
         key: ["frost_protect"],
-        convertSet: async (entity, key, value: string, meta) => {
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertString(value);
             if (!utils.isInRange(0, 10, Number(value))) throw new Error(`Invalid value: ${value} (expected ${0} to ${10})`);
             const frost_protect = Number.parseInt(value, 10) * 100;
             await entity.write("hvacThermostat", {[attrThermFrostProtect]: {value: frost_protect, type: 0x29}});
@@ -231,7 +234,8 @@ const tzLocal = {
     } satisfies Tz.Converter,
     thermostat_heat_protect: {
         key: ["heat_protect"],
-        convertSet: async (entity, key, value: string, meta) => {
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertString(value);
             if (!utils.isInRange(25, 70, Number(value))) throw new Error(`Invalid value: ${value} (expected ${25} to ${70})`);
             const heat_protect = Number.parseInt(value, 10) * 100;
             await entity.write("hvacThermostat", {[attrThermHeatProtect]: {value: heat_protect, type: 0x29}});
@@ -243,7 +247,8 @@ const tzLocal = {
     } satisfies Tz.Converter,
     thermostat_setpoint_raise_lower: {
         key: ["setpoint_raise_lower"],
-        convertSet: async (entity, key, value: string, meta) => {
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertString(value);
             if (!utils.isInRange(-5, 5, Number(value))) throw new Error(`Invalid value: ${value} (expected ${-5} to ${5})`);
             const setpoint_raise_lower = Number.parseInt(value, 10) * 10; //Step 0.1°C. 5°C - 50, 1°C - 10 etc.
             await entity.command("hvacThermostat", "setpointRaiseLower", {mode: 0, amount: setpoint_raise_lower});
@@ -274,7 +279,8 @@ const tzLocal = {
     } satisfies Tz.Converter,
     thermostat_eco_mode_cool_temperature: {
         key: ["eco_mode_cool_temperature"],
-        convertSet: async (entity, key, value: string, meta) => {
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertString(value);
             if (!utils.isInRange(5, 45, Number(value))) throw new Error(`Invalid value: ${value} (expected ${5} to ${45})`);
             const eco_mode_cool_temperature = Number.parseInt(value, 10) * 100;
             await entity.write("hvacThermostat", {[attrThermEcoModeCoolTemperature]: {value: eco_mode_cool_temperature, type: 0x29}});
@@ -286,7 +292,8 @@ const tzLocal = {
     } satisfies Tz.Converter,
     thermostat_eco_mode_heat_temperature: {
         key: ["eco_mode_heat_temperature"],
-        convertSet: async (entity, key, value: string, meta) => {
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertString(value);
             if (!utils.isInRange(5, 45, Number(value))) throw new Error(`Invalid value: ${value} (expected ${5} to ${45})`);
             const eco_mode_heat_temperature = Number.parseInt(value, 10) * 100;
             await entity.write("hvacThermostat", {[attrThermEcoModeHeatTemperature]: {value: eco_mode_heat_temperature, type: 0x29}});
@@ -320,7 +327,8 @@ const tzLocal = {
     } satisfies Tz.Converter,
     thermostat_brightness_level: {
         key: ["brightness_level"],
-        convertSet: async (entity, key, value: number, meta) => {
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertNumber(value);
             const lookup = {Off: 0, Low: 1, Medium: 2, High: 3};
             await entity.write("hvacThermostat", {[attrThermLevel]: {value: utils.getFromLookup(value, lookup), type: 0x30}});
             return {state: {brightness_level: value}};
@@ -342,7 +350,8 @@ const tzLocal = {
     } satisfies Tz.Converter,
     thermostat_schedule_mode: {
         key: ["schedule_mode"],
-        convertSet: async (entity, key, value: number, meta) => {
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertNumber(value);
             const lookup = {Off: 0, "5+2": 1, "6+1": 2, "7": 3};
             await entity.write("hvacThermostat", {[attrThermScheduleMode]: {value: utils.getFromLookup(value, lookup), type: 0x30}});
             return {state: {schedule_mode: value}};
@@ -361,7 +370,8 @@ const tzLocal = {
     } satisfies Tz.Converter,
     thermostat_ext_temperature_calibration: {
         key: ["external_temperature_calibration"],
-        convertSet: async (entity, key, value: string, meta) => {
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertString(value);
             if (!utils.isInRange(-9, 9, Number(value))) throw new Error(`Invalid value: ${value} (expected ${-9} to ${9})`);
             const external_temperature_calibration = Number.parseInt(value, 10) * 10;
             await entity.write("hvacThermostat", {[attrThermExtTemperatureCalibration]: {value: external_temperature_calibration, type: 0x28}});
@@ -638,7 +648,8 @@ const electricityMeterExtend = {
             },
             {
                 key: ["device_address_preset"],
-                convertSet: async (entity, key, value: string, meta) => {
+                convertSet: async (entity, key, value, meta) => {
+                    utils.assertString(value);
                     const device_address_preset = Number.parseInt(value, 10);
                     await entity.write("seMetering", {[attrElCityMeterAddressPreset]: {value: device_address_preset, type: 0x23}});
                     return {readAfterWriteTime: 250, state: {device_address_preset: value}};
@@ -654,7 +665,8 @@ const electricityMeterExtend = {
             },
             {
                 key: ["device_measurement_preset"],
-                convertSet: async (entity, key, value: string, meta) => {
+                convertSet: async (entity, key, value, meta) => {
+                    utils.assertString(value);
                     const device_measurement_preset = Number.parseInt(value, 10);
                     await entity.write("seMetering", {[attrElCityMeterMeasurementPreset]: {value: device_measurement_preset, type: 0x20}});
                     return {readAfterWriteTime: 250, state: {device_measurement_preset: value}};
@@ -928,7 +940,41 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SLACKY_DIY_CO2_SENSOR_R01",
         vendor: "Slacky-DIY",
         description: "Tuya CO2 sensor with custom Firmware",
-        extend: [m.co2({reporting: co2Reporting})],
+        extend: [m.co2({reporting: ppmReporting})],
+        ota: true,
+    },
+    {
+        zigbeeModel: ["Tuya_CO2Sensor_r02"],
+        model: "SLACKY_DIY_CO2_SENSOR_R02",
+        vendor: "Slacky-DIY",
+        description: "Tuya CO2 sensor with custom Firmware",
+        extend: [
+            m.co2({reporting: ppmReporting}),
+            m.numeric({
+                name: "formaldehyde",
+                access: "STATE_GET",
+                cluster: "msFormaldehyde",
+                attribute: "measuredValue",
+                reporting: ppmReporting,
+                unit: "ppm",
+                scale: 0.000001,
+                precision: 2,
+                description: "Measured Formaldehyde value",
+            }),
+            m.numeric({
+                name: "voc",
+                access: "STATE_GET",
+                cluster: "genAnalogInput",
+                attribute: "presentValue",
+                reporting: ppmReporting,
+                unit: "ppm",
+                scale: 0.000001,
+                precision: 2,
+                description: "Measured VOC value",
+            }),
+            m.temperature(),
+            m.humidity(),
+        ],
         ota: true,
     },
     {

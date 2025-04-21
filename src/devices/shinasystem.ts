@@ -54,6 +54,39 @@ const fzLocal = {
             }
         },
     } satisfies Fz.Converter,
+    ct_direction: {
+        cluster: "seMetering",
+        type: ["readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data[0x9001] !== undefined) {
+                const value = msg.data[0x9001];
+                const lookup = {0: "Auto", 1: "Manual(Forward)", 2: "Manual(Reverse)"};
+                return {ct_direction: utils.getFromLookup(value, lookup)};
+            }
+        },
+    } satisfies Fz.Converter,
+    ias_zone_sensitivity: {
+        cluster: "ssIasZone",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data && msg.data.currentZoneSensitivityLevel !== undefined && msg.endpoint) {
+                const value = msg.data.currentZoneSensitivityLevel;
+                return {
+                    remote_control_permission: (value & 0x01) > 0,
+                    force_smoke_alarm: (value & 0x02) > 0,
+                };
+            }
+        },
+    } satisfies Fz.Converter,
+    smoke_battery: {
+        cluster: "genPowerCfg",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.batteryVoltage !== undefined) {
+                return {smoke_battery: utils.batteryVoltageToPercentage(msg.data.batteryVoltage * 100, {min: 2300, max: 3100})};
+            }
+        },
+    } satisfies Fz.Converter,
 };
 
 const tzLocal = {
@@ -181,6 +214,30 @@ const tzLocal = {
             await entity.read("genOnOff", ["onOff"]);
         },
     } satisfies Tz.Converter,
+    ct_direction: {
+        key: ["ct_direction"],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = {Auto: 0, "Manual(Forward)": 1, "Manual(Reverse)": 2};
+            await entity.write("seMetering", {"0x9001": {value: utils.getFromLookup(value, lookup), type: 0x20}});
+            return {state: {[key]: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read("seMetering", [0x9001]);
+        },
+    } satisfies Tz.Converter,
+    force_smoke_alarm: {
+        key: ["force_smoke_alarm"],
+        convertSet: async (entity, key, value, meta) => {
+            const endpoint = meta.device.getEndpoint(1);
+            const remote_control_permission = Number(endpoint.getClusterAttributeValue("ssIasZone", "currentZoneSensitivityLevel"));
+            if (remote_control_permission & 1) {
+                // if remote control permission is true
+                await entity.write("ssIasZone", {currentZoneSensitivityLevel: utils.getFromLookup(value, {OFF: 1, ON: 3})});
+            } else {
+                return {state: {[key]: "OFF"}};
+            }
+        },
+    } satisfies Tz.Converter,
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -265,7 +322,7 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.humidity(endpoint, {min: 20, max: 300, change: 40});
         },
         exposes: [e.battery(), e.battery_voltage(), e.temperature(), e.humidity(), e.occupancy()],
-        extend: [m.illuminance()],
+        extend: [m.illuminance({scale: (value) => value})],
     },
     {
         zigbeeModel: ["SBM300Z1"],
@@ -640,7 +697,45 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "ShinaSystem",
         ota: true,
         description: "SiHAS energy monitor",
+        fromZigbee: [fzLocal.ct_direction],
+        toZigbee: [tzLocal.ct_direction],
         extend: [m.electricityMeter({power: {cluster: "metering"}, acFrequency: {multiplier: 1, divisor: 10}, powerFactor: true}), m.temperature()],
+        // Produced_energy and ct_direction is supported in version 8 and above.
+        exposes: (device, options) => {
+            const exposes = [];
+            if (device?.applicationVersion >= 8) {
+                exposes.push(e.produced_energy().withAccess(ea.STATE_GET));
+                exposes.push(
+                    e
+                        .enum("ct_direction", ea.ALL, ["Auto", "Manual(Forward)", "Manual(Reverse)"])
+                        .withDescription(
+                            "Auto (Default):" +
+                                " All measured power and energy values are treated as positive regardless of CT installation direction," +
+                                " And there is only energy consumption, not produced energy. " +
+                                "And Manual additionally displays produced energy(e.g. when solar power is installed, set it manually)." +
+                                " And it displays energy consumption and production according to the manual forward/reverse settings.",
+                        ),
+                );
+            }
+            return exposes;
+        },
+        // Additionally, this Produced_energy does not support reporting,
+        // so we implemented a read operation within onEvent upon receiving a 'current' message.
+        onEvent: async (type, data, device, options) => {
+            if (device?.applicationVersion >= 8) {
+                if (type === "message" && data.type === "attributeReport" && data.cluster === "haElectricalMeasurement" && data.data.rmsCurrent) {
+                    const endpoint = device.getEndpoint(1);
+                    await endpoint.read("seMetering", ["currentSummReceived"]);
+                }
+            }
+        },
+        // Ct direction(seMetering, 0x9001) is supported in version 8 and above.
+        configure: async (device, coordinatorEndpoint) => {
+            if (device?.applicationVersion >= 8) {
+                const endpoint = device.getEndpoint(1);
+                await endpoint.read("seMetering", [0x9001]);
+            }
+        },
     },
     {
         zigbeeModel: ["PMM-300Z3"],
@@ -649,6 +744,24 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         description: "SiHAS 3phase energy monitor",
         extend: [m.electricityMeter({power: {cluster: "metering"}, acFrequency: {multiplier: 1, divisor: 10}, powerFactor: true}), m.temperature()],
+        // Produced_energy is supported in version 9 and above.
+        exposes: (device, options) => {
+            const exposes = [];
+            if (device?.applicationVersion >= 9) {
+                exposes.push(e.produced_energy().withAccess(ea.STATE_GET));
+            }
+            return exposes;
+        },
+        // Additionally, this device does not support reporting,
+        // so we implemented a read operation within onEvent upon receiving a 'current' message.
+        onEvent: async (type, data, device, options) => {
+            if (device?.applicationVersion >= 9) {
+                if (type === "message" && data.type === "attributeReport" && data.cluster === "haElectricalMeasurement" && data.data.rmsCurrent) {
+                    const endpoint = device.getEndpoint(1);
+                    await endpoint.read("seMetering", ["currentSummReceived"]);
+                }
+            }
+        },
     },
     {
         zigbeeModel: ["DLM-300Z"],
@@ -959,5 +1072,51 @@ export const definitions: DefinitionWithExtend[] = [
                 powerOnBehavior: false,
             }),
         ],
+    },
+    {
+        zigbeeModel: ["FAM-300Z"],
+        model: "FAM-300Z",
+        vendor: "ShinaSystem",
+        ota: true,
+        description: "SiHAS Smoke detector",
+        fromZigbee: [fzLocal.ias_zone_sensitivity, fzLocal.smoke_battery],
+        toZigbee: [tzLocal.force_smoke_alarm],
+        extend: [
+            m.iasZoneAlarm({
+                zoneType: "smoke",
+                zoneAttributes: ["alarm_1"],
+                zoneStatusReporting: true,
+            }),
+            m.battery(),
+        ],
+        exposes: [
+            e
+                .binary("remote_control_permission", ea.STATE, "True", "False")
+                .withDescription("Indicate whether remote control is permitted or denied."),
+            e
+                .binary("force_smoke_alarm", ea.STATE_SET, "ON", "OFF")
+                .withDescription(
+                    "Forcibly activating/deactivating smoke alarms. This command is only available " + "when Remote control permission is True.",
+                ),
+            e
+                .numeric("smoke_battery", ea.STATE)
+                .withUnit("%")
+                .withValueMin(0)
+                .withValueMax(100)
+                .withDescription(
+                    "Remaining battery in % for smoke sensor, For reference, two batteries are used. " +
+                        "One is for Smoke sensor, the other is for Zigbee.",
+                )
+                .withCategory("diagnostic"),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            const binds = ["genPowerCfg", "ssIasZone"];
+            await reporting.bind(endpoint, coordinatorEndpoint, binds);
+            await reporting.batteryVoltage(endpoint, {min: 30, max: 21600, change: 1});
+            const payload = reporting.payload("currentZoneSensitivityLevel", 0, 7200, 1);
+            await endpoint.configureReporting("ssIasZone", payload);
+            await endpoint.read("ssIasZone", ["currentZoneSensitivityLevel"]);
+        },
     },
 ];
