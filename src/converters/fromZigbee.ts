@@ -3705,7 +3705,7 @@ export const ptvo_multistate_action: Fz.Converter = {
     cluster: "genMultistateInput",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
-        const actionLookup: KeyValueAny = {0: "release", 1: "single", 2: "double", 3: "tripple", 4: "hold"};
+        const actionLookup: KeyValueAny = {0: "release", 1: "single", 2: "double", 3: "triple", 4: "hold"};
         const value = msg.data.presentValue;
         const action = actionLookup[value];
         return {action: postfixWithEndpointName(action, msg, model, meta)};
