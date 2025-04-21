@@ -8809,7 +8809,9 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.tuya_multi_action, fz.battery, fz.tuya_operation_mode],
         exposes: [
             e.action(["rotate_left", "rotate_right"]),
-            e.enum("operation_mode", ea.ALL, ["command", "event"]).withDescription('Operation mode: "command" - for group control, "event" - for clicks'),
+            e
+                .enum("operation_mode", ea.ALL, ["command", "event"])
+                .withDescription('Operation mode: "command" - for group control, "event" - for clicks'),
         ],
         extend: [m.battery(), tuya.modernExtend.tuyaMagicPacket()],
     },
