@@ -8806,8 +8806,13 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZG-101Z/D",
         vendor: "Tuya",
         description: "Smart knob",
-        fromZigbee: [fz.tuya_multi_action, fz.battery],
-        exposes: [e.action(["rotate_left", "rotate_right"])],
+        fromZigbee: [fz.tuya_multi_action, fz.battery, fz.tuya_operation_mode],
+        exposes: [
+            e.action(["rotate_left", "rotate_right"]),
+            e
+                .enum("operation_mode", ea.ALL, ["command", "event"])
+                .withDescription('Operation mode: "command" - for group control, "event" - for clicks'),
+        ],
         extend: [m.battery(), tuya.modernExtend.tuyaMagicPacket()],
     },
     {
