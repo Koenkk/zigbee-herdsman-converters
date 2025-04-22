@@ -278,6 +278,29 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.cover_position()],
     },
     {
+        zigbeeModel: ["3RSB02015Z"],
+        model: "3RSB02015Z",
+        vendor: "Third Reality",
+        description: "Smart Blind Gen2",
+        extend: [
+            m.battery(),
+            m.deviceAddCustomCluster('3rSmartBlindGen2SpecialCluster', {
+                ID: 0xFF00,
+                manufacturerCode: 0x1233,
+                attributes: {
+                    infrared_enable:{ID: 0x0000, type: 0x20}, 
+                    calibration_distance:{ID: 0x0001, type: 0x28}, 
+                    limit_position: {ID: 0x0002, type: 0x21}, 
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+        ],
+        fromZigbee: [fz.cover_position_tilt],
+        toZigbee: [tz.cover_state, tz.cover_position_tilt],
+        exposes: [e.cover_position()],
+    },
+    {
         zigbeeModel: ["3RSB22BZ"],
         model: "3RSB22BZ",
         vendor: "Third Reality",
