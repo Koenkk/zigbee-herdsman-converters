@@ -2,9 +2,32 @@ import * as fz from "../converters/fromZigbee";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as tuya from "../lib/tuya";
-import type {DefinitionWithExtend} from "../lib/types";
+import type {DefinitionWithExtend, Fz} from "../lib/types";
 
 const e = exposes.presets;
+
+// The Paulmann 501.41 remote sends a command for when a color temperature
+// button is released after having been long-pressed. It sends a 5-byte
+// frame. The third byte being set to 0x47 seems to indicate that the
+// button long-press is over. When the default parser tries to parse
+// the 5-bytes frame, this results in:
+//
+//   Failed to parse frame: RangeError [ERR_OUT_OF_RANGE]: The value of "offset" is out of range. It must be >= 0 and <= 4. Received 5
+//
+// Add a custom command parser to work around this.
+const fzLocal = {
+    paulmann50141ColorTemperatureStopCommand: {
+        cluster: "lightingColorCtrl",
+        type: "raw",
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.length === 5 && msg.data[2] === 0x47) {
+                return {
+                    action: "color_temperature_move_stop",
+                };
+            }
+        },
+    } satisfies Fz.Converter,
+};
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -271,6 +294,32 @@ export const definitions: DefinitionWithExtend[] = [
             m.commandsLevelCtrl(),
             m.commandsColorCtrl(),
             m.commandsScenes(),
+        ],
+    },
+    {
+        zigbeeModel: ["50141"],
+        model: "501.41",
+        vendor: "Paulmann",
+        description: "Remote control Smart Home Zigbee 3.0 White",
+        fromZigbee: [fzLocal.paulmann50141ColorTemperatureStopCommand],
+        extend: [
+            m.battery({percentageReporting: false}),
+            m.commandsOnOff({
+                commands: ["on", "off"],
+            }),
+            m.commandsLevelCtrl({
+                commands: ["brightness_move_up", "brightness_move_down", "brightness_stop", "brightness_step_up", "brightness_step_down"],
+            }),
+            m.commandsColorCtrl({
+                commands: [
+                    "color_temperature_move_up",
+                    "color_temperature_move_down",
+                    "color_temperature_move_stop",
+                    "color_temperature_step_up",
+                    "color_temperature_step_down",
+                ],
+            }),
+            m.commandsScenes({commands: ["store", "recall"]}),
         ],
     },
     {
