@@ -10798,6 +10798,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SPM01",
         vendor: "Tuya",
         description: "Smart energy monitor for 1P+N system",
+        ota: true,
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
