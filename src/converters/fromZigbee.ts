@@ -603,28 +603,30 @@ export const level_config: Fz.Converter = {
     cluster: "genLevelCtrl",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
-        const result: KeyValueAny = {level_config: {}};
+        const level_config = postfixWithEndpointName("level_config", msg, model, meta);
+        const result: KeyValueAny = {};
+        result[level_config] = {};
 
         // onOffTransitionTime - range 0x0000 to 0xffff - optional
         if (msg.data.onOffTransitionTime !== undefined && msg.data.onOffTransitionTime !== undefined) {
-            result.level_config.on_off_transition_time = Number(msg.data.onOffTransitionTime);
+            result[level_config].on_off_transition_time = Number(msg.data.onOffTransitionTime);
         }
 
         // onTransitionTime - range 0x0000 to 0xffff - optional
         //                    0xffff = use onOffTransitionTime
         if (msg.data.onTransitionTime !== undefined && msg.data.onTransitionTime !== undefined) {
-            result.level_config.on_transition_time = Number(msg.data.onTransitionTime);
-            if (result.level_config.on_transition_time === 65535) {
-                result.level_config.on_transition_time = "disabled";
+            result[level_config].on_transition_time = Number(msg.data.onTransitionTime);
+            if (result[level_config].on_transition_time === 65535) {
+                result[level_config].on_transition_time = "disabled";
             }
         }
 
         // offTransitionTime - range 0x0000 to 0xffff - optional
         //                    0xffff = use onOffTransitionTime
         if (msg.data.offTransitionTime !== undefined && msg.data.offTransitionTime !== undefined) {
-            result.level_config.off_transition_time = Number(msg.data.offTransitionTime);
-            if (result.level_config.off_transition_time === 65535) {
-                result.level_config.off_transition_time = "disabled";
+            result[level_config].off_transition_time = Number(msg.data.offTransitionTime);
+            if (result[level_config].off_transition_time === 65535) {
+                result[level_config].off_transition_time = "disabled";
             }
         }
 
@@ -632,21 +634,21 @@ export const level_config: Fz.Converter = {
         //                       0x00 = return to minimum supported level
         //                       0xff - return to previous previous
         if (msg.data.startUpCurrentLevel !== undefined && msg.data.startUpCurrentLevel !== undefined) {
-            result.level_config.current_level_startup = Number(msg.data.startUpCurrentLevel);
-            if (result.level_config.current_level_startup === 255) {
-                result.level_config.current_level_startup = "previous";
+            result[level_config].current_level_startup = Number(msg.data.startUpCurrentLevel);
+            if (result[level_config].current_level_startup === 255) {
+                result[level_config].current_level_startup = "previous";
             }
-            if (result.level_config.current_level_startup === 0) {
-                result.level_config.current_level_startup = "minimum";
+            if (result[level_config].current_level_startup === 0) {
+                result[level_config].current_level_startup = "minimum";
             }
         }
 
         // onLevel - range 0x00 to 0xff - optional
         //           Any value outside of MinLevel to MaxLevel, including 0xff and 0x00, is interpreted as "previous".
         if (msg.data.onLevel !== undefined && msg.data.onLevel !== undefined) {
-            result.level_config.on_level = Number(msg.data.onLevel);
-            if (result.level_config.on_level === 255) {
-                result.level_config.on_level = "previous";
+            result[level_config].on_level = Number(msg.data.onLevel);
+            if (result[level_config].on_level === 255) {
+                result[level_config].on_level = "previous";
             }
         }
 
@@ -656,10 +658,10 @@ export const level_config: Fz.Converter = {
         //   bit 1: CoupleColorTempToLevel - when 1, changes to level also change color temperature.
         //          (What this means is not defined, but it's most likely to be "dim to warm".)
         if (msg.data.options !== undefined && msg.data.options !== undefined) {
-            result.level_config.execute_if_off = !!(Number(msg.data.options) & 1);
+            result[level_config].execute_if_off = !!(Number(msg.data.options) & 1);
         }
 
-        if (Object.keys(result.level_config).length > 0) {
+        if (Object.keys(result[level_config]).length > 0) {
             return result;
         }
     },
