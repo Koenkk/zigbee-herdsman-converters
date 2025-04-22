@@ -749,8 +749,8 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        zigbeeModel: ["Water level meter"],
-        model: "Water level meter",
+        zigbeeModel: ["Bacchus Water level meter"],
+        model: "Bacchus Water level meter",
         vendor: "Bacchus",
         description: "Bacchus tank water level sensor",
         extend: [
