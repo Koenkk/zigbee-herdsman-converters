@@ -284,13 +284,13 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Smart Blind Gen2",
         extend: [
             m.battery(),
-            m.deviceAddCustomCluster('3rSmartBlindGen2SpecialCluster', {
-                ID: 0xFF00,
+            m.deviceAddCustomCluster("3rSmartBlindGen2SpecialCluster", {
+                ID: 0xff00,
                 manufacturerCode: 0x1233,
                 attributes: {
-                    infrared_enable:{ID: 0x0000, type: 0x20}, 
-                    calibration_distance:{ID: 0x0001, type: 0x28}, 
-                    limit_position: {ID: 0x0002, type: 0x21}, 
+                    infrared_enable: {ID: 0x0000, type: 0x20},
+                    calibration_distance: {ID: 0x0001, type: 0x28},
+                    limit_position: {ID: 0x0002, type: 0x21},
                 },
                 commands: {},
                 commandsResponse: {},
