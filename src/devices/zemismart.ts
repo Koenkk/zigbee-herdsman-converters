@@ -594,8 +594,6 @@ export const definitions: DefinitionWithExtend[] = [
                 ],
             ],
         },
-        whiteLabel: [
-            tuya.whitelabel("Zemismart", "ZMS-206US-3", "Smart screen switch 3 gang US", ["_TZE204_iyki9kjp"]),
-        ],
+        whiteLabel: [tuya.whitelabel("Zemismart", "ZMS-206US-3", "Smart screen switch 3 gang US", ["_TZE204_iyki9kjp"])],
     },
 ];
