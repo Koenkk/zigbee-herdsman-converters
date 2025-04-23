@@ -44,7 +44,7 @@ const parseScheduleData = (buffer: Buffer | number[]): string | null => {
             periods.push(`${timeStr}/${tempCelsius.toFixed(1)}°C`);
         }
         return periods.length > 0 ? periods.join(' ') : null;
-    } catch (e: any) {
+    } catch (e) {
         logger.warning(`parseScheduleData failed: ${e}`, NS); // Utilizează logger.warning
         return null;
     }
