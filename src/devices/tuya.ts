@@ -2692,6 +2692,7 @@ export const definitions: DefinitionWithExtend[] = [
                 childLock: true,
                 powerOnBehavior2: true,
             }),
+        ],
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
