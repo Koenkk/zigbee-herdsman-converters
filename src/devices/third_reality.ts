@@ -284,6 +284,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Smart Blind Gen2",
         extend: [
             m.battery(),
+            m.windowCovering(),
             m.deviceAddCustomCluster("3rSmartBlindGen2SpecialCluster", {
                 ID: 0xff00,
                 manufacturerCode: 0x1233,
@@ -296,9 +297,6 @@ export const definitions: DefinitionWithExtend[] = [
                 commandsResponse: {},
             }),
         ],
-        fromZigbee: [fz.cover_position_tilt],
-        toZigbee: [tz.cover_state, tz.cover_position_tilt],
-        exposes: [e.cover_position()],
     },
     {
         zigbeeModel: ["3RSB22BZ"],
