@@ -2682,6 +2682,36 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
+        fingerprint: tuya.fingerprint("TS0001", ["_TZ3210_fhx7lk3d"]),
+        model: "CMA30651",
+        vendor: "ClickSmart+",
+        description: "13A Smart Switched Fused Connection Unit",
+        extend: [
+            tuya.modernExtend.tuyaOnOff({
+                backlightModeLowMediumHigh: true,
+                childLock: true,
+                powerOnBehavior2: true,
+            }),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0011", ["_TZ3000_uaa34g7v"]),
+        model: "CSP041",
+        vendor: "ClickSmart+",
+        description: "1 gang switch module without neutral wire",
+        extend: [m.onOff({powerOnBehavior: false})],
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
+            device.powerSource = "Mains (single phase)";
+            device.save();
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0003", ["_TYZB01_u9kkqh5o"]),
         model: "CSP043",
         vendor: "ClickSmart+",
