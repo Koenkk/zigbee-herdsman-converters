@@ -284,7 +284,8 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Smart Blind Gen2",
         extend: [
             m.battery(),
-            m.windowCovering(),
+            m.windowCovering({controls: ["lift"]}),
+            m.commandsWindowCovering({commands: ["open", "close", "stop"]})
             m.deviceAddCustomCluster("3rSmartBlindGen2SpecialCluster", {
                 ID: 0xff00,
                 manufacturerCode: 0x1233,
