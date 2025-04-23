@@ -462,7 +462,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.temperature(), m.humidity(), m.battery()],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_1youk3hj"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_1youk3hj", "_TZE284_1youk3hj"]),
         model: "NAS-PS10B2",
         vendor: "NEO",
         description: "Human presence sensor",

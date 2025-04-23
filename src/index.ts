@@ -386,7 +386,13 @@ function processExtensions(definition: DefinitionWithExtend): Definition {
 
                 for (const item of allExposes) {
                     if (typeof item === "function") {
-                        result.push(...item(device, options));
+                        try {
+                            const deviceExposes = item(device, options);
+
+                            result.push(...deviceExposes);
+                        } catch (error) {
+                            logger.error(`Failed to process exposes for '${device.ieeeAddr}' (${(error as Error).stack})`, NS);
+                        }
                     } else {
                         result.push(item);
                     }

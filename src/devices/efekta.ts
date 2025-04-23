@@ -5634,7 +5634,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["EFEKTA_eTH102zex"],
         model: "EFEKTA_eTH102zex",
         vendor: "EFEKTA",
-        description: "Temperature and humidity sensor with e-ink1.02, date, termostat, hygrostat",
+        description: "Temperature and humidity sensor with e-ink1.02, date, thermostat, hygrostat",
         extend: [
             m.temperature({
                 reporting: fourReporting,
@@ -5771,7 +5771,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["EFEKTA_eTH102z"],
         model: "EFEKTA_eTH102z",
         vendor: "EFEKTA",
-        description: "Temperature and humidity sensor with e-ink1.02, date, termostat, hygrostat",
+        description: "Temperature and humidity sensor with e-ink1.02, date, thermostat, hygrostat",
         extend: [
             m.temperature({
                 reporting: fourReporting,

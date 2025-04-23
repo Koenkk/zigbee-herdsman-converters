@@ -603,28 +603,30 @@ export const level_config: Fz.Converter = {
     cluster: "genLevelCtrl",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
-        const result: KeyValueAny = {level_config: {}};
+        const level_config = postfixWithEndpointName("level_config", msg, model, meta);
+        const result: KeyValueAny = {};
+        result[level_config] = {};
 
         // onOffTransitionTime - range 0x0000 to 0xffff - optional
         if (msg.data.onOffTransitionTime !== undefined && msg.data.onOffTransitionTime !== undefined) {
-            result.level_config.on_off_transition_time = Number(msg.data.onOffTransitionTime);
+            result[level_config].on_off_transition_time = Number(msg.data.onOffTransitionTime);
         }
 
         // onTransitionTime - range 0x0000 to 0xffff - optional
         //                    0xffff = use onOffTransitionTime
         if (msg.data.onTransitionTime !== undefined && msg.data.onTransitionTime !== undefined) {
-            result.level_config.on_transition_time = Number(msg.data.onTransitionTime);
-            if (result.level_config.on_transition_time === 65535) {
-                result.level_config.on_transition_time = "disabled";
+            result[level_config].on_transition_time = Number(msg.data.onTransitionTime);
+            if (result[level_config].on_transition_time === 65535) {
+                result[level_config].on_transition_time = "disabled";
             }
         }
 
         // offTransitionTime - range 0x0000 to 0xffff - optional
         //                    0xffff = use onOffTransitionTime
         if (msg.data.offTransitionTime !== undefined && msg.data.offTransitionTime !== undefined) {
-            result.level_config.off_transition_time = Number(msg.data.offTransitionTime);
-            if (result.level_config.off_transition_time === 65535) {
-                result.level_config.off_transition_time = "disabled";
+            result[level_config].off_transition_time = Number(msg.data.offTransitionTime);
+            if (result[level_config].off_transition_time === 65535) {
+                result[level_config].off_transition_time = "disabled";
             }
         }
 
@@ -632,21 +634,21 @@ export const level_config: Fz.Converter = {
         //                       0x00 = return to minimum supported level
         //                       0xff - return to previous previous
         if (msg.data.startUpCurrentLevel !== undefined && msg.data.startUpCurrentLevel !== undefined) {
-            result.level_config.current_level_startup = Number(msg.data.startUpCurrentLevel);
-            if (result.level_config.current_level_startup === 255) {
-                result.level_config.current_level_startup = "previous";
+            result[level_config].current_level_startup = Number(msg.data.startUpCurrentLevel);
+            if (result[level_config].current_level_startup === 255) {
+                result[level_config].current_level_startup = "previous";
             }
-            if (result.level_config.current_level_startup === 0) {
-                result.level_config.current_level_startup = "minimum";
+            if (result[level_config].current_level_startup === 0) {
+                result[level_config].current_level_startup = "minimum";
             }
         }
 
         // onLevel - range 0x00 to 0xff - optional
         //           Any value outside of MinLevel to MaxLevel, including 0xff and 0x00, is interpreted as "previous".
         if (msg.data.onLevel !== undefined && msg.data.onLevel !== undefined) {
-            result.level_config.on_level = Number(msg.data.onLevel);
-            if (result.level_config.on_level === 255) {
-                result.level_config.on_level = "previous";
+            result[level_config].on_level = Number(msg.data.onLevel);
+            if (result[level_config].on_level === 255) {
+                result[level_config].on_level = "previous";
             }
         }
 
@@ -656,10 +658,10 @@ export const level_config: Fz.Converter = {
         //   bit 1: CoupleColorTempToLevel - when 1, changes to level also change color temperature.
         //          (What this means is not defined, but it's most likely to be "dim to warm".)
         if (msg.data.options !== undefined && msg.data.options !== undefined) {
-            result.level_config.execute_if_off = !!(Number(msg.data.options) & 1);
+            result[level_config].execute_if_off = !!(Number(msg.data.options) & 1);
         }
 
-        if (Object.keys(result.level_config).length > 0) {
+        if (Object.keys(result[level_config]).length > 0) {
             return result;
         }
     },
@@ -672,15 +674,18 @@ export const color_colortemp: Fz.Converter = {
         const result: KeyValueAny = {};
 
         if (msg.data.colorTemperature !== undefined) {
-            result.color_temp = msg.data.colorTemperature;
+            const color_temp = postfixWithEndpointName("color_temp", msg, model, meta);
+            result[color_temp] = msg.data.colorTemperature;
         }
 
         if (msg.data.startUpColorTemperature !== undefined) {
-            result.color_temp_startup = msg.data.startUpColorTemperature;
+            const color_temp_startup = postfixWithEndpointName("color_temp_startup", msg, model, meta);
+            result[color_temp_startup] = msg.data.startUpColorTemperature;
         }
 
         if (msg.data.colorMode !== undefined) {
-            result.color_mode =
+            const color_mode = postfixWithEndpointName("color_mode", msg, model, meta);
+            result[color_mode] =
                 constants.colorModeLookup[msg.data.colorMode] !== undefined ? constants.colorModeLookup[msg.data.colorMode] : msg.data.colorMode;
         }
 
@@ -691,22 +696,23 @@ export const color_colortemp: Fz.Converter = {
             msg.data.currentHue !== undefined ||
             msg.data.enhancedCurrentHue !== undefined
         ) {
-            result.color = {};
+            const color = postfixWithEndpointName("color", msg, model, meta);
+            result[color] = {};
 
             if (msg.data.currentX !== undefined) {
-                result.color.x = mapNumberRange(msg.data.currentX, 0, 65535, 0, 1, 4);
+                result[color].x = mapNumberRange(msg.data.currentX, 0, 65535, 0, 1, 4);
             }
             if (msg.data.currentY !== undefined) {
-                result.color.y = mapNumberRange(msg.data.currentY, 0, 65535, 0, 1, 4);
+                result[color].y = mapNumberRange(msg.data.currentY, 0, 65535, 0, 1, 4);
             }
             if (msg.data.currentSaturation !== undefined) {
-                result.color.saturation = mapNumberRange(msg.data.currentSaturation, 0, 254, 0, 100);
+                result[color].saturation = mapNumberRange(msg.data.currentSaturation, 0, 254, 0, 100);
             }
             if (msg.data.currentHue !== undefined) {
-                result.color.hue = mapNumberRange(msg.data.currentHue, 0, 254, 0, 360, 0);
+                result[color].hue = mapNumberRange(msg.data.currentHue, 0, 254, 0, 360, 0);
             }
             if (msg.data.enhancedCurrentHue !== undefined) {
-                result.color.hue = mapNumberRange(msg.data.enhancedCurrentHue, 0, 65535, 0, 360, 1);
+                result[color].hue = mapNumberRange(msg.data.enhancedCurrentHue, 0, 65535, 0, 360, 1);
             }
         }
 
@@ -717,13 +723,18 @@ export const color_colortemp: Fz.Converter = {
              * 0   | 0: Do not execute command if the On/Off cluster, OnOff attribute is 0x00 (FALSE)
              *     | 1: Execute command if the On/Off cluster, OnOff attribute is 0x00 (FALSE)
              */
-            result.color_options = {execute_if_off: (msg.data.options & (1 << 0)) > 0};
+            const color_options = postfixWithEndpointName("color_options", msg, model, meta);
+            result[color_options] = {execute_if_off: (msg.data.options & (1 << 0)) > 0};
         }
+
+        // Use postfixWithEndpointName with an empty value to get just the postfix that
+        // needs to be added to the result key.
+        const epPostfix = postfixWithEndpointName("", msg, model, meta);
 
         // handle color property sync
         // NOTE: this should the last thing we do, as we need to have processed all attributes,
         //       we use assign here so we do not lose other attributes.
-        return Object.assign(result, libColor.syncColorState(result, meta.state, msg.endpoint, options));
+        return Object.assign(result, libColor.syncColorState(result, meta.state, msg.endpoint, options, epPostfix));
     },
 };
 export const meter_identification: Fz.Converter = {
@@ -2101,34 +2112,41 @@ export const tuya_led_controller: Fz.Converter = {
 
         if (msg.data.colorTemperature !== undefined) {
             const value = Number(msg.data.colorTemperature);
-            result.color_temp = mapNumberRange(value, 0, 255, 500, 153);
+            const color_temp = postfixWithEndpointName("color_temp", msg, model, meta);
+            result[color_temp] = mapNumberRange(value, 0, 255, 500, 153);
         }
 
         if (msg.data.tuyaBrightness !== undefined) {
-            result.brightness = msg.data.tuyaBrightness;
+            const brightness = postfixWithEndpointName("brightness", msg, model, meta);
+            result[brightness] = msg.data.tuyaBrightness;
         }
 
         if (msg.data.tuyaRgbMode !== undefined) {
+            const color_mode = postfixWithEndpointName("color_mode", msg, model, meta);
             if (msg.data.tuyaRgbMode === 1) {
-                result.color_mode = constants.colorModeLookup[0];
+                result[color_mode] = constants.colorModeLookup[0];
             } else {
-                result.color_mode = constants.colorModeLookup[2];
+                result[color_mode] = constants.colorModeLookup[2];
             }
         }
 
-        result.color = {};
+        const color = postfixWithEndpointName("color", msg, model, meta);
+        result[color] = {};
 
         if (msg.data.currentHue !== undefined) {
-            result.color.hue = mapNumberRange(msg.data.currentHue, 0, 254, 0, 360);
-            result.color.h = result.color.hue;
+            result[color].hue = mapNumberRange(msg.data.currentHue, 0, 254, 0, 360);
+            result[color].h = result[color].hue;
         }
 
         if (msg.data.currentSaturation !== undefined) {
-            result.color.saturation = mapNumberRange(msg.data.currentSaturation, 0, 254, 0, 100);
-            result.color.s = result.color.saturation;
+            result[color].saturation = mapNumberRange(msg.data.currentSaturation, 0, 254, 0, 100);
+            result[color].s = result[color].saturation;
         }
 
-        return Object.assign(result, libColor.syncColorState(result, meta.state, msg.endpoint, options));
+        // Use postfixWithEndpointName with an empty value to get just the postfix that
+        // can be added to the result keys.
+        const epPostfix = postfixWithEndpointName("", msg, model, meta);
+        return Object.assign(result, libColor.syncColorState(result, meta.state, msg.endpoint, options, epPostfix));
     },
 };
 export const wiser_device_info: Fz.Converter = {
