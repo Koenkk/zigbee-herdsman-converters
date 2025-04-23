@@ -33,11 +33,10 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["ZGA1-EN"],
         model: "ZGA1-EN",
         vendor: "IMOU",
-        description: "Smart Gas Detector",
+        description: "Smart gas detector",
         extend: [
             m.forceDeviceType({type: "Router"}),
             m.iasZoneAlarm({zoneType: "gas", zoneAttributes: ["alarm_1", "alarm_2", "tamper", "test"], alarmTimeout: true}),
         ],
-        meta: {},
     },
 ];
