@@ -1,5 +1,23 @@
 # Changelog
 
+## [23.33.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.32.0...v23.33.0) (2025-04-23)
+
+
+### Features
+
+* **add:** 3RSB02015Z ([#9226](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9226)) ([bf1562d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/bf1562d111346ef9fac058dd98b3033546a015cd))
+* **add:** CMA30651, CSP041 ([#9234](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9234)) ([3711424](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3711424da218a079af84fa943036ea3e8280f554))
+* **add:** Mercury_Counter, Mercury_3ph_Counter, Water_Station, Presence_Sensor_v2, Bacchus Water level meter ([#9228](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9228)) ([de45aa8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/de45aa8442c19c256c839f913afaa09ddb2b214a))
+* **add:** ZGA1-EN ([#9231](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9231)) ([1bb62eb](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1bb62ebfd8e77381cecfa267ab844f5c38c3b865))
+* Immax 07505L: add more features ([#9224](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9224)) ([d2eff8e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d2eff8e0337865f8e279290d59326f4bc454a431))
+
+
+### Bug Fixes
+
+* Add endpoint suffix to level_config converter result ([#9225](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9225)) ([689fee0](https://github.com/Koenkk/zigbee-herdsman-converters/commit/689fee012fc4e0d3b4becf1baed0b77e14745522))
+* **detect:** Detect `ZMS-206US-3` as Zemismart ZMS-206US-3 ([#9232](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9232)) ([1f05dc0](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1f05dc09581a496c0dabce7563d6435bc32f560f))
+* EFEKTA_iAQ_S_III: fix illuminance ([#9233](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9233)) ([40c0866](https://github.com/Koenkk/zigbee-herdsman-converters/commit/40c0866fdf86467cb98d6dc4dec1e97bafd9d7ab))
+
 ## [23.32.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.31.0...v23.32.0) (2025-04-21)
 
 
