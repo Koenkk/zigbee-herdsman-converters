@@ -65,6 +65,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Zigbee module for EasyAccess code touch series",
         fromZigbee: [
             fzLocal.nimly_pro_lock_actions,
+            fz.lock_set_pin_code_response,
             fz.lock,
             fz.lock_operation_event,
             fz.battery,
@@ -97,6 +98,8 @@ export const definitions: DefinitionWithExtend[] = [
             e.text("last_used_pin_code", ea.STATE).withDescription("Last used pin code"),
             e.binary("auto_relock", ea.STATE_SET, true, false).withDescription("Auto relock after 7 seconds."),
             e.pincode(),
+            e.text("last_successful_pincode_clear", ea.STATE).withDescription("Last deleted Pincode"),
+            e.text("last_successful_pincode_save", ea.STATE).withDescription("Last saved Pincode"),
         ],
     },
     {

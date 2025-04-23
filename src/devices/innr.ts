@@ -393,6 +393,14 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        zigbeeModel: ["RS 241 T"],
+        model: "RS 241 T",
+        vendor: "Innr",
+        description: "GU10 spot 420 lm, dimmable, white spectrum",
+        extend: [m.light({colorTemp: {range: [153, 455]}, turnsOffAtBrightness1: true})],
+        ota: true,
+    },
+    {
         zigbeeModel: ["RS 128 T"],
         model: "RS 128 T",
         vendor: "Innr",
@@ -623,7 +631,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "AE 270 T",
         vendor: "Innr",
         description: "E26/24 bulb 1100lm, dimmable, white spectrum",
-        extend: [m.light({colorTemp: {range: [154, 500]}, turnsOffAtBrightness1: true, powerOnBehavior: false})],
+        extend: [m.light({colorTemp: {range: [154, 500]}, turnsOffAtBrightness1: true})],
         ota: true,
     },
     {

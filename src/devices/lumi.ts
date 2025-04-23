@@ -465,10 +465,8 @@ export const definitions: DefinitionWithExtend[] = [
             const endpoint1 = device.getEndpoint(1);
             // set "event" mode
             await endpoint1.write("manuSpecificLumi", {mode: 1}, {manufacturerCode: manufacturerCode, disableResponse: true});
-            device.powerSource = "Mains (single phase)";
-            device.save();
         },
-        extend: [lumiZigbeeOTA(), lumiPreventReset()],
+        extend: [lumiZigbeeOTA(), lumiPreventReset(), m.forcePowerSource({powerSource: "Mains (single phase)"})],
     },
     {
         zigbeeModel: ["lumi.switch.b2laus01"],
@@ -993,12 +991,7 @@ export const definitions: DefinitionWithExtend[] = [
         endpoint: (device) => {
             return {system: 1, default: 2};
         },
-        configure: async (device, coordinatorEndpoint) => {
-            // Device advertises itself as Router but is an EndDevice
-            device.type = "EndDevice";
-            device.save();
-        },
-        extend: [lumiZigbeeOTA(), lumiPreventReset()],
+        extend: [lumiZigbeeOTA(), lumiPreventReset(), m.forceDeviceType({type: "EndDevice"})],
     },
     {
         zigbeeModel: ["lumi.ctrl_ln1.aq1", "lumi.ctrl_ln1"],
@@ -1026,11 +1019,7 @@ export const definitions: DefinitionWithExtend[] = [
         endpoint: (device) => {
             return {system: 1};
         },
-        extend: [lumiZigbeeOTA(), lumiPreventReset()],
-        configure: async (device, coordinatorEndpoint) => {
-            device.powerSource = "Mains (single phase)";
-            device.save();
-        },
+        extend: [lumiZigbeeOTA(), lumiPreventReset(), m.forcePowerSource({powerSource: "Mains (single phase)"})],
     },
     {
         zigbeeModel: ["lumi.ctrl_neutral2"],
@@ -1069,12 +1058,7 @@ export const definitions: DefinitionWithExtend[] = [
         endpoint: (device) => {
             return {system: 1, left: 2, right: 3};
         },
-        configure: async (device, coordinatorEndpoint) => {
-            // Device advertises itself as Router but is an EndDevice
-            device.type = "EndDevice";
-            device.save();
-        },
-        extend: [lumiZigbeeOTA(), lumiPreventReset()],
+        extend: [lumiZigbeeOTA(), lumiPreventReset(), m.forceDeviceType({type: "EndDevice"})],
     },
     {
         zigbeeModel: ["lumi.ctrl_ln2.aq1", "lumi.ctrl_ln2"],
@@ -1123,11 +1107,7 @@ export const definitions: DefinitionWithExtend[] = [
         endpoint: (device) => {
             return {left: 1, right: 2, system: 1};
         },
-        extend: [lumiZigbeeOTA(), lumiPreventReset()],
-        configure: async (device, coordinatorEndpoint) => {
-            device.powerSource = "Mains (single phase)";
-            device.save();
-        },
+        extend: [lumiZigbeeOTA(), lumiPreventReset(), m.forcePowerSource({powerSource: "Mains (single phase)"})],
     },
     {
         zigbeeModel: ["lumi.remote.b286acn02"],
@@ -1172,13 +1152,7 @@ export const definitions: DefinitionWithExtend[] = [
         endpoint: (device) => {
             return {system: 1, default: 2};
         },
-        extend: [lumiPreventReset()],
-        configure: async (device, coordinatorEndpoint) => {
-            // Device advertises itself as Router but is an EndDevice
-            device.type = "EndDevice";
-            device.powerSource = "Mains (single phase)";
-            device.save();
-        },
+        extend: [lumiPreventReset(), m.forceDeviceType({type: "EndDevice"}), m.forcePowerSource({powerSource: "Mains (single phase)"})],
     },
     {
         zigbeeModel: ["lumi.switch.b2lacn02"],
@@ -1214,12 +1188,7 @@ export const definitions: DefinitionWithExtend[] = [
         endpoint: (device) => {
             return {system: 1, left: 2, right: 3};
         },
-        extend: [lumiPreventReset()],
-        configure: async (device, coordinatorEndpoint) => {
-            // Device advertises itself as Router but is an EndDevice
-            device.type = "EndDevice";
-            device.save();
-        },
+        extend: [lumiPreventReset(), m.forceDeviceType({type: "EndDevice"})],
     },
     {
         zigbeeModel: ["lumi.switch.l3acn3"],
@@ -1356,12 +1325,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.action(["single", "release"]),
             e.enum("operation_mode", ea.ALL, ["control_relay", "decoupled"]).withDescription("Decoupled mode"),
         ],
-        configure: async (device, coordinatorEndpoint) => {
-            device.type = "Router";
-            device.powerSource = "Mains (single phase)";
-            device.save();
-        },
-        extend: [lumiZigbeeOTA(), lumiPreventReset()],
+        extend: [lumiZigbeeOTA(), lumiPreventReset(), m.forceDeviceType({type: "Router"}), m.forcePowerSource({powerSource: "Mains (single phase)"})],
     },
     {
         zigbeeModel: ["lumi.switch.b2nacn02"],
@@ -1541,11 +1505,7 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [lumi.fromZigbee.lumi_basic, lumi.fromZigbee.lumi_temperature, fz.humidity, fz.pressure],
         toZigbee: [],
         exposes: [e.battery(), e.temperature(), e.humidity(), e.pressure(), e.battery_voltage()],
-        configure: async (device, coordinatorEndpoint) => {
-            device.powerSource = "Battery";
-            device.save();
-        },
-        extend: [m.quirkCheckinInterval("1_HOUR")],
+        extend: [m.quirkCheckinInterval("1_HOUR"), m.forcePowerSource({powerSource: "Battery"})],
     },
     {
         zigbeeModel: ["lumi.sensor_ht.agl02"],
@@ -1831,6 +1791,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.power_outage_count(),
             e.motion_sensitivity_select(["low", "medium", "high"]).withDescription("Select motion sensitivity to use."),
         ],
+        ota: true,
         configure: async (device, coordinatorEndpoint) => {
             // Retrieve motion sensitivity value
             const endpoint = device.getEndpoint(1);
@@ -1873,11 +1834,7 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [lumi.fromZigbee.lumi_basic, lumi.fromZigbee.lumi_contact],
         toZigbee: [],
         exposes: [e.battery(), e.contact(), e.device_temperature(), e.battery_voltage(), e.power_outage_count(false), e.trigger_count()],
-        extend: [m.quirkCheckinInterval("1_HOUR")],
-        configure: async (device) => {
-            device.powerSource = "Battery";
-            device.save();
-        },
+        extend: [m.quirkCheckinInterval("1_HOUR"), m.forcePowerSource({powerSource: "Battery"})],
     },
     {
         zigbeeModel: ["lumi.sensor_wleak.aq1"],
@@ -1885,18 +1842,10 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Aqara",
         description: "Water leak sensor",
         meta: {battery: {voltageToPercentage: {min: 2850, max: 3000}}},
-        fromZigbee: [lumi.fromZigbee.lumi_basic, fz.ias_water_leak_alarm_1],
+        fromZigbee: [lumi.fromZigbee.lumi_basic],
         toZigbee: [],
-        exposes: [
-            e.battery(),
-            e.water_leak(),
-            e.battery_low(),
-            e.battery_voltage(),
-            e.device_temperature(),
-            e.power_outage_count(false),
-            e.trigger_count(),
-        ],
-        extend: [m.quirkCheckinInterval("1_HOUR")],
+        exposes: [e.battery(), e.battery_voltage(), e.device_temperature(), e.power_outage_count(false), e.trigger_count()],
+        extend: [m.quirkCheckinInterval("1_HOUR"), m.iasZoneAlarm({zoneType: "water_leak", zoneAttributes: ["alarm_1", "battery_low"]})],
     },
     {
         zigbeeModel: ["lumi.flood.agl02"],
@@ -2064,19 +2013,19 @@ export const definitions: DefinitionWithExtend[] = [
                 await reporting.bind(endpoint, coordinatorEndpoint, ["haElectricalMeasurement"]);
                 await endpoint.read("haElectricalMeasurement", ["acPowerMultiplier", "acPowerDivisor"]);
             } catch (e) {
-                logger.warning(`SP-EUC01 failed to setup electricity measurements (${e.message})`, NS);
-                logger.debug(e.stack, NS);
+                logger.warning(`SP-EUC01 failed to setup electricity measurements (${(e as Error).message})`, NS);
+                logger.debug(`${(e as Error).stack}`, NS);
             }
             try {
                 await reporting.bind(endpoint, coordinatorEndpoint, ["seMetering"]);
                 await reporting.readMeteringMultiplierDivisor(endpoint);
                 await reporting.currentSummDelivered(endpoint, {change: 0});
             } catch (e) {
-                logger.warning(`SP-EUC01 failed to setup metering (${e.message})`, NS);
-                logger.debug(e.stack, NS);
+                logger.warning(`SP-EUC01 failed to setup metering (${(e as Error).message})`, NS);
+                logger.debug(`${(e as Error).stack}`, NS);
             }
         },
-        onEvent: async (type, data, device) => {
+        onEvent: (type, data, device) => {
             const switchEndpoint = device.getEndpoint(1);
             if (switchEndpoint == null) {
                 return;
@@ -2194,11 +2143,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.numeric("gas_density", ea.STATE),
             e.enum("selftest", ea.SET, [""]),
         ],
-        configure: async (device, coordinatorEndpoint) => {
-            device.powerSource = "Mains (single phase)";
-            device.type = "Router";
-            device.save();
-        },
+        extend: [m.forceDeviceType({type: "Router"}), m.forcePowerSource({powerSource: "Mains (single phase)"})],
     },
     {
         zigbeeModel: ["lumi.sensor_gas.acn02"],
@@ -2647,11 +2592,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.power_outage_memory(),
             e.binary("interlock", ea.STATE_SET, true, false).withDescription("Enabling prevents both relais being on at the same time"),
         ],
-        extend: [lumiZigbeeOTA()],
-        configure: async (device, coordinatorEndpoint) => {
-            device.powerSource = "Mains (single phase)";
-            device.save();
-        },
+        extend: [lumiZigbeeOTA(), m.forcePowerSource({powerSource: "Mains (single phase)"})],
     },
     {
         zigbeeModel: ["lumi.switch.acn047"],
@@ -2744,12 +2685,7 @@ export const definitions: DefinitionWithExtend[] = [
             ]),
         ],
         meta: {battery: {voltageToPercentage: {min: 3000, max: 4200}}},
-        configure: async (device, coordinatorEndpoint) => {
-            // Device advertises itself as Router but is an EndDevice
-            device.type = "EndDevice";
-            device.save();
-        },
-        extend: [m.quirkCheckinInterval("1_HOUR"), lumiZigbeeOTA()],
+        extend: [m.quirkCheckinInterval("1_HOUR"), lumiZigbeeOTA(), m.forceDeviceType({type: "EndDevice"})],
     },
     {
         zigbeeModel: ["lumi.lock.acn03"],
@@ -2781,12 +2717,7 @@ export const definitions: DefinitionWithExtend[] = [
                 "door_closed",
             ]),
         ],
-        extend: [m.quirkCheckinInterval("1_HOUR")],
-        configure: async (device, coordinatorEndpoint) => {
-            // Device advertises itself as Router but is an EndDevice
-            device.type = "EndDevice";
-            device.save();
-        },
+        extend: [m.quirkCheckinInterval("1_HOUR"), m.forceDeviceType({type: "EndDevice"})],
     },
     {
         zigbeeModel: ["lumi.lock.aq1"],
@@ -3109,11 +3040,8 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "genDeviceTempCfg"]);
             await reporting.onOff(endpoint);
             await reporting.deviceTemperature(endpoint);
-            device.powerSource = "Mains (single phase)";
-            device.type = "Router";
-            device.save();
         },
-        extend: [lumiZigbeeOTA()],
+        extend: [lumiZigbeeOTA(), m.forceDeviceType({type: "Router"}), m.forcePowerSource({powerSource: "Mains (single phase)"})],
     },
     {
         zigbeeModel: ["lumi.switch.n0acn2"],
@@ -3141,10 +3069,8 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         configure: async (device, coordinatorEndpoint) => {
             await device.getEndpoint(1).write("manuSpecificLumi", {mode: 1}, {manufacturerCode: manufacturerCode, disableResponse: true});
-            device.powerSource = "Mains (single phase)";
-            device.save();
         },
-        extend: [lumiZigbeeOTA()],
+        extend: [lumiZigbeeOTA(), m.forcePowerSource({powerSource: "Mains (single phase)"})],
     },
     {
         zigbeeModel: ["lumi.switch.l0agl1"],
@@ -3154,12 +3080,11 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.on_off, lumi.fromZigbee.lumi_specific],
         exposes: [e.switch(), e.power_outage_memory(), e.switch_type(), e.power_outage_count(), e.device_temperature()],
         toZigbee: [lumi.toZigbee.lumi_switch_type, tz.on_off, lumi.toZigbee.lumi_switch_power_outage_memory],
+        extend: [m.forcePowerSource({powerSource: "Mains (single phase)"})],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff"]);
             await reporting.onOff(endpoint);
-            device.powerSource = "Mains (single phase)";
-            device.save();
         },
     },
     {
@@ -3170,12 +3095,11 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.on_off, lumi.fromZigbee.lumi_specific],
         exposes: [e.switch(), e.power_outage_memory(), e.switch_type()],
         toZigbee: [lumi.toZigbee.lumi_switch_type, tz.on_off, lumi.toZigbee.lumi_switch_power_outage_memory],
+        extend: [m.forcePowerSource({powerSource: "Mains (single phase)"})],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff"]);
             await reporting.onOff(endpoint);
-            device.powerSource = "Mains (single phase)";
-            device.save();
         },
     },
     {
@@ -3825,12 +3749,10 @@ export const definitions: DefinitionWithExtend[] = [
                 .withUnit("g")
                 .withCategory("config"),
         ],
-        extend: [lumiZigbeeOTA()],
+        extend: [lumiZigbeeOTA(), m.forcePowerSource({powerSource: "Mains (single phase)"})],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await endpoint.read("manuSpecificLumi", [0xfff1], {manufacturerCode: manufacturerCode});
-            device.powerSource = "Mains (single phase)";
-            device.save();
         },
     },
     {
@@ -4036,6 +3958,7 @@ export const definitions: DefinitionWithExtend[] = [
             lumiAction({extraActions: ["slider_single", "slider_double", "slider_hold", "slider_up", "slider_down"]}),
             lumiElectricityMeter(),
             lumiPower(),
+            lumiLedDisabledNight(),
             lumiClickMode({attribute: {ID: 0x0286, type: 0x20}}),
             lumiSlider(),
             lumiSwitchMode(),
@@ -4062,6 +3985,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             lumiElectricityMeter(),
             lumiPower(),
+            lumiLedDisabledNight(),
             lumiClickMode({attribute: {ID: 0x0286, type: 0x20}}),
             lumiSlider(),
             lumiSwitchMode(),
@@ -4088,6 +4012,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             lumiElectricityMeter(),
             lumiPower(),
+            lumiLedDisabledNight(),
             lumiClickMode({attribute: {ID: 0x0286, type: 0x20}}),
             lumiSlider(),
             lumiSwitchMode(),
@@ -4115,6 +4040,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             lumiElectricityMeter(),
             lumiPower(),
+            lumiLedDisabledNight(),
             lumiClickMode({attribute: {ID: 0x0286, type: 0x20}}),
             lumiSlider(),
             lumiSwitchMode(),
@@ -4576,6 +4502,64 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Maximum brightness level",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
+        ],
+    },
+    {
+        zigbeeModel: ["lumi.switch.agl006"],
+        model: "WS-K04E",
+        vendor: "Aqara",
+        description: "Light Switch H2 US (quadruple rocker)",
+        fromZigbee: [fz.on_off, lumi.fromZigbee.lumi_action_multistate, lumi.fromZigbee.lumi_specific],
+        extend: [
+            lumiZigbeeOTA(),
+            lumiPreventReset(),
+            m.deviceEndpoints({endpoints: {top: 1, center: 2, bottom: 3, wireless: 4}}),
+            m.bindCluster({endpointNames: ["top", "center", "bottom", "wireless"], cluster: "manuSpecificLumi", clusterType: "input"}),
+            m.bindCluster({endpointNames: ["top", "center", "bottom"], cluster: "genOnOff", clusterType: "input"}),
+            lumiPower(),
+            lumiOnOff({
+                operationMode: true,
+                powerOutageMemory: "enum",
+                lockRelay: true,
+                endpointNames: ["top", "center", "bottom"],
+            }),
+            lumiAction({
+                actionLookup: {hold: 0, single: 1, double: 2, release: 255},
+                endpointNames: ["top", "center", "bottom", "wireless"],
+            }),
+            lumiMultiClick({description: "Multi-click mode for wireless button", endpointName: "wireless"}),
+            lumiLedDisabledNight(),
+            lumiFlipIndicatorLight(),
+            lumiSwitchMode(),
+        ],
+    },
+    {
+        zigbeeModel: ["lumi.switch.agl004"],
+        model: "WS-K02E",
+        vendor: "Aqara",
+        description: "Light Switch H2 US (double rocker)",
+        fromZigbee: [fz.on_off, lumi.fromZigbee.lumi_action_multistate, lumi.fromZigbee.lumi_specific],
+        extend: [
+            lumiZigbeeOTA(),
+            lumiPreventReset(),
+            m.deviceEndpoints({endpoints: {top: 1, wireless: 2}}),
+            m.bindCluster({endpointNames: ["top", "wireless"], cluster: "manuSpecificLumi", clusterType: "input"}),
+            m.bindCluster({endpointNames: ["top"], cluster: "genOnOff", clusterType: "input"}),
+            lumiPower(),
+            lumiOnOff({
+                operationMode: true,
+                powerOutageMemory: "enum",
+                lockRelay: true,
+                endpointNames: ["top"],
+            }),
+            lumiAction({
+                actionLookup: {hold: 0, single: 1, double: 2, release: 255},
+                endpointNames: ["top", "wireless"],
+            }),
+            lumiMultiClick({description: "Multi-click mode for wireless button", endpointName: "wireless"}),
+            lumiLedDisabledNight(),
+            lumiFlipIndicatorLight(),
+            lumiSwitchMode(),
         ],
     },
 ];

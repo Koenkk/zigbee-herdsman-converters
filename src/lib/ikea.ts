@@ -1,4 +1,4 @@
-import * as semver from "semver";
+import {gt as semverGt, gte as semverGte, lt as semverLt, valid as semverValid} from "semver";
 
 import {Zcl} from "zigbee-herdsman";
 
@@ -8,12 +8,13 @@ import {access, options, presets} from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as globalStore from "../lib/store";
-import type {Configure, Expose, Fz, KeyValue, KeyValueAny, LevelConfigFeatures, ModernExtend, OnEvent, Range, Tz} from "../lib/types";
+import type {Configure, Expose, Fz, KeyValue, KeyValueAny, LevelConfigFeatures, ModernExtend, OnEvent, Range, Tz, Zh} from "../lib/types";
 import {
     assertString,
     configureSetPowerSourceWhenUnknown,
     getEndpointName,
     getFromLookup,
+    getTransition,
     hasAlreadyProcessedMessage,
     isObject,
     mapNumberRange,
@@ -31,7 +32,7 @@ const bulbOnEvent: OnEvent = async (type, data, device, options, state: KeyValue
     /**
      * IKEA bulbs lose their configured reportings when losing power.
      * A deviceAnnounce indicates they are powered on again.
-     * Reconfigure the configured reoprting here.
+     * Reconfigure the configured reporting here.
      *
      * Additionally some other information is lost like
      *   color_options.execute_if_off. We also restore these.
@@ -91,6 +92,26 @@ export function ikeaLight(args?: Omit<m.LightArgs, "colorTemp"> & {colorTemp?: t
     }
     if (args?.colorTemp || args?.color) {
         result.exposes.push(presets.light_color_options());
+
+        if (result.toZigbee) {
+            // add unfreeze support for color lights
+            result.toZigbee = result.toZigbee.map((orig) => {
+                if (orig.key?.some((k) => keysNeedingUnfreeze.has(k))) {
+                    const origOptions = orig.options;
+
+                    return {
+                        ...orig,
+                        options:
+                            typeof origOptions === "function"
+                                ? (def) => [...origOptions(def), options.unfreeze_support()]
+                                : [...origOptions, options.unfreeze_support()],
+                        convertSet: ikea_bulb_unfreeze(orig.convertSet),
+                    };
+                }
+
+                return orig;
+            });
+        }
     }
 
     // Never use a transition when transitioning to OFF as this turns on the light when sending OFF twice
@@ -103,7 +124,7 @@ export function ikeaLight(args?: Omit<m.LightArgs, "colorTemp"> & {colorTemp?: t
         ...result.meta,
         noOffTransitionWhenOff: (entity) => {
             const softwareBuildID = entity.getDevice().softwareBuildID;
-            return softwareBuildID && !softwareBuildID.includes("-") && semver.gt(softwareBuildID ?? "0.0.0", "1.0.021", true);
+            return softwareBuildID && semverValid(softwareBuildID, true) && semverGt(softwareBuildID, "1.0.012", true);
         },
     };
 
@@ -131,17 +152,20 @@ export function ikeaBattery(): ModernExtend {
                     // Some devices do not comply to the ZCL and report a
                     // batteryPercentageRemaining of 100 when the battery is full (should be 200).
                     let dividePercentage = true;
-                    if (model.model === "E2103") {
-                        if (semver.lt(meta.device.softwareBuildID, "24.4.13", true)) {
-                            dividePercentage = false;
-                        }
-                    } else {
-                        // IKEA corrected this on newer remote fw version, but many people are still
-                        // 2.2.010 which is the last version supporting group bindings. We try to be
-                        // smart and pick the correct one for IKEA remotes.
-                        // If softwareBuildID is below 2.4.0 it should not be divided
-                        if (semver.lt(meta.device.softwareBuildID, "2.4.0", true)) {
-                            dividePercentage = false;
+
+                    if (meta.device.softwareBuildID && semverValid(meta.device.softwareBuildID, true)) {
+                        if (model.model === "E2103") {
+                            if (semverLt(meta.device.softwareBuildID, "24.4.13", true)) {
+                                dividePercentage = false;
+                            }
+                        } else {
+                            // IKEA corrected this on newer remote fw version, but many people are still
+                            // 2.2.010 which is the last version supporting group bindings. We try to be
+                            // smart and pick the correct one for IKEA remotes.
+                            // If softwareBuildID is below 2.4.0 it should not be divided
+                            if (semverLt(meta.device.softwareBuildID, "2.4.0", true)) {
+                                dividePercentage = false;
+                            }
                         }
                     }
 
@@ -178,7 +202,7 @@ export function ikeaConfigureStyrbar(): ModernExtend {
     const configure: Configure[] = [
         async (device, coordinatorEndpoint, definition) => {
             // https://github.com/Koenkk/zigbee2mqtt/issues/15725
-            if (semver.gte(device.softwareBuildID, "2.4.0", true)) {
+            if (device.softwareBuildID && semverValid(device.softwareBuildID, true) && semverGte(device.softwareBuildID, "2.4.0", true)) {
                 const endpoint = device.getEndpoint(1);
                 await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "genLevelCtrl", "genScenes"]);
             }
@@ -255,6 +279,7 @@ export function ikeaAirPurifier(): ModernExtend {
                     // Air Quality
                     // Scale based on EU AQI (https://www.eea.europa.eu/themes/air/air-quality-index)
                     // Using German IAQ labels to match the Develco Air Quality Sensor
+                    // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
                     let airQuality;
                     const airQualityProperty = postfixWithEndpointName("air_quality", msg, model, meta);
                     if (pm25 <= 10) {
@@ -334,11 +359,14 @@ export function ikeaAirPurifier(): ModernExtend {
             key: ["fan_mode", "fan_state"],
             convertSet: async (entity, key, value, meta) => {
                 if (key === "fan_state" && typeof value === "string" && value.toLowerCase() === "on") {
+                    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
                     value = "auto";
                 } else {
+                    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
                     value = value.toString().toLowerCase();
                 }
 
+                // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
                 let fanMode;
                 switch (value) {
                     case "off":
@@ -466,6 +494,7 @@ export function ikeaVoc(args?: Partial<m.NumericArgs>) {
 }
 
 export function ikeaConfigureGenPollCtrl(args?: {endpointId: number}): ModernExtend {
+    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
     args = {endpointId: 1, ...args};
     const configure: Configure[] = [
         async (device, coordinatorEndpoint, definition) => {
@@ -622,6 +651,7 @@ export function styrbarCommandOn(): ModernExtend {
 }
 
 export function ikeaDotsClick(args: {actionLookup?: KeyValue; dotsPrefix?: boolean; endpointNames: string[]}): ModernExtend {
+    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
     args = {
         actionLookup: {
             commandAction1: "initial_press",
@@ -645,6 +675,7 @@ export function ikeaDotsClick(args: {actionLookup?: KeyValue; dotsPrefix?: boole
             type: "raw",
             convert: (model, msg, publish, options, meta) => {
                 if (!Buffer.isBuffer(msg.data)) return;
+                // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
                 let action;
                 const button = msg.data[5];
                 switch (msg.data[6]) {
@@ -680,6 +711,7 @@ export function ikeaDotsClick(args: {actionLookup?: KeyValue; dotsPrefix?: boole
 }
 
 export function ikeaArrowClick(args?: {styrbar?: boolean; bind?: boolean}): ModernExtend {
+    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
     args = {styrbar: false, bind: true, ...args};
     const actions = ["arrow_left_click", "arrow_left_hold", "arrow_left_release", "arrow_right_click", "arrow_right_hold", "arrow_right_release"];
     const exposes: Expose[] = [presets.action(actions)];
@@ -814,3 +846,89 @@ export function addCustomClusterManuSpecificIkeaUnknown(): ModernExtend {
         commandsResponse: {},
     });
 }
+
+const unfreezeMechanisms: {
+    [key: string]: (entity: Zh.Endpoint | Zh.Group) => Promise<void>;
+} = {
+    // WS lights:
+    //   Aborts the color transition midway: light will stay at the intermediary
+    //   state it was when it received the command.
+    // Color lights:
+    //   Do not support this command.
+    moveColorTemp: async (entity) => {
+        await entity.command("lightingColorCtrl", "moveColorTemp", {rate: 1, movemode: 0, minimum: 0, maximum: 600}, {});
+    },
+
+    // WS lights:
+    //   Same as "moveColorTemp".
+    // Color lights:
+    //   Finishes the color transition instantly: light will instantly
+    //   "fast forward" to the final state, post-transition.
+    genLevelCtrl: async (entity) => {
+        await entity.command("genLevelCtrl", "stop", {}, {});
+    },
+};
+
+// zigbee commands which will freeze an IKEA light
+const willFreeze = (payload: KeyValue, transition: number, value: unknown) =>
+    // any color command with a transition will freeze the light...
+    transition > 0 &&
+    ("color" in payload ||
+        "color_temp" in payload ||
+        "color_temp_move" in payload ||
+        "color_temp_percent" in payload ||
+        "color_temp_startup" in payload ||
+        "color_temp_step" in payload ||
+        "colortemp_move" in payload) &&
+    // ...except for 'stop' commands:
+    // aka { rate: 1, movemode: 0 }, which are generated
+    // in light_colortemp_move() from these arguments:
+    value !== "stop" &&
+    value !== 0;
+
+// Certain IKEA lights will freeze when given a brightness or temperature change with a transition
+// We track if a light is frozen and if so, before issuing further commands, we send a command known to unfreeze the light
+// https://github.com/Koenkk/zigbee2mqtt/issues/18574
+//
+// These are keys for whom we need to unfreeze the light before issuing a corresponding command to said light
+const keysNeedingUnfreeze = new Set(["state", "brightness", "brightness_percent", "color_temp", "color_temp_percent"]);
+
+const ikea_bulb_unfreeze = (next: Tz.Converter["convertSet"]) => {
+    const converter: Tz.Converter["convertSet"] = async (entity, key, value, meta) => {
+        if (!keysNeedingUnfreeze.has(key) || meta.options.unfreeze_support === false) {
+            return await next(entity, key, value, meta);
+        }
+
+        const id = "deviceIeeeAddress" in entity ? entity.deviceIeeeAddress : entity.groupID;
+        const now = Date.now();
+
+        const wasFrozenUntil: number | null = globalStore.getValue(entity, "frozenUntil");
+        if (wasFrozenUntil != null && now <= wasFrozenUntil) {
+            logger.debug(`${id}: light is frozen until ${new Date(wasFrozenUntil).toISOString()}, unfreezing via "genLevelCtrl"`, NS);
+
+            // hardcoded to a single unfreeze mechanism for now
+            await unfreezeMechanisms.genLevelCtrl(entity);
+        }
+
+        const ret = await next(entity, key, value, meta);
+
+        const transition = getTransition(entity, key, meta);
+        if (willFreeze(meta.message, transition.time, value)) {
+            // remember that the light is now frozen
+            const millis = transition.time * 100;
+            const frozenUntil = Date.now() + millis;
+
+            logger.debug(`${id}: marking light as frozen until ${new Date(frozenUntil).toISOString()} because of "${key}"`, NS);
+
+            globalStore.putValue(entity, "frozenUntil", frozenUntil);
+        } else if (wasFrozenUntil != null) {
+            logger.debug(`${id}: marking light as unfrozen`, NS);
+
+            globalStore.clearValue(entity, "frozenUntil");
+        }
+
+        return ret;
+    };
+
+    return converter;
+};

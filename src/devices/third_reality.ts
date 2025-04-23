@@ -154,7 +154,8 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Smart motion sensor R1",
         ota: true,
         extend: [
-            m.battery(),
+            m.iasZoneAlarm({zoneType: "occupancy", zoneAttributes: ["alarm_1", "battery_low"]}),
+            m.battery({voltage: true}),
             m.deviceAddCustomCluster("3rRadarSpecialCluster", {
                 ID: 0xff01,
                 manufacturerCode: 0x1407,
@@ -378,7 +379,7 @@ export const definitions: DefinitionWithExtend[] = [
                 ID: 0xfff2,
                 manufacturerCode: 0x1407,
                 attributes: {
-                    wateringTimes: {ID: 0x0000, type: Zcl.DataType.UINT8},
+                    wateringTimes: {ID: 0x0000, type: Zcl.DataType.UINT16},
                     intervalDay: {ID: 0x0001, type: Zcl.DataType.UINT8},
                 },
                 commands: {},
@@ -431,10 +432,18 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        zigbeeModel: ["3RSP02065Z"],
-        model: "3RSP02065Z",
+        zigbeeModel: ["3RSPE02065Z"],
+        model: "3RSPE02065Z",
         vendor: "Third Reality",
-        description: "Zigbee / BLE smart plug with power",
+        description: "Zigbee / BLE smart plug e3 with power",
+        extend: [m.onOff(), m.electricityMeter()],
+        ota: true,
+    },
+    {
+        zigbeeModel: ["3RSPU01080Z"],
+        model: "3RSPU01080Z",
+        vendor: "Third Reality",
+        description: "Zigbee / BLE smart plug uk with power",
         extend: [m.onOff(), m.electricityMeter()],
         ota: true,
     },
@@ -442,7 +451,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["3RSP02064Z"],
         model: "3RSP02064Z",
         vendor: "Third Reality",
-        description: "Zigbee / BLE smart plug with power",
+        description: "Zigbee / BLE smart plug gen3 with power",
         extend: [m.onOff(), m.electricityMeter()],
         ota: true,
     },
@@ -508,13 +517,10 @@ export const definitions: DefinitionWithExtend[] = [
                 commandsResponse: {},
             }),
             m.illuminance(),
+            m.forcePowerSource({powerSource: "Mains (single phase)"}),
         ],
         fromZigbee: [fzLocal.thirdreality_private_motion_sensor, fz.ias_occupancy_alarm_1_report],
         exposes: [e.occupancy()],
-        configure: async (device, coordinatorEndpoint) => {
-            device.powerSource = "Mains (single phase)";
-            device.save();
-        },
     },
     {
         zigbeeModel: ["3RCB01057Z"],

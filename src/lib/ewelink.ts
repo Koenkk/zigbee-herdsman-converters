@@ -18,6 +18,7 @@ export const ewelinkToZigbee = {
     motor_direction: {
         key: ["motor_direction"],
         convertSet: async (entity, key, value, meta) => {
+            // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
             let windowCoveringMode;
             if (value === "forward") {
                 windowCoveringMode = 0x00;
@@ -38,7 +39,7 @@ export const ewelinkFromZigbee = {
         options: [options.invert_cover()],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValueAny = {};
-            if (typeof msg.data === "object" && Object.prototype.hasOwnProperty.call(msg.data, "windowCoveringMode")) {
+            if (typeof msg.data === "object" && Object.hasOwn(msg.data, "windowCoveringMode")) {
                 result.motor_direction = (msg.data.windowCoveringMode & (1 << 0)) > 0 === true ? "reverse" : "forward";
             }
             return result;
@@ -122,7 +123,7 @@ function privateMotorClbByPosition(clusterName: string, writeCommand: string): M
         {
             cluster: clusterName,
             type: ["raw"],
-            convert: (model, msg, publish, otions, meta) => {
+            convert: (model, msg, publish, options, meta) => {
                 if (msg.type === "raw" && msg.data instanceof Buffer) {
                     // Raex Protocol，updated Report only through 'motor_info'.
                     if (protocol.dooya.supportModel.includes(model.model)) {
@@ -193,7 +194,8 @@ function privateMotorClbByPosition(clusterName: string, writeCommand: string): M
     const toZigbee: Tz.Converter[] = [
         {
             key: ["motor_clb_position"],
-            convertSet: async (entity: Zh.Endpoint, key, value, meta) => {
+            convertSet: async (entity, key, value, meta) => {
+                utils.assertEndpoint(entity);
                 const device: Zh.Device = entity.getDevice();
                 const modelID = device.modelID;
 
@@ -202,12 +204,12 @@ function privateMotorClbByPosition(clusterName: string, writeCommand: string): M
                     // Dooya Protocol
                     const payloadValue = [];
                     if (value === "clear") {
-                        // Clear limit postion
+                        // Clear limit position
                         payloadValue[0] = deleteMotorClbCommand.privateCmd;
                         payloadValue[1] = deleteMotorClbCommand.subCmd;
                         payloadValue[2] = mapping[value as keyof typeof mapping];
                     } else if (["open", "close", "other"].includes(value as string)) {
-                        // Set limit postion
+                        // Set limit position
                         payloadValue[0] = updateMotorClbCommand.privateCmd;
                         payloadValue[1] = updateMotorClbCommand.subCmd;
                         payloadValue[2] = mapping[value as keyof typeof mapping];
@@ -219,13 +221,13 @@ function privateMotorClbByPosition(clusterName: string, writeCommand: string): M
                     // Raex Protocol
                     const payloadValue = [];
                     if (value === "clear") {
-                        // Clear limit postion
+                        // Clear limit position
                         payloadValue[0] = deleteMotorClbCommand.privateCmd;
                         payloadValue[1] = deleteMotorClbCommand.dataLength;
                         payloadValue[2] = deleteMotorClbCommand.subCmd;
                         payloadValue[3] = mapping[value as keyof typeof mapping];
                     } else if (["open", "close", "other"].includes(value as string)) {
-                        // Set limit postion
+                        // Set limit position
                         payloadValue[0] = updateMotorClbCommand.privateCmd;
                         payloadValue[1] = updateMotorClbCommand.dataLength;
                         payloadValue[2] = updateMotorClbCommand.subCmd;
@@ -307,7 +309,7 @@ function privateMotorMode(clusterName: string, writeCommand: string): ModernExte
         {
             cluster: clusterName,
             type: ["raw"],
-            convert: (model, msg, publish, otions, meta) => {
+            convert: (model, msg, publish, options, meta) => {
                 if (msg.type === "raw" && msg.data instanceof Buffer) {
                     if (protocol.dooya.supportModel.includes(model.model)) {
                         const bufferObj = msg.data.subarray(3, msg.data.length).toJSON();
@@ -316,15 +318,16 @@ function privateMotorMode(clusterName: string, writeCommand: string): ModernExte
 
                         if (payload[0] === privateCmd && payload[1] === subCmd) {
                             const entities = Object.entries(protocol.dooya.mapping);
-                            let motor_mode;
+                            // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
+                            let motorMode;
                             for (const entity of entities) {
                                 if (entity[1] === payload[2]) {
-                                    motor_mode = entity[0];
+                                    motorMode = entity[0];
                                     break;
                                 }
                             }
                             return {
-                                motor_mode,
+                                motor_mode: motorMode,
                             };
                         }
                     } else if (protocol.ak.supportModel.includes(model.model)) {
@@ -333,15 +336,16 @@ function privateMotorMode(clusterName: string, writeCommand: string): ModernExte
                         const {cmdType, privateCmd, dataType} = protocol.ak.updatedMotorModeCommand;
                         if (payload[0] === cmdType && payload[2] === privateCmd && payload[3] === dataType) {
                             const entities = Object.entries(protocol.ak.mapping);
-                            let motor_mode;
+                            // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
+                            let motorMode;
                             for (const entity of entities) {
                                 if (entity[1] === payload[6]) {
-                                    motor_mode = entity[0];
+                                    motorMode = entity[0];
                                     break;
                                 }
                             }
                             return {
-                                motor_mode,
+                                motor_mode: motorMode,
                             };
                         }
                     }
@@ -353,7 +357,8 @@ function privateMotorMode(clusterName: string, writeCommand: string): ModernExte
     const toZigbee: Tz.Converter[] = [
         {
             key: ["motor_mode"],
-            convertSet: async (entity: Zh.Endpoint, key, value, meta) => {
+            convertSet: async (entity, key, value, meta) => {
+                utils.assertEndpoint(entity);
                 const device: Zh.Device = entity.getDevice();
                 const modelID = device.modelID;
 
@@ -484,7 +489,7 @@ function privateReportMotorInfo(clusterName: string): ModernExtend {
         {
             cluster: clusterName,
             type: ["raw"],
-            convert: (model, msg, publish, otions, meta) => {
+            convert: (model, msg, publish, options, meta) => {
                 if (msg.type === "raw" && msg.data instanceof Buffer) {
                     if (protocol.dooya.supportModel.includes(model.model)) {
                         // Dooya Protocol
@@ -590,7 +595,7 @@ function privateMotorSpeed(clusterName: string, writeCommand: string, minSpeed: 
         {
             cluster: clusterName,
             type: ["raw"],
-            convert: (model, msg, publish, otions, meta) => {
+            convert: (model, msg, publish, options, meta) => {
                 if (msg.type === "raw" && msg.data instanceof Buffer) {
                     if (protocol.dooya.supportModel.includes(model.model)) {
                         const bufferObj = msg.data.subarray(3, msg.data.length).toJSON();
@@ -620,7 +625,8 @@ function privateMotorSpeed(clusterName: string, writeCommand: string, minSpeed: 
     const toZigbee: Tz.Converter[] = [
         {
             key: ["motor_speed"],
-            convertSet: async (entity: Zh.Endpoint, key, value, meta) => {
+            convertSet: async (entity, key, value, meta) => {
+                utils.assertEndpoint(entity);
                 const device: Zh.Device = entity.getDevice();
                 const modelID = device.modelID;
 

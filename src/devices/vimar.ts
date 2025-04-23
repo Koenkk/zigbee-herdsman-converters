@@ -22,7 +22,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "IoT connected dimmer mechanism 220-240V",
         extend: [m.light({configureReporting: true, powerOnBehavior: false})],
         endpoint: (device) => {
-            return {default: 11};
+            return {default: 10};
         },
     },
     {
@@ -95,5 +95,12 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
             await reporting.thermostatTemperature(endpoint);
         },
+    },
+    {
+        zigbeeModel: ["RemoteControl_v1.0"],
+        model: "RemoteControl_v1.0",
+        vendor: "Vimar",
+        description: "Remote control IoT",
+        extend: [m.commandsOnOff(), m.commandsWindowCovering(), m.commandsLevelCtrl()],
     },
 ];

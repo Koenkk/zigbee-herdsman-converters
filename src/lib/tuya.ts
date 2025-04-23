@@ -72,6 +72,7 @@ interface OnEventArgs {
 
 export function onEvent(args?: OnEventArgs): OnEvent {
     return async (type, data, device, settings, state) => {
+        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         args = {queryOnDeviceAnnounce: false, timeStart: "1970", respondToMcuVersionResponse: true, ...args};
 
         const endpoint = device.endpoints[0];
@@ -168,7 +169,7 @@ function convertDecimalValueTo2ByteHexArray(value: number) {
     return [chunk1, chunk2].map((hexVal) => Number.parseInt(hexVal, 16));
 }
 
-export async function onEventMeasurementPoll(
+export function onEventMeasurementPoll(
     type: OnEventType,
     data: OnEventData,
     device: Zh.Device,
@@ -189,7 +190,7 @@ export async function onEventMeasurementPoll(
     utils.onEventPoll(type, data, device, options, "measurement", 60, poll);
 }
 
-export async function onEventSetTime(type: OnEventType, data: KeyValue, device: Zh.Device) {
+export async function onEventSetTime(type: OnEventType, data: OnEventData, device: Zh.Device) {
     // FIXME: Need to join onEventSetTime/onEventSetLocalTime to one command
 
     if (data.type === "commandMcuSyncTime" && data.cluster === "manuSpecificTuya") {
@@ -213,7 +214,7 @@ export async function onEventSetTime(type: OnEventType, data: KeyValue, device: 
 
 // set UTC and Local Time as total number of seconds from 00: 00: 00 on January 01, 1970
 // force to update every device time every hour due to very poor clock
-export async function onEventSetLocalTime(type: OnEventType, data: KeyValue, device: Zh.Device) {
+export async function onEventSetLocalTime(type: OnEventType, data: OnEventData, device: Zh.Device) {
     // FIXME: What actually nextLocalTimeUpdate/forceTimeUpdate do?
     //  I did not find any timers or something else where it was used.
     //  Actually, there are two ways to set time on Tuya MCU devices:
@@ -247,6 +248,7 @@ export async function onEventSetLocalTime(type: OnEventType, data: KeyValue, dev
 // Return `seq` - transaction ID for handling concrete response
 async function sendDataPoints(entity: Zh.Endpoint | Zh.Group, dpValues: Tuya.DpValue[], cmd = "dataRequest", seq?: number) {
     if (seq === undefined) {
+        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         seq = globalStore.getValue(entity, "sequence", 0);
         globalStore.putValue(entity, "sequence", (seq + 1) % 0xffff);
     }
@@ -267,7 +269,7 @@ function dpValueFromEnum(dp: number, value: number) {
     return {dp, datatype: dataTypes.enum, data: [value]};
 }
 
-function dpValueFromString(dp: number, string: string) {
+export function dpValueFromString(dp: number, string: string) {
     return {dp, datatype: dataTypes.string, data: convertStringToHexArray(string)};
 }
 
@@ -486,7 +488,7 @@ export const configureMagicPacket = async (device: Zh.Device, coordinatorEndpoin
     } catch (e) {
         // Fails for some Tuya devices with UNSUPPORTED_ATTRIBUTE, ignore that.
         // e.g. https://github.com/Koenkk/zigbee2mqtt/issues/14857
-        if (e.message.includes("UNSUPPORTED_ATTRIBUTE")) {
+        if ((e as Error).message.includes("UNSUPPORTED_ATTRIBUTE")) {
             logger.debug("configureMagicPacket failed, ignoring...", NS);
         } else {
             throw e;
@@ -597,6 +599,7 @@ export const valueConverter = {
         from: (value: number) => (value > 4000 ? value - 4096 : value),
         to: (value: number) => (value < 0 ? 4096 + value : value),
     },
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     localTemperatureCalibration_256: {
         from: (value: number) => (value > 200 ? value - 256 : value),
         to: (value: number) => (value < 0 ? 256 + value : value),
@@ -609,7 +612,7 @@ export const valueConverter = {
         from: (v: number) => v,
     },
     coverPosition: {
-        to: async (v: number, meta: Tz.Meta) => {
+        to: (v: number, meta: Tz.Meta) => {
             return meta.options.invert_cover ? 100 - v : v;
         },
         from: (v: number, meta: Fz.Meta, options: KeyValue, publish: Publish) => {
@@ -619,7 +622,7 @@ export const valueConverter = {
         },
     },
     coverPositionInverted: {
-        to: async (v: number, meta: Tz.Meta) => {
+        to: (v: number, meta: Tz.Meta) => {
             return meta.options.invert_cover ? v : 100 - v;
         },
         from: (v: number, meta: Fz.Meta, options: KeyValue, publish: Publish) => {
@@ -766,7 +769,7 @@ export const valueConverter = {
             const len = data.length;
             let i = 0;
             while (i < len) {
-                if (Object.prototype.hasOwnProperty.call(alarmLookup, data[i])) {
+                if (Object.hasOwn(alarmLookup, data[i])) {
                     const alarm = alarmLookup[data[i]];
                     const state = lookup[data[i + 1]];
                     const threshold = data[i + 3] | (data[i + 2] << 8);
@@ -855,7 +858,7 @@ export const valueConverter = {
             const len = data.length;
             let i = 0;
             while (i < len) {
-                if (Object.prototype.hasOwnProperty.call(alarmLookup, data[i])) {
+                if (Object.hasOwn(alarmLookup, data[i])) {
                     const alarm = alarmLookup[data[i]];
                     const state = lookup[data[i + 1]];
                     const threshold = data[i + 3] | (data[i + 2] << 8);
@@ -871,6 +874,7 @@ export const valueConverter = {
     lockUnlock: valueConverterBasic.lookup({LOCK: true, UNLOCK: false}),
     localTempCalibration1: {
         from: (v: number) => {
+            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             if (v > 55) v -= 0x100000000;
             return v / 10;
         },
@@ -889,6 +893,7 @@ export const valueConverter = {
     },
     localTempCalibration3: {
         from: (v: number) => {
+            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             if (v > 0x7fffffff) v -= 0x100000000;
             return v / 10;
         },
@@ -995,6 +1000,7 @@ export const valueConverter = {
             const schedulePeriods = schedule.length;
             if (schedulePeriods > 10) throw new Error(`There cannot be more than 10 periods in the schedule: ${v}`);
             if (schedulePeriods < 2) throw new Error(`There cannot be less than 2 periods in the schedule: ${v}`);
+            // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
             let prevHour;
 
             for (const period of schedule) {
@@ -1074,6 +1080,7 @@ export const valueConverter = {
             },
         };
     },
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     thermostatScheduleDayMultiDP_TRV602Z: {
         from: (v: string) => {
             const schedule = [];
@@ -1121,6 +1128,7 @@ export const valueConverter = {
             return payload;
         },
     },
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     thermostatScheduleDayMultiDP_TRV602Z_WithDayNumber: (dayNum: number) => {
         return {
             from: (v: string) => valueConverter.thermostatScheduleDayMultiDP_TRV602Z.from(v),
@@ -1167,6 +1175,7 @@ export const valueConverter = {
             },
         };
     },
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     ZWT198_schedule: {
         from: (value: number[], meta: Fz.Meta, options: KeyValue) => {
             const programmingMode = [];
@@ -1244,6 +1253,7 @@ export const valueConverter = {
             await sendDataPointRaw(entity, dpId, payload, sendCommand, 1);
         },
     },
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     PO_BOCO_ELEC_schedule: (day: number) => ({
         to: (v: string) => {
             const payload = [80 + day];
@@ -1257,6 +1267,7 @@ export const valueConverter = {
             };
 
             const items = v.split(" / ");
+            // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
             items.forEach((item) => {
                 if (Object.keys(modeMapping).includes(item)) {
                     payload.push(modeMapping[item]);
@@ -1303,6 +1314,7 @@ export const valueConverter = {
             return payload.join(" / ");
         },
     }),
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     PO_BOCO_ELEC_holiday: {
         to: (v: string) => {
             const payload = [];
@@ -1498,13 +1510,13 @@ export const valueConverter = {
         fromMap = {},
         toMap = {},
     }: {
-        fromMap?: {[modeId: number]: {device_mode: string; system_mode: string; preset: string}};
+        fromMap?: {[modeId: number]: {deviceMode: string; systemMode: string; preset: string}};
         toMap?: {[key: string]: Enum};
     }) => {
         return {
             from: (v: string) => {
                 utils.assertNumber(v, "system_mode");
-                return {running_mode: fromMap[v].device_mode, system_mode: fromMap[v].system_mode, preset: fromMap[v].preset};
+                return {running_mode: fromMap[v].deviceMode, system_mode: fromMap[v].systemMode, preset: fromMap[v].preset};
             },
             to: (v: string) => {
                 return utils.getFromLookup(v, toMap);
@@ -1574,6 +1586,23 @@ const tuyaTz = {
         },
         convertGet: async (entity, key, meta) => {
             await entity.read("genOnOff", ["tuyaBacklightSwitch"]);
+        },
+    } satisfies Tz.Converter,
+    backlight_indicator_mode_none_relay_pos: {
+        // In this mode, backlight and indicator are saperately controlled so we need two keys.
+        // We use "tuyaBacklightSwitch" for backlight's on/off control and "tuyaBacklightMode" for indicator's none/relay/pos control.
+        key: ["backlight_mode", "indicator_mode"],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = key === "backlight_mode" ? {off: 0, on: 1} : {none: 0, relay: 1, pos: 2};
+            const attribute = key === "backlight_mode" ? "tuyaBacklightSwitch" : "tuyaBacklightMode";
+            const result = utils.getFromLookup(value, lookup);
+
+            await entity.write("genOnOff", {[attribute]: result});
+            return {state: {[key]: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            const attribute = key === "backlight_mode" ? "tuyaBacklightSwitch" : "tuyaBacklightMode";
+            await entity.read("genOnOff", [attribute]);
         },
     } satisfies Tz.Converter,
     child_lock: {
@@ -1726,7 +1755,7 @@ const tuyaTz = {
     } satisfies Tz.Converter,
     inchingSwitch: {
         key: ["inching_control_set"],
-        convertSet: async (entity, key, value: KeyValue, meta) => {
+        convertSet: async (entity, key, value, meta) => {
             const inching = valueConverter.inchingSwitch.to(value);
             const payload = {payload: inching};
             const endpoint = meta.device.getEndpoint(1);
@@ -1840,6 +1869,15 @@ const tuyaFz = {
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.tuyaBacklightMode !== undefined) {
                 return {indicator_mode: utils.getFromLookup(msg.data.tuyaBacklightMode, {0: "off", 1: "off/on", 2: "on/off", 3: "on"})};
+            }
+        },
+    } satisfies Fz.Converter,
+    indicator_mode_none_relay_pos: {
+        cluster: "genOnOff",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.tuyaBacklightMode !== undefined) {
+                return {indicator_mode: utils.getFromLookup(msg.data.tuyaBacklightMode, {0: "none", 1: "relay", 2: "pos"})};
             }
         },
     } satisfies Fz.Converter,
@@ -2060,6 +2098,66 @@ export interface TuyaDPLightArgs {
 }
 
 const tuyaModernExtend = {
+    dpTHZBSettings(): ModernExtend {
+        const exp = e
+            .composite("auto_settings", "auto_settings", ea.STATE_SET)
+            .withDescription("Automatically switch ON/OFF, make sure manual mode is turned OFF otherwise auto settings are not applied.")
+            .withFeature(e.binary("enabled", ea.STATE_SET, true, false).withDescription("Enable auto settings"))
+            .withFeature(e.enum("temp_greater_then", ea.STATE_SET, ["ON", "OFF"]).withDescription("Greater action"))
+            .withFeature(
+                e
+                    .numeric("temp_greater_value", ea.STATE_SET)
+                    .withValueMin(-20)
+                    .withValueMax(80)
+                    .withValueStep(0.1)
+                    .withUnit("°C")
+                    .withDescription("Temperature greater than value"),
+            )
+            .withFeature(e.enum("temp_lower_then", ea.STATE_SET, ["ON", "OFF"]).withDescription("Lower action"))
+            .withFeature(
+                e
+                    .numeric("temp_lower_value", ea.STATE_SET)
+                    .withValueMin(-20)
+                    .withValueMax(80)
+                    .withValueStep(0.1)
+                    .withUnit("°C")
+                    .withDescription("Temperature lower than value"),
+            );
+
+        const handlers: [Fz.Converter[], Tz.Converter[]] = getHandlersForDP("auto_settings", 0x77, dataTypes.string, {
+            from: (value: string) => {
+                const buffer = Buffer.from(value, "hex");
+                if (buffer.length > 0) {
+                    return {
+                        enabled: buffer.readUint16LE(0) === 0x80,
+                        temp_greater_value: buffer.readInt32LE(2) / 10,
+                        temp_greater_then: buffer.readUint8(6) ? "ON" : "OFF",
+                        temp_lower_value: buffer.readInt32LE(8) / 10,
+                        temp_lower_then: buffer.readUint8(12) ? "ON" : "OFF",
+                    };
+                }
+            },
+            to: async (value: KeyValueAny, meta: Tz.Meta) => {
+                const buffer = Buffer.alloc(13);
+                buffer.writeUint16LE(value.enabled ? 0x80 : 0x00, 0);
+                buffer.writeInt32LE(value.temp_greater_value * 10, 2);
+                buffer.writeUInt8(value.temp_greater_then === "ON" ? 1 : 0, 6);
+                buffer.writeUInt8(1, 7);
+                buffer.writeInt32LE(value.temp_lower_value * 10, 8);
+                buffer.writeUInt8(value.temp_lower_then === "ON" ? 1 : 0, 12);
+                // Disable manual mode, otherwise auto settings is not applied.
+                await sendDataPointEnum(meta.device.endpoints[0], 0x65, 0, "sendData", 1);
+                return buffer.toString("hex");
+            },
+        });
+
+        return {
+            exposes: [exp],
+            fromZigbee: handlers[0],
+            toZigbee: handlers[1],
+            isModernExtend: true,
+        };
+    },
     tuyaBase(args?: {onEvent?: OnEventArgs; dp: true}): ModernExtend {
         const result: ModernExtend = {
             configure: [configureMagicPacket],
@@ -2088,8 +2186,8 @@ const tuyaModernExtend = {
             dp,
             type,
             {
-                from: (value) => utils.getFromLookupByValue(value, lookup),
-                to: (value) => utils.getFromLookup(value, lookup),
+                from: (value: unknown) => utils.getFromLookupByValue(value, lookup),
+                to: (value: unknown) => utils.getFromLookup(value, lookup),
             },
             readOnly,
             skip,
@@ -2113,8 +2211,8 @@ const tuyaModernExtend = {
             dp,
             type,
             {
-                from: (value) => (value === valueOn[1] ? valueOn[0] : valueOff[0]),
-                to: (value) => (value === valueOn[0] ? valueOn[1] : valueOff[1]),
+                from: (value: unknown) => (value === valueOn[1] ? valueOn[0] : valueOff[0]),
+                to: (value: unknown) => (value === valueOn[0] ? valueOn[1] : valueOff[1]),
             },
             readOnly,
             skip,
@@ -2137,6 +2235,7 @@ const tuyaModernExtend = {
         if (valueMax !== undefined) exp = exp.withValueMax(valueMax);
         if (valueStep !== undefined) exp = exp.withValueStep(valueStep);
 
+        // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
         let converter;
         if (scale === undefined) {
             converter = valueConverterBasic.raw();
@@ -2305,6 +2404,7 @@ const tuyaModernExtend = {
         });
     },
     tuyaLight(args?: modernExtend.LightArgs & {minBrightness?: "none" | "attribute" | "command"; switchType?: boolean}) {
+        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         args = {minBrightness: "none", powerOnBehavior: false, switchType: false, ...args};
         if (args.colorTemp) {
             args.colorTemp = {startup: false, ...args.colorTemp};
@@ -2363,6 +2463,7 @@ const tuyaModernExtend = {
             switchType?: boolean;
             backlightModeLowMediumHigh?: boolean;
             indicatorMode?: boolean;
+            indicatorModeNoneRelayPos?: boolean;
             backlightModeOffNormalInverted?: boolean;
             backlightModeOffOn?: boolean;
             electricalMeasurements?: boolean;
@@ -2434,7 +2535,11 @@ const tuyaModernExtend = {
             exposes.push(tuyaExposes.indicatorMode());
             toZigbee.push(tuyaTz.backlight_indicator_mode_1);
         }
-
+        if (args.indicatorModeNoneRelayPos) {
+            fromZigbee.push(tuyaFz.indicator_mode_none_relay_pos);
+            exposes.push(tuyaExposes.indicatorModeNoneRelayPos());
+            toZigbee.push(tuyaTz.backlight_indicator_mode_none_relay_pos);
+        }
         if (args.electricalMeasurements) {
             fromZigbee.push(args.electricalMeasurementsFzConverter || fz.electrical_measurement, fz.metering);
             exposes.push(e.power(), e.current(), e.voltage(), e.energy());
@@ -2447,6 +2552,7 @@ const tuyaModernExtend = {
 
         if (args.switchMode) {
             if (args.endpoints) {
+                // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
                 args.endpoints.forEach((ep) => {
                     const epExtend = tuyaModernExtend.tuyaSwitchMode({
                         description: `Switch mode ${ep}`,

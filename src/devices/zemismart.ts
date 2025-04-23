@@ -5,7 +5,7 @@ import * as legacy from "../lib/legacy";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as tuya from "../lib/tuya";
-import type {DefinitionWithExtend} from "../lib/types";
+import type {DefinitionWithExtend, Fz, Tz} from "../lib/types";
 
 const e = exposes.presets;
 
@@ -355,5 +355,244 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Zemismart",
         description: "Smart 20A outlet",
         extend: [m.identify(), tuya.modernExtend.tuyaOnOff({indicatorMode: true, onOffCountdown: true, childLock: true})],
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_k7v0eqke", "_TZE204_iyki9kjp"]),
+        model: "ZMS-206EU-3",
+        vendor: "Zemismart",
+        description: "Smart screen switch 3 gang",
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEventSetTime, // Add this if you are getting no converter for 'commandMcuSyncTime'
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            tuya.exposes.backlightModeOffOn().withAccess(ea.STATE_SET),
+            e.switch(),
+            e.switch().withEndpoint("l1"),
+            e.switch().withEndpoint("l2"),
+            e.switch().withEndpoint("l3"),
+            e
+                .numeric("backlight_brightness", ea.STATE_SET)
+                .withDescription("Brightness of the light")
+                .withUnit("%")
+                .withValueMin(0)
+                .withValueMax(100)
+                .withValueStep(1),
+            e.child_lock(),
+            e
+                .enum("switch_color_on", ea.STATE_SET, ["red", "blue", "green", "white", "yellow", "magenta", "cyan", "warm_white", "warm_yellow"])
+                .withDescription("Switch lightcolor when on"),
+            e
+                .enum("switch_color_off", ea.STATE_SET, ["red", "blue", "green", "white", "yellow", "magenta", "cyan", "warm_white", "warm_yellow"])
+                .withDescription("Switch lightcolor when off"),
+            e.enum("indicator_status", ea.STATE_SET, ["off", "on_off_status", "switch_position"]).withDescription("Indicator Light Status"),
+            e
+                .enum("delay_off_schedule", ea.STATE_SET, ["red", "blue", "green", "white", "yellow", "magenta", "cyan", "warm_white", "warm_yellow"])
+                .withDescription("Switch lightcolor while delayed"),
+            e.text("name", ea.STATE_SET).withEndpoint("l1").withDescription("Name for Switch 1"),
+            e.text("name", ea.STATE_SET).withEndpoint("l2").withDescription("Name for Switch 2"),
+            e.text("name", ea.STATE_SET).withEndpoint("l3").withDescription("Name for Switch 3"),
+            e
+                .enum("relay_status", ea.STATE_SET, ["power_on", "power_off", "restart_memory"])
+                .withEndpoint("l1")
+                .withDescription("Relay Status for Switch 1"),
+            e
+                .enum("relay_status", ea.STATE_SET, ["power_on", "power_off", "restart_memory"])
+                .withEndpoint("l2")
+                .withDescription("Relay Status for Switch 2"),
+            e
+                .enum("relay_status", ea.STATE_SET, ["power_on", "power_off", "restart_memory"])
+                .withEndpoint("l3")
+                .withDescription("Relay Status for Switch 3"),
+            e
+                .numeric("countdown", ea.STATE_SET)
+                .withEndpoint("l1")
+                .withDescription("Countdown for Switch 1")
+                .withUnit("s")
+                .withValueMin(0)
+                .withValueMax(43200)
+                .withValueStep(1),
+            e
+                .numeric("countdown", ea.STATE_SET)
+                .withEndpoint("l2")
+                .withDescription("Countdown for Switch 2")
+                .withUnit("s")
+                .withValueMin(0)
+                .withValueMax(43200)
+                .withValueStep(1),
+            e
+                .numeric("countdown", ea.STATE_SET)
+                .withEndpoint("l3")
+                .withDescription("Countdown for Switch 3")
+                .withUnit("s")
+                .withValueMin(0)
+                .withValueMax(43200)
+                .withValueStep(1),
+        ],
+        endpoint: (device) => {
+            return {l1: 1, l2: 1, l3: 1};
+        },
+        meta: {
+            multiEndpoint: true,
+            tuyaDatapoints: [
+                [1, "state_l1", tuya.valueConverter.onOff, {skip: tuya.skip.stateOnAndBrightnessPresent}],
+                [2, "state_l2", tuya.valueConverter.onOff, {skip: tuya.skip.stateOnAndBrightnessPresent}],
+                [3, "state_l3", tuya.valueConverter.onOff, {skip: tuya.skip.stateOnAndBrightnessPresent}],
+                [7, "countdown_l1", tuya.valueConverter.raw],
+                [8, "countdown_l2", tuya.valueConverter.raw],
+                [9, "countdown_l3", tuya.valueConverter.raw],
+                [13, "state", tuya.valueConverter.onOff, {skip: tuya.skip.stateOnAndBrightnessPresent}],
+                [14, "relay_status", tuya.valueConverter.raw],
+                [
+                    15,
+                    "indicator_status",
+                    tuya.valueConverterBasic.lookup({
+                        off: tuya.enum(0),
+                        on_off_status: tuya.enum(1),
+                        switch_position: tuya.enum(2),
+                    }),
+                ],
+                [16, "backlight_mode", tuya.valueConverter.onOff],
+                [
+                    19,
+                    "delay_off_schedule",
+                    tuya.valueConverterBasic.lookup({
+                        red: tuya.enum(0),
+                        blue: tuya.enum(1),
+                        green: tuya.enum(2),
+                        white: tuya.enum(3),
+                        yellow: tuya.enum(4),
+                        magenta: tuya.enum(5),
+                        cyan: tuya.enum(6),
+                        warmwhite: tuya.enum(7),
+                        warmyellow: tuya.enum(8),
+                    }),
+                ],
+                [24, "test_bit", tuya.valueConverter.raw],
+                [
+                    29,
+                    "relay_status_l1",
+                    tuya.valueConverterBasic.lookup({
+                        power_off: tuya.enum(0),
+                        power_on: tuya.enum(1),
+                        restart_memory: tuya.enum(2),
+                    }),
+                ],
+                [
+                    30,
+                    "relay_status_l2",
+                    tuya.valueConverterBasic.lookup({
+                        power_off: tuya.enum(0),
+                        power_on: tuya.enum(1),
+                        restart_memory: tuya.enum(2),
+                    }),
+                ],
+                [
+                    31,
+                    "relay_status_l3",
+                    tuya.valueConverterBasic.lookup({
+                        power_off: tuya.enum(0),
+                        power_on: tuya.enum(1),
+                        restart_memory: tuya.enum(2),
+                    }),
+                ],
+                [101, "child_lock", tuya.valueConverter.lockUnlock],
+                [102, "backlight_brightness", tuya.valueConverter.raw],
+                [
+                    103,
+                    "switch_color_off",
+                    tuya.valueConverterBasic.lookup({
+                        red: tuya.enum(0),
+                        blue: tuya.enum(1),
+                        green: tuya.enum(2),
+                        white: tuya.enum(3),
+                        yellow: tuya.enum(4),
+                        magenta: tuya.enum(5),
+                        cyan: tuya.enum(6),
+                        warmwhite: tuya.enum(7),
+                        warmyellow: tuya.enum(8),
+                    }),
+                ],
+                [
+                    104,
+                    "switch_color_on",
+                    tuya.valueConverterBasic.lookup({
+                        red: tuya.enum(0),
+                        blue: tuya.enum(1),
+                        green: tuya.enum(2),
+                        white: tuya.enum(3),
+                        yellow: tuya.enum(4),
+                        magenta: tuya.enum(5),
+                        cyan: tuya.enum(6),
+                        warmwhite: tuya.enum(7),
+                        warmyellow: tuya.enum(8),
+                    }),
+                ],
+                [
+                    105,
+                    "name_l1",
+                    {
+                        to: (v: string, meta: Tz.Meta) => {
+                            const stringValue = String(v ?? "");
+                            const limitedString = stringValue.slice(0, 12);
+                            return limitedString.split("").map((char) => char.charCodeAt(0));
+                        },
+                        from: (v: number, meta: Fz.Meta) => {
+                            return Object.values(v)
+                                .map((code) => String.fromCharCode(code))
+                                .join("");
+                        },
+                    },
+                ],
+                [
+                    106,
+                    "name_l2",
+                    {
+                        to: (v: string, meta: Tz.Meta) => {
+                            const stringValue = String(v ?? "");
+                            const limitedString = stringValue.slice(0, 12);
+                            return limitedString.split("").map((char) => char.charCodeAt(0));
+                        },
+                        from: (v: number, meta: Fz.Meta) => {
+                            return Object.values(v)
+                                .map((code) => String.fromCharCode(code))
+                                .join("");
+                        },
+                    },
+                ],
+                [
+                    107,
+                    "name_l3",
+                    {
+                        to: (v: string, meta: Tz.Meta) => {
+                            const stringValue = String(v ?? "");
+                            const limitedString = stringValue.slice(0, 12);
+                            return limitedString.split("").map((char) => char.charCodeAt(0));
+                        },
+                        from: (v: number, meta: Fz.Meta) => {
+                            return Object.values(v)
+                                .map((code) => String.fromCharCode(code))
+                                .join("");
+                        },
+                    },
+                ],
+                [
+                    209,
+                    "cycle_schedule",
+                    {
+                        to: (v: string, meta: Tz.Meta) => {
+                            const stringValue = String(v ?? "");
+                            const limitedString = stringValue.slice(0, 12);
+                            return limitedString.split("").map((char) => char.charCodeAt(0));
+                        },
+                        from: (v: number, meta: Fz.Meta) => {
+                            return Object.values(v)
+                                .map((code) => String.fromCharCode(code))
+                                .join("");
+                        },
+                    },
+                ],
+            ],
+        },
     },
 ];

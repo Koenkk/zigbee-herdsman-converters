@@ -1,4 +1,4 @@
-import * as semver from "semver";
+import {gte as semverGte, valid as semverValid} from "semver";
 
 import {Zcl} from "zigbee-herdsman";
 
@@ -29,7 +29,7 @@ const manufacturerOptions = {
     ubisysNull: {manufacturerCode: null},
 };
 
-const ubisysPollCurrentSummDelivered = async (type: OnEventType, data: OnEventData, device: Zh.Device, endpointId: number, options: KeyValue) => {
+const ubisysPollCurrentSummDelivered = (type: OnEventType, data: OnEventData, device: Zh.Device, endpointId: number, options: KeyValue) => {
     const endpoint = device.getEndpoint(endpointId);
     const poll = async () => {
         await endpoint.read("seMetering", ["currentSummDelivered"]);
@@ -84,6 +84,7 @@ const ubisys = {
                 }
             },
         } satisfies Fz.Converter,
+        // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
         dimmer_setup_genLevelCtrl: {
             cluster: "genLevelCtrl",
             type: ["attributeReport", "readResponse"],
@@ -134,8 +135,10 @@ const ubisys = {
                     converterFunc?: (v: unknown) => unknown,
                     delaySecondsAfter?: number,
                 ) => {
+                    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
                     if (!jsonAttr) jsonAttr = attr;
                     if (jsonAttr.startsWith("ubisys")) {
+                        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
                         jsonAttr = jsonAttr.substring(6, 1).toLowerCase + jsonAttr.substring(7);
                     }
                     if (value[jsonAttr] !== undefined) {
@@ -224,10 +227,18 @@ const ubisys = {
                 await writeAttrFromJson("ubisysInactivePowerThreshold");
                 await writeAttrFromJson("ubisysStartupSteps");
                 // some convenience functions to not have to calculate
-                await writeAttrFromJson("ubisysTotalSteps", "open_to_closed_s", (s: number) => s * stepsPerSecond);
-                await writeAttrFromJson("ubisysTotalSteps2", "closed_to_open_s", (s: number) => s * stepsPerSecond);
-                await writeAttrFromJson("ubisysLiftToTiltTransitionSteps", "lift_to_tilt_transition_ms", (s: number) => (s * stepsPerSecond) / 1000);
-                await writeAttrFromJson("ubisysLiftToTiltTransitionSteps2", "lift_to_tilt_transition_ms", (s: number) => (s * stepsPerSecond) / 1000);
+                await writeAttrFromJson("ubisysTotalSteps", "open_to_closed_s", (s) => (s as number) * stepsPerSecond);
+                await writeAttrFromJson("ubisysTotalSteps2", "closed_to_open_s", (s) => (s as number) * stepsPerSecond);
+                await writeAttrFromJson(
+                    "ubisysLiftToTiltTransitionSteps",
+                    "lift_to_tilt_transition_ms",
+                    (s) => ((s as number) * stepsPerSecond) / 1000,
+                );
+                await writeAttrFromJson(
+                    "ubisysLiftToTiltTransitionSteps2",
+                    "lift_to_tilt_transition_ms",
+                    (s) => ((s as number) * stepsPerSecond) / 1000,
+                );
                 if (hasCalibrate) {
                     log("  Finalizing calibration...");
                     // disable calibration mode again
@@ -317,6 +328,7 @@ const ubisys = {
                 await entity.read("manuSpecificUbisysDimmerSetup", ["mode"], manufacturerOptions.ubisysNull);
             },
         } satisfies Tz.Converter,
+        // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
         dimmer_setup_genLevelCtrl: {
             key: ["minimum_on_level"],
             convertSet: async (entity, key, value, meta) => {
@@ -340,8 +352,8 @@ const ubisys = {
                 // ubisys switched to writeStructure a while ago, change log only goes back to 1.9.x
                 // and it happened before that but to be safe we will only use writeStrucutre on 1.9.0 and up
                 let useWriteStruct = false;
-                if (meta.device.softwareBuildID !== undefined) {
-                    useWriteStruct = semver.gte(meta.device.softwareBuildID, "1.9.0", true);
+                if (meta.device.softwareBuildID && semverValid(meta.device.softwareBuildID, true)) {
+                    useWriteStruct = semverGte(meta.device.softwareBuildID, "1.9.0", true);
                 }
                 if (useWriteStruct) {
                     logger.debug(`ubisys: using writeStructure for '${meta.options.friendly_name}'.`, NS);
@@ -534,6 +546,7 @@ const ubisys = {
                             endpoint += 4;
                         }
 
+                        // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
                         let inputActions;
                         if (!templateType.doubleInputs) {
                             if (!templateType.scene) {

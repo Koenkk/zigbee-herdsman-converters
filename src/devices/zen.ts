@@ -12,7 +12,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "Zen-01-W",
         vendor: "Zen",
         description: "Thermostat",
-        fromZigbee: [fz.battery, fz.thermostat],
+        fromZigbee: [fz.battery, fz.thermostat, fz.fan],
         toZigbee: [
             tz.thermostat_local_temperature,
             tz.thermostat_local_temperature_calibration,
@@ -42,6 +42,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withRunningState(["idle", "heat", "cool"])
                 .withLocalTemperatureCalibration()
                 .withFanMode(["auto", "on"]),
+            e.battery_voltage(),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(3) || device.getEndpoint(1);

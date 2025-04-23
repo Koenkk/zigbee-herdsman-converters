@@ -360,7 +360,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.current_phase_c(),
             e.voltage_phase_c(),
         ],
-        onEvent: async (type, data, device) => {
+        onEvent: (type, data, device) => {
             if (type === "message" && data.type === "attributeReport" && data.cluster === "seMetering" && data.data.divisor) {
                 // Device sends wrong divisor (512) while it should be fixed to 1000
                 // https://github.com/Koenkk/zigbee-herdsman-converters/issues/3066

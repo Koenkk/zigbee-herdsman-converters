@@ -137,7 +137,9 @@ export const definitions = [
             extend.tempCalibration,
             extend.humidityCalibration,
             extend.measurementInterval,
-            m.battery(),
+            m.battery({
+                voltage: true,
+            }),
         ],
         ota: true,
     },
@@ -164,7 +166,9 @@ export const definitions = [
             extend.tempCalibration,
             extend.humidityCalibration,
             extend.measurementInterval,
-            m.battery(),
+            m.battery({
+                voltage: true,
+            }),
         ],
         ota: true,
     },
@@ -194,7 +198,9 @@ export const definitions = [
             extend.tempCalibration,
             extend.humidityCalibration,
             extend.measurementInterval,
-            m.battery(),
+            m.battery({
+                voltage: true,
+            }),
         ],
         ota: true,
     },

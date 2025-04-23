@@ -70,6 +70,7 @@ export class ColorRGB {
      * @returns new ColoRGB object
      */
     static fromHex(hex: string): ColorRGB {
+        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         hex = hex.replace("#", "");
         const bigint = Number.parseInt(hex, 16);
         return new ColorRGB(((bigint >> 16) & 255) / 255, ((bigint >> 8) & 255) / 255, (bigint & 255) / 255);
@@ -108,6 +109,7 @@ export class ColorRGB {
         const max = Math.max(r, g, b);
         const min = Math.min(r, g, b);
         const d = max - min;
+        // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
         let h;
         const s = max === 0 ? 0 : d / max;
         const v = max;
@@ -410,8 +412,11 @@ export class ColorHSV {
         const s = hsvComplete.saturation / 100;
         const v = hsvComplete.value / 100;
 
+        // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
         let r;
+        // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
         let g;
+        // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
         let b;
         const i = Math.floor(h * 6);
         const f = h * 6 - i;
@@ -575,7 +580,8 @@ export class Color {
      * @param value - converter value argument
      * @returns Color object
      */
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
+    // biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
     static fromConverterArg(value: any): Color {
         if (value.x !== undefined && value.y !== undefined) {
             const xy = ColorXY.fromObject(value);
@@ -673,127 +679,144 @@ export class Color {
  * @param oldState - state from the cache with all the old attributes set
  * @param endpoint - with lightingColorCtrl cluster
  * @param options - meta.options for the device or group
+ * @param epPostfix - postfix from the end point name. This string will be appended to the result keys unconditionally.
  * @returns state with color, color_temp, and color_mode set and synchronized from newState's attributes
  *          (other attributes are not included make sure to merge yourself)
  */
-export function syncColorState(newState: KeyValueAny, oldState: KeyValueAny, endpoint: Zh.Endpoint | Zh.Group, options: KeyValue): KeyValueAny {
+export function syncColorState(
+    newState: KeyValueAny,
+    oldState: KeyValueAny,
+    endpoint: Zh.Endpoint | Zh.Group,
+    options: KeyValue,
+    epPostfix?: string,
+): KeyValueAny {
     const colorTargets = [];
     const colorSync = options && options.color_sync !== undefined ? options.color_sync : true;
     const result: KeyValueAny = {};
     const [colorTempMin, colorTempMax] = findColorTempRange(endpoint);
 
+    const keyPostfix = epPostfix ? epPostfix : "";
+    const keys = {
+        color: `color${keyPostfix}`,
+        color_mode: `color_mode${keyPostfix}`,
+        color_temp: `color_temp${keyPostfix}`,
+    };
+
     // check if color sync is enabled
     if (!colorSync) {
         // copy newState.{color_mode,color,color_temp}
-        if (newState.color_mode !== undefined) result.color_mode = newState.color_mode;
-        if (newState.color !== undefined) result.color = newState.color;
-        if (newState.color_temp !== undefined) result.color_temp = newState.color_temp;
+        if (newState[keys.color_mode] !== undefined) result[keys.color_mode] = newState[keys.color_mode];
+        if (newState[keys.color] !== undefined) result[keys.color] = newState[keys.color];
+        if (newState[keys.color_temp] !== undefined) result[keys.color_temp] = newState[keys.color_temp];
         return result;
     }
 
     // handle undefined newState/oldState
+    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
     if (newState === undefined) newState = {};
+    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
     if (oldState === undefined) oldState = {};
 
     // figure out current color_mode
-    if (newState.color_mode !== undefined) {
-        result.color_mode = newState.color_mode;
-    } else if (oldState.color_mode !== undefined) {
-        result.color_mode = oldState.color_mode;
+    if (newState[keys.color_mode] !== undefined) {
+        result[keys.color_mode] = newState[keys.color_mode];
+    } else if (oldState[keys.color_mode] !== undefined) {
+        result[keys.color_mode] = oldState[keys.color_mode];
     } else {
-        if (newState.color_temp !== undefined) {
-            result.color_mode = "color_temp";
+        if (newState[keys.color_temp] !== undefined) {
+            result[keys.color_mode] = "color_temp";
         }
-        if (newState.color !== undefined) {
-            result.color_mode = newState.color.hue !== undefined ? "hs" : "xy";
+        if (newState[keys.color] !== undefined) {
+            result[keys.color_mode] = newState[keys.color].hue !== undefined ? "hs" : "xy";
         }
     }
 
     // figure out target attributes
-    if (oldState.color_temp !== undefined || newState.color_temp !== undefined) {
+    if (oldState[keys.color_temp] !== undefined || newState[keys.color_temp] !== undefined) {
         colorTargets.push("color_temp");
     }
     if (
-        (oldState.color !== undefined && oldState.color.hue !== undefined && oldState.color.saturation !== undefined) ||
-        (newState.color !== undefined && newState.color.hue !== undefined && newState.color.saturation !== undefined)
+        (oldState[keys.color] !== undefined && oldState[keys.color].hue !== undefined && oldState[keys.color].saturation !== undefined) ||
+        (newState[keys.color] !== undefined && newState[keys.color].hue !== undefined && newState[keys.color].saturation !== undefined)
     ) {
         colorTargets.push("hs");
     }
     if (
-        (oldState.color !== undefined && oldState.color.x !== undefined && oldState.color.y !== undefined) ||
-        (newState.color !== undefined && newState.color.x !== undefined && newState.color.y !== undefined)
+        (oldState[keys.color] !== undefined && oldState[keys.color].x !== undefined && oldState[keys.color].y !== undefined) ||
+        (newState[keys.color] !== undefined && newState[keys.color].x !== undefined && newState[keys.color].y !== undefined)
     ) {
         colorTargets.push("xy");
     }
 
     // sync color attributes
-    result.color = {};
-    switch (result.color_mode) {
+    result[keys.color] = {};
+    switch (result[keys.color_mode]) {
         case "hs":
-            if (newState.color !== undefined && newState.color.hue !== undefined) {
-                Object.assign(result.color, {hue: newState.color.hue});
-            } else if (oldState.color !== undefined && oldState.color.hue !== undefined) {
-                Object.assign(result.color, {hue: oldState.color.hue});
+            if (newState[keys.color] !== undefined && newState[keys.color].hue !== undefined) {
+                Object.assign(result[keys.color], {hue: newState[keys.color].hue});
+            } else if (oldState[keys.color] !== undefined && oldState[keys.color].hue !== undefined) {
+                Object.assign(result[keys.color], {hue: oldState[keys.color].hue});
             }
-            if (newState.color !== undefined && newState.color.saturation !== undefined) {
-                Object.assign(result.color, {saturation: newState.color.saturation});
-            } else if (oldState.color !== undefined && oldState.color.saturation !== undefined) {
-                Object.assign(result.color, {saturation: oldState.color.saturation});
+            if (newState[keys.color] !== undefined && newState[keys.color].saturation !== undefined) {
+                Object.assign(result[keys.color], {saturation: newState[keys.color].saturation});
+            } else if (oldState[keys.color] !== undefined && oldState[keys.color].saturation !== undefined) {
+                Object.assign(result[keys.color], {saturation: oldState[keys.color].saturation});
             }
 
-            if (result.color.hue !== undefined && result.color.saturation !== undefined) {
-                const hsv = new ColorHSV(result.color.hue, result.color.saturation);
+            if (result[keys.color].hue !== undefined && result[keys.color].saturation !== undefined) {
+                const hsv = new ColorHSV(result[keys.color].hue, result[keys.color].saturation);
                 if (colorTargets.includes("color_temp")) {
-                    result.color_temp = clampColorTemp(precisionRound(hsv.toMireds(), 0), colorTempMin, colorTempMax);
+                    result[keys.color_temp] = clampColorTemp(precisionRound(hsv.toMireds(), 0), colorTempMin, colorTempMax);
                 }
                 if (colorTargets.includes("xy")) {
-                    Object.assign(result.color, hsv.toXY().rounded(4).toObject());
+                    Object.assign(result[keys.color], hsv.toXY().rounded(4).toObject());
                 }
             }
             break;
         case "xy":
-            if (newState.color !== undefined && newState.color.x !== undefined) {
-                Object.assign(result.color, {x: newState.color.x});
-            } else if (oldState.color !== undefined && oldState.color.x !== undefined) {
-                Object.assign(result.color, {x: oldState.color.x});
+            if (newState[keys.color] !== undefined && newState[keys.color].x !== undefined) {
+                Object.assign(result[keys.color], {x: newState[keys.color].x});
+            } else if (oldState[keys.color] !== undefined && oldState[keys.color].x !== undefined) {
+                Object.assign(result[keys.color], {x: oldState[keys.color].x});
             }
-            if (newState.color !== undefined && newState.color.y !== undefined) {
-                Object.assign(result.color, {y: newState.color.y});
-            } else if (oldState.color !== undefined && oldState.color.y !== undefined) {
-                Object.assign(result.color, {y: oldState.color.y});
+            if (newState[keys.color] !== undefined && newState[keys.color].y !== undefined) {
+                Object.assign(result[keys.color], {y: newState[keys.color].y});
+            } else if (oldState[keys.color] !== undefined && oldState[keys.color].y !== undefined) {
+                Object.assign(result[keys.color], {y: oldState[keys.color].y});
             }
 
-            if (result.color.x !== undefined && result.color.y !== undefined) {
-                const xy = new ColorXY(result.color.x, result.color.y);
+            if (result[keys.color].x !== undefined && result[keys.color].y !== undefined) {
+                const xy = new ColorXY(result[keys.color].x, result[keys.color].y);
                 if (colorTargets.includes("color_temp")) {
-                    result.color_temp = clampColorTemp(precisionRound(xy.toMireds(), 0), colorTempMin, colorTempMax);
+                    result[keys.color_temp] = clampColorTemp(precisionRound(xy.toMireds(), 0), colorTempMin, colorTempMax);
                 }
                 if (colorTargets.includes("hs")) {
-                    Object.assign(result.color, xy.toHSV().rounded(0).toObject(false, false));
+                    Object.assign(result[keys.color], xy.toHSV().rounded(0).toObject(false, false));
                 }
             }
             break;
         case "color_temp":
-            if (newState.color_temp !== undefined) {
-                result.color_temp = newState.color_temp;
-            } else if (oldState.color_temp !== undefined) {
-                result.color_temp = oldState.color_temp;
+            if (newState[keys.color_temp] !== undefined) {
+                result[keys.color_temp] = newState[keys.color_temp];
+            } else if (oldState[keys.color_temp] !== undefined) {
+                result[keys.color_temp] = oldState[keys.color_temp];
             }
 
-            if (result.color_temp !== undefined) {
-                const xy = ColorXY.fromMireds(result.color_temp);
+            if (result[keys.color_temp] !== undefined) {
+                const xy = ColorXY.fromMireds(result[keys.color_temp]);
                 if (colorTargets.includes("xy")) {
-                    Object.assign(result.color, xy.rounded(4).toObject());
+                    Object.assign(result[keys.color], xy.rounded(4).toObject());
                 }
                 if (colorTargets.includes("hs")) {
-                    Object.assign(result.color, xy.toHSV().rounded(0).toObject(false, false));
+                    Object.assign(result[keys.color], xy.toHSV().rounded(0).toObject(false, false));
                 }
             }
             break;
     }
 
     // drop empty result.color
-    if (Object.keys(result.color).length === 0) delete result.color;
+    // biome-ignore lint/performance/noDelete: ignored using `--suppress`
+    if (Object.keys(result[keys.color]).length === 0) delete result[keys.color];
 
     return result;
 }

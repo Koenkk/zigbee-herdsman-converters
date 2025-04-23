@@ -13,10 +13,11 @@ const e = exposes.presets;
 const ea = exposes.access;
 
 const fzLocal = {
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     FB20002_on: {
         cluster: "genOnOff",
         type: "commandTuyaAction",
-        convert: async (model, msg, publish, options, meta) => {
+        convert: (model, msg, publish, options, meta) => {
             return {action: "on"};
         },
     } satisfies Fz.Converter,
@@ -124,6 +125,7 @@ const valueConverterLocal = {
                 schedule_periodic: !isWeekday ? scheduleValue : 0,
                 schedule_weekday: ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"].reduce(
                     (scheduleMap, dayName, index) => ({
+                        // biome-ignore lint/performance/noAccumulatingSpread: ignored using `--suppress`
                         ...scheduleMap,
                         [dayName]: isWeekday && (scheduleValue & (1 << index)) > 0 ? "ON" : "OFF",
                     }),
@@ -371,7 +373,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Lidl",
         description: "Livarno smart LED ceiling light",
         extend: [tuya.modernExtend.tuyaLight({colorTemp: {range: [153, 500]}, color: true})],
-        configure: async (device, coordinatorEndpoint) => {
+        configure: (device, coordinatorEndpoint) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue("lightingColorCtrl", {colorCapabilities: 29});
         },
     },
@@ -383,7 +385,6 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.ignore_basic_report, fz.ignore_tuya_set_time, fz.ignore_onoff_report, tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         onEvent: async (type, data, device) => {
-            // @ts-expect-error ignore
             await tuya.onEventSetLocalTime(type, data, device);
 
             // @ts-expect-error ignore
@@ -540,7 +541,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [tuya.modernExtend.tuyaLight({colorTemp: {range: [153, 500]}, color: {modes: ["hs", "xy"]}})],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_chyvmhay"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_chyvmhay", "_TZE200_uiyqstza"]),
         model: "368308_2010",
         vendor: "Lidl",
         description: "Silvercrest radiator valve with thermostat",
@@ -613,6 +614,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withFeature(e.numeric("away_preset_minute", ea.ALL).withUnit("min").withDescription("Start away minutes")),
             ...["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"].map((day) => {
                 const expose = e.composite(day, day, ea.STATE_SET);
+                // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
                 [1, 2, 3, 4, 5, 6, 7, 8, 9].forEach((i) => {
                     expose.withFeature(
                         e

@@ -168,7 +168,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "5110.40",
         vendor: "Iluminize",
         description: "Zigbee 3.0 LED controller multi 5 - 4A,RGB W/CCT LED",
-        extend: [m.light({colorTemp: {range: [160, 450]}, color: true})],
+        extend: [m.light({colorTemp: {range: [160, 450]}, color: true, configureReporting: true})],
     },
     {
         zigbeeModel: ["HK-ZD-RGBCCT-A", "511.000"],
@@ -176,7 +176,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Iluminize",
         whiteLabel: [{vendor: "Sunricher", model: "HK-ZD-RGBCCT-A"}],
         description: "Zigbee 3.0 universal LED-controller, 5 channel, RGBCCT LED",
-        extend: [m.light({colorTemp: {range: undefined}, color: true})],
+        extend: [m.light({colorTemp: {range: undefined}, color: true, configureReporting: true})],
     },
     {
         zigbeeModel: ["ZG2819S-RGBW"],
