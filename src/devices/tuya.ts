@@ -4364,6 +4364,12 @@ export const definitions: DefinitionWithExtend[] = [
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
+
+            // Device incorrectly identifies as Router but is actually an EndDevice
+            if (device.manufacturerName === "_TZ3000_gjrubzje") {
+                device.type = "EndDevice";
+                device.save();
+            }
         },
     },
     {
