@@ -6394,7 +6394,7 @@ export const definitions: DefinitionWithExtend[] = [
             electricalMeasurementsFzConverter: {
                 ...fz.electrical_measurement,
                 convert: (model, msg, publish, options, meta) => {
-                    const result = fz.electrical_measurement.convert(model, msg, publish, options, meta);
+                    const result = (fz.electrical_measurement.convert(model, msg, publish, options, meta) as KeyValueAny) ?? {};
                     if (result !== undefined && meta.state.state === "OFF") {
                         if (result.power !== undefined && result.power > 0 || result.current !== undefined && result.current > 0) {
                             //rest power, current to 0 if socket is off
@@ -6414,7 +6414,7 @@ export const definitions: DefinitionWithExtend[] = [
             {
                 ...fz.on_off,
                 convert: (model, msg, publish, options, meta) => {
-                    const result = fz.on_off.convert(model, msg, publish, options, meta);
+                    const result = (fz.on_off.convert(model, msg, publish, options, meta) as KeyValueAny) ?? {};
                     if (result !== undefined && msg.data.onOff === 0) {
                         //Set power and current to 0 when socket is off
                         result.power = 0;
