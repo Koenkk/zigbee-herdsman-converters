@@ -6376,7 +6376,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: tuya.fingerprint("TS011F", ["_TZ321A_arrqgd67", "_TZ3210_2uollq9d", "_TZ3210_5ct6e7ye"]),
         zigbeeModel: ["TS011F"],
-        model: "TS011F",
+        model: "TS011F_socket",
         description: "Socket with power monitoring",
         vendor: "Tuya",
         whiteLabel: [
