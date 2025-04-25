@@ -6381,8 +6381,8 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Tuya",
         whiteLabel: [
             tuya.whitelabel("EKF", "RCS-ST16-WD-ZB", "Smart Socket Stockholm", ["_TZ321A_arrqgd67"]),
-            tuya.whitelabel("BSEED", "TS011F", "ZigBee EU Wall Socket", ["_TZ3210_2uollq9d"]),
-            tuya.whitelabel("BSEED", "TS011F", "ZigBee EU Wall Socket Type-C With USB", ["_TZ3210_5ct6e7ye"]),
+            tuya.whitelabel("BSEED", "GL86ZEUSKM1W", "ZigBee EU Wall Socket", ["_TZ3210_2uollq9d"]),
+            tuya.whitelabel("BSEED", "GL86ZEUSKM1PDAC1W", "ZigBee EU Wall Socket Type-C With USB", ["_TZ3210_5ct6e7ye"]),
         ],
         ota: false,
         extend: [
