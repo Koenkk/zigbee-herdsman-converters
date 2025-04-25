@@ -6393,7 +6393,7 @@ export const definitions: DefinitionWithExtend[] = [
             electricalMeasurements: true,
             electricalMeasurementsFzConverter: {
                 ...fz.electrical_measurement,
-                convert: async (model, msg, publish, options, meta) => {
+                convert: (model, msg, publish, options, meta) => {
                     const result = fz.electrical_measurement.convert(model, msg, publish, options, meta);
                     if (result !== undefined && meta.state.state === "OFF") {
                         if (result.power !== undefined && result.power > 0 || result.current !== undefined && result.current > 0) {
@@ -6413,7 +6413,7 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [
             {
                 ...fz.on_off,
-                convert: async (model, msg, publish, options, meta) => {
+                convert: (model, msg, publish, options, meta) => {
                     const result = fz.on_off.convert(model, msg, publish, options, meta);
                     if (result !== undefined && msg.data.onOff === 0) {
                         //Set power and current to 0 when socket is off
