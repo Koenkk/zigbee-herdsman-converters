@@ -45,8 +45,6 @@ const aminaAlarms = [
     "unknown_alarm_bit_15",
 ];
 
-const aminaAlarmsEnum = e.enum("alarm", ea.STATE_GET, aminaAlarms);
-
 const fzLocal = {
     ev_status: {
         cluster: "aminaControlCluster",
@@ -86,7 +84,7 @@ const fzLocal = {
                 result.alarm_active = false;
 
                 if (msg.data.alarms !== 0) {
-                    result.alarms = aminaAlarmsEnum.values.filter((_, i) => (msg.data.alarms & (1 << i)) !== 0);
+                    result.alarms = aminaAlarms.filter((_, i) => (msg.data.alarms & (1 << i)) !== 0);
                     result.alarm_active = true;
                 }
 
@@ -135,7 +133,7 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: [tzLocal.ev_status, tzLocal.alarms, tzLocal.charge_limit],
         exposes: [
             e.text("ev_status", ea.STATE_GET).withDescription("Current charging status"),
-            e.list("alarms", ea.STATE_GET, aminaAlarmsEnum).withDescription("List of active alarms"),
+            e.list("alarms", ea.STATE_GET, e.enum("alarm", ea.STATE_GET, aminaAlarms)).withDescription("List of active alarms"),
         ],
         extend: [
             m.deviceAddCustomCluster("aminaControlCluster", {
