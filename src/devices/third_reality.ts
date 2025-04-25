@@ -201,7 +201,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Garage door tilt sensor",
         extend: [
             m.battery(),
-            m.forcePowerSource({powerSource: 'Battery'}),
+            m.forcePowerSource({powerSource: "Battery"}),
             m.iasZoneAlarm({zoneType: "contact", zoneAttributes: ["alarm_1", "battery_low"]}),
             m.deviceAddCustomCluster("3rGarageDoorSpecialCluster", {
                 ID: 0xff01,
