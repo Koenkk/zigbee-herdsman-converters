@@ -1648,7 +1648,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [],
         ota: true,
         extend: [
-            m.deviceEndpoints({endpoints: {l1: 1}}),
+            m.deviceEndpoints({endpoints: {l1: 1}, multiEndpointSkip: ["state", "power_on_behavior"]}),
             m.commandsOnOff({commands: ["toggle"], endpointNames: ["l1"]}),
             m.onOff(),
             sonoffExtend.addCustomClusterEwelink(),
