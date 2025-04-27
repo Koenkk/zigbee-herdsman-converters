@@ -16960,4 +16960,72 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_lvkk0hdg"]),
+        model: "TS0601",
+        vendor: "TuYa",
+        whiteLabel: [{vendor: "EPTTECH",model: "TLC2206-ZB"}],
+        description: "EPTTECH Tank Level Monitor",
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints,],
+        onEvent: tuya.onEventSetTime,
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e
+            .numeric("liquid_level_percent", ea.STATE)
+            .withUnit("%")
+            .withDescription("Liquid level percentage"),
+            e
+            .numeric("liquid_depth", ea.STATE)
+            .withUnit("m")
+            .withDescription("Liquid Depth"),
+            e
+            .enum("liquid_state", ea.STATE, ["low", "normal", "high"])
+            .withDescription("Liquid State"),
+        
+            e
+            .numeric("installation_height", ea.STATE_SET)
+            .withUnit("mm")
+            .withDescription("Height from sensor to tank bottom")
+            .withValueMin(100)
+            .withValueMax(3000)
+            .withValueStep(1),
+            e
+            .numeric("mini_set", ea.STATE_SET)
+            .withUnit("%")
+            .withDescription("Liquid minimal percentage")
+            .withValueMin(0)
+            .withValueMax(100)
+            .withValueStep(1),
+            e
+            .numeric("max_set", ea.STATE_SET)
+            .withUnit("%")
+            .withDescription("Liquid max percentage")
+            .withValueMin(0)
+            .withValueMax(100)
+            .withValueStep(1),
+            e
+            .numeric("liquid_depth_max", ea.STATE_SET)
+            .withUnit("mm")
+            .withDescription("Height from sensor to liquid level")
+            .withValueMin(100)
+            .withValueMax(2000)
+            .withValueStep(1),
+        ],
+        meta: {
+            tuyaDatapoints: [
+            [22, "liquid_level_percent", tuya.valueConverter.raw],
+            [2, "liquid_depth", tuya.valueConverter.divideBy100],
+            [
+                1,
+                "liquid_state",
+                tuya.valueConverterBasic.lookup({ low: 1, normal: 0, high: 2 }),
+            ],
+            [19, "installation_height", tuya.valueConverter.raw],
+            [7, "max_set", tuya.valueConverter.raw],
+            [8, "mini_set", tuya.valueConverter.raw],
+            [21, "liquid_depth_max", tuya.valueConverter.raw],
+            ],
+        },
+    }
 ];
