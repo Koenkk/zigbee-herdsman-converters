@@ -8,7 +8,7 @@ import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import {nodonPilotWire} from "../lib/nodon";
 import * as reporting from "../lib/reporting";
-import type {DefinitionExposes, DefinitionWithExtend, ModernExtend} from "../lib/types";
+import type {DefinitionWithExtend, ModernExtend} from "../lib/types";
 
 const e = exposes.presets;
 const ea = exposes.access;

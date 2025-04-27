@@ -815,8 +815,9 @@ export function syncColorState(
     }
 
     // drop empty result.color
-    // biome-ignore lint/performance/noDelete: ignored using `--suppress`
-    if (Object.keys(result[keys.color]).length === 0) delete result[keys.color];
+    if (Object.keys(result[keys.color]).length === 0) {
+        delete result[keys.color];
+    }
 
     return result;
 }
