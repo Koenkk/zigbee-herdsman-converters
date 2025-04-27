@@ -15835,7 +15835,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMax(100)
                 .withValueStep(1),
             e
-                .numeric("mini_set", ea.STATE_SET)
+                .numeric("min_set", ea.STATE_SET)
                 .withUnit("%")
                 .withDescription("Liquid minimal percentage")
                 .withValueMin(0)
