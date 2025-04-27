@@ -189,8 +189,8 @@ export async function setupAttributes(
 export function setupConfigureForReporting(
     cluster: string | number,
     attribute: ReportingConfigAttribute,
-    config: ReportingConfigWithoutAttribute,
-    access: Access,
+    config?: false | ReportingConfigWithoutAttribute,
+    access?: Access,
     endpointNames?: string[],
 ) {
     const configureReporting = !!config;
@@ -2490,10 +2490,7 @@ export function numeric(args: NumericArgs): ModernExtend {
         },
     ];
 
-    const configure: Configure[] = [];
-    if (reporting) {
-        configure.push(setupConfigureForReporting(cluster, attribute, reporting, access, endpoints));
-    }
+    const configure: Configure[] = [setupConfigureForReporting(cluster, attribute, reporting, access, endpoints)];
 
     return {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
 }
@@ -2558,10 +2555,7 @@ export function binary(args: BinaryArgs): ModernExtend {
         },
     ];
 
-    const configure: Configure[] = [];
-    if (reporting) {
-        configure.push(setupConfigureForReporting(cluster, attribute, reporting, access));
-    }
+    const configure: Configure[] = [setupConfigureForReporting(cluster, attribute, reporting, access)];
 
     return {exposes: [expose], fromZigbee, toZigbee, configure, isModernExtend: true};
 }

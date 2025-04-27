@@ -2682,6 +2682,36 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
+        fingerprint: tuya.fingerprint("TS0001", ["_TZ3210_fhx7lk3d"]),
+        model: "CMA30651",
+        vendor: "ClickSmart+",
+        description: "13A Smart Switched Fused Connection Unit",
+        extend: [
+            tuya.modernExtend.tuyaOnOff({
+                backlightModeLowMediumHigh: true,
+                childLock: true,
+                powerOnBehavior2: true,
+            }),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0011", ["_TZ3000_uaa34g7v"]),
+        model: "CSP041",
+        vendor: "ClickSmart+",
+        description: "1 gang switch module without neutral wire",
+        extend: [m.onOff({powerOnBehavior: false})],
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
+            device.powerSource = "Mains (single phase)";
+            device.save();
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0003", ["_TYZB01_u9kkqh5o"]),
         model: "CSP043",
         vendor: "ClickSmart+",
@@ -2841,6 +2871,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE204_iik0pquw",
             "_TZE204_aagrxlbd",
             "_TZE204_f5efvtbv",
+            "_TZE284_f5efvtbv",
         ]),
         model: "TS0601_switch_4_gang_1",
         vendor: "Tuya",
@@ -2860,7 +2891,7 @@ export const definitions: DefinitionWithExtend[] = [
             {vendor: "Somgoms", model: "ZSQB-SMB-ZB"},
             {vendor: "Moes", model: "WS-EUB1-ZG"},
             {vendor: "AVATTO", model: "ZGB-WS-EU"},
-            tuya.whitelabel("AVATTO", "WSMD-4", "4 gang switch", ["_TZE204_f5efvtbv"]),
+            tuya.whitelabel("AVATTO", "WSMD-4", "4 gang switch", ["_TZE204_f5efvtbv", "_TZE284_f5efvtbv"]),
         ],
         meta: {
             multiEndpoint: true,
@@ -4425,6 +4456,7 @@ export const definitions: DefinitionWithExtend[] = [
                 "_TZE284_udank5zs",
                 "_TZE200_7shyddj3",
                 "_TZE204_a2jcoyuk",
+                "_TZE204_zuq5xxib",
             ]),
             ...tuya.fingerprint("zo2pocs\u0000", ["_TYST11_fzo2pocs"]),
             ...tuya.fingerprint("dank5zs\u0000", ["_TYST11_udank5zs"]),
@@ -4463,6 +4495,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Somgoms", "ZSTY-SM-1DMZG-US-W_1", "Curtain switch", ["_TZE200_axgvo9jh"]),
             tuya.whitelabel("HUARUI", "CMD900LE", "Lithium battery intelligent curtain opening and closing motor", ["_TZE200_zxxfv8wi"]),
             tuya.whitelabel("Novato", "WPK", "Smart curtain track", ["_TZE204_lh3arisb"]),
+            tuya.whitelabel("Zemismart", "ZMS1-TYZ", "Smart curtain track", ["_TZE204_zuq5xxib"]),
         ],
         fromZigbee: [legacy.fromZigbee.tuya_cover, fz.ignore_basic_report],
         toZigbee: [legacy.toZigbee.tuya_cover_control, legacy.toZigbee.tuya_cover_options],
