@@ -1645,11 +1645,9 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZBM5-1C-120",
         vendor: "SONOFF",
         description: "Zigbee Smart one-channel wall switch (type 120).",
-        exposes: [],
         ota: true,
         extend: [
-            m.deviceEndpoints({endpoints: {l1: 1}}),
-            m.commandsOnOff({commands: ["toggle"], endpointNames: ["l1"]}),
+            m.commandsOnOff({commands: ["toggle"]}),
             m.onOff(),
             sonoffExtend.addCustomClusterEwelink(),
             m.enumLookup({
