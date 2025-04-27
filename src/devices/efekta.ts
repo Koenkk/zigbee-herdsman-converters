@@ -6371,20 +6371,20 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        zigbeeModel: ['Open_PM_Monitor'],
-        model: 'Open_PM_Monitor',
-        vendor: 'EFEKTA',
-        description: 'PM1, PM2.5, PM10 Monitor with retro-style analog indicator and RGB backlight',
-        ota:true,
+        zigbeeModel: ["Open_PM_Monitor"],
+        model: "Open_PM_Monitor",
+        vendor: "EFEKTA",
+        description: "PM1, PM2.5, PM10 Monitor with retro-style analog indicator and RGB backlight",
+        ota: true,
         extend: [
-		     m.identify(),
-		     m.light({
+            m.identify(),
+            m.light({
                 effect: false,
                 powerOnBehavior: false,
-				configureReporting: true, 
+                configureReporting: true,
                 levelReportingConfig: fiveReporting,
             }),
-			 m.numeric({
+            m.numeric({
                 name: "pm1",
                 unit: "µg/m³",
                 cluster: "pm25Measurement",
@@ -6394,7 +6394,7 @@ export const definitions: DefinitionWithExtend[] = [
                 reporting: pmReporting,
                 precision: 1,
             }),
-			m.pm25({
+            m.pm25({
                 reporting: pmReporting,
                 access: "STATE",
                 description: "Measured PM2.5 (particulate matter) concentration",
