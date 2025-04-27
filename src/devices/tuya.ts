@@ -16967,7 +16967,7 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [{vendor: "EPTTECH",model: "TLC2206-ZB"}],
         description: "EPTTECH Tank Level Monitor",
         fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints,],
+        toZigbee: [tuya.tz.datapoints],
         onEvent: tuya.onEventSetTime,
         configure: tuya.configureMagicPacket,
         exposes: [
