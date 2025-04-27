@@ -484,6 +484,28 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Third Reality",
         description: "Zigbee / BLE dual plug with power",
         ota: true,
+        configure: async (device, coordinatorEndpoint) => {
+            for (const ep of [1, 2]) {
+                const endpoint = device.getEndpoint(ep);
+                await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "haElectricalMeasurement", "seMetering"]);
+                await endpoint.read("haElectricalMeasurement", ["acPowerMultiplier", "acPowerDivisor"]);
+                await reporting.onOff(endpoint);
+                await reporting.activePower(endpoint, {change: 10});
+                await reporting.rmsCurrent(endpoint, {change: 50});
+                await reporting.rmsVoltage(endpoint, {change: 5});
+                await reporting.readMeteringMultiplierDivisor(endpoint);
+                endpoint.saveClusterAttributeKeyValue("seMetering", {divisor: 3600000, multiplier: 1});
+                endpoint.saveClusterAttributeKeyValue("haElectricalMeasurement", {
+                    acVoltageMultiplier: 1,
+                    acVoltageDivisor: 10,
+                    acCurrentMultiplier: 1,
+                    acCurrentDivisor: 1000,
+                    acPowerMultiplier: 1,
+                    acPowerDivisor: 10,
+                });
+            }
+            device.save();
+        },
         extend: [
             m.deviceEndpoints({endpoints: {left: 1, right: 2}}),
             m.onOff({endpointNames: ["left", "right"]}),
