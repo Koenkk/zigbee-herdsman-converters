@@ -15862,7 +15862,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [2, "liquid_depth", tuya.valueConverter.raw], // mm
                 [22, "liquid_level_percent", tuya.valueConverter.raw],
                 [7, "max_set", tuya.valueConverter.raw],
-                [8, "mini_set", tuya.valueConverter.raw],
+                [8, "min_set", tuya.valueConverter.raw],
                 [19, "installation_height", tuya.valueConverter.raw],
                 [21, "liquid_depth_max", tuya.valueConverter.raw],
             ],
