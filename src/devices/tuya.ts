@@ -13924,7 +13924,6 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [tuya.fz.datapoints, tuya.fz.gateway_connection_status],
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
-        whiteLabel: [{vendor: "XOCA", model: "DAC4121C"}],
         exposes: [e.current(), e.power(), e.voltage(), e.energy(), e.text("meter_id", ea.STATE).withDescription("Meter ID (ID of device)")],
         meta: {
             tuyaDatapoints: [
@@ -16960,4 +16959,88 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_jcwbwckh"]),
+        model: "ZBN-JT-63",
+        vendor: "Tuya",
+        description: "Din rail switch with power monitoring",
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        exposes: [
+            tuya.exposes.switch(),
+            e.numeric("power", ea.STATE).withDescription("power")
+                .withUnit("W")
+                .withDescription("Instantaneous measured power"),
+            e.numeric("current", ea.STATE).withDescription("current")
+                .withUnit("A")
+                .withDescription("Instantaneous measured electrical current"),
+            e.numeric("voltage", ea.STATE).withDescription("voltage")
+                .withUnit("V")
+                .withDescription("Measured electrical potential value"),
+            e.numeric("energy", ea.STATE).withDescription("energy")
+                .withUnit("kWh")
+                .withDescription("Consumed energy"),
+            e.enum("power_outage_memory", ea.STATE_SET, ["on", "off", "restore"])
+                .withDescription("Recover state after power outage"),
+            e.enum("fault", ea.STATE, [
+                "clear",
+                "short_circuit_alarm",
+                "surge_alarm",
+                "overload_alarm",
+                "leakagecurr_alarm",
+                "temp_dif_fault",
+                "fire_alarm",
+                "high_power_alarm",
+                "self_test_alarm",
+                "ov_cr",
+                "unbalance_alarm",
+                "ov_vol",
+                "undervoltage_alarm",
+                "miss_phase_alarm",
+                "outage_alarm",
+                "magnetism_alarm",
+                "credit_alarm",
+                "no_balance_alarm",
+                ]).withDescription("Fault status of the device (clear = nothing)"),
+            e.text("meter_id", ea.STATE)
+                .withDescription("Meter ID (ID of device)"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "energy", tuya.valueConverter.divideBy100],
+                [3, null, null],
+                [4, null, null],
+                [6, null, tuya.valueConverter.phaseVariant3],
+                [10, "fault", tuya.valueConverterBasic.lookup({
+                    clear: 0,
+                    ov_cr: 1,
+                    unbalance_alarm: 2,
+                    ov_vol: 4,
+                    undervoltage_alarm: 8,
+                    miss_phase_alarm: 16,
+                    outage_alarm: 32,
+                    magnetism_alarm: 64,
+                    terminal_alarm: 128,
+                    cover_alarm: 256,
+                    credit_alarm: 512,
+                    no_balance_alarm: 1024,
+                    battery_alarm: 2048,
+                    meter_hardware_alarm: 4096,
+                })],
+                [16, "state", tuya.valueConverter.onOff],
+                [18, "meter_id", {from: (v) => {
+                    if (typeof v === "object") {
+                        const buf = Buffer.from([v[0], v[1], v[2], v[3]]);
+                        return buf.readUInt32BE();
+                    }
+                    return v;
+                }}],
+                [23, "power_outage_memory", tuya.valueConverterBasic.lookup({
+                    "on": 0,
+                    "off": 1,
+                    "restore": 2,
+                })],
+            ],
+        },
+    }
 ];
