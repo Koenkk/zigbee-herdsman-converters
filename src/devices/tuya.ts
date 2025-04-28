@@ -15815,6 +15815,60 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        fingerprint: [{modelID: "TS0601", manufacturerName: "_TZE200_lvkk0hdg"}],
+        model: "TLC2206",
+        vendor: "Tuya",
+        description: "Water level sensor",
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEventSetLocalTime,
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.numeric("liquid_level_percent", ea.STATE).withUnit("%").withDescription("Liquid level ratio"),
+            e.numeric("liquid_depth", ea.STATE).withUnit("cm").withDescription("Liquid depth"),
+            e.enum("liquid_state", ea.STATE, ["low", "normal", "high"]).withDescription("Liquid level status"),
+            e
+                .numeric("max_set", ea.STATE_SET)
+                .withUnit("%")
+                .withDescription("Liquid max percentage")
+                .withValueMin(0)
+                .withValueMax(100)
+                .withValueStep(1),
+            e
+                .numeric("min_set", ea.STATE_SET)
+                .withUnit("%")
+                .withDescription("Liquid minimal percentage")
+                .withValueMin(0)
+                .withValueMax(100)
+                .withValueStep(1),
+            e
+                .numeric("installation_height", ea.STATE_SET)
+                .withUnit("mm")
+                .withDescription("Height from sensor to tank bottom")
+                .withValueMin(10)
+                .withValueMax(4000)
+                .withValueStep(1),
+            e
+                .numeric("liquid_depth_max", ea.STATE_SET)
+                .withUnit("mm")
+                .withDescription("Height from sensor to liquid level")
+                .withValueMin(10)
+                .withValueMax(4000)
+                .withValueStep(5),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "liquid_state", tuya.valueConverterBasic.lookup({low: tuya.enum(1), normal: tuya.enum(0), high: tuya.enum(2)})],
+                [2, "liquid_depth", tuya.valueConverter.raw], // mm
+                [22, "liquid_level_percent", tuya.valueConverter.raw],
+                [7, "max_set", tuya.valueConverter.raw],
+                [8, "min_set", tuya.valueConverter.raw],
+                [19, "installation_height", tuya.valueConverter.raw],
+                [21, "liquid_depth_max", tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_q12rv9gj"]),
         model: "HHST001",
         vendor: "HeatHUB",
