@@ -58,6 +58,7 @@ const {
     lumiLockRelay,
     lumiMultiClick,
     lumiPreventLeave,
+    lumiExternalSensor,
 } = lumi.modernExtend;
 
 const NS = "zhc:lumi";
@@ -4572,6 +4573,7 @@ export const definitions: DefinitionWithExtend[] = [
             lumiZigbeeOTA(),
             m.temperature(),
             m.humidity(),
+            lumiExternalSensor(),
             m.deviceEndpoints({endpoints: {plus: 1, center: 2, minus: 3}}),
             lumiAction({
                 actionLookup: {hold: 0, single: 1, double: 2, release: 255},
