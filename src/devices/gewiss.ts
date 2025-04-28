@@ -78,10 +78,10 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        zigbeeModel: ['GWA1501_BinaryInput_FC'],
-        model: 'GWA1501',
-        vendor: 'Gewiss',
-        description: 'Contact interface - 2 channels',
+        zigbeeModel: ["GWA1501_BinaryInput_FC"],
+        model: "GWA1501",
+        vendor: "Gewiss",
+        description: "Contact interface - 2 channels",
         meta: {multiEndpoint: true},
         extend: [
             m.deviceEndpoints({endpoints: {"1": 1, "2": 2}}),
