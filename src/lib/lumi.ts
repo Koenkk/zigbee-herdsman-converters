@@ -2376,15 +2376,20 @@ export const lumiModernExtend = {
         return {
             isModernExtend: true,
             exposes: [
-                e.enum("sensor", ea.ALL, ["internal", "external"]).withDescription("Select mode to display sensor: internal or both with external").withCategory("config"),
-                e.numeric("external_temperature", ea.STATE_SET)
+                e
+                    .enum("sensor", ea.ALL, ["internal", "external"])
+                    .withDescription("Select mode to display sensor: internal or both with external")
+                    .withCategory("config"),
+                e
+                    .numeric("external_temperature", ea.STATE_SET)
                     .withUnit("°C")
                     .withValueMin(-100)
                     .withValueMax(100)
                     .withValueStep(0.1)
                     .withDescription("Value for external temperature sensor")
                     .withCategory("config"),
-                e.numeric("external_humidity", ea.STATE_SET)
+                e
+                    .numeric("external_humidity", ea.STATE_SET)
                     .withUnit("%")
                     .withValueMin(0)
                     .withValueMax(100)
@@ -2401,44 +2406,124 @@ export const lumiModernExtend = {
                             return [...header, integrity, action, 0x41, length];
                         };
                         const fictiveSensor = Buffer.from("00158d00019d1b98", "hex");
-            
+
                         switch (key) {
                             case "sensor": {
                                 assertEndpoint(entity);
                                 const device = Buffer.from(entity.deviceIeeeAddress.substring(2), "hex");
                                 const timestamp = Buffer.alloc(4);
                                 timestamp.writeUInt32BE(Date.now() / 1000);
-            
+
                                 if (value === "external") {
                                     const params1 = [
                                         ...timestamp,
                                         0x15,
                                         ...device,
                                         ...fictiveSensor,
-                                        0x00, 0x02, 0x00, 0x55, 0x15, 0x0a, 0x01, 0x00, 0x00, 0x01, 0x06, 0xe6, 0xb9,
-                                        0xbf, 0xe5, 0xba, 0xa6, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x02, 0x08, 0x65,
+                                        0x00,
+                                        0x02,
+                                        0x00,
+                                        0x55,
+                                        0x15,
+                                        0x0a,
+                                        0x01,
+                                        0x00,
+                                        0x00,
+                                        0x01,
+                                        0x06,
+                                        0xe6,
+                                        0xb9,
+                                        0xbf,
+                                        0xe5,
+                                        0xba,
+                                        0xa6,
+                                        0x00,
+                                        0x00,
+                                        0x00,
+                                        0x00,
+                                        0x00,
+                                        0x01,
+                                        0x02,
+                                        0x08,
+                                        0x65,
                                     ];
                                     const params2 = [
                                         ...timestamp,
                                         0x14,
                                         ...device,
                                         ...fictiveSensor,
-                                        0x00, 0x01, 0x00, 0x55, 0x15, 0x0a, 0x01, 0x00, 0x00, 0x01, 0x06, 0xe6, 0xb8,
-                                        0xa9, 0xe5, 0xba, 0xa6, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x02, 0x07, 0x63
+                                        0x00,
+                                        0x01,
+                                        0x00,
+                                        0x55,
+                                        0x15,
+                                        0x0a,
+                                        0x01,
+                                        0x00,
+                                        0x00,
+                                        0x01,
+                                        0x06,
+                                        0xe6,
+                                        0xb8,
+                                        0xa9,
+                                        0xe5,
+                                        0xba,
+                                        0xa6,
+                                        0x00,
+                                        0x00,
+                                        0x00,
+                                        0x00,
+                                        0x00,
+                                        0x01,
+                                        0x02,
+                                        0x07,
+                                        0x63,
                                     ];
-            
+
                                     const val1 = [...lumiHeader(0x12, params1.length, 0x02), ...params1];
                                     const val2 = [...lumiHeader(0x13, params2.length, 0x02), ...params2];
-            
+
                                     await entity.write("manuSpecificLumi", {65522: {value: val1, type: 0x41}}, {manufacturerCode: manufacturerCode});
                                     await entity.write("manuSpecificLumi", {65522: {value: val2, type: 0x41}}, {manufacturerCode: manufacturerCode});
                                 } else if (value === "internal") {
-                                    const params1 = [...timestamp, 0x15, ...device, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00];
-                                    const params2 = [...timestamp, 0x14, ...device, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00];
-            
+                                    const params1 = [
+                                        ...timestamp,
+                                        0x15,
+                                        ...device,
+                                        0x00,
+                                        0x00,
+                                        0x00,
+                                        0x00,
+                                        0x00,
+                                        0x00,
+                                        0x00,
+                                        0x00,
+                                        0x00,
+                                        0x00,
+                                        0x00,
+                                        0x00,
+                                    ];
+                                    const params2 = [
+                                        ...timestamp,
+                                        0x14,
+                                        ...device,
+                                        0x00,
+                                        0x00,
+                                        0x00,
+                                        0x00,
+                                        0x00,
+                                        0x00,
+                                        0x00,
+                                        0x00,
+                                        0x00,
+                                        0x00,
+                                        0x00,
+                                        0x00,
+                                    ];
+
                                     const val1 = [...lumiHeader(0x12, params1.length, 0x04), ...params1];
                                     const val2 = [...lumiHeader(0x13, params2.length, 0x04), ...params2];
-            
+
                                     await entity.write("manuSpecificLumi", {65522: {value: val1, type: 0x41}}, {manufacturerCode: manufacturerCode});
                                     await entity.write("manuSpecificLumi", {65522: {value: val2, type: 0x41}}, {manufacturerCode: manufacturerCode});
                                 }
@@ -2451,10 +2536,10 @@ export const lumiModernExtend = {
                                     const temperatureBuf = Buffer.alloc(4);
                                     const number = toNumber(value);
                                     temperatureBuf.writeFloatBE(Math.round(number * 100));
-            
+
                                     const params = [...fictiveSensor, 0x00, 0x01, 0x00, 0x55, ...temperatureBuf];
                                     const data = [...lumiHeader(0x12, params.length, 0x05), ...params];
-            
+
                                     await entity.write("manuSpecificLumi", {65522: {value: data, type: 0x41}}, {manufacturerCode: manufacturerCode});
                                 }
                                 break;
@@ -2463,10 +2548,10 @@ export const lumiModernExtend = {
                                     const humidityBuf = Buffer.alloc(4);
                                     const number = toNumber(value);
                                     humidityBuf.writeFloatBE(Math.round(number * 100));
-            
+
                                     const params = [...fictiveSensor, 0x00, 0x02, 0x00, 0x55, ...humidityBuf];
                                     const data = [...lumiHeader(0x12, params.length, 0x05), ...params];
-            
+
                                     await entity.write("manuSpecificLumi", {65522: {value: data, type: 0x41}}, {manufacturerCode: manufacturerCode});
                                 }
                                 break;
