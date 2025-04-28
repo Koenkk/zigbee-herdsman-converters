@@ -1,5 +1,25 @@
 # Changelog
 
+## [23.34.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.33.0...v23.34.0) (2025-04-26)
+
+
+### Features
+
+* **add:** 81998, 81949 ([#9243](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9243)) ([7625579](https://github.com/Koenkk/zigbee-herdsman-converters/commit/76255797f3257e53ac4af6d88d19a1a56fca6569))
+* **add:** 8719514434592 ([#9241](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9241)) ([85f5ff8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/85f5ff83f5efc9ae9107da160b4d2accac3d49bc))
+* **add:** POK017 ([#9245](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9245)) ([7f56a0d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7f56a0d76adc2988a74e49fd838c41c8df5ea657))
+* **add:** RCL 231 T ([#9239](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9239)) ([1ce06e5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1ce06e5fa93d7d58ad907cf58efdcec27f97d530))
+* **add:** ZMS1-TYZ ([#9235](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9235)) ([70e9c15](https://github.com/Koenkk/zigbee-herdsman-converters/commit/70e9c1500282293479ee617eb929665972bd2233))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZE284_f5efvtbv` as AVATTO WSMD-4 https://github.com/Koenkk/zigbee2mqtt/discussions/26003 ([844e90e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/844e90ece12a5d94e22eb88327e86b00aa6ed8bb))
+* Fix modern extends numeric/binary not configuring attributes ([#9242](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9242)) ([5dbeb01](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5dbeb018fdf5744bc91ffad2393cd9a290737dcf))
+* **ignore:** better exposes typing ([#9244](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9244)) ([6e8b715](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6e8b7153904e3d4841c0643a39096882b25abe14))
+* Sonoff ZBM5-1C-120: fix state ([#9248](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9248)) ([e731b22](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e731b221ad6e26485113347ef137bc1647e9412c))
+* Third Reality 3RDTS01056Z power source ([#9246](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9246)) ([4df7803](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4df7803cff4937f4856892f14699748baf0cf737))
+
 ## [23.33.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.32.0...v23.33.0) (2025-04-23)
 
 
