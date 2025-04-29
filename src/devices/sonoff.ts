@@ -61,6 +61,13 @@ const sonoffExtend = {
                 deviceWorkMode: {ID: 0x0018, type: Zcl.DataType.UINT8},
                 detachRelayMode2: {ID: 0x0019, type: Zcl.DataType.BITMAP8},
                 lackWaterCloseValveTimeout: {ID: 0x5011, type: Zcl.DataType.UINT16},
+                ACCurrentCurrentValue: {ID: 0x7004, type: Zcl.DataType.UINT32},
+                ACCurrentVoltageValue: {ID: 0x7005, type: Zcl.DataType.UINT32},
+                ACCurrentPowerValue: {ID: 0x7006, type: Zcl.DataType.UINT32},
+                OutletControlProtectSetting: {ID: 0x7007, type: Zcl.DataType.UINT8},
+                EnergyConsumptionOfDay: {ID: 0x7009, type: Zcl.DataType.UINT32},
+                EnergyConsumptionOfMonth: {ID: 0x700a, type: Zcl.DataType.UINT32},
+                EnergyConsumptionOfYesterday: {ID: 0x700b, type: Zcl.DataType.UINT32},
             },
             commands: {
                 protocolData: {ID: 0x01, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8}]},
@@ -653,6 +660,354 @@ const sonoffExtend = {
             exposes: [exposes],
             fromZigbee,
             toZigbee,
+            isModernExtend: true,
+        };
+    },
+    overloadProtection: (powerMaxLimit: number, currentMaxLimit: number): ModernExtend => {
+        const clusterName = "customClusterEwelink";
+        const exposes = e
+            .composite("overload_protection", "overload_protection", ea.ALL)
+            .withDescription("Over load protection, max power and max current are required,other is optional")
+            .withFeature(
+                e
+                    .numeric("max_power", ea.SET)
+                    .withDescription("max power")
+                    .withUnit("W")
+                    .withValueMin(0.1)
+                    .withValueMax(powerMaxLimit)
+                    .withValueStep(0.1),
+            )
+            .withFeature(
+                e
+                .binary("enable_min_power", ea.SET, "ENABLE", "DISABLE")
+                .withDescription("Enable/disable lower limit of power overload protection.")
+            )
+            .withFeature(
+                e
+                    .numeric("min_power", ea.SET)
+                    .withDescription("Lower limit of power overload protection")
+                    .withUnit("W")
+                    .withValueMin(0.1)
+                    .withValueMax(powerMaxLimit)
+                    .withValueStep(0.1),
+            )
+            .withFeature(
+                e
+                .binary("enable_max_voltage", ea.SET, "ENABLE", "DISABLE")
+                .withDescription("Enable/disable upper limit of voltage overload protection..")
+            )
+            .withFeature(
+                e
+                    .numeric("max_voltage", ea.SET)
+                    .withDescription("Upper limit of voltage overload protection.")
+                    .withUnit("V")
+                    .withValueMin(165)
+                    .withValueMax(277)
+                    .withValueStep(1),
+
+            )
+            .withFeature(
+                e
+                .binary("enable_min_voltage", ea.SET, "ENABLE", "DISABLE")
+                .withDescription("Enable/disable lower limit of voltage overload protection.")
+            )
+            .withFeature(
+                e
+                    .numeric("min_voltage", ea.SET)
+                    .withDescription("Lower limit of voltage overload protection.")
+                    .withUnit("V")
+                    .withValueMin(165)
+                    .withValueMax(277)
+                    .withValueStep(1),
+            )
+            .withFeature(
+                e
+                    .numeric("max_current", ea.SET)
+                    .withDescription("Upper limit of current overload protection.")
+                    .withUnit("A")
+                    .withValueMin(0.1)
+                    .withValueMax(currentMaxLimit)
+                    .withValueStep(0.1),
+            )
+            .withFeature(
+                e
+                .binary("enable_min_current", ea.SET, "ENABLE", "DISABLE")
+                .withDescription("Enable/disable lower limit of current overload protection.")
+            )
+            .withFeature(
+                e
+                    .numeric("min_current", ea.SET)
+                    .withDescription("Lower limit of current overload protection.")
+                    .withUnit("A")
+                    .withValueMin(0.1)
+                    .withValueMax(currentMaxLimit)
+                    .withValueStep(0.1),
+            )
+            ;
+            const fromZigbee: Fz.Converter[] = [
+                {
+                    cluster: "customClusterEwelink",
+                    type: ["attributeReport", "readResponse"],
+                    convert: (model, msg, publish, options, meta) => {
+                        const attributeKey = 0x7003; // attr
+                        if (attributeKey in msg.data) {
+                        //     "enable_max_voltage": "ENABLE",
+                        //     "enable_min_current": "ENABLE",
+                        //     "enable_min_power": "ENABLE",
+                        //     "enable_min_voltage": "ENABLE",
+                        //     "max_current": 23,
+                        //     "max_power": 23,
+                        //     "max_voltage": 23,
+                        //     "min_current": 23,
+                        //     "min_power": 23,
+                        //     "min_voltage": 23
+                        //   }: value:
+
+                        logger.debug("attr_value is:", JSON.stringify(msg.data[attributeKey]));
+                            const buffer = Buffer.from(msg.data[attributeKey],"binary");
+
+                            const hexString = buffer.toString("hex").toUpperCase();
+                            console.log(`Hex: ${hexString}`);
+
+                            let index:number = 0;
+                            let enable_max_voltage_buffer:string = "DISABLE";
+                            let enable_min_current_buffer:string = "DISABLE";
+                            let enable_min_power_buffer:string = "DISABLE";
+                            let enable_min_voltage_buffer:string = "DISABLE";
+
+                            const tag = buffer[index++];
+                            const len = buffer[index++];
+
+
+                            if (buffer[index++] == 3)
+                            {
+                                enable_min_current_buffer = "ENABLE";
+                            }
+
+                            const voltage_set_flag = buffer[index++];
+                            if (voltage_set_flag & 0x01)
+                            {
+                                enable_max_voltage_buffer = "ENABLE";
+                            }
+                            if (voltage_set_flag & 0x02)
+                            {
+                                enable_min_voltage_buffer = "ENABLE";
+                            }
+                            if (buffer[index++] == 3)
+                            {
+                                enable_min_power_buffer = "ENABLE";
+                            }
+
+
+                            let min_current_buffer:number = 0;
+                            let max_voltage_buffer:number = 0;
+                            let min_voltage_buffer:number = 0;
+                            let max_power_buffer:number = 0;
+                            let min_power_buffer:number = 0;
+
+                            let max_current_buffer:number = buffer[index++];
+                            max_current_buffer |= buffer[index++]<<8;
+                            max_current_buffer |= buffer[index++]<<16;
+                            max_current_buffer |= buffer[index++]<<24;
+
+                            max_current_buffer /= 1000;
+
+
+                            if (enable_min_current_buffer == "ENABLE")
+                            {
+
+                                min_current_buffer = buffer[index++];
+                                min_current_buffer |= buffer[index++]<<8;
+                                min_current_buffer |= buffer[index++]<<16;
+                                min_current_buffer |= buffer[index++]<<24;
+
+                                min_current_buffer /= 1000;
+                            }
+
+                            if (enable_max_voltage_buffer == "ENABLE")
+                            {
+                                for (let i = 0;i<4;i++)
+                                {
+                                    logger.debug("max voltage is:", JSON.stringify(buffer[index+i]));
+                                }
+                                logger.debug("index is", JSON.stringify(index));
+                                max_voltage_buffer = buffer[index++];
+                                max_voltage_buffer |= buffer[index++]<<8;
+                                max_voltage_buffer |= buffer[index++]<<16;
+                                max_voltage_buffer |= buffer[index++]<<24;
+
+                                max_voltage_buffer /= 1000;
+                            }
+
+                            if (enable_min_voltage_buffer == "ENABLE")
+                            {
+                                min_voltage_buffer = buffer[index++];
+                                min_voltage_buffer |= buffer[index++]<<8;
+                                min_voltage_buffer |= buffer[index++]<<16;
+                                min_voltage_buffer |= buffer[index++]<<24;
+
+                                min_voltage_buffer /= 1000;
+                            }
+                            max_power_buffer = buffer[index++];
+                            max_power_buffer |= buffer[index++]<<8;
+                            max_power_buffer |= buffer[index++]<<16;
+                            max_power_buffer |= buffer[index++]<<24;
+
+                            max_power_buffer /= 1000;
+
+                            if (enable_min_power_buffer == "ENABLE")
+                            {
+                                min_power_buffer = buffer[index++];
+                                min_power_buffer |= buffer[index++]<<8;
+                                min_power_buffer |= buffer[index++]<<16;
+                                min_power_buffer |= buffer[index++]<<24;
+
+                                min_power_buffer /= 1000;
+                            }
+
+
+                            return {
+                                overload_protection: {
+                                    "enable_max_voltage": enable_max_voltage_buffer,
+                                    "enable_min_current": enable_min_current_buffer,
+                                    "enable_min_power": enable_min_power_buffer,
+                                    "enable_min_voltage": enable_min_power_buffer,
+                                    "max_current": max_current_buffer,
+                                    "max_power": max_power_buffer,
+                                    "max_voltage": max_voltage_buffer,
+                                    "min_current": min_current_buffer,
+                                    "min_power": min_power_buffer,
+                                    "min_voltage": min_voltage_buffer
+                                },
+                            };
+                        }
+                    },
+                },
+            ];
+            const toZigbee: Tz.Converter[] = [
+                {
+                    key: ["overload_protection"],
+                    convertSet: async (entity, key, value, meta) => {
+                        logger.debug("value:", JSON.stringify(value, null, 2)); // 将 value 转换为格式化的 JSON 字符串
+
+
+                        const maxC = 1000*value["max_current" as keyof typeof value];
+                        const minC = 1000*value["min_current" as keyof typeof value];
+                        const maxV = 1000*value["max_voltage" as keyof typeof value];
+                        const minV = 1000*value["min_voltage" as keyof typeof value];
+                        const maxP = 1000*value["max_power" as keyof typeof value];
+                        const minP = 1000*value["min_power" as keyof typeof value];
+
+                        const enMinC = value["enable_min_current" as keyof typeof value];
+                        const enMaxV = value["enable_max_voltage" as keyof typeof value];
+                        const enMinV = value["enable_min_voltage" as keyof typeof value];
+                        const enMinP = value["enable_min_power" as keyof typeof value];
+
+                        const params = { maxC, minC, maxV, minV, maxP, minP ,enMinC,enMaxV,enMinV,enMinP};
+                        logger.debug("value:", JSON.stringify(params));
+
+                        const payloadValue = [];
+                        let index = 0;
+                        let length = 0;
+                        payloadValue[index++] = 0;
+                        payloadValue[index++] = 0x04;
+                        payloadValue[index++] = 27;
+                        payloadValue[index++] = 1;
+                        payloadValue[index++] = 0;
+                        payloadValue[index++] = 1;
+
+                        payloadValue[index++] = maxC & 0xff;
+                        payloadValue[index++] = (maxC >> 8) & 0xff;
+                        payloadValue[index++] = (maxC >> 16) & 0xff;
+                        payloadValue[index++] = (maxC >> 24) & 0xff;
+
+                        if (enMinC == "ENABLE")
+                        {
+                            payloadValue[3] |= 2;
+
+                            payloadValue[index++] = minC & 0xff;;
+                            payloadValue[index++] = (minC >> 8) & 0xff;
+                            payloadValue[index++] = (minC >> 16) & 0xff;
+                            payloadValue[index++] = (minC >> 24) & 0xff;
+                        }
+
+                        if (enMaxV == "ENABLE")
+                        {
+                            payloadValue[4] |= 1;
+
+                            payloadValue[index++] = maxV & 0xff;;
+                            payloadValue[index++] = (maxV >> 8) & 0xff;
+                            payloadValue[index++] = (maxV >> 16) & 0xff;
+                            payloadValue[index++] = (maxV >> 24) & 0xff;
+                        }
+
+                        if (enMinV == "ENABLE")
+                        {
+                            payloadValue[4] |= 2;
+
+                            payloadValue[index++] = minV & 0xff;;
+                            payloadValue[index++] = (minV >> 8) & 0xff;
+                            payloadValue[index++] = (minV >> 16) & 0xff;
+                            payloadValue[index++] = (minV >> 24) & 0xff;
+                        }
+
+                        payloadValue[index++] = maxP & 0xff;;
+                        payloadValue[index++] = (maxP >> 8) & 0xff;
+                        payloadValue[index++] = (maxP >> 16) & 0xff;
+                        payloadValue[index++] = (maxP >> 24) & 0xff;
+
+                        if (enMinP == "ENABLE")
+                        {
+                            payloadValue[5] |= 2;
+
+                            payloadValue[index++] = minP & 0xff;;
+                            payloadValue[index++] = (minP >> 8) & 0xff;
+                            payloadValue[index++] = (minP >> 16) & 0xff;
+                            payloadValue[index++] = (minP >> 24) & 0xff;
+                        }
+
+                        payloadValue[0] = index-1;
+                        payloadValue[2] = payloadValue[0]-2;
+
+                        if (payloadValue[3] == 3)
+                        {
+                            if (minC >= maxC)
+                            {
+                                throw new Error(`Invalid input: maximum current must be greater than the minimum current `);
+                            }
+                        }
+
+                        if (payloadValue[4] == 3)
+                        {
+                            if (minV >= maxV)
+                            {
+                                throw new Error(`Invalid input: maximum voltage must be greater than the minimum voltage `);
+                            }
+                        }
+
+                        if (payloadValue[5] == 3)
+                        {
+                            if (minP >= maxP)
+                            {
+                                throw new Error(`Invalid input: maximum power must be greater than the minimum power `);
+                            }
+                        }
+
+
+                        const payload = {[0x7003]: {value: payloadValue, type: 0x42}};
+                        await entity.write("customClusterEwelink", payload, defaultResponseOptions);
+                        return {state: {[key]: value}};
+                    },
+                    convertGet: async (entity, key, meta) => {
+                        await entity.read("customClusterEwelink", [0x7003], defaultResponseOptions);
+                    },
+                },
+            ];
+
+        return {
+            exposes: [exposes],
+            toZigbee,
+            fromZigbee,
             isModernExtend: true,
         };
     },
@@ -1491,14 +1846,190 @@ export const definitions: DefinitionWithExtend[] = [
         model: "S60ZBTPF",
         vendor: "SONOFF",
         description: "Zigbee smart plug",
-        extend: [m.onOff()],
+        extend: [
+            m.onOff({
+                powerOnBehavior: true,
+                skipDuplicateTransaction: true,
+                configureReporting: true,
+            }),
+            // m.electricityMeter({current: {divisor: 100}, voltage: {divisor: 100}, power: {divisor: 1}, energy: {divisor: 1000}}),
+            sonoffExtend.addCustomClusterEwelink(),
+            m.numeric({
+                name: "current_current",
+                cluster: "customClusterEwelink",
+                attribute: "ACCurrentCurrentValue",
+                description: "AC Current",
+                unit: "A",
+                scale: 1000,
+                access: "STATE_GET",
+            }),
+            m.numeric({
+                name: "curent_voltage",
+                cluster: "customClusterEwelink",
+                attribute: "ACCurrentVoltageValue",
+                description: "AC Voltage",
+                unit: "V",
+                scale: 1000,
+                access: "STATE_GET",
+            }),
+            m.numeric({
+                name: "curent_power",
+                cluster: "customClusterEwelink",
+                attribute: "ACCurrentPowerValue",
+                description: "Active power",
+                unit: "W",
+                scale: 1000,
+                access: "STATE_GET",
+            }),
+            m.numeric({
+                name: "EnergyConsumptionOfYesterday",
+                cluster: "customClusterEwelink",
+                attribute: "EnergyConsumptionOfYesterday",
+                description: "Electricity consumption for the yesterday",
+                unit: "kwh",
+                scale: 1000,
+                access: "STATE_GET",
+            }),
+            m.numeric({
+                name: "EnergyConsumptionOfDay",
+                cluster: "customClusterEwelink",
+                attribute: "EnergyConsumptionOfDay",
+                description: "Electricity consumption for the day",
+                unit: "kwh",
+                scale: 1000,
+                access: "STATE_GET",
+            }),
+            m.numeric({
+                name: "EnergyConsumptionOfMonth",
+                cluster: "customClusterEwelink",
+                attribute: "EnergyConsumptionOfMonth",
+                description: "Electricity consumption for the month",
+                unit: "kwh",
+                scale: 1000,
+                access: "STATE_GET",
+            }),
+            sonoffExtend.inchingControlSet(),
+            m.binary({
+                name: "OutletControlProtectSetting",
+                cluster: "customClusterEwelink",
+                attribute: "OutletControlProtectSetting",
+                description: "Outlet overload protection Settings",
+                valueOff: [false, 0],
+                valueOn: [true, 1],
+            }),
+            sonoffExtend.overloadProtection(4000, 17),
+        ],
+        ota: true,
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "customClusterEwelink"]);
+            await reporting.onOff(endpoint, {min: 1, max: 1800, change: 0});
+            await endpoint.read("customClusterEwelink", ["ACCurrentCurrentValue", "ACCurrentVoltageValue", "ACCurrentPowerValue", 0x7003,"OutletControlProtectSetting"], defaultResponseOptions);
+            await endpoint.configureReporting("customClusterEwelink", [
+                {attribute: "EnergyConsumptionOfMonth", minimumReportInterval: 60, maximumReportInterval: 3600, reportableChange: 50},
+            ]);
+            await endpoint.configureReporting("customClusterEwelink", [
+                {attribute: "EnergyConsumptionOfYesterday", minimumReportInterval: 60, maximumReportInterval: 3600, reportableChange: 50},
+            ]);
+            await endpoint.configureReporting("customClusterEwelink", [
+                {attribute: "EnergyConsumptionOfDay", minimumReportInterval: 60, maximumReportInterval: 3600, reportableChange: 50},
+            ]);
+        },
     },
     {
         zigbeeModel: ["S60ZBTPG"],
         model: "S60ZBTPG",
         vendor: "SONOFF",
         description: "Zigbee smart plug",
-        extend: [m.onOff()],
+        extend: [
+            m.onOff({
+                powerOnBehavior: true,
+                skipDuplicateTransaction: true,
+                configureReporting: true,
+            }),
+            // m.electricityMeter({current: {divisor: 100}, voltage: {divisor: 100}, power: {divisor: 1}, energy: {divisor: 1000}}),
+            sonoffExtend.addCustomClusterEwelink(),
+            m.numeric({
+                name: "current_current",
+                cluster: "customClusterEwelink",
+                attribute: "ACCurrentCurrentValue",
+                description: "AC Current",
+                unit: "A",
+                scale: 1000,
+                access: "STATE_GET",
+            }),
+            m.numeric({
+                name: "curent_voltage",
+                cluster: "customClusterEwelink",
+                attribute: "ACCurrentVoltageValue",
+                description: "AC Voltage",
+                unit: "V",
+                scale: 1000,
+                access: "STATE_GET",
+            }),
+            m.numeric({
+                name: "curent_power",
+                cluster: "customClusterEwelink",
+                attribute: "ACCurrentPowerValue",
+                description: "Active power",
+                unit: "W",
+                scale: 1000,
+                access: "STATE_GET",
+            }),
+            m.numeric({
+                name: "EnergyConsumptionOfYesterday",
+                cluster: "customClusterEwelink",
+                attribute: "EnergyConsumptionOfYesterday",
+                description: "Electricity consumption for the yesterday",
+                unit: "kwh",
+                scale: 1000,
+                access: "STATE_GET",
+            }),
+            m.numeric({
+                name: "EnergyConsumptionOfDay",
+                cluster: "customClusterEwelink",
+                attribute: "EnergyConsumptionOfDay",
+                description: "Electricity consumption for the day",
+                unit: "kwh",
+                scale: 1000,
+                access: "STATE_GET",
+            }),
+            m.numeric({
+                name: "EnergyConsumptionOfMonth",
+                cluster: "customClusterEwelink",
+                attribute: "EnergyConsumptionOfMonth",
+                description: "Electricity consumption for the month",
+                unit: "kwh",
+                scale: 1000,
+                access: "STATE_GET",
+            }),
+            sonoffExtend.inchingControlSet(),
+            m.binary({
+                name: "OutletControlProtectSetting",
+                cluster: "customClusterEwelink",
+                attribute: "OutletControlProtectSetting",
+                description: "Outlet overload protection Settings",
+                valueOff: [false, 0],
+                valueOn: [true, 1],
+            }),
+            sonoffExtend.overloadProtection(3250, 14),
+        ],
+        ota: true,
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "customClusterEwelink"]);
+            await reporting.onOff(endpoint, {min: 1, max: 1800, change: 0});
+            await endpoint.read("customClusterEwelink", ["ACCurrentCurrentValue", "ACCurrentVoltageValue", "ACCurrentPowerValue", 0x7003,"OutletControlProtectSetting"], defaultResponseOptions);
+            await endpoint.configureReporting("customClusterEwelink", [
+                {attribute: "EnergyConsumptionOfMonth", minimumReportInterval: 60, maximumReportInterval: 3600, reportableChange: 50},
+            ]);
+            await endpoint.configureReporting("customClusterEwelink", [
+                {attribute: "EnergyConsumptionOfYesterday", minimumReportInterval: 60, maximumReportInterval: 3600, reportableChange: 50},
+            ]);
+            await endpoint.configureReporting("customClusterEwelink", [
+                {attribute: "EnergyConsumptionOfDay", minimumReportInterval: 60, maximumReportInterval: 3600, reportableChange: 50},
+            ]);
+        },
     },
     {
         zigbeeModel: ["SWV"],
