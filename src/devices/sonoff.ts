@@ -678,9 +678,7 @@ const sonoffExtend = {
                     .withValueStep(0.1),
             )
             .withFeature(
-                e
-                .binary("enable_min_power", ea.SET, "ENABLE", "DISABLE")
-                .withDescription("Enable/disable lower limit of power overload protection.")
+                e.binary("enable_min_power", ea.SET, "ENABLE", "DISABLE").withDescription("Enable/disable lower limit of power overload protection."),
             )
             .withFeature(
                 e
@@ -693,8 +691,8 @@ const sonoffExtend = {
             )
             .withFeature(
                 e
-                .binary("enable_max_voltage", ea.SET, "ENABLE", "DISABLE")
-                .withDescription("Enable/disable upper limit of voltage overload protection..")
+                    .binary("enable_max_voltage", ea.SET, "ENABLE", "DISABLE")
+                    .withDescription("Enable/disable upper limit of voltage overload protection.."),
             )
             .withFeature(
                 e
@@ -704,12 +702,11 @@ const sonoffExtend = {
                     .withValueMin(165)
                     .withValueMax(277)
                     .withValueStep(1),
-
             )
             .withFeature(
                 e
-                .binary("enable_min_voltage", ea.SET, "ENABLE", "DISABLE")
-                .withDescription("Enable/disable lower limit of voltage overload protection.")
+                    .binary("enable_min_voltage", ea.SET, "ENABLE", "DISABLE")
+                    .withDescription("Enable/disable lower limit of voltage overload protection."),
             )
             .withFeature(
                 e
@@ -731,8 +728,8 @@ const sonoffExtend = {
             )
             .withFeature(
                 e
-                .binary("enable_min_current", ea.SET, "ENABLE", "DISABLE")
-                .withDescription("Enable/disable lower limit of current overload protection.")
+                    .binary("enable_min_current", ea.SET, "ENABLE", "DISABLE")
+                    .withDescription("Enable/disable lower limit of current overload protection."),
             )
             .withFeature(
                 e
@@ -742,15 +739,14 @@ const sonoffExtend = {
                     .withValueMin(0.1)
                     .withValueMax(currentMaxLimit)
                     .withValueStep(0.1),
-            )
-            ;
-            const fromZigbee: Fz.Converter[] = [
-                {
-                    cluster: "customClusterEwelink",
-                    type: ["attributeReport", "readResponse"],
-                    convert: (model, msg, publish, options, meta) => {
-                        const attributeKey = 0x7003; // attr
-                        if (attributeKey in msg.data) {
+            );
+        const fromZigbee: Fz.Converter[] = [
+            {
+                cluster: "customClusterEwelink",
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    const attributeKey = 0x7003; // attr
+                    if (attributeKey in msg.data) {
                         //     "enable_max_voltage": "ENABLE",
                         //     "enable_min_current": "ENABLE",
                         //     "enable_min_power": "ENABLE",
@@ -764,245 +760,219 @@ const sonoffExtend = {
                         //   }: value:
 
                         logger.debug("attr_value is:", JSON.stringify(msg.data[attributeKey]));
-                            const buffer = Buffer.from(msg.data[attributeKey],"binary");
+                        const buffer = Buffer.from(msg.data[attributeKey], "binary");
 
-                            const hexString = buffer.toString("hex").toUpperCase();
-                            console.log(`Hex: ${hexString}`);
+                        const hexString = buffer.toString("hex").toUpperCase();
+                        console.log(`Hex: ${hexString}`);
 
-                            let index = 0;
-                            let enable_max_voltage_buffer = "DISABLE";
-                            let enable_min_current_buffer = "DISABLE";
-                            let enable_min_power_buffer = "DISABLE";
-                            let enable_min_voltage_buffer = "DISABLE";
-
-                            const tag = buffer[index++];
-                            const len = buffer[index++];
-
-
-                            if (buffer[index++] === 3)
-                            {
-                                enable_min_current_buffer = "ENABLE";
-                            }
-
-                            const voltage_set_flag = buffer[index++];
-                            if (voltage_set_flag & 0x01)
-                            {
-                                enable_max_voltage_buffer = "ENABLE";
-                            }
-                            if (voltage_set_flag & 0x02)
-                            {
-                                enable_min_voltage_buffer = "ENABLE";
-                            }
-                            if (buffer[index++] === 3)
-                            {
-                                enable_min_power_buffer = "ENABLE";
-                            }
-
-
-                            let min_current_buffer = 0;
-                            let max_voltage_buffer = 0;
-                            let min_voltage_buffer = 0;
-                            let max_power_buffer = 0;
-                            let min_power_buffer = 0;
-
-                            let max_current_buffer:number = buffer[index++];
-                            max_current_buffer |= buffer[index++]<<8;
-                            max_current_buffer |= buffer[index++]<<16;
-                            max_current_buffer |= buffer[index++]<<24;
-
-                            max_current_buffer /= 1000;
-
-
-                            if (enable_min_current_buffer === "ENABLE")
-                            {
-
-                                min_current_buffer = buffer[index++];
-                                min_current_buffer |= buffer[index++]<<8;
-                                min_current_buffer |= buffer[index++]<<16;
-                                min_current_buffer |= buffer[index++]<<24;
-
-                                min_current_buffer /= 1000;
-                            }
-
-                            if (enable_max_voltage_buffer === "ENABLE")
-                            {
-                                for (let i = 0;i<4;i++)
-                                {
-                                    logger.debug("max voltage is:", JSON.stringify(buffer[index+i]));
-                                }
-                                logger.debug("index is", JSON.stringify(index));
-                                max_voltage_buffer = buffer[index++];
-                                max_voltage_buffer |= buffer[index++]<<8;
-                                max_voltage_buffer |= buffer[index++]<<16;
-                                max_voltage_buffer |= buffer[index++]<<24;
-
-                                max_voltage_buffer /= 1000;
-                            }
-
-                            if (enable_min_voltage_buffer === "ENABLE")
-                            {
-                                min_voltage_buffer = buffer[index++];
-                                min_voltage_buffer |= buffer[index++]<<8;
-                                min_voltage_buffer |= buffer[index++]<<16;
-                                min_voltage_buffer |= buffer[index++]<<24;
-
-                                min_voltage_buffer /= 1000;
-                            }
-                            max_power_buffer = buffer[index++];
-                            max_power_buffer |= buffer[index++]<<8;
-                            max_power_buffer |= buffer[index++]<<16;
-                            max_power_buffer |= buffer[index++]<<24;
-
-                            max_power_buffer /= 1000;
-
-                            if (enable_min_power_buffer === "ENABLE")
-                            {
-                                min_power_buffer = buffer[index++];
-                                min_power_buffer |= buffer[index++]<<8;
-                                min_power_buffer |= buffer[index++]<<16;
-                                min_power_buffer |= buffer[index++]<<24;
-
-                                min_power_buffer /= 1000;
-                            }
-
-
-                            return {
-                                overload_protection: {
-                                    "enable_max_voltage": enable_max_voltage_buffer,
-                                    "enable_min_current": enable_min_current_buffer,
-                                    "enable_min_power": enable_min_power_buffer,
-                                    "enable_min_voltage": enable_min_power_buffer,
-                                    "max_current": max_current_buffer,
-                                    "max_power": max_power_buffer,
-                                    "max_voltage": max_voltage_buffer,
-                                    "min_current": min_current_buffer,
-                                    "min_power": min_power_buffer,
-                                    "min_voltage": min_voltage_buffer
-                                },
-                            };
-                        }
-                    },
-                },
-            ];
-            const toZigbee: Tz.Converter[] = [
-                {
-                    key: ["overload_protection"],
-                    convertSet: async (entity, key, value, meta) => {
-                        logger.debug("value:", JSON.stringify(value, null, 2)); // 将 value 转换为格式化的 JSON 字符串
-
-
-                        const maxC = 1000*value["max_current" as keyof typeof value];
-                        const minC = 1000*value["min_current" as keyof typeof value];
-                        const maxV = 1000*value["max_voltage" as keyof typeof value];
-                        const minV = 1000*value["min_voltage" as keyof typeof value];
-                        const maxP = 1000*value["max_power" as keyof typeof value];
-                        const minP = 1000*value["min_power" as keyof typeof value];
-
-                        const enMinC = value["enable_min_current" as keyof typeof value];
-                        const enMaxV = value["enable_max_voltage" as keyof typeof value];
-                        const enMinV = value["enable_min_voltage" as keyof typeof value];
-                        const enMinP = value["enable_min_power" as keyof typeof value];
-
-                        const params = { maxC, minC, maxV, minV, maxP, minP ,enMinC,enMaxV,enMinV,enMinP};
-                        logger.debug("value:", JSON.stringify(params));
-
-                        const payloadValue = [];
                         let index = 0;
-                        let length = 0;
-                        payloadValue[index++] = 0;
-                        payloadValue[index++] = 0x04;
-                        payloadValue[index++] = 27;
-                        payloadValue[index++] = 1;
-                        payloadValue[index++] = 0;
-                        payloadValue[index++] = 1;
+                        let enableMaxVoltageBuffer = "DISABLE";
+                        let enableMinCurrentBuffer = "DISABLE";
+                        let enableMinPowerBuffer = "DISABLE";
+                        let enableMinVoltageBuffer = "DISABLE";
 
-                        payloadValue[index++] = maxC & 0xff;
-                        payloadValue[index++] = (maxC >> 8) & 0xff;
-                        payloadValue[index++] = (maxC >> 16) & 0xff;
-                        payloadValue[index++] = (maxC >> 24) & 0xff;
+                        const tag = buffer[index++];
+                        const len = buffer[index++];
 
-                        if (enMinC === "ENABLE")
-                        {
-                            payloadValue[3] |= 2;
-
-                            payloadValue[index++] = minC & 0xff;;
-                            payloadValue[index++] = (minC >> 8) & 0xff;
-                            payloadValue[index++] = (minC >> 16) & 0xff;
-                            payloadValue[index++] = (minC >> 24) & 0xff;
+                        if (buffer[index++] === 3) {
+                            enableMinCurrentBuffer = "ENABLE";
                         }
 
-                        if (enMaxV === "ENABLE")
-                        {
-                            payloadValue[4] |= 1;
-
-                            payloadValue[index++] = maxV & 0xff;;
-                            payloadValue[index++] = (maxV >> 8) & 0xff;
-                            payloadValue[index++] = (maxV >> 16) & 0xff;
-                            payloadValue[index++] = (maxV >> 24) & 0xff;
+                        const voltage_set_flag = buffer[index++];
+                        if (voltage_set_flag & 0x01) {
+                            enableMaxVoltageBuffer = "ENABLE";
+                        }
+                        if (voltage_set_flag & 0x02) {
+                            enableMinVoltageBuffer = "ENABLE";
+                        }
+                        if (buffer[index++] === 3) {
+                            enableMinPowerBuffer = "ENABLE";
                         }
 
-                        if (enMinV === "ENABLE")
-                        {
-                            payloadValue[4] |= 2;
+                        let minCurrentBuffer = 0;
+                        let maxVoltageBuffer = 0;
+                        let minVoltageBuffer = 0;
+                        let maxPowerBuffer = 0;
+                        let minPowerBuffer = 0;
 
-                            payloadValue[index++] = minV & 0xff;;
-                            payloadValue[index++] = (minV >> 8) & 0xff;
-                            payloadValue[index++] = (minV >> 16) & 0xff;
-                            payloadValue[index++] = (minV >> 24) & 0xff;
+                        let maxCurrentBuffer: number = buffer[index++];
+                        maxCurrentBuffer |= buffer[index++] << 8;
+                        maxCurrentBuffer |= buffer[index++] << 16;
+                        maxCurrentBuffer |= buffer[index++] << 24;
+
+                        maxCurrentBuffer /= 1000;
+
+                        if (enableMinCurrentBuffer === "ENABLE") {
+                            minCurrentBuffer = buffer[index++];
+                            minCurrentBuffer |= buffer[index++] << 8;
+                            minCurrentBuffer |= buffer[index++] << 16;
+                            minCurrentBuffer |= buffer[index++] << 24;
+
+                            minCurrentBuffer /= 1000;
                         }
 
-                        payloadValue[index++] = maxP & 0xff;;
-                        payloadValue[index++] = (maxP >> 8) & 0xff;
-                        payloadValue[index++] = (maxP >> 16) & 0xff;
-                        payloadValue[index++] = (maxP >> 24) & 0xff;
-
-                        if (enMinP === "ENABLE")
-                        {
-                            payloadValue[5] |= 2;
-
-                            payloadValue[index++] = minP & 0xff;;
-                            payloadValue[index++] = (minP >> 8) & 0xff;
-                            payloadValue[index++] = (minP >> 16) & 0xff;
-                            payloadValue[index++] = (minP >> 24) & 0xff;
-                        }
-
-                        payloadValue[0] = index-1;
-                        payloadValue[2] = payloadValue[0]-2;
-
-                        if (payloadValue[3] === 3)
-                        {
-                            if (minC >= maxC)
-                            {
-                                throw new Error("Invalid input: maximum current must be greater than the minimum current ");
+                        if (enableMaxVoltageBuffer === "ENABLE") {
+                            for (let i = 0; i < 4; i++) {
+                                logger.debug("max voltage is:", JSON.stringify(buffer[index + i]));
                             }
+                            logger.debug("index is", JSON.stringify(index));
+                            maxVoltageBuffer = buffer[index++];
+                            maxVoltageBuffer |= buffer[index++] << 8;
+                            maxVoltageBuffer |= buffer[index++] << 16;
+                            maxVoltageBuffer |= buffer[index++] << 24;
+
+                            maxVoltageBuffer /= 1000;
                         }
 
-                        if (payloadValue[4] === 3)
-                        {
-                            if (minV >= maxV)
-                            {
-                                throw new Error("Invalid input: maximum voltage must be greater than the minimum voltage ");
-                            }
+                        if (enableMinVoltageBuffer === "ENABLE") {
+                            minVoltageBuffer = buffer[index++];
+                            minVoltageBuffer |= buffer[index++] << 8;
+                            minVoltageBuffer |= buffer[index++] << 16;
+                            minVoltageBuffer |= buffer[index++] << 24;
+
+                            minVoltageBuffer /= 1000;
+                        }
+                        maxPowerBuffer = buffer[index++];
+                        maxPowerBuffer |= buffer[index++] << 8;
+                        maxPowerBuffer |= buffer[index++] << 16;
+                        maxPowerBuffer |= buffer[index++] << 24;
+
+                        maxPowerBuffer /= 1000;
+
+                        if (enableMinPowerBuffer === "ENABLE") {
+                            minPowerBuffer = buffer[index++];
+                            minPowerBuffer |= buffer[index++] << 8;
+                            minPowerBuffer |= buffer[index++] << 16;
+                            minPowerBuffer |= buffer[index++] << 24;
+
+                            minPowerBuffer /= 1000;
                         }
 
-                        if (payloadValue[5] === 3)
-                        {
-                            if (minP >= maxP)
-                            {
-                                throw new Error("Invalid input: maximum power must be greater than the minimum power ");
-                            }
-                        }
-
-
-                        const payload = {[0x7003]: {value: payloadValue, type: 0x42}};
-                        await entity.write("customClusterEwelink", payload, defaultResponseOptions);
-                        return {state: {[key]: value}};
-                    },
-                    convertGet: async (entity, key, meta) => {
-                        await entity.read("customClusterEwelink", [0x7003], defaultResponseOptions);
-                    },
+                        return {
+                            overload_protection: {
+                                enable_max_voltage: enableMaxVoltageBuffer,
+                                enable_min_current: enableMinCurrentBuffer,
+                                enable_min_power: enableMinPowerBuffer,
+                                enable_min_voltage: enableMinPowerBuffer,
+                                max_current: maxCurrentBuffer,
+                                max_power: maxPowerBuffer,
+                                max_voltage: maxVoltageBuffer,
+                                min_current: minCurrentBuffer,
+                                min_power: minPowerBuffer,
+                                min_voltage: minVoltageBuffer,
+                            },
+                        };
+                    }
                 },
-            ];
+            },
+        ];
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ["overload_protection"],
+                convertSet: async (entity, key, value, meta) => {
+                    logger.debug("value:", JSON.stringify(value, null, 2)); // 将 value 转换为格式化的 JSON 字符串
+
+                    const maxC = 1000 * value["max_current" as keyof typeof value];
+                    const minC = 1000 * value["min_current" as keyof typeof value];
+                    const maxV = 1000 * value["max_voltage" as keyof typeof value];
+                    const minV = 1000 * value["min_voltage" as keyof typeof value];
+                    const maxP = 1000 * value["max_power" as keyof typeof value];
+                    const minP = 1000 * value["min_power" as keyof typeof value];
+
+                    const enMinC = value["enable_min_current" as keyof typeof value];
+                    const enMaxV = value["enable_max_voltage" as keyof typeof value];
+                    const enMinV = value["enable_min_voltage" as keyof typeof value];
+                    const enMinP = value["enable_min_power" as keyof typeof value];
+
+                    const params = {maxC, minC, maxV, minV, maxP, minP, enMinC, enMaxV, enMinV, enMinP};
+                    logger.debug("value:", JSON.stringify(params));
+
+                    const payloadValue = [];
+                    let index = 0;
+                    const length = 0;
+                    payloadValue[index++] = 0;
+                    payloadValue[index++] = 0x04;
+                    payloadValue[index++] = 27;
+                    payloadValue[index++] = 1;
+                    payloadValue[index++] = 0;
+                    payloadValue[index++] = 1;
+
+                    payloadValue[index++] = maxC & 0xff;
+                    payloadValue[index++] = (maxC >> 8) & 0xff;
+                    payloadValue[index++] = (maxC >> 16) & 0xff;
+                    payloadValue[index++] = (maxC >> 24) & 0xff;
+
+                    if (enMinC === "ENABLE") {
+                        payloadValue[3] |= 2;
+
+                        payloadValue[index++] = minC & 0xff;
+                        payloadValue[index++] = (minC >> 8) & 0xff;
+                        payloadValue[index++] = (minC >> 16) & 0xff;
+                        payloadValue[index++] = (minC >> 24) & 0xff;
+                    }
+
+                    if (enMaxV === "ENABLE") {
+                        payloadValue[4] |= 1;
+
+                        payloadValue[index++] = maxV & 0xff;
+                        payloadValue[index++] = (maxV >> 8) & 0xff;
+                        payloadValue[index++] = (maxV >> 16) & 0xff;
+                        payloadValue[index++] = (maxV >> 24) & 0xff;
+                    }
+
+                    if (enMinV === "ENABLE") {
+                        payloadValue[4] |= 2;
+
+                        payloadValue[index++] = minV & 0xff;
+                        payloadValue[index++] = (minV >> 8) & 0xff;
+                        payloadValue[index++] = (minV >> 16) & 0xff;
+                        payloadValue[index++] = (minV >> 24) & 0xff;
+                    }
+
+                    payloadValue[index++] = maxP & 0xff;
+                    payloadValue[index++] = (maxP >> 8) & 0xff;
+                    payloadValue[index++] = (maxP >> 16) & 0xff;
+                    payloadValue[index++] = (maxP >> 24) & 0xff;
+
+                    if (enMinP === "ENABLE") {
+                        payloadValue[5] |= 2;
+
+                        payloadValue[index++] = minP & 0xff;
+                        payloadValue[index++] = (minP >> 8) & 0xff;
+                        payloadValue[index++] = (minP >> 16) & 0xff;
+                        payloadValue[index++] = (minP >> 24) & 0xff;
+                    }
+
+                    payloadValue[0] = index - 1;
+                    payloadValue[2] = payloadValue[0] - 2;
+
+                    if (payloadValue[3] === 3) {
+                        if (minC >= maxC) {
+                            throw new Error("Invalid input: maximum current must be greater than the minimum current ");
+                        }
+                    }
+
+                    if (payloadValue[4] === 3) {
+                        if (minV >= maxV) {
+                            throw new Error("Invalid input: maximum voltage must be greater than the minimum voltage ");
+                        }
+                    }
+
+                    if (payloadValue[5] === 3) {
+                        if (minP >= maxP) {
+                            throw new Error("Invalid input: maximum power must be greater than the minimum power ");
+                        }
+                    }
+
+                    const payload = {[0x7003]: {value: payloadValue, type: 0x42}};
+                    await entity.write("customClusterEwelink", payload, defaultResponseOptions);
+                    return {state: {[key]: value}};
+                },
+                convertGet: async (entity, key, meta) => {
+                    await entity.read("customClusterEwelink", [0x7003], defaultResponseOptions);
+                },
+            },
+        ];
 
         return {
             exposes: [exposes],
@@ -1924,7 +1894,11 @@ export const definitions: DefinitionWithExtend[] = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "customClusterEwelink"]);
             await reporting.onOff(endpoint, {min: 1, max: 1800, change: 0});
-            await endpoint.read("customClusterEwelink", ["ACCurrentCurrentValue", "ACCurrentVoltageValue", "ACCurrentPowerValue", 0x7003,"OutletControlProtectSetting"], defaultResponseOptions);
+            await endpoint.read(
+                "customClusterEwelink",
+                ["ACCurrentCurrentValue", "ACCurrentVoltageValue", "ACCurrentPowerValue", 0x7003, "OutletControlProtectSetting"],
+                defaultResponseOptions,
+            );
             await endpoint.configureReporting("customClusterEwelink", [
                 {attribute: "EnergyConsumptionOfMonth", minimumReportInterval: 60, maximumReportInterval: 3600, reportableChange: 50},
             ]);
@@ -2019,7 +1993,11 @@ export const definitions: DefinitionWithExtend[] = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "customClusterEwelink"]);
             await reporting.onOff(endpoint, {min: 1, max: 1800, change: 0});
-            await endpoint.read("customClusterEwelink", ["ACCurrentCurrentValue", "ACCurrentVoltageValue", "ACCurrentPowerValue", 0x7003,"OutletControlProtectSetting"], defaultResponseOptions);
+            await endpoint.read(
+                "customClusterEwelink",
+                ["ACCurrentCurrentValue", "ACCurrentVoltageValue", "ACCurrentPowerValue", 0x7003, "OutletControlProtectSetting"],
+                defaultResponseOptions,
+            );
             await endpoint.configureReporting("customClusterEwelink", [
                 {attribute: "EnergyConsumptionOfMonth", minimumReportInterval: 60, maximumReportInterval: 3600, reportableChange: 50},
             ]);
