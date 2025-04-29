@@ -769,17 +769,17 @@ const sonoffExtend = {
                             const hexString = buffer.toString("hex").toUpperCase();
                             console.log(`Hex: ${hexString}`);
 
-                            let index:number = 0;
-                            let enable_max_voltage_buffer:string = "DISABLE";
-                            let enable_min_current_buffer:string = "DISABLE";
-                            let enable_min_power_buffer:string = "DISABLE";
-                            let enable_min_voltage_buffer:string = "DISABLE";
+                            let index = 0;
+                            let enable_max_voltage_buffer = "DISABLE";
+                            let enable_min_current_buffer = "DISABLE";
+                            let enable_min_power_buffer = "DISABLE";
+                            let enable_min_voltage_buffer = "DISABLE";
 
                             const tag = buffer[index++];
                             const len = buffer[index++];
 
 
-                            if (buffer[index++] == 3)
+                            if (buffer[index++] === 3)
                             {
                                 enable_min_current_buffer = "ENABLE";
                             }
@@ -793,17 +793,17 @@ const sonoffExtend = {
                             {
                                 enable_min_voltage_buffer = "ENABLE";
                             }
-                            if (buffer[index++] == 3)
+                            if (buffer[index++] === 3)
                             {
                                 enable_min_power_buffer = "ENABLE";
                             }
 
 
-                            let min_current_buffer:number = 0;
-                            let max_voltage_buffer:number = 0;
-                            let min_voltage_buffer:number = 0;
-                            let max_power_buffer:number = 0;
-                            let min_power_buffer:number = 0;
+                            let min_current_buffer = 0;
+                            let max_voltage_buffer = 0;
+                            let min_voltage_buffer = 0;
+                            let max_power_buffer = 0;
+                            let min_power_buffer = 0;
 
                             let max_current_buffer:number = buffer[index++];
                             max_current_buffer |= buffer[index++]<<8;
@@ -813,7 +813,7 @@ const sonoffExtend = {
                             max_current_buffer /= 1000;
 
 
-                            if (enable_min_current_buffer == "ENABLE")
+                            if (enable_min_current_buffer === "ENABLE")
                             {
 
                                 min_current_buffer = buffer[index++];
@@ -824,7 +824,7 @@ const sonoffExtend = {
                                 min_current_buffer /= 1000;
                             }
 
-                            if (enable_max_voltage_buffer == "ENABLE")
+                            if (enable_max_voltage_buffer === "ENABLE")
                             {
                                 for (let i = 0;i<4;i++)
                                 {
@@ -839,7 +839,7 @@ const sonoffExtend = {
                                 max_voltage_buffer /= 1000;
                             }
 
-                            if (enable_min_voltage_buffer == "ENABLE")
+                            if (enable_min_voltage_buffer === "ENABLE")
                             {
                                 min_voltage_buffer = buffer[index++];
                                 min_voltage_buffer |= buffer[index++]<<8;
@@ -855,7 +855,7 @@ const sonoffExtend = {
 
                             max_power_buffer /= 1000;
 
-                            if (enable_min_power_buffer == "ENABLE")
+                            if (enable_min_power_buffer === "ENABLE")
                             {
                                 min_power_buffer = buffer[index++];
                                 min_power_buffer |= buffer[index++]<<8;
@@ -921,7 +921,7 @@ const sonoffExtend = {
                         payloadValue[index++] = (maxC >> 16) & 0xff;
                         payloadValue[index++] = (maxC >> 24) & 0xff;
 
-                        if (enMinC == "ENABLE")
+                        if (enMinC === "ENABLE")
                         {
                             payloadValue[3] |= 2;
 
@@ -931,7 +931,7 @@ const sonoffExtend = {
                             payloadValue[index++] = (minC >> 24) & 0xff;
                         }
 
-                        if (enMaxV == "ENABLE")
+                        if (enMaxV === "ENABLE")
                         {
                             payloadValue[4] |= 1;
 
@@ -941,7 +941,7 @@ const sonoffExtend = {
                             payloadValue[index++] = (maxV >> 24) & 0xff;
                         }
 
-                        if (enMinV == "ENABLE")
+                        if (enMinV === "ENABLE")
                         {
                             payloadValue[4] |= 2;
 
@@ -956,7 +956,7 @@ const sonoffExtend = {
                         payloadValue[index++] = (maxP >> 16) & 0xff;
                         payloadValue[index++] = (maxP >> 24) & 0xff;
 
-                        if (enMinP == "ENABLE")
+                        if (enMinP === "ENABLE")
                         {
                             payloadValue[5] |= 2;
 
@@ -969,27 +969,27 @@ const sonoffExtend = {
                         payloadValue[0] = index-1;
                         payloadValue[2] = payloadValue[0]-2;
 
-                        if (payloadValue[3] == 3)
+                        if (payloadValue[3] === 3)
                         {
                             if (minC >= maxC)
                             {
-                                throw new Error(`Invalid input: maximum current must be greater than the minimum current `);
+                                throw new Error("Invalid input: maximum current must be greater than the minimum current ");
                             }
                         }
 
-                        if (payloadValue[4] == 3)
+                        if (payloadValue[4] === 3)
                         {
                             if (minV >= maxV)
                             {
-                                throw new Error(`Invalid input: maximum voltage must be greater than the minimum voltage `);
+                                throw new Error("Invalid input: maximum voltage must be greater than the minimum voltage ");
                             }
                         }
 
-                        if (payloadValue[5] == 3)
+                        if (payloadValue[5] === 3)
                         {
                             if (minP >= maxP)
                             {
-                                throw new Error(`Invalid input: maximum power must be greater than the minimum power `);
+                                throw new Error("Invalid input: maximum power must be greater than the minimum power ");
                             }
                         }
 
