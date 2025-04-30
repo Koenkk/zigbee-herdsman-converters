@@ -6078,49 +6078,53 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_xalsoe3m']),
-        model: 'ZHT-002',
-        vendor: 'Moes',
-        description: 'Moes ZHT series Thermostat',
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_xalsoe3m"]),
+        model: "ZHT-002",
+        vendor: "Moes",
+        description: "Moes ZHT series Thermostat",
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         onEvent: tuya.onEventSetTime,
         configure: tuya.configureMagicPacket,
         exposes: [
-            e.binary('state', ea.STATE_SET, 'ON', 'OFF').withDescription('Turn the thermostat ON/OFF'),
+            e.binary("state", ea.STATE_SET, "ON", "OFF").withDescription("Turn the thermostat ON/OFF"),
             e.child_lock(),
-            e.binary('system_mode', ea.STATE_SET, 'Auto', 'Manual').withDescription('Manual = Manual or Schedule = Auto'),
+            e.binary("system_mode", ea.STATE_SET, "Auto", "Manual").withDescription("Manual = Manual or Schedule = Auto"),
             e.eco_mode(),
             e.temperature_sensor_select(["IN", "AL", "OU"]).withLabel("Sensor").withDescription("Choose which sensor to use. Default: AL"),
             e.enum("valve_state", ea.STATE, ["close", "open"]).withDescription("State of the valve"),
-            e.text("workdays_schedule", ea.STATE_SET)
+            e
+                .text("workdays_schedule", ea.STATE_SET)
                 .withDescription('Workdays schedule, 4 entries max, example: "06:00/20°C 11:20/22°C 16:59/15°C 22:00/25°C"'),
             e.min_temperature().withValueMin(0).withValueMax(20),
             e.max_temperature().withValueMin(20).withValueMax(50),
-            e.climate()
+            e
+                .climate()
                 .withLocalTemperature(ea.STATE)
-                .withSetpoint('current_heating_setpoint', 0, 50, 1, ea.STATE_SET)
+                .withSetpoint("current_heating_setpoint", 0, 50, 1, ea.STATE_SET)
                 .withLocalTemperatureCalibration(-9, 9, 1, ea.STATE_SET),
-            e.numeric("max_temperature_limit", ea.STATE_SET)
+            e
+                .numeric("max_temperature_limit", ea.STATE_SET)
                 .withDescription("Max temperature limit")
                 .withValueMin(25)
                 .withValueMax(70)
                 .withValueStep(1),
-            e.numeric('deadzone_temperature', ea.STATE_SET)
+            e
+                .numeric("deadzone_temperature", ea.STATE_SET)
                 .withValueMax(5)
                 .withValueMin(1)
                 .withValueStep(1)
-                .withPreset('default', 1, 'Default value')
-                .withDescription('The difference between the local temperature that triggers heating and the set temperature'),
+                .withPreset("default", 1, "Default value")
+                .withDescription("The difference between the local temperature that triggers heating and the set temperature"),
 
             e.enum("working_day", ea.STATE_SET, ["disabled", "5-2", "6-1", "7"]).withDescription("Workday setting"),
         ],
         meta: {
             tuyaDatapoints: [
-                [1, 'state', tuya.valueConverter.onOff],
-                [2, 'system_mode', tuya.valueConverterBasic.lookup({ auto: tuya.enum(0), manual: tuya.enum(1) })],
-                [16, 'local_temperature', tuya.valueConverter.divideBy10],
-                [18, 'min_temperature', tuya.valueConverter.raw],
+                [1, "state", tuya.valueConverter.onOff],
+                [2, "system_mode", tuya.valueConverterBasic.lookup({auto: tuya.enum(0), manual: tuya.enum(1)})],
+                [16, "local_temperature", tuya.valueConverter.divideBy10],
+                [18, "min_temperature", tuya.valueConverter.raw],
                 [19, "local_temperature_calibration", tuya.valueConverter.localTemperatureCalibration],
                 [
                     23,
@@ -6151,9 +6155,9 @@ export const definitions: DefinitionWithExtend[] = [
                         OU: tuya.enum(1),
                     }),
                 ],
-                [34, 'max_temperature', tuya.valueConverter.raw],
-                [39, 'child_lock', tuya.valueConverter.lockUnlock],
-                [40, 'eco_mode', tuya.valueConverter.onOff],
+                [34, "max_temperature", tuya.valueConverter.raw],
+                [39, "child_lock", tuya.valueConverter.lockUnlock],
+                [40, "eco_mode", tuya.valueConverter.onOff],
                 [
                     47,
                     "valve_state",
@@ -6162,15 +6166,13 @@ export const definitions: DefinitionWithExtend[] = [
                         open: tuya.enum(1),
                     }),
                 ],
-                [50, 'current_heating_setpoint', tuya.valueConverter.raw],
+                [50, "current_heating_setpoint", tuya.valueConverter.raw],
                 [68, "programming_mode", tuya.valueConverter.raw],
                 [101, "max_temperature_limit", tuya.valueConverter.raw],
-                [102, 'deadzone_temperature', tuya.valueConverter.raw],
-
+                [102, "deadzone_temperature", tuya.valueConverter.raw],
             ],
         },
-        extend: [
-        ],
+        extend: [],
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_ymldrmzx"]),
@@ -16040,7 +16042,7 @@ export const definitions: DefinitionWithExtend[] = [
                         Tempoary: tuya.enum(2),
                     }),
                 ],
-                [113, 'humidity', tuya.valueConverter.raw],
+                [113, "humidity", tuya.valueConverter.raw],
             ],
         },
     },
