@@ -10352,6 +10352,60 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_eaet5qt5", "_TZE284_fhvpaltk"]),
+        model: "TS0601_water_switch",
+        vendor: "Tuya",
+        description: "Dual water valve",
+        fromZigbee: [tuya.fz.datapoints, fz.battery],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEventSetTime,
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.enum("valve_status", ea.STATE, ["manual", "auto", "idle"]).withDescription("Valve 1 status (manual, auto, idle)").withEndpoint("l1"),
+            e.enum("valve_status", ea.STATE, ["manual", "auto", "idle"]).withDescription("Valve 2 status (manual, auto, idle)").withEndpoint("l2"),
+            e.switch().withEndpoint("l1").withDescription("Valve 1 on/off").withLabel("Valve 1"),
+            e.switch().withEndpoint("l2").withDescription("Valve 2 on/off").withLabel("Valve 2"),
+            e
+                .numeric("countdown", ea.STATE_SET)
+                .withUnit("min")
+                .withDescription("Valve 1 countdown in minutes")
+                .withValueMin(0)
+                .withValueMax(1440)
+                .withEndpoint("l1"),
+            e
+                .numeric("countdown", ea.STATE_SET)
+                .withUnit("min")
+                .withDescription("Valve 2 countdown in minutes")
+                .withValueMin(0)
+                .withValueMax(1440)
+                .withEndpoint("l2"),
+            e.numeric("valve_duration", ea.STATE).withUnit("s").withDescription("Valve 1 irrigation last duration in seconds").withEndpoint("l1"),
+            e.numeric("valve_duration", ea.STATE).withUnit("s").withDescription("Valve 2 irrigation last duration in seconds").withEndpoint("l2"),
+            e.battery(),
+            e.battery_voltage(),
+        ],
+        meta: {
+            tuyaSendCommand: "sendData",
+            tuyaDatapoints: [
+                [1, "state_l1", tuya.valueConverter.onOff], // Valve 1 on/off
+                [2, "state_l2", tuya.valueConverter.onOff], // Valve 2 on/off
+                [13, "countdown_l1", tuya.valueConverter.raw], // Valve 1 countdown
+                [14, "countdown_l2", tuya.valueConverter.raw], // Valve 2 countdown
+                [25, "valve_duration_l1", tuya.valueConverter.raw], // Valve 1 duration
+                [26, "valve_duration_l2", tuya.valueConverter.raw], // Valve 2 duration
+                [104, "valve_status_l1", tuya.valueConverterBasic.lookup({manual: 0, auto: 1, idle: 2})], // Valve 1 status
+                [105, "valve_status_l2", tuya.valueConverterBasic.lookup({manual: 0, auto: 1, idle: 2})], // Valve 2 status
+            ],
+            multiEndpoint: true, // Enable multi-endpoint support
+        },
+        endpoint: (device) => {
+            return {
+                l1: 1, // Valve 1 uses endpoint 1
+                l2: 1, // Valve 2 also uses endpoint 1
+            };
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_r32ctezx", "_TZE204_r32ctezx"]),
         model: "TS0601_fan_switch",
         vendor: "Tuya",
