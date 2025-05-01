@@ -15989,7 +15989,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [2, "valve_2", tuya.valueConverter.onOff],
                 [
                     105,
-                    "valve_1",
+                    "valve_2",
                     tuya.valueConverterBasic.lookup({
                         OFF: tuya.enum(2),
                         ON: tuya.enum(0),
