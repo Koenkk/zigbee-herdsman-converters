@@ -1,5 +1,21 @@
 # Changelog
 
+## [23.35.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.34.0...v23.35.0) (2025-04-28)
+
+
+### Features
+
+* **add:** 70012 ([#9254](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9254)) ([3745371](https://github.com/Koenkk/zigbee-herdsman-converters/commit/374537192824bd418cfd8b348adb047bf32b8723))
+* **add:** GWA1501 ([#9259](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9259)) ([e890dc8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e890dc8051ca7609fb9e4acb1319dae905612616))
+* **add:** Open_PM_Monitor ([#9256](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9256)) ([9452676](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9452676b88d134d2384cd9f3608c88405ac54162))
+* **add:** TLC2206 ([#9249](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9249)) ([4cf56d6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4cf56d6c88d65caa2c30bbaf40fd96f649c36656))
+
+
+### Bug Fixes
+
+* **ignore:** Remove and enforce `noUnusedImports` ([#9253](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9253)) ([b906518](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b906518a0db0fc1e992bb14422e17ef63c4e8493))
+* SONOFF ZBM5-1C-120: fix state postfixed with endpoint name https://github.com/Koenkk/zigbee2mqtt/issues/27217 ([809dab8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/809dab88aa66acc73e16dfd4cb7009d3b0cac78d))
+
 ## [23.34.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.33.0...v23.34.0) (2025-04-26)
 
 
