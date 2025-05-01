@@ -1,5 +1,20 @@
 # Changelog
 
+## [23.36.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.35.0...v23.36.0) (2025-05-01)
+
+
+### Features
+
+* **add:** TH-S04D ([#9260](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9260)) ([ce5d7e7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ce5d7e749612494491e9f57619cd58ec8d4166f1))
+* **add:** ZBN-JT-63 ([#9261](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9261)) ([ff3f945](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ff3f9452ff54edddbf4bf5a13d5dc52fcf42cb83))
+* **add:** ZHT-002 ([#9265](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9265)) ([d8fd92a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d8fd92a237c48f51da347fa7c4208912eb4d478f))
+
+
+### Bug Fixes
+
+* GIEX GX03: fix `valve_2` status ([#9266](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9266)) ([5d0d744](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5d0d744c68b36940a4172ec3f9d30e28319675c0))
+* Third Reality 3RDP01072Z: fix energy value ([#9250](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9250)) ([41fdd08](https://github.com/Koenkk/zigbee-herdsman-converters/commit/41fdd0819694b1895ae6d3c9a64d9d10b4bfa9bc))
+
 ## [23.35.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.34.0...v23.35.0) (2025-04-28)
 
 
