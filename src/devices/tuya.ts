@@ -6081,7 +6081,7 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_xalsoe3m"]),
         model: "ZHT-002",
         vendor: "Moes",
-        description: "Moes ZHT series Thermostat",
+        description: "ZHT series thermostat",
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         onEvent: tuya.onEventSetTime,
@@ -6172,7 +6172,6 @@ export const definitions: DefinitionWithExtend[] = [
                 [102, "deadzone_temperature", tuya.valueConverter.raw],
             ],
         },
-        extend: [],
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_ymldrmzx"]),
