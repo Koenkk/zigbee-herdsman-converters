@@ -10035,7 +10035,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_eaet5qt5"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_eaet5qt5", "_TZE284_fhvpaltk"]),
         model: "TS0601_water_switch",
         vendor: "Tuya",
         description: "Dual water valve",
@@ -10044,24 +10044,26 @@ export const definitions: DefinitionWithExtend[] = [
         onEvent: tuya.onEventSetTime,
         configure: tuya.configureMagicPacket,
         exposes: [
-            e.enum("valve_status_1", ea.STATE, ["manual", "auto", "idle"]).withDescription("Valve 1 status (manual, auto, idle)"),
-            e.enum("valve_status_2", ea.STATE, ["manual", "auto", "idle"]).withDescription("Valve 2 status (manual, auto, idle)"),
+            e.enum("valve_status", ea.STATE, ["manual", "auto", "idle"]).withDescription("Valve 1 status (manual, auto, idle)").withEndpoint("l1"),
+            e.enum("valve_status", ea.STATE, ["manual", "auto", "idle"]).withDescription("Valve 2 status (manual, auto, idle)").withEndpoint("l2"),
             e.switch().withEndpoint("l1").withDescription("Valve 1 on/off").withLabel("Valve 1"),
             e.switch().withEndpoint("l2").withDescription("Valve 2 on/off").withLabel("Valve 2"),
             e
-                .numeric("countdown_l1", ea.STATE_SET)
+                .numeric("countdown", ea.STATE_SET)
                 .withUnit("min")
                 .withDescription("Valve 1 countdown in minutes")
                 .withValueMin(0)
-                .withValueMax(1440),
+                .withValueMax(1440)
+                .withEndpoint("l1"),
             e
-                .numeric("countdown_l2", ea.STATE_SET)
+                .numeric("countdown", ea.STATE_SET)
                 .withUnit("min")
                 .withDescription("Valve 2 countdown in minutes")
                 .withValueMin(0)
-                .withValueMax(1440),
-            e.numeric("valve_duration_1", ea.STATE).withUnit("s").withDescription("Valve 1 irrigation last duration in seconds"),
-            e.numeric("valve_duration_2", ea.STATE).withUnit("s").withDescription("Valve 2 irrigation last duration in seconds"),
+                .withValueMax(1440)
+                .withEndpoint("l2"),
+            e.numeric("valve_duration", ea.STATE).withUnit("s").withDescription("Valve 1 irrigation last duration in seconds").withEndpoint("l1"),
+            e.numeric("valve_duration", ea.STATE).withUnit("s").withDescription("Valve 2 irrigation last duration in seconds").withEndpoint("l2"),
             e.battery(),
             e.battery_voltage(),
         ],
@@ -10072,10 +10074,10 @@ export const definitions: DefinitionWithExtend[] = [
                 [2, "state_l2", tuya.valueConverter.onOff], // Valve 2 on/off
                 [13, "countdown_l1", tuya.valueConverter.raw], // Valve 1 countdown
                 [14, "countdown_l2", tuya.valueConverter.raw], // Valve 2 countdown
-                [25, "valve_duration_1", tuya.valueConverter.raw], // Valve 1 duration
-                [26, "valve_duration_2", tuya.valueConverter.raw], // Valve 2 duration
-                [104, "valve_status_1", tuya.valueConverterBasic.lookup({manual: 0, auto: 1, idle: 2})], // Valve 1 status
-                [105, "valve_status_2", tuya.valueConverterBasic.lookup({manual: 0, auto: 1, idle: 2})], // Valve 2 status
+                [25, "valve_duration_l1", tuya.valueConverter.raw], // Valve 1 duration
+                [26, "valve_duration_l2", tuya.valueConverter.raw], // Valve 2 duration
+                [104, "valve_status_l1", tuya.valueConverterBasic.lookup({manual: 0, auto: 1, idle: 2})], // Valve 1 status
+                [105, "valve_status_l2", tuya.valueConverterBasic.lookup({manual: 0, auto: 1, idle: 2})], // Valve 2 status
             ],
             multiEndpoint: true, // Enable multi-endpoint support
         },
