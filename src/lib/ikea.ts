@@ -891,7 +891,7 @@ const willFreeze = (payload: KeyValue, transition: number, value: unknown) =>
 // https://github.com/Koenkk/zigbee2mqtt/issues/18574
 //
 // These are keys for whom we need to unfreeze the light before issuing a corresponding command to said light
-const keysNeedingUnfreeze = new Set(["state", "brightness", "brightness_percent", "color_temp", "color_temp_percent"]);
+const keysNeedingUnfreeze = new Set(["state", "brightness", "brightness_percent", "color", "color_temp", "color_temp_percent"]);
 
 const ikea_bulb_unfreeze = (next: Tz.Converter["convertSet"]) => {
     const converter: Tz.Converter["convertSet"] = async (entity, key, value, meta) => {
