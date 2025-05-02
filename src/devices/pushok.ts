@@ -372,4 +372,36 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         ota: true,
     },
+    {
+        zigbeeModel: ["POK017"],
+        model: "POK017",
+        vendor: "PushOk Hardware",
+        description: "Battery powered greenhouse vent",
+        extend: [
+            m.windowCovering({controls: ["lift"], coverInverted: false, stateSource: "lift", configureReporting: false, coverMode: false}),
+            m.battery({percentage: true, voltage: true, lowStatus: false, percentageReporting: false}),
+            m.enumLookup({
+                name: "thermostat_preset",
+
+                lookup: {off: 0, level_1: 1, level_2: 2, level_3: 3, level_4: 4, level_5: 5, level_6: 6, level_7: 7, level_8: 8, level_9: 9},
+                cluster: "genMultistateOutput",
+                attribute: "presentValue",
+                zigbeeCommandOptions: {},
+                description: "Heat sensitivity level for automatic vent opening",
+                access: "ALL",
+                reporting: null,
+            }),
+            m.enumLookup({
+                name: "status",
+                lookup: {off: 0, on: 1, moving: 2, stuck: 3, middle: 4},
+                cluster: "genMultistateInput",
+                attribute: "presentValue",
+                zigbeeCommandOptions: {},
+                description: "Actual window status",
+                access: "STATE_GET",
+                reporting: null,
+            }),
+        ],
+        ota: true,
+    },
 ];
