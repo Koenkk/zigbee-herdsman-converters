@@ -310,6 +310,7 @@ const definitions: DefinitionWithExtend[] = [
         fingerprint: [
             {modelID: 'TS0601', manufacturerName: '_TZE200_9mahtqtg'},
             {modelID: 'TS0601', manufacturerName: '_TZE200_r731zlxk'},
+            {modelID: 'TS0601', manufacturerName: '_TZE204_r731zlxk'},
         ],
         model: 'TB26-6',
         vendor: 'Zemismart',
