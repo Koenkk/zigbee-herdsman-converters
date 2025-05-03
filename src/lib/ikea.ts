@@ -531,7 +531,7 @@ export function tradfriOccupancy(): ModernExtend {
                 )
                     return;
 
-                const timeout = options && options.occupancy_timeout !== undefined ? Number(options.occupancy_timeout) : msg.data.ontime / 10;
+                const timeout = options?.occupancy_timeout != null ? Number(options.occupancy_timeout) : msg.data.ontime / 10;
 
                 // Stop existing timer because motion is detected and set a new one.
                 clearTimeout(globalStore.getValue(msg.endpoint, "timer"));

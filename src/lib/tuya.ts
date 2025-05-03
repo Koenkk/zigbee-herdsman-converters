@@ -477,7 +477,7 @@ export const skip = {
     stateOnAndBrightnessPresent: (meta: Tz.Meta) => {
         if (Array.isArray(meta.mapped)) throw new Error("Not supported");
         const convertedKey = meta.mapped.meta.multiEndpoint && meta.endpoint_name ? `state_${meta.endpoint_name}` : "state";
-        return meta.message.brightness !== undefined && meta.state[convertedKey] === meta.message.state;
+        return meta.message.brightness != null && meta.state[convertedKey] === meta.message.state;
     },
 };
 
@@ -1199,7 +1199,7 @@ export const valueConverter = {
             let weekdayFormat: string;
             let holidayFormat: string;
 
-            if (meta.message.schedule_weekday !== undefined) {
+            if (meta.message.schedule_weekday != null) {
                 weekdayFormat = v;
                 holidayFormat = meta.state.schedule_holiday as string;
             } else {
@@ -1708,8 +1708,8 @@ const tuyaTz = {
         key: ["state", "countdown"],
         convertSet: async (entity, key, value, meta) => {
             const state =
-                meta.message.state !== undefined ? (utils.isString(meta.message.state) ? meta.message.state.toLowerCase() : undefined) : undefined;
-            const countdown = meta.message.countdown !== undefined ? meta.message.countdown : undefined;
+                meta.message.state != null ? (utils.isString(meta.message.state) ? meta.message.state.toLowerCase() : undefined) : undefined;
+            const countdown = meta.message.countdown != null ? meta.message.countdown : undefined;
             const result: KeyValue = {};
             if (countdown !== undefined) {
                 // OnTime is a 16bit register and so might very well work up to 0xFFFF seconds but

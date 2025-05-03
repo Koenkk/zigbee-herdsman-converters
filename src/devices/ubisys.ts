@@ -155,7 +155,7 @@ const ubisys = {
                     }
                 };
                 const stepsPerSecond = value.steps_per_second || 50;
-                const hasCalibrate = value.calibrate !== undefined;
+                const hasCalibrate = value.calibrate != null;
                 // cancel any running calibration
                 // @ts-expect-error ignore
                 let mode = (await entity.read("closuresWindowCovering", ["windowCoveringMode"])).windowCoveringMode;
@@ -359,7 +359,7 @@ const ubisys = {
                     logger.debug(`ubisys: using writeStructure for '${meta.options.friendly_name}'.`, NS);
                 }
 
-                if (value.input_configurations !== undefined) {
+                if (value.input_configurations != null) {
                     // example: [0, 0, 0, 0]
                     if (useWriteStruct) {
                         await devMgmtEp.writeStructured(
@@ -386,7 +386,7 @@ const ubisys = {
                     }
                 }
 
-                if (value.input_actions !== undefined) {
+                if (value.input_actions != null) {
                     // example (default for C4): [[0,13,1,6,0,2], [1,13,2,6,0,2], [2,13,3,6,0,2], [3,13,4,6,0,2]]
                     if (useWriteStruct) {
                         await devMgmtEp.writeStructured(
@@ -413,7 +413,7 @@ const ubisys = {
                     }
                 }
 
-                if (value.input_action_templates !== undefined) {
+                if (value.input_action_templates != null) {
                     const templateTypes = {
                         // source: "ZigBee Device Physical Input Configurations Integrator’s Guide"
                         // (can be obtained directly from ubisys upon request)

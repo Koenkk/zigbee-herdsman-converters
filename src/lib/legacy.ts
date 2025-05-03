@@ -4412,7 +4412,7 @@ const toZigbee2 = {
                 "away_preset_days",
             ]) {
                 let v = 0;
-                if (value[attrName] !== undefined) {
+                if (value[attrName] != null) {
                     v = value[attrName];
                 } else if (meta.state[attrName] !== undefined) {
                     // @ts-expect-error ignore
@@ -4567,7 +4567,7 @@ const toZigbee2 = {
     matsee_garage_door_opener: {
         key: ["trigger"],
         convertSet: async (entity, key, value, meta) => {
-            const state = meta.message.trigger !== undefined ? meta.message.trigger : true;
+            const state = meta.message.trigger != null ? meta.message.trigger : true;
             // @ts-expect-error ignore
             await sendDataPointBool(entity, dataPoints.garageDoorTrigger, state);
             return {state: {trigger: state}};
@@ -5596,7 +5596,7 @@ const toZigbee2 = {
         key: ["options"],
         // biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
         convertSet: async (entity, key, value: any, meta) => {
-            if (value.reverse_direction !== undefined) {
+            if (value.reverse_direction != null) {
                 if (value.reverse_direction) {
                     logger.info("Motor direction reverse", "zhc:legacy:tz:tuya_cover_options");
                     await sendDataPointEnum(entity, dataPoints.motorDirection, 1);
@@ -5606,7 +5606,7 @@ const toZigbee2 = {
                 }
             }
 
-            if (value.motor_speed !== undefined) {
+            if (value.motor_speed != null) {
                 if (value.motor_speed < 0 || value.motor_speed > 255) {
                     throw new Error("Tuya_cover_control: Motor speed is out of range");
                 }
@@ -6005,7 +6005,7 @@ const toZigbee2 = {
 
                 let hsb: KeyValueAny = {};
 
-                if (value.hsb !== undefined) {
+                if (value.hsb != null) {
                     const split = value.hsb.split(",").map((i: string) => Number.parseInt(i));
                     hsb = fillInHSB(split[0], split[1], split[2], meta.state);
                 } else {

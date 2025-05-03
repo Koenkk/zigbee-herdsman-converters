@@ -754,11 +754,6 @@ export const definitions: DefinitionWithExtend[] = [
             {vendor: "eWeLink", model: "RHK06"},
             {
                 vendor: "eWeLink",
-                model: "SNZB-04",
-                fingerprint: [{modelID: "SNZB-04", manufacturerName: "eWeLink"}],
-            },
-            {
-                vendor: "eWeLink",
                 model: "CK-TLSR8656-SS5-01(7003)",
                 fingerprint: [{modelID: "CK-TLSR8656-SS5-01(7003)", manufacturerName: "eWeLink"}],
             },
@@ -841,11 +836,6 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "SONOFF",
         whiteLabel: [
             {vendor: "eWeLink", model: "RHK08"},
-            {
-                vendor: "eWeLink",
-                model: "SNZB-02",
-                fingerprint: [{modelID: "SNZB-02", manufacturerName: "eWeLink"}],
-            },
             {
                 vendor: "eWeLink",
                 model: "CK-TLSR8656-SS5-01(7014)",

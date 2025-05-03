@@ -2990,7 +2990,7 @@ export const fromZigbee = {
                           ? 30
                           : 60;
                 timeout =
-                    options && options.occupancy_timeout !== undefined && Number(options.occupancy_timeout) >= timeout
+                    options?.occupancy_timeout != null && Number(options.occupancy_timeout) >= timeout
                         ? Number(options.occupancy_timeout)
                         : timeout + 2;
 
@@ -3164,7 +3164,7 @@ export const fromZigbee = {
                 if (result.action === "vibration") {
                     result.vibration = true;
 
-                    const timeout = options && options.vibration_timeout !== undefined ? Number(options.vibration_timeout) : 90;
+                    const timeout = options?.vibration_timeout != null ? Number(options.vibration_timeout) : 90;
 
                     // Stop any existing timer cause vibration detected
                     clearTimeout(globalStore.getValue(msg.endpoint, "vibration_timer", null));
@@ -3259,9 +3259,7 @@ export const fromZigbee = {
             // Therefore we need to publish the no_motion detected by ourselves.
             let timeout: number = meta && meta.state && meta.state.detection_interval !== undefined ? Number(meta.state.detection_interval) : 60;
             timeout =
-                options && options.occupancy_timeout !== undefined && Number(options.occupancy_timeout) >= timeout
-                    ? Number(options.occupancy_timeout)
-                    : timeout + 2;
+                options?.occupancy_timeout != null && Number(options.occupancy_timeout) >= timeout ? Number(options.occupancy_timeout) : timeout + 2;
 
             // Stop existing timers because motion is detected and set a new one.
             clearTimeout(globalStore.getValue(msg.endpoint, "occupancy_timer", null));
@@ -4286,7 +4284,7 @@ export const toZigbee = {
         convertSet: async (entity, key, value, meta) => {
             assertEndpoint(entity);
             if (Array.isArray(meta.mapped)) throw new Error("Not supported for groups");
-            let targetValue = isObject(value) && value.state !== undefined ? value.state : value;
+            let targetValue = isObject(value) && value.state != null ? value.state : value;
 
             // 1/2 gang switches using genBasic on endpoint 1.
             // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
@@ -4338,7 +4336,7 @@ export const toZigbee = {
         key: ["operation_mode"],
         convertSet: async (entity, key, value, meta) => {
             // Support existing syntax of a nested object just for the state field. Though it's quite silly IMO.
-            const targetValue = isObject(value) && value.state !== undefined ? value.state : value;
+            const targetValue = isObject(value) && value.state != null ? value.state : value;
             // Switches using manuSpecificLumi 0x0200 on the same endpoints as the onOff clusters.
             const lookupState = {control_relay: 0x01, decoupled: 0x00};
             await entity.write("manuSpecificLumi", {512: {value: getFromLookup(targetValue, lookupState), type: 0x20}}, manufacturerOptions.lumi);
@@ -4529,7 +4527,7 @@ export const toZigbee = {
                 await entity.write("genBasic", {65520: {value: payload, type: 0x41}}, manufacturerOptions.lumi);
             } else if (["ZNQBKG38LM", "ZNQBKG39LM", "ZNQBKG40LM", "ZNQBKG41LM"].includes(meta.mapped.model)) {
                 // Support existing syntax of a nested object just for the state field. Though it's quite silly IMO.
-                const targetValue = isObject(value) && value.state !== undefined ? value.state : value;
+                const targetValue = isObject(value) && value.state != null ? value.state : value;
                 const lookupState = {on: 0x01, electric_appliances_on: 0x00, electric_appliances_off: 0x02, inverted: 0x03};
                 await entity.write(
                     "manuSpecificLumi",
@@ -4799,8 +4797,8 @@ export const toZigbee = {
             };
 
             // Legacy names
-            if (value.auto_close !== undefined) opts.hand_open = value.auto_close;
-            if (value.reset_move !== undefined) opts.reset_limits = value.reset_move;
+            if (value.auto_close != null) opts.hand_open = value.auto_close;
+            if (value.reset_move != null) opts.reset_limits = value.reset_move;
 
             if (meta.mapped.model === "ZNCLDJ12LM") {
                 await entity.write("genBasic", {65320: {value: opts.reverse_direction, type: 0x10}}, manufacturerOptions.lumi);
@@ -5284,14 +5282,14 @@ export const toZigbee = {
                 const payload = [];
                 const statearr: KeyValue = {};
                 assertObject(value);
-                if (value.switch_1_icon !== undefined) {
+                if (value.switch_1_icon != null) {
                     payload.push(getFromLookup(value.switch_1_icon, lookup));
                     statearr.switch_1_icon = value.switch_1_icon;
                 } else {
                     payload.push(1);
                     statearr.switch_1_icon = "1";
                 }
-                if (value.switch_1_text !== undefined) {
+                if (value.switch_1_text != null) {
                     payload.push(...value.switch_1_text.split("").map((c: string) => c.charCodeAt(0)));
                     statearr.switch_1_text = value.switch_1_text;
                 } else {
@@ -5307,14 +5305,14 @@ export const toZigbee = {
                 const payload = [];
                 const statearr: KeyValue = {};
                 assertObject(value);
-                if (value.switch_2_icon !== undefined) {
+                if (value.switch_2_icon != null) {
                     payload.push(getFromLookup(value.switch_2_icon, lookup));
                     statearr.switch_2_icon = value.switch_2_icon;
                 } else {
                     payload.push(1);
                     statearr.switch_2_icon = "1";
                 }
-                if (value.switch_2_text !== undefined) {
+                if (value.switch_2_text != null) {
                     payload.push(...value.switch_2_text.split("").map((c: string) => c.charCodeAt(0)));
                     statearr.switch_2_text = value.switch_2_text;
                 } else {
@@ -5330,14 +5328,14 @@ export const toZigbee = {
                 const payload = [];
                 const statearr: KeyValue = {};
                 assertObject(value);
-                if (value.switch_3_icon !== undefined) {
+                if (value.switch_3_icon != null) {
                     payload.push(getFromLookup(value.switch_3_icon, lookup));
                     statearr.switch_3_icon = value.switch_3_icon;
                 } else {
                     payload.push(1);
                     statearr.switch_3_icon = "1";
                 }
-                if (value.switch_3_text !== undefined) {
+                if (value.switch_3_text != null) {
                     payload.push(...value.switch_3_text.split("").map((c: string) => c.charCodeAt(0)));
                     statearr.switch_3_text = value.switch_3_text;
                 } else {
