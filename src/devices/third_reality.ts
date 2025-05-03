@@ -201,6 +201,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Garage door tilt sensor",
         extend: [
             m.battery(),
+            m.forcePowerSource({powerSource: "Battery"}),
             m.iasZoneAlarm({zoneType: "contact", zoneAttributes: ["alarm_1", "battery_low"]}),
             m.deviceAddCustomCluster("3rGarageDoorSpecialCluster", {
                 ID: 0xff01,
@@ -276,6 +277,28 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.cover_position_tilt],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
         exposes: [e.cover_position()],
+    },
+    {
+        zigbeeModel: ["3RSB02015Z"],
+        model: "3RSB02015Z",
+        vendor: "Third Reality",
+        description: "Smart blind Gen2",
+        extend: [
+            m.battery(),
+            m.windowCovering({controls: ["lift"]}),
+            m.commandsWindowCovering({commands: ["open", "close", "stop"]}),
+            m.deviceAddCustomCluster("3rSmartBlindGen2SpecialCluster", {
+                ID: 0xff00,
+                manufacturerCode: 0x1233,
+                attributes: {
+                    infrared_enable: {ID: 0x0000, type: 0x20},
+                    calibration_distance: {ID: 0x0001, type: 0x28},
+                    limit_position: {ID: 0x0002, type: 0x21},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+        ],
     },
     {
         zigbeeModel: ["3RSB22BZ"],
@@ -464,7 +487,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.deviceEndpoints({endpoints: {left: 1, right: 2}}),
             m.onOff({endpointNames: ["left", "right"]}),
-            m.electricityMeter({acFrequency: true, powerFactor: true, endpointNames: ["left", "right"]}),
+            m.electricityMeter({acFrequency: true, powerFactor: true, endpointNames: ["left", "right"], energy: {divisor: 3600000}}),
         ],
     },
     {

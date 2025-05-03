@@ -987,7 +987,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["SNZB-02LD"],
         model: "SNZB-02LD",
         vendor: "SONOFF",
-        description: "Temperature sensor with screen",
+        description: "Waterproof (IP65) sensor with screen and probe temperature detection",
         extend: [
             m.deviceAddCustomCluster("customSonoffSnzb02ld", {
                 ID: 0xfc11,
@@ -1645,11 +1645,9 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZBM5-1C-120",
         vendor: "SONOFF",
         description: "Zigbee Smart one-channel wall switch (type 120).",
-        exposes: [],
         ota: true,
         extend: [
-            m.deviceEndpoints({endpoints: {l1: 1}}),
-            m.commandsOnOff({commands: ["toggle"], endpointNames: ["l1"]}),
+            m.commandsOnOff({commands: ["toggle"]}),
             m.onOff(),
             sonoffExtend.addCustomClusterEwelink(),
             m.enumLookup({

@@ -203,13 +203,6 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light()],
     },
     {
-        zigbeeModel: ["LCX004"],
-        model: "929002994901",
-        vendor: "Philips",
-        description: "Hue gradient lightstrip",
-        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true, gradient: true})],
-    },
-    {
         zigbeeModel: ["929003045401"],
         model: "929003045401",
         vendor: "Philips",
@@ -3074,6 +3067,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true, gradient: true})],
     },
     {
+        zigbeeModel: ["LCX004"],
+        model: "929002994901",
+        vendor: "Philips",
+        description: "Hue gradient lightstrip",
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true, gradient: true})],
+    },
+    {
         zigbeeModel: ["LCX005"],
         model: "8719514434479",
         vendor: "Philips",
@@ -3085,6 +3085,13 @@ export const definitions: DefinitionWithExtend[] = [
         model: "8719514434530",
         vendor: "Philips",
         description: "Hue Play gradient lightstrip for PC",
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true, gradient: true})],
+    },
+    {
+        zigbeeModel: ["LCX007"],
+        model: "8719514434592",
+        vendor: "Philips",
+        description: "Hue Play gradient lightstrip for PC 3x 24/27",
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true, gradient: true})],
     },
     {
