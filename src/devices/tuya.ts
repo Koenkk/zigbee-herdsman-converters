@@ -2688,9 +2688,10 @@ export const definitions: DefinitionWithExtend[] = [
         description: "13A Smart Switched Fused Connection Unit",
         extend: [
             tuya.modernExtend.tuyaOnOff({
-                backlightModeLowMediumHigh: true,
+                backlightModeOffOn: true,
                 childLock: true,
-                powerOnBehavior2: true,
+                powerOnBehavior: true,
+                onOffCountdown: true,
             }),
         ],
         configure: async (device, coordinatorEndpoint) => {
