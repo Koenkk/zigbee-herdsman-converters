@@ -21,13 +21,13 @@ export const definitions: DefinitionWithExtend[] = [
         model: "S4SW-001P8EU",
         vendor: "Shelly",
         description: "1PM Mini Gen 4",
-        extend: [m.onOff({powerOnBehavior: false}), m.electricityMeter({energy: true, producedEnergy: true, acFrequency: true})],
+        extend: [m.onOff({powerOnBehavior: false}), m.electricityMeter({producedEnergy: true, acFrequency: true})],
     },
     {
         zigbeeModel: ["1PM"],
         model: "S4SW-001P16EU",
         vendor: "Shelly",
         description: "1PM Gen 4",
-        extend: [m.onOff({powerOnBehavior: false}), m.electricityMeter({energy: true, producedEnergy: true, acFrequency: true})],
+        extend: [m.onOff({powerOnBehavior: false}), m.electricityMeter({producedEnergy: true, acFrequency: true})],
     },
 ];
