@@ -987,7 +987,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["SNZB-02LD"],
         model: "SNZB-02LD",
         vendor: "SONOFF",
-        description: "Temperature sensor with screen",
+        description: "Waterproof (IP65) sensor with screen and probe temperature detection",
         extend: [
             m.deviceAddCustomCluster("customSonoffSnzb02ld", {
                 ID: 0xfc11,
