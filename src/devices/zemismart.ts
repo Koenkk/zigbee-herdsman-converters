@@ -297,7 +297,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_9mahtqtg", "_TZE200_r731zlxk"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_9mahtqtg", "_TZE200_r731zlxk", "_TZE204_r731zlxk"]),
         model: "TB26-6",
         vendor: "Zemismart",
         description: "6-gang smart wall switch",
