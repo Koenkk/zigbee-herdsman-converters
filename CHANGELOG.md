@@ -1,5 +1,21 @@
 # Changelog
 
+## [23.37.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.36.0...v23.37.0) (2025-05-03)
+
+
+### Features
+
+* **add:** TS0601_water_switch ([#8898](https://github.com/Koenkk/zigbee-herdsman-converters/issues/8898)) ([a61f8d3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a61f8d3936f6b89f2830f8e7f35451cb3734c624))
+* **add:** ZMS-206EU-2 https://github.com/Koenkk/zigbee2mqtt/issues/27286 ([b347f62](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b347f621df847ca9dbaec3a1d2b06055bc9fb6df))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3000_402vrq2i` as Tuya ZG-101Z_D https://github.com/Koenkk/zigbee2mqtt/issues/27239 ([4d1f478](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4d1f47831425bcb526508d429ade1ab541c5de34))
+* **detect:** Detect `_TZE204_r731zlxk` as Zemismart TB26-6 ([#9271](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9271)) ([8761a28](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8761a2896147bb9a06f080916f290beb4d344242))
+* improve IKEA light unfreeze logic ([#9273](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9273)) ([8920396](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8920396277dc960f46cc67ef4a28089e5e01cd5e))
+* Update SNZB-02LD description ([#9274](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9274)) ([f3813a2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f3813a2535f2f2cf69e8926842469a5ef6db0740))
+
 ## [23.36.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.35.0...v23.36.0) (2025-05-01)
 
 
