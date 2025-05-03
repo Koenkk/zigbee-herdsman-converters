@@ -9250,8 +9250,32 @@ export const definitions: DefinitionWithExtend[] = [
                     },
                 ],
                 [9, "target_distance", tuya.valueConverter.divideBy100],
-                [12, "illuminance", tuya.valueConverter.raw], // _TZE284_iadro9bf
-                [104, "illuminance", tuya.valueConverter.raw],
+				[
+					12,
+					null,
+					{
+						from: (v: number, meta: Fz.Meta, options?: KeyValue) => {
+                            if (["_TZE204_iadro9bf","_TZE284_iadro9bf"].includes(meta.device.manufacturerName)) {
+                                return {
+									illuminance: v
+								}
+                            }
+                        },
+					}
+				],
+				[
+					104,
+					null,
+					{
+						from: (v: number, meta: Fz.Meta, options?: KeyValue) => {
+				            if (!["_TZE204_iadro9bf","_TZE284_iadro9bf"].includes(meta.device.manufacturerName)) {
+				                return {
+									illuminance: v
+								}
+				            }
+				        },
+					}
+				],
                 [2, "radar_sensitivity", tuya.valueConverter.raw],
                 [4, "maximum_range", tuya.valueConverter.divideBy100],
                 [3, "minimum_range", tuya.valueConverter.divideBy100],
