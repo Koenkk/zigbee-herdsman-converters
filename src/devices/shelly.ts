@@ -23,8 +23,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "1PM Mini Gen 4",
         extend: [
             m.onOff({powerOnBehavior: false}),
-            m.electricityMeter({producedEnergy: true, acFrequency: true, energy: {change: 1}, current: {change: 2}, power: {change: 100}}),
-        ],
+            m.electricityMeter({producedEnergy: true, acFrequency: true})],
     },
     {
         zigbeeModel: ["1PM"],
@@ -33,7 +32,6 @@ export const definitions: DefinitionWithExtend[] = [
         description: "1PM Gen 4",
         extend: [
             m.onOff({powerOnBehavior: false}),
-            m.electricityMeter({producedEnergy: true, acFrequency: true, energy: {change: 1}, current: {change: 2}, power: {change: 100}}),
-        ],
+            m.electricityMeter({producedEnergy: true, acFrequency: true],
     },
 ];
