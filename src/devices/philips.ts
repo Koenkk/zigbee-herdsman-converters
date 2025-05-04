@@ -3957,7 +3957,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Philips",
         description: "Hue Tento W 29.1 cm (White)",
         whiteLabel: [
-            {model: "929003822801", vendor: "Philips", description: ""Hue Tento W 29,1cm (Black)", fingerprint: [{modelID: "929003822801"}]},
+            {model: "929003822801", vendor: "Philips", description: "Hue Tento W 29,1cm (Black)", fingerprint: [{modelID: "929003822801"}]},
         ],
         extend: [philips.m.light()],
     },
