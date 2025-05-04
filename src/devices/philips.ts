@@ -3979,8 +3979,8 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Philips",
         description: "Hue Tento WCA 29,1cm (White)",
         whiteLabel: [
-            {model: "929003823701", vendor: "Philips", description: "Hue Tento WA 42,1 cm (White)", fingerprint: [{modelID: "929003823701"}]},
-            {model: "929003823901", vendor: "Philips", description: "Hue Tento WA 54,2 cm (White)", fingerprint: [{modelID: "929003823901"}]},
+            {model: "929003823701", vendor: "Philips", description: "Hue Tento WCA 42,1 cm (White)", fingerprint: [{modelID: "929003823701"}]},
+            {model: "929003823901", vendor: "Philips", description: "Hue Tento WCA 54,2 cm (White)", fingerprint: [{modelID: "929003823901"}]},
             {model: "929003823601", vendor: "Philips", description: "Hue Tento WCA 29,1 cm (Black)", fingerprint: [{modelID: "929003823601"}]},
             {model: "929003823801", vendor: "Philips", description: "Hue Tento WCA 42,1 cm (Black)", fingerprint: [{modelID: "929003823801"}]},
             {model: "929003824001", vendor: "Philips", description: "Hue Tento WCA 54,2 cm (Black)", fingerprint: [{modelID: "929003824001"}]},
