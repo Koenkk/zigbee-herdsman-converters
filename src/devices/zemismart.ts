@@ -606,7 +606,6 @@ export const definitions: DefinitionWithExtend[] = [
                 [209, "cycle_schedule", valueConverterLocal.cycleSchedule],
             ],
         },
-        whiteLabel: [tuya.whitelabel("Zemismart", "ZMS-206US-3", "Smart screen switch 3 gang US", ["_TZE204_iyki9kjp"])],
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_wwaeqnrf"]),
@@ -615,7 +614,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Smart screen switch 4 gang US",
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime, // Add this if you are getting no converter for 'commandMcuSyncTime'
+        onEvent: tuya.onEventSetTime,
         configure: tuya.configureMagicPacket,
         exposes: [
             tuya.exposes.backlightModeOffOn().withAccess(ea.STATE_SET),
