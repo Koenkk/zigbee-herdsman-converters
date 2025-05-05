@@ -929,7 +929,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: tuya.fingerprint("TS0021", ["_TZ3210_3ulg9kpo"]),
         model: "LKWSZ211",
-        vendor: "Tuya",
+        vendor: "Linkoze",
         description: "Scene remote with 2 keys",
         fromZigbee: [tuya.fz.datapoints, fz.ignore_basic_report],
         toZigbee: [tuya.tz.datapoints],
@@ -962,7 +962,6 @@ export const definitions: DefinitionWithExtend[] = [
                 [10, "battery", tuya.valueConverter.raw],
             ],
         },
-        whiteLabel: [tuya.whitelabel("Linkoze", "LKWSZ211", "Wireless switch (2-key)", ["_TZ3210_3ulg9kpo"])],
     },
     {
         fingerprint: tuya.fingerprint("TS0601", [
@@ -1631,7 +1630,6 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Lidl", "14156506L", "Livarno Lux smart LED mood light", ["_TZ3210_r0xgkft5"]),
             tuya.whitelabel("Lidl", "HG08010", "Livarno Home outdoor spotlight", ["_TZ3210_umi6vbsz"]),
             tuya.whitelabel("Lidl", "HG08008", "Livarno Home LED ceiling light", ["_TZ3210_p9ao60da"]),
-            tuya.whitelabel("Tuya", "HG08007", "Livarno Home outdoor LED band", ["_TZ3210_zbabx9wh"]),
             tuya.whitelabel("Lidl", "14158704L", "Livarno Home LED floor lamp, RGBW", ["_TZ3210_z1vlyufu"]),
             tuya.whitelabel("Lidl", "14158804L", "Livarno Home LED desk lamp RGBW", ["_TZ3210_hxtfthp5"]),
             tuya.whitelabel("Lidl", "HG07834A/HG09155A/HG08131A", "Livarno Home GU10 spot RGB+CCT", ["_TZ3000_quqaeew6"]),
@@ -9578,9 +9576,8 @@ export const definitions: DefinitionWithExtend[] = [
             e.battery(),
         ],
         whiteLabel: [
-            tuya.whitelabel("Tuya", "ZG-227Z", "Temperature and humidity sensor", ["_TZE200_a8sdabtg"]),
+            tuya.whitelabel("Tuya", "ZG-227Z", "Temperature and humidity sensor", ["_TZE200_a8sdabtg", "_TZE200_vs0skpuc"]),
             tuya.whitelabel("KOJIMA", "KOJIMA-THS-ZG-LCD", "Temperature and humidity sensor", ["_TZE200_dikkika5"]),
-            tuya.whitelabel("HOBEIAN", "ZG-227Z", "Temperature and humidity sensor", ["_TZE200_vs0skpuc"]),
         ],
         meta: {
             tuyaDatapoints: [
