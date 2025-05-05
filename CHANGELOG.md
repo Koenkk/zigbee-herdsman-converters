@@ -1,5 +1,18 @@
 # Changelog
 
+## [23.38.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.37.0...v23.38.0) (2025-05-05)
+
+
+### Features
+
+* **add:** ZMS-206US-4 ([#9279](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9279)) ([5649dda](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5649dda8e8ef7d2dd98a371051171b4cd0957b16))
+* Shelly S4SW-*: enable energy measurements ([#9278](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9278)) ([6e03ba8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6e03ba8f5d263e3fa301559e03bc2ad9b5051056))
+
+
+### Bug Fixes
+
+* Update Philips Tento lights ([#9275](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9275)) ([030b10e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/030b10e4fb5ae2d8f4a8dc35e5c67c66f4a2ae3d))
+
 ## [23.37.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.36.0...v23.37.0) (2025-05-03)
 
 
