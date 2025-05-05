@@ -15965,10 +15965,11 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: "TS0601", manufacturerName: "_TZE200_lvkk0hdg", powerSource: "Mains (single phase)"}],
+        fingerprint: [{modelID: "TS0601", manufacturerName: "_TZE200_lvkk0hdg"}],
         model: "TLC2206",
         vendor: "Tuya",
         description: "Water level sensor",
+        extend: [m.forcePowerSource({powerSource: "Mains (single phase)"})],
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         onEvent: tuya.onEventSetLocalTime,
