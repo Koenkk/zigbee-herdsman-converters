@@ -15965,7 +15965,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: "TS0601", manufacturerName: "_TZE200_lvkk0hdg"}],
+        fingerprint: [{modelID: "TS0601", manufacturerName: "_TZE200_lvkk0hdg", powerSource: "Mains (single phase)"}],
         model: "TLC2206",
         vendor: "Tuya",
         description: "Water level sensor",
