@@ -15997,7 +15997,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription("Height from sensor to tank bottom")
                 .withValueMin(10)
                 .withValueMax(4000)
-                .withValueStep(1),
+                .withValueStep(5),
             e
                 .numeric("liquid_depth_max", ea.STATE_SET)
                 .withUnit("mm")
