@@ -754,7 +754,7 @@ export const definitions: DefinitionWithExtend[] = [
             {vendor: "eWeLink", model: "RHK06"},
             {
                 vendor: "eWeLink",
-                model: "SNZB-04",
+                model: "SNZB-04_eWeLink",
                 fingerprint: [{modelID: "SNZB-04", manufacturerName: "eWeLink"}],
             },
             {
@@ -775,7 +775,7 @@ export const definitions: DefinitionWithExtend[] = [
             {vendor: "eWeLink", model: "RHK07"},
             {
                 vendor: "eWeLink",
-                model: "SNZB-01",
+                model: "SNZB-01_eWeLink",
                 fingerprint: [{modelID: "SNZB-01", manufacturerName: "eWeLink"}],
             },
             {
@@ -843,7 +843,7 @@ export const definitions: DefinitionWithExtend[] = [
             {vendor: "eWeLink", model: "RHK08"},
             {
                 vendor: "eWeLink",
-                model: "SNZB-02",
+                model: "SNZB-02_eWeLink",
                 fingerprint: [{modelID: "SNZB-02", manufacturerName: "eWeLink"}],
             },
             {
@@ -1078,7 +1078,7 @@ export const definitions: DefinitionWithExtend[] = [
             {vendor: "eWeLink", model: "SQ510A"},
             {
                 vendor: "eWeLink",
-                model: "SNZB-03",
+                model: "SNZB-03_eWeLink",
                 fingerprint: [
                     {
                         // SNZB-O3 OUVOPO Wireless Motion Sensor (2023)
