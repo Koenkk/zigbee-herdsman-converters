@@ -1084,11 +1084,11 @@ export const light_onoff_brightness: Tz.Converter = {
         const {message} = meta;
         const transition = utils.getTransition(entity, "brightness", meta);
         const turnsOffAtBrightness1 = utils.getMetaValue(entity, meta.mapped, "turnsOffAtBrightness1", "allEqual", false);
-        let state = message.state !== undefined ? (typeof message.state === "string" ? message.state.toLowerCase() : null) : undefined;
+        let state = message.state != null ? (typeof message.state === "string" ? message.state.toLowerCase() : null) : undefined;
         let brightness = undefined;
-        if (message.brightness !== undefined) {
+        if (message.brightness != null) {
             brightness = Number(message.brightness);
-        } else if (message.brightness_percent !== undefined) {
+        } else if (message.brightness_percent != null) {
             brightness = utils.mapNumberRange(Number(message.brightness_percent), 0, 100, 0, 255);
         }
 
@@ -1385,10 +1385,10 @@ export const thermostat_weekly_schedule: Tz.Converter = {
             // transform transition payload values if needed
             for (const elem of payload.transitions) {
                 // update payload.mode if needed
-                if (elem.heatSetpoint !== undefined && !payload.mode.includes("heat")) {
+                if (elem.heatSetpoint != null && !payload.mode.includes("heat")) {
                     payload.mode.push("heat");
                 }
-                if (elem.coolSetpoint !== undefined && !payload.mode.includes("cool")) {
+                if (elem.coolSetpoint != null && !payload.mode.includes("cool")) {
                     payload.mode.push("cool");
                 }
 
@@ -1412,7 +1412,7 @@ export const thermostat_weekly_schedule: Tz.Converter = {
                         elem.transitionTime = timeHour + timeMinute;
                     }
                 } else if (typeof elem.transitionTime === "object") {
-                    if (elem.transitionTime.hour === undefined || elem.transitionTime.minute === undefined) {
+                    if (elem.transitionTime.hour == null || elem.transitionTime.minute == null) {
                         throw new Error(
                             `weekly_schedule: expected 24h time object (e.g. {"hour": 19, "minute": 30}), but got '${JSON.stringify(elem.transitionTime)}'!`,
                         );
@@ -1446,7 +1446,7 @@ export const thermostat_weekly_schedule: Tz.Converter = {
             let dayofweek = 0;
             for (let d of payload.dayofweek) {
                 if (typeof d === "object") {
-                    if (d.day === undefined) {
+                    if (d.day == null) {
                         throw new Error(`weekly_schedule: expected dayofweek to be string or {"day": "str"}, but got '${JSON.stringify(d)}'!`);
                     }
                     d = d.day;
@@ -2815,8 +2815,8 @@ export const tuya_led_control: Tz.Converter = {
         if (
             key === "brightness" &&
             meta.state.color_mode === constants.colorModeLookup[2] &&
-            meta.message.color === undefined &&
-            meta.message.color_temp === undefined
+            meta.message.color == null &&
+            meta.message.color_temp == null
         ) {
             const zclData = {level: Number(value), transtime: 0};
 
@@ -4450,7 +4450,7 @@ export const light_onoff_restorable_brightness: Tz.Converter = {
         const deviceState = meta.state || {};
         const message = meta.message;
         const state = utils.isString(message.state) ? message.state.toLowerCase() : null;
-        const hasBrightness = message.brightness !== undefined || message.brightness_percent !== undefined;
+        const hasBrightness = message.brightness != null || message.brightness_percent != null;
 
         // Add brightness if command is 'on' and we can restore previous value
         if (state === "on" && !hasBrightness && utils.isNumber(deviceState.brightness) && deviceState.brightness > 0) {
@@ -4476,9 +4476,9 @@ export const ptvo_switch_light_brightness: Tz.Converter = {
             const message = meta.message;
 
             let brightness = undefined;
-            if (message.brightness !== undefined) {
+            if (message.brightness != null) {
                 brightness = Number(message.brightness);
-            } else if (message.brightness_percent !== undefined) brightness = Math.round(Number(message.brightness_percent) * 2.55);
+            } else if (message.brightness_percent != null) brightness = Math.round(Number(message.brightness_percent) * 2.55);
 
             if (brightness !== undefined && brightness === 0) {
                 message.state = "off";
@@ -4526,10 +4526,10 @@ export const TS110E_onoff_brightness: Tz.Converter = {
     key: ["state", "brightness"],
     convertSet: async (entity, key, value, meta) => {
         const {message, state} = meta;
-        if (message.state === "OFF" || (message.state !== undefined && message.brightness === undefined)) {
+        if (message.state === "OFF" || (message.state != null && message.brightness == null)) {
             return await on_off.convertSet(entity, key, value, meta);
         }
-        if (message.brightness !== undefined) {
+        if (message.brightness != null) {
             // set brightness
             if (state.state === "OFF") {
                 await entity.command("genOnOff", "on", {}, utils.getOptions(meta.mapped, entity));
