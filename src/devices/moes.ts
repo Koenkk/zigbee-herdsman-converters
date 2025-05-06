@@ -100,7 +100,6 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE204_aoclfnxz",
             "_TZE200_u9bfwha0",
             "_TZE204_u9bfwha0",
-            "_TZE204_xalsoe3m",
         ]),
         model: "BHT-002",
         vendor: "Moes",
