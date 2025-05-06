@@ -1150,7 +1150,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Zigbee handheld remote RGBW 4 channels",
         extend: [
             m.deviceEndpoints({endpoints: {ep1: 1, ep2: 2, ep3: 3, ep4: 4}}),
-            m.battery(),
+            m.battery({voltage: true}),
             m.identify({isSleepy: true}),
             m.commandsOnOff({
                 commands: ["on", "off"],
@@ -1159,7 +1159,7 @@ export const definitions: DefinitionWithExtend[] = [
                 commands: ["brightness_move_up", "brightness_move_down", "brightness_stop", "brightness_step_up", "brightness_step_down"],
             }),
             m.commandsColorCtrl({
-                commands: ["color_temperature_move", "color_move", "hue_move", "hue_stop"],
+                commands: ["color_move", "color_temperature_move", "hue_move", "hue_stop"],
             }),
             m.commandsScenes({commands: ["recall"]}),
         ],
@@ -1170,46 +1170,22 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZG2819S-CCT",
         vendor: "Sunricher",
         description: "Zigbee handheld remote CCT 4 channels",
-        fromZigbee: [
-            fz.battery,
-            fz.command_move_to_color,
-            fz.command_move_to_color_temp,
-            fz.command_move_hue,
-            fz.command_step,
-            fz.command_recall,
-            fz.command_on,
-            fz.command_off,
-            fz.command_toggle,
-            fz.command_stop,
-            fz.command_move,
-            fz.command_color_loop_set,
-            fz.command_ehanced_move_to_hue_and_saturation,
+        extend: [
+            m.deviceEndpoints({endpoints: {ep1: 1, ep2: 2, ep3: 3, ep4: 4}}),
+            m.battery({voltage: true}),
+            m.identify({isSleepy: true}),
+            m.commandsOnOff({
+                commands: ["on", "off"],
+            }),
+            m.commandsLevelCtrl({
+                commands: ["brightness_move_up", "brightness_move_down", "brightness_stop", "brightness_step_up", "brightness_step_down"],
+            }),
+            m.commandsColorCtrl({
+                commands: ["color_loop_set", "color_move", "color_temperature_move", "enhanced_move_to_hue_and_saturation", "hue_move", "hue_stop"],
+            }),
+            m.commandsScenes({commands: ["recall"]}),
         ],
-        exposes: [
-            e.battery(),
-            e.action([
-                "color_move",
-                "color_temperature_move",
-                "hue_move",
-                "brightness_step_up",
-                "brightness_step_down",
-                "recall_*",
-                "on",
-                "off",
-                "toggle",
-                "brightness_stop",
-                "brightness_move_up",
-                "brightness_move_down",
-                "color_loop_set",
-                "enhanced_move_to_hue_and_saturation",
-                "hue_stop",
-            ]),
-        ],
-        toZigbee: [],
         meta: {multiEndpoint: true},
-        endpoint: (device) => {
-            return {ep1: 1, ep2: 2, ep3: 3, ep4: 4};
-        },
     },
     {
         zigbeeModel: ["HK-ZCC-A"],
