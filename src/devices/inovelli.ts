@@ -1403,7 +1403,7 @@ const tzLocal = {
                 "individualLedEffect",
                 {
                     // @ts-expect-error ignore
-                    led: Math.min(Math.max(0, Number.parseInt(values.led)), 7),
+                    led: Math.min(Math.max(1, Number.parseInt(values.led)), 7) - 1,
                     // @ts-expect-error ignore
                     effect: individualLedEffects[values.effect],
                     // @ts-expect-error ignore
