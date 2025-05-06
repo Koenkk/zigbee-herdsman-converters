@@ -15966,6 +15966,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TLC2206",
         vendor: "Tuya",
         description: "Water level sensor",
+        extend: [m.forcePowerSource({powerSource: "Mains (single phase)"})],
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         onEvent: tuya.onEventSetLocalTime,
@@ -15994,7 +15995,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription("Height from sensor to tank bottom")
                 .withValueMin(10)
                 .withValueMax(4000)
-                .withValueStep(1),
+                .withValueStep(5),
             e
                 .numeric("liquid_depth_max", ea.STATE_SET)
                 .withUnit("mm")
