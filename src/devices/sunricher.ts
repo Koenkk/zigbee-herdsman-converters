@@ -1143,6 +1143,29 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.onOff()],
     },
     {
+        zigbeeModel: ["ZG2819S-RGBW"],
+        model: "ZG2819S-RGBW",
+        vendor: "Sunricher",
+        whiteLabel: [{vendor: "Iluminize", model: "511.344"}],
+        description: "Zigbee handheld remote RGBW 4 channels",
+        extend: [
+            m.deviceEndpoints({endpoints: {ep1: 1, ep2: 2, ep3: 3, ep4: 4}}),
+            m.battery(),
+            m.identify({isSleepy: true}),
+            m.commandsOnOff({
+                commands: ["on", "off"],
+            }),
+            m.commandsLevelCtrl({
+                commands: ["brightness_move_up", "brightness_move_down", "brightness_stop", "brightness_step_up", "brightness_step_down"],
+            }),
+            m.commandsColorCtrl({
+                commands: ["color_temperature_move", "color_move", "hue_move", "hue_stop"],
+            }),
+            m.commandsScenes({commands: ["recall"]}),
+        ],
+        meta: {multiEndpoint: true},
+    },
+    {
         zigbeeModel: ["ZG2819S-CCT"],
         model: "ZG2819S-CCT",
         vendor: "Sunricher",
