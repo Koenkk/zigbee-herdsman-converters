@@ -484,6 +484,13 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Third Reality",
         description: "Zigbee / BLE dual plug with power",
         ota: true,
+        configure: async (device) => {
+            for (const ep of [1, 2]) {
+                const endpoint = device.getEndpoint(ep);
+                endpoint.saveClusterAttributeKeyValue("seMetering", {divisor: 3600000, multiplier: 1});
+            }
+            device.save();
+        },
         extend: [
             m.deviceEndpoints({endpoints: {left: 1, right: 2}}),
             m.onOff({endpointNames: ["left", "right"]}),
