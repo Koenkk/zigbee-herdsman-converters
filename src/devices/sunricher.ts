@@ -70,6 +70,19 @@ async function syncTimeWithTimeZone(endpoint: Zh.Endpoint) {
 
 export const definitions: DefinitionWithExtend[] = [
     {
+        zigbeeModel: ["ZG2833K8_EU05"],
+        model: "SR-ZG9001K8-DIM",
+        vendor: "Sunricher",
+        description: "Zigbee 8 button wall switch",
+        extend: [
+            m.commandsOnOff(),
+            m.battery(),
+            m.commandsScenes(),
+            m.commandsLevelCtrl({commands: ["brightness_move_up", "brightness_move_down", "brightness_stop"]}),
+        ],
+        meta: {multiEndpoint: true},
+    },
+    {
         zigbeeModel: ["HK-ZRC-K10N-E"],
         model: "SR-ZG2856-Pro",
         vendor: "Sunricher",
