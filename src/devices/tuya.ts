@@ -118,7 +118,7 @@ const storeLocal = {
                     // Only publish if the set is complete otherwise discard everything.
                     if (sign !== null && power !== null && current !== null && powerFactor !== null) {
                         const signedPowerKey = `signed_power_${channel}`;
-                        const signedPower = options[signedPowerKey] !== undefined ? options[signedPowerKey] : false;
+                        const signedPower = options[signedPowerKey] != null ? options[signedPowerKey] : false;
                         if (signedPower) {
                             result[`power_${channel}`] = sign * power;
                             result[`energy_flow_${channel}`] = "sign";
@@ -178,7 +178,7 @@ const convLocal = {
                 const result = {};
                 priv[`sign_${channel}`] = v === 1 ? -1 : +1;
                 const lateEnergyFlowKey = `late_energy_flow_${channel}`;
-                const lateEnergyFlow = options[lateEnergyFlowKey] !== undefined ? options[lateEnergyFlowKey] : false;
+                const lateEnergyFlow = options[lateEnergyFlowKey] != null ? options[lateEnergyFlowKey] : false;
                 if (lateEnergyFlow) {
                     priv.flush(result, channel, options);
                 }
@@ -225,7 +225,7 @@ const convLocal = {
                 const result = {};
                 priv[`power_factor_${channel}`] = v;
                 const lateEnergyFlowKey = `late_energy_flow_${channel}`;
-                const lateEnergyFlow = options[lateEnergyFlowKey] !== undefined ? options[lateEnergyFlowKey] : false;
+                const lateEnergyFlow = options[lateEnergyFlowKey] != null ? options[lateEnergyFlowKey] : false;
                 if (!lateEnergyFlow) {
                     priv.flush(result, channel, options);
                 }

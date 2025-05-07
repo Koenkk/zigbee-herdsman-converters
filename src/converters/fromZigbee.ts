@@ -562,7 +562,7 @@ export const occupancy_with_timeout: Fz.Converter = {
 
         // The occupancy sensor only sends a message when motion detected.
         // Therefore we need to publish the no_motion detected by ourselves.
-        const timeout = options && options.occupancy_timeout !== undefined ? Number(options.occupancy_timeout) : 90;
+        const timeout = options?.occupancy_timeout != null ? Number(options.occupancy_timeout) : 90;
 
         // Stop existing timers because motion is detected and set a new one.
         clearTimeout(globalStore.getValue(msg.endpoint, "occupancy_timer", null));
@@ -657,7 +657,7 @@ export const level_config: Fz.Converter = {
         //          when 1, CurrentLevel can be changed while the device is off.
         //   bit 1: CoupleColorTempToLevel - when 1, changes to level also change color temperature.
         //          (What this means is not defined, but it's most likely to be "dim to warm".)
-        if (msg.data.options !== undefined && msg.data.options !== undefined) {
+        if (msg.data.options !== undefined) {
             result[level_config].execute_if_off = !!(Number(msg.data.options) & 1);
         }
 
@@ -1029,7 +1029,7 @@ export const ias_vibration_alarm_1_with_timeout: Fz.Converter = {
     convert: (model, msg, publish, options, meta) => {
         const zoneStatus = msg.data.zonestatus;
 
-        const timeout = options && options.vibration_timeout !== undefined ? Number(options.vibration_timeout) : 90;
+        const timeout = options?.vibration_timeout != null ? Number(options.vibration_timeout) : 90;
 
         // Stop existing timers because vibration is detected and set a new one.
         // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
@@ -1224,7 +1224,7 @@ export const ias_occupancy_alarm_1_with_timeout: Fz.Converter = {
     options: [exposes.options.occupancy_timeout()],
     convert: (model, msg, publish, options, meta) => {
         const zoneStatus = msg.data.zonestatus;
-        const timeout = options && options.occupancy_timeout !== undefined ? Number(options.occupancy_timeout) : 90;
+        const timeout = options?.occupancy_timeout != null ? Number(options.occupancy_timeout) : 90;
 
         clearTimeout(globalStore.getValue(msg.endpoint, "timer"));
 
@@ -1392,8 +1392,8 @@ export const command_move: Fz.Converter = {
 
         if (options.simulated_brightness) {
             const opts: KeyValueAny = options.simulated_brightness;
-            const deltaOpts = typeof opts === "object" && opts.delta !== undefined ? opts.delta : 20;
-            const intervalOpts = typeof opts === "object" && opts.interval !== undefined ? opts.interval : 200;
+            const deltaOpts = typeof opts === "object" && opts.delta != null ? opts.delta : 20;
+            const intervalOpts = typeof opts === "object" && opts.interval != null ? opts.interval : 200;
 
             globalStore.putValue(msg.endpoint, "simulated_brightness_direction", direction);
             if (globalStore.getValue(msg.endpoint, "simulated_brightness_timer") === undefined) {
@@ -1830,7 +1830,7 @@ export const checkin_presence: Fz.Converter = {
     type: ["commandCheckin"],
     options: [exposes.options.presence_timeout()],
     convert: (model, msg, publish, options, meta) => {
-        const useOptionsTimeout = options && options.presence_timeout !== undefined;
+        const useOptionsTimeout = options?.presence_timeout != null;
         const timeout = useOptionsTimeout ? Number(options.presence_timeout) : 100; // 100 seconds by default
 
         // Stop existing timer because presence is detected and set a new one.
@@ -3881,7 +3881,7 @@ export const ZMCSW032D_cover_position: Fz.Converter = {
 
         // https://github.com/Koenkk/zigbee-herdsman-converters/pull/1336
         // Need to add time_close and time_open in your configuration.yaml after friendly_name (and set your time)
-        if (options.time_close !== undefined && options.time_open !== undefined) {
+        if (options.time_close != null && options.time_open != null) {
             if (!globalStore.hasValue(msg.endpoint, "position")) {
                 globalStore.putValue(msg.endpoint, "position", {lastPreviousAction: -1, CurrentPosition: -1, since: false});
             }
@@ -3952,7 +3952,7 @@ export const PGC410EU_presence: Fz.Converter = {
     type: "commandArrivalSensorNotify",
     options: [exposes.options.presence_timeout()],
     convert: (model, msg, publish, options, meta) => {
-        const useOptionsTimeout = options && options.presence_timeout !== undefined;
+        const useOptionsTimeout = options?.presence_timeout != null;
         const timeout = useOptionsTimeout ? Number(options.presence_timeout) : 100; // 100 seconds by default
 
         // Stop existing timer because motion is detected and set a new one.
@@ -3970,7 +3970,7 @@ export const STS_PRS_251_presence: Fz.Converter = {
     type: ["attributeReport", "readResponse"],
     options: [exposes.options.presence_timeout()],
     convert: (model, msg, publish, options, meta) => {
-        const useOptionsTimeout = options && options.presence_timeout !== undefined;
+        const useOptionsTimeout = options?.presence_timeout != null;
         const timeout = useOptionsTimeout ? Number(options.presence_timeout) : 100; // 100 seconds by default
 
         // Stop existing timer because motion is detected and set a new one.
@@ -4413,7 +4413,7 @@ export const hue_dimmer_switch: Fz.Converter = {
         // simulated brightness
         if (options.simulated_brightness && (button === "down" || button === "up") && type !== "release") {
             const opts: KeyValueAny = options.simulated_brightness;
-            const deltaOpts = typeof opts === "object" && opts.delta !== undefined ? opts.delta : 35;
+            const deltaOpts = typeof opts === "object" && opts.delta != null ? opts.delta : 35;
             const delta = button === "up" ? deltaOpts : deltaOpts * -1;
             const brightness = globalStore.getValue(msg.endpoint, "brightness", 255) + delta;
             payload.brightness = numberWithinRange(brightness, 0, 255);

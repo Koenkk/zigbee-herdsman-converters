@@ -29,10 +29,10 @@ const kmpcilOptions = {
 };
 
 function handleKmpcilPresence(model: DefinitionWithExtend, msg: Fz.Message, publish: Publish, options: KeyValue, meta: Fz.Meta): KeyValue {
-    const useOptionsTimeoutBattery = options && options.presence_timeout_battery !== undefined;
+    const useOptionsTimeoutBattery = options?.presence_timeout_battery != null;
     const timeoutBattery = useOptionsTimeoutBattery ? options.presence_timeout_battery : 420; // 100 seconds by default
 
-    const useOptionsTimeoutDc = options && options.presence_timeout_dc !== undefined;
+    const useOptionsTimeoutDc = options?.presence_timeout_dc != null;
     const timeoutDc = useOptionsTimeoutDc ? options.presence_timeout_dc : 60;
 
     const mode = meta.state ? meta.state.power_state : false;
