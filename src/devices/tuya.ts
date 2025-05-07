@@ -1478,11 +1478,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         model: "WHD02",
         vendor: "Tuya",
-        whiteLabel: [
-            {vendor: "Tuya", model: "iHSW02"},
-            {vendor: "Aubess", model: "TMZ02"},
-            tuya.whitelabel("Tuya", "QS-zigbee-S08-16A-RF", "Wall switch module", ["_TZ3000_dlhhrhs8"]),
-        ],
+        whiteLabel: [{vendor: "Tuya", model: "iHSW02"}, tuya.whitelabel("Tuya", "QS-zigbee-S08-16A-RF", "Wall switch module", ["_TZ3000_dlhhrhs8"])],
         description: "Wall switch module",
         extend: [tuya.modernExtend.tuyaOnOff({switchType: true, onOffCountdown: true})],
         configure: async (device, coordinatorEndpoint) => {
@@ -4116,6 +4112,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Nous", "L13Z", "2 gang switch", ["_TZ3000_ruxexjfz", "_TZ3000_hojntt34"]),
             tuya.whitelabel("Tuya", "ZG-2002-RF", "Three mode Zigbee Switch", ["_TZ3000_lugaswf8"]),
             tuya.whitelabel("Mercator Ikuü", "SSW02", "2 gang switch", ["_TZ3000_fbjdkph9"]),
+            tuya.whitelabel("Aubess", "TMZ02", "2 gang switch", ["_TZ3000_lmlsduws"]),
         ],
         extend: [
             tuya.modernExtend.tuyaOnOff({
