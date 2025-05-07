@@ -1,6 +1,5 @@
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
-import * as constants from "../lib/constants";
 import * as exposes from "../lib/exposes";
 import * as reporting from "../lib/reporting";
 import type {DefinitionWithExtend, Fz} from "../lib/types";
