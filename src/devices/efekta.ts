@@ -961,15 +961,6 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Enable CO2 Gas Control",
                 access: "STATE_SET",
             }),
-            m.binary({
-                name: "invert_logic_co2_gas",
-                valueOn: ["ON", 1],
-                valueOff: ["OFF", 0],
-                cluster: "msCO2",
-                attribute: {ID: 0x0225, type: Zcl.DataType.BOOLEAN},
-                description: "Enable invert logic CO2 Gas Control",
-                access: "STATE_SET",
-            }),
             m.numeric({
                 name: "high_co2_gas",
                 unit: "ppm",
@@ -997,15 +988,6 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "genAnalogInput",
                 attribute: {ID: 0x0220, type: Zcl.DataType.BOOLEAN},
                 description: "Enable VOC Control",
-                access: "STATE_SET",
-            }),
-            m.binary({
-                name: "invert_logic_voc",
-                valueOn: ["ON", 1],
-                valueOff: ["OFF", 0],
-                cluster: "genAnalogInput",
-                attribute: {ID: 0x0225, type: Zcl.DataType.BOOLEAN},
-                description: "Enable invert logic VOC Control",
                 access: "STATE_SET",
             }),
             m.numeric({
