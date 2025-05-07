@@ -1156,49 +1156,114 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.onOff()],
     },
     {
-        zigbeeModel: ["ZG2819S-CCT"],
-        model: "ZG2819S-CCT",
+        zigbeeModel: ["ZG2819S-RGBW"],
+        model: "ZG2819S-RGBW",
         vendor: "Sunricher",
-        description: "Zigbee handheld remote CCT 4 channels",
+        whiteLabel: [{vendor: "Iluminize", model: "511.344"}],
+        description: "Zigbee handheld remote RGBW 4 channels",
         fromZigbee: [
             fz.battery,
-            fz.command_move_to_color,
-            fz.command_move_to_color_temp,
-            fz.command_move_hue,
-            fz.command_step,
-            fz.command_recall,
             fz.command_on,
             fz.command_off,
-            fz.command_toggle,
-            fz.command_stop,
+            fz.command_step,
             fz.command_move,
-            fz.command_color_loop_set,
-            fz.command_ehanced_move_to_hue_and_saturation,
+            fz.command_stop,
+            fz.command_recall,
+            fz.command_move_hue,
+            fz.command_move_to_color,
+            fz.command_move_to_color_temp,
         ],
         exposes: [
             e.battery(),
+            e.battery_voltage(),
             e.action([
-                "color_move",
-                "color_temperature_move",
-                "hue_move",
-                "brightness_step_up",
-                "brightness_step_down",
-                "recall_*",
                 "on",
                 "off",
-                "toggle",
-                "brightness_stop",
+                "brightness_step_up",
+                "brightness_step_down",
                 "brightness_move_up",
                 "brightness_move_down",
-                "color_loop_set",
-                "enhanced_move_to_hue_and_saturation",
+                "brightness_stop",
+                "recall_*",
+                "hue_move",
                 "hue_stop",
+                "color_move",
+                "color_temperature_move",
             ]),
         ],
         toZigbee: [],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {ep1: 1, ep2: 2, ep3: 3, ep4: 4};
+        },
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint1 = device.getEndpoint(1);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ["genOnOff", "genPowerCfg"]);
+            await reporting.batteryVoltage(endpoint1);
+            await reporting.batteryPercentageRemaining(endpoint1);
+            const endpoint2 = device.getEndpoint(2);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ["genOnOff"]);
+            const endpoint3 = device.getEndpoint(3);
+            await reporting.bind(endpoint3, coordinatorEndpoint, ["genOnOff"]);
+            const endpoint4 = device.getEndpoint(4);
+            await reporting.bind(endpoint4, coordinatorEndpoint, ["genOnOff"]);
+        },
+    },
+    {
+        zigbeeModel: ["ZG2819S-CCT"],
+        model: "ZG2819S-CCT",
+        vendor: "Sunricher",
+        description: "Zigbee handheld remote CCT 4 channels",
+        fromZigbee: [
+            fz.battery,
+            fz.command_on,
+            fz.command_off,
+            fz.command_step,
+            fz.command_move,
+            fz.command_stop,
+            fz.command_recall,
+            fz.command_move_hue,
+            fz.command_move_to_color,
+            fz.command_move_to_color_temp,
+            fz.command_color_loop_set,
+            fz.command_ehanced_move_to_hue_and_saturation,
+        ],
+        exposes: [
+            e.battery(),
+            e.battery_voltage(),
+            e.action([
+                "on",
+                "off",
+                "brightness_step_up",
+                "brightness_step_down",
+                "brightness_move_up",
+                "brightness_move_down",
+                "brightness_stop",
+                "recall_*",
+                "hue_move",
+                "hue_stop",
+                "color_move",
+                "color_temperature_move",
+                "color_loop_set",
+                "enhanced_move_to_hue_and_saturation",
+            ]),
+        ],
+        toZigbee: [],
+        meta: {multiEndpoint: true},
+        endpoint: (device) => {
+            return {ep1: 1, ep2: 2, ep3: 3, ep4: 4};
+        },
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint1 = device.getEndpoint(1);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ["genOnOff", "genPowerCfg"]);
+            await reporting.batteryVoltage(endpoint1);
+            await reporting.batteryPercentageRemaining(endpoint1);
+            const endpoint2 = device.getEndpoint(2);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ["genOnOff"]);
+            const endpoint3 = device.getEndpoint(3);
+            await reporting.bind(endpoint3, coordinatorEndpoint, ["genOnOff"]);
+            const endpoint4 = device.getEndpoint(4);
+            await reporting.bind(endpoint4, coordinatorEndpoint, ["genOnOff"]);
         },
     },
     {
