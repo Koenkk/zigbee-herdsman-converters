@@ -80,6 +80,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.commandsScenes(),
             m.commandsLevelCtrl({commands: ["brightness_move_up", "brightness_move_down", "brightness_stop"]}),
         ],
+        whiteLabel: [{vendor: "Sunricher", model: "SR-ZG9001NK8-DIM"}],
         meta: {multiEndpoint: true},
     },
     {
@@ -1097,7 +1098,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "HK-SL-DIM-AU-R-A",
         vendor: "Sunricher",
         description: "ZigBee knob smart dimmer",
-        extend: [m.identify(), m.electricityMeter(), m.light({configureReporting: true})],
+        extend: [m.identify(), m.electricityMeter(), m.light({configureReporting: true}), sunricher.extend.externalSwitchType()],
     },
     {
         zigbeeModel: ["ZG2835"],
