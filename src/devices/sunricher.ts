@@ -1221,13 +1221,13 @@ export const definitions: DefinitionWithExtend[] = [
             fz.command_step,
             fz.command_move,
             fz.command_stop,
-            fz.command_recall,        
+            fz.command_recall,
             fz.command_move_hue,
             fz.command_move_to_color,
             fz.command_move_to_color_temp,
             fz.command_color_loop_set,
             fz.command_ehanced_move_to_hue_and_saturation,
-            ],
+        ],
         exposes: [
             e.battery(),
             e.battery_voltage(),
@@ -1246,13 +1246,13 @@ export const definitions: DefinitionWithExtend[] = [
                 "color_temperature_move",
                 "color_loop_set",
                 "enhanced_move_to_hue_and_saturation",
-                ]),
-            ],
-            toZigbee: [],
-            meta: {multiEndpoint: true},
-            endpoint: (device) => {
-                return {ep1: 1, ep2: 2, ep3: 3, ep4: 4};
-            },
+            ]),
+        ],
+        toZigbee: [],
+        meta: {multiEndpoint: true},
+        endpoint: (device) => {
+            return {ep1: 1, ep2: 2, ep3: 3, ep4: 4};
+        },
         configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genOnOff", "genPowerCfg"]);
