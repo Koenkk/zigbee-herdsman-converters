@@ -1,5 +1,21 @@
 # Changelog
 
+## [23.40.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.39.0...v23.40.0) (2025-05-07)
+
+
+### Features
+
+* **add:** STLO-34 ([#9296](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9296)) ([9465284](https://github.com/Koenkk/zigbee-herdsman-converters/commit/94652841016d90af50bc30c8fef0b4b1a7a04378))
+
+
+### Bug Fixes
+
+* Fix various null checks ([#9284](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9284)) ([a7f2316](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a7f23169d662b478d8cdab9e9ae530051b8b98c2))
+* HK-SL-DIM-AU-R-A support externalSwitchType ([#9294](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9294)) ([650784a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/650784af9120252abad971d6511618efbe1139db))
+* Innr FL 142 C and FL 122 C: support OTA ([#9298](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9298)) ([72e0d84](https://github.com/Koenkk/zigbee-herdsman-converters/commit/72e0d8495ca378d085ad0cb49c73f8a94a815937))
+* Superled 70012: disable effect ([#9295](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9295)) ([cff5677](https://github.com/Koenkk/zigbee-herdsman-converters/commit/cff567703e6745f7eba100e6faf8c3acbf5f592d))
+* Update Sunricher 4 channel remotes ([#9293](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9293)) ([080c12d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/080c12d060183c2a50dc850506e354f3bbb2ab78))
+
 ## [23.39.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.38.0...v23.39.0) (2025-05-06)
 
 
