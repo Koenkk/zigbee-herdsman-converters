@@ -1054,7 +1054,7 @@ const fzLocal = {
             const duration = msg.data.readUInt16LE(6);
             // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
             let buffer;
-            if (options.led_response !== undefined) {
+            if (options.led_response != null) {
                 buffer = Buffer.from(options.led_response as string, "hex");
                 if (buffer.length !== 9) {
                     logger.error(`Invalid length of led_response: ${buffer.length} (should be 9)`, NS);

@@ -96,16 +96,18 @@ export function ikeaLight(args?: Omit<m.LightArgs, "colorTemp"> & {colorTemp?: t
         if (result.toZigbee) {
             // add unfreeze support for color lights
             result.toZigbee = result.toZigbee.map((orig) => {
-                if (orig.key?.some((k) => keysNeedingUnfreeze.has(k))) {
-                    const origOptions = orig.options;
+                // As of 2025-04, it looks like all IKEA WS/CWS lights are affected by the freezing bug:
+                const affectedByFreezingBug = true;
 
+                if (orig.options && affectedByFreezingBug) {
+                    const origOptions = orig.options;
                     return {
                         ...orig,
                         options:
                             typeof origOptions === "function"
                                 ? (def) => [...origOptions(def), options.unfreeze_support()]
                                 : [...origOptions, options.unfreeze_support()],
-                        convertSet: ikea_bulb_unfreeze(orig.convertSet),
+                        convertSet: trackFreezing(orig.convertSet),
                     };
                 }
 
@@ -531,7 +533,7 @@ export function tradfriOccupancy(): ModernExtend {
                 )
                     return;
 
-                const timeout = options && options.occupancy_timeout !== undefined ? Number(options.occupancy_timeout) : msg.data.ontime / 10;
+                const timeout = options?.occupancy_timeout != null ? Number(options.occupancy_timeout) : msg.data.ontime / 10;
 
                 // Stop existing timer because motion is detected and set a new one.
                 clearTimeout(globalStore.getValue(msg.endpoint, "timer"));
@@ -869,61 +871,69 @@ const unfreezeMechanisms: {
     },
 };
 
-// zigbee commands which will freeze an IKEA light
-const willFreeze = (payload: KeyValue, transition: number, value: unknown) =>
-    // any color command with a transition will freeze the light...
+const STOP_VALUES = ["stop", "0", 0];
+
+// Payloads that can freeze and unfreeze the lights:
+
+const COLOR_CHANGE = /(^|_)(color(temp(erature)?)?|hue|saturation)($|_)/;
+const willFreeze = (key: string, transition: number, value: unknown) =>
+    // Any color change command with a transition will freeze the light...
+    COLOR_CHANGE.test(key) &&
     transition > 0 &&
-    ("color" in payload ||
-        "color_temp" in payload ||
-        "color_temp_move" in payload ||
-        "color_temp_percent" in payload ||
-        "color_temp_startup" in payload ||
-        "color_temp_step" in payload ||
-        "colortemp_move" in payload) &&
-    // ...except for 'stop' commands:
-    // aka { rate: 1, movemode: 0 }, which are generated
-    // in light_colortemp_move() from these arguments:
-    value !== "stop" &&
-    value !== 0;
+    // ...except if it's a move/step and we're stopping:
+    !STOP_VALUES.some((stop) => value === stop);
+
+const UNFREEZE_DEPENDS_ON_LIGHT = /(color_temp)/; // CWS lights do not support this
+const UNFREEZE_ALWAYS = /^(brightness_(move|step))|(color_temp_step)$/;
+const UNFREEZE_WITH_STOP = /^(color_temp_move)$/;
+const willUnfreeze = (key: string, value: unknown) => {
+    if (UNFREEZE_DEPENDS_ON_LIGHT.test(key)) {
+        return false; // be pessimistic and assume the light won't support it
+    }
+    if (UNFREEZE_ALWAYS.test(key)) {
+        return true; // otherwise those will unfreeze
+    }
+    if (UNFREEZE_WITH_STOP.test(key) && STOP_VALUES.some((stop) => value === stop)) {
+        return true; // and also those, if value matches
+    }
+    return false;
+};
 
 // Certain IKEA lights will freeze when given a brightness or temperature change with a transition
 // We track if a light is frozen and if so, before issuing further commands, we send a command known to unfreeze the light
 // https://github.com/Koenkk/zigbee2mqtt/issues/18574
-//
-// These are keys for whom we need to unfreeze the light before issuing a corresponding command to said light
-const keysNeedingUnfreeze = new Set(["state", "brightness", "brightness_percent", "color_temp", "color_temp_percent"]);
 
-const ikea_bulb_unfreeze = (next: Tz.Converter["convertSet"]) => {
+const trackFreezing = (next: Tz.Converter["convertSet"]) => {
     const converter: Tz.Converter["convertSet"] = async (entity, key, value, meta) => {
-        if (!keysNeedingUnfreeze.has(key) || meta.options.unfreeze_support === false) {
+        if (meta.options.unfreeze_support === false) {
             return await next(entity, key, value, meta);
         }
 
         const id = "deviceIeeeAddress" in entity ? entity.deviceIeeeAddress : entity.groupID;
         const now = Date.now();
 
+        // unfreeze if necessary before sending the desired commands:
         const wasFrozenUntil: number | null = globalStore.getValue(entity, "frozenUntil");
-        if (wasFrozenUntil != null && now <= wasFrozenUntil) {
-            logger.debug(`${id}: light is frozen until ${new Date(wasFrozenUntil).toISOString()}, unfreezing via "genLevelCtrl"`, NS);
-
-            // hardcoded to a single unfreeze mechanism for now
+        const isFrozenNow = wasFrozenUntil != null && now <= wasFrozenUntil;
+        const needsUnfreezing = isFrozenNow && !willUnfreeze(key, value);
+        if (needsUnfreezing) {
+            // hardcoded to a single unfreeze mechanism for now:
+            logger.debug(`${id}: light frozen until ${new Date(wasFrozenUntil).toISOString()}, unfreezing via "genLevelCtrl"`, NS);
             await unfreezeMechanisms.genLevelCtrl(entity);
         }
 
+        // at this point the light is not frozen, send the desired commands:
         const ret = await next(entity, key, value, meta);
 
+        // track if the command has frozen the light:
         const transition = getTransition(entity, key, meta);
-        if (willFreeze(meta.message, transition.time, value)) {
-            // remember that the light is now frozen
+        if (willFreeze(key, transition.time, value)) {
             const millis = transition.time * 100;
             const frozenUntil = Date.now() + millis;
-
-            logger.debug(`${id}: marking light as frozen until ${new Date(frozenUntil).toISOString()} because of "${key}"`, NS);
-
+            logger.debug(`${id}: marking light as frozen until ${new Date(frozenUntil).toISOString()} because of "${key}" with transition`, NS);
             globalStore.putValue(entity, "frozenUntil", frozenUntil);
         } else if (wasFrozenUntil != null) {
             logger.debug(`${id}: marking light as unfrozen`, NS);
-
             globalStore.clearValue(entity, "frozenUntil");
         }
 
