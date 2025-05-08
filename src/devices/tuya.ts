@@ -12641,10 +12641,10 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_ya4ft0w4", "_TZE200_ya4ft0w4", "_TZE204_gkfbdvyx"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_ya4ft0w4", "_TZE200_ya4ft0w4", "_TZE204_gkfbdvyx", "_TZE200_gkfbdvyx"]),
         model: "ZY-M100-24GV3",
         vendor: "Tuya",
-        description: "24G MmWave radar human presence motion sensor（added distance switch）",
+        description: "24G MmWave radar human presence motion sensor (added distance switch)",
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
@@ -12670,7 +12670,7 @@ export const definitions: DefinitionWithExtend[] = [
                     .withUnit("s")
                     .withDescription("Fade time"),
             ];
-            if (!device || device.manufacturerName === "_TZE204_gkfbdvyx") {
+            if (!device || device.manufacturerName === "_TZE204_gkfbdvyx" || device.manufacturerName === "_TZE200_gkfbdvyx") {
                 exps.push(
                     e
                         .numeric("detection_distance_min", ea.STATE_SET)
