@@ -1838,6 +1838,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             boschExtend.bmct(),
         ],
+        ota: true,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genIdentify", "closuresWindowCovering", "boschSpecific"]);
