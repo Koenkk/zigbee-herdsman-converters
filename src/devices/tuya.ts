@@ -564,6 +564,14 @@ const tzLocal = {
             }
         },
     } satisfies Tz.Converter,
+    invert_cover_percent_fix: {
+        key: ["state", "position"],
+        convertSet: async (entity, key, value, meta) => {
+            const shouldInvert = key === "position" && meta.options.cover_position_percent_fix;
+            const newValue = shouldInvert ? 100 - Number(value) : value;
+            return await legacy.toZigbee.tuya_cover_control.convertSet(entity, key, newValue, meta);
+        },
+    } satisfies Tz.Converter,
 };
 
 const fzLocal = {
@@ -4444,7 +4452,6 @@ export const definitions: DefinitionWithExtend[] = [
                 "_TZE200_gaj531w3",
                 "_TZE200_yia0p3tr",
                 "_TZE200_rsj5pu8y",
-                "_TZE204_xu4a5rhj",
                 "_TZE204_nladmfvf",
                 "_TZE200_2odrmqwq",
                 "_TZE204_lh3arisb",
@@ -4501,6 +4508,22 @@ export const definitions: DefinitionWithExtend[] = [
                 .withFeature(e.numeric("motor_speed", ea.STATE_SET).withValueMin(0).withValueMax(255).withDescription("Motor speed"))
                 .withFeature(e.binary("reverse_direction", ea.STATE_SET, true, false).withDescription("Reverse the motor direction")),
         ],
+    },
+    {
+        fingerprint: [...tuya.fingerprint("TS0601", ["_TZE204_xu4a5rhj"])],
+        model: "M3TYW-2.0-13",
+        vendor: "Tuya",
+        description: "Longsam M3 curtain motor",
+        fromZigbee: [legacy.fromZigbee.tuya_cover, fz.ignore_basic_report],
+        toZigbee: [tzLocal.invert_cover_percent_fix, legacy.toZigbee.tuya_cover_options],
+        exposes: [
+            e.cover_position().setAccess("position", ea.STATE_SET),
+            e
+                .composite("options", "options", ea.STATE_SET)
+                .withFeature(e.numeric("motor_speed", ea.STATE_SET).withValueMin(0).withValueMax(255).withDescription("Motor speed"))
+                .withFeature(e.binary("reverse_direction", ea.STATE_SET, true, false).withDescription("Reverse the motor direction")),
+        ],
+        options: [exposes.options.cover_position_percent_fix()],
     },
     {
         fingerprint: [...tuya.fingerprint("TS0601", ["_TZE200_eegnwoyw"]), ...tuya.fingerprint("TS0105", ["_TZE600_ogyg1y6b"])],
