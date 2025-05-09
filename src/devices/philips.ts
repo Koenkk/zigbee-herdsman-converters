@@ -770,7 +770,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: undefined}, color: true})],
     },
     {
-        zigbeeModel: ["1743430P7"],
+        zigbeeModel: ["1743430P7", "1745430A7"],
         model: "1743430P7",
         vendor: "Philips",
         description: "Hue Impress outdoor Pedestal",
