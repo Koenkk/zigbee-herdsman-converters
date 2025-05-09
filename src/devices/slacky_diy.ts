@@ -1,17 +1,34 @@
+import {Zcl} from "zigbee-herdsman";
+
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
+import * as constants from "../lib/constants";
 import * as exposes from "../lib/exposes";
+import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as globalStore from "../lib/store";
-import type {Definition, DefinitionWithExtend, Expose, Fz, KeyValue, KeyValueAny, ModernExtend, Tz, Zh} from "../lib/types";
+import type {
+    Configure,
+    Definition,
+    DefinitionWithExtend,
+    Expose,
+    Fz,
+    KeyValue,
+    KeyValueAny,
+    KeyValueNumberString,
+    ModernExtend,
+    Tz,
+    Zh,
+} from "../lib/types";
 import * as utils from "../lib/utils";
+import {assertString, getFromLookup, getOptions, postfixWithEndpointName, precisionRound} from "../lib/utils";
 
 const e = exposes.presets;
 const ea = exposes.access;
 
 const defaultReporting = {min: 0, max: 300, change: 0};
-const ppmReporting = {min: 10, max: 300, change: 0.000001};
+const co2Reporting = {min: 10, max: 300, change: 0.000001};
 const batteryReporting = {min: 3600, max: 0, change: 0};
 
 const model_r01 = "Tuya_Thermostat_r01";
@@ -898,15 +915,15 @@ function waterPreset(): ModernExtend {
                     // biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
                     step_water: (value as any).step_water_preset,
                 };
-                if (values.hot_water != null && values.hot_water >= 0) {
+                if (values.hot_water !== undefined && values.hot_water >= 0) {
                     const hot_water_preset = Number.parseInt(values.hot_water);
                     await endpoint.write("seMetering", {61440: {value: hot_water_preset, type: 0x23}});
                 }
-                if (values.cold_water != null && values.cold_water >= 0) {
+                if (values.cold_water !== undefined && values.cold_water >= 0) {
                     const cold_water_preset = Number.parseInt(values.cold_water);
                     await endpoint.write("seMetering", {61441: {value: cold_water_preset, type: 0x23}});
                 }
-                if (values.step_water != null && values.step_water >= 0) {
+                if (values.step_water !== undefined && values.step_water >= 0) {
                     const step_water_preset = Number.parseInt(values.step_water);
                     await endpoint.write("seMetering", {61442: {value: step_water_preset, type: 0x21}});
                 }
@@ -923,41 +940,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SLACKY_DIY_CO2_SENSOR_R01",
         vendor: "Slacky-DIY",
         description: "Tuya CO2 sensor with custom Firmware",
-        extend: [m.co2({reporting: ppmReporting})],
-        ota: true,
-    },
-    {
-        zigbeeModel: ["Tuya_CO2Sensor_r02"],
-        model: "SLACKY_DIY_CO2_SENSOR_R02",
-        vendor: "Slacky-DIY",
-        description: "Tuya CO2 sensor with custom Firmware",
-        extend: [
-            m.co2({reporting: ppmReporting}),
-            m.numeric({
-                name: "formaldehyde",
-                access: "STATE_GET",
-                cluster: "msFormaldehyde",
-                attribute: "measuredValue",
-                reporting: ppmReporting,
-                unit: "ppm",
-                scale: 0.000001,
-                precision: 2,
-                description: "Measured Formaldehyde value",
-            }),
-            m.numeric({
-                name: "voc",
-                access: "STATE_GET",
-                cluster: "genAnalogInput",
-                attribute: "presentValue",
-                reporting: ppmReporting,
-                unit: "ppm",
-                scale: 0.000001,
-                precision: 2,
-                description: "Measured VOC value",
-            }),
-            m.temperature(),
-            m.humidity(),
-        ],
+        extend: [m.co2({reporting: co2Reporting})],
         ota: true,
     },
     {
