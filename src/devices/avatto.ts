@@ -1,5 +1,5 @@
 import * as exposes from "../lib/exposes";
-import * as m from "../lib/module";
+import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as tuya from "../lib/tuya";
 import type {DefinitionWithExtend} from "../lib/types";
