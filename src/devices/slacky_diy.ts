@@ -311,7 +311,7 @@ const tzLocal = {
     thermostat_brightness_level: {
         key: ["brightness_level"],
         convertSet: async (entity, key, value, meta) => {
-            utils.assertNumber(value);
+            //utils.assertNumber(value);
             const lookup = {Off: 0, Low: 1, Medium: 2, High: 3};
             await entity.write("hvacThermostat", {[attrThermLevel]: {value: utils.getFromLookup(value, lookup), type: 0x30}});
             return {state: {brightness_level: value}};
@@ -632,8 +632,7 @@ const electricityMeterExtend = {
             {
                 key: ["device_address_preset"],
                 convertSet: async (entity, key, value, meta) => {
-                    utils.assertString(value);
-                    const device_address_preset = Number.parseInt(value, 10);
+                    const device_address_preset = value;
                     await entity.write("seMetering", {[attrElCityMeterAddressPreset]: {value: device_address_preset, type: 0x23}});
                     return {readAfterWriteTime: 250, state: {device_address_preset: value}};
                 },
@@ -649,8 +648,7 @@ const electricityMeterExtend = {
             {
                 key: ["device_measurement_preset"],
                 convertSet: async (entity, key, value, meta) => {
-                    utils.assertString(value);
-                    const device_measurement_preset = Number.parseInt(value, 10);
+                    const device_measurement_preset = value;
                     await entity.write("seMetering", {[attrElCityMeterMeasurementPreset]: {value: device_measurement_preset, type: 0x20}});
                     return {readAfterWriteTime: 250, state: {device_measurement_preset: value}};
                 },
