@@ -7314,17 +7314,6 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0011", ["_TZ3000_hbxsdd6k"]),
-        model: "LZWSM16-1",
-        description: "1 gang switch module - (without neutral)",
-        vendor: "AVATTO",
-        extend: [tuya.modernExtend.tuyaOnOff({switchType: true, onOffCountdown: true}), m.forcePowerSource({powerSource: "Mains (single phase)"})],
-        configure: async (device, coordinatorEndpoint) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint);
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
-        },
-    },
-    {
         fingerprint: tuya.fingerprint("TS0012", ["_TZ3000_jl7qyupf", "_TZ3000_nPGIPl5D", "_TZ3000_kpatq5pq", "_TZ3000_ljhbw1c9", "_TZ3000_4zf0crgo"]),
         model: "TS0012_switch_module",
         vendor: "Tuya",
