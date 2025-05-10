@@ -2769,7 +2769,7 @@ export const definitions: DefinitionWithExtend[] = [
             {vendor: "Norklmes", model: "MKS-CM-W5"},
             {vendor: "Somgoms", model: "ZSQB-SMB-ZB"},
             {vendor: "Moes", model: "WS-EUB1-ZG"},
-            {vendor: "", model: "ZGB-WS-EU"},
+            {vendor: "AVATTO", model: "ZGB-WS-EU"},
         ],
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
