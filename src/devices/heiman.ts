@@ -301,6 +301,7 @@ export const definitions: DefinitionWithExtend[] = [
             await endpoint.read("ssIasWd", ["maxDuration"]);
         },
         exposes: [
+            e.binary("siren_state", ea.STATE, "ON", "OFF").withDescription("Alarm state (Virtual)"),
             e.battery(),
             e
                 .numeric("max_duration", ea.ALL)
