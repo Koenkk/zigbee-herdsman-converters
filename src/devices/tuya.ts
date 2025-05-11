@@ -2672,6 +2672,17 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [tuya.whitelabel("Lonsonho", "QS-Zigbee-D02-TRIAC-L", "1 gang smart dimmer switch module without neutral", ["_TZ3000_ktuoyvt5"])],
     },
     {
+        fingerprint: tuya.fingerprint("TS110F", ["_TZ3000_hexqj6ls"]),
+        model: "CSP052",
+        vendor: "ClickSmart+",
+        description: "2 gang smart dimmer switch module without neutral",
+        extend: [
+            m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
+            m.light({powerOnBehavior: false, endpointNames: ["l1", "l2"], configureReporting: true}),
+        ],
+        meta: {multiEndpoint: true},
+    },
+    {
         fingerprint: [...tuya.fingerprint("isltm67\u0000", ["_TYST11_pisltm67"]), ...tuya.fingerprint("TS0601", ["_TZE200_pisltm67"])],
         model: "S-LUX-ZB",
         vendor: "Tuya",
