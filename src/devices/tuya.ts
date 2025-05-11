@@ -2676,8 +2676,11 @@ export const definitions: DefinitionWithExtend[] = [
         model: "CSP052",
         vendor: "ClickSmart+",
         description: "2 gang smart dimmer switch module without neutral",
-        extend: [m.deviceEndpoints({endpoints: {"l1": 1, "l2": 2}}), m.light({powerOnBehavior: false, endpointNames:["l1", "l2"], configureReporting: true})],
-        meta: {"multiEndpoint":true},
+        extend: [
+            m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
+            m.light({powerOnBehavior: false, endpointNames: ["l1", "l2"], configureReporting: true}),
+        ],
+        meta: {multiEndpoint: true},
     },
     {
         fingerprint: [...tuya.fingerprint("isltm67\u0000", ["_TYST11_pisltm67"]), ...tuya.fingerprint("TS0601", ["_TZE200_pisltm67"])],
