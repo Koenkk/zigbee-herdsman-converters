@@ -16974,6 +16974,11 @@ export const definitions: DefinitionWithExtend[] = [
                 onOffCountdown: true,
                 endpoints: ["l1", "l2", "l3"],
             }),
+            tuya.modernExtend.combineActions([
+                tuya.modernExtend.dpAction({dp: 1, lookup: {scene_1: 0}}),
+                tuya.modernExtend.dpAction({dp: 2, lookup: {scene_2: 0}}),
+                tuya.modernExtend.dpAction({dp: 3, lookup: {scene_3: 0}}),
+            ]),
         ],
         endpoint: (device) => ({l1: 1, l2: 2, l3: 3}),
         meta: {
