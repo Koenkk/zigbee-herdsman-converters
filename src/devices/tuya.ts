@@ -11640,7 +11640,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [0x66, "state_l8", tuya.valueConverter.onOff],
             ],
         },
-        whiteLabel: [tuya.whitelabel("Nova Digital", "ZTS-8W/B", "8 Gang Switch", ["_TZE204_nvxorhcj"])],
+        whiteLabel: [tuya.whitelabel("Nova Digital", "ZTS-8W-B", "8 Gang Switch", ["_TZE204_nvxorhcj"])],
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_adlblwab"]),
