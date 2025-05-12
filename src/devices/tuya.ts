@@ -17198,7 +17198,7 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: [{modelID: "TS0601", manufacturerName: "_TZ3210_emqmwtym"}],
         model: "EPJ-ZB",
         vendor: "NovaDigital",
-        description: "Smart Sliding Window Pusher",
+        description: "Smart sliding window pusher",
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         onEvent: tuya.onEventSetTime,
