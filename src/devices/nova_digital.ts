@@ -12,25 +12,36 @@ export const definitions: DefinitionWithExtend[] = [
         model: "NTZB-04 W/B",
         vendor: "Nova Digital",
         description: "4 gang with 2 sockets 4x4",
-        extend: [
-            tuya.modernExtend.tuyaOnOff({
-                powerOnBehavior2: true,
-                indicatorMode: true,
-                endpoints: ["l1", "l2", "l3", "l4", "l5", "l6"],
-            }),
-        ],
-        endpoint: (device) => {
-            return {l1: 1, l2: 2, l3: 3, l4: 4, l5: 5, l6: 6};
-        },
-        meta: {multiEndpoint: true},
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
-            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ["genOnOff"]);
-            await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ["genOnOff"]);
-            await reporting.bind(device.getEndpoint(4), coordinatorEndpoint, ["genOnOff"]);
-            await reporting.bind(device.getEndpoint(5), coordinatorEndpoint, ["genOnOff"]);
-            await reporting.bind(device.getEndpoint(6), coordinatorEndpoint, ["genOnOff"]);
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff"]);
+            device.powerSource = "Mains (single phase)";
+            device.save();
+        },
+        exposes: [
+            tuya.exposes.switch().withEndpoint("l1"),
+            tuya.exposes.switch().withEndpoint("l2"),
+            tuya.exposes.switch().withEndpoint("l3"),
+            tuya.exposes.switch().withEndpoint("l4"),
+            tuya.exposes.switch().withEndpoint("l5"),
+            tuya.exposes.switch().withEndpoint("l6"),
+        ],
+        endpoint: (device) => {
+            return {l1: 1, l2: 1, l3: 1, l4: 1, l5: 1, l6: 1};
+        },
+        meta: {
+            multiEndpoint: true,
+            tuyaDatapoints: [
+                [1, "state_l1", tuya.valueConverter.onOff],
+                [2, "state_l2", tuya.valueConverter.onOff],
+                [3, "state_l3", tuya.valueConverter.onOff],
+                [4, "state_l4", tuya.valueConverter.onOff],
+                [5, "state_l5", tuya.valueConverter.onOff],
+                [6, "state_l6", tuya.valueConverter.onOff],
+            ],
         },
     },
 ];
