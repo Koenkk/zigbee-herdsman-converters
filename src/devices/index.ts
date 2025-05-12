@@ -209,7 +209,7 @@ import {definitions as niviss} from "./niviss";
 import {definitions as nodon} from "./nodon";
 import {definitions as nordtronic} from "./nordtronic";
 import {definitions as nous} from "./nous";
-import {definitions as novadigital} from "./nova_digital";
+import {definitions as novaDigital} from "./nova_digital";
 import {definitions as novo} from "./novo";
 import {definitions as nue3a} from "./nue_3a";
 import {definitions as nyce} from "./nyce";
@@ -549,7 +549,7 @@ const definitions: DefinitionWithExtend[] = [
     ...nodon,
     ...nordtronic,
     ...nous,
-    ...novadigital,
+    ...novaDigital,
     ...novo,
     ...nue3a,
     ...nyce,
