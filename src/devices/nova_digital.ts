@@ -14,20 +14,14 @@ export const definitions: DefinitionWithExtend[] = [
         description: "4 gang with 2 sockets 4x4",
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
-        configure: async (device, coordinatorEndpoint) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint);
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff"]);
-            device.powerSource = "Mains (single phase)";
-            device.save();
-        },
+        configure: tuya.configureMagicPacket,
         exposes: [
-            tuya.exposes.switch().withEndpoint("l1"),
-            tuya.exposes.switch().withEndpoint("l2"),
-            tuya.exposes.switch().withEndpoint("l3"),
-            tuya.exposes.switch().withEndpoint("l4"),
-            tuya.exposes.switch().withEndpoint("l5"),
-            tuya.exposes.switch().withEndpoint("l6"),
+            e.switch().withEndpoint("l1"),
+            e.switch().withEndpoint("l2"),
+            e.switch().withEndpoint("l3"),
+            e.switch().withEndpoint("l4"),
+            e.switch().withEndpoint("l5"),
+            e.switch().withEndpoint("l6"),
         ],
         endpoint: (device) => {
             return {l1: 1, l2: 1, l3: 1, l4: 1, l5: 1, l6: 1};
