@@ -2885,6 +2885,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE200_emxxanvi",
             "_TZE204_g4au0afs",
             "_TZE204_w1wwxoja",
+            "_TZE204_lmgrbuwf",
         ]),
         model: "TS0601_switch_6_gang",
         vendor: "Tuya",
@@ -2910,6 +2911,7 @@ export const definitions: DefinitionWithExtend[] = [
             return {l1: 1, l2: 1, l3: 1, l4: 1, l5: 1, l6: 1};
         },
         whiteLabel: [tuya.whitelabel("Mercator Ikuü", "SSW06G", "6 Gang switch", ["_TZE200_wnp4d4va"])],
+        whiteLabel: [tuya.whitelabel("Nova Digital", "NTZB-04 W/B", "4 gang with 2 sockets 4x4", ["_TZE204_lmgrbuwf"])],
         meta: {
             multiEndpoint: true,
             tuyaDatapoints: [
