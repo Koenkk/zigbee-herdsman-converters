@@ -17203,7 +17203,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["5rta89nj"],
         fingerprint: [{modelID: "TS0601", manufacturerName: "_TZ3210_emqmwtym"}],
         model: "EPJ-ZB",
-        vendor: "NovaDigital",
+        vendor: "Nova Digital",
         description: "Smart sliding window pusher",
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
