@@ -8259,7 +8259,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Vibration sensor",
         whiteLabel: [
             tuya.whitelabel("Niceboy", "ORBIS Vibration Sensor", "Vibration sensor", ["_TYZB01_821siati"]),
-            tuya.whitelabel("iHseno", "ZG-103Z", "Smart Vibration sensor", ["_TZ3000_lzdjjfss"]),
+            tuya.whitelabel("iHseno", "Zigbee Vibration Sensor", "Vibration sensor", ["_TZ3000_lzdjjfss"]),
         ],
         fromZigbee: [fz.battery, fz.ias_vibration_alarm_1_with_timeout],
         toZigbee: [tz.TS0210_sensitivity],
