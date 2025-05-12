@@ -11608,7 +11608,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_vmcgja59", "_TZE204_dvosyycn", "_TZE200_wktrysab", "_TZE204_wktrysab"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_vmcgja59", "_TZE204_dvosyycn", "_TZE200_wktrysab", "_TZE204_wktrysab", "_TZE204_nvxorhcj"]),
         model: "TS0601_switch_8",
         vendor: "Tuya",
         description: "ZYXH 8 gang switch",
@@ -11641,6 +11641,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [0x66, "state_l8", tuya.valueConverter.onOff],
             ],
         },
+        whiteLabel: [tuya.whitelabel("Nova Digital", "ZTS-8W-B", "8 Gang Switch", ["_TZE204_nvxorhcj"])],
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_adlblwab"]),
