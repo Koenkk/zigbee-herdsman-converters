@@ -17231,6 +17231,5 @@ export const definitions: DefinitionWithExtend[] = [
                 [114, "window_detection", tuya.valueConverterBasic.lookup({Opened: 0, Closed: 1, Pending: 2})],
             ],
         },
-        extend: [],
     },
 ];
