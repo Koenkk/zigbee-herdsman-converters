@@ -2,12 +2,20 @@ import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
+import * as sunricher from "../lib/sunricher";
 import type {DefinitionWithExtend} from "../lib/types";
 
 const e = exposes.presets;
 const ea = exposes.access;
 
 export const definitions: DefinitionWithExtend[] = [
+    {
+        zigbeeModel: ["5715", "5717"],
+        model: "5715/5717",
+        vendor: "Iluminize",
+        description: "Zigbee micro smart dimmer",
+        extend: [m.light({configureReporting: true}), m.electricityMeter(), sunricher.extend.externalSwitchType(), sunricher.extend.minimumPWM()],
+    },
     {
         zigbeeModel: ["ZGRC-KEY-005"],
         model: "5144.01",
