@@ -17320,7 +17320,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         meta: {
             tuyaDatapoints: [
-                [1, "vib state", tuya.valueConverter.inverse],
+                [1, "vibration", tuya.valueConverter.inverse],
                 [101, "contact", tuya.valueConverter.inverse],
                 [4, "battery", tuya.valueConverter.raw],
                 [6, "sensitivity", tuya.valueConverter.raw],
