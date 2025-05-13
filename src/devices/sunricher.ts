@@ -830,12 +830,16 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Zigbee handheld remote RGBCCT 3 channels",
         extend: [
             m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3}}),
-            m.battery(),
-            m.identify(),
-            m.commandsOnOff(),
-            m.commandsLevelCtrl(),
-            m.commandsColorCtrl(),
-            m.commandsScenes(),
+            m.battery({voltage: true, voltageReporting: true}),
+            m.identify({isSleepy: true}),
+            m.commandsOnOff({commands: ["on", "off"]}),
+            m.commandsLevelCtrl({
+                commands: ["brightness_step_up", "brightness_step_down", "brightness_move_up", "brightness_move_down", "brightness_stop", "brightness_move_to_level"],
+            }),
+            m.commandsColorCtrl({
+                commands: ["color_temperature_move", "move_to_hue_and_saturation"],
+            }),
+            m.commandsScenes({commands: ["recall", "store"]}),
         ],
     },
     {
