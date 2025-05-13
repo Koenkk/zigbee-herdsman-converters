@@ -834,7 +834,14 @@ export const definitions: DefinitionWithExtend[] = [
             m.identify({isSleepy: true}),
             m.commandsOnOff({commands: ["on", "off"]}),
             m.commandsLevelCtrl({
-                commands: ["brightness_step_up", "brightness_step_down", "brightness_move_up", "brightness_move_down", "brightness_stop", "brightness_move_to_level"],
+                commands: [
+                    "brightness_step_up",
+                    "brightness_step_down",
+                    "brightness_move_up",
+                    "brightness_move_down",
+                    "brightness_stop",
+                    "brightness_move_to_level",
+                ],
             }),
             m.commandsColorCtrl({
                 commands: ["color_temperature_move", "move_to_hue_and_saturation"],
