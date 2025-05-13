@@ -92,7 +92,7 @@ const buttonEventExposes = e.action([
 ]);
 
 function checkOption(device: Zh.Device, options: KeyValue, key: string) {
-    if (options != null && options[key] !== undefined) {
+    if (options != null && options[key] != null) {
         if (options[key] === "true") {
             return true;
         }
