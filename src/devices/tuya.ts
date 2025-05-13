@@ -6420,6 +6420,76 @@ export const definitions: DefinitionWithExtend[] = [
             ),
     },
     {
+        fingerprint: tuya.fingerprint("TS011F", ["_TZ321A_arrqgd67", "_TZ3210_2uollq9d", "_TZ3210_5ct6e7ye"]),
+        model: "TS011F_socket",
+        description: "Socket with power monitoring",
+        vendor: "Tuya",
+        whiteLabel: [
+            tuya.whitelabel("EKF", "RCS-ST16-WD-ZB", "Smart Socket Stockholm", ["_TZ321A_arrqgd67"]),
+            tuya.whitelabel("BSEED", "GL86ZEUSKM1W", "ZigBee EU Wall Socket", ["_TZ3210_2uollq9d"]),
+            tuya.whitelabel("BSEED", "GL86ZEUSKM1PDAC1W", "ZigBee EU Wall Socket Type-C With USB", ["_TZ3210_5ct6e7ye"]),
+        ],
+        ota: false,
+        extend: [
+            tuya.modernExtend.tuyaOnOff({
+                electricalMeasurements: true,
+                electricalMeasurementsFzConverter: {
+                    ...fz.electrical_measurement,
+                    convert: (model, msg, publish, options, meta) => {
+                        const result = (fz.electrical_measurement.convert(model, msg, publish, options, meta) as KeyValueAny) ?? {};
+                        if (result !== undefined && meta.state.state === "OFF") {
+                            if ((result.power !== undefined && result.power > 0) || (result.current !== undefined && result.current > 0)) {
+                                //reset power, current to 0 if socket is off
+                                result.power = 0;
+                                result.current = 0;
+                            }
+                        }
+                        return result;
+                    },
+                },
+                powerOutageMemory: true,
+                indicatorMode: true,
+                childLock: false,
+                onOffCountdown: true,
+            }),
+        ],
+        fromZigbee: [
+            {
+                ...fz.on_off,
+                convert: (model, msg, publish, options, meta) => {
+                    const result = (fz.on_off.convert(model, msg, publish, options, meta) as KeyValueAny) ?? {};
+                    if (result !== undefined && msg.data.onOff === 0) {
+                        //reset power, current to 0 when socket is turned off
+                        result.power = 0;
+                        result.current = 0;
+                    }
+                    return result;
+                },
+            },
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "haElectricalMeasurement", "seMetering"]);
+            await reporting.onOff(endpoint);
+            await reporting.rmsVoltage(endpoint, {min: 3, change: 1});
+            await reporting.rmsCurrent(endpoint, {min: 3, change: 25});
+            await reporting.activePower(endpoint, {min: 3, change: 5});
+            await reporting.currentSummDelivered(endpoint, {min: 3, change: 10});
+
+            endpoint.saveClusterAttributeKeyValue("haElectricalMeasurement", {
+                acCurrentDivisor: 1000,
+                acCurrentMultiplier: 1,
+            });
+            endpoint.saveClusterAttributeKeyValue("seMetering", {
+                divisor: 100,
+                multiplier: 1,
+            });
+            device.save();
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS011F", ["_TZ3000_in5s3wn1", "_TZ3000_wbloefbf"]),
         model: "TS011F_switch_5_gang",
         description: "2 gang 2 usb 1 wall ac outlet",
