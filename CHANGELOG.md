@@ -1,5 +1,21 @@
 # Changelog
 
+## [23.43.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.42.0...v23.43.0) (2025-05-13)
+
+
+### Features
+
+* Add `_TZ3000_lzdjjfss` and update Sunricher SR-ZG2858A ([#9328](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9328)) ([8a7685d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8a7685d0febc2b53eb600b3d234755da0d7fc235))
+* **add:** NTS2-W-B ([#9334](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9334)) ([7db5c91](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7db5c9137a2cbd4135960420a8cb26499daf0f66))
+* Third Reality 3RSPE02065Z, 3RSPU01080Z and 3RSP02064Z: support `ac_frequency` and `power_factor` ([#9333](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9333)) ([6e299c1](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6e299c14ebe11999a9e4d33f0eba2f8c8b7093fb))
+
+
+### Bug Fixes
+
+* GWRJN5169: improve integration ([#9331](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9331)) ([634af89](https://github.com/Koenkk/zigbee-herdsman-converters/commit/634af89450ce45f14ae6df130aca8127a5598da9))
+* **ignore:** Correct Nova Digital names from NovaDigital to Nova Digital ([#9329](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9329)) ([e0b0377](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e0b03772188d3ebcdda910f625853cab5b21fc97))
+* Improvements for varoius Zigbee TLC devices ([#9330](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9330)) ([a3c4f4b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a3c4f4bec5b76bb043275219fd35f8dda6608877))
+
 ## [23.42.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.41.0...v23.42.0) (2025-05-12)
 
 
