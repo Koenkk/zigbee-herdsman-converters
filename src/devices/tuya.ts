@@ -9910,7 +9910,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["CK-BL702-MWS-01(7016)"],
         fingerprint: tuya.fingerprint("TS0225", ["_TZE200_2aaelwxk"]),
         model: "ZG-205Z/A",
-        vendor: "tuya",
+        vendor: "Tuya",
         description: "5.8Ghz/24Ghz Human presence sensor",
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
