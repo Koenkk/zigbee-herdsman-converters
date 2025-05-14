@@ -267,16 +267,7 @@ export const definitions: DefinitionWithExtend[] = [
         - Humidity (+calibration)
     */
     {
-        zigbeeModel: [
-            "TS0201-z",
-            "TS0201-bz",
-            "TH03Z-z",
-            "TH03Z-bz",
-            "ZTH01-z",
-            "ZTH01-bz",
-            "ZTH02-z",
-            "ZTH02-bz",
-        ],
+        zigbeeModel: ["TS0201-z", "TS0201-bz", "TH03Z-z", "TH03Z-bz", "ZTH01-z", "ZTH01-bz", "ZTH02-z", "ZTH02-bz"],
         // TS0201 with ZigbeeTLc firmware
         model: "TS0201-z",
         vendor: "Tuya",
