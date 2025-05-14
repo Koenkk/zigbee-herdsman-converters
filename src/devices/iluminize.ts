@@ -204,7 +204,7 @@ export const definitions: DefinitionWithExtend[] = [
             fz.command_stop,
             fz.command_move,
             fz.command_color_loop_set,
-            fz.command_ehanced_move_to_hue_and_saturation,
+            fz.command_enhanced_move_to_hue_and_saturation,
         ],
         exposes: [
             e.battery(),
