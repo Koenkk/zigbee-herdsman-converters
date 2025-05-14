@@ -1050,7 +1050,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["SNZB-02WD"],
-        model: "SNZB-02DW",
+        model: "SNZB-02WD",
         vendor: "SONOFF",
         description: "Waterproof (IP65) temperature and humidity sensor with screen",
         extend: [
