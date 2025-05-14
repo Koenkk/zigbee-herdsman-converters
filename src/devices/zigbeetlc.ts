@@ -111,10 +111,7 @@ const extend = {
 */
 export const definitions: DefinitionWithExtend[] = [
     {
-        fingerprint: [
-            {modelID: "LYWSD03MMC-z", manufacturerName: "Xiaomi"},
-            {modelID: "LYWSD03MMC-bz", manufacturerName: "Xiaomi"},
-        ],
+        zigbeeModel: ["LYWSD03MMC-z", "LYWSD03MMC-bz"],
         // LYWSD03MMC or similar with ZigbeeTLc firmware (alternative is devbis firmware)
         model: "LYWSD03MMC-z",
         vendor: "Xiaomi",
@@ -139,10 +136,7 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
     },
     {
-        fingerprint: [
-            {modelID: "MJWSD06MMC-z", manufacturerName: "Xiaomi"},
-            {modelID: "MJWSD06MMC-bz", manufacturerName: "Xiaomi"},
-        ],
+        zigbeeModel: ["MJWSD06MMC-z", "MJWSD06MMC-bz"],
         // MJWSD06MMC with ZigbeeTLc firmware, normal device is Bluetooth only
         model: "MJWSD06MMC",
         vendor: "Xiaomi",
@@ -167,10 +161,7 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
     },
     {
-        fingerprint: [
-            {modelID: "MHO-C122-z", manufacturerName: "MiaoMiaoCe"},
-            {modelID: "MHO-C122-bz", manufacturerName: "MiaoMiaoCe"},
-        ],
+        zigbeeModel: ["MHO-C122-z", "MHO-C122-bz"],
         // MHO-C122 with ZigbeeTLc firmware, normal device is Bluetooth only
         model: "MHO-C122",
         vendor: "MiaoMiaoCe",
@@ -195,12 +186,7 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
     },
     {
-        fingerprint: [
-            {modelID: "MHO-C401-z", manufacturerName: "MiaoMiaoCe"},
-            {modelID: "MHO-C401-bz", manufacturerName: "MiaoMiaoCe"},
-            {modelID: "MHO-C401N-z", manufacturerName: "MiaoMiaoCe"},
-            {modelID: "MHO-C401N-bz", manufacturerName: "MiaoMiaoCe"},
-        ],
+        zigbeeModel: ["MHO-C401-z", "MHO-C401-bz", "MHO-C401N-z", "MHO-C401N-bz"],
         // MHO-C401 with ZigbeeTLc firmware, normal device is Bluetooth only
         model: "MHO-C401",
         vendor: "MiaoMiaoCe",
@@ -225,12 +211,7 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
     },
     {
-        fingerprint: [
-            {modelID: "CGG1-z", manufacturerName: "Qingping"},
-            {modelID: "CGG1-bz", manufacturerName: "Qingping"},
-            {modelID: "CGG1N-z", manufacturerName: "Qingping"},
-            {modelID: "CGG1N-bz", manufacturerName: "Qingping"},
-        ],
+        zigbeeModel: ["CGG1-z", "CGG1-bz", "CGG1N-z", "CGG1N-bz"],
         // CGG1 with ZigbeeTLc firmware, normal device is Bluetooth only
         model: "CGG1",
         vendor: "Qingping",
@@ -261,10 +242,7 @@ export const definitions: DefinitionWithExtend[] = [
         - Display
     */
     {
-        fingerprint: [
-            {modelID: "CGDK2-z", manufacturerName: "Qingping"},
-            {modelID: "CGDK2-bz", manufacturerName: "Qingping"},
-        ],
+        zigbeeModel: ["CGDK2-z", "CGDK2-bz"],
         // CGDK2 with ZigbeeTLc firmware, normal device is Bluetooth only
         model: "CGDK2",
         vendor: "Qingping",
@@ -289,15 +267,15 @@ export const definitions: DefinitionWithExtend[] = [
         - Humidity (+calibration)
     */
     {
-        fingerprint: [
-            {modelID: "TS0201-z", manufacturerName: "Tuya"},
-            {modelID: "TS0201-bz", manufacturerName: "Tuya"},
-            {modelID: "TH03Z-z", manufacturerName: "Tuya"},
-            {modelID: "TH03Z-bz", manufacturerName: "Tuya"},
-            {modelID: "ZTH01-z", manufacturerName: "Tuya"},
-            {modelID: "ZTH01-bz", manufacturerName: "Tuya"},
-            {modelID: "ZTH02-z", manufacturerName: "Tuya"},
-            {modelID: "ZTH02-bz", manufacturerName: "Tuya"},
+        zigbeeModel: [
+            "TS0201-z",
+            "TS0201-bz",
+            "TH03Z-z",
+            "TH03Z-bz",
+            "ZTH01-z",
+            "ZTH01-bz",
+            "ZTH02-z",
+            "ZTH02-bz",
         ],
         // TS0201 with ZigbeeTLc firmware
         model: "TS0201-z",
