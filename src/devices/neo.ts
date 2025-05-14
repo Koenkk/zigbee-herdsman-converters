@@ -525,7 +525,11 @@ export const definitions: DefinitionWithExtend[] = [
                 [104, "output_switch", tuya.valueConverter.onOff],
                 [103, "output_time", tuya.valueConverter.raw],
                 [105, "led_switch", tuya.valueConverter.onOff],
-                [102, "lux_value", tuya.valueConverterBasic.lookup({"10 lux": tuya.enum(0), "20 lux": tuya.enum(1), "50 lux": tuya.enum(2), "24h": tuya.enum(3)})],
+                [
+                    102,
+                    "lux_value",
+                    tuya.valueConverterBasic.lookup({"10 lux": tuya.enum(0), "20 lux": tuya.enum(1), "50 lux": tuya.enum(2), "24h": tuya.enum(3)}),
+                ],
             ],
         },
     },
