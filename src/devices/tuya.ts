@@ -9907,7 +9907,8 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [...tuya.fingerprint("TS0225", ["_TZE200_2aaelwxk"]), ...tuya.fingerprint("CK-BL702-MWS-01(7016)", ["_TZE200_2aaelwxk"])],
+        zigbeeModel: ["CK-BL702-MWS-01(7016)"],
+        fingerprint: tuya.fingerprint("TS0225", ["_TZE200_2aaelwxk"]),
         model: "ZG-205Z/A",
         vendor: "tuya",
         description: "5.8Ghz/24Ghz Human presence sensor",
