@@ -140,6 +140,34 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: [
+            {modelID: "MJWSD06MMC-z", manufacturerName: "Xiaomi"},
+            {modelID: "MJWSD06MMC-bz", manufacturerName: "Xiaomi"},
+        ],
+        // MJWSD06MMC with ZigbeeTLc firmware, normal device is Bluetooth only
+        model: "MJWSD06MMC",
+        vendor: "Xiaomi",
+        description: "Temperature and Humidity Monitor 3 Mini (pvxx/ZigbeeTLc)",
+        extend: [
+            m.temperature({reporting: {min: "10_SECONDS", max: "1_HOUR", change: 10}}),
+            m.humidity(),
+            extend.enableDisplay,
+            extend.temperatureDisplayMode,
+            extend.comfortSmiley,
+            extend.comfortTemperatureMin,
+            extend.comfortTemperatureMax,
+            extend.comfortHumidityMin,
+            extend.comfortHumidityMax,
+            extend.temperatureCalibration,
+            extend.humidityCalibration,
+            extend.measurementInterval,
+            m.battery({
+                voltage: true,
+            }),
+        ],
+        ota: true,
+    },
+    {
+        fingerprint: [
             {modelID: "MHO-C122-z", manufacturerName: "MiaoMiaoCe"},
             {modelID: "MHO-C122-bz", manufacturerName: "MiaoMiaoCe"},
         ],
