@@ -4700,7 +4700,6 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0601_cover_11",
         vendor: "Tervix",
         description: "Pro Line ZigBee Curtain Motor",
-        whiteLabel: [{vendor: "Tervix", model: "Pro Line Curtain Motor ZM79E-DT"}],
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
