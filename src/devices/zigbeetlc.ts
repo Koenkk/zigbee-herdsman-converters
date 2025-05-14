@@ -232,11 +232,11 @@ export const definitions: DefinitionWithExtend[] = [
             {modelID: "CGG1N-bz", manufacturerName: "Qingping"},
         ],
         // CGG1 with ZigbeeTLc firmware, normal device is Bluetooth only
-        model: 'CGG1',
-        vendor: 'Qingping',
-        description: 'Temp & RH Monitor (pvxx/ZigbeeTLc)',
+        model: "CGG1",
+        vendor: "Qingping",
+        description: "Temp & RH Monitor (pvxx/ZigbeeTLc)",
         extend: [
-            m.temperature({ reporting: { min: "10_SECONDS", max: "1_HOUR", change: 10 } }),
+            m.temperature({reporting: {min: "10_SECONDS", max: "1_HOUR", change: 10}}),
             m.humidity(),
             extend.enableDisplay,
             extend.temperatureDisplayMode,
