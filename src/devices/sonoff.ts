@@ -1049,6 +1049,58 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
+        zigbeeModel: ["SNZB-02WD"],
+        model: "SNZB-02WD",
+        vendor: "SONOFF",
+        description: "Waterproof (IP65) temperature and humidity sensor with screen",
+        extend: [
+            m.deviceAddCustomCluster("customSonoffSnzb02wd", {
+                ID: 0xfc11,
+                attributes: {
+                    temperatureUnits: {ID: 0x0007, type: Zcl.DataType.UINT16},
+                    temperatureCalibration: {ID: 0x2003, type: Zcl.DataType.INT16},
+                    humidityCalibration: {ID: 0x2004, type: Zcl.DataType.INT16},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            m.battery({voltage: true, voltageReporting: true}),
+            m.temperature(),
+            m.humidity(),
+            m.bindCluster({cluster: "genPollCtrl", clusterType: "input"}),
+            m.enumLookup({
+                name: "temperature_units",
+                lookup: {celsius: 0, fahrenheit: 1},
+                cluster: "customSonoffSnzb02wd",
+                attribute: "temperatureUnits",
+                description:
+                    "The unit of the temperature displayed on the device screen. Note: wake up the device by pressing the button on the back before changing this value.",
+            }),
+            m.numeric({
+                name: "temperature_calibration",
+                cluster: "customSonoffSnzb02wd",
+                attribute: "temperatureCalibration",
+                description: "Offset to add/subtract to the reported temperature",
+                valueMin: -50,
+                valueMax: 50,
+                scale: 100,
+                valueStep: 0.1,
+                unit: "°C",
+            }),
+            m.numeric({
+                name: "humidity_calibration",
+                cluster: "customSonoffSnzb02wd",
+                attribute: "humidityCalibration",
+                description: "Offset to add/subtract to the reported relative humidity",
+                valueMin: -50,
+                valueMax: 50,
+                scale: 100,
+                valueStep: 0.1,
+                unit: "%",
+            }),
+        ],
+    },
+    {
         fingerprint: [
             {
                 type: "EndDevice",
