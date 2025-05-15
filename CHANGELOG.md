@@ -1,5 +1,24 @@
 # Changelog
 
+## [23.44.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.43.0...v23.44.0) (2025-05-14)
+
+
+### Features
+
+* **add:** 929003808701 ([#9340](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9340)) ([cb94e10](https://github.com/Koenkk/zigbee-herdsman-converters/commit/cb94e10a8eff4b4a8722684adb4b1c7edc062edf))
+* **add:** CGG1, MJWSD06MMC ([#9337](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9337)) ([02cb5c9](https://github.com/Koenkk/zigbee-herdsman-converters/commit/02cb5c91f72bd365fa8d9b302a5e904089b69a65))
+* **add:** EPIR_Zm ([#9341](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9341)) ([3a5dedd](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3a5dedd173657f31fa262040fd94a46d99a8bd4a))
+* **add:** SDM01W-U01, SDM01B-U01 ([#9338](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9338)) ([62ffe54](https://github.com/Koenkk/zigbee-herdsman-converters/commit/62ffe544401ac5f0f207fb361b683d5fd3397149))
+* **add:** SNZB-02WD ([#9336](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9336)) ([d2e5e06](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d2e5e068508251d4643a6132e9e4d329864e7afe))
+* **add:** ZBWD20RD ([#9342](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9342)) ([2de58fe](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2de58fe0740f9fcf27358603b066cb235df9be98))
+* **add:** ZG-102ZM, ZG-204ZV, ZG-223Z ([#9332](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9332)) ([2b91263](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2b912633ffc9dc0fd0c907c6fd52d7bb9aca9b94))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZB210_rs0ufzwg` as MiBoxer FUT039Z ([#9344](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9344)) ([3124fff](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3124fff99114837e190b061f556d2da350cdcd99))
+* Tuya NAS-PS10B2: fix `work_mode` and `lux_value` ([#9339](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9339)) ([64e167a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/64e167a821e330e2d600de744bbda7a0c8a69acf))
+
 ## [23.43.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.42.0...v23.43.0) (2025-05-13)
 
 
