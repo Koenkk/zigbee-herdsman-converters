@@ -4481,7 +4481,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: [...tuya.fingerprint("TS0601", ["_TZE204_xu4a5rhj"])],
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_xu4a5rhj"]),
         model: "M3TYW-2.0-13",
         vendor: "Tuya",
         description: "Longsam M3 curtain motor",
