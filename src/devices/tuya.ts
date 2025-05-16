@@ -4699,7 +4699,7 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_ax8a8ahx"]),
         model: "ZM79E-DT",
         vendor: "Tervix",
-        description: "Pro Line ZigBee Curtain Motor",
+        description: "Pro Line Zigbee curtain motor",
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
