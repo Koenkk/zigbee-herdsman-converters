@@ -901,6 +901,10 @@ export const options = {
         new Binary("cover_position_tilt_disable_report", access.SET, true, false).withDescription(
             `Do not publish set cover target position as a normal 'position' value (default false).`,
         ),
+    cover_position_percent_fix: () =>
+        new Binary("cover_position_percent_fix", access.SET, true, false).withDescription(
+            "Fixes inverted cover position values on affected modules when enabled (default false).",
+        ),
     local_temperature_based_on_sensor: () =>
         new Binary("local_temperature_based_on_sensor", access.SET, true, false)
             .withLabel("Local temperature sensor reporting")
