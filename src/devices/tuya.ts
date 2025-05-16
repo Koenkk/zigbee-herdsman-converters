@@ -17434,38 +17434,33 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE204_no6qtgtl'}],
-        model: 'RD24G01',
-        vendor: 'Tuya',
-        description: '24GHz human presence sensor',
+        fingerprint: [{modelID: "TS0601", manufacturerName: "_TZE204_no6qtgtl"}],
+        model: "RD24G01",
+        vendor: "Tuya",
+        description: "24GHz human presence sensor",
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         onEvent: tuya.onEventSetTime,
         configure: tuya.configureMagicPacket,
         exposes: [
-            exposes.enum('presence_state', exposes.access.STATE, ['none', 'motion', 'stationary'])
-                .withDescription('Presence state: none, motion, or stationary'),
-            exposes.numeric('target_distance_closest', exposes.access.STATE)
-                .withUnit('m').withDescription('Closest target distance'),
-            exposes.numeric('near_detection', exposes.access.STATE_SET)
-                .withUnit('m').withDescription('Minimum detection range'),
-            exposes.numeric('far_detection', exposes.access.STATE_SET)
-                .withUnit('m').withDescription('Maximum detection range'),
-            exposes.numeric('static_sensitivity', exposes.access.STATE_SET)
-                .withDescription('Static presence sensitivity'),
-            exposes.numeric('motion_sensitivity', exposes.access.STATE_SET)
-                .withDescription('Motion sensitivity'),
+            exposes
+                .enum("presence_state", exposes.access.STATE, ["none", "motion", "stationary"])
+                .withDescription("Presence state: none, motion, or stationary"),
+            exposes.numeric("target_distance_closest", exposes.access.STATE).withUnit("m").withDescription("Closest target distance"),
+            exposes.numeric("near_detection", exposes.access.STATE_SET).withUnit("m").withDescription("Minimum detection range"),
+            exposes.numeric("far_detection", exposes.access.STATE_SET).withUnit("m").withDescription("Maximum detection range"),
+            exposes.numeric("static_sensitivity", exposes.access.STATE_SET).withDescription("Static presence sensitivity"),
+            exposes.numeric("motion_sensitivity", exposes.access.STATE_SET).withDescription("Motion sensitivity"),
         ],
         meta: {
             tuyaDatapoints: [
-                [1, 'presence_state', tuya.valueConverterBasic.lookup({none: 0, motion: 1, stationary: 2})],
-                [3, 'near_detection', tuya.valueConverter.divideBy100],
-                [4, 'far_detection', tuya.valueConverter.divideBy100],
-                [9, 'target_distance_closest', tuya.valueConverter.divideBy100],
-                [101, 'static_sensitivity', tuya.valueConverter.raw],
-                [102, 'motion_sensitivity', tuya.valueConverter.raw],
+                [1, "presence_state", tuya.valueConverterBasic.lookup({none: 0, motion: 1, stationary: 2})],
+                [3, "near_detection", tuya.valueConverter.divideBy100],
+                [4, "far_detection", tuya.valueConverter.divideBy100],
+                [9, "target_distance_closest", tuya.valueConverter.divideBy100],
+                [101, "static_sensitivity", tuya.valueConverter.raw],
+                [102, "motion_sensitivity", tuya.valueConverter.raw],
             ],
         },
     },
-
 ];
