@@ -17442,26 +17442,24 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: [tuya.tz.datapoints],
         onEvent: tuya.onEventSetTime,
         configure: tuya.configureMagicPacket,
-        exposes: [
-            exposes
-                .enum("presence_state", exposes.access.STATE, ["none", "motion", "stationary"])
-                .withDescription("Presence state: none, motion, or stationary"),
-            exposes.numeric("target_distance_closest", exposes.access.STATE).withUnit("m").withDescription("Closest target distance"),
-            exposes
-                .numeric("near_detection", exposes.access.STATE_SET)
-                .withUnit("m")
-                .withValueMin(0.1)
-                .withValueMax(6)
-                .withDescription("Minimum detection range"),
-            exposes
-                .numeric("far_detection", exposes.access.STATE_SET)
-                .withUnit("m")
-                .withValueMin(0.1)
-                .withValueMax(6)
-                .withDescription("Maximum detection range"),
-            exposes.numeric("static_sensitivity", exposes.access.STATE_SET).withDescription("Static presence sensitivity"),
-            exposes.numeric("motion_sensitivity", exposes.access.STATE_SET).withDescription("Motion sensitivity"),
-        ],
+            exposes: [
+                exposes.enum("presence_state", exposes.access.STATE, ["none", "motion", "stationary"])
+                    .withDescription("Presence state: none, motion, or stationary"),
+                exposes.numeric("target_distance_closest", exposes.access.STATE)
+                    .withUnit("m").withDescription("Closest target distance"),
+                exposes.numeric("near_detection", exposes.access.STATE_SET)
+                    .withUnit("m").withDescription("Minimum detection range")
+                    .withValueMin(0.1).withValueMax(6),
+                exposes.numeric("far_detection", exposes.access.STATE_SET)
+                    .withUnit("m").withDescription("Maximum detection range")
+                    .withValueMin(0.1).withValueMax(6),
+                exposes.numeric("static_sensitivity", exposes.access.STATE_SET)
+                    .withDescription("Static presence sensitivity")
+                    .withValueMin(0).withValueMax(10),
+                exposes.numeric("motion_sensitivity", exposes.access.STATE_SET)
+                    .withDescription("Motion sensitivity")
+                    .withValueMin(0).withValueMax(10),
+            ],
         meta: {
             tuyaDatapoints: [
                 [1, "presence_state", tuya.valueConverterBasic.lookup({none: 0, motion: 1, stationary: 2})],
