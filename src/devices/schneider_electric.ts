@@ -1040,7 +1040,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        zigbeeModel: ["1GANG/DIMMER/1"],
+        zigbeeModel: ["1GANG/DIMMER/1","1GANG/DALI/1"],
         model: "MEG5116-0300/MEG5171-0000",
         vendor: "Schneider Electric",
         description: "Merten MEG5171 PlusLink Dimmer insert with Merten Wiser System M Push Button (1fold)",
