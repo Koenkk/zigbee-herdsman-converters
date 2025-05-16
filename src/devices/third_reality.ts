@@ -479,11 +479,12 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
     },
     {
-        zigbeeModel: ["3RDP01072Z"],
+        zigbeeModel: ["3RDP01072Z", "3RWP01073Z"],
         model: "3RDP01072Z",
         vendor: "Third Reality",
         description: "Smart Dual Plug ZP1",
         ota: true,
+        whiteLabel: [{vendor: "Third Reality", model: "3RWP01073Z", description: "Smart Wall Plug ZW1", fingerprint: [{modelID: "3RWP01073Z"}]}],
         extend: [
             m.deviceEndpoints({endpoints: {left: 1, right: 2}}),
             m.onOff({endpointNames: ["left", "right"]}),
