@@ -484,9 +484,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Third Reality",
         description: "Smart Dual Plug ZP1",
         ota: true,
-        whiteLabel: [
-            {vendor: 'Third Reality', model: '3RWP01073Z', description: 'Smart Wall Plug ZW1', fingerprint: [{modelID: '3RWP01073Z'}]},
-        ],
+        whiteLabel: [{vendor: "Third Reality", model: "3RWP01073Z", description: "Smart Wall Plug ZW1", fingerprint: [{modelID: "3RWP01073Z"}]}],
         extend: [
             m.deviceEndpoints({endpoints: {left: 1, right: 2}}),
             m.onOff({endpointNames: ["left", "right"]}),
