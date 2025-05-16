@@ -17434,7 +17434,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: "TS0601", manufacturerName: "_TZE204_no6qtgtl"}],
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_no6qtgtl"]),
         model: "RD24G01",
         vendor: "Tuya",
         description: "24GHz human presence sensor",
