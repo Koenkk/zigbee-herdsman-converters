@@ -1,5 +1,24 @@
 # Changelog
 
+## [23.45.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.44.0...v23.45.0) (2025-05-16)
+
+
+### Features
+
+* **add:** 3RWP01073Z ([#9352](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9352)) ([a3a8f98](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a3a8f98ff5e2e53c20f3bd0ebf3dae82d371bab6))
+* **add:** M3TYW-2.0-13 ([#9310](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9310)) ([17fbde4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/17fbde4d7c870857617415552a2f5a264265960d))
+* **add:** RD24G01 ([#9355](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9355)) ([dec978b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/dec978b42ad01134fae0e2ddfa90dee5af4380e3))
+* **add:** ZM79E-DT ([#9343](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9343)) ([dc5245b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/dc5245bef93cb7fd5f3b38160bb82667692adfdd))
+* Tuya SPM02V2.5: expose `data_report_duration` ([#9348](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9348)) ([fff31a8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/fff31a86ec202898c02b402506f39a4f2d5aa421))
+
+
+### Bug Fixes
+
+* 3RDP01072Z: add private cluster ([#9349](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9349)) ([7adeb14](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7adeb14174d564b4c24f7011501bfc99150e0b53))
+* **detect:** Detect `1GANG/DALI/1` as Schneider Electric MEG5116-0300/MEG5171-0000 ([#9353](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9353)) ([7b66631](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7b666319dcfca0f81eb7fdbc9ce8ecc6fb70333b))
+* Fix typo in modernExtend and fromZigbee ([#9347](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9347)) ([3fcf488](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3fcf48875fa87cc42e017aed4795b43205f15514))
+* Remove `cool` `running_state` from `_TZE200_aoclfnxz` https://github.com/Koenkk/zigbee2mqtt/issues/20959 ([6bc4e51](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6bc4e51540a9d5759224ad476d8963440d06565a))
+
 ## [23.44.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.43.0...v23.44.0) (2025-05-14)
 
 
