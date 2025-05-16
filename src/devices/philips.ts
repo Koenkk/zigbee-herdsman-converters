@@ -770,7 +770,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: undefined}, color: true})],
     },
     {
-        zigbeeModel: ["1743430P7"],
+        zigbeeModel: ["1743430P7", "1745430A7"],
         model: "1743430P7",
         vendor: "Philips",
         description: "Hue Impress outdoor Pedestal",
@@ -2132,6 +2132,13 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Philips",
         description: "Hue White & Color ambience Centris ceiling light (3 spots)",
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
+    },
+    {
+        zigbeeModel: ["929003808701_01", "929003808701_02", "929003808701_03", "929003808701_04"],
+        model: "929003808701",
+        vendor: "Philips",
+        description: "Hue White & Color ambience Centris ceiling light (3 spots)",
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
     {
         zigbeeModel: ["5061031P7_01", "5061031P7_02", "5061031P7_03", "929003621001_01", "929003621001_02", "929003621001_03"],
@@ -4039,7 +4046,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
     {
-        zigbeeModel: ["LTG006"],
+        zigbeeModel: ["LTG006", "929003807801"],
         model: "046677584719",
         vendor: "Philips",
         description: "Hue White ambiance GU10 - smart spotlight ",
