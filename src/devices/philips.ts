@@ -410,7 +410,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "4034031P7",
         vendor: "Philips",
         description: "Hue Fair",
-        extend: [philips.m.light({colorTemp: {range: undefined}})],
+        extend: [philips.m.light({colorTemp: {range: [153, 454]}})],
     },
     {
         zigbeeModel: ["4034031P6"],
