@@ -17578,4 +17578,72 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_lbbg34rj"]),
+        model: "ZTS-MM",
+        vendor: "Nova Digital",
+        description: "Smart mmWave presence sensor",
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEventSetTime,
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.binary("presence", ea.STATE, true, false).withDescription("Presence detection"),
+            e.numeric("illuminance", ea.STATE).withUnit("lx").withDescription("Measured ambient light level"),
+            e.numeric("target_distance", ea.STATE).withUnit("m").withValueMin(0).withValueMax(9.5).withValueStep(0.01),
+            e.numeric("radar_sensitivity", ea.STATE_SET).withValueMin(0).withValueMax(9).withValueStep(1).withDescription("Movement sensitivity"),
+            e
+                .numeric("micromovement_sensitivity", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(9)
+                .withValueStep(1)
+                .withDescription("Micromovement sensitivity"),
+            e
+                .numeric("minimum_range", ea.STATE_SET)
+                .withUnit("m")
+                .withValueMin(0)
+                .withValueMax(9.5)
+                .withValueStep(0.15)
+                .withDescription("Minimum movement detection range"),
+            e
+                .numeric("maximum_range", ea.STATE_SET)
+                .withUnit("m")
+                .withValueMin(0)
+                .withValueMax(9.5)
+                .withValueStep(0.15)
+                .withDescription("Maximum movement detection range"),
+            e
+                .numeric("micromovement_min_range", ea.STATE_SET)
+                .withUnit("m")
+                .withValueMin(0)
+                .withValueMax(6)
+                .withValueStep(0.01)
+                .withDescription("Minimum micromovement detection range"),
+            e
+                .numeric("micromovement_max_range", ea.STATE_SET)
+                .withUnit("m")
+                .withValueMin(0)
+                .withValueMax(6)
+                .withValueStep(0.01)
+                .withDescription("Maximum micromovement detection range"),
+            e.numeric("detection_delay", ea.STATE_SET).withUnit("s").withValueMin(0).withValueMax(10).withValueStep(0.1),
+            e.numeric("fading_time", ea.STATE_SET).withUnit("s").withValueMin(0).withValueMax(1500).withValueStep(1),
+        ],
+        meta: {
+            tuyaSendCommand: "sendData",
+            tuyaDatapoints: [
+                [12, "illuminance", tuya.valueConverter.raw],
+                [101, "presence", tuya.valueConverter.trueFalse1],
+                [104, "detection_delay", tuya.valueConverter.divideBy10],
+                [105, "radar_sensitivity", tuya.valueConverter.raw],
+                [106, "fading_time", tuya.valueConverter.divideBy10],
+                [107, "micromovement_sensitivity", tuya.valueConverter.raw],
+                [109, "minimum_range", tuya.valueConverter.divideBy100],
+                [110, "maximum_range", tuya.valueConverter.divideBy100],
+                [111, "micromovement_max_range", tuya.valueConverter.divideBy100],
+                [112, "micromovement_min_range", tuya.valueConverter.divideBy100],
+                [113, "target_distance", tuya.valueConverter.divideBy100],
+            ],
+        },
+    },
 ];
