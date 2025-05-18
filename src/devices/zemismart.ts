@@ -645,6 +645,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.text("name", ea.STATE_SET).withEndpoint("l1").withDescription("Name for Switch 1"),
             e.text("name", ea.STATE_SET).withEndpoint("l2").withDescription("Name for Switch 2"),
             e.text("name", ea.STATE_SET).withEndpoint("l3").withDescription("Name for Switch 3"),
+            e.text("name", ea.STATE_SET).withEndpoint("l4").withDescription("Name for Switch 4"),
             e
                 .enum("relay_status", ea.STATE_SET, ["power_on", "power_off", "restart_memory"])
                 .withEndpoint("l1")
