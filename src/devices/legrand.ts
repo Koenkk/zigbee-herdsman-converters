@@ -699,7 +699,13 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: " Dimmer switch with neutral\u0000\u0000\u0000\u0000", ieeeAddr: /^0x0004............$/}],
+        fingerprint: [
+            {
+                modelID: " Dimmer switch with neutral\u0000\u0000\u0000\u0000",
+                manufacturerName:
+                    " Legrand\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
+            },
+        ],
         model: "067797",
         vendor: "Legrand",
         description: "Dimmer switch with neutral",
