@@ -698,4 +698,27 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.onOff(endpoint);
         },
     },
+    {
+        zigbeeModel: [" Dimmer switch with neutral\u0000\u0000\u0000\u0000"],
+        model: "067797",
+        vendor: "Legrand",
+        description: "Dimmer switch with neutral",
+        ota: true,
+        fromZigbee: [fz.identify, fz.lighting_ballast_configuration, fzLegrand.cluster_fc01],
+        toZigbee: [tz.on_off, tzLegrand.led_mode, tz.legrand_device_mode, tzLegrand.identify, tz.ballast_config],
+        exposes: [
+            e.numeric("ballast_minimum_level", ea.ALL).withValueMin(1).withValueMax(254).withDescription("Specifies the minimum brightness value"),
+            e.numeric("ballast_maximum_level", ea.ALL).withValueMin(1).withValueMax(254).withDescription("Specifies the maximum brightness value"),
+            e.binary("device_mode", ea.ALL, "dimmer_on", "dimmer_off").withDescription("Allow the device to change brightness"),
+            eLegrand.identify(),
+            eLegrand.ledInDark(),
+            eLegrand.ledIfOn(),
+        ],
+        extend: [m.light({configureReporting: true})],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genBinaryInput", "genOnOff", "lightingBallastCfg"]);
+            await reporting.onOff(endpoint);
+        },
+    },
 ];
