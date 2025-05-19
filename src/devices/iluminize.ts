@@ -10,10 +10,17 @@ const ea = exposes.access;
 
 export const definitions: DefinitionWithExtend[] = [
     {
-        zigbeeModel: ["5715", "5717"],
-        model: "5715/5717",
+        zigbeeModel: ["5715"],
+        model: "5715",
         vendor: "Iluminize",
         description: "Zigbee micro smart dimmer",
+        extend: [m.light({configureReporting: true}), m.electricityMeter(), sunricher.extend.externalSwitchType(), sunricher.extend.minimumPWM()],
+    },
+    {
+        zigbeeModel: ["5717"],
+        model: "5717",
+        vendor: "Iluminize",
+        description: "ZigBee din rail smart dimmer",
         extend: [m.light({configureReporting: true}), m.electricityMeter(), sunricher.extend.externalSwitchType(), sunricher.extend.minimumPWM()],
     },
     {
