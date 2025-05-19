@@ -93,7 +93,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-    fingerprint: [
+        fingerprint: [
         {
             modelID: 'TS0601',
             manufacturerName: '_TZE200_wnvhlcgl'
@@ -104,29 +104,29 @@ export const definitions: DefinitionWithExtend[] = [
     description: 'Thermostatic radiator valve',
     fromZigbee: 
     [
-        fz.woox_thermostat,
+        legacy.fromZigbee.woox_thermostat,
     ],
     toZigbee: 
     [
-        //tz.tuya_data_point_test
-        tz.woox_thermostat_child_lock,
-        tz.woox_thermostat_current_heating_setpoint,
-        tz.woox_thermostat_system_mode,
-        tz.woox_away_mode,
-        tz.woox_comfort_temperature,
-        tz.woox_eco_temperature,
-        tz.woox_local_temperature_calibration,
-        tz.woox_window_detection_temperature,
-        tz.woox_window_detection_time,
-        tz.woox_boost_heating,
-        tz.woox_holidays_schedule,
-        tz.woox_monday_schedule,
-        tz.woox_tuesday_schedule,
-        tz.woox_wednesday_schedule,
-        tz.woox_thursday_schedule,
-        tz.woox_friday_schedule,
-        tz.woox_saturday_schedule,
-        tz.woox_sunday_schedule,
+        //legacy.tuya_data_point_test
+        legacy.toZigbee.woox_thermostat_child_lock,
+        legacy.toZigbee.woox_thermostat_current_heating_setpoint,
+        legacy.toZigbee.woox_thermostat_system_mode,
+        legacy.toZigbee.woox_away_mode,
+        legacy.toZigbee.woox_comfort_temperature,
+        legacy.toZigbee.woox_eco_temperature,
+        legacy.toZigbee.woox_local_temperature_calibration,
+        legacy.toZigbee.woox_window_detection_temperature,
+        legacy.toZigbee.woox_window_detection_time,
+        legacy.toZigbee.woox_boost_heating,
+        legacy.toZigbee.woox_holidays_schedule,
+        legacy.toZigbee.woox_monday_schedule,
+        legacy.toZigbee.woox_tuesday_schedule,
+        legacy.toZigbee.woox_wednesday_schedule,
+        legacy.toZigbee.woox_thursday_schedule,
+        legacy.toZigbee.woox_friday_schedule,
+        legacy.toZigbee.woox_saturday_schedule,
+        legacy.toZigbee.woox_sunday_schedule,
     ],
     onEvent: tuya.onEventSetTime,
     configure: async (device, coordinatorEndpoint, logger) => 
@@ -164,10 +164,10 @@ export const definitions: DefinitionWithExtend[] = [
         exposes.binary('boost_heating', ea.STATE_SET, 'ON', 'OFF'),
         exposes.numeric('boost_time', ea.STATE),
         exposes.numeric('error_status', ea.STATE).withDescription('Error status'),
-        exposes.composite('programming_mode1').withDescription('Schedule MODE ⏱ - In this mode, ' +
+        exposes.composite('programming_mode1', "weekly_schedule", 0).withDescription('Schedule MODE ⏱ - In this mode, ' +
                     'the device executes a preset holiday programming temperature time and temperature.')
             .withFeature(exposes.text('holidays_schedule', ea.STATE_SET)),
-        exposes.composite('programming_mode2').withDescription('Auto MODE ⏱ - In this mode, ' +
+        exposes.composite('programming_mode2', "weekly_schedule", 0).withDescription('Auto MODE ⏱ - In this mode, ' +
             'the device executes a preset week programming temperature time and temperature. ')
             .withFeature(exposes.text('monday_schedule', ea.STATE_SET))
             .withFeature(exposes.text('tuesday_schedule', ea.STATE_SET))
