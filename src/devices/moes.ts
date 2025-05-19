@@ -691,4 +691,41 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZ3210_5rta89nj"]),
+        model: "ZC-LP01",
+        vendor: "Moes",
+        description: "Smart sliding window pusher",
+        options: [exposes.options.invert_cover()],
+        extend: [tuya.modernExtend.tuyaBase({dp: true}), tuya.modernExtend.dpBattery({dp: 4})],
+        exposes: [
+            e.cover_position(),
+            e.binary("charging", ea.STATE, true, false).withDescription("Whether the device is being charged via USB-C"),
+            e
+                .binary("automatic_mode", ea.STATE_SET, "ON", "OFF")
+                .withDescription("When set to `ON`, the device will start pushing in the same direction the window was pushed"),
+            e
+                .binary("slow_stop", ea.STATE_SET, "ON", "OFF")
+                .withDescription("When set to `ON`, the device decelerates gradually for quieter operation"),
+            e.enum("button_position", ea.STATE_SET, ["UP", "DOWN"]).withDescription("Swaps the behavior of the device's physical buttons"),
+        ],
+        meta: {
+            tuyaSendCommand: "sendData",
+            tuyaDatapoints: [
+                [
+                    102,
+                    "state",
+                    tuya.valueConverterBasic.lookup((options) =>
+                        // Some devices were shipped with a reversed firmware.
+                        options.invert_cover ? {OPEN: 1, STOP: 2, CLOSE: 0} : {OPEN: 0, STOP: 2, CLOSE: 1},
+                    ),
+                ],
+                [104, "position", tuya.valueConverter.coverPosition],
+                [105, "charging", tuya.valueConverter.trueFalse1],
+                [106, "automatic_mode", tuya.valueConverterBasic.lookup({ON: 1, OFF: 0})],
+                [110, "slow_stop", tuya.valueConverterBasic.lookup({ON: 1, OFF: 0})],
+                [112, "button_position", tuya.valueConverterBasic.lookup({UP: 1, DOWN: 0})],
+            ],
+        },
+    },
 ];
