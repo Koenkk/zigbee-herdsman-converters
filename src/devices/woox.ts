@@ -92,4 +92,89 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.batteryPercentageRemaining(endpoint);
         },
     },
+    {
+    fingerprint: [
+        {
+            modelID: 'TS0601',
+            manufacturerName: '_TZE200_wnvhlcgl'
+        },
+    ],
+    model: 'R7067',
+    vendor: 'Woox',
+    description: 'Thermostatic radiator valve',
+    fromZigbee: 
+    [
+        fz.woox_thermostat,
+    ],
+    toZigbee: 
+    [
+        //tz.tuya_data_point_test
+        tz.woox_thermostat_child_lock,
+        tz.woox_thermostat_current_heating_setpoint,
+        tz.woox_thermostat_system_mode,
+        tz.woox_away_mode,
+        tz.woox_comfort_temperature,
+        tz.woox_eco_temperature,
+        tz.woox_local_temperature_calibration,
+        tz.woox_window_detection_temperature,
+        tz.woox_window_detection_time,
+        tz.woox_boost_heating,
+        tz.woox_holidays_schedule,
+        tz.woox_monday_schedule,
+        tz.woox_tuesday_schedule,
+        tz.woox_wednesday_schedule,
+        tz.woox_thursday_schedule,
+        tz.woox_friday_schedule,
+        tz.woox_saturday_schedule,
+        tz.woox_sunday_schedule,
+    ],
+    onEvent: tuya.onEventSetTime,
+    configure: async (device, coordinatorEndpoint, logger) => 
+    {
+        const endpoint = device.getEndpoint(1);
+        await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic']);
+    },
+    exposes: 
+    [
+        exposes.climate()
+        .withLocalTemperature(ea.STATE)
+        .withSetpoint('current_heating_setpoint', 0, 30, 0.5, ea.STATE_SET)
+        .withSystemMode(['auto', 'heat'], ea.STATE_SET,'auto - Automatic mode. heat - Manual mode.')
+        .withPreset(['Comfort', 'Eco']),
+        e.away_mode(),
+        e.comfort_temperature(),
+        e.eco_temperature(),
+        exposes.numeric('local_temperature_calibration', ea.STATE_SET)
+            .withValueMin(-5.5)
+            .withValueMax(5.5)
+            .withValueStep(0.1)
+            .withUnit('°C'),
+        e.child_lock(),
+        exposes.binary('window_detection', ea.STATE, 'ON', 'OFF'),
+        exposes.numeric('window_detection_temperature', ea.STATE_SET)
+            .withValueMin(0)
+            .withValueMax(30)
+            .withValueStep(0.5)
+            .withUnit('°C'),
+        exposes.numeric('window_detection_time', ea.STATE_SET)
+            .withValueMin(0)
+            .withValueMax(60)
+            .withValueStep(1)
+            .withUnit('m'),
+        exposes.binary('boost_heating', ea.STATE_SET, 'ON', 'OFF'),
+        exposes.numeric('boost_time', ea.STATE),
+        exposes.numeric('error_status', ea.STATE).withDescription('Error status'),
+        exposes.composite('programming_mode1').withDescription('Schedule MODE ⏱ - In this mode, ' +
+                    'the device executes a preset holiday programming temperature time and temperature.')
+            .withFeature(exposes.text('holidays_schedule', ea.STATE_SET)),
+        exposes.composite('programming_mode2').withDescription('Auto MODE ⏱ - In this mode, ' +
+            'the device executes a preset week programming temperature time and temperature. ')
+            .withFeature(exposes.text('monday_schedule', ea.STATE_SET))
+            .withFeature(exposes.text('tuesday_schedule', ea.STATE_SET))
+            .withFeature(exposes.text('wednesday_schedule', ea.STATE_SET))
+            .withFeature(exposes.text('thursday_schedule', ea.STATE_SET))
+            .withFeature(exposes.text('friday_schedule', ea.STATE_SET))
+            .withFeature(exposes.text('saturday_schedule', ea.STATE_SET))
+            .withFeature(exposes.text('sunday_schedule', ea.STATE_SET)),
+    ],
 ];
