@@ -699,7 +699,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        zigbeeModel: [" Dimmer switch with neutral\u0000\u0000\u0000\u0000"],
+        fingerprint: [{modelID: " Dimmer switch with neutral\u0000\u0000\u0000\u0000", ieeeAddr: /^0x0004............$/}],
         model: "067797",
         vendor: "Legrand",
         description: "Dimmer switch with neutral",
