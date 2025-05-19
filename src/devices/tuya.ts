@@ -2957,7 +2957,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "MG-ZG01W",
         vendor: "Tuya",
         description: "1 gang switch with power meter",
-        exposes: [e.switch().withEndpoint("l1").setAccess("state", ea.STATE_SET), e.voltage(), e.current(), e.power()],
+        exposes: [tuya.exposes.switch(), e.voltage(), e.current(), e.power()],
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
@@ -2968,9 +2968,6 @@ export const definitions: DefinitionWithExtend[] = [
                 [22, "power", tuya.valueConverter.divideBy10],
                 [23, "voltage", tuya.valueConverter.divideBy10],
             ],
-        },
-        endpoint: (device) => {
-            return {l1: 1};
         },
     },
     {
