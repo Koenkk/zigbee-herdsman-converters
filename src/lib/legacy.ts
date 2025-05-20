@@ -1433,6 +1433,7 @@ const fromZigbee = {
                         break;
                     case dataPoints.wooxWindowStatus:
                         result.window_detection = value[0] ? 'OPEN' : 'CLOSED';
+                        break;
                     case dataPoints.wooxWindowTemperature:
                         result.window_detection_temperature = parseFloat((value / 2 ).toFixed(1));
                         break;
@@ -6917,7 +6918,7 @@ const toZigbee2 = {
     woox_thermostat_current_heating_setpoint: 
     {
         key: ['current_heating_setpoint'],
-        convertSet: async (entity, key, value: any, meta) =>
+        convertSet: async (entity, key, value: number, meta) =>
         {
             const temp = Math.round(value * 10);
             await sendDataPointValue(entity, dataPoints.wooxControlTemperature, temp);
@@ -6934,15 +6935,18 @@ const toZigbee2 = {
                 await sendDataPointValue(entity, dataPoints.wooxControlTemperature, 220);
                 return {state: {current_heating_setpoint: 22}};
             }
-            else if(value === 'heat')
-            {
-                await sendDataPointEnum(entity, dataPoints.wooxMode, 1);
-                await sendDataPointValue(entity, dataPoints.wooxControlTemperature, 170);
-                return {state: {current_heating_setpoint: 17}};
-            }
             else
             {
-                logger.debug(`Woox thermostat: uknown mode ${value}`, "woox_thermostat_system_mode");
+                if(value === 'heat')
+                {
+                    await sendDataPointEnum(entity, dataPoints.wooxMode, 1);
+                    await sendDataPointValue(entity, dataPoints.wooxControlTemperature, 170);
+                    return {state: {current_heating_setpoint: 17}};
+                }
+                else
+                {
+                    logger.debug(`Woox thermostat: uknown mode ${value}`, "woox_thermostat_system_mode");
+                }
             }
         },
     } satisfies Tz.Converter,
@@ -6969,7 +6973,7 @@ const toZigbee2 = {
     woox_comfort_temperature: 
     {
         key: ['comfort_temperature'],
-        convertSet: async (entity, key, value: any, meta) => 
+        convertSet: async (entity, key, value: number, meta) => 
         {
             const temp = Math.round(value * 2);
             await sendDataPointValue(entity, dataPoints.wooxComfortTemperature, temp);
@@ -6979,7 +6983,7 @@ const toZigbee2 = {
     woox_eco_temperature: 
     {
         key: ['eco_temperature'],
-        convertSet: async (entity, key, value: any, meta) => 
+        convertSet: async (entity, key, value: number, meta) => 
         {
             const temp = Math.round(value * 2);
             await sendDataPointValue(entity, dataPoints.wooxEnergySavingTemperature, temp);
@@ -6989,7 +6993,7 @@ const toZigbee2 = {
     woox_local_temperature_calibration: 
     {
         key: ['local_temperature_calibration'],
-        convertSet: async (entity, key, value: any, meta) => 
+        convertSet: async (entity, key, value: number, meta) => 
         {
             if(value < 0)
             {
@@ -7003,7 +7007,7 @@ const toZigbee2 = {
     woox_window_detection_temperature: 
     {
         key: ['window_detection_temperature'],
-        convertSet: async (entity, key, value: any, meta) => 
+        convertSet: async (entity, key, value: number, meta) => 
         {
             const temp = Math.round(value * 2);
             await sendDataPointValue(entity, dataPoints.wooxWindowTemperature, temp);
@@ -7033,7 +7037,7 @@ const toZigbee2 = {
         key: ['holidays_schedule'],
         convertSet: async (entity, key, value, meta) => 
         {
-            logger.warning(`holidays_schedule`, "woox_holidays_schedule");
+            logger.warning("holidays_schedule, "woox_holidays_schedule");
         },
     } satisfies Tz.Converter,
 
@@ -7042,7 +7046,7 @@ const toZigbee2 = {
         key: ['monday_schedule'],
         convertSet: async (entity, key, value, meta) => 
         {
-            logger.warning(`monday_schedule`, "woox_monday_schedule");
+            logger.warning("monday_schedule", "woox_monday_schedule");
         },
     } satisfies Tz.Converter,
 
@@ -7051,7 +7055,7 @@ const toZigbee2 = {
         key: ['tuesday_schedule'],
         convertSet: async (entity, key, value, meta) => 
         {
-            logger.warning(`tuesday_schedule`, "woox_tuesday_schedule");
+            logger.warning("tuesday_schedule", "woox_tuesday_schedule");
         },
     } satisfies Tz.Converter,
 
@@ -7060,7 +7064,7 @@ const toZigbee2 = {
         key: ['wednesday_schedule'],
         convertSet: async (entity, key, value, meta) => 
         {
-            logger.warning(`wednesday_schedule`, "woox_wednesday_schedule");
+            logger.warning("wednesday_schedule", "woox_wednesday_schedule");
         },
     } satisfies Tz.Converter,
 
@@ -7069,7 +7073,7 @@ const toZigbee2 = {
         key: ['thursday_schedule'],
         convertSet: async (entity, key, value, meta) => 
         {
-            logger.warning(`thursday_schedule`, "woox_thursday_schedule");
+            logger.warning("thursday_schedule", "woox_thursday_schedule");
         },
     } satisfies Tz.Converter,
 
@@ -7078,7 +7082,7 @@ const toZigbee2 = {
         key: ['friday_schedule'],
         convertSet: async (entity, key, value, meta) => 
         {
-            logger.warning(`friday_schedule`, "woox_friday_schedule");
+            logger.warning("friday_schedule", "woox_friday_schedule");
         },
     } satisfies Tz.Converter,
 
@@ -7087,7 +7091,7 @@ const toZigbee2 = {
         key: ['saturday_schedule'],
         convertSet: async (entity, key, value, meta) => 
         {
-            logger.warning(`saturday_schedule`, "woox_saturday_schedule");
+            logger.warning("saturday_schedule", "woox_saturday_schedule");
         },
     } satisfies Tz.Converter,
 
@@ -7096,7 +7100,7 @@ const toZigbee2 = {
         key: ['sunday_schedule'],
         convertSet: async (entity, key, value, meta) => 
         {
-            logger.warning(`sunday_schedule`, "woox_sunday_schedule");
+            logger.warning("sunday_schedule", "woox_sunday_schedule");
         },
     } satisfies Tz.Converter,
 
