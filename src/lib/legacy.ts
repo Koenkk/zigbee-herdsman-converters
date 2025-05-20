@@ -6918,7 +6918,7 @@ const toZigbee2 = {
     woox_thermostat_current_heating_setpoint: 
     {
         key: ['current_heating_setpoint'],
-        convertSet: async (entity, key, value: number, meta) =>
+        convertSet: async (entity, key, value: any, meta) =>
         {
             const temp = Math.round(value * 10);
             await sendDataPointValue(entity, dataPoints.wooxControlTemperature, temp);
@@ -6935,19 +6935,15 @@ const toZigbee2 = {
                 await sendDataPointValue(entity, dataPoints.wooxControlTemperature, 220);
                 return {state: {current_heating_setpoint: 22}};
             }
-            else
+
+            if(value === 'heat')
             {
-                if(value === 'heat')
-                {
-                    await sendDataPointEnum(entity, dataPoints.wooxMode, 1);
-                    await sendDataPointValue(entity, dataPoints.wooxControlTemperature, 170);
-                    return {state: {current_heating_setpoint: 17}};
-                }
-                else
-                {
-                    logger.debug(`Woox thermostat: uknown mode ${value}`, "woox_thermostat_system_mode");
-                }
+                await sendDataPointEnum(entity, dataPoints.wooxMode, 1);
+                await sendDataPointValue(entity, dataPoints.wooxControlTemperature, 170);
+                return {state: {current_heating_setpoint: 17}};
             }
+
+            logger.debug(`Woox thermostat: uknown mode ${value}`, "woox_thermostat_system_mode");
         },
     } satisfies Tz.Converter,
 
@@ -6961,19 +6957,17 @@ const toZigbee2 = {
                 await sendDataPointEnum(entity, dataPoints.wooxMode, 2);
                 return {state: {current_heating_setpoint: 0}};
             }
-            else
-            {
-                await sendDataPointEnum(entity, dataPoints.wooxMode, 0);
-                await sendDataPointValue(entity, dataPoints.wooxControlTemperature, 220);
-                return {state: {current_heating_setpoint: 22}};
-            }
+
+            await sendDataPointEnum(entity, dataPoints.wooxMode, 0);
+            await sendDataPointValue(entity, dataPoints.wooxControlTemperature, 220);
+            return {state: {current_heating_setpoint: 22}};
         },
     } satisfies Tz.Converter,
 
     woox_comfort_temperature: 
     {
         key: ['comfort_temperature'],
-        convertSet: async (entity, key, value: number, meta) => 
+        convertSet: async (entity, key, value: any, meta) => 
         {
             const temp = Math.round(value * 2);
             await sendDataPointValue(entity, dataPoints.wooxComfortTemperature, temp);
@@ -6983,7 +6977,7 @@ const toZigbee2 = {
     woox_eco_temperature: 
     {
         key: ['eco_temperature'],
-        convertSet: async (entity, key, value: number, meta) => 
+        convertSet: async (entity, key, value: any, meta) => 
         {
             const temp = Math.round(value * 2);
             await sendDataPointValue(entity, dataPoints.wooxEnergySavingTemperature, temp);
@@ -6993,7 +6987,7 @@ const toZigbee2 = {
     woox_local_temperature_calibration: 
     {
         key: ['local_temperature_calibration'],
-        convertSet: async (entity, key, value: number, meta) => 
+        convertSet: async (entity, key, value: any, meta) => 
         {
             if(value < 0)
             {
@@ -7007,7 +7001,7 @@ const toZigbee2 = {
     woox_window_detection_temperature: 
     {
         key: ['window_detection_temperature'],
-        convertSet: async (entity, key, value: number, meta) => 
+        convertSet: async (entity, key, value: any, meta) => 
         {
             const temp = Math.round(value * 2);
             await sendDataPointValue(entity, dataPoints.wooxWindowTemperature, temp);
