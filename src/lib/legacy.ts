@@ -1396,17 +1396,17 @@ const fromZigbee = {
                 switch(dp)
                 {
                     case dataPoints.wooxMode:
-                        if(value == 0)
+                        if(value === 0)
                         {
                             result.system_mode = "auto";
                             result.away_mode = 'OFF';
                         }
-                        else if(value == 1)
+                        else if(value === 1)
                         {
                             result.system_mode = "heat";
                             result.away_mode = 'OFF';
                         }
-                        else if(value == 2)
+                        else if(value === 2)
                         {
                             result.away_mode = 'ON';
                             result.system_mode = 'auto';
@@ -6928,13 +6928,13 @@ const toZigbee2 = {
         key: ['system_mode'],
         convertSet: async (entity, key, value, meta) => 
         {
-            if(value == 'auto')
+            if(value === 'auto')
             {
                 await sendDataPointEnum(entity, dataPoints.wooxMode, 0);
                 await sendDataPointValue(entity, dataPoints.wooxControlTemperature, 220);
                 return {state: {current_heating_setpoint: 22}};
             }
-            else if(value == 'heat')
+            else if(value === 'heat')
             {
                 await sendDataPointEnum(entity, dataPoints.wooxMode, 1);
                 await sendDataPointValue(entity, dataPoints.wooxControlTemperature, 170);
@@ -6952,7 +6952,7 @@ const toZigbee2 = {
         key: ['away_mode'],
         convertSet: async (entity, key, value, meta) => 
         {
-            if(value == 'ON')
+            if(value === 'ON')
             {
                 await sendDataPointEnum(entity, dataPoints.wooxMode, 2);
                 return {state: {current_heating_setpoint: 0}};
