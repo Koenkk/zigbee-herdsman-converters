@@ -1831,7 +1831,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Philips",
         description: "Hue Datura",
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
-    },    
+    },
     {
         zigbeeModel: ["929003054401"],
         model: "929003054401",
