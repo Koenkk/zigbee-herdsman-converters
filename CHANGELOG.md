@@ -1,5 +1,23 @@
 # Changelog
 
+## [23.47.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.46.0...v23.47.0) (2025-05-20)
+
+
+### Features
+
+* **add:** 067797 ([#9366](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9366)) ([7fee57d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7fee57d383149b4f14ab0d67a22d6752eb157284))
+* **add:** 5717 ([#9364](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9364)) ([59c942e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/59c942eddc399ff1401355f929ebb7b2afaeb5b9))
+* **add:** ZC-LP01 ([#9365](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9365)) ([71a98bb](https://github.com/Koenkk/zigbee-herdsman-converters/commit/71a98bb62566bb8265de411d9389f7674d5d8de4))
+* SONOFF S60ZBTPF and S60ZBTPG: expose more features ([#9263](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9263)) ([6f82625](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6f82625178c8eb41e0aecc22b1e72fa24ff8c77d))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZE204_tdhnhhiy` as Tuya TS0601_switch_8 https://github.com/Koenkk/zigbee2mqtt/issues/27454 ([9bb691a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9bb691a4841d2543db2334a755d2b7467efd97ed))
+* **detect:** Detect `_TZE284_6ycgarab` as Tuya ZSS-QY-SSD-A-EN https://github.com/Koenkk/zigbee-herdsman-converters/issues/9289 ([64e063a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/64e063a6226089ae4c8c984abdbee9dd720444fa))
+* Fix RADION TriTech ZB typo https://github.com/Koenkk/zigbee2mqtt/discussions/27455 ([6edb338](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6edb33873930a6bf67aa00b2f69aa96cdd37e9fc))
+* Tuya MG-ZG01W: simplify integration ([#9363](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9363)) ([a60a23f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a60a23fc36ed62fd1b56694980e206960ef62bb3))
+
 ## [23.46.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.45.0...v23.46.0) (2025-05-18)
 
 
