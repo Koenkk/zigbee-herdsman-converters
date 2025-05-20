@@ -6989,10 +6989,10 @@ const toZigbee2 = {
         key: ['local_temperature_calibration'],
         convertSet: async (entity, key, value: any, meta) => 
         {
-            let val = value;
+            let val = value
             if(val < 0)
             {
-                let val = val + 4096;
+                val = val + 4096;
             }
             const temp = Math.round(val * 10);
             await sendDataPointValue(entity, dataPoints.wooxTemperatureCalibration, temp);
