@@ -6683,7 +6683,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_e2bedvo9", "_TZE200_dnz6yvl2"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_e2bedvo9", "_TZE200_dnz6yvl2", "_TZE284_6ycgarab"]),
         model: "ZSS-QY-SSD-A-EN",
         vendor: "Tuya",
         description: "Smart smoke alarm",
@@ -11765,7 +11765,14 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_vmcgja59", "_TZE204_dvosyycn", "_TZE200_wktrysab", "_TZE204_wktrysab", "_TZE204_nvxorhcj"]),
+        fingerprint: tuya.fingerprint("TS0601", [
+            "_TZE200_vmcgja59",
+            "_TZE204_dvosyycn",
+            "_TZE200_wktrysab",
+            "_TZE204_wktrysab",
+            "_TZE204_nvxorhcj",
+            "_TZE204_tdhnhhiy",
+        ]),
         model: "TS0601_switch_8",
         vendor: "Tuya",
         description: "ZYXH 8 gang switch",
