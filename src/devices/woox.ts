@@ -150,7 +150,7 @@ export const definitions: DefinitionWithExtend[] = [
             exposes
                 .composite("programming_mode1", "weekly_schedule", 0)
                 .withDescription(
-                    "Schedule MODE ⏱ - In this mode, " +"the device executes a preset holiday programming temperature time and temperature.",
+                    "Schedule MODE ⏱ - In this mode, " + "the device executes a preset holiday programming temperature time and temperature.",
                 )
                 .withFeature(exposes.text("holidays_schedule", ea.STATE_SET)),
             exposes

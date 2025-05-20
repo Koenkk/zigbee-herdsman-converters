@@ -800,30 +800,30 @@ const dataPoints = {
     // Woox thermostat
     wooxDormancy: 108, // ???
     wooxRefresh: 120, //  ???
-    wooxControlTemperature: 119,// map auto and manual temperature setpoint.
-    wooxManualTemperatureSetpoint: 16,//RW
-    wooxAutomaticTemperatureSetpoint: 105,//RW
-    wooxMode: 2,//RW
-    wooxLocalTemperature: 24,//R
-    wooxTemperatureCalibration: 104,//RW
+    wooxControlTemperature: 119, // map auto and manual temperature setpoint.
+    wooxManualTemperatureSetpoint: 16, //RW
+    wooxAutomaticTemperatureSetpoint: 105, //RW
+    wooxMode: 2, //RW
+    wooxLocalTemperature: 24, //R
+    wooxTemperatureCalibration: 104, //RW
     wooxWindowStatus: 107, //R open,close
-    wooxWindowTemperature: 116,//RW
-    wooxWindowTime: 117,//RW
-    wooxChildLock: 30,//RW
-    wooxBatteryCapacity: 34,//R
-    wooxEnergySavingTemperature: 102,//RW
-    wooxComfortTemperature: 101,//RW
-    wooxHolidayModeSettings: 103,//RW
-    wooxProgrammingMonday: 109,//RW
-    wooxProgrammingTuesday: 110,//RW
-    wooxProgrammingWednesday: 111,//RW
-    wooxProgrammingThursday: 112,//RW
-    wooxProgrammingFriday: 113,//RW
-    wooxProgrammingSaturday: 114,//RW
-    wooxProgrammingSunday: 115,//RW
+    wooxWindowTemperature: 116, //RW
+    wooxWindowTime: 117, //RW
+    wooxChildLock: 30, //RW
+    wooxBatteryCapacity: 34, //R
+    wooxEnergySavingTemperature: 102, //RW
+    wooxComfortTemperature: 101, //RW
+    wooxHolidayModeSettings: 103, //RW
+    wooxProgrammingMonday: 109, //RW
+    wooxProgrammingTuesday: 110, //RW
+    wooxProgrammingWednesday: 111, //RW
+    wooxProgrammingThursday: 112, //RW
+    wooxProgrammingFriday: 113, //RW
+    wooxProgrammingSaturday: 114, //RW
+    wooxProgrammingSunday: 115, //RW
     wooxBoostHeating: 106, //RW
-    wooxFaultAlarm: 45,// R
-    wooxBoostHeatingCountdown: 118,//R
+    wooxFaultAlarm: 45, // R
+    wooxBoostHeatingCountdown: 118, //R
 
     // FrankEver
     frankEverTimer: 9,
@@ -1382,39 +1382,35 @@ const fromZigbee = {
         },
     } satisfies Fz.Converter,
 
-    woox_thermostat: 
-    {
-        cluster: 'manuSpecificTuya',
-        type: ['commandDataResponse', 'commandDataReport'],
-        convert: (model, msg, publish, options, meta) => 
-        {
+    woox_thermostat: {
+        cluster: "manuSpecificTuya",
+        type: ["commandDataResponse", "commandDataReport"],
+        convert: (model, msg, publish, options, meta) => {
             const result: KeyValueAny = {};
-            for (const dpValue of msg.data.dpValues) 
-            {
+            for (const dpValue of msg.data.dpValues) {
                 const dp = dpValue.dp;
                 const value = getDataValue(dpValue);
-                switch(dp)
-                {
+                switch(dp) {
                     case dataPoints.wooxMode:
                         if(value === 0)
                         {
                             result.system_mode = "auto";
-                            result.away_mode = 'OFF';
+                            result.away_mode = "OFF";
                         }
                         else if(value === 1)
                         {
                             result.system_mode = "heat";
-                            result.away_mode = 'OFF';
+                            result.away_mode = "OFF";
                         }
                         else if(value === 2)
                         {
-                            result.away_mode = 'ON';
-                            result.system_mode = 'auto';
+                            result.away_mode = "ON";
+                            result.system_mode = "auto";
                         }
                         else
                         {
-                            result.away_mode = 'OFF';
-                            result.system_mode = 'off';
+                            result.away_mode = "OFF";
+                            result.system_mode = "off";
                         }
                         break;
                     case dataPoints.wooxManualTemperatureSetpoint:
@@ -1432,7 +1428,7 @@ const fromZigbee = {
                         result.local_temperature_calibration = Number.parseFloat((value / 10 ).toFixed(1));
                         break;
                     case dataPoints.wooxWindowStatus:
-                        result.window_detection = value[0] ? 'OPEN' : 'CLOSED';
+                        result.window_detection = value[0] ? "OPEN" : "CLOSED";
                         break;
                     case dataPoints.wooxWindowTemperature:
                         result.window_detection_temperature = Number.parseFloat((value / 2 ).toFixed(1));
@@ -1441,20 +1437,20 @@ const fromZigbee = {
                         result.window_detection_time = value;
                         break;
                     case dataPoints.wooxChildLock:
-                        result.child_lock = value ? 'LOCK' : 'UNLOCK';
+                        result.child_lock = value ? "LOCK" : "UNLOCK";
                         break;
                     case dataPoints.wooxBatteryCapacity:
                         result.battery = value;
-                        result.battery_low = value < 30 ? 1:0
+                        result.battery_low = value < 30 ? 1:0;
                         break;
                     case dataPoints.wooxBoostHeatingCountdown:
                         result.boost_time = value;
                         break;
                     case dataPoints.wooxEnergySavingTemperature:
-                        result.eco_temperature = Number.parseFloat((value / 2 ).toFixed(1));
+                        result.eco_temperature = Number.parseFloat((value / 2).toFixed(1));
                         break;
                     case dataPoints.wooxComfortTemperature:
-                        result.comfort_temperature = Number.parseFloat((value / 2 ).toFixed(1));
+                        result.comfort_temperature = Number.parseFloat((value / 2).toFixed(1));
                         break;
                     case dataPoints.wooxBoostHeating:
                         result.boost_heating = value ? "ON" : "OFF";
