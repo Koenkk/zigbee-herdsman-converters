@@ -6989,7 +6989,7 @@ const toZigbee2 = {
         key: ['local_temperature_calibration'],
         convertSet: async (entity, key, value: any, meta) => 
         {
-            let val = value
+            let val = value;
             if(val < 0)
             {
                 val = val + 4096;
