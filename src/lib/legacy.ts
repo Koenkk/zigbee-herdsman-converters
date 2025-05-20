@@ -7037,7 +7037,7 @@ const toZigbee2 = {
         key: ['holidays_schedule'],
         convertSet: async (entity, key, value, meta) => 
         {
-            logger.warning("holidays_schedule, "woox_holidays_schedule");
+            logger.warning("holidays_schedule", "woox_holidays_schedule");
         },
     } satisfies Tz.Converter,
 
