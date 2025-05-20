@@ -1418,24 +1418,24 @@ const fromZigbee = {
                         }
                         break;
                     case dataPoints.wooxManualTemperatureSetpoint:
-                        result.current_heating_setpoint = parseFloat((value / 2 ).toFixed(1));
-                        result.manual_heating_setpoint = parseFloat((value / 2 ).toFixed(1));
+                        result.current_heating_setpoint = Number.parseFloat((value / 2 ).toFixed(1));
+                        result.manual_heating_setpoint = Number.parseFloat((value / 2 ).toFixed(1));
                         break;
                     case dataPoints.wooxAutomaticTemperatureSetpoint:
-                        result.current_heating_setpoint = parseFloat((value / 2 ).toFixed(1));
-                        result.auto_heating_setpoint = parseFloat((value / 2 ).toFixed(1));
+                        result.current_heating_setpoint = Number.parseFloat((value / 2 ).toFixed(1));
+                        result.auto_heating_setpoint = Number.parseFloat((value / 2 ).toFixed(1));
                         break;
                     case dataPoints.wooxLocalTemperature:
-                        result.local_temperature = parseFloat((value / 10 ).toFixed(1));
+                        result.local_temperature = Number.parseFloat((value / 10 ).toFixed(1));
                         break;
                     case dataPoints.wooxTemperatureCalibration:
-                        result.local_temperature_calibration = parseFloat((value / 10 ).toFixed(1));
+                        result.local_temperature_calibration = Number.parseFloat((value / 10 ).toFixed(1));
                         break;
                     case dataPoints.wooxWindowStatus:
                         result.window_detection = value[0] ? 'OPEN' : 'CLOSED';
                         break;
                     case dataPoints.wooxWindowTemperature:
-                        result.window_detection_temperature = parseFloat((value / 2 ).toFixed(1));
+                        result.window_detection_temperature = Number.parseFloat((value / 2 ).toFixed(1));
                         break;
                     case dataPoints.wooxWindowTime:
                         result.window_detection_time = value;
@@ -1451,10 +1451,10 @@ const fromZigbee = {
                         result.boost_time = value;
                         break;
                     case dataPoints.wooxEnergySavingTemperature:
-                        result.eco_temperature = parseFloat((value / 2 ).toFixed(1));
+                        result.eco_temperature = Number.parseFloat((value / 2 ).toFixed(1));
                         break;
                     case dataPoints.wooxComfortTemperature:
-                        result.comfort_temperature = parseFloat((value / 2 ).toFixed(1));
+                        result.comfort_temperature = Number.parseFloat((value / 2 ).toFixed(1));
                         break;
                     case dataPoints.wooxBoostHeating:
                         result.boost_heating = value ? "ON" : "OFF";
@@ -6989,11 +6989,12 @@ const toZigbee2 = {
         key: ['local_temperature_calibration'],
         convertSet: async (entity, key, value: any, meta) => 
         {
-            if(value < 0)
+            let val = value;
+            if(val < 0)
             {
-                value = value + 4096;
+                let val = val + 4096;
             }
-            const temp = Math.round(value * 10);
+            const temp = Math.round(val * 10);
             await sendDataPointValue(entity, dataPoints.wooxTemperatureCalibration, temp);
         },
     } satisfies Tz.Converter,
