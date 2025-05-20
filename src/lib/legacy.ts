@@ -7037,7 +7037,7 @@ const toZigbee2 = {
         key: ['holidays_schedule'],
         convertSet: async (entity, key, value, meta) => 
         {
-            logger.warning("holidays_schedule", "woox_holidays_schedule");
+            await logger.warning("holidays_schedule", "woox_holidays_schedule");
         },
     } satisfies Tz.Converter,
 
@@ -7046,7 +7046,7 @@ const toZigbee2 = {
         key: ['monday_schedule'],
         convertSet: async (entity, key, value, meta) => 
         {
-            logger.warning("monday_schedule", "woox_monday_schedule");
+            await logger.warning("monday_schedule", "woox_monday_schedule");
         },
     } satisfies Tz.Converter,
 
@@ -7055,7 +7055,7 @@ const toZigbee2 = {
         key: ['tuesday_schedule'],
         convertSet: async (entity, key, value, meta) => 
         {
-            logger.warning("tuesday_schedule", "woox_tuesday_schedule");
+            await logger.warning("tuesday_schedule", "woox_tuesday_schedule");
         },
     } satisfies Tz.Converter,
 
@@ -7064,7 +7064,7 @@ const toZigbee2 = {
         key: ['wednesday_schedule'],
         convertSet: async (entity, key, value, meta) => 
         {
-            logger.warning("wednesday_schedule", "woox_wednesday_schedule");
+            await logger.warning("wednesday_schedule", "woox_wednesday_schedule");
         },
     } satisfies Tz.Converter,
 
@@ -7073,7 +7073,7 @@ const toZigbee2 = {
         key: ['thursday_schedule'],
         convertSet: async (entity, key, value, meta) => 
         {
-            logger.warning("thursday_schedule", "woox_thursday_schedule");
+            await logger.warning("thursday_schedule", "woox_thursday_schedule");
         },
     } satisfies Tz.Converter,
 
@@ -7082,7 +7082,7 @@ const toZigbee2 = {
         key: ['friday_schedule'],
         convertSet: async (entity, key, value, meta) => 
         {
-            logger.warning("friday_schedule", "woox_friday_schedule");
+            await logger.warning("friday_schedule", "woox_friday_schedule");
         },
     } satisfies Tz.Converter,
 
@@ -7091,7 +7091,7 @@ const toZigbee2 = {
         key: ['saturday_schedule'],
         convertSet: async (entity, key, value, meta) => 
         {
-            logger.warning("saturday_schedule", "woox_saturday_schedule");
+            await logger.warning("saturday_schedule", "woox_saturday_schedule");
         },
     } satisfies Tz.Converter,
 
@@ -7100,7 +7100,7 @@ const toZigbee2 = {
         key: ['sunday_schedule'],
         convertSet: async (entity, key, value, meta) => 
         {
-            logger.warning("sunday_schedule", "woox_sunday_schedule");
+            await logger.warning("sunday_schedule", "woox_sunday_schedule");
         },
     } satisfies Tz.Converter,
 
