@@ -177,4 +177,5 @@ export const definitions: DefinitionWithExtend[] = [
             .withFeature(exposes.text('saturday_schedule', ea.STATE_SET))
             .withFeature(exposes.text('sunday_schedule', ea.STATE_SET)),
     ],
+},
 ];
