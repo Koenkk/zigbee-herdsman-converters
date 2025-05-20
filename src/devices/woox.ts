@@ -96,7 +96,7 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: [
             {
                 modelID: "TS0601",
-                manufacturerName: "_TZE200_wnvhlcgl"
+                manufacturerName: "_TZE200_wnvhlcgl",
             },
         ],
         model: "R7067",
@@ -134,7 +134,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .climate()
                 .withLocalTemperature(ea.STATE)
                 .withSetpoint("current_heating_setpoint", 0, 30, 0.5, ea.STATE_SET)
-                .withSystemMode(["auto", "heat"], ea.STATE_SET,"auto - Automatic mode. heat - Manual mode.")
+                .withSystemMode(["auto", "heat"], ea.STATE_SET, "auto - Automatic mode. heat - Manual mode.")
                 .withPreset(["Comfort", "Eco"]),
             e.away_mode(),
             e.comfort_temperature(),
@@ -148,11 +148,14 @@ export const definitions: DefinitionWithExtend[] = [
             exposes.numeric("boost_time", ea.STATE),
             exposes.numeric("error_status", ea.STATE).withDescription("Error status"),
             exposes
-                .composite("programming_mode1", "weekly_schedule", 0).withDescription("Schedule MODE ⏱ - In this mode, " +
-                        "the device executes a preset holiday programming temperature time and temperature.")
+                .composite("programming_mode1", "weekly_schedule", 0)
+                .withDescription(
+                    "Schedule MODE ⏱ - In this mode, " +"the device executes a preset holiday programming temperature time and temperature.",
+                )
                 .withFeature(exposes.text("holidays_schedule", ea.STATE_SET)),
-            exposes.composite("programming_mode2", "weekly_schedule", 0).withDescription("Auto MODE ⏱ - In this mode, " +
-                "the device executes a preset week programming temperature time and temperature. ")
+            exposes
+                .composite("programming_mode2", "weekly_schedule", 0)
+                .withDescription("Auto MODE ⏱ - In this mode, " + "the device executes a preset week programming temperature time and temperature. ")
                 .withFeature(exposes.text("monday_schedule", ea.STATE_SET))
                 .withFeature(exposes.text("tuesday_schedule", ea.STATE_SET))
                 .withFeature(exposes.text("wednesday_schedule", ea.STATE_SET))
