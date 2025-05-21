@@ -282,13 +282,13 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["3RSB02015Z"],
         model: "3RSB02015Z",
         vendor: "Third Reality",
-        description: "Smart blind Gen2",
+        description: "Third Reality TRZB3",
         extend: [
             m.battery(),
             m.windowCovering({controls: ["lift"]}),
             m.commandsWindowCovering({commands: ["open", "close", "stop"]}),
             m.deviceAddCustomCluster("3rSmartBlindGen2SpecialCluster", {
-                ID: 0xff00,
+                ID: 0xfff1,
                 manufacturerCode: 0x1233,
                 attributes: {
                     infrared_enable: {ID: 0x0000, type: 0x20},
