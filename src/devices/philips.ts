@@ -4039,6 +4039,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
     {
+    	zigbeeModel: ["LCV002"],
+    	model: "LCV002",
+    	vendor: "Philips",
+    	description: "Hue Lightguide E26 Edison ST23 500lm",
+    	extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: { modes: ["xy", "hs"], enhancedHue: true}})],
+    },
+    {
         zigbeeModel: ["LCO003"],
         model: "929003151601",
         vendor: "Philips",
