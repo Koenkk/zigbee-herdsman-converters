@@ -83,7 +83,7 @@ const INOVELLI_PREV_URL = "https://github.com/Koenkk/zigbee-OTA/raw/master/image
 const XYZROE_PREV_URL = "https://github.com/Koenkk/zigbee-OTA/raw/master/images1/xyzroe/ZigUSB_C6.ota";
 
 // NOTE: takes too long to run this with CI, can enable locally as needed
-describe.skip("OTA", () => {
+describe("OTA", () => {
     let maximumDataSize = 64;
     const txRandomDelay = () => Math.floor(Math.random() * 500);
     const mockTXDelay = vi.fn(txRandomDelay); // arbitrary, but less than min timeout involved (queryNextImageRequest === 60000)
