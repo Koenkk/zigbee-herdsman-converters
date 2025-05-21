@@ -93,12 +93,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [
-            {
-                modelID: "TS0601",
-                manufacturerName: "_TZE200_wnvhlcgl",
-            },
-        ],
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_wnvhlcgl"]),
         model: "R7067",
         vendor: "Woox",
         description: "Thermostatic radiator valve",
@@ -148,14 +143,12 @@ export const definitions: DefinitionWithExtend[] = [
             exposes.numeric("boost_time", ea.STATE),
             exposes.numeric("error_status", ea.STATE).withDescription("Error status"),
             exposes
-                .composite("programming_mode1", "weekly_schedule", 0)
-                .withDescription(
-                    "Schedule MODE ⏱ - In this mode, " + "the device executes a preset holiday programming temperature time and temperature.",
-                )
+                .composite("programming_mode1", "holidays_schedule", 0)
+                .withDescription("Schedule MODE ⏱ - In this mode, the device executes a preset holiday programming temperature time and temperature.")
                 .withFeature(exposes.text("holidays_schedule", ea.STATE_SET)),
             exposes
                 .composite("programming_mode2", "weekly_schedule", 0)
-                .withDescription("Auto MODE ⏱ - In this mode, " + "the device executes a preset week programming temperature time and temperature. ")
+                .withDescription("Auto MODE ⏱ - In this mode, the device executes a preset week programming temperature time and temperature. ")
                 .withFeature(exposes.text("monday_schedule", ea.STATE_SET))
                 .withFeature(exposes.text("tuesday_schedule", ea.STATE_SET))
                 .withFeature(exposes.text("wednesday_schedule", ea.STATE_SET))

@@ -1390,48 +1390,41 @@ const fromZigbee = {
             for (const dpValue of msg.data.dpValues) {
                 const dp = dpValue.dp;
                 const value = getDataValue(dpValue);
-                switch(dp) {
+                switch (dp) {
                     case dataPoints.wooxMode:
-                        if(value === 0)
-                        {
+                        if (value === 0) {
                             result.system_mode = "auto";
                             result.away_mode = "OFF";
-                        }
-                        else if(value === 1)
-                        {
+                        } else if (value === 1) {
                             result.system_mode = "heat";
                             result.away_mode = "OFF";
-                        }
-                        else if(value === 2)
-                        {
+                        } else if (value === 2) {
                             result.away_mode = "ON";
                             result.system_mode = "auto";
-                        }
-                        else
-                        {
+                        } else {
                             result.away_mode = "OFF";
                             result.system_mode = "off";
                         }
                         break;
                     case dataPoints.wooxManualTemperatureSetpoint:
-                        result.current_heating_setpoint = Number.parseFloat((value / 2 ).toFixed(1));
-                        result.manual_heating_setpoint = Number.parseFloat((value / 2 ).toFixed(1));
+                        result.current_heating_setpoint = Number.parseFloat((value / 2).toFixed(1));
+                        result.manual_heating_setpoint = Number.parseFloat((value / 2).toFixed(1));
                         break;
                     case dataPoints.wooxAutomaticTemperatureSetpoint:
-                        result.current_heating_setpoint = Number.parseFloat((value / 2 ).toFixed(1));
-                        result.auto_heating_setpoint = Number.parseFloat((value / 2 ).toFixed(1));
+                        result.current_heating_setpoint = Number.parseFloat((value / 2).toFixed(1));
+                        result.auto_heating_setpoint = Number.parseFloat((value / 2).toFixed(1));
                         break;
                     case dataPoints.wooxLocalTemperature:
-                        result.local_temperature = Number.parseFloat((value / 10 ).toFixed(1));
+                        result.local_temperature = Number.parseFloat((value / 10).toFixed(1));
                         break;
                     case dataPoints.wooxTemperatureCalibration:
-                        result.local_temperature_calibration = Number.parseFloat((value / 10 ).toFixed(1));
+                        result.local_temperature_calibration = Number.parseFloat((value / 10).toFixed(1));
                         break;
                     case dataPoints.wooxWindowStatus:
                         result.window_detection = value[0] ? "OPEN" : "CLOSED";
                         break;
                     case dataPoints.wooxWindowTemperature:
-                        result.window_detection_temperature = Number.parseFloat((value / 2 ).toFixed(1));
+                        result.window_detection_temperature = Number.parseFloat((value / 2).toFixed(1));
                         break;
                     case dataPoints.wooxWindowTime:
                         result.window_detection_time = value;
@@ -1441,7 +1434,7 @@ const fromZigbee = {
                         break;
                     case dataPoints.wooxBatteryCapacity:
                         result.battery = value;
-                        result.battery_low = value < 30 ? 1:0;
+                        result.battery_low = value < 30 ? 1 : 0;
                         break;
                     case dataPoints.wooxBoostHeatingCountdown:
                         result.boost_time = value;
@@ -1486,9 +1479,9 @@ const fromZigbee = {
                 logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue.data)}`, "zhc:legacy:fz:woox_thermostat");
             }
             return result;
-        }
+        },
     } satisfies Fz.Converter,
-   
+
     hpsz: {
         cluster: "manuSpecificTuya",
         type: ["commandDataResponse", "commandDataReport"],
@@ -6903,37 +6896,30 @@ const toZigbee2 = {
             }
         },
     } satisfies Tz.Converter,
-    woox_thermostat_child_lock: 
-    {
-        key: ['child_lock'],
-        convertSet: async (entity, key, value, meta) => 
-        {
-            await sendDataPointBool(entity, dataPoints.wooxChildLock, value === 'LOCK');
-        }
+    woox_thermostat_child_lock: {
+        key: ["child_lock"],
+        convertSet: async (entity, key, value, meta) => {
+            await sendDataPointBool(entity, dataPoints.wooxChildLock, value === "LOCK");
+        },
     } satisfies Tz.Converter,
-    woox_thermostat_current_heating_setpoint: 
-    {
-        key: ['current_heating_setpoint'],
-        convertSet: async (entity, key, value: any, meta) =>
-        {
+    woox_thermostat_current_heating_setpoint: {
+        key: ["current_heating_setpoint"],
+        // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+        convertSet: async (entity, key, value: any, meta) => {
             const temp = Math.round(value * 10);
             await sendDataPointValue(entity, dataPoints.wooxControlTemperature, temp);
         },
     } satisfies Tz.Converter,
-    woox_thermostat_system_mode: 
-    {
-        key: ['system_mode'],
-        convertSet: async (entity, key, value, meta) => 
-        {
-            if(value === 'auto')
-            {
+    woox_thermostat_system_mode: {
+        key: ["system_mode"],
+        convertSet: async (entity, key, value, meta) => {
+            if (value === "auto") {
                 await sendDataPointEnum(entity, dataPoints.wooxMode, 0);
                 await sendDataPointValue(entity, dataPoints.wooxControlTemperature, 220);
                 return {state: {current_heating_setpoint: 22}};
             }
 
-            if(value === 'heat')
-            {
+            if (value === "heat") {
                 await sendDataPointEnum(entity, dataPoints.wooxMode, 1);
                 await sendDataPointValue(entity, dataPoints.wooxControlTemperature, 170);
                 return {state: {current_heating_setpoint: 17}};
@@ -6943,13 +6929,10 @@ const toZigbee2 = {
         },
     } satisfies Tz.Converter,
 
-    woox_away_mode: 
-    {
-        key: ['away_mode'],
-        convertSet: async (entity, key, value, meta) => 
-        {
-            if(value === 'ON')
-            {
+    woox_away_mode: {
+        key: ["away_mode"],
+        convertSet: async (entity, key, value, meta) => {
+            if (value === "ON") {
                 await sendDataPointEnum(entity, dataPoints.wooxMode, 2);
                 return {state: {current_heating_setpoint: 0}};
             }
@@ -6960,34 +6943,30 @@ const toZigbee2 = {
         },
     } satisfies Tz.Converter,
 
-    woox_comfort_temperature: 
-    {
-        key: ['comfort_temperature'],
-        convertSet: async (entity, key, value: any, meta) => 
-        {
+    woox_comfort_temperature: {
+        key: ["comfort_temperature"],
+        // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+        convertSet: async (entity, key, value: any, meta) => {
             const temp = Math.round(value * 2);
             await sendDataPointValue(entity, dataPoints.wooxComfortTemperature, temp);
         },
     } satisfies Tz.Converter,
 
-    woox_eco_temperature: 
-    {
-        key: ['eco_temperature'],
-        convertSet: async (entity, key, value: any, meta) => 
-        {
+    woox_eco_temperature: {
+        key: ["eco_temperature"],
+        // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+        convertSet: async (entity, key, value: any, meta) => {
             const temp = Math.round(value * 2);
             await sendDataPointValue(entity, dataPoints.wooxEnergySavingTemperature, temp);
         },
     } satisfies Tz.Converter,
 
-    woox_local_temperature_calibration: 
-    {
-        key: ['local_temperature_calibration'],
-        convertSet: async (entity, key, value: any, meta) => 
-        {
+    woox_local_temperature_calibration: {
+        key: ["local_temperature_calibration"],
+        // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+        convertSet: async (entity, key, value: any, meta) => {
             let val = value;
-            if(val < 0)
-            {
+            if (val < 0) {
                 val = val + 4096;
             }
             const temp = Math.round(val * 10);
@@ -6995,107 +6974,84 @@ const toZigbee2 = {
         },
     } satisfies Tz.Converter,
 
-    woox_window_detection_temperature: 
-    {
-        key: ['window_detection_temperature'],
-        convertSet: async (entity, key, value: any, meta) => 
-        {
+    woox_window_detection_temperature: {
+        key: ["window_detection_temperature"],
+        // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+        convertSet: async (entity, key, value: any, meta) => {
             const temp = Math.round(value * 2);
             await sendDataPointValue(entity, dataPoints.wooxWindowTemperature, temp);
         },
     } satisfies Tz.Converter,
-    
-    woox_window_detection_time: 
-    {
-        key: ['window_detection_time'],
-        convertSet: async (entity, key, value, meta) => 
-        {
+
+    woox_window_detection_time: {
+        key: ["window_detection_time"],
+        convertSet: async (entity, key, value, meta) => {
             await sendDataPointValue(entity, dataPoints.wooxWindowTime, value);
         },
     } satisfies Tz.Converter,
 
-    woox_boost_heating: 
-    {
-        key: ['boost_heating'],
-        convertSet: async (entity, key, value, meta) => 
-        {
-            await sendDataPointBool(entity, dataPoints.wooxBoostHeating, value === 'ON');
+    woox_boost_heating: {
+        key: ["boost_heating"],
+        convertSet: async (entity, key, value, meta) => {
+            await sendDataPointBool(entity, dataPoints.wooxBoostHeating, value === "ON");
         },
     } satisfies Tz.Converter,
 
-    woox_holidays_schedule: 
-    {
-        key: ['holidays_schedule'],
-        convertSet: async (entity, key, value, meta) => 
-        {
+    woox_holidays_schedule: {
+        key: ["holidays_schedule"],
+        convertSet: async (entity, key, value, meta) => {
             await logger.warning("holidays_schedule", "woox_holidays_schedule");
         },
     } satisfies Tz.Converter,
 
-    woox_monday_schedule: 
-    {
-        key: ['monday_schedule'],
-        convertSet: async (entity, key, value, meta) => 
-        {
+    woox_monday_schedule: {
+        key: ["monday_schedule"],
+        convertSet: async (entity, key, value, meta) => {
             await logger.warning("monday_schedule", "woox_monday_schedule");
         },
     } satisfies Tz.Converter,
 
-    woox_tuesday_schedule: 
-    {
-        key: ['tuesday_schedule'],
-        convertSet: async (entity, key, value, meta) => 
-        {
+    woox_tuesday_schedule: {
+        key: ["tuesday_schedule"],
+        convertSet: async (entity, key, value, meta) => {
             await logger.warning("tuesday_schedule", "woox_tuesday_schedule");
         },
     } satisfies Tz.Converter,
 
-    woox_wednesday_schedule: 
-    {
-        key: ['wednesday_schedule'],
-        convertSet: async (entity, key, value, meta) => 
-        {
+    woox_wednesday_schedule: {
+        key: ["wednesday_schedule"],
+        convertSet: async (entity, key, value, meta) => {
             await logger.warning("wednesday_schedule", "woox_wednesday_schedule");
         },
     } satisfies Tz.Converter,
 
-    woox_thursday_schedule: 
-    {
-        key: ['thursday_schedule'],
-        convertSet: async (entity, key, value, meta) => 
-        {
+    woox_thursday_schedule: {
+        key: ["thursday_schedule"],
+        convertSet: async (entity, key, value, meta) => {
             await logger.warning("thursday_schedule", "woox_thursday_schedule");
         },
     } satisfies Tz.Converter,
 
-    woox_friday_schedule: 
-    {
-        key: ['friday_schedule'],
-        convertSet: async (entity, key, value, meta) => 
-        {
+    woox_friday_schedule: {
+        key: ["friday_schedule"],
+        convertSet: async (entity, key, value, meta) => {
             await logger.warning("friday_schedule", "woox_friday_schedule");
         },
     } satisfies Tz.Converter,
 
-    woox_saturday_schedule: 
-    {
-        key: ['saturday_schedule'],
-        convertSet: async (entity, key, value, meta) => 
-        {
+    woox_saturday_schedule: {
+        key: ["saturday_schedule"],
+        convertSet: async (entity, key, value, meta) => {
             await logger.warning("saturday_schedule", "woox_saturday_schedule");
         },
     } satisfies Tz.Converter,
 
-    woox_sunday_schedule: 
-    {
-        key: ['sunday_schedule'],
-        convertSet: async (entity, key, value, meta) => 
-        {
+    woox_sunday_schedule: {
+        key: ["sunday_schedule"],
+        convertSet: async (entity, key, value, meta) => {
             await logger.warning("sunday_schedule", "woox_sunday_schedule");
         },
     } satisfies Tz.Converter,
-
-    
 };
 
 const thermostatSystemModes: {[s: number]: string} = {
