@@ -256,6 +256,7 @@ import {definitions as schwaiger} from "./schwaiger";
 import {definitions as seastarIntelligence} from "./seastar_intelligence";
 import {definitions as securifi} from "./securifi";
 import {definitions as sengled} from "./sengled";
+import {definitions as senoro} from "./senoro";
 import {definitions as sercomm} from "./sercomm";
 import {definitions as shadeControl} from "./shade_control";
 import {definitions as shelly} from "./shelly";
@@ -595,6 +596,7 @@ const definitions: DefinitionWithExtend[] = [
     ...seastarIntelligence,
     ...securifi,
     ...sengled,
+    ...senoro,
     ...sercomm,
     ...shadeControl,
     ...shelly,
