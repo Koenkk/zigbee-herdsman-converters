@@ -21,7 +21,7 @@ export const definitions: DefinitionWithExtend[] = [
             fz.command_move_to_color,
             fz.command_move,
             fz.command_color_loop_set,
-            fz.command_ehanced_move_to_hue_and_saturation,
+            fz.command_enhanced_move_to_hue_and_saturation,
             fz.tint_scene,
             fz.command_recall,
         ],
@@ -105,7 +105,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Q RGBW remote controller",
         fromZigbee: [
             fz.command_step,
-            fz.command_ehanced_move_to_hue_and_saturation,
+            fz.command_enhanced_move_to_hue_and_saturation,
             fz.command_move_to_color_temp,
             fz.command_on,
             fz.command_off,

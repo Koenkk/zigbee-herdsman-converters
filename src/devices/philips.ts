@@ -410,7 +410,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "4034031P7",
         vendor: "Philips",
         description: "Hue Fair",
-        extend: [philips.m.light({colorTemp: {range: undefined}})],
+        extend: [philips.m.light({colorTemp: {range: [153, 454]}})],
     },
     {
         zigbeeModel: ["4034031P6"],
@@ -775,6 +775,13 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Philips",
         description: "Hue Impress outdoor Pedestal",
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
+    },
+    {
+        zigbeeModel: ["929003802101"],
+        model: "929003802101",
+        vendor: "Philips",
+        description: "Hue Impress outdoor Pedestal",
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
     {
         zigbeeModel: ["1740193P0"],

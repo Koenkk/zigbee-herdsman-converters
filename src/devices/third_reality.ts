@@ -330,6 +330,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.temperature(),
             m.humidity(),
             m.battery(),
+            m.forcePowerSource({powerSource: "Battery"}),
             m.deviceAddCustomCluster("3rSpecialCluster", {
                 ID: 0xff01,
                 manufacturerCode: 0x1233,
