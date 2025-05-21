@@ -8,10 +8,9 @@ const ea = exposes.access;
 export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_ytx9fudw"]),
-        zigbeeModel: ["Senoro.Win"],
         model: "Senoro.Win",
         vendor: "Senoro",
-        description: "Senoro Window Alarm",
+        description: "Senoro window alarm",
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         onEvent: tuya.onEventSetTime,
