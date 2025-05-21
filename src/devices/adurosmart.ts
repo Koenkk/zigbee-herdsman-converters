@@ -151,6 +151,13 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
+        zigbeeModel: ["AD-CTW123001"],
+        model: "AD-CTW123001",
+        vendor: "AduroSmart",
+        description: "ERIA smart light bubl A19",
+        extend: [m.light({colorTemp: {range: [153, 500]}})],
+    },
+    {
         fingerprint: [{modelID: "ONOFF_METER_RELAY", manufacturerName: "AduroSmart ERIA"}],
         model: "81998",
         vendor: "AduroSmart",
