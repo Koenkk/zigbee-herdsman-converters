@@ -16,11 +16,11 @@ export const definitions: DefinitionWithExtend[] = [
             {
                 key: ["alarm"],
                 convertSet: async (entity, key, value, meta) => {
-                    const boolValue = typeof value === 'boolean' ? value : value === 'true' || value === 1;
+                    const boolValue = typeof value === "boolean" ? value : value === "true" || value === 1;
                     await tuya.sendDataPointBool(entity, 16, boolValue);
                     return {state: {alarm: boolValue}};
-                }
-            }
+                },
+            },
         ],
         onEvent: tuya.onEventSetTime,
         configure: tuya.configureMagicPacket,
