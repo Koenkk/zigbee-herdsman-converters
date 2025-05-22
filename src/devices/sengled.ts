@@ -154,6 +154,13 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
     },
     {
+        zigbeeModel: ["E1M-G7H"],
+        model: "E1M-G7H",
+        vendor: "Sengled",
+        description: "Motion sensor",
+        extend: [m.battery(), m.iasZoneAlarm({zoneType: "occupancy", zoneAttributes: ["alarm_1", "tamper", "battery_low"]})],
+    },
+    {
         zigbeeModel: ["Z01-A60EAE27"],
         model: "Z01-A60EAE27",
         vendor: "Sengled",
