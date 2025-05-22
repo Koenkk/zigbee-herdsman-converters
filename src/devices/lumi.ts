@@ -4726,4 +4726,32 @@ export const definitions: DefinitionWithExtend[] = [
             m.identify(),
         ],
     },
+    {
+        zigbeeModel: ["lumi.switch.agl005"],
+        model: "WS-K03E",
+        vendor: "Aqara",
+        description: "Light Switch H2 US (2 Buttons, 2 Channels)",
+        fromZigbee: [fz.on_off, lumi.fromZigbee.lumi_action_multistate, lumi.fromZigbee.lumi_specific],
+        extend: [
+            lumiZigbeeOTA(),
+            lumiPreventReset(),
+            m.deviceEndpoints({endpoints: {up: 1, down: 2}}),
+            m.bindCluster({endpointNames: ["up", "down"], cluster: "manuSpecificLumi", clusterType: "input"}),
+            m.bindCluster({endpointNames: ["up", "down"], cluster: "genOnOff", clusterType: "input"}),
+            lumiPower(),
+            lumiOnOff({
+                operationMode: true,
+                powerOutageMemory: "enum",
+                lockRelay: true,
+                endpointNames: ["up", "down"],
+            }),
+            lumiAction({
+                actionLookup: {hold: 0, single: 1, double: 2, release: 255},
+                endpointNames: ["up", "down"],
+            }),
+            lumiLedDisabledNight(),
+            lumiFlipIndicatorLight(),
+            lumiSwitchMode(),
+        ],
+    },
 ];
