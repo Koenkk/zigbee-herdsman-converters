@@ -12,7 +12,16 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Senoro",
         description: "Senoro window alarm",
         fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
+        toZigbee: [
+            {
+                key: ["alarm"],
+                convertSet: async (entity, key, value, meta) => {
+                    const boolValue = typeof value === 'boolean' ? value : value === 'true' || value === 1;
+                    await tuya.sendDataPointBool(entity, 16, boolValue);
+                    return {state: {alarm: boolValue}};
+                }
+            }
+        ],
         onEvent: tuya.onEventSetTime,
         configure: tuya.configureMagicPacket,
         exposes: [
@@ -25,7 +34,7 @@ export const definitions: DefinitionWithExtend[] = [
             // All datapoints go in here
             tuyaDatapoints: [
                 [101, "opening_state", tuya.valueConverterBasic.lookup({open: 0, closed: 1, tilted: 2})],
-                [16, "alarm", tuya.valueConverter.trueFalse1],
+                [16, "alarm", tuya.valueConverter.raw],
                 [2, "battery", tuya.valueConverter.raw],
             ],
         },
