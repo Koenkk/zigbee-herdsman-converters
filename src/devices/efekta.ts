@@ -4556,7 +4556,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "long_chart_period2",
                 lookup: {"1H": 0, "24H": 1},
                 cluster: "msCO2",
-                attribute: {ID: 0x0404, type: Zcl.DataType.BOOLEAN},
+                attribute: {ID: 0x0244, type: Zcl.DataType.BOOLEAN},
                 description: "The period of plotting the VOC Index points(OFF - 1H | ON - 24H)",
                 access: "STATE_SET",
             }),
