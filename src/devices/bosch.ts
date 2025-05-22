@@ -1302,7 +1302,7 @@ export const definitions: DefinitionWithExtend[] = [
             "RFPR-ZB-ES",
             "RFPR-ZB-MS",
         ],
-        model: "RADON TriTech ZB",
+        model: "RADION TriTech ZB",
         vendor: "Bosch",
         description: "Wireless motion detector",
         fromZigbee: [fz.temperature, fz.battery, fz.ias_occupancy_alarm_1],

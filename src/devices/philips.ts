@@ -410,7 +410,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "4034031P7",
         vendor: "Philips",
         description: "Hue Fair",
-        extend: [philips.m.light({colorTemp: {range: undefined}})],
+        extend: [philips.m.light({colorTemp: {range: [153, 454]}})],
     },
     {
         zigbeeModel: ["4034031P6"],
@@ -775,6 +775,13 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Philips",
         description: "Hue Impress outdoor Pedestal",
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
+    },
+    {
+        zigbeeModel: ["929003802101"],
+        model: "929003802101",
+        vendor: "Philips",
+        description: "Hue Impress outdoor Pedestal",
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
     {
         zigbeeModel: ["1740193P0"],
@@ -1814,6 +1821,13 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["929003736101_01", "929003736101_02"],
         model: "929003736101",
+        vendor: "Philips",
+        description: "Hue Datura",
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+    },
+    {
+        zigbeeModel: ["929003736401_01", "929003736401_02"],
+        model: "929003736401",
         vendor: "Philips",
         description: "Hue Datura",
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
@@ -4029,6 +4043,13 @@ export const definitions: DefinitionWithExtend[] = [
         model: "929003151501",
         vendor: "Philips",
         description: "Hue Lightguide E27 Edison ST72 500lm",
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+    },
+    {
+        zigbeeModel: ["LCV002"],
+        model: "046677577520",
+        vendor: "Philips",
+        description: "Hue Lightguide E26 Edison ST23 500lm",
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
     {
