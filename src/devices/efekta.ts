@@ -6468,9 +6468,9 @@ export const definitions: DefinitionWithExtend[] = [
         model: "EFEKTA_AQ_Smart_Monitor_Gen2",
         vendor: "EFEKTA",
         description: "CO2, VOC Index, illuminance Smart Monitor, rgb indicator, binding, control the relays",
-		ota:true,
+        ota: true,
         extend: [
-		    m.identify(),
+            m.identify(),
             m.co2({
                 reporting: co2Reporting,
                 access: "STATE",
@@ -6492,11 +6492,11 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE",
                 reporting: defaultReporting,
             }),
-			m.illuminance({
+            m.illuminance({
                 reporting: fourReporting,
                 access: "STATE",
             }),
-			m.numeric({
+            m.numeric({
                 name: "lifetime",
                 unit: "Hours",
                 cluster: "genTime",
@@ -6504,23 +6504,23 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Uptime",
                 access: "STATE",
             }),
-			m.numeric({
+            m.numeric({
                 name: "lux_factor",
                 valueMin: 0.0,
                 valueMax: 10.0,
-				valueStep: 0.1,
+                valueStep: 0.1,
                 cluster: "msIlluminanceMeasurement",
                 attribute: {ID: 0x0310, type: Zcl.DataType.SINGLE_PREC},
                 description: "Lux factor",
                 access: "STATE_SET",
             }),
-			m.light({
+            m.light({
                 effect: false,
                 powerOnBehavior: false,
-				configureReporting: true, 
+                configureReporting: true,
                 levelReportingConfig: fiveReporting,
             }),
-			m.binary({
+            m.binary({
                 name: "night_onoff_backlight",
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
@@ -6629,7 +6629,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Start Manual FRC (Perform Forced Recalibration of the CO2 Sensor)",
                 access: "STATE_SET",
             }),
-			m.binary({
+            m.binary({
                 name: "invert_logic_onoff",
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
@@ -6697,14 +6697,15 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_SET",
             }),
         ],
-    },{
+    },
+    {
         zigbeeModel: ["EFEKTA_CO2_Smart_Monitor_Gen2"],
         model: "EFEKTA_CO2_Smart_Monitor_Gen2",
         vendor: "EFEKTA",
         description: "CO2, illuminance Smart Monitor, rgb indicator, binding, control the relays",
-		ota:true,
+        ota: true,
         extend: [
-		    m.identify(),
+            m.identify(),
             m.co2({
                 reporting: co2Reporting,
                 access: "STATE",
@@ -6717,11 +6718,11 @@ export const definitions: DefinitionWithExtend[] = [
                 reporting: fourReporting,
                 access: "STATE",
             }),
-			m.illuminance({
+            m.illuminance({
                 reporting: fourReporting,
                 access: "STATE",
             }),
-			m.numeric({
+            m.numeric({
                 name: "lifetime",
                 unit: "Hours",
                 cluster: "genTime",
@@ -6729,23 +6730,23 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Uptime",
                 access: "STATE",
             }),
-			m.numeric({
+            m.numeric({
                 name: "lux_factor",
                 valueMin: 0.0,
                 valueMax: 10.0,
-				valueStep: 0.1,
+                valueStep: 0.1,
                 cluster: "msIlluminanceMeasurement",
                 attribute: {ID: 0x0310, type: Zcl.DataType.SINGLE_PREC},
                 description: "Lux factor",
                 access: "STATE_SET",
             }),
-			m.light({
+            m.light({
                 effect: false,
                 powerOnBehavior: false,
-				configureReporting: true, 
+                configureReporting: true,
                 levelReportingConfig: fiveReporting,
             }),
-			m.binary({
+            m.binary({
                 name: "night_onoff_backlight",
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
@@ -6854,7 +6855,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Start Manual FRC (Perform Forced Recalibration of the CO2 Sensor)",
                 access: "STATE_SET",
             }),
-			m.binary({
+            m.binary({
                 name: "invert_logic_onoff",
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
