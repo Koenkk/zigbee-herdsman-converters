@@ -4727,10 +4727,10 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        zigbeeModel: ['lumi.switch.agl005'],
-        model: 'WS-K03E',
-        vendor: 'Aqara',
-        description: 'Light Switch H2 US (2 Buttons, 2 Channels)',
+        zigbeeModel: ["lumi.switch.agl005"],
+        model: "WS-K03E",
+        vendor: "Aqara",
+        description: "Light Switch H2 US (2 Buttons, 2 Channels)",
         fromZigbee: [fz.on_off, lumi.fromZigbee.lumi_action_multistate, lumi.fromZigbee.lumi_specific],
         extend: [
             lumiZigbeeOTA(),
