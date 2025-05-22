@@ -3259,7 +3259,7 @@ export const definitions: DefinitionWithExtend[] = [
             {vendor: "BlitzWolf", model: "BW-IS4"},
             tuya.whitelabel("Tuya", "TS0201_1", "Zigbee 3.0 temperature humidity sensor with display", ["_TZ3210_alxkwn0h"]),
             tuya.whitelabel("Tuya", "ZTH01/ZTH02", "Temperature and humidity sensor", ["_TZ3000_0s1izerx"]),
-            tuya.whitelabel("Tuya", "ZY-ZTH02", "Temperature and humidity sensor", ["_TZ3000_v1w2k9dd"]),
+            tuya.whitelabel("Tuya", "ZY-ZTH02", "Temperature and humidity sensor", ["_TZ3000_v1w2k9dd", "_TZ3000_rdhukkmi"]),
             tuya.whitelabel("SEDEA", "eTH730", "Temperature and humidity sensor", ["_TZ3000_lqmvrwa2"]),
             tuya.whitelabel("Moes", "ZSS-S01-TH", "Temperature and humidity sensor", ["_TZ3000_f2bw0b6k"]),
             tuya.whitelabel("Danfoss", "014G2480", "Temperature and humidity sensor", ["_TZ3000_mxzo5rhf"]),
@@ -3284,7 +3284,10 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: [],
         exposes: [e.battery(), e.temperature(), e.humidity(), e.battery_voltage()],
         configure: tuya.configureMagicPacket,
-        whiteLabel: [tuya.whitelabel("Tuya", "TH02Z", "Temperature and humidity sensor", ["_TZ3000_fllyghyj", "_TZ3000_saiqcn0y"])],
+        whiteLabel: [
+            tuya.whitelabel("Tuya", "TH02Z", "Temperature and humidity sensor", ["_TZ3000_fllyghyj", "_TZ3000_saiqcn0y"]),
+            tuya.whitelabel("Tuya", "TH03", "Temperature and humidity sensor with screen", ["_TZ3000_bguser20"]),
+        ],
         meta: {
             battery: {
                 // These sensors do send a Battery Percentage Remaining (0x0021)
