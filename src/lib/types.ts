@@ -420,6 +420,7 @@ export namespace Ota {
         imageType: ImageHeader["imageType"];
         fileVersion: ImageHeader["fileVersion"];
         manufacturerCode: ImageHeader["manufacturerCode"];
+        hardwareVersion?: number;
     }
     export interface ImageMeta {
         fileVersion: ImageHeader["fileVersion"];
