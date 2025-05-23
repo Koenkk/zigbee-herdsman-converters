@@ -1976,6 +1976,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Repeater",
         fromZigbee: [fz.linkquality_from_basic],
         toZigbee: [],
+        whiteLabel: [tuya.whitelabel("Tuya", "TS0001_repeater", "Tuya ZigBee Signal Repeater", ["_TZ3000_n0lphcok"])],
         exposes: [],
     },
     {
