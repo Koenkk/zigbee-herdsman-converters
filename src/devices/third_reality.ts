@@ -282,7 +282,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["3RSB02015Z"],
         model: "3RSB02015Z",
         vendor: "Third Reality",
-        description: "Third Reality TRZB3",
+        description: "TRZB3",
         extend: [
             m.battery(),
             m.windowCovering({controls: ["lift"]}),
