@@ -8483,10 +8483,7 @@ export const definitions: DefinitionWithExtend[] = [
         onEvent: (type, data, device, options) => tuya.onEventMeasurementPoll(type, data, device, options, true, false),
     },
     {
-        fingerprint: [
-            ...tuya.fingerprint("TS011F", ["_TZ3000_7issjl2q"]),
-            ...tuya.fingerprint("TS0011", ["_TZ3000_gzvniqjb"]),
-        ],
+        fingerprint: [...tuya.fingerprint("TS011F", ["_TZ3000_7issjl2q"]), ...tuya.fingerprint("TS0011", ["_TZ3000_gzvniqjb"])],
         model: "ATMS1601Z",
         description: "Din smart relay (without power monitoring)",
         vendor: "Tuya",
