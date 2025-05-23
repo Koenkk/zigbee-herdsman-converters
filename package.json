@@ -1,6 +1,6 @@
 {
     "name": "zigbee-herdsman-converters",
-    "version": "23.47.0",
+    "version": "23.49.0",
     "description": "Collection of device converters to be used with zigbee-herdsman",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
@@ -25,7 +25,6 @@
         "check": "biome check",
         "test": "vitest run --config ./test/vitest.config.mts",
         "test:coverage": "vitest run --config ./test/vitest.config.mts --coverage",
-        "test:watch": "vitest watch --config ./test/vitest.config.mts",
         "bench": "vitest bench --run --config ./test/vitest.config.mts",
         "clean": "rimraf coverage dist tsconfig.tsbuildinfo models-index.json",
         "build": "tsc && node dist/indexer.js",

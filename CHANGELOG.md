@@ -1,5 +1,36 @@
 # Changelog
 
+## [23.49.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.48.0...v23.49.0) (2025-05-22)
+
+
+### Features
+
+* **add:** E1M-G7H https://github.com/Koenkk/zigbee2mqtt/discussions/27446 ([bf7bbf7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/bf7bbf7e918da2cbc60c8639d00683df49f9eafe))
+* **add:** EFEKTA_AQ_Smart_Monitor_Gen2 ([#9381](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9381)) ([d478dd7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d478dd7fc3aa69ba63eac95d7727fda32d70a0d6))
+* **add:** HA-ZM12mw2-4K ([#9376](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9376)) ([bc832e2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/bc832e2e649bf6e91bfa495e4204ba973aeaa243))
+* **add:** WS-K03E ([#9382](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9382)) ([a0edd40](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a0edd4018ac1995dd6c589612678da5ec3c4487c))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3000_rdhukkmi` as Tuya ZY-ZTH02 and `_TZ3000_bguser20` as TH03 ([#9379](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9379)) ([7d2129a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7d2129a2b729effd117c0cdbbf1ed4ed093d6b0b))
+
+## [23.48.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.47.0...v23.48.0) (2025-05-21)
+
+
+### Features
+
+* **add:** 046677577520 ([#9377](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9377)) ([6de2371](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6de2371242260b36af64e405d562165e2bebb284))
+* **add:** 929003736401 ([#9372](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9372)) ([90ee764](https://github.com/Koenkk/zigbee-herdsman-converters/commit/90ee764ceaa68397d7fa4f9869daed0db32f5e50))
+* **add:** AD-CTW123001 https://github.com/Koenkk/zigbee-herdsman-converters/issues/9373 ([70d739a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/70d739a8375b6f86c5b73f1119f57c7a72c6af14))
+* **add:** R7067 ([#9370](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9370)) ([4ec897a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4ec897ac62abbedcd03c403cec08f4e1f53b574e))
+* **add:** Senoro.Win ([#9371](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9371)) ([f369f75](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f369f752c9915b115a25cd2757a29a659cf7a527))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZE284_d7lpruvi` as Tuya TS0601_temperature_humidity_sensor_2 ([#9374](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9374)) ([09464fd](https://github.com/Koenkk/zigbee-herdsman-converters/commit/09464fdb8e8398f78893f1c325a0a76d05b90195))
+
 ## [23.47.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.46.0...v23.47.0) (2025-05-20)
 
 
