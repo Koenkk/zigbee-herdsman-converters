@@ -261,6 +261,26 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         ota: true,
     },
+    {
+        zigbeeModel: ["LKTMZL02-z"],
+        // LKTMZL02 with ZigbeeTLc firmware
+        model: "LKTMZL02-z",
+        vendor: "Tuya",
+        description: "Temperature & Humidity Sensor (pvxx/ZigbeeTLc)",
+        extend: [
+            m.temperature({reporting: {min: "10_SECONDS", max: "1_HOUR", change: 10}}),
+            m.humidity(),
+            extend.enableDisplay,
+            extend.temperatureDisplayMode,
+            extend.temperatureCalibration,
+            extend.humidityCalibration,
+            extend.measurementInterval,
+            m.battery({
+                voltage: true,
+            }),
+        ],
+        ota: true,
+    },
     /*
         ZigbeeTLc devices supporting:
         - Temperature (+calibration)
