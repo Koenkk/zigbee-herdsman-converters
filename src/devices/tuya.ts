@@ -22984,8 +22984,7 @@ export const definitions: DefinitionWithExtend[] = [
     meta: {},
   },
   {
-    zigbeeModel: ["ZG-227Z"],
-    zigbeeModel: ["ZG-227ZL"],
+    zigbeeModel: ["ZG-227Z", "ZG-227ZL"],
     model: "ZG-227Z",
     vendor: "HOBEIAN",
     description: "Temperature & humidity sensor",
