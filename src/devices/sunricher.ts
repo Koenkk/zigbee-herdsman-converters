@@ -1,18 +1,18 @@
 import {Zcl} from "zigbee-herdsman";
 
+import * as m from "../lib/modernExtend";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
+import * as exposes from "../lib/exposes";
+import * as reporting from "../lib/reporting";
+import * as utils from "../lib/utils";
+import * as globalStore from "../lib/store";
+import {logger} from "../lib/logger";
 import * as constants from "../lib/constants";
 import {repInterval} from "../lib/constants";
-import * as exposes from "../lib/exposes";
-import {logger} from "../lib/logger";
-import * as m from "../lib/modernExtend";
-import * as reporting from "../lib/reporting";
 import {payload} from "../lib/reporting";
-import * as globalStore from "../lib/store";
 import * as sunricher from "../lib/sunricher";
-import type {DefinitionWithExtend, Fz, Tz, Zh} from "../lib/types";
-import * as utils from "../lib/utils";
+import type {DefinitionWithExtend, Fz, Tz, Zh, KeyValue} from "../lib/types";
 
 const NS = "zhc:sunricher";
 const e = exposes.presets;
@@ -47,19 +47,20 @@ const fzLocal = {
         },
     } satisfies Fz.Converter,
     ZG9095B: {
-        cluster: "hvacThermostat",
-        type: ["attributeReport", "readResponse"],
-        convert: (model, msg, _publish, _options, meta) => {
-            const result = {};
-
-            if (msg.data.minSetpointDeadBand !== undefined) {
-                result[utils.postfixWithEndpointName("min_setpoint_deadband", msg, model, meta)] =
-                    utils.precisionRound(msg.data.minSetpointDeadBand, 2) / 10;
-            }
-
-            return result;
-        },
-    } satisfies Fz.Converter,
+            cluster: "hvacThermostat",
+            type: ["attributeReport", "readResponse"],
+            convert: (model, msg, _publish, _options, meta) => {
+                const result: KeyValue = {}
+    
+                if (msg.data.minSetpointDeadBand !== undefined) {
+                    const property = utils.postfixWithEndpointName("min_setpoint_deadband", msg, model, meta)
+                    result[property] =
+                        utils.precisionRound(msg.data.minSetpointDeadBand, 2) / 10;
+                }
+    
+                return result;
+            },
+        } satisfies Fz.Converter,
 };
 const tzLocal = {
     ZG9095B: {
@@ -100,7 +101,7 @@ const tzLocal = {
             },
             convertGet: async (entity, _key, _meta) => {
                 await entity.read("hvacThermostat", [0x1003], {manufacturerCode: 0x1224});
-            },
+            }
         } satisfies Tz.Converter,
         lcd_brightness: {
             key: ["lcd_brightness"],
@@ -114,7 +115,7 @@ const tzLocal = {
                 await entity.read("hvacThermostat", [0x1000], {manufacturerCode: 0x1224});
             },
         } satisfies Tz.Converter,
-    },
+    }
 };
 
 async function syncTime(endpoint: Zh.Endpoint) {
@@ -1837,7 +1838,7 @@ export const definitions: DefinitionWithExtend[] = [
             const endpoint = device.getEndpoint(1);
             const binds = ["genBasic", "genIdentify", "hvacThermostat", "seMetering", "genTime", "hvacUserInterfaceCfg"];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
-
+    
             // standard ZCL attributes
             await reporting.thermostatTemperature(endpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
@@ -1849,10 +1850,10 @@ export const definitions: DefinitionWithExtend[] = [
                 // https://github.com/Koenkk/zigbee2mqtt/issues/15025
                 logger.debug("Failed to setup keypadLockout reporting", NS);
             }
-
+    
             // Custom attributes
             const options = {manufacturerCode: 0x1224};
-
+    
             // OperateDisplayLcdBrightnesss
             await endpoint.configureReporting(
                 "hvacThermostat",
@@ -1957,7 +1958,7 @@ export const definitions: DefinitionWithExtend[] = [
                 ],
                 options,
             );
-
+    
             // Away mode set
             await endpoint.configureReporting(
                 "hvacThermostat",
@@ -1971,7 +1972,7 @@ export const definitions: DefinitionWithExtend[] = [
                 ],
                 options,
             );
-
+    
             // Control Sequence Of Operation
             await endpoint.configureReporting("hvacThermostat", [
                 {
@@ -1981,10 +1982,10 @@ export const definitions: DefinitionWithExtend[] = [
                     reportableChange: null,
                 },
             ]);
-
+    
             // Device does not asks for the time with binding, we need to write time during configure
             await syncTime(endpoint);
-
+    
             // Trigger initial read
             await endpoint.read("hvacThermostat", ["systemMode", "runningState", "occupiedHeatingSetpoint"]);
             await endpoint.read("hvacThermostat", [0x001b]);
