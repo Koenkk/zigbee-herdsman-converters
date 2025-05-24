@@ -16214,21 +16214,22 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_ivdc0kwl']),
-        model: 'ZTRV-S01',
-        vendor: 'Moes',
-        description: 'ZIGBEE temperature control valve',
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_ivdc0kwl"]),
+        model: "ZTRV-S01",
+        vendor: "Moes",
+        description: "ZIGBEE temperature control valve",
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         onEvent: tuya.onEventSetTime,
         configure: tuya.configureMagicPacket,
         exposes: [
-            e.climate()
-             .withLocalTemperature(ea.STATE)
-             .withSetpoint("current_heating_setpoint", 5, 35, 0.5, ea.STATE_SET)
-             .withLocalTemperatureCalibration(-10, 10, 0.5, ea.STATE_SET)
-             .withPreset(["auto", "manual", "off", "on"])
-             .withRunningState(["idle", "heat"], ea.STATE),
+            e
+                .climate()
+                .withLocalTemperature(ea.STATE)
+                .withSetpoint("current_heating_setpoint", 5, 35, 0.5, ea.STATE_SET)
+                .withLocalTemperatureCalibration(-10, 10, 0.5, ea.STATE_SET)
+                .withPreset(["auto", "manual", "off", "on"])
+                .withRunningState(["idle", "heat"], ea.STATE),
             e.window_detection(),
             e.child_lock(),
             e.binary("frost_protection", ea.STATE_SET, "ON", "OFF"),
@@ -16240,7 +16241,9 @@ export const definitions: DefinitionWithExtend[] = [
             e.max_temperature().withValueMin(20).withValueMax(35),
             e.position(),
             e.battery(),
-            e.enum("screen_orientation", ea.STATE_SET, ["0", "1"]).withDescription("Screen orientation"),
+            e
+                .enum("screen_orientation", ea.STATE_SET, ["0", "1"])
+                .withDescription("Screen orientation"),
             //e.holiday_temperature().withValueMin(5).withValueMax(35).withValueStep(0.5).withDescription("Holiday mode temperature setting"),(Invalid situations may occur)
         ],
         meta: {
@@ -16256,7 +16259,7 @@ export const definitions: DefinitionWithExtend[] = [
                         holiday: tuya.enum(4),
                     }),
                 ],
-                [3, "running_state", tuya.valueConverterBasic.lookup({ heat: 0, idle: 1 })],
+                [3, "running_state", tuya.valueConverterBasic.lookup({heat: 0, idle: 1})],
                 [6, "battery", tuya.valueConverter.raw],
                 [
                     7,
@@ -16284,7 +16287,7 @@ export const definitions: DefinitionWithExtend[] = [
                         OPENED: tuya.enum(1),
                     }),
                 ],
-                [21, "holiday_temperature", tuya.valueConverter.divideBy10],//
+                [21, "holiday_temperature", tuya.valueConverter.divideBy10], //
                 [28, "schedule_monday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(1)],
                 [29, "schedule_tuesday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(2)],
                 [30, "schedule_wednesday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(3)],
@@ -16292,7 +16295,9 @@ export const definitions: DefinitionWithExtend[] = [
                 [32, "schedule_friday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(5)],
                 [33, "schedule_saturday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(6)],
                 [34, "schedule_sunday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(7)],
-                [36, "frost_protection",
+                [
+                    36,
+                    "frost_protection",
                     tuya.valueConverterBasic.lookup({
                         ON: true,
                         OFF: false,
