@@ -16214,7 +16214,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_8zizsafo", "_TZE284_iilebqoo"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_8zizsafo", "_TZE284_iilebqoo", "_TZE284_fhvpaltk"]),
         model: "GX03",
         vendor: "GIEX",
         description: "GIEX 2 zone watering timer",
@@ -16265,7 +16265,10 @@ export const definitions: DefinitionWithExtend[] = [
                 [14, "countdown_2", tuya.valueConverter.raw],
             ],
         },
-        whiteLabel: [tuya.whitelabel("Nova Digital", "ZVL-DUAL", "Water Valve with 2 zones", ["_TZE284_iilebqoo"])],
+        whiteLabel: [
+            tuya.whitelabel("Nova Digital", "ZVL-DUAL", "Water Valve with 2 zones", ["_TZE284_iilebqoo"]),
+            tuya.whitelabel("Tuya", "TS0601_2_Valves", "2 zone watering timer", ["_TZE284_fhvpaltk"]),
+        ],
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_eaulras5"]),
