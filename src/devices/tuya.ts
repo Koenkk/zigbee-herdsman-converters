@@ -2559,6 +2559,7 @@ export const definitions: DefinitionWithExtend[] = [
     ],
   },
   {
+    zigbeeModel: ["ZG-204Z"],
     fingerprint: tuya.fingerprint("TS0202", [
       "_TZ3000_mcxw5ehu",
       "_TZ3000_6ygjfyll",
@@ -2596,6 +2597,7 @@ export const definitions: DefinitionWithExtend[] = [
       await reporting.batteryVoltage(endpoint);
     },
     whiteLabel: [
+      { vendor: "HOBEIAN", model: "ZG-204Z" },
       tuya.whitelabel("Tuya", "ZMS-102", "Motion sensor", ["_TZ3000_msl6wxk9"]),
     ],
   },
@@ -2655,13 +2657,14 @@ export const definitions: DefinitionWithExtend[] = [
     exposes: [],
   },
   {
-    zigbeeModel: ["TS0207", "FNB54-WTS08ML1.0"],
+    zigbeeModel: ["TS0207", "FNB54-WTS08ML1.0", "ZG-222Z"],
     model: "TS0207_water_leak_detector",
     vendor: "Tuya",
     description: "Water leak detector",
     fromZigbee: [fz.ias_water_leak_alarm_1, fz.battery, fz.ignore_basic_report],
     whiteLabel: [
       { vendor: "CR Smart Home", model: "TS0207" },
+      { vendor: "HOBEIAN", model: "ZG-222Z" },
       tuya.whitelabel("Meian", "SW02", "Water leak sensor", [
         "_TZ3000_kyb656no",
       ]),
@@ -13100,6 +13103,7 @@ export const definitions: DefinitionWithExtend[] = [
     ],
   },
   {
+    zigbeeModel: ["ZG-227Z", "ZG-227ZL"],
     fingerprint: tuya.fingerprint("TS0601", [
       "_TZE200_qoy0ekbd",
       "_TZE200_znbl8dj5",
@@ -13122,6 +13126,8 @@ export const definitions: DefinitionWithExtend[] = [
       e.battery(),
     ],
     whiteLabel: [
+      { vendor: "HOBEIAN", model: "ZG-227Z" },
+      { vendor: "HOBEIAN", model: "ZG-227ZL" },
       tuya.whitelabel("Tuya", "ZG-227Z", "Temperature and humidity sensor", [
         "_TZE200_a8sdabtg",
         "_TZE200_vs0skpuc",
@@ -13346,6 +13352,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
   },
   {
+    zigbeeModel: ["ZG-102Z"],
     fingerprint: tuya.fingerprint("TS0601", ["_TZE200_n8dljorx"]),
     model: "ZG-102Z",
     vendor: "Tuya",
@@ -13354,6 +13361,7 @@ export const definitions: DefinitionWithExtend[] = [
     toZigbee: [tuya.tz.datapoints],
     configure: tuya.configureMagicPacket,
     exposes: [e.contact(), e.battery()],
+    whiteLabel: [{ vendor: "HOBEIAN", model: "ZG-102Z" }],
     meta: {
       tuyaDatapoints: [
         [1, "contact", tuya.valueConverter.inverse],
@@ -13468,6 +13476,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
   },
   {
+    zigbeeModel: ["ZG-204ZL"],
     fingerprint: tuya.fingerprint("TS0601", [
       "_TZE200_3towulqd",
       "_TZE200_1ibpyhdc",
@@ -13531,6 +13540,7 @@ export const definitions: DefinitionWithExtend[] = [
         [102, "illuminance_interval", tuya.valueConverter.raw],
       ],
     },
+    whiteLabel: [{ vendor: "HOBEIAN", model: "ZG-204ZL" }],
   },
   {
     zigbeeModel: ["CK-BL702-MWS-01(7016)"],
@@ -22960,87 +22970,6 @@ export const definitions: DefinitionWithExtend[] = [
         [101, "static_sensitivity", tuya.valueConverter.raw],
         [102, "motion_sensitivity", tuya.valueConverter.raw],
       ],
-    },
-  },
-  {
-    zigbeeModel: ["ZG-222Z"],
-    model: "ZG-222ZA",
-    vendor: "HOBEIAN",
-    description: "Water sensor",
-    extend: [
-      m.battery(),
-      m.iasZoneAlarm({ zoneType: "water_leak", zoneAttributes: ["alarm_1"] }),
-    ],
-  },
-  {
-    zigbeeModel: ["ZG-102Z"],
-    model: "ZG-102Z",
-    vendor: "HOBEIAN",
-    description: "Door contact sensor",
-    extend: [
-      m.battery(),
-      m.iasZoneAlarm({ zoneType: "contact", zoneAttributes: ["alarm_1"] }),
-    ],
-    meta: {},
-  },
-  {
-    zigbeeModel: ["ZG-227Z", "ZG-227ZL"],
-    model: "ZG-227Z",
-    vendor: "HOBEIAN",
-    description: "Temperature & humidity sensor",
-    fromZigbee: [tuya.fz.datapoints],
-    toZigbee: [tuya.tz.datapoints],
-    configure: tuya.configureMagicPacket,
-    exposes: [
-      e.temperature(),
-      e.humidity(),
-      tuya.exposes.temperatureUnit(),
-      tuya.exposes.temperatureCalibration(),
-      tuya.exposes.humidityCalibration(),
-      e.battery(),
-    ],
-    meta: {
-      tuyaDatapoints: [
-        [1, "temperature", tuya.valueConverter.divideBy10],
-        [2, "humidity", tuya.valueConverter.raw],
-        [4, "battery", tuya.valueConverter.raw],
-        [9, "temperature_unit", tuya.valueConverter.temperatureUnit],
-        [23, "temperature_calibration", tuya.valueConverter.divideBy10],
-        [24, "humidity_calibration", tuya.valueConverter.raw],
-      ],
-    },
-  },
-  {
-    zigbeeModel: ["ZG-204Z"],
-    model: "ZG-204Z",
-    vendor: "HOBEIAN",
-    description: "Motion sensor",
-    fromZigbee: [fz.ignore_basic_report, fz.ZM35HQ_attr, fz.battery],
-    toZigbee: [tz.ZM35HQ_attr],
-    extend: [
-      m.quirkCheckinInterval(15000),
-      // Occupancy reporting interval is 60s, so allow for one dropped update plus a small safety margin of 5s
-      m.iasZoneAlarm({
-        zoneType: "occupancy",
-        zoneAttributes: ["alarm_1", "battery_low"],
-        keepAliveTimeout: 125,
-      }),
-    ],
-    exposes: [
-      e.battery(),
-      e.battery_voltage(),
-      e
-        .enum("sensitivity", ea.ALL, ["low", "medium", "high"])
-        .withDescription("PIR sensor sensitivity"),
-      e
-        .enum("keep_time", ea.ALL, [30, 60, 120])
-        .withDescription("PIR keep time in seconds"),
-    ],
-    configure: async (device, coordinatorEndpoint) => {
-      const endpoint = device.getEndpoint(1);
-      await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg"]);
-      await reporting.batteryPercentageRemaining(endpoint);
-      await reporting.batteryVoltage(endpoint);
     },
   },
 ];
