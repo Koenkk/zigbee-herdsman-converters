@@ -1,18 +1,18 @@
 import {Zcl} from "zigbee-herdsman";
 
+import * as m from "../lib/modernExtend";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
+import * as exposes from "../lib/exposes";
+import * as reporting from "../lib/reporting";
+import * as utils from "../lib/utils";
+import * as globalStore from "../lib/store";
+import {logger} from "../lib/logger";
 import * as constants from "../lib/constants";
 import {repInterval} from "../lib/constants";
-import * as exposes from "../lib/exposes";
-import {logger} from "../lib/logger";
-import * as m from "../lib/modernExtend";
-import * as reporting from "../lib/reporting";
 import {payload} from "../lib/reporting";
-import * as globalStore from "../lib/store";
 import * as sunricher from "../lib/sunricher";
 import type {DefinitionWithExtend, Fz, Zh} from "../lib/types";
-import * as utils from "../lib/utils";
 
 const NS = "zhc:sunricher";
 const e = exposes.presets;
@@ -46,6 +46,75 @@ const fzLocal = {
             return {action: utils.getFromLookup(commandID, lookup)};
         },
     } satisfies Fz.Converter,
+    ZG9095B: {
+            cluster: "hvacThermostat",
+            type: ["attributeReport", "readResponse"],
+            convert: (model, msg, _publish, _options, meta) => {
+                const result = {};
+    
+                if (msg.data.minSetpointDeadBand !== undefined) {
+                    result[utils.postfixWithEndpointName("min_setpoint_deadband", msg, model, meta)] =
+                        utils.precisionRound(msg.data.minSetpointDeadBand, 2) / 10;
+                }
+    
+                return result;
+            },
+        },
+};
+const tzLocal = {
+    ZG9095B: {
+        min_setpoint_deadband: {
+            key: ["min_setpoint_deadband"],
+            convertGet: async (entity, _key, _meta) => {
+                await entity.read("hvacThermostat", ["minSetpointDeadBand"]);
+            },
+
+            convertSet: async (entity, _key, value, _meta) => {
+                const newValue = value;
+                await entity.write("hvacThermostat", {
+                    minSetpointDeadBand: Math.round(Number(value) * 10),
+                });
+                return {state: {min_setpoint_deadband: value}};
+            },
+        },
+        temperature_display: {
+            key: ["temperature_display"],
+            convertSet: async (entity, _key, value, _meta) => {
+                const newValue = value;
+                const lookup = {room: 0, set: 1, floor: 2};
+                const payload = {4104: {value: utils.getFromLookup(value, lookup), type: Zcl.DataType.ENUM8}};
+                await entity.write("hvacThermostat", payload, {manufacturerCode: 0x1224});
+                return {state: {temperature_display: value}};
+            },
+            convertGet: async (entity, _key, _meta) => {
+                await entity.read("hvacThermostat", [0x1008], {manufacturerCode: 0x1224});
+            },
+        },
+        sensor: {
+            key: ["sensor"],
+            convertSet: async (entity, _key, value, _meta) => {
+                const lookup = {room: 1, floor: 2};
+                const payload = {4099: {value: utils.getFromLookup(value, lookup), type: Zcl.DataType.ENUM8}};
+                await entity.write("hvacThermostat", payload, {manufacturerCode: 0x1224});
+                return {state: {sensor: value}};
+            },
+            convertGet: async (entity, _key, _meta) => {
+                await entity.read("hvacThermostat", [0x1003], {manufacturerCode: 0x1224});
+            },
+        },
+        lcd_brightness: {
+            key: ["lcd_brightness"],
+            convertSet: async (entity, _key, value, _meta) => {
+                const lookup = {low: 1, mid: 2, high: 3};
+                const payload = {4096: {value: utils.getFromLookup(value, lookup), type: Zcl.DataType.ENUM8}};
+                await entity.write("hvacThermostat", payload, {manufacturerCode: 0x1224});
+                return {state: {lcd_brightness: value}};
+            },
+            convertGet: async (entity, _key, _meta) => {
+                await entity.read("hvacThermostat", [0x1000], {manufacturerCode: 0x1224});
+            },
+        },
+    }
 };
 
 async function syncTime(endpoint: Zh.Endpoint) {
@@ -55,6 +124,7 @@ async function syncTime(endpoint: Zh.Endpoint) {
         await endpoint.write("genTime", values);
     } catch {
         /* Do nothing*/
+        logger.warning(String(e), NS);
     }
 }
 
@@ -1680,5 +1750,247 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.U02I007C01_contact, fz.battery],
         toZigbee: [],
         exposes: [e.contact(), e.battery()],
+    },
+    {
+        zigbeeModel: ["ZG9095B"],
+        model: "SR-ZG9095B",
+        vendor: "Sunricher",
+        description: "Touch thermostat",
+        fromZigbee: [fz.thermostat, fz.namron_thermostat, fz.metering, fz.electrical_measurement, fz.namron_hvac_user_interface, fzLocal.ZG9095B],
+        toZigbee: [
+            tzLocal.ZG9095B.temperature_display,
+            tzLocal.ZG9095B.sensor,
+            tzLocal.ZG9095B.lcd_brightness,
+            tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_unoccupied_heating_setpoint,
+            tz.thermostat_occupied_cooling_setpoint,
+            tz.thermostat_unoccupied_cooling_setpoint,
+            tz.thermostat_local_temperature_calibration,
+            tz.thermostat_local_temperature,
+            tz.thermostat_outdoor_temperature,
+            tz.thermostat_system_mode,
+            tz.thermostat_control_sequence_of_operation,
+            tz.thermostat_running_state,
+            tz.namron_thermostat,
+            tz.namron_thermostat_child_lock,
+            tz.fan_mode,
+            tzLocal.ZG9095B.min_setpoint_deadband,
+        ],
+        exposes: [
+            e.numeric("outdoor_temperature", ea.STATE_GET).withUnit("°C").withDescription("Current temperature measured from the floor sensor"),
+            e
+                .climate()
+                .withSetpoint("occupied_heating_setpoint", 5, 32, 0.1)
+                .withSetpoint("unoccupied_heating_setpoint", 5, 32, 0.1)
+                .withSetpoint("occupied_cooling_setpoint", 5, 32, 0.1)
+                .withSetpoint("unoccupied_cooling_setpoint", 5, 32, 0.1)
+                .withLocalTemperature()
+                .withLocalTemperatureCalibration(-2.5, 2.5, 0.1)
+                .withSystemMode(["off", "auto", "cool", "heat", "fan_only"])
+                .withRunningState(["idle", "heat", "cool", "fan_only"])
+                .withFanMode(["off", "low", "medium", "high", "auto"])
+                .withControlSequenceOfOperation(["cooling_only", "heating_only", "cooling_and_heating_4-pipes"]),
+            e.binary("away_mode", ea.ALL, "ON", "OFF").withDescription("Enable/disable away mode"),
+            e.binary("child_lock", ea.ALL, "UNLOCK", "LOCK").withDescription("Enables/disables physical input on the device"),
+            e.enum("lcd_brightness", ea.ALL, ["low", "mid", "high"]).withDescription("OLED brightness when operating the buttons.  Default: Medium."),
+            e.enum("button_vibration_level", ea.ALL, ["off", "low", "high"]).withDescription("Key beep volume and vibration level.  Default: Low."),
+            e
+                .enum("floor_sensor_type", ea.ALL, ["10k", "15k", "50k", "100k", "12k"])
+                .withDescription("Type of the external floor sensor.  Default: NTC 10K/25."),
+            e.enum("sensor", ea.ALL, ["room", "floor"]).withDescription("The sensor used for heat control.  Default: Room Sensor."),
+            e.enum("powerup_status", ea.ALL, ["default", "last_status"]).withDescription("The mode after a power reset.  Default: Previous Mode."),
+            e
+                .numeric("floor_sensor_calibration", ea.ALL)
+                .withUnit("°C")
+                .withValueMin(-2.5)
+                .withValueMax(2.5)
+                .withValueStep(0.1)
+                .withDescription("The tempearatue calibration for the external floor sensor, between -3 and 3 in 0.1°C.  Default: 0."),
+            e
+                .enum("temperature_display", ea.ALL, ["room", "set", "floor"])
+                .withDescription(
+                    "The temperature on the display. room: shows the temperature recorded by the sensor embedded in the thermostat. set: shows the set (target) temperature. floor: shows the temperature recorded by the external floor sensor  Default: Room Temperature.",
+                ),
+            e
+                .numeric("min_setpoint_deadband", ea.ALL)
+                .withUnit("°C")
+                .withValueMin(1)
+                .withValueMax(1.5)
+                .withValueStep(0.1)
+                .withDescription(
+                    "This parameter refers to the minimum difference between cooling and heating temperatures. between 1 and 1.5 in 0.1 °C  Default: 1 °C. The hysteresis used by this device = MinSetpointDeadBand /2",
+                ),
+        ],
+        onEvent: async (type, _data, device, _options) => {
+            if (type === "stop") {
+                await clearInterval(globalStore.getValue(device, "time"));
+                await globalStore.clearValue(device, "time");
+            } else if (!globalStore.hasValue(device, "time")) {
+                const endpoint = await device.getEndpoint(1);
+                const hours24 = 1000 * 60 * 60 * 24;
+                // Device does not ask for the time with binding, therefore we write the time every 24 hours
+                const interval = await setInterval(async () => await syncTime(endpoint), hours24);
+                await globalStore.putValue(device, "time", interval);
+            }
+        },
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            const binds = ["genBasic", "genIdentify", "hvacThermostat", "seMetering", "genTime", "hvacUserInterfaceCfg"];
+            await reporting.bind(endpoint, coordinatorEndpoint, binds);
+    
+            // standard ZCL attributes
+            await reporting.thermostatTemperature(endpoint);
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
+            await reporting.thermostatUnoccupiedHeatingSetpoint(endpoint);
+            try {
+                await reporting.thermostatKeypadLockMode(endpoint);
+            } catch {
+                // Fails for some
+                // https://github.com/Koenkk/zigbee2mqtt/issues/15025
+                logger.debug("Failed to setup keypadLockout reporting", NS);
+            }
+    
+            // Custom attributes
+            const options = {manufacturerCode: 0x1224};
+    
+            // OperateDisplayLcdBrightnesss
+            await endpoint.configureReporting(
+                "hvacThermostat",
+                [
+                    {
+                        attribute: {ID: 0x1000, type: 0x30},
+                        minimumReportInterval: 0,
+                        maximumReportInterval: constants.repInterval.HOUR,
+                        reportableChange: null,
+                    },
+                ],
+                options,
+            );
+            // ButtonVibrationLevel
+            await endpoint.configureReporting(
+                "hvacThermostat",
+                [
+                    {
+                        attribute: {ID: 0x1001, type: 0x30},
+                        minimumReportInterval: 0,
+                        maximumReportInterval: constants.repInterval.HOUR,
+                        reportableChange: null,
+                    },
+                ],
+                options,
+            );
+            // FloorSensorType
+            await endpoint.configureReporting(
+                "hvacThermostat",
+                [
+                    {
+                        attribute: {ID: 0x1002, type: 0x30},
+                        minimumReportInterval: 0,
+                        maximumReportInterval: constants.repInterval.HOUR,
+                        reportableChange: null,
+                    },
+                ],
+                options,
+            );
+            // ControlType
+            await endpoint.configureReporting(
+                "hvacThermostat",
+                [
+                    {
+                        attribute: {ID: 0x1003, type: 0x30},
+                        minimumReportInterval: 0,
+                        maximumReportInterval: constants.repInterval.HOUR,
+                        reportableChange: null,
+                    },
+                ],
+                options,
+            );
+            // PowerUpStatus
+            await endpoint.configureReporting(
+                "hvacThermostat",
+                [
+                    {
+                        attribute: {ID: 0x1004, type: 0x30},
+                        minimumReportInterval: 0,
+                        maximumReportInterval: constants.repInterval.HOUR,
+                        reportableChange: null,
+                    },
+                ],
+                options,
+            );
+            // FloorSensorCalibration
+            await endpoint.configureReporting(
+                "hvacThermostat",
+                [
+                    {
+                        attribute: {ID: 0x1005, type: 0x28},
+                        minimumReportInterval: 0,
+                        maximumReportInterval: constants.repInterval.HOUR,
+                        reportableChange: 0,
+                    },
+                ],
+                options,
+            );
+            // AntiFreezingModeConfig
+            await endpoint.configureReporting(
+                "hvacThermostat",
+                [
+                    {
+                        attribute: {ID: 0x1006, type: 0x20},
+                        minimumReportInterval: 0,
+                        maximumReportInterval: constants.repInterval.HOUR,
+                        reportableChange: 0,
+                    },
+                ],
+                options,
+            );
+            // TemperatureDisplay
+            await endpoint.configureReporting(
+                "hvacThermostat",
+                [
+                    {
+                        attribute: {ID: 0x1008, type: 0x30},
+                        minimumReportInterval: 0,
+                        maximumReportInterval: constants.repInterval.HOUR,
+                        reportableChange: null,
+                    },
+                ],
+                options,
+            );
+    
+            // Away mode set
+            await endpoint.configureReporting(
+                "hvacThermostat",
+                [
+                    {
+                        attribute: {ID: 0x2002, type: 0x30},
+                        minimumReportInterval: 0,
+                        maximumReportInterval: constants.repInterval.HOUR,
+                        reportableChange: null,
+                    },
+                ],
+                options,
+            );
+    
+            // Control Sequence Of Operation
+            await endpoint.configureReporting("hvacThermostat", [
+                {
+                    attribute: {ID: 0x001b, type: 0x30},
+                    minimumReportInterval: 0,
+                    maximumReportInterval: constants.repInterval.HOUR,
+                    reportableChange: null,
+                },
+            ]);
+    
+            // Device does not asks for the time with binding, we need to write time during configure
+            await syncTime(endpoint);
+    
+            // Trigger initial read
+            await endpoint.read("hvacThermostat", ["systemMode", "runningState", "occupiedHeatingSetpoint"]);
+            await endpoint.read("hvacThermostat", [0x001b]);
+            await endpoint.read("hvacThermostat", [0x1000, 0x1001, 0x1002, 0x1003, 0x2002], options);
+            await endpoint.read("hvacThermostat", [0x1004, 0x1005, 0x1006], options);
+            await endpoint.read("hvacThermostat", [0x1008], options);
+        },
     },
 ];
