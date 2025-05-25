@@ -4005,7 +4005,7 @@ export const definitions: DefinitionWithExtend[] = [
             {model: "929003823601", vendor: "Philips", description: "Hue Tento WCA 29,1 cm (Black)", fingerprint: [{modelID: "929003823601"}]},
             {model: "929003823801", vendor: "Philips", description: "Hue Tento WCA 42,1 cm (Black)", fingerprint: [{modelID: "929003823801"}]},
             {model: "929003824001", vendor: "Philips", description: "Hue Tento WCA 54,2 cm (Black)", fingerprint: [{modelID: "929003824001"}]},
-            {model: "929003846601", vendor: "Philips", description: "Hue Tento WCA 39,5 cm (White)", fingerprint: [{modelID: "929003846601"}]},
+            {model: "929003846601", vendor: "Philips", description: "Hue Tento WCA 39,5x39,5 cm (White)", fingerprint: [{modelID: "929003846601"}]},
         ],
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
