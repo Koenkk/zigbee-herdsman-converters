@@ -4742,9 +4742,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [5, "motor_direction", tuya.valueConverterBasic.lookup({normal: false, reversed: true})],
             ],
         },
-        whiteLabel: [
-            tuya.whitelabel("Nova Digital", "ZC-GM42", "Roller Blind Motor", ["_TZE204_ycke4deo"]),
-        ],
+        whiteLabel: [tuya.whitelabel("Nova Digital", "ZC-GM42", "Roller Blind Motor", ["_TZE204_ycke4deo"])],
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_ax8a8ahx"]),
