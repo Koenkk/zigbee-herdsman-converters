@@ -2183,7 +2183,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
-        zigbeeModel: ["5062231P7", "929003808001_01", "929003808001_02" ],
+        zigbeeModel: ["5062231P7", "929003808001_01", "929003808001_02"],
         model: "5062231P7",
         vendor: "Philips",
         description: "Hue white and color ambience Argenta spot white (2 spots)",
