@@ -1225,7 +1225,7 @@ export function commandsColorCtrl(args?: CommandsColorCtrl): ModernExtend {
     const fromZigbee: Fz.Converter[] = [
         fz.command_move_color_temperature,
         fz.command_step_color_temperature,
-        fz.command_ehanced_move_to_hue_and_saturation,
+        fz.command_enhanced_move_to_hue_and_saturation,
         fz.command_move_to_hue_and_saturation,
         fz.command_step_hue,
         fz.command_step_saturation,

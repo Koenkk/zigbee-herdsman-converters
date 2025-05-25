@@ -964,10 +964,12 @@ export const ias_no_alarm: Fz.Converter = {
     type: ["attributeReport", "commandStatusChangeNotification"],
     convert: (model, msg, publish, options, meta) => {
         const zoneStatus = msg.data.zoneStatus;
-        return {
-            tamper: (zoneStatus & (1 << 2)) > 0,
-            battery_low: (zoneStatus & (1 << 3)) > 0,
-        };
+        if (zoneStatus !== undefined) {
+            return {
+                tamper: (zoneStatus & (1 << 2)) > 0,
+                battery_low: (zoneStatus & (1 << 3)) > 0,
+            };
+        }
     },
 };
 export const ias_siren: Fz.Converter = {
@@ -1003,11 +1005,13 @@ export const ias_water_leak_alarm_1_report: Fz.Converter = {
     type: "attributeReport",
     convert: (model, msg, publish, options, meta) => {
         const zoneStatus = msg.data.zoneStatus;
-        return {
-            water_leak: (zoneStatus & 1) > 0,
-            tamper: (zoneStatus & (1 << 2)) > 0,
-            battery_low: (zoneStatus & (1 << 3)) > 0,
-        };
+        if (zoneStatus !== undefined) {
+            return {
+                water_leak: (zoneStatus & 1) > 0,
+                tamper: (zoneStatus & (1 << 2)) > 0,
+                battery_low: (zoneStatus & (1 << 3)) > 0,
+            };
+        }
     },
 };
 export const ias_vibration_alarm_1: Fz.Converter = {
@@ -1114,11 +1118,13 @@ export const ias_contact_alarm_1_report: Fz.Converter = {
     type: "attributeReport",
     convert: (model, msg, publish, options, meta) => {
         const zoneStatus = msg.data.zoneStatus;
-        return {
-            contact: !((zoneStatus & 1) > 0),
-            tamper: (zoneStatus & (1 << 2)) > 0,
-            battery_low: (zoneStatus & (1 << 3)) > 0,
-        };
+        if (zoneStatus !== undefined) {
+            return {
+                contact: !((zoneStatus & 1) > 0),
+                tamper: (zoneStatus & (1 << 2)) > 0,
+                battery_low: (zoneStatus & (1 << 3)) > 0,
+            };
+        }
     },
 };
 export const ias_carbon_monoxide_alarm_1: Fz.Converter = {
@@ -1179,11 +1185,13 @@ export const ias_occupancy_alarm_1_report: Fz.Converter = {
     type: "attributeReport",
     convert: (model, msg, publish, options, meta) => {
         const zoneStatus = msg.data.zoneStatus;
-        return {
-            occupancy: (zoneStatus & 1) > 0,
-            tamper: (zoneStatus & (1 << 2)) > 0,
-            battery_low: (zoneStatus & (1 << 3)) > 0,
-        };
+        if (zoneStatus !== undefined) {
+            return {
+                occupancy: (zoneStatus & 1) > 0,
+                tamper: (zoneStatus & (1 << 2)) > 0,
+                battery_low: (zoneStatus & (1 << 3)) > 0,
+            };
+        }
     },
 };
 export const ias_occupancy_alarm_2: Fz.Converter = {
@@ -1491,7 +1499,7 @@ export const command_step_color_temperature: Fz.Converter = {
         return payload;
     },
 };
-export const command_ehanced_move_to_hue_and_saturation: Fz.Converter = {
+export const command_enhanced_move_to_hue_and_saturation: Fz.Converter = {
     cluster: "lightingColorCtrl",
     type: "commandEnhancedMoveToHueAndSaturation",
     convert: (model, msg, publish, options, meta) => {

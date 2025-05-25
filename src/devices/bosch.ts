@@ -1302,7 +1302,7 @@ export const definitions: DefinitionWithExtend[] = [
             "RFPR-ZB-ES",
             "RFPR-ZB-MS",
         ],
-        model: "RADON TriTech ZB",
+        model: "RADION TriTech ZB",
         vendor: "Bosch",
         description: "Wireless motion detector",
         fromZigbee: [fz.temperature, fz.battery, fz.ias_occupancy_alarm_1],
@@ -1838,6 +1838,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             boschExtend.bmct(),
         ],
+        ota: true,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genIdentify", "closuresWindowCovering", "boschSpecific"]);

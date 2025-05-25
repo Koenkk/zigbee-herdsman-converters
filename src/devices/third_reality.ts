@@ -330,6 +330,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.temperature(),
             m.humidity(),
             m.battery(),
+            m.forcePowerSource({powerSource: "Battery"}),
             m.deviceAddCustomCluster("3rSpecialCluster", {
                 ID: 0xff01,
                 manufacturerCode: 0x1233,
@@ -459,7 +460,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "3RSPE02065Z",
         vendor: "Third Reality",
         description: "Zigbee / BLE smart plug e3 with power",
-        extend: [m.onOff(), m.electricityMeter()],
+        extend: [m.onOff(), m.electricityMeter({acFrequency: true, powerFactor: true})],
         ota: true,
     },
     {
@@ -467,7 +468,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "3RSPU01080Z",
         vendor: "Third Reality",
         description: "Zigbee / BLE smart plug uk with power",
-        extend: [m.onOff(), m.electricityMeter()],
+        extend: [m.onOff(), m.electricityMeter({acFrequency: true, powerFactor: true})],
         ota: true,
     },
     {
@@ -475,19 +476,31 @@ export const definitions: DefinitionWithExtend[] = [
         model: "3RSP02064Z",
         vendor: "Third Reality",
         description: "Zigbee / BLE smart plug gen3 with power",
-        extend: [m.onOff(), m.electricityMeter()],
+        extend: [m.onOff(), m.electricityMeter({acFrequency: true, powerFactor: true})],
         ota: true,
     },
     {
-        zigbeeModel: ["3RDP01072Z"],
+        zigbeeModel: ["3RDP01072Z", "3RWP01073Z"],
         model: "3RDP01072Z",
         vendor: "Third Reality",
-        description: "Zigbee / BLE dual plug with power",
+        description: "Smart Dual Plug ZP1",
         ota: true,
+        whiteLabel: [{vendor: "Third Reality", model: "3RWP01073Z", description: "Smart Wall Plug ZW1", fingerprint: [{modelID: "3RWP01073Z"}]}],
         extend: [
             m.deviceEndpoints({endpoints: {left: 1, right: 2}}),
             m.onOff({endpointNames: ["left", "right"]}),
             m.electricityMeter({acFrequency: true, powerFactor: true, endpointNames: ["left", "right"], energy: {divisor: 3600000}}),
+            m.deviceAddCustomCluster("3rDualPlugSpecialcluster", {
+                ID: 0xff03,
+                manufacturerCode: 0x1407,
+                attributes: {
+                    resetSummationDelivered: {ID: 0x0000, type: Zcl.DataType.UINT8},
+                    onToOffDelay: {ID: 0x0001, type: Zcl.DataType.UINT16},
+                    offToOnDelay: {ID: 0x0002, type: Zcl.DataType.UINT16},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
         ],
     },
     {
