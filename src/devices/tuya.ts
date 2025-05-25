@@ -727,7 +727,7 @@ const fzLocal = {
             }
             return result;
         },
-    } satisfies Fz.Converter,    
+    } satisfies Fz.Converter,
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     TS011F_threshold: {
         cluster: "manuSpecificTuya_3",
@@ -6539,7 +6539,12 @@ export const definitions: DefinitionWithExtend[] = [
                 childLock: false,
                 onOffCountdown: true,
             }),
-            m.electricityMeter({current: {divisor: 1000, min: 3, change: 25}, voltage: {divisor: 1, min: 3, change: 3}, power: {divisor: 1, min: 3, change: 5}, energy: {divisor: 100, min: 3, change: 10}}),
+            m.electricityMeter({
+                current: {divisor: 1000, min: 3, change: 25},
+                voltage: {divisor: 1, min: 3, change: 3},
+                power: {divisor: 1, min: 3, change: 5},
+                energy: {divisor: 100, min: 3, change: 10},
+            }),
         ],
         fromZigbee: [
             {
