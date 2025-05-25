@@ -233,7 +233,7 @@ const philipsTz = {
             } else if (value === "on") {
                 await entity.write("genOnOff", {16387: {value: 0x01, type: 0x30}});
 
-                let brightness = meta.message.hue_power_on_brightness !== undefined ? meta.message.hue_power_on_brightness : 0xfe;
+                let brightness = meta.message.hue_power_on_brightness != null ? meta.message.hue_power_on_brightness : 0xfe;
                 if (brightness === 255) {
                     // 255 (0xFF) is the value for recover, therefore set it to 254 (0xFE)
                     brightness = 254;
@@ -242,9 +242,9 @@ const philipsTz = {
 
                 utils.assertEndpoint(entity);
                 if (entity.supportsInputCluster("lightingColorCtrl")) {
-                    if (meta.message.hue_power_on_color_temperature !== undefined && meta.message.hue_power_on_color !== undefined) {
+                    if (meta.message.hue_power_on_color_temperature != null && meta.message.hue_power_on_color != null) {
                         logger.error("Provide either color temperature or color, not both", NS);
-                    } else if (meta.message.hue_power_on_color_temperature !== undefined) {
+                    } else if (meta.message.hue_power_on_color_temperature != null) {
                         const colortemp = meta.message.hue_power_on_color_temperature;
                         await entity.write("lightingColorCtrl", {16400: {value: colortemp, type: 0x21}});
                         // Set color to default
@@ -252,7 +252,7 @@ const philipsTz = {
                             await entity.write("lightingColorCtrl", {3: {value: 0xffff, type: 0x21}}, manufacturerOptions);
                             await entity.write("lightingColorCtrl", {4: {value: 0xffff, type: 0x21}}, manufacturerOptions);
                         }
-                    } else if (meta.message.hue_power_on_color !== undefined) {
+                    } else if (meta.message.hue_power_on_color != null) {
                         // @ts-expect-error ignore
                         const colorXY = libColor.ColorRGB.fromHex(meta.message.hue_power_on_color).toXY();
                         const xy = {x: utils.mapNumberRange(colorXY.x, 0, 1, 0, 65535), y: utils.mapNumberRange(colorXY.y, 0, 1, 0, 65535)};
@@ -451,7 +451,7 @@ const philipsFz = {
                 if (options.simulated_brightness) {
                     const opts = options.simulated_brightness;
                     // @ts-expect-error ignore
-                    const deltaOpts = typeof opts === "object" && opts.delta !== undefined ? opts.delta : 35;
+                    const deltaOpts = typeof opts === "object" && opts.delta != null ? opts.delta : 35;
                     const delta = direction === "right" ? deltaOpts : deltaOpts * -1;
                     const brightness = globalStore.getValue(msg.endpoint, "brightness", 255) + delta;
                     payload.brightness = utils.numberWithinRange(brightness, 0, 255);
@@ -474,7 +474,7 @@ const philipsFz = {
         cluster: "manuSpecificPhilips2",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data && msg.data.state !== undefined) {
+            if (msg.data.state !== undefined) {
                 const input = msg.data.state.toString("hex");
                 const decoded = decodeGradientColors(input, {reverse: true});
                 if (decoded.color_mode === "gradient") {
