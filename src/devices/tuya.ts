@@ -714,6 +714,21 @@ const fzLocal = {
         },
     } satisfies Fz.Converter,
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    TS011F_statefull_electrical_measurement: {
+        ...fz.electrical_measurement,
+        convert: (model, msg, publish, options, meta) => {
+            const result = (fz.electrical_measurement.convert(model, msg, publish, options, meta) as KeyValueAny) ?? {};
+            if (result !== undefined && meta.state.state === "OFF") {
+                if ((result.power !== undefined && result.power > 0) || (result.current !== undefined && result.current > 0)) {
+                    //reset power, current to 0 if socket is off
+                    result.power = 0;
+                    result.current = 0;
+                }
+            }
+            return result;
+        },
+    } satisfies Fz.Converter,    
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     TS011F_threshold: {
         cluster: "manuSpecificTuya_3",
         type: "raw",
@@ -6518,25 +6533,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             tuya.modernExtend.tuyaOnOff({
                 electricalMeasurements: true,
-                electricalMeasurementsFzConverter: {
-                    ...fz.electrical_measurement,
-                    convert: (model, msg, publish, options, meta) => {
-                        const result = (fz.electrical_measurement.convert(model, msg, publish, options, meta) as KeyValueAny) ?? {};
-                        if (result !== undefined && meta.state.state === "OFF") {
-                            if ((result.power !== undefined && result.power > 0) || (result.current !== undefined && result.current > 0)) {
-                                //reset power, current to 0 if socket is off
-                                result.power = 0;
-                                result.current = 0;
-                            }
-                        }
-                        return result;
-                    },
-                },
+                electricalMeasurementsFzConverter: fzLocal.TS011F_statefull_electrical_measurement,
                 powerOutageMemory: true,
                 indicatorMode: true,
                 childLock: false,
                 onOffCountdown: true,
             }),
+            m.electricityMeter({current: {divisor: 1000, min: 3, change: 25}, voltage: {divisor: 1, min: 3, change: 3}, power: {divisor: 1, min: 3, change: 5}, energy: {divisor: 100, min: 3, change: 10}}),
         ],
         fromZigbee: [
             {
@@ -6552,27 +6555,6 @@ export const definitions: DefinitionWithExtend[] = [
                 },
             },
         ],
-        configure: async (device, coordinatorEndpoint) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint);
-
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "haElectricalMeasurement", "seMetering"]);
-            await reporting.onOff(endpoint);
-            await reporting.rmsVoltage(endpoint, {min: 3, change: 1});
-            await reporting.rmsCurrent(endpoint, {min: 3, change: 25});
-            await reporting.activePower(endpoint, {min: 3, change: 5});
-            await reporting.currentSummDelivered(endpoint, {min: 3, change: 10});
-
-            endpoint.saveClusterAttributeKeyValue("haElectricalMeasurement", {
-                acCurrentDivisor: 1000,
-                acCurrentMultiplier: 1,
-            });
-            endpoint.saveClusterAttributeKeyValue("seMetering", {
-                divisor: 100,
-                multiplier: 1,
-            });
-            device.save();
-        },
     },
     {
         fingerprint: tuya.fingerprint("TS011F", ["_TZ3000_in5s3wn1", "_TZ3000_wbloefbf"]),
