@@ -193,7 +193,7 @@ export function ikeaBattery(): ModernExtend {
     const defaultReporting: m.ReportingConfigWithoutAttribute = {min: "1_HOUR", max: "MAX", change: 10};
 
     const configure: Configure[] = [
-        m.setupConfigureForReporting("genPowerCfg", "batteryPercentageRemaining", defaultReporting, access.STATE_GET),
+        m.setupConfigureForReporting("genPowerCfg", "batteryPercentageRemaining", {config: defaultReporting, access: access.STATE_GET}),
         configureSetPowerSourceWhenUnknown("Battery"),
     ];
 
