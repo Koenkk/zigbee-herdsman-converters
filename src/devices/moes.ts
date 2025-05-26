@@ -121,7 +121,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS011F", ["_TZ3000_cymsnfvf", "_TZ3000_2xlvlnez"]),
+        fingerprint: tuya.fingerprint("TS011F", ["_TZ3000_cymsnfvf", "_TZ3000_2xlvlnez", "_TZ3210_2uk4z8ce"]),
         model: "ZP-LZ-FR2U",
         vendor: "Moes",
         description: "Zigbee 3.0 dual USB wireless socket plug",

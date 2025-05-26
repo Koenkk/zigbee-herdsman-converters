@@ -769,10 +769,14 @@ describe("OTA", () => {
 
         it("finds an image by hardwareVersionMin", async () => {
             const [device, image] = await getUbisysDevice(-1);
-            // 0 in manifest
-            device.hardwareVersion = 0;
-
-            const resultP = isUpdateAvailable(device as unknown as Zh.Device, {}, undefined, false);
+            const requestPayload: Ota.ImageInfo = {
+                imageType: image.header.imageType,
+                manufacturerCode: image.header.manufacturerCode,
+                fileVersion: image.header.fileVersion - 1,
+                // 0 in manifest
+                hardwareVersion: 0,
+            };
+            const resultP = isUpdateAvailable(device as unknown as Zh.Device, {}, requestPayload, false);
 
             await vi.runAllTimersAsync();
 
@@ -798,10 +802,14 @@ describe("OTA", () => {
 
         it("finds an image by hardwareVersionMax", async () => {
             const [device, image] = await getUbisysDevice(-1);
-            // 5 in manifest
-            device.hardwareVersion = 5;
-
-            const resultP = isUpdateAvailable(device as unknown as Zh.Device, {}, undefined, false);
+            const requestPayload: Ota.ImageInfo = {
+                imageType: image.header.imageType,
+                manufacturerCode: image.header.manufacturerCode,
+                fileVersion: image.header.fileVersion - 1,
+                // 5 in manifest
+                hardwareVersion: 5,
+            };
+            const resultP = isUpdateAvailable(device as unknown as Zh.Device, {}, requestPayload, false);
 
             await vi.runAllTimersAsync();
 
@@ -827,10 +835,14 @@ describe("OTA", () => {
 
         it("finds an image by extra meta hardwareVersionMin", async () => {
             const [device, image] = await getUbisysDevice(-1);
-            // fail the higher matching
-            device.hardwareVersion = -1;
-
-            const resultP = isUpdateAvailable(device as unknown as Zh.Device, {hardwareVersionMin: 0}, undefined, false);
+            const requestPayload: Ota.ImageInfo = {
+                imageType: image.header.imageType,
+                manufacturerCode: image.header.manufacturerCode,
+                fileVersion: image.header.fileVersion - 1,
+                // fail the higher matching
+                hardwareVersion: -1,
+            };
+            const resultP = isUpdateAvailable(device as unknown as Zh.Device, {hardwareVersionMin: 0}, requestPayload, false);
 
             await vi.runAllTimersAsync();
 
@@ -857,11 +869,16 @@ describe("OTA", () => {
 
         it("finds an image by extra meta hardwareVersionMax", async () => {
             const [device, image] = await getUbisysDevice(-1);
-            // fail the higher matching
-            device.hardwareVersion = 6;
+            const requestPayload: Ota.ImageInfo = {
+                imageType: image.header.imageType,
+                manufacturerCode: image.header.manufacturerCode,
+                fileVersion: image.header.fileVersion - 1,
+                // fail the higher matching
+                hardwareVersion: 6,
+            };
 
             // 5 in manifest
-            const resultP = isUpdateAvailable(device as unknown as Zh.Device, {hardwareVersionMax: 5}, undefined, false);
+            const resultP = isUpdateAvailable(device as unknown as Zh.Device, {hardwareVersionMax: 5}, requestPayload, false);
 
             await vi.runAllTimersAsync();
 

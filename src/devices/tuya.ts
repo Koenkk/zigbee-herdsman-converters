@@ -1954,25 +1954,29 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0207", [
-            "_TZ3000_m0vaazab",
-            "_TZ3000_ufttklsz",
-            "_TZ3000_nkkl7uzv",
-            "_TZ3000_misw04hq",
-            "_TZ3000_nlsszmzl",
-            "_TZ3000_gszjt2xx",
-            "_TZ3000_wlquqiiz",
-            "_TZ3000_5k5vh43t",
-            "_TZ3000_kxlmv9ag",
-            "_TZ3000_wmlc9p9z",
-            "_TZ3000_shopg9ss",
-            "_TZ3000_n0lphcok",
-        ]),
+        fingerprint: [
+            ...tuya.fingerprint("TS0207", [
+                "_TZ3000_m0vaazab",
+                "_TZ3000_ufttklsz",
+                "_TZ3000_nkkl7uzv",
+                "_TZ3000_misw04hq",
+                "_TZ3000_nlsszmzl",
+                "_TZ3000_gszjt2xx",
+                "_TZ3000_wlquqiiz",
+                "_TZ3000_5k5vh43t",
+                "_TZ3000_kxlmv9ag",
+                "_TZ3000_wmlc9p9z",
+                "_TZ3000_shopg9ss",
+                "_TZ3000_n0lphcok",
+            ]),
+            ...tuya.fingerprint("TS0001", ["_TZ3000_n0lphcok"]),
+        ],
         model: "TS0207_repeater",
         vendor: "Tuya",
         description: "Repeater",
         fromZigbee: [fz.linkquality_from_basic],
         toZigbee: [],
+        whiteLabel: [tuya.whitelabel("Tuya", "TS0001_repeater", "Zigbee signal repeater", ["_TZ3000_n0lphcok"])],
         exposes: [],
     },
     {
@@ -3874,9 +3878,9 @@ export const definitions: DefinitionWithExtend[] = [
             https://github.com/Koenkk/zigbee2mqtt/issues/27090
             INVALID_DATA_TYPE error for _TZ3000_xkap8wtb, appVersion:162 softwareBuildID: 0122052017
             */
-            if ("_TZ3000_xkap8wtb" === device.manufacturerName && 162 === device.applicationVersion) {
+            if ("_TZ3000_xkap8wtb" === device.manufacturerName && [162, 100].includes(device.applicationVersion)) {
                 logger.warning(
-                    "Detected TS0001 _TZ3000_xkap8wtb switch appVersion:162. Skip reporting for haElectricalMeasurement and seMeteringreporting",
+                    "Detected TS0001 _TZ3000_xkap8wtb switch with appVersion 100 or 162. Skip reporting for haElectricalMeasurement and seMeteringreporting in favor of polling.",
                     NS,
                 );
                 await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff"]);
@@ -3914,6 +3918,8 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         onEvent: async (type, data, device, options) => {
             if (["_TZ3000_x3ewpzyr"].includes(device.manufacturerName)) {
+                await tuya.onEventMeasurementPoll(type, data, device, options, true, true);
+            } else if (["_TZ3000_xkap8wtb"].includes(device.manufacturerName) && [162, 100].includes(device.applicationVersion)) {
                 await tuya.onEventMeasurementPoll(type, data, device, options, true, true);
             }
         },
@@ -8483,12 +8489,13 @@ export const definitions: DefinitionWithExtend[] = [
         onEvent: (type, data, device, options) => tuya.onEventMeasurementPoll(type, data, device, options, true, false),
     },
     {
-        fingerprint: tuya.fingerprint("TS011F", ["_TZ3000_7issjl2q"]),
+        fingerprint: [...tuya.fingerprint("TS011F", ["_TZ3000_7issjl2q"]), ...tuya.fingerprint("TS0011", ["_TZ3000_gzvniqjb"])],
         model: "ATMS1601Z",
         description: "Din smart relay (without power monitoring)",
         vendor: "Tuya",
         fromZigbee: [fz.on_off, fz.ignore_basic_report, tuya.fz.power_outage_memory, fz.tuya_relay_din_led_indicator],
         toZigbee: [tz.on_off, tuya.tz.power_on_behavior_1, tz.tuya_relay_din_led_indicator],
+        whiteLabel: [tuya.whitelabel("Tongou", "TO-Q-SY1-ZT", "Din smart relay (without power monitoring)", ["_TZ3000_gzvniqjb"])],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff"]);
@@ -9611,7 +9618,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.battery(),
         ],
         whiteLabel: [
-            tuya.whitelabel("Tuya", "ZG-227Z", "Temperature and humidity sensor", ["_TZE200_a8sdabtg", "_TZE200_vs0skpuc"]),
+            tuya.whitelabel("HOBEIAN", "ZG-227Z", "Temperature and humidity sensor", ["_TZE200_a8sdabtg", "_TZE200_vs0skpuc"]),
             tuya.whitelabel("KOJIMA", "KOJIMA-THS-ZG-LCD", "Temperature and humidity sensor", ["_TZE200_dikkika5"]),
         ],
         meta: {
