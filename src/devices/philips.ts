@@ -4033,6 +4033,13 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
+        zigbeeModel: ["929003812901_01", "929003812901_02", "929003812901_03"],
+        model: "929003812901",
+        vendor: "Philips",
+        description: "Hue White and Color Ambiance GU10",
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+    },
+    {
         zigbeeModel: ["915005821901"],
         model: "915005821901",
         vendor: "Philips",
