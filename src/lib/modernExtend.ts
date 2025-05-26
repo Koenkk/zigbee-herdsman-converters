@@ -1,6 +1,7 @@
 import {Zcl} from "zigbee-herdsman";
 import type {ClusterDefinition} from "zigbee-herdsman/dist/zspec/zcl/definition/tstype";
 
+import assert from "node:assert";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import {logger} from "../lib/logger";
@@ -189,24 +190,36 @@ export async function setupAttributes(
 export function setupConfigureForReporting(
     cluster: string | number,
     attribute: ReportingConfigAttribute,
-    config?: false | ReportingConfigWithoutAttribute,
-    access?: Access,
-    endpointNames?: string[],
+    args: {
+        config?: false | ReportingConfigWithoutAttribute;
+        access?: Access;
+        // `endpointNames` and `singleEndpoint` cannot be used together.
+        endpointNames?: string[];
+        // only setup for the first endpoint supporting the `cluster`.
+        singleEndpoint?: boolean;
+    },
 ) {
+    const {config = false, access = undefined, endpointNames = undefined, singleEndpoint = false} = args;
     const configureReporting = !!config;
     const read = !!(access & ea.GET);
     if (configureReporting || read) {
         const configure: Configure = async (device, coordinatorEndpoint, definition) => {
             const reportConfig = config ? {...config, attribute: attribute} : {attribute, min: -1, max: -1, change: -1};
-            let entities: (Zh.Device | Zh.Endpoint)[] = [device];
+            let endpoints: Zh.Endpoint[];
             if (endpointNames) {
+                assert(!singleEndpoint, "`endpointNames` cannot be used together with `singleEndpoint`");
                 const definitionEndpoints = definition.endpoint(device);
                 const endpointIds = endpointNames.map((e) => definitionEndpoints[e]);
-                entities = device.endpoints.filter((e) => endpointIds.includes(e.ID));
+                endpoints = device.endpoints.filter((e) => endpointIds.includes(e.ID));
+            } else {
+                endpoints = getEndpointsWithCluster(device, cluster, "input");
+                if (singleEndpoint) {
+                    endpoints = [endpoints[0]];
+                }
             }
 
-            for (const entity of entities) {
-                await setupAttributes(entity, coordinatorEndpoint, cluster, [reportConfig], configureReporting, read);
+            for (const endpoint of endpoints) {
+                await setupAttributes(endpoint, coordinatorEndpoint, cluster, [reportConfig], configureReporting, read);
             }
         };
         return configure;
@@ -311,7 +324,7 @@ export function linkQuality(args?: LinkQualityArgs): ModernExtend {
     const result: ModernExtend = {exposes, fromZigbee, isModernExtend: true};
 
     if (args.reporting) {
-        result.configure = [setupConfigureForReporting("genBasic", args.attribute, args.reportingConfig, ea.GET)];
+        result.configure = [setupConfigureForReporting("genBasic", args.attribute, {config: args.reportingConfig, access: ea.GET})];
     }
 
     return result;
@@ -439,11 +452,21 @@ export function battery(args?: BatteryArgs): ModernExtend {
     if (args.percentageReporting || args.voltageReporting) {
         if (args.percentageReporting) {
             result.configure.push(
-                setupConfigureForReporting("genPowerCfg", "batteryPercentageRemaining", args.percentageReportingConfig, ea.STATE_GET),
+                setupConfigureForReporting("genPowerCfg", "batteryPercentageRemaining", {
+                    config: args.percentageReportingConfig,
+                    access: ea.STATE_GET,
+                    singleEndpoint: true,
+                }),
             );
         }
         if (args.voltageReporting) {
-            result.configure.push(setupConfigureForReporting("genPowerCfg", "batteryVoltage", args.voltageReportingConfig, ea.STATE_GET));
+            result.configure.push(
+                setupConfigureForReporting("genPowerCfg", "batteryVoltage", {
+                    config: args.voltageReportingConfig,
+                    access: ea.STATE_GET,
+                    singleEndpoint: true,
+                }),
+            );
         }
         result.configure.push(configureSetPowerSourceWhenUnknown("Battery"));
     }
@@ -456,7 +479,13 @@ export function battery(args?: BatteryArgs): ModernExtend {
     }
 
     if (args.lowStatusReportingConfig) {
-        result.configure.push(setupConfigureForReporting("genPowerCfg", "batteryAlarmState", args.lowStatusReportingConfig, ea.STATE_GET));
+        result.configure.push(
+            setupConfigureForReporting("genPowerCfg", "batteryAlarmState", {
+                config: args.lowStatusReportingConfig,
+                access: ea.STATE_GET,
+                singleEndpoint: true,
+            }),
+        );
     }
 
     return result;
@@ -941,7 +970,13 @@ export function occupancy(args?: OccupancyArgs): ModernExtend {
     if (attributesForReading.length > 0) configure.push(setupConfigureForReading("msOccupancySensing", attributesForReading, args.endpointNames));
 
     if (args.reporting) {
-        configure.push(setupConfigureForReporting("msOccupancySensing", "occupancy", args.reportingConfig, ea.STATE_GET, args.endpointNames));
+        configure.push(
+            setupConfigureForReporting("msOccupancySensing", "occupancy", {
+                config: args.reportingConfig,
+                access: ea.STATE_GET,
+                endpointNames: args.endpointNames,
+            }),
+        );
     }
 
     return {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
@@ -1299,7 +1334,7 @@ export function lock(args?: LockArgs): ModernExtend {
         e.sound_volume(),
     ];
     const configure: Configure[] = [
-        setupConfigureForReporting("closuresDoorLock", "lockState", {min: "MIN", max: "1_HOUR", change: 0}, ea.STATE_GET),
+        setupConfigureForReporting("closuresDoorLock", "lockState", {config: {min: "MIN", max: "1_HOUR", change: 0}, access: ea.STATE_GET}),
     ];
     const meta: DefinitionMeta = {pinCodeCount: args.pinCodeCount};
     const result: ModernExtend = {fromZigbee, toZigbee, exposes, configure, meta, isModernExtend: true};
@@ -1334,22 +1369,18 @@ export function windowCovering(args: WindowCoveringArgs): ModernExtend {
         const configure: Configure[] = [];
         if (args.controls.includes("lift")) {
             configure.push(
-                setupConfigureForReporting(
-                    "closuresWindowCovering",
-                    "currentPositionLiftPercentage",
-                    {min: "1_SECOND", max: "MAX", change: 1},
-                    ea.STATE_GET,
-                ),
+                setupConfigureForReporting("closuresWindowCovering", "currentPositionLiftPercentage", {
+                    config: {min: "1_SECOND", max: "MAX", change: 1},
+                    access: ea.STATE_GET,
+                }),
             );
         }
         if (args.controls.includes("tilt")) {
             configure.push(
-                setupConfigureForReporting(
-                    "closuresWindowCovering",
-                    "currentPositionTiltPercentage",
-                    {min: "1_SECOND", max: "MAX", change: 1},
-                    ea.STATE_GET,
-                ),
+                setupConfigureForReporting("closuresWindowCovering", "currentPositionTiltPercentage", {
+                    config: {min: "1_SECOND", max: "MAX", change: 1},
+                    access: ea.STATE_GET,
+                }),
             );
         }
         result.configure = configure;
@@ -2358,7 +2389,7 @@ export function enumLookup(args: EnumLookupArgs): ModernExtend {
         },
     ];
 
-    const configure: Configure[] = [setupConfigureForReporting(cluster, attribute, reporting, access)];
+    const configure: Configure[] = [setupConfigureForReporting(cluster, attribute, {config: reporting, access})];
 
     return {exposes: [expose], fromZigbee, toZigbee, configure, isModernExtend: true};
 }
@@ -2490,7 +2521,7 @@ export function numeric(args: NumericArgs): ModernExtend {
         },
     ];
 
-    const configure: Configure[] = [setupConfigureForReporting(cluster, attribute, reporting, access, endpoints)];
+    const configure: Configure[] = [setupConfigureForReporting(cluster, attribute, {config: reporting, access, endpointNames: endpoints})];
 
     return {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
 }
@@ -2555,7 +2586,7 @@ export function binary(args: BinaryArgs): ModernExtend {
         },
     ];
 
-    const configure: Configure[] = [setupConfigureForReporting(cluster, attribute, reporting, access)];
+    const configure: Configure[] = [setupConfigureForReporting(cluster, attribute, {config: reporting, access})];
 
     return {exposes: [expose], fromZigbee, toZigbee, configure, isModernExtend: true};
 }
@@ -2615,7 +2646,7 @@ export function text(args: TextArgs): ModernExtend {
         },
     ];
 
-    const configure: Configure[] = [setupConfigureForReporting(cluster, attribute, reporting, access)];
+    const configure: Configure[] = [setupConfigureForReporting(cluster, attribute, {config: reporting, access})];
 
     return {exposes: [expose], fromZigbee, toZigbee, configure, isModernExtend: true};
 }
