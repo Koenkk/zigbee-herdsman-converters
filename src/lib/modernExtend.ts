@@ -189,8 +189,8 @@ export async function setupAttributes(
 export function setupConfigureForReporting(
     cluster: string | number,
     attribute: ReportingConfigAttribute,
-    config: ReportingConfigWithoutAttribute,
-    access: Access,
+    config?: false | ReportingConfigWithoutAttribute,
+    access?: Access,
     endpointNames?: string[],
 ) {
     const configureReporting = !!config;
@@ -1225,7 +1225,7 @@ export function commandsColorCtrl(args?: CommandsColorCtrl): ModernExtend {
     const fromZigbee: Fz.Converter[] = [
         fz.command_move_color_temperature,
         fz.command_step_color_temperature,
-        fz.command_ehanced_move_to_hue_and_saturation,
+        fz.command_enhanced_move_to_hue_and_saturation,
         fz.command_move_to_hue_and_saturation,
         fz.command_step_hue,
         fz.command_step_saturation,
@@ -1523,7 +1523,7 @@ export function iasZoneAlarm(args: IasArgs): ModernExtend {
                 : [],
             convert: (model, msg, publish, options, meta) => {
                 if (args.alarmTimeout) {
-                    const timeout = options?.[timeoutProperty] !== undefined ? Number(options[timeoutProperty]) : 90;
+                    const timeout = options?.[timeoutProperty] != null ? Number(options[timeoutProperty]) : 90;
                     clearTimeout(globalStore.getValue(msg.endpoint, "timer"));
                     if (timeout !== 0) {
                         const timer = setTimeout(() => publish({[alarm1Name]: false, [alarm2Name]: false}), timeout * 1000);
@@ -1643,13 +1643,13 @@ export function iasWarning(args?: IasWarningArgs): ModernExtend {
                     // @ts-expect-error ignore
                     level: value.level || "medium",
                     // @ts-expect-error ignore
-                    strobe: value.strobe !== undefined ? value.strobe : true,
+                    strobe: value.strobe != null ? value.strobe : true,
                     // @ts-expect-error ignore
-                    duration: value.duration !== undefined ? value.duration : 10,
+                    duration: value.duration != null ? value.duration : 10,
                     // @ts-expect-error ignore
-                    strobeDutyCycle: value.strobe_duty_cycle !== undefined ? value.strobe_duty_cycle * 10 : 0,
+                    strobeDutyCycle: value.strobe_duty_cycle != null ? value.strobe_duty_cycle * 10 : 0,
                     // @ts-expect-error ignore
-                    strobeLevel: value.strobe_level !== undefined ? utils.getFromLookup(value.strobe_level, strobeLevel) : 1,
+                    strobeLevel: value.strobe_level != null ? utils.getFromLookup(value.strobe_level, strobeLevel) : 1,
                 };
 
                 // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
@@ -2490,10 +2490,7 @@ export function numeric(args: NumericArgs): ModernExtend {
         },
     ];
 
-    const configure: Configure[] = [];
-    if (reporting) {
-        configure.push(setupConfigureForReporting(cluster, attribute, reporting, access, endpoints));
-    }
+    const configure: Configure[] = [setupConfigureForReporting(cluster, attribute, reporting, access, endpoints)];
 
     return {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
 }
@@ -2558,10 +2555,7 @@ export function binary(args: BinaryArgs): ModernExtend {
         },
     ];
 
-    const configure: Configure[] = [];
-    if (reporting) {
-        configure.push(setupConfigureForReporting(cluster, attribute, reporting, access));
-    }
+    const configure: Configure[] = [setupConfigureForReporting(cluster, attribute, reporting, access)];
 
     return {exposes: [expose], fromZigbee, toZigbee, configure, isModernExtend: true};
 }

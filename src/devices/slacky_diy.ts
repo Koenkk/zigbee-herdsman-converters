@@ -1,28 +1,11 @@
-import {Zcl} from "zigbee-herdsman";
-
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
-import * as constants from "../lib/constants";
 import * as exposes from "../lib/exposes";
-import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as globalStore from "../lib/store";
-import type {
-    Configure,
-    Definition,
-    DefinitionWithExtend,
-    Expose,
-    Fz,
-    KeyValue,
-    KeyValueAny,
-    KeyValueNumberString,
-    ModernExtend,
-    Tz,
-    Zh,
-} from "../lib/types";
+import type {Definition, DefinitionWithExtend, Expose, Fz, KeyValue, KeyValueAny, ModernExtend, Tz, Zh} from "../lib/types";
 import * as utils from "../lib/utils";
-import {assertString, getFromLookup, getOptions, postfixWithEndpointName, precisionRound} from "../lib/utils";
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -328,7 +311,7 @@ const tzLocal = {
     thermostat_brightness_level: {
         key: ["brightness_level"],
         convertSet: async (entity, key, value, meta) => {
-            utils.assertNumber(value);
+            //utils.assertNumber(value);
             const lookup = {Off: 0, Low: 1, Medium: 2, High: 3};
             await entity.write("hvacThermostat", {[attrThermLevel]: {value: utils.getFromLookup(value, lookup), type: 0x30}});
             return {state: {brightness_level: value}};
@@ -649,8 +632,7 @@ const electricityMeterExtend = {
             {
                 key: ["device_address_preset"],
                 convertSet: async (entity, key, value, meta) => {
-                    utils.assertString(value);
-                    const device_address_preset = Number.parseInt(value, 10);
+                    const device_address_preset = value;
                     await entity.write("seMetering", {[attrElCityMeterAddressPreset]: {value: device_address_preset, type: 0x23}});
                     return {readAfterWriteTime: 250, state: {device_address_preset: value}};
                 },
@@ -666,8 +648,7 @@ const electricityMeterExtend = {
             {
                 key: ["device_measurement_preset"],
                 convertSet: async (entity, key, value, meta) => {
-                    utils.assertString(value);
-                    const device_measurement_preset = Number.parseInt(value, 10);
+                    const device_measurement_preset = value;
                     await entity.write("seMetering", {[attrElCityMeterMeasurementPreset]: {value: device_measurement_preset, type: 0x20}});
                     return {readAfterWriteTime: 250, state: {device_measurement_preset: value}};
                 },
@@ -915,15 +896,15 @@ function waterPreset(): ModernExtend {
                     // biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
                     step_water: (value as any).step_water_preset,
                 };
-                if (values.hot_water !== undefined && values.hot_water >= 0) {
+                if (values.hot_water != null && values.hot_water >= 0) {
                     const hot_water_preset = Number.parseInt(values.hot_water);
                     await endpoint.write("seMetering", {61440: {value: hot_water_preset, type: 0x23}});
                 }
-                if (values.cold_water !== undefined && values.cold_water >= 0) {
+                if (values.cold_water != null && values.cold_water >= 0) {
                     const cold_water_preset = Number.parseInt(values.cold_water);
                     await endpoint.write("seMetering", {61441: {value: cold_water_preset, type: 0x23}});
                 }
-                if (values.step_water !== undefined && values.step_water >= 0) {
+                if (values.step_water != null && values.step_water >= 0) {
                     const step_water_preset = Number.parseInt(values.step_water);
                     await endpoint.write("seMetering", {61442: {value: step_water_preset, type: 0x21}});
                 }

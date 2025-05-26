@@ -39,12 +39,12 @@ const bitron = {
             key: ["hysteresis", "hysteresis"],
             convertSet: async (entity, key, value: KeyValueAny, meta) => {
                 const result: KeyValueAny = {state: {hysteresis: {}}};
-                if (value.high !== undefined) {
+                if (value.high != null) {
                     await entity.write("hvacThermostat", {fourNoksHysteresisHigh: value.high}, manufacturerOptions);
                     result.state.hysteresis.high = value.high;
                 }
 
-                if (value.low !== undefined) {
+                if (value.low != null) {
                     await entity.write("hvacThermostat", {fourNoksHysteresisLow: value.low}, manufacturerOptions);
                     result.state.hysteresis.low = value.low;
                 }

@@ -886,6 +886,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         configure: async (device, coordinatorEndpoint) => {
             await device.getEndpoint(1).read("msTemperatureMeasurement", [0xf001, 0xf002]);
+            await device.getEndpoint(1).read("genAnalogInput", [0xf005, 0xf007, "minPresentValue", "maxPresentValue"]);
         },
     },
 ];

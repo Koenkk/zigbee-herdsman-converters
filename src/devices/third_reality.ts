@@ -201,6 +201,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Garage door tilt sensor",
         extend: [
             m.battery(),
+            m.forcePowerSource({powerSource: "Battery"}),
             m.iasZoneAlarm({zoneType: "contact", zoneAttributes: ["alarm_1", "battery_low"]}),
             m.deviceAddCustomCluster("3rGarageDoorSpecialCluster", {
                 ID: 0xff01,
@@ -278,6 +279,28 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.cover_position()],
     },
     {
+        zigbeeModel: ["3RSB02015Z"],
+        model: "3RSB02015Z",
+        vendor: "Third Reality",
+        description: "Smart blind Gen2",
+        extend: [
+            m.battery(),
+            m.windowCovering({controls: ["lift"]}),
+            m.commandsWindowCovering({commands: ["open", "close", "stop"]}),
+            m.deviceAddCustomCluster("3rSmartBlindGen2SpecialCluster", {
+                ID: 0xff00,
+                manufacturerCode: 0x1233,
+                attributes: {
+                    infrared_enable: {ID: 0x0000, type: 0x20},
+                    calibration_distance: {ID: 0x0001, type: 0x28},
+                    limit_position: {ID: 0x0002, type: 0x21},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+        ],
+    },
+    {
         zigbeeModel: ["3RSB22BZ"],
         model: "3RSB22BZ",
         vendor: "Third Reality",
@@ -307,6 +330,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.temperature(),
             m.humidity(),
             m.battery(),
+            m.forcePowerSource({powerSource: "Battery"}),
             m.deviceAddCustomCluster("3rSpecialCluster", {
                 ID: 0xff01,
                 manufacturerCode: 0x1233,
@@ -436,7 +460,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "3RSPE02065Z",
         vendor: "Third Reality",
         description: "Zigbee / BLE smart plug e3 with power",
-        extend: [m.onOff(), m.electricityMeter()],
+        extend: [m.onOff(), m.electricityMeter({acFrequency: true, powerFactor: true})],
         ota: true,
     },
     {
@@ -444,7 +468,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "3RSPU01080Z",
         vendor: "Third Reality",
         description: "Zigbee / BLE smart plug uk with power",
-        extend: [m.onOff(), m.electricityMeter()],
+        extend: [m.onOff(), m.electricityMeter({acFrequency: true, powerFactor: true})],
         ota: true,
     },
     {
@@ -452,19 +476,31 @@ export const definitions: DefinitionWithExtend[] = [
         model: "3RSP02064Z",
         vendor: "Third Reality",
         description: "Zigbee / BLE smart plug gen3 with power",
-        extend: [m.onOff(), m.electricityMeter()],
+        extend: [m.onOff(), m.electricityMeter({acFrequency: true, powerFactor: true})],
         ota: true,
     },
     {
-        zigbeeModel: ["3RDP01072Z"],
+        zigbeeModel: ["3RDP01072Z", "3RWP01073Z"],
         model: "3RDP01072Z",
         vendor: "Third Reality",
-        description: "Zigbee / BLE dual plug with power",
+        description: "Smart Dual Plug ZP1",
         ota: true,
+        whiteLabel: [{vendor: "Third Reality", model: "3RWP01073Z", description: "Smart Wall Plug ZW1", fingerprint: [{modelID: "3RWP01073Z"}]}],
         extend: [
             m.deviceEndpoints({endpoints: {left: 1, right: 2}}),
             m.onOff({endpointNames: ["left", "right"]}),
-            m.electricityMeter({acFrequency: true, powerFactor: true, endpointNames: ["left", "right"]}),
+            m.electricityMeter({acFrequency: true, powerFactor: true, endpointNames: ["left", "right"], energy: {divisor: 3600000}}),
+            m.deviceAddCustomCluster("3rDualPlugSpecialcluster", {
+                ID: 0xff03,
+                manufacturerCode: 0x1407,
+                attributes: {
+                    resetSummationDelivered: {ID: 0x0000, type: Zcl.DataType.UINT8},
+                    onToOffDelay: {ID: 0x0001, type: Zcl.DataType.UINT16},
+                    offToOnDelay: {ID: 0x0002, type: Zcl.DataType.UINT16},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
         ],
     },
     {

@@ -5,7 +5,7 @@ import * as legacy from "../lib/legacy";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as tuya from "../lib/tuya";
-import type {DefinitionWithExtend} from "../lib/types";
+import type {DefinitionWithExtend, Expose} from "../lib/types";
 import * as zosung from "../lib/zosung";
 
 const e = exposes.presets;
@@ -100,7 +100,6 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE204_aoclfnxz",
             "_TZE200_u9bfwha0",
             "_TZE204_u9bfwha0",
-            "_TZE204_xalsoe3m",
         ]),
         model: "BHT-002",
         vendor: "Moes",
@@ -121,6 +120,7 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [tuya.whitelabel("Moes", "BHT-002/BHT-006", "Smart heating thermostat", ["_TZE204_aoclfnxz"])],
         exposes: (device, options) => {
             const heatingStepSize = device?.manufacturerName === "_TZE204_5toc8efa" ? 0.5 : 1;
+            const runningStates = device?.manufacturerName === "_TZE200_aoclfnxz" ? ["idle", "heat"] : ["idle", "heat", "cool"];
             return [
                 e.child_lock(),
                 e.deadzone_temperature(),
@@ -132,7 +132,7 @@ export const definitions: DefinitionWithExtend[] = [
                     .withLocalTemperature(ea.STATE)
                     .withLocalTemperatureCalibration(-30, 30, 0.1, ea.STATE_SET)
                     .withSystemMode(["off", "heat"], ea.STATE_SET)
-                    .withRunningState(["idle", "heat", "cool"], ea.STATE)
+                    .withRunningState(runningStates, ea.STATE)
                     .withPreset(["hold", "program"]),
 
                 e.temperature_sensor_select(["IN", "AL", "OU"]),
@@ -417,7 +417,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         toZigbee: [tzZosung.zosung_ir_code_to_send, tzZosung.zosung_learn_ir_code],
         exposes: (device, options) => {
-            const exposes = [ez.learn_ir_code(), ez.learned_ir_code(), ez.ir_code_to_send()];
+            const exposes: Expose[] = [ez.learn_ir_code(), ez.learned_ir_code(), ez.ir_code_to_send()];
             if (device?.manufacturerName !== "") {
                 exposes.push(e.battery(), e.battery_voltage());
             }
@@ -688,6 +688,43 @@ export const definitions: DefinitionWithExtend[] = [
                     }),
                 ],
                 [115, "rgb_light", tuya.valueConverterBasic.lookup({ON: true, OFF: false})],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZ3210_5rta89nj"]),
+        model: "ZC-LP01",
+        vendor: "Moes",
+        description: "Smart sliding window pusher",
+        options: [exposes.options.invert_cover()],
+        extend: [tuya.modernExtend.tuyaBase({dp: true}), tuya.modernExtend.dpBattery({dp: 4})],
+        exposes: [
+            e.cover_position(),
+            e.binary("charging", ea.STATE, true, false).withDescription("Whether the device is being charged via USB-C"),
+            e
+                .binary("automatic_mode", ea.STATE_SET, "ON", "OFF")
+                .withDescription("When set to `ON`, the device will start pushing in the same direction the window was pushed"),
+            e
+                .binary("slow_stop", ea.STATE_SET, "ON", "OFF")
+                .withDescription("When set to `ON`, the device decelerates gradually for quieter operation"),
+            e.enum("button_position", ea.STATE_SET, ["UP", "DOWN"]).withDescription("Swaps the behavior of the device's physical buttons"),
+        ],
+        meta: {
+            tuyaSendCommand: "sendData",
+            tuyaDatapoints: [
+                [
+                    102,
+                    "state",
+                    tuya.valueConverterBasic.lookup((options) =>
+                        // Some devices were shipped with a reversed firmware.
+                        options.invert_cover ? {OPEN: 1, STOP: 2, CLOSE: 0} : {OPEN: 0, STOP: 2, CLOSE: 1},
+                    ),
+                ],
+                [104, "position", tuya.valueConverter.coverPosition],
+                [105, "charging", tuya.valueConverter.trueFalse1],
+                [106, "automatic_mode", tuya.valueConverterBasic.lookup({ON: 1, OFF: 0})],
+                [110, "slow_stop", tuya.valueConverterBasic.lookup({ON: 1, OFF: 0})],
+                [112, "button_position", tuya.valueConverterBasic.lookup({UP: 1, DOWN: 0})],
             ],
         },
     },
