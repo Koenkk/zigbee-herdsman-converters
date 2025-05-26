@@ -8,6 +8,7 @@ import {assertNumber, getEndpointName, isString, postfixWithEndpointName, precis
 
 const defaultReporting = {min: 0, max: 3600, change: 0};
 const defaultReportingOnOff = {min: 0, max: 3600, change: 0, attribute: "onOff"};
+const defaultReportingOOS = {min: 0, max: 3600, change: 0, attribute: "outOfService"};
 
 const time_to_str_min = (time: number) => {
     const date = new Date(null);
@@ -273,8 +274,8 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: "currentTier1SummDelivered",
                 description: "Energy on tariff 1",
                 access: "STATE_GET",
-                scale: 100,
-                precision: 2,
+                scale: 1000,
+                precision: 3,
                 reporting: defaultReporting,
             }),
             energy({
@@ -284,8 +285,8 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: "currentTier2SummDelivered",
                 description: "Energy on tariff 2",
                 access: "STATE_GET",
-                scale: 100,
-                precision: 2,
+                scale: 1000,
+                precision: 3,
                 reporting: defaultReporting,
             }),
             energy({
@@ -295,8 +296,8 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: "currentTier3SummDelivered",
                 description: "Energy on tariff 3",
                 access: "STATE_GET",
-                scale: 100,
-                precision: 2,
+                scale: 1000,
+                precision: 3,
                 reporting: defaultReporting,
             }),
             energy({
@@ -306,8 +307,8 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: "currentTier4SummDelivered",
                 description: "Energy on tariff 4",
                 access: "STATE_GET",
-                scale: 100,
-                precision: 2,
+                scale: 1000,
+                precision: 3,
                 reporting: defaultReporting,
             }),
             m.numeric({
@@ -764,6 +765,16 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE",
                 reporting: defaultReporting,
             }),
+            m.binary({
+                name: "out_of_service",
+                valueOn: ["True", 1],
+                valueOff: ["False", 0],
+                cluster: "genAnalogInput",
+                attribute: "outOfService",
+                description: "Level is out if service",
+                access: "STATE",
+                reporting: defaultReportingOOS,
+            }),
             m.numeric({
                 name: "filling",
                 unit: "%",
@@ -772,6 +783,10 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Tank filling",
                 access: "STATE",
             }),
+            m.temperature({
+                access: "STATE",
+                reporting: defaultReporting,
+            }),
             m.numeric({
                 name: "tank_height",
                 unit: "cm",
@@ -779,7 +794,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueMax: 450,
                 scale: 10,
                 cluster: "genAnalogInput",
-                attribute: {ID: 0xf005, type: 0x39},
+                attribute: {ID: 0xf005, type: 0x0039},
                 description: "Water tank height in cm",
                 access: "STATE_SET",
             }),
@@ -803,13 +818,22 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Max threshold for alarm binding",
                 access: "STATE_SET",
             }),
+            m.binary({
+                name: "invert_threshold",
+                valueOn: ["True", 1],
+                valueOff: ["False", 0],
+                cluster: "genOnOff",
+                attribute: {ID: 0xf008, type: 0x0010},
+                description: "Invert thresholds for on and off commands",
+                access: "STATE_SET",
+            }),
             m.numeric({
                 name: "measurment_period",
-                unit: "sec",
+                unit: "min",
                 valueMin: 0,
                 valueMax: 3600,
                 cluster: "genAnalogInput",
-                attribute: {ID: 0xf007, type: 0x21},
+                attribute: {ID: 0xf007, type: 0x0021},
                 description: "Max threshold for alarm binding",
                 access: "STATE_SET",
             }),
@@ -820,7 +844,48 @@ export const definitions: DefinitionWithExtend[] = [
             }),
         ],
         configure: async (device, coordinatorEndpoint) => {
-            await device.getEndpoint(1).read("genAnalogInput", [0xf005, 0xf007, "minPresentValue", "maxPresentValue"]);
+            await device.getEndpoint(1).read("genAnalogInput", [0xf005, 0xf007, "minPresentValue", "maxPresentValue", "outOfService"]);
+            await device.getEndpoint(1).read("genOnOff", [0xf008]);
+        },
+    },
+    {
+        zigbeeModel: ["Duck Pool Thermometer"],
+        model: "Duck Pool Thermometer",
+        vendor: "Bacchus",
+        description: "Bacchus Duck pool thermomemeter",
+        extend: [
+            m.temperature({
+                access: "STATE",
+                reporting: defaultReporting,
+            }),
+            m.numeric({
+                name: "measurment_period",
+                unit: "sec",
+                valueMin: 0,
+                valueMax: 3600,
+                cluster: "msTemperatureMeasurement",
+                attribute: {ID: 0xf002, type: 0x21},
+                description: "Max threshold for alarm binding",
+                access: "STATE_SET",
+            }),
+            m.numeric({
+                name: "threshold",
+                unit: "°C",
+                valueMin: 0,
+                valueMax: 30,
+                cluster: "msTemperatureMeasurement",
+                attribute: {ID: 0xf001, type: 0x21},
+                description: "Min threshold for alarm binding",
+                access: "STATE_SET",
+            }),
+            m.battery({
+                voltage: true,
+                voltageReportingConfig: defaultReporting,
+                percentageReportingConfig: defaultReporting,
+            }),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            await device.getEndpoint(1).read("msTemperatureMeasurement", [0xf001, 0xf002]);
         },
     },
 ];
