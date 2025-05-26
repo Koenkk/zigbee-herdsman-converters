@@ -7,6 +7,8 @@ import * as globalStore from "../lib/store";
 import type {Definition, DefinitionWithExtend, Expose, Fz, KeyValue, KeyValueAny, ModernExtend, Tz, Zh} from "../lib/types";
 import * as utils from "../lib/utils";
 
+const NS = "zhc:slacky-diy";
+
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -66,6 +68,7 @@ const fzLocal = {
                     data = Number.parseInt(msg.data.minSetpointDeadBand);
                     result.deadzone_temperature = data;
                 }
+                //logger.info(`DeadBand: ${data}`, NS);
             }
             if (msg.data[attrThermFrostProtect] !== undefined) {
                 const data = Number.parseInt(msg.data[attrThermFrostProtect]) / 100;
@@ -181,8 +184,8 @@ const tzLocal = {
     thermostat_deadzone: {
         key: ["deadzone_temperature"],
         convertSet: async (entity, key, value, meta) => {
-            utils.assertString(value);
-            const minSetpointDeadBand = Number.parseInt(value, 10);
+            utils.assertNumber(value);
+            const minSetpointDeadBand = Number(Math.round(value));
             await entity.write("hvacThermostat", {minSetpointDeadBand});
             return {readAfterWriteTime: 250, state: {minSetpointDeadBand: value}};
         },
@@ -193,10 +196,10 @@ const tzLocal = {
     thermostat_deadzone_10: {
         key: ["histeresis_temperature"],
         convertSet: async (entity, key, value, meta) => {
-            utils.assertString(value);
-            const minSetpointDeadBand = Number.parseFloat(value) * 10;
+            utils.assertNumber(value);
+            const minSetpointDeadBand = Number(value) * 10;
             await entity.write("hvacThermostat", {minSetpointDeadBand});
-            return {readAfterWriteTime: 250, state: {minSetpointDeadBand: value}};
+            return {readAfterWriteTime: 250, state: {histeresis_temperature: value}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read("hvacThermostat", ["minSetpointDeadBand"]);
@@ -205,9 +208,9 @@ const tzLocal = {
     thermostat_frost_protect: {
         key: ["frost_protect"],
         convertSet: async (entity, key, value, meta) => {
-            utils.assertString(value);
+            utils.assertNumber(value);
             if (!utils.isInRange(0, 10, Number(value))) throw new Error(`Invalid value: ${value} (expected ${0} to ${10})`);
-            const frost_protect = Number.parseInt(value, 10) * 100;
+            const frost_protect = Number(Math.round(value)) * 100;
             await entity.write("hvacThermostat", {[attrThermFrostProtect]: {value: frost_protect, type: 0x29}});
             return {readAfterWriteTime: 250, state: {frost_protect: value}};
         },
@@ -218,9 +221,9 @@ const tzLocal = {
     thermostat_heat_protect: {
         key: ["heat_protect"],
         convertSet: async (entity, key, value, meta) => {
-            utils.assertString(value);
+            utils.assertNumber(value);
             if (!utils.isInRange(25, 70, Number(value))) throw new Error(`Invalid value: ${value} (expected ${25} to ${70})`);
-            const heat_protect = Number.parseInt(value, 10) * 100;
+            const heat_protect = Number(Math.round(value)) * 100;
             await entity.write("hvacThermostat", {[attrThermHeatProtect]: {value: heat_protect, type: 0x29}});
             return {readAfterWriteTime: 250, state: {heat_protect: value}};
         },
@@ -231,9 +234,9 @@ const tzLocal = {
     thermostat_setpoint_raise_lower: {
         key: ["setpoint_raise_lower"],
         convertSet: async (entity, key, value, meta) => {
-            utils.assertString(value);
+            utils.assertNumber(value);
             if (!utils.isInRange(-5, 5, Number(value))) throw new Error(`Invalid value: ${value} (expected ${-5} to ${5})`);
-            const setpoint_raise_lower = Number.parseInt(value, 10) * 10; //Step 0.1°C. 5°C - 50, 1°C - 10 etc.
+            const setpoint_raise_lower = Number(Math.fround(value)) * 10; //Step 0.1°C. 5°C - 50, 1°C - 10 etc.
             await entity.command("hvacThermostat", "setpointRaiseLower", {mode: 0, amount: setpoint_raise_lower});
             return {readAfterWriteTime: 250, state: {setpoint_raise_lower: value}};
         },
@@ -263,9 +266,9 @@ const tzLocal = {
     thermostat_eco_mode_cool_temperature: {
         key: ["eco_mode_cool_temperature"],
         convertSet: async (entity, key, value, meta) => {
-            utils.assertString(value);
+            utils.assertNumber(value);
             if (!utils.isInRange(5, 45, Number(value))) throw new Error(`Invalid value: ${value} (expected ${5} to ${45})`);
-            const eco_mode_cool_temperature = Number.parseInt(value, 10) * 100;
+            const eco_mode_cool_temperature = Number(Math.round(value)) * 100;
             await entity.write("hvacThermostat", {[attrThermEcoModeCoolTemperature]: {value: eco_mode_cool_temperature, type: 0x29}});
             return {readAfterWriteTime: 250, state: {eco_mode_cool_temperature: value}};
         },
@@ -276,9 +279,9 @@ const tzLocal = {
     thermostat_eco_mode_heat_temperature: {
         key: ["eco_mode_heat_temperature"],
         convertSet: async (entity, key, value, meta) => {
-            utils.assertString(value);
+            utils.assertNumber(value);
             if (!utils.isInRange(5, 45, Number(value))) throw new Error(`Invalid value: ${value} (expected ${5} to ${45})`);
-            const eco_mode_heat_temperature = Number.parseInt(value, 10) * 100;
+            const eco_mode_heat_temperature = Number(Math.round(value)) * 100;
             await entity.write("hvacThermostat", {[attrThermEcoModeHeatTemperature]: {value: eco_mode_heat_temperature, type: 0x29}});
             return {readAfterWriteTime: 250, state: {eco_mode_heat_temperature: value}};
         },
@@ -354,9 +357,9 @@ const tzLocal = {
     thermostat_ext_temperature_calibration: {
         key: ["external_temperature_calibration"],
         convertSet: async (entity, key, value, meta) => {
-            utils.assertString(value);
+            utils.assertNumber(value);
             if (!utils.isInRange(-9, 9, Number(value))) throw new Error(`Invalid value: ${value} (expected ${-9} to ${9})`);
-            const external_temperature_calibration = Number.parseInt(value, 10) * 10;
+            const external_temperature_calibration = Number(Math.round(value)) * 10;
             await entity.write("hvacThermostat", {[attrThermExtTemperatureCalibration]: {value: external_temperature_calibration, type: 0x28}});
             return {readAfterWriteTime: 250, state: {external_temperature_calibration: value}};
         },
