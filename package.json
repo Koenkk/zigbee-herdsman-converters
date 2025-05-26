@@ -61,7 +61,7 @@
         "husky": "^9.1.7",
         "rimraf": "^6.0.1",
         "ts-morph": "^26.0.0",
-        "tsc-watch": "^6.2.1",
+        "tsc-watch": "^7.0.0",
         "typescript": "^5.8.3",
         "vitest": "^3.1.1"
     },
