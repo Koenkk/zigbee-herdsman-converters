@@ -865,7 +865,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueMax: 3600,
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: 0xf002, type: 0x21},
-                description: "Max threshold for alarm binding",
+                description: "Temperature measurement period",
                 access: "STATE_SET",
             }),
             m.numeric({
