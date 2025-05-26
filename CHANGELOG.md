@@ -1,5 +1,20 @@
 # Changelog
 
+## [23.49.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.48.0...v23.49.0) (2025-05-22)
+
+
+### Features
+
+* **add:** E1M-G7H https://github.com/Koenkk/zigbee2mqtt/discussions/27446 ([bf7bbf7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/bf7bbf7e918da2cbc60c8639d00683df49f9eafe))
+* **add:** EFEKTA_AQ_Smart_Monitor_Gen2 ([#9381](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9381)) ([d478dd7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d478dd7fc3aa69ba63eac95d7727fda32d70a0d6))
+* **add:** HA-ZM12mw2-4K ([#9376](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9376)) ([bc832e2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/bc832e2e649bf6e91bfa495e4204ba973aeaa243))
+* **add:** WS-K03E ([#9382](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9382)) ([a0edd40](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a0edd4018ac1995dd6c589612678da5ec3c4487c))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3000_rdhukkmi` as Tuya ZY-ZTH02 and `_TZ3000_bguser20` as TH03 ([#9379](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9379)) ([7d2129a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7d2129a2b729effd117c0cdbbf1ed4ed093d6b0b))
+
 ## [23.48.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.47.0...v23.48.0) (2025-05-21)
 
 

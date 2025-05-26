@@ -3874,9 +3874,9 @@ export const definitions: DefinitionWithExtend[] = [
             https://github.com/Koenkk/zigbee2mqtt/issues/27090
             INVALID_DATA_TYPE error for _TZ3000_xkap8wtb, appVersion:162 softwareBuildID: 0122052017
             */
-            if ("_TZ3000_xkap8wtb" === device.manufacturerName && 162 === device.applicationVersion) {
+            if ("_TZ3000_xkap8wtb" === device.manufacturerName && [162, 100].includes(device.applicationVersion)) {
                 logger.warning(
-                    "Detected TS0001 _TZ3000_xkap8wtb switch appVersion:162. Skip reporting for haElectricalMeasurement and seMeteringreporting",
+                    "Detected TS0001 _TZ3000_xkap8wtb switch with appVersion 100 or 162. Skip reporting for haElectricalMeasurement and seMeteringreporting in favor of polling.",
                     NS,
                 );
                 await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff"]);
@@ -3914,6 +3914,8 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         onEvent: async (type, data, device, options) => {
             if (["_TZ3000_x3ewpzyr"].includes(device.manufacturerName)) {
+                await tuya.onEventMeasurementPoll(type, data, device, options, true, true);
+            } else if (["_TZ3000_xkap8wtb"].includes(device.manufacturerName) && [162, 100].includes(device.applicationVersion)) {
                 await tuya.onEventMeasurementPoll(type, data, device, options, true, true);
             }
         },
@@ -9611,7 +9613,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.battery(),
         ],
         whiteLabel: [
-            tuya.whitelabel("Tuya", "ZG-227Z", "Temperature and humidity sensor", ["_TZE200_a8sdabtg", "_TZE200_vs0skpuc"]),
+            tuya.whitelabel("HOBEIAN", "ZG-227Z", "Temperature and humidity sensor", ["_TZE200_a8sdabtg", "_TZE200_vs0skpuc"]),
             tuya.whitelabel("KOJIMA", "KOJIMA-THS-ZG-LCD", "Temperature and humidity sensor", ["_TZE200_dikkika5"]),
         ],
         meta: {
