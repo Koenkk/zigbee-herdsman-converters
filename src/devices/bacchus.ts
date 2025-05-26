@@ -4,7 +4,7 @@ import {access as ea} from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import type {Configure, DefinitionWithExtend, Fz, ModernExtend, Tz} from "../lib/types";
 
-import {assertNumber, getEndpointName, isString, postfixWithEndpointName, precisionRound, validateValue} from "../lib/utils";
+import {assertNumber, getEndpointName, isString, precisionRound, validateValue} from "../lib/utils";
 
 const defaultReporting = {min: 0, max: 3600, change: 0};
 const defaultReportingOnOff = {min: 0, max: 3600, change: 0, attribute: "onOff"};
