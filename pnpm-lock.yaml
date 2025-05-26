@@ -49,8 +49,8 @@ importers:
         specifier: ^26.0.0
         version: 26.0.0
       tsc-watch:
-        specifier: ^6.2.1
-        version: 6.3.1(typescript@5.8.3)
+        specifier: ^7.0.0
+        version: 7.0.0(typescript@5.8.3)
       typescript:
         specifier: ^5.8.3
         version: 5.8.3
@@ -977,8 +977,8 @@ packages:
   ts-morph@26.0.0:
     resolution: {integrity: sha512-ztMO++owQnz8c/gIENcM9XfCEzgoGphTv+nKpYNM1bgsdOVC/jRZuEBf6N+mLLDNg68Kl+GgUZfOySaRiG1/Ug==}
 
-  tsc-watch@6.3.1:
-    resolution: {integrity: sha512-x1hNJ/m1Cln2OvNJJLPsnWI1pObm+Jq9jF6kyz0flEy/ym7Y9TvU9edg6lXLuGVkhDClwBWi8aWAFE0qgzEkzw==}
+  tsc-watch@7.0.0:
+    resolution: {integrity: sha512-Y1O0yB9gt7hnJ1hJ2WUcx/T898niAI1w8ZZA/tmbFyRawF5SiGbwCv8DX+Zwhcmt3dyO6PvmIF6R/GNEGyWIvg==}
     engines: {node: '>=12.12.0'}
     hasBin: true
     peerDependencies:
@@ -1885,7 +1885,7 @@ snapshots:
       '@ts-morph/common': 0.27.0
       code-block-writer: 13.0.3
 
-  tsc-watch@6.3.1(typescript@5.8.3):
+  tsc-watch@7.0.0(typescript@5.8.3):
     dependencies:
       cross-spawn: 7.0.6
       node-cleanup: 2.1.2
