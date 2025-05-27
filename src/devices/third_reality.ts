@@ -200,7 +200,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Third Reality",
         description: "Garage door tilt sensor",
         extend: [
-            m.battery(),
+            m.battery({percentageReporting: false}),
             m.forcePowerSource({powerSource: "Battery"}),
             m.iasZoneAlarm({zoneType: "contact", zoneAttributes: ["alarm_1", "battery_low"]}),
             m.deviceAddCustomCluster("3rGarageDoorSpecialCluster", {
