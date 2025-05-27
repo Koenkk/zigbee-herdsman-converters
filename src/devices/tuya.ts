@@ -17614,7 +17614,9 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [
             e.cover_position().setAccess("position", ea.STATE_SET),
             e.enum("motor_direction", ea.STATE_SET, ["forward", "back"]).withDescription("Motor direction"),
-            e.enum("border", ea.STATE_SET, ["up", "down", "up_delete", "down_delete", "remove_top_bottom"]).withDescription("Limit setting"),
+            e
+                .enum("border", ea.STATE_SET, ["up", "down", "up_delete", "down_delete", "remove_top_bottom"])
+                .withDescription("Limit setting"),
             //e.enum("work_state", ea.STATE, ["opening", "closing"]).withDescription("Cover state"),
             //e.binary("fault", ea.STATE, true, false).withDescription("Device faults"),
             //e.numeric("position_best", ea.STATE_SET).withValueMin(0).withValueMax(100).withUnit("%").withDescription("Best position"),
@@ -17624,11 +17626,21 @@ export const definitions: DefinitionWithExtend[] = [
                 [1, "state", tuya.valueConverterBasic.lookup({OPEN: tuya.enum(0), STOP: tuya.enum(1), CLOSE: tuya.enum(2)})],
                 [2, "position", tuya.valueConverter.coverPositionInverted],
                 [5, "motor_direction", tuya.valueConverterBasic.lookup({forward: tuya.enum(0), back: tuya.enum(1)})],
-                [16, "border", tuya.valueConverterBasic.lookup({up: tuya.enum(0),down: tuya.enum(1), up_delete: tuya.enum(2), down_delete: tuya.enum(3), remove_top_bottom: tuya.enum(4)}),],
+                [
+                    16,
+                    "border",
+                    tuya.valueConverterBasic.lookup({
+                        up: tuya.enum(0),
+                        down: tuya.enum(1),
+                        up_delete: tuya.enum(2),
+                        down_delete: tuya.enum(3),
+                        remove_top_bottom: tuya.enum(4),
+                    }),
+                ],
                 //[7, "work_state", tuya.valueConverter.raw]
                 //[12, "fault", tuya.valueConverter.raw],
                 //[19, "position_best", tuya.valueConverter.raw],
             ],
         },
-    }
+    },
 ];
