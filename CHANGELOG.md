@@ -1,5 +1,15 @@
 # Changelog
 
+## [23.50.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.50.0...v23.50.1) (2025-05-27)
+
+
+### Bug Fixes
+
+* 3RDTS01056Z: fix configure failing on battery reporting ([#9419](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9419)) ([dda2bc0](https://github.com/Koenkk/zigbee-herdsman-converters/commit/dda2bc0a3aeeb047c11638a9581ab4888a8e3064))
+* Add various TS0726 models https://github.com/Koenkk/zigbee2mqtt/issues/27167 ([1dfea7c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1dfea7c027c1b6a1d44694873f0e61d951974a45))
+* **detect:** Detect `_TZ3002_gdwja9a7` as Tuya TS0726_2_gang https://github.com/Koenkk/zigbee2mqtt/issues/27523 ([a3b7633](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a3b76337c39bf549da2e8170128364492d0bc8be))
+* Improve modernExtend default args ([#9417](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9417)) ([417037d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/417037df5c032509632ad32b36822ea515af947d))
+
 ## [23.50.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.49.0...v23.50.0) (2025-05-26)
 
 
