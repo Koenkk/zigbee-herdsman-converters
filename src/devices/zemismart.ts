@@ -307,19 +307,6 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_gubdgai2", "_TZE200_vdiuwbkq"]),
-        model: "M515EGBZTN",
-        vendor: "Zemismart",
-        description: "Roller shade driver",
-        fromZigbee: [legacy.fz.ZMAM02_cover],
-        toZigbee: [legacy.tz.ZMAM02_cover],
-        exposes: [
-            e.cover_position().setAccess("position", ea.STATE_SET),
-            e.enum("motor_direction", ea.STATE_SET, Object.values(legacy.ZMLookups.AM02Direction)),
-            e.enum("border", ea.STATE_SET, Object.values(legacy.ZMLookups.AM02Border)),
-        ],
-    },
-    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_fzo2pocs"]),
         model: "ZM25TQ",
         vendor: "Zemismart",
