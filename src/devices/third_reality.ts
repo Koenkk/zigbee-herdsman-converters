@@ -489,7 +489,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.deviceEndpoints({endpoints: {left: 1, right: 2}}),
             m.onOff({endpointNames: ["left", "right"]}),
-            m.electricityMeter({acFrequency: true, powerFactor: true, endpointNames: ["left", "right"], energy: {divisor: 3600000}}),
+            m.electricityMeter({acFrequency: true, powerFactor: true, endpointNames: ["left", "right"], energy: {divisor: 1000}}),
             m.deviceAddCustomCluster("3rDualPlugSpecialcluster", {
                 ID: 0xff03,
                 manufacturerCode: 0x1407,
