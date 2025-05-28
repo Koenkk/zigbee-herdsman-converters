@@ -6546,7 +6546,7 @@ export const definitions: DefinitionWithExtend[] = [
         ota: false,
         extend: [
             tuya.modernExtend.tuyaOnOff({
-                electricalMeasurements: true,
+                electricalMeasurements: false,
                 electricalMeasurementsFzConverter: fzLocal.TS011F_statefull_electrical_measurement,
                 powerOutageMemory: true,
                 indicatorMode: true,
