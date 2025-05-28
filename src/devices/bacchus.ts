@@ -96,7 +96,7 @@ function binaryWithOnOffCommand(args: m.BinaryArgs): ModernExtend {
 
     const configure: Configure[] = [];
     if (reporting) {
-        configure.push(m.setupConfigureForReporting(cluster, attribute, reporting, access, [endpointName]));
+        configure.push(m.setupConfigureForReporting(cluster, attribute, {config: reporting, access, endpointNames: [endpointName]}));
     }
 
     return {...mExtend, toZigbee, configure, isModernExtend: true};
@@ -161,7 +161,7 @@ function energy(args: m.NumericArgs): ModernExtend {
     const configure: Configure[] = [];
     configure.push(m.setupConfigureForBinding(cluster, "input"));
     if (reporting) {
-        configure.push(m.setupConfigureForReporting(cluster, attribute, reporting, access, endpointNames));
+        configure.push(m.setupConfigureForReporting(cluster, attribute, {config: reporting, access, endpointNames}));
     }
 
     return {...mExtend, fromZigbee, configure, isModernExtend: true};

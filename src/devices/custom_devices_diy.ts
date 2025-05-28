@@ -736,7 +736,7 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.humidity(endpoint);
             await reporting.soil_moisture(endpoint);
         },
-        extend: [m.illuminance()],
+        extend: [m.illuminance(), m.identify()],
     },
     {
         zigbeeModel: ["MULTI-ZIG-SW"],
