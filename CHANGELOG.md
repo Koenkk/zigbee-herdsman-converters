@@ -1,5 +1,21 @@
 # Changelog
 
+## [23.51.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.50.1...v23.51.0) (2025-05-28)
+
+
+### Features
+
+* **add:** 412175 ([#9422](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9422)) ([89d8af2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/89d8af26b26302903c016bd2ec8a573a16916643))
+* **add:** SYZB-6W ([#9421](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9421)) ([d30e9b6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d30e9b6b79a3972b6bc3007e43790b00514997c3))
+
+
+### Bug Fixes
+
+* 3RDP01072Z: fix divisor ([#9423](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9423)) ([8c343f2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8c343f27b8707c701e4149de74f8f0120c2072c7))
+* Add some new HOBEIAN models ([#9394](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9394)) ([063e830](https://github.com/Koenkk/zigbee-herdsman-converters/commit/063e83085d42f5beab2cc6f659825e2006c1d539))
+* Bacchus: change electicity meter reporting ([#9424](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9424)) ([0dbbca6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0dbbca6d4dbb8e0a49272612aa886200eace6d54))
+* M515EGBZTN: fix integration ([#9420](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9420)) ([c6369f1](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c6369f1357b988a1891d6ed16e4fe88c5ef93af1))
+
 ## [23.50.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.50.0...v23.50.1) (2025-05-27)
 
 
