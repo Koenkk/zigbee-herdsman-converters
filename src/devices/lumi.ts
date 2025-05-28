@@ -4655,7 +4655,7 @@ export const definitions: DefinitionWithExtend[] = [
                 scale: 1000,
                 unit: "sec",
                 cluster: "manuSpecificLumi",
-                attribute: {ID: 0x016d, type: Zcl.DataType.INT16},
+                attribute: {ID: 0x0162, type: Zcl.DataType.UINT32},
                 description: "Sampling period",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
