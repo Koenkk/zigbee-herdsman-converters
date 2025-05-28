@@ -17614,9 +17614,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [
             e.cover_position().setAccess("position", ea.STATE_SET),
             e.enum("motor_direction", ea.STATE_SET, ["forward", "back"]).withDescription("Motor direction"),
-            e
-                .enum("border", ea.STATE_SET, ["up", "down", "up_delete", "down_delete", "remove_top_bottom"])
-                .withDescription("Limit setting"),
+            e.enum("border", ea.STATE_SET, ["up", "down", "up_delete", "down_delete", "remove_top_bottom"]).withDescription("Limit setting"),
         ],
         meta: {
             tuyaDatapoints: [
