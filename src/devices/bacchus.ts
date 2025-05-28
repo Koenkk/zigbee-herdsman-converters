@@ -4,7 +4,7 @@ import {access as ea} from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import type {Configure, DefinitionWithExtend, Fz, ModernExtend, Tz} from "../lib/types";
 
-import {assertNumber, getEndpointName, isString, postfixWithEndpointName, precisionRound, validateValue} from "../lib/utils";
+import {assertNumber, getEndpointName, isString, precisionRound, validateValue} from "../lib/utils";
 
 const defaultReporting = {min: 0, max: 3600, change: 0};
 const electicityReporting = {min: 0, max: 30, change: 1};
@@ -97,7 +97,7 @@ function binaryWithOnOffCommand(args: m.BinaryArgs): ModernExtend {
 
     const configure: Configure[] = [];
     if (reporting) {
-        configure.push(m.setupConfigureForReporting(cluster, attribute, reporting, access, [endpointName]));
+        configure.push(m.setupConfigureForReporting(cluster, attribute, {config: reporting, access, endpointNames: [endpointName]}));
     }
 
     return {...mExtend, toZigbee, configure, isModernExtend: true};
@@ -162,7 +162,7 @@ function energy(args: m.NumericArgs): ModernExtend {
     const configure: Configure[] = [];
     configure.push(m.setupConfigureForBinding(cluster, "input"));
     if (reporting) {
-        configure.push(m.setupConfigureForReporting(cluster, attribute, reporting, access, endpointNames));
+        configure.push(m.setupConfigureForReporting(cluster, attribute, {config: reporting, access, endpointNames}));
     }
 
     return {...mExtend, fromZigbee, configure, isModernExtend: true};

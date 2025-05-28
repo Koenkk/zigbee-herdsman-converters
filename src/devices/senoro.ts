@@ -25,7 +25,7 @@ export const definitions: DefinitionWithExtend[] = [
             // All datapoints go in here
             tuyaDatapoints: [
                 [101, "opening_state", tuya.valueConverterBasic.lookup({open: 0, closed: 1, tilted: 2})],
-                [16, "alarm", tuya.valueConverter.trueFalse1],
+                [16, "alarm", tuya.valueConverter.raw],
                 [2, "battery", tuya.valueConverter.raw],
             ],
         },

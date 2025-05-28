@@ -200,7 +200,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Third Reality",
         description: "Garage door tilt sensor",
         extend: [
-            m.battery(),
+            m.battery({percentageReporting: false}),
             m.forcePowerSource({powerSource: "Battery"}),
             m.iasZoneAlarm({zoneType: "contact", zoneAttributes: ["alarm_1", "battery_low"]}),
             m.deviceAddCustomCluster("3rGarageDoorSpecialCluster", {
@@ -288,7 +288,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.windowCovering({controls: ["lift"]}),
             m.commandsWindowCovering({commands: ["open", "close", "stop"]}),
             m.deviceAddCustomCluster("3rSmartBlindGen2SpecialCluster", {
-                ID: 0xff00,
+                ID: 0xfff1,
                 manufacturerCode: 0x1233,
                 attributes: {
                     infrared_enable: {ID: 0x0000, type: 0x20},
