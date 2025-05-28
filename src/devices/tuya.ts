@@ -17603,9 +17603,9 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_gubdgai2", "_TZE200_vdiuwbkq"]),
-        model: "M515EGBZTN V2",
+        model: "M515EGBZTN",
         vendor: "Quoya",
-        description: "Quoya Zigbee Roller Blind (M515EGBZTN V2)",
+        description: "Zigbee roller blind",
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         onEvent: tuya.onEventSetTime,
@@ -17617,9 +17617,6 @@ export const definitions: DefinitionWithExtend[] = [
             e
                 .enum("border", ea.STATE_SET, ["up", "down", "up_delete", "down_delete", "remove_top_bottom"])
                 .withDescription("Limit setting"),
-            //e.enum("work_state", ea.STATE, ["opening", "closing"]).withDescription("Cover state"),
-            //e.binary("fault", ea.STATE, true, false).withDescription("Device faults"),
-            //e.numeric("position_best", ea.STATE_SET).withValueMin(0).withValueMax(100).withUnit("%").withDescription("Best position"),
         ],
         meta: {
             tuyaDatapoints: [
@@ -17637,9 +17634,6 @@ export const definitions: DefinitionWithExtend[] = [
                         remove_top_bottom: tuya.enum(4),
                     }),
                 ],
-                //[7, "work_state", tuya.valueConverter.raw]
-                //[12, "fault", tuya.valueConverter.raw],
-                //[19, "position_best", tuya.valueConverter.raw],
             ],
         },
     },
