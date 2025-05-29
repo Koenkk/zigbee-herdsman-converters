@@ -6,7 +6,7 @@ import * as exposes from "./exposes";
 import * as reporting from "./reporting";
 import {payload} from "./reporting";
 import * as globalStore from "./store";
-import type {Configure, Expose, Fz, KeyValueAny, ModernExtend, Tz, Zh} from "./types";
+import type {Configure, Expose, Fz, KeyValueAny, ModernExtend, Tz} from "./types";
 import * as utils from "./utils";
 import {precisionRound} from "./utils";
 
@@ -60,7 +60,8 @@ const extend = {
         const toZigbee: Tz.Converter[] = [
             {
                 key: ["external_switch_type"],
-                convertSet: async (entity, key, value: string, meta) => {
+                convertSet: async (entity, key, value, meta) => {
+                    utils.assertString(value);
                     const numericValue = value_lookup[value] ?? Number.parseInt(value, 10);
                     await entity.write(
                         "genBasic",
@@ -127,14 +128,15 @@ const extend = {
         const toZigbee: Tz.Converter[] = [
             {
                 key: ["minimum_pwm"],
-                convertSet: async (entity: Zh.Endpoint, key: string, value: number | string, meta) => {
+                convertSet: async (entity, key, value, meta) => {
                     console.log("to ", value);
                     const numValue = typeof value === "string" ? Number.parseInt(value) : value;
+                    utils.assertNumber(numValue);
                     const zgValue = Math.round(numValue * 5.1);
                     await entity.write("genBasic", {[attribute]: {value: zgValue, type: data_type}}, {manufacturerCode: sunricherManufacturerCode});
                     return {state: {minimum_pwm: numValue}};
                 },
-                convertGet: async (entity: Zh.Endpoint, key: string, meta) => {
+                convertGet: async (entity, key, meta) => {
                     await entity.read("genBasic", [attribute], {
                         manufacturerCode: sunricherManufacturerCode,
                     });
@@ -770,7 +772,7 @@ const extend = {
         const toZigbee: Tz.Converter[] = [
             {
                 key: ["current_heating_setpoint"],
-                convertSet: async (entity, key, value: number, meta) => {
+                convertSet: async (entity, key, value, meta) => {
                     utils.assertNumber(value, key);
                     const awayOrBoostMode = await getAwayOrBoostMode(entity);
 

@@ -136,7 +136,7 @@ function reinterview(): ModernExtend {
                 // reinterview
                 try {
                     await device.interview(true);
-                    logger.info(`Succesfully interviewed '${device.ieeeAddr}'`, NS);
+                    logger.info(`Successfully interviewed '${device.ieeeAddr}'`, NS);
                     // bind extended endpoint to coordinator
                     for (const endpoint of device.endpoints) {
                         if (endpoint.supportsOutputCluster("genOnOff")) {

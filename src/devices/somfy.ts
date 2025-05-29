@@ -30,6 +30,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.windowCovering({controls: ["lift"]}), m.battery()],
     },
     {
+        zigbeeModel: ["Sonesse 30 DC 24V Roller"],
+        model: "1241970",
+        vendor: "SOMFY",
+        description: "Sonesse 30 DC 24V roller shades",
+        extend: [m.windowCovering({controls: ["lift"]})],
+    },
+    {
         zigbeeModel: ["Ysia 5 HP Zigbee"],
         model: "1871154",
         vendor: "SOMFY",

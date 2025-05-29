@@ -8,7 +8,7 @@ import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import {nodonPilotWire} from "../lib/nodon";
 import * as reporting from "../lib/reporting";
-import type {DefinitionExposes, DefinitionWithExtend, ModernExtend} from "../lib/types";
+import type {DefinitionWithExtend, ModernExtend} from "../lib/types";
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -125,8 +125,8 @@ const nodonModernExtend = {
 
         return result;
     },
-    switchType: (args?: Partial<m.EnumLookupArgs>) => {
-        const resultName = "switch_type";
+    switchTypeOnOff: (args?: Partial<m.EnumLookupArgs>) => {
+        const resultName = "switch_type_on_off";
         const resultLookup = {bistable: 0x00, monostable: 0x01, auto_detect: 0x02};
         const resultDescription = "Select the switch type wire to the device.";
 
@@ -134,6 +134,33 @@ const nodonModernExtend = {
             name: resultName,
             lookup: resultLookup,
             cluster: "genOnOff",
+            attribute: {ID: 0x1001, type: Zcl.DataType.ENUM8},
+            description: resultDescription,
+            zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.NODON},
+            ...args,
+        });
+
+        // NOTE: make exposes dynamic based on fw version
+        result.exposes = [
+            (device, options) => {
+                if (device?.softwareBuildID && semverValid(device.softwareBuildID) && semverGt(device.softwareBuildID, "3.4.0")) {
+                    return [e.enum(resultName, ea.ALL, Object.keys(resultLookup)).withDescription(resultDescription)];
+                }
+                return [];
+            },
+        ];
+
+        return result;
+    },
+    switchTypeWindowCovering: (args?: Partial<m.EnumLookupArgs>) => {
+        const resultName = "switch_type_window_covering";
+        const resultLookup = {bistable: 0x00, monostable: 0x01, auto_detect: 0x02};
+        const resultDescription = "Select the switch type wire to the device.";
+
+        const result: ModernExtend = m.enumLookup({
+            name: resultName,
+            lookup: resultLookup,
+            cluster: "closuresWindowCovering",
             attribute: {ID: 0x1001, type: Zcl.DataType.ENUM8},
             description: resultDescription,
             zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.NODON},
@@ -186,6 +213,47 @@ const nodonModernExtend = {
 
 export const definitions: DefinitionWithExtend[] = [
     {
+        zigbeeModel: ["IRB-4-1-00"],
+        model: "IRB-4-1-00",
+        vendor: "NodOn",
+        description: "IR Blaster",
+        fromZigbee: [fz.thermostat, fz.fan],
+        toZigbee: [
+            tz.fan_mode,
+            tz.thermostat_local_temperature,
+            tz.thermostat_occupied_cooling_setpoint,
+            tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_min_heat_setpoint_limit,
+            tz.thermostat_max_heat_setpoint_limit,
+            tz.thermostat_min_cool_setpoint_limit,
+            tz.thermostat_max_cool_setpoint_limit,
+            tz.thermostat_control_sequence_of_operation,
+            tz.thermostat_system_mode,
+            tz.thermostat_ac_louver_position,
+        ],
+        ota: true,
+        exposes: [
+            e
+                .climate()
+                .withLocalTemperature()
+                .withSetpoint("occupied_cooling_setpoint", 18, 30, 0.5)
+                .withSetpoint("occupied_heating_setpoint", 16, 30, 0.5)
+                .withSystemMode(["off", "heat", "cool", "auto", "dry", "fan_only"])
+                .withFanMode(["off", "low", "medium", "high", "auto"])
+                .withAcLouverPosition(["fully_open", "fully_closed", "half_open", "quarter_open", "three_quarters_open"]),
+        ],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            const binds = ["hvacFanCtrl", "genIdentify", "hvacThermostat"];
+            await reporting.bind(endpoint, coordinatorEndpoint, binds);
+            await reporting.thermostatTemperature(endpoint);
+            await reporting.thermostatOccupiedCoolingSetpoint(endpoint);
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
+            await reporting.thermostatSystemMode(endpoint);
+            await reporting.thermostatAcLouverPosition(endpoint);
+        },
+    },
+    {
         zigbeeModel: ["SDC-4-1-00"],
         model: "SDC-4-1-00",
         vendor: "NodOn",
@@ -205,6 +273,14 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
     },
     {
+        zigbeeModel: ["SEM-4-1-00"],
+        model: "SEM-4-1-00",
+        vendor: "NodOn",
+        description: "Energy monitoring sensor",
+        extend: [m.electricityMeter()],
+        ota: true,
+    },
+    {
         zigbeeModel: ["SIN-4-RS-20", "SIN-4-UNK"],
         model: "SIN-4-RS-20",
         vendor: "NodOn",
@@ -215,6 +291,7 @@ export const definitions: DefinitionWithExtend[] = [
             nodonModernExtend.calibrationVerticalRunTimeDowm(),
             nodonModernExtend.calibrationRotationRunTimeUp(),
             nodonModernExtend.calibrationRotationRunTimeDown(),
+            nodonModernExtend.switchTypeWindowCovering(),
         ],
         ota: true,
     },
@@ -229,6 +306,7 @@ export const definitions: DefinitionWithExtend[] = [
             nodonModernExtend.calibrationVerticalRunTimeDowm(),
             nodonModernExtend.calibrationRotationRunTimeUp(),
             nodonModernExtend.calibrationRotationRunTimeDown(),
+            nodonModernExtend.switchTypeWindowCovering(),
         ],
         ota: true,
     },
@@ -237,7 +315,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SIN-4-1-20",
         vendor: "NodOn",
         description: "Multifunction relay switch",
-        extend: [m.onOff(), nodonModernExtend.impulseMode(), nodonModernExtend.switchType()],
+        extend: [m.onOff(), nodonModernExtend.impulseMode(), nodonModernExtend.switchTypeOnOff()],
         ota: true,
     },
     {
@@ -245,7 +323,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SIN-4-1-20_PRO",
         vendor: "NodOn",
         description: "Multifunction relay switch",
-        extend: [m.onOff(), nodonModernExtend.impulseMode(), nodonModernExtend.switchType()],
+        extend: [m.onOff(), nodonModernExtend.impulseMode(), nodonModernExtend.switchTypeOnOff()],
         ota: true,
     },
     {
@@ -257,7 +335,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.onOff({powerOnBehavior: true}),
             m.electricityMeter({cluster: "metering"}),
             nodonModernExtend.impulseMode(),
-            nodonModernExtend.switchType(),
+            nodonModernExtend.switchTypeOnOff(),
         ],
         ota: true,
     },
@@ -269,8 +347,8 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
             m.onOff({endpointNames: ["l1", "l2"]}),
-            nodonModernExtend.switchType({endpointName: "l1"}),
-            nodonModernExtend.switchType({endpointName: "l2"}),
+            nodonModernExtend.switchTypeOnOff({endpointName: "l1"}),
+            nodonModernExtend.switchTypeOnOff({endpointName: "l2"}),
         ],
         ota: true,
     },
@@ -282,8 +360,8 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
             m.onOff({endpointNames: ["l1", "l2"]}),
-            nodonModernExtend.switchType({endpointName: "l1"}),
-            nodonModernExtend.switchType({endpointName: "l2"}),
+            nodonModernExtend.switchTypeOnOff({endpointName: "l1"}),
+            nodonModernExtend.switchTypeOnOff({endpointName: "l2"}),
         ],
         ota: true,
     },

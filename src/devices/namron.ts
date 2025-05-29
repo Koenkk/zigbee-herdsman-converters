@@ -1506,7 +1506,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["4512783", "4512784"],
         model: "4512783/4512784",
         vendor: "Namron",
-        description: "Namron edge termostat",
+        description: "Namron edge thermostat",
         fromZigbee: [
             fz.thermostat,
             namron.fromZigbee.namron_edge_thermostat_holiday_temp,

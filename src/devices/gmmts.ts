@@ -2040,7 +2040,7 @@ export const definitions: DefinitionWithExtend[] = [
                 }
             }
 
-            if (options && options.contract_type !== undefined && options.contract_type !== "AUTO") {
+            if (options?.contract_type != null && options.contract_type !== "AUTO") {
                 currentContract = String(options.contract_type);
                 logger.debug(`contract: ${currentContract}`, "TICMeter");
             } else {
@@ -2052,7 +2052,7 @@ export const definitions: DefinitionWithExtend[] = [
                 }
             }
 
-            if (options && options.linky_elec !== undefined && options.linky_elec !== "AUTO") {
+            if (options?.linky_elec != null && options.linky_elec !== "AUTO") {
                 currentElec = String(options.linky_elec);
                 logger.debug(`Manual elec: ${currentElec}`, "TICMeter");
             } else {
@@ -2064,7 +2064,7 @@ export const definitions: DefinitionWithExtend[] = [
                 }
             }
 
-            if (options && options.tic_mode !== undefined && options.tic_mode !== "AUTO") {
+            if (options?.tic_mode != null && options.tic_mode !== "AUTO") {
                 currentTIC = String(options.tic_mode);
                 logger.debug(`Manual tic: ${currentTIC}`, "TICMeter");
             } else {
@@ -2076,7 +2076,7 @@ export const definitions: DefinitionWithExtend[] = [
                 }
             }
 
-            if (options && options.producer !== undefined && options.producer !== "AUTO") {
+            if (options?.producer != null && options.producer !== "AUTO") {
                 currentProducer = String(options.producer);
                 logger.debug(`Manual producer: ${currentProducer}`, "TICMeter");
             } else {
@@ -2087,7 +2087,7 @@ export const definitions: DefinitionWithExtend[] = [
                 }
             }
 
-            if (options && options.translation !== undefined) {
+            if (options?.translation != null) {
                 translation = String(options.translation);
             } else {
                 translation = TRANSLATION_FR;
@@ -2177,7 +2177,7 @@ export const definitions: DefinitionWithExtend[] = [
             });
             logger.debug(`Exposes ${exposes.length} attributes`, "TICMeter");
 
-            if (options.translation !== undefined) {
+            if (options.translation != null) {
                 switch (options.translation) {
                     case TRANSLATION_FR:
                         for (let i = 0; i < ticmeterOptions.length; i++) {
@@ -2258,7 +2258,7 @@ export const definitions: DefinitionWithExtend[] = [
                     try {
                         await config;
                     } catch (error) {
-                        if (error.message.includes("UNSUPPORTED_ATTRIBUTE")) {
+                        if ((error as Error).message.includes("UNSUPPORTED_ATTRIBUTE")) {
                             // ignore: sometimes the attribute is not supported
                         } else {
                             logger.warning(`Configure failed: ${error}`, "TICMeter");
@@ -2301,7 +2301,7 @@ export const definitions: DefinitionWithExtend[] = [
                 clearInterval(globalStore.getValue(device, "interval"));
                 globalStore.clearValue(device, "interval");
             } else if (!intervalDefined) {
-                // periodic scan for non-reportable attributs
+                // periodic scan for non-reportable attributes
                 const seconds: number = options?.refresh_rate ? Number(options.refresh_rate) : DEFAULT_POLL_INTERVAL;
                 const interval = setInterval(async () => {
                     try {

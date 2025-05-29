@@ -2,12 +2,27 @@ import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
+import * as sunricher from "../lib/sunricher";
 import type {DefinitionWithExtend} from "../lib/types";
 
 const e = exposes.presets;
 const ea = exposes.access;
 
 export const definitions: DefinitionWithExtend[] = [
+    {
+        zigbeeModel: ["5715"],
+        model: "5715",
+        vendor: "Iluminize",
+        description: "Zigbee micro smart dimmer",
+        extend: [m.light({configureReporting: true}), m.electricityMeter(), sunricher.extend.externalSwitchType(), sunricher.extend.minimumPWM()],
+    },
+    {
+        zigbeeModel: ["5717"],
+        model: "5717",
+        vendor: "Iluminize",
+        description: "ZigBee din rail smart dimmer",
+        extend: [m.light({configureReporting: true}), m.electricityMeter(), sunricher.extend.externalSwitchType(), sunricher.extend.minimumPWM()],
+    },
     {
         zigbeeModel: ["ZGRC-KEY-005"],
         model: "5144.01",
@@ -168,7 +183,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "5110.40",
         vendor: "Iluminize",
         description: "Zigbee 3.0 LED controller multi 5 - 4A,RGB W/CCT LED",
-        extend: [m.light({colorTemp: {range: [160, 450]}, color: true})],
+        extend: [m.light({colorTemp: {range: [160, 450]}, color: true, configureReporting: true})],
     },
     {
         zigbeeModel: ["HK-ZD-RGBCCT-A", "511.000"],
@@ -177,29 +192,6 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [{vendor: "Sunricher", model: "HK-ZD-RGBCCT-A"}],
         description: "Zigbee 3.0 universal LED-controller, 5 channel, RGBCCT LED",
         extend: [m.light({colorTemp: {range: undefined}, color: true, configureReporting: true})],
-    },
-    {
-        zigbeeModel: ["ZG2819S-RGBW"],
-        model: "511.344",
-        vendor: "Iluminize",
-        whiteLabel: [{vendor: "Sunricher", model: "ZG2819S-RGBW"}],
-        description: "Zigbee handheld remote RGBW 4 channels",
-        extend: [
-            m.deviceEndpoints({endpoints: {ep1: 1, ep2: 2, ep3: 3, ep4: 4}}),
-            m.battery(),
-            m.identify({isSleepy: true}),
-            m.commandsOnOff({
-                commands: ["on", "off"],
-            }),
-            m.commandsLevelCtrl({
-                commands: ["brightness_move_up", "brightness_move_down", "brightness_stop", "brightness_step_up", "brightness_step_down"],
-            }),
-            m.commandsColorCtrl({
-                commands: ["color_temperature_move", "color_move", "hue_move", "hue_stop"],
-            }),
-            m.commandsScenes({commands: ["recall"]}),
-        ],
-        meta: {multiEndpoint: true},
     },
     {
         zigbeeModel: ["511.324"],
@@ -219,7 +211,7 @@ export const definitions: DefinitionWithExtend[] = [
             fz.command_stop,
             fz.command_move,
             fz.command_color_loop_set,
-            fz.command_ehanced_move_to_hue_and_saturation,
+            fz.command_enhanced_move_to_hue_and_saturation,
         ],
         exposes: [
             e.battery(),

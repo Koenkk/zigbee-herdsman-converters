@@ -679,7 +679,7 @@ const clustersDef = {
 };
 
 // full list available on https://github.com/fairecasoimeme/Zlinky_TIC/blob/master/README.md
-// Properties must be EAXCTLY ".split(/(?=[A-Z])/).join('_').toLowerCase()" of att
+// Properties must be EXACTLY ".split(/(?=[A-Z])/).join('_').toLowerCase()" of att
 const allPhaseData = [
     {
         cluster: clustersDef._0x0702,
@@ -1641,12 +1641,12 @@ function getCurrentConfig(device: Zh.Device, options: KeyValue) {
     try {
         endpoint = device.getEndpoint(1);
     } catch (error) {
-        logger.debug(error, NS);
+        logger.debug(`${(error as Error).stack}`, NS);
     }
     // @ts-expect-error ignore
     function getConfig(targetOption, bitLinkyMode, valueTrue, valueFalse) {
         const valueDefault = valueFalse;
-        if (options && options[targetOption] !== undefined && options[targetOption] !== "auto") {
+        if (options && options[targetOption] != null && options[targetOption] !== "auto") {
             if (options[targetOption] === "true" || options[targetOption] === "false") {
                 return options[targetOption] === "true"; // special case for production
             }
@@ -1686,7 +1686,7 @@ function getCurrentConfig(device: Zh.Device, options: KeyValue) {
     // Filter even more, based on our current tarif
     let currentTarf = "";
 
-    if (options && options.tarif !== undefined && options.tarif !== "auto") {
+    if (options?.tarif != null && options.tarif !== "auto") {
         currentTarf = Object.entries(tarifsDef).find(([k, v]) => v.fname === options.tarif)[1].currentTarf;
     } else {
         try {
@@ -1744,7 +1744,7 @@ function getCurrentConfig(device: Zh.Device, options: KeyValue) {
     }
 
     // Filter exposed attributes with user whitelist
-    if (options && options.tic_command_whitelist !== undefined) {
+    if (options?.tic_command_whitelist != null) {
         // @ts-expect-error ignore
         const tic_commands_str = options.tic_command_whitelist.toUpperCase();
         if (tic_commands_str !== "ALL") {

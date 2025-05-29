@@ -169,6 +169,7 @@ import {definitions as lg} from "./lg";
 import {definitions as lidl} from "./lidl";
 import {definitions as lifecontrol} from "./lifecontrol";
 import {definitions as lightsolutions} from "./lightsolutions";
+import {definitions as lincukoo} from "./lincukoo";
 import {definitions as linkind} from "./linkind";
 import {definitions as linptech} from "./linptech";
 import {definitions as livingwise} from "./livingwise";
@@ -215,6 +216,7 @@ import {definitions as onenuo} from "./onenuo";
 import {definitions as onesti} from "./onesti";
 import {definitions as openlumi} from "./openlumi";
 import {definitions as orvibo} from "./orvibo";
+import {definitions as orztech} from "./orztech";
 import {definitions as osram} from "./osram";
 import {definitions as oujiabao} from "./oujiabao";
 import {definitions as owon} from "./owon";
@@ -254,6 +256,7 @@ import {definitions as schwaiger} from "./schwaiger";
 import {definitions as seastarIntelligence} from "./seastar_intelligence";
 import {definitions as securifi} from "./securifi";
 import {definitions as sengled} from "./sengled";
+import {definitions as senoro} from "./senoro";
 import {definitions as sercomm} from "./sercomm";
 import {definitions as shadeControl} from "./shade_control";
 import {definitions as shelly} from "./shelly";
@@ -283,8 +286,10 @@ import {definitions as sonoff} from "./sonoff";
 import {definitions as sowilo} from "./sowilo";
 import {definitions as spotmau} from "./spotmau";
 import {definitions as sprut} from "./sprut";
+import {definitions as stello} from "./stello";
 import {definitions as stelpro} from "./stelpro";
 import {definitions as sunricher} from "./sunricher";
+import {definitions as superled} from "./superled";
 import {definitions as swann} from "./swann";
 import {definitions as sylvania} from "./sylvania";
 import {definitions as tapestry} from "./tapestry";
@@ -505,6 +510,7 @@ const definitions: DefinitionWithExtend[] = [
     ...lidl,
     ...lifecontrol,
     ...lightsolutions,
+    ...lincukoo,
     ...linkind,
     ...linptech,
     ...livingwise,
@@ -550,12 +556,13 @@ const definitions: DefinitionWithExtend[] = [
     ...onesti,
     ...openlumi,
     ...orvibo,
+    ...orztech,
     ...osram,
     ...oujiabao,
     ...owon,
     ...ozsmartthings,
-    ...paulNeuhaus,
     ...paulmann,
+    ...paulNeuhaus,
     ...peq,
     ...perenio,
     ...philio,
@@ -589,6 +596,7 @@ const definitions: DefinitionWithExtend[] = [
     ...seastarIntelligence,
     ...securifi,
     ...sengled,
+    ...senoro,
     ...sercomm,
     ...shadeControl,
     ...shelly,
@@ -619,7 +627,9 @@ const definitions: DefinitionWithExtend[] = [
     ...spotmau,
     ...sprut,
     ...stelpro,
+    ...stello,
     ...sunricher,
+    ...superled,
     ...swann,
     ...sylvania,
     ...tapestry,

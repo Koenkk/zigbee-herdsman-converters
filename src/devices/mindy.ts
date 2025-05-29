@@ -2,10 +2,8 @@ import {Zcl} from "zigbee-herdsman";
 
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
-import {type DefinitionWithExtend, type Fz, KeyValueAny, type Tz} from "../lib/types";
+import type {DefinitionWithExtend, Fz, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
-
-import * as globalStore from "../lib/store";
 
 const e = exposes.presets;
 const ea = exposes.access;

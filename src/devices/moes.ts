@@ -5,7 +5,7 @@ import * as legacy from "../lib/legacy";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as tuya from "../lib/tuya";
-import type {DefinitionWithExtend} from "../lib/types";
+import type {DefinitionWithExtend, Expose} from "../lib/types";
 import * as zosung from "../lib/zosung";
 
 const e = exposes.presets;
@@ -23,7 +23,105 @@ const exposesLocal = {
 
 export const definitions: DefinitionWithExtend[] = [
     {
-        fingerprint: tuya.fingerprint("TS011F", ["_TZ3000_cymsnfvf", "_TZ3000_2xlvlnez"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_ivdc0kwl"]),
+        model: "ZTRV-S01",
+        vendor: "Moes",
+        description: "Zigbee temperature control valve",
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEventSetTime,
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e
+                .climate()
+                .withLocalTemperature(ea.STATE)
+                .withSetpoint("current_heating_setpoint", 5, 35, 0.5, ea.STATE_SET)
+                .withLocalTemperatureCalibration(-10, 10, 0.5, ea.STATE_SET)
+                .withPreset(["auto", "manual", "off", "on"])
+                .withRunningState(["idle", "heat"], ea.STATE),
+            e.window_detection_bool(),
+            e.child_lock(),
+            e.binary("frost_protection", ea.STATE_SET, "ON", "OFF"),
+            e.binary("eco", ea.STATE_SET, "ON", "OFF").withDescription("Eco mode"),
+            e.eco_temperature().withValueMin(5).withValueMax(35).withValueStep(0.5),
+            e.binary("window", ea.STATE, "OPENED", "CLOSED").withDescription("Window status closed or open "),
+            ...tuya.exposes.scheduleAllDays(ea.STATE_SET, "HH:MM/C HH:MM/C HH:MM/C HH:MM/C"),
+            e.min_temperature().withValueMin(5).withValueMax(15),
+            e.max_temperature().withValueMin(20).withValueMax(35),
+            e.position(),
+            e.battery(),
+            e.enum("screen_orientation", ea.STATE_SET, ["0", "1"]).withDescription("Screen orientation"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [
+                    2,
+                    "preset",
+                    tuya.valueConverterBasic.lookup({
+                        auto: tuya.enum(0),
+                        manual: tuya.enum(1),
+                        off: tuya.enum(2),
+                        on: tuya.enum(3),
+                        holiday: tuya.enum(4),
+                    }),
+                ],
+                [3, "running_state", tuya.valueConverterBasic.lookup({heat: 0, idle: 1})],
+                [6, "battery", tuya.valueConverter.raw],
+                [
+                    7,
+                    "child_lock",
+                    tuya.valueConverterBasic.lookup({
+                        LOCK: true,
+                        UNLOCK: false,
+                    }),
+                ],
+                [9, "max_temperature", tuya.valueConverter.divideBy10],
+                [10, "min_temperature", tuya.valueConverter.divideBy10],
+                [14, "window_detection", tuya.valueConverterBasic.raw()],
+                [
+                    15,
+                    "window",
+                    tuya.valueConverterBasic.lookup({
+                        CLOSED: tuya.enum(0),
+                        OPENED: tuya.enum(1),
+                    }),
+                ],
+                [21, "holiday_temperature", tuya.valueConverter.divideBy10], //
+                [28, "schedule_monday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(1)],
+                [29, "schedule_tuesday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(2)],
+                [30, "schedule_wednesday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(3)],
+                [31, "schedule_thursday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(4)],
+                [32, "schedule_friday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(5)],
+                [33, "schedule_saturday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(6)],
+                [34, "schedule_sunday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(7)],
+                [
+                    36,
+                    "frost_protection",
+                    tuya.valueConverterBasic.lookup({
+                        ON: true,
+                        OFF: false,
+                    }),
+                ],
+                [47, "local_temperature_calibration", tuya.valueConverter.localTempCalibration1],
+                [102, "position", tuya.valueConverter.raw],
+                [
+                    103,
+                    "screen_orientation",
+                    tuya.valueConverterBasic.lookup({
+                        0: tuya.enum(0),
+                        1: tuya.enum(1),
+                    }),
+                ],
+                [105, "eco_temperature", tuya.valueConverter.divideBy10],
+                [106, "eco", tuya.valueConverter.onOff],
+                //[107, "holiday_start_stop", tuya.valueConverter.raw],(Invalid situations may occur)
+                [108, "current_heating_setpoint", tuya.valueConverter.divideBy10],
+                [109, "local_temperature", tuya.valueConverter.divideBy10],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS011F", ["_TZ3000_cymsnfvf", "_TZ3000_2xlvlnez", "_TZ3210_2uk4z8ce"]),
         model: "ZP-LZ-FR2U",
         vendor: "Moes",
         description: "Zigbee 3.0 dual USB wireless socket plug",
@@ -100,7 +198,6 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE204_aoclfnxz",
             "_TZE200_u9bfwha0",
             "_TZE204_u9bfwha0",
-            "_TZE204_xalsoe3m",
         ]),
         model: "BHT-002",
         vendor: "Moes",
@@ -121,6 +218,7 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [tuya.whitelabel("Moes", "BHT-002/BHT-006", "Smart heating thermostat", ["_TZE204_aoclfnxz"])],
         exposes: (device, options) => {
             const heatingStepSize = device?.manufacturerName === "_TZE204_5toc8efa" ? 0.5 : 1;
+            const runningStates = device?.manufacturerName === "_TZE200_aoclfnxz" ? ["idle", "heat"] : ["idle", "heat", "cool"];
             return [
                 e.child_lock(),
                 e.deadzone_temperature(),
@@ -132,7 +230,7 @@ export const definitions: DefinitionWithExtend[] = [
                     .withLocalTemperature(ea.STATE)
                     .withLocalTemperatureCalibration(-30, 30, 0.1, ea.STATE_SET)
                     .withSystemMode(["off", "heat"], ea.STATE_SET)
-                    .withRunningState(["idle", "heat", "cool"], ea.STATE)
+                    .withRunningState(runningStates, ea.STATE)
                     .withPreset(["hold", "program"]),
 
                 e.temperature_sensor_select(["IN", "AL", "OU"]),
@@ -417,7 +515,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         toZigbee: [tzZosung.zosung_ir_code_to_send, tzZosung.zosung_learn_ir_code],
         exposes: (device, options) => {
-            const exposes = [ez.learn_ir_code(), ez.learned_ir_code(), ez.ir_code_to_send()];
+            const exposes: Expose[] = [ez.learn_ir_code(), ez.learned_ir_code(), ez.ir_code_to_send()];
             if (device?.manufacturerName !== "") {
                 exposes.push(e.battery(), e.battery_voltage());
             }
@@ -688,6 +786,43 @@ export const definitions: DefinitionWithExtend[] = [
                     }),
                 ],
                 [115, "rgb_light", tuya.valueConverterBasic.lookup({ON: true, OFF: false})],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZ3210_5rta89nj"]),
+        model: "ZC-LP01",
+        vendor: "Moes",
+        description: "Smart sliding window pusher",
+        options: [exposes.options.invert_cover()],
+        extend: [tuya.modernExtend.tuyaBase({dp: true}), tuya.modernExtend.dpBattery({dp: 4})],
+        exposes: [
+            e.cover_position(),
+            e.binary("charging", ea.STATE, true, false).withDescription("Whether the device is being charged via USB-C"),
+            e
+                .binary("automatic_mode", ea.STATE_SET, "ON", "OFF")
+                .withDescription("When set to `ON`, the device will start pushing in the same direction the window was pushed"),
+            e
+                .binary("slow_stop", ea.STATE_SET, "ON", "OFF")
+                .withDescription("When set to `ON`, the device decelerates gradually for quieter operation"),
+            e.enum("button_position", ea.STATE_SET, ["UP", "DOWN"]).withDescription("Swaps the behavior of the device's physical buttons"),
+        ],
+        meta: {
+            tuyaSendCommand: "sendData",
+            tuyaDatapoints: [
+                [
+                    102,
+                    "state",
+                    tuya.valueConverterBasic.lookup((options) =>
+                        // Some devices were shipped with a reversed firmware.
+                        options.invert_cover ? {OPEN: 1, STOP: 2, CLOSE: 0} : {OPEN: 0, STOP: 2, CLOSE: 1},
+                    ),
+                ],
+                [104, "position", tuya.valueConverter.coverPosition],
+                [105, "charging", tuya.valueConverter.trueFalse1],
+                [106, "automatic_mode", tuya.valueConverterBasic.lookup({ON: 1, OFF: 0})],
+                [110, "slow_stop", tuya.valueConverterBasic.lookup({ON: 1, OFF: 0})],
+                [112, "button_position", tuya.valueConverterBasic.lookup({UP: 1, DOWN: 0})],
             ],
         },
     },
