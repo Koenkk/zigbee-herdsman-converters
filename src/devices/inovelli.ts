@@ -1403,7 +1403,7 @@ const tzLocal = {
                 "individualLedEffect",
                 {
                     // @ts-expect-error ignore
-                    led: Math.min(Math.max(0, Number.parseInt(values.led)), 7),
+                    led: Math.min(Math.max(1, Number.parseInt(values.led)), 7) - 1,
                     // @ts-expect-error ignore
                     effect: individualLedEffects[values.effect],
                     // @ts-expect-error ignore
@@ -1429,14 +1429,14 @@ const tzLocal = {
             const transition = utils.getTransition(entity, "brightness", meta);
             const turnsOffAtBrightness1 = utils.getMetaValue(entity, meta.mapped, "turnsOffAtBrightness1", "allEqual", false);
             let state =
-                message.state !== undefined
+                message.state != null
                     ? // @ts-expect-error ignore
                       message.state.toLowerCase()
                     : undefined;
             let brightness = undefined;
-            if (message.brightness !== undefined) {
+            if (message.brightness != null) {
                 brightness = Number(message.brightness);
-            } else if (message.brightness_percent !== undefined) {
+            } else if (message.brightness_percent != null) {
                 brightness = utils.mapNumberRange(Number(message.brightness_percent), 0, 100, 0, 255);
             }
 
@@ -1566,7 +1566,7 @@ const tzLocal = {
     fan_state: {
         key: ["fan_state"],
         convertSet: async (entity, key, value, meta) => {
-            const state = meta.message.fan_state !== undefined ? meta.message.fan_state.toString().toLowerCase() : null;
+            const state = meta.message.fan_state != null ? meta.message.fan_state.toString().toLowerCase() : null;
             utils.validateValue(state, ["toggle", "off", "on"]);
 
             await entity.command("genOnOff", state, {}, utils.getOptions(meta.mapped, entity));
@@ -1595,9 +1595,9 @@ const tzLocal = {
             const state = typeof meta.message.fan_state === "string" ? meta.message.fan_state.toLowerCase() : null;
             utils.validateValue(state, ["toggle", "off", "on"]);
 
-            if (state === "on" && (meta.message.on_time !== undefined || meta.message.off_wait_time !== undefined)) {
-                const onTime = meta.message.on_time !== undefined ? meta.message.on_time : 0;
-                const offWaitTime = meta.message.off_wait_time !== undefined ? meta.message.off_wait_time : 0;
+            if (state === "on" && (meta.message.on_time != null || meta.message.off_wait_time != null)) {
+                const onTime = meta.message.on_time != null ? meta.message.on_time : 0;
+                const offWaitTime = meta.message.off_wait_time != null ? meta.message.off_wait_time : 0;
 
                 if (typeof onTime !== "number") {
                     throw Error("The on_time value must be a number!");
@@ -1687,12 +1687,12 @@ const tzLocal = {
  */
 const inovelliOnOffConvertSet = async (entity: Zh.Endpoint | Zh.Group, key: string, value: unknown, meta: Tz.Meta) => {
     // @ts-expect-error ignore
-    const state = meta.message.state !== undefined ? meta.message.state.toLowerCase() : null;
+    const state = meta.message.state != null ? meta.message.state.toLowerCase() : null;
     utils.validateValue(state, ["toggle", "off", "on"]);
 
-    if (state === "on" && (meta.message.on_time !== undefined || meta.message.off_wait_time !== undefined)) {
-        const onTime = meta.message.on_time !== undefined ? meta.message.on_time : 0;
-        const offWaitTime = meta.message.off_wait_time !== undefined ? meta.message.off_wait_time : 0;
+    if (state === "on" && (meta.message.on_time != null || meta.message.off_wait_time != null)) {
+        const onTime = meta.message.on_time != null ? meta.message.on_time : 0;
+        const offWaitTime = meta.message.off_wait_time != null ? meta.message.off_wait_time : 0;
 
         if (typeof onTime !== "number") {
             throw Error("The on_time value must be a number!");
@@ -1703,8 +1703,8 @@ const inovelliOnOffConvertSet = async (entity: Zh.Endpoint | Zh.Group, key: stri
 
         const payload = {
             ctrlbits: 0,
-            ontime: meta.message.on_time !== undefined ? Math.round(onTime * 10) : 0xffff,
-            offwaittime: meta.message.off_wait_time !== undefined ? Math.round(offWaitTime * 10) : 0xffff,
+            ontime: meta.message.on_time != null ? Math.round(onTime * 10) : 0xffff,
+            offwaittime: meta.message.off_wait_time != null ? Math.round(offWaitTime * 10) : 0xffff,
         };
         await entity.command("genOnOff", "onWithTimedOff", payload, utils.getOptions(meta.mapped, entity));
     } else {

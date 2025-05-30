@@ -562,7 +562,7 @@ export const occupancy_with_timeout: Fz.Converter = {
 
         // The occupancy sensor only sends a message when motion detected.
         // Therefore we need to publish the no_motion detected by ourselves.
-        const timeout = options && options.occupancy_timeout !== undefined ? Number(options.occupancy_timeout) : 90;
+        const timeout = options?.occupancy_timeout != null ? Number(options.occupancy_timeout) : 90;
 
         // Stop existing timers because motion is detected and set a new one.
         clearTimeout(globalStore.getValue(msg.endpoint, "occupancy_timer", null));
@@ -603,28 +603,30 @@ export const level_config: Fz.Converter = {
     cluster: "genLevelCtrl",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
-        const result: KeyValueAny = {level_config: {}};
+        const level_config = postfixWithEndpointName("level_config", msg, model, meta);
+        const result: KeyValueAny = {};
+        result[level_config] = {};
 
         // onOffTransitionTime - range 0x0000 to 0xffff - optional
         if (msg.data.onOffTransitionTime !== undefined && msg.data.onOffTransitionTime !== undefined) {
-            result.level_config.on_off_transition_time = Number(msg.data.onOffTransitionTime);
+            result[level_config].on_off_transition_time = Number(msg.data.onOffTransitionTime);
         }
 
         // onTransitionTime - range 0x0000 to 0xffff - optional
         //                    0xffff = use onOffTransitionTime
         if (msg.data.onTransitionTime !== undefined && msg.data.onTransitionTime !== undefined) {
-            result.level_config.on_transition_time = Number(msg.data.onTransitionTime);
-            if (result.level_config.on_transition_time === 65535) {
-                result.level_config.on_transition_time = "disabled";
+            result[level_config].on_transition_time = Number(msg.data.onTransitionTime);
+            if (result[level_config].on_transition_time === 65535) {
+                result[level_config].on_transition_time = "disabled";
             }
         }
 
         // offTransitionTime - range 0x0000 to 0xffff - optional
         //                    0xffff = use onOffTransitionTime
         if (msg.data.offTransitionTime !== undefined && msg.data.offTransitionTime !== undefined) {
-            result.level_config.off_transition_time = Number(msg.data.offTransitionTime);
-            if (result.level_config.off_transition_time === 65535) {
-                result.level_config.off_transition_time = "disabled";
+            result[level_config].off_transition_time = Number(msg.data.offTransitionTime);
+            if (result[level_config].off_transition_time === 65535) {
+                result[level_config].off_transition_time = "disabled";
             }
         }
 
@@ -632,21 +634,21 @@ export const level_config: Fz.Converter = {
         //                       0x00 = return to minimum supported level
         //                       0xff - return to previous previous
         if (msg.data.startUpCurrentLevel !== undefined && msg.data.startUpCurrentLevel !== undefined) {
-            result.level_config.current_level_startup = Number(msg.data.startUpCurrentLevel);
-            if (result.level_config.current_level_startup === 255) {
-                result.level_config.current_level_startup = "previous";
+            result[level_config].current_level_startup = Number(msg.data.startUpCurrentLevel);
+            if (result[level_config].current_level_startup === 255) {
+                result[level_config].current_level_startup = "previous";
             }
-            if (result.level_config.current_level_startup === 0) {
-                result.level_config.current_level_startup = "minimum";
+            if (result[level_config].current_level_startup === 0) {
+                result[level_config].current_level_startup = "minimum";
             }
         }
 
         // onLevel - range 0x00 to 0xff - optional
         //           Any value outside of MinLevel to MaxLevel, including 0xff and 0x00, is interpreted as "previous".
         if (msg.data.onLevel !== undefined && msg.data.onLevel !== undefined) {
-            result.level_config.on_level = Number(msg.data.onLevel);
-            if (result.level_config.on_level === 255) {
-                result.level_config.on_level = "previous";
+            result[level_config].on_level = Number(msg.data.onLevel);
+            if (result[level_config].on_level === 255) {
+                result[level_config].on_level = "previous";
             }
         }
 
@@ -655,11 +657,11 @@ export const level_config: Fz.Converter = {
         //          when 1, CurrentLevel can be changed while the device is off.
         //   bit 1: CoupleColorTempToLevel - when 1, changes to level also change color temperature.
         //          (What this means is not defined, but it's most likely to be "dim to warm".)
-        if (msg.data.options !== undefined && msg.data.options !== undefined) {
-            result.level_config.execute_if_off = !!(Number(msg.data.options) & 1);
+        if (msg.data.options !== undefined) {
+            result[level_config].execute_if_off = !!(Number(msg.data.options) & 1);
         }
 
-        if (Object.keys(result.level_config).length > 0) {
+        if (Object.keys(result[level_config]).length > 0) {
             return result;
         }
     },
@@ -962,10 +964,12 @@ export const ias_no_alarm: Fz.Converter = {
     type: ["attributeReport", "commandStatusChangeNotification"],
     convert: (model, msg, publish, options, meta) => {
         const zoneStatus = msg.data.zoneStatus;
-        return {
-            tamper: (zoneStatus & (1 << 2)) > 0,
-            battery_low: (zoneStatus & (1 << 3)) > 0,
-        };
+        if (zoneStatus !== undefined) {
+            return {
+                tamper: (zoneStatus & (1 << 2)) > 0,
+                battery_low: (zoneStatus & (1 << 3)) > 0,
+            };
+        }
     },
 };
 export const ias_siren: Fz.Converter = {
@@ -1001,11 +1005,13 @@ export const ias_water_leak_alarm_1_report: Fz.Converter = {
     type: "attributeReport",
     convert: (model, msg, publish, options, meta) => {
         const zoneStatus = msg.data.zoneStatus;
-        return {
-            water_leak: (zoneStatus & 1) > 0,
-            tamper: (zoneStatus & (1 << 2)) > 0,
-            battery_low: (zoneStatus & (1 << 3)) > 0,
-        };
+        if (zoneStatus !== undefined) {
+            return {
+                water_leak: (zoneStatus & 1) > 0,
+                tamper: (zoneStatus & (1 << 2)) > 0,
+                battery_low: (zoneStatus & (1 << 3)) > 0,
+            };
+        }
     },
 };
 export const ias_vibration_alarm_1: Fz.Converter = {
@@ -1027,7 +1033,7 @@ export const ias_vibration_alarm_1_with_timeout: Fz.Converter = {
     convert: (model, msg, publish, options, meta) => {
         const zoneStatus = msg.data.zonestatus;
 
-        const timeout = options && options.vibration_timeout !== undefined ? Number(options.vibration_timeout) : 90;
+        const timeout = options?.vibration_timeout != null ? Number(options.vibration_timeout) : 90;
 
         // Stop existing timers because vibration is detected and set a new one.
         // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
@@ -1112,11 +1118,13 @@ export const ias_contact_alarm_1_report: Fz.Converter = {
     type: "attributeReport",
     convert: (model, msg, publish, options, meta) => {
         const zoneStatus = msg.data.zoneStatus;
-        return {
-            contact: !((zoneStatus & 1) > 0),
-            tamper: (zoneStatus & (1 << 2)) > 0,
-            battery_low: (zoneStatus & (1 << 3)) > 0,
-        };
+        if (zoneStatus !== undefined) {
+            return {
+                contact: !((zoneStatus & 1) > 0),
+                tamper: (zoneStatus & (1 << 2)) > 0,
+                battery_low: (zoneStatus & (1 << 3)) > 0,
+            };
+        }
     },
 };
 export const ias_carbon_monoxide_alarm_1: Fz.Converter = {
@@ -1177,11 +1185,13 @@ export const ias_occupancy_alarm_1_report: Fz.Converter = {
     type: "attributeReport",
     convert: (model, msg, publish, options, meta) => {
         const zoneStatus = msg.data.zoneStatus;
-        return {
-            occupancy: (zoneStatus & 1) > 0,
-            tamper: (zoneStatus & (1 << 2)) > 0,
-            battery_low: (zoneStatus & (1 << 3)) > 0,
-        };
+        if (zoneStatus !== undefined) {
+            return {
+                occupancy: (zoneStatus & 1) > 0,
+                tamper: (zoneStatus & (1 << 2)) > 0,
+                battery_low: (zoneStatus & (1 << 3)) > 0,
+            };
+        }
     },
 };
 export const ias_occupancy_alarm_2: Fz.Converter = {
@@ -1222,7 +1232,7 @@ export const ias_occupancy_alarm_1_with_timeout: Fz.Converter = {
     options: [exposes.options.occupancy_timeout()],
     convert: (model, msg, publish, options, meta) => {
         const zoneStatus = msg.data.zonestatus;
-        const timeout = options && options.occupancy_timeout !== undefined ? Number(options.occupancy_timeout) : 90;
+        const timeout = options?.occupancy_timeout != null ? Number(options.occupancy_timeout) : 90;
 
         clearTimeout(globalStore.getValue(msg.endpoint, "timer"));
 
@@ -1390,8 +1400,8 @@ export const command_move: Fz.Converter = {
 
         if (options.simulated_brightness) {
             const opts: KeyValueAny = options.simulated_brightness;
-            const deltaOpts = typeof opts === "object" && opts.delta !== undefined ? opts.delta : 20;
-            const intervalOpts = typeof opts === "object" && opts.interval !== undefined ? opts.interval : 200;
+            const deltaOpts = typeof opts === "object" && opts.delta != null ? opts.delta : 20;
+            const intervalOpts = typeof opts === "object" && opts.interval != null ? opts.interval : 200;
 
             globalStore.putValue(msg.endpoint, "simulated_brightness_direction", direction);
             if (globalStore.getValue(msg.endpoint, "simulated_brightness_timer") === undefined) {
@@ -1489,7 +1499,7 @@ export const command_step_color_temperature: Fz.Converter = {
         return payload;
     },
 };
-export const command_ehanced_move_to_hue_and_saturation: Fz.Converter = {
+export const command_enhanced_move_to_hue_and_saturation: Fz.Converter = {
     cluster: "lightingColorCtrl",
     type: "commandEnhancedMoveToHueAndSaturation",
     convert: (model, msg, publish, options, meta) => {
@@ -1828,7 +1838,7 @@ export const checkin_presence: Fz.Converter = {
     type: ["commandCheckin"],
     options: [exposes.options.presence_timeout()],
     convert: (model, msg, publish, options, meta) => {
-        const useOptionsTimeout = options && options.presence_timeout !== undefined;
+        const useOptionsTimeout = options?.presence_timeout != null;
         const timeout = useOptionsTimeout ? Number(options.presence_timeout) : 100; // 100 seconds by default
 
         // Stop existing timer because presence is detected and set a new one.
@@ -3879,7 +3889,7 @@ export const ZMCSW032D_cover_position: Fz.Converter = {
 
         // https://github.com/Koenkk/zigbee-herdsman-converters/pull/1336
         // Need to add time_close and time_open in your configuration.yaml after friendly_name (and set your time)
-        if (options.time_close !== undefined && options.time_open !== undefined) {
+        if (options.time_close != null && options.time_open != null) {
             if (!globalStore.hasValue(msg.endpoint, "position")) {
                 globalStore.putValue(msg.endpoint, "position", {lastPreviousAction: -1, CurrentPosition: -1, since: false});
             }
@@ -3950,7 +3960,7 @@ export const PGC410EU_presence: Fz.Converter = {
     type: "commandArrivalSensorNotify",
     options: [exposes.options.presence_timeout()],
     convert: (model, msg, publish, options, meta) => {
-        const useOptionsTimeout = options && options.presence_timeout !== undefined;
+        const useOptionsTimeout = options?.presence_timeout != null;
         const timeout = useOptionsTimeout ? Number(options.presence_timeout) : 100; // 100 seconds by default
 
         // Stop existing timer because motion is detected and set a new one.
@@ -3968,7 +3978,7 @@ export const STS_PRS_251_presence: Fz.Converter = {
     type: ["attributeReport", "readResponse"],
     options: [exposes.options.presence_timeout()],
     convert: (model, msg, publish, options, meta) => {
-        const useOptionsTimeout = options && options.presence_timeout !== undefined;
+        const useOptionsTimeout = options?.presence_timeout != null;
         const timeout = useOptionsTimeout ? Number(options.presence_timeout) : 100; // 100 seconds by default
 
         // Stop existing timer because motion is detected and set a new one.
@@ -4411,7 +4421,7 @@ export const hue_dimmer_switch: Fz.Converter = {
         // simulated brightness
         if (options.simulated_brightness && (button === "down" || button === "up") && type !== "release") {
             const opts: KeyValueAny = options.simulated_brightness;
-            const deltaOpts = typeof opts === "object" && opts.delta !== undefined ? opts.delta : 35;
+            const deltaOpts = typeof opts === "object" && opts.delta != null ? opts.delta : 35;
             const delta = button === "up" ? deltaOpts : deltaOpts * -1;
             const brightness = globalStore.getValue(msg.endpoint, "brightness", 255) + delta;
             payload.brightness = numberWithinRange(brightness, 0, 255);

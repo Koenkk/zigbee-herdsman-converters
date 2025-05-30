@@ -291,7 +291,7 @@ describe("ZHC", () => {
         );
         const definition = await findByDevice(device);
 
-        expect(definition.model).toStrictEqual("RADON TriTech ZB");
+        expect(definition.model).toStrictEqual("RADION TriTech ZB");
 
         assert(typeof definition.exposes === "function");
 

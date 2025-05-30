@@ -1,8 +1,4 @@
-// In the root of this repo, execute: `npx ts-node scripts/refactor.ts`
-
-import {assert} from "node:console";
-
-import {ArrayLiteralExpression, Project, QuoteKind, SyntaxKind} from "ts-morph";
+import {Project, QuoteKind, SyntaxKind} from "ts-morph";
 
 const project = new Project({
     manipulationSettings: {

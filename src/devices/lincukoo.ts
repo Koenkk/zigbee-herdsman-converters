@@ -1,7 +1,4 @@
-import * as fz from "../converters/fromZigbee";
 import * as exposes from "../lib/exposes";
-import * as legacy from "../lib/legacy";
-import * as reporting from "../lib/reporting";
 import * as tuya from "../lib/tuya";
 import type {DefinitionWithExtend} from "../lib/types";
 

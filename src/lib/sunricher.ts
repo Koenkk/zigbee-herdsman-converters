@@ -6,7 +6,7 @@ import * as exposes from "./exposes";
 import * as reporting from "./reporting";
 import {payload} from "./reporting";
 import * as globalStore from "./store";
-import type {Configure, Expose, Fz, KeyValueAny, ModernExtend, Tz, Zh} from "./types";
+import type {Configure, Expose, Fz, KeyValueAny, ModernExtend, Tz} from "./types";
 import * as utils from "./utils";
 import {precisionRound} from "./utils";
 
