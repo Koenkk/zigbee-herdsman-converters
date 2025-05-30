@@ -11763,7 +11763,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription('Operation mode: "command" - for group control, "event" - for clicks'),
         ],
         extend: [m.battery(), tuya.modernExtend.tuyaMagicPacket()],
-        withLabel: [{vendor: "HOBEIAN", model: "ZG-101ZD"}],
+        whiteLabel: [{vendor: "HOBEIAN", model: "ZG-101ZD"}],
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_kzm5w4iz"]),
