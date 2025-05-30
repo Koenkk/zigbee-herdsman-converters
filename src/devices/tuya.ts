@@ -12385,6 +12385,7 @@ export const definitions: DefinitionWithExtend[] = [
     model: "ZG-101Z/D",
     vendor: "Tuya",
     description: "Smart knob",
+    whiteLabel: [{ vendor: "COOLO", model: "ZG-101ZD" }],
     fromZigbee: [fz.tuya_multi_action, fz.battery, fz.tuya_operation_mode],
     exposes: [
       e.action(["rotate_left", "rotate_right"]),
@@ -12395,7 +12396,6 @@ export const definitions: DefinitionWithExtend[] = [
         ),
     ],
     extend: [m.battery(), tuya.modernExtend.tuyaMagicPacket()],
-    withLabel: [{ vendor: "HOBEIAN", model: "ZG-101ZD" }],
   },
   {
     fingerprint: tuya.fingerprint("TS0601", ["_TZE200_kzm5w4iz"]),
