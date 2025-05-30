@@ -1,5 +1,20 @@
 # Changelog
 
+## [23.52.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.51.0...v23.52.0) (2025-05-30)
+
+
+### Features
+
+* **add:** CS-201Z ([#9430](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9430)) ([a99b281](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a99b281511e7ae07e12b95720be922003acc3924))
+* **add:** TYONOFFTS, TYSCENECUBE ([#9427](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9427)) ([3e21843](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3e21843f01dd9cd4c7e044fa49e1427028b689b6))
+* Hue: add `execute_if_off` for colour lights ([#9426](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9426)) ([afdfbe4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/afdfbe4449893c129fedb9a3a23ac93ab1f305dc))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3000_cmcjbqup` as Tuya SPM01 ([#9429](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9429)) ([37af76f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/37af76f21ad6498b69f9940c6d6ceef2578817a4))
+* Harmonize capitalization of vendor names ([#9431](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9431)) ([145e93f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/145e93ff1519275146b2ccc07561f8c29f63233c))
+
 ## [23.51.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.50.1...v23.51.0) (2025-05-28)
 
 
