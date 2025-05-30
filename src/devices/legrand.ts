@@ -426,6 +426,74 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        zigbeeModel: [" 3 Phases power consumption module\u0000\u0000", " DIN 3Ph power consumption module", "3ph Smart shedder module"],
+        model: "412175",
+        vendor: "Legrand",
+        description: "3P power consumption module",
+        ota: true,
+        fromZigbee: [
+            fz.identify,
+            fz.metering,
+            fz.electrical_measurement,
+            fz.ignore_basic_report,
+            fz.ignore_genOta,
+            fz.legrand_power_alarm,
+            fzLegrand.cluster_fc01,
+        ],
+        toZigbee: [tzLegrand.led_mode, tz.electrical_measurement_power, tz.legrand_power_alarm, tzLegrand.identify],
+        exposes: [
+            e.power().withAccess(ea.STATE_GET),
+            e.power_phase_b().withAccess(ea.STATE_GET),
+            e.power_phase_c().withAccess(ea.STATE_GET),
+            e.power_apparent(),
+            e.power_apparent_phase_b().withAccess(ea.STATE_GET),
+            e.power_apparent_phase_c().withAccess(ea.STATE_GET),
+            e.binary("power_alarm_active", ea.STATE, true, false),
+            e.binary("power_alarm", ea.ALL, true, false).withDescription("Enable/disable the power alarm"),
+        ],
+        onEvent: async (type, data, device, options, state) => {
+            /**
+             * The DIN power consumption module loses the configure reporting
+             * after device restart/powerloss.
+             *
+             * We reconfigure the reporting at deviceAnnounce.
+             */
+            if (type === "deviceAnnounce") {
+                for (const endpoint of device.endpoints) {
+                    for (const c of endpoint.configuredReportings) {
+                        await endpoint.configureReporting(c.cluster.name, [
+                            {
+                                attribute: c.attribute.name,
+                                minimumReportInterval: c.minimumReportInterval,
+                                maximumReportInterval: c.maximumReportInterval,
+                                reportableChange: c.reportableChange,
+                            },
+                        ]);
+                    }
+                }
+            }
+        },
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["haElectricalMeasurement", "genIdentify"]);
+            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
+            await reporting.activePower(endpoint);
+            // Read configuration values that are not sent periodically as well as current power (activePower).
+            await endpoint.read("haElectricalMeasurement", ["activePower"]);
+            try {
+                await reporting.apparentPower(endpoint);
+                await endpoint.read("haElectricalMeasurement", ["apparentPowerPhB"]);
+                await endpoint.read("haElectricalMeasurement", ["apparentPowerPhC"]);
+                await endpoint.read("haElectricalMeasurement", ["activePowerPhB"]);
+                await endpoint.read("haElectricalMeasurement", ["activePowerPhC"]);
+            } catch {
+                // Some version/firmware don't seem to support this.
+            }
+            // Read configuration values that are not sent periodically.
+            await endpoint.read("haElectricalMeasurement", [0xf000, 0xf001, 0xf002]);
+        },
+    },
+    {
         zigbeeModel: [" DIN power consumption module\u0000\u0000", " DIN power consumption module", "Smart shedder module"],
         model: "412015",
         vendor: "Legrand",
