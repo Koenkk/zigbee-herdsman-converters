@@ -129,6 +129,41 @@ const tzLocal = {
     } satisfies Tz.Converter,
 };
 
+const extendsLocal = {
+    localTimeAsUtc: {
+        // similar to the customTimeResponse("2000_LOCAL"), but also contains
+        // the timeStatus, timeZone, lastSetTime and validUntilTime.
+        // OWON devices seem to require this, as they ignored the customTimeResponse.
+            onEvent: [
+                async (type, data, device, options, state) => {
+                    if (!device.customReadResponse) {
+                        device.customReadResponse = (frame, endpoint) => {
+                            if (frame.isCluster("genTime")) {
+                                const oneJanuary2000 = new Date("January 01, 2000 00:00:00 UTC+00:00").getTime();
+                                const secondsUTC = Math.round((new Date().getTime() - oneJanuary2000) / 1000);
+                                const time = secondsUTC - new Date().getTimezoneOffset() * 60;
+        
+                                const payload = {
+                                    timeStatus: 3, // Time-master + synchronised
+                                    time: time,
+                                    timeZone: 0,
+                                    localTime: time,
+                                    lastSetTime: time,
+                                    validUntilTime: time + 24 * 60 * 60, // valid for 24 hours
+                                };
+        
+                                endpoint.readResponse("genTime", frame.header.transactionSequenceNumber, payload);
+                                return true;
+                            }
+                            return false;
+                        };
+                    }
+                },
+            ],
+            isModernExtend: true
+        },
+};
+
 export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["WSP402"],
@@ -385,6 +420,9 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.occupancy(endpoint2, {min: 1, max: 600, change: 1});
             await endpoint2.read("msOccupancySensing", ["occupancy"]);
         },
+        extend: [
+            extendsLocal.localTimeAsUtc,
+        ]
     },
     {
         zigbeeModel: ["PCT512"],
