@@ -6900,13 +6900,13 @@ export const definitions: DefinitionWithExtend[] = [
         model: "EFEKTA_TH_POW_R",
         vendor: "EFEKTA",
         description: "Temperature and humidity smart monitor with voltage detector",
-            extend: [
-		    m.identify(),
+        extend: [
+            m.identify(),
             m.temperature({
                 reporting: fourReporting,
                 access: "STATE",
             }),
-			m.humidity({
+            m.humidity({
                 reporting: fourReporting,
                 access: "STATE",
             }),
@@ -6971,7 +6971,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Enable сontrol of comparison with previous data",
                 access: "STATE_SET",
             }),
-			m.binary({
+            m.binary({
                 name: "enable_temperature",
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
@@ -7055,7 +7055,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "EFEKTA",
         description: "Temperatureb mart monitor with voltage detector",
         extend: [
-		    m.identify(),
+            m.identify(),
             temperature({
                 reporting: fourReporting,
                 access: "STATE",
@@ -7103,7 +7103,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Set TX Radio Power, dbm",
                 access: "STATE_SET",
             }),
-			m.enumLookup({
+            m.enumLookup({
                 name: "resolution",
                 lookup: {"9 bit": 9, "10 bit": 10, "11 bit": 11, "12 bit": 12},
                 cluster: "msTemperatureMeasurement",
@@ -7129,7 +7129,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Enable сontrol of comparison with previous data",
                 access: "STATE_SET",
             }),
-			m.binary({
+            m.binary({
                 name: "enable_temperature",
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
