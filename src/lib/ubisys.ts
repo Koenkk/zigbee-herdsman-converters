@@ -244,7 +244,9 @@ export const ubisysModernExtend = {
             },
         ];
 
-        const configure: Configure[] = [setupConfigureForReporting(clusterName, readableAttributeName, {min: 0, max: "1_HOUR", change: 0}, access)];
+        const configure: Configure[] = [
+            setupConfigureForReporting(clusterName, readableAttributeName, {config: {min: 0, max: "1_HOUR", change: 0}, access}),
+        ];
 
         return {exposes: [expose], fromZigbee, toZigbee, configure, isModernExtend: true};
     },
