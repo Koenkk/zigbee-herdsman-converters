@@ -68,6 +68,7 @@ export const definitions: DefinitionWithExtend[] = [
             "SV02-410-MP-1.0",
             "SV02-410-MP-1.2",
             "SV02-412-MP-1.2",
+            "SV02-412-MP-1.0",
         ],
         model: "SV02",
         vendor: "Keen Home",
