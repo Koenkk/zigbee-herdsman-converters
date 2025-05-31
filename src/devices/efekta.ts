@@ -7056,7 +7056,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Temperatureb mart monitor with voltage detector",
         extend: [
             m.identify(),
-            temperature({
+            m.temperature({
                 reporting: fourReporting,
                 access: "STATE",
             }),
