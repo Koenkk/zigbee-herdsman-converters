@@ -1018,6 +1018,11 @@ export const presets = {
             .withLabel("Current phase C")
             .withUnit("A")
             .withDescription("Instantaneous measured electrical current on phase C"),
+    current_neutral: () =>
+        new Numeric("current_neutral", access.STATE)
+            .withLabel("Current neutral")
+            .withUnit("A")
+            .withDescription("Instantaneous measured electrical current on neutral"),
     deadzone_temperature: () =>
         new Numeric("deadzone_temperature", access.STATE_SET)
             .withUnit("°C")
