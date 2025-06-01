@@ -60,12 +60,7 @@ const philipsModernExtend = {
         args = {hueEffect: true, turnsOffAtBrightness1: true, ota: true, ...args};
         if (args.hueEffect || args.gradient) args.effect = false;
         if (args.color) args.color = {modes: ["xy", "hs"], ...(isObject(args.color) ? args.color : {})};
-        if (args.color || args.colorTemp !== undefined)
-            args.levelConfig = {
-                disabledFeatures: ["on_off_transition_time", "on_transition_time", "off_transition_time", "on_level", "current_level_startup"],
-            };
         const result = modernExtend.light(args);
-        if (args.color || args.colorTemp !== undefined) result.exposes.push(...exposeEndpoints(e.light_color_options(), args.endpointNames));
         result.toZigbee.push(philipsTz.hue_power_on_behavior, philipsTz.hue_power_on_error);
         if (args.hueEffect || args.gradient) {
             result.toZigbee.push(philipsTz.effect);
