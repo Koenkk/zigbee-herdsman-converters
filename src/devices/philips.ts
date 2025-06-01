@@ -2104,7 +2104,14 @@ export const definitions: DefinitionWithExtend[] = [
         model: "929003817002",
         vendor: "Philips",
         description: "Philips Hue solo lightstrip (5 meters / 16 feet)",
-        whiteLabel: [{model: "929003817101", vendor: "Philips", description: "Philips Hue solo lightstrip (10 meters / 33 feet)", fingerprint: [{modelID: "LCL010"}]}],
+        whiteLabel: [
+            {
+                model: "929003817101",
+                vendor: "Philips",
+                description: "Philips Hue solo lightstrip (10 meters / 33 feet)",
+                fingerprint: [{modelID: "LCL010"}],
+            },
+        ],
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
     {
