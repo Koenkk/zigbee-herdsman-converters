@@ -1,5 +1,15 @@
 # Changelog
 
+## [23.52.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.52.0...v23.52.1) (2025-05-31)
+
+
+### Bug Fixes
+
+* **detect:** Detect `RODRET wireless dimmer` as IKEA E2201 https://github.com/Koenkk/zigbee2mqtt/issues/27491 ([004ee99](https://github.com/Koenkk/zigbee-herdsman-converters/commit/004ee9937410e3839b8927d176f79b607ab8799b))
+* **detect:** Detect SV02-412-MP-1.0 as Keen Home SV02  ([#9433](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9433)) ([03737fc](https://github.com/Koenkk/zigbee-herdsman-converters/commit/03737fc039eb611556ad6018f35cf1f6250114df))
+* **ignore:** bump the minor-patch group with 2 updates ([#9435](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9435)) ([919cbc1](https://github.com/Koenkk/zigbee-herdsman-converters/commit/919cbc10d8e987d97bb4ea92efc8ea68fa5f5906))
+* **ignore:** fix battery reporting not configured https://github.com/Koenkk/zigbee2mqtt/issues/27556 ([acd5f48](https://github.com/Koenkk/zigbee-herdsman-converters/commit/acd5f48ed25aa50af67aac56d9ef22fe1651c348))
+
 ## [23.52.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.51.0...v23.52.0) (2025-05-30)
 
 
