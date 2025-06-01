@@ -378,7 +378,6 @@ export default {
                 "saturation_move",
                 "hue_step",
                 "saturation_step",
-                "level_config",
                 "power_on_behavior",
                 "hue_power_on_behavior",
                 "hue_power_on_brightness",
@@ -386,12 +385,7 @@ export default {
                 "hue_power_on_color",
                 "effect",
             ],
-            exposes: [
-                "color_options",
-                "effect",
-                "light(state,brightness,color_temp,color_temp_startup,color_xy,color_hs,level_config)",
-                "power_on_behavior",
-            ],
+            exposes: ["effect", "light(state,brightness,color_temp,color_temp_startup,color_xy,color_hs)", "power_on_behavior"],
             bind: {},
             read: {
                 1: [

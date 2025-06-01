@@ -259,7 +259,6 @@ describe("ModernExtend", () => {
                 "saturation_move",
                 "hue_step",
                 "saturation_step",
-                "level_config",
                 "power_on_behavior",
                 "hue_power_on_behavior",
                 "hue_power_on_brightness",
@@ -270,11 +269,10 @@ describe("ModernExtend", () => {
                 "gradient",
             ],
             exposes: [
-                "color_options",
                 "effect",
                 "gradient",
                 "gradient_scene",
-                "light(state,brightness,color_temp,color_temp_startup,color_xy,color_hs,level_config)",
+                "light(state,brightness,color_temp,color_temp_startup,color_xy,color_hs)",
 
                 "power_on_behavior",
             ],
