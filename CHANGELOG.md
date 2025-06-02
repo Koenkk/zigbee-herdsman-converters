@@ -1,5 +1,19 @@
 # Changelog
 
+## [23.54.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.53.0...v23.54.0) (2025-06-02)
+
+
+### Features
+
+* **add:** ZSS-S01-GWM-C-MS ([#9444](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9444)) ([c231dad](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c231daddcc02c3c989e27bb751cd85d9f01a0f02))
+* Innr RF 271 T and RF 273 T: enable OTA ([#9445](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9445)) ([9c212a2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9c212a29eba27e97498e623780f20b3b026df4b5))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZE204_3ctwoaip` as Zemismart ZMS-206EU-2 https://github.com/Koenkk/zigbee2mqtt/issues/27286 ([830b118](https://github.com/Koenkk/zigbee-herdsman-converters/commit/830b118ab654362287e262936271038411ff4e9b))
+* SmartThings IM6001-MPP01: fix configure failing https://github.com/Koenkk/zigbee2mqtt/issues/27140 ([3675a53](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3675a53c8801df0c07b8b257c8189c499897295b))
+
 ## [23.53.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.52.1...v23.53.0) (2025-06-01)
 
 
