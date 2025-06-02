@@ -829,6 +829,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Innr",
         description: "Smart E27 filament LED globe light bulb",
         extend: [m.light({colorTemp: {range: [153, 556]}, turnsOffAtBrightness1: true})],
+        ota: true,
     },
     {
         zigbeeModel: ["RF 273 T"],
@@ -836,6 +837,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Innr",
         description: "Smart E27 filament LED light bulb",
         extend: [m.light({colorTemp: {range: [153, 556]}, turnsOffAtBrightness1: true})],
+        ota: true,
     },
     {
         zigbeeModel: ["RF 274 T"],
