@@ -3376,10 +3376,7 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: [],
         exposes: [e.battery(), e.temperature(), e.humidity(), e.battery_voltage()],
         configure: tuya.configureMagicPacket,
-        whiteLabel: [
-            tuya.whitelabel("Tuya", "TH02Z", "Temperature and humidity sensor", ["_TZ3000_fllyghyj", "_TZ3000_saiqcn0y"]),
-            tuya.whitelabel("Tuya", "TH03", "Temperature and humidity sensor with screen", ["_TZ3000_bguser20"]),
-        ],
+        whiteLabel: [tuya.whitelabel("Tuya", "TH02Z", "Temperature and humidity sensor", ["_TZ3000_fllyghyj", "_TZ3000_saiqcn0y"])],
         meta: {
             battery: {
                 // These sensors do send a Battery Percentage Remaining (0x0021)
