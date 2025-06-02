@@ -903,7 +903,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["TS0203"],
         model: "TS0203",
         vendor: "Tuya",
-        description: "Door sensor",
+        description: "Door/window sensor",
         fromZigbee: [fz.ias_contact_alarm_1, fz.battery, fz.ignore_basic_report, fz.ias_contact_alarm_1_report],
         toZigbee: [],
         whiteLabel: [
@@ -918,6 +918,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Tuya", "19DZT", "Door sensor", ["_TZ3000_n2egfsli"]),
             tuya.whitelabel("Tuya", "DS04", "Door sensor", ["_TZ3000_yfekcy3n"]),
             tuya.whitelabel("Moes", "ZSS-JM-GWM-C-MS", "Smart door and window sensor", ["_TZ3000_decxrtwa"]),
+            tuya.whitelabel("Moes", "ZSS-S01-GWM-C-MS", "Door/window alarm sensor", ["_TZ3000_8yhypbo7"]),
             tuya.whitelabel("Moes", "ZSS-X-GWM-C", "Door/window magnetic sensor", ["_TZ3000_gntwytxo"]),
             tuya.whitelabel("Luminea", "ZX-5232", "Smart door and window sensor", ["_TZ3000_4ugnzsli"]),
             tuya.whitelabel("QA", "QASD1", "Door sensor", ["_TZ3000_udyjylt7"]),
