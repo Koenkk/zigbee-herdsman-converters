@@ -18012,8 +18012,8 @@ export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: tuya.fingerprint("TS011F", ["_TZ3000_rul9yxcc"]),
         model: "SM-PW801EZ",
-        vendor: "Tuya",
-        description: "2 gang switch",
+        vendor: "Coswall",
+        description: "2 gang switch with USB",
         ota: true,
         extend: [
             tuya.modernExtend.tuyaOnOff({
