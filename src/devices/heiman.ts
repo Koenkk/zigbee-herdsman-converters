@@ -14,7 +14,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["PIRILLSensor-EF-3.0"],
         model: "HS1MIS-3.0",
-        vendor: "HEIMAN",
+        vendor: "Heiman",
         description: "Smart occupancy sensor",
         fromZigbee: [fz.occupancy, fz.battery],
         exposes: [e.occupancy(), e.battery()],
@@ -31,7 +31,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["CO_V15", "CO_YDLV10", "CO_V16", "1ccaa94c49a84abaa9e38687913947ba", "CO_CTPG"],
         model: "HS1CA-M",
         description: "Smart carbon monoxide sensor",
-        vendor: "HEIMAN",
+        vendor: "Heiman",
         fromZigbee: [fz.ias_carbon_monoxide_alarm_1, fz.battery],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint) => {
@@ -45,7 +45,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["PIRSensor-N", "PIRSensor-EM", "PIRSensor-EF-3.0", "PIR_TPV13"],
         model: "HS3MS",
-        vendor: "HEIMAN",
+        vendor: "Heiman",
         description: "Smart motion sensor",
         fromZigbee: [fz.ias_occupancy_alarm_1],
         toZigbee: [],
@@ -55,7 +55,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["SmartPlug", "SmartPlug-EF-3.0"],
         model: "HS2SK",
         description: "Smart metering plug",
-        vendor: "HEIMAN",
+        vendor: "Heiman",
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering],
         toZigbee: [tz.on_off],
         whiteLabel: [{vendor: "Schneider Electric", model: "CCTFR6500"}],
@@ -76,7 +76,7 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: [{modelID: "SmartPlug-N", manufacturerName: "HEIMAN"}],
         model: "HS2SK_nxp",
         description: "Smart metering plug",
-        vendor: "HEIMAN",
+        vendor: "Heiman",
         fromZigbee: [fz.on_off, fz.electrical_measurement],
         toZigbee: [tz.on_off],
         options: [exposes.options.measurement_poll_interval()],
@@ -104,7 +104,7 @@ export const definitions: DefinitionWithExtend[] = [
             "SMOK_HV14",
         ],
         model: "HS1SA",
-        vendor: "HEIMAN",
+        vendor: "Heiman",
         description: "Smoke detector",
         fromZigbee: [fz.ias_smoke_alarm_1, fz.battery],
         toZigbee: [],
@@ -118,7 +118,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["SmokeSensor-N", "SmokeSensor-EM"],
         model: "HS3SA/HS1SA",
-        vendor: "HEIMAN",
+        vendor: "Heiman",
         description: "Smoke detector",
         fromZigbee: [fz.ias_smoke_alarm_1, fz.battery],
         toZigbee: [],
@@ -132,7 +132,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["GASSensor-N", "GASSensor-N-3.0", "d90d7c61c44d468a8e906ca0841e0a0c"],
         model: "HS3CG",
-        vendor: "HEIMAN",
+        vendor: "Heiman",
         description: "Combustible gas sensor",
         fromZigbee: [fz.ias_gas_alarm_2],
         toZigbee: [],
@@ -141,7 +141,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["GASSensor-EN"],
         model: "HS1CG-M",
-        vendor: "HEIMAN",
+        vendor: "Heiman",
         description: "Combustible gas sensor",
         fromZigbee: [fz.ias_gas_alarm_1],
         toZigbee: [],
@@ -150,7 +150,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["RH3070"],
         model: "HS1CG",
-        vendor: "HEIMAN",
+        vendor: "Heiman",
         description: "Smart combustible gas sensor",
         fromZigbee: [fz.ias_gas_alarm_1],
         toZigbee: [],
@@ -159,7 +159,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["GAS_V15"],
         model: "HS1CG_M",
-        vendor: "HEIMAN",
+        vendor: "Heiman",
         description: "Combustible gas sensor",
         fromZigbee: [fz.ias_gas_alarm_2],
         toZigbee: [],
@@ -168,7 +168,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["DoorSensor-N", "DoorSensor-N-3.0"],
         model: "HS3DS",
-        vendor: "HEIMAN",
+        vendor: "Heiman",
         description: "Door sensor",
         fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
         toZigbee: [],
@@ -183,7 +183,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["DoorSensor-EM", "DoorSensor-EF-3.0"],
         model: "HS1DS",
-        vendor: "HEIMAN",
+        vendor: "Heiman",
         description: "Door sensor",
         fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
         toZigbee: [],
@@ -198,7 +198,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["DOOR_TPV13", "DOOR_TPV12"],
         model: "HEIMAN-M1",
-        vendor: "HEIMAN",
+        vendor: "Heiman",
         description: "Door sensor",
         fromZigbee: [fz.ias_contact_alarm_1],
         toZigbee: [],
@@ -207,7 +207,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["WaterSensor-N", "WaterSensor-EM", "WaterSensor-N-3.0", "WaterSensor-EF-3.0", "WaterSensor2-EF-3.0", "WATER_TPV13"],
         model: "HS1WL/HS3WL",
-        vendor: "HEIMAN",
+        vendor: "Heiman",
         description: "Water leakage sensor",
         fromZigbee: [fz.ias_water_leak_alarm_1, fz.battery],
         toZigbee: [],
@@ -222,7 +222,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: [{modelID: "RC-N", manufacturerName: "HEIMAN"}],
         model: "HS1RC-N",
-        vendor: "HEIMAN",
+        vendor: "Heiman",
         description: "Smart remote controller",
         fromZigbee: [fz.battery, fz.command_arm, fz.command_emergency],
         toZigbee: [],
@@ -237,7 +237,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: [{modelID: "RC-EF-3.0", manufacturerName: "HEIMAN"}],
         model: "HM1RC-2-E",
-        vendor: "HEIMAN",
+        vendor: "Heiman",
         description: "Smart remote controller",
         fromZigbee: [fz.battery, fz.command_arm, fz.command_emergency],
         toZigbee: [],
@@ -259,7 +259,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: [{modelID: "RC-EM", manufacturerName: "HEIMAN"}],
         model: "HS1RC-EM",
-        vendor: "HEIMAN",
+        vendor: "Heiman",
         description: "Smart remote controller",
         fromZigbee: [fz.battery, fz.command_arm, fz.command_emergency],
         toZigbee: [],
@@ -274,7 +274,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["COSensor-EM", "COSensor-N", "COSensor-EF-3.0"],
         model: "HS1CA-E",
-        vendor: "HEIMAN",
+        vendor: "Heiman",
         description: "Smart carbon monoxide sensor",
         fromZigbee: [fz.ias_carbon_monoxide_alarm_1, fz.battery],
         toZigbee: [],
@@ -289,7 +289,7 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: tuya.fingerprint("TS0216", ["_TYZB01_8scntis1", "_TYZB01_4obovpbi"]),
         zigbeeModel: ["WarningDevice", "WarningDevice-EF-3.0"],
         model: "HS2WD-E",
-        vendor: "HEIMAN",
+        vendor: "Heiman",
         description: "Smart siren",
         fromZigbee: [fz.battery, fz.ignore_basic_report, fz.ias_wd],
         toZigbee: [tz.warning, tz.ias_max_duration],
@@ -320,7 +320,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["HT-EM", "TH-EM", "TH-T_V14"],
         model: "HS1HT",
-        vendor: "HEIMAN",
+        vendor: "Heiman",
         description: "Smart temperature & humidity Sensor",
         exposes: [e.battery(), e.temperature(), e.humidity()],
         fromZigbee: [fz.temperature, fz.humidity, fz.battery],
@@ -341,7 +341,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["HT-N", "HT-EF-3.0"],
         model: "HS1HT-N",
-        vendor: "HEIMAN",
+        vendor: "Heiman",
         description: "Smart temperature & humidity Sensor",
         fromZigbee: [fz.temperature, fz.humidity, fz.battery],
         toZigbee: [],
@@ -361,7 +361,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["E_Socket"],
         model: "HS2ESK-E",
-        vendor: "HEIMAN",
+        vendor: "Heiman",
         description: "Smart in wall plug",
         fromZigbee: [fz.on_off, fz.electrical_measurement],
         toZigbee: [tz.on_off],
@@ -382,7 +382,7 @@ export const definitions: DefinitionWithExtend[] = [
             {modelID: "SOS-EF-3.0", manufacturerName: "HEIMAN"},
         ],
         model: "HS1EB/HS1EB-E",
-        vendor: "HEIMAN",
+        vendor: "Heiman",
         description: "Smart emergency button",
         fromZigbee: [fz.command_status_change_notification_action, fz.battery],
         toZigbee: [],
@@ -397,7 +397,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: [{modelID: "SceneSwitch-EM-3.0", manufacturerName: "HEIMAN"}],
         model: "HS2SS",
-        vendor: "HEIMAN",
+        vendor: "Heiman",
         description: "Smart scene switch",
         fromZigbee: [fz.battery, fz.heiman_scenes],
         exposes: [e.battery(), e.action(["cinema", "at_home", "sleep", "go_out", "repast"])],
@@ -411,7 +411,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["TempDimmerSw-EM-3.0"],
         model: "HS2WDSC-E",
-        vendor: "HEIMAN",
+        vendor: "Heiman",
         description: "Remote dimmer and temperature control",
         fromZigbee: [
             fz.battery,
@@ -433,7 +433,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: [{modelID: "ColorDimmerSw-EM-3.0", manufacturerName: "HEIMAN"}],
         model: "HS2WDSR-E",
-        vendor: "HEIMAN",
+        vendor: "Heiman",
         description: "Remote dimmer and color control",
         fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.command_move_to_color],
         exposes: [e.battery(), e.action(["on", "off", "move", "stop", "color_move"])],
@@ -447,7 +447,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["HS3HT-EFA-3.0"],
         model: "HS3HT",
-        vendor: "HEIMAN",
+        vendor: "Heiman",
         description: "Temperature & humidity sensor with display",
         fromZigbee: [fz.temperature, fz.humidity, fz.battery],
         toZigbee: [],
@@ -466,7 +466,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["GASSensor-EM", "358e4e3e03c644709905034dae81433e"],
         model: "HS1CG-E",
-        vendor: "HEIMAN",
+        vendor: "Heiman",
         description: "Combustible gas sensor",
         fromZigbee: [fz.ias_gas_alarm_1],
         toZigbee: [],
@@ -476,7 +476,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["GASSensor-EFR-3.0", "GASSensor-EF-3.0"],
         model: "HS1CG-E_3.0",
-        vendor: "HEIMAN",
+        vendor: "Heiman",
         description: "Combustible gas sensor",
         fromZigbee: [fz.ias_gas_alarm_2],
         toZigbee: [],
@@ -485,7 +485,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: [{modelID: "Vibration-N", manufacturerName: "HEIMAN"}],
         model: "HS1VS-N",
-        vendor: "HEIMAN",
+        vendor: "Heiman",
         description: "Vibration sensor",
         fromZigbee: [fz.ias_vibration_alarm_1, fz.battery],
         toZigbee: [],
@@ -503,7 +503,7 @@ export const definitions: DefinitionWithExtend[] = [
             {modelID: "Vibration-EF-3.0", manufacturerName: "HEIMAN"},
         ],
         model: "HS1VS-EF",
-        vendor: "HEIMAN",
+        vendor: "Heiman",
         description: "Vibration sensor",
         fromZigbee: [fz.ias_vibration_alarm_1, fz.battery],
         toZigbee: [],
@@ -518,7 +518,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: [{modelID: "HS2AQ-EM", manufacturerName: "HEIMAN"}],
         model: "HS2AQ-EM",
-        vendor: "HEIMAN",
+        vendor: "Heiman",
         description: "Air quality monitor",
         fromZigbee: [fz.battery, fz.temperature, fz.humidity, fz.pm25, fz.heiman_hcho, fz.heiman_air_quality],
         toZigbee: [],
@@ -598,7 +598,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: [{modelID: "IRControl-EM", manufacturerName: "HEIMAN"}],
         model: "HS2IRC",
-        vendor: "HEIMAN",
+        vendor: "Heiman",
         description: "Smart IR Control",
         fromZigbee: [fz.battery, fz.heiman_ir_remote],
         toZigbee: [tz.heiman_ir_remote],
@@ -616,7 +616,7 @@ export const definitions: DefinitionWithExtend[] = [
             {modelID: "HS2SW1A-EFR-3.0", manufacturerName: "HEIMAN"},
         ],
         model: "HS2SW1A/HS2SW1A-N",
-        vendor: "HEIMAN",
+        vendor: "Heiman",
         description: "Smart switch - 1 gang with neutral wire",
         fromZigbee: [fz.ignore_basic_report, fz.on_off, fz.device_temperature],
         toZigbee: [tz.on_off],
@@ -635,7 +635,7 @@ export const definitions: DefinitionWithExtend[] = [
             {modelID: "HS2SW2A-EFR-3.0", manufacturerName: "HEIMAN"},
         ],
         model: "HS2SW2A/HS2SW2A-N",
-        vendor: "HEIMAN",
+        vendor: "Heiman",
         description: "Smart switch - 2 gang with neutral wire",
         fromZigbee: [fz.ignore_basic_report, fz.on_off, fz.device_temperature],
         toZigbee: [tz.on_off],
@@ -657,7 +657,7 @@ export const definitions: DefinitionWithExtend[] = [
             {modelID: "HS2SW3A-EFR-3.0", manufacturerName: "HEIMAN"},
         ],
         model: "HS2SW3A/HS2SW3A-N",
-        vendor: "HEIMAN",
+        vendor: "Heiman",
         description: "Smart switch - 3 gang with neutral wire",
         fromZigbee: [fz.ignore_basic_report, fz.on_off, fz.device_temperature],
         toZigbee: [tz.on_off],
@@ -676,14 +676,14 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["TemperLight"],
         model: "HS2WDS",
-        vendor: "HEIMAN",
+        vendor: "Heiman",
         description: "LED 9W CCT E27",
         extend: [m.light({colorTemp: {range: [153, 370]}})],
     },
     {
         zigbeeModel: ["CurtainMo-EF-3.0", "CurtainMo-EF"],
         model: "HS2CM-N-DC",
-        vendor: "HEIMAN",
+        vendor: "Heiman",
         description: "Gear window shade motor",
         fromZigbee: [fz.cover_position_via_brightness],
         toZigbee: [tz.cover_via_brightness],
@@ -697,7 +697,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["PIR_TPV16"],
         model: "HS1MS-M",
-        vendor: "HEIMAN",
+        vendor: "Heiman",
         description: "Smart motion sensor",
         fromZigbee: [fz.ias_occupancy_alarm_1],
         toZigbee: [],
@@ -706,7 +706,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["TY0202"],
         model: "HS1MS-EF",
-        vendor: "HEIMAN",
+        vendor: "Heiman",
         description: "Smart motion sensor",
         fromZigbee: [fz.ias_occupancy_alarm_1],
         toZigbee: [],
@@ -715,7 +715,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: [{modelID: "DoorBell-EM", manufacturerName: "HEIMAN"}],
         model: "HS2DB",
-        vendor: "HEIMAN",
+        vendor: "Heiman",
         description: "Smart doorbell button",
         fromZigbee: [fz.battery, fz.heiman_doorbell_button, fz.ignore_basic_report],
         toZigbee: [],
@@ -729,7 +729,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: [{modelID: "DoorBell-EF-3.0", manufacturerName: "HEIMAN"}],
         model: "HS2SS-E_V03",
-        vendor: "HEIMAN",
+        vendor: "Heiman",
         description: "Smart doorbell button",
         fromZigbee: [fz.battery, fz.heiman_doorbell_button, fz.ignore_basic_report],
         toZigbee: [],
@@ -743,7 +743,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["HS3AQ-EFA-3.0"],
         model: "HS3AQ",
-        vendor: "HEIMAN",
+        vendor: "Heiman",
         description: "Smart air quality monitor",
         fromZigbee: [fz.co2, fz.humidity, fz.battery, fz.temperature],
         toZigbee: [],
@@ -760,7 +760,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["RouteLight-EF-3.0"],
         model: "HS2RNL",
-        vendor: "HEIMAN",
+        vendor: "Heiman",
         description: "Smart repeater & night light",
         fromZigbee: [fz.on_off, fz.battery],
         toZigbee: [tz.on_off],
@@ -775,7 +775,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["PIR_TPV12"],
         model: "PIR_TPV12",
-        vendor: "HEIMAN",
+        vendor: "Heiman",
         description: "Motion sensor",
         extend: [
             m.battery({voltageToPercentage: {min: 2500, max: 3000}, voltage: true}),
