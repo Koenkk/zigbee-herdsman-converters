@@ -1,5 +1,19 @@
 # Changelog
 
+## [23.55.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.54.0...v23.55.0) (2025-06-04)
+
+
+### Features
+
+* Tuya M8Pro: support more features ([#9450](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9450)) ([5a7cc4a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5a7cc4a9a2d9dd6255101778748f0c00f2ae3f7b))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3000_bguser20` as Tuya WSD500A ([#9448](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9448)) ([d30547a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d30547af30827960221c9e4818b5bd1676c45cf8))
+* **detect:** Detect `_TZE284_wwaeqnrf` as Zemismart ZMS-206US-4 https://github.com/Koenkk/zigbee2mqtt/issues/27305 ([9bfe100](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9bfe1007b99dc385624e1d2b07860318098d81b5))
+* Third Reality: update 3R plug gen3/e3/UZ1 and add private cluster ([#9452](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9452)) ([4281c7b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4281c7bc1b66d5a80539a1f122da778da81fb320))
+
 ## [23.54.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.53.0...v23.54.0) (2025-06-02)
 
 
