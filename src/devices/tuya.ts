@@ -299,27 +299,25 @@ const convLocal = {
         ];
     },
 
-    name: () => {
-        return {
-            to: (v: string, meta: Fz.Meta) => {
-                const stringValue = String(v ?? "");
-                const limitedString = stringValue.slice(0, 12);
+    name: {
+        to: (v: string, meta: Tz.Meta) => {
+            const stringValue = String(v ?? "");
+            const limitedString = stringValue.slice(0, 12);
 
-                const utf8bytes = new TextEncoder().encode(v);
-                const convertedString = Array.from(utf8bytes, (utf8bytes) => utf8bytes.toString(16).padStart(4, "0")).join("");
+            const utf8bytes = new TextEncoder().encode(v);
+            const convertedString = Array.from(utf8bytes, (utf8bytes) => utf8bytes.toString(16).padStart(4, "0")).join("");
 
-                return convertedString;
-            },
-            from: (v: string, meta: Fz.Meta, options: KeyValue) => {
-                const bytes = [];
-                for (let i = 0; i < v.length; i += 4) {
-                    bytes.push(Number.parseInt(v.slice(i, i + 4), 16));
-                }
-                const hexToBytes = Uint8Array.from(bytes);
+            return convertedString as string;
+        },
+        from: (v: string, meta: Fz.Meta) => {
+            const bytes = [];
+            for (let i = 0; i < v.length; i += 4) {
+                bytes.push(Number.parseInt(v.slice(i, i + 4), 16));
+            }
+            const hexToBytes = Uint8Array.from(bytes);
 
-                return new TextDecoder("utf-8").decode(hexToBytes);
-            },
-        };
+            return new TextDecoder("utf-8").decode(hexToBytes);
+        },
     },
 };
 
@@ -9354,14 +9352,14 @@ export const definitions: DefinitionWithExtend[] = [
                 [25, "state_l2", tuya.valueConverter.onOff],
                 [26, "state_l3", tuya.valueConverter.onOff],
                 [27, "state_l4", tuya.valueConverter.onOff],
-                [103, "name_l1", convLocal.name()],
-                [104, "name_l2", convLocal.name()],
-                [105, "name_l3", convLocal.name()],
-                [106, "name_l4", convLocal.name()],
-                [107, "scene_name_l1", convLocal.name()],
-                [108, "scene_name_l2", convLocal.name()],
-                [109, "scene_name_l3", convLocal.name()],
-                [110, "scene_name_l4", convLocal.name()],
+                [103, "name_l1", convLocal.name],
+                [104, "name_l2", convLocal.name],
+                [105, "name_l3", convLocal.name],
+                [106, "name_l4", convLocal.name],
+                [107, "scene_name_l1", convLocal.name],
+                [108, "scene_name_l2", convLocal.name],
+                [109, "scene_name_l3", convLocal.name],
+                [110, "scene_name_l4", convLocal.name],
                 [18, "mode_l1", tuya.valueConverterBasic.lookup({switch_1: tuya.enum(0), scene_1: tuya.enum(1), smart_light_1: tuya.enum(2)})],
                 [19, "mode_l2", tuya.valueConverterBasic.lookup({switch_1: tuya.enum(0), scene_1: tuya.enum(1), smart_light_1: tuya.enum(2)})],
                 [20, "mode_l3", tuya.valueConverterBasic.lookup({switch_1: tuya.enum(0), scene_1: tuya.enum(1), smart_light_1: tuya.enum(2)})],
