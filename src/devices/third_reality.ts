@@ -465,7 +465,7 @@ export const definitions: DefinitionWithExtend[] = [
             {vendor: 'Third Reality', model: '3RSPU01080Z', description: 'Smart Plug UZ1', fingerprint: [{modelID: '3RSPU01080Z'}]},
         ],
         extend: [
-            m.onOff(), 
+            m.onOff(),
             m.electricityMeter({acFrequency: true, powerFactor: true}),
             m.deviceAddCustomCluster("3rDualPlugSpecialcluster", {
                 ID: 0xff03,
