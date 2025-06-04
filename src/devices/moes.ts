@@ -125,7 +125,14 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZP-LZ-FR2U",
         vendor: "Moes",
         description: "Zigbee 3.0 dual USB wireless socket plug",
-        extend: [tuya.modernExtend.tuyaOnOff({powerOutageMemory: true, indicatorMode: true, childLock: true, endpoints: ["l1", "l2"]})],
+        extend: [
+            tuya.modernExtend.tuyaOnOff({
+                powerOutageMemory: true,
+                indicatorMode: true,
+                childLock: true,
+                endpoints: ["l1", "l2"],
+            }),
+        ],
         endpoint: (device) => {
             return {l1: 1, l2: 2};
         },
@@ -590,7 +597,15 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {
             tuyaDatapoints: [
                 [1, "smoke", tuya.valueConverter.trueFalse0],
-                [9, "self_test", tuya.valueConverterBasic.lookup({checking: 0, check_success: 1, check_failure: 2})],
+                [
+                    9,
+                    "self_test",
+                    tuya.valueConverterBasic.lookup({
+                        checking: 0,
+                        check_success: 1,
+                        check_failure: 2,
+                    }),
+                ],
                 [14, "battery_state", tuya.valueConverter.batteryState],
                 [15, "battery", tuya.valueConverter.raw],
                 [16, "silence", tuya.valueConverter.onOff],
@@ -598,11 +613,12 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        zigbeeModel: ["ZG-101ZL"],
         fingerprint: tuya.fingerprint("TS004F", ["_TZ3000_ja5osu5g", "_TZ3000_kjfzuycl", "_TZ3000_egvb1p2g"]),
         model: "ERS-10TZBVB-AA",
         vendor: "Moes",
         description: "Smart button",
-        whiteLabel: [tuya.whitelabel("Loginovo", "ZG-101ZL", "Smart button", ["_TZ3000_ja5osu5g"])],
+        whiteLabel: [tuya.whitelabel("Loginovo", "ZG-101ZL", "Smart button", ["_TZ3000_ja5osu5g"]), {vendor: "COOLO", model: "ZG-101ZL"}],
         fromZigbee: [
             fz.command_step,
             fz.command_on,
@@ -662,10 +678,32 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         meta: {
             tuyaDatapoints: [
-                [1, "state", tuya.valueConverterBasic.lookup({OPEN: tuya.enum(0), STOP: tuya.enum(1), CLOSE: tuya.enum(2)})],
+                [
+                    1,
+                    "state",
+                    tuya.valueConverterBasic.lookup({
+                        OPEN: tuya.enum(0),
+                        STOP: tuya.enum(1),
+                        CLOSE: tuya.enum(2),
+                    }),
+                ],
                 [2, "position", tuya.valueConverter.coverPosition],
-                [3, "calibration", tuya.valueConverterBasic.lookup({START: tuya.enum(0), END: tuya.enum(1)})],
-                [8, "motor_steering", tuya.valueConverterBasic.lookup({FORWARD: tuya.enum(0), BACKWARD: tuya.enum(1)})],
+                [
+                    3,
+                    "calibration",
+                    tuya.valueConverterBasic.lookup({
+                        START: tuya.enum(0),
+                        END: tuya.enum(1),
+                    }),
+                ],
+                [
+                    8,
+                    "motor_steering",
+                    tuya.valueConverterBasic.lookup({
+                        FORWARD: tuya.enum(0),
+                        BACKWARD: tuya.enum(1),
+                    }),
+                ],
             ],
         },
     },
@@ -677,7 +715,11 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             tuya.modernExtend.tuyaMagicPacket(),
             m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3}}),
-            tuya.modernExtend.tuyaOnOff({endpoints: ["l1", "l2", "l3"], powerOnBehavior2: true, switchMode: true}),
+            tuya.modernExtend.tuyaOnOff({
+                endpoints: ["l1", "l2", "l3"],
+                powerOnBehavior2: true,
+                switchMode: true,
+            }),
             m.actionEnumLookup({
                 cluster: "genOnOff",
                 commands: ["commandTuyaAction"],
@@ -758,7 +800,17 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {
             tuyaDatapoints: [
                 [1, "system_mode", tuya.valueConverterBasic.lookup({off: false, heat: true})],
-                [2, "preset", tuya.valueConverterBasic.lookup({Manual: 0, "Temporary manual": 1, Program: 2, Eco: 3})],
+
+                [
+                    2,
+                    "preset",
+                    tuya.valueConverterBasic.lookup({
+                        Manual: 0,
+                        "Temporary manual": 1,
+                        Program: 2,
+                        Eco: 3,
+                    }),
+                ],
                 [16, "local_temperature", tuya.valueConverter.divideBy10],
                 [18, "min_temperature_limit", tuya.valueConverter.divideBy10],
                 [32, "sensor_mode", tuya.valueConverterBasic.lookup({IN: 0, AL: 1, OU: 2})],

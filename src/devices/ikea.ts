@@ -852,7 +852,7 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
     },
     {
-        zigbeeModel: ["RODRET Dimmer"],
+        zigbeeModel: ["RODRET Dimmer", "RODRET wireless dimmer"],
         model: "E2201",
         vendor: "IKEA",
         description: "RODRET wireless dimmer/power switch",
