@@ -459,7 +459,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["3RSP02064Z"],
         model: "3RSP02064Z",
         vendor: "Third Reality",
-        description: "Zigbee / BLE smart plug gen3 with power",
+        description: "Smart Plug Gen3",
         whiteLabel: [
             {vendor: 'Third Reality', model: '3RSP02064Z', description: 'Smart Plug E3', fingerprint: [{modelID: '3RSPE02065Z'}]},
             {vendor: 'Third Reality', model: '3RSPU01080Z', description: 'Smart Plug UZ1', fingerprint: [{modelID: '3RSPU01080Z'}]},
