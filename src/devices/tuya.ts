@@ -318,7 +318,7 @@ const convLocal = {
               }
               const hexToBytes = Uint8Array.from(bytes);
 
-              return new TextDecoder('utf-8').decode(hexToBytes));
+              return new TextDecoder('utf-8').decode(hexToBytes);
             },
         };
     }
