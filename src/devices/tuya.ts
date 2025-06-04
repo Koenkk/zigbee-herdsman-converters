@@ -298,16 +298,10 @@ const convLocal = {
             }),
         ];
     },
-
     name: {
         to: (v: string, meta: Tz.Meta) => {
-            const stringValue = String(v ?? "");
-            const limitedString = stringValue.slice(0, 12);
-
             const utf8bytes = new TextEncoder().encode(v);
-            const convertedString = Array.from(utf8bytes, (utf8bytes) => utf8bytes.toString(16).padStart(4, "0")).join("");
-
-            return convertedString as string;
+            return Array.from(utf8bytes, (utf8bytes) => utf8bytes.toString(16).padStart(4, "0")).join("");
         },
         from: (v: string, meta: Fz.Meta) => {
             const bytes = [];
@@ -315,7 +309,6 @@ const convLocal = {
                 bytes.push(Number.parseInt(v.slice(i, i + 4), 16));
             }
             const hexToBytes = Uint8Array.from(bytes);
-
             return new TextDecoder("utf-8").decode(hexToBytes);
         },
     },
