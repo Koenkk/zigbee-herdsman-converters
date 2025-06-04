@@ -456,12 +456,12 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        zigbeeModel: ["3RSP02064Z"],
+        zigbeeModel: ["3RSP02064Z", '3RSPE02065Z', '3RSPU01080Z'],
         model: "3RSP02064Z",
         vendor: "Third Reality",
         description: "Smart Plug Gen3",
         whiteLabel: [
-            {vendor: 'Third Reality', model: '3RSP02064Z', description: 'Smart Plug E3', fingerprint: [{modelID: '3RSPE02065Z'}]},
+            {vendor: 'Third Reality', model: '3RSPE02065Z', description: 'Smart Plug E3', fingerprint: [{modelID: '3RSPE02065Z'}]},
             {vendor: 'Third Reality', model: '3RSPU01080Z', description: 'Smart Plug UZ1', fingerprint: [{modelID: '3RSPU01080Z'}]},
         ],
         extend: [
