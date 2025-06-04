@@ -305,10 +305,9 @@ const convLocal = {
                 const stringValue = String(v ?? "");
                 const limitedString = stringValue.slice(0, 12);
 
-                const utf8bytes = new TextEncoder().encode(string);
-                const convertedString = Array.from(utf8bytes, (utf8bytes) => utf8bytes.toString(16).padStart(4, "0")).join("");
+                const utf8bytes = new TextEncoder().encode(v);
 
-                return convertedString;
+                return Array.from(utf8bytes, (utf8bytes) => utf8bytes.toString(16).padStart(4, "0")).join("");;
             },
             from: (v: string, meta: Fz.Meta, options: KeyValue) => {
                 const bytes = [];
