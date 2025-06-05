@@ -13740,7 +13740,8 @@ export const definitions: DefinitionWithExtend[] = [
         // Don't query too often. Values are not always updated. https://github.com/Koenkk/zigbee2mqtt/issues/18704
         onEvent: tuya.onEvent({
             queryOnDeviceAnnounce: true,
-            queryIntervalSeconds: 5 * 60,
+            // https://github.com/Koenkk/zigbee2mqtt/issues/23946#issuecomment-2941182834
+            queryIntervalSeconds: 20 * 60,
         }),
         configure: tuya.configureMagicPacket,
         exposes: [

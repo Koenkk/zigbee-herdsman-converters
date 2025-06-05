@@ -4467,7 +4467,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.light({powerOnBehavior: false}),
             lumiKnobRotation({withButtonState: false}),
             lumiOperationMode({description: "Decoupled mode for knob"}),
-            lumiAction({actionLookup: {single: 1}}),
+            lumiAction({actionLookup: {hold: 0, single: 1, double: 2, release: 255}}),
             lumiMultiClick(),
             m.enumLookup({
                 name: "sensitivity",
@@ -4685,7 +4685,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueMin: 0.2,
                 valueMax: 3,
                 valueStep: 0.1,
-                scale: 10,
+                scale: 100,
                 unit: "°C",
                 cluster: "manuSpecificLumi",
                 attribute: {ID: 0x0164, type: Zcl.DataType.UINT16},
@@ -4715,7 +4715,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.numeric({
                 name: "humi_threshold",
                 valueMin: 2,
-                valueMax: 10,
+                valueMax: 100,
                 valueStep: 0.5,
                 scale: 10,
                 unit: "%",
