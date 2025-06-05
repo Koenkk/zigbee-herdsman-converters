@@ -5882,7 +5882,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "invert",
                 lookup: {BW: 0, WB: 1},
                 cluster: "genPowerCfg",
-                attribute: {ID: 0xf004, type: Zcl.DataType.UINT8},
+                attribute: {ID: 0xf004, type: Zcl.DataType.BOOLEAN},
                 description: "Invert display color",
                 access: "STATE_SET",
             }),
