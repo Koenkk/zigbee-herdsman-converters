@@ -4467,7 +4467,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.light({powerOnBehavior: false}),
             lumiKnobRotation({withButtonState: false}),
             lumiOperationMode({description: "Decoupled mode for knob"}),
-            lumiAction({actionLookup: {single: 1}}),
+            lumiAction({actionLookup: {hold: 0, single: 1, double: 2, release: 255}}),
             m.enumLookup({
                 name: "sensitivity",
                 lookup: {low: 720, medium: 360, high: 180},
