@@ -456,27 +456,29 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        zigbeeModel: ["3RSPE02065Z"],
-        model: "3RSPE02065Z",
-        vendor: "Third Reality",
-        description: "Zigbee / BLE smart plug e3 with power",
-        extend: [m.onOff(), m.electricityMeter({acFrequency: true, powerFactor: true})],
-        ota: true,
-    },
-    {
-        zigbeeModel: ["3RSPU01080Z"],
-        model: "3RSPU01080Z",
-        vendor: "Third Reality",
-        description: "Zigbee / BLE smart plug uk with power",
-        extend: [m.onOff(), m.electricityMeter({acFrequency: true, powerFactor: true})],
-        ota: true,
-    },
-    {
-        zigbeeModel: ["3RSP02064Z"],
+        zigbeeModel: ["3RSP02064Z", "3RSPE02065Z", "3RSPU01080Z"],
         model: "3RSP02064Z",
         vendor: "Third Reality",
-        description: "Zigbee / BLE smart plug gen3 with power",
-        extend: [m.onOff(), m.electricityMeter({acFrequency: true, powerFactor: true})],
+        description: "Smart Plug Gen3",
+        whiteLabel: [
+            {vendor: "Third Reality", model: "3RSPE02065Z", description: "Smart Plug E3", fingerprint: [{modelID: "3RSPE02065Z"}]},
+            {vendor: "Third Reality", model: "3RSPU01080Z", description: "Smart Plug UZ1", fingerprint: [{modelID: "3RSPU01080Z"}]},
+        ],
+        extend: [
+            m.onOff(),
+            m.electricityMeter({acFrequency: true, powerFactor: true}),
+            m.deviceAddCustomCluster("3rDualPlugSpecialcluster", {
+                ID: 0xff03,
+                manufacturerCode: 0x1407,
+                attributes: {
+                    resetSummationDelivered: {ID: 0x0000, type: Zcl.DataType.UINT8},
+                    onToOffDelay: {ID: 0x0001, type: Zcl.DataType.UINT16},
+                    offToOnDelay: {ID: 0x0002, type: Zcl.DataType.UINT16},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+        ],
         ota: true,
     },
     {

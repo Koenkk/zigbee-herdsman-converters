@@ -1,5 +1,48 @@
 # Changelog
 
+## [23.55.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.54.0...v23.55.0) (2025-06-04)
+
+
+### Features
+
+* Tuya M8Pro: support more features ([#9450](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9450)) ([5a7cc4a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5a7cc4a9a2d9dd6255101778748f0c00f2ae3f7b))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3000_bguser20` as Tuya WSD500A ([#9448](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9448)) ([d30547a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d30547af30827960221c9e4818b5bd1676c45cf8))
+* **detect:** Detect `_TZE284_wwaeqnrf` as Zemismart ZMS-206US-4 https://github.com/Koenkk/zigbee2mqtt/issues/27305 ([9bfe100](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9bfe1007b99dc385624e1d2b07860318098d81b5))
+* Third Reality: update 3R plug gen3/e3/UZ1 and add private cluster ([#9452](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9452)) ([4281c7b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4281c7bc1b66d5a80539a1f122da778da81fb320))
+
+## [23.54.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.53.0...v23.54.0) (2025-06-02)
+
+
+### Features
+
+* **add:** ZSS-S01-GWM-C-MS ([#9444](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9444)) ([c231dad](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c231daddcc02c3c989e27bb751cd85d9f01a0f02))
+* Innr RF 271 T and RF 273 T: enable OTA ([#9445](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9445)) ([9c212a2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9c212a29eba27e97498e623780f20b3b026df4b5))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZE204_3ctwoaip` as Zemismart ZMS-206EU-2 https://github.com/Koenkk/zigbee2mqtt/issues/27286 ([830b118](https://github.com/Koenkk/zigbee-herdsman-converters/commit/830b118ab654362287e262936271038411ff4e9b))
+* SmartThings IM6001-MPP01: fix configure failing https://github.com/Koenkk/zigbee2mqtt/issues/27140 ([3675a53](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3675a53c8801df0c07b8b257c8189c499897295b))
+
+## [23.53.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.52.1...v23.53.0) (2025-06-01)
+
+
+### Features
+
+* **add:** 929003777201, 929003817101 ([#9441](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9441)) ([9a5cbe6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9a5cbe6f13a4fb4a4627204485b20387a0ffd1dd))
+* **add:** EFEKTA_TH_POW_R, EFEKTA_T1_MAX_R ([#9439](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9439)) ([89a9fae](https://github.com/Koenkk/zigbee-herdsman-converters/commit/89a9fae109aee3fdc8b397d6d3e78bf820eab76e))
+* **add:** TRV06-AT ([#9437](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9437)) ([b77571d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b77571d0ce1596725fb08c1f6c5cb2b67e1830c0))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3000_ruldv5dt` as Tuya ZG-2002-RF ([#9440](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9440)) ([8d9dab6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8d9dab689a1a8e0c46db50a47844d0ebbacb5d5b))
+* **ignore:** Revert "feat: Hue: add `execute_if_off` for colour lights ([#9426](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9426))" ([#9442](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9442)) ([5703738](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5703738d650971ca17bb9065a1cee9dfdcbb5fb6))
+
 ## [23.52.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.52.0...v23.52.1) (2025-05-31)
 
 

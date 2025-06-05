@@ -1,3 +1,4 @@
+import {TextDecoder, TextEncoder} from "node:util";
 import {Zcl} from "zigbee-herdsman";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
@@ -296,6 +297,20 @@ const convLocal = {
                 lookup: {shake: 0},
             }),
         ];
+    },
+    name: {
+        to: (v: string, meta: Tz.Meta) => {
+            const utf8bytes = new TextEncoder().encode(v);
+            return Array.from(utf8bytes, (utf8bytes) => utf8bytes.toString(16).padStart(4, "0")).join("");
+        },
+        from: (v: string, meta: Fz.Meta) => {
+            const bytes = [];
+            for (let i = 0; i < v.length; i += 4) {
+                bytes.push(Number.parseInt(v.slice(i, i + 4), 16));
+            }
+            const hexToBytes = Uint8Array.from(bytes);
+            return new TextDecoder("utf-8").decode(hexToBytes);
+        },
     },
 };
 
@@ -903,7 +918,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["TS0203"],
         model: "TS0203",
         vendor: "Tuya",
-        description: "Door sensor",
+        description: "Door/window sensor",
         fromZigbee: [fz.ias_contact_alarm_1, fz.battery, fz.ignore_basic_report, fz.ias_contact_alarm_1_report],
         toZigbee: [],
         whiteLabel: [
@@ -918,6 +933,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Tuya", "19DZT", "Door sensor", ["_TZ3000_n2egfsli"]),
             tuya.whitelabel("Tuya", "DS04", "Door sensor", ["_TZ3000_yfekcy3n"]),
             tuya.whitelabel("Moes", "ZSS-JM-GWM-C-MS", "Smart door and window sensor", ["_TZ3000_decxrtwa"]),
+            tuya.whitelabel("Moes", "ZSS-S01-GWM-C-MS", "Door/window alarm sensor", ["_TZ3000_8yhypbo7"]),
             tuya.whitelabel("Moes", "ZSS-X-GWM-C", "Door/window magnetic sensor", ["_TZ3000_gntwytxo"]),
             tuya.whitelabel("Luminea", "ZX-5232", "Smart door and window sensor", ["_TZ3000_4ugnzsli"]),
             tuya.whitelabel("QA", "QASD1", "Door sensor", ["_TZ3000_udyjylt7"]),
@@ -3375,10 +3391,7 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: [],
         exposes: [e.battery(), e.temperature(), e.humidity(), e.battery_voltage()],
         configure: tuya.configureMagicPacket,
-        whiteLabel: [
-            tuya.whitelabel("Tuya", "TH02Z", "Temperature and humidity sensor", ["_TZ3000_fllyghyj", "_TZ3000_saiqcn0y"]),
-            tuya.whitelabel("Tuya", "TH03", "Temperature and humidity sensor with screen", ["_TZ3000_bguser20"]),
-        ],
+        whiteLabel: [tuya.whitelabel("Tuya", "TH02Z", "Temperature and humidity sensor", ["_TZ3000_fllyghyj", "_TZ3000_saiqcn0y"])],
         meta: {
             battery: {
                 // These sensors do send a Battery Percentage Remaining (0x0021)
@@ -4161,6 +4174,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZ3000_lmlsduws",
             "_TZ3000_lugaswf8",
             "_TZ3000_nuenzetq",
+            "_TZ3000_ruldv5dt",
             "_TZ3000_fbjdkph9",
         ]),
         model: "TS0002_basic",
@@ -4171,7 +4185,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Moes", "ZM-104B-M", "2 gang switch", ["_TZ3000_qaa59zqd"]),
             tuya.whitelabel("pcblab.io", "RR620ZB", "2 gang Zigbee switch module", ["_TZ3000_4xfqlgqo"]),
             tuya.whitelabel("Nous", "L13Z", "2 gang switch", ["_TZ3000_ruxexjfz", "_TZ3000_hojntt34"]),
-            tuya.whitelabel("Tuya", "ZG-2002-RF", "Three mode Zigbee Switch", ["_TZ3000_lugaswf8", "_TZ3000_nuenzetq"]),
+            tuya.whitelabel("Tuya", "ZG-2002-RF", "Three mode Zigbee Switch", ["_TZ3000_lugaswf8", "_TZ3000_nuenzetq", "_TZ3000_ruldv5dt"]),
             tuya.whitelabel("Mercator Ikuü", "SSW02", "2 gang switch", ["_TZ3000_fbjdkph9"]),
             tuya.whitelabel("Aubess", "TMZ02", "2 gang switch", ["_TZ3000_lmlsduws"]),
         ],
@@ -5613,6 +5627,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("AVATTO", "TRV06_1", "Thermostatic radiator valve", ["_TZE200_hvaxb2tc", "_TZE284_o3x45p96"]),
             tuya.whitelabel("EARU", "TRV06", "Smart thermostat module", ["_TZE200_yqgbrdyo", "_TZE200_rxq4iti9"]),
             tuya.whitelabel("AVATTO", "AVATTO_TRV06", "Thermostatic radiator valve", ["_TZE284_c6wv4xyo", "_TZE204_o3x45p96"]),
+            tuya.whitelabel("THALEOS", "TRV06-AT", "Thermostatic radiator valve", ["_TZE200_ow09xlxm"]),
         ],
         onEvent: tuya.onEventSetTime,
         configure: tuya.configureMagicPacket,
@@ -9310,6 +9325,19 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.exposes.switch().withEndpoint("l2"),
             tuya.exposes.switch().withEndpoint("l3"),
             tuya.exposes.switch().withEndpoint("l4"),
+            e.text("name", ea.STATE_SET).withEndpoint("l1").withDescription("Name for Switch 1"),
+            e.text("name", ea.STATE_SET).withEndpoint("l2").withDescription("Name for Switch 2"),
+            e.text("name", ea.STATE_SET).withEndpoint("l3").withDescription("Name for Switch 3"),
+            e.text("name", ea.STATE_SET).withEndpoint("l4").withDescription("Name for Switch 4"),
+            e.text("scene_name", ea.STATE_SET).withEndpoint("l1").withDescription("Name for Scene 1"),
+            e.text("scene_name", ea.STATE_SET).withEndpoint("l2").withDescription("Name for Scene 2"),
+            e.text("scene_name", ea.STATE_SET).withEndpoint("l3").withDescription("Name for Scene 3"),
+            e.text("scene_name", ea.STATE_SET).withEndpoint("l4").withDescription("Name for Scene 4"),
+            exposes.enum("mode", ea.STATE_SET, ["switch_1", "scene_1", "smart_light_1"]).withEndpoint("l1").withDescription("Switch1 mode"),
+            exposes.enum("mode", ea.STATE_SET, ["switch_1", "scene_1", "smart_light_1"]).withEndpoint("l2").withDescription("Switch2 mode"),
+            exposes.enum("mode", ea.STATE_SET, ["switch_1", "scene_1", "smart_light_1"]).withEndpoint("l3").withDescription("Switch3 mode"),
+            exposes.enum("mode", ea.STATE_SET, ["switch_1", "scene_1", "smart_light_1"]).withEndpoint("l4").withDescription("Switch4 mode"),
+            e.action(["scene_1", "scene_2", "scene_3", "scene_4"]),
         ],
         meta: {
             tuyaDatapoints: [
@@ -9317,6 +9345,22 @@ export const definitions: DefinitionWithExtend[] = [
                 [25, "state_l2", tuya.valueConverter.onOff],
                 [26, "state_l3", tuya.valueConverter.onOff],
                 [27, "state_l4", tuya.valueConverter.onOff],
+                [103, "name_l1", convLocal.name],
+                [104, "name_l2", convLocal.name],
+                [105, "name_l3", convLocal.name],
+                [106, "name_l4", convLocal.name],
+                [107, "scene_name_l1", convLocal.name],
+                [108, "scene_name_l2", convLocal.name],
+                [109, "scene_name_l3", convLocal.name],
+                [110, "scene_name_l4", convLocal.name],
+                [18, "mode_l1", tuya.valueConverterBasic.lookup({switch_1: tuya.enum(0), scene_1: tuya.enum(1), smart_light_1: tuya.enum(2)})],
+                [19, "mode_l2", tuya.valueConverterBasic.lookup({switch_1: tuya.enum(0), scene_1: tuya.enum(1), smart_light_1: tuya.enum(2)})],
+                [20, "mode_l3", tuya.valueConverterBasic.lookup({switch_1: tuya.enum(0), scene_1: tuya.enum(1), smart_light_1: tuya.enum(2)})],
+                [21, "mode_l4", tuya.valueConverterBasic.lookup({switch_1: tuya.enum(0), scene_1: tuya.enum(1), smart_light_1: tuya.enum(2)})],
+                [1, "action", tuya.valueConverter.static("scene_1")],
+                [2, "action", tuya.valueConverter.static("scene_2")],
+                [3, "action", tuya.valueConverter.static("scene_3")],
+                [4, "action", tuya.valueConverter.static("scene_4")],
             ],
         },
     },
@@ -17964,5 +18008,26 @@ export const definitions: DefinitionWithExtend[] = [
                 dp: 0x0a,
             }),
         ],
+    },
+    {
+        fingerprint: tuya.fingerprint("TS011F", ["_TZ3000_rul9yxcc"]),
+        model: "SM-PW801EZ",
+        vendor: "Coswall",
+        description: "2 gang switch with USB",
+        ota: true,
+        extend: [
+            tuya.modernExtend.tuyaOnOff({
+                childLock: true,
+                endpoints: ["l1", "l2"],
+            }),
+        ],
+        endpoint: (device) => {
+            return {l1: 1, l2: 2};
+        },
+        meta: {
+            multiEndpoint: true,
+            multiEndpointSkip: ["power_on_behavior"],
+        },
+        configure: tuya.configureMagicPacket,
     },
 ];
