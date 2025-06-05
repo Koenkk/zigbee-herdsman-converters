@@ -7,56 +7,74 @@ import type {DefinitionWithExtend, Fz} from "../lib/types";
 const e = exposes.presets;
 
 // Notre convertisseur personnalisé pour les actions AwoX
-const awox_remote_actions: Fz.Converter = { // <--- AJOUT DU TYPE ICI
-    cluster: 'genOnOff', // Cluster principal, mais les actions dépendent du type et du payload
-    type: ['commandOn', 'commandOff', 'raw', 'commandStepWithOnOff', 'commandStep', 'commandEnhancedMoveHue', 'commandRecall', 'commandStepColorTemp'],
+const awox_remote_actions: Fz.Converter = {
+    // <--- AJOUT DU TYPE ICI
+    cluster: "genOnOff", // Cluster principal, mais les actions dépendent du type et du payload
+    type: [
+        "commandOn",
+        "commandOff",
+        "raw",
+        "commandStepWithOnOff",
+        "commandStep",
+        "commandEnhancedMoveHue",
+        "commandRecall",
+        "commandStepColorTemp",
+    ],
     convert: (model, msg, publish, options, meta) => {
         // Le type de 'meta' est maintenant implicitement compris grâce à Fz.Converter
         const payload = msg.data;
         let action = null;
 
         // Prioriser les actions spécifiques par rapport au ON/OFF générique
-        if (msg.cluster === 'lightingColorCtrl') {
-            if (msg.type === 'raw') {
+        if (msg.cluster === "lightingColorCtrl") {
+            if (msg.type === "raw") {
                 const colorByte = payload.data[4];
                 switch (colorByte) {
-                    case 0xD6: action = 'color_blue'; break; // Bleu (214 décimal)
-                    case 0xD4: action = 'color_green'; break; // Vert (212 décimal)
-                    case 0xD2: action = 'color_yellow'; break; // Jaune (210 décimal)
-                    case 0xD0: action = 'color_red'; break; // Rouge (208 décimal)
+                    case 0xd6:
+                        action = "color_blue";
+                        break; // Bleu (214 décimal)
+                    case 0xd4:
+                        action = "color_green";
+                        break; // Vert (212 décimal)
+                    case 0xd2:
+                        action = "color_yellow";
+                        break; // Jaune (210 décimal)
+                    case 0xd0:
+                        action = "color_red";
+                        break; // Rouge (208 décimal)
                 }
-            } else if (msg.type === 'commandEnhancedMoveHue') {
-                action = 'light_movement'; // Mouvement lumière
-            } else if (msg.type === 'commandStepColorTemp') {
+            } else if (msg.type === "commandEnhancedMoveHue") {
+                action = "light_movement"; // Mouvement lumière
+            } else if (msg.type === "commandStepColorTemp") {
                 if (payload.stepmode === 1) {
-                    action = 'color_temp_warm'; // Couleur chaude
+                    action = "color_temp_warm"; // Couleur chaude
                 } else if (payload.stepmode === 3) {
-                    action = 'color_temp_cold'; // Couleur froide
+                    action = "color_temp_cold"; // Couleur froide
                 }
             }
-        } else if (msg.cluster === 'genLevelCtrl') {
-            if (msg.type === 'commandStepWithOnOff' && payload.stepmode === 0) {
-                action = 'brightness_step_up'; // Luminosité+
-            } else if (msg.type === 'commandStep' && payload.stepmode === 1) {
-                action = 'brightness_step_down'; // Luminosité-
-            } else if (msg.type === 'raw' && payload.data && payload.data[1] === 0xDF) {
-                action = 'refresh'; // Bouton "Refresh"
+        } else if (msg.cluster === "genLevelCtrl") {
+            if (msg.type === "commandStepWithOnOff" && payload.stepmode === 0) {
+                action = "brightness_step_up"; // Luminosité+
+            } else if (msg.type === "commandStep" && payload.stepmode === 1) {
+                action = "brightness_step_down"; // Luminosité-
+            } else if (msg.type === "raw" && payload.data && payload.data[1] === 0xdf) {
+                action = "refresh"; // Bouton "Refresh"
             }
-        } else if (msg.cluster === 'genScenes') {
-            if (msg.type === 'commandRecall') {
+        } else if (msg.cluster === "genScenes") {
+            if (msg.type === "commandRecall") {
                 if (payload.sceneid === 1) {
-                    action = 'scene_1'; // Favoris 1
+                    action = "scene_1"; // Favoris 1
                 } else if (payload.sceneid === 2) {
-                    action = 'scene_2'; // Favoris 2
+                    action = "scene_2"; // Favoris 2
                 }
             }
         }
         // Gérer les actions ON/OFF en dernier, si aucune action plus spécifique n'a été trouvée
-        else if (msg.cluster === 'genOnOff') {
-            if (msg.type === 'commandOn') {
-                action = 'on';
-            } else if (msg.type === 'commandOff') {
-                action = 'off';
+        else if (msg.cluster === "genOnOff") {
+            if (msg.type === "commandOn") {
+                action = "on";
+            } else if (msg.type === "commandOff") {
+                action = "off";
             }
         }
 
