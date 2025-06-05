@@ -199,4 +199,12 @@ export const definitions: DefinitionWithExtend[] = [
             {vendor: "EGLO", model: "900053"},
         ],
     },
+    {
+        zigbeeModel: ["EPIR_Zm"],
+        model: "EPIR_Zm",
+        vendor: "AwoX",
+        description: "Connect-Z motion (PIR) sensor",
+        extend: [m.battery(), m.occupancy(), m.commandsOnOff(), m.commandsLevelCtrl()],
+        whiteLabel: [{vendor: "EGLO", model: "99106"}],
+    },
 ];

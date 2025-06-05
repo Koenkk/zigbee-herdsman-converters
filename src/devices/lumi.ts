@@ -1,3 +1,4 @@
+import {Zcl} from "zigbee-herdsman";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
@@ -57,6 +58,7 @@ const {
     lumiLockRelay,
     lumiMultiClick,
     lumiPreventLeave,
+    lumiExternalSensor,
 } = lumi.modernExtend;
 
 const NS = "zhc:lumi";
@@ -1791,6 +1793,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.power_outage_count(),
             e.motion_sensitivity_select(["low", "medium", "high"]).withDescription("Select motion sensitivity to use."),
         ],
+        ota: true,
         configure: async (device, coordinatorEndpoint) => {
             // Retrieve motion sensitivity value
             const endpoint = device.getEndpoint(1);
@@ -2012,16 +2015,16 @@ export const definitions: DefinitionWithExtend[] = [
                 await reporting.bind(endpoint, coordinatorEndpoint, ["haElectricalMeasurement"]);
                 await endpoint.read("haElectricalMeasurement", ["acPowerMultiplier", "acPowerDivisor"]);
             } catch (e) {
-                logger.warning(`SP-EUC01 failed to setup electricity measurements (${e.message})`, NS);
-                logger.debug(e.stack, NS);
+                logger.warning(`SP-EUC01 failed to setup electricity measurements (${(e as Error).message})`, NS);
+                logger.debug(`${(e as Error).stack}`, NS);
             }
             try {
                 await reporting.bind(endpoint, coordinatorEndpoint, ["seMetering"]);
                 await reporting.readMeteringMultiplierDivisor(endpoint);
                 await reporting.currentSummDelivered(endpoint, {change: 0});
             } catch (e) {
-                logger.warning(`SP-EUC01 failed to setup metering (${e.message})`, NS);
-                logger.debug(e.stack, NS);
+                logger.warning(`SP-EUC01 failed to setup metering (${(e as Error).message})`, NS);
+                logger.debug(`${(e as Error).stack}`, NS);
             }
         },
         onEvent: (type, data, device) => {
@@ -3957,6 +3960,7 @@ export const definitions: DefinitionWithExtend[] = [
             lumiAction({extraActions: ["slider_single", "slider_double", "slider_hold", "slider_up", "slider_down"]}),
             lumiElectricityMeter(),
             lumiPower(),
+            lumiLedDisabledNight(),
             lumiClickMode({attribute: {ID: 0x0286, type: 0x20}}),
             lumiSlider(),
             lumiSwitchMode(),
@@ -3983,6 +3987,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             lumiElectricityMeter(),
             lumiPower(),
+            lumiLedDisabledNight(),
             lumiClickMode({attribute: {ID: 0x0286, type: 0x20}}),
             lumiSlider(),
             lumiSwitchMode(),
@@ -4009,6 +4014,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             lumiElectricityMeter(),
             lumiPower(),
+            lumiLedDisabledNight(),
             lumiClickMode({attribute: {ID: 0x0286, type: 0x20}}),
             lumiSlider(),
             lumiSwitchMode(),
@@ -4036,6 +4042,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             lumiElectricityMeter(),
             lumiPower(),
+            lumiLedDisabledNight(),
             lumiClickMode({attribute: {ID: 0x0286, type: 0x20}}),
             lumiSlider(),
             lumiSwitchMode(),
@@ -4497,6 +4504,254 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Maximum brightness level",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
+        ],
+    },
+    {
+        zigbeeModel: ["lumi.switch.agl006"],
+        model: "WS-K04E",
+        vendor: "Aqara",
+        description: "Light Switch H2 US (quadruple rocker)",
+        fromZigbee: [fz.on_off, lumi.fromZigbee.lumi_action_multistate, lumi.fromZigbee.lumi_specific],
+        extend: [
+            lumiZigbeeOTA(),
+            lumiPreventReset(),
+            m.deviceEndpoints({endpoints: {top: 1, center: 2, bottom: 3, wireless: 4}}),
+            m.bindCluster({endpointNames: ["top", "center", "bottom", "wireless"], cluster: "manuSpecificLumi", clusterType: "input"}),
+            m.bindCluster({endpointNames: ["top", "center", "bottom"], cluster: "genOnOff", clusterType: "input"}),
+            lumiPower(),
+            lumiOnOff({
+                operationMode: true,
+                powerOutageMemory: "enum",
+                lockRelay: true,
+                endpointNames: ["top", "center", "bottom"],
+            }),
+            lumiAction({
+                actionLookup: {hold: 0, single: 1, double: 2, release: 255},
+                endpointNames: ["top", "center", "bottom", "wireless"],
+            }),
+            lumiMultiClick({description: "Multi-click mode for wireless button", endpointName: "wireless"}),
+            lumiLedDisabledNight(),
+            lumiFlipIndicatorLight(),
+            lumiSwitchMode(),
+        ],
+    },
+    {
+        zigbeeModel: ["lumi.switch.agl004"],
+        model: "WS-K02E",
+        vendor: "Aqara",
+        description: "Light Switch H2 US (double rocker)",
+        fromZigbee: [fz.on_off, lumi.fromZigbee.lumi_action_multistate, lumi.fromZigbee.lumi_specific],
+        extend: [
+            lumiZigbeeOTA(),
+            lumiPreventReset(),
+            m.deviceEndpoints({endpoints: {top: 1, wireless: 2}}),
+            m.bindCluster({endpointNames: ["top", "wireless"], cluster: "manuSpecificLumi", clusterType: "input"}),
+            m.bindCluster({endpointNames: ["top"], cluster: "genOnOff", clusterType: "input"}),
+            lumiPower(),
+            lumiOnOff({
+                operationMode: true,
+                powerOutageMemory: "enum",
+                lockRelay: true,
+                endpointNames: ["top"],
+            }),
+            lumiAction({
+                actionLookup: {hold: 0, single: 1, double: 2, release: 255},
+                endpointNames: ["top", "wireless"],
+            }),
+            lumiMultiClick({description: "Multi-click mode for wireless button", endpointName: "wireless"}),
+            lumiLedDisabledNight(),
+            lumiFlipIndicatorLight(),
+            lumiSwitchMode(),
+        ],
+    },
+    {
+        zigbeeModel: ["lumi.sensor_ht.agl001"],
+        model: "TH-S04D",
+        vendor: "Aqara",
+        description: "Climate Sensor W100",
+        extend: [
+            lumiZigbeeOTA(),
+            m.temperature(),
+            m.humidity(),
+            lumiExternalSensor(),
+            m.deviceEndpoints({endpoints: {plus: 1, center: 2, minus: 3}}),
+            lumiAction({
+                actionLookup: {hold: 0, single: 1, double: 2, release: 255},
+                endpointNames: ["plus", "center", "minus"],
+            }),
+            m.binary({
+                name: "display_off",
+                cluster: "manuSpecificLumi",
+                attribute: {ID: 0x0173, type: Zcl.DataType.BOOLEAN},
+                valueOn: [true, 1],
+                valueOff: [false, 0],
+                description: "Enables/disables auto display off",
+                access: "ALL",
+                entityCategory: "config",
+                zigbeeCommandOptions: {manufacturerCode},
+                reporting: false,
+            }),
+            m.numeric({
+                name: "high_temperature",
+                valueMin: 26,
+                valueMax: 60,
+                valueStep: 0.5,
+                scale: 100,
+                unit: "°C",
+                cluster: "manuSpecificLumi",
+                attribute: {ID: 0x0167, type: Zcl.DataType.INT16},
+                description: "High temperature alert",
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
+            m.numeric({
+                name: "low_temperature",
+                valueMin: -20,
+                valueMax: 20,
+                valueStep: 0.5,
+                scale: 100,
+                unit: "°C",
+                cluster: "manuSpecificLumi",
+                attribute: {ID: 0x0166, type: Zcl.DataType.INT16},
+                description: "Low temperature alert",
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
+            m.numeric({
+                name: "high_humidity",
+                valueMin: 65,
+                valueMax: 100,
+                valueStep: 1,
+                scale: 100,
+                unit: "%",
+                cluster: "manuSpecificLumi",
+                attribute: {ID: 0x016e, type: Zcl.DataType.INT16},
+                description: "High humidity alert",
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
+            m.numeric({
+                name: "low_humidity",
+                valueMin: 0,
+                valueMax: 30,
+                valueStep: 1,
+                scale: 100,
+                unit: "%",
+                cluster: "manuSpecificLumi",
+                attribute: {ID: 0x016d, type: Zcl.DataType.INT16},
+                description: "Low humidity alert",
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
+            m.enumLookup({
+                name: "sampling",
+                lookup: {low: 1, standard: 2, high: 3, custom: 4},
+                cluster: "manuSpecificLumi",
+                attribute: {ID: 0x0170, type: Zcl.DataType.UINT8},
+                description: "Temperature and Humidity sampling settings",
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
+            m.numeric({
+                name: "period",
+                valueMin: 0.5,
+                valueMax: 600,
+                valueStep: 0.5,
+                scale: 1000,
+                unit: "sec",
+                cluster: "manuSpecificLumi",
+                attribute: {ID: 0x0162, type: Zcl.DataType.UINT32},
+                description: "Sampling period",
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
+            m.enumLookup({
+                name: "temp_report_mode",
+                lookup: {no: 0, threshold: 1, period: 2, threshold_period: 3},
+                cluster: "manuSpecificLumi",
+                attribute: {ID: 0x0165, type: Zcl.DataType.UINT8},
+                description: "Temperature reporting mode",
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
+            m.numeric({
+                name: "temp_period",
+                valueMin: 1,
+                valueMax: 10,
+                valueStep: 1,
+                scale: 1000,
+                unit: "sec",
+                cluster: "manuSpecificLumi",
+                attribute: {ID: 0x0163, type: Zcl.DataType.UINT32},
+                description: "Temperature reporting period",
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
+            m.numeric({
+                name: "temp_threshold",
+                valueMin: 0.2,
+                valueMax: 3,
+                valueStep: 0.1,
+                scale: 10,
+                unit: "°C",
+                cluster: "manuSpecificLumi",
+                attribute: {ID: 0x0164, type: Zcl.DataType.UINT16},
+                description: "Temperature reporting threshold",
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
+            m.enumLookup({
+                name: "humi_report_mode",
+                lookup: {no: 0, threshold: 1, period: 2, threshold_period: 3},
+                cluster: "manuSpecificLumi",
+                attribute: {ID: 0x016c, type: Zcl.DataType.UINT8},
+                description: "Humidity reporting mode",
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
+            m.numeric({
+                name: "humi_period",
+                valueMin: 1,
+                valueMax: 10,
+                valueStep: 1,
+                scale: 1000,
+                unit: "sec",
+                cluster: "manuSpecificLumi",
+                attribute: {ID: 0x016a, type: Zcl.DataType.UINT32},
+                description: "Temperature reporting period",
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
+            m.numeric({
+                name: "humi_threshold",
+                valueMin: 2,
+                valueMax: 10,
+                valueStep: 0.5,
+                scale: 10,
+                unit: "%",
+                cluster: "manuSpecificLumi",
+                attribute: {ID: 0x016b, type: Zcl.DataType.UINT16},
+                description: "Humidity reporting threshold",
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
+            m.identify(),
+        ],
+    },
+    {
+        zigbeeModel: ["lumi.switch.agl005"],
+        model: "WS-K03E",
+        vendor: "Aqara",
+        description: "Light Switch H2 US (2 Buttons, 2 Channels)",
+        fromZigbee: [fz.on_off, lumi.fromZigbee.lumi_action_multistate, lumi.fromZigbee.lumi_specific],
+        extend: [
+            lumiZigbeeOTA(),
+            lumiPreventReset(),
+            m.deviceEndpoints({endpoints: {up: 1, down: 2}}),
+            m.bindCluster({endpointNames: ["up", "down"], cluster: "manuSpecificLumi", clusterType: "input"}),
+            m.bindCluster({endpointNames: ["up", "down"], cluster: "genOnOff", clusterType: "input"}),
+            lumiPower(),
+            lumiOnOff({
+                operationMode: true,
+                powerOutageMemory: "enum",
+                lockRelay: true,
+                endpointNames: ["up", "down"],
+            }),
+            lumiAction({
+                actionLookup: {hold: 0, single: 1, double: 2, release: 255},
+                endpointNames: ["up", "down"],
+            }),
+            lumiLedDisabledNight(),
+            lumiFlipIndicatorLight(),
+            lumiSwitchMode(),
         ],
     },
 ];

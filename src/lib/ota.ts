@@ -17,6 +17,7 @@ export interface QueryNextImageRequestPayload {
     manufacturerCode: Zcl.ManufacturerCode;
     imageType: number;
     fileVersion: number;
+    hardwareVersion?: number;
 }
 
 export interface ImageBlockRequestPayload {
@@ -403,16 +404,18 @@ function getOTAEndpoint(device: Zh.Device): Zh.Endpoint | undefined {
 async function sendQueryNextImageResponse(
     device: Zh.Device,
     endpoint: Zh.Endpoint,
-    image: Ota.Image,
+    image: Ota.Image | undefined,
     requestTransactionSequenceNumber: number,
 ): Promise<void> {
-    const payload: QueryNextImageResponsePayload = {
-        status: Zcl.Status.SUCCESS,
-        manufacturerCode: image.header.manufacturerCode,
-        imageType: image.header.imageType,
-        fileVersion: image.header.fileVersion,
-        imageSize: image.header.totalImageSize,
-    };
+    const payload: QueryNextImageResponsePayload = image
+        ? {
+              status: Zcl.Status.SUCCESS,
+              manufacturerCode: image.header.manufacturerCode,
+              imageType: image.header.imageType,
+              fileVersion: image.header.fileVersion,
+              imageSize: image.header.totalImageSize,
+          }
+        : {status: Zcl.Status.NO_IMAGE_AVAILABLE};
 
     try {
         await endpoint.commandResponse("genOta", "queryNextImageResponse", payload, undefined, requestTransactionSequenceNumber);
@@ -565,10 +568,10 @@ async function getImageMeta(
                 i.manufacturerName.includes(extraMetas.manufacturerName!)) &&
             (!extraMetas.otaHeaderString || i.otaHeaderString === extraMetas.otaHeaderString) &&
             (i.hardwareVersionMin === undefined ||
-                (device.hardwareVersion !== undefined && device.hardwareVersion >= i.hardwareVersionMin) ||
+                (current.hardwareVersion !== undefined && current.hardwareVersion >= i.hardwareVersionMin) ||
                 (extraMetas.hardwareVersionMin !== undefined && extraMetas.hardwareVersionMin >= i.hardwareVersionMin)) &&
             (i.hardwareVersionMax === undefined ||
-                (device.hardwareVersion !== undefined && device.hardwareVersion <= i.hardwareVersionMax) ||
+                (current.hardwareVersion !== undefined && current.hardwareVersion <= i.hardwareVersionMax) ||
                 (extraMetas.hardwareVersionMax !== undefined && extraMetas.hardwareVersionMax <= i.hardwareVersionMax)),
     );
 }
@@ -679,9 +682,9 @@ async function getImage(current: Ota.ImageInfo, device: Zh.Device, extraMetas: O
         "maximumHardwareVersion" in image.header &&
         image.header.maximumHardwareVersion !== undefined
     ) {
-        assert(device.hardwareVersion !== undefined, "Hardware version required");
+        assert(current.hardwareVersion !== undefined, "Hardware version required");
         assert(
-            image.header.minimumHardwareVersion <= device.hardwareVersion && device.hardwareVersion <= image.header.maximumHardwareVersion,
+            image.header.minimumHardwareVersion <= current.hardwareVersion && current.hardwareVersion <= image.header.maximumHardwareVersion,
             "Hardware version mismatch",
         );
     }
@@ -770,7 +773,28 @@ function getImageBlockOrPageRequestTimeoutMs(requestPayload: Ota.ImageInfo): num
 /**
  * @see https://zigbeealliance.org/wp-content/uploads/2021/10/07-5123-08-Zigbee-Cluster-Library.pdf 11.12
  */
-export async function update(device: Zh.Device, extraMetas: Ota.ExtraMetas, previous: boolean, onProgress: Ota.OnProgress): Promise<number> {
+export async function update(
+    device: Zh.Device,
+    extraMetas: Ota.ExtraMetas,
+    previous: boolean,
+    onProgress: Ota.OnProgress,
+    requestPayload: Ota.ImageInfo,
+    reqTransNum: number,
+): Promise<number | undefined>;
+export async function update(
+    device: Zh.Device,
+    extraMetas: Ota.ExtraMetas,
+    previous: boolean,
+    onProgress: Ota.OnProgress,
+): Promise<number | undefined>;
+export async function update(
+    device: Zh.Device,
+    extraMetas: Ota.ExtraMetas,
+    previous: boolean,
+    onProgress: Ota.OnProgress,
+    requestPayload?: Ota.ImageInfo,
+    reqTransNum?: number,
+): Promise<number | undefined> {
     const imageSet = previous ? "previous" : "latest";
 
     logger.debug(() => `${deviceLogString(device)} Updating to ${imageSet}`, NS);
@@ -789,17 +813,30 @@ export async function update(device: Zh.Device, extraMetas: Ota.ExtraMetas, prev
         }
     }
 
-    const [transNum, requestPayload] = await requestOTA(endpoint);
+    if (!requestPayload) {
+        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
+        [reqTransNum, requestPayload] = await requestOTA(endpoint);
 
-    logger.debug(() => `${deviceLogString(device)} Got request payload '${JSON.stringify(requestPayload)}'`, NS);
+        logger.debug(() => `${deviceLogString(device)} Got request payload '${JSON.stringify(requestPayload)}'`, NS);
+    }
 
-    const image = await getImage(requestPayload, device, extraMetas, previous);
+    let image: Ota.Image | undefined;
 
-    logger.debug(() => `${deviceLogString(device)} Got ${imageSet} image`, NS);
+    try {
+        image = await getImage(requestPayload, device, extraMetas, previous);
+
+        logger.debug(() => `${deviceLogString(device)} Got ${imageSet} image`, NS);
+    } catch (error) {
+        logger.info(() => `${deviceLogString(device)} No image currently available (${(error as Error).message})`, NS);
+    }
 
     // reply to `queryNextImageRequest` in `requestOTA` now that we have the data for it,
     // should trigger image block/page request from device
-    await sendQueryNextImageResponse(device, endpoint, image, transNum);
+    await sendQueryNextImageResponse(device, endpoint, image, reqTransNum);
+
+    if (!image) {
+        return undefined;
+    }
 
     const waiters: Waiters = {};
     let lastBlockResponseTime = 0;
@@ -951,6 +988,7 @@ export async function update(device: Zh.Device, extraMetas: Ota.ExtraMetas, prev
             onProgress(100, undefined);
 
             let timer: NodeJS.Timeout;
+            const newFileVersion = image.header.fileVersion;
 
             return await new Promise<number>((resolve) => {
                 // XXX: annoying to test since using fake timers, same result anyway
@@ -958,14 +996,14 @@ export async function update(device: Zh.Device, extraMetas: Ota.ExtraMetas, prev
                 const onDeviceAnnounce = () => {
                     clearTimeout(timer);
                     logger.debug(() => `${deviceLogString(device)} Received device announce, update finished.`, NS);
-                    resolve(image.header.fileVersion);
+                    resolve(newFileVersion);
                 };
 
                 // force "finished" after given time
                 timer = setTimeout(() => {
                     device.removeListener("deviceAnnounce", onDeviceAnnounce);
                     logger.debug(() => `${deviceLogString(device)} Timed out waiting for device announce, update considered finished.`, NS);
-                    resolve(image.header.fileVersion);
+                    resolve(newFileVersion);
                 }, UPDATE_END_FORCE_RESOLVE_TIME);
 
                 device.once("deviceAnnounce", onDeviceAnnounce);

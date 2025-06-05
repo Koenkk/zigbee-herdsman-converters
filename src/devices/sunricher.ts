@@ -11,7 +11,7 @@ import * as reporting from "../lib/reporting";
 import {payload} from "../lib/reporting";
 import * as globalStore from "../lib/store";
 import * as sunricher from "../lib/sunricher";
-import type {DefinitionWithExtend, Fz, Zh} from "../lib/types";
+import type {DefinitionWithExtend, Fz, KeyValue, Tz, Zh} from "../lib/types";
 import * as utils from "../lib/utils";
 
 const NS = "zhc:sunricher";
@@ -46,6 +46,75 @@ const fzLocal = {
             return {action: utils.getFromLookup(commandID, lookup)};
         },
     } satisfies Fz.Converter,
+    ZG9095B: {
+        cluster: "hvacThermostat",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, _publish, _options, meta) => {
+            const result: KeyValue = {};
+
+            if (msg.data.minSetpointDeadBand !== undefined) {
+                const property = utils.postfixWithEndpointName("min_setpoint_deadband", msg, model, meta);
+                result[property] = utils.precisionRound(msg.data.minSetpointDeadBand, 2) / 10;
+            }
+
+            return result;
+        },
+    } satisfies Fz.Converter,
+};
+const tzLocal = {
+    ZG9095B: {
+        min_setpoint_deadband: {
+            key: ["min_setpoint_deadband"],
+            convertGet: async (entity, _key, _meta) => {
+                await entity.read("hvacThermostat", ["minSetpointDeadBand"]);
+            },
+
+            convertSet: async (entity, _key, value, _meta) => {
+                const newValue = value;
+                await entity.write("hvacThermostat", {
+                    minSetpointDeadBand: Math.round(Number(value) * 10),
+                });
+                return {state: {min_setpoint_deadband: value}};
+            },
+        } satisfies Tz.Converter,
+        temperature_display: {
+            key: ["temperature_display"],
+            convertSet: async (entity, _key, value, _meta) => {
+                const newValue = value;
+                const lookup = {room: 0, set: 1, floor: 2};
+                const payload = {4104: {value: utils.getFromLookup(value, lookup), type: Zcl.DataType.ENUM8}};
+                await entity.write("hvacThermostat", payload, {manufacturerCode: 0x1224});
+                return {state: {temperature_display: value}};
+            },
+            convertGet: async (entity, _key, _meta) => {
+                await entity.read("hvacThermostat", [0x1008], {manufacturerCode: 0x1224});
+            },
+        } satisfies Tz.Converter,
+        sensor: {
+            key: ["sensor"],
+            convertSet: async (entity, _key, value, _meta) => {
+                const lookup = {room: 1, floor: 2};
+                const payload = {4099: {value: utils.getFromLookup(value, lookup), type: Zcl.DataType.ENUM8}};
+                await entity.write("hvacThermostat", payload, {manufacturerCode: 0x1224});
+                return {state: {sensor: value}};
+            },
+            convertGet: async (entity, _key, _meta) => {
+                await entity.read("hvacThermostat", [0x1003], {manufacturerCode: 0x1224});
+            },
+        } satisfies Tz.Converter,
+        lcd_brightness: {
+            key: ["lcd_brightness"],
+            convertSet: async (entity, _key, value, _meta) => {
+                const lookup = {low: 1, mid: 2, high: 3};
+                const payload = {4096: {value: utils.getFromLookup(value, lookup), type: Zcl.DataType.ENUM8}};
+                await entity.write("hvacThermostat", payload, {manufacturerCode: 0x1224});
+                return {state: {lcd_brightness: value}};
+            },
+            convertGet: async (entity, _key, _meta) => {
+                await entity.read("hvacThermostat", [0x1000], {manufacturerCode: 0x1224});
+            },
+        } satisfies Tz.Converter,
+    },
 };
 
 async function syncTime(endpoint: Zh.Endpoint) {
@@ -55,6 +124,7 @@ async function syncTime(endpoint: Zh.Endpoint) {
         await endpoint.write("genTime", values);
     } catch {
         /* Do nothing*/
+        logger.warning(String(e), NS);
     }
 }
 
@@ -69,6 +139,20 @@ async function syncTimeWithTimeZone(endpoint: Zh.Endpoint) {
 }
 
 export const definitions: DefinitionWithExtend[] = [
+    {
+        zigbeeModel: ["ZG2833K8_EU05"],
+        model: "SR-ZG9001K8-DIM",
+        vendor: "Sunricher",
+        description: "Zigbee 8 button wall switch",
+        extend: [
+            m.commandsOnOff(),
+            m.battery(),
+            m.commandsScenes(),
+            m.commandsLevelCtrl({commands: ["brightness_move_up", "brightness_move_down", "brightness_stop"]}),
+        ],
+        whiteLabel: [{vendor: "Sunricher", model: "SR-ZG9001NK8-DIM"}],
+        meta: {multiEndpoint: true},
+    },
     {
         zigbeeModel: ["HK-ZRC-K10N-E"],
         model: "SR-ZG2856-Pro",
@@ -477,14 +561,14 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SR-ZG2835RAC-UK",
         vendor: "Sunricher",
         description: "Push compatible zigBee knob smart dimmer",
-        extend: [m.light(), m.electricityMeter(), sunricher.extend.externalSwitchType()],
+        extend: [m.light({configureReporting: true}), m.electricityMeter(), sunricher.extend.externalSwitchType()],
     },
     {
         zigbeeModel: ["ZG2837RAC-K4"],
         model: "SR-ZG2835RAC-NK4",
         vendor: "Sunricher",
         description: "4-Key zigbee rotary & push button smart dimmer",
-        extend: [m.light(), m.electricityMeter(), m.commandsScenes()],
+        extend: [m.light({configureReporting: true}), m.electricityMeter(), m.commandsScenes()],
     },
     {
         zigbeeModel: ["HK-ZRC-K5&RS-TL"],
@@ -751,7 +835,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "ALL",
             }),
             m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3}}),
-            m.light(),
+            m.light({configureReporting: true}),
             m.occupancy({endpointNames: ["2"]}),
             m.illuminance({endpointNames: ["3"]}),
             m.commandsOnOff(),
@@ -816,12 +900,23 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Zigbee handheld remote RGBCCT 3 channels",
         extend: [
             m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3}}),
-            m.battery(),
-            m.identify(),
-            m.commandsOnOff(),
-            m.commandsLevelCtrl(),
-            m.commandsColorCtrl(),
-            m.commandsScenes(),
+            m.battery({voltage: true, voltageReporting: true}),
+            m.identify({isSleepy: true}),
+            m.commandsOnOff({commands: ["on", "off"]}),
+            m.commandsLevelCtrl({
+                commands: [
+                    "brightness_step_up",
+                    "brightness_step_down",
+                    "brightness_move_up",
+                    "brightness_move_down",
+                    "brightness_stop",
+                    "brightness_move_to_level",
+                ],
+            }),
+            m.commandsColorCtrl({
+                commands: ["color_temperature_move", "move_to_hue_and_saturation"],
+            }),
+            m.commandsScenes({commands: ["recall", "store"]}),
         ],
     },
     {
@@ -895,7 +990,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "HK-ZD-CCT-A",
         vendor: "Sunricher",
         description: "50W Zigbee CCT LED driver (constant current)",
-        extend: [m.light({colorTemp: {range: [160, 450]}})],
+        extend: [m.light({colorTemp: {range: [160, 450]}, configureReporting: true})],
     },
     {
         zigbeeModel: ["ZGRC-KEY-004"],
@@ -1052,7 +1147,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZG192910-4",
         vendor: "Sunricher",
         description: "Zigbee LED-controller",
-        extend: [m.light({colorTemp: {range: undefined}})],
+        extend: [m.light({colorTemp: {range: undefined}, configureReporting: true})],
     },
     {
         zigbeeModel: ["ZG9101SAC-HP"],
@@ -1084,7 +1179,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "HK-SL-DIM-AU-R-A",
         vendor: "Sunricher",
         description: "ZigBee knob smart dimmer",
-        extend: [m.identify(), m.electricityMeter(), m.light({configureReporting: true})],
+        extend: [m.identify(), m.electricityMeter(), m.light({configureReporting: true}), sunricher.extend.externalSwitchType()],
     },
     {
         zigbeeModel: ["ZG2835"],
@@ -1107,14 +1202,21 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SRP-ZG9105-CC",
         vendor: "Sunricher",
         description: "Constant Current Zigbee LED dimmable driver",
-        extend: [m.light()],
+        extend: [m.light({configureReporting: true}), sunricher.extend.externalSwitchType()],
+    },
+    {
+        fingerprint: [{modelID: "HK-ZD-DIM-A", softwareBuildID: "2.9.2_r72"}],
+        model: "SR-ZG9101CS",
+        vendor: "Sunricher",
+        description: "Constant Current Zigbee LED dimmable driver",
+        extend: [m.light({configureReporting: true}), sunricher.extend.externalSwitchType()],
     },
     {
         zigbeeModel: ["HK-DIM"],
         model: "50208702",
         vendor: "Sunricher",
         description: "LED dimmable driver",
-        extend: [m.light()],
+        extend: [m.light({configureReporting: true})],
         whiteLabel: [{vendor: "Yphix", model: "50208702"}],
         toZigbee: [sunricher.tz.setModel],
         // Some ZG9030A-MW devices were mistakenly set with the modelId HK-DIM during manufacturing.
@@ -1136,49 +1238,102 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.onOff()],
     },
     {
-        zigbeeModel: ["ZG2819S-CCT"],
-        model: "ZG2819S-CCT",
+        zigbeeModel: ["ZG2819S-RGBW"],
+        model: "ZG2819S-RGBW",
         vendor: "Sunricher",
-        description: "Zigbee handheld remote CCT 4 channels",
+        whiteLabel: [{vendor: "Iluminize", model: "511.344"}],
+        description: "Zigbee handheld remote RGBW 4 channels",
         fromZigbee: [
             fz.battery,
-            fz.command_move_to_color,
-            fz.command_move_to_color_temp,
-            fz.command_move_hue,
-            fz.command_step,
-            fz.command_recall,
             fz.command_on,
             fz.command_off,
-            fz.command_toggle,
-            fz.command_stop,
+            fz.command_step,
             fz.command_move,
-            fz.command_color_loop_set,
-            fz.command_ehanced_move_to_hue_and_saturation,
+            fz.command_stop,
+            fz.command_recall,
+            fz.command_move_hue,
+            fz.command_move_to_color,
+            fz.command_move_to_color_temp,
         ],
         exposes: [
             e.battery(),
+            e.battery_voltage(),
             e.action([
-                "color_move",
-                "color_temperature_move",
-                "hue_move",
-                "brightness_step_up",
-                "brightness_step_down",
-                "recall_*",
                 "on",
                 "off",
-                "toggle",
-                "brightness_stop",
+                "brightness_step_up",
+                "brightness_step_down",
                 "brightness_move_up",
                 "brightness_move_down",
-                "color_loop_set",
-                "enhanced_move_to_hue_and_saturation",
+                "brightness_stop",
+                "recall_*",
+                "hue_move",
                 "hue_stop",
+                "color_move",
+                "color_temperature_move",
             ]),
         ],
         toZigbee: [],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {ep1: 1, ep2: 2, ep3: 3, ep4: 4};
+        },
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg"]);
+            await reporting.batteryVoltage(endpoint);
+            await reporting.batteryPercentageRemaining(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ["ZG2819S-CCT"],
+        model: "ZG2819S-CCT",
+        vendor: "Sunricher",
+        description: "Zigbee handheld remote CCT 4 channels",
+        fromZigbee: [
+            fz.battery,
+            fz.command_on,
+            fz.command_off,
+            fz.command_step,
+            fz.command_move,
+            fz.command_stop,
+            fz.command_recall,
+            fz.command_move_hue,
+            fz.command_move_to_color,
+            fz.command_move_to_color_temp,
+            fz.command_color_loop_set,
+            fz.command_enhanced_move_to_hue_and_saturation,
+        ],
+        exposes: [
+            e.battery(),
+            e.battery_voltage(),
+            e.action([
+                "on",
+                "off",
+                "brightness_step_up",
+                "brightness_step_down",
+                "brightness_move_up",
+                "brightness_move_down",
+                "brightness_stop",
+                "recall_*",
+                "hue_move",
+                "hue_stop",
+                "color_move",
+                "color_temperature_move",
+                "color_loop_set",
+                "enhanced_move_to_hue_and_saturation",
+            ]),
+        ],
+        toZigbee: [],
+        meta: {multiEndpoint: true},
+        endpoint: (device) => {
+            return {ep1: 1, ep2: 2, ep3: 3, ep4: 4};
+        },
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg"]);
+            await reporting.batteryVoltage(endpoint);
+            await reporting.batteryPercentageRemaining(endpoint);
         },
     },
     {
@@ -1595,5 +1750,247 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.U02I007C01_contact, fz.battery],
         toZigbee: [],
         exposes: [e.contact(), e.battery()],
+    },
+    {
+        zigbeeModel: ["ZG9095B"],
+        model: "SR-ZG9095B",
+        vendor: "Sunricher",
+        description: "Touch thermostat",
+        fromZigbee: [fz.thermostat, fz.namron_thermostat, fz.metering, fz.electrical_measurement, fz.namron_hvac_user_interface, fzLocal.ZG9095B],
+        toZigbee: [
+            tzLocal.ZG9095B.temperature_display,
+            tzLocal.ZG9095B.sensor,
+            tzLocal.ZG9095B.lcd_brightness,
+            tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_unoccupied_heating_setpoint,
+            tz.thermostat_occupied_cooling_setpoint,
+            tz.thermostat_unoccupied_cooling_setpoint,
+            tz.thermostat_local_temperature_calibration,
+            tz.thermostat_local_temperature,
+            tz.thermostat_outdoor_temperature,
+            tz.thermostat_system_mode,
+            tz.thermostat_control_sequence_of_operation,
+            tz.thermostat_running_state,
+            tz.namron_thermostat,
+            tz.namron_thermostat_child_lock,
+            tz.fan_mode,
+            tzLocal.ZG9095B.min_setpoint_deadband,
+        ],
+        exposes: [
+            e.numeric("outdoor_temperature", ea.STATE_GET).withUnit("°C").withDescription("Current temperature measured from the floor sensor"),
+            e
+                .climate()
+                .withSetpoint("occupied_heating_setpoint", 5, 32, 0.1)
+                .withSetpoint("unoccupied_heating_setpoint", 5, 32, 0.1)
+                .withSetpoint("occupied_cooling_setpoint", 5, 32, 0.1)
+                .withSetpoint("unoccupied_cooling_setpoint", 5, 32, 0.1)
+                .withLocalTemperature()
+                .withLocalTemperatureCalibration(-2.5, 2.5, 0.1)
+                .withSystemMode(["off", "auto", "cool", "heat", "fan_only"])
+                .withRunningState(["idle", "heat", "cool", "fan_only"])
+                .withFanMode(["off", "low", "medium", "high", "auto"])
+                .withControlSequenceOfOperation(["cooling_only", "heating_only", "cooling_and_heating_4-pipes"]),
+            e.binary("away_mode", ea.ALL, "ON", "OFF").withDescription("Enable/disable away mode"),
+            e.binary("child_lock", ea.ALL, "UNLOCK", "LOCK").withDescription("Enables/disables physical input on the device"),
+            e.enum("lcd_brightness", ea.ALL, ["low", "mid", "high"]).withDescription("OLED brightness when operating the buttons.  Default: Medium."),
+            e.enum("button_vibration_level", ea.ALL, ["off", "low", "high"]).withDescription("Key beep volume and vibration level.  Default: Low."),
+            e
+                .enum("floor_sensor_type", ea.ALL, ["10k", "15k", "50k", "100k", "12k"])
+                .withDescription("Type of the external floor sensor.  Default: NTC 10K/25."),
+            e.enum("sensor", ea.ALL, ["room", "floor"]).withDescription("The sensor used for heat control.  Default: Room Sensor."),
+            e.enum("powerup_status", ea.ALL, ["default", "last_status"]).withDescription("The mode after a power reset.  Default: Previous Mode."),
+            e
+                .numeric("floor_sensor_calibration", ea.ALL)
+                .withUnit("°C")
+                .withValueMin(-2.5)
+                .withValueMax(2.5)
+                .withValueStep(0.1)
+                .withDescription("The tempearatue calibration for the external floor sensor, between -3 and 3 in 0.1°C.  Default: 0."),
+            e
+                .enum("temperature_display", ea.ALL, ["room", "set", "floor"])
+                .withDescription(
+                    "The temperature on the display. room: shows the temperature recorded by the sensor embedded in the thermostat. set: shows the set (target) temperature. floor: shows the temperature recorded by the external floor sensor  Default: Room Temperature.",
+                ),
+            e
+                .numeric("min_setpoint_deadband", ea.ALL)
+                .withUnit("°C")
+                .withValueMin(1)
+                .withValueMax(1.5)
+                .withValueStep(0.1)
+                .withDescription(
+                    "This parameter refers to the minimum difference between cooling and heating temperatures. between 1 and 1.5 in 0.1 °C  Default: 1 °C. The hysteresis used by this device = MinSetpointDeadBand /2",
+                ),
+        ],
+        onEvent: async (type, _data, device, _options) => {
+            if (type === "stop") {
+                await clearInterval(globalStore.getValue(device, "time"));
+                await globalStore.clearValue(device, "time");
+            } else if (!globalStore.hasValue(device, "time")) {
+                const endpoint = await device.getEndpoint(1);
+                const hours24 = 1000 * 60 * 60 * 24;
+                // Device does not ask for the time with binding, therefore we write the time every 24 hours
+                const interval = await setInterval(async () => await syncTime(endpoint), hours24);
+                await globalStore.putValue(device, "time", interval);
+            }
+        },
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            const binds = ["genBasic", "genIdentify", "hvacThermostat", "seMetering", "genTime", "hvacUserInterfaceCfg"];
+            await reporting.bind(endpoint, coordinatorEndpoint, binds);
+
+            // standard ZCL attributes
+            await reporting.thermostatTemperature(endpoint);
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
+            await reporting.thermostatUnoccupiedHeatingSetpoint(endpoint);
+            try {
+                await reporting.thermostatKeypadLockMode(endpoint);
+            } catch {
+                // Fails for some
+                // https://github.com/Koenkk/zigbee2mqtt/issues/15025
+                logger.debug("Failed to setup keypadLockout reporting", NS);
+            }
+
+            // Custom attributes
+            const options = {manufacturerCode: 0x1224};
+
+            // OperateDisplayLcdBrightnesss
+            await endpoint.configureReporting(
+                "hvacThermostat",
+                [
+                    {
+                        attribute: {ID: 0x1000, type: 0x30},
+                        minimumReportInterval: 0,
+                        maximumReportInterval: constants.repInterval.HOUR,
+                        reportableChange: null,
+                    },
+                ],
+                options,
+            );
+            // ButtonVibrationLevel
+            await endpoint.configureReporting(
+                "hvacThermostat",
+                [
+                    {
+                        attribute: {ID: 0x1001, type: 0x30},
+                        minimumReportInterval: 0,
+                        maximumReportInterval: constants.repInterval.HOUR,
+                        reportableChange: null,
+                    },
+                ],
+                options,
+            );
+            // FloorSensorType
+            await endpoint.configureReporting(
+                "hvacThermostat",
+                [
+                    {
+                        attribute: {ID: 0x1002, type: 0x30},
+                        minimumReportInterval: 0,
+                        maximumReportInterval: constants.repInterval.HOUR,
+                        reportableChange: null,
+                    },
+                ],
+                options,
+            );
+            // ControlType
+            await endpoint.configureReporting(
+                "hvacThermostat",
+                [
+                    {
+                        attribute: {ID: 0x1003, type: 0x30},
+                        minimumReportInterval: 0,
+                        maximumReportInterval: constants.repInterval.HOUR,
+                        reportableChange: null,
+                    },
+                ],
+                options,
+            );
+            // PowerUpStatus
+            await endpoint.configureReporting(
+                "hvacThermostat",
+                [
+                    {
+                        attribute: {ID: 0x1004, type: 0x30},
+                        minimumReportInterval: 0,
+                        maximumReportInterval: constants.repInterval.HOUR,
+                        reportableChange: null,
+                    },
+                ],
+                options,
+            );
+            // FloorSensorCalibration
+            await endpoint.configureReporting(
+                "hvacThermostat",
+                [
+                    {
+                        attribute: {ID: 0x1005, type: 0x28},
+                        minimumReportInterval: 0,
+                        maximumReportInterval: constants.repInterval.HOUR,
+                        reportableChange: 0,
+                    },
+                ],
+                options,
+            );
+            // AntiFreezingModeConfig
+            await endpoint.configureReporting(
+                "hvacThermostat",
+                [
+                    {
+                        attribute: {ID: 0x1006, type: 0x20},
+                        minimumReportInterval: 0,
+                        maximumReportInterval: constants.repInterval.HOUR,
+                        reportableChange: 0,
+                    },
+                ],
+                options,
+            );
+            // TemperatureDisplay
+            await endpoint.configureReporting(
+                "hvacThermostat",
+                [
+                    {
+                        attribute: {ID: 0x1008, type: 0x30},
+                        minimumReportInterval: 0,
+                        maximumReportInterval: constants.repInterval.HOUR,
+                        reportableChange: null,
+                    },
+                ],
+                options,
+            );
+
+            // Away mode set
+            await endpoint.configureReporting(
+                "hvacThermostat",
+                [
+                    {
+                        attribute: {ID: 0x2002, type: 0x30},
+                        minimumReportInterval: 0,
+                        maximumReportInterval: constants.repInterval.HOUR,
+                        reportableChange: null,
+                    },
+                ],
+                options,
+            );
+
+            // Control Sequence Of Operation
+            await endpoint.configureReporting("hvacThermostat", [
+                {
+                    attribute: {ID: 0x001b, type: 0x30},
+                    minimumReportInterval: 0,
+                    maximumReportInterval: constants.repInterval.HOUR,
+                    reportableChange: null,
+                },
+            ]);
+
+            // Device does not asks for the time with binding, we need to write time during configure
+            await syncTime(endpoint);
+
+            // Trigger initial read
+            await endpoint.read("hvacThermostat", ["systemMode", "runningState", "occupiedHeatingSetpoint"]);
+            await endpoint.read("hvacThermostat", [0x001b]);
+            await endpoint.read("hvacThermostat", [0x1000, 0x1001, 0x1002, 0x1003, 0x2002], options);
+            await endpoint.read("hvacThermostat", [0x1004, 0x1005, 0x1006], options);
+            await endpoint.read("hvacThermostat", [0x1008], options);
+        },
     },
 ];

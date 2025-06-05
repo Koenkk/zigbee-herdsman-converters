@@ -796,6 +796,35 @@ const dataPoints = {
     wooxSwitch: 102,
     wooxBattery: 14,
     wooxSmokeTest: 8,
+
+    // Woox thermostat
+    wooxDormancy: 108, // ???
+    wooxRefresh: 120, //  ???
+    wooxControlTemperature: 119, // map auto and manual temperature setpoint.
+    wooxManualTemperatureSetpoint: 16, //RW
+    wooxAutomaticTemperatureSetpoint: 105, //RW
+    wooxMode: 2, //RW
+    wooxLocalTemperature: 24, //R
+    wooxTemperatureCalibration: 104, //RW
+    wooxWindowStatus: 107, //R open,close
+    wooxWindowTemperature: 116, //RW
+    wooxWindowTime: 117, //RW
+    wooxChildLock: 30, //RW
+    wooxBatteryCapacity: 34, //R
+    wooxEnergySavingTemperature: 102, //RW
+    wooxComfortTemperature: 101, //RW
+    wooxHolidayModeSettings: 103, //RW
+    wooxProgrammingMonday: 109, //RW
+    wooxProgrammingTuesday: 110, //RW
+    wooxProgrammingWednesday: 111, //RW
+    wooxProgrammingThursday: 112, //RW
+    wooxProgrammingFriday: 113, //RW
+    wooxProgrammingSaturday: 114, //RW
+    wooxProgrammingSunday: 115, //RW
+    wooxBoostHeating: 106, //RW
+    wooxFaultAlarm: 45, // R
+    wooxBoostHeatingCountdown: 118, //R
+
     // FrankEver
     frankEverTimer: 9,
     frankEverTreshold: 101,
@@ -1352,6 +1381,107 @@ const fromZigbee = {
             }
         },
     } satisfies Fz.Converter,
+
+    woox_thermostat: {
+        cluster: "manuSpecificTuya",
+        type: ["commandDataResponse", "commandDataReport"],
+        convert: (model, msg, publish, options, meta) => {
+            const result: KeyValueAny = {};
+            for (const dpValue of msg.data.dpValues) {
+                const dp = dpValue.dp;
+                const value = getDataValue(dpValue);
+                switch (dp) {
+                    case dataPoints.wooxMode:
+                        if (value === 0) {
+                            result.system_mode = "auto";
+                            result.away_mode = "OFF";
+                        } else if (value === 1) {
+                            result.system_mode = "heat";
+                            result.away_mode = "OFF";
+                        } else if (value === 2) {
+                            result.away_mode = "ON";
+                            result.system_mode = "auto";
+                        } else {
+                            result.away_mode = "OFF";
+                            result.system_mode = "off";
+                        }
+                        break;
+                    case dataPoints.wooxManualTemperatureSetpoint:
+                        result.current_heating_setpoint = Number.parseFloat((value / 2).toFixed(1));
+                        result.manual_heating_setpoint = Number.parseFloat((value / 2).toFixed(1));
+                        break;
+                    case dataPoints.wooxAutomaticTemperatureSetpoint:
+                        result.current_heating_setpoint = Number.parseFloat((value / 2).toFixed(1));
+                        result.auto_heating_setpoint = Number.parseFloat((value / 2).toFixed(1));
+                        break;
+                    case dataPoints.wooxLocalTemperature:
+                        result.local_temperature = Number.parseFloat((value / 10).toFixed(1));
+                        break;
+                    case dataPoints.wooxTemperatureCalibration:
+                        result.local_temperature_calibration = Number.parseFloat((value / 10).toFixed(1));
+                        break;
+                    case dataPoints.wooxWindowStatus:
+                        result.window_detection = value[0] ? "OPEN" : "CLOSED";
+                        break;
+                    case dataPoints.wooxWindowTemperature:
+                        result.window_detection_temperature = Number.parseFloat((value / 2).toFixed(1));
+                        break;
+                    case dataPoints.wooxWindowTime:
+                        result.window_detection_time = value;
+                        break;
+                    case dataPoints.wooxChildLock:
+                        result.child_lock = value ? "LOCK" : "UNLOCK";
+                        break;
+                    case dataPoints.wooxBatteryCapacity:
+                        result.battery = value;
+                        result.battery_low = value < 30 ? 1 : 0;
+                        break;
+                    case dataPoints.wooxBoostHeatingCountdown:
+                        result.boost_time = value;
+                        break;
+                    case dataPoints.wooxEnergySavingTemperature:
+                        result.eco_temperature = Number.parseFloat((value / 2).toFixed(1));
+                        break;
+                    case dataPoints.wooxComfortTemperature:
+                        result.comfort_temperature = Number.parseFloat((value / 2).toFixed(1));
+                        break;
+                    case dataPoints.wooxBoostHeating:
+                        result.boost_heating = value ? "ON" : "OFF";
+                        break;
+                    case dataPoints.wooxFaultAlarm:
+                        result.error_status = value;
+                        break;
+                    case dataPoints.wooxProgrammingMonday:
+                        result.monday_schedule = value.join();
+                        break;
+                    case dataPoints.wooxProgrammingTuesday:
+                        result.tuesday_schedule = value.join();
+                        break;
+                    case dataPoints.wooxProgrammingWednesday:
+                        result.wednesday_schedule = value.join();
+                        break;
+                    case dataPoints.wooxProgrammingThursday:
+                        result.thursday_schedule = value.join();
+                        break;
+                    case dataPoints.wooxProgrammingFriday:
+                        result.friday_schedule = value.join();
+                        break;
+                    case dataPoints.wooxProgrammingSaturday:
+                        result.saturday_schedule = value.join();
+                        break;
+                    case dataPoints.wooxProgrammingSunday:
+                        result.sunday_schedule = value.join();
+                        break;
+                    case dataPoints.wooxHolidayModeSettings:
+                        result.holidays_schedule = value.join();
+                        break;
+                }
+                logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue.data)}`, "zhc:legacy:fz:woox_thermostat");
+            }
+            return result;
+        },
+    } satisfies Fz.Converter,
+
     hpsz: {
         cluster: "manuSpecificTuya",
         type: ["commandDataResponse", "commandDataReport"],
@@ -4301,7 +4431,8 @@ const toZigbee2 = {
     } satisfies Tz.Converter,
     zs_thermostat_current_heating_setpoint: {
         key: ["current_heating_setpoint"],
-        convertSet: async (entity, key, value: number, meta) => {
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertNumber(value);
             let temp = Math.round(value * 2);
             if (temp <= 0) temp = 1;
             if (temp >= 60) temp = 59;
@@ -4310,7 +4441,8 @@ const toZigbee2 = {
     } satisfies Tz.Converter,
     zs_thermostat_current_heating_setpoint_auto: {
         key: ["current_heating_setpoint_auto"],
-        convertSet: async (entity, key, value: number, meta) => {
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertNumber(value);
             let temp = Math.round(value * 2);
             if (temp <= 0) temp = 1;
             if (temp >= 60) temp = 59;
@@ -4319,7 +4451,8 @@ const toZigbee2 = {
     } satisfies Tz.Converter,
     zs_thermostat_comfort_temp: {
         key: ["comfort_temperature"],
-        convertSet: async (entity, key, value: number, meta) => {
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertNumber(value);
             logger.debug(JSON.stringify(entity), "zhc:legacy:tz:zs_thermostat_comfort_temp");
             const temp = Math.round(value * 2);
             await sendDataPointValue(entity, dataPoints.zsComfortTemp, temp);
@@ -4327,7 +4460,8 @@ const toZigbee2 = {
     } satisfies Tz.Converter,
     zs_thermostat_openwindow_temp: {
         key: ["detectwindow_temperature"],
-        convertSet: async (entity, key, value: number, meta) => {
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertNumber(value);
             let temp = Math.round(value * 2);
             if (temp <= 0) temp = 1;
             if (temp >= 60) temp = 59;
@@ -4342,7 +4476,8 @@ const toZigbee2 = {
     } satisfies Tz.Converter,
     zs_thermostat_eco_temp: {
         key: ["eco_temperature"],
-        convertSet: async (entity, key, value: number, meta) => {
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertNumber(value);
             const temp = Math.round(value * 2);
             await sendDataPointValue(entity, dataPoints.zsEcoTemp, temp);
         },
@@ -4382,12 +4517,12 @@ const toZigbee2 = {
     } satisfies Tz.Converter,
     zs_thermostat_local_temperature_calibration: {
         key: ["local_temperature_calibration"],
-        convertSet: async (entity, key, value: number, meta) => {
-            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
-            if (value > 0) value = value * 10;
-            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
-            if (value < 0) value = value * 10 + 0x100000000;
-            await sendDataPointValue(entity, dataPoints.zsTempCalibration, value);
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertNumber(value);
+            let calValue = value;
+            if (calValue > 0) calValue = calValue * 10;
+            if (calValue < 0) calValue = calValue * 10 + 0x100000000;
+            await sendDataPointValue(entity, dataPoints.zsTempCalibration, calValue);
         },
     } satisfies Tz.Converter,
     zs_thermostat_away_setting: {
@@ -4407,7 +4542,7 @@ const toZigbee2 = {
                 "away_preset_days",
             ]) {
                 let v = 0;
-                if (value[attrName] !== undefined) {
+                if (value[attrName] != null) {
                     v = value[attrName];
                 } else if (meta.state[attrName] !== undefined) {
                     // @ts-expect-error ignore
@@ -4562,7 +4697,7 @@ const toZigbee2 = {
     matsee_garage_door_opener: {
         key: ["trigger"],
         convertSet: async (entity, key, value, meta) => {
-            const state = meta.message.trigger !== undefined ? meta.message.trigger : true;
+            const state = meta.message.trigger != null ? meta.message.trigger : true;
             // @ts-expect-error ignore
             await sendDataPointBool(entity, dataPoints.garageDoorTrigger, state);
             return {state: {trigger: state}};
@@ -4820,7 +4955,8 @@ const toZigbee2 = {
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     moesS_thermostat_current_heating_setpoint: {
         key: ["current_heating_setpoint"],
-        convertSet: async (entity, key, value: number, meta) => {
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertNumber(value);
             const temp = Math.round(value);
             await sendDataPointValue(entity, dataPoints.moesSheatingSetpoint, temp);
         },
@@ -4856,7 +4992,8 @@ const toZigbee2 = {
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     moesS_thermostat_temperature_calibration: {
         key: ["local_temperature_calibration"],
-        convertSet: async (entity, key, value: number, meta) => {
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertNumber(value);
             let temp = Math.round(value * 1);
             if (temp < 0) {
                 temp = 0xffffffff + temp + 1;
@@ -4901,7 +5038,8 @@ const toZigbee2 = {
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     moesS_thermostat_schedule_programming: {
         key: ["programming_mode"],
-        convertSet: async (entity, key, value: string, meta) => {
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertString(value);
             const payload = [];
             const items = value.split("  ");
             for (let i = 0; i < 12; i++) {
@@ -5047,7 +5185,8 @@ const toZigbee2 = {
     } satisfies Tz.Converter,
     frankever_threshold: {
         key: ["threshold"],
-        convertSet: async (entity, key, value: number, meta) => {
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertNumber(value);
             // input to multiple of 10 with max value of 100
             const thresh = Math.abs(Math.min(10 * Math.floor(value / 10), 100));
             await sendDataPointValue(entity, dataPoints.frankEverTreshold, thresh, "dataRequest", 1);
@@ -5056,7 +5195,8 @@ const toZigbee2 = {
     } satisfies Tz.Converter,
     frankever_timer: {
         key: ["timer"],
-        convertSet: async (entity, key, value: number, meta) => {
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertNumber(value);
             // input in minutes with maximum of 600 minutes (equals 10 hours)
             const timer = 60 * Math.abs(Math.min(value, 600));
             // sendTuyaDataPoint* functions take care of converting the data to proper format
@@ -5067,7 +5207,8 @@ const toZigbee2 = {
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     ZVG1_timer: {
         key: ["timer"],
-        convertSet: async (entity, key, value: number, meta) => {
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertNumber(value);
             // input in minutes with maximum of 600 minutes (equals 10 hours)
             const timer = 60 * Math.abs(Math.min(value, 600));
             // sendTuyaDataPoint* functions take care of converting the data to proper format
@@ -5078,7 +5219,8 @@ const toZigbee2 = {
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     ZVG1_weather_delay: {
         key: ["weather_delay"],
-        convertSet: async (entity, key, value: string, meta) => {
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertString(value);
             const lookup: KeyValueAny = {disabled: 0, "24h": 1, "48h": 2, "72h": 3};
             await sendDataPointEnum(entity, 10, lookup[value]);
         },
@@ -5086,7 +5228,8 @@ const toZigbee2 = {
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     ZVG1_cycle_timer: {
         key: ["cycle_timer_1", "cycle_timer_2", "cycle_timer_3", "cycle_timer_4"],
-        convertSet: async (entity, key, value: string, meta) => {
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertString(value);
             let data = [0];
             const footer = [0x64];
             if (value === "") {
@@ -5148,7 +5291,8 @@ const toZigbee2 = {
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     ZVG1_normal_schedule_timer: {
         key: ["normal_schedule_timer_1", "normal_schedule_timer_2", "normal_schedule_timer_3", "normal_schedule_timer_4"],
-        convertSet: async (entity, key, value: string, meta) => {
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertString(value);
             let data = [0];
             const footer = [0x07, 0xe6, 0x08, 0x01, 0x01];
             if (value === "") {
@@ -5346,7 +5490,8 @@ const toZigbee2 = {
     } satisfies Tz.Converter,
     tuya_thermostat_current_heating_setpoint: {
         key: ["current_heating_setpoint"],
-        convertSet: async (entity, key, value: number, meta) => {
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertNumber(value);
             const temp = Math.round(value * 10);
             await sendDataPointValue(entity, dataPoints.heatingSetpoint, temp);
         },
@@ -5432,7 +5577,8 @@ const toZigbee2 = {
     } satisfies Tz.Converter,
     tuya_thermostat_calibration: {
         key: ["local_temperature_calibration"],
-        convertSet: async (entity, key, value: number, meta) => {
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertNumber(value);
             let temp = Math.round(value * 10);
             if (temp < 0) {
                 temp = 0xffffffff + temp + 1;
@@ -5580,7 +5726,7 @@ const toZigbee2 = {
         key: ["options"],
         // biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
         convertSet: async (entity, key, value: any, meta) => {
-            if (value.reverse_direction !== undefined) {
+            if (value.reverse_direction != null) {
                 if (value.reverse_direction) {
                     logger.info("Motor direction reverse", "zhc:legacy:tz:tuya_cover_options");
                     await sendDataPointEnum(entity, dataPoints.motorDirection, 1);
@@ -5590,7 +5736,7 @@ const toZigbee2 = {
                 }
             }
 
-            if (value.motor_speed !== undefined) {
+            if (value.motor_speed != null) {
                 if (value.motor_speed < 0 || value.motor_speed > 255) {
                     throw new Error("Tuya_cover_control: Motor speed is out of range");
                 }
@@ -5989,7 +6135,7 @@ const toZigbee2 = {
 
                 let hsb: KeyValueAny = {};
 
-                if (value.hsb !== undefined) {
+                if (value.hsb != null) {
                     const split = value.hsb.split(",").map((i: string) => Number.parseInt(i));
                     hsb = fillInHSB(split[0], split[1], split[2], meta.state);
                 } else {
@@ -6013,7 +6159,8 @@ const toZigbee2 = {
     } satisfies Tz.Converter,
     tuya_data_point_test: {
         key: ["tuya_data_point_test"],
-        convertSet: async (entity, key, value: string, meta) => {
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertString(value);
             const args = value.split(",");
             const mode = args[0];
             const dp = Number.parseInt(args[1]);
@@ -6747,6 +6894,162 @@ const toZigbee2 = {
             } else {
                 throw new Error(`Not supported: '${key}'`);
             }
+        },
+    } satisfies Tz.Converter,
+    woox_thermostat_child_lock: {
+        key: ["child_lock"],
+        convertSet: async (entity, key, value, meta) => {
+            await sendDataPointBool(entity, dataPoints.wooxChildLock, value === "LOCK");
+        },
+    } satisfies Tz.Converter,
+    woox_thermostat_current_heating_setpoint: {
+        key: ["current_heating_setpoint"],
+        // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+        convertSet: async (entity, key, value: any, meta) => {
+            const temp = Math.round(value * 10);
+            await sendDataPointValue(entity, dataPoints.wooxControlTemperature, temp);
+        },
+    } satisfies Tz.Converter,
+    woox_thermostat_system_mode: {
+        key: ["system_mode"],
+        convertSet: async (entity, key, value, meta) => {
+            if (value === "auto") {
+                await sendDataPointEnum(entity, dataPoints.wooxMode, 0);
+                await sendDataPointValue(entity, dataPoints.wooxControlTemperature, 220);
+                return {state: {current_heating_setpoint: 22}};
+            }
+
+            if (value === "heat") {
+                await sendDataPointEnum(entity, dataPoints.wooxMode, 1);
+                await sendDataPointValue(entity, dataPoints.wooxControlTemperature, 170);
+                return {state: {current_heating_setpoint: 17}};
+            }
+
+            logger.debug(`Woox thermostat: uknown mode ${value}`, "woox_thermostat_system_mode");
+        },
+    } satisfies Tz.Converter,
+
+    woox_away_mode: {
+        key: ["away_mode"],
+        convertSet: async (entity, key, value, meta) => {
+            if (value === "ON") {
+                await sendDataPointEnum(entity, dataPoints.wooxMode, 2);
+                return {state: {current_heating_setpoint: 0}};
+            }
+
+            await sendDataPointEnum(entity, dataPoints.wooxMode, 0);
+            await sendDataPointValue(entity, dataPoints.wooxControlTemperature, 220);
+            return {state: {current_heating_setpoint: 22}};
+        },
+    } satisfies Tz.Converter,
+
+    woox_comfort_temperature: {
+        key: ["comfort_temperature"],
+        // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+        convertSet: async (entity, key, value: any, meta) => {
+            const temp = Math.round(value * 2);
+            await sendDataPointValue(entity, dataPoints.wooxComfortTemperature, temp);
+        },
+    } satisfies Tz.Converter,
+
+    woox_eco_temperature: {
+        key: ["eco_temperature"],
+        // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+        convertSet: async (entity, key, value: any, meta) => {
+            const temp = Math.round(value * 2);
+            await sendDataPointValue(entity, dataPoints.wooxEnergySavingTemperature, temp);
+        },
+    } satisfies Tz.Converter,
+
+    woox_local_temperature_calibration: {
+        key: ["local_temperature_calibration"],
+        // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+        convertSet: async (entity, key, value: any, meta) => {
+            let val = value;
+            if (val < 0) {
+                val = val + 4096;
+            }
+            const temp = Math.round(val * 10);
+            await sendDataPointValue(entity, dataPoints.wooxTemperatureCalibration, temp);
+        },
+    } satisfies Tz.Converter,
+
+    woox_window_detection_temperature: {
+        key: ["window_detection_temperature"],
+        // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+        convertSet: async (entity, key, value: any, meta) => {
+            const temp = Math.round(value * 2);
+            await sendDataPointValue(entity, dataPoints.wooxWindowTemperature, temp);
+        },
+    } satisfies Tz.Converter,
+
+    woox_window_detection_time: {
+        key: ["window_detection_time"],
+        convertSet: async (entity, key, value, meta) => {
+            await sendDataPointValue(entity, dataPoints.wooxWindowTime, value);
+        },
+    } satisfies Tz.Converter,
+
+    woox_boost_heating: {
+        key: ["boost_heating"],
+        convertSet: async (entity, key, value, meta) => {
+            await sendDataPointBool(entity, dataPoints.wooxBoostHeating, value === "ON");
+        },
+    } satisfies Tz.Converter,
+
+    woox_holidays_schedule: {
+        key: ["holidays_schedule"],
+        convertSet: async (entity, key, value, meta) => {
+            await logger.warning("holidays_schedule", "woox_holidays_schedule");
+        },
+    } satisfies Tz.Converter,
+
+    woox_monday_schedule: {
+        key: ["monday_schedule"],
+        convertSet: async (entity, key, value, meta) => {
+            await logger.warning("monday_schedule", "woox_monday_schedule");
+        },
+    } satisfies Tz.Converter,
+
+    woox_tuesday_schedule: {
+        key: ["tuesday_schedule"],
+        convertSet: async (entity, key, value, meta) => {
+            await logger.warning("tuesday_schedule", "woox_tuesday_schedule");
+        },
+    } satisfies Tz.Converter,
+
+    woox_wednesday_schedule: {
+        key: ["wednesday_schedule"],
+        convertSet: async (entity, key, value, meta) => {
+            await logger.warning("wednesday_schedule", "woox_wednesday_schedule");
+        },
+    } satisfies Tz.Converter,
+
+    woox_thursday_schedule: {
+        key: ["thursday_schedule"],
+        convertSet: async (entity, key, value, meta) => {
+            await logger.warning("thursday_schedule", "woox_thursday_schedule");
+        },
+    } satisfies Tz.Converter,
+
+    woox_friday_schedule: {
+        key: ["friday_schedule"],
+        convertSet: async (entity, key, value, meta) => {
+            await logger.warning("friday_schedule", "woox_friday_schedule");
+        },
+    } satisfies Tz.Converter,
+
+    woox_saturday_schedule: {
+        key: ["saturday_schedule"],
+        convertSet: async (entity, key, value, meta) => {
+            await logger.warning("saturday_schedule", "woox_saturday_schedule");
+        },
+    } satisfies Tz.Converter,
+
+    woox_sunday_schedule: {
+        key: ["sunday_schedule"],
+        convertSet: async (entity, key, value, meta) => {
+            await logger.warning("sunday_schedule", "woox_sunday_schedule");
         },
     } satisfies Tz.Converter,
 };

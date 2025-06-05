@@ -10,12 +10,7 @@ describe("Check definitions", () => {
 
     beforeAll(() => {
         for (const def of baseDefinitions) {
-            definitions.push(
-                prepareDefinition(
-                    // @ts-expect-error inferred type is wrong
-                    def,
-                ),
-            );
+            definitions.push(prepareDefinition(def));
         }
     });
 
@@ -71,6 +66,24 @@ describe("Check definitions", () => {
                 }
 
                 found.push(expose.property);
+            }
+        }
+    });
+
+    it("Model should be unique", () => {
+        const models = new Set<string>();
+        for (const definition of definitions) {
+            assert(!models.has(definition.model), `Duplicate model ${definition.model}`);
+            models.add(definition.model);
+
+            if (definition.whiteLabel) {
+                for (const whiteLabel of definition.whiteLabel) {
+                    // Only consider the ones with `fingerprint`, otherwise they cannot be detected anyway.
+                    if ("fingerprint" in whiteLabel) {
+                        assert(!models.has(whiteLabel.model), `Duplicate model ${whiteLabel.model}`);
+                        models.add(whiteLabel.model);
+                    }
+                }
             }
         }
     });

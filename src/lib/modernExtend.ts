@@ -1,6 +1,7 @@
 import {Zcl} from "zigbee-herdsman";
 import type {ClusterDefinition} from "zigbee-herdsman/dist/zspec/zcl/definition/tstype";
 
+import assert from "node:assert";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import {logger} from "../lib/logger";
@@ -99,7 +100,7 @@ const IAS_EXPOSE_LOOKUP = {
         .withCategory("diagnostic"),
     trouble: e
         .binary("trouble", ea.STATE, true, false)
-        .withDescription("Indicates whether the device is currently havin trouble")
+        .withDescription("Indicates whether the device is currently having trouble")
         .withCategory("diagnostic"),
     battery_defect: e
         .binary("battery_defect", ea.STATE, true, false)
@@ -189,24 +190,36 @@ export async function setupAttributes(
 export function setupConfigureForReporting(
     cluster: string | number,
     attribute: ReportingConfigAttribute,
-    config: ReportingConfigWithoutAttribute,
-    access: Access,
-    endpointNames?: string[],
+    args: {
+        config?: false | ReportingConfigWithoutAttribute;
+        access?: Access;
+        // `endpointNames` and `singleEndpoint` cannot be used together.
+        endpointNames?: string[];
+        // only setup for the first endpoint supporting the `cluster`.
+        singleEndpoint?: boolean;
+    },
 ) {
+    const {config = false, access = undefined, endpointNames = undefined, singleEndpoint = false} = args;
     const configureReporting = !!config;
     const read = !!(access & ea.GET);
     if (configureReporting || read) {
         const configure: Configure = async (device, coordinatorEndpoint, definition) => {
             const reportConfig = config ? {...config, attribute: attribute} : {attribute, min: -1, max: -1, change: -1};
-            let entities: (Zh.Device | Zh.Endpoint)[] = [device];
+            let endpoints: Zh.Endpoint[];
             if (endpointNames) {
+                assert(!singleEndpoint, "`endpointNames` cannot be used together with `singleEndpoint`");
                 const definitionEndpoints = definition.endpoint(device);
                 const endpointIds = endpointNames.map((e) => definitionEndpoints[e]);
-                entities = device.endpoints.filter((e) => endpointIds.includes(e.ID));
+                endpoints = device.endpoints.filter((e) => endpointIds.includes(e.ID));
+            } else {
+                endpoints = getEndpointsWithCluster(device, cluster, "input");
+                if (singleEndpoint) {
+                    endpoints = [endpoints[0]];
+                }
             }
 
-            for (const entity of entities) {
-                await setupAttributes(entity, coordinatorEndpoint, cluster, [reportConfig], configureReporting, read);
+            for (const endpoint of endpoints) {
+                await setupAttributes(endpoint, coordinatorEndpoint, cluster, [reportConfig], configureReporting, read);
             }
         };
         return configure;
@@ -290,9 +303,8 @@ export interface LinkQualityArgs {
     attribute?: string | {ID: number; type: number};
     reportingConfig?: ReportingConfigWithoutAttribute;
 }
-export function linkQuality(args?: LinkQualityArgs): ModernExtend {
-    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
-    args = {reporting: false, attribute: "zclVersion", reportingConfig: {min: "1_HOUR", max: "4_HOURS", change: 0}, ...args};
+export function linkQuality(args: LinkQualityArgs = {}): ModernExtend {
+    const {reporting = false, attribute = "zclVersion", reportingConfig = {min: "1_HOUR", max: "4_HOURS", change: 0}} = args;
 
     // Exposes is empty because the application (e.g. Z2M) adds a linkquality sensor
     // for every device already.
@@ -310,8 +322,8 @@ export function linkQuality(args?: LinkQualityArgs): ModernExtend {
 
     const result: ModernExtend = {exposes, fromZigbee, isModernExtend: true};
 
-    if (args.reporting) {
-        result.configure = [setupConfigureForReporting("genBasic", args.attribute, args.reportingConfig, ea.GET)];
+    if (reporting) {
+        result.configure = [setupConfigureForReporting("genBasic", attribute, {config: reportingConfig, access: ea.GET})];
     }
 
     return result;
@@ -329,23 +341,22 @@ export interface BatteryArgs {
     voltageReporting?: boolean;
     lowStatusReportingConfig?: ReportingConfigWithoutAttribute;
 }
-export function battery(args?: BatteryArgs): ModernExtend {
-    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
-    args = {
-        percentage: true,
-        voltage: false,
-        lowStatus: false,
-        percentageReporting: true,
-        voltageReporting: false,
-        dontDividePercentage: false,
-        percentageReportingConfig: {min: "1_HOUR", max: "MAX", change: 10},
-        voltageReportingConfig: {min: "1_HOUR", max: "MAX", change: 10},
-        ...args,
-    };
-
+export function battery(args: BatteryArgs = {}): ModernExtend {
+    const {
+        percentage = true,
+        voltage = false,
+        lowStatus = false,
+        percentageReporting = true,
+        voltageReporting = false,
+        dontDividePercentage = false,
+        percentageReportingConfig = {min: "1_HOUR", max: "MAX", change: 10},
+        voltageReportingConfig = {min: "1_HOUR", max: "MAX", change: 10},
+        lowStatusReportingConfig = undefined,
+        voltageToPercentage = undefined,
+    } = args;
     const exposes: Expose[] = [];
 
-    if (args.percentage) {
+    if (percentage) {
         exposes.push(
             e
                 .numeric("battery", ea.STATE_GET)
@@ -356,12 +367,12 @@ export function battery(args?: BatteryArgs): ModernExtend {
                 .withCategory("diagnostic"),
         );
     }
-    if (args.voltage) {
+    if (voltage) {
         exposes.push(
             e.numeric("voltage", ea.STATE_GET).withUnit("mV").withDescription("Reported battery voltage in millivolts").withCategory("diagnostic"),
         );
     }
-    if (args.lowStatus) {
+    if (lowStatus) {
         exposes.push(e.binary("battery_low", ea.STATE, true, false).withDescription("Empty battery indicator").withCategory("diagnostic"));
     }
 
@@ -374,18 +385,17 @@ export function battery(args?: BatteryArgs): ModernExtend {
                 if (msg.data.batteryPercentageRemaining !== undefined && msg.data.batteryPercentageRemaining < 255) {
                     // Some devices do not comply to the ZCL and report a
                     // batteryPercentageRemaining of 100 when the battery is full (should be 200).
-                    const dontDividePercentage = args.dontDividePercentage;
                     let percentage = msg.data.batteryPercentageRemaining;
                     percentage = dontDividePercentage ? percentage : percentage / 2;
-                    if (args.percentage) payload.battery = precisionRound(percentage, 2);
+                    if (percentage) payload.battery = precisionRound(percentage, 2);
                 }
 
                 if (msg.data.batteryVoltage !== undefined && msg.data.batteryVoltage < 255) {
                     // Deprecated: voltage is = mV now but should be V
-                    if (args.voltage) payload.voltage = msg.data.batteryVoltage * 100;
+                    if (voltage) payload.voltage = msg.data.batteryVoltage * 100;
 
-                    if (args.voltageToPercentage) {
-                        payload.battery = batteryVoltageToPercentage(payload.voltage, args.voltageToPercentage);
+                    if (voltageToPercentage) {
+                        payload.battery = batteryVoltageToPercentage(payload.voltage, voltageToPercentage);
                     }
                 }
 
@@ -405,7 +415,7 @@ export function battery(args?: BatteryArgs): ModernExtend {
                             msg.data.batteryAlarmState & (1 << 21) ||
                             msg.data.batteryAlarmState & (1 << 22) ||
                             msg.data.batteryAlarmState & (1 << 23)) > 0;
-                    if (args.lowStatus) payload.battery_low = battery1Low || battery2Low || battery3Low;
+                    if (lowStatus) payload.battery_low = battery1Low || battery2Low || battery3Low;
                 }
 
                 return payload;
@@ -417,7 +427,7 @@ export function battery(args?: BatteryArgs): ModernExtend {
         {
             key: ["battery", "voltage"],
             convertGet: async (entity, key, meta) => {
-                // Don't fail GET reqest if reading fails
+                // Don't fail GET request if reading fails
                 // Split reading is needed for more clear debug logs
                 const ep = determineEndpoint(entity, meta, "genPowerCfg");
                 try {
@@ -436,33 +446,49 @@ export function battery(args?: BatteryArgs): ModernExtend {
 
     const result: ModernExtend = {exposes, fromZigbee, toZigbee, configure: [], isModernExtend: true};
 
-    if (args.percentageReporting || args.voltageReporting) {
-        if (args.percentageReporting) {
+    if (percentageReporting || voltageReporting) {
+        if (percentageReporting) {
             result.configure.push(
-                setupConfigureForReporting("genPowerCfg", "batteryPercentageRemaining", args.percentageReportingConfig, ea.STATE_GET),
+                setupConfigureForReporting("genPowerCfg", "batteryPercentageRemaining", {
+                    config: percentageReportingConfig,
+                    access: ea.STATE_GET,
+                    singleEndpoint: true,
+                }),
             );
         }
-        if (args.voltageReporting) {
-            result.configure.push(setupConfigureForReporting("genPowerCfg", "batteryVoltage", args.voltageReportingConfig, ea.STATE_GET));
+        if (voltageReporting) {
+            result.configure.push(
+                setupConfigureForReporting("genPowerCfg", "batteryVoltage", {
+                    config: voltageReportingConfig,
+                    access: ea.STATE_GET,
+                    singleEndpoint: true,
+                }),
+            );
         }
         result.configure.push(configureSetPowerSourceWhenUnknown("Battery"));
     }
 
-    if (args.voltageToPercentage || args.dontDividePercentage) {
+    if (voltageToPercentage || dontDividePercentage) {
         const meta: DefinitionMeta = {battery: {}};
-        if (args.voltageToPercentage) meta.battery.voltageToPercentage = args.voltageToPercentage;
-        if (args.dontDividePercentage) meta.battery.dontDividePercentage = args.dontDividePercentage;
+        if (voltageToPercentage) meta.battery.voltageToPercentage = voltageToPercentage;
+        if (dontDividePercentage) meta.battery.dontDividePercentage = dontDividePercentage;
         result.meta = meta;
     }
 
-    if (args.lowStatusReportingConfig) {
-        result.configure.push(setupConfigureForReporting("genPowerCfg", "batteryAlarmState", args.lowStatusReportingConfig, ea.STATE_GET));
+    if (lowStatusReportingConfig) {
+        result.configure.push(
+            setupConfigureForReporting("genPowerCfg", "batteryAlarmState", {
+                config: lowStatusReportingConfig,
+                access: ea.STATE_GET,
+                singleEndpoint: true,
+            }),
+        );
     }
 
     return result;
 }
 
-export function deviceTemperature(args?: Partial<NumericArgs>) {
+export function deviceTemperature(args: Partial<NumericArgs> = {}) {
     return numeric({
         name: "device_temperature",
         cluster: "genDeviceTempCfg",
@@ -476,9 +502,8 @@ export function deviceTemperature(args?: Partial<NumericArgs>) {
     });
 }
 
-export function identify(args?: {isSleepy: boolean}): ModernExtend {
-    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
-    args = {isSleepy: false, ...args};
+export function identify(args: {isSleepy: boolean} = {isSleepy: false}): ModernExtend {
+    const {isSleepy} = args;
     const normal: Expose = e.enum("identify", ea.SET, ["identify"]).withDescription("Initiate device identification").withCategory("config");
     const sleepy: Expose = e
         .enum("identify", ea.SET, ["identify"])
@@ -488,7 +513,7 @@ export function identify(args?: {isSleepy: boolean}): ModernExtend {
         )
         .withCategory("config");
 
-    const exposes: Expose[] = args.isSleepy ? [sleepy] : [normal];
+    const exposes: Expose[] = isSleepy ? [sleepy] : [normal];
 
     const identifyTimeout = e
         .numeric("identify_timeout", ea.SET)
@@ -521,30 +546,34 @@ export interface OnOffArgs {
     configureReporting?: boolean;
     description?: string;
 }
-export function onOff(args?: OnOffArgs): ModernExtend {
-    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
-    args = {powerOnBehavior: true, skipDuplicateTransaction: false, configureReporting: true, ...args};
+export function onOff(args: OnOffArgs = {}): ModernExtend {
+    const {
+        powerOnBehavior = true,
+        skipDuplicateTransaction = false,
+        configureReporting = true,
+        endpointNames = undefined,
+        description = undefined,
+        ota = false,
+    } = args;
 
-    const exposes: Expose[] = args.description
-        ? exposeEndpoints(e.switch(args.description), args.endpointNames)
-        : exposeEndpoints(e.switch(), args.endpointNames);
+    const exposes: Expose[] = description ? exposeEndpoints(e.switch(description), endpointNames) : exposeEndpoints(e.switch(), endpointNames);
 
-    const fromZigbee: Fz.Converter[] = [args.skipDuplicateTransaction ? fz.on_off_skip_duplicate_transaction : fz.on_off];
-    const toZigbee: Tz.Converter[] = [args?.endpointNames ? {...tz.on_off, endpoints: args?.endpointNames} : tz.on_off];
+    const fromZigbee: Fz.Converter[] = [skipDuplicateTransaction ? fz.on_off_skip_duplicate_transaction : fz.on_off];
+    const toZigbee: Tz.Converter[] = [endpointNames ? {...tz.on_off, endpoints: endpointNames} : tz.on_off];
 
-    if (args.powerOnBehavior) {
-        exposes.push(...exposeEndpoints(e.power_on_behavior(["off", "on", "toggle", "previous"]), args.endpointNames));
+    if (powerOnBehavior) {
+        exposes.push(...exposeEndpoints(e.power_on_behavior(["off", "on", "toggle", "previous"]), endpointNames));
         fromZigbee.push(fz.power_on_behavior);
         toZigbee.push(tz.power_on_behavior);
     }
 
     const result: ModernExtend = {exposes, fromZigbee, toZigbee, isModernExtend: true};
-    if (args.ota) result.ota = args.ota;
-    if (args.configureReporting) {
+    if (ota) result.ota = ota;
+    if (configureReporting) {
         result.configure = [
             async (device, coordinatorEndpoint) => {
                 await setupAttributes(device, coordinatorEndpoint, "genOnOff", [{attribute: "onOff", min: "MIN", max: "MAX", change: 1}]);
-                if (args.powerOnBehavior) {
+                if (powerOnBehavior) {
                     try {
                         // Don't fail configure if reading this attribute fails, some devices don't support it.
                         await setupAttributes(
@@ -555,7 +584,7 @@ export function onOff(args?: OnOffArgs): ModernExtend {
                             false,
                         );
                     } catch (e) {
-                        if (e.message.includes("UNSUPPORTED_ATTRIBUTE")) {
+                        if ((e as Error).message.includes("UNSUPPORTED_ATTRIBUTE")) {
                             logger.debug("Reading startUpOnOff failed, this features is unsupported", "zhc:onoff");
                         } else {
                             throw e;
@@ -574,12 +603,11 @@ export interface CommandsOnOffArgs {
     bind?: boolean;
     endpointNames?: string[];
 }
-export function commandsOnOff(args?: CommandsOnOffArgs): ModernExtend {
-    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
-    args = {commands: ["on", "off", "toggle"], bind: true, ...args};
-    let actions: string[] = args.commands;
-    if (args.endpointNames) {
-        actions = args.commands.flatMap((c) => args.endpointNames.map((e) => `${c}_${e}`));
+export function commandsOnOff(args: CommandsOnOffArgs = {}): ModernExtend {
+    const {commands = ["on", "off", "toggle"], bind = true, endpointNames = undefined} = args;
+    let actions: string[] = commands;
+    if (endpointNames) {
+        actions = commands.flatMap((c) => endpointNames.map((e) => `${c}_${e}`));
     }
     const exposes: Expose[] = [e.enum("action", ea.STATE, actions).withDescription("Triggered action (e.g. a button click)")];
 
@@ -605,7 +633,7 @@ export function commandsOnOff(args?: CommandsOnOffArgs): ModernExtend {
 
     const result: ModernExtend = {exposes, fromZigbee, isModernExtend: true};
 
-    if (args.bind) result.configure = [setupConfigureForBinding("genOnOff", "output", args.endpointNames)];
+    if (bind) result.configure = [setupConfigureForBinding("genOnOff", "output", endpointNames)];
 
     return result;
 }
@@ -649,7 +677,7 @@ export function customTimeResponse(start: "1970_UTC" | "2000_LOCAL"): ModernExte
 
 // #region Measurement and Sensing
 
-export function illuminance(args?: Partial<NumericArgs>): ModernExtend {
+export function illuminance(args: Partial<NumericArgs> = {}): ModernExtend {
     const luxScale: ScaleFunction = (value: number, type: "from" | "to") => {
         let result = value;
         if (type === "from") {
@@ -689,7 +717,7 @@ export function illuminance(args?: Partial<NumericArgs>): ModernExtend {
     return result;
 }
 
-export function temperature(args?: Partial<NumericArgs>) {
+export function temperature(args: Partial<NumericArgs> = {}) {
     return numeric({
         name: "temperature",
         cluster: "msTemperatureMeasurement",
@@ -703,7 +731,7 @@ export function temperature(args?: Partial<NumericArgs>) {
     });
 }
 
-export function pressure(args?: Partial<NumericArgs>): ModernExtend {
+export function pressure(args: Partial<NumericArgs> = {}): ModernExtend {
     return numeric({
         name: "pressure",
         cluster: "msPressureMeasurement",
@@ -717,7 +745,7 @@ export function pressure(args?: Partial<NumericArgs>): ModernExtend {
     });
 }
 
-export function flow(args?: Partial<NumericArgs>) {
+export function flow(args: Partial<NumericArgs> = {}) {
     return numeric({
         name: "flow",
         cluster: "msFlowMeasurement",
@@ -731,7 +759,7 @@ export function flow(args?: Partial<NumericArgs>) {
     });
 }
 
-export function humidity(args?: Partial<NumericArgs>) {
+export function humidity(args: Partial<NumericArgs> = {}) {
     return numeric({
         name: "humidity",
         cluster: "msRelativeHumidity",
@@ -745,7 +773,7 @@ export function humidity(args?: Partial<NumericArgs>) {
     });
 }
 
-export function soilMoisture(args?: Partial<NumericArgs>) {
+export function soilMoisture(args: Partial<NumericArgs> = {}) {
     return numeric({
         name: "soil_moisture",
         cluster: "msSoilMoisture",
@@ -767,13 +795,19 @@ export interface OccupancyArgs {
     reportingConfig?: ReportingConfigWithoutAttribute;
     endpointNames?: string[];
 }
-export function occupancy(args?: OccupancyArgs): ModernExtend {
-    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
-    args = {reporting: true, reportingConfig: {min: "MIN", max: "1_HOUR", change: 0}, ...args};
+export function occupancy(args: OccupancyArgs = {}): ModernExtend {
+    const {
+        reporting = true,
+        reportingConfig = {min: "MIN", max: "1_HOUR", change: 0},
+        pirConfig = undefined,
+        ultrasonicConfig = undefined,
+        contactConfig = undefined,
+        endpointNames = undefined,
+    } = args;
 
     const templateExposes: Expose[] = [e.occupancy().withAccess(ea.STATE_GET)];
-    const exposes: (Expose | DefinitionExposesFunction)[] = args.endpointNames
-        ? templateExposes.flatMap((exp) => args.endpointNames.map((ep) => exp.withEndpoint(ep)))
+    const exposes: (Expose | DefinitionExposesFunction)[] = endpointNames
+        ? templateExposes.flatMap((exp) => endpointNames.map((ep) => exp.withEndpoint(ep)))
         : templateExposes;
 
     const fromZigbee: Fz.Converter[] = [
@@ -782,7 +816,7 @@ export function occupancy(args?: OccupancyArgs): ModernExtend {
             type: ["attributeReport", "readResponse"],
             options: [opt.no_occupancy_since_false()],
             convert: (model, msg, publish, options, meta) => {
-                if ("occupancy" in msg.data && (!args.endpointNames || args.endpointNames.includes(getEndpointName(msg, model, meta).toString()))) {
+                if ("occupancy" in msg.data && (!endpointNames || endpointNames.includes(getEndpointName(msg, model, meta).toString()))) {
                     const propertyName = postfixWithEndpointName("occupancy", msg, model, meta);
                     const payload = {[propertyName]: (msg.data.occupancy & 1) > 0};
                     noOccupancySince(msg.endpoint, options, publish, payload[propertyName] ? "stop" : "start");
@@ -806,15 +840,15 @@ export function occupancy(args?: OccupancyArgs): ModernExtend {
     const settingsTemplate = {
         cluster: "msOccupancySensing",
         description: "",
-        endpointNames: args.endpointNames,
+        endpointNames: endpointNames,
         access: "ALL" as "STATE" | "STATE_GET" | "ALL",
         entityCategory: "config" as "config" | "diagnostic",
     };
 
     const attributesForReading: string[] = [];
 
-    if (args.pirConfig) {
-        if (args.pirConfig.includes("otu_delay")) {
+    if (pirConfig) {
+        if (pirConfig.includes("otu_delay")) {
             settingsExtends.push(
                 numeric({
                     name: "occupancy_timeout",
@@ -828,7 +862,7 @@ export function occupancy(args?: OccupancyArgs): ModernExtend {
             );
             attributesForReading.push("pirOToUDelay");
         }
-        if (args.pirConfig.includes("uto_delay")) {
+        if (pirConfig.includes("uto_delay")) {
             settingsExtends.push(
                 numeric({
                     name: "pir_uto_delay",
@@ -840,7 +874,7 @@ export function occupancy(args?: OccupancyArgs): ModernExtend {
             );
             attributesForReading.push("pirUToODelay");
         }
-        if (args.pirConfig.includes("uto_threshold")) {
+        if (pirConfig.includes("uto_threshold")) {
             settingsExtends.push(
                 numeric({
                     name: "pir_uto_threshold",
@@ -854,8 +888,8 @@ export function occupancy(args?: OccupancyArgs): ModernExtend {
         }
     }
 
-    if (args.ultrasonicConfig) {
-        if (args.pirConfig.includes("otu_delay")) {
+    if (ultrasonicConfig) {
+        if (pirConfig.includes("otu_delay")) {
             settingsExtends.push(
                 numeric({
                     name: "ultrasonic_otu_delay",
@@ -867,7 +901,7 @@ export function occupancy(args?: OccupancyArgs): ModernExtend {
             );
             attributesForReading.push("ultrasonicOToUDelay");
         }
-        if (args.pirConfig.includes("uto_delay")) {
+        if (pirConfig.includes("uto_delay")) {
             settingsExtends.push(
                 numeric({
                     name: "ultrasonic_uto_delay",
@@ -879,7 +913,7 @@ export function occupancy(args?: OccupancyArgs): ModernExtend {
             );
             attributesForReading.push("ultrasonicUToODelay");
         }
-        if (args.pirConfig.includes("uto_threshold")) {
+        if (pirConfig.includes("uto_threshold")) {
             settingsExtends.push(
                 numeric({
                     name: "ultrasonic_uto_threshold",
@@ -893,8 +927,8 @@ export function occupancy(args?: OccupancyArgs): ModernExtend {
         }
     }
 
-    if (args.contactConfig) {
-        if (args.pirConfig.includes("otu_delay")) {
+    if (contactConfig) {
+        if (pirConfig.includes("otu_delay")) {
             settingsExtends.push(
                 numeric({
                     name: "contact_otu_delay",
@@ -906,7 +940,7 @@ export function occupancy(args?: OccupancyArgs): ModernExtend {
             );
             attributesForReading.push("contactOToUDelay");
         }
-        if (args.pirConfig.includes("uto_delay")) {
+        if (pirConfig.includes("uto_delay")) {
             settingsExtends.push(
                 numeric({
                     name: "contact_uto_delay",
@@ -918,7 +952,7 @@ export function occupancy(args?: OccupancyArgs): ModernExtend {
             );
             attributesForReading.push("contactUToODelay");
         }
-        if (args.pirConfig.includes("uto_threshold")) {
+        if (pirConfig.includes("uto_threshold")) {
             settingsExtends.push(
                 numeric({
                     name: "contact_uto_threshold",
@@ -938,16 +972,22 @@ export function occupancy(args?: OccupancyArgs): ModernExtend {
 
     const configure: Configure[] = [];
 
-    if (attributesForReading.length > 0) configure.push(setupConfigureForReading("msOccupancySensing", attributesForReading, args.endpointNames));
+    if (attributesForReading.length > 0) configure.push(setupConfigureForReading("msOccupancySensing", attributesForReading, endpointNames));
 
-    if (args.reporting) {
-        configure.push(setupConfigureForReporting("msOccupancySensing", "occupancy", args.reportingConfig, ea.STATE_GET, args.endpointNames));
+    if (reporting) {
+        configure.push(
+            setupConfigureForReporting("msOccupancySensing", "occupancy", {
+                config: reportingConfig,
+                access: ea.STATE_GET,
+                endpointNames: endpointNames,
+            }),
+        );
     }
 
     return {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
 }
 
-export function co2(args?: Partial<NumericArgs>) {
+export function co2(args: Partial<NumericArgs> = {}) {
     return numeric({
         name: "co2",
         cluster: "msCO2",
@@ -962,7 +1002,7 @@ export function co2(args?: Partial<NumericArgs>) {
     });
 }
 
-export function pm25(args?: Partial<NumericArgs>): ModernExtend {
+export function pm25(args: Partial<NumericArgs> = {}): ModernExtend {
     return numeric({
         name: "pm25",
         cluster: "pm25Measurement",
@@ -989,27 +1029,38 @@ export interface LightArgs {
     endpointNames?: string[];
     ota?: ModernExtend["ota"];
     levelConfig?: {disabledFeatures?: LevelConfigFeatures};
+    levelReportingConfig?: ReportingConfigWithoutAttribute;
 }
-export function light(args?: LightArgs): ModernExtend {
-    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
-    args = {effect: true, powerOnBehavior: true, configureReporting: false, ...args};
-    if (args.colorTemp) {
-        args.colorTemp = {startup: true, ...args.colorTemp};
+export function light(args: LightArgs = {}): ModernExtend {
+    const {
+        effect = true,
+        powerOnBehavior = true,
+        configureReporting = false,
+        ota = false,
+        color = undefined,
+        levelConfig = undefined,
+        turnsOffAtBrightness1 = false,
+        endpointNames = undefined,
+        levelReportingConfig = undefined,
+    } = args;
+    let {colorTemp = undefined} = args;
+    if (colorTemp) {
+        colorTemp = {startup: true, ...colorTemp};
     }
-    const argsColor = args.color
+    const argsColor = color
         ? {
               modes: ["xy"] satisfies ("xy" | "hs")[],
               applyRedFix: false,
               enhancedHue: true,
-              ...(isObject(args.color) ? args.color : {}),
+              ...(isObject(color) ? color : {}),
           }
         : false;
 
-    const lightExpose = exposeEndpoints(e.light().withBrightness(), args.endpointNames);
+    const lightExpose = exposeEndpoints(e.light().withBrightness(), endpointNames);
 
     const fromZigbee: Fz.Converter[] = [fz.on_off, fz.brightness, fz.ignore_basic_report, fz.level_config];
     const toZigbee: Tz.Converter[] = [
-        args?.endpointNames ? {...tz.light_onoff_brightness, endpoints: args?.endpointNames} : tz.light_onoff_brightness,
+        endpointNames ? {...tz.light_onoff_brightness, endpoints: endpointNames} : tz.light_onoff_brightness,
         tz.ignore_transition,
         tz.level_config,
         tz.ignore_rate,
@@ -1018,22 +1069,22 @@ export function light(args?: LightArgs): ModernExtend {
     ];
     const meta: DefinitionMeta = {};
 
-    if (args.colorTemp || argsColor) {
+    if (colorTemp || argsColor) {
         fromZigbee.push(fz.color_colortemp);
-        if (args.colorTemp && argsColor) toZigbee.push(tz.light_color_colortemp);
-        else if (args.colorTemp) toZigbee.push(tz.light_colortemp);
+        if (colorTemp && argsColor) toZigbee.push(tz.light_color_colortemp);
+        else if (colorTemp) toZigbee.push(tz.light_colortemp);
         else if (argsColor) toZigbee.push(tz.light_color);
         toZigbee.push(tz.light_color_mode, tz.light_color_options);
     }
 
-    if (args.colorTemp) {
+    if (colorTemp) {
         // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
-        lightExpose.forEach((e) => e.withColorTemp(args.colorTemp.range));
+        lightExpose.forEach((e) => e.withColorTemp(colorTemp.range));
         toZigbee.push(tz.light_colortemp_move, tz.light_colortemp_step);
-        if (args.colorTemp.startup) {
+        if (colorTemp.startup) {
             toZigbee.push(tz.light_colortemp_startup);
             // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
-            lightExpose.forEach((e) => e.withColorTempStartup(args.colorTemp.range));
+            lightExpose.forEach((e) => e.withColorTempStartup(colorTemp.range));
         }
     }
 
@@ -1052,44 +1103,44 @@ export function light(args?: LightArgs): ModernExtend {
         }
     }
 
-    if (args.levelConfig) {
+    if (levelConfig) {
         // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
-        lightExpose.forEach((e) => e.withLevelConfig(args.levelConfig.disabledFeatures ?? []));
+        lightExpose.forEach((e) => e.withLevelConfig(levelConfig.disabledFeatures ?? []));
         toZigbee.push(tz.level_config);
     }
 
     const exposes: Expose[] = lightExpose;
 
-    if (args.effect) {
+    if (effect) {
         const effects = e.effect();
-        if (args.color) {
+        if (color) {
             effects.values.push("colorloop", "stop_colorloop");
         }
 
-        exposes.push(...exposeEndpoints(effects, args.endpointNames));
+        exposes.push(...exposeEndpoints(effects, endpointNames));
         toZigbee.push(tz.effect);
     }
 
-    if (args.powerOnBehavior) {
-        exposes.push(...exposeEndpoints(e.power_on_behavior(["off", "on", "toggle", "previous"]), args.endpointNames));
+    if (powerOnBehavior) {
+        exposes.push(...exposeEndpoints(e.power_on_behavior(["off", "on", "toggle", "previous"]), endpointNames));
         fromZigbee.push(fz.power_on_behavior);
         toZigbee.push(tz.power_on_behavior);
     }
 
-    if (args.turnsOffAtBrightness1 !== undefined) {
-        meta.turnsOffAtBrightness1 = args.turnsOffAtBrightness1;
+    if (turnsOffAtBrightness1) {
+        meta.turnsOffAtBrightness1 = turnsOffAtBrightness1;
     }
 
     const configure: Configure[] = [
         async (device, coordinatorEndpoint, definition) => {
             await lightConfigure(device, coordinatorEndpoint, true);
 
-            if (args.configureReporting) {
+            if (configureReporting) {
                 await setupAttributes(device, coordinatorEndpoint, "genOnOff", [{attribute: "onOff", min: "MIN", max: "MAX", change: 1}]);
                 await setupAttributes(device, coordinatorEndpoint, "genLevelCtrl", [
-                    {attribute: "currentLevel", min: "10_SECONDS", max: "MAX", change: 1},
+                    {attribute: "currentLevel", min: "5_SECONDS", max: "MAX", change: 1, ...(levelReportingConfig || {})},
                 ]);
-                if (args.colorTemp) {
+                if (colorTemp) {
                     await setupAttributes(device, coordinatorEndpoint, "lightingColorCtrl", [
                         {attribute: "colorTemperature", min: "10_SECONDS", max: "MAX", change: 1},
                     ]);
@@ -1116,7 +1167,7 @@ export function light(args?: LightArgs): ModernExtend {
     ];
 
     const result: ModernExtend = {exposes, fromZigbee, toZigbee, configure, meta, isModernExtend: true};
-    if (args.ota) result.ota = args.ota;
+    if (ota) result.ota = ota;
     return result;
 }
 
@@ -1132,10 +1183,9 @@ export interface CommandsLevelCtrl {
     bind?: boolean;
     endpointNames?: string[];
 }
-export function commandsLevelCtrl(args?: CommandsLevelCtrl): ModernExtend {
-    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
-    args = {
-        commands: [
+export function commandsLevelCtrl(args: CommandsLevelCtrl = {}): ModernExtend {
+    const {
+        commands = [
             "brightness_move_to_level",
             "brightness_move_up",
             "brightness_move_down",
@@ -1143,12 +1193,12 @@ export function commandsLevelCtrl(args?: CommandsLevelCtrl): ModernExtend {
             "brightness_step_down",
             "brightness_stop",
         ],
-        bind: true,
-        ...args,
-    };
-    let actions: string[] = args.commands;
-    if (args.endpointNames) {
-        actions = args.commands.flatMap((c) => args.endpointNames.map((e) => `${c}_${e}`));
+        bind = true,
+        endpointNames = undefined,
+    } = args;
+    let actions: string[] = commands;
+    if (endpointNames) {
+        actions = commands.flatMap((c) => endpointNames.map((e) => `${c}_${e}`));
     }
     const exposes: Expose[] = [
         e.enum("action", ea.STATE, actions).withDescription("Triggered action (e.g. a button click)").withCategory("diagnostic"),
@@ -1158,7 +1208,7 @@ export function commandsLevelCtrl(args?: CommandsLevelCtrl): ModernExtend {
 
     const result: ModernExtend = {exposes, fromZigbee, isModernExtend: true};
 
-    if (args.bind) result.configure = [setupConfigureForBinding("genLevelCtrl", "output", args.endpointNames)];
+    if (bind) result.configure = [setupConfigureForBinding("genLevelCtrl", "output", endpointNames)];
 
     return result;
 }
@@ -1187,10 +1237,9 @@ export interface CommandsColorCtrl {
     bind?: boolean;
     endpointNames?: string[];
 }
-export function commandsColorCtrl(args?: CommandsColorCtrl): ModernExtend {
-    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
-    args = {
-        commands: [
+export function commandsColorCtrl(args: CommandsColorCtrl = {}): ModernExtend {
+    const {
+        commands = [
             "color_temperature_move_stop",
             "color_temperature_move_up",
             "color_temperature_move_down",
@@ -1210,12 +1259,12 @@ export function commandsColorCtrl(args?: CommandsColorCtrl): ModernExtend {
             "move_to_saturation",
             "move_to_hue",
         ],
-        bind: true,
-        ...args,
-    };
-    let actions: string[] = args.commands;
-    if (args.endpointNames) {
-        actions = args.commands.flatMap((c) => args.endpointNames.map((e) => `${c}_${e}`));
+        bind = true,
+        endpointNames = undefined,
+    } = args;
+    let actions: string[] = commands;
+    if (endpointNames) {
+        actions = commands.flatMap((c) => endpointNames.map((e) => `${c}_${e}`));
     }
     const exposes: Expose[] = [
         e.enum("action", ea.STATE, actions).withDescription("Triggered action (e.g. a button click)").withCategory("diagnostic"),
@@ -1224,7 +1273,7 @@ export function commandsColorCtrl(args?: CommandsColorCtrl): ModernExtend {
     const fromZigbee: Fz.Converter[] = [
         fz.command_move_color_temperature,
         fz.command_step_color_temperature,
-        fz.command_ehanced_move_to_hue_and_saturation,
+        fz.command_enhanced_move_to_hue_and_saturation,
         fz.command_move_to_hue_and_saturation,
         fz.command_step_hue,
         fz.command_step_saturation,
@@ -1238,7 +1287,7 @@ export function commandsColorCtrl(args?: CommandsColorCtrl): ModernExtend {
 
     const result: ModernExtend = {exposes, fromZigbee, isModernExtend: true};
 
-    if (args.bind) result.configure = [setupConfigureForBinding("lightingColorCtrl", "output", args.endpointNames)];
+    if (bind) result.configure = [setupConfigureForBinding("lightingColorCtrl", "output", endpointNames)];
 
     return result;
 }
@@ -1276,18 +1325,11 @@ export interface LockArgs {
     pinCodeCount: number;
     endpointNames?: string[];
 }
-export function lock(args?: LockArgs): ModernExtend {
-    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
-    args = {...args};
+export function lock(args: LockArgs): ModernExtend {
+    const {endpointNames = undefined, pinCodeCount} = args;
 
     const fromZigbee = [fz.lock, fz.lock_operation_event, fz.lock_programming_event, fz.lock_pin_code_response, fz.lock_user_status_response];
-    const toZigbee = [
-        {...tz.lock, endpoints: args?.endpointNames},
-        tz.pincode_lock,
-        tz.lock_userstatus,
-        tz.lock_auto_relock_time,
-        tz.lock_sound_volume,
-    ];
+    const toZigbee = [{...tz.lock, endpoints: endpointNames}, tz.pincode_lock, tz.lock_userstatus, tz.lock_auto_relock_time, tz.lock_sound_volume];
     const exposes = [
         e.lock(),
         e.pincode(),
@@ -1298,12 +1340,12 @@ export function lock(args?: LockArgs): ModernExtend {
         e.sound_volume(),
     ];
     const configure: Configure[] = [
-        setupConfigureForReporting("closuresDoorLock", "lockState", {min: "MIN", max: "1_HOUR", change: 0}, ea.STATE_GET),
+        setupConfigureForReporting("closuresDoorLock", "lockState", {config: {min: "MIN", max: "1_HOUR", change: 0}, access: ea.STATE_GET}),
     ];
-    const meta: DefinitionMeta = {pinCodeCount: args.pinCodeCount};
+    const meta: DefinitionMeta = {pinCodeCount: pinCodeCount};
     const result: ModernExtend = {fromZigbee, toZigbee, exposes, configure, meta, isModernExtend: true};
-    if (args.endpointNames) {
-        result.exposes = flatten(exposes.map((expose) => args.endpointNames.map((endpoint) => expose.clone().withEndpoint(endpoint))));
+    if (endpointNames) {
+        result.exposes = flatten(exposes.map((expose) => endpointNames.map((endpoint) => expose.clone().withEndpoint(endpoint))));
     }
     return result;
 }
@@ -1317,57 +1359,52 @@ export interface WindowCoveringArgs {
     endpointNames?: string[];
 }
 export function windowCovering(args: WindowCoveringArgs): ModernExtend {
-    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
-    args = {stateSource: "lift", configureReporting: true, ...args};
+    const {stateSource = "lift", configureReporting = true, controls, coverInverted = false, coverMode, endpointNames = undefined} = args;
     let coverExpose: Cover = e.cover();
-    if (args.controls.includes("lift")) coverExpose = coverExpose.withPosition();
-    if (args.controls.includes("tilt")) coverExpose = coverExpose.withTilt();
+    if (controls.includes("lift")) coverExpose = coverExpose.withPosition();
+    if (controls.includes("tilt")) coverExpose = coverExpose.withTilt();
     const exposes: Expose[] = [coverExpose];
 
     const fromZigbee: Fz.Converter[] = [fz.cover_position_tilt];
-    const toZigbee: Tz.Converter[] = [{...tz.cover_state, endpoints: args?.endpointNames}, tz.cover_position_tilt];
+    const toZigbee: Tz.Converter[] = [{...tz.cover_state, endpoints: endpointNames}, tz.cover_position_tilt];
 
     const result: ModernExtend = {exposes, fromZigbee, toZigbee, isModernExtend: true};
 
-    if (args.configureReporting) {
+    if (configureReporting) {
         const configure: Configure[] = [];
-        if (args.controls.includes("lift")) {
+        if (controls.includes("lift")) {
             configure.push(
-                setupConfigureForReporting(
-                    "closuresWindowCovering",
-                    "currentPositionLiftPercentage",
-                    {min: "1_SECOND", max: "MAX", change: 1},
-                    ea.STATE_GET,
-                ),
+                setupConfigureForReporting("closuresWindowCovering", "currentPositionLiftPercentage", {
+                    config: {min: "1_SECOND", max: "MAX", change: 1},
+                    access: ea.STATE_GET,
+                }),
             );
         }
-        if (args.controls.includes("tilt")) {
+        if (controls.includes("tilt")) {
             configure.push(
-                setupConfigureForReporting(
-                    "closuresWindowCovering",
-                    "currentPositionTiltPercentage",
-                    {min: "1_SECOND", max: "MAX", change: 1},
-                    ea.STATE_GET,
-                ),
+                setupConfigureForReporting("closuresWindowCovering", "currentPositionTiltPercentage", {
+                    config: {min: "1_SECOND", max: "MAX", change: 1},
+                    access: ea.STATE_GET,
+                }),
             );
         }
         result.configure = configure;
     }
 
-    if (args.coverInverted || args.stateSource === "tilt") {
+    if (coverInverted || stateSource === "tilt") {
         const meta: DefinitionMeta = {};
-        if (args.coverInverted) meta.coverInverted = true;
-        if (args.stateSource === "tilt") meta.coverStateFromTilt = true;
+        if (coverInverted) meta.coverInverted = true;
+        if (stateSource === "tilt") meta.coverStateFromTilt = true;
         result.meta = meta;
     }
 
-    if (args.coverMode) {
+    if (coverMode) {
         result.toZigbee.push(tz.cover_mode);
         result.exposes.push(e.cover_mode());
     }
 
-    if (args.endpointNames) {
-        result.exposes = flatten(exposes.map((expose) => args.endpointNames.map((endpoint) => expose.clone().withEndpoint(endpoint))));
+    if (endpointNames) {
+        result.exposes = flatten(exposes.map((expose) => endpointNames.map((endpoint) => expose.clone().withEndpoint(endpoint))));
     }
 
     return result;
@@ -1378,12 +1415,11 @@ export interface CommandsWindowCoveringArgs {
     bind?: boolean;
     endpointNames?: string[];
 }
-export function commandsWindowCovering(args?: CommandsWindowCoveringArgs): ModernExtend {
-    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
-    args = {commands: ["open", "close", "stop"], bind: true, ...args};
-    let actions: string[] = args.commands;
-    if (args.endpointNames) {
-        actions = args.commands.flatMap((c) => args.endpointNames.map((e) => `${c}_${e}`));
+export function commandsWindowCovering(args: CommandsWindowCoveringArgs = {}): ModernExtend {
+    const {commands = ["open", "close", "stop"], bind = true, endpointNames = undefined} = args;
+    let actions: string[] = commands;
+    if (endpointNames) {
+        actions = commands.flatMap((c) => endpointNames.map((e) => `${c}_${e}`));
     }
     const exposes: Expose[] = [
         e.enum("action", ea.STATE, actions).withDescription("Triggered action (e.g. a button click)").withCategory("diagnostic"),
@@ -1410,7 +1446,7 @@ export function commandsWindowCovering(args?: CommandsWindowCoveringArgs): Moder
 
     const result: ModernExtend = {exposes, fromZigbee, isModernExtend: true};
 
-    if (args.bind) result.configure = [setupConfigureForBinding("closuresWindowCovering", "output", args.endpointNames)];
+    if (bind) result.configure = [setupConfigureForBinding("closuresWindowCovering", "output", endpointNames)];
 
     return result;
 }
@@ -1522,7 +1558,7 @@ export function iasZoneAlarm(args: IasArgs): ModernExtend {
                 : [],
             convert: (model, msg, publish, options, meta) => {
                 if (args.alarmTimeout) {
-                    const timeout = options?.[timeoutProperty] !== undefined ? Number(options[timeoutProperty]) : 90;
+                    const timeout = options?.[timeoutProperty] != null ? Number(options[timeoutProperty]) : 90;
                     clearTimeout(globalStore.getValue(msg.endpoint, "timer"));
                     if (timeout !== 0) {
                         const timer = setTimeout(() => publish({[alarm1Name]: false, [alarm2Name]: false}), timeout * 1000);
@@ -1616,7 +1652,8 @@ export function iasZoneAlarm(args: IasArgs): ModernExtend {
 export interface IasWarningArgs {
     reversePayload?: boolean;
 }
-export function iasWarning(args?: IasWarningArgs): ModernExtend {
+export function iasWarning(args: IasWarningArgs = {}): ModernExtend {
+    const {reversePayload = false} = args;
     const warningMode = {stop: 0, burglar: 1, fire: 2, emergency: 3, police_panic: 4, fire_panic: 5, emergency_panic: 6};
     // levels for siren, strobe and squawk are identical
     const level = {low: 0, medium: 1, high: 2, very_high: 3};
@@ -1642,18 +1679,18 @@ export function iasWarning(args?: IasWarningArgs): ModernExtend {
                     // @ts-expect-error ignore
                     level: value.level || "medium",
                     // @ts-expect-error ignore
-                    strobe: value.strobe !== undefined ? value.strobe : true,
+                    strobe: value.strobe != null ? value.strobe : true,
                     // @ts-expect-error ignore
-                    duration: value.duration !== undefined ? value.duration : 10,
+                    duration: value.duration != null ? value.duration : 10,
                     // @ts-expect-error ignore
-                    strobeDutyCycle: value.strobe_duty_cycle !== undefined ? value.strobe_duty_cycle * 10 : 0,
+                    strobeDutyCycle: value.strobe_duty_cycle != null ? value.strobe_duty_cycle * 10 : 0,
                     // @ts-expect-error ignore
-                    strobeLevel: value.strobe_level !== undefined ? utils.getFromLookup(value.strobe_level, strobeLevel) : 1,
+                    strobeLevel: value.strobe_level != null ? utils.getFromLookup(value.strobe_level, strobeLevel) : 1,
                 };
 
                 // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
                 let info;
-                if (args?.reversePayload) {
+                if (reversePayload) {
                     info = getFromLookup(values.mode, warningMode) + ((values.strobe ? 1 : 0) << 4) + (getFromLookup(values.level, level) << 6);
                 } else {
                     info = (getFromLookup(values.mode, warningMode) << 4) + ((values.strobe ? 1 : 0) << 2) + getFromLookup(values.level, level);
@@ -1700,7 +1737,7 @@ interface MeterArgs {
     powerFactor?: boolean;
     fzElectricalMeasurement?: Fz.Converter;
 }
-function genericMeter(args?: MeterArgs) {
+function genericMeter(args: MeterArgs = {}) {
     if (args.cluster !== "electrical") {
         const divisors = new Set([
             args.cluster === "metering" && isObject(args.power) ? args.power?.divisor : false,
@@ -1992,7 +2029,8 @@ function genericMeter(args?: MeterArgs) {
                     const ep = determineEndpoint(entity, meta, "seMetering");
                     await ep.read("seMetering", ["currentSummDelivered"]);
                 },
-                convertSet: async (entity, key, value: number, meta) => {
+                convertSet: async (entity, key, value, meta) => {
+                    assertNumber(value);
                     await entity.write("seMetering", {currentSummDelivered: Math.round(value * 100)});
                     return {state: {energy: value}};
                 },
@@ -2099,9 +2137,8 @@ function genericMeter(args?: MeterArgs) {
 export interface ElectricityMeterArgs extends MeterArgs {
     type?: "electricity";
 }
-export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
-    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
-    args = {
+export function electricityMeter(args: ElectricityMeterArgs = {}): ModernExtend {
+    return genericMeter({
         type: "electricity",
         cluster: "both",
         electricalMeasurementType: "ac",
@@ -2113,17 +2150,15 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
         status: false,
         extendedStatus: false,
         ...args,
-    };
-    return genericMeter(args);
+    });
 }
 
 // Uses Metering to measure volume of gas consumed
 export interface GasMeterArgs extends MeterArgs {
     type?: "gas";
 }
-export function gasMeter(args?: GasMeterArgs): ModernExtend {
-    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
-    args = {
+export function gasMeter(args: GasMeterArgs = {}): ModernExtend {
+    return genericMeter({
         type: "gas",
         cluster: "metering",
         configureReporting: true,
@@ -2131,25 +2166,132 @@ export function gasMeter(args?: GasMeterArgs): ModernExtend {
         extendedStatus: true,
         producedEnergy: false,
         ...args,
-    };
-    return genericMeter(args);
+    });
 }
 // #endregion
 
 // #region Other extends
+
+/**
+ * Version of the GP spec: 1.1.1
+ */
+export const GPDF_COMMANDS: Record<number, string> = {
+    /*0x00*/ 0: "identify",
+    /*0x10*/ 16: "recall_scene0",
+    /*0x11*/ 17: "recall_scene1",
+    /*0x12*/ 18: "recall_scene2",
+    /*0x13*/ 19: "recall_scene3",
+    /*0x14*/ 20: "recall_scene4",
+    /*0x15*/ 21: "recall_scene5",
+    /*0x16*/ 22: "recall_scene6",
+    /*0x17*/ 23: "recall_scene7",
+    /*0x18*/ 24: "store_scene0",
+    /*0x19*/ 25: "store_scene1",
+    /*0x1a*/ 26: "store_scene2",
+    /*0x1b*/ 27: "store_scene3",
+    /*0x1c*/ 28: "store_scene4",
+    /*0x1d*/ 29: "store_scene5",
+    /*0x1e*/ 30: "store_scene6",
+    /*0x1f*/ 31: "store_scene7",
+    /*0x20*/ 32: "off",
+    /*0x21*/ 33: "on",
+    /*0x22*/ 34: "toggle",
+    /*0x23*/ 35: "release",
+    /*0x30*/ 48: "move_up", // with payload
+    /*0x31*/ 49: "move_down", // with payload
+    /*0x32*/ 50: "step_up", // with payload
+    /*0x33*/ 51: "step_down", // with payload
+    /*0x34*/ 52: "level_control_stop",
+    /*0x35*/ 53: "move_up_with_on_off", // with payload
+    /*0x36*/ 54: "move_down_with_on_off", // with payload
+    /*0x37*/ 55: "step_up_with_on_off", // with payload
+    /*0x38*/ 56: "step_down_with_on_off", // with payload
+    /*0x40*/ 64: "move_hue_stop",
+    /*0x41*/ 65: "move_hue_up", // with payload
+    /*0x42*/ 66: "move_hue_down", // with payload
+    /*0x43*/ 67: "step_hue_up", // with payload
+    /*0x44*/ 68: "step_huw_down", // with payload
+    /*0x45*/ 69: "move_saturation_stop",
+    /*0x46*/ 70: "move_saturation_up", // with payload
+    /*0x47*/ 71: "move_saturation_down", // with payload
+    /*0x48*/ 72: "step_saturation_up", // with payload
+    /*0x49*/ 73: "step_saturation_down", // with payload
+    /*0x4a*/ 74: "move_color", // with payload
+    /*0x4b*/ 75: "step_color", // with payload
+    /*0x50*/ 80: "lock_door",
+    /*0x51*/ 81: "unlock_door",
+    /*0x60*/ 96: "press11",
+    /*0x61*/ 97: "release11",
+    /*0x62*/ 98: "press12",
+    /*0x63*/ 99: "release12",
+    /*0x64*/ 100: "press22",
+    /*0x65*/ 101: "release22",
+    /*0x66*/ 102: "short_press11",
+    /*0x67*/ 103: "short_press12",
+    /*0x68*/ 104: "short_press22",
+    /*0x69*/ 105: "press_8bit_vector", // with payload
+    /*0x6a*/ 106: "release_8bit_vector", // with payload
+    /*0xa0*/ 160: "attribute_reporting", // with payload
+    /*0xa1*/ 161: "manufacture_specific_attr_reporting", // with payload
+    /*0xa2*/ 162: "multi_cluster_reporting", // with payload
+    /*0xa3*/ 163: "manufacturer_specific_mcluster_reporting", // with payload
+    /*0xa4*/ 164: "request_attributes", // with payload
+    /*0xa5*/ 165: "read_attributes_response", // with payload
+    /*0xa6*/ 166: "zcl_tunneling", // with payload
+    /*0xa8*/ 168: "compact_attribute_reporting", // with payload
+    /*0xaf*/ 175: "any_sensor_command_a0_a3", // with payload
+    /*0xe0*/ 224: "commissioning", // with payload
+    /*0xe1*/ 225: "decommissioning",
+    /*0xe2*/ 226: "success",
+    /*0xe3*/ 227: "channel_request", // with payload
+    /*0xe4*/ 228: "application_description", // with payload
+    //-- sent to GPD
+    // /*0xf0*/ 240: "commissioning_reply",
+    // /*0xf1*/ 241: "write_attributes",
+    // /*0xf2*/ 242: "read_attributes",
+    // /*0xf3*/ 243: "channel_configuration",
+    // /*0xf6*/ 246: "zcl_tunneling",
+};
+
+export function genericGreenPower(): ModernExtend {
+    const exposes = [
+        e.action(Object.values(GPDF_COMMANDS)),
+        e.list("payload", ea.STATE, e.numeric("payload", ea.STATE).withDescription("Byte")).withDescription("Payload of the command"),
+    ];
+    const fromZigbee: Fz.Converter[] = [
+        {
+            cluster: "greenPower",
+            type: ["commandNotification", "commandCommissioningNotification"],
+            convert: (model, msg, publish, options, meta) => {
+                const commandID = msg.data.commandID as number;
+                if (hasAlreadyProcessedMessage(msg, model, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
+                if (commandID >= 0xe0) return; // Skip op commands
+
+                const gpdfCommandStr = GPDF_COMMANDS[commandID];
+                const payloadBuf = msg.data.commandFrame.raw as Buffer | undefined;
+
+                return {
+                    action: gpdfCommandStr ?? `unknown_${commandID}`,
+                    payload: payloadBuf?.length > 0 ? Array.from(payloadBuf) : [],
+                };
+            },
+        },
+    ];
+
+    return {exposes, fromZigbee, isModernExtend: true};
+}
 
 export interface CommandsScenesArgs {
     commands?: string[];
     bind?: boolean;
     endpointNames?: string[];
 }
-export function commandsScenes(args?: CommandsScenesArgs) {
-    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
-    args = {commands: ["recall", "store", "add", "remove", "remove_all"], bind: true, ...args};
+export function commandsScenes(args: CommandsScenesArgs = {}) {
+    const {commands = ["recall", "store", "add", "remove", "remove_all"], bind = true, endpointNames = undefined} = args;
     // biome-ignore lint/style/noNonNullAssertion: ignored using `--suppress`
-    let actions = args.commands!;
-    if (args.endpointNames) {
-        actions = args.commands.flatMap((c) => args.endpointNames.map((e) => `${c}_${e}`));
+    let actions = commands!;
+    if (endpointNames) {
+        actions = commands.flatMap((c) => endpointNames.map((e) => `${c}_${e}`));
     }
     const exposesArray = [e.enum("action", ea.STATE, actions).withDescription("Triggered scene action (e.g. recall a scene)")];
 
@@ -2182,7 +2324,7 @@ export function commandsScenes(args?: CommandsScenesArgs) {
 
     const result: ModernExtend = {exposes: exposesArray, fromZigbee, isModernExtend: true};
 
-    if (args.bind) result.configure = [setupConfigureForBinding("genScenes", "output", args.endpointNames)];
+    if (bind) result.configure = [setupConfigureForBinding("genScenes", "output", endpointNames)];
 
     return result;
 }
@@ -2247,7 +2389,7 @@ export function enumLookup(args: EnumLookupArgs): ModernExtend {
         },
     ];
 
-    const configure: Configure[] = [setupConfigureForReporting(cluster, attribute, reporting, access)];
+    const configure: Configure[] = [setupConfigureForReporting(cluster, attribute, {config: reporting, access})];
 
     return {exposes: [expose], fromZigbee, toZigbee, configure, isModernExtend: true};
 }
@@ -2379,10 +2521,7 @@ export function numeric(args: NumericArgs): ModernExtend {
         },
     ];
 
-    const configure: Configure[] = [];
-    if (reporting) {
-        configure.push(setupConfigureForReporting(cluster, attribute, reporting, access, endpoints));
-    }
+    const configure: Configure[] = [setupConfigureForReporting(cluster, attribute, {config: reporting, access, endpointNames: endpoints})];
 
     return {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
 }
@@ -2447,10 +2586,7 @@ export function binary(args: BinaryArgs): ModernExtend {
         },
     ];
 
-    const configure: Configure[] = [];
-    if (reporting) {
-        configure.push(setupConfigureForReporting(cluster, attribute, reporting, access));
-    }
+    const configure: Configure[] = [setupConfigureForReporting(cluster, attribute, {config: reporting, access})];
 
     return {exposes: [expose], fromZigbee, toZigbee, configure, isModernExtend: true};
 }
@@ -2510,7 +2646,7 @@ export function text(args: TextArgs): ModernExtend {
         },
     ];
 
-    const configure: Configure[] = [setupConfigureForReporting(cluster, attribute, reporting, access)];
+    const configure: Configure[] = [setupConfigureForReporting(cluster, attribute, {config: reporting, access})];
 
     return {exposes: [expose], fromZigbee, toZigbee, configure, isModernExtend: true};
 }

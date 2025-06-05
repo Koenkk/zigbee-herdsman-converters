@@ -48,6 +48,7 @@ export const definitions: DefinitionWithExtend[] = [
             }
             // Not all devices support all actions (depends on number of rocker rows and if relay/dimmer is installed),
             // but defining all possible actions here won't do any harm.
+            // The recall actions are only emitted when the `genScenes` cluster is bound to a group/light.
             expose.push(
                 e.action([
                     "off_row_1",
@@ -70,6 +71,7 @@ export const definitions: DefinitionWithExtend[] = [
                     "brightness_step_down_row_4",
                     "brightness_step_up_row_4",
                     "brightness_stop_row_4",
+                    "recall_*_row_*",
                 ]),
             );
 
@@ -79,10 +81,13 @@ export const definitions: DefinitionWithExtend[] = [
         configure: async (device, coordinatorEndpoint) => {
             // Depending on the actual devices - 6735, 6736, or 6737 - there are 1, 2, or 4 endpoints for
             // the rockers. If the module is installed on a dimmer or relay, there is an additional endpoint (18).
+
+            // These devices only have a very limited amount of memory available. Possibly depending on network size (?)
+            // they only support around 5 bindings so we need to be very careful about the binding setup. We intentionally
+            // skip binding the endpoint 18 (light endpoint) to the coordinator. The device does not support ZigBee
+            // reporting anyways and we poll the device's state instead, so this does not cause any loss of functionality.
             const endpoint18 = device.getEndpoint(0x12);
-            if (endpoint18 != null) {
-                await reporting.bind(endpoint18, coordinatorEndpoint, ["genOnOff", "genLevelCtrl"]);
-            } else {
+            if (endpoint18 == null) {
                 // We only need to bind endpoint 10 (top rocker) if endpoint 18 (relay/dimmer) is not present.
                 // Otherwise the top rocker is hard-wired to the relay/dimmer and cannot be used anyways.
                 const endpoint10 = device.getEndpoint(0x0a);
@@ -91,42 +96,29 @@ export const definitions: DefinitionWithExtend[] = [
                 }
             }
 
-            // The total number of bindings seems to be severely limited with some of these devices.
-            // In order to be able to toggle groups, we need to remove the scenes cluster from RM01.
-            const dropScenesCluster = device.modelID === "RM01";
-
             const endpoint11 = device.getEndpoint(0x0b);
             if (endpoint11 != null) {
-                if (dropScenesCluster) {
-                    const index = endpoint11.outputClusters.indexOf(5);
-                    if (index > -1) {
-                        endpoint11.outputClusters.splice(index, 1);
-                    }
-                }
                 await reporting.bind(endpoint11, coordinatorEndpoint, ["genLevelCtrl"]);
             }
             const endpoint12 = device.getEndpoint(0x0c);
             if (endpoint12 != null) {
-                if (dropScenesCluster) {
-                    const index = endpoint12.outputClusters.indexOf(5);
-                    if (index > -1) {
-                        endpoint12.outputClusters.splice(index, 1);
-                    }
-                }
                 await reporting.bind(endpoint12, coordinatorEndpoint, ["genLevelCtrl"]);
             }
             const endpoint13 = device.getEndpoint(0x0d);
             if (endpoint13 != null) {
-                if (dropScenesCluster) {
-                    const index = endpoint13.outputClusters.indexOf(5);
-                    if (index > -1) {
-                        endpoint13.outputClusters.splice(index, 1);
-                    }
-                }
                 await reporting.bind(endpoint13, coordinatorEndpoint, ["genLevelCtrl"]);
             }
         },
-        fromZigbee: [fz.ignore_basic_report, fz.on_off, fz.brightness, fz.command_on, fz.command_off, fz.command_step, fz.command_stop],
+        fromZigbee: [
+            fz.ignore_basic_report,
+            fz.on_off,
+            fz.brightness,
+            fz.command_on,
+            fz.command_off,
+            fz.command_step,
+            fz.command_stop,
+            fz.command_recall,
+        ],
         options: [
             e
                 .numeric("state_poll_interval", ea.SET)
@@ -135,7 +127,7 @@ export const definitions: DefinitionWithExtend[] = [
                     "This device does not support state reporting so it is polled instead. The default poll interval is 60 seconds, set to -1 to disable.",
                 ),
         ],
-        toZigbee: [tz.RM01_light_onoff_brightness, tz.RM01_light_brightness_step, tz.RM01_light_brightness_move],
+        toZigbee: [tz.light_onoff_brightness, tz.light_brightness_step, tz.light_brightness_move],
         onEvent: (type, data, device, options) => {
             const switchEndpoint = device.getEndpoint(0x12);
             if (switchEndpoint == null) {

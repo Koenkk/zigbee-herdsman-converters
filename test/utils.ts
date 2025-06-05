@@ -72,6 +72,7 @@ function mockEndpoint(args: MockEndpointArgs, device: Zh.Device | undefined): Zh
         bind: vi.fn(),
         configureReporting: vi.fn(),
         read: vi.fn(),
+        command: vi.fn(),
         getDevice: () => device,
         inputClusters,
         outputClusters,
@@ -114,7 +115,7 @@ export type AssertDefinitionArgs = {
     endpoints?: {[s: string]: number};
     findByDeviceFn?: (device: Device) => Promise<Definition>;
 };
-export async function assertDefintion(args: AssertDefinitionArgs) {
+export async function assertDefinition(args: AssertDefinitionArgs) {
     args.findByDeviceFn = args.findByDeviceFn ?? findByDevice;
     const coordinatorEndpoint = mockEndpoint({}, undefined);
     const definition = await args.findByDeviceFn(args.device);

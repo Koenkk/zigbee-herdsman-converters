@@ -729,14 +729,14 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
         dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 101,
-        description: "Intesity of LED strip when on. 101 = Synchronized with default all LED strip intensity parameter.",
+        description: "Intensity of LED strip when on. 101 = Synchronized with default all LED strip intensity parameter.",
     },
     defaultLed1IntensityWhenOff: {
         ID: 63,
         dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 101,
-        description: "Intesity of LED strip when off. 101 = Synchronized with default all LED strip intensity parameter.",
+        description: "Intensity of LED strip when off. 101 = Synchronized with default all LED strip intensity parameter.",
     },
     defaultLed2ColorWhenOn: {
         ID: 65,
@@ -759,14 +759,14 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
         dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 101,
-        description: "Intesity of LED strip when on. 101 = Synchronized with default all LED strip intensity parameter.",
+        description: "Intensity of LED strip when on. 101 = Synchronized with default all LED strip intensity parameter.",
     },
     defaultLed2IntensityWhenOff: {
         ID: 68,
         dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 101,
-        description: "Intesity of LED strip when off. 101 = Synchronized with default all LED strip intensity parameter.",
+        description: "Intensity of LED strip when off. 101 = Synchronized with default all LED strip intensity parameter.",
     },
     defaultLed3ColorWhenOn: {
         ID: 70,
@@ -789,14 +789,14 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
         dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 101,
-        description: "Intesity of LED strip when on. 101 = Synchronized with default all LED strip intensity parameter.",
+        description: "Intensity of LED strip when on. 101 = Synchronized with default all LED strip intensity parameter.",
     },
     defaultLed3IntensityWhenOff: {
         ID: 73,
         dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 101,
-        description: "Intesity of LED strip when off. 101 = Synchronized with default all LED strip intensity parameter.",
+        description: "Intensity of LED strip when off. 101 = Synchronized with default all LED strip intensity parameter.",
     },
     defaultLed4ColorWhenOn: {
         ID: 75,
@@ -819,14 +819,14 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
         dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 101,
-        description: "Intesity of LED strip when on. 101 = Synchronized with default all LED strip intensity parameter.",
+        description: "Intensity of LED strip when on. 101 = Synchronized with default all LED strip intensity parameter.",
     },
     defaultLed4IntensityWhenOff: {
         ID: 78,
         dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 101,
-        description: "Intesity of LED strip when off. 101 = Synchronized with default all LED strip intensity parameter.",
+        description: "Intensity of LED strip when off. 101 = Synchronized with default all LED strip intensity parameter.",
     },
     defaultLed5ColorWhenOn: {
         ID: 80,
@@ -849,14 +849,14 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
         dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 101,
-        description: "Intesity of LED strip when on. 101 = Synchronized with default all LED strip intensity parameter.",
+        description: "Intensity of LED strip when on. 101 = Synchronized with default all LED strip intensity parameter.",
     },
     defaultLed5IntensityWhenOff: {
         ID: 83,
         dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 101,
-        description: "Intesity of LED strip when off. 101 = Synchronized with default all LED strip intensity parameter.",
+        description: "Intensity of LED strip when off. 101 = Synchronized with default all LED strip intensity parameter.",
     },
     defaultLed6ColorWhenOn: {
         ID: 85,
@@ -879,14 +879,14 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
         dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 101,
-        description: "Intesity of LED strip when on. 101 = Synchronized with default all LED strip intensity parameter.",
+        description: "Intensity of LED strip when on. 101 = Synchronized with default all LED strip intensity parameter.",
     },
     defaultLed6IntensityWhenOff: {
         ID: 88,
         dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 101,
-        description: "Intesity of LED strip when off. 101 = Synchronized with default all LED strip intensity parameter.",
+        description: "Intensity of LED strip when off. 101 = Synchronized with default all LED strip intensity parameter.",
     },
     defaultLed7ColorWhenOn: {
         ID: 90,
@@ -909,14 +909,14 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
         dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 101,
-        description: "Intesity of LED strip when on. 101 = Synchronized with default all LED strip intensity parameter.",
+        description: "Intensity of LED strip when on. 101 = Synchronized with default all LED strip intensity parameter.",
     },
     defaultLed7IntensityWhenOff: {
         ID: 93,
         dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 101,
-        description: "Intesity of LED strip when off. 101 = Synchronized with default all LED strip intensity parameter.",
+        description: "Intensity of LED strip when off. 101 = Synchronized with default all LED strip intensity parameter.",
     },
     doubleTapClearNotifications: {
         ID: 262,
@@ -1403,7 +1403,7 @@ const tzLocal = {
                 "individualLedEffect",
                 {
                     // @ts-expect-error ignore
-                    led: Math.min(Math.max(0, Number.parseInt(values.led)), 7),
+                    led: Math.min(Math.max(1, Number.parseInt(values.led)), 7) - 1,
                     // @ts-expect-error ignore
                     effect: individualLedEffects[values.effect],
                     // @ts-expect-error ignore
@@ -1429,14 +1429,14 @@ const tzLocal = {
             const transition = utils.getTransition(entity, "brightness", meta);
             const turnsOffAtBrightness1 = utils.getMetaValue(entity, meta.mapped, "turnsOffAtBrightness1", "allEqual", false);
             let state =
-                message.state !== undefined
+                message.state != null
                     ? // @ts-expect-error ignore
                       message.state.toLowerCase()
                     : undefined;
             let brightness = undefined;
-            if (message.brightness !== undefined) {
+            if (message.brightness != null) {
                 brightness = Number(message.brightness);
-            } else if (message.brightness_percent !== undefined) {
+            } else if (message.brightness_percent != null) {
                 brightness = utils.mapNumberRange(Number(message.brightness_percent), 0, 100, 0, 255);
             }
 
@@ -1527,7 +1527,8 @@ const tzLocal = {
     fan_mode: (endpointId: number) =>
         ({
             key: ["fan_mode"],
-            convertSet: async (entity, key, value: string, meta) => {
+            convertSet: async (entity, key, value, meta) => {
+                utils.assertString(value);
                 const endpoint = meta.device.getEndpoint(endpointId);
                 await endpoint.command(
                     "genLevelCtrl",
@@ -1565,7 +1566,7 @@ const tzLocal = {
     fan_state: {
         key: ["fan_state"],
         convertSet: async (entity, key, value, meta) => {
-            const state = meta.message.fan_state !== undefined ? meta.message.fan_state.toString().toLowerCase() : null;
+            const state = meta.message.fan_state != null ? meta.message.fan_state.toString().toLowerCase() : null;
             utils.validateValue(state, ["toggle", "off", "on"]);
 
             await entity.command("genOnOff", state, {}, utils.getOptions(meta.mapped, entity));
@@ -1594,9 +1595,9 @@ const tzLocal = {
             const state = typeof meta.message.fan_state === "string" ? meta.message.fan_state.toLowerCase() : null;
             utils.validateValue(state, ["toggle", "off", "on"]);
 
-            if (state === "on" && (meta.message.on_time !== undefined || meta.message.off_wait_time !== undefined)) {
-                const onTime = meta.message.on_time !== undefined ? meta.message.on_time : 0;
-                const offWaitTime = meta.message.off_wait_time !== undefined ? meta.message.off_wait_time : 0;
+            if (state === "on" && (meta.message.on_time != null || meta.message.off_wait_time != null)) {
+                const onTime = meta.message.on_time != null ? meta.message.on_time : 0;
+                const offWaitTime = meta.message.off_wait_time != null ? meta.message.off_wait_time : 0;
 
                 if (typeof onTime !== "number") {
                     throw Error("The on_time value must be a number!");
@@ -1624,45 +1625,46 @@ const tzLocal = {
     breezeMode: (endpointId: number) =>
         ({
             key: ["breezeMode"],
-            convertSet: async (entity, key, values: BreezeModeValues, meta) => {
+            convertSet: async (entity, key, value, meta) => {
+                utils.assertObject<BreezeModeValues>(value);
                 // Calculate the value..
                 let configValue = 0;
                 let term = false;
-                configValue += speedToInt(values.speed1);
-                configValue += (Number(values.time1) / 5) * 4;
+                configValue += speedToInt(value.speed1);
+                configValue += (Number(value.time1) / 5) * 4;
 
-                let speed = speedToInt(values.speed2);
+                let speed = speedToInt(value.speed2);
 
                 if (speed !== 0) {
                     configValue += speed * 64;
-                    configValue += (values.time2 / 5) * 256;
+                    configValue += (value.time2 / 5) * 256;
                 } else {
                     term = true;
                 }
 
-                speed = speedToInt(values.speed3);
+                speed = speedToInt(value.speed3);
 
                 if (speed !== 0 && !term) {
                     configValue += speed * 4096;
-                    configValue += (values.time3 / 5) * 16384;
+                    configValue += (value.time3 / 5) * 16384;
                 } else {
                     term = true;
                 }
 
-                speed = speedToInt(values.speed4);
+                speed = speedToInt(value.speed4);
 
                 if (speed !== 0 && !term) {
                     configValue += speed * 262144;
-                    configValue += (values.time4 / 5) * 1048576;
+                    configValue += (value.time4 / 5) * 1048576;
                 } else {
                     term = true;
                 }
 
-                speed = speedToInt(values.speed5);
+                speed = speedToInt(value.speed5);
 
                 if (speed !== 0 && !term) {
                     configValue += speed * 16777216;
-                    configValue += (values.time5 / 5) * 67108864;
+                    configValue += (value.time5 / 5) * 67108864;
                 } else {
                     term = true;
                 }
@@ -1674,7 +1676,7 @@ const tzLocal = {
                     manufacturerCode: INOVELLI,
                 });
 
-                return {state: {[key]: values}};
+                return {state: {[key]: value}};
             },
         }) satisfies Tz.Converter,
 };
@@ -1685,12 +1687,12 @@ const tzLocal = {
  */
 const inovelliOnOffConvertSet = async (entity: Zh.Endpoint | Zh.Group, key: string, value: unknown, meta: Tz.Meta) => {
     // @ts-expect-error ignore
-    const state = meta.message.state !== undefined ? meta.message.state.toLowerCase() : null;
+    const state = meta.message.state != null ? meta.message.state.toLowerCase() : null;
     utils.validateValue(state, ["toggle", "off", "on"]);
 
-    if (state === "on" && (meta.message.on_time !== undefined || meta.message.off_wait_time !== undefined)) {
-        const onTime = meta.message.on_time !== undefined ? meta.message.on_time : 0;
-        const offWaitTime = meta.message.off_wait_time !== undefined ? meta.message.off_wait_time : 0;
+    if (state === "on" && (meta.message.on_time != null || meta.message.off_wait_time != null)) {
+        const onTime = meta.message.on_time != null ? meta.message.on_time : 0;
+        const offWaitTime = meta.message.off_wait_time != null ? meta.message.off_wait_time : 0;
 
         if (typeof onTime !== "number") {
             throw Error("The on_time value must be a number!");
@@ -1701,8 +1703,8 @@ const inovelliOnOffConvertSet = async (entity: Zh.Endpoint | Zh.Group, key: stri
 
         const payload = {
             ctrlbits: 0,
-            ontime: meta.message.on_time !== undefined ? Math.round(onTime * 10) : 0xffff,
-            offwaittime: meta.message.off_wait_time !== undefined ? Math.round(offWaitTime * 10) : 0xffff,
+            ontime: meta.message.on_time != null ? Math.round(onTime * 10) : 0xffff,
+            offwaittime: meta.message.off_wait_time != null ? Math.round(offWaitTime * 10) : 0xffff,
         };
         await entity.command("genOnOff", "onWithTimedOff", payload, utils.getOptions(meta.mapped, entity));
     } else {
@@ -1805,7 +1807,7 @@ const fzLocal = {
      * Setting byte: 00-off, 01-low, 10-meduim, 11-high
      * Each 6 bit word is stored in ascending order, step one word being LSB
      *
-     * Extract each nybble of the word, then reverse the calculation to get the settig for each.
+     * Extract each nybble of the word, then reverse the calculation to get the setting for each.
      */
     breeze_mode: (endpointId: number) =>
         ({

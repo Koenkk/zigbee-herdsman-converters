@@ -1,7 +1,6 @@
 import * as exposes from "../lib/exposes";
 import * as tuya from "../lib/tuya";
-import type {DefinitionWithExtend, KeyValueNumberString, Tz} from "../lib/types";
-import * as utils from "../lib/utils";
+import type {DefinitionWithExtend} from "../lib/types";
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -22,12 +21,16 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [
             e.battery(),
             e.child_lock(),
-            e.window_detection_bool(),
+            e
+                .binary("window_detection", ea.STATE_SET, "ON", "OFF")
+                .withDescription("Enables/disables window detection on the device")
+                .withCategory("config"),
+            e.window_open(),
             tuya.exposes.frostProtection(),
             e.binary("alarm_switch", ea.STATE, "ON", "OFF").withDescription("Thermostat in error state"),
-            e.comfort_temperature().withValueMin(5).withValueMax(35).withDescription("Comfort mode temperature"),
-            e.eco_temperature().withValueMin(5).withValueMax(35).withDescription("Eco mode temperature"),
-            e.holiday_temperature().withValueMin(5).withValueMax(35).withDescription("Holiday mode temperature"),
+            e.comfort_temperature().withValueMin(5).withValueMax(35).withDescription("Comfort mode temperature").withCategory("config"),
+            e.eco_temperature().withValueMin(5).withValueMax(35).withDescription("Eco mode temperature").withCategory("config"),
+            e.holiday_temperature().withValueMin(5).withValueMax(35).withDescription("Holiday mode temperature").withCategory("config"),
             e
                 .numeric("temperature_sensitivity", ea.STATE_SET)
                 .withUnit("°C")
@@ -37,9 +40,10 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription("Temperature sensitivity"),
             e
                 .climate()
+                .withSystemMode(["off", "heat"], ea.STATE_SET, "Basic modes")
                 .withLocalTemperature(ea.STATE)
                 .withSetpoint("current_heating_setpoint", 5, 35, 0.5, ea.STATE_SET)
-                .withPreset(["manual", "schedule", "eco", "comfort", "frost_protection", "holiday", "off"])
+                .withPreset(["schedule", "eco", "comfort", "frost_protection", "holiday"])
                 .withRunningState(["idle", "heat"], ea.STATE)
                 .withSystemMode(["off", "heat"], ea.STATE, "Only for Homeassistant")
                 .withLocalTemperatureCalibration(-9.5, 9.5, 0.5, ea.STATE_SET),
@@ -49,60 +53,42 @@ export const definitions: DefinitionWithExtend[] = [
             tuyaDatapoints: [
                 [
                     2,
-                    "preset",
-                    {
-                        from: (v: string) => {
-                            utils.assertNumber(v, "system_mode");
-                            const presetLookup: KeyValueNumberString = {
-                                0: "manual",
-                                1: "schedule",
-                                2: "eco",
-                                3: "comfort",
-                                4: "frost_protection",
-                                5: "holiday",
-                                6: "off",
-                            };
-                            return presetLookup[v];
+                    null,
+                    tuya.valueConverter.thermostatSystemModeAndPresetMap({
+                        fromMap: {
+                            0: {deviceMode: "manual", systemMode: "heat", preset: "none"},
+                            1: {deviceMode: "schedule", systemMode: "heat", preset: "schedule"},
+                            2: {deviceMode: "eco", systemMode: "heat", preset: "eco"},
+                            3: {deviceMode: "comfort", systemMode: "heat", preset: "comfort"},
+                            4: {deviceMode: "frost_protection", systemMode: "heat", preset: "frost_protection"},
+                            5: {deviceMode: "holiday", systemMode: "heat", preset: "holiday"},
+                            6: {deviceMode: "off", systemMode: "off", preset: "none"},
                         },
-                        to: (v: string, meta: Tz.Meta) => {
-                            const lookup: KeyValueStringEnum = {
-                                manual: tuya.enum(0),
-                                schedule: tuya.enum(1),
-                                eco: tuya.enum(2),
-                                comfort: tuya.enum(3),
-                                frost_protection: tuya.enum(4),
-                                holiday: tuya.enum(5),
-                            };
-                            // Update system_mode when preset changes
-                            if (meta) {
-                                meta.state.system_mode = v === "off" ? "off" : "heat";
-                            }
-                            return utils.getFromLookup(v, lookup);
-                        },
-                    },
+                    }),
                 ],
                 [
                     2,
                     "system_mode",
-                    {
-                        from: (v: tuya.Enum) => {
-                            return v === tuya.enum(6) ? "off" : "heat";
+                    tuya.valueConverter.thermostatSystemModeAndPresetMap({
+                        toMap: {
+                            heat: new tuya.Enum(0), // manual
+                            off: new tuya.Enum(6), // off
                         },
-                        to: (v: string, meta: Tz.Meta) => {
-                            if (meta) {
-                                const currentPreset = meta.state.preset;
-                                if (v === "heat" && currentPreset === "off") {
-                                    meta.state.preset = "manual";
-                                    return tuya.enum(0);
-                                }
-                                if (v === "off") {
-                                    meta.state.preset = "off";
-                                    return tuya.enum(6);
-                                }
-                            }
-                            return v === "off" ? tuya.enum(6) : tuya.enum(1);
+                    }),
+                ],
+                [
+                    2,
+                    "preset",
+                    tuya.valueConverter.thermostatSystemModeAndPresetMap({
+                        toMap: {
+                            none: new tuya.Enum(0), // manual
+                            schedule: new tuya.Enum(1), // schedule
+                            eco: new tuya.Enum(2), // eco
+                            comfort: new tuya.Enum(3), // comfort
+                            frost_protection: new tuya.Enum(4), // frost_protection
+                            holiday: new tuya.Enum(5), // holiday
                         },
-                    },
+                    }),
                 ],
                 [3, "running_state", tuya.valueConverterBasic.lookup({heat: 1, idle: 0})],
                 [4, "current_heating_setpoint", tuya.valueConverter.divideBy10],
@@ -114,8 +100,8 @@ export const definitions: DefinitionWithExtend[] = [
                 [105, "frost_temperature", tuya.valueConverter.divideBy10],
                 [102, "temperature_sensitivity", tuya.valueConverter.divideBy10],
                 [21, "holiday_temperature", tuya.valueConverter.divideBy10],
-                [15, "window", tuya.valueConverterBasic.lookup({OPEN: 1, CLOSE: 0})],
                 [14, "window_detection", tuya.valueConverter.onOff],
+                [15, "window_open", tuya.valueConverter.trueFalseEnum0],
                 [35, "alarm_switch", tuya.valueConverter.onOff],
                 [36, "frost_protection", tuya.valueConverter.onOff],
                 [28, "schedule_monday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(1, 6)],
