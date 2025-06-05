@@ -5612,6 +5612,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE284_o3x45p96" /* model: 'TRV06', vendor: 'AVATTO' */,
             "_TZE284_c6wv4xyo" /* model: 'AVATTO_TRV06', vendor: 'AVATTO' */,
             "_TZE204_o3x45p96" /* model: 'AVATTO_TRV06', vendor: 'AVATTO' */,
+            "_TZE200_ow09xlxm" /* model: 'TRV06-AT', vendor: 'THALEOS' */,
         ]),
         model: "TS0601_thermostat_3",
         vendor: "Tuya",
