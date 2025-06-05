@@ -170,6 +170,18 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Aqara",
         description: "Ceiling light L1-350",
         extend: [lumiLight({colorTemp: true, powerOutageMemory: "switch"}), lumiZigbeeOTA()],
+        exposes: [
+            e
+                .composite("level_config", "level_config", ea.ALL)
+                .withFeature(
+                    e
+                        .numeric("on_level", ea.ALL)
+                        .withValueMin(1)
+                        .withValueMax(254)
+                        .withPreset("previous", 255, "Use previous value")
+                        .withDescription("Specifies the level that shall be applied, when an on/toggle command causes the light to turn on."),
+                ),
+        ],
     },
     {
         zigbeeModel: ["lumi.light.cwac02", "lumi.light.acn014"],
