@@ -80,4 +80,15 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Zigbee motion sensor",
         extend: [m.identify(), m.iasZoneAlarm({zoneType: "occupancy", zoneAttributes: ["alarm_1", "battery_low"]}), m.battery()],
     },
+    {
+        zigbeeModel: ["Glydea Ultra Curtain"],
+        model: "9028412A",
+        vendor: "SOMFY",
+        description: "Glydea Curtain motor Zigbee module",
+        extend: [
+            m.deviceEndpoints({"endpoints":{"1": 1, "232": 232}}),
+            m.windowCovering({"controls":["lift"]}),
+        ],
+        meta: {"multiEndpoint": true},
+    },
 ];
