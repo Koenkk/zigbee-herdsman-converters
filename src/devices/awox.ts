@@ -5,76 +5,78 @@ import type {DefinitionWithExtend, Fz} from "../lib/types";
 
 const e = exposes.presets;
 
-const awox_remote_actions: Fz.Converter = {
-    cluster: "genOnOff",
-    type: [
-        "commandOn",
-        "commandOff",
-        "raw",
-        "commandStepWithOnOff",
-        "commandStep",
-        "commandEnhancedMoveHue",
-        "commandRecall",
-        "commandStepColorTemp",
-    ],
-    convert: (model, msg, publish, options, meta) => {
-        const payload = msg.data;
-        let action = null;
+const fzLocal = {
+    awoxRemoteActions: {
+        cluster: "genOnOff",
+        type: [
+            "commandOn",
+            "commandOff",
+            "raw",
+            "commandStepWithOnOff",
+            "commandStep",
+            "commandEnhancedMoveHue",
+            "commandRecall",
+            "commandStepColorTemp",
+        ],
+        convert: (model, msg, publish, options, meta) => {
+            const payload = msg.data;
+            let action = null;
 
-        if (msg.cluster === "lightingColorCtrl") {
-            if (msg.type === "raw") {
-                const colorByte = payload.data[4];
-                switch (colorByte) {
-                    case 0xd6:
-                        action = "color_blue";
-                        break;
-                    case 0xd4:
-                        action = "color_green";
-                        break;
-                    case 0xd2:
-                        action = "color_yellow";
-                        break;
-                    case 0xd0:
-                        action = "color_red";
-                        break;
+            if (msg.cluster === "lightingColorCtrl") {
+                if (msg.type === "raw") {
+                    const colorByte = payload.data[4];
+                    switch (colorByte) {
+                        case 0xd6:
+                            action = "color_blue";
+                            break;
+                        case 0xd4:
+                            action = "color_green";
+                            break;
+                        case 0xd2:
+                            action = "color_yellow";
+                            break;
+                        case 0xd0:
+                            action = "color_red";
+                            break;
+                    }
+                } else if (msg.type === "commandEnhancedMoveHue") {
+                    action = "light_movement";
+                } else if (msg.type === "commandStepColorTemp") {
+                    if (payload.stepmode === 1) {
+                        action = "color_temp_warm";
+                    } else if (payload.stepmode === 3) {
+                        action = "color_temp_cold";
+                    }
                 }
-            } else if (msg.type === "commandEnhancedMoveHue") {
-                action = "light_movement";
-            } else if (msg.type === "commandStepColorTemp") {
-                if (payload.stepmode === 1) {
-                    action = "color_temp_warm";
-                } else if (payload.stepmode === 3) {
-                    action = "color_temp_cold";
+            } else if (msg.cluster === "genLevelCtrl") {
+                if (msg.type === "commandStepWithOnOff" && payload.stepmode === 0) {
+                    action = "brightness_step_up";
+                } else if (msg.type === "commandStep" && payload.stepmode === 1) {
+                    action = "brightness_step_down";
+                } else if (msg.type === "raw" && payload.data && payload.data[1] === 0xdf) {
+                    action = "refresh";
+                }
+            } else if (msg.cluster === "genScenes") {
+                if (msg.type === "commandRecall") {
+                    if (payload.sceneid === 1) {
+                        action = "scene_1";
+                    } else if (payload.sceneid === 2) {
+                        action = "scene_2";
+                    }
+                }
+            } else if (msg.cluster === "genOnOff") {
+                if (msg.type === "commandOn") {
+                    action = "on";
+                } else if (msg.type === "commandOff") {
+                    action = "off";
                 }
             }
-        } else if (msg.cluster === "genLevelCtrl") {
-            if (msg.type === "commandStepWithOnOff" && payload.stepmode === 0) {
-                action = "brightness_step_up";
-            } else if (msg.type === "commandStep" && payload.stepmode === 1) {
-                action = "brightness_step_down";
-            } else if (msg.type === "raw" && payload.data && payload.data[1] === 0xdf) {
-                action = "refresh";
-            }
-        } else if (msg.cluster === "genScenes") {
-            if (msg.type === "commandRecall") {
-                if (payload.sceneid === 1) {
-                    action = "scene_1";
-                } else if (payload.sceneid === 2) {
-                    action = "scene_2";
-                }
-            }
-        } else if (msg.cluster === "genOnOff") {
-            if (msg.type === "commandOn") {
-                action = "on";
-            } else if (msg.type === "commandOff") {
-                action = "off";
-            }
-        }
 
-        if (action) {
-            return {action: action};
-        }
-    },
+            if (action) {
+                return {action: action};
+            }
+        },
+    } satisfies Fz.Converter,
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -109,60 +111,26 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         model: "33952",
         vendor: "AwoX",
-        description: "AwoX Remote Controller (Enhanced)",
+        description: "Remote control",
         fromZigbee: [
+            fzLocal.awoxRemoteActions,
+            /* @deprecated: remove all the converters below */
             fz.command_on,
-            // @deprecated This converter provides generic color actions. Use `awox_remote_actions` for specific color buttons (blue, green, yellow, red).
             fz.awox_colors,
-            // @deprecated This converter provides a generic refresh. Use `awox_remote_actions` for the dedicated 'refresh' action.
             fz.awox_refresh,
-            // @deprecated This converter provides a generic colored refresh. Use `awox_remote_actions` for specific color buttons.
             fz.awox_refreshColored,
             fz.command_off,
-            // @deprecated This converter provides generic step actions. Use `awox_remote_actions` for specific brightness step actions (up/down).
             fz.command_step,
-            // @deprecated This converter provides generic move actions. Use `awox_remote_actions` for the 'light_movement' action.
             fz.command_move,
             fz.command_stop,
-            // @deprecated This converter provides generic recall actions. Use `awox_remote_actions` for specific scene recall (scene_1, scene_2).
             fz.command_recall,
-            // @deprecated This converter provides generic color temperature step actions. Use `awox_remote_actions` for specific color temperature actions (warm/cold).
             fz.command_step_color_temperature,
-            awox_remote_actions,
         ],
         toZigbee: [],
         exposes: [
             e.action([
                 "on",
                 "off",
-                /** @deprecated Use 'color_blue', 'color_green', 'color_yellow', 'color_red' from 'awox_remote_actions' instead. */
-                "red",
-                /** @deprecated Use 'refresh' from 'awox_remote_actions' instead. */
-                "refresh",
-                /** @deprecated Use 'color_blue', 'color_green', 'color_yellow', 'color_red' from 'awox_remote_actions' instead. */
-                "refresh_colored",
-                /** @deprecated Use 'color_blue' from 'awox_remote_actions' instead. */
-                "blue",
-                /** @deprecated Use 'color_yellow' from 'awox_remote_actions' instead. */
-                "yellow",
-                /** @deprecated Use 'color_green' from 'awox_remote_actions' instead. */
-                "green",
-                /** @deprecated Use 'brightness_step_up' from 'awox_remote_actions' for specific step actions. */
-                "brightness_step_up",
-                /** @deprecated Use 'brightness_step_down' from 'awox_remote_actions' for specific step actions. */
-                "brightness_step_down",
-                /** @deprecated This action is often generic. Consider using 'light_movement' from 'awox_remote_actions' for specific behaviors. */
-                "brightness_move_up",
-                /** @deprecated This action is often generic. Consider using 'light_movement' from 'awox_remote_actions' for specific behaviors. */
-                "brightness_move_down",
-                "brightness_stop",
-                /** @deprecated Use 'scene_1' or 'scene_2' from 'awox_remote_actions' for specific scene recalls. */
-                "recall_1",
-                /** @deprecated Use 'color_temp_warm' or 'color_temp_cold' from 'awox_remote_actions' for specific color temperature changes. */
-                "color_temperature_step_up",
-                /** @deprecated Use 'color_temp_warm' or 'color_temp_cold' from 'awox_remote_actions' for specific color temperature changes. */
-                "color_temperature_step_down",
-
                 "color_blue",
                 "color_green",
                 "color_yellow",
@@ -173,6 +141,21 @@ export const definitions: DefinitionWithExtend[] = [
                 "refresh",
                 "scene_1",
                 "scene_2",
+                /** @deprecated Remove all below */
+                "red",
+                "refresh",
+                "refresh_colored",
+                "blue",
+                "yellow",
+                "green",
+                "brightness_step_up",
+                "brightness_step_down",
+                "brightness_move_up",
+                "brightness_move_down",
+                "brightness_stop",
+                "recall_1",
+                "color_temperature_step_up",
+                "color_temperature_step_down",
             ]),
         ],
     },
