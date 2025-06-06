@@ -1,9 +1,83 @@
 import * as fz from "../converters/fromZigbee";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
-import type {DefinitionWithExtend} from "../lib/types";
+import type {DefinitionWithExtend, Fz} from "../lib/types";
 
 const e = exposes.presets;
+
+const fzLocal = {
+    awoxRemoteActions: {
+        cluster: "genOnOff",
+        type: [
+            "commandOn",
+            "commandOff",
+            "raw",
+            "commandStepWithOnOff",
+            "commandStep",
+            "commandEnhancedMoveHue",
+            "commandRecall",
+            "commandStepColorTemp",
+        ],
+        convert: (model, msg, publish, options, meta) => {
+            const payload = msg.data;
+            let action = null;
+
+            if (msg.cluster === "lightingColorCtrl") {
+                if (msg.type === "raw") {
+                    const colorByte = payload.data[4];
+                    switch (colorByte) {
+                        case 0xd6:
+                            action = "color_blue";
+                            break;
+                        case 0xd4:
+                            action = "color_green";
+                            break;
+                        case 0xd2:
+                            action = "color_yellow";
+                            break;
+                        case 0xd0:
+                            action = "color_red";
+                            break;
+                    }
+                } else if (msg.type === "commandEnhancedMoveHue") {
+                    action = "light_movement";
+                } else if (msg.type === "commandStepColorTemp") {
+                    if (payload.stepmode === 1) {
+                        action = "color_temp_warm";
+                    } else if (payload.stepmode === 3) {
+                        action = "color_temp_cold";
+                    }
+                }
+            } else if (msg.cluster === "genLevelCtrl") {
+                if (msg.type === "commandStepWithOnOff" && payload.stepmode === 0) {
+                    action = "brightness_step_up";
+                } else if (msg.type === "commandStep" && payload.stepmode === 1) {
+                    action = "brightness_step_down";
+                } else if (msg.type === "raw" && payload.data && payload.data[1] === 0xdf) {
+                    action = "refresh";
+                }
+            } else if (msg.cluster === "genScenes") {
+                if (msg.type === "commandRecall") {
+                    if (payload.sceneid === 1) {
+                        action = "scene_1";
+                    } else if (payload.sceneid === 2) {
+                        action = "scene_2";
+                    }
+                }
+            } else if (msg.cluster === "genOnOff") {
+                if (msg.type === "commandOn") {
+                    action = "on";
+                } else if (msg.type === "commandOff") {
+                    action = "off";
+                }
+            }
+
+            if (action) {
+                return {action: action};
+            }
+        },
+    } satisfies Fz.Converter,
+};
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -37,8 +111,10 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         model: "33952",
         vendor: "AwoX",
-        description: "Remote controller",
+        description: "Remote control",
         fromZigbee: [
+            fzLocal.awoxRemoteActions,
+            /* @deprecated: remove all the converters below */
             fz.command_on,
             fz.awox_colors,
             fz.awox_refresh,
@@ -55,6 +131,17 @@ export const definitions: DefinitionWithExtend[] = [
             e.action([
                 "on",
                 "off",
+                "color_blue",
+                "color_green",
+                "color_yellow",
+                "color_red",
+                "color_temp_warm",
+                "color_temp_cold",
+                "light_movement",
+                "refresh",
+                "scene_1",
+                "scene_2",
+                /** @deprecated Remove all below */
                 "red",
                 "refresh",
                 "refresh_colored",
