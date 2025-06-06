@@ -4715,9 +4715,9 @@ export const definitions: DefinitionWithExtend[] = [
             m.numeric({
                 name: "humi_threshold",
                 valueMin: 2,
-                valueMax: 100,
+                valueMax: 10,
                 valueStep: 0.5,
-                scale: 10,
+                scale: 100,
                 unit: "%",
                 cluster: "manuSpecificLumi",
                 attribute: {ID: 0x016b, type: Zcl.DataType.UINT16},
