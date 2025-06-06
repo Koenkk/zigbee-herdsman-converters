@@ -169,7 +169,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZNXDD01LM",
         vendor: "Aqara",
         description: "Ceiling light L1-350",
-        extend: [lumiLight({colorTemp: true, powerOutageMemory: "switch"}), lumiZigbeeOTA()],
+        extend: [lumiLight({colorTemp: true, powerOutageMemory: "switch", levelConfig: {features: ["on_level"]}}), lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ["lumi.light.cwac02", "lumi.light.acn014"],
@@ -2938,7 +2938,7 @@ export const definitions: DefinitionWithExtend[] = [
                 colorTemp: true,
                 color: false,
                 powerOutageMemory: "enum",
-                levelConfig: {disabledFeatures: ["current_level_startup"]},
+                levelConfig: {features: ["on_off_transition_time", "on_transition_time", "off_transition_time", "execute_if_off", "on_level"]},
             }),
             m.numeric({
                 name: "min_brightness",
