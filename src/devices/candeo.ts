@@ -97,7 +97,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Candeo",
         description: "Zigbee micro smart dimmer",
         extend: [
-            m.light({configureReporting: true, levelConfig: {disabledFeatures: ["on_transition_time", "off_transition_time", "execute_if_off"]}}),
+            m.light({configureReporting: true, levelConfig: {features: ["on_off_transition_time", "on_level", "current_level_startup"]}}),
             m.electricityMeter(),
         ],
         fromZigbee: [fzLocal.switch_type, fz.ignore_genOta],
@@ -122,7 +122,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Candeo",
         description: "Zigbee micro smart dimmer",
         extend: [
-            m.light({configureReporting: true, levelConfig: {disabledFeatures: ["on_transition_time", "off_transition_time", "execute_if_off"]}}),
+            m.light({configureReporting: true, levelConfig: {features: ["on_off_transition_time", "on_level", "current_level_startup"]}}),
             m.electricityMeter(),
         ],
         fromZigbee: [fzLocal.switch_type, fz.ignore_genOta],
@@ -153,7 +153,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.light({
                 configureReporting: true,
-                levelConfig: {disabledFeatures: ["on_transition_time", "off_transition_time", "on_off_transition_time", "execute_if_off"]},
+                levelConfig: {features: ["on_level", "current_level_startup"]},
                 powerOnBehavior: true,
             }),
         ],
@@ -166,7 +166,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.light({
                 configureReporting: true,
-                levelConfig: {disabledFeatures: ["on_transition_time", "off_transition_time", "on_off_transition_time", "execute_if_off"]},
+                levelConfig: {features: ["on_level", "current_level_startup"]},
                 powerOnBehavior: true,
             }),
         ],
@@ -181,7 +181,7 @@ export const definitions: DefinitionWithExtend[] = [
                 colorTemp: {range: [158, 500]},
                 configureReporting: true,
                 levelConfig: {
-                    disabledFeatures: ["on_transition_time", "off_transition_time", "on_off_transition_time", "on_level", "execute_if_off"],
+                    features: ["current_level_startup"],
                 },
                 powerOnBehavior: true,
             }),
@@ -197,7 +197,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.light({
                 configureReporting: true,
                 levelConfig: {
-                    disabledFeatures: ["on_transition_time", "off_transition_time", "on_off_transition_time", "on_level", "execute_if_off"],
+                    features: ["current_level_startup"],
                 },
                 powerOnBehavior: true,
             }),
@@ -214,7 +214,7 @@ export const definitions: DefinitionWithExtend[] = [
                 color: {modes: ["xy", "hs"], enhancedHue: true},
                 configureReporting: true,
                 levelConfig: {
-                    disabledFeatures: ["on_transition_time", "off_transition_time", "on_off_transition_time", "on_level", "execute_if_off"],
+                    features: ["current_level_startup"],
                 },
                 powerOnBehavior: true,
             }),
@@ -232,7 +232,7 @@ export const definitions: DefinitionWithExtend[] = [
                 color: {modes: ["xy", "hs"], enhancedHue: true},
                 configureReporting: true,
                 levelConfig: {
-                    disabledFeatures: ["on_transition_time", "off_transition_time", "on_off_transition_time", "on_level", "execute_if_off"],
+                    features: ["current_level_startup"],
                 },
                 powerOnBehavior: true,
             }),
@@ -250,7 +250,7 @@ export const definitions: DefinitionWithExtend[] = [
                 color: {modes: ["xy", "hs"], enhancedHue: true},
                 configureReporting: true,
                 levelConfig: {
-                    disabledFeatures: ["on_transition_time", "off_transition_time", "on_off_transition_time", "on_level", "execute_if_off"],
+                    features: ["current_level_startup"],
                 },
                 powerOnBehavior: true,
             }),
@@ -300,9 +300,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "C203",
         vendor: "Candeo",
         description: "Zigbee micro smart dimmer",
-        extend: [
-            m.light({configureReporting: true, levelConfig: {disabledFeatures: ["on_transition_time", "off_transition_time", "execute_if_off"]}}),
-        ],
+        extend: [m.light({configureReporting: true, levelConfig: {features: ["on_off_transition_time", "on_level", "current_level_startup"]}})],
         fromZigbee: [fzLocal.switch_type, fz.ignore_genOta],
         toZigbee: [tzLocal.switch_type],
         exposes: [e.enum("external_switch_type", ea.ALL, ["momentary", "toggle"]).withLabel("External switch type")],

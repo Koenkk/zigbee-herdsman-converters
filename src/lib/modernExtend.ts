@@ -1028,7 +1028,7 @@ export interface LightArgs {
     configureReporting?: boolean;
     endpointNames?: string[];
     ota?: ModernExtend["ota"];
-    levelConfig?: {disabledFeatures?: LevelConfigFeatures};
+    levelConfig?: {features?: LevelConfigFeatures};
     levelReportingConfig?: ReportingConfigWithoutAttribute;
 }
 export function light(args: LightArgs = {}): ModernExtend {
@@ -1105,7 +1105,7 @@ export function light(args: LightArgs = {}): ModernExtend {
 
     if (levelConfig) {
         // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
-        lightExpose.forEach((e) => e.withLevelConfig(levelConfig.disabledFeatures ?? []));
+        lightExpose.forEach((e) => (levelConfig.features ? e.withLevelConfig(levelConfig.features) : e.withLevelConfig()));
         toZigbee.push(tz.level_config);
     }
 
