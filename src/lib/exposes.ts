@@ -378,9 +378,18 @@ export class Light extends Base {
         return this;
     }
 
-    withLevelConfig(disableFeatures: LevelConfigFeatures = []) {
+    withLevelConfig(
+        features: LevelConfigFeatures = [
+            "on_off_transition_time",
+            "on_transition_time",
+            "off_transition_time",
+            "execute_if_off",
+            "on_level",
+            "current_level_startup",
+        ],
+    ) {
         let levelConfig = new Composite("level_config", "level_config", access.ALL);
-        if (!disableFeatures.includes("on_off_transition_time")) {
+        if (features.includes("on_off_transition_time")) {
             levelConfig = levelConfig.withFeature(
                 new Numeric("on_off_transition_time", access.ALL)
                     .withLabel("ON/OFF transition time")
@@ -389,7 +398,7 @@ export class Light extends Base {
                     ),
             );
         }
-        if (!disableFeatures.includes("on_transition_time")) {
+        if (features.includes("on_transition_time")) {
             levelConfig = levelConfig.withFeature(
                 new Numeric("on_transition_time", access.ALL)
                     .withLabel("ON transition time")
@@ -399,7 +408,7 @@ export class Light extends Base {
                     ),
             );
         }
-        if (!disableFeatures.includes("off_transition_time")) {
+        if (features.includes("off_transition_time")) {
             levelConfig = levelConfig.withFeature(
                 new Numeric("off_transition_time", access.ALL)
                     .withLabel("OFF transition time")
@@ -409,14 +418,14 @@ export class Light extends Base {
                     ),
             );
         }
-        if (!disableFeatures.includes("execute_if_off")) {
+        if (features.includes("execute_if_off")) {
             levelConfig = levelConfig.withFeature(
                 new Binary("execute_if_off", access.ALL, true, false).withDescription(
                     'this setting can affect the "on_level", "current_level_startup" or "brightness" setting',
                 ),
             );
         }
-        if (!disableFeatures.includes("on_level")) {
+        if (features.includes("on_level")) {
             levelConfig = levelConfig.withFeature(
                 new Numeric("on_level", access.ALL)
                     .withValueMin(1)
@@ -425,7 +434,7 @@ export class Light extends Base {
                     .withDescription("Specifies the level that shall be applied, when an on/toggle command causes the light to turn on."),
             );
         }
-        if (!disableFeatures.includes("current_level_startup")) {
+        if (features.includes("current_level_startup")) {
             levelConfig = levelConfig.withFeature(
                 new Numeric("current_level_startup", access.ALL)
                     .withValueMin(1)

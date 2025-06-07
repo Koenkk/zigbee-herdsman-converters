@@ -3047,7 +3047,7 @@ export const fromZigbee = {
                         result.calibrated = getFromLookup(value, {1: true, 0: false});
                         break;
                     case 0x027e:
-                        result.sensor = getFromLookup(value, {1: "external", 0: "internal"});
+                        result.sensor = getFromLookup(value, {1: "external", 0: "internal", 2: "external"});
                         break;
                     case 0x040a:
                         result.battery = value;
