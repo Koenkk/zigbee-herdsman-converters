@@ -104,8 +104,8 @@ const shellyModernExtend = {
                 cluster: "shellyWiFiSetupCluster",
                 access: "ALL",
                 description: "SSID",
-                name: "ssid",
-                attribute: "SSID",
+                name: "SSID",
+                attribute: "ssid",
                 entityCategory: "config",
                 validate(value: unknown) {
                     assertString(value);
