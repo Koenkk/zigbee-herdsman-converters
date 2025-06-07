@@ -17359,6 +17359,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0726_2_gang_scene_switch",
         vendor: "Tuya",
         description: "2 gang switch with scene and backlight",
+        fromZigbee: [fz.ignore_basic_report, fzLocal.TS0726_action],
         extend: [
             tuya.modernExtend.tuyaOnOff({
                 switchMode: true,
@@ -17368,6 +17369,10 @@ export const definitions: DefinitionWithExtend[] = [
                 onOffCountdown: true,
                 endpoints: ["l1", "l2"],
             }),
+            tuya.modernExtend.combineActions([
+                tuya.modernExtend.dpAction({dp: 1, lookup: {scene_1: 0}}),
+                tuya.modernExtend.dpAction({dp: 2, lookup: {scene_2: 0}}),
+            ]),
         ],
         endpoint: (device) => ({l1: 1, l2: 2}),
         meta: {
@@ -17385,6 +17390,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0726_3_gang_scene_switch",
         vendor: "Tuya",
         description: "3 gang switch with scene and backlight",
+        fromZigbee: [fz.ignore_basic_report, fzLocal.TS0726_action],
         extend: [
             tuya.modernExtend.tuyaOnOff({
                 switchMode: true,
@@ -17416,6 +17422,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0726_4_gang_scene_switch",
         vendor: "Tuya",
         description: "4 gang switch with scene and backlight",
+        fromZigbee: [fz.ignore_basic_report, fzLocal.TS0726_action],
         extend: [
             tuya.modernExtend.tuyaOnOff({
                 switchMode: true,
@@ -17425,6 +17432,12 @@ export const definitions: DefinitionWithExtend[] = [
                 onOffCountdown: true,
                 endpoints: ["l1", "l2", "l3", "l4"],
             }),
+            tuya.modernExtend.combineActions([
+                tuya.modernExtend.dpAction({dp: 1, lookup: {scene_1: 0}}),
+                tuya.modernExtend.dpAction({dp: 2, lookup: {scene_2: 0}}),
+                tuya.modernExtend.dpAction({dp: 3, lookup: {scene_3: 0}}),
+                tuya.modernExtend.dpAction({dp: 4, lookup: {scene_4: 0}}),
+            ]),
         ],
         endpoint: (device) => ({l1: 1, l2: 2, l3: 3, l4: 4}),
         meta: {
