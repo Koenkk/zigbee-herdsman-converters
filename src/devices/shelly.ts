@@ -1,4 +1,4 @@
-import {Zcl} from "zigbee-herdsman";
+import {Zcl, ZSpec} from "zigbee-herdsman";
 import * as m from "../lib/modernExtend";
 import type {DefinitionWithExtend} from "../lib/types";
 import {assertString} from "../lib/utils";
@@ -48,7 +48,7 @@ function addCustomClusterShellyWifiSetup() {
             attribute: "Status",
             entityCategory: "diagnostic",
             zigbeeCommandOptions: {
-                profileId: 0xc001,
+                profileId: ZSpec.SHELLY_PROFILE_ID,
             },
         }),
         m.text({
@@ -59,7 +59,7 @@ function addCustomClusterShellyWifiSetup() {
             attribute: "IP",
             entityCategory: "diagnostic",
             zigbeeCommandOptions: {
-                profileId: 0xc001,
+                profileId: ZSpec.SHELLY_PROFILE_ID,
             },
         }),
         m.enumLookup({
@@ -75,7 +75,7 @@ function addCustomClusterShellyWifiSetup() {
                 Apply: 1,
             },
             zigbeeCommandOptions: {
-                profileId: 0xc001,
+                profileId: ZSpec.SHELLY_PROFILE_ID,
             },
         }),
         m.binary({
@@ -88,7 +88,7 @@ function addCustomClusterShellyWifiSetup() {
             valueOn: [true, 1],
             valueOff: [false, 0],
             zigbeeCommandOptions: {
-                profileId: 0xc001,
+                profileId: ZSpec.SHELLY_PROFILE_ID,
             },
         }),
         m.binary({
@@ -101,7 +101,7 @@ function addCustomClusterShellyWifiSetup() {
             valueOn: [true, 1],
             valueOff: [false, 0],
             zigbeeCommandOptions: {
-                profileId: 0xc001,
+                profileId: ZSpec.SHELLY_PROFILE_ID,
             },
         }),
         m.text({
@@ -115,7 +115,7 @@ function addCustomClusterShellyWifiSetup() {
                 assertString(value);
             },
             zigbeeCommandOptions: {
-                profileId: 0xc001,
+                profileId: ZSpec.SHELLY_PROFILE_ID,
             },
         }),
         m.text({
@@ -129,7 +129,7 @@ function addCustomClusterShellyWifiSetup() {
                 assertString(value);
             },
             zigbeeCommandOptions: {
-                profileId: 0xc001,
+                profileId: ZSpec.SHELLY_PROFILE_ID,
             },
         }),
         m.text({
@@ -143,7 +143,7 @@ function addCustomClusterShellyWifiSetup() {
                 assertString(value);
             },
             zigbeeCommandOptions: {
-                profileId: 0xc001,
+                profileId: ZSpec.SHELLY_PROFILE_ID,
             },
         }),
         m.text({
@@ -157,7 +157,7 @@ function addCustomClusterShellyWifiSetup() {
                 assertString(value);
             },
             zigbeeCommandOptions: {
-                profileId: 0xc001,
+                profileId: ZSpec.SHELLY_PROFILE_ID,
             },
         }),
         m.text({
@@ -171,7 +171,7 @@ function addCustomClusterShellyWifiSetup() {
                 assertString(value);
             },
             zigbeeCommandOptions: {
-                profileId: 0xc001,
+                profileId: ZSpec.SHELLY_PROFILE_ID,
             },
         }),
         m.text({
@@ -185,7 +185,7 @@ function addCustomClusterShellyWifiSetup() {
                 assertString(value);
             },
             zigbeeCommandOptions: {
-                profileId: 0xc001,
+                profileId: ZSpec.SHELLY_PROFILE_ID,
             },
         }),
     ];
