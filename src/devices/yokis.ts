@@ -2633,7 +2633,7 @@ When a cluster is specified, the channel will only “control” the device bind
 */
 
 const YokisLoadManagerExtend: ModernExtend[] = [
-    // TODO : Placeholder - pending documentation
+    // Not implemented (probably never will)
 ];
 
 const YokisPilotWireExtend: ModernExtend[] = [
@@ -2676,7 +2676,7 @@ const YokisPilotWireExtend: ModernExtend[] = [
         valueMin: 0x00000000,
         valueMax: 0xffffffff,
         valueStep: 1,
-        reporting: {min: repInterval.SECONDS_5, max: repInterval.MINUTES_15, change: 1},
+        // reporting: {min: repInterval.SECONDS_5, max: repInterval.MINUTES_15, change: 1}, // we probably dont need to do a reporting for configuration attribute
         entityCategory: "config",
     }),
 
@@ -2690,7 +2690,7 @@ const YokisPilotWireExtend: ModernExtend[] = [
         valueMin: 0x00000000,
         valueMax: 0xffffffff,
         valueStep: 1,
-        reporting: {min: repInterval.SECONDS_5, max: repInterval.MINUTES_15, change: 1},
+        // reporting: {min: repInterval.SECONDS_5, max: repInterval.MINUTES_15, change: 1}, // we probably dont need to do a reporting for configuration attribute
         entityCategory: "config",
     }),
 
@@ -2706,7 +2706,7 @@ const YokisPilotWireExtend: ModernExtend[] = [
         description: `Represent the actual unit used for local command configuration :
 - 0x00 -> Second (default)
 - 0x01 -> Minutes`,
-        reporting: {min: repInterval.MINUTE, max: repInterval.HOUR, change: 1},
+        // reporting: {min: repInterval.MINUTE, max: repInterval.HOUR, change: 1}, // we probably dont need to do a reporting for configuration attribute
         entityCategory: "config",
     }),
 
@@ -2722,7 +2722,7 @@ const YokisPilotWireExtend: ModernExtend[] = [
         description: `Define the product’s LED behavior:
 - 0x00 -> LED is always ON and blink during radio activity (default)
 - 0x01 -> LED is only OFF during few seconds after a mode transition`,
-        reporting: {min: repInterval.MINUTE, max: repInterval.HOUR, change: 1},
+        // reporting: {min: repInterval.MINUTE, max: repInterval.HOUR, change: 1}, // we probably dont need to do a reporting for configuration attribute
         entityCategory: "config",
     }),
 
@@ -2738,7 +2738,7 @@ const YokisPilotWireExtend: ModernExtend[] = [
         description: `Define if the product must be set into pilot wire relay mode:
 - 0x00 -> Relay mode is deactivated (default)
 - 0x01 -> Relay mode is activated`,
-        reporting: {min: repInterval.MINUTE, max: repInterval.HOUR, change: 1},
+        // reporting: {min: repInterval.MINUTE, max: repInterval.HOUR, change: 1}, // we probably dont need to do a reporting for configuration attribute
         entityCategory: "config",
     }),
 
@@ -2754,7 +2754,7 @@ const YokisPilotWireExtend: ModernExtend[] = [
         description: `Define the order scrolling sense:
 - 0x00 -> Forward : Confort -> Confort – 1 -> Confort – 2 -> Eco -> Hors-Gel -> Arrêt (default)
 - 0x01 -> Backward : Arrêt -> Hors-Gel -> Eco -> Confort – 2 -> Confort – 1 -> Confort`,
-        reporting: {min: repInterval.MINUTE, max: repInterval.HOUR, change: 1},
+        // reporting: {min: repInterval.MINUTE, max: repInterval.HOUR, change: 1}, // we probably dont need to do a reporting for configuration attribute
         entityCategory: "config",
     }),
 
@@ -2770,7 +2770,7 @@ const YokisPilotWireExtend: ModernExtend[] = [
         description: `Define the number of orders supported by the device:
 - 0x00 -> 4 orders (Confort, Eco, Hors-Gel, Arrêt)
 - 0x01 -> 6 orders (Confort, Confort – 1, Confort – 2, Eco, Hors-Gel, Arrêt) - (default)`,
-        reporting: {min: repInterval.MINUTE, max: repInterval.HOUR, change: 1},
+        // reporting: {min: repInterval.MINUTE, max: repInterval.HOUR, change: 1}, // we probably dont need to do a reporting for configuration attribute
         entityCategory: "config",
     }),
 
@@ -2787,13 +2787,142 @@ const YokisPilotWireExtend: ModernExtend[] = [
 - 0x03 -> Confort-2
 - 0x04 -> Confort-1
 - 0x05 -> Confor`,
-        reporting: {min: repInterval.MINUTE, max: repInterval.HOUR, change: 1},
+        // reporting: {min: repInterval.MINUTE, max: repInterval.HOUR, change: 1}, // we probably dont need to do a reporting for configuration attribute
         entityCategory: "config",
     }),
+
+    yokisCommandsExtend.pilotwire_setOrder(),
+    yokisCommandsExtend.pilotwire_toggleOrder(),
 ];
 
 const YokisStatsExtend: ModernExtend[] = [
-    // TODO : Placeholder - pending documentation
+    // Not implemented (probably never will)
+];
+
+const YokisTemperatureMeasurementExtend: ModernExtend[] = [
+    // currentValue > this is probably redundant with msTemperatureMeasurement
+    m.numeric({
+        name: "current_value",
+        cluster: "manuSpecificYokisTemperatureMeasurement",
+        attribute: "currentValue",
+        description: "This attribute represents the last value measured.",
+        access: "STATE_GET",
+        entityCategory: "diagnostic",
+        //endpointNames: ["9"],
+        unit: "°C",
+        valueMin: -50.0,
+        valueMax: 120.0,
+        valueStep: 0.01,
+        scale: 100,
+        // reporting: {min: "10_SECONDS", max: "1_HOUR", change: 100},
+    }),
+
+    m.numeric({
+        name: "min_measured_value",
+        cluster: "manuSpecificYokisTemperatureMeasurement",
+        attribute: "minMeasuredValue",
+        description: "Represent the minimal value set since the last power-on/reset.",
+        access: "STATE_GET",
+        entityCategory: "diagnostic",
+        //endpointNames: ["9"],
+        unit: "°C",
+        valueMin: -50.0,
+        valueMax: 120.0,
+        valueStep: 0.01,
+        scale: 100,
+    }),
+
+    m.numeric({
+        name: "max_measured_value",
+        cluster: "manuSpecificYokisTemperatureMeasurement",
+        attribute: "maxMeasuredValue",
+        description: "Represent the maximal value set since the last power-on/reset.",
+        access: "STATE_GET",
+        entityCategory: "diagnostic",
+        //endpointNames: ["9"],
+        unit: "°C",
+        valueMin: -50.0,
+        valueMax: 120.0,
+        valueStep: 0.01,
+        scale: 100,
+    }),
+
+    m.numeric({
+        name: "offset",
+        cluster: "manuSpecificYokisTemperatureMeasurement",
+        attribute: "offset",
+        description: "Represent the offset applicated to the temperature measured.",
+        entityCategory: "config",
+        //endpointNames: ["9"],
+        unit: "°C",
+        valueMin: -50.0,
+        valueMax: 50.0,
+        valueStep: 0.1,
+        scale: 10,
+    }),
+
+    m.numeric({
+        name: "samplingPeriod",
+        cluster: "manuSpecificYokisTemperatureMeasurement",
+        attribute: "samplingPeriod",
+        description: "Represent the sampling period used to process the temperature measurement.",
+        entityCategory: "config",
+        //endpointNames: ["9"],
+        unit: "s",
+        valueMin: 1,
+        valueMax: 120,
+        valueStep: 1,
+    }),
+
+    m.numeric({
+        name: "samplingNumber",
+        cluster: "manuSpecificYokisTemperatureMeasurement",
+        attribute: "samplingNumber",
+        description: "Represents the sampling number to sense per sampling period defined before.",
+        entityCategory: "config",
+        //endpointNames: ["9"],
+        valueMin: 1,
+        valueMax: 20,
+        valueStep: 1,
+    }),
+
+    m.numeric({
+        name: "deltaTemp",
+        cluster: "manuSpecificYokisTemperatureMeasurement",
+        attribute: "deltaTemp",
+        description: "Represents the temperature variation to request a new temperature sending through reports.",
+        entityCategory: "config",
+        //endpointNames: ["9"],
+        unit: "°C",
+        valueMin: 0,
+        valueMax: 10,
+        valueStep: 0.1,
+        scale: 10,
+    }),
+
+    m.numeric({
+        name: "minimalSendingPeriod",
+        cluster: "manuSpecificYokisTemperatureMeasurement",
+        attribute: "minimalSendingPeriod",
+        description: "Represents the minimal sending period that the device must respect before sending a new value through reporting.",
+        entityCategory: "config",
+        //endpointNames: ["9"],
+        valueMin: 0,
+        valueMax: 65535,
+        valueStep: 1,
+    }),
+
+    m.numeric({
+        name: "maximalSendingPeriod",
+        cluster: "manuSpecificYokisTemperatureMeasurement",
+        attribute: "maximalSendingPeriod",
+        description: "Represents the maximal sending period. The device must send a new value through reporting before the end of this period.",
+        entityCategory: "config",
+        //endpointNames: ["9"],
+        valueMin: 0,
+        valueMax: 65535,
+        valueStep: 1,
+    }),
 ];
 
 // #endregion
@@ -2820,8 +2949,6 @@ export const definitions: DefinitionWithExtend[] = [
             ...YokisDeviceExtend,
             ...YokisInputExtend,
             ...YokisEntryExtend,
-            ...YokisLoadManagerExtend, // Pending implementation
-            ...YokisStatsExtend, // Pending implementation
         ],
     },
     {
@@ -2834,7 +2961,7 @@ export const definitions: DefinitionWithExtend[] = [
             {
                 model: "MTR1300EB-UP",
                 vendor: "YOKIS",
-                description: "Remote power switch with timer 1300W",
+                description: "Remote power switch with timer 1300W with screw terminals",
                 fingerprint: [{modelID: "MTR1300EB-UP"}],
             },
         ],
@@ -2853,8 +2980,6 @@ export const definitions: DefinitionWithExtend[] = [
             ...YokisDeviceExtend,
             ...YokisInputExtend,
             ...YokisEntryExtend,
-            ...YokisLoadManagerExtend, // Pending implementation
-            ...YokisStatsExtend, // Pending implementation
         ],
     },
     {
@@ -2878,8 +3003,6 @@ export const definitions: DefinitionWithExtend[] = [
             ...YokisDeviceExtend,
             ...YokisInputExtend,
             ...YokisEntryExtend,
-            ...YokisLoadManagerExtend, // Pending implementation
-            ...YokisStatsExtend, // Pending implementation
         ],
     },
     {
@@ -2909,8 +3032,6 @@ export const definitions: DefinitionWithExtend[] = [
             ...YokisDeviceExtend,
             ...YokisInputExtend,
             ...YokisEntryExtend,
-            ...YokisLoadManagerExtend, // Pending implementation
-            ...YokisStatsExtend, // Pending implementation
         ],
     },
     {
@@ -2935,8 +3056,6 @@ export const definitions: DefinitionWithExtend[] = [
             ...YokisDeviceExtend,
             ...YokisInputExtend,
             ...YokisEntryExtend,
-            ...YokisLoadManagerExtend, // Pending implementation
-            ...YokisStatsExtend, // Pending implementation
         ],
     },
     {
@@ -2961,7 +3080,6 @@ export const definitions: DefinitionWithExtend[] = [
             // ...YokisDeviceExtend,
             // ...YokisInputExtend,
             // ...YokisChannelExtend,
-            ...YokisPilotWireExtend,
         ],
     },
     {
@@ -2986,7 +3104,6 @@ export const definitions: DefinitionWithExtend[] = [
             // ...YokisDeviceExtend,
             // ...YokisInputExtend,
             // ...YokisChannelExtend,
-            ...YokisPilotWireExtend,
         ],
     },
     {
@@ -3011,7 +3128,6 @@ export const definitions: DefinitionWithExtend[] = [
             // ...YokisDeviceExtend,
             // ...YokisInputExtend,
             // ...YokisChannelExtend,
-            ...YokisPilotWireExtend,
         ],
     },
     {
@@ -3036,7 +3152,6 @@ export const definitions: DefinitionWithExtend[] = [
             // ...YokisDeviceExtend,
             // ...YokisInputExtend,
             // ...YokisChannelExtend,
-            ...YokisPilotWireExtend,
         ],
     },
     {
@@ -3054,6 +3169,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.deviceAddCustomCluster("manuSpecificYokisChannel", YokisClustersDefinition.manuSpecificYokisChannel),
             m.deviceAddCustomCluster("manuSpecificYokisPilotWire", YokisClustersDefinition.manuSpecificYokisPilotWire), // Pending implementation
             m.deviceAddCustomCluster("manuSpecificYokisTemperatureMeasurement", YokisClustersDefinition.manuSpecificYokisTemperatureMeasurement), // Pending implementation
+            //m.deviceEndpoints({endpoints: {"1": 1, "9": 9}}),
             m.identify(),
             m.commandsOnOff(),
             m.commandsLevelCtrl(),
@@ -3061,7 +3177,15 @@ export const definitions: DefinitionWithExtend[] = [
             // ...YokisDeviceExtend,
             // ...YokisInputExtend,
             // ...YokisChannelExtend,
-            ...YokisPilotWireExtend,
+            // ...YokisPilotWireExtend,
+            m.temperature({reporting: {min: "5_MINUTES", max: "1_HOUR", change: 10}}), // Slow update to save some battery
+            m.battery({
+                percentage: false,
+                lowStatus: true,
+                percentageReporting: false,
+                lowStatusReportingConfig: {min: "1_HOUR", max: "MAX", change: 10},
+            }), // Yokis only provides low level status
+            ...YokisTemperatureMeasurementExtend,
         ],
     },
     {
@@ -3086,7 +3210,7 @@ export const definitions: DefinitionWithExtend[] = [
             // ...YokisDeviceExtend,
             // ...YokisInputExtend,
             // ...YokisChannelExtend,
-            ...YokisPilotWireExtend,
+            // ...YokisPilotWireExtend,
         ],
     },
     {
@@ -3111,7 +3235,6 @@ export const definitions: DefinitionWithExtend[] = [
             // ...YokisDeviceExtend,
             // ...YokisInputExtend,
             // ...YokisChannelExtend,
-            ...YokisPilotWireExtend,
         ],
     },
     {
@@ -3136,15 +3259,34 @@ export const definitions: DefinitionWithExtend[] = [
             // ...YokisDeviceExtend,
             // ...YokisInputExtend,
             // ...YokisChannelExtend,
-            ...YokisPilotWireExtend,
         ],
     },
     {
         // TLM1-UP
-        zigbeeModel: ["TLM1-UP", "TLM503-UP"],
+        zigbeeModel: ["TLM1-UP", "TLM1T503-UP", "TLM1TNO-UP", "TLM1TDK-UP"],
         model: "TLM1-UP",
         vendor: "YOKIS",
         description: "Wall-mounted 1-button transmitter",
+        whiteLabel: [
+            {
+                model: "TLM1T503-UP",
+                vendor: "YOKIS",
+                description: "Wall-mounted 1-button transmitter (503 format)",
+                fingerprint: [{modelID: "TLM1T503-UP"}],
+            },
+            {
+                model: "TLM1TNO-UP",
+                vendor: "YOKIS",
+                description: "Wall-mounted 1-button transmitter (NO format)",
+                fingerprint: [{modelID: "TLM1TNO-UP"}],
+            },
+            {
+                model: "TLM1TDK-UP",
+                vendor: "YOKIS",
+                description: "Wall-mounted 1-button transmitter (DK format)",
+                fingerprint: [{modelID: "TLM1TDK-UP"}],
+            },
+        ],
         extend: [
             m.deviceAddCustomCluster("manuSpecificYokisDevice", YokisClustersDefinition.manuSpecificYokisDevice),
             m.deviceAddCustomCluster("manuSpecificYokisInput", YokisClustersDefinition.manuSpecificYokisInput),
@@ -3152,8 +3294,8 @@ export const definitions: DefinitionWithExtend[] = [
             m.deviceAddCustomCluster("manuSpecificYokisDimmer", YokisClustersDefinition.manuSpecificYokisDimmer),
             m.deviceAddCustomCluster("manuSpecificYokisWindowCovering", YokisClustersDefinition.manuSpecificYokisWindowCovering), // Pending implementation
             m.deviceAddCustomCluster("manuSpecificYokisChannel", YokisClustersDefinition.manuSpecificYokisChannel),
-            m.deviceAddCustomCluster("manuSpecificYokisPilotWire", YokisClustersDefinition.manuSpecificYokisPilotWire), // Pending implementation
-            m.deviceAddCustomCluster("manuSpecificYokisTemperatureMeasurement", YokisClustersDefinition.manuSpecificYokisTemperatureMeasurement), // Pending implementation
+            m.deviceAddCustomCluster("manuSpecificYokisPilotWire", YokisClustersDefinition.manuSpecificYokisPilotWire),
+            m.deviceAddCustomCluster("manuSpecificYokisTemperatureMeasurement", YokisClustersDefinition.manuSpecificYokisTemperatureMeasurement),
             m.identify(),
             m.commandsOnOff(),
             m.commandsLevelCtrl(),
@@ -3161,15 +3303,37 @@ export const definitions: DefinitionWithExtend[] = [
             // ...YokisDeviceExtend,
             // ...YokisInputExtend,
             // ...YokisChannelExtend,
-            ...YokisPilotWireExtend,
+            // ...YokisPilotWireExtend,
+            m.temperature({reporting: {min: "5_MINUTES", max: "1_HOUR", change: 10}}), // Slow update to save some battery
+            m.battery({
+                percentage: false,
+                lowStatus: true,
+                percentageReporting: false,
+                lowStatusReportingConfig: {min: "1_HOUR", max: "MAX", change: 10},
+            }), // Yokis only provides low level status
+            ...YokisTemperatureMeasurementExtend,
         ],
     },
     {
         // TLM2-UP
-        zigbeeModel: ["TLM2-UP", "TLM2_503-UP"],
+        zigbeeModel: ["TLM2-UP", "TLM2T503-UP", "TLM2TNO-UP"],
         model: "TLM2-UP",
         vendor: "YOKIS",
         description: "Wall-mounted 2-button transmitter",
+        whiteLabel: [
+            {
+                model: "TLM2T503-UP",
+                vendor: "YOKIS",
+                description: "Wall-mounted 2-button transmitter (503 format)",
+                fingerprint: [{modelID: "TLM2T503-UP"}],
+            },
+            {
+                model: "TLM2TNO-UP",
+                vendor: "YOKIS",
+                description: "Wall-mounted 2-button transmitter (NO format)",
+                fingerprint: [{modelID: "TLM2TNO-UP"}],
+            },
+        ],
         extend: [
             m.deviceAddCustomCluster("manuSpecificYokisDevice", YokisClustersDefinition.manuSpecificYokisDevice),
             m.deviceAddCustomCluster("manuSpecificYokisInput", YokisClustersDefinition.manuSpecificYokisInput),
@@ -3187,15 +3351,43 @@ export const definitions: DefinitionWithExtend[] = [
             // ...YokisDeviceExtend,
             // ...YokisInputExtend,
             // ...YokisChannelExtend,
-            ...YokisPilotWireExtend,
+            // ...YokisPilotWireExtend,
+            m.temperature({reporting: {min: "5_MINUTES", max: "1_HOUR", change: 10}}), // Slow update to save some battery
+            m.battery({
+                percentage: false,
+                lowStatus: true,
+                percentageReporting: false,
+                lowStatusReportingConfig: {min: "1_HOUR", max: "MAX", change: 10},
+            }), // Yokis only provides low level status
+            ...YokisTemperatureMeasurementExtend,
         ],
     },
     {
         // TLM4-UP
-        zigbeeModel: ["TLM4-UP", "TLM4_503-UP"],
+        zigbeeModel: ["TLM4-UP", "TLM4T503-UP", "TLM4TNO-UP", "TLM4TDK-UP"],
         model: "TLM4-UP",
         vendor: "YOKIS",
         description: "Wall-mounted 4-button transmitter",
+        whiteLabel: [
+            {
+                model: "TLM4T503-UP",
+                vendor: "YOKIS",
+                description: "Wall-mounted 4-button transmitter (503 format)",
+                fingerprint: [{modelID: "TLM4T503-UP"}],
+            },
+            {
+                model: "TLM4TNO-UP",
+                vendor: "YOKIS",
+                description: "Wall-mounted 4-button transmitter (NO format)",
+                fingerprint: [{modelID: "TLM4TNO-UP"}],
+            },
+            {
+                model: "TLM4TDK-UP",
+                vendor: "YOKIS",
+                description: "Wall-mounted 4-button transmitter (DK format)",
+                fingerprint: [{modelID: "TLM4TDK-UP"}],
+            },
+        ],
         extend: [
             m.deviceAddCustomCluster("manuSpecificYokisDevice", YokisClustersDefinition.manuSpecificYokisDevice),
             m.deviceAddCustomCluster("manuSpecificYokisInput", YokisClustersDefinition.manuSpecificYokisInput),
@@ -3213,7 +3405,15 @@ export const definitions: DefinitionWithExtend[] = [
             // ...YokisDeviceExtend,
             // ...YokisInputExtend,
             // ...YokisChannelExtend,
-            ...YokisPilotWireExtend,
+            // ...YokisPilotWireExtend,
+            m.temperature({reporting: {min: "5_MINUTES", max: "1_HOUR", change: 10}}), // Slow update to save some battery
+            m.battery({
+                percentage: false,
+                lowStatus: true,
+                percentageReporting: false,
+                lowStatusReportingConfig: {min: "1_HOUR", max: "MAX", change: 10},
+            }), // Yokis only provides low level status
+            ...YokisTemperatureMeasurementExtend,
         ],
     },
     {
@@ -3239,7 +3439,15 @@ export const definitions: DefinitionWithExtend[] = [
             // ...YokisDeviceExtend,
             // ...YokisInputExtend,
             // ...YokisChannelExtend,
-            ...YokisPilotWireExtend,
+            // ...YokisPilotWireExtend,
+            m.temperature({reporting: {min: "5_MINUTES", max: "1_HOUR", change: 10}}), // Slow update to save some battery
+            m.battery({
+                percentage: false,
+                lowStatus: true,
+                percentageReporting: false,
+                lowStatusReportingConfig: {min: "1_HOUR", max: "MAX", change: 10},
+            }), // Yokis only provides low level status
+            ...YokisTemperatureMeasurementExtend,
         ],
     },
     {
@@ -3253,17 +3461,15 @@ export const definitions: DefinitionWithExtend[] = [
             m.deviceAddCustomCluster("manuSpecificYokisInput", YokisClustersDefinition.manuSpecificYokisInput),
             m.deviceAddCustomCluster("manuSpecificYokisEntryConfigurator", YokisClustersDefinition.manuSpecificYokisEntryConfigurator),
             m.deviceAddCustomCluster("manuSpecificYokisSubSystem", YokisClustersDefinition.manuSpecificYokisSubSystem),
-            m.deviceAddCustomCluster("manuSpecificYokisPilotWire", YokisClustersDefinition.manuSpecificYokisPilotWire), // Pending implementation
+            m.deviceAddCustomCluster("manuSpecificYokisPilotWire", YokisClustersDefinition.manuSpecificYokisPilotWire),
             m.deviceAddCustomCluster("manuSpecificYokisStats", YokisClustersDefinition.manuSpecificYokisStats), // Pending implementation
             m.identify(),
-            // Electrical Measurement
-            // Simple Metering
+            m.electricityMeter({voltage: false}),
             ...YokisSubSystemExtend,
-            ...YokisPilotWireExtend, // Pending implementation
+            ...YokisPilotWireExtend,
             ...YokisDeviceExtend,
-            ...YokisInputExtend,
-            ...YokisEntryExtend,
-            ...YokisStatsExtend, // Pending implementation
+            // ...YokisInputExtend,
+            // ...YokisEntryExtend,
         ],
     },
 ];
