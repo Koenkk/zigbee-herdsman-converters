@@ -9,9 +9,9 @@ function addCustomClusterShellyRPC() {
             ID: 0xfc01,
             manufacturerCode: Zcl.ManufacturerCode.SHELLY,
             attributes: {
-                Data: {ID: 0x0000, type: Zcl.DataType.CHAR_STR},
-                TxCtl: {ID: 0x0001, type: Zcl.DataType.UINT32},
-                RxCtl: {ID: 0x0002, type: Zcl.DataType.UINT32},
+                data: {ID: 0x0000, type: Zcl.DataType.CHAR_STR},
+                txCtl: {ID: 0x0001, type: Zcl.DataType.UINT32},
+                rxCtl: {ID: 0x0002, type: Zcl.DataType.UINT32},
             },
             commands: {},
             commandsResponse: {},
@@ -25,17 +25,17 @@ function addCustomClusterShellyWifiSetup() {
             ID: 0xfc02,
             manufacturerCode: Zcl.ManufacturerCode.SHELLY,
             attributes: {
-                Status: {ID: 0x0000, type: Zcl.DataType.CHAR_STR},
-                IP: {ID: 0x0001, type: Zcl.DataType.CHAR_STR},
-                Action: {ID: 0x0002, type: Zcl.DataType.UINT8},
-                DHCP: {ID: 0x0003, type: Zcl.DataType.BOOLEAN},
-                Enable: {ID: 0x0004, type: Zcl.DataType.BOOLEAN},
-                SSID: {ID: 0x0005, type: Zcl.DataType.CHAR_STR},
-                Password: {ID: 0x0006, type: Zcl.DataType.CHAR_STR},
-                StaticIP: {ID: 0x0007, type: Zcl.DataType.CHAR_STR},
-                NetMask: {ID: 0x0008, type: Zcl.DataType.CHAR_STR},
-                Gateway: {ID: 0x0009, type: Zcl.DataType.CHAR_STR},
-                NameServer: {ID: 0x000a, type: Zcl.DataType.CHAR_STR},
+                status: {ID: 0x0000, type: Zcl.DataType.CHAR_STR},
+                ip: {ID: 0x0001, type: Zcl.DataType.CHAR_STR},
+                action: {ID: 0x0002, type: Zcl.DataType.UINT8},
+                dhcp: {ID: 0x0003, type: Zcl.DataType.BOOLEAN},
+                enable: {ID: 0x0004, type: Zcl.DataType.BOOLEAN},
+                ssid: {ID: 0x0005, type: Zcl.DataType.CHAR_STR},
+                password: {ID: 0x0006, type: Zcl.DataType.CHAR_STR},
+                staticIP: {ID: 0x0007, type: Zcl.DataType.CHAR_STR},
+                netMask: {ID: 0x0008, type: Zcl.DataType.CHAR_STR},
+                gateway: {ID: 0x0009, type: Zcl.DataType.CHAR_STR},
+                nameServer: {ID: 0x000a, type: Zcl.DataType.CHAR_STR},
             },
             commands: {},
             commandsResponse: {},
@@ -45,7 +45,7 @@ function addCustomClusterShellyWifiSetup() {
             access: "STATE_GET",
             description: "Wifi Status",
             name: "Wifi_Status",
-            attribute: "Status",
+            attribute: "status",
             entityCategory: "diagnostic",
             zigbeeCommandOptions: {
                 profileId: ZSpec.SHELLY_PROFILE_ID,
@@ -56,7 +56,7 @@ function addCustomClusterShellyWifiSetup() {
             access: "STATE_GET",
             description: "IP of the device",
             name: "IP",
-            attribute: "IP",
+            attribute: "ip",
             entityCategory: "diagnostic",
             zigbeeCommandOptions: {
                 profileId: ZSpec.SHELLY_PROFILE_ID,
@@ -68,7 +68,7 @@ function addCustomClusterShellyWifiSetup() {
             description:
                 "Action to perform. Reset resets all attributes to current device configuration, Apply applies the current configuration to the device",
             name: "Action",
-            attribute: "Action",
+            attribute: "action",
             entityCategory: "config",
             lookup: {
                 Reset: 0,
@@ -83,7 +83,7 @@ function addCustomClusterShellyWifiSetup() {
             access: "STATE_GET",
             description: "DHCP",
             name: "DHCP",
-            attribute: "DHCP",
+            attribute: "dhcp",
             entityCategory: "diagnostic",
             valueOn: [true, 1],
             valueOff: [false, 0],
@@ -96,7 +96,7 @@ function addCustomClusterShellyWifiSetup() {
             access: "ALL",
             description: "Enable/Disable Wifi",
             name: "Enable",
-            attribute: "Enable",
+            attribute: "enable",
             entityCategory: "config",
             valueOn: [true, 1],
             valueOff: [false, 0],
@@ -108,7 +108,7 @@ function addCustomClusterShellyWifiSetup() {
             cluster: "shellyWiFiSetupCluster",
             access: "ALL",
             description: "SSID",
-            name: "SSID",
+            name: "ssid",
             attribute: "SSID",
             entityCategory: "config",
             validate(value: unknown) {
@@ -123,7 +123,7 @@ function addCustomClusterShellyWifiSetup() {
             access: "SET",
             description: "Wifi Password",
             name: "Password",
-            attribute: "Password",
+            attribute: "password",
             entityCategory: "config",
             validate(value: unknown) {
                 assertString(value);
@@ -137,7 +137,7 @@ function addCustomClusterShellyWifiSetup() {
             access: "ALL",
             description: "StaticIP",
             name: "StaticIP",
-            attribute: "StaticIP",
+            attribute: "staticIP",
             entityCategory: "config",
             validate(value: unknown) {
                 assertString(value);
@@ -151,7 +151,7 @@ function addCustomClusterShellyWifiSetup() {
             access: "ALL",
             description: "NetMask",
             name: "NetMask",
-            attribute: "NetMask",
+            attribute: "netMask",
             entityCategory: "config",
             validate(value: unknown) {
                 assertString(value);
@@ -165,7 +165,7 @@ function addCustomClusterShellyWifiSetup() {
             access: "ALL",
             description: "Gateway",
             name: "Gateway",
-            attribute: "Gateway",
+            attribute: "gateway",
             entityCategory: "config",
             validate(value: unknown) {
                 assertString(value);
@@ -179,7 +179,7 @@ function addCustomClusterShellyWifiSetup() {
             access: "ALL",
             description: "NameServer",
             name: "NameServer",
-            attribute: "NameServer",
+            attribute: "nameServer",
             entityCategory: "config",
             validate(value: unknown) {
                 assertString(value);
