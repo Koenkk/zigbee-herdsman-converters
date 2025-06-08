@@ -1,4 +1,4 @@
-import buschJaeger6737 from './busch_jaeger_6737';
+import buschJaeger6737 from "./busch_jaeger_6737";
 import type {DefinitionWithExtend} from "../lib/types";
 import {definitions as ITCommander} from "./ITCommander";
 import {definitions as acova} from "./acova";
@@ -680,7 +680,7 @@ const definitions: DefinitionWithExtend[] = [
     ...zigbeetlc,
     ...zipato,
     ...qa,
-	buschJaeger6737,
+    buschJaeger6737,
 ];
 
 export default definitions;
