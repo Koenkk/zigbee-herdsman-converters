@@ -54,7 +54,16 @@ export async function buildIndex(fromSrc = false): Promise<void> {
         }
 
         const filePath = path.join(devicesDir, moduleName);
-        const {definitions} = (await import(`./devices/${moduleName.slice(0, -3)}`)) as {definitions: DefinitionWithExtend[]};
+        // load CommonJS or ES default export
+        const mod: any = await import(`./devices/${moduleName.slice(0, -3)}`);
+        const definitions: DefinitionWithExtend[] = Array.isArray(mod.definitions)
+            ? mod.definitions
+            : Array.isArray(mod.default)
+                ? mod.default
+                : Array.isArray(mod.default?.definitions)
+                    ? mod.default.definitions
+                    : [];
+
         console.log(`Processing ${filePath}, ${definitions.length} converters`);
 
         for (let i = 0; i < definitions.length; i++) {
