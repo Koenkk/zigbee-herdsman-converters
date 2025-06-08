@@ -680,7 +680,7 @@ const definitions: DefinitionWithExtend[] = [
     ...zigbeetlc,
     ...zipato,
     ...qa,
-    buschJaeger6737,
+        buschJaeger6737,
 ];
 
 export default definitions;
