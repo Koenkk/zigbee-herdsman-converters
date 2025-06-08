@@ -56,13 +56,11 @@ export async function buildIndex(fromSrc = false): Promise<void> {
         const filePath = path.join(devicesDir, moduleName);
         // load CommonJS or ES default export
 		// biome-ignore lint/suspicious/noExplicitAny: allow dynamic import here
-		const mod = await import(`./devices/${moduleName.slice(0, -3)}`) as
+		// load CommonJS or ES default export
 
-		    | {definitions: DefinitionWithExtend[]}
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any, lint/suspicious/noExplicitAny: allow dynamic import
 
-		    | DefinitionWithExtend[]
-
-		    | {default: {definitions: DefinitionWithExtend[]}};
+		const mod: any = await import(`./devices/${moduleName.slice(0, -3)}`);
         const definitions: DefinitionWithExtend[] = Array.isArray(mod.definitions)
             ? mod.definitions
             : Array.isArray(mod.default)
