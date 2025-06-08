@@ -44,7 +44,7 @@ const shellyModernExtend = {
                 attribute: "status",
                 entityCategory: "diagnostic",
                 zigbeeCommandOptions: {
-                    profileId: ZSpec.SHELLY_PROFILE_ID,
+                    profileId: ZSpec.CUSTOM_SHELLY_PROFILE_ID,
                 },
             }),
             m.text({
@@ -55,7 +55,7 @@ const shellyModernExtend = {
                 attribute: "ip",
                 entityCategory: "diagnostic",
                 zigbeeCommandOptions: {
-                    profileId: ZSpec.SHELLY_PROFILE_ID,
+                    profileId: ZSpec.CUSTOM_SHELLY_PROFILE_ID,
                 },
             }),
             m.enumLookup({
@@ -71,7 +71,7 @@ const shellyModernExtend = {
                     Apply: 1,
                 },
                 zigbeeCommandOptions: {
-                    profileId: ZSpec.SHELLY_PROFILE_ID,
+                    profileId: ZSpec.CUSTOM_SHELLY_PROFILE_ID,
                 },
             }),
             m.binary({
@@ -84,7 +84,7 @@ const shellyModernExtend = {
                 valueOn: [true, 1],
                 valueOff: [false, 0],
                 zigbeeCommandOptions: {
-                    profileId: ZSpec.SHELLY_PROFILE_ID,
+                    profileId: ZSpec.CUSTOM_SHELLY_PROFILE_ID,
                 },
             }),
             m.binary({
@@ -97,7 +97,7 @@ const shellyModernExtend = {
                 valueOn: [true, 1],
                 valueOff: [false, 0],
                 zigbeeCommandOptions: {
-                    profileId: ZSpec.SHELLY_PROFILE_ID,
+                    profileId: ZSpec.CUSTOM_SHELLY_PROFILE_ID,
                 },
             }),
             m.text({
@@ -111,7 +111,7 @@ const shellyModernExtend = {
                     assertString(value);
                 },
                 zigbeeCommandOptions: {
-                    profileId: ZSpec.SHELLY_PROFILE_ID,
+                    profileId: ZSpec.CUSTOM_SHELLY_PROFILE_ID,
                 },
             }),
             m.text({
@@ -125,7 +125,7 @@ const shellyModernExtend = {
                     assertString(value);
                 },
                 zigbeeCommandOptions: {
-                    profileId: ZSpec.SHELLY_PROFILE_ID,
+                    profileId: ZSpec.CUSTOM_SHELLY_PROFILE_ID,
                 },
             }),
             m.text({
@@ -139,7 +139,7 @@ const shellyModernExtend = {
                     assertString(value);
                 },
                 zigbeeCommandOptions: {
-                    profileId: ZSpec.SHELLY_PROFILE_ID,
+                    profileId: ZSpec.CUSTOM_SHELLY_PROFILE_ID,
                 },
             }),
             m.text({
@@ -153,7 +153,7 @@ const shellyModernExtend = {
                     assertString(value);
                 },
                 zigbeeCommandOptions: {
-                    profileId: ZSpec.SHELLY_PROFILE_ID,
+                    profileId: ZSpec.CUSTOM_SHELLY_PROFILE_ID,
                 },
             }),
             m.text({
@@ -167,7 +167,7 @@ const shellyModernExtend = {
                     assertString(value);
                 },
                 zigbeeCommandOptions: {
-                    profileId: ZSpec.SHELLY_PROFILE_ID,
+                    profileId: ZSpec.CUSTOM_SHELLY_PROFILE_ID,
                 },
             }),
             m.text({
@@ -181,7 +181,7 @@ const shellyModernExtend = {
                     assertString(value);
                 },
                 zigbeeCommandOptions: {
-                    profileId: ZSpec.SHELLY_PROFILE_ID,
+                    profileId: ZSpec.CUSTOM_SHELLY_PROFILE_ID,
                 },
             }),
         ];
