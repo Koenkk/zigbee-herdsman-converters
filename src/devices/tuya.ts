@@ -1154,6 +1154,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE200_9yapgbuv",
             "_TZE200_utkemkbs",
             "_TZE204_utkemkbs",
+            "_TZE284_utkemkbs",
             "_TZE204_9yapgbuv",
             "_TZE204_upagmta9",
             "_TZE200_cirvgep4",
@@ -1188,7 +1189,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
         whiteLabel: [
             tuya.whitelabel("Tuya", "ZTH01", "Temperature and humidity sensor", ["_TZE200_yjjdcqsq", "_TZE204_yjjdcqsq", "_TZE284_yjjdcqsq"]),
-            tuya.whitelabel("Tuya", "SZTH02", "Temperature and humidity sensor", ["_TZE200_utkemkbs", "_TZE204_utkemkbs"]),
+            tuya.whitelabel("Tuya", "SZTH02", "Temperature and humidity sensor", ["_TZE200_utkemkbs", "_TZE204_utkemkbs", "_TZE284_utkemkbs"]),
             tuya.whitelabel("Tuya", "ZTH02", "Temperature and humidity sensor", ["_TZE200_9yapgbuv", "_TZE204_9yapgbuv"]),
             tuya.whitelabel("Tuya", "ZTH05", "Temperature and humidity sensor", ["_TZE204_upagmta9", "_TZE200_upagmta9"]),
             tuya.whitelabel("Tuya", "ZTH08-E", "Temperature and humidity sensor", ["_TZE200_cirvgep4", "_TZE204_cirvgep4"]),
@@ -3428,7 +3429,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.battery(), e.temperature(), e.humidity(), e.battery_voltage()],
     },
     {
-        fingerprint: tuya.fingerprint("TS011F", ["_TZ3000_3zofvcaa", "_TZ3000_pvlvoxvt", "_TZ3000_lqb7lcq9"]),
+        fingerprint: tuya.fingerprint("TS011F", ["_TZ3000_3zofvcaa", "_TZ3000_pvlvoxvt", "_TZ3000_lqb7lcq9", "_TZ3210_urjf5u18"]),
         model: "TS011F_2_gang_2_usb_wall",
         vendor: "Tuya",
         description: "2 gang 2 usb wall outlet",
@@ -3451,7 +3452,10 @@ export const definitions: DefinitionWithExtend[] = [
                 await reporting.onOff(endpoint);
             }
         },
-        whiteLabel: [tuya.whitelabel("Nova Digital", "NTS2-W-B", "2 gang 2 usb wall outlet 4x2", ["_TZ3000_lqb7lcq9"])],
+        whiteLabel: [
+            tuya.whitelabel("Nova Digital", "NTS2-W-B", "2 gang 2 usb wall outlet 4x2", ["_TZ3000_lqb7lcq9"]),
+            tuya.whitelabel("AVATTO", "ZWOT12", "2 gang 2 usb wall outlet 4x2", ["_TZ3210_urjf5u18"]),
+        ],
     },
     {
         fingerprint: tuya.fingerprint("TS011F", ["_TZ3000_bep7ccew", "_TZ3000_gazjngjl"]),
@@ -4618,7 +4622,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.cover_position().setAccess("position", ea.STATE_SET)],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_cpbo62rn", "_TZE200_libht6ua"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_cpbo62rn", "_TZE200_libht6ua", "_TZE284_libht6ua"]),
         model: "TS0601_cover_6",
         vendor: "Tuya",
         description: "Cover motor",
@@ -4971,10 +4975,10 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE200_8whxpsiw",
             "_TZE200_xby0s3ta",
             "_TZE200_7fqkphoq",
-            "_TZE200_rufdtfyv",
+            "_TZE200_rufdtfyv" /* model: '07732L', vendor: 'Immax' */,
             "_TZE200_lpwgshtl",
-            "_TZE200_rk1wojce",
-            "_TZE200_rndg81sf",
+            "_TZE200_rk1wojce" /* model: 'P5630S', vendor: 'Emos' */,
+            "_TZE200_rndg81sf" /* model: 'HY368', vendor: 'THALEOS' */,
             "_TZE200_qjp4ynvi",
         ]),
         model: "TS0601_thermostat",
@@ -4989,6 +4993,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Immax", "07732L", "Radiator valve with thermostat", ["_TZE200_rufdtfyv"]),
             {vendor: "Evolveo", model: "Heat M30"},
             tuya.whitelabel("Emos", "P5630S", "Radiator valve with thermostat", ["_TZE200_rk1wojce"]),
+            tuya.whitelabel("THALEOS", "HY368", "Radiator valve with thermostat", ["_TZE200_rndg81sf"]),
         ],
         meta: {
             tuyaThermostatPreset: legacy.thermostatPresets,
@@ -5598,7 +5603,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE200_6rdj8dzm" /* model: 'ME167', vendor: 'AVATTO' */,
             "_TZE200_9xfjixap" /* model: 'ME167', vendor: 'AVATTO' */,
             "_TZE200_jkfbph7l" /* model: 'ME167', vendor: 'AVATTO' */,
-            "_TZE200_p3dbf6qs" /* model: 'ME168', vendor: 'AVATTO' */,
+            "_TZE200_p3dbf6qs" /* model: 'ME167', vendor: 'AVATTO' */,
             "_TZE200_rxntag7i" /* model: 'ME168', vendor: 'AVATTO' */,
             "_TZE200_yqgbrdyo",
             "_TZE284_p3dbf6qs",
@@ -5607,8 +5612,12 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE284_ogx8u5z6",
             "_TZE200_hvaxb2tc" /* model: 'TRV06', vendor: 'AVATTO' */,
             "_TZE284_o3x45p96" /* model: 'TRV06', vendor: 'AVATTO' */,
-            "_TZE284_c6wv4xyo" /* model: 'AVATTO_TRV06', vendor: 'AVATTO_TRV06' */,
-            "_TZE204_o3x45p96" /* model: 'AVATTO_TRV06', vendor: 'AVATTO_TRV06' */,
+            "_TZE284_c6wv4xyo" /* model: 'AVATTO_TRV06', vendor: 'AVATTO' */,
+            "_TZE204_o3x45p96" /* model: 'AVATTO_TRV06', vendor: 'AVATTO' */,
+            "_TZE200_ow09xlxm" /* model: 'TRV06-AT', vendor: 'THALEOS' */,
+            "_TZE284_rv6iuyxb" /* model: 'TRV06-AT', vendor: 'THALEOS' */,
+            "_TZE200_rv6iuyxb" /* model: 'TRV06-AT', vendor: 'THALEOS' */,
+            "_TZE200_suxywabt" /* model: 'TRV06-AT', vendor: 'THALEOS' */,
         ]),
         model: "TS0601_thermostat_3",
         vendor: "Tuya",
@@ -5627,7 +5636,12 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("AVATTO", "TRV06_1", "Thermostatic radiator valve", ["_TZE200_hvaxb2tc", "_TZE284_o3x45p96"]),
             tuya.whitelabel("EARU", "TRV06", "Smart thermostat module", ["_TZE200_yqgbrdyo", "_TZE200_rxq4iti9"]),
             tuya.whitelabel("AVATTO", "AVATTO_TRV06", "Thermostatic radiator valve", ["_TZE284_c6wv4xyo", "_TZE204_o3x45p96"]),
-            tuya.whitelabel("THALEOS", "TRV06-AT", "Thermostatic radiator valve", ["_TZE200_ow09xlxm"]),
+            tuya.whitelabel("THALEOS", "TRV06-AT", "Thermostatic radiator valve", [
+                "_TZE200_ow09xlxm",
+                "_TZE284_rv6iuyxb",
+                "_TZE200_rv6iuyxb",
+                "_TZE200_suxywabt",
+            ]),
         ],
         onEvent: tuya.onEventSetTime,
         configure: tuya.configureMagicPacket,
@@ -6534,6 +6548,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Nous", "A6Z", "Outdoor smart socket", ["_TZ3000_266azbg3"]),
             tuya.whitelabel("Nedis", "ZBPO130FWT", "Outdoor smart plug (with power monitoring)", ["_TZ3000_3ias4w4o"]),
             tuya.whitelabel("Nous", "A9Z", "Smart ZigBee Socket", ["_TZ3210_ddigca5n"]),
+            tuya.whitelabel("Girier", "JR-ZPM01", "Smart Plug", ["_TZ3000_ww6drja5"]),
         ],
         ota: true,
         extend: [
@@ -13740,7 +13755,8 @@ export const definitions: DefinitionWithExtend[] = [
         // Don't query too often. Values are not always updated. https://github.com/Koenkk/zigbee2mqtt/issues/18704
         onEvent: tuya.onEvent({
             queryOnDeviceAnnounce: true,
-            queryIntervalSeconds: 5 * 60,
+            // https://github.com/Koenkk/zigbee2mqtt/issues/23946#issuecomment-2941182834
+            queryIntervalSeconds: 20 * 60,
         }),
         configure: tuya.configureMagicPacket,
         exposes: [
@@ -17354,6 +17370,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0726_2_gang_scene_switch",
         vendor: "Tuya",
         description: "2 gang switch with scene and backlight",
+        fromZigbee: [fz.ignore_basic_report, fzLocal.TS0726_action],
+        exposes: [e.action(["scene_1", "scene_2"])],
         extend: [
             tuya.modernExtend.tuyaOnOff({
                 switchMode: true,
@@ -17380,6 +17398,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0726_3_gang_scene_switch",
         vendor: "Tuya",
         description: "3 gang switch with scene and backlight",
+        fromZigbee: [fz.ignore_basic_report, fzLocal.TS0726_action],
+        exposes: [e.action(["scene_1", "scene_2", "scene_3"])],
         extend: [
             tuya.modernExtend.tuyaOnOff({
                 switchMode: true,
@@ -17389,11 +17409,6 @@ export const definitions: DefinitionWithExtend[] = [
                 onOffCountdown: true,
                 endpoints: ["l1", "l2", "l3"],
             }),
-            tuya.modernExtend.combineActions([
-                tuya.modernExtend.dpAction({dp: 1, lookup: {scene_1: 0}}),
-                tuya.modernExtend.dpAction({dp: 2, lookup: {scene_2: 0}}),
-                tuya.modernExtend.dpAction({dp: 3, lookup: {scene_3: 0}}),
-            ]),
         ],
         endpoint: (device) => ({l1: 1, l2: 2, l3: 3}),
         meta: {
@@ -17411,6 +17426,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0726_4_gang_scene_switch",
         vendor: "Tuya",
         description: "4 gang switch with scene and backlight",
+        fromZigbee: [fz.ignore_basic_report, fzLocal.TS0726_action],
+        exposes: [e.action(["scene_1", "scene_2", "scene_3", "scene_4"])],
         extend: [
             tuya.modernExtend.tuyaOnOff({
                 switchMode: true,

@@ -821,6 +821,7 @@ export const electrical_measurement: Fz.Converter = {
             {key: "rmsCurrent", name: "current", factor: "acCurrent"},
             {key: "rmsCurrentPhB", name: "current_phase_b", factor: "acCurrent"},
             {key: "rmsCurrentPhC", name: "current_phase_c", factor: "acCurrent"},
+            {key: "neutralCurrent", name: "current_neutral", factor: "acCurrent"},
             {key: "rmsVoltage", name: "voltage", factor: "acVoltage"},
             {key: "rmsVoltagePhB", name: "voltage_phase_b", factor: "acVoltage"},
             {key: "rmsVoltagePhC", name: "voltage_phase_c", factor: "acVoltage"},

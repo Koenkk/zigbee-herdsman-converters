@@ -273,7 +273,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.action(["on", "off", "brightness_stop", "brightness_step_up", "brightness_step_down", "single", "double"]), e.battery()],
     },
     {
-        fingerprint: tuya.fingerprint("TS0211", ["_TZ1800_ladpngdx"]),
+        fingerprint: tuya.fingerprint("TS0211", ["_TZ1800_ladpngdx", "_TZ1800_akzvkzqq"]),
         model: "HG06668",
         vendor: "Lidl",
         description: "Silvercrest smart wireless door bell button",

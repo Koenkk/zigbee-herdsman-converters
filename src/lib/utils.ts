@@ -137,6 +137,7 @@ export const calibrateAndPrecisionRoundOptionsDefaultPrecision: KeyValue = {
     current: 2,
     current_phase_b: 2,
     current_phase_c: 2,
+    current_neutral: 2,
     voltage: 2,
     voltage_phase_b: 2,
     voltage_phase_c: 2,
