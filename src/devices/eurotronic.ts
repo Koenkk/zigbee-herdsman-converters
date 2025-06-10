@@ -1,12 +1,16 @@
-const fz = require("zigbee-herdsman-converters/converters/fromZigbee");
-const tz = require("zigbee-herdsman-converters/converters/toZigbee");
-const exposes = require("zigbee-herdsman-converters/lib/exposes");
-const reporting = require("zigbee-herdsman-converters/lib/reporting");
-const constants = require("zigbee-herdsman-converters/lib/constants");
+import {Zcl} from "zigbee-herdsman";
+
+import * as fz from "../converters/fromZigbee";
+import * as tz from "../converters/toZigbee";
+import * as constants from "../lib/constants";
+import * as exposes from "../lib/exposes";
+import * as reporting from "../lib/reporting";
+import type {DefinitionWithExtend} from "../lib/types";
+
 const e = exposes.presets;
 const ea = exposes.access;
 
-module.exports = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["SPZB0001"],
         model: "SPZB0001",
