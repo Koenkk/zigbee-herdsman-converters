@@ -189,7 +189,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["CoZB_dha"],
-        model: "COZB0001",
+        model: "CoZB_dha",
         vendor: "Eurotronic",
         description: "Comet Zero Zigbee Zigbee wireless heater thermostat",
         fromZigbee: [fz.eurotronic_thermostat, fz.battery],
