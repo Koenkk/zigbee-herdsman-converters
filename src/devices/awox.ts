@@ -5,78 +5,38 @@ import type {DefinitionWithExtend, Fz} from "../lib/types";
 
 const e = exposes.presets;
 
-const fzLocal = {
-    awoxRemoteActions: {
-        cluster: "genOnOff",
-        type: [
-            "commandOn",
-            "commandOff",
-            "raw",
-            "commandStepWithOnOff",
-            "commandStep",
-            "commandEnhancedMoveHue",
-            "commandRecall",
-            "commandStepColorTemp",
-        ],
-        convert: (model, msg, publish, options, meta) => {
-            const payload = msg.data;
-            let action = null;
+const awox_remote_actions: Fz.Converter = {
+    cluster: 'genOnOff', // Le cluster principal peut être générique, l'important est 'type' et 'convert'
+    type: ['raw', 'commandEnhancedMoveHue', 'commandStepColorTemp'], // Limiter les types aux messages que nous traitons spécifiquement
+    convert: (model, msg, publish, options, meta) => {
+        const payload = msg.data;
+        let action = null;
 
-            if (msg.cluster === "lightingColorCtrl") {
-                if (msg.type === "raw") {
-                    const colorByte = payload.data[4];
-                    switch (colorByte) {
-                        case 0xd6:
-                            action = "color_blue";
-                            break;
-                        case 0xd4:
-                            action = "color_green";
-                            break;
-                        case 0xd2:
-                            action = "color_yellow";
-                            break;
-                        case 0xd0:
-                            action = "color_red";
-                            break;
-                    }
-                } else if (msg.type === "commandEnhancedMoveHue") {
-                    action = "light_movement";
-                } else if (msg.type === "commandStepColorTemp") {
-                    if (payload.stepmode === 1) {
-                        action = "color_temp_warm";
-                    } else if (payload.stepmode === 3) {
-                        action = "color_temp_cold";
-                    }
+        if (msg.cluster === 'lightingColorCtrl') {
+            if (msg.type === 'raw') {
+                const colorByte = payload.data[4];
+                switch (colorByte) {
+                    case 0xD6: action = 'color_blue'; break;
+                    case 0xD4: action = 'color_green'; break;
+                    case 0xD2: action = 'color_yellow'; break;
+                    case 0xD0: action = 'color_red'; break;
                 }
-            } else if (msg.cluster === "genLevelCtrl") {
-                if (msg.type === "commandStepWithOnOff" && payload.stepmode === 0) {
-                    action = "brightness_step_up";
-                } else if (msg.type === "commandStep" && payload.stepmode === 1) {
-                    action = "brightness_step_down";
-                } else if (msg.type === "raw" && payload.data && payload.data[1] === 0xdf) {
-                    action = "refresh";
-                }
-            } else if (msg.cluster === "genScenes") {
-                if (msg.type === "commandRecall") {
-                    if (payload.sceneid === 1) {
-                        action = "scene_1";
-                    } else if (payload.sceneid === 2) {
-                        action = "scene_2";
-                    }
-                }
-            } else if (msg.cluster === "genOnOff") {
-                if (msg.type === "commandOn") {
-                    action = "on";
-                } else if (msg.type === "commandOff") {
-                    action = "off";
-                }
+            } else if (msg.type === 'commandEnhancedMoveHue') {
+                action = 'light_movement';
             }
+            // REMARQUE DU DÉVELOPPEUR: 'commandStepColorTemp' n'est plus géré ici.
+            // Il est géré par fz.command_step_color_temperature.
+            // REMARQUE : j'ai laissé le raw du refresh car il était un cas spécifique non géré par un autre convertisseur.
+        } else if (msg.cluster === 'genLevelCtrl' && msg.type === 'raw' && payload.data && payload.data[1] === 0xDF) {
+            action = 'refresh'; // Bouton "Refresh" unique
+        }
+        // REMARQUE DU DÉVELOPPEUR: La gestion de genOnOff, genLevelCtrl (step/move), et genScenes est supprimée
+        // car elle est déjà couverte par les convertisseurs fz standards.
 
-            if (action) {
-                return {action: action};
-            }
-        },
-    } satisfies Fz.Converter,
+        if (action) {
+            return {action: action};
+        }
+    },
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -111,43 +71,41 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         model: "33952",
         vendor: "AwoX",
-        description: "Remote control",
+        description: "AwoX Remote Controller (Enhanced)",
         fromZigbee: [
-            fzLocal.awoxRemoteActions,
-            /* @deprecated: remove all the converters below */
             fz.command_on,
+            // @deprecated This converter provides generic color actions. Use `awox_remote_actions` for specific color buttons (blue, green, yellow, red).
             fz.awox_colors,
+            // @deprecated This converter provides a generic refresh. Use `awox_remote_actions` for the dedicated 'refresh' action.
             fz.awox_refresh,
+            // @deprecated This converter provides a generic colored refresh. Use `awox_remote_actions` for specific color buttons.
             fz.awox_refreshColored,
             fz.command_off,
-            fz.command_step,
-            fz.command_move,
+            fz.command_step, // Maintenant géré par fz.command_step
+            fz.command_move, // Maintenant géré par fz.command_move
             fz.command_stop,
-            fz.command_recall,
-            fz.command_step_color_temperature,
+            fz.command_recall, // Maintenant géré par fz.command_recall
+            fz.command_step_color_temperature, // Maintenant géré par fz.command_step_color_temperature
+            awox_remote_actions, // Toujours à la fin pour prioriser les actions spécifiques.
         ],
         toZigbee: [],
         exposes: [
             e.action([
                 "on",
                 "off",
-                "color_blue",
-                "color_green",
-                "color_yellow",
-                "color_red",
-                "color_temp_warm",
-                "color_temp_cold",
-                "light_movement",
-                "refresh",
-                "scene_1",
-                "scene_2",
-                /** @deprecated Remove all below */
-                "red",
-                "refresh",
-                "refresh_colored",
+                /** @deprecated Use 'color_blue', 'color_green', 'color_yellow', 'color_red' from 'awox_remote_actions' instead. */
+                "red", // Déprécié si awox_colors est moins précis que les nouvelles actions spécifiques.
+                /** @deprecated Use 'refresh' from 'awox_remote_actions' instead. */
+                "refresh", // Déprécié si fz.awox_refresh est moins précis que la nouvelle action refresh.
+                /** @deprecated Use 'color_blue', 'color_green', 'color_yellow', 'color_red' from 'awox_remote_actions' instead. */
+                "refresh_colored", // Déprécié si fz.awox_refreshColored est moins précis.
+                /** @deprecated Use 'color_blue' from 'awox_remote_actions' instead. */
                 "blue",
+                /** @deprecated Use 'color_yellow' from 'awox_remote_actions' instead. */
                 "yellow",
+                /** @deprecated Use 'color_green' from 'awox_remote_actions' instead. */
                 "green",
+                // Les actions ci-dessous ne sont plus dépréciées par awox_remote_actions car il ne les gère plus directement.
                 "brightness_step_up",
                 "brightness_step_down",
                 "brightness_move_up",
@@ -156,6 +114,19 @@ export const definitions: DefinitionWithExtend[] = [
                 "recall_1",
                 "color_temperature_step_up",
                 "color_temperature_step_down",
+
+                // Nouvelles actions plus précises exposées par awox_remote_actions
+                "color_blue",
+                "color_green",
+                "color_yellow",
+                "color_red",
+                // Les actions ci-dessous ne sont plus dans awox_remote_actions, elles sont gérées par les convertisseurs standards.
+                // "color_temp_warm",
+                // "color_temp_cold",
+                "light_movement", // Cette action spécifique est conservée car gérée par awox_remote_actions
+                "refresh", // Cette action spécifique est conservée car gérée par awox_remote_actions
+                "scene_1", // Ces actions sont gérées par fz.command_recall, pas awox_remote_actions
+                "scene_2", // Idem
             ]),
         ],
     },
