@@ -25,18 +25,16 @@ const luxScale: m.ScaleFunction = (value: number, type: "from" | "to") => {
     if (type === "from") {
         result = 10 ** ((result - 1) / 10000);
         if (result > 0 && result <= 2200) {
-            result = -7.969192 + (0.0151988 * result)
+            result = -7.969192 + 0.0151988 * result;
+        } else if (result > 2200 && result <= 2500) {
+            result = -1069.189434 + 0.4950663 * result;
+        } else if (result > 2500) {
+            result = 78029.21628 - 61.73575 * result + 0.01223567 * result ** 2;
         }
-        else if (result > 2200 && result <= 2500) {
-            result = -1069.189434 + (0.4950663 * result)
-        }
-        else if (result > 2500) {
-            result = (78029.21628 - (61.73575 * result)) + (0.01223567 * (result ** 2))
-        }
-        result = result < 1 ? 1 : result
+        result = result < 1 ? 1 : result;
     }
-    return result; 
-}
+    return result;
+};
 
 const fzLocal = {
     switch_type: {
