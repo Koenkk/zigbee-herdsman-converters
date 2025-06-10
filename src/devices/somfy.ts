@@ -85,7 +85,6 @@ export const definitions: DefinitionWithExtend[] = [
         model: "9028412A",
         vendor: "SOMFY",
         description: "Glydea Curtain motor Zigbee module",
-        extend: [m.deviceEndpoints({endpoints: {"1": 1, "232": 232}}), m.windowCovering({controls: ["lift"]})],
-        meta: {multiEndpoint: true},
+        extend: [m.windowCovering({controls: ["lift"]})],
     },
 ];
