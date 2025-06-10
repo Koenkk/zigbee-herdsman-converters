@@ -1,3 +1,5 @@
+import {Zcl} from "zigbee-herdsman";
+
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as constants from "../lib/constants";
@@ -62,7 +64,7 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            const options = {manufacturerCode: 0x1224};
+            const options = {manufacturerCode: Zcl.ManufacturerCode.NXP_SEMICONDUCTORS};
             await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg", "hvacThermostat"]);
             await reporting.thermostatTemperature(endpoint);
             await reporting.thermostatPIHeatingDemand(endpoint);
@@ -152,7 +154,7 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            const options = {manufacturerCode: 0x1224};
+            const options = {manufacturerCode: Zcl.ManufacturerCode.NXP_SEMICONDUCTORS};
             await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg", "hvacThermostat"]);
             await reporting.thermostatTemperature(endpoint);
             await reporting.thermostatPIHeatingDemand(endpoint);
@@ -238,7 +240,7 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            const options = {manufacturerCode: 0x1224};
+            const options = {manufacturerCode: Zcl.ManufacturerCode.NXP_SEMICONDUCTORS};
             await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg", "hvacThermostat"]);
             await reporting.thermostatTemperature(endpoint);
             await reporting.thermostatPIHeatingDemand(endpoint);
