@@ -1,19 +1,17 @@
-import {Zcl} from "zigbee-herdsman";
-
-const fz = require('zigbee-herdsman-converters/converters/fromZigbee');
-const tz = require('zigbee-herdsman-converters/converters/toZigbee');
-const exposes = require('zigbee-herdsman-converters/lib/exposes');
-const reporting = require('zigbee-herdsman-converters/lib/reporting');
-const constants = require('zigbee-herdsman-converters/lib/constants');
+const fz = require("zigbee-herdsman-converters/converters/fromZigbee");
+const tz = require("zigbee-herdsman-converters/converters/toZigbee");
+const exposes = require("zigbee-herdsman-converters/lib/exposes");
+const reporting = require("zigbee-herdsman-converters/lib/reporting");
+const constants = require("zigbee-herdsman-converters/lib/constants");
 const e = exposes.presets;
 const ea = exposes.access;
 
 module.exports = [
     {
-        zigbeeModel: ['SPZB0001'],
-        model: 'SPZB0001',
-        vendor: 'Eurotronic',
-        description: 'Spirit Zigbee wireless heater thermostat',
+        zigbeeModel: ["SPZB0001"],
+        model: "SPZB0001",
+        vendor: "Eurotronic",
+        description: "Spirit Zigbee wireless heater thermostat",
         fromZigbee: [fz.eurotronic_thermostat, fz.battery],
         toZigbee: [
             tz.thermostat_occupied_heating_setpoint,
@@ -35,37 +33,41 @@ module.exports = [
         exposes: [
             e.battery(),
             e.child_lock(),
-            e.climate()
-                .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
+            e
+                .climate()
+                .withSetpoint("occupied_heating_setpoint", 5, 30, 0.5)
                 .withLocalTemperature()
-                .withSystemMode(['off', 'auto', 'heat'])
-                .withRunningState(['idle', 'heat'])
+                .withSystemMode(["off", "auto", "heat"])
+                .withRunningState(["idle", "heat"])
                 .withLocalTemperatureCalibration()
                 .withPiHeatingDemand(),
-            e.enum('trv_mode', exposes.access.ALL, [1, 2])
+            e
+                .enum("trv_mode", exposes.access.ALL, [1, 2])
                 .withDescription(
-                    'Select between direct control of the valve via the `valve_position` or automatic control of the valve based on the `current_heating_setpoint`. For manual control set the value to 1, for automatic control set the value to 2 (the default). When switched to manual mode the display shows a value from 0 (valve closed) to 100 (valve fully open) and the buttons on the device are disabled.',
+                    "Select between direct control of the valve via the `valve_position` or automatic control of the valve based on the `current_heating_setpoint`. For manual control set the value to 1, for automatic control set the value to 2 (the default). When switched to manual mode the display shows a value from 0 (valve closed) to 100 (valve fully open) and the buttons on the device are disabled.",
                 ),
-            e.numeric('valve_position', exposes.access.ALL)
+            e
+                .numeric("valve_position", exposes.access.ALL)
                 .withValueMin(0)
                 .withValueMax(255)
                 .withDescription(
-                    'Directly control the radiator valve when `trv_mode` is set to 1. The values range from 0 (valve closed) to 255 (valve fully open)',
+                    "Directly control the radiator valve when `trv_mode` is set to 1. The values range from 0 (valve closed) to 255 (valve fully open)",
                 ),
-            e.binary('mirror_display', ea.ALL, 'ON', 'OFF')
-                .withDescription('Mirror display of the thermostat. Useful when it is mounted in a way where the display is presented upside down.'),
+            e
+                .binary("mirror_display", ea.ALL, "ON", "OFF")
+                .withDescription("Mirror display of the thermostat. Useful when it is mounted in a way where the display is presented upside down."),
         ],
         ota: true,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const options = {manufacturerCode: 0x1224};
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'hvacThermostat']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg", "hvacThermostat"]);
             await reporting.thermostatTemperature(endpoint);
             await reporting.thermostatPIHeatingDemand(endpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
             await reporting.thermostatUnoccupiedHeatingSetpoint(endpoint);
             await endpoint.configureReporting(
-                'hvacThermostat',
+                "hvacThermostat",
                 [
                     {
                         attribute: {ID: 0x4003, type: 41},
@@ -77,7 +79,7 @@ module.exports = [
                 options,
             );
             await endpoint.configureReporting(
-                'hvacThermostat',
+                "hvacThermostat",
                 [
                     {
                         attribute: {ID: 0x4008, type: 34},
@@ -121,37 +123,41 @@ module.exports = [
         exposes: [
             e.battery(),
             e.child_lock(),
-            e.climate()
-                .withSetpoint('occupied_heating_setpoint', 8, 28, 0.5)
+            e
+                .climate()
+                .withSetpoint("occupied_heating_setpoint", 8, 28, 0.5)
                 .withLocalTemperature()
-                .withSystemMode(['off', 'auto', 'heat'])
-                .withRunningState(['idle', 'heat'])
+                .withSystemMode(["off", "auto", "heat"])
+                .withRunningState(["idle", "heat"])
                 .withLocalTemperatureCalibration()
                 .withPiHeatingDemand(),
-            e.enum('trv_mode', exposes.access.ALL, [1, 2])
+            e
+                .enum("trv_mode", exposes.access.ALL, [1, 2])
                 .withDescription(
-                    'Select between direct control of the valve via the `valve_position` or automatic control of the valve based on the `current_heating_setpoint`. For manual control set the value to 1, for automatic control set the value to 2 (the default). When switched to manual mode the display shows a value from 0 (valve closed) to 100 (valve fully open) and the buttons on the device are disabled.',
+                    "Select between direct control of the valve via the `valve_position` or automatic control of the valve based on the `current_heating_setpoint`. For manual control set the value to 1, for automatic control set the value to 2 (the default). When switched to manual mode the display shows a value from 0 (valve closed) to 100 (valve fully open) and the buttons on the device are disabled.",
                 ),
-            e.numeric('valve_position', exposes.access.ALL)
+            e
+                .numeric("valve_position", exposes.access.ALL)
                 .withValueMin(0)
                 .withValueMax(255)
                 .withDescription(
-                    'Directly control the radiator valve when `trv_mode` is set to 1. The values range from 0 (valve closed) to 255 (valve fully open)',
+                    "Directly control the radiator valve when `trv_mode` is set to 1. The values range from 0 (valve closed) to 255 (valve fully open)",
                 ),
-            e.binary('mirror_display', ea.ALL, 'ON', 'OFF')
-                .withDescription('Mirror display of the thermostat. Useful when it is mounted in a way where the display is presented upside down.'),
+            e
+                .binary("mirror_display", ea.ALL, "ON", "OFF")
+                .withDescription("Mirror display of the thermostat. Useful when it is mounted in a way where the display is presented upside down."),
         ],
         ota: true,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const options = {manufacturerCode: 0x1224};
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'hvacThermostat']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg", "hvacThermostat"]);
             await reporting.thermostatTemperature(endpoint);
             await reporting.thermostatPIHeatingDemand(endpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
             await reporting.thermostatUnoccupiedHeatingSetpoint(endpoint);
             await endpoint.configureReporting(
-                'hvacThermostat',
+                "hvacThermostat",
                 [
                     {
                         attribute: {ID: 0x4003, type: 41},
@@ -163,7 +169,7 @@ module.exports = [
                 options,
             );
             await endpoint.configureReporting(
-                'hvacThermostat',
+                "hvacThermostat",
                 [
                     {
                         attribute: {ID: 0x4008, type: 34},
@@ -178,10 +184,10 @@ module.exports = [
         },
     },
     {
-        zigbeeModel: ['CoZB_dha'],
-        model: 'COZB0001',
-        vendor: 'Eurotronic',
-        description: 'Comet Zero Zigbee Zigbee wireless heater thermostat',
+        zigbeeModel: ["CoZB_dha"],
+        model: "COZB0001",
+        vendor: "Eurotronic",
+        description: "Comet Zero Zigbee Zigbee wireless heater thermostat",
         fromZigbee: [fz.eurotronic_thermostat, fz.battery],
         toZigbee: [
             tz.thermostat_occupied_heating_setpoint,
@@ -203,37 +209,41 @@ module.exports = [
         exposes: [
             e.battery(),
             e.child_lock(),
-            e.climate()
-                .withSetpoint('occupied_heating_setpoint', 8, 28, 0.5)
+            e
+                .climate()
+                .withSetpoint("occupied_heating_setpoint", 8, 28, 0.5)
                 .withLocalTemperature()
-                .withSystemMode(['off', 'auto', 'heat'])
-                .withRunningState(['idle', 'heat'])
+                .withSystemMode(["off", "auto", "heat"])
+                .withRunningState(["idle", "heat"])
                 .withLocalTemperatureCalibration()
                 .withPiHeatingDemand(),
-            e.enum('trv_mode', exposes.access.ALL, [1, 2])
+            e
+                .enum("trv_mode", exposes.access.ALL, [1, 2])
                 .withDescription(
-                    'Select between direct control of the valve via the `valve_position` or automatic control of the valve based on the `current_heating_setpoint`. For manual control set the value to 1, for automatic control set the value to 2 (the default). When switched to manual mode the display shows a value from 0 (valve closed) to 100 (valve fully open) and the buttons on the device are disabled.',
+                    "Select between direct control of the valve via the `valve_position` or automatic control of the valve based on the `current_heating_setpoint`. For manual control set the value to 1, for automatic control set the value to 2 (the default). When switched to manual mode the display shows a value from 0 (valve closed) to 100 (valve fully open) and the buttons on the device are disabled.",
                 ),
-            e.numeric('valve_position', exposes.access.ALL)
+            e
+                .numeric("valve_position", exposes.access.ALL)
                 .withValueMin(0)
                 .withValueMax(255)
                 .withDescription(
-                    'Directly control the radiator valve when `trv_mode` is set to 1. The values range from 0 (valve closed) to 255 (valve fully open)',
+                    "Directly control the radiator valve when `trv_mode` is set to 1. The values range from 0 (valve closed) to 255 (valve fully open)",
                 ),
-            e.binary('mirror_display', ea.ALL, 'ON', 'OFF')
-                .withDescription('Mirror display of the thermostat. Useful when it is mounted in a way where the display is presented upside down.'),
+            e
+                .binary("mirror_display", ea.ALL, "ON", "OFF")
+                .withDescription("Mirror display of the thermostat. Useful when it is mounted in a way where the display is presented upside down."),
         ],
         ota: true,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const options = {manufacturerCode: 0x1224};
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'hvacThermostat']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg", "hvacThermostat"]);
             await reporting.thermostatTemperature(endpoint);
             await reporting.thermostatPIHeatingDemand(endpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
             await reporting.thermostatUnoccupiedHeatingSetpoint(endpoint);
             await endpoint.configureReporting(
-                'hvacThermostat',
+                "hvacThermostat",
                 [
                     {
                         attribute: {ID: 0x4003, type: 41},
@@ -245,7 +255,7 @@ module.exports = [
                 options,
             );
             await endpoint.configureReporting(
-                'hvacThermostat',
+                "hvacThermostat",
                 [
                     {
                         attribute: {ID: 0x4008, type: 34},
