@@ -6,29 +6,37 @@ import type {DefinitionWithExtend, Fz} from "../lib/types";
 const e = exposes.presets;
 
 const awox_remote_actions: Fz.Converter = {
-    cluster: 'genOnOff', // Le cluster principal peut être générique, l'important est 'type' et 'convert'
-    type: ['raw', 'commandEnhancedMoveHue', 'commandStepColorTemp'], // Limiter les types aux messages que nous traitons spécifiquement
+    cluster: "genOnOff", // Le cluster principal peut être générique, l'important est 'type' et 'convert'
+    type: ["raw", "commandEnhancedMoveHue", "commandStepColorTemp"], // Limiter les types aux messages que nous traitons spécifiquement
     convert: (model, msg, publish, options, meta) => {
         const payload = msg.data;
         let action = null;
 
-        if (msg.cluster === 'lightingColorCtrl') {
-            if (msg.type === 'raw') {
+        if (msg.cluster === "lightingColorCtrl") {
+            if (msg.type === "raw") {
                 const colorByte = payload.data[4];
                 switch (colorByte) {
-                    case 0xD6: action = 'color_blue'; break;
-                    case 0xD4: action = 'color_green'; break;
-                    case 0xD2: action = 'color_yellow'; break;
-                    case 0xD0: action = 'color_red'; break;
+                    case 0xd6:
+                        action = "color_blue";
+                        break;
+                    case 0xd4:
+                        action = "color_green";
+                        break;
+                    case 0xd2:
+                        action = "color_yellow";
+                        break;
+                    case 0xd0:
+                        action = "color_red";
+                        break;
                 }
-            } else if (msg.type === 'commandEnhancedMoveHue') {
-                action = 'light_movement';
+            } else if (msg.type === "commandEnhancedMoveHue") {
+                action = "light_movement";
             }
             // REMARQUE DU DÉVELOPPEUR: 'commandStepColorTemp' n'est plus géré ici.
             // Il est géré par fz.command_step_color_temperature.
             // REMARQUE : j'ai laissé le raw du refresh car il était un cas spécifique non géré par un autre convertisseur.
-        } else if (msg.cluster === 'genLevelCtrl' && msg.type === 'raw' && payload.data && payload.data[1] === 0xDF) {
-            action = 'refresh'; // Bouton "Refresh" unique
+        } else if (msg.cluster === "genLevelCtrl" && msg.type === "raw" && payload.data && payload.data[1] === 0xdf) {
+            action = "refresh"; // Bouton "Refresh" unique
         }
         // REMARQUE DU DÉVELOPPEUR: La gestion de genOnOff, genLevelCtrl (step/move), et genScenes est supprimée
         // car elle est déjà couverte par les convertisseurs fz standards.
