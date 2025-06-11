@@ -1,6 +1,6 @@
 import * as exposes from "../lib/exposes";
 import * as tuya from "../lib/tuya";
-import type {Definition, DefinitionWithExtend, Fz, KeyValue, KeyValueAny, Publish, Tz, Zh} from "../lib/types";
+import type {Definition, DefinitionWithExtend, Fz, KeyValue, Publish, Tz, Zh} from "../lib/types";
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -10,117 +10,20 @@ const fzLocal = {
         cluster: "manuSpecificTuya",
         type: ["commandDataResponse", "commandDataReport"],
         convert: (model: Definition, msg: Fz.Message, publish: Publish, options: KeyValue, meta: Fz.Meta) => {
-            let dpValues = [];
-            if (msg.data.dpValues) {
-                dpValues = msg.data.dpValues;
-            } else if (msg.data.dp !== undefined) {
-                dpValues = [
-                    {
-                        dp: msg.data.dp,
-                        datatype: msg.data.datatype,
-                        data: msg.data.data,
-                    },
-                ];
-            } else {
-                return {};
-            }
-
-            const result: KeyValueAny = {};
-
-            for (const dpValue of dpValues) {
-                const dp = dpValue.dp;
-                const datatype = dpValue.datatype;
-                const data = dpValue.data;
-
-                try {
-                    let value: unknown;
-
-                    if (datatype === 2) {
-                        if (data && typeof data === "object" && data.type === "Buffer" && Array.isArray(data.data)) {
-                            const buffer = data.data;
-                            value = buffer[3] + (buffer[2] << 8) + (buffer[1] << 16) + (buffer[0] << 24);
-                        } else if (data?.data && Array.isArray(data.data)) {
-                            const buffer = data.data;
-                            value = buffer[3] + (buffer[2] << 8) + (buffer[1] << 16) + (buffer[0] << 24);
-                        } else if (Array.isArray(data)) {
-                            if (data.length === 4) {
-                                value = data[3] + (data[2] << 8) + (data[1] << 16) + (data[0] << 24);
-                            } else {
-                                value = data[0];
-                            }
-                        } else if (typeof data === "number") {
-                            value = data;
-                        } else {
-                            continue;
-                        }
-                    } else if (datatype === 1) {
-                        if (data && data.type === "Buffer" && Array.isArray(data.data)) {
-                            value = data.data[0] === 1;
-                        } else if (data?.data && Array.isArray(data.data)) {
-                            value = data.data[0] === 1;
-                        } else if (Array.isArray(data)) {
-                            value = data[0] === 1;
-                        } else {
-                            value = !!data;
-                        }
-                    } else if (datatype === 4) {
-                        if (data && data.type === "Buffer" && Array.isArray(data.data)) {
-                            value = data.data[0];
-                        } else if (data?.data && Array.isArray(data.data)) {
-                            value = data.data[0];
-                        } else if (Array.isArray(data)) {
-                            value = data[0];
-                        } else {
-                            value = data;
-                        }
-                    } else {
-                        value = data;
-                    }
-
-                    if (dp === 1) {
-                        result.temperature = (value as number) / 10;
-
-                        const tempF = (((value as number) / 10) * 9) / 5 + 32;
-                        result.temperature_f = Math.round(tempF * 10) / 10;
-                    } else if (dp === 2) {
-                        result.temperature_f = (value as number) / 10;
-                    } else if (dp === 9) {
-                        result.temperature_unit = (value as number) === 0 ? "celsius" : "fahrenheit";
-                    } else if (dp === 10) {
-                        result.max_temperature = (value as number) / 10;
-
-                        const maxTempF = (((value as number) / 10) * 9) / 5 + 32;
-                        result.max_temperature_f = Math.round(maxTempF * 10) / 10;
-                    } else if (dp === 11) {
-                        result.min_temperature = (value as number) / 10;
-
-                        const minTempF = (((value as number) / 10) * 9) / 5 + 32;
-                        result.min_temperature_f = Math.round(minTempF * 10) / 10;
-                    } else if (dp === 12) {
-                        result.max_temperature_f = (value as number) / 10;
-                    } else if (dp === 13) {
-                        result.min_temperature_f = (value as number) / 10;
-                    } else if (dp === 14) {
-                        const lookup = {0: "cancel", 1: "lower_alarm", 2: "upper_alarm"};
-                        result.temperature_alarm = lookup[value as number as keyof typeof lookup] || "cancel";
-                    }
-                } catch (error) {
-                    // Ignore errors
-                }
-            }
+            const result = tuya.fz.datapoints.convert(model, msg, publish, options, meta) || {};
 
             if (result.temperature_unit === "fahrenheit" && result.temperature) {
-                const tempF = (result.temperature * 9) / 5 + 32;
+                const tempF = ((result.temperature as number) * 9) / 5 + 32;
                 result.temperature_f = Math.round(tempF * 10) / 10;
             }
 
             if (result.temperature_unit === "fahrenheit") {
                 if (result.max_temperature && !result.max_temperature_f) {
-                    const maxTempF = (result.max_temperature * 9) / 5 + 32;
+                    const maxTempF = ((result.max_temperature as number) * 9) / 5 + 32;
                     result.max_temperature_f = Math.round(maxTempF * 10) / 10;
                 }
                 if (result.min_temperature && !result.min_temperature_f) {
-                    const minTempF = (result.min_temperature * 9) / 5 + 32;
+                    const minTempF = ((result.min_temperature as number) * 9) / 5 + 32;
                     result.min_temperature_f = Math.round(minTempF * 10) / 10;
                 }
             }
@@ -154,15 +57,7 @@ const tzLocal = {
             const lookup = {celsius: 0, fahrenheit: 1};
             const dpValue = lookup[value as string as keyof typeof lookup];
 
-            await entity.command(
-                "manuSpecificTuya",
-                "dataRequest",
-                {
-                    seq: 1,
-                    dpValues: [{dp: 9, datatype: 4, data: [dpValue]}],
-                },
-                {disableDefaultResponse: true},
-            );
+            await tuya.sendDataPointEnum(entity, 9, dpValue);
 
             if ((value as string) === "fahrenheit" && meta.state && meta.state.temperature) {
                 const tempF = ((meta.state.temperature as number) * 9) / 5 + 32;
@@ -188,15 +83,7 @@ const tzLocal = {
 
             const dpValue = Math.round(tempValue * 10);
 
-            await entity.command(
-                "manuSpecificTuya",
-                "dataRequest",
-                {
-                    seq: 1,
-                    dpValues: [{dp: 10, datatype: 2, data: [0, 0, dpValue >> 8, dpValue & 0xff]}],
-                },
-                {disableDefaultResponse: true},
-            );
+            await tuya.sendDataPointValue(entity, 10, dpValue);
 
             return {state: {[key]: value}};
         },
@@ -212,15 +99,7 @@ const tzLocal = {
 
             const dpValue = Math.round(tempValue * 10);
 
-            await entity.command(
-                "manuSpecificTuya",
-                "dataRequest",
-                {
-                    seq: 1,
-                    dpValues: [{dp: 11, datatype: 2, data: [0, 0, dpValue >> 8, dpValue & 0xff]}],
-                },
-                {disableDefaultResponse: true},
-            );
+            await tuya.sendDataPointValue(entity, 11, dpValue);
 
             return {state: {[key]: value}};
         },
@@ -228,15 +107,7 @@ const tzLocal = {
     max_humidity: {
         key: ["max_humidity"],
         convertSet: async (entity, key, value, meta) => {
-            await entity.command(
-                "manuSpecificTuya",
-                "dataRequest",
-                {
-                    seq: 1,
-                    dpValues: [{dp: 12, datatype: 2, data: [0, 0, 0, value]}],
-                },
-                {disableDefaultResponse: true},
-            );
+            await tuya.sendDataPointValue(entity, 12, value as number);
 
             return {state: {max_humidity: value}};
         },
@@ -244,15 +115,7 @@ const tzLocal = {
     min_humidity: {
         key: ["min_humidity"],
         convertSet: async (entity, key, value, meta) => {
-            await entity.command(
-                "manuSpecificTuya",
-                "dataRequest",
-                {
-                    seq: 1,
-                    dpValues: [{dp: 13, datatype: 2, data: [0, 0, 0, value]}],
-                },
-                {disableDefaultResponse: true},
-            );
+            await tuya.sendDataPointValue(entity, 13, value as number);
 
             return {state: {min_humidity: value}};
         },
@@ -261,8 +124,8 @@ const tzLocal = {
 
 export const definitions: DefinitionWithExtend[] = [
     {
-        zigbeeModel: ["TZE284-OITAVOV2"],
-        model: "TS0601_Soil_Soan",
+        zigbeeModel: ["SNT858Z"],
+        model: "SNT858Z",
         vendor: "Soanalarm",
         description: "Soil moisture sensor",
         fromZigbee: [tuya.fz.datapoints],
@@ -279,8 +142,8 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        zigbeeModel: ["TZE204-NAVTWMD0"],
-        model: "TZE204_Temperature_Soan",
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_navtwmd0"]),
+        model: "SNT857Z-TDE",
         vendor: "Soanalarm",
         description: "Temperature sensor",
         fromZigbee: [fzLocal.temperature_unit_handler, fzLocal.state_update, tuya.fz.datapoints],
@@ -348,8 +211,8 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        zigbeeModel: ["TZE204-M9DZCKNA"],
-        model: "TZE204_Temperature_Humidity_Soan",
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_m9dzckna"]),
+        model: "SNT857Z",
         vendor: "Soanalarm",
         description: "Temperature and humidity sensor",
         fromZigbee: [fzLocal.temperature_unit_handler, fzLocal.state_update, tuya.fz.datapoints],
