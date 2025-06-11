@@ -20,6 +20,22 @@ const valueLookup: {[key: string]: number} = {
     toggle: 1,
 };
 
+const luxScale: m.ScaleFunction = (value: number, type: "from" | "to") => {
+    let result = value;
+    if (type === "from") {
+        result = 10 ** ((result - 1) / 10000);
+        if (result > 0 && result <= 2200) {
+            result = -7.969192 + 0.0151988 * result;
+        } else if (result > 2200 && result <= 2500) {
+            result = -1069.189434 + 0.4950663 * result;
+        } else if (result > 2500) {
+            result = 78029.21628 - 61.73575 * result + 0.01223567 * result ** 2;
+        }
+        result = result < 1 ? 1 : result;
+    }
+    return result;
+};
+
 const fzLocal = {
     switch_type: {
         cluster: "genBasic",
@@ -345,7 +361,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Motion sensor",
         extend: [
             m.battery(),
-            m.illuminance({reporting: {min: 1, max: 65535, change: 1}}),
+            m.illuminance({reporting: {min: 1, max: 65535, change: 1}, scale: luxScale}),
             m.iasZoneAlarm({zoneType: "occupancy", zoneAttributes: ["alarm_1"]}),
         ],
     },
