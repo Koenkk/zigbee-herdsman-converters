@@ -5480,3 +5480,42 @@ export const TS110E_switch_type: Fz.Converter = {
         return result;
     },
 };
+
+export const fromZigbee_owon_fds315: Fz.Converter = {
+    cluster: 'fallDetectionOwon',
+    type: ['attributeReport', 'readResponse'],
+    convert: (model, msg, publish, options, meta) => {
+        const result: Record<string, any> = {};
+        const data = msg.data;
+        const statusMapping: Record<number, string> = {
+            0: 'Unoccupied',
+            1: 'Occupied',
+            2: 'Sitting',
+            3: 'On the bed',
+            4: 'Low posture',
+            5: 'Falling',
+        };
+
+        if (data.status !== undefined) {
+            const code = data.status;
+            result.status = statusMapping[code] || `Unknown (${code})`;
+        }
+        if (data.breathingRate !== undefined) result.breathingRate = data.breathingRate;
+        if (data.locationX !== undefined) result.locationX = data.locationX;
+        if (data.locationY !== undefined) result.locationY = data.locationY;
+
+        const keys = [
+            'bedUpperLeftX', 'bedUpperLeftY', 'bedLowerRightX', 'bedLowerRightY',
+            'doorCenterX', 'doorCenterY', 'leftFallDetectionRange',
+            'rightFallDetectionRange', 'frontFallDetectionRange',
+        ];
+        const values = keys.map(k => data[k] !== undefined ? data[k] : null);
+
+        if (!values.includes(null)) {
+            result.fall_detection_settings = values.join(',');
+        }
+
+        return result;
+    },
+};
+

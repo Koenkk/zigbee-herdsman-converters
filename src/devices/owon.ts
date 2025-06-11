@@ -479,4 +479,27 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Sleeping pad monitor",
         extend: [m.battery(), m.iasZoneAlarm({zoneType: "contact", zoneAttributes: ["alarm_1", "battery_low", "tamper"]})],
     },
+    {
+        zigbeeModel: ['FDS315'],
+        model: 'FDS315',
+        vendor: 'OWON',
+        description: 'Fall Detection Sensor',
+        fromZigbee:[ fz.identify, fz.fromZigbee_owon_fds315],
+        toZigbee:[tz.toZigbee_owon_fds315_set_fall_settings],
+        exposes: [
+            e.enum('status', ea.STATE, ['Unoccupied', 'Occupied', 'Sitting', 'On the bed', 'Low posture', 'Falling']),
+            e.numeric('breathingRate', ea.STATE).withUnit('breaths/min').withDescription('Breathing rate.'),
+            e.numeric('locationX', ea.STATE).withUnit('cm').withDescription('X coordinate of human activity.'),
+            e.numeric('locationY', ea.STATE).withUnit('cm').withDescription('Y coordinate of human activity.'),
+            e.text('fall_detection_settings', ea.ALL).withDescription(
+                'Comma-separated values for bed, door and fall detection settings: bedUpperLeftX, bedUpperLeftY, bedLowerRightX, bedLowerRightY, doorCenterX, doorCenterY, leftFallDetectionRange, rightFallDetectionRange, frontFallDetectionRange. Put -21931 for disabled bed and door.'
+            ),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.bind('ssIasZone', coordinatorEndpoint);
+            await endpoint.bind('genBasic', coordinatorEndpoint);
+            await endpoint.bind('fallDetectionOwon', coordinatorEndpoint);
+        },
+    }
 ];

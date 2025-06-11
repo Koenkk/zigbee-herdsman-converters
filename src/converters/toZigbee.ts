@@ -4566,3 +4566,41 @@ export const TS110E_light_onoff_brightness: Tz.Converter = {
         return await light_onoff_brightness.convertSet(entity, key, value, meta);
     },
 };
+
+
+export const toZigbee_owon_fds315_set_fall_settings: Tz.Converter = {
+    key: ['fall_detection_settings'],
+    convertSet: async (entity, key, value: any, meta) => {
+        const mapping: Record<number, {id: number, type: number}> = {
+            0: {id: 0x0100, type: 0x29},
+            1: {id: 0x0101, type: 0x29},
+            2: {id: 0x0102, type: 0x29},
+            3: {id: 0x0103, type: 0x29},
+            4: {id: 0x0108, type: 0x29},
+            5: {id: 0x0109, type: 0x29},
+            6: {id: 0x010C, type: 0x21},
+            7: {id: 0x010D, type: 0x21},
+            8: {id: 0x010E, type: 0x21},
+        };
+
+        const values = value?.split(',').map(Number);
+        if (values.length !== 9) throw new Error('Incorrect number of values.');
+
+        const payload: any = {};
+        values.forEach((val: any , idx: any) => {
+            const {id, type} = mapping[idx];
+            payload[id] = {value: val, type};
+        });
+
+        await entity.write('fallDetectionOwon', payload, {manufacturerCode: 0x113C});
+        return {state: {fall_detection_settings: value}};
+    },
+    convertGet: async (entity, key, meta) => {
+        const attrs = [
+            'bedUpperLeftX', 'bedUpperLeftY', 'bedLowerRightX', 'bedLowerRightY',
+            'doorCenterX', 'doorCenterY', 'leftFallDetectionRange',
+            'rightFallDetectionRange', 'frontFallDetectionRange',
+        ];
+        await entity.read('fallDetectionOwon', attrs, {manufacturerCode: 0x113C});
+    },
+};
