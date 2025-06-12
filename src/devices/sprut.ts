@@ -162,6 +162,5 @@ export const definitions: DefinitionWithExtend[] = [
                 }
             }
         },
-        meta: {multiEndpoint: true},
     },
 ];
