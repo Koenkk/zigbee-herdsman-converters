@@ -209,10 +209,10 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.light({colorTemp: {range: [153, 370]}, color: true})],
     },
     {
-        zigbeeModel: ['ZBEK-30'],
-        model: 'PEZ1-023-0550-C1D1',
-        vendor: 'Adeo',
-        description: 'ENKI LEXMAN Gdansk 2900lm 60x30 RGB',
+        zigbeeModel: ["ZBEK-30"],
+        model: "PEZ1-023-0550-C1D1",
+        vendor: "Adeo",
+        description: "ENKI LEXMAN Gdansk 2900lm 60x30 RGB",
         extend: [m.light({colorTemp: {range: [153, 370]}, color: true})],
     },
     {
