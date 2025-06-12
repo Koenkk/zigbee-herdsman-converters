@@ -413,10 +413,11 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        zigbeeModel: [" 3 Phases power consumption module\u0000\u0000", " DIN 3Ph power consumption module", "3ph Smart shedder module"],
+        zigbeeModel: [" 3 Phases power consumption module\u0000\u0000"],
         model: "412175",
         vendor: "Legrand",
-        description: "3P power consumption module",
+        description: "3P power consumption DIN module",
+        whiteLabel: [{vendor: "BTicino", description: "Connected DIN meter for three-phase", model: "F40T125A"}],
         ota: true,
         fromZigbee: [
             fz.identify,
@@ -427,7 +428,7 @@ export const definitions: DefinitionWithExtend[] = [
             fz.legrand_power_alarm,
             fzLegrand.cluster_fc01,
         ],
-        toZigbee: [tzLegrand.led_mode, tz.electrical_measurement_power, tz.legrand_power_alarm, tzLegrand.identify],
+        toZigbee: [tzLegrand.led_mode, tzLegrand.identify, tz.electrical_measurement_power, tz.legrand_power_alarm],
         exposes: [
             e.power().withAccess(ea.STATE_GET),
             e.power_phase_b().withAccess(ea.STATE_GET),
