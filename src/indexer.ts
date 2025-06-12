@@ -54,7 +54,23 @@ export async function buildIndex(fromSrc = false): Promise<void> {
         }
 
         const filePath = path.join(devicesDir, moduleName);
-        const {definitions} = (await import(`./devices/${moduleName.slice(0, -3)}`)) as {definitions: DefinitionWithExtend[]};
+        // load CommonJS or ES default export
+		// biome-ignore lint/suspicious/noExplicitAny: allow dynamic import here
+		const mod = await import(`./devices/${moduleName.slice(0, -3)}`) as
+
+		    | {definitions: DefinitionWithExtend[]}
+
+		    | DefinitionWithExtend[]
+
+		    | {default: {definitions: DefinitionWithExtend[]}};
+        const definitions: DefinitionWithExtend[] = Array.isArray(mod.definitions)
+            ? mod.definitions
+            : Array.isArray(mod.default)
+                ? mod.default
+                : Array.isArray(mod.default?.definitions)
+                    ? mod.default.definitions
+                    : [];
+
         console.log(`Processing ${filePath}, ${definitions.length} converters`);
 
         for (let i = 0; i < definitions.length; i++) {
