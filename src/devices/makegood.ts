@@ -1,8 +1,8 @@
-import * as reporting from "../lib/reporting";
-import * as tuya from "../lib/tuya";
-import * as m from "../lib/modernExtend";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
+import * as m from "../lib/modernExtend";
+import * as reporting from "../lib/reporting";
+import * as tuya from "../lib/tuya";
 import type {DefinitionWithExtend} from "../lib/types";
 
 export const definitions: DefinitionWithExtend[] = [
