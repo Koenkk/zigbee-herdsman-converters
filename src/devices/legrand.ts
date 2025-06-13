@@ -413,10 +413,11 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        zigbeeModel: [" 3 Phases power consumption module\u0000\u0000", " DIN 3Ph power consumption module", "3ph Smart shedder module"],
+        zigbeeModel: [" 3P power consumption module\u0000\u0000\u0000", " DIN 3Ph power consumption module", " 3ph Smart shedder module"],
         model: "412175",
         vendor: "Legrand",
-        description: "3P power consumption module",
+        description: "DIN 3 Phases power consumption module",
+        whiteLabel: [{vendor: "BTicino", description: "Connected DIN meter for three-phase", model: "F40T125A"}],
         ota: true,
         fromZigbee: [
             fz.identify,
