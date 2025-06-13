@@ -2483,6 +2483,7 @@ export const definitions: DefinitionWithExtend[] = [
             fz.ignore_basic_report,
             lumi.fromZigbee.lumi_specific,
         ],
+        ota: true,
         toZigbee: [lumi.toZigbee.lumi_curtain_position_state, lumi.toZigbee.lumi_curtain_battery, lumi.toZigbee.lumi_curtain_charging_status],
         onEvent: async (type, data, device) => {
             if (
