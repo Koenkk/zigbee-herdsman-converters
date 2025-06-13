@@ -104,6 +104,11 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.onOff({
                 powerOnBehavior: false,
+                endpointNames: ["light"],
+                description: "Backlight",
+            }),
+            m.onOff({
+                powerOnBehavior: false,
                 endpointNames: ["flat"],
                 description: "Flat mode",
             }),
