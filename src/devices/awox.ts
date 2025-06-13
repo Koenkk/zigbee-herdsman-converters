@@ -79,7 +79,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         model: "33952",
         vendor: "AwoX",
-        description: "AwoX Remote Controller (Enhanced)",
+        description: "Remote controller",
         fromZigbee: [
             fz.command_on,
             // @deprecated This converter provides generic color actions. Use `awox_remote_actions` for specific color buttons (blue, green, yellow, red).
