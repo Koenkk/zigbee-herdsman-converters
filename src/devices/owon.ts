@@ -1,3 +1,5 @@
+import {Zcl} from "zigbee-herdsman";
+
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
@@ -480,26 +482,51 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.battery(), m.iasZoneAlarm({zoneType: "contact", zoneAttributes: ["alarm_1", "battery_low", "tamper"]})],
     },
     {
-        zigbeeModel: ['FDS315'],
-        model: 'FDS315',
-        vendor: 'OWON',
-        description: 'Fall Detection Sensor',
-        fromZigbee:[ fz.identify, fz.fromZigbee_owon_fds315],
-        toZigbee:[tz.toZigbee_owon_fds315_set_fall_settings],
+        zigbeeModel: ["FDS315"],
+        model: "FDS315",
+        vendor: "OWON",
+        description: "Fall Detection Sensor",
+        extend: [
+            m.deviceAddCustomCluster("fallDetectionOwon", {
+                ID: 0xfd00,
+                manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
+                attributes: {
+                    status: {ID: 0x0000, type: Zcl.DataType.ENUM8},
+                    breathingRate: {ID: 0x0002, type: Zcl.DataType.UINT8},
+                    locationX: {ID: 0x0003, type: Zcl.DataType.INT16},
+                    locationY: {ID: 0x0004, type: Zcl.DataType.INT16},
+                    bedUpperLeftX: {ID: 0x0100, type: Zcl.DataType.INT16},
+                    bedUpperLeftY: {ID: 0x0101, type: Zcl.DataType.INT16},
+                    bedLowerRightX: {ID: 0x0102, type: Zcl.DataType.INT16},
+                    bedLowerRightY: {ID: 0x0103, type: Zcl.DataType.INT16},
+                    doorCenterX: {ID: 0x0108, type: Zcl.DataType.INT16},
+                    doorCenterY: {ID: 0x0109, type: Zcl.DataType.INT16},
+                    leftFallDetectionRange: {ID: 0x010c, type: Zcl.DataType.UINT16},
+                    rightFallDetectionRange: {ID: 0x010d, type: Zcl.DataType.UINT16},
+                    frontFallDetectionRange: {ID: 0x010e, type: Zcl.DataType.UINT16},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+        ],
+        fromZigbee: [fz.identify, fz.owonFds315],
+        toZigbee: [tz.owonFds315SetFallSettings],
         exposes: [
-            e.enum('status', ea.STATE, ['Unoccupied', 'Occupied', 'Sitting', 'On the bed', 'Low posture', 'Falling']),
-            e.numeric('breathingRate', ea.STATE).withUnit('breaths/min').withDescription('Breathing rate.'),
-            e.numeric('locationX', ea.STATE).withUnit('cm').withDescription('X coordinate of human activity.'),
-            e.numeric('locationY', ea.STATE).withUnit('cm').withDescription('Y coordinate of human activity.'),
-            e.text('fall_detection_settings', ea.ALL).withDescription(
-                'Comma-separated values for bed, door and fall detection settings: bedUpperLeftX, bedUpperLeftY, bedLowerRightX, bedLowerRightY, doorCenterX, doorCenterY, leftFallDetectionRange, rightFallDetectionRange, frontFallDetectionRange. Put -21931 for disabled bed and door.'
-            ),
+            e.enum("status", ea.STATE, ["Unoccupied", "Occupied", "Sitting", "On the bed", "Low posture", "Falling"]),
+            e.numeric("breathingRate", ea.STATE).withUnit("breaths/min").withDescription("Breathing rate."),
+            e.numeric("locationX", ea.STATE).withUnit("cm").withDescription("X coordinate of human activity."),
+            e.numeric("locationY", ea.STATE).withUnit("cm").withDescription("Y coordinate of human activity."),
+            e
+                .text("fall_detection_settings", ea.ALL)
+                .withDescription(
+                    "Comma-separated values for bed, door and fall detection settings: bedUpperLeftX, bedUpperLeftY, bedLowerRightX, bedLowerRightY, doorCenterX, doorCenterY, leftFallDetectionRange, rightFallDetectionRange, frontFallDetectionRange. Put -21931 for disabled bed and door.",
+                ),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await endpoint.bind('ssIasZone', coordinatorEndpoint);
-            await endpoint.bind('genBasic', coordinatorEndpoint);
-            await endpoint.bind('fallDetectionOwon', coordinatorEndpoint);
+            await endpoint.bind("ssIasZone", coordinatorEndpoint);
+            await endpoint.bind("genBasic", coordinatorEndpoint);
+            await endpoint.bind("fallDetectionOwon", coordinatorEndpoint);
         },
-    }
+    },
 ];
