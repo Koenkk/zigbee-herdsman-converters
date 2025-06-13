@@ -141,7 +141,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        zigbeeModel: ["ZG2833K8_EU05", "ROB_200-007-0"],
+        zigbeeModel: ["ROB_200-007-0"],
         model: "ROB_200-007-0",
         vendor: "ROBB",
         description: "Zigbee 8 button wall switch",
@@ -173,7 +173,6 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         toZigbee: [],
         meta: {multiEndpoint: true},
-        whiteLabel: [{vendor: "Sunricher", model: "SR-ZG9001K8-DIM"}],
     },
     {
         zigbeeModel: ["ROB_200-024-0"],
@@ -350,7 +349,7 @@ export const definitions: DefinitionWithExtend[] = [
             fz.command_stop,
             fz.command_move,
             fz.command_color_loop_set,
-            fz.command_ehanced_move_to_hue_and_saturation,
+            fz.command_enhanced_move_to_hue_and_saturation,
         ],
         toZigbee: [],
         exposes: [

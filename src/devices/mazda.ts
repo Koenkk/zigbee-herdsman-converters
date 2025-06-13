@@ -1,7 +1,6 @@
 import * as exposes from "../lib/exposes";
 import * as tuya from "../lib/tuya";
-import type {DefinitionWithExtend, KeyValueNumberString, Tz} from "../lib/types";
-import * as utils from "../lib/utils";
+import type {DefinitionWithExtend} from "../lib/types";
 
 const e = exposes.presets;
 const ea = exposes.access;

@@ -2372,6 +2372,225 @@ export const lumiModernExtend = {
         ];
         return {onEvent, isModernExtend: true};
     },
+    lumiExternalSensor: (): ModernExtend => {
+        return {
+            isModernExtend: true,
+            exposes: [
+                e
+                    .enum("sensor", ea.ALL, ["internal", "external"])
+                    .withDescription("Select mode to display sensor: internal or both with external")
+                    .withCategory("config"),
+                e
+                    .numeric("external_temperature", ea.STATE_SET)
+                    .withUnit("°C")
+                    .withValueMin(-100)
+                    .withValueMax(100)
+                    .withValueStep(0.1)
+                    .withDescription("Value for external temperature sensor")
+                    .withCategory("config"),
+                e
+                    .numeric("external_humidity", ea.STATE_SET)
+                    .withUnit("%")
+                    .withValueMin(0)
+                    .withValueMax(100)
+                    .withDescription("Value for external humidity sensor")
+                    .withCategory("config"),
+            ],
+            toZigbee: [
+                {
+                    key: ["sensor", "external_temperature", "external_humidity"],
+                    convertSet: async (entity, key, value, meta) => {
+                        const lumiHeader = (counter: number, length: number, action: number) => {
+                            const header = [0xaa, 0x71, length + 3, 0x44, counter];
+                            const integrity = 512 - header.reduce((sum, elem) => sum + elem, 0);
+                            return [...header, integrity, action, 0x41, length];
+                        };
+                        const fictiveSensor = Buffer.from("00158d00019d1b98", "hex");
+
+                        switch (key) {
+                            case "sensor": {
+                                assertEndpoint(entity);
+                                const device = Buffer.from(entity.deviceIeeeAddress.substring(2), "hex");
+                                const timestamp = Buffer.alloc(4);
+                                timestamp.writeUInt32BE(Date.now() / 1000);
+
+                                if (value === "external") {
+                                    const params1 = [
+                                        ...timestamp,
+                                        0x15,
+                                        ...device,
+                                        ...fictiveSensor,
+                                        0x00,
+                                        0x02,
+                                        0x00,
+                                        0x55,
+                                        0x15,
+                                        0x0a,
+                                        0x01,
+                                        0x00,
+                                        0x00,
+                                        0x01,
+                                        0x06,
+                                        0xe6,
+                                        0xb9,
+                                        0xbf,
+                                        0xe5,
+                                        0xba,
+                                        0xa6,
+                                        0x00,
+                                        0x00,
+                                        0x00,
+                                        0x00,
+                                        0x00,
+                                        0x01,
+                                        0x02,
+                                        0x08,
+                                        0x65,
+                                    ];
+                                    const params2 = [
+                                        ...timestamp,
+                                        0x14,
+                                        ...device,
+                                        ...fictiveSensor,
+                                        0x00,
+                                        0x01,
+                                        0x00,
+                                        0x55,
+                                        0x15,
+                                        0x0a,
+                                        0x01,
+                                        0x00,
+                                        0x00,
+                                        0x01,
+                                        0x06,
+                                        0xe6,
+                                        0xb8,
+                                        0xa9,
+                                        0xe5,
+                                        0xba,
+                                        0xa6,
+                                        0x00,
+                                        0x00,
+                                        0x00,
+                                        0x00,
+                                        0x00,
+                                        0x01,
+                                        0x02,
+                                        0x07,
+                                        0x63,
+                                    ];
+
+                                    const val1 = [...lumiHeader(0x12, params1.length, 0x02), ...params1];
+                                    const val2 = [...lumiHeader(0x13, params2.length, 0x02), ...params2];
+
+                                    await entity.write("manuSpecificLumi", {65522: {value: val1, type: 0x41}}, {manufacturerCode: manufacturerCode});
+                                    await entity.write("manuSpecificLumi", {65522: {value: val2, type: 0x41}}, {manufacturerCode: manufacturerCode});
+                                } else if (value === "internal") {
+                                    const params1 = [
+                                        ...timestamp,
+                                        0x15,
+                                        ...device,
+                                        0x00,
+                                        0x00,
+                                        0x00,
+                                        0x00,
+                                        0x00,
+                                        0x00,
+                                        0x00,
+                                        0x00,
+                                        0x00,
+                                        0x00,
+                                        0x00,
+                                        0x00,
+                                    ];
+                                    const params2 = [
+                                        ...timestamp,
+                                        0x14,
+                                        ...device,
+                                        0x00,
+                                        0x00,
+                                        0x00,
+                                        0x00,
+                                        0x00,
+                                        0x00,
+                                        0x00,
+                                        0x00,
+                                        0x00,
+                                        0x00,
+                                        0x00,
+                                        0x00,
+                                    ];
+
+                                    const val1 = [...lumiHeader(0x12, params1.length, 0x04), ...params1];
+                                    const val2 = [...lumiHeader(0x13, params2.length, 0x04), ...params2];
+
+                                    await entity.write("manuSpecificLumi", {65522: {value: val1, type: 0x41}}, {manufacturerCode: manufacturerCode});
+                                    await entity.write("manuSpecificLumi", {65522: {value: val2, type: 0x41}}, {manufacturerCode: manufacturerCode});
+                                }
+
+                                await entity.read("manuSpecificLumi", [0x172], {manufacturerCode: manufacturerCode});
+                                break;
+                            }
+                            case "external_temperature":
+                                if (meta.state.sensor === "external") {
+                                    const temperatureBuf = Buffer.alloc(4);
+                                    const number = toNumber(value);
+                                    temperatureBuf.writeFloatBE(Math.round(number * 100));
+
+                                    const params = [...fictiveSensor, 0x00, 0x01, 0x00, 0x55, ...temperatureBuf];
+                                    const data = [...lumiHeader(0x12, params.length, 0x05), ...params];
+
+                                    await entity.write("manuSpecificLumi", {65522: {value: data, type: 0x41}}, {manufacturerCode: manufacturerCode});
+                                    return {state: {external_temperature: value}};
+                                }
+                                break;
+                            case "external_humidity":
+                                if (meta.state.sensor === "external") {
+                                    const humidityBuf = Buffer.alloc(4);
+                                    const number = toNumber(value);
+                                    humidityBuf.writeFloatBE(Math.round(number * 100));
+
+                                    const params = [...fictiveSensor, 0x00, 0x02, 0x00, 0x55, ...humidityBuf];
+                                    const data = [...lumiHeader(0x12, params.length, 0x05), ...params];
+
+                                    await entity.write("manuSpecificLumi", {65522: {value: data, type: 0x41}}, {manufacturerCode: manufacturerCode});
+                                    return {state: {external_humidity: value}};
+                                }
+                                break;
+                            default: // Unknown key
+                                logger.debug(`Unhandled key ${key}`, "zhc:lumi:externalSensor");
+                        }
+                    },
+                    convertGet: async (entity, key, meta) => {
+                        await entity.read("manuSpecificLumi", [0x172], {manufacturerCode: manufacturerCode});
+                    },
+                },
+            ],
+            fromZigbee: [
+                {
+                    cluster: "manuSpecificLumi",
+                    type: ["attributeReport", "readResponse"],
+                    convert: (model, msg, publish, options, meta) => {
+                        const result: KeyValue = {};
+                        // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
+                        Object.entries(msg.data).forEach(([key, value]) => {
+                            switch (Number.parseInt(key)) {
+                                case 0x0172:
+                                    result.sensor = getFromLookup(value, {2: "external", 0: "internal", 1: "internal", 3: "external"});
+                                    break;
+                                case 0xfff2:
+                                    logger.debug(`Unhandled key ${key} = ${value}`, "zhc:lumi:externalSensor");
+                                    break;
+                                default:
+                                    logger.debug(`Unknown key ${key} = ${value}`, "zhc:lumi:externalSensor");
+                            }
+                        });
+                        return result;
+                    },
+                } satisfies Fz.Converter,
+            ],
+        } satisfies ModernExtend;
+    },
 };
 
 export {lumiModernExtend as modernExtend};
@@ -2828,7 +3047,7 @@ export const fromZigbee = {
                         result.calibrated = getFromLookup(value, {1: true, 0: false});
                         break;
                     case 0x027e:
-                        result.sensor = getFromLookup(value, {1: "external", 0: "internal"});
+                        result.sensor = getFromLookup(value, {1: "external", 0: "internal", 2: "external"});
                         break;
                     case 0x040a:
                         result.battery = value;
@@ -2990,7 +3209,7 @@ export const fromZigbee = {
                           ? 30
                           : 60;
                 timeout =
-                    options && options.occupancy_timeout !== undefined && Number(options.occupancy_timeout) >= timeout
+                    options?.occupancy_timeout != null && Number(options.occupancy_timeout) >= timeout
                         ? Number(options.occupancy_timeout)
                         : timeout + 2;
 
@@ -3164,7 +3383,7 @@ export const fromZigbee = {
                 if (result.action === "vibration") {
                     result.vibration = true;
 
-                    const timeout = options && options.vibration_timeout !== undefined ? Number(options.vibration_timeout) : 90;
+                    const timeout = options?.vibration_timeout != null ? Number(options.vibration_timeout) : 90;
 
                     // Stop any existing timer cause vibration detected
                     clearTimeout(globalStore.getValue(msg.endpoint, "vibration_timer", null));
@@ -3259,9 +3478,7 @@ export const fromZigbee = {
             // Therefore we need to publish the no_motion detected by ourselves.
             let timeout: number = meta && meta.state && meta.state.detection_interval !== undefined ? Number(meta.state.detection_interval) : 60;
             timeout =
-                options && options.occupancy_timeout !== undefined && Number(options.occupancy_timeout) >= timeout
-                    ? Number(options.occupancy_timeout)
-                    : timeout + 2;
+                options?.occupancy_timeout != null && Number(options.occupancy_timeout) >= timeout ? Number(options.occupancy_timeout) : timeout + 2;
 
             // Stop existing timers because motion is detected and set a new one.
             clearTimeout(globalStore.getValue(msg.endpoint, "occupancy_timer", null));
@@ -4286,7 +4503,7 @@ export const toZigbee = {
         convertSet: async (entity, key, value, meta) => {
             assertEndpoint(entity);
             if (Array.isArray(meta.mapped)) throw new Error("Not supported for groups");
-            let targetValue = isObject(value) && value.state !== undefined ? value.state : value;
+            let targetValue = isObject(value) && value.state != null ? value.state : value;
 
             // 1/2 gang switches using genBasic on endpoint 1.
             // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
@@ -4338,7 +4555,7 @@ export const toZigbee = {
         key: ["operation_mode"],
         convertSet: async (entity, key, value, meta) => {
             // Support existing syntax of a nested object just for the state field. Though it's quite silly IMO.
-            const targetValue = isObject(value) && value.state !== undefined ? value.state : value;
+            const targetValue = isObject(value) && value.state != null ? value.state : value;
             // Switches using manuSpecificLumi 0x0200 on the same endpoints as the onOff clusters.
             const lookupState = {control_relay: 0x01, decoupled: 0x00};
             await entity.write("manuSpecificLumi", {512: {value: getFromLookup(targetValue, lookupState), type: 0x20}}, manufacturerOptions.lumi);
@@ -4529,7 +4746,7 @@ export const toZigbee = {
                 await entity.write("genBasic", {65520: {value: payload, type: 0x41}}, manufacturerOptions.lumi);
             } else if (["ZNQBKG38LM", "ZNQBKG39LM", "ZNQBKG40LM", "ZNQBKG41LM"].includes(meta.mapped.model)) {
                 // Support existing syntax of a nested object just for the state field. Though it's quite silly IMO.
-                const targetValue = isObject(value) && value.state !== undefined ? value.state : value;
+                const targetValue = isObject(value) && value.state != null ? value.state : value;
                 const lookupState = {on: 0x01, electric_appliances_on: 0x00, electric_appliances_off: 0x02, inverted: 0x03};
                 await entity.write(
                     "manuSpecificLumi",
@@ -4799,8 +5016,8 @@ export const toZigbee = {
             };
 
             // Legacy names
-            if (value.auto_close !== undefined) opts.hand_open = value.auto_close;
-            if (value.reset_move !== undefined) opts.reset_limits = value.reset_move;
+            if (value.auto_close != null) opts.hand_open = value.auto_close;
+            if (value.reset_move != null) opts.reset_limits = value.reset_move;
 
             if (meta.mapped.model === "ZNCLDJ12LM") {
                 await entity.write("genBasic", {65320: {value: opts.reverse_direction, type: 0x10}}, manufacturerOptions.lumi);
@@ -5284,14 +5501,14 @@ export const toZigbee = {
                 const payload = [];
                 const statearr: KeyValue = {};
                 assertObject(value);
-                if (value.switch_1_icon !== undefined) {
+                if (value.switch_1_icon != null) {
                     payload.push(getFromLookup(value.switch_1_icon, lookup));
                     statearr.switch_1_icon = value.switch_1_icon;
                 } else {
                     payload.push(1);
                     statearr.switch_1_icon = "1";
                 }
-                if (value.switch_1_text !== undefined) {
+                if (value.switch_1_text != null) {
                     payload.push(...value.switch_1_text.split("").map((c: string) => c.charCodeAt(0)));
                     statearr.switch_1_text = value.switch_1_text;
                 } else {
@@ -5307,14 +5524,14 @@ export const toZigbee = {
                 const payload = [];
                 const statearr: KeyValue = {};
                 assertObject(value);
-                if (value.switch_2_icon !== undefined) {
+                if (value.switch_2_icon != null) {
                     payload.push(getFromLookup(value.switch_2_icon, lookup));
                     statearr.switch_2_icon = value.switch_2_icon;
                 } else {
                     payload.push(1);
                     statearr.switch_2_icon = "1";
                 }
-                if (value.switch_2_text !== undefined) {
+                if (value.switch_2_text != null) {
                     payload.push(...value.switch_2_text.split("").map((c: string) => c.charCodeAt(0)));
                     statearr.switch_2_text = value.switch_2_text;
                 } else {
@@ -5330,14 +5547,14 @@ export const toZigbee = {
                 const payload = [];
                 const statearr: KeyValue = {};
                 assertObject(value);
-                if (value.switch_3_icon !== undefined) {
+                if (value.switch_3_icon != null) {
                     payload.push(getFromLookup(value.switch_3_icon, lookup));
                     statearr.switch_3_icon = value.switch_3_icon;
                 } else {
                     payload.push(1);
                     statearr.switch_3_icon = "1";
                 }
-                if (value.switch_3_text !== undefined) {
+                if (value.switch_3_text != null) {
                     payload.push(...value.switch_3_text.split("").map((c: string) => c.charCodeAt(0)));
                     statearr.switch_3_text = value.switch_3_text;
                 } else {

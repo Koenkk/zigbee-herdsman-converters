@@ -29,4 +29,21 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Door & window sensor",
         extend: [m.iasZoneAlarm({zoneType: "alarm", zoneAttributes: ["alarm_1", "tamper", "battery_low"]}), m.battery()],
     },
+    {
+        zigbeeModel: ["ZGA1-EN"],
+        model: "ZGA1-EN",
+        vendor: "IMOU",
+        description: "Smart gas detector",
+        extend: [
+            m.forceDeviceType({type: "Router"}),
+            m.iasZoneAlarm({zoneType: "gas", zoneAttributes: ["alarm_1", "alarm_2", "tamper", "test"], alarmTimeout: true}),
+        ],
+    },
+    {
+        zigbeeModel: ["ZTM1-EN"],
+        model: "ZTM1-EN",
+        vendor: "IMOU",
+        description: "Temperature and humidity sensor",
+        extend: [m.battery(), m.temperature(), m.humidity()],
+    },
 ];

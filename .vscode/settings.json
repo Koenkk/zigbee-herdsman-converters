@@ -4,5 +4,8 @@
     "editor.tabSize": 4,
     "editor.insertSpaces": true,
     "files.defaultLanguage": "typescript",
-    "files.eol": "\n"
+    "files.eol": "\n",
+    "[typescript]": {
+        "editor.defaultFormatter": "biomejs.biome"
+    }
 }

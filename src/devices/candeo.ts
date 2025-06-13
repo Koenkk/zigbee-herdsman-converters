@@ -20,6 +20,22 @@ const valueLookup: {[key: string]: number} = {
     toggle: 1,
 };
 
+const luxScale: m.ScaleFunction = (value: number, type: "from" | "to") => {
+    let result = value;
+    if (type === "from") {
+        result = 10 ** ((result - 1) / 10000);
+        if (result > 0 && result <= 2200) {
+            result = -7.969192 + 0.0151988 * result;
+        } else if (result > 2200 && result <= 2500) {
+            result = -1069.189434 + 0.4950663 * result;
+        } else if (result > 2500) {
+            result = 78029.21628 - 61.73575 * result + 0.01223567 * result ** 2;
+        }
+        result = result < 1 ? 1 : result;
+    }
+    return result;
+};
+
 const fzLocal = {
     switch_type: {
         cluster: "genBasic",
@@ -97,7 +113,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Candeo",
         description: "Zigbee micro smart dimmer",
         extend: [
-            m.light({configureReporting: true, levelConfig: {disabledFeatures: ["on_transition_time", "off_transition_time", "execute_if_off"]}}),
+            m.light({configureReporting: true, levelConfig: {features: ["on_off_transition_time", "on_level", "current_level_startup"]}}),
             m.electricityMeter(),
         ],
         fromZigbee: [fzLocal.switch_type, fz.ignore_genOta],
@@ -122,7 +138,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Candeo",
         description: "Zigbee micro smart dimmer",
         extend: [
-            m.light({configureReporting: true, levelConfig: {disabledFeatures: ["on_transition_time", "off_transition_time", "execute_if_off"]}}),
+            m.light({configureReporting: true, levelConfig: {features: ["on_off_transition_time", "on_level", "current_level_startup"]}}),
             m.electricityMeter(),
         ],
         fromZigbee: [fzLocal.switch_type, fz.ignore_genOta],
@@ -153,7 +169,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.light({
                 configureReporting: true,
-                levelConfig: {disabledFeatures: ["on_transition_time", "off_transition_time", "on_off_transition_time", "execute_if_off"]},
+                levelConfig: {features: ["on_level", "current_level_startup"]},
                 powerOnBehavior: true,
             }),
         ],
@@ -166,7 +182,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.light({
                 configureReporting: true,
-                levelConfig: {disabledFeatures: ["on_transition_time", "off_transition_time", "on_off_transition_time", "execute_if_off"]},
+                levelConfig: {features: ["on_level", "current_level_startup"]},
                 powerOnBehavior: true,
             }),
         ],
@@ -181,7 +197,7 @@ export const definitions: DefinitionWithExtend[] = [
                 colorTemp: {range: [158, 500]},
                 configureReporting: true,
                 levelConfig: {
-                    disabledFeatures: ["on_transition_time", "off_transition_time", "on_off_transition_time", "on_level", "execute_if_off"],
+                    features: ["current_level_startup"],
                 },
                 powerOnBehavior: true,
             }),
@@ -197,7 +213,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.light({
                 configureReporting: true,
                 levelConfig: {
-                    disabledFeatures: ["on_transition_time", "off_transition_time", "on_off_transition_time", "on_level", "execute_if_off"],
+                    features: ["current_level_startup"],
                 },
                 powerOnBehavior: true,
             }),
@@ -214,7 +230,7 @@ export const definitions: DefinitionWithExtend[] = [
                 color: {modes: ["xy", "hs"], enhancedHue: true},
                 configureReporting: true,
                 levelConfig: {
-                    disabledFeatures: ["on_transition_time", "off_transition_time", "on_off_transition_time", "on_level", "execute_if_off"],
+                    features: ["current_level_startup"],
                 },
                 powerOnBehavior: true,
             }),
@@ -232,7 +248,7 @@ export const definitions: DefinitionWithExtend[] = [
                 color: {modes: ["xy", "hs"], enhancedHue: true},
                 configureReporting: true,
                 levelConfig: {
-                    disabledFeatures: ["on_transition_time", "off_transition_time", "on_off_transition_time", "on_level", "execute_if_off"],
+                    features: ["current_level_startup"],
                 },
                 powerOnBehavior: true,
             }),
@@ -250,7 +266,7 @@ export const definitions: DefinitionWithExtend[] = [
                 color: {modes: ["xy", "hs"], enhancedHue: true},
                 configureReporting: true,
                 levelConfig: {
-                    disabledFeatures: ["on_transition_time", "off_transition_time", "on_off_transition_time", "on_level", "execute_if_off"],
+                    features: ["current_level_startup"],
                 },
                 powerOnBehavior: true,
             }),
@@ -300,9 +316,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "C203",
         vendor: "Candeo",
         description: "Zigbee micro smart dimmer",
-        extend: [
-            m.light({configureReporting: true, levelConfig: {disabledFeatures: ["on_transition_time", "off_transition_time", "execute_if_off"]}}),
-        ],
+        extend: [m.light({configureReporting: true, levelConfig: {features: ["on_off_transition_time", "on_level", "current_level_startup"]}})],
         fromZigbee: [fzLocal.switch_type, fz.ignore_genOta],
         toZigbee: [tzLocal.switch_type],
         exposes: [e.enum("external_switch_type", ea.ALL, ["momentary", "toggle"]).withLabel("External switch type")],
@@ -347,7 +361,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Motion sensor",
         extend: [
             m.battery(),
-            m.illuminance({reporting: {min: 1, max: 65535, change: 1}}),
+            m.illuminance({reporting: {min: 1, max: 65535, change: 1}, scale: luxScale}),
             m.iasZoneAlarm({zoneType: "occupancy", zoneAttributes: ["alarm_1"]}),
         ],
     },

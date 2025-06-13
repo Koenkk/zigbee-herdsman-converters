@@ -13,7 +13,7 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_d0yu2xgi"]),
         zigbeeModel: ["0yu2xgi"],
         model: "NAS-AB02B0",
-        vendor: "Neo",
+        vendor: "NEO",
         description: "Temperature & humidity sensor and alarm",
         fromZigbee: [legacy.fz.neo_t_h_alarm, fz.ignore_basic_report, fz.ignore_tuya_set_time],
         toZigbee: [legacy.tz.neo_t_h_alarm],
@@ -48,7 +48,7 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_t1blo2bj", "_TZE204_t1blo2bj", "_TZE204_q76rtoa9"]),
         zigbeeModel: ["1blo2bj", "lrfgpny", "q76rtoa9"],
         model: "NAS-AB02B2",
-        vendor: "Neo",
+        vendor: "NEO",
         description: "Alarm",
         fromZigbee: [legacy.fz.neo_alarm, fz.ignore_basic_report],
         toZigbee: [legacy.tz.neo_alarm],
@@ -74,7 +74,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_7hfcudw5"]),
         model: "NAS-PD07",
-        vendor: "Neo",
+        vendor: "NEO",
         description: "Motion, temperature & humidity sensor",
         fromZigbee: [legacy.fz.neo_nas_pd07, fz.ignore_tuya_set_time],
         toZigbee: [legacy.tz.neo_nas_pd07],
@@ -110,7 +110,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_nlrfgpny", "_TZE284_nlrfgpny", "_TZE204_nlrfgpny"]),
         model: "NAS-AB06B2",
-        vendor: "Neo",
+        vendor: "NEO",
         description: "Outdoor solar alarm",
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
@@ -163,7 +163,7 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_rzrrjkz2", "_TZE204_uab532m0", "_TZE204_z7a2jmyy"]),
         zigbeeModel: ["NAS-WV03B"],
         model: "NAS-WV03B",
-        vendor: "Neo",
+        vendor: "NEO",
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         description: "Smart sprinkler timer",
@@ -462,7 +462,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.temperature(), m.humidity(), m.battery()],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_1youk3hj"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_1youk3hj", "_TZE284_1youk3hj"]),
         model: "NAS-PS10B2",
         vendor: "NEO",
         description: "Human presence sensor",
@@ -495,7 +495,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueStep(75)
                 .withDescription("Motion Range Detection"),
             e
-                .numeric("motion_sensitivity_value", ea.STATE_SET)
+                .numeric("motion_sensitivity", ea.STATE_SET)
                 .withValueMin(0)
                 .withValueMax(7)
                 .withValueStep(1)
@@ -521,11 +521,15 @@ export const definitions: DefinitionWithExtend[] = [
                 [13, "motion_far_detection", tuya.valueConverter.raw],
                 [15, "motion_sensitivity", tuya.valueConverter.raw],
                 [16, "motionless_sensitivity", tuya.valueConverter.raw],
-                [101, "work_mode", tuya.valueConverterBasic.lookup({manual: 0, auto: 1})],
+                [101, "work_mode", tuya.valueConverterBasic.lookup({manual: tuya.enum(0), auto: tuya.enum(1)})],
                 [104, "output_switch", tuya.valueConverter.onOff],
                 [103, "output_time", tuya.valueConverter.raw],
                 [105, "led_switch", tuya.valueConverter.onOff],
-                [102, "lux_value", tuya.valueConverterBasic.lookup({"10_lux": 0, "20_lux": 1, "50_lux": 2, "24h": 3})],
+                [
+                    102,
+                    "lux_value",
+                    tuya.valueConverterBasic.lookup({"10_lux": tuya.enum(0), "20_lux": tuya.enum(1), "50_lux": tuya.enum(2), "24h": tuya.enum(3)}),
+                ],
             ],
         },
     },

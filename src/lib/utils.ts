@@ -137,6 +137,7 @@ export const calibrateAndPrecisionRoundOptionsDefaultPrecision: KeyValue = {
     current: 2,
     current_phase_b: 2,
     current_phase_c: 2,
+    current_neutral: 2,
     voltage: 2,
     voltage_phase_b: 2,
     voltage_phase_c: 2,
@@ -163,7 +164,7 @@ export function calibrateAndPrecisionRoundOptionsIsPercentual(type: string) {
 export function calibrateAndPrecisionRoundOptions(number: number, options: KeyValue, type: string) {
     // Calibrate
     const calibrateKey = `${type}_calibration`;
-    let calibrationOffset = toNumber(options && options[calibrateKey] !== undefined ? options[calibrateKey] : 0, calibrateKey);
+    let calibrationOffset = toNumber(options?.[calibrateKey] != null ? options[calibrateKey] : 0, calibrateKey);
     if (calibrateAndPrecisionRoundOptionsIsPercentual(type)) {
         // linear calibration because measured value is zero based
         // +/- percent
@@ -175,7 +176,7 @@ export function calibrateAndPrecisionRoundOptions(number: number, options: KeyVa
     // Precision round
     const precisionKey = `${type}_precision`;
     const defaultValue = calibrateAndPrecisionRoundOptionsDefaultPrecision[type] || 0;
-    const precision = toNumber(options && options[precisionKey] !== undefined ? options[precisionKey] : defaultValue, precisionKey);
+    const precision = toNumber(options?.[precisionKey] != null ? options[precisionKey] : defaultValue, precisionKey);
     return precisionRound(number, precision);
 }
 
@@ -468,16 +469,16 @@ export function getTransition(entity: Zh.Endpoint | Zh.Group, key: string, meta:
          * To workaround this we skip the transition for the brightness as it is applied first.
          * https://github.com/Koenkk/zigbee2mqtt/issues/1810
          */
-        if (key === "brightness" && (message.color !== undefined || message.color_temp !== undefined)) {
+        if (key === "brightness" && (message.color != null || message.color_temp != null)) {
             return {time: 0, specified: false};
         }
     }
 
-    if (message.transition !== undefined) {
+    if (message.transition != null) {
         const time = toNumber(message.transition, "transition");
         return {time: time * 10, specified: true};
     }
-    if (options.transition !== undefined && options.transition !== "") {
+    if (options.transition != null && options.transition !== "") {
         const transition = toNumber(options.transition, "transition");
         return {time: transition * 10, specified: true};
     }

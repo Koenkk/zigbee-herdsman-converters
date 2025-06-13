@@ -30,6 +30,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.windowCovering({controls: ["lift"]}), m.battery()],
     },
     {
+        zigbeeModel: ["Sonesse 30 DC 24V Roller"],
+        model: "1241970",
+        vendor: "SOMFY",
+        description: "Sonesse 30 DC 24V roller shades",
+        extend: [m.windowCovering({controls: ["lift"]})],
+    },
+    {
         zigbeeModel: ["Ysia 5 HP Zigbee"],
         model: "1871154",
         vendor: "SOMFY",
@@ -72,5 +79,12 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "SOMFY",
         description: "Zigbee motion sensor",
         extend: [m.identify(), m.iasZoneAlarm({zoneType: "occupancy", zoneAttributes: ["alarm_1", "battery_low"]}), m.battery()],
+    },
+    {
+        zigbeeModel: ["Glydea Ultra Curtain"],
+        model: "9028412A",
+        vendor: "SOMFY",
+        description: "Glydea Curtain motor Zigbee module",
+        extend: [m.windowCovering({controls: ["lift"]})],
     },
 ];

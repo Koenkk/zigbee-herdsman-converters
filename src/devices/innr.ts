@@ -51,6 +51,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.light({turnsOffAtBrightness1: true})],
     },
     {
+        zigbeeModel: ["RCL 231 T"],
+        model: "RCL 231 T",
+        vendor: "Innr",
+        description: "Round Ceiling Light - Warm to Cool White",
+        extend: [m.light({colorTemp: {range: [153, 500]}, turnsOffAtBrightness1: true})],
+    },
+    {
         zigbeeModel: ["RCL 240 T"],
         model: "RCL 240 T",
         vendor: "Innr",
@@ -63,6 +70,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "FL 142 C",
         vendor: "Innr",
         description: "Color Flex LED strip 4m 2000lm",
+        ota: true,
         extend: [m.light({colorTemp: {range: [150, 500], startup: false}, color: {modes: ["xy", "hs"]}, powerOnBehavior: false})],
     },
     {
@@ -751,6 +759,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "FL 122 C",
         vendor: "Innr",
         description: "Flex light colour LED strip 2m, 1440lm, RGBW",
+        ota: true,
         extend: [m.light({colorTemp: {range: [100, 350]}, color: {modes: ["xy", "hs"], applyRedFix: true}, turnsOffAtBrightness1: true})],
     },
     {
@@ -820,6 +829,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Innr",
         description: "Smart E27 filament LED globe light bulb",
         extend: [m.light({colorTemp: {range: [153, 556]}, turnsOffAtBrightness1: true})],
+        ota: true,
     },
     {
         zigbeeModel: ["RF 273 T"],
@@ -827,6 +837,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Innr",
         description: "Smart E27 filament LED light bulb",
         extend: [m.light({colorTemp: {range: [153, 556]}, turnsOffAtBrightness1: true})],
+        ota: true,
     },
     {
         zigbeeModel: ["RF 274 T"],
