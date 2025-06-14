@@ -61,22 +61,6 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        zigbeeModel: ["SZ-ESW02N-CZ3"],
-        model: "SZ-ESW02N-CZ3",
-        vendor: "Sercomm",
-        description: "Telstra smart plug 2",
-        fromZigbee: [fz.on_off, fz.metering],
-        exposes: [e.switch(), e.power()],
-        toZigbee: [tz.on_off],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "seMetering"]);
-            await reporting.onOff(endpoint);
-            await reporting.instantaneousDemand(endpoint);
-            endpoint.saveClusterAttributeKeyValue("seMetering", {divisor: 1000000, multiplier: 1});
-        },
-    },
-    {
         zigbeeModel: ["XHS2-SE"],
         model: "XHS2-SE",
         vendor: "Sercomm",
