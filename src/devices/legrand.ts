@@ -413,7 +413,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        zigbeeModel: [" 3P power consumption module\u0000\u0000\u0000", " DIN 3Ph power consumption module", " 3ph Smart shedder module"],
+        zigbeeModel: [" 3 Phases power consumption module\u0000\u0000", " 3P power consumption module\u0000\u0000\u0000", " DIN 3Ph power consumption module", "3ph Smart shedder module"],
         model: "412175",
         vendor: "Legrand",
         description: "DIN 3 Phases power consumption module",
