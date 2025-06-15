@@ -266,6 +266,7 @@ import {definitions as shyugj} from "./shyugj";
 import {definitions as siglis} from "./siglis";
 import {definitions as sikom} from "./sikom";
 import {definitions as simon} from "./simon";
+import {definitions as simplaHome} from "./simpla_home";
 import {definitions as sinope} from "./sinope";
 import {definitions as siterwell} from "./siterwell";
 import {definitions as skydance} from "./skydance";
@@ -607,6 +608,7 @@ const definitions: DefinitionWithExtend[] = [
     ...siglis,
     ...sikom,
     ...simon,
+    ...simplaHome,
     ...sinope,
     ...siterwell,
     ...skydance,
