@@ -119,6 +119,50 @@ const fzLocal = {
             return payload;
         },
     } satisfies Fz.Converter,
+
+    owonFds315: {
+        cluster: "fallDetectionOwon",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const result: Record<string, unknown> = {};
+            const data = msg.data;
+            const status_mapping: Record<number, string> = {
+                0: "unoccupied",
+                1: "occupied",
+                2: "sitting",
+                3: "on_the_bed",
+                4: "low_posture",
+                5: "falling",
+            };
+
+            if (data.status !== undefined) {
+                const code = data.status;
+                result.status = status_mapping[code] || `Unknown (${code})`;
+            }
+            if (data.breathing_rate !== undefined) result.breathing_rate = data.breathing_rate;
+            if (data.locationX !== undefined) result.locationX = data.locationX;
+            if (data.locationY !== undefined) result.locationY = data.locationY;
+
+            const keys = [
+                "bedUpperLeftX",
+                "bedUpperLeftY",
+                "bedLowerRightX",
+                "bedLowerRightY",
+                "doorCenterX",
+                "doorCenterY",
+                "leftFallDetectionRange",
+                "rightFallDetectionRange",
+                "frontFallDetectionRange",
+            ];
+            const values = keys.map((k) => (data[k] !== undefined ? data[k] : null));
+
+            if (!values.includes(null)) {
+                result.fall_detection_settings = values.join(",");
+            }
+
+            return result;
+        },
+    } satisfies Fz.Converter,
 };
 
 const tzLocal = {
@@ -127,6 +171,50 @@ const tzLocal = {
         key: ["clear_metering"],
         convertSet: async (entity, key, value, meta) => {
             await entity.command(0xffe0, 0x00, {}, {disableDefaultResponse: true});
+        },
+    } satisfies Tz.Converter,
+
+    owonFds315SetFallSettings: {
+        key: ["fall_detection_settings"],
+        convertSet: async (entity, key, value, meta) => {
+            const mapping: Record<number, {id: number; type: number}> = {
+                0: {id: 0x0100, type: 0x29},
+                1: {id: 0x0101, type: 0x29},
+                2: {id: 0x0102, type: 0x29},
+                3: {id: 0x0103, type: 0x29},
+                4: {id: 0x0108, type: 0x29},
+                5: {id: 0x0109, type: 0x29},
+                6: {id: 0x010c, type: 0x21},
+                7: {id: 0x010d, type: 0x21},
+                8: {id: 0x010e, type: 0x21},
+            };
+
+            const strValue = String(value);
+            const values = strValue?.split(",").map(Number);
+            if (values.length !== 9) throw new Error("Incorrect number of values.");
+
+            const payload: Record<number, {value: number; type: number}> = {};
+            values.forEach((val, idx) => {
+                const {id, type} = mapping[idx];
+                payload[id] = {value: val, type};
+            });
+
+            await entity.write("fallDetectionOwon", payload, {manufacturerCode: 0x113c});
+            return {state: {fall_detection_settings: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            const attrs = [
+                "bedUpperLeftX",
+                "bedUpperLeftY",
+                "bedLowerRightX",
+                "bedLowerRightY",
+                "doorCenterX",
+                "doorCenterY",
+                "leftFallDetectionRange",
+                "rightFallDetectionRange",
+                "frontFallDetectionRange",
+            ];
+            await entity.read("fallDetectionOwon", attrs, {manufacturerCode: 0x113c});
         },
     } satisfies Tz.Converter,
 };
@@ -492,7 +580,7 @@ export const definitions: DefinitionWithExtend[] = [
                 manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
                 attributes: {
                     status: {ID: 0x0000, type: Zcl.DataType.ENUM8},
-                    breathingRate: {ID: 0x0002, type: Zcl.DataType.UINT8},
+                    breathing_rate: {ID: 0x0002, type: Zcl.DataType.UINT8},
                     locationX: {ID: 0x0003, type: Zcl.DataType.INT16},
                     locationY: {ID: 0x0004, type: Zcl.DataType.INT16},
                     bedUpperLeftX: {ID: 0x0100, type: Zcl.DataType.INT16},
@@ -509,11 +597,11 @@ export const definitions: DefinitionWithExtend[] = [
                 commandsResponse: {},
             }),
         ],
-        fromZigbee: [fz.identify, fz.owonFds315],
-        toZigbee: [tz.owonFds315SetFallSettings],
+        fromZigbee: [fz.identify, fzLocal.owonFds315],
+        toZigbee: [tzLocal.owonFds315SetFallSettings],
         exposes: [
-            e.enum("status", ea.STATE, ["Unoccupied", "Occupied", "Sitting", "On the bed", "Low posture", "Falling"]),
-            e.numeric("breathingRate", ea.STATE).withUnit("breaths/min").withDescription("Breathing rate."),
+            e.enum("status", ea.STATE, ["unoccupied", "occupied", "sitting", "on_the_bed", "low_posture", "falling"]),
+            e.numeric("breathing_rate", ea.STATE).withUnit("breaths/min").withDescription("Breathing rate."),
             e.numeric("locationX", ea.STATE).withUnit("cm").withDescription("X coordinate of human activity."),
             e.numeric("locationY", ea.STATE).withUnit("cm").withDescription("Y coordinate of human activity."),
             e
