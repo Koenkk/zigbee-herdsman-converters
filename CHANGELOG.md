@@ -1,5 +1,15 @@
 # Changelog
 
+## [23.59.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.59.0...v23.59.1) (2025-06-15)
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3000_g8n1n7lg` as Tuya ZG-001 https://github.com/Koenkk/zigbee2mqtt/issues/27715 ([c899cce](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c899cceb8eae5d588c4e0d5a889df3a5ee2f2909))
+* **detect:** Detect `_TZE204_mexisfik` as Tuya MG-ZG04W https://github.com/Koenkk/zigbee2mqtt/issues/27716 ([165fd2b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/165fd2b645b08a011b277ddc802289bddcaab09a))
+* **detect:** Detect `3P power consumption module` as Legrand 412175 ([#9498](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9498)) ([1334832](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1334832d1edbb2af684c7b3bb6b91c692198e61d))
+* Third Reality 3RSB22BZ: fix power source https://github.com/Koenkk/zigbee2mqtt/issues/27724 ([f0039cd](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f0039cd8dd6d79e52d3bf3b61b7ecb3f7ae53e95))
+
 ## [23.59.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.58.0...v23.59.0) (2025-06-13)
 
 
