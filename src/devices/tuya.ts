@@ -2926,6 +2926,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE200_aqnazj70",
             "_TZE200_di3tfv5b",
             "_TZE200_mexisfik",
+            "_TZE204_mexisfik",
             "_TZE204_6wi2mope",
             "_TZE204_iik0pquw",
             "_TZE204_aagrxlbd",
@@ -2953,6 +2954,7 @@ export const definitions: DefinitionWithExtend[] = [
             {vendor: "AVATTO", model: "ZGB-WS-EU"},
             tuya.whitelabel("AVATTO", "WSMD-4", "4 gang switch", ["_TZE204_f5efvtbv", "_TZE284_f5efvtbv"]),
             tuya.whitelabel("AVATTO", "ZWSMD-4", "4 gang switch", ["_TZE204_lbhh5o6z"]),
+            tuya.whitelabel("Tuya", "MG-ZG04W", "4 gang switch", ["_TZE204_mexisfik"]),
         ],
         meta: {
             multiEndpoint: true,
@@ -4114,6 +4116,7 @@ export const definitions: DefinitionWithExtend[] = [
             {vendor: "Bandi", model: "BDS03G1"},
             tuya.whitelabel("Nous", "B1Z", "1 gang switch", ["_TZ3000_ctftgjwb"]),
             tuya.whitelabel("Tuya", "XMSJ", "Zigbee USB power switch", ["_TZ3000_8n7lqbm0"]),
+            tuya.whitelabel("Tuya", "ZG-001", "Smart home relay module", ["_TZ3000_g8n1n7lg"]),
         ],
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
