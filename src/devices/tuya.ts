@@ -18061,26 +18061,31 @@ const colorTempKelvinConverter = {
     to: (val) => {
         const raw = ((val - 2700) / (6500 - 2700)) * 1000;
         return Math.round(Math.max(0, Math.min(1000, raw)));
-    {module.exports = [
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE284_tgeqdjgk']),
-        model: 'TS0601_knob_dimmer_switch',
-        vendor: 'TuYa',
-        description: 'Dimmer knob with two lights and adjustment mode (brightness/color_temp)',
-
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [
-            {
-                key: ['adjustment_mode'],
-                convertSet: async (entity, key, value, meta) => {
-                    const mode = value === 'brightness' ? 0 : 1;
-                    await tuya.sendDataPointEnum(entity, 105, mode);
-                    return {state: {adjustment_mode: value}};
-                },
+        },
+};
+    {    fingerprint: [
+        {
+            modelID: 'TS0601',
+            manufacturerName: '_TZE284_tgeqdjgk',
+        },
+    ],
+    model: 'TS0601_knob_dimmer_switch',
+    vendor: 'TuYa',
+    description: 'Dimmer knob with two lights and adjustment mode (brightness/color_temp)',
+    fromZigbee: [tuya.fz.datapoints],
+    toZigbee: [
+        {
+            key: ['adjustment_mode'],
+            convertSet: async (entity, key, value, meta) => {
+            const mode = value === 'brightness' ? 0 : 1;
+            await tuya.sendDataPointEnum(entity, 105, mode);
+            return {state: {adjustment_mode: value}};
+            },
             },
             tuya.tz.datapoints,
         ],
 
-        exposes: [
+    exposes: [
             e.binary('light_1', ea.STATE_SET, 'ON', 'OFF'),
             e.binary('light_2', ea.STATE_SET, 'ON', 'OFF'),
             e.binary('state', ea.STATE_SET, 'ON', 'OFF').withDescription('Global state'),
@@ -18094,8 +18099,8 @@ const colorTempKelvinConverter = {
                 .withDescription('Brightness or color temperature adjustment'),
         ],
 
-        meta: {
-            tuyaDatapoints: [
+    meta: {
+           tuyaDatapoints: [
                 [102, 'state', tuya.valueConverter.onOff],
                 [103, 'brightness', tuya.valueConverter.divideBy10],
                 [107, 'color_temp', colorTempKelvinConverter],
@@ -18110,8 +18115,8 @@ const colorTempKelvinConverter = {
 
         configure: tuya.configureMagicPacket,
 
-        endpoint: (device) => {
-            return {'default': 1};
+    endpoint: (device) => {
+        return {'default': 1};
         },
-    },
+    }
 ];
