@@ -18069,7 +18069,7 @@ const colorTempKelvinConverter = {
 };
 
 
-module.exports = {
+    module.exports = {
         fingerprint: [
             {
                 modelID: 'TS0601',
