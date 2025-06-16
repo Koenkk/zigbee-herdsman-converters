@@ -915,7 +915,7 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: [],
     },
     {
-        zigbeeModel: ["TS0203"],
+        zigbeeModel: ["TS0203","ZG-102Z"],
         model: "TS0203",
         vendor: "Tuya",
         description: "Door/window sensor",
@@ -926,6 +926,7 @@ export const definitions: DefinitionWithExtend[] = [
             {vendor: "Tuya", model: "iH-F001"},
             {vendor: "Tesla Smart", model: "TSL-SEN-DOOR"},
             {vendor: "Cleverio", model: "SS100"},
+            {vendor: "HOBEIAN", model: "ZG-102Z",fingerprint: [{modelID: "ZG-102Z"}],},
             tuya.whitelabel("Niceboy", "ORBIS Windows & Door Sensor", "Door sensor", ["_TZ3000_qrldbmfn"]),
             tuya.whitelabel("Tuya", "ZD06", "Door window sensor", ["_TZ3000_rcuyhwe3"]),
             tuya.whitelabel("Tuya", "ZD08", "Door sensor", ["_TZ3000_7d8yme6f"]),
@@ -9620,8 +9621,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: "ZG-205ZL", manufacturerName: "HOBEIAN"},{modelID: "CK-BL702-MWS-01(7016)", manufacturerName: "ZGAF-205L"}],
-        fingerprint: tuya.fingerprint("TS0225", ["_TZE200_hl0ss9oa"]),
+        fingerprint: [tuya.fingerprint("TS0225", ["_TZE200_hl0ss9oa"]),{modelID: "ZG-205ZL", manufacturerName: "HOBEIAN"},{modelID: "CK-BL702-MWS-01(7016)", manufacturerName: "ZGAF-205L"}],
         model: "ZG-205ZL",
         vendor: "Tuya",
         description: "24Ghz/5.8GHz human presence sensor",
@@ -18116,15 +18116,5 @@ export const definitions: DefinitionWithExtend[] = [
         },
         configure: tuya.configureMagicPacket,
     },
-    {
-    zigbeeModel: ["ZG-102Z"],
-    model: "ZG-102Z",
-    vendor: "HOBEIAN",
-    description: "Door contact sensor",
-    extend: [
-      m.battery(),
-      m.iasZoneAlarm({ zoneType: "contact", zoneAttributes: ["alarm_1"] }),
-    ],
-    meta: {},
-  },
+   
 ];
