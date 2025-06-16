@@ -926,7 +926,7 @@ export const definitions: DefinitionWithExtend[] = [
             {vendor: "Tuya", model: "iH-F001"},
             {vendor: "Tesla Smart", model: "TSL-SEN-DOOR"},
             {vendor: "Cleverio", model: "SS100"},
-            {vendor: "HOBEIAN", model: "ZG-102ZA", fingerprint: [{modelID: "ZG-102ZA"}]},
+            {vendor: "HOBEIAN", model: "ZG-102ZA", fingerprint: [{modelID: "ZG-102Z"}]},
             tuya.whitelabel("Niceboy", "ORBIS Windows & Door Sensor", "Door sensor", ["_TZ3000_qrldbmfn"]),
             tuya.whitelabel("Tuya", "ZD06", "Door window sensor", ["_TZ3000_rcuyhwe3"]),
             tuya.whitelabel("Tuya", "ZD08", "Door sensor", ["_TZ3000_7d8yme6f"]),
@@ -3060,11 +3060,6 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.ignore_basic_report, legacy.fromZigbee.tuya_switch],
         toZigbee: [legacy.toZigbee.tuya_switch_state],
         whiteLabel: [
-            {
-                vendor: "HOBEIAN",
-                model: "TS0601_switch_1_gang",
-                fingerprint: [{modelID: "ZG-302Z1"}],
-            },
             tuya.whitelabel("Shawader", "SMKG-1KNL-US/TZB-W", "1 gang switch", ["_TZE204_ojtqawav"]),
         ],
         configure: async (device, coordinatorEndpoint) => {
@@ -3116,13 +3111,7 @@ export const definitions: DefinitionWithExtend[] = [
             // Endpoint selection is made in tuya_switch_state
             return {l1: 1, l2: 1};
         },
-        whiteLabel: [
-            {
-                vendor: "HOBEIAN",
-                model: "TS0601_switch_2_gang",
-                fingerprint: [{modelID: "ZG-302Z2"}],
-            },
-        ],
+        
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_nh9m9emk"]),
@@ -3155,11 +3144,6 @@ export const definitions: DefinitionWithExtend[] = [
                 vendor: "Nova Digital",
                 model: "WS-US-ZB",
                 description: "Interruptor touch Zigbee 3 Teclas",
-            },
-            {
-                vendor: "HOBEIAN",
-                model: "TS0601_switch_3_gang",
-                fingerprint: [{modelID: "ZG-302Z3"}],
             },
         ],
         exposes: [
@@ -9196,7 +9180,6 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZG-101Z/D",
         vendor: "Tuya",
         description: "Smart knob",
-        whiteLabel: [{vendor: "HOBEIAN", model: "ZG-101Z/D", fingerprint: [{modelID: "ZG-101ZD"}]}],
         fromZigbee: [fz.tuya_multi_action, fz.battery, fz.tuya_operation_mode],
         exposes: [
             e.action(["rotate_left", "rotate_right"]),
@@ -10114,13 +10097,6 @@ export const definitions: DefinitionWithExtend[] = [
                 [102, "illuminance_interval", tuya.valueConverter.raw],
             ],
         },
-        whiteLabel: [
-            {
-                vendor: "HOBEIAN",
-                model: "ZG-102ZL",
-                fingerprint: [{modelID: "ZG-102ZL"}],
-            },
-        ],
     },
     {
         fingerprint: [...tuya.fingerprint("TS0601", ["_TZE200_f1pvdgoh", "_TZE200_me6wtiqs"]), ...tuya.fingerprint("\u0000B", ["_TZE200_f1pvdgoh"])],
@@ -10179,13 +10155,7 @@ export const definitions: DefinitionWithExtend[] = [
                 ],
             ],
         },
-        whiteLabel: [
-            {
-                vendor: "HOBEIAN",
-                model: "ZG-225Z",
-                fingerprint: [{modelID: "ZG-225Z"}],
-            },
-        ],
+       
     },
     {
         zigbeeModel: ["ZG-204ZL"],
@@ -10240,13 +10210,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [102, "illuminance_interval", tuya.valueConverter.raw],
             ],
         },
-        whiteLabel: [
-            {
-                vendor: "HOBEIAN",
-                model: "ZG-204ZL",
-                fingerprint: [{modelID: "ZG-204ZL"}],
-            },
-        ],
+       
     },
     {
         zigbeeModel: ["CK-BL702-MWS-01(7016)"],
@@ -10364,13 +10328,7 @@ export const definitions: DefinitionWithExtend[] = [
                 // [120, 'auto3', tuya.valueConverter.raw],
             ],
         },
-        whiteLabel: [
-            {
-                vendor: "HOBEIAN",
-                model: "ZG-205Z/A",
-                fingerprint: [{modelID: "CK-BL702-MWS-01(7016)"}],
-            },
-        ],
+        
     },
     {
         zigbeeModel: ["ZG-204ZM"],
@@ -10418,13 +10376,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withUnit("x")
                 .withDescription("Motion detection sensitivity (Firmware version>=0122052017)"),
         ],
-        whiteLabel: [
-            {
-                vendor: "HOBEIAN",
-                model: "ZG-204ZM",
-                fingerprint: [{modelID: "ZG-204ZM"}],
-            },
-        ],
+       
         meta: {
             tuyaDatapoints: [
                 [1, "presence", tuya.valueConverter.trueFalse1],
@@ -15623,13 +15575,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [105, "battery", tuya.valueConverter.raw],
             ],
         },
-        whiteLabel: [
-            {
-                vendor: "HOBEIAN",
-                model: "ZG-103Z",
-                fingerprint: [{modelID: "ZG-103Z"}],
-            },
-        ],
+        
     },
     {
         zigbeeModel: ["ZG-302ZM"],
