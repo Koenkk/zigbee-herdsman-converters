@@ -45,6 +45,13 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        zigbeeModel: ["SZ-ESW02N-CZ3"],
+        model: "SZ-ESW02N-CZ3",
+        vendor: "Sercomm",
+        description: "Telstra smart plug",
+        extend: [m.onOff({powerOnBehavior: false}), m.electricityMeter({cluster: "metering"})],
+    },
+    {
         zigbeeModel: ["SZ-ESW02"],
         model: "SZ-ESW02",
         vendor: "Sercomm",
