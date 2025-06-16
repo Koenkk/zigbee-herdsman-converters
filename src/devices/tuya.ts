@@ -3059,9 +3059,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.switch().setAccess("state", ea.STATE_SET)],
         fromZigbee: [fz.ignore_basic_report, legacy.fromZigbee.tuya_switch],
         toZigbee: [legacy.toZigbee.tuya_switch_state],
-        whiteLabel: [
-            tuya.whitelabel("Shawader", "SMKG-1KNL-US/TZB-W", "1 gang switch", ["_TZE204_ojtqawav"]),
-        ],
+        whiteLabel: [tuya.whitelabel("Shawader", "SMKG-1KNL-US/TZB-W", "1 gang switch", ["_TZE204_ojtqawav"])],
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
@@ -3111,7 +3109,6 @@ export const definitions: DefinitionWithExtend[] = [
             // Endpoint selection is made in tuya_switch_state
             return {l1: 1, l2: 1};
         },
-        
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_nh9m9emk"]),
@@ -10155,7 +10152,6 @@ export const definitions: DefinitionWithExtend[] = [
                 ],
             ],
         },
-       
     },
     {
         zigbeeModel: ["ZG-204ZL"],
@@ -10210,7 +10206,6 @@ export const definitions: DefinitionWithExtend[] = [
                 [102, "illuminance_interval", tuya.valueConverter.raw],
             ],
         },
-       
     },
     {
         zigbeeModel: ["CK-BL702-MWS-01(7016)"],
@@ -10328,7 +10323,6 @@ export const definitions: DefinitionWithExtend[] = [
                 // [120, 'auto3', tuya.valueConverter.raw],
             ],
         },
-        
     },
     {
         zigbeeModel: ["ZG-204ZM"],
@@ -10376,7 +10370,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withUnit("x")
                 .withDescription("Motion detection sensitivity (Firmware version>=0122052017)"),
         ],
-       
+
         meta: {
             tuyaDatapoints: [
                 [1, "presence", tuya.valueConverter.trueFalse1],
@@ -15575,7 +15569,6 @@ export const definitions: DefinitionWithExtend[] = [
                 [105, "battery", tuya.valueConverter.raw],
             ],
         },
-        
     },
     {
         zigbeeModel: ["ZG-302ZM"],
