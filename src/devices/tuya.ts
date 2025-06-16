@@ -18050,7 +18050,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
         configure: tuya.configureMagicPacket,
      },
-     {
+     
      const tuya = require('zigbee-herdsman-converters/lib/tuya');
      const exposes = require('zigbee-herdsman-converters/lib/exposes');
      const e = exposes.presets;
@@ -18066,7 +18066,6 @@ export const definitions: DefinitionWithExtend[] = [
             const raw = ((val - 2700) / (6500 - 2700)) * 1000;
             return Math.round(Math.max(0, Math.min(1000, raw)));
         },
-     };
 
      module.exports = {
         fingerprint: [
