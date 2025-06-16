@@ -155,7 +155,7 @@ const definition = [
                         if (options?.expose_device_state === true) {
                             return isOn ? "ON" : "OFF";
                         }
-                        delete meta.state.state;
+                        meta.state.state = undefined;
                     },
                 }],
     
