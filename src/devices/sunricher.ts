@@ -140,6 +140,21 @@ async function syncTimeWithTimeZone(endpoint: Zh.Endpoint) {
 
 export const definitions: DefinitionWithExtend[] = [
     {
+        zigbeeModel: ["HK-ZRC-K5&RS-TL-G"],
+        model: "SR-ZG2836D5-G4",
+        vendor: "Sunricher",
+        description: "Zigbee smart remote",
+        extend: [
+            m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3, "4": 4}}),
+            m.battery(),
+            m.commandsOnOff({endpointNames: ["1", "2", "3", "4"]}),
+            m.commandsLevelCtrl({endpointNames: ["1", "2", "3", "4"]}),
+            m.commandsColorCtrl({endpointNames: ["1", "2", "3", "4"]}),
+            m.commandsScenes({endpointNames: ["1", "2", "3", "4"]}),
+        ],
+        meta: {multiEndpoint: true},
+    },
+    {
         zigbeeModel: ["HK-DIM-MW2"],
         model: "SR-ZG9032A-MW",
         vendor: "Sunricher",
