@@ -81,6 +81,7 @@ import {definitions as efekta} from "./efekta";
 import {definitions as eglo} from "./eglo";
 import {definitions as elko} from "./elko";
 import {definitions as enbrighten} from "./enbrighten";
+import {definitions as engo} from "./engo";
 import {definitions as enkin} from "./enkin";
 import {definitions as enocean} from "./enocean";
 import {definitions as envilar} from "./envilar";
@@ -339,7 +340,6 @@ import {definitions as zemismart} from "./zemismart";
 import {definitions as zen} from "./zen";
 import {definitions as zigbeetlc} from "./zigbeetlc";
 import {definitions as zipato} from "./zipato";
-import {definitions as engo} from "./engo";
 
 const definitions: DefinitionWithExtend[] = [
     ...acova,
