@@ -1,8 +1,9 @@
-const exposes = require("zigbee-herdsman-converters/lib/exposes");
+import * as exposes from "../lib/exposes";
+import * as tuya from "../lib/tuya";
+import * as utils from "../lib/utils";
+
 const e = exposes.presets;
 const ea = exposes.access;
-const tuya = require("zigbee-herdsman-converters/lib/tuya");
-const utils = require("zigbee-herdsman-converters/lib/utils");
 
 const definition = [
     {
