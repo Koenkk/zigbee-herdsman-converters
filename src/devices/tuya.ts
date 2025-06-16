@@ -18126,5 +18126,5 @@ export const definitions: DefinitionWithExtend[] = [
         endpoint: (device) => ({
             'default': 1,
         }),
-    },
+    }
 ]:
