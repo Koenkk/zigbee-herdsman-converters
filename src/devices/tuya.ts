@@ -18056,17 +18056,7 @@ export const definitions: DefinitionWithExtend[] = [
      //const e = exposes.presets;
      //const ea = exposes.access;
 
-   // converter 0–1000 (Tuya) <-> 2700–6500 K
-const colorTempKelvinConverter = {
-    from: (val: number): number => {
-        const kelvin = 2700 + (val / 1000) * (6500 - 2700);
-        return Math.round(kelvin);
-    },
-    to: (val: number): number => {
-        const raw = ((val - 2700) / (6500 - 2700)) * 1000;
-        return Math.round(Math.max(0, Math.min(1000, raw)));
-    },
-};
+
 
 
     module.exports = {
@@ -18095,7 +18085,21 @@ const colorTempKelvinConverter = {
             },
             tuya.tz.datapoints,
         ],
+             //const tuya = require('zigbee-herdsman-converters/lib/tuya');
+     //const exposes = require('zigbee-herdsman-converters/lib/exposes');
+     //const e = exposes.presets;
+     //const ea = exposes.access;
 
+   // converter 0–1000 (Tuya) <-> 2700–6500 K
+    const colorTempKelvinConverter = {
+        from: (val: number): number => {
+            const kelvin = 2700 + (val / 1000) * (6500 - 2700);
+            return Math.round(kelvin);
+            },
+        to: (val: number): number => {
+            const raw = ((val - 2700) / (6500 - 2700)) * 1000;
+            return Math.round(Math.max(0, Math.min(1000, raw)));
+            },
         exposes: [
             e.binary('light_1', ea.STATE_SET, 'ON', 'OFF'),
             e.binary('light_2', ea.STATE_SET, 'ON', 'OFF'),
