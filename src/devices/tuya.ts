@@ -18050,26 +18050,18 @@ export const definitions: DefinitionWithExtend[] = [
         },
         configure: tuya.configureMagicPacket,
     },
-    {
-    const tuya = require('zigbee-herdsman-converters/lib/tuya');
-    const exposes = require('zigbee-herdsman-converters/lib/exposes');
-    const e = exposes.presets;
-    const ea = exposes.access;
-
-// Převodník 0–1000 (Tuya) <-> 2700–6500 K
-    const colorTempKelvinConverter = {
+    
+    
+// converter 0–1000 (Tuya) <-> 2700–6500 K
+const colorTempKelvinConverter = {
     from: (val) => {
         const kelvin = 2700 + (val / 1000) * (6500 - 2700);
         return Math.round(kelvin);
-    },
+        },
     to: (val) => {
         const raw = ((val - 2700) / (6500 - 2700)) * 1000;
         return Math.round(Math.max(0, Math.min(1000, raw)));
-    },
-    };
-
-    module.exports = [
-    {
+    {module.exports = [
         fingerprint: tuya.fingerprint('TS0601', ['_TZE284_tgeqdjgk']),
         model: 'TS0601_knob_dimmer_switch',
         vendor: 'TuYa',
@@ -18122,7 +18114,4 @@ export const definitions: DefinitionWithExtend[] = [
             return {'default': 1};
         },
     },
- 
-    ];
-    }
 ];
