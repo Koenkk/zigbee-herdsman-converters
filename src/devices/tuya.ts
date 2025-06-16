@@ -9623,7 +9623,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel:["ZG-205ZL"],
         fingerprint: [
-            ...tuya.fingerprint("TS0225", ["_TZE200_hl0ss9oa"]),
+            {modelID: "TS0225", manufacturerName: "_TZE200_hl0ss9oa"},
             {modelID: "CK-BL702-MWS-01(7016)", manufacturerName: "ZGAF-205L"},
         ],
         model: "ZG-205ZL",
