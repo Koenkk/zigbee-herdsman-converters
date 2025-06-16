@@ -18057,16 +18057,16 @@ export const definitions: DefinitionWithExtend[] = [
      //const ea = exposes.access;
 
     // converter 0–1000 (Tuya) <-> 2700–6500 K
-const colorTempKelvinConverter = {
-    from: (val: number): number => {
-        const kelvin = 2700 + (val / 1000) * (6500 - 2700);
-        return Math.round(kelvin);
-    },
-    to: (val: number): number => {
-        const raw = ((val - 2700) / (6500 - 2700)) * 1000;
-        return Math.round(Math.max(0, Math.min(1000, raw)));
-    },
-};
+    const colorTempKelvinConverter = {
+        from: (val: number): number => {
+            const kelvin = 2700 + (val / 1000) * (6500 - 2700);
+            return Math.round(kelvin);
+        },
+        to: (val: number): number => {
+            const raw = ((val - 2700) / (6500 - 2700)) * 1000;
+            return Math.round(Math.max(0, Math.min(1000, raw)));
+        },
+    };
      module.exports = {
         fingerprint: [
             {
