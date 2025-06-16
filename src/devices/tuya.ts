@@ -9621,6 +9621,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+
         zigbeeModel:["ZG-205ZL"],
         fingerprint: [
             {modelID: "TS0225", manufacturerName: "_TZE200_hl0ss9oa"},
