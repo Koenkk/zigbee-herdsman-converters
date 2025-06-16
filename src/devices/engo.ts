@@ -1,18 +1,15 @@
 import * as exposes from "../lib/exposes";
+import * as m from "../lib/modernExtend";
+import * as reporting from "../lib/reporting";
 import * as tuya from "../lib/tuya";
-import * as utils from "../lib/utils";
+import type {DefinitionWithExtend} from "../lib/types";
 
 const e = exposes.presets;
 const ea = exposes.access;
 
-const definition = [
+export const definitions: DefinitionWithExtend[] = [
     {
-        fingerprint: [
-            {
-                modelID: "TS0601",
-                manufacturerName: "_TZE200_oahqgdig",
-            },
-        ],
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_oahqgdig"]),
         model: "ECB62-ZB",
         vendor: "ENGO",
         description: "Control box for underfloor heating system",
@@ -87,12 +84,7 @@ const definition = [
         },
     },
     {
-        fingerprint: [
-            {
-                modelID: "TS0601",
-                manufacturerName: "_TZE204_djurk6p5",
-            },
-        ],
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_djurk6p5"]),
         model: "EONE",
         vendor: "ENGO",
         description: "Smart thermostat",
@@ -317,5 +309,3 @@ const definition = [
         },
     },
 ];
-
-module.exports = definition;
