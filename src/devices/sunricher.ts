@@ -1044,16 +1044,10 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["ON/OFF(2CH)"],
-        model: "UP-SA-9127D",
-        vendor: "Sunricher",
-        description: "LED-Trading 2 channel AC switch",
-        extend: [m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}), m.onOff({endpointNames: ["l1", "l2"]})],
-    },
-    {
-        fingerprint: [{modelID: "ON/OFF(2CH)", softwareBuildID: "2.9.2_r54"}],
         model: "SR-ZG9101SAC-HP-SWITCH-2CH",
         vendor: "Sunricher",
-        description: "Zigbee 2 channel switch",
+        description: "Zigbee 2 channels switch",
+        whiteLabel: [{vendor: "LED-Trading", model: "UP-SA-9127D", description: "2 channels AC switch"}],
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.power_on_behavior, fz.ignore_genOta],
         toZigbee: [tz.on_off, tz.power_on_behavior],
         exposes: [
