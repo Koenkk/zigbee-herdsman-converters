@@ -140,8 +140,8 @@ const fzLocal = {
                 result.status = status_mapping[code] || `Unknown (${code})`;
             }
             if (data.breathing_rate !== undefined) result.breathing_rate = data.breathing_rate;
-            if (data.locationX !== undefined) result.locationX = data.locationX;
-            if (data.locationY !== undefined) result.locationY = data.locationY;
+            if (data.location_x !== undefined) result.location_x = data.location_x;
+            if (data.location_y !== undefined) result.location_y = data.location_y;
 
             const keys = [
                 "bedUpperLeftX",
@@ -581,8 +581,8 @@ export const definitions: DefinitionWithExtend[] = [
                 attributes: {
                     status: {ID: 0x0000, type: Zcl.DataType.ENUM8},
                     breathing_rate: {ID: 0x0002, type: Zcl.DataType.UINT8},
-                    locationX: {ID: 0x0003, type: Zcl.DataType.INT16},
-                    locationY: {ID: 0x0004, type: Zcl.DataType.INT16},
+                    location_x: {ID: 0x0003, type: Zcl.DataType.INT16},
+                    location_y: {ID: 0x0004, type: Zcl.DataType.INT16},
                     bedUpperLeftX: {ID: 0x0100, type: Zcl.DataType.INT16},
                     bedUpperLeftY: {ID: 0x0101, type: Zcl.DataType.INT16},
                     bedLowerRightX: {ID: 0x0102, type: Zcl.DataType.INT16},
@@ -602,8 +602,8 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [
             e.enum("status", ea.STATE, ["unoccupied", "occupied", "sitting", "on_the_bed", "low_posture", "falling"]),
             e.numeric("breathing_rate", ea.STATE).withUnit("breaths/min").withDescription("Breathing rate."),
-            e.numeric("locationX", ea.STATE).withUnit("cm").withDescription("X coordinate of human activity."),
-            e.numeric("locationY", ea.STATE).withUnit("cm").withDescription("Y coordinate of human activity."),
+            e.numeric("location_x", ea.STATE).withUnit("cm").withDescription("X coordinate of human activity."),
+            e.numeric("location_y", ea.STATE).withUnit("cm").withDescription("Y coordinate of human activity."),
             e
                 .text("fall_detection_settings", ea.ALL)
                 .withDescription(
