@@ -19,7 +19,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.light(),
             m.illuminance({endpointNames: ["33"]}),
             m.occupancy({endpointNames: ["34"]}),
-            m.iasZoneAlarm({zoneType: "generic", zoneAttributes: ["alarm_1", "alarm_2", "tamper", "battery_low"]}),
+            m.iasZoneAlarm({zoneType: "occupancy", zoneAttributes: ["alarm_1", "alarm_2", "tamper", "battery_low"]}),
         ],
         meta: {multiEndpoint: true},
     },
