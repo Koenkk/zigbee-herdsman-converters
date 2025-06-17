@@ -11,9 +11,9 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["13D"],
-        model: "13D",
-        vendor: "Light",
-        description: "iLightsin HSSA18-Z-MID zhaga module",
+        model: "HSSA18-Z-MID",
+        vendor: "iLightsIn",
+        description: "Zhaga module",
         extend: [
             m.light(),
             m.illuminance(),
