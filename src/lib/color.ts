@@ -215,11 +215,11 @@ export class ColorXY {
      * @param xy - object with properties x and y
      * @returns new ColorXY object
      */
-    static fromObject(xy: {x: number; y: number}): ColorXY {
+    static fromObject(xy: {x: number | string; y: number | string}): ColorXY {
         if (xy.x === undefined || xy.y === undefined) {
             throw new Error('One or more required properties missing. Required properties: "x", "y"');
         }
-        return new ColorXY(xy.x, xy.y);
+        return new ColorXY(Number(xy.x), Number(xy.y));
     }
 
     /**
