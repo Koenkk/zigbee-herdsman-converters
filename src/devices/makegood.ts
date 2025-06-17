@@ -77,20 +77,6 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {
             multiEndpoint: true,
             multiEndpointSkip: ["power", "current", "voltage", "energy"],
-            tuyaDatapoints: [
-                [1, "state_right", tuya.valueConverter.onOff],
-                [2, "state_left", tuya.valueConverter.onOff],
-                [9, "countdown_right", tuya.valueConverter.raw],
-                [10, "countdown_left", tuya.valueConverter.raw],
-                [17, "energy", tuya.valueConverter.divideBy100],
-                [18, "current", tuya.valueConverter.divideBy1000],
-                [19, "power", tuya.valueConverter.raw],
-                [20, "voltage", tuya.valueConverter.divideBy10],
-                [26, "fault", tuya.valueConverter.trueFalse0],
-                [27, "power_outage_memory", tuya.valueConverterBasic.lookup({off: 0, on: 1, restore: 2})],
-                [28, "indicator_mode", tuya.valueConverterBasic.lookup({off: 0, "off/on": 1, "on/off": 2, on: 3})],
-                [29, "child_lock", tuya.valueConverter.lockUnlock],
-            ],
         },
     },
 ];
