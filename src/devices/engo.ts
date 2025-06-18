@@ -168,7 +168,13 @@ export const definitions: DefinitionWithExtend[] = [
                     {
                         to: async (value, meta) => {
                             if (meta.options?.expose_device_state === true) {
-                                await tuya.sendDataPointBool(meta.device.endpoints[0], 1, utils.getFromLookup(value, {on: true, off: false}), "dataRequest", 1);
+                                await tuya.sendDataPointBool(
+                                    meta.device.endpoints[0],
+                                    1,
+                                    utils.getFromLookup(value, {on: true, off: false}),
+                                    "dataRequest",
+                                    1,
+                                );
                             }
                         },
                         from: (value, meta, options) => {
