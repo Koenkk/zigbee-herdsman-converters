@@ -365,4 +365,23 @@ export const definitions: DefinitionWithExtend[] = [
             m.iasZoneAlarm({zoneType: "occupancy", zoneAttributes: ["alarm_1"]}),
         ],
     },
+    {
+        fingerprint: [{modelID: "C-ZB-DM201-2G"}],
+        model: "C-ZB-DM201-2G",
+        vendor: "Candeo",
+        description: "Zigbee 2 gang dimmer module",
+        extend: [
+            m.deviceEndpoints( { 
+                endpoints: { l1: 1, l2: 2 } 
+            } ),
+            m.light( { 
+                endpointNames: ["l1", "l2"], 
+                configureReporting: true, 
+                levelReportingConfig: { min: 1, max: 3600, change: 1 },
+                levelConfig: { features: ["on_level", "current_level_startup"] }, 
+                powerOnBehavior: true, 
+                effect: false 
+            } )
+        ],
+    },
 ];
