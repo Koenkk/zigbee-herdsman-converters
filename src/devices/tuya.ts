@@ -18049,82 +18049,31 @@ export const definitions: DefinitionWithExtend[] = [
             multiEndpointSkip: ["power_on_behavior"],
         },
         configure: tuya.configureMagicPacket,
-     },
-     
-     //const tuya = require('zigbee-herdsman-converters/lib/tuya');
-     //const exposes = require('zigbee-herdsman-converters/lib/exposes');
-     //const e = exposes.presets;
-     //const ea = exposes.access;
-
-
-    const colorTempKelvinConverter = {
-    from: (val: number) => Math.round(2700 + (val / 1000) * (6500 - 2700)),
-    to: (val: number) => Math.round(Math.max(0, Math.min(1000, ((val - 2700) / (6500 - 2700)) * 1000))),
-    };
-
-    module.exports = {
-        fingerprint: [
-            {
-                modelID: 'TS0601',
-                manufacturerName: '_TZE284_tgeqdjgk',
-            },
-        ],
-        model: 'TS0601_knob_dimmer_switch',
-        vendor: 'TuYa',
-        description: 'Dimmer knob with two lights and adjustment mode (brightness/color_temp)',
-
-        fromZigbee: [
-            tuya.fz.datapoints,
-        ],
-
-        toZigbee: [
-            {
-                key: ['adjustment_mode'],
-                convertSet: async (entity, key, value, meta) => {
-                    const mode = value === 'brightness' ? 0 : 1;
-                    await tuya.sendDataPointEnum(entity, 105, mode);
-                    return { state: { adjustment_mode: value } };
-                },
-            },
-            tuya.tz.datapoints,
-        ],
-             //const tuya = require('zigbee-herdsman-converters/lib/tuya');
-     //const exposes = require('zigbee-herdsman-converters/lib/exposes');
-     //const e = exposes.presets;
-     //const ea = exposes.access;
-
-  
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_tgeqdjgk"]),
+        model: "TS0601_knob_dimmer_switch",
+        vendor: "Tuya",
+        description: "Dimmer knob with two lights",
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
         exposes: [
-            e.binary('light_1', ea.STATE_SET, 'ON', 'OFF'),
-            e.binary('light_2', ea.STATE_SET, 'ON', 'OFF'),
-            e.binary('state', ea.STATE_SET, 'ON', 'OFF').withDescription('Global state'),
-            e.numeric('brightness', ea.STATE_SET).withValueMin(0).withValueMax(100).withDescription('Brightness'),
-            e.numeric('color_temp', ea.STATE_SET)
-                .withUnit('K')
-                .withValueMin(2700)
-                .withValueMax(6500)
-                .withDescription('Color temperature in Kelvin (converted from 0–1000 Tuya raw)'),
-            e.enum('adjustment_mode', ea.STATE_SET, ['brightness', 'color_temp']).withDescription('Brightness or color temperature adjustment'),
+            e.switch().withEndpoint("l1"),
+            e.switch().withEndpoint("l2"),
+            e.light_brightness_colortemp([154, 370]),
+            e.enum("adjustment_mode", ea.STATE_SET, ["brightness", "color_temp"]).withDescription("Adjustment mode"),
         ],
-
         meta: {
             tuyaDatapoints: [
-                [102, 'state', tuya.valueConverter.onOff],
-                [103, 'brightness', tuya.valueConverter.divideBy10],
-                [107, 'color_temp', colorTempKelvinConverter],
-                [105, 'adjustment_mode', {
-                    from: (val) => val === 0 ? 'brightness' : 'color_temp',
-                    to: (val) => val === 'brightness' ? 0 : 1,
-                }],
-                [121, 'light_1', tuya.valueConverter.onOff],
-                [122, 'light_2', tuya.valueConverter.onOff],
+                [102, "state", tuya.valueConverter.onOff],
+                [103, "brightness", tuya.valueConverter.divideBy10],
+                [105, "adjustment_mode", tuya.valueConverterBasic.lookup({brightness: tuya.enum(0), color_temp: tuya.enum(1)})],
+                [107, "color_temp", tuya.valueConverterBasic.scale(154, 370, 0, 1000)],
+                [121, "state_l1", tuya.valueConverter.onOff],
+                [122, "state_l2", tuya.valueConverter.onOff],
             ],
         },
-
         configure: tuya.configureMagicPacket,
-
-        endpoint: (device) => ({
-            'default': 1,
-        }),
-    }
+        endpoint: (device) => ({default: 1}),
+    },
 ];
