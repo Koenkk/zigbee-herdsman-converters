@@ -1,5 +1,19 @@
 # Changelog
 
+## [23.61.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.60.0...v23.61.0) (2025-06-18)
+
+
+### Features
+
+* **add:** C-ZB-DM201-2G ([#9516](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9516)) ([cb1c2d1](https://github.com/Koenkk/zigbee-herdsman-converters/commit/cb1c2d11bbb150a686b546ad8a3e73a50394d96d))
+* **add:** ECB62-ZB ([#9502](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9502)) ([68b5a7e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/68b5a7ea5b40f07b33574b3ed371e3f86f1578d3))
+* **add:** TS0601_knob_dimmer_switch ([#9506](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9506)) ([6480706](https://github.com/Koenkk/zigbee-herdsman-converters/commit/648070688bb57457f86aa908793ebe445f765018))
+
+
+### Bug Fixes
+
+* eWeLink CK-BL702-AL-01_1: fix integration https://github.com/Koenkk/zigbee2mqtt/issues/27758 ([550666e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/550666e658cf31a61c808a9c52876ccaf044380f))
+
 ## [23.60.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.59.0...v23.60.0) (2025-06-17)
 
 
