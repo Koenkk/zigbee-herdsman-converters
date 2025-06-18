@@ -17,7 +17,7 @@ export const definitions: DefinitionWithExtend[] = [
         onEvent: tuya.onEventSetTime,
         configure: tuya.configureMagicPacket,
         exposes: [
-            e.enum("pump_delay_time", ea.STATE_SET, ["OFF", "3 min", "5 min", "15 min"]).withDescription("Pump shutdown delay"),
+            e.enum("pump_delay_time", ea.STATE_SET, ["OFF", "3_min", "5_min", "15_min"]).withDescription("Pump shutdown delay"),
             e.binary("zone_1", ea.STATE, "ON", "OFF").withDescription("Zigbee zone 1 heat demand"),
             e.binary("zone_2", ea.STATE, "ON", "OFF").withDescription("Zigbee zone 2 heat demand"),
             e.binary("zone_3", ea.STATE, "ON", "OFF").withDescription("Zigbee zone 3 heat demand"),
@@ -74,9 +74,9 @@ export const definitions: DefinitionWithExtend[] = [
                     "pump_delay_time",
                     tuya.valueConverterBasic.lookup({
                         OFF: tuya.enum(0),
-                        "3 min": tuya.enum(1),
-                        "5 min": tuya.enum(2),
-                        "15 min": tuya.enum(3),
+                        "3_min": tuya.enum(1),
+                        "5_min": tuya.enum(2),
+                        "15_min": tuya.enum(3),
                     }),
                 ],
             ],
@@ -149,7 +149,7 @@ export const definitions: DefinitionWithExtend[] = [
                     .withDescription("Number of days for holiday"),
                 e.binary("valve_protection", ea.STATE_SET, "ON", "OFF").withDescription("Prevents valve blockage during long periods of inactivity."),
                 e
-                    .enum("warm_floor", ea.STATE_SET, ["OFF", "7 min", "11 min", "15 min", "19 min", "23 min"])
+                    .enum("warm_floor", ea.STATE_SET, ["OFF", "7_min", "11_min", "15_min", "19_min", "23_min"])
                     .withDescription("Automatically warms the floor every 60 minutes."),
                 e.enum("sensor_error", ea.STATE, ["Normal", "E1", "E2"]).withDescription("Sensor error indicator."),
                 ...tuya.exposes.scheduleAllDays(ea.STATE_SET, "HH:MM/C HH:MM/C HH:MM/C HH:MM/C HH:MM/C HH:MM/C"),
@@ -168,8 +168,7 @@ export const definitions: DefinitionWithExtend[] = [
                     {
                         to: async (value, meta) => {
                             if (meta.options?.expose_device_state === true) {
-                                const boolValue = utils.getFromLookup(value, {on: true, off: false});
-                                await tuya.sendDataPointBool(meta.device.endpoints[0], 1, boolValue, "dataRequest", 1);
+                                await tuya.sendDataPointBool(meta.device.endpoints[0], 1, utils.getFromLookup(value, {on: true, off: false}), "dataRequest", 1);
                             }
                         },
                         from: (value, meta, options) => {
@@ -188,10 +187,10 @@ export const definitions: DefinitionWithExtend[] = [
                     2,
                     "system_mode",
                     {
-                        to: async (v, meta) => {
+                        to: async (value, meta) => {
                             const entity = meta.device.endpoints[0];
-                            await tuya.sendDataPointBool(entity, 1, v !== "off", "dataRequest", 1);
-                            switch (v) {
+                            await tuya.sendDataPointBool(entity, 1, value !== "off", "dataRequest", 1);
+                            switch (value) {
                                 case "heat":
                                     await tuya.sendDataPointEnum(entity, 2, 0, "dataRequest", 1);
                                     break;
@@ -200,9 +199,9 @@ export const definitions: DefinitionWithExtend[] = [
                                     break;
                             }
                         },
-                        from: (v, meta) => {
+                        from: (value, meta) => {
                             const modes = ["heat", "cool"];
-                            const mode = modes[v];
+                            const mode = modes[value];
                             meta.state.system_mode_device = mode;
                             const fallbackMode = "heat";
                             return mode ?? fallbackMode;
@@ -288,11 +287,11 @@ export const definitions: DefinitionWithExtend[] = [
                     "warm_floor",
                     tuya.valueConverterBasic.lookup({
                         OFF: tuya.enum(0),
-                        "7 min": tuya.enum(1),
-                        "11 min": tuya.enum(2),
-                        "15 min": tuya.enum(3),
-                        "19 min": tuya.enum(4),
-                        "23 min": tuya.enum(5),
+                        "7_min": tuya.enum(1),
+                        "11_min": tuya.enum(2),
+                        "15_min": tuya.enum(3),
+                        "19_min": tuya.enum(4),
+                        "23_min": tuya.enum(5),
                     }),
                 ],
                 [
