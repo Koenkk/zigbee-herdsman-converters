@@ -1,3 +1,5 @@
+import {Zcl} from "zigbee-herdsman";
+
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as constants from "../lib/constants";
@@ -5,10 +7,243 @@ import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as tuya from "../lib/tuya";
-import type {DefinitionWithExtend, Reporting, Zh} from "../lib/types";
+import type {DefinitionWithExtend, Fz, Reporting, Tz, Zh} from "../lib/types";
 
 const e = exposes.presets;
 const ea = exposes.access;
+
+const fzLocal = {
+    occupancyRadarHeiman: {
+        cluster: "msOccupancySensing",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const result: Record<string, unknown> = {};
+            if (Object.hasOwn(msg.data, "occupancy")) {
+                const occupancy = msg.data.occupancy;
+                const bit0 = occupancy & 0x01; // Bit 0: Occupancy (0: no one, 1: someone)
+                const bit1to3 = (occupancy >> 1) & 0x07; // Bits 1-3: Sensor status
+                const bit4to5 = (occupancy >> 4) & 0x03; // Bits 4-5: Fall status
+
+                // Interpretación de los estados
+                result.occupancy = bit0 === 1;
+                result.sensor_status = ["none", "activity"][bit1to3] || "unknown";
+                result.fall_status = ["normal", "fall_warning", "fall_alarm"][bit4to5] || "unknown";
+            }
+            return result;
+        },
+    } satisfies Fz.Converter,
+    radarSensorHeiman: {
+        cluster: "RadarSensorHeiman",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const result: Record<string, unknown> = {};
+            const mapAttributes: Record<string, string> = {
+                enable_indicator: "enable_indicator",
+                sensitivity: "sensitivity",
+                enable_sub_region_isolation: "enable_sub_region_isolation",
+                installation_method: "installation_method",
+                cell_mounted_table: "cell_mounted_table",
+                wall_mounted_table: "wall_mounted_table",
+                sub_region_isolation_table: "sub_region_isolation_table",
+            };
+
+            for (const key of Object.keys(msg.data)) {
+                if (mapAttributes[key]) {
+                    const value = msg.data[key];
+                    if (value.length >= 5) {
+                        try {
+                            const buffer = Buffer.from(value, "binary");
+
+                            if (key === "cell_mounted_table") {
+                                if (buffer.length !== 10) {
+                                    throw new Error(`Invalid cell_mounted_table data length: expected 10 bytes, got ${buffer.length}.`);
+                                }
+                                const coordinates = [
+                                    buffer.readInt16LE(0), // x1
+                                    buffer.readInt16LE(2), // y1
+                                    buffer.readInt16LE(4), // x2
+                                    buffer.readInt16LE(6), // y2
+                                    buffer.readInt16LE(8), // height
+                                ];
+                                result.cell_mounted_table = coordinates.join(",");
+                            } else if (key === "wall_mounted_table") {
+                                if (buffer.length !== 8) {
+                                    throw new Error(`Invalid wall_mounted_table data length: expected 8 bytes, got ${buffer.length}.`);
+                                }
+                                const coordinates = [
+                                    buffer.readInt16LE(0), // x1
+                                    buffer.readInt16LE(2), // y1
+                                    buffer.readInt16LE(4), // x2
+                                    buffer.readInt16LE(6), // height
+                                ];
+                                result.wall_mounted_table = coordinates.join(",");
+                            } else if (key === "sub_region_isolation_table") {
+                                if (buffer.length !== 12) {
+                                    throw new Error(`Invalid sub_region_isolation_table data length: expected 12 bytes, got ${buffer.length}.`);
+                                }
+                                const coordinates = [
+                                    buffer.readInt16LE(0), // x1
+                                    buffer.readInt16LE(2), // y1
+                                    buffer.readInt16LE(4), // x2
+                                    buffer.readInt16LE(6), // y2
+                                    buffer.readInt16LE(8), // z1
+                                    buffer.readInt16LE(10), // z2
+                                ];
+                                result.sub_region_isolation_table = coordinates.join(",");
+                            }
+                        } catch (error) {
+                            console.error(`Error decoding attribute ${key}:  ${(error as Error).message}`);
+                        }
+                    } else {
+                        result[mapAttributes[key]] = value;
+                    }
+                }
+            }
+            return result;
+        },
+    } satisfies Fz.Converter,
+};
+
+const tzLocal = {
+    radarSensorHeiman: {
+        key: [
+            "enable_indicator",
+            "sensitivity",
+            "enable_sub_region_isolation",
+            "installation_method",
+            "cell_mounted_table",
+            "wall_mounted_table",
+            "sub_region_isolation_table",
+        ],
+
+        convertSet: async (entity, key, value, meta) => {
+            const cluster = "RadarSensorHeiman";
+            const mapAttributes: Record<string, {id: number; type: number}> = {
+                enable_indicator: {id: 0xf001, type: 0x20},
+                sensitivity: {id: 0xf002, type: 0x20},
+                enable_sub_region_isolation: {id: 0xf006, type: 0x20},
+                installation_method: {id: 0xf007, type: 0x20},
+                cell_mounted_table: {id: 0xf008, type: 0x41}, // string
+                wall_mounted_table: {id: 0xf009, type: 0x41}, // string
+                sub_region_isolation_table: {id: 0xf00a, type: 0x41}, // string
+            };
+
+            const attributeInfo = mapAttributes[key];
+            if (!attributeInfo) {
+                throw new Error(`Unsupported attribute: ${key}`);
+            }
+
+            const {id, type} = attributeInfo;
+
+            let payloadValue = value;
+
+            if (key === "cell_mounted_table" && value !== "") {
+                const coordinates = (value as string).split(",").map((v: string) => Number.parseInt(v, 10));
+                if (coordinates.length !== 5) {
+                    throw new Error("cell_mounted_table must be a string with 5 comma-separated values (e.g., '-2000,2000,-2500,2500,2300')");
+                }
+
+                // Rango de valores
+                if (
+                    coordinates[0] < -2000 ||
+                    coordinates[0] > 0 || // X1
+                    coordinates[1] < 0 ||
+                    coordinates[1] > 2000 || // X2
+                    coordinates[2] < -2500 ||
+                    coordinates[2] > 0 || // Y1
+                    coordinates[3] < 0 ||
+                    coordinates[3] > 2500 || // Y2
+                    coordinates[4] < 2300 ||
+                    coordinates[4] > 3000 // height
+                ) {
+                    throw new Error("Values out of range for Cell Mounted Table.");
+                }
+
+                const buffer = Buffer.alloc(10); // 10 bytes + 1 byte
+                buffer.writeInt16LE(coordinates[0], 0); // x1
+                buffer.writeInt16LE(coordinates[1], 2); // x2
+                buffer.writeInt16LE(coordinates[2], 4); // y1
+                buffer.writeInt16LE(coordinates[3], 6); // y2
+                buffer.writeInt16LE(coordinates[4], 8); // height
+                payloadValue = buffer;
+            } else if (key === "wall_mounted_table" && value !== "") {
+                const coordinates = (value as string).split(",").map((v: string) => Number.parseInt(v, 10));
+                if (coordinates.length !== 4) {
+                    throw new Error("wall_mounted_table must be a string with 4 comma-separated values (e.g., '-2000,2000,4000,1600')");
+                }
+
+                if (
+                    coordinates[0] < -2000 ||
+                    coordinates[0] > 0 || // X1
+                    coordinates[1] < 0 ||
+                    coordinates[1] > 2000 || // X2
+                    coordinates[2] < 200 ||
+                    coordinates[2] > 4000 || // Y2
+                    coordinates[3] < 1500 ||
+                    coordinates[3] > 1600 // height
+                ) {
+                    throw new Error("Values out of range for Wall Mounted Table.");
+                }
+
+                const buffer = Buffer.alloc(8); // 8 bytes + 1 byte
+                buffer.writeInt16LE(coordinates[0], 0); // x1
+                buffer.writeInt16LE(coordinates[1], 2); // x2
+                buffer.writeInt16LE(coordinates[2], 4); // y2
+                buffer.writeInt16LE(coordinates[3], 6); // height
+                payloadValue = buffer;
+            } else if (key === "sub_region_isolation_table" && value !== "") {
+                const coordinates = (value as string).split(",").map((v: string) => Number.parseInt(v, 10));
+                if (coordinates.length !== 6) {
+                    throw new Error(
+                        "sub_region_isolation_table must be a string with 6 comma-separated values (e.g., '-2000,2000,-2500,2500,2300,3000')",
+                    );
+                }
+
+                if (
+                    coordinates[0] < -2000 ||
+                    coordinates[0] > 2000 || // X1
+                    coordinates[1] < -2000 ||
+                    coordinates[1] > 2000 // X2
+                ) {
+                    throw new Error("Values out of range for Sub-Region Isolation Table.");
+                }
+
+                const buffer = Buffer.alloc(12); // 12 bytes + 1 byte
+                buffer.writeInt16LE(coordinates[0], 0); // x1
+                buffer.writeInt16LE(coordinates[1], 2); // x2
+                buffer.writeInt16LE(coordinates[2], 4); // y1
+                buffer.writeInt16LE(coordinates[3], 6); // y2
+                buffer.writeInt16LE(coordinates[4], 8); // z1
+                buffer.writeInt16LE(coordinates[5], 10); // z2
+                payloadValue = buffer;
+            }
+
+            await entity.write(cluster, {[id]: {value: payloadValue, type}}, {manufacturerCode: 0x120b});
+
+            return {state: {[key]: value}};
+        },
+
+        convertGet: async (entity, key, meta) => {
+            const cluster = "RadarSensorHeiman";
+            const mapAttributes: Record<string, number> = {
+                enable_indicator: 0xf001,
+                sensitivity: 0xf002,
+                enable_sub_region_isolation: 0xf006,
+                installation_method: 0xf007,
+                cell_mounted_table: 0xf008,
+                wall_mounted_table: 0xf009,
+                sub_region_isolation_table: 0xf00a,
+            };
+
+            const attributeId = mapAttributes[key];
+            if (!attributeId) {
+                throw new Error(`Unsupported attribute for get: ${key}`);
+            }
+
+            await entity.read(cluster, [attributeId], {manufacturerCode: 0x120b});
+        },
+    } satisfies Tz.Converter,
+};
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -788,5 +1023,72 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Heiman",
         description: "Smoke detector relabeled for zipato",
         extend: [m.iasZoneAlarm({zoneType: "smoke", zoneAttributes: ["alarm_1", "tamper", "battery_low"]}), m.battery(), m.iasWarning()],
+    },
+
+    {
+        zigbeeModel: ["HS2FD-EF1-3.0"],
+        model: "HS2FD-EF1-3.0",
+        vendor: "HEIMAN",
+        description: "Fall Detection Sensor",
+        extend: [
+            m.deviceAddCustomCluster("RadarSensorHeiman", {
+                ID: 0xfc8b,
+                manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD,
+                attributes: {
+                    enable_indicator: {ID: 0xf001, type: Zcl.DataType.UINT8}, // 0: off, 1: enable
+                    sensitivity: {ID: 0xf002, type: Zcl.DataType.UINT8}, // 0: Off, 1: Low sensitivity, 2: High sensitivity
+                    enable_sub_region_isolation: {ID: 0xf006, type: Zcl.DataType.UINT8}, // 0: Disable, 1: Enable
+                    installation_method: {ID: 0xf007, type: Zcl.DataType.UINT8}, // 0: Wall-mounted, 1: Ceiling, 2: Rotate ceiling 45°
+                    cell_mounted_table: {
+                        ID: 0xf008,
+                        type: Zcl.DataType.OCTET_STR,
+                    },
+                    wall_mounted_table: {
+                        ID: 0xf009,
+                        type: Zcl.DataType.OCTET_STR,
+                    },
+                    sub_region_isolation_table: {
+                        ID: 0xf00a,
+                        type: Zcl.DataType.OCTET_STR,
+                    },
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+        ],
+        fromZigbee: [fz.identify, fzLocal.occupancyRadarHeiman, fzLocal.radarSensorHeiman],
+        toZigbee: [tzLocal.radarSensorHeiman],
+        ota: true,
+        exposes: [
+            e.binary("occupancy", ea.STATE, true, false).withDescription("Indicates if someone is present"),
+            e.enum("sensor_status", ea.STATE, ["none", "activity", "unknown"]).withDescription("Sensor activity status"),
+            e.enum("fall_status", ea.STATE, ["normal", "fall_warning", "fall_alarm", "unknown"]).withDescription("Fall detection status"),
+            e.enum("enable_indicator", ea.ALL, [0, 1]).withDescription("0: Off, 1: Enable"),
+            e.enum("sensitivity", ea.ALL, [0, 1, 2]).withDescription("0: Off, 1: Low sensitivity, 2: High sensitivity"),
+            e.enum("enable_sub_region_isolation", ea.ALL, [0, 1]).withDescription("0: Disable, 1: Enable"),
+            e.enum("installation_method", ea.ALL, [0, 1, 2]).withDescription("0: Wall-mounted, 1: Ceiling, 2: Rotate ceiling 45°"),
+            exposes
+                .text("cell_mounted_table", ea.ALL)
+                .withDescription(
+                    "Ceiling installation area coordinate table. Format: 'X1,X2,Y1,Y2,height'. Value range: -2000≤X1≤0, 0≤X2≤2000 -2500≤Y1≤0, 0≤Y2≤2500 2300≤height≤3000 Unit:mm",
+                ),
+            exposes
+                .text("wall_mounted_table", ea.ALL)
+                .withDescription(
+                    "Wall-mounted installation area coordinate table. Format: 'X1,X2,Y2,height' Value range: -2000≤X1≤0, 0≤X2≤2000 200≤Y2≤4000 1500≤height≤1600  Unit:mm.",
+                ),
+            exposes
+                .text("sub_region_isolation_table", ea.ALL)
+                .withDescription(
+                    "Undetectable area coordinate table. Format: 'x1,x2,y1,y2,z1,z2'. Ranges: X1≤x1≤x2≤X2 When wall-mounted:  200≤y1≤y2≤Y2 0≤z1≤z2≤2300 Ceiling installation: Y1≤y1≤y2≤Y2 0≤z1≤z2≤height Unit:mm",
+                ),
+        ],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["msOccupancySensing", "RadarSensorHeiman"]);
+            await reporting.occupancy(endpoint);
+            await endpoint.read("RadarSensorHeiman", ["cell_mounted_table", "wall_mounted_table", "sub_region_isolation_table"]);
+        },
+        endpoint: (device) => ({default: 1}),
     },
 ];
