@@ -1028,7 +1028,7 @@ export interface LightArgs {
     configureReporting?: boolean;
     endpointNames?: string[];
     ota?: ModernExtend["ota"];
-    levelConfig?: {disabledFeatures?: LevelConfigFeatures};
+    levelConfig?: {features?: LevelConfigFeatures};
     levelReportingConfig?: ReportingConfigWithoutAttribute;
 }
 export function light(args: LightArgs = {}): ModernExtend {
@@ -1105,7 +1105,7 @@ export function light(args: LightArgs = {}): ModernExtend {
 
     if (levelConfig) {
         // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
-        lightExpose.forEach((e) => e.withLevelConfig(levelConfig.disabledFeatures ?? []));
+        lightExpose.forEach((e) => (levelConfig.features ? e.withLevelConfig(levelConfig.features) : e.withLevelConfig()));
         toZigbee.push(tz.level_config);
     }
 
@@ -1816,6 +1816,13 @@ function genericMeter(args: MeterArgs = {}) {
                 forced: args.current,
                 change: 0.05,
             },
+            current_neutral: {
+                attribute: "neutralCurrent",
+                divisor: "acCurrentDivisor",
+                multiplier: "acCurrentMultiplier",
+                forced: args.current,
+                change: 0.05,
+            },
             power_factor: {
                 attribute: "powerFactor",
                 change: 10,
@@ -1908,6 +1915,8 @@ function genericMeter(args: MeterArgs = {}) {
         // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.current_phase_c;
         // biome-ignore lint/performance/noDelete: ignored using `--suppress`
+        delete configureLookup.haElectricalMeasurement.current_neutral;
+        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.dc_current;
     }
     if (args.energy === false) {
@@ -1936,6 +1945,8 @@ function genericMeter(args: MeterArgs = {}) {
         // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.current_phase_c;
         // biome-ignore lint/performance/noDelete: ignored using `--suppress`
+        delete configureLookup.haElectricalMeasurement.current_neutral;
+        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.voltage_phase_b;
         // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.voltage_phase_c;
@@ -1960,6 +1971,8 @@ function genericMeter(args: MeterArgs = {}) {
         delete configureLookup.haElectricalMeasurement.current_phase_b;
         // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.current_phase_c;
+        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
+        delete configureLookup.haElectricalMeasurement.current_neutral;
         // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.voltage_phase_b;
         // biome-ignore lint/performance/noDelete: ignored using `--suppress`
@@ -2061,6 +2074,7 @@ function genericMeter(args: MeterArgs = {}) {
             e.voltage_phase_c().withAccess(ea.STATE_GET),
             e.current_phase_b().withAccess(ea.STATE_GET),
             e.current_phase_c().withAccess(ea.STATE_GET),
+            e.current_neutral().withAccess(ea.STATE_GET),
         );
         toZigbee.push(
             tz.electrical_measurement_power_phase_b,
@@ -2069,6 +2083,7 @@ function genericMeter(args: MeterArgs = {}) {
             tz.acvoltage_phase_c,
             tz.accurrent_phase_b,
             tz.accurrent_phase_c,
+            tz.accurrent_neutral,
         );
     }
 

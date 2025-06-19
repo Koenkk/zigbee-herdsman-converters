@@ -310,20 +310,7 @@ export const definitions: DefinitionWithExtend[] = [
             eLegrand.ledInDark(),
             eLegrand.ledIfOn(),
         ],
-        extend: [
-            m.light({
-                configureReporting: true,
-                levelConfig: {
-                    disabledFeatures: [
-                        "on_off_transition_time",
-                        "on_transition_time",
-                        "off_transition_time",
-                        "execute_if_off",
-                        "current_level_startup",
-                    ],
-                },
-            }),
-        ],
+        extend: [m.light({configureReporting: true, levelConfig: {features: ["on_level"]}})],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genIdentify", "genBinaryInput", "lightingBallastCfg"]);
@@ -426,10 +413,16 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        zigbeeModel: [" 3 Phases power consumption module\u0000\u0000", " DIN 3Ph power consumption module", "3ph Smart shedder module"],
+        zigbeeModel: [
+            " 3 Phases power consumption module\u0000\u0000",
+            " 3P power consumption module\u0000\u0000\u0000",
+            " DIN 3Ph power consumption module",
+            "3ph Smart shedder module",
+        ],
         model: "412175",
         vendor: "Legrand",
-        description: "3P power consumption module",
+        description: "DIN 3 Phases power consumption module",
+        whiteLabel: [{vendor: "BTicino", description: "Connected DIN meter for three-phase", model: "F40T125A"}],
         ota: true,
         fromZigbee: [
             fz.identify,
