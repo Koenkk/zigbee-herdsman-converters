@@ -1,5 +1,18 @@
 # Changelog
 
+## [23.62.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.61.0...v23.62.0) (2025-06-19)
+
+
+### Features
+
+* **add:** HS2FD-EF1-3.0 ([#9521](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9521)) ([8d88c89](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8d88c89e8ec34a1d9ffe1754e0e2c144f9f4af33))
+* **add:** VZM32-SN ([#9515](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9515)) ([f2ab2c8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f2ab2c8f6858c42547207ab49785085eb1b6d8d5))
+
+
+### Bug Fixes
+
+* Efekta high_co2_gas: fix `INVALID_DATA_TYPE` ([#9519](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9519)) ([1199a50](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1199a50d8d5f02f8411c09a98e07d6f576f3aba1))
+
 ## [23.61.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.60.0...v23.61.0) (2025-06-18)
 
 
