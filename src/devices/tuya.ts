@@ -1805,13 +1805,11 @@ export const definitions: DefinitionWithExtend[] = [
         model: "CK-BL702-AL-01_1",
         vendor: "eWeLink",
         description: "Zigbee 3.0 15W led light bulb E27 RGBCW",
-        toZigbee: [tz.on_off, tzLocal.led_control, tuya.tz.do_not_disturb],
-        fromZigbee: [fz.on_off, fz.tuya_led_controller, fz.brightness, fz.ignore_basic_report],
-        exposes: [e.light_brightness_colortemp_colorhs([50, 1000]).removeFeature("color_temp_startup"), tuya.exposes.doNotDisturb()],
+        toZigbee: [tuya.tz.do_not_disturb],
+        extend: [m.light({colorTemp: {range: [50, 500], startup: false}, effect: false, powerOnBehavior: false, color: {modes: ["xy", "hs"]}})],
+        exposes: [tuya.exposes.doNotDisturb()],
         configure: (device, coordinatorEndpoint) => {
-            device.getEndpoint(1).saveClusterAttributeKeyValue("lightingColorCtrl", {
-                colorCapabilities: 29,
-            });
+            device.getEndpoint(1).saveClusterAttributeKeyValue("lightingColorCtrl", {colorCapabilities: 29});
         },
     },
     {
@@ -18074,5 +18072,31 @@ export const definitions: DefinitionWithExtend[] = [
             multiEndpointSkip: ["power_on_behavior"],
         },
         configure: tuya.configureMagicPacket,
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_tgeqdjgk"]),
+        model: "TS0601_knob_dimmer_switch",
+        vendor: "Tuya",
+        description: "Dimmer knob with two lights",
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        exposes: [
+            e.switch().withEndpoint("l1"),
+            e.switch().withEndpoint("l2"),
+            e.light_brightness_colortemp([154, 370]),
+            e.enum("adjustment_mode", ea.STATE_SET, ["brightness", "color_temp"]).withDescription("Adjustment mode"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [102, "state", tuya.valueConverter.onOff],
+                [103, "brightness", tuya.valueConverter.divideBy10],
+                [105, "adjustment_mode", tuya.valueConverterBasic.lookup({brightness: tuya.enum(0), color_temp: tuya.enum(1)})],
+                [107, "color_temp", tuya.valueConverterBasic.scale(154, 370, 0, 1000)],
+                [121, "state_l1", tuya.valueConverter.onOff],
+                [122, "state_l2", tuya.valueConverter.onOff],
+            ],
+        },
+        configure: tuya.configureMagicPacket,
+        endpoint: (device) => ({default: 1}),
     },
 ];
