@@ -1,6 +1,5 @@
 import * as exposes from "../lib/exposes";
 import * as tuya from "../lib/tuya";
-import * as m from "../lib/modernExtend";
 import type {DefinitionWithExtend} from "../lib/types";
 
 const e = exposes.presets;
@@ -29,7 +28,11 @@ export const definitions: DefinitionWithExtend[] = [
             tuyaDatapoints: [
                 [4, "battery", tuya.valueConverter.raw],
                 [102, "alarm_status", tuya.valueConverterBasic.lookup({normal: 0, alarm: 1})],
-                [103, "alarm_ringtone", tuya.valueConverterBasic.lookup({mute: tuya.enum(0), ring1: tuya.enum(1), ring2: tuya.enum(2), ring3: tuya.enum(3)})],
+                [
+                    103,
+                    "alarm_ringtone",
+                    tuya.valueConverterBasic.lookup({mute: tuya.enum(0), ring1: tuya.enum(1), ring2: tuya.enum(2), ring3: tuya.enum(3)}),
+                ],
                 [101, "mode", tuya.valueConverterBasic.lookup({leakage: tuya.enum(0), shortage: tuya.enum(1)})],
             ],
         },
@@ -107,7 +110,7 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
-	{
+    {
         fingerprint: [{modelID: "TS0601", manufacturerName: "_TZE204_sndkanfr"}],
         model: "SZLMR10",
         vendor: "Lincukoo",
@@ -126,17 +129,11 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueStep(1.5)
                 .withUnit("m")
                 .withDescription("Maximum range"),
-            e
-                .numeric("radar_sensitivity", ea.STATE_SET)
-                .withValueMin(0)
-                .withValueMax(9)
-                .withValueStep(1)
-                .withDescription("Sensitivity of the radar"),
+            e.numeric("radar_sensitivity", ea.STATE_SET).withValueMin(0).withValueMax(9).withValueStep(1).withDescription("Sensitivity of the radar"),
             e.numeric("fading_time", ea.STATE_SET).withValueMin(30).withValueMax(60).withValueStep(1).withDescription("Fading time").withUnit("s"),
             e.binary("radar_switch", ea.STATE_SET, "ON", "OFF").withDescription("Radar switch"),
             e.binary("indicator", ea.STATE_SET, "ON", "OFF").withDescription("LED indicator"),
             e.enum("work_mode", ea.STATE_SET, ["pir_mode", "radar_mode", "combine_mode"]).withDescription("work mode of device"),
-
         ],
         meta: {
             tuyaDatapoints: [
@@ -146,29 +143,45 @@ export const definitions: DefinitionWithExtend[] = [
                 [16, "radar_sensitivity", tuya.valueConverter.raw],
                 [103, "fading_time", tuya.valueConverter.raw],
                 [101, "indicator", tuya.valueConverter.onOff],
-                [102, "radar_switch", tuya.valueConverter.onOff], 
+                [102, "radar_switch", tuya.valueConverter.onOff],
                 [104, "work_mode", tuya.valueConverterBasic.lookup({pir_mode: tuya.enum(0), radar_mode: tuya.enum(1), combine_mode: tuya.enum(2)})],
             ],
         },
     },
-    
-	{
+
+    {
         fingerprint: [{modelID: "TS0601", manufacturerName: "_TZE284_gw05grph"}],
         model: "CZF02",
         vendor: "Lincukoo",
         description: "Finger Robot",
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime, 
+        onEvent: tuya.onEventSetTime,
         configure: tuya.configureMagicPacket,
         exposes: [
             e.binary("switch", ea.STATE_SET, "ON", "OFF").withDescription("switch on/off"),
             e.enum("mode", ea.STATE_SET, ["click", "long_press"]).withDescription("work mode of the finger robot"),
-            e.numeric("click_sustain_time", ea.STATE_SET).withValueMin(0.3).withValueMax(10).withValueStep(0.1).withDescription("keep times for click").withUnit("s"),
-            e.numeric("arm_down_percent", ea.STATE_SET).withValueMin(0).withValueMax(30).withValueStep(1).withDescription("the position for arm moving down"),
-            e.numeric("arm_up_percent", ea.STATE_SET).withValueMin(0).withValueMax(30).withValueStep(1).withDescription("the position for arm moving up"),	
+            e
+                .numeric("click_sustain_time", ea.STATE_SET)
+                .withValueMin(0.3)
+                .withValueMax(10)
+                .withValueStep(0.1)
+                .withDescription("keep times for click")
+                .withUnit("s"),
+            e
+                .numeric("arm_down_percent", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(30)
+                .withValueStep(1)
+                .withDescription("the position for arm moving down"),
+            e
+                .numeric("arm_up_percent", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(30)
+                .withValueStep(1)
+                .withDescription("the position for arm moving up"),
             e.binary("auto_adjustment", ea.STATE_SET, "ON", "OFF").withDescription("auto adjustment the arm position"),
-            e.binary("set_switch_state", ea.STATE_SET, "ON", "OFF").withDescription("set the switch display status"),			
+            e.binary("set_switch_state", ea.STATE_SET, "ON", "OFF").withDescription("set the switch display status"),
             e.battery(),
         ],
         meta: {
@@ -177,11 +190,11 @@ export const definitions: DefinitionWithExtend[] = [
                 [2, "mode", tuya.valueConverterBasic.lookup({click: tuya.enum(0), long_press: tuya.enum(1)})],
                 [3, "click_sustain_time", tuya.valueConverter.divideBy10],
                 [5, "arm_down_percent", tuya.valueConverter.raw],
-                [6, "arm_up_percent", tuya.valueConverter.raw],		
+                [6, "arm_up_percent", tuya.valueConverter.raw],
                 [101, "auto_adjustment", tuya.valueConverter.onOff],
-                [102, "set_switch_state", tuya.valueConverter.onOff],				
-				[8, "battery", tuya.valueConverter.raw],
+                [102, "set_switch_state", tuya.valueConverter.onOff],
+                [8, "battery", tuya.valueConverter.raw],
             ],
         },
-    },	
+    },
 ];
