@@ -140,6 +140,21 @@ async function syncTimeWithTimeZone(endpoint: Zh.Endpoint) {
 
 export const definitions: DefinitionWithExtend[] = [
     {
+        zigbeeModel: ["HK-ZRC-K5&RS-TL-G"],
+        model: "SR-ZG2836D5-G4",
+        vendor: "Sunricher",
+        description: "Zigbee smart remote",
+        extend: [
+            m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3, "4": 4}}),
+            m.battery(),
+            m.commandsOnOff({endpointNames: ["1", "2", "3", "4"]}),
+            m.commandsLevelCtrl({endpointNames: ["1", "2", "3", "4"]}),
+            m.commandsColorCtrl({endpointNames: ["1", "2", "3", "4"]}),
+            m.commandsScenes({endpointNames: ["1", "2", "3", "4"]}),
+        ],
+        meta: {multiEndpoint: true},
+    },
+    {
         zigbeeModel: ["HK-DIM-MW2"],
         model: "SR-ZG9032A-MW",
         vendor: "Sunricher",
@@ -1029,16 +1044,10 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["ON/OFF(2CH)"],
-        model: "UP-SA-9127D",
-        vendor: "Sunricher",
-        description: "LED-Trading 2 channel AC switch",
-        extend: [m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}), m.onOff({endpointNames: ["l1", "l2"]})],
-    },
-    {
-        fingerprint: [{modelID: "ON/OFF(2CH)", softwareBuildID: "2.9.2_r54"}],
         model: "SR-ZG9101SAC-HP-SWITCH-2CH",
         vendor: "Sunricher",
-        description: "Zigbee 2 channel switch",
+        description: "Zigbee 2 channels switch",
+        whiteLabel: [{vendor: "LED-Trading", model: "UP-SA-9127D", description: "2 channels AC switch"}],
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.power_on_behavior, fz.ignore_genOta],
         toZigbee: [tz.on_off, tz.power_on_behavior],
         exposes: [

@@ -4430,7 +4430,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueMin: 400,
                 valueMax: 5000,
                 cluster: "msCO2",
-                attribute: {ID: 0x0221, type: Zcl.DataType.BOOLEAN},
+                attribute: {ID: 0x0221, type: Zcl.DataType.UINT16},
                 description: "Setting High CO2 Gas Border",
                 access: "STATE_SET",
             }),

@@ -67,7 +67,16 @@ const individualLedEffects: {[key: string]: number} = {
     clear_effect: 255,
 };
 
+const mmWaveControlCommands: {[key: string]: number} = {
+    set_interference: 1,
+    clear_interference: 3,
+    reset_detection_area: 4,
+    reset_mmwave_module: 0,
+    reset_mmwave_fw_2: 255,
+};
+
 const INOVELLI_CLUSTER_NAME: string = "manuSpecificInovelli";
+const INOVELLI_MMWAVE_CLUSTER_NAME: string = "manuSpecificInovelliMMWave";
 
 const inovelliExtend = {
     addCustomClusterInovelli: () =>
@@ -144,6 +153,8 @@ const inovelliExtend = {
                 ledIntensityWhenOn: {ID: 0x0061, type: Zcl.DataType.UINT8},
                 ledIntensityWhenOff: {ID: 0x0062, type: Zcl.DataType.UINT8},
                 ledBarScaling: {ID: 0x0064, type: Zcl.DataType.BOOLEAN},
+                mmwaveControlWiredDevice: {ID: 0x006e, type: Zcl.DataType.UINT8},
+                mmWaveRoomSizePreset: {ID: 0x0075, type: Zcl.DataType.UINT8},
                 singleTapBehavior: {ID: 0x0078, type: Zcl.DataType.UINT8},
                 fanTimerMode: {ID: 0x0079, type: Zcl.DataType.UINT8},
                 auxSwitchUniqueScenes: {ID: 0x007b, type: Zcl.DataType.BOOLEAN},
@@ -185,6 +196,42 @@ const inovelliExtend = {
                 },
             },
             commandsResponse: {},
+        }),
+    addCustomMMWaveClusterInovelli: () =>
+        m.deviceAddCustomCluster(INOVELLI_MMWAVE_CLUSTER_NAME, {
+            ID: 64562, // 0xfc32
+            manufacturerCode: 0x122f,
+            attributes: {
+                mmWaveHoldTime: {ID: 0x0072, type: Zcl.DataType.UINT32},
+                mmWaveDetectSensitivity: {ID: 0x0070, type: Zcl.DataType.UINT8},
+                mmWaveDetectTrigger: {ID: 0x0071, type: Zcl.DataType.UINT8},
+                mmWaveTargetInfoReport: {ID: 0x006b, type: Zcl.DataType.UINT8},
+                mmWaveStayLife: {ID: 0x006c, type: Zcl.DataType.UINT32},
+                mmWaveVersion: {ID: 0x0073, type: Zcl.DataType.UINT32},
+                mmWaveHeightMin: {ID: 0x0065, type: Zcl.DataType.INT16},
+                mmWaveHeightMax: {ID: 0x0066, type: Zcl.DataType.INT16},
+                mmWaveWidthMin: {ID: 0x0067, type: Zcl.DataType.INT16},
+                mmWaveWidthMax: {ID: 0x0068, type: Zcl.DataType.INT16},
+                mmWaveDepthMin: {ID: 0x0069, type: Zcl.DataType.INT16},
+                mmWaveDepthMax: {ID: 0x006a, type: Zcl.DataType.INT16},
+            },
+            commands: {
+                mmWaveControl: {
+                    ID: 0,
+                    parameters: [{name: "controlID", type: Zcl.DataType.UINT8}],
+                },
+            },
+            commandsResponse: {
+                anyoneInReportingArea: {
+                    ID: 0,
+                    parameters: [
+                        {name: "area1", type: Zcl.DataType.BOOLEAN},
+                        {name: "area2", type: Zcl.DataType.BOOLEAN},
+                        {name: "area3", type: Zcl.DataType.BOOLEAN},
+                        {name: "area4", type: Zcl.DataType.BOOLEAN},
+                    ],
+                },
+            },
         }),
 };
 
@@ -1102,6 +1149,163 @@ const VZM31_ATTRIBUTES: {[s: string]: Attribute} = {
     },
 };
 
+const VZM32_ATTRIBUTES: {[s: string]: Attribute} = {
+    ...COMMON_DIMMER_ATTRIBUTES,
+    ...COMMON_DIMMER_ON_OFF_ATTRIBUTES,
+    ...COMMON_DIMMABLE_LIGHT_ATTRIBUTES,
+    switchType: {
+        ...COMMON_ATTRIBUTES.switchType,
+        values: {"Single Pole": 0, "Aux Switch": 1},
+        max: 1,
+    },
+    mmwaveControlWiredDevice: {
+        ID: 110,
+        dataType: Zcl.DataType.UINT8,
+        displayType: "enum",
+        values: {
+            Disabled: 0,
+            "Occupancy (default)": 1,
+            Vacancy: 2,
+            "Wasteful Occupancy": 3,
+            "Mirrored Occupancy": 4,
+            "Mirrored Vacancy": 5,
+            "Mirrored Wasteful Occupancy": 6,
+        },
+        min: 0,
+        max: 6,
+        description:
+            "Controls whether the wired load is automatically turned on / off by the presence detector. " +
+            "0 = Disabled (manual control of the load), " +
+            "1 = Occupancy (default; turn on automatically with presence; turn off automatically without presence), " +
+            "2 = Vacancy (does not turn on automatically; turn off automatically without presence), " +
+            "3 = Wasteful Occupancy (turn on automatically with presence; does not turn off automatically), " +
+            "4 = Mirrored Occupancy (turn on automatically without presence; turn off automatically with presence), " +
+            "5 = Mirrored Vacancy (turn on automatically without presence; does not turn off automatically), " +
+            "6 = Mirrored Wasteful Occupancy (does not turn on automatically; turns off automatically with presence).",
+    },
+    mmWaveRoomSizePreset: {
+        ID: 117,
+        dataType: Zcl.DataType.UINT8,
+        displayType: "enum",
+        values: {
+            Custom: 0,
+            Small: 1,
+            Medium: 2,
+            Large: 3,
+        },
+        min: 0,
+        max: 3,
+        description:
+            "Allows selection of predefined room dimensions for mmWave sensor processing. Useful for optimizing " +
+            "detection zones based on installation environment. Defaults to Custom which allows for manual dimension configuration " +
+            "via other parameters. \nOptions: 0=Custom (User-defined), 1=Small (X: −100 to 100, Y: 0 to 200, Z: −100 to 100), " +
+            "2=Medium (X: −160 to 160, Y: 0 to 280, Z: −100 to 100), 3=Large (X: −210 to 210, Y: 0 to 360, Z: −100 to 100)",
+    },
+};
+
+const VZM32_MMWAVE_ATTRIBUTES: {[s: string]: Attribute} = {
+    mmWaveHoldTime: {
+        ID: 114,
+        dataType: Zcl.DataType.UINT32,
+        min: 0,
+        max: 4294967295,
+        description:
+            "This changes the duration, measured in seconds, after the mmWave radar detects transition from " +
+            "the presence of a person to their absence. Default = 10 (seconds).",
+    },
+    mmWaveDetectSensitivity: {
+        ID: 112,
+        dataType: Zcl.DataType.UINT8,
+        displayType: "enum",
+        values: {Low: 0, Medium: 1, "High (default)": 2},
+        min: 0,
+        max: 2,
+        description: "The sensitivity of the mmWave sensor.",
+    },
+    mmWaveDetectTrigger: {
+        ID: 113,
+        dataType: Zcl.DataType.UINT8,
+        displayType: "enum",
+        values: {"Slow (5s)": 0, "Medium (1s)": 1, "Fast (0.2s, default)": 2},
+        min: 0,
+        max: 2,
+        description: "The time from detecting a person to triggering an action.",
+    },
+    mmWaveTargetInfoReport: {
+        ID: 107,
+        dataType: Zcl.DataType.UINT8,
+        displayType: "enum",
+        values: {"Disable (default)": 0, Enable: 1},
+        min: 0,
+        max: 1,
+        description: "Send target info report when bound to mmWave cluster.",
+    },
+    mmWaveStayLife: {
+        ID: 108,
+        dataType: Zcl.DataType.UINT32,
+        min: 0,
+        max: 4294967295,
+        description:
+            "The delay time of the stay area is set to 50ms when it is set to 1, to 1 second when it is set to 20, and the default value is 300, that is, 15 seconds",
+    },
+    mmWaveVersion: {
+        ID: 115,
+        dataType: Zcl.DataType.UINT32,
+        min: 0,
+        max: 4294967295,
+        readOnly: true,
+        description: "The firmware version number of the mmWave module.",
+    },
+    mmWaveHeightMin: {
+        ID: 101,
+        dataType: Zcl.DataType.INT16,
+        min: -600,
+        max: 600,
+        readOnly: false,
+        description: "Defines the detection area (negative values are below the switch, positive values are above)",
+    },
+    mmWaveHeightMax: {
+        ID: 102,
+        dataType: Zcl.DataType.INT16,
+        min: -600,
+        max: 600,
+        readOnly: false,
+        description: "Defines the detection area (negative values are below the switch, positive values are above)",
+    },
+    mmWaveWidthMin: {
+        ID: 103,
+        dataType: Zcl.DataType.INT16,
+        min: -600,
+        max: 600,
+        readOnly: false,
+        description: "Defines the detection area (negative values are left of the switch facing away from the wall, positive values are right)",
+    },
+    mmWaveWidthMax: {
+        ID: 104,
+        dataType: Zcl.DataType.INT16,
+        min: -600,
+        max: 600,
+        readOnly: false,
+        description: "Defines the detection area (negative values are left of the switch facing away from the wall, positive values are right)",
+    },
+    mmWaveDepthMin: {
+        ID: 105,
+        dataType: Zcl.DataType.INT16,
+        min: 0,
+        max: 600,
+        readOnly: false,
+        description: "Defines the detection area in front of the switch)",
+    },
+    mmWaveDepthMax: {
+        ID: 106,
+        dataType: Zcl.DataType.INT16,
+        min: 0,
+        max: 600,
+        readOnly: false,
+        description: "Defines the detection area in front of the switch)",
+    },
+};
+
 const VZM35_ATTRIBUTES: {[s: string]: Attribute} = {
     ...COMMON_DIMMER_ATTRIBUTES,
     minimumLevel: {
@@ -1412,6 +1616,21 @@ const tzLocal = {
                     level: Math.min(Math.max(0, values.level), 100),
                     // @ts-expect-error ignore
                     duration: Math.min(Math.max(0, values.duration), 255),
+                },
+                {disableResponse: true, disableDefaultResponse: true},
+            );
+            return {state: {[key]: values}};
+        },
+    } satisfies Tz.Converter,
+    inovelli_mmwave_control_commands: {
+        key: ["mmwave_control_commands"],
+        convertSet: async (entity, key, values, meta) => {
+            await entity.command(
+                INOVELLI_MMWAVE_CLUSTER_NAME,
+                "mmWaveControl",
+                {
+                    // @ts-expect-error ignore
+                    controlID: mmWaveControlCommands[values.controlID],
                 },
                 {disableResponse: true, disableDefaultResponse: true},
             );
@@ -1936,9 +2155,18 @@ const exposeBreezeMode = () => {
         .withCategory("config");
 };
 
+const exposeMMWaveControl = () => {
+    return e
+        .composite("mmwave_control_commands", "mmwave_control_commands", ea.STATE_SET)
+        .withFeature(e.enum("controlID", ea.STATE_SET, Object.keys(mmWaveControlCommands)).withDescription("Which mmWave Control command to send"))
+        .withCategory("config");
+};
+
 const exposesListVZM30: Expose[] = [e.light_brightness(), exposeLedEffects(), exposeIndividualLedEffects()];
 
 const exposesListVZM31: Expose[] = [e.light_brightness(), exposeLedEffects(), exposeIndividualLedEffects()];
+
+const exposesListVZM32: Expose[] = [e.light_brightness(), exposeLedEffects(), exposeIndividualLedEffects(), exposeMMWaveControl()];
 
 const exposesListVZM35: Expose[] = [
     e.fan().withState("fan_state").withModes(Object.keys(fanModes)),
@@ -1952,6 +2180,8 @@ const exposesListVZM36: Expose[] = [e.light_brightness(), e.fan().withState("fan
 // Populate exposes list from the attributes description
 attributesToExposeList(VZM30_ATTRIBUTES, exposesListVZM30);
 attributesToExposeList(VZM31_ATTRIBUTES, exposesListVZM31);
+attributesToExposeList(VZM32_ATTRIBUTES, exposesListVZM32);
+attributesToExposeList(VZM32_MMWAVE_ATTRIBUTES, exposesListVZM32);
 attributesToExposeList(VZM35_ATTRIBUTES, exposesListVZM35);
 attributesToExposeList(VZM36_ATTRIBUTES, exposesListVZM36);
 
@@ -1982,6 +2212,7 @@ const buttonTapSequences = [
 
 exposesListVZM30.push(e.action(buttonTapSequences));
 exposesListVZM31.push(e.action(buttonTapSequences));
+exposesListVZM32.push(e.action(buttonTapSequences));
 exposesListVZM35.push(e.action(buttonTapSequences));
 
 /*
@@ -2091,6 +2322,61 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.onOff(endpoint);
 
             await chunkedRead(endpoint, Object.keys(VZM31_ATTRIBUTES), INOVELLI_CLUSTER_NAME);
+
+            // Bind for Button Event Reporting
+            const endpoint2 = device.getEndpoint(2);
+            await reporting.bind(endpoint2, coordinatorEndpoint, [INOVELLI_CLUSTER_NAME]);
+        },
+    },
+    {
+        zigbeeModel: ["VZM32-SN"],
+        model: "VZM32-SN",
+        vendor: "Inovelli",
+        description: "mmWave Zigbee Dimmer",
+        exposes: exposesListVZM32.concat(m.identify().exposes as Expose[]),
+        extend: [
+            m.deviceEndpoints({
+                endpoints: {"1": 1, "2": 2, "3": 3},
+                multiEndpointSkip: ["state", "voltage", "power", "current", "energy", "brightness", "illuminance", "occupancy"],
+            }),
+            inovelliExtend.addCustomClusterInovelli(),
+            inovelliExtend.addCustomMMWaveClusterInovelli(),
+            m.electricityMeter(),
+            m.illuminance(),
+            m.occupancy(),
+        ],
+        toZigbee: [
+            tzLocal.light_onoff_brightness_inovelli,
+            tz.power_on_behavior,
+            tz.ignore_transition,
+            tz.identify,
+            tz.light_brightness_move,
+            tz.light_brightness_step,
+            tzLocal.inovelli_led_effect,
+            tzLocal.inovelli_individual_led_effect,
+            tzLocal.inovelli_mmwave_control_commands,
+            tzLocal.inovelli_parameters(VZM32_ATTRIBUTES, INOVELLI_CLUSTER_NAME),
+            tzLocal.inovelli_parameters_readOnly(VZM32_ATTRIBUTES, INOVELLI_CLUSTER_NAME),
+            tzLocal.inovelli_parameters(VZM32_MMWAVE_ATTRIBUTES, INOVELLI_MMWAVE_CLUSTER_NAME),
+            tzLocal.inovelli_parameters_readOnly(VZM32_MMWAVE_ATTRIBUTES, INOVELLI_MMWAVE_CLUSTER_NAME),
+        ],
+        fromZigbee: [
+            fz.on_off,
+            fz.brightness,
+            fz.level_config,
+            fz.power_on_behavior,
+            fz.ignore_basic_report,
+            fzLocal.inovelli(VZM32_ATTRIBUTES, INOVELLI_CLUSTER_NAME),
+            fzLocal.inovelli(VZM32_MMWAVE_ATTRIBUTES, INOVELLI_MMWAVE_CLUSTER_NAME),
+        ],
+        ota: true,
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "genLevelCtrl"]);
+            await reporting.onOff(endpoint);
+
+            await chunkedRead(endpoint, Object.keys(VZM32_ATTRIBUTES), INOVELLI_CLUSTER_NAME);
+            await chunkedRead(endpoint, Object.keys(VZM32_MMWAVE_ATTRIBUTES), INOVELLI_MMWAVE_CLUSTER_NAME);
 
             // Bind for Button Event Reporting
             const endpoint2 = device.getEndpoint(2);
