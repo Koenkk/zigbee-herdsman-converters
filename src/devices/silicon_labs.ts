@@ -1,4 +1,4 @@
-import * as m from "zigbee-herdsman-converters/lib/modernExtend";
+import * as m from '../lib/modernExtend';
 
 export default {
     zigbeeModel: ["RB-ElectricityDsp-061-3"],
