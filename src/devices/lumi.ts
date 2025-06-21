@@ -2268,7 +2268,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.battery_voltage(),
             e.power_outage_count(false),
         ],
-        meta: {battery: {voltageToPercentage: {min: 2850, max: 3000}}},
+        meta: {battery: {voltageToPercentage: {min: 2475, max: 3000}}},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await endpoint.write("manuSpecificLumi", {331: {value: 1, type: 0x20}}, {manufacturerCode: manufacturerCode});
