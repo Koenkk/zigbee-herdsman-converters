@@ -4964,6 +4964,58 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_2gi1hy8s"]),
+        model: "MB60L-ZG-ZT-TY",
+        vendor: "Manhot",
+        description: "Smart blinds motor",
+        onEvent: tuya.onEvent(),
+        configure: tuya.configureMagicPacket,
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        exposes: [
+            e.battery(),
+            e.cover_position().setAccess("position", ea.STATE_SET),
+            e.enum("set_limits", ea.STATE_SET, ["up", "down", "reset"]),
+            e.enum("motor_direction", ea.STATE_SET, ["normal", "reversed"]).withDescription("Motor Steering"),
+            e.binary("tilt_mode", ea.STATE_SET, "ON", "OFF").withDescription("Step movement"),
+            e.binary("child_lock", ea.STATE_SET, "ON", "OFF").withDescription("Child Lock"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [
+                    1,
+                    "state",
+                    tuya.valueConverterBasic.lookup({
+                        OPEN: tuya.enum(0),
+                        STOP: tuya.enum(1),
+                        CLOSE: tuya.enum(2),
+                    }),
+                ],
+                [9, "position", tuya.valueConverter.coverPositionInverted],
+                [
+                    11,
+                    "motor_direction",
+                    tuya.valueConverterBasic.lookup({
+                        normal: tuya.enum(0),
+                        reversed: tuya.enum(1),
+                    }),
+                ],
+                [13, "battery", tuya.valueConverter.raw],
+                [
+                    16,
+                    "set_limits",
+                    tuya.valueConverterBasic.lookup({
+                        up: tuya.enum(0),
+                        down: tuya.enum(1),
+                        reset: tuya.enum(2),
+                    }),
+                ],
+                [101, "child_lock", tuya.valueConverter.onOff],
+                [103, "tilt_mode", tuya.valueConverter.onOff],
+            ],
+        },
+    },
+    {
         zigbeeModel: ["kud7u2l"],
         fingerprint: tuya.fingerprint("TS0601", [
             "_TZE200_ckud7u2l",
