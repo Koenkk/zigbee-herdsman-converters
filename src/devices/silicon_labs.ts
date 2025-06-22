@@ -1,4 +1,4 @@
-import * as m from '../lib/modernExtend';
+import * as m from "../lib/modernExtend";
 import type {DefinitionWithExtend} from "../lib/types";
 
 export const definitions: DefinitionWithExtend[] = [
@@ -10,4 +10,4 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.onOff({powerOnBehavior: false}), m.electricityMeter()],
         meta: {},
     },
-]
+];
