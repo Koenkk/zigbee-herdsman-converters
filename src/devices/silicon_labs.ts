@@ -5,9 +5,8 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["RB-ElectricityDsp-061-3"],
         model: "RB-ElectricityDsp-061-3",
-        vendor: "siliconLabs",
-        description: "Automatically generated definition",
+        vendor: "Silicon Labs",
+        description: "Electricity meter",
         extend: [m.onOff({powerOnBehavior: false}), m.electricityMeter()],
-        meta: {},
     },
 ];
