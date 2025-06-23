@@ -200,7 +200,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
 
     {
-        fingerprint: [{modelID: "TS0601", manufacturerName: "LINCUKOO"}],
+        fingerprint: [{modelID: "SZT06", manufacturerName: "LINCUKOO"}],
         model: "SZT06",
         vendor: "Lincukoo",
         description: "Smart mini temperature and humidity sensor",
