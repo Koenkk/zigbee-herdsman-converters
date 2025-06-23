@@ -197,8 +197,8 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
-	
-	{
+
+    {
         fingerprint: [{modelID: "TS0601", manufacturerName: "LINCUKOO"}],
         model: "SZT06",
         vendor: "Lincukoo",
