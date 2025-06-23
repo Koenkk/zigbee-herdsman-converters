@@ -1709,7 +1709,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.enumLookup({
                 name: "temperature_sensor_select",
                 label: "Temperature sensor",
-                lookup: {internal: 0, external: 1},
+                lookup: {internal: 0, external: 1, external_2: 2, external_3: 3},
                 cluster: "customSonoffTrvzb",
                 attribute: "temperatureSensorSelect",
                 description:

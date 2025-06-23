@@ -1953,6 +1953,13 @@ export const accurrent_phase_c: Tz.Converter = {
         await ep.read("haElectricalMeasurement", ["rmsCurrentPhC"]);
     },
 };
+export const accurrent_neutral: Tz.Converter = {
+    key: ["current_neutral"],
+    convertGet: async (entity, key, meta) => {
+        const ep = determineEndpoint(entity, meta, "haElectricalMeasurement");
+        await ep.read("haElectricalMeasurement", ["neutralCurrent"]);
+    },
+};
 export const temperature: Tz.Converter = {
     key: ["temperature"],
     convertGet: async (entity, key, meta) => {
