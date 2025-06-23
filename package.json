@@ -52,7 +52,7 @@
         "./package.json": "./package.json"
     },
     "devDependencies": {
-        "@biomejs/biome": "^1.9.4",
+        "@biomejs/biome": "^2.0.4",
         "@types/buffer-crc32": "^0.2.4",
         "@types/node": "^22.14.1",
         "@types/semver": "^7.7.0",
