@@ -159,7 +159,7 @@ export const definitions: DefinitionWithExtend[] = [
         onEvent: tuya.onEventSetTime,
         configure: tuya.configureMagicPacket,
         exposes: [
-            e.binary("switch", ea.STATE_SET, "ON", "OFF").withDescription("switch on/off"),
+            e.switch(),
             e.enum("mode", ea.STATE_SET, ["click", "long_press"]).withDescription("work mode of the finger robot"),
             e
                 .numeric("click_sustain_time", ea.STATE_SET)
@@ -186,7 +186,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         meta: {
             tuyaDatapoints: [
-                [1, "switch", tuya.valueConverter.onOff],
+                [1, "state", tuya.valueConverter.onOff],
                 [2, "mode", tuya.valueConverterBasic.lookup({click: tuya.enum(0), long_press: tuya.enum(1)})],
                 [3, "click_sustain_time", tuya.valueConverter.divideBy10],
                 [5, "arm_down_percent", tuya.valueConverter.raw],
