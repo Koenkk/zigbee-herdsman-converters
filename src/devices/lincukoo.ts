@@ -197,4 +197,12 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
+	
+	{
+        fingerprint: [{modelID: "TS0601", manufacturerName: "LINCUKOO"}],
+        model: "SZT06",
+        vendor: "Lincukoo",
+        description: "Smart mini temperature and humidity sensor",
+        extend: [m.temperature(), m.humidity(), m.identify({isSleepy: true}), m.battery({voltage: true})],
+    },
 ];
