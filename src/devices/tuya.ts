@@ -18133,15 +18133,15 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         exposes: [
-            e.switch().withEndpoint("l1"),
-            e.switch().withEndpoint("l2"),
+            e.light_onoff().withEndpoint("l1"),
+            e.light_onoff().withEndpoint("l2"),
             e.light_brightness_colortemp([154, 370]),
             e.enum("adjustment_mode", ea.STATE_SET, ["brightness", "color_temp"]).withDescription("Adjustment mode"),
         ],
         meta: {
             tuyaDatapoints: [
                 [102, "state", tuya.valueConverter.onOff],
-                [103, "brightness", tuya.valueConverter.divideBy10],
+                [103, "brightness", tuya.valueConverter.raw],
                 [105, "adjustment_mode", tuya.valueConverterBasic.lookup({brightness: tuya.enum(0), color_temp: tuya.enum(1)})],
                 [107, "color_temp", tuya.valueConverterBasic.scale(154, 370, 0, 1000)],
                 [121, "state_l1", tuya.valueConverter.onOff],
