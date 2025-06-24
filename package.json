@@ -22,7 +22,7 @@
         "zigbee-shepherd"
     ],
     "scripts": {
-        "check": "biome check",
+        "check": "biome check --error-on-warnings",
         "test": "vitest run --config ./test/vitest.config.mts",
         "test:coverage": "vitest run --config ./test/vitest.config.mts --coverage",
         "bench": "vitest bench --run --config ./test/vitest.config.mts",
@@ -52,7 +52,7 @@
         "./package.json": "./package.json"
     },
     "devDependencies": {
-        "@biomejs/biome": "^1.9.4",
+        "@biomejs/biome": "^2.0.5",
         "@types/buffer-crc32": "^0.2.4",
         "@types/node": "^24.0.3",
         "@types/semver": "^7.7.0",

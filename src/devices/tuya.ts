@@ -735,7 +735,7 @@ const fzLocal = {
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     TS011F_electrical_measurement: {
         ...fz.electrical_measurement,
-        convert: async (model, msg, publish, options, meta) => {
+        convert: (model, msg, publish, options, meta) => {
             const result = (fz.electrical_measurement.convert(model, msg, publish, options, meta) as KeyValueAny) ?? {};
             const lookup: KeyValueString = {
                 power: "activePower",
@@ -3829,7 +3829,6 @@ export const definitions: DefinitionWithExtend[] = [
                                 return v === true ? "ON" : "OFF";
                             }
 
-                            // biome-ignore lint/performance/noDelete: ignored using `--suppress`
                             delete meta.state.state;
                         },
                     },
@@ -13631,7 +13630,6 @@ export const definitions: DefinitionWithExtend[] = [
                                 return v === true ? "ON" : "OFF";
                             }
 
-                            // biome-ignore lint/performance/noDelete: ignored using `--suppress`
                             delete meta.state.state;
                         },
                     },

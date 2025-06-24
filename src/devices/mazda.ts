@@ -4,9 +4,6 @@ import type {DefinitionWithExtend} from "../lib/types";
 
 const e = exposes.presets;
 const ea = exposes.access;
-interface KeyValueStringEnum {
-    [s: string]: tuya.Enum;
-}
 
 export const definitions: DefinitionWithExtend[] = [
     {

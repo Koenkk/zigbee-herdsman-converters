@@ -1,6 +1,5 @@
-import type {Types as ZHTypes} from "zigbee-herdsman";
-
 import type {DefinitionWithExtend, Fz, ModernExtend, Reporting, Tz} from "src/lib/types";
+import type {Types as ZHTypes} from "zigbee-herdsman";
 
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";

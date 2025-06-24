@@ -7,20 +7,15 @@ import * as globalStore from "../lib/store";
 import type {Definition, DefinitionWithExtend, Expose, Fz, KeyValue, KeyValueAny, ModernExtend, Tz, Zh} from "../lib/types";
 import * as utils from "../lib/utils";
 
-const NS = "zhc:slacky-diy";
-
 const e = exposes.presets;
 const ea = exposes.access;
 
-const defaultReporting = {min: 0, max: 300, change: 0};
 const ppmReporting = {min: 10, max: 300, change: 0.000001};
 const batteryReporting = {min: 3600, max: 0, change: 0};
 
 const model_r01 = "Tuya_Thermostat_r01";
-const model_r02 = "Tuya_Thermostat_r02";
 const model_r03 = "Tuya_Thermostat_r03";
 const model_r04 = "Tuya_Thermostat_r04";
-const model_r05 = "Tuya_Thermostat_r05";
 const model_r06 = "Tuya_Thermostat_r06";
 const model_r07 = "Tuya_Thermostat_r07";
 const model_r08 = "Tuya_Thermostat_r08";
@@ -117,7 +112,6 @@ const fzLocal = {
         cluster: "hvacThermostat",
         type: ["commandSetWeeklySchedule"],
         convert: (model, msg, publish, options, meta) => {
-            const result: KeyValue = {};
             const {data} = msg;
 
             const daysOfWeekNums = [...Array.from(Array(7).keys()).filter((x) => (2 ** x) & data.dayofweek)];

@@ -614,7 +614,6 @@ export const definitions: DefinitionWithExtend[] = [
                 .withFeature(e.numeric("away_preset_minute", ea.ALL).withUnit("min").withDescription("Start away minutes")),
             ...["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"].map((day) => {
                 const expose = e.composite(day, day, ea.STATE_SET);
-                // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
                 [1, 2, 3, 4, 5, 6, 7, 8, 9].forEach((i) => {
                     expose.withFeature(
                         e
