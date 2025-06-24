@@ -18141,7 +18141,7 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {
             tuyaDatapoints: [
                 [102, "state", tuya.valueConverter.onOff],
-                [103, "brightness", tuya.valueConverter.raw],
+                [103, "brightness", tuya.valueConverterBasic.scale(0, 100, 0, 1000)],
                 [105, "adjustment_mode", tuya.valueConverterBasic.lookup({brightness: tuya.enum(0), color_temp: tuya.enum(1)})],
                 [107, "color_temp", tuya.valueConverterBasic.scale(154, 370, 0, 1000)],
                 [121, "state_l1", tuya.valueConverter.onOff],
