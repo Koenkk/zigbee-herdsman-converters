@@ -1324,7 +1324,7 @@ export const definitions: DefinitionWithExtend[] = [
                 commandsResponse: {},
             }),
             m.battery(),
-            m.temperature(),
+            m.temperature({reporting: {min: 30, max: constants.repInterval.MINUTES_5, change: 20}}),
             m.bindCluster({cluster: "genPollCtrl", clusterType: "input"}),
             m.enumLookup({
                 name: "temperature_units",
