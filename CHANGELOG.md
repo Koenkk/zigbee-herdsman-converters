@@ -1,5 +1,36 @@
 # Changelog
 
+## [23.65.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.64.0...v23.65.0) (2025-06-24)
+
+
+### Features
+
+* **add:** SR-ZG2819S-DIM ([#9540](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9540)) ([8ad5fa1](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8ad5fa167760a6c09a81511201637bea4c07ce5f))
+* Tuya TS0601_cover_6: support `illuminance` ([#9536](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9536)) ([6f70494](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6f704940e59b4ea072ee9cf407d8fe4d84f3c4c6))
+
+
+### Bug Fixes
+
+* Adjust the reporting frequency threshold of some Bituo devices ([#9537](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9537)) ([04f5bf8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/04f5bf83c4d5c0a3e7a27227f6c085e9f8673fca))
+* **detect:** Detect `_TZE200_u6x1zyv2` as HOBEIAN ZG-223Z ([#9542](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9542)) ([ab204be](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ab204be1bd9bbb28a36170a972a98e6673fb2e8c))
+* **ignore:** Fix TS0601_knob_dimmer_switch brightness ([#9538](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9538)) ([8f1c2f6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8f1c2f6668d1fd653b7cab6d11d6cc1aa23edd5f))
+
+## [23.64.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.63.0...v23.64.0) (2025-06-23)
+
+
+### Features
+
+* **add:** SZLMR10, CZF02, SZT06 ([#9525](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9525)) ([5642595](https://github.com/Koenkk/zigbee-herdsman-converters/commit/56425957d563609994f16c9319c5f3e2b1191dae))
+* Third Reality 3RSM0147Z: expose soil moisture ([#9532](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9532)) ([e9f05f7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e9f05f749c9da12f8e28fe89bbaf0d3830285f8d))
+
+
+### Bug Fixes
+
+* amina S: fix charge limit reading ([#9534](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9534)) ([aea9104](https://github.com/Koenkk/zigbee-herdsman-converters/commit/aea9104b9d831fa48f05962ea4f88d150337613d))
+* **ignore:** bump @types/node from 22.15.30 to 24.0.3 ([#9531](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9531)) ([ec28d03](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ec28d032a472f70c983ae897198a18f3621513a2))
+* **ignore:** bump the minor-patch group with 3 updates ([#9530](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9530)) ([899748e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/899748e4e0932a71e312508d2f0aa057bc24c5ff))
+* **ignore:** Fix TS0601_knob_dimmer_switch brightness ([#9533](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9533)) ([1d93d28](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1d93d284ef5125886e1e5343aff9978b23aa0600))
+
 ## [23.63.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.62.0...v23.63.0) (2025-06-22)
 
 

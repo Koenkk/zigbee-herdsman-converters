@@ -4650,6 +4650,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.text("work_state", ea.STATE),
             e.cover_position().setAccess("position", ea.STATE_SET),
             e.battery(),
+            e.illuminance().withUnit("%"),
             e.enum("opening_mode", ea.STATE_SET, ["tilt", "lift"]).withDescription("Opening mode"),
             e.enum("motor_direction", ea.STATE_SET, ["left", "right"]).withDescription("Motor side"),
             e.enum("set_upper_limit", ea.STATE_SET, ["start", "stop"]).withDescription("Learning"),
@@ -4703,6 +4704,7 @@ export const definitions: DefinitionWithExtend[] = [
                         stop: tuya.enum(0),
                     }),
                 ],
+                [104, "illuminance", tuya.valueConverter.raw],
                 [107, "factory_reset", tuya.valueConverter.setLimit],
             ],
         },
@@ -11437,7 +11439,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.ac_frequency(),
             e
                 .numeric("data_report_duration", ea.SET)
-                .withValueMin(5)
+                .withValueMin(30)
                 .withValueMax(3600)
                 .withDescription(
                     "WARNING: You must update device firmware to V3.1.3 before changing this setting! Use Tuya gateway/app to update firmware. Data report duration set (Threshold value range 5~3600 seconds)",
@@ -11455,7 +11457,7 @@ export const definitions: DefinitionWithExtend[] = [
                     "data_report_duration",
                     {
                         to: (v: number) => {
-                            const value = Math.max(5, Math.min(3600, Math.round(v)));
+                            const value = Math.max(30, Math.min(3600, Math.round(v)));
                             const byte1 = (value >> 8) & 0xff;
                             const byte2 = value & 0xff;
                             return [
@@ -11655,7 +11657,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.ac_frequency(),
             e
                 .numeric("data_report_duration", ea.SET)
-                .withValueMin(5)
+                .withValueMin(30)
                 .withValueMax(3600)
                 .withDescription(
                     "WARNING: You must update device firmware to V3.2.2 before changing this setting! Use Tuya gateway/app to update firmware. Data report duration set (Threshold value range 5~3600 seconds)",
@@ -11669,7 +11671,7 @@ export const definitions: DefinitionWithExtend[] = [
                     "data_report_duration",
                     {
                         to: (v: number) => {
-                            const value = Math.max(5, Math.min(3600, Math.round(v)));
+                            const value = Math.max(30, Math.min(3600, Math.round(v)));
                             const byte1 = (value >> 8) & 0xff;
                             const byte2 = value & 0xff;
                             return [
@@ -11736,7 +11738,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.power_factor().withUnit("%").withDescription("Total power factor"),
             e.power(),
             e.ac_frequency(),
-            e.numeric("data_report_duration", ea.SET).withValueMin(5).withValueMax(3600),
+            e.numeric("data_report_duration", ea.SET).withValueMin(30).withValueMax(3600),
         ],
         meta: {
             tuyaDatapoints: [
@@ -11746,7 +11748,7 @@ export const definitions: DefinitionWithExtend[] = [
                     "data_report_duration",
                     {
                         to: (v: number) => {
-                            const value = Math.max(5, Math.min(3600, Math.round(v)));
+                            const value = Math.max(30, Math.min(3600, Math.round(v)));
                             const byte1 = (value >> 8) & 0xff;
                             const byte2 = value & 0xff;
                             return [
@@ -11841,7 +11843,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .numeric("update_frequency", ea.STATE_SET)
                 .withUnit("s")
                 .withDescription("Update frequency")
-                .withValueMin(5)
+                .withValueMin(30)
                 .withValueMax(3600)
                 .withPreset("default", 10, "Default value"),
         ],
@@ -11972,7 +11974,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .numeric("update_frequency", ea.STATE_SET)
                 .withUnit("s")
                 .withDescription("Update frequency")
-                .withValueMin(5)
+                .withValueMin(30)
                 .withValueMax(3600)
                 .withPreset("default", 10, "Default value"),
         ],
@@ -12035,7 +12037,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .numeric("update_frequency", ea.STATE_SET)
                 .withUnit("s")
                 .withDescription("Update frequency")
-                .withValueMin(5)
+                .withValueMin(30)
                 .withValueMax(3600)
                 .withPreset("default", 10, "Default value"),
         ],
@@ -17833,7 +17835,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["ZG-223Z"],
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_jsaqgakf"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_jsaqgakf", "_TZE200_u6x1zyv2"]),
         model: "ZG-223Z",
         vendor: "HOBEIAN",
         description: "Rainwater detection sensor",
@@ -18154,7 +18156,7 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {
             tuyaDatapoints: [
                 [102, "state", tuya.valueConverter.onOff],
-                [103, "brightness", tuya.valueConverter.divideBy10],
+                [103, "brightness", tuya.valueConverterBasic.scale(0, 254, 0, 1000)],
                 [105, "adjustment_mode", tuya.valueConverterBasic.lookup({brightness: tuya.enum(0), color_temp: tuya.enum(1)})],
                 [107, "color_temp", tuya.valueConverterBasic.scale(154, 370, 0, 1000)],
                 [121, "state_l1", tuya.valueConverter.onOff],
