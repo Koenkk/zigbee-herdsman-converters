@@ -354,6 +354,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.temperature(),
             m.humidity(),
+            m.soilMoisture(),
             m.battery(),
             m.deviceAddCustomCluster("3rSoilSpecialCluster", {
                 ID: 0xff01,

@@ -266,6 +266,7 @@ import {definitions as shinasystem} from "./shinasystem";
 import {definitions as shyugj} from "./shyugj";
 import {definitions as siglis} from "./siglis";
 import {definitions as sikom} from "./sikom";
+import {definitions as siliconLabs} from "./silicon_labs";
 import {definitions as simon} from "./simon";
 import {definitions as sinope} from "./sinope";
 import {definitions as siterwell} from "./siterwell";
@@ -606,6 +607,7 @@ const definitions: DefinitionWithExtend[] = [
     ...shinasystem,
     ...shyugj,
     ...siglis,
+    ...siliconLabs,
     ...sikom,
     ...simon,
     ...sinope,
