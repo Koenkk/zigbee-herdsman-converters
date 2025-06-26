@@ -1533,19 +1533,15 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_hiith90n"]),
-        model: 'TS0601_switch_hiith90n',
-        vendor: 'Tuya',
-        description: 'Circuit Breaker/Switch',
+        model: "TS0601_switch_hiith90n",
+        vendor: "Tuya",
+        description: "Circuit Breaker/Switch",
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
-        exposes: [
-            e.switch(),
-        ],
+        exposes: [e.switch()],
         meta: {
-            tuyaDatapoints: [
-                [16, 'state', tuya.valueConverter.onOff],
-            ],
+            tuyaDatapoints: [[16, "state", tuya.valueConverter.onOff]],
         },
     },
     {
