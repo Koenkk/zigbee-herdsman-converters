@@ -1317,8 +1317,6 @@ export const definitions: DefinitionWithExtend[] = [
             m.deviceAddCustomCluster("customSonoffSnzb02ld", {
                 ID: 0xfc11,
                 attributes: {
-                    comfortTemperatureMax: {ID: 0x0003, type: Zcl.DataType.INT16},
-                    comfortTemperatureMin: {ID: 0x0004, type: Zcl.DataType.INT16},
                     temperatureUnits: {ID: 0x0007, type: Zcl.DataType.UINT16},
                     temperatureCalibration: {ID: 0x2003, type: Zcl.DataType.INT16},
                 },
@@ -1328,30 +1326,6 @@ export const definitions: DefinitionWithExtend[] = [
             m.battery(),
             m.temperature(),
             m.bindCluster({cluster: "genPollCtrl", clusterType: "input"}),
-            m.numeric({
-                name: "comfort_temperature_min",
-                cluster: "customSonoffSnzb02ld",
-                attribute: "comfortTemperatureMin",
-                description:
-                    "Minimum temperature that is considered comfortable. The device will display ❄️ when the temperature is lower than this value. Note: wake up the device by pressing the button on the back before changing this value.",
-                valueMin: -10,
-                valueMax: 60,
-                scale: 100,
-                valueStep: 0.1,
-                unit: "°C",
-            }),
-            m.numeric({
-                name: "comfort_temperature_max",
-                cluster: "customSonoffSnzb02ld",
-                attribute: "comfortTemperatureMax",
-                description:
-                    "Maximum temperature that is considered comfortable. The device will display 🔥 when the temperature is higher than this value. Note: wake up the device by pressing the button on the back before changing this value.",
-                valueMin: -10,
-                valueMax: 60,
-                scale: 100,
-                valueStep: 0.1,
-                unit: "°C",
-            }),
             m.enumLookup({
                 name: "temperature_units",
                 lookup: {celsius: 0, fahrenheit: 1},
@@ -1735,7 +1709,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.enumLookup({
                 name: "temperature_sensor_select",
                 label: "Temperature sensor",
-                lookup: {internal: 0, external: 1},
+                lookup: {internal: 0, external: 1, external_2: 2, external_3: 3},
                 cluster: "customSonoffTrvzb",
                 attribute: "temperatureSensorSelect",
                 description:

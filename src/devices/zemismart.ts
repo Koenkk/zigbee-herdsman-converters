@@ -307,19 +307,6 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_gubdgai2", "_TZE200_vdiuwbkq"]),
-        model: "M515EGBZTN",
-        vendor: "Zemismart",
-        description: "Roller shade driver",
-        fromZigbee: [legacy.fz.ZMAM02_cover],
-        toZigbee: [legacy.tz.ZMAM02_cover],
-        exposes: [
-            e.cover_position().setAccess("position", ea.STATE_SET),
-            e.enum("motor_direction", ea.STATE_SET, Object.values(legacy.ZMLookups.AM02Direction)),
-            e.enum("border", ea.STATE_SET, Object.values(legacy.ZMLookups.AM02Border)),
-        ],
-    },
-    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_fzo2pocs"]),
         model: "ZM25TQ",
         vendor: "Zemismart",
@@ -416,7 +403,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.identify(), tuya.modernExtend.tuyaOnOff({indicatorMode: true, onOffCountdown: true, childLock: true})],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_3ctwoaip"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_3ctwoaip", "_TZE204_3ctwoaip"]),
         model: "ZMS-206EU-2",
         vendor: "Zemismart",
         description: "Smart screen switch 2 gang",
@@ -608,7 +595,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_wwaeqnrf"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_wwaeqnrf", "_TZE284_wwaeqnrf"]),
         model: "ZMS-206US-4",
         vendor: "Zemismart",
         description: "Smart screen switch 4 gang US",

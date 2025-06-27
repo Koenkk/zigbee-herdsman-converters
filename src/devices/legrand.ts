@@ -310,20 +310,7 @@ export const definitions: DefinitionWithExtend[] = [
             eLegrand.ledInDark(),
             eLegrand.ledIfOn(),
         ],
-        extend: [
-            m.light({
-                configureReporting: true,
-                levelConfig: {
-                    disabledFeatures: [
-                        "on_off_transition_time",
-                        "on_transition_time",
-                        "off_transition_time",
-                        "execute_if_off",
-                        "current_level_startup",
-                    ],
-                },
-            }),
-        ],
+        extend: [m.light({configureReporting: true, levelConfig: {features: ["on_level"]}})],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genIdentify", "genBinaryInput", "lightingBallastCfg"]);
@@ -423,6 +410,80 @@ export const definitions: DefinitionWithExtend[] = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genIdentify", "genPowerCfg"]);
+        },
+    },
+    {
+        zigbeeModel: [
+            " 3 Phases power consumption module\u0000\u0000",
+            " 3P power consumption module\u0000\u0000\u0000",
+            " DIN 3Ph power consumption module",
+            "3ph Smart shedder module",
+        ],
+        model: "412175",
+        vendor: "Legrand",
+        description: "DIN 3 Phases power consumption module",
+        whiteLabel: [{vendor: "BTicino", description: "Connected DIN meter for three-phase", model: "F40T125A"}],
+        ota: true,
+        fromZigbee: [
+            fz.identify,
+            fz.metering,
+            fz.electrical_measurement,
+            fz.ignore_basic_report,
+            fz.ignore_genOta,
+            fz.legrand_power_alarm,
+            fzLegrand.cluster_fc01,
+        ],
+        toZigbee: [tzLegrand.led_mode, tz.electrical_measurement_power, tz.legrand_power_alarm, tzLegrand.identify],
+        exposes: [
+            e.power().withAccess(ea.STATE_GET),
+            e.power_phase_b().withAccess(ea.STATE_GET),
+            e.power_phase_c().withAccess(ea.STATE_GET),
+            e.power_apparent(),
+            e.power_apparent_phase_b().withAccess(ea.STATE_GET),
+            e.power_apparent_phase_c().withAccess(ea.STATE_GET),
+            e.binary("power_alarm_active", ea.STATE, true, false),
+            e.binary("power_alarm", ea.ALL, true, false).withDescription("Enable/disable the power alarm"),
+        ],
+        onEvent: async (type, data, device, options, state) => {
+            /**
+             * The DIN power consumption module loses the configure reporting
+             * after device restart/powerloss.
+             *
+             * We reconfigure the reporting at deviceAnnounce.
+             */
+            if (type === "deviceAnnounce") {
+                for (const endpoint of device.endpoints) {
+                    for (const c of endpoint.configuredReportings) {
+                        await endpoint.configureReporting(c.cluster.name, [
+                            {
+                                attribute: c.attribute.name,
+                                minimumReportInterval: c.minimumReportInterval,
+                                maximumReportInterval: c.maximumReportInterval,
+                                reportableChange: c.reportableChange,
+                            },
+                        ]);
+                    }
+                }
+            }
+        },
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["haElectricalMeasurement", "genIdentify"]);
+            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
+            await reporting.activePower(endpoint);
+            // Read configuration values that are not sent periodically as well as current power (activePower).
+            await endpoint.read("haElectricalMeasurement", ["activePower"]);
+            try {
+                await reporting.apparentPower(endpoint);
+                await endpoint.read("haElectricalMeasurement", ["apparentPowerPhB"]);
+                await endpoint.read("haElectricalMeasurement", ["apparentPowerPhC"]);
+                await endpoint.read("haElectricalMeasurement", ["activePowerPhB"]);
+                await endpoint.read("haElectricalMeasurement", ["activePowerPhC"]);
+            } catch {
+                // Some version/firmware don't seem to support this.
+            }
+            // Read configuration values that are not sent periodically.
+            await endpoint.read("haElectricalMeasurement", [0xf000, 0xf001, 0xf002]);
         },
     },
     {

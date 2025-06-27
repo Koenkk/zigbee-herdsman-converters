@@ -103,7 +103,7 @@ const tzLocal = {
         },
 
         convertGet: async (entity, key, meta) => {
-            await entity.read("genLevelCtrl", ["currentLevel"], manufacturerOptions);
+            await entity.read("genLevelCtrl", ["currentLevel"]);
         },
     } satisfies Tz.Converter,
 

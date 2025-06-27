@@ -2541,6 +2541,7 @@ export const lumiModernExtend = {
                                     const data = [...lumiHeader(0x12, params.length, 0x05), ...params];
 
                                     await entity.write("manuSpecificLumi", {65522: {value: data, type: 0x41}}, {manufacturerCode: manufacturerCode});
+                                    return {state: {external_temperature: value}};
                                 }
                                 break;
                             case "external_humidity":
@@ -2553,6 +2554,7 @@ export const lumiModernExtend = {
                                     const data = [...lumiHeader(0x12, params.length, 0x05), ...params];
 
                                     await entity.write("manuSpecificLumi", {65522: {value: data, type: 0x41}}, {manufacturerCode: manufacturerCode});
+                                    return {state: {external_humidity: value}};
                                 }
                                 break;
                             default: // Unknown key
@@ -2574,7 +2576,7 @@ export const lumiModernExtend = {
                         Object.entries(msg.data).forEach(([key, value]) => {
                             switch (Number.parseInt(key)) {
                                 case 0x0172:
-                                    result.sensor = getFromLookup(value, {2: "external", 0: "internal"});
+                                    result.sensor = getFromLookup(value, {2: "external", 0: "internal", 1: "internal", 3: "external"});
                                     break;
                                 case 0xfff2:
                                     logger.debug(`Unhandled key ${key} = ${value}`, "zhc:lumi:externalSensor");
@@ -3045,7 +3047,7 @@ export const fromZigbee = {
                         result.calibrated = getFromLookup(value, {1: true, 0: false});
                         break;
                     case 0x027e:
-                        result.sensor = getFromLookup(value, {1: "external", 0: "internal"});
+                        result.sensor = getFromLookup(value, {1: "external", 0: "internal", 2: "external"});
                         break;
                     case 0x040a:
                         result.battery = value;

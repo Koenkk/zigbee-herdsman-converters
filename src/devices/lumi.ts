@@ -169,7 +169,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZNXDD01LM",
         vendor: "Aqara",
         description: "Ceiling light L1-350",
-        extend: [lumiLight({colorTemp: true, powerOutageMemory: "switch"}), lumiZigbeeOTA()],
+        extend: [lumiLight({colorTemp: true, powerOutageMemory: "switch", levelConfig: {features: ["on_level"]}}), lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ["lumi.light.cwac02", "lumi.light.acn014"],
@@ -2268,7 +2268,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.battery_voltage(),
             e.power_outage_count(false),
         ],
-        meta: {battery: {voltageToPercentage: {min: 2850, max: 3000}}},
+        meta: {battery: {voltageToPercentage: {min: 2475, max: 3000}}},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await endpoint.write("manuSpecificLumi", {331: {value: 1, type: 0x20}}, {manufacturerCode: manufacturerCode});
@@ -2483,6 +2483,7 @@ export const definitions: DefinitionWithExtend[] = [
             fz.ignore_basic_report,
             lumi.fromZigbee.lumi_specific,
         ],
+        ota: true,
         toZigbee: [lumi.toZigbee.lumi_curtain_position_state, lumi.toZigbee.lumi_curtain_battery, lumi.toZigbee.lumi_curtain_charging_status],
         onEvent: async (type, data, device) => {
             if (
@@ -2938,7 +2939,7 @@ export const definitions: DefinitionWithExtend[] = [
                 colorTemp: true,
                 color: false,
                 powerOutageMemory: "enum",
-                levelConfig: {disabledFeatures: ["current_level_startup"]},
+                levelConfig: {features: ["on_off_transition_time", "on_transition_time", "off_transition_time", "execute_if_off", "on_level"]},
             }),
             m.numeric({
                 name: "min_brightness",
@@ -4467,7 +4468,8 @@ export const definitions: DefinitionWithExtend[] = [
             m.light({powerOnBehavior: false}),
             lumiKnobRotation({withButtonState: false}),
             lumiOperationMode({description: "Decoupled mode for knob"}),
-            lumiAction({actionLookup: {single: 1}}),
+            lumiAction({actionLookup: {hold: 0, single: 1, double: 2, release: 255}}),
+            lumiMultiClick(),
             m.enumLookup({
                 name: "sensitivity",
                 lookup: {low: 720, medium: 360, high: 180},
@@ -4655,7 +4657,7 @@ export const definitions: DefinitionWithExtend[] = [
                 scale: 1000,
                 unit: "sec",
                 cluster: "manuSpecificLumi",
-                attribute: {ID: 0x016d, type: Zcl.DataType.INT16},
+                attribute: {ID: 0x0162, type: Zcl.DataType.UINT32},
                 description: "Sampling period",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
@@ -4684,7 +4686,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueMin: 0.2,
                 valueMax: 3,
                 valueStep: 0.1,
-                scale: 10,
+                scale: 100,
                 unit: "°C",
                 cluster: "manuSpecificLumi",
                 attribute: {ID: 0x0164, type: Zcl.DataType.UINT16},
@@ -4716,7 +4718,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueMin: 2,
                 valueMax: 10,
                 valueStep: 0.5,
-                scale: 10,
+                scale: 100,
                 unit: "%",
                 cluster: "manuSpecificLumi",
                 attribute: {ID: 0x016b, type: Zcl.DataType.UINT16},

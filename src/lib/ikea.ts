@@ -81,9 +81,9 @@ const bulbOnEvent: OnEvent = async (type, data, device, options, state: KeyValue
 
 export function ikeaLight(args?: Omit<m.LightArgs, "colorTemp"> & {colorTemp?: true | {range: Range; viaColor: true}}) {
     const colorTemp: {range: Range} = args?.colorTemp ? (args.colorTemp === true ? {range: [250, 454]} : args.colorTemp) : undefined;
-    const levelConfig: {disabledFeatures?: LevelConfigFeatures} = args?.levelConfig
+    const levelConfig: {features?: LevelConfigFeatures} = args?.levelConfig
         ? args.levelConfig
-        : {disabledFeatures: ["on_off_transition_time", "on_transition_time", "off_transition_time", "on_level"]};
+        : {features: ["execute_if_off", "current_level_startup"]};
     const result = m.light({...args, colorTemp, levelConfig});
     result.ota = true;
     result.onEvent = [bulbOnEvent];
@@ -193,7 +193,7 @@ export function ikeaBattery(): ModernExtend {
     const defaultReporting: m.ReportingConfigWithoutAttribute = {min: "1_HOUR", max: "MAX", change: 10};
 
     const configure: Configure[] = [
-        m.setupConfigureForReporting("genPowerCfg", "batteryPercentageRemaining", defaultReporting, access.STATE_GET),
+        m.setupConfigureForReporting("genPowerCfg", "batteryPercentageRemaining", {config: defaultReporting, access: access.STATE_GET}),
         configureSetPowerSourceWhenUnknown("Battery"),
     ];
 
