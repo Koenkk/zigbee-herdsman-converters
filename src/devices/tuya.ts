@@ -2083,7 +2083,7 @@ export const definitions: DefinitionWithExtend[] = [
             },
             tuya.whitelabel("Meian", "SW02", "Water leak sensor", ["_TZ3000_kyb656no"]),
             tuya.whitelabel("Aubess", "IH-K665", "Water leak sensor", ["_TZ3000_kstbkt6a"]),
-            tuya.whitelabel("HOBEIAN", "ZG-222ZA", "Water leak sensor", ["_TZ3000_k4ej3ww2","_TZ3000_abaplimj"]),
+            tuya.whitelabel("HOBEIAN", "ZG-222ZA", "Water leak sensor", ["_TZ3000_k4ej3ww2", "_TZ3000_abaplimj"]),
             tuya.whitelabel("Tuya", "TS0207_water_leak_detector_1", "Zigbee water flood sensor + 1m probe cable", [
                 "_TZ3000_ocjlo4ea",
                 "_TZ3000_upgcbody",
@@ -9890,7 +9890,14 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["ZG-227Z", "ZG-227ZL"],
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_qoy0ekbd", "_TZE200_znbl8dj5", "_TZE200_a8sdabtg", "_TZE200_dikkika5", "_TZE200_vs0skpuc","_TZE200_3xfjp0ag"]),
+        fingerprint: tuya.fingerprint("TS0601", [
+            "_TZE200_qoy0ekbd",
+            "_TZE200_znbl8dj5",
+            "_TZE200_a8sdabtg",
+            "_TZE200_dikkika5",
+            "_TZE200_vs0skpuc",
+            "_TZE200_3xfjp0ag",
+        ]),
         model: "ZG-227ZL",
         vendor: "Tuya",
         description: "Temperature & humidity LCD sensor",
@@ -10121,7 +10128,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["ZG-102ZL"],
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_pay2byax", "_TZE200_ijey4q29","_TZE200_ykglasuj"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_pay2byax", "_TZE200_ijey4q29", "_TZE200_ykglasuj"]),
         model: "ZG-102ZL",
         vendor: "Tuya",
         description: "Luminance door sensor",
@@ -17975,7 +17982,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["ZG-303Z"],
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_npj9bug3","_TZE200_wrmhp6b3"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_npj9bug3", "_TZE200_wrmhp6b3"]),
         model: "CS-201Z",
         vendor: "COOLO",
         description: "Soil moisture sensor",
@@ -17998,7 +18005,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         meta: {
             tuyaDatapoints: [
-                [106,"dry",tuya.valueConverter.trueFalse0],
+                [106, "dry", tuya.valueConverter.trueFalse0],
                 [5, "temperature", tuya.valueConverter.divideBy10],
                 [109, "humidity", tuya.valueConverter.raw],
                 [3, "soil_moisture", tuya.valueConverter.raw],
@@ -18128,9 +18135,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
         configure: tuya.configureMagicPacket,
 
-        whiteLabel: [
-            {vendor: "HOBEIAN", model: "ZG-305Z", fingerprint: [{modelID: "ZG-305Z"}]},
-        ],
+        whiteLabel: [{vendor: "HOBEIAN", model: "ZG-305Z", fingerprint: [{modelID: "ZG-305Z"}]}],
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_tgeqdjgk"]),
