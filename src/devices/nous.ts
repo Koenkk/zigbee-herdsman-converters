@@ -168,5 +168,5 @@ export const definitions: DefinitionWithExtend[] = [
     },
         extend: [
     ],
-};        
+}        
 ];
