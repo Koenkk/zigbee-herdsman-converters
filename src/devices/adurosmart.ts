@@ -1,5 +1,6 @@
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
+import * as adurosmart from "../lib/adurosmart";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
@@ -147,6 +148,40 @@ export const definitions: DefinitionWithExtend[] = [
             e.warning(),
             e.numeric("max_duration", ea.ALL).withUnit("s").withValueMin(0).withValueMax(600).withDescription("Duration of Siren"),
             e.binary("alarm", ea.SET, "ON", "OFF").withDescription("Manual start of siren"),
+        ],
+    },
+    {
+        zigbeeModel: ["AD-CTW123001"],
+        model: "AD-CTW123001",
+        vendor: "AduroSmart",
+        description: "ERIA smart light bubl A19",
+        extend: [m.light({colorTemp: {range: [153, 500]}})],
+    },
+    {
+        fingerprint: [{modelID: "ONOFF_METER_RELAY", manufacturerName: "AduroSmart ERIA"}],
+        model: "81998",
+        vendor: "AduroSmart",
+        description: "ERIA built-in on/off relay (with power measurements)",
+        extend: [m.onOff(), m.electricityMeter({cluster: "electrical"})],
+    },
+    {
+        zigbeeModel: ["DimmerM3002"],
+        model: "81949",
+        vendor: "AduroSmart",
+        description: "ERIA built-in dimmer module (with power measurements)",
+        extend: [
+            m.light({configureReporting: true}),
+            m.electricityMeter({cluster: "electrical"}),
+            adurosmart.extend.dimmerLoadControlMode(),
+            adurosmart.extend.dimmerSwitchMode(),
+            adurosmart.extend.dimmerInvertSwitch(),
+            adurosmart.extend.dimmerSceneActivation(),
+            adurosmart.extend.dimmerS1DoubleClickScene(),
+            adurosmart.extend.dimmerS2DoubleClickScene(),
+            adurosmart.extend.dimmerMinBrightnessLevel(),
+            adurosmart.extend.dimmerMaxBrightnessLevel(),
+            adurosmart.extend.dimmerManualDimmingStepSize(),
+            adurosmart.extend.dimmerManualDimmingTime(),
         ],
     },
 ];

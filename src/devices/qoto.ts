@@ -22,7 +22,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .numeric("remaining_watering_time", ea.STATE)
                 .withUnit("sec")
                 .withValueMin(0)
-                .withDescription("Remaning watering time (for auto shutdown). Updates every minute, and every 10s in the last minute."),
+                .withDescription("Remaining watering time (for auto shutdown). Updates every minute, and every 10s in the last minute."),
             e
                 .numeric("valve_state", ea.STATE_SET)
                 .withValueMin(0)

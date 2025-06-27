@@ -368,6 +368,7 @@ const boschExtend = {
                             battery_defect: (zoneStatus & (1 << 9)) > 0,
                             action: lookup[(zoneStatus >> 11) & 3],
                         };
+                        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
                         if (result.action === "none") delete result.action;
                         return result;
                     }
@@ -1051,8 +1052,9 @@ const fzLocal = {
             const buttonId = msg.data.readUInt8(4);
             const longPress = msg.data.readUInt8(5);
             const duration = msg.data.readUInt16LE(6);
+            // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
             let buffer;
-            if (options.led_response !== undefined) {
+            if (options.led_response != null) {
                 buffer = Buffer.from(options.led_response as string, "hex");
                 if (buffer.length !== 9) {
                     logger.error(`Invalid length of led_response: ${buffer.length} (should be 9)`, NS);
@@ -1102,7 +1104,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "BSIR-EZ",
         vendor: "Bosch",
         description: "Outdoor siren",
-        fromZigbee: [fz.ias_alarm_only_alarm_1, fz.battery, fz.power_source],
+        fromZigbee: [fz.battery, fz.power_source],
         toZigbee: [tzLocal.rbshoszbeu, tz.warning],
         meta: {battery: {voltageToPercentage: {min: 2500, max: 4200}}},
         configure: async (device, coordinatorEndpoint) => {
@@ -1159,13 +1161,12 @@ export const definitions: DefinitionWithExtend[] = [
                 .removeFeature("level")
                 .removeFeature("duration"),
             e.test(),
-            e.tamper(),
             e.battery(),
             e.battery_voltage(),
-            e.battery_low(),
             e.binary("ac_status", ea.STATE, true, false).withDescription("Is the device plugged in"),
         ],
         extend: [
+            m.iasZoneAlarm({zoneType: "alarm", zoneAttributes: ["alarm_1", "tamper", "battery_low"]}),
             m.deviceAddCustomCluster("ssIasZone", {
                 ID: Zcl.Clusters.ssIasZone.ID,
                 attributes: {},
@@ -1301,7 +1302,7 @@ export const definitions: DefinitionWithExtend[] = [
             "RFPR-ZB-ES",
             "RFPR-ZB-MS",
         ],
-        model: "RADON TriTech ZB",
+        model: "RADION TriTech ZB",
         vendor: "Bosch",
         description: "Wireless motion detector",
         fromZigbee: [fz.temperature, fz.battery, fz.ias_occupancy_alarm_1],
@@ -1366,8 +1367,8 @@ export const definitions: DefinitionWithExtend[] = [
                 .withLocalTemperatureCalibration(-5, 5, 0.1)
                 .withSetpoint("occupied_heating_setpoint", 5, 30, 0.5)
                 .withSystemMode(["heat"])
-                .withPiHeatingDemand(ea.ALL)
                 .withRunningState(["idle", "heat"], ea.STATE_GET),
+            e.pi_heating_demand().withAccess(ea.ALL),
         ],
         fromZigbee: [fz.thermostat],
         toZigbee: [
@@ -1837,6 +1838,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             boschExtend.bmct(),
         ],
+        ota: true,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genIdentify", "closuresWindowCovering", "boschSpecific"]);

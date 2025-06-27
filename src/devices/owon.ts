@@ -1,3 +1,5 @@
+import {Zcl} from "zigbee-herdsman";
+
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
@@ -18,6 +20,7 @@ const fzLocal = {
             }
         },
     } satisfies Fz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     PC321_metering: {
         cluster: "seMetering",
         type: ["attributeReport", "readResponse"],
@@ -116,13 +119,102 @@ const fzLocal = {
             return payload;
         },
     } satisfies Fz.Converter,
+
+    owonFds315: {
+        cluster: "fallDetectionOwon",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const result: Record<string, unknown> = {};
+            const data = msg.data;
+            const status_mapping: Record<number, string> = {
+                0: "unoccupied",
+                1: "occupied",
+                2: "sitting",
+                3: "on_the_bed",
+                4: "low_posture",
+                5: "falling",
+            };
+
+            if (data.status !== undefined) {
+                const code = data.status;
+                result.status = status_mapping[code] || `Unknown (${code})`;
+            }
+            if (data.breathing_rate !== undefined) result.breathing_rate = data.breathing_rate;
+            if (data.location_x !== undefined) result.location_x = data.location_x;
+            if (data.location_y !== undefined) result.location_y = data.location_y;
+
+            const keys = [
+                "bedUpperLeftX",
+                "bedUpperLeftY",
+                "bedLowerRightX",
+                "bedLowerRightY",
+                "doorCenterX",
+                "doorCenterY",
+                "leftFallDetectionRange",
+                "rightFallDetectionRange",
+                "frontFallDetectionRange",
+            ];
+            const values = keys.map((k) => (data[k] !== undefined ? data[k] : null));
+
+            if (!values.includes(null)) {
+                result.fall_detection_settings = values.join(",");
+            }
+
+            return result;
+        },
+    } satisfies Fz.Converter,
 };
 
 const tzLocal = {
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     PC321_clearMetering: {
         key: ["clear_metering"],
         convertSet: async (entity, key, value, meta) => {
             await entity.command(0xffe0, 0x00, {}, {disableDefaultResponse: true});
+        },
+    } satisfies Tz.Converter,
+
+    owonFds315SetFallSettings: {
+        key: ["fall_detection_settings"],
+        convertSet: async (entity, key, value, meta) => {
+            const mapping: Record<number, {id: number; type: number}> = {
+                0: {id: 0x0100, type: 0x29},
+                1: {id: 0x0101, type: 0x29},
+                2: {id: 0x0102, type: 0x29},
+                3: {id: 0x0103, type: 0x29},
+                4: {id: 0x0108, type: 0x29},
+                5: {id: 0x0109, type: 0x29},
+                6: {id: 0x010c, type: 0x21},
+                7: {id: 0x010d, type: 0x21},
+                8: {id: 0x010e, type: 0x21},
+            };
+
+            const strValue = String(value);
+            const values = strValue?.split(",").map(Number);
+            if (values.length !== 9) throw new Error("Incorrect number of values.");
+
+            const payload: Record<number, {value: number; type: number}> = {};
+            values.forEach((val, idx) => {
+                const {id, type} = mapping[idx];
+                payload[id] = {value: val, type};
+            });
+
+            await entity.write("fallDetectionOwon", payload, {manufacturerCode: 0x113c});
+            return {state: {fall_detection_settings: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            const attrs = [
+                "bedUpperLeftX",
+                "bedUpperLeftY",
+                "bedLowerRightX",
+                "bedLowerRightY",
+                "doorCenterX",
+                "doorCenterY",
+                "leftFallDetectionRange",
+                "rightFallDetectionRange",
+                "frontFallDetectionRange",
+            ];
+            await entity.read("fallDetectionOwon", attrs, {manufacturerCode: 0x113c});
         },
     } satisfies Tz.Converter,
 };
@@ -385,6 +477,43 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        zigbeeModel: ["PCT512"],
+        model: "PCT512",
+        vendor: "OWON",
+        description: "Thermostat",
+        fromZigbee: [fz.thermostat],
+        toZigbee: [
+            tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_min_heat_setpoint_limit,
+            tz.thermostat_max_heat_setpoint_limit,
+            tz.thermostat_local_temperature,
+            tz.thermostat_system_mode,
+            tz.thermostat_running_state,
+        ],
+        extend: [m.occupancy(), m.humidity()],
+        exposes: [
+            e
+                .climate()
+                .withSystemMode(["off", "heat"])
+                .withLocalTemperature()
+                .withRunningState(["heat", "idle"])
+                .withSetpoint("occupied_heating_setpoint", 5, 30, 0.5),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            const binds = ["genBasic", "genIdentify", "genGroups", "genScenes", "genOnOff", "hvacThermostat", "msRelativeHumidity"];
+
+            await reporting.bind(endpoint, coordinatorEndpoint, binds);
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint, {min: 0, max: 3600, change: 10});
+            await reporting.thermostatTemperature(endpoint, {min: 0, max: 3600, change: 10});
+            await reporting.humidity(endpoint, {min: 0, max: 3600, change: 10});
+            await reporting.thermostatSystemMode(endpoint, {min: 0, max: 3600});
+            await reporting.thermostatRunningState(endpoint);
+            await endpoint.read("hvacThermostat", ["systemMode", "runningState", "occupiedHeatingSetpoint", "localTemp"]);
+            await endpoint.read("msRelativeHumidity", ["measuredValue"]);
+        },
+    },
+    {
         zigbeeModel: ["PIR323-PTH"],
         model: "PIR323-PTH",
         vendor: "OWON",
@@ -439,5 +568,53 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "OWON",
         description: "Sleeping pad monitor",
         extend: [m.battery(), m.iasZoneAlarm({zoneType: "contact", zoneAttributes: ["alarm_1", "battery_low", "tamper"]})],
+    },
+    {
+        zigbeeModel: ["FDS315"],
+        model: "FDS315",
+        vendor: "OWON",
+        description: "Fall Detection Sensor",
+        extend: [
+            m.deviceAddCustomCluster("fallDetectionOwon", {
+                ID: 0xfd00,
+                manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
+                attributes: {
+                    status: {ID: 0x0000, type: Zcl.DataType.ENUM8},
+                    breathing_rate: {ID: 0x0002, type: Zcl.DataType.UINT8},
+                    location_x: {ID: 0x0003, type: Zcl.DataType.INT16},
+                    location_y: {ID: 0x0004, type: Zcl.DataType.INT16},
+                    bedUpperLeftX: {ID: 0x0100, type: Zcl.DataType.INT16},
+                    bedUpperLeftY: {ID: 0x0101, type: Zcl.DataType.INT16},
+                    bedLowerRightX: {ID: 0x0102, type: Zcl.DataType.INT16},
+                    bedLowerRightY: {ID: 0x0103, type: Zcl.DataType.INT16},
+                    doorCenterX: {ID: 0x0108, type: Zcl.DataType.INT16},
+                    doorCenterY: {ID: 0x0109, type: Zcl.DataType.INT16},
+                    leftFallDetectionRange: {ID: 0x010c, type: Zcl.DataType.UINT16},
+                    rightFallDetectionRange: {ID: 0x010d, type: Zcl.DataType.UINT16},
+                    frontFallDetectionRange: {ID: 0x010e, type: Zcl.DataType.UINT16},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+        ],
+        fromZigbee: [fz.identify, fzLocal.owonFds315],
+        toZigbee: [tzLocal.owonFds315SetFallSettings],
+        exposes: [
+            e.enum("status", ea.STATE, ["unoccupied", "occupied", "sitting", "on_the_bed", "low_posture", "falling"]),
+            e.numeric("breathing_rate", ea.STATE).withUnit("breaths/min").withDescription("Breathing rate."),
+            e.numeric("location_x", ea.STATE).withUnit("cm").withDescription("X coordinate of human activity."),
+            e.numeric("location_y", ea.STATE).withUnit("cm").withDescription("Y coordinate of human activity."),
+            e
+                .text("fall_detection_settings", ea.ALL)
+                .withDescription(
+                    "Comma-separated values for bed, door and fall detection settings: bedUpperLeftX, bedUpperLeftY, bedLowerRightX, bedLowerRightY, doorCenterX, doorCenterY, leftFallDetectionRange, rightFallDetectionRange, frontFallDetectionRange. Put -21931 for disabled bed and door.",
+                ),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.bind("ssIasZone", coordinatorEndpoint);
+            await endpoint.bind("genBasic", coordinatorEndpoint);
+            await endpoint.bind("fallDetectionOwon", coordinatorEndpoint);
+        },
     },
 ];

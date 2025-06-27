@@ -67,7 +67,16 @@ const individualLedEffects: {[key: string]: number} = {
     clear_effect: 255,
 };
 
+const mmWaveControlCommands: {[key: string]: number} = {
+    set_interference: 1,
+    clear_interference: 3,
+    reset_detection_area: 4,
+    reset_mmwave_module: 0,
+    reset_mmwave_fw_2: 255,
+};
+
 const INOVELLI_CLUSTER_NAME: string = "manuSpecificInovelli";
+const INOVELLI_MMWAVE_CLUSTER_NAME: string = "manuSpecificInovelliMMWave";
 
 const inovelliExtend = {
     addCustomClusterInovelli: () =>
@@ -144,6 +153,8 @@ const inovelliExtend = {
                 ledIntensityWhenOn: {ID: 0x0061, type: Zcl.DataType.UINT8},
                 ledIntensityWhenOff: {ID: 0x0062, type: Zcl.DataType.UINT8},
                 ledBarScaling: {ID: 0x0064, type: Zcl.DataType.BOOLEAN},
+                mmwaveControlWiredDevice: {ID: 0x006e, type: Zcl.DataType.UINT8},
+                mmWaveRoomSizePreset: {ID: 0x0075, type: Zcl.DataType.UINT8},
                 singleTapBehavior: {ID: 0x0078, type: Zcl.DataType.UINT8},
                 fanTimerMode: {ID: 0x0079, type: Zcl.DataType.UINT8},
                 auxSwitchUniqueScenes: {ID: 0x007b, type: Zcl.DataType.BOOLEAN},
@@ -186,6 +197,42 @@ const inovelliExtend = {
             },
             commandsResponse: {},
         }),
+    addCustomMMWaveClusterInovelli: () =>
+        m.deviceAddCustomCluster(INOVELLI_MMWAVE_CLUSTER_NAME, {
+            ID: 64562, // 0xfc32
+            manufacturerCode: 0x122f,
+            attributes: {
+                mmWaveHoldTime: {ID: 0x0072, type: Zcl.DataType.UINT32},
+                mmWaveDetectSensitivity: {ID: 0x0070, type: Zcl.DataType.UINT8},
+                mmWaveDetectTrigger: {ID: 0x0071, type: Zcl.DataType.UINT8},
+                mmWaveTargetInfoReport: {ID: 0x006b, type: Zcl.DataType.UINT8},
+                mmWaveStayLife: {ID: 0x006c, type: Zcl.DataType.UINT32},
+                mmWaveVersion: {ID: 0x0073, type: Zcl.DataType.UINT32},
+                mmWaveHeightMin: {ID: 0x0065, type: Zcl.DataType.INT16},
+                mmWaveHeightMax: {ID: 0x0066, type: Zcl.DataType.INT16},
+                mmWaveWidthMin: {ID: 0x0067, type: Zcl.DataType.INT16},
+                mmWaveWidthMax: {ID: 0x0068, type: Zcl.DataType.INT16},
+                mmWaveDepthMin: {ID: 0x0069, type: Zcl.DataType.INT16},
+                mmWaveDepthMax: {ID: 0x006a, type: Zcl.DataType.INT16},
+            },
+            commands: {
+                mmWaveControl: {
+                    ID: 0,
+                    parameters: [{name: "controlID", type: Zcl.DataType.UINT8}],
+                },
+            },
+            commandsResponse: {
+                anyoneInReportingArea: {
+                    ID: 0,
+                    parameters: [
+                        {name: "area1", type: Zcl.DataType.BOOLEAN},
+                        {name: "area2", type: Zcl.DataType.BOOLEAN},
+                        {name: "area3", type: Zcl.DataType.BOOLEAN},
+                        {name: "area4", type: Zcl.DataType.BOOLEAN},
+                    ],
+                },
+            },
+        }),
 };
 
 const fanModes: {[key: string]: number} = {off: 0, low: 2, smart: 4, medium: 86, high: 170, on: 255};
@@ -194,6 +241,7 @@ const breezemodes: string[] = ["off", "low", "medium", "high"];
 const INOVELLI = 0x122f;
 
 interface Attribute {
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     ID: number;
     dataType: number;
     min?: number;
@@ -259,47 +307,49 @@ const speedToInt = (speedIn: string): number => {
 };
 
 // Create Expose list with Inovelli Parameters definitions
-const attributesToExposeList = (ATTRIBUTES: {[s: string]: Attribute}, exposesList: Expose[]) => {
-    Object.keys(ATTRIBUTES).forEach((key) => {
-        if (ATTRIBUTES[key].displayType === "enum") {
+const attributesToExposeList = (attributes: {[s: string]: Attribute}, exposesList: Expose[]) => {
+    // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
+    Object.keys(attributes).forEach((key) => {
+        if (attributes[key].displayType === "enum") {
             const enumE = e
-                .enum(key, ATTRIBUTES[key].readOnly ? ea.STATE_GET : ea.ALL, Object.keys(ATTRIBUTES[key].values))
-                .withDescription(ATTRIBUTES[key].description);
-            if (!ATTRIBUTES[key].readOnly) {
-                enumE.withCategory(ATTRIBUTES[key].category ?? "config");
+                .enum(key, attributes[key].readOnly ? ea.STATE_GET : ea.ALL, Object.keys(attributes[key].values))
+                .withDescription(attributes[key].description);
+            if (!attributes[key].readOnly) {
+                enumE.withCategory(attributes[key].category ?? "config");
             }
             exposesList.push(enumE);
-        } else if (ATTRIBUTES[key].displayType === "binary" || ATTRIBUTES[key].displayType === "switch") {
+        } else if (attributes[key].displayType === "binary" || attributes[key].displayType === "switch") {
             const binary = e
                 .binary(
                     key,
-                    ATTRIBUTES[key].readOnly ? ea.STATE_GET : ea.ALL,
+                    attributes[key].readOnly ? ea.STATE_GET : ea.ALL,
                     // @ts-expect-error ignore
-                    ATTRIBUTES[key].values.Enabled,
-                    ATTRIBUTES[key].values.Disabled,
+                    attributes[key].values.Enabled,
+                    attributes[key].values.Disabled,
                 )
-                .withDescription(ATTRIBUTES[key].description);
-            if (!ATTRIBUTES[key].readOnly) {
-                binary.withCategory(ATTRIBUTES[key].category ?? "config");
+                .withDescription(attributes[key].description);
+            if (!attributes[key].readOnly) {
+                binary.withCategory(attributes[key].category ?? "config");
             }
             exposesList.push(binary);
         } else {
             const numeric = e
-                .numeric(key, ATTRIBUTES[key].readOnly ? ea.STATE_GET : ea.ALL)
-                .withValueMin(ATTRIBUTES[key].min)
-                .withValueMax(ATTRIBUTES[key].max);
+                .numeric(key, attributes[key].readOnly ? ea.STATE_GET : ea.ALL)
+                .withValueMin(attributes[key].min)
+                .withValueMax(attributes[key].max);
 
-            if (ATTRIBUTES[key].values) {
-                Object.keys(ATTRIBUTES[key].values).forEach((value) => {
-                    numeric.withPreset(value, ATTRIBUTES[key].values[value], "");
+            if (attributes[key].values) {
+                // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
+                Object.keys(attributes[key].values).forEach((value) => {
+                    numeric.withPreset(value, attributes[key].values[value], "");
                 });
             }
-            if (ATTRIBUTES[key].unit) {
-                numeric.withUnit(ATTRIBUTES[key].unit);
+            if (attributes[key].unit) {
+                numeric.withUnit(attributes[key].unit);
             }
-            numeric.withDescription(ATTRIBUTES[key].description);
-            if (!ATTRIBUTES[key].readOnly) {
-                numeric.withCategory(ATTRIBUTES[key].category ?? "config");
+            numeric.withDescription(attributes[key].description);
+            if (!attributes[key].readOnly) {
+                numeric.withCategory(attributes[key].category ?? "config");
             }
             exposesList.push(numeric);
         }
@@ -726,14 +776,14 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
         dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 101,
-        description: "Intesity of LED strip when on. 101 = Synchronized with default all LED strip intensity parameter.",
+        description: "Intensity of LED strip when on. 101 = Synchronized with default all LED strip intensity parameter.",
     },
     defaultLed1IntensityWhenOff: {
         ID: 63,
         dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 101,
-        description: "Intesity of LED strip when off. 101 = Synchronized with default all LED strip intensity parameter.",
+        description: "Intensity of LED strip when off. 101 = Synchronized with default all LED strip intensity parameter.",
     },
     defaultLed2ColorWhenOn: {
         ID: 65,
@@ -756,14 +806,14 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
         dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 101,
-        description: "Intesity of LED strip when on. 101 = Synchronized with default all LED strip intensity parameter.",
+        description: "Intensity of LED strip when on. 101 = Synchronized with default all LED strip intensity parameter.",
     },
     defaultLed2IntensityWhenOff: {
         ID: 68,
         dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 101,
-        description: "Intesity of LED strip when off. 101 = Synchronized with default all LED strip intensity parameter.",
+        description: "Intensity of LED strip when off. 101 = Synchronized with default all LED strip intensity parameter.",
     },
     defaultLed3ColorWhenOn: {
         ID: 70,
@@ -786,14 +836,14 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
         dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 101,
-        description: "Intesity of LED strip when on. 101 = Synchronized with default all LED strip intensity parameter.",
+        description: "Intensity of LED strip when on. 101 = Synchronized with default all LED strip intensity parameter.",
     },
     defaultLed3IntensityWhenOff: {
         ID: 73,
         dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 101,
-        description: "Intesity of LED strip when off. 101 = Synchronized with default all LED strip intensity parameter.",
+        description: "Intensity of LED strip when off. 101 = Synchronized with default all LED strip intensity parameter.",
     },
     defaultLed4ColorWhenOn: {
         ID: 75,
@@ -816,14 +866,14 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
         dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 101,
-        description: "Intesity of LED strip when on. 101 = Synchronized with default all LED strip intensity parameter.",
+        description: "Intensity of LED strip when on. 101 = Synchronized with default all LED strip intensity parameter.",
     },
     defaultLed4IntensityWhenOff: {
         ID: 78,
         dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 101,
-        description: "Intesity of LED strip when off. 101 = Synchronized with default all LED strip intensity parameter.",
+        description: "Intensity of LED strip when off. 101 = Synchronized with default all LED strip intensity parameter.",
     },
     defaultLed5ColorWhenOn: {
         ID: 80,
@@ -846,14 +896,14 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
         dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 101,
-        description: "Intesity of LED strip when on. 101 = Synchronized with default all LED strip intensity parameter.",
+        description: "Intensity of LED strip when on. 101 = Synchronized with default all LED strip intensity parameter.",
     },
     defaultLed5IntensityWhenOff: {
         ID: 83,
         dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 101,
-        description: "Intesity of LED strip when off. 101 = Synchronized with default all LED strip intensity parameter.",
+        description: "Intensity of LED strip when off. 101 = Synchronized with default all LED strip intensity parameter.",
     },
     defaultLed6ColorWhenOn: {
         ID: 85,
@@ -876,14 +926,14 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
         dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 101,
-        description: "Intesity of LED strip when on. 101 = Synchronized with default all LED strip intensity parameter.",
+        description: "Intensity of LED strip when on. 101 = Synchronized with default all LED strip intensity parameter.",
     },
     defaultLed6IntensityWhenOff: {
         ID: 88,
         dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 101,
-        description: "Intesity of LED strip when off. 101 = Synchronized with default all LED strip intensity parameter.",
+        description: "Intensity of LED strip when off. 101 = Synchronized with default all LED strip intensity parameter.",
     },
     defaultLed7ColorWhenOn: {
         ID: 90,
@@ -906,14 +956,14 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
         dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 101,
-        description: "Intesity of LED strip when on. 101 = Synchronized with default all LED strip intensity parameter.",
+        description: "Intensity of LED strip when on. 101 = Synchronized with default all LED strip intensity parameter.",
     },
     defaultLed7IntensityWhenOff: {
         ID: 93,
         dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 101,
-        description: "Intesity of LED strip when off. 101 = Synchronized with default all LED strip intensity parameter.",
+        description: "Intensity of LED strip when off. 101 = Synchronized with default all LED strip intensity parameter.",
     },
     doubleTapClearNotifications: {
         ID: 262,
@@ -1099,6 +1149,163 @@ const VZM31_ATTRIBUTES: {[s: string]: Attribute} = {
     },
 };
 
+const VZM32_ATTRIBUTES: {[s: string]: Attribute} = {
+    ...COMMON_DIMMER_ATTRIBUTES,
+    ...COMMON_DIMMER_ON_OFF_ATTRIBUTES,
+    ...COMMON_DIMMABLE_LIGHT_ATTRIBUTES,
+    switchType: {
+        ...COMMON_ATTRIBUTES.switchType,
+        values: {"Single Pole": 0, "Aux Switch": 1},
+        max: 1,
+    },
+    mmwaveControlWiredDevice: {
+        ID: 110,
+        dataType: Zcl.DataType.UINT8,
+        displayType: "enum",
+        values: {
+            Disabled: 0,
+            "Occupancy (default)": 1,
+            Vacancy: 2,
+            "Wasteful Occupancy": 3,
+            "Mirrored Occupancy": 4,
+            "Mirrored Vacancy": 5,
+            "Mirrored Wasteful Occupancy": 6,
+        },
+        min: 0,
+        max: 6,
+        description:
+            "Controls whether the wired load is automatically turned on / off by the presence detector. " +
+            "0 = Disabled (manual control of the load), " +
+            "1 = Occupancy (default; turn on automatically with presence; turn off automatically without presence), " +
+            "2 = Vacancy (does not turn on automatically; turn off automatically without presence), " +
+            "3 = Wasteful Occupancy (turn on automatically with presence; does not turn off automatically), " +
+            "4 = Mirrored Occupancy (turn on automatically without presence; turn off automatically with presence), " +
+            "5 = Mirrored Vacancy (turn on automatically without presence; does not turn off automatically), " +
+            "6 = Mirrored Wasteful Occupancy (does not turn on automatically; turns off automatically with presence).",
+    },
+    mmWaveRoomSizePreset: {
+        ID: 117,
+        dataType: Zcl.DataType.UINT8,
+        displayType: "enum",
+        values: {
+            Custom: 0,
+            Small: 1,
+            Medium: 2,
+            Large: 3,
+        },
+        min: 0,
+        max: 3,
+        description:
+            "Allows selection of predefined room dimensions for mmWave sensor processing. Useful for optimizing " +
+            "detection zones based on installation environment. Defaults to Custom which allows for manual dimension configuration " +
+            "via other parameters. \nOptions: 0=Custom (User-defined), 1=Small (X: −100 to 100, Y: 0 to 200, Z: −100 to 100), " +
+            "2=Medium (X: −160 to 160, Y: 0 to 280, Z: −100 to 100), 3=Large (X: −210 to 210, Y: 0 to 360, Z: −100 to 100)",
+    },
+};
+
+const VZM32_MMWAVE_ATTRIBUTES: {[s: string]: Attribute} = {
+    mmWaveHoldTime: {
+        ID: 114,
+        dataType: Zcl.DataType.UINT32,
+        min: 0,
+        max: 4294967295,
+        description:
+            "This changes the duration, measured in seconds, after the mmWave radar detects transition from " +
+            "the presence of a person to their absence. Default = 10 (seconds).",
+    },
+    mmWaveDetectSensitivity: {
+        ID: 112,
+        dataType: Zcl.DataType.UINT8,
+        displayType: "enum",
+        values: {Low: 0, Medium: 1, "High (default)": 2},
+        min: 0,
+        max: 2,
+        description: "The sensitivity of the mmWave sensor.",
+    },
+    mmWaveDetectTrigger: {
+        ID: 113,
+        dataType: Zcl.DataType.UINT8,
+        displayType: "enum",
+        values: {"Slow (5s)": 0, "Medium (1s)": 1, "Fast (0.2s, default)": 2},
+        min: 0,
+        max: 2,
+        description: "The time from detecting a person to triggering an action.",
+    },
+    mmWaveTargetInfoReport: {
+        ID: 107,
+        dataType: Zcl.DataType.UINT8,
+        displayType: "enum",
+        values: {"Disable (default)": 0, Enable: 1},
+        min: 0,
+        max: 1,
+        description: "Send target info report when bound to mmWave cluster.",
+    },
+    mmWaveStayLife: {
+        ID: 108,
+        dataType: Zcl.DataType.UINT32,
+        min: 0,
+        max: 4294967295,
+        description:
+            "The delay time of the stay area is set to 50ms when it is set to 1, to 1 second when it is set to 20, and the default value is 300, that is, 15 seconds",
+    },
+    mmWaveVersion: {
+        ID: 115,
+        dataType: Zcl.DataType.UINT32,
+        min: 0,
+        max: 4294967295,
+        readOnly: true,
+        description: "The firmware version number of the mmWave module.",
+    },
+    mmWaveHeightMin: {
+        ID: 101,
+        dataType: Zcl.DataType.INT16,
+        min: -600,
+        max: 600,
+        readOnly: false,
+        description: "Defines the detection area (negative values are below the switch, positive values are above)",
+    },
+    mmWaveHeightMax: {
+        ID: 102,
+        dataType: Zcl.DataType.INT16,
+        min: -600,
+        max: 600,
+        readOnly: false,
+        description: "Defines the detection area (negative values are below the switch, positive values are above)",
+    },
+    mmWaveWidthMin: {
+        ID: 103,
+        dataType: Zcl.DataType.INT16,
+        min: -600,
+        max: 600,
+        readOnly: false,
+        description: "Defines the detection area (negative values are left of the switch facing away from the wall, positive values are right)",
+    },
+    mmWaveWidthMax: {
+        ID: 104,
+        dataType: Zcl.DataType.INT16,
+        min: -600,
+        max: 600,
+        readOnly: false,
+        description: "Defines the detection area (negative values are left of the switch facing away from the wall, positive values are right)",
+    },
+    mmWaveDepthMin: {
+        ID: 105,
+        dataType: Zcl.DataType.INT16,
+        min: 0,
+        max: 600,
+        readOnly: false,
+        description: "Defines the detection area in front of the switch)",
+    },
+    mmWaveDepthMax: {
+        ID: 106,
+        dataType: Zcl.DataType.INT16,
+        min: 0,
+        max: 600,
+        readOnly: false,
+        description: "Defines the detection area in front of the switch)",
+    },
+};
+
 const VZM35_ATTRIBUTES: {[s: string]: Attribute} = {
     ...COMMON_DIMMER_ATTRIBUTES,
     minimumLevel: {
@@ -1158,34 +1365,47 @@ const VZM35_ATTRIBUTES: {[s: string]: Attribute} = {
 };
 
 const VZM36_ATTRIBUTES: {[s: string]: Attribute} = {
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     dimmingSpeedUpRemote_1: {...COMMON_ATTRIBUTES.dimmingSpeedUpRemote},
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     rampRateOffToOnRemote_1: {...COMMON_ATTRIBUTES.rampRateOffToOnRemote},
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     dimmingSpeedDownRemote_1: {...COMMON_ATTRIBUTES.dimmingSpeedDownRemote},
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     rampRateOnToOffRemote_1: {...COMMON_ATTRIBUTES.rampRateOnToOffRemote},
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     minimumLevel_1: {...COMMON_DIMMER_ATTRIBUTES.minimumLevel},
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     maximumLevel_1: {...COMMON_DIMMER_ATTRIBUTES.maximumLevel},
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     autoTimerOff_1: {
         ...COMMON_ATTRIBUTES.autoTimerOff,
         description:
             "Automatically turns the light off after this many seconds." +
             " When the light is turned on a timer is started. When the timer expires, the light is turned off. 0 = Auto off is disabled.",
     },
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     defaultLevelRemote_1: {
         ...COMMON_ATTRIBUTES.defaultLevelRemote,
         description:
             "Default level for the light when it is turned on from the hub." +
             " A setting of 255 means that the light will return to the level that it was on before it was turned off.",
     },
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     stateAfterPowerRestored_1: {
         ...COMMON_ATTRIBUTES.stateAfterPowerRestored,
         description: "The state the light should return to when power is restored after power failure. 0 = off, 1-254 = level, 255 = previous.",
     },
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     quickStartTime_1: {...COMMON_DIMMABLE_LIGHT_ATTRIBUTES.quickStartTime},
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     quickStartLevel_1: {...COMMON_DIMMABLE_LIGHT_ATTRIBUTES.quickStartLevel},
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     higherOutputInNonNeutral_1: {
         ...COMMON_DIMMABLE_LIGHT_ATTRIBUTES.higherOutputInNonNeutral,
         description: "Increase level in non-neutral mode for light.",
     },
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     dimmingMode_1: {
         ...COMMON_DIMMABLE_LIGHT_ATTRIBUTES.dimmingMode,
         readOnly: false,
@@ -1195,12 +1415,17 @@ const VZM36_ATTRIBUTES: {[s: string]: Attribute} = {
             "aux/add-on switch (multi-way with a dumb/existing switch and non-neutral setups are not supported and " +
             "will default back to Leading Edge).",
     },
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     smartBulbMode_1: {...COMMON_ATTRIBUTES.smartBulbMode},
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     ledColorWhenOn_1: {...COMMON_ATTRIBUTES.ledColorWhenOn},
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     ledIntensityWhenOn_1: {...COMMON_ATTRIBUTES.ledIntensityWhenOn},
     // remote protection is readonly...
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     outputMode_1: {...COMMON_DIMMER_ATTRIBUTES.outputMode},
     // Endpoint 2 (Fan)
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     dimmingSpeedUpRemote_2: {
         ...COMMON_ATTRIBUTES.dimmingSpeedUpRemote,
         description:
@@ -1208,6 +1433,7 @@ const VZM36_ATTRIBUTES: {[s: string]: Attribute} = {
             "A setting of 0 turns the fan immediately on. Increasing the value slows down the transition speed. " +
             "Every number represents 100ms. Default = 25 (2.5s)",
     },
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     rampRateOffToOnRemote_2: {
         ...COMMON_ATTRIBUTES.rampRateOffToOnRemote,
         description:
@@ -1215,6 +1441,7 @@ const VZM36_ATTRIBUTES: {[s: string]: Attribute} = {
             "A setting of 0 turns the fan immediately on. Increasing the value slows down the transition speed. " +
             "Every number represents 100ms. Default = 127 - Keep in sync with dimmingSpeedUpRemote setting.",
     },
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     dimmingSpeedDownRemote_2: {
         ...COMMON_ATTRIBUTES.dimmingSpeedDownRemote,
         description:
@@ -1222,6 +1449,7 @@ const VZM36_ATTRIBUTES: {[s: string]: Attribute} = {
             "A setting of 0 turns the fan immediately off. Increasing the value slows down the transition speed. " +
             "Every number represents 100ms. Default = 127 - Keep in sync with dimmingSpeedUpRemote setting.",
     },
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     rampRateOnToOffRemote_2: {
         ...COMMON_ATTRIBUTES.rampRateOnToOffRemote,
         description:
@@ -1229,30 +1457,36 @@ const VZM36_ATTRIBUTES: {[s: string]: Attribute} = {
             "A setting of 'instant' turns the fan immediately off. Increasing the value slows down the transition speed. " +
             "Every number represents 100ms. Default = 127 - Keep in sync with rampRateOffToOnRemote setting.",
     },
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     minimumLevel_2: {
         ...COMMON_DIMMER_ATTRIBUTES.minimumLevel,
         description: "The minimum level that the fan can be set to.",
     },
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     maximumLevel_2: {
         ...COMMON_DIMMER_ATTRIBUTES.maximumLevel,
         description: "The maximum level that the fan can be set to.",
     },
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     autoTimerOff_2: {
         ...COMMON_ATTRIBUTES.autoTimerOff,
         description:
             "Automatically turns the fan off after this many seconds." +
             " When the fan is turned on a timer is started. When the timer expires, the switch is turned off. 0 = Auto off is disabled.",
     },
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     defaultLevelRemote_2: {
         ...COMMON_ATTRIBUTES.defaultLevelRemote,
         description:
             "Default level for the fan when it is turned on from the hub." +
             " A setting of 255 means that the fan will return to the level that it was on before it was turned off.",
     },
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     stateAfterPowerRestored_2: {
         ...COMMON_ATTRIBUTES.stateAfterPowerRestored,
         description: "The state the fan should return to when power is restored after power failure. 0 = off, 1-254 = level, 255 = previous.",
     },
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     quickStartTime_2: {
         ...COMMON_DIMMABLE_LIGHT_ATTRIBUTES.quickStartTime,
         description: "Duration of full power output while fan transitions from Off to On. In 60th of second. 0 = disable, 1 = 1/60s, 60 = 1s",
@@ -1260,12 +1494,14 @@ const VZM36_ATTRIBUTES: {[s: string]: Attribute} = {
     // power type readonly
     // internal temp readonly
     // overheat readonly
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     smartBulbMode_2: {
         ...COMMON_DIMMER_ATTRIBUTES.smartBulbMode,
         values: {Disabled: 0, "Smart Fan Mode": 1},
         description: "For use with Smart Fans that need constant power and are controlled via commands rather than power.",
     },
     // remote protection readonly..
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     outputMode_2: {
         ...COMMON_DIMMER_ATTRIBUTES.outputMode,
         values: {"Ceiling Fan (3-Speed)": 0, "Exhaust Fan (On/Off)": 1},
@@ -1274,9 +1510,9 @@ const VZM36_ATTRIBUTES: {[s: string]: Attribute} = {
 };
 
 const tzLocal = {
-    inovelli_parameters: (ATTRIBUTES: {[s: string]: Attribute}, cluster: string) =>
+    inovelli_parameters: (attributes: {[s: string]: Attribute}, cluster: string) =>
         ({
-            key: Object.keys(ATTRIBUTES).filter((a) => !ATTRIBUTES[a].readOnly),
+            key: Object.keys(attributes).filter((a) => !attributes[a].readOnly),
             convertSet: async (entity, key, value, meta) => {
                 // Check key to see if there is an endpoint postfix for the VZM36
                 const keysplit = key.split("_");
@@ -1285,18 +1521,18 @@ const tzLocal = {
                     entityToUse = meta.device.getEndpoint(Number(keysplit[1]));
                 }
 
-                if (!(key in ATTRIBUTES)) {
+                if (!(key in attributes)) {
                     return;
                 }
 
                 const payload = {
-                    [ATTRIBUTES[key].ID]: {
+                    [attributes[key].ID]: {
                         value:
-                            ATTRIBUTES[key].displayType === "enum"
+                            attributes[key].displayType === "enum"
                                 ? // @ts-expect-error ignore
-                                  ATTRIBUTES[key].values[value]
+                                  attributes[key].values[value]
                                 : value,
-                        type: ATTRIBUTES[key].dataType,
+                        type: attributes[key].dataType,
                     },
                 };
 
@@ -1324,9 +1560,10 @@ const tzLocal = {
                 });
             },
         }) satisfies Tz.Converter,
-    inovelli_parameters_readOnly: (ATTRIBUTES: {[s: string]: Attribute}, cluster: string) =>
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    inovelli_parameters_readOnly: (attributes: {[s: string]: Attribute}, cluster: string) =>
         ({
-            key: Object.keys(ATTRIBUTES).filter((a) => ATTRIBUTES[a].readOnly),
+            key: Object.keys(attributes).filter((a) => attributes[a].readOnly),
             convertGet: async (entity, key, meta) => {
                 // Check key to see if there is an endpoint postfix for the VZM36
                 const keysplit = key.split("_");
@@ -1370,7 +1607,7 @@ const tzLocal = {
                 "individualLedEffect",
                 {
                     // @ts-expect-error ignore
-                    led: Math.min(Math.max(0, Number.parseInt(values.led)), 7),
+                    led: Math.min(Math.max(1, Number.parseInt(values.led)), 7) - 1,
                     // @ts-expect-error ignore
                     effect: individualLedEffects[values.effect],
                     // @ts-expect-error ignore
@@ -1379,6 +1616,21 @@ const tzLocal = {
                     level: Math.min(Math.max(0, values.level), 100),
                     // @ts-expect-error ignore
                     duration: Math.min(Math.max(0, values.duration), 255),
+                },
+                {disableResponse: true, disableDefaultResponse: true},
+            );
+            return {state: {[key]: values}};
+        },
+    } satisfies Tz.Converter,
+    inovelli_mmwave_control_commands: {
+        key: ["mmwave_control_commands"],
+        convertSet: async (entity, key, values, meta) => {
+            await entity.command(
+                INOVELLI_MMWAVE_CLUSTER_NAME,
+                "mmWaveControl",
+                {
+                    // @ts-expect-error ignore
+                    controlID: mmWaveControlCommands[values.controlID],
                 },
                 {disableResponse: true, disableDefaultResponse: true},
             );
@@ -1396,14 +1648,14 @@ const tzLocal = {
             const transition = utils.getTransition(entity, "brightness", meta);
             const turnsOffAtBrightness1 = utils.getMetaValue(entity, meta.mapped, "turnsOffAtBrightness1", "allEqual", false);
             let state =
-                message.state !== undefined
+                message.state != null
                     ? // @ts-expect-error ignore
                       message.state.toLowerCase()
                     : undefined;
             let brightness = undefined;
-            if (message.brightness !== undefined) {
+            if (message.brightness != null) {
                 brightness = Number(message.brightness);
-            } else if (message.brightness_percent !== undefined) {
+            } else if (message.brightness_percent != null) {
                 brightness = utils.mapNumberRange(Number(message.brightness_percent), 0, 100, 0, 255);
             }
 
@@ -1494,7 +1746,8 @@ const tzLocal = {
     fan_mode: (endpointId: number) =>
         ({
             key: ["fan_mode"],
-            convertSet: async (entity, key, value: string, meta) => {
+            convertSet: async (entity, key, value, meta) => {
+                utils.assertString(value);
                 const endpoint = meta.device.getEndpoint(endpointId);
                 await endpoint.command(
                     "genLevelCtrl",
@@ -1532,7 +1785,7 @@ const tzLocal = {
     fan_state: {
         key: ["fan_state"],
         convertSet: async (entity, key, value, meta) => {
-            const state = meta.message.fan_state !== undefined ? meta.message.fan_state.toString().toLowerCase() : null;
+            const state = meta.message.fan_state != null ? meta.message.fan_state.toString().toLowerCase() : null;
             utils.validateValue(state, ["toggle", "off", "on"]);
 
             await entity.command("genOnOff", state, {}, utils.getOptions(meta.mapped, entity));
@@ -1561,9 +1814,9 @@ const tzLocal = {
             const state = typeof meta.message.fan_state === "string" ? meta.message.fan_state.toLowerCase() : null;
             utils.validateValue(state, ["toggle", "off", "on"]);
 
-            if (state === "on" && (meta.message.on_time !== undefined || meta.message.off_wait_time !== undefined)) {
-                const onTime = meta.message.on_time !== undefined ? meta.message.on_time : 0;
-                const offWaitTime = meta.message.off_wait_time !== undefined ? meta.message.off_wait_time : 0;
+            if (state === "on" && (meta.message.on_time != null || meta.message.off_wait_time != null)) {
+                const onTime = meta.message.on_time != null ? meta.message.on_time : 0;
+                const offWaitTime = meta.message.off_wait_time != null ? meta.message.off_wait_time : 0;
 
                 if (typeof onTime !== "number") {
                     throw Error("The on_time value must be a number!");
@@ -1591,45 +1844,46 @@ const tzLocal = {
     breezeMode: (endpointId: number) =>
         ({
             key: ["breezeMode"],
-            convertSet: async (entity, key, values: BreezeModeValues, meta) => {
+            convertSet: async (entity, key, value, meta) => {
+                utils.assertObject<BreezeModeValues>(value);
                 // Calculate the value..
                 let configValue = 0;
                 let term = false;
-                configValue += speedToInt(values.speed1);
-                configValue += (Number(values.time1) / 5) * 4;
+                configValue += speedToInt(value.speed1);
+                configValue += (Number(value.time1) / 5) * 4;
 
-                let speed = speedToInt(values.speed2);
+                let speed = speedToInt(value.speed2);
 
                 if (speed !== 0) {
                     configValue += speed * 64;
-                    configValue += (values.time2 / 5) * 256;
+                    configValue += (value.time2 / 5) * 256;
                 } else {
                     term = true;
                 }
 
-                speed = speedToInt(values.speed3);
+                speed = speedToInt(value.speed3);
 
                 if (speed !== 0 && !term) {
                     configValue += speed * 4096;
-                    configValue += (values.time3 / 5) * 16384;
+                    configValue += (value.time3 / 5) * 16384;
                 } else {
                     term = true;
                 }
 
-                speed = speedToInt(values.speed4);
+                speed = speedToInt(value.speed4);
 
                 if (speed !== 0 && !term) {
                     configValue += speed * 262144;
-                    configValue += (values.time4 / 5) * 1048576;
+                    configValue += (value.time4 / 5) * 1048576;
                 } else {
                     term = true;
                 }
 
-                speed = speedToInt(values.speed5);
+                speed = speedToInt(value.speed5);
 
                 if (speed !== 0 && !term) {
                     configValue += speed * 16777216;
-                    configValue += (values.time5 / 5) * 67108864;
+                    configValue += (value.time5 / 5) * 67108864;
                 } else {
                     term = true;
                 }
@@ -1641,7 +1895,7 @@ const tzLocal = {
                     manufacturerCode: INOVELLI,
                 });
 
-                return {state: {[key]: values}};
+                return {state: {[key]: value}};
             },
         }) satisfies Tz.Converter,
 };
@@ -1652,12 +1906,12 @@ const tzLocal = {
  */
 const inovelliOnOffConvertSet = async (entity: Zh.Endpoint | Zh.Group, key: string, value: unknown, meta: Tz.Meta) => {
     // @ts-expect-error ignore
-    const state = meta.message.state !== undefined ? meta.message.state.toLowerCase() : null;
+    const state = meta.message.state != null ? meta.message.state.toLowerCase() : null;
     utils.validateValue(state, ["toggle", "off", "on"]);
 
-    if (state === "on" && (meta.message.on_time !== undefined || meta.message.off_wait_time !== undefined)) {
-        const onTime = meta.message.on_time !== undefined ? meta.message.on_time : 0;
-        const offWaitTime = meta.message.off_wait_time !== undefined ? meta.message.off_wait_time : 0;
+    if (state === "on" && (meta.message.on_time != null || meta.message.off_wait_time != null)) {
+        const onTime = meta.message.on_time != null ? meta.message.on_time : 0;
+        const offWaitTime = meta.message.off_wait_time != null ? meta.message.off_wait_time : 0;
 
         if (typeof onTime !== "number") {
             throw Error("The on_time value must be a number!");
@@ -1668,8 +1922,8 @@ const inovelliOnOffConvertSet = async (entity: Zh.Endpoint | Zh.Group, key: stri
 
         const payload = {
             ctrlbits: 0,
-            ontime: meta.message.on_time !== undefined ? Math.round(onTime * 10) : 0xffff,
-            offwaittime: meta.message.off_wait_time !== undefined ? Math.round(offWaitTime * 10) : 0xffff,
+            ontime: meta.message.on_time != null ? Math.round(onTime * 10) : 0xffff,
+            offwaittime: meta.message.off_wait_time != null ? Math.round(offWaitTime * 10) : 0xffff,
         };
         await entity.command("genOnOff", "onWithTimedOff", payload, utils.getOptions(meta.mapped, entity));
     } else {
@@ -1683,7 +1937,7 @@ const inovelliOnOffConvertSet = async (entity: Zh.Endpoint | Zh.Group, key: stri
 };
 
 const fzLocal = {
-    inovelli: (ATTRIBUTES: {[s: string]: Attribute}, cluster: string, splitValuesByEndpoint = false) =>
+    inovelli: (attributes: {[s: string]: Attribute}, cluster: string, splitValuesByEndpoint = false) =>
         ({
             cluster: cluster,
             type: ["raw", "readResponse", "commandQueryNextImageRequest"],
@@ -1711,12 +1965,14 @@ const fzLocal = {
                 if (msg.type === "readResponse") {
                     return Object.keys(msg.data).reduce((p, c) => {
                         const key = splitValuesByEndpoint ? `${c}_${msg.endpoint.ID}` : c;
-                        if (ATTRIBUTES[key] && ATTRIBUTES[key].displayType === "enum") {
+                        if (attributes[key] && attributes[key].displayType === "enum") {
                             return {
+                                // biome-ignore lint/performance/noAccumulatingSpread: ignored using `--suppress`
                                 ...p,
-                                [key]: Object.keys(ATTRIBUTES[key].values).find((k) => ATTRIBUTES[key].values[k] === msg.data[c]),
+                                [key]: Object.keys(attributes[key].values).find((k) => attributes[key].values[k] === msg.data[c]),
                             };
                         }
+                        // biome-ignore lint/performance/noAccumulatingSpread: ignored using `--suppress`
                         return {...p, [key]: msg.data[c]};
                     }, {});
                 }
@@ -1770,7 +2026,7 @@ const fzLocal = {
      * Setting byte: 00-off, 01-low, 10-meduim, 11-high
      * Each 6 bit word is stored in ascending order, step one word being LSB
      *
-     * Extract each nybble of the word, then reverse the calculation to get the settig for each.
+     * Extract each nybble of the word, then reverse the calculation to get the setting for each.
      */
     breeze_mode: (endpointId: number) =>
         ({
@@ -1899,9 +2155,18 @@ const exposeBreezeMode = () => {
         .withCategory("config");
 };
 
+const exposeMMWaveControl = () => {
+    return e
+        .composite("mmwave_control_commands", "mmwave_control_commands", ea.STATE_SET)
+        .withFeature(e.enum("controlID", ea.STATE_SET, Object.keys(mmWaveControlCommands)).withDescription("Which mmWave Control command to send"))
+        .withCategory("config");
+};
+
 const exposesListVZM30: Expose[] = [e.light_brightness(), exposeLedEffects(), exposeIndividualLedEffects()];
 
 const exposesListVZM31: Expose[] = [e.light_brightness(), exposeLedEffects(), exposeIndividualLedEffects()];
+
+const exposesListVZM32: Expose[] = [e.light_brightness(), exposeLedEffects(), exposeIndividualLedEffects(), exposeMMWaveControl()];
 
 const exposesListVZM35: Expose[] = [
     e.fan().withState("fan_state").withModes(Object.keys(fanModes)),
@@ -1915,6 +2180,8 @@ const exposesListVZM36: Expose[] = [e.light_brightness(), e.fan().withState("fan
 // Populate exposes list from the attributes description
 attributesToExposeList(VZM30_ATTRIBUTES, exposesListVZM30);
 attributesToExposeList(VZM31_ATTRIBUTES, exposesListVZM31);
+attributesToExposeList(VZM32_ATTRIBUTES, exposesListVZM32);
+attributesToExposeList(VZM32_MMWAVE_ATTRIBUTES, exposesListVZM32);
 attributesToExposeList(VZM35_ATTRIBUTES, exposesListVZM35);
 attributesToExposeList(VZM36_ATTRIBUTES, exposesListVZM36);
 
@@ -1945,6 +2212,7 @@ const buttonTapSequences = [
 
 exposesListVZM30.push(e.action(buttonTapSequences));
 exposesListVZM31.push(e.action(buttonTapSequences));
+exposesListVZM32.push(e.action(buttonTapSequences));
 exposesListVZM35.push(e.action(buttonTapSequences));
 
 /*
@@ -2054,6 +2322,61 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.onOff(endpoint);
 
             await chunkedRead(endpoint, Object.keys(VZM31_ATTRIBUTES), INOVELLI_CLUSTER_NAME);
+
+            // Bind for Button Event Reporting
+            const endpoint2 = device.getEndpoint(2);
+            await reporting.bind(endpoint2, coordinatorEndpoint, [INOVELLI_CLUSTER_NAME]);
+        },
+    },
+    {
+        zigbeeModel: ["VZM32-SN"],
+        model: "VZM32-SN",
+        vendor: "Inovelli",
+        description: "mmWave Zigbee Dimmer",
+        exposes: exposesListVZM32.concat(m.identify().exposes as Expose[]),
+        extend: [
+            m.deviceEndpoints({
+                endpoints: {"1": 1, "2": 2, "3": 3},
+                multiEndpointSkip: ["state", "voltage", "power", "current", "energy", "brightness", "illuminance", "occupancy"],
+            }),
+            inovelliExtend.addCustomClusterInovelli(),
+            inovelliExtend.addCustomMMWaveClusterInovelli(),
+            m.electricityMeter(),
+            m.illuminance(),
+            m.occupancy(),
+        ],
+        toZigbee: [
+            tzLocal.light_onoff_brightness_inovelli,
+            tz.power_on_behavior,
+            tz.ignore_transition,
+            tz.identify,
+            tz.light_brightness_move,
+            tz.light_brightness_step,
+            tzLocal.inovelli_led_effect,
+            tzLocal.inovelli_individual_led_effect,
+            tzLocal.inovelli_mmwave_control_commands,
+            tzLocal.inovelli_parameters(VZM32_ATTRIBUTES, INOVELLI_CLUSTER_NAME),
+            tzLocal.inovelli_parameters_readOnly(VZM32_ATTRIBUTES, INOVELLI_CLUSTER_NAME),
+            tzLocal.inovelli_parameters(VZM32_MMWAVE_ATTRIBUTES, INOVELLI_MMWAVE_CLUSTER_NAME),
+            tzLocal.inovelli_parameters_readOnly(VZM32_MMWAVE_ATTRIBUTES, INOVELLI_MMWAVE_CLUSTER_NAME),
+        ],
+        fromZigbee: [
+            fz.on_off,
+            fz.brightness,
+            fz.level_config,
+            fz.power_on_behavior,
+            fz.ignore_basic_report,
+            fzLocal.inovelli(VZM32_ATTRIBUTES, INOVELLI_CLUSTER_NAME),
+            fzLocal.inovelli(VZM32_MMWAVE_ATTRIBUTES, INOVELLI_MMWAVE_CLUSTER_NAME),
+        ],
+        ota: true,
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "genLevelCtrl"]);
+            await reporting.onOff(endpoint);
+
+            await chunkedRead(endpoint, Object.keys(VZM32_ATTRIBUTES), INOVELLI_CLUSTER_NAME);
+            await chunkedRead(endpoint, Object.keys(VZM32_MMWAVE_ATTRIBUTES), INOVELLI_MMWAVE_CLUSTER_NAME);
 
             // Bind for Button Event Reporting
             const endpoint2 = device.getEndpoint(2);

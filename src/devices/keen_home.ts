@@ -2,6 +2,7 @@ import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
 import * as lumi from "../lib/lumi";
+import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import type {DefinitionWithExtend} from "../lib/types";
 
@@ -19,10 +20,7 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.battery, lumi.fromZigbee.lumi_temperature, fz.humidity, fz.keen_home_smart_vent_pressure],
         toZigbee: [],
         exposes: [e.battery(), e.temperature(), e.humidity(), e.pressure(), e.battery_voltage()],
-        configure: async (device, coordinatorEndpoint) => {
-            device.powerSource = "Battery";
-            device.save();
-        },
+        extend: [m.forcePowerSource({powerSource: "Battery"})],
     },
     {
         zigbeeModel: [
@@ -70,6 +68,7 @@ export const definitions: DefinitionWithExtend[] = [
             "SV02-410-MP-1.0",
             "SV02-410-MP-1.2",
             "SV02-412-MP-1.2",
+            "SV02-412-MP-1.0",
         ],
         model: "SV02",
         vendor: "Keen Home",

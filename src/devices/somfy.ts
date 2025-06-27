@@ -9,7 +9,7 @@ const e = exposes.presets;
 
 export const definitions: DefinitionWithExtend[] = [
     {
-        zigbeeModel: ["Sonesse 28 WF Li-Ion Roller"],
+        zigbeeModel: ["Sonesse 28 WF Li-Ion Roller", "Sonesse 28 WF Roller"],
         model: "1241755",
         vendor: "SOMFY",
         description: "Sonesse 28 WF Li-Ion roller shades",
@@ -28,6 +28,25 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "SOMFY",
         description: "Blinds",
         extend: [m.windowCovering({controls: ["lift"]}), m.battery()],
+    },
+    {
+        zigbeeModel: ["Sonesse 30 DC 24V Roller"],
+        model: "1241970",
+        vendor: "SOMFY",
+        description: "Sonesse 30 DC 24V roller shades",
+        extend: [m.windowCovering({controls: ["lift"]})],
+    },
+    {
+        zigbeeModel: ["Ysia 5 HP Zigbee"],
+        model: "1871154",
+        vendor: "SOMFY",
+        description: "Ysia 5 channel blinds remote",
+        extend: [
+            m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3, "4": 4, "5": 5, "232": 232}}),
+            m.battery(),
+            m.commandsOnOff({endpointNames: ["1", "2", "3", "4", "5"]}),
+            m.commandsWindowCovering({endpointNames: ["1", "2", "3", "4", "5"]}),
+        ],
     },
     {
         zigbeeModel: ["1822647"],
@@ -60,5 +79,12 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "SOMFY",
         description: "Zigbee motion sensor",
         extend: [m.identify(), m.iasZoneAlarm({zoneType: "occupancy", zoneAttributes: ["alarm_1", "battery_low"]}), m.battery()],
+    },
+    {
+        zigbeeModel: ["Glydea Ultra Curtain"],
+        model: "9028412A",
+        vendor: "SOMFY",
+        description: "Glydea Curtain motor Zigbee module",
+        extend: [m.windowCovering({controls: ["lift"]})],
     },
 ];

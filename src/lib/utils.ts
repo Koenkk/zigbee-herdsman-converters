@@ -116,9 +116,10 @@ export function mapNumberRange(value: number, fromLow: number, fromHigh: number,
 }
 
 const transactionStore: {[s: string]: number[]} = {};
-export function hasAlreadyProcessedMessage(msg: Fz.Message, model: Definition, ID: number = null, key: string = null) {
+export function hasAlreadyProcessedMessage(msg: Fz.Message, model: Definition, id: number = null, key: string = null) {
     if (model.meta?.publishDuplicateTransaction) return false;
-    const currentID = ID !== null ? ID : msg.meta.zclTransactionSequenceNumber;
+    const currentID = id !== null ? id : msg.meta.zclTransactionSequenceNumber;
+    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
     key = key || `${msg.device.ieeeAddr}-${msg.endpoint.ID}`;
     if (transactionStore[key]?.includes(currentID)) return true;
     // Keep last 5, as they might come in different order: https://github.com/Koenkk/zigbee2mqtt/issues/20024
@@ -136,6 +137,7 @@ export const calibrateAndPrecisionRoundOptionsDefaultPrecision: KeyValue = {
     current: 2,
     current_phase_b: 2,
     current_phase_c: 2,
+    current_neutral: 2,
     voltage: 2,
     voltage_phase_b: 2,
     voltage_phase_c: 2,
@@ -162,25 +164,28 @@ export function calibrateAndPrecisionRoundOptionsIsPercentual(type: string) {
 export function calibrateAndPrecisionRoundOptions(number: number, options: KeyValue, type: string) {
     // Calibrate
     const calibrateKey = `${type}_calibration`;
-    let calibrationOffset = toNumber(options && options[calibrateKey] !== undefined ? options[calibrateKey] : 0, calibrateKey);
+    let calibrationOffset = toNumber(options?.[calibrateKey] != null ? options[calibrateKey] : 0, calibrateKey);
     if (calibrateAndPrecisionRoundOptionsIsPercentual(type)) {
         // linear calibration because measured value is zero based
         // +/- percent
         calibrationOffset = (number * calibrationOffset) / 100;
     }
+    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
     number = number + calibrationOffset;
 
     // Precision round
     const precisionKey = `${type}_precision`;
     const defaultValue = calibrateAndPrecisionRoundOptionsDefaultPrecision[type] || 0;
-    const precision = toNumber(options && options[precisionKey] !== undefined ? options[precisionKey] : defaultValue, precisionKey);
+    const precision = toNumber(options?.[precisionKey] != null ? options[precisionKey] : defaultValue, precisionKey);
     return precisionRound(number, precision);
 }
 
 export function toPercentage(value: number, min: number, max: number) {
     if (value > max) {
+        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         value = max;
     } else if (value < min) {
+        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         value = min;
     }
 
@@ -207,6 +212,7 @@ export function postfixWithEndpointName(value: string, msg: Fz.Message, definiti
     if (!meta) {
         logger.warning("No meta passed to postfixWithEndpointName, update your external converter!", NS);
         // @ts-expect-error ignore
+        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         meta = {device: null};
     }
 
@@ -313,7 +319,7 @@ export function getMetaValue<T>(
     } else {
         const definitionMeta = getMetaValues(definition, entity);
         if (definitionMeta?.[key] !== undefined) {
-            return typeof definitionMeta[key] === "function" ? definitionMeta[key](entity) : definitionMeta[key];
+            return typeof definitionMeta[key] === "function" ? definitionMeta[key](entity) : (definitionMeta[key] as T);
         }
     }
 
@@ -456,23 +462,23 @@ export function getTransition(entity: Zh.Endpoint | Zh.Group, key: string, meta:
         manufacturerIDs = [entity.getDevice().manufacturerID];
     }
 
-    if (manufacturerIDs.includes(4476)) {
+    if (manufacturerIDs.includes(Zcl.ManufacturerCode.IKEA_OF_SWEDEN)) {
         /**
          * When setting both brightness and color temperature with a transition, the brightness is skipped
          * for IKEA TRADFRI bulbs.
          * To workaround this we skip the transition for the brightness as it is applied first.
          * https://github.com/Koenkk/zigbee2mqtt/issues/1810
          */
-        if (key === "brightness" && (message.color !== undefined || message.color_temp !== undefined)) {
+        if (key === "brightness" && (message.color != null || message.color_temp != null)) {
             return {time: 0, specified: false};
         }
     }
 
-    if (message.transition !== undefined) {
+    if (message.transition != null) {
         const time = toNumber(message.transition, "transition");
         return {time: time * 10, specified: true};
     }
-    if (options.transition !== undefined && options.transition !== "") {
+    if (options.transition != null && options.transition !== "") {
         const transition = toNumber(options.transition, "transition");
         return {time: transition * 10, specified: true};
     }
@@ -537,9 +543,11 @@ export function normalizeCelsiusVersionOfFahrenheit(value: number) {
 export function noOccupancySince(endpoint: Zh.Endpoint, options: KeyValueAny, publish: Publish, action: "start" | "stop") {
     if (options?.no_occupancy_since) {
         if (action === "start") {
+            // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
             globalStore.getValue(endpoint, "no_occupancy_since_timers", []).forEach((t: ReturnType<typeof setInterval>) => clearTimeout(t));
             globalStore.putValue(endpoint, "no_occupancy_since_timers", []);
 
+            // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
             options.no_occupancy_since.forEach((since: number) => {
                 const timer = setTimeout(() => {
                     publish({no_occupancy_since: since});
@@ -547,6 +555,7 @@ export function noOccupancySince(endpoint: Zh.Endpoint, options: KeyValueAny, pu
                 globalStore.getValue(endpoint, "no_occupancy_since_timers").push(timer);
             });
         } else if (action === "stop") {
+            // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
             globalStore.getValue(endpoint, "no_occupancy_since_timers", []).forEach((t: ReturnType<typeof setInterval>) => clearTimeout(t));
             globalStore.putValue(endpoint, "no_occupancy_since_timers", []);
         }
@@ -572,8 +581,8 @@ export function printNumbersAsHexSequence(numbers: number[], hexLength: number):
     return numbers.map((v) => v.toString(16).padStart(hexLength, "0")).join(":");
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function assertObject(value: unknown, property?: string): asserts value is {[s: string]: any} {
+// biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
+export function assertObject<T extends Record<string, any>>(value: unknown, property?: string): asserts value is T {
     const isObject = typeof value === "object" && !Array.isArray(value) && value !== null;
     if (!isObject) {
         throw new Error(`${property} is not a object, got ${typeof value} (${JSON.stringify(value)})`);
@@ -581,11 +590,13 @@ export function assertObject(value: unknown, property?: string): asserts value i
 }
 
 export function assertArray(value: unknown, property?: string): asserts value is Array<unknown> {
+    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
     property = property ? `'${property}'` : "Value";
     if (!Array.isArray(value)) throw new Error(`${property} is not an array, got ${typeof value} (${value.toString()})`);
 }
 
 export function assertString(value: unknown, property?: string): asserts value is string {
+    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
     property = property ? `'${property}'` : "Value";
     if (typeof value !== "string") throw new Error(`${property} is not a string, got ${typeof value} (${value.toString()})`);
 }
@@ -594,7 +605,7 @@ export function isNumber(value: unknown): value is number {
     return typeof value === "number";
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
 export function isObject(value: unknown): value is {[s: string]: any} {
     return typeof value === "object" && !Array.isArray(value);
 }
@@ -608,11 +619,13 @@ export function isBoolean(value: unknown): value is boolean {
 }
 
 export function assertNumber(value: unknown, property?: string): asserts value is number {
+    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
     property = property ? `'${property}'` : "Value";
     if (typeof value !== "number" || Number.isNaN(value)) throw new Error(`${property} is not a number, got ${typeof value} (${value?.toString()})`);
 }
 
 export function toNumber(value: unknown, property?: string): number {
+    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
     property = property ? `'${property}'` : "Value";
     // @ts-expect-error ignore
     const result = Number.parseFloat(value);
@@ -669,7 +682,7 @@ export function getFromLookupByValue(value: unknown, lookup: {[s: string]: unkno
 }
 
 export function configureSetPowerSourceWhenUnknown(powerSource: "Battery" | "Mains (single phase)"): Configure {
-    return async (device: Zh.Device): Promise<void> => {
+    return (device: Zh.Device): void => {
         if (!device.powerSource || device.powerSource === "Unknown") {
             logger.debug(`Device has no power source, forcing to '${powerSource}'`, NS);
             device.powerSource = powerSource;

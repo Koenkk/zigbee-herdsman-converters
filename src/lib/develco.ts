@@ -83,7 +83,7 @@ export const develcoModernExtend = {
             ...args,
         }),
     airQuality: (): ModernExtend => {
-        // NOTE: do not setup reporting, this is hanled by the voc() modernExtend
+        // NOTE: do not setup reporting, this is handled by the voc() modernExtend
 
         const clusterName = "manuSpecificDevelcoAirQuality";
         const attributeName = "measuredValue";
@@ -104,6 +104,7 @@ export const develcoModernExtend = {
 
                         // from aqszb-110-technical-manual-air-quality-sensor-04-08-20.pdf page 6, section 2.2 voc
                         // this contains a ppb to level mapping table.
+                        // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
                         let airQuality;
                         if (vocPpb <= 65) {
                             airQuality = "excellent";

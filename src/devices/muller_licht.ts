@@ -229,11 +229,7 @@ export const definitions: DefinitionWithExtend[] = [
             ]),
             e.action_group(),
         ],
-        toZigbee: [],
-        configure: async (device, coordinatorEndpoint) => {
-            device.powerSource = "Battery";
-            device.save();
-        },
+        extend: [m.forcePowerSource({powerSource: "Battery"})],
         whiteLabel: [
             {
                 vendor: "Müller Licht",
@@ -296,6 +292,13 @@ export const definitions: DefinitionWithExtend[] = [
         model: "45723",
         vendor: "Müller Licht",
         description: "Tint spotlight GU10 white+color",
+        extend: [mullerLichtLight({colorTemp: {range: [153, 555]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+    },
+    {
+        fingerprint: [{manufacturerName: "MLI", modelID: "Ceiling light"}],
+        model: "404122/404123",
+        vendor: "Müller Licht",
+        description: "Tint smart ceiling light Cano black/silver, white+color (1800-6500K+RGB), 21w",
         extend: [mullerLichtLight({colorTemp: {range: [153, 555]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
 ];

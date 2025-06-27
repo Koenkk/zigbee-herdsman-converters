@@ -1,14 +1,118 @@
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
+import {repInterval} from "../lib/constants";
 import * as exposes from "../lib/exposes";
 import * as legacy from "../lib/legacy";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as tuya from "../lib/tuya";
 import type {DefinitionWithExtend} from "../lib/types";
+import type {Fz, KeyValueAny, Tz} from "../lib/types";
+import * as utils from "../lib/utils";
 
 const e = exposes.presets;
 const ea = exposes.access;
+
+const tzLocal = {
+    ts0219_duration: {
+        key: ["duration"],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write("ssIasWd", {maxDuration: value});
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read("ssIasWd", ["maxDuration"]);
+        },
+    } satisfies Tz.Converter,
+    ts0219_volume: {
+        key: ["volume"],
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertNumber(value);
+            await entity.write(
+                "ssIasWd",
+                {2: {value: utils.mapNumberRange(value, 0, 100, 100, 0), type: 0x20}},
+                utils.getOptions(meta.mapped, entity),
+            );
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read("ssIasWd", [0x0002]);
+        },
+    } satisfies Tz.Converter,
+    ts0219_light: {
+        key: ["light"],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write("ssIasWd", {1: {value: value, type: 0x20}}, utils.getOptions(meta.mapped, entity));
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read("ssIasWd", [0x0001]);
+        },
+    } satisfies Tz.Converter,
+    ts0219_alarm: {
+        key: ["alarm"],
+        convertGet: async (entity, key, meta) => {
+            await entity.read("ssIasZone", ["zoneStatus"]);
+        },
+        convertSet: async (entity, key, value, meta) => {
+            const OFF = 0;
+            const ALARM = 16;
+            const info = value ? ALARM : OFF;
+            //only startwarninginfo is used, rest of params are ignored (stored values from device are used instead)
+            await entity.command(
+                "ssIasWd",
+                "startWarning",
+                {startwarninginfo: info, warningduration: 0, strobedutycycle: 0, strobelevel: 0},
+                utils.getOptions(meta.mapped, entity),
+            );
+        },
+    } satisfies Tz.Converter,
+};
+
+const fzLocal = {
+    ts0219ssIasWd: {
+        cluster: "ssIasWd",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const result: KeyValueAny = {};
+            //max duration
+            if (msg.data.maxDuration !== undefined) {
+                result.duration = msg.data.maxDuration;
+            }
+            if (msg.data["0"] !== undefined) {
+                result.duration = msg.data["0"];
+            }
+            //light
+            if (msg.data["1"] !== undefined) {
+                result.light = msg.data["1"];
+            }
+            //volume
+            if (msg.data["2"] !== undefined) {
+                result.volume = utils.mapNumberRange(msg.data["2"], 100, 0, 0, 100);
+            }
+            return result;
+        },
+    } satisfies Fz.Converter,
+    ts0219genBasic: {
+        cluster: "genBasic",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const result: KeyValueAny = {};
+            if (msg.data.powerSource !== undefined) {
+                result.power_source = msg.data.powerSource === 2 ? "mains" : "battery";
+            }
+            return result;
+        },
+    } satisfies Fz.Converter,
+    ts0219ssIasZone: {
+        cluster: "ssIasZone",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const result: KeyValueAny = {};
+            if (msg.data.zoneStatus !== undefined) {
+                result.alarm = msg.data.zoneStatus === 17;
+            }
+            return result;
+        },
+    } satisfies Fz.Converter,
+};
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -236,20 +340,105 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.illuminance()],
     },
     {
+        zigbeeModel: ["TS0219"],
+        model: "07504L",
+        vendor: "Immax",
+        description: "Neo outdoor smart siren (IP65)",
+        fromZigbee: [fzLocal.ts0219ssIasWd, fz.battery, fzLocal.ts0219genBasic, fzLocal.ts0219ssIasZone],
+        exposes: [
+            e.battery(),
+            e.battery_low(),
+            e.battery_voltage(),
+            e.binary("alarm", ea.ALL, true, false),
+            e
+                .numeric("volume", ea.ALL)
+                .withValueMin(0)
+                .withValueMax(50)
+                .withDescription("Volume of siren")
+                .withPreset("off", 0, "off")
+                .withPreset("low", 5, "low volume")
+                .withPreset("medium", 25, "medium volume")
+                .withPreset("high", 50, "high volume"),
+            e.numeric("duration", ea.ALL).withValueMin(0).withValueMax(3600).withUnit("s").withDescription("Duration of alarm"),
+            e
+                .numeric("light", ea.ALL)
+                .withValueMin(0)
+                .withValueMax(100)
+                .withDescription("Strobe light level")
+                .withPreset("off", 0, "off light")
+                .withPreset("low", 30, "low light")
+                .withPreset("medium", 60, "medium light")
+                .withPreset("high", 100, "high light"),
+            e.enum("power_source", ea.STATE, ["mains", "battery"]).withDescription("The current power source"),
+        ],
+        toZigbee: [tzLocal.ts0219_alarm, tzLocal.ts0219_duration, tzLocal.ts0219_volume, tzLocal.ts0219_light, tz.power_source],
+        meta: {disableDefaultResponse: true},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg", "ssIasZone", "ssIasWd"]);
+            await reporting.batteryVoltage(endpoint);
+            await reporting.batteryPercentageRemaining(endpoint);
+            //configure reporting for zoneStatus to update alarm state (when alarm goes off)
+            await endpoint.configureReporting(
+                "ssIasZone",
+                [
+                    {
+                        attribute: "zoneStatus",
+                        minimumReportInterval: 0,
+                        maximumReportInterval: repInterval.MAX,
+                        reportableChange: 1,
+                    },
+                ],
+                {},
+            );
+
+            await endpoint.read("genBasic", ["powerSource"]);
+            await endpoint.read("ssIasZone", ["zoneState", "iasCieAddr", "zoneId", "zoneStatus"]);
+            await endpoint.read("ssIasWd", ["maxDuration", 0x0002, 0x0001]);
+        },
+        extend: [
+            //fix reported as Router
+            m.forceDeviceType({type: "EndDevice"}),
+        ],
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_n9clpsht", "_TZE200_nyvavzbj", "_TZE200_moycceze"]),
         model: "07505L",
         vendor: "Immax",
         description: "Neo smart keypad",
         fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [],
-        exposes: [e.action(["disarm", "arm_home", "arm_away", "sos"]), e.tamper()],
+        toZigbee: [tuya.tz.datapoints],
+        exposes: [
+            e.action(["disarm", "arm_home", "arm_away", "sos"]),
+            e.battery(),
+            e.tamper(),
+            e.text("admin_code", ea.STATE_SET).withDescription("Admin code").withAccess(ea.STATE),
+            e.text("last_added_user_code", ea.STATE_SET).withDescription("Last Added User code").withAccess(ea.STATE),
+            e.numeric("arm_delay_time", ea.STATE_SET).withValueMin(0).withValueMax(180).withDescription("Arm Delay Time"),
+            e.binary("beep_sound_enabled", ea.STATE_SET, "ON", "OFF").withDescription("Beep Sound Enabled"),
+            e.binary("quick_home_enabled", ea.STATE_SET, "ON", "OFF").withDescription("Quick Home Enabled"),
+            e.binary("quick_disarm_enabled", ea.STATE_SET, "ON", "OFF").withDescription("Quick Disarm Enabled"),
+            e.binary("quick_arm_enabled", ea.STATE_SET, "ON", "OFF").withDescription("Quick Arm Enabled"),
+            e.binary("arm_delay_beep_sound", ea.STATE_SET, "ON", "OFF").withDescription("Arm Delay Beep Sound"),
+            e.text("user_id", ea.STATE).withDescription("Last Used User ID"),
+        ],
         meta: {
             tuyaDatapoints: [
+                [3, "battery", tuya.valueConverter.raw],
                 [24, "tamper", tuya.valueConverter.trueFalse1],
                 [26, "action", tuya.valueConverter.static("disarm")],
                 [27, "action", tuya.valueConverter.static("arm_away")],
                 [28, "action", tuya.valueConverter.static("arm_home")],
                 [29, "action", tuya.valueConverter.static("sos")],
+                [108, "admin_code", tuya.valueConverter.raw],
+                [109, "last_added_user_code", tuya.valueConverter.raw],
+                [103, "arm_delay_time", tuya.valueConverter.raw],
+                [104, "beep_sound_enabled", tuya.valueConverter.onOff],
+                [105, "quick_home_enabled", tuya.valueConverter.onOff],
+                [106, "quick_disarm_enabled", tuya.valueConverter.onOff],
+                [107, "quick_arm_enabled", tuya.valueConverter.onOff],
+                [111, "arm_delay_beep_sound", tuya.valueConverter.onOff],
+                [112, "user_id", tuya.valueConverter.raw],
             ],
         },
     },

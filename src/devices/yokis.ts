@@ -86,7 +86,7 @@ const YokisClustersDefinition: {
         ID: 0xfc02,
         manufacturerCode: Zcl.ManufacturerCode.YOKIS,
         attributes: {
-            // Indicate how the input should be handle: 0 -> Unknow, 1 -> Push button, 2 -> Switch, 3 -> Relay, 4 -> FP_IN
+            // Indicate how the input should be handle: 0 -> Unknown, 1 -> Push button, 2 -> Switch, 3 -> Relay, 4 -> FP_IN
             inputMode: {ID: 0x0000, type: Zcl.DataType.ENUM8},
             // Indicate the contact nature of the entry: 0 -> NC, 1 -> NO
             contactMode: {ID: 0x0001, type: Zcl.DataType.BOOLEAN},
@@ -240,7 +240,7 @@ const YokisClustersDefinition: {
                     {name: "b_DoPeriodicCycle", type: Zcl.DataType.BOOLEAN},
                 ],
             },
-            // Start a deaf sequene on a device only if the attribute “eDeaf” is set to Enable.
+            // Start a deaf sequence on a device only if the attribute “eDeaf” is set to Enable.
             deafBlink: {
                 ID: 0x06,
                 parameters: [
@@ -433,7 +433,7 @@ const YokisClustersDefinition: {
             orderTimer: {ID: 0x0001, type: Zcl.DataType.UINT32},
             // Define the duration before an order is set. This timer is used when a new order is asked, it corresponds to the time before this order is applied. The duration is set in second. Default: 0x00000000, Min-Max: 0x00000000 - 0xFFFFFFFF
             preOrderTimer: {ID: 0x0002, type: Zcl.DataType.UINT32},
-            // Represent the actual unit used for local command configuration : 0x00 -> Second, 0x01 -> Minutes. Default: 0x00, Min-Max: 0x00 - 0x01.
+            // Represent the actual unit used for local command configuration: 0x00 -> Second, 0x01 -> Minutes. Default: 0x00, Min-Max: 0x00 - 0x01.
             timerUnit: {ID: 0x0003, type: Zcl.DataType.UINT8},
             // Define the product’s LED behavior: 0x00 -> LED is always ON and blink during radio activity, 0x01 -> LED is only OFF during few seconds after a mode transition. Default: 0x00, Min-Max: 0x00 - 0x01.
             ledMode: {ID: 0x0004, type: Zcl.DataType.UINT8},
@@ -451,7 +451,7 @@ const YokisClustersDefinition: {
             setOrder: {
                 ID: 0x00,
                 parameters: [
-                    // Order to be set : 0x00 -> Stop, 0x01 -> Frost-off, 0x02 -> Eco, 0x03 -> Confort-2, 0x04 -> Confort-1, 0x05 -> Confort
+                    // Order to be set: 0x00 -> Stop, 0x01 -> Frost-off, 0x02 -> Eco, 0x03 -> Confort-2, 0x04 -> Confort-1, 0x05 -> Confort
                     {name: "uc_Order", type: Zcl.DataType.UINT8},
                 ],
             },
@@ -521,6 +521,7 @@ const yokisExtendChecks = {
 
         return {
             payload: {
+                // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
                 uc_ResetAction: utils.getFromLookup(input, resetActionEnum),
             },
         };
@@ -536,6 +537,7 @@ const yokisExtendChecks = {
 
         return {
             payload: {
+                // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
                 uc_OpeningTime: input.opening_time,
             },
         };
@@ -551,6 +553,7 @@ const yokisExtendChecks = {
 
         return {
             payload: {
+                // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
                 uc_InputMode: utils.getFromLookup(input.select_input_mode, inputModeEnum),
             },
         };
@@ -590,12 +593,19 @@ const yokisExtendChecks = {
 
         return {
             payload: {
+                // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
                 uc_BrightnessStart: input.brightness_start,
+                // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
                 uc_BrightnessEnd: input.brightness_end,
+                // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
                 ul_PreTimerValue: input.pre_timer_value,
+                // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
                 b_PreTimerEnable: input.enable_pre_timer ? 1 : 0,
+                // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
                 ul_TimerValue: input.timer_value,
+                // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
                 b_TimerEnable: input.enable_timer ? 1 : 0,
+                // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
                 ul_TransitionTime: input.transition_time,
             },
         };
@@ -627,10 +637,15 @@ const yokisExtendChecks = {
 
         return {
             payload: {
+                // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
                 uc_BlinkAmount: input.blink_amount,
+                // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
                 ul_BlinkOnPeriod: input.blink_on_period,
+                // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
                 ul_BlinkOffPeriod: input.blink_off_period,
+                // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
                 uc_StateAfterSequence: utils.getFromLookup(input.state_after_sequence, stateAfterBlinkEnum),
+                // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
                 b_DoPeriodicCycle: input.do_periodic_cycle ? 1 : 0,
             },
         };
@@ -676,7 +691,7 @@ const yokisExtendChecks = {
             // }
 
             // if (input.uc_SequenceAmount > input.tuc_BlinkAmount.length) {
-            //     // more sequences than configured, pad with additionals
+            //     // more sequences than configured, pad with additional
             //     for(let i = 0; i < input.uc_SequenceAmount - input.tuc_BlinkAmount.length; i++) {
             //         input.tuc_BlinkAmount.push({"uc_BlinkAmountItem":1}); //puke
             //     }
@@ -694,46 +709,55 @@ const yokisExtendChecks = {
 
         return {
             payload: {
+                // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
                 uc_BlinkAmount: input.blink_amount,
+                // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
                 ul_BlinkOnTime: input.blink_on_time,
+                // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
                 uc_SequenceAmount: input.sequence_of_blinks.length,
+                // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
                 tuc_BlinkAmount: input.sequence_of_blinks.map((elem) => (typeof elem === "object" ? Object.values(elem).shift() : elem)), // [{"undefined":1},{"undefined":1}] > [1,1]
             },
         };
     },
     parseDim: (input: KeyValueAny) => {
-        let _ul_RampContinuousDuration;
-        let _uc_StepContinuous;
+        // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
+        let _ulRampContinuousDuration;
+        // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
+        let _ucStepContinuous;
 
         if (!input || typeof input !== "object") {
             throw new Error("NOT_OBJECT");
         }
 
         if (!("ramp_continuous_duration" in input) || !utils.isNumber(input.ramp_continuous_duration)) {
-            _ul_RampContinuousDuration = 0xffffffff; // use default value
-        } else _ul_RampContinuousDuration = input.ramp_continuous_duration;
+            _ulRampContinuousDuration = 0xffffffff; // use default value
+        } else _ulRampContinuousDuration = input.ramp_continuous_duration;
 
         if (!("step_continuous" in input) || !utils.isNumber(input.step_continuous)) {
-            _uc_StepContinuous = 0xff; // use default value
-        } else _uc_StepContinuous = input.step_continuous;
+            _ucStepContinuous = 0xff; // use default value
+        } else _ucStepContinuous = input.step_continuous;
 
         return {
             payload: {
-                ul_RampContinuousDuration: _ul_RampContinuousDuration,
-                uc_StepContinuous: _uc_StepContinuous,
+                // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+                ul_RampContinuousDuration: _ulRampContinuousDuration,
+                // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+                uc_StepContinuous: _ucStepContinuous,
             },
         };
     },
     parseDimMinMax: (input: KeyValueAny) => {
-        let _ul_TransitionTime;
+        // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
+        let _ulTransitionTime;
 
         if (!input || typeof input !== "object") {
             throw new Error("NOT_OBJECT");
         }
 
         if (!("transition_time" in input) || !utils.isNumber(input.transition_time)) {
-            _ul_TransitionTime = 0xffffffff; // use default value
-        } else _ul_TransitionTime = input.transition_time;
+            _ulTransitionTime = 0xffffffff; // use default value
+        } else _ulTransitionTime = input.transition_time;
 
         if (!("action" in input)) {
             throw new Error("MISSING_ACTION");
@@ -742,54 +766,67 @@ const yokisExtendChecks = {
         return {
             action: input.action,
             payload: {
-                ul_TransitionTime: _ul_TransitionTime,
+                // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+                ul_TransitionTime: _ulTransitionTime,
             },
         };
     },
     parseStartNightLightMode: (input: KeyValueAny) => {
-        let _ul_ChildModeStartingDelay;
-        let _uc_ChildModeBrightnessStart;
-        let _uc_ChildModeBrightnessEnd;
-        let _ul_ChildModeRampDuration;
-        let _ul_ChildModeOnDuration;
-        let _uc_ChildStep;
+        // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
+        let _ulChildModeStartingDelay;
+        // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
+        let _ucChildModeBrightnessStart;
+        // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
+        let _ucChildModeBrightnessEnd;
+        // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
+        let _ulChildModeRampDuration;
+        // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
+        let _ulChildModeOnDuration;
+        // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
+        let _ucChildStep;
 
         if (!input || typeof input !== "object") {
             throw new Error("NOT_OBJECT");
         }
 
         if (!("childmode_starting_delay" in input) || !utils.isNumber(input.childmode_starting_delay)) {
-            _ul_ChildModeStartingDelay = 0xffffffff; // use default value
-        } else _ul_ChildModeStartingDelay = input.childmode_starting_delay;
+            _ulChildModeStartingDelay = 0xffffffff; // use default value
+        } else _ulChildModeStartingDelay = input.childmode_starting_delay;
 
         if (!("childmode_brightness_start" in input) || !utils.isNumber(input.childmode_brightness_start)) {
-            _uc_ChildModeBrightnessStart = 0xff; // use default value
-        } else _uc_ChildModeBrightnessStart = input.childmode_brightness_start;
+            _ucChildModeBrightnessStart = 0xff; // use default value
+        } else _ucChildModeBrightnessStart = input.childmode_brightness_start;
 
         if (!("childmode_brightness_end" in input) || !utils.isNumber(input.childmode_brightness_end)) {
-            _uc_ChildModeBrightnessEnd = 0xff; // use default value
-        } else _uc_ChildModeBrightnessEnd = input.childmode_brightness_end;
+            _ucChildModeBrightnessEnd = 0xff; // use default value
+        } else _ucChildModeBrightnessEnd = input.childmode_brightness_end;
 
         if (!("childmode_ramp_duration" in input) || !utils.isNumber(input.childmode_ramp_duration)) {
-            _ul_ChildModeRampDuration = 0xffffffff; // use default value
-        } else _ul_ChildModeRampDuration = input.childmode_ramp_duration;
+            _ulChildModeRampDuration = 0xffffffff; // use default value
+        } else _ulChildModeRampDuration = input.childmode_ramp_duration;
 
         if (!("childmode_on_duration" in input) || !utils.isNumber(input.childmode_on_duration)) {
-            _ul_ChildModeOnDuration = 0xffffffff; // use default value
-        } else _ul_ChildModeOnDuration = input.childmode_on_duration;
+            _ulChildModeOnDuration = 0xffffffff; // use default value
+        } else _ulChildModeOnDuration = input.childmode_on_duration;
 
         if (!("childmode_step" in input) || !utils.isNumber(input.childmode_step)) {
-            _uc_ChildStep = 0xff; // use default value
-        } else _uc_ChildStep = input.childmode_step;
+            _ucChildStep = 0xff; // use default value
+        } else _ucChildStep = input.childmode_step;
 
         return {
             payload: {
-                ul_ChildModeStartingDelay: _ul_ChildModeStartingDelay,
-                uc_ChildModeBrightnessStart: _uc_ChildModeBrightnessStart,
-                uc_ChildModeBrightnessEnd: _uc_ChildModeBrightnessEnd,
-                ul_ChildModeRampDuration: _ul_ChildModeRampDuration,
-                ul_ChildModeOnDuration: _ul_ChildModeOnDuration,
-                uc_ChildStep: _uc_ChildStep,
+                // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+                ul_ChildModeStartingDelay: _ulChildModeStartingDelay,
+                // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+                uc_ChildModeBrightnessStart: _ucChildModeBrightnessStart,
+                // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+                uc_ChildModeBrightnessEnd: _ucChildModeBrightnessEnd,
+                // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+                ul_ChildModeRampDuration: _ulChildModeRampDuration,
+                // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+                ul_ChildModeOnDuration: _ulChildModeOnDuration,
+                // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+                uc_ChildStep: _ucChildStep,
             },
         };
     },
@@ -811,7 +848,8 @@ const yokisCommandsExtend = {
         const toZigbee: Tz.Converter[] = [
             {
                 key: ["reset_to_factory_settings"],
-                convertSet: async (entity, key, value: string, meta) => {
+                convertSet: async (entity, key, value, meta) => {
+                    utils.assertString(value);
                     const commandWrapper = yokisExtendChecks.parseResetInput(value);
 
                     yokisExtendChecks.log(key, value);
@@ -1020,7 +1058,7 @@ const yokisCommandsExtend = {
         const toZigbee: Tz.Converter[] = [
             {
                 key: ["pulse_prop"],
-                convertSet: async (entity, key, value, meta) => {
+                convertSet: (entity, key, value, meta) => {
                     const commandWrapper = yokisExtendChecks.parsePulseInput(value);
 
                     yokisExtendChecks.log(key, value, commandWrapper.payload);
@@ -1039,7 +1077,7 @@ const yokisCommandsExtend = {
     deafBlink: (): ModernExtend => {
         const exposes = e
             .composite("deaf_blink_command", "deaf_blink_prop", ea.SET)
-            .withDescription("Start a deaf sequene on a device only if the attribute “eDeaf” is set to Enable")
+            .withDescription("Start a deaf sequence on a device only if the attribute “eDeaf” is set to Enable")
             .withFeature(
                 e
                     .numeric("blink_amount", ea.SET) // uc_BlinkAmount
@@ -1270,7 +1308,8 @@ const yokisCommandsExtend = {
         const toZigbee: Tz.Converter[] = [
             {
                 key: ["dimmer_Up_down_command"],
-                convertSet: async (entity, key, value: string, meta) => {
+                convertSet: async (entity, key, value, meta) => {
+                    utils.assertString(value);
                     yokisExtendChecks.log(key, value);
                     await entity.command("manuSpecificYokisDimmer", value, {});
                 },
@@ -1292,7 +1331,8 @@ const yokisCommandsExtend = {
         const toZigbee: Tz.Converter[] = [
             {
                 key: ["dimmer_move_to_favorite"],
-                convertSet: async (entity, key, value: string, meta) => {
+                convertSet: async (entity, key, value, meta) => {
+                    utils.assertString(value);
                     yokisExtendChecks.log(key, value);
                     await entity.command("manuSpecificYokisDimmer", value, {});
                 },
@@ -1314,7 +1354,8 @@ const yokisCommandsExtend = {
         const toZigbee: Tz.Converter[] = [
             {
                 key: ["dimmer_start_nightlight_command"],
-                convertSet: async (entity, key, value: string, meta) => {
+                convertSet: async (entity, key, value, meta) => {
+                    utils.assertString(value);
                     yokisExtendChecks.log(key, value);
                     await entity.command("manuSpecificYokisDimmer", value, {});
                 },
@@ -1452,7 +1493,7 @@ const YokisInputExtend: ModernExtend[] = [
         cluster: "manuSpecificYokisInput",
         attribute: "inputMode",
         description: `Indicate how the input should be handle:
-        - 0 -> Unknow
+        - 0 -> Unknown
         - 1 -> Push button
         - 2 -> Switch
         - 3 -> Relay
@@ -1863,7 +1904,7 @@ const yokisLightControlExtend: ModernExtend[] = [
         name: "enable_nc_command",
         cluster: "manuSpecificYokisLightControl",
         attribute: "eNcCommand",
-        description: "Define the output relay as Normaly close",
+        description: "Define the output relay as Normally close",
         valueOn: ["ON", 0x01],
         valueOff: ["OFF", 0x00],
         entityCategory: "config",
@@ -2167,11 +2208,11 @@ const YokisChannelExtend: ModernExtend[] = [
         lookup: {toggle: 0x00, on: 0x01, off: 0x02, off2: 0x03},
         cluster: 'manuSpecificYokisChannel',
         attribute: 'onOffClusterMode',
-        description: `Define the command to send to the servers using cluster On/Off. Values are: 
+        description: `Define the command to send to the servers using cluster On/Off. Values are:
 -	0x00 – TOGGLE (1)
 -	0x01 – ON
 -	0x02 – OFF
--	0x03 – OFF 
+-	0x03 – OFF
 `,
         entityCategory: 'config',
     }),
@@ -2182,8 +2223,8 @@ const YokisChannelExtend: ModernExtend[] = [
         lookup: {nothing: 0x00, move_up: 0x01, move_down: 0x02, stop: 0x03},
         cluster: 'manuSpecificYokisChannel',
         attribute: 'levelControlClusterMode',
-        description: `Define the command to send to the servers using cluster Level control. Values are: 
--	0x00 – Nothing 
+        description: `Define the command to send to the servers using cluster Level control. Values are:
+-	0x00 – Nothing
 -	0x01 – Move up
 -	0x02 – Move down
 -	0x03 – Stop
@@ -2197,7 +2238,7 @@ const YokisChannelExtend: ModernExtend[] = [
         lookup: {toggle: 0x00, up_open: 0x01, down_close: 0x02, stop: 0x03},
         cluster: 'manuSpecificYokisChannel',
         attribute: 'windowCoveringClusterMode',
-        description: `Define the command to send to the servers using cluster Window Covering. Values are: 
+        description: `Define the command to send to the servers using cluster Window Covering. Values are:
 -	0x00 – TOGGLE (1)
 -	0x01 – UP/OPEN
 -	0x02 – DOWN/CLOSE
@@ -2212,7 +2253,7 @@ const YokisChannelExtend: ModernExtend[] = [
         name: 'cluster_to_be_used',
         cluster: 'manuSpecificYokisChannel',
         attribute: 'clusterToBeUsed',
-        description: `Defines the cluster that will be used by the channel to create an order. 
+        description: `Defines the cluster that will be used by the channel to create an order.
 
 If the value is set to 0xFFF0 the device will use a cluster priority list in order to choose the correct cluster and create the order associate depending on the target binded to the channel. The device will check which cluster the target declares and use the highest priority
 
@@ -2251,7 +2292,7 @@ When a cluster is specified, the channel will only “control” the device bind
         lookup: {pulse: 0x00, deaf: 0x01},
         cluster: 'manuSpecificYokisChannel',
         attribute: 'yokisLightControlMode',
-        description: `Define the light control mode used between remote and the binded device. Values are: 
+        description: `Define the light control mode used between remote and the binded device. Values are:
 -	0x00 – Mode pulse
 -	0x01 – Mode deaf
 `,
@@ -2264,8 +2305,8 @@ When a cluster is specified, the channel will only “control” the device bind
         lookup: {toggle: 0x00, confort: 0x01, eco: 0x02},
         cluster: 'manuSpecificYokisChannel',
         attribute: 'yokisPilotWireClusterMode',
-        description: `Define the command to send to the servers using cluster Yokis Pilot Wire. Values are: 
--	0x00 – TOGGLE (1) 
+        description: `Define the command to send to the servers using cluster Yokis Pilot Wire. Values are:
+-	0x00 – TOGGLE (1)
 -	0x01 – CONFORT
 -	0x02 – ECO
 `,

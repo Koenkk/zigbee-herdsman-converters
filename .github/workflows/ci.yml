@@ -9,12 +9,14 @@ permissions:
 jobs:
   ci:
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 24
           registry-url: https://registry.npmjs.org/
           cache: pnpm
       - name: Install dependencies
@@ -41,3 +43,4 @@ jobs:
           curl -XPOST -H "Authorization: token ${{ secrets.GH_TOKEN }}" -H "Accept: application/vnd.github.everest-preview+json" -H "Content-Type: application/json" https://api.github.com/repos/koenkk/zigbee2mqtt/dispatches --data "{\"event_type\": \"update_dep\", \"client_payload\": { \"version\": \"$VERSION\", \"package\": \"$PACKAGE\"}}"
         env:
           NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN }}
+          NPM_CONFIG_PROVENANCE: true

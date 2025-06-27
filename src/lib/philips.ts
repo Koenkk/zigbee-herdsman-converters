@@ -56,6 +56,7 @@ export const knownEffects = {
 
 const philipsModernExtend = {
     light: (args?: modernExtend.LightArgs & {hueEffect?: boolean; gradient?: true | {extraEffects: string[]}}) => {
+        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         args = {hueEffect: true, turnsOffAtBrightness1: true, ota: true, ...args};
         if (args.hueEffect || args.gradient) args.effect = false;
         if (args.color) args.color = {modes: ["xy", "hs"], ...(isObject(args.color) ? args.color : {})};
@@ -128,6 +129,7 @@ const philipsModernExtend = {
         return result;
     },
     onOff: (args?: modernExtend.OnOffArgs) => {
+        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         args = {powerOnBehavior: false, ota: true, ...args};
         const result = modernExtend.onOff(args);
         result.toZigbee.push(philipsTz.hue_power_on_behavior, philipsTz.hue_power_on_error);
@@ -199,6 +201,7 @@ const philipsTz = {
         key: ["hue_power_on_behavior"],
         convertSet: async (entity, key, value, meta) => {
             if (value === "default") {
+                // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
                 value = "on";
             }
 
@@ -230,7 +233,7 @@ const philipsTz = {
             } else if (value === "on") {
                 await entity.write("genOnOff", {16387: {value: 0x01, type: 0x30}});
 
-                let brightness = meta.message.hue_power_on_brightness !== undefined ? meta.message.hue_power_on_brightness : 0xfe;
+                let brightness = meta.message.hue_power_on_brightness != null ? meta.message.hue_power_on_brightness : 0xfe;
                 if (brightness === 255) {
                     // 255 (0xFF) is the value for recover, therefore set it to 254 (0xFE)
                     brightness = 254;
@@ -239,9 +242,9 @@ const philipsTz = {
 
                 utils.assertEndpoint(entity);
                 if (entity.supportsInputCluster("lightingColorCtrl")) {
-                    if (meta.message.hue_power_on_color_temperature !== undefined && meta.message.hue_power_on_color !== undefined) {
+                    if (meta.message.hue_power_on_color_temperature != null && meta.message.hue_power_on_color != null) {
                         logger.error("Provide either color temperature or color, not both", NS);
-                    } else if (meta.message.hue_power_on_color_temperature !== undefined) {
+                    } else if (meta.message.hue_power_on_color_temperature != null) {
                         const colortemp = meta.message.hue_power_on_color_temperature;
                         await entity.write("lightingColorCtrl", {16400: {value: colortemp, type: 0x21}});
                         // Set color to default
@@ -249,10 +252,11 @@ const philipsTz = {
                             await entity.write("lightingColorCtrl", {3: {value: 0xffff, type: 0x21}}, manufacturerOptions);
                             await entity.write("lightingColorCtrl", {4: {value: 0xffff, type: 0x21}}, manufacturerOptions);
                         }
-                    } else if (meta.message.hue_power_on_color !== undefined) {
+                    } else if (meta.message.hue_power_on_color != null) {
                         // @ts-expect-error ignore
                         const colorXY = libColor.ColorRGB.fromHex(meta.message.hue_power_on_color).toXY();
                         const xy = {x: utils.mapNumberRange(colorXY.x, 0, 1, 0, 65535), y: utils.mapNumberRange(colorXY.y, 0, 1, 0, 65535)};
+                        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
                         value = xy;
 
                         // Set colortemp to default
@@ -280,7 +284,7 @@ const philipsTz = {
     } satisfies Tz.Converter,
     hue_power_on_error: {
         key: ["hue_power_on_brightness", "hue_power_on_color_temperature", "hue_power_on_color"],
-        convertSet: async (entity, key, value, meta) => {
+        convertSet: (entity, key, value, meta) => {
             if (meta.message.hue_power_on_behavior === undefined) {
                 throw new Error(`Provide a value for 'hue_power_on_behavior'`);
             }
@@ -447,7 +451,7 @@ const philipsFz = {
                 if (options.simulated_brightness) {
                     const opts = options.simulated_brightness;
                     // @ts-expect-error ignore
-                    const deltaOpts = typeof opts === "object" && opts.delta !== undefined ? opts.delta : 35;
+                    const deltaOpts = typeof opts === "object" && opts.delta != null ? opts.delta : 35;
                     const delta = direction === "right" ? deltaOpts : deltaOpts * -1;
                     const brightness = globalStore.getValue(msg.endpoint, "brightness", 255) + delta;
                     payload.brightness = utils.numberWithinRange(brightness, 0, 255);
@@ -470,7 +474,7 @@ const philipsFz = {
         cluster: "manuSpecificPhilips2",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data && msg.data.state !== undefined) {
+            if (msg.data.state !== undefined) {
                 const input = msg.data.state.toString("hex");
                 const decoded = decodeGradientColors(input, {reverse: true});
                 if (decoded.color_mode === "gradient") {
@@ -529,38 +533,47 @@ export function decodeGradientColors(input: string, opts: KeyValue) {
 
     // Device color mode
     const mode = input.slice(0, 4);
+    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
     input = input.slice(4);
 
     // On/off (2 bytes)
     const on = Number.parseInt(input.slice(0, 2), 16) === 1;
+    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
     input = input.slice(2);
 
     // Brightness (2 bytes)
     const brightness = Number.parseInt(input.slice(0, 2), 16);
+    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
     input = input.slice(2);
 
     // Gradient mode
     if (mode === COLOR_MODE_GRADIENT) {
         // Unknown (8 bytes)
+        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         input = input.slice(8);
 
         // Length (2 bytes)
+        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         input = input.slice(2);
 
         // Number of colors (2 bytes)
         const nColors = Number.parseInt(input.slice(0, 2), 16) >> 4;
+        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         input = input.slice(2);
 
         // Unknown (6 bytes)
+        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         input = input.slice(6);
 
         // Colors (6 * nColors bytes)
         const colorsPayload = input.slice(0, 6 * nColors);
+        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         input = input.slice(6 * nColors);
         const colors = colorsPayload.match(/.{6}/g).map(decodeScaledGradientToRGB);
 
         // Segments (2 bytes)
         const segments = Number.parseInt(input.slice(0, 2), 16) >> 3;
+        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         input = input.slice(2);
 
         // Offset (2 bytes)
@@ -582,12 +595,16 @@ export function decodeGradientColors(input: string, opts: KeyValue) {
     if (mode === COLOR_MODE_COLOR_XY || mode === COLOR_MODE_EFFECT) {
         // XY Color mode
         const xLow = Number.parseInt(input.slice(0, 2), 16);
+        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         input = input.slice(2);
         const xHigh = Number.parseInt(input.slice(0, 2), 16) << 8;
+        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         input = input.slice(2);
         const yHigh = Number.parseInt(input.slice(0, 2), 16);
+        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         input = input.slice(2);
         const yLow = Number.parseInt(input.slice(0, 2), 16) << 8;
+        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         input = input.slice(2);
 
         const x = Math.round(((xHigh | xLow) / 65535) * 10000) / 10000;
@@ -619,8 +636,10 @@ export function decodeGradientColors(input: string, opts: KeyValue) {
     if (mode === COLOR_MODE_COLOR_TEMP) {
         // Color temperature mode
         const low = Number.parseInt(input.slice(0, 2), 16);
+        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         input = input.slice(2);
         const high = Number.parseInt(input.slice(0, 2), 16) << 8;
+        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         input = input.slice(2);
 
         const temp = high | low;

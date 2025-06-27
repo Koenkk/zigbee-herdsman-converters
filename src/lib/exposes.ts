@@ -113,15 +113,11 @@ export class Base {
 }
 
 export class Switch extends Base {
+    type = "switch" as const;
     features: Feature[] = [];
 
-    constructor() {
-        super();
-        this.type = "switch";
-    }
-
-    withState(property: string, toggle: string | boolean, description: string, access = a.ALL, value_on = "ON", value_off = "OFF") {
-        const feature = new Binary("state", access, value_on, value_off).withProperty(property).withDescription(description);
+    withState(property: string, toggle: string | boolean, description: string, access = a.ALL, valueOn = "ON", valueOff = "OFF") {
+        const feature = new Binary("state", access, valueOn, valueOff).withProperty(property).withDescription(description);
         if (toggle) {
             feature.withValueToggle("TOGGLE");
         }
@@ -138,12 +134,8 @@ export class Switch extends Base {
 }
 
 export class Lock extends Base {
+    type = "lock" as const;
     features: Feature[] = [];
-
-    constructor() {
-        super();
-        this.type = "lock";
-    }
 
     withState(property: string, valueOn: string, valueOff: string, description: string, access = a.ALL) {
         this.addFeature(new Binary("state", access, valueOn, valueOff).withProperty(property).withDescription(description));
@@ -165,14 +157,17 @@ export class Lock extends Base {
 }
 
 export class Binary extends Base {
+    type = "binary" as const;
     property = "";
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     value_on: string | boolean;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     value_off: string | boolean;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     value_toggle?: string;
 
     constructor(name: string, access: number, valueOn: string | boolean, valueOff: string | boolean) {
         super();
-        this.type = "binary";
         this.name = name;
         this.label = getLabelFromName(name);
         this.property = name;
@@ -195,19 +190,23 @@ export class Binary extends Base {
 }
 
 export class List extends Base {
+    type = "list" as const;
     property = "";
-    item_type: Numeric | Binary | Composite | Text;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    item_type: Numeric | Binary | Composite | Text | Enum;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     length_min?: number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     length_max?: number;
 
-    constructor(name: string, access: number, itemType: Numeric | Binary | Composite | Text) {
+    constructor(name: string, access: number, itemType: Numeric | Binary | Composite | Text | Enum) {
         super();
-        this.type = "list";
         this.name = name;
         this.label = getLabelFromName(name);
         this.property = name;
         this.access = access;
         this.item_type = itemType;
+        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete this.item_type.property;
     }
 
@@ -231,16 +230,19 @@ export class List extends Base {
 }
 
 export class Numeric extends Base {
+    type = "numeric" as const;
     property = "";
     unit?: string;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     value_max?: number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     value_min?: number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     value_step?: number;
     presets?: {name: string; value: number | string; description: string}[];
 
     constructor(name: string, access: number) {
         super();
-        this.type = "numeric";
         this.name = name;
         this.label = getLabelFromName(name);
         this.property = name;
@@ -288,12 +290,12 @@ export class Numeric extends Base {
 }
 
 export class Enum extends Base {
+    type = "enum" as const;
     property = "";
     values: (string | number)[];
 
     constructor(name: string, access: number, values: (string | number)[]) {
         super();
-        this.type = "enum";
         this.name = name;
         this.label = getLabelFromName(name);
         this.property = name;
@@ -309,11 +311,11 @@ export class Enum extends Base {
 }
 
 export class Text extends Base {
+    type = "text" as const;
     property = "";
 
     constructor(name: string, access: number) {
         super();
-        this.type = "text";
         this.name = name;
         this.label = getLabelFromName(name);
         this.property = name;
@@ -328,12 +330,12 @@ export class Text extends Base {
 }
 
 export class Composite extends Base {
+    type = "composite" as const;
     property = "";
     features: Feature[] = [];
 
     constructor(name: string, property: string, access: number) {
         super();
-        this.type = "composite";
         this.property = property;
         this.name = name;
         this.label = getLabelFromName(name);
@@ -353,11 +355,11 @@ export class Composite extends Base {
 }
 
 export class Light extends Base {
+    type = "light" as const;
     features: Feature[] = [];
 
     constructor() {
         super();
-        this.type = "light";
         this.addFeature(new Binary("state", access.ALL, "ON", "OFF").withValueToggle("TOGGLE").withDescription("On/off state of this light"));
     }
 
@@ -376,9 +378,18 @@ export class Light extends Base {
         return this;
     }
 
-    withLevelConfig(disableFeatures: LevelConfigFeatures = []) {
+    withLevelConfig(
+        features: LevelConfigFeatures = [
+            "on_off_transition_time",
+            "on_transition_time",
+            "off_transition_time",
+            "execute_if_off",
+            "on_level",
+            "current_level_startup",
+        ],
+    ) {
         let levelConfig = new Composite("level_config", "level_config", access.ALL);
-        if (!disableFeatures.includes("on_off_transition_time")) {
+        if (features.includes("on_off_transition_time")) {
             levelConfig = levelConfig.withFeature(
                 new Numeric("on_off_transition_time", access.ALL)
                     .withLabel("ON/OFF transition time")
@@ -387,7 +398,7 @@ export class Light extends Base {
                     ),
             );
         }
-        if (!disableFeatures.includes("on_transition_time")) {
+        if (features.includes("on_transition_time")) {
             levelConfig = levelConfig.withFeature(
                 new Numeric("on_transition_time", access.ALL)
                     .withLabel("ON transition time")
@@ -397,7 +408,7 @@ export class Light extends Base {
                     ),
             );
         }
-        if (!disableFeatures.includes("off_transition_time")) {
+        if (features.includes("off_transition_time")) {
             levelConfig = levelConfig.withFeature(
                 new Numeric("off_transition_time", access.ALL)
                     .withLabel("OFF transition time")
@@ -407,14 +418,14 @@ export class Light extends Base {
                     ),
             );
         }
-        if (!disableFeatures.includes("execute_if_off")) {
+        if (features.includes("execute_if_off")) {
             levelConfig = levelConfig.withFeature(
                 new Binary("execute_if_off", access.ALL, true, false).withDescription(
                     'this setting can affect the "on_level", "current_level_startup" or "brightness" setting',
                 ),
             );
         }
-        if (!disableFeatures.includes("on_level")) {
+        if (features.includes("on_level")) {
             levelConfig = levelConfig.withFeature(
                 new Numeric("on_level", access.ALL)
                     .withValueMin(1)
@@ -423,7 +434,7 @@ export class Light extends Base {
                     .withDescription("Specifies the level that shall be applied, when an on/toggle command causes the light to turn on."),
             );
         }
-        if (!disableFeatures.includes("current_level_startup")) {
+        if (features.includes("current_level_startup")) {
             levelConfig = levelConfig.withFeature(
                 new Numeric("current_level_startup", access.ALL)
                     .withValueMin(1)
@@ -441,6 +452,7 @@ export class Light extends Base {
     withColorTemp(range: Range) {
         const rangeProvided = range !== undefined;
         if (range === undefined) {
+            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             range = [150, 500];
         }
 
@@ -455,6 +467,7 @@ export class Light extends Base {
             feature._colorTempRangeProvided = rangeProvided;
         }
 
+        // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
         [
             {name: "coolest", value: range[0], description: "Coolest temperature supported"},
             {name: "cool", value: 250, description: "Cool temperature (250 mireds / 4000 Kelvin)"},
@@ -471,6 +484,7 @@ export class Light extends Base {
 
     withColorTempStartup(range: Range) {
         if (range === undefined) {
+            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             range = [150, 500];
         }
 
@@ -480,6 +494,7 @@ export class Light extends Base {
             .withValueMax(range[1])
             .withDescription("Color temperature after cold power on of this light");
 
+        // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
         [
             {name: "coolest", value: range[0], description: "Coolest temperature supported"},
             {name: "cool", value: 250, description: "Cool temperature (250 mireds / 4000 Kelvin)"},
@@ -527,11 +542,11 @@ export class Light extends Base {
 }
 
 export class Cover extends Base {
+    type = "cover" as const;
     features: Feature[] = [];
 
     constructor() {
         super();
-        this.type = "cover";
         this.addFeature(new Enum("state", a.STATE_SET, ["OPEN", "CLOSE", "STOP"]));
     }
 
@@ -555,12 +570,8 @@ export class Cover extends Base {
 }
 
 export class Fan extends Base {
+    type = "fan" as const;
     features: Feature[] = [];
-
-    constructor() {
-        super();
-        this.type = "fan";
-    }
 
     // For historical reasons (the first fan added also had a light on the same
     // endpoint) the fan state property was called `fan_state` instead of state
@@ -594,12 +605,8 @@ export class Fan extends Base {
 }
 
 export class Climate extends Base {
+    type = "climate" as const;
     features: Feature[] = [];
-
-    constructor() {
-        super();
-        this.type = "climate";
-    }
 
     withSetpoint(property: string, min: number, max: number, step: number, access = a.ALL) {
         assert(
@@ -642,6 +649,7 @@ export class Climate extends Base {
 
     withSystemMode(modes: string[], access = a.ALL, description = "Mode of this device") {
         const allowed = ["off", "heat", "cool", "auto", "dry", "fan_only", "sleep", "emergency_heating"];
+        // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
         modes.forEach((m) => assert(allowed.includes(m)));
         this.addFeature(new Enum("system_mode", access, modes).withDescription(description));
         return this;
@@ -649,6 +657,7 @@ export class Climate extends Base {
 
     withRunningState(modes: string[], access = a.STATE_GET) {
         const allowed = ["idle", "heat", "cool", "fan_only"];
+        // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
         modes.forEach((m) => assert(allowed.includes(m)));
         this.addFeature(new Enum("running_state", access, modes).withDescription("The current running state"));
         return this;
@@ -656,6 +665,7 @@ export class Climate extends Base {
 
     withRunningMode(modes: string[], access = a.STATE_GET) {
         const allowed = ["off", "cool", "heat"];
+        // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
         modes.forEach((m) => assert(allowed.includes(m)));
         this.addFeature(new Enum("running_mode", access, modes).withDescription("The current running mode"));
         return this;
@@ -663,6 +673,7 @@ export class Climate extends Base {
 
     withFanMode(modes: string[], access = a.ALL) {
         const allowed = ["off", "low", "medium", "high", "on", "auto", "smart"];
+        // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
         modes.forEach((m) => assert(allowed.includes(m)));
         this.addFeature(new Enum("fan_mode", access, modes).withDescription("Mode of the fan"));
         return this;
@@ -699,6 +710,7 @@ export class Climate extends Base {
             "cooling_and_heating_4-pipes",
             "cooling_and_heating_4-pipes_with_reheat",
         ];
+        // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
         modes.forEach((m) => assert(allowed.includes(m)));
         this.addFeature(new Enum("control_sequence_of_operation", access, modes).withDescription("Operating environment of the thermostat"));
         return this;
@@ -706,6 +718,7 @@ export class Climate extends Base {
 
     withAcLouverPosition(positions: string[], access = a.ALL) {
         const allowed = ["fully_open", "fully_closed", "half_open", "quarter_open", "three_quarters_open"];
+        // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
         positions.forEach((m) => assert(allowed.includes(m)));
         this.addFeature(
             new Enum("ac_louver_position", access, positions).withLabel("AC louver position").withDescription("AC louver position of this device"),
@@ -715,6 +728,7 @@ export class Climate extends Base {
 
     withWeeklySchedule(modes: string[], access = a.ALL) {
         const allowed = ["heat", "cool"];
+        // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
         modes.forEach((m) => assert(allowed.includes(m)));
 
         const featureDayOfWeek = new List(
@@ -756,11 +770,17 @@ export class Climate extends Base {
  * The access property is a 3-bit bitmask.
  */
 export const access: {
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     STATE: Access;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     SET: Access;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     GET: Access;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     STATE_SET: Access;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     STATE_GET: Access;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     ALL: Access;
 } = {
     /**
@@ -890,10 +910,18 @@ export const options = {
         new Binary("cover_position_tilt_disable_report", access.SET, true, false).withDescription(
             `Do not publish set cover target position as a normal 'position' value (default false).`,
         ),
+    cover_position_percent_fix: () =>
+        new Binary("cover_position_percent_fix", access.SET, true, false).withDescription(
+            "Fixes inverted cover position values on affected modules when enabled (default false).",
+        ),
     local_temperature_based_on_sensor: () =>
         new Binary("local_temperature_based_on_sensor", access.SET, true, false)
             .withLabel("Local temperature sensor reporting")
             .withDescription("Base local temperature on sensor choice (default false)."),
+    unfreeze_support: () =>
+        new Binary("unfreeze_support", access.SET, true, false).withDescription(
+            "Whether to unfreeze IKEA lights (that are known to be frozen) before issuing a command, false: no unfreeze support, true: unfreeze support (default true).",
+        ),
 };
 
 export const presets = {
@@ -906,7 +934,8 @@ export const presets = {
     light: () => new Light(),
     numeric: (name: string, access: number) => new Numeric(name, access),
     text: (name: string, access: number) => new Text(name, access),
-    list: (name: string, access: number, itemType: Feature) => new List(name, access, itemType),
+    list: (name: string, access: number, itemType: Numeric | Binary | Composite | Text | Enum) => new List(name, access, itemType),
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     switch_: () => new Switch(),
     // Specific
     ac_frequency: () =>
@@ -987,8 +1016,7 @@ export const presets = {
     cpu_temperature: () =>
         new Numeric("cpu_temperature", access.STATE).withLabel("CPU temperature").withUnit("°C").withDescription("Temperature of the CPU"),
     cube_side: (name: string) => new Numeric(name, access.STATE).withDescription("Side of the cube").withValueMin(0).withValueMax(6).withValueStep(1),
-    current: () =>
-        new Numeric("current", access.STATE).withUnit("A").withDescription("Instantaneous measured electrical current").withCategory("diagnostic"),
+    current: () => new Numeric("current", access.STATE).withUnit("A").withDescription("Instantaneous measured electrical current"),
     current_phase_b: () =>
         new Numeric("current_phase_b", access.STATE)
             .withLabel("Current phase B")
@@ -999,6 +1027,11 @@ export const presets = {
             .withLabel("Current phase C")
             .withUnit("A")
             .withDescription("Instantaneous measured electrical current on phase C"),
+    current_neutral: () =>
+        new Numeric("current_neutral", access.STATE)
+            .withLabel("Current neutral")
+            .withUnit("A")
+            .withDescription("Instantaneous measured electrical current on neutral"),
     deadzone_temperature: () =>
         new Numeric("deadzone_temperature", access.STATE_SET)
             .withUnit("°C")
@@ -1150,12 +1183,10 @@ export const presets = {
             .withValueMax(5),
     min_temperature: () =>
         new Numeric("min_temperature", access.STATE_SET).withUnit("°C").withDescription("Minimum temperature").withValueMin(1).withValueMax(15),
-    mode_switch_select: (mode_switch_names: string[]) =>
-        new Enum("mode_switch", access.ALL, mode_switch_names).withDescription("Select mode switch to use").withCategory("config"),
-    motion_sensitivity_select: (motion_sensitivity_names: string[]) =>
-        new Enum("motion_sensitivity", access.ALL, motion_sensitivity_names)
-            .withDescription("Select motion sensitivity to use")
-            .withCategory("config"),
+    mode_switch_select: (modeSwitchNames: string[]) =>
+        new Enum("mode_switch", access.ALL, modeSwitchNames).withDescription("Select mode switch to use").withCategory("config"),
+    motion_sensitivity_select: (motionSensitivityNames: string[]) =>
+        new Enum("motion_sensitivity", access.ALL, motionSensitivityNames).withDescription("Select motion sensitivity to use").withCategory("config"),
     noise: () => new Numeric("noise", access.STATE).withUnit("dBA").withDescription("The measured noise value"),
     noise_detected: () => new Binary("noise_detected", access.STATE, true, false).withDescription("Indicates whether the device detected noise"),
     occupancy: () => new Binary("occupancy", access.STATE, true, false).withDescription("Indicates whether the device detected occupancy"),
@@ -1167,8 +1198,8 @@ export const presets = {
             .withDescription("Open window temperature")
             .withValueMin(0)
             .withValueMax(35),
-    operation_mode_select: (operation_mode_names: string[]) =>
-        new Enum("operation_mode", access.ALL, operation_mode_names).withDescription("Select operation mode to use").withCategory("config"),
+    operation_mode_select: (operationModeNames: string[]) =>
+        new Enum("operation_mode", access.ALL, operationModeNames).withDescription("Select operation mode to use").withCategory("config"),
     overload_protection: (min: number, max: number) =>
         new Numeric("overload_protection", access.ALL)
             .withUnit("W")
@@ -1182,17 +1213,9 @@ export const presets = {
     pm25: () =>
         new Numeric("pm25", access.STATE).withLabel("PM25").withUnit("µg/m³").withDescription("Measured PM2.5 (particulate matter) concentration"),
     position: () => new Numeric("position", access.STATE).withUnit("%").withDescription("Position"),
-    power: () => new Numeric("power", access.STATE).withUnit("W").withDescription("Instantaneous measured power").withCategory("diagnostic"),
-    power_phase_b: () =>
-        new Numeric("power_phase_b", access.STATE)
-            .withUnit("W")
-            .withDescription("Instantaneous measured power on phase B")
-            .withCategory("diagnostic"),
-    power_phase_c: () =>
-        new Numeric("power_phase_c", access.STATE)
-            .withUnit("W")
-            .withDescription("Instantaneous measured power on phase C")
-            .withCategory("diagnostic"),
+    power: () => new Numeric("power", access.STATE).withUnit("W").withDescription("Instantaneous measured power"),
+    power_phase_b: () => new Numeric("power_phase_b", access.STATE).withUnit("W").withDescription("Instantaneous measured power on phase B"),
+    power_phase_c: () => new Numeric("power_phase_c", access.STATE).withUnit("W").withDescription("Instantaneous measured power on phase C"),
     power_factor: () => new Numeric("power_factor", access.STATE).withDescription("Instantaneous measured power factor"),
     power_factor_phase_b: () => new Numeric("power_factor_phase_b", access.STATE).withDescription("Instantaneous measured power factor on phase B"),
     power_factor_phase_c: () => new Numeric("power_factor_phase_c", access.STATE).withDescription("Instantaneous measured power factor on phase C"),
@@ -1257,8 +1280,8 @@ export const presets = {
         ]).withDescription("State of the door"),
     tamper: () => new Binary("tamper", access.STATE, true, false).withDescription("Indicates whether the device is tampered"),
     temperature: () => new Numeric("temperature", access.STATE).withUnit("°C").withDescription("Measured temperature value"),
-    temperature_sensor_select: (sensor_names: string[]) =>
-        new Enum("sensor", access.STATE_SET, sensor_names).withDescription("Select temperature sensor to use").withCategory("config"),
+    temperature_sensor_select: (sensorNames: string[]) =>
+        new Enum("sensor", access.STATE_SET, sensorNames).withDescription("Select temperature sensor to use").withCategory("config"),
     test: () => new Binary("test", access.STATE, true, false).withDescription("Indicates whether the device is being tested"),
     trigger_count: (sinceScheduledReport = true) =>
         new Numeric("trigger_count", access.STATE)
@@ -1280,8 +1303,14 @@ export const presets = {
     tilt: () => new Binary("tilt", access.STATE, true, false).withDescription("Indicates whether the device detected tilt"),
     voc: () => new Numeric("voc", access.STATE).withLabel("VOC").withUnit("µg/m³").withDescription("Measured VOC value"),
     voc_index: () => new Numeric("voc_index", access.STATE).withLabel("VOC index").withDescription("VOC index"),
-    voltage: () =>
-        new Numeric("voltage", access.STATE).withUnit("V").withDescription("Measured electrical potential value").withCategory("diagnostic"),
+    pi_heating_demand: () =>
+        new Numeric("pi_heating_demand", access.STATE)
+            .withLabel("PI heating demand")
+            .withValueMin(0)
+            .withValueMax(100)
+            .withUnit("%")
+            .withDescription("Position of the valve (= demanded heat) where 0% is fully closed and 100% is fully open"),
+    voltage: () => new Numeric("voltage", access.STATE).withUnit("V").withDescription("Measured electrical potential value"),
     voltage_phase_b: () =>
         new Numeric("voltage_phase_b", access.STATE)
             .withLabel("Voltage phase B")
@@ -1356,28 +1385,28 @@ export const presets = {
     max_brightness: () => new Numeric("max_brightness", access.ALL).withValueMin(1).withValueMax(255).withDescription("Maximum light brightness"),
 };
 
-const _binary = (name: string, access: number, valueOn: string, valueOff: string) => new Binary(name, access, valueOn, valueOff);
-const _climate = () => new Climate();
-const _composite = (name: string, property: string, access: number) => new Composite(name, property, access);
-const _cover = () => new Cover();
-const _enum = (name: string, access: number, values: string[]) => new Enum(name, access, values);
-const _light = () => new Light();
-const _numeric = (name: string, access: number) => new Numeric(name, access);
-const _switch = () => new Switch();
-const _text = (name: string, access: number) => new Text(name, access);
-const _list = (name: string, access: number, itemType: Feature) => new List(name, access, itemType);
-const _lock = () => new Lock();
+const eBinary = (name: string, access: number, valueOn: string, valueOff: string) => new Binary(name, access, valueOn, valueOff);
+const eClimate = () => new Climate();
+const eComposite = (name: string, property: string, access: number) => new Composite(name, property, access);
+const eCover = () => new Cover();
+const eEnum = (name: string, access: number, values: string[]) => new Enum(name, access, values);
+const eLight = () => new Light();
+const eNumeric = (name: string, access: number) => new Numeric(name, access);
+const eSwitch = () => new Switch();
+const eText = (name: string, access: number) => new Text(name, access);
+const eList = (name: string, access: number, itemType: Numeric | Binary | Composite | Text | Enum) => new List(name, access, itemType);
+const eLock = () => new Lock();
 
 export {
-    _binary as binary,
-    _climate as climate,
-    _composite as composite,
-    _cover as cover,
-    _enum as enum,
-    _light as light,
-    _numeric as numeric,
-    _switch as switch,
-    _text as text,
-    _list as list,
-    _lock as lock,
+    eBinary as binary,
+    eClimate as climate,
+    eComposite as composite,
+    eCover as cover,
+    eEnum as enum,
+    eLight as light,
+    eNumeric as numeric,
+    eSwitch as switch,
+    eText as text,
+    eList as list,
+    eLock as lock,
 };

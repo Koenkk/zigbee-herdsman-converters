@@ -3,7 +3,7 @@ import type {DefinitionWithExtend} from "../lib/types";
 
 export const definitions: DefinitionWithExtend[] = [
     {
-        zigbeeModel: ["FLS-PP3", "FLS-PP3\u0000"],
+        zigbeeModel: ["FLS-PP3", "FLS-PP3\u0000", "FLS-PP3 White\u0000"],
         model: "Mega23M12",
         vendor: "Dresden Elektronik",
         description: "ZigBee Light Link wireless electronic ballast",
@@ -12,6 +12,13 @@ export const definitions: DefinitionWithExtend[] = [
             m.deviceEndpoints({endpoints: {rgb: 10, white: 11}}),
             m.light({colorTemp: {range: undefined}, color: true, endpointNames: ["rgb", "white"]}),
         ],
+    },
+    {
+        zigbeeModel: ["FLS-M"],
+        model: "FLS-M",
+        vendor: "Dresden Elektronik",
+        description: "Universal led controller",
+        extend: [m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4, l5: 5}}), m.light({endpointNames: ["l1", "l2", "l3", "l4", "l5"]})],
     },
     {
         zigbeeModel: ["FLS-CT"],

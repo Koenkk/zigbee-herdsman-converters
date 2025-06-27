@@ -1,8 +1,4 @@
-// In the root of this repo, execute: `npx ts-node scripts/refactor.ts`
-
-import {assert} from "node:console";
-
-import {ArrayLiteralExpression, Project, QuoteKind, SyntaxKind} from "ts-morph";
+import {Project, QuoteKind, SyntaxKind} from "ts-morph";
 
 const project = new Project({
     manipulationSettings: {
@@ -13,6 +9,7 @@ const project = new Project({
 project.addSourceFilesAtPaths("src/devices/*.ts");
 
 //#region Refactor modernExtend temperature() to m.temperature()
+// biome-ignore lint/complexity/noForEach: ignored using `--suppress`
 project.getSourceFiles().forEach((sourceFile) => {
     if (sourceFile.getBaseName() === "index.ts") return;
     console.log(`Handling ${sourceFile.getBaseName()}`);

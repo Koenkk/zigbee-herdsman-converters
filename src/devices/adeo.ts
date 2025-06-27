@@ -26,6 +26,7 @@ const fzLocal = {
 };
 
 const tzLocal = {
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     LDSENK08_sensitivity: {
         key: ["sensitivity"],
         convertSet: async (entity, key, value, meta) => {
@@ -219,6 +220,13 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZBEK-32",
         vendor: "ADEO",
         description: "ENKI Inspire Extraflat D12",
+        extend: [m.light({colorTemp: {range: [153, 370]}, color: true})],
+    },
+    {
+        zigbeeModel: ["ZBEK-33"],
+        model: "ZBEK-33",
+        vendor: "ADEO",
+        description: "ENKI Inspire Extraflat 2400Lumens",
         extend: [m.light({colorTemp: {range: [153, 370]}, color: true})],
     },
     {

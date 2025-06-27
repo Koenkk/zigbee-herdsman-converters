@@ -47,142 +47,16 @@ class ExtendGenerator<T> implements GeneratedExtend {
 
 // Device passed as the first argument mostly to check
 // if passed endpoint(if only one) is the first endpoint in the device.
-type ExtenderGenerator = (device: Zh.Device, endpoints: Zh.Endpoint[]) => Promise<GeneratedExtend[]>;
+type ExtenderGenerator = (device: Zh.Device, endpoints: Zh.Endpoint[]) => Promise<GeneratedExtend[]> | GeneratedExtend[];
 type Extender = [string[], ExtenderGenerator];
 
 type DefinitionWithZigbeeModel = DefinitionWithExtend & {zigbeeModel: string[]};
-
-function generateSource(definition: DefinitionWithZigbeeModel, generatedExtend: GeneratedExtend[]): string {
-    const imports = [...new Set(generatedExtend.map((e) => e.lib ?? "modernExtend"))];
-    const importsStr = imports.map((e) => `const ${e === "modernExtend" ? "m" : e} = require('zigbee-herdsman-converters/lib/${e}');`).join("\n");
-    return `${importsStr}
-
-const definition = {
-    zigbeeModel: ['${definition.zigbeeModel}'],
-    model: '${definition.model}',
-    vendor: '${definition.vendor}',
-    description: 'Automatically generated definition',
-    extend: [${generatedExtend.map((e) => `${e.lib ?? "m"}.${e.getSource()}`).join(", ")}],
-    meta: ${JSON.stringify(definition.meta || {})},
-};
-
-module.exports = definition;`;
-}
-
-export async function generateDefinition(device: Zh.Device): Promise<{externalDefinitionSource: string; definition: DefinitionWithExtend}> {
-    // Map cluster to all endpoints that have this cluster.
-    const mapClusters = (endpoint: ZHModels.Endpoint, clusters: Cluster[], clusterMap: Map<string, ZHModels.Endpoint[]>) => {
-        for (const cluster of clusters) {
-            if (!clusterMap.has(cluster.name)) {
-                clusterMap.set(cluster.name, []);
-            }
-
-            const endpointsWithCluster = clusterMap.get(cluster.name);
-            endpointsWithCluster.push(endpoint);
-        }
-    };
-
-    const knownInputClusters = inputExtenders.flatMap((ext) => ext[0]);
-    const knownOutputClusters = outputExtenders.flatMap((ext) => ext[0]);
-
-    const inputClusterMap = new Map<string, ZHModels.Endpoint[]>();
-    const outputClusterMap = new Map<string, ZHModels.Endpoint[]>();
-
-    for (const endpoint of device.endpoints) {
-        // Filter clusters to leave only the ones that we can generate extenders for.
-        const inputClusters = endpoint.getInputClusters().filter((c) => knownInputClusters.find((known) => known === c.name));
-        const outputClusters = endpoint.getOutputClusters().filter((c) => knownOutputClusters.find((known) => known === c.name));
-
-        mapClusters(endpoint, inputClusters, inputClusterMap);
-        mapClusters(endpoint, outputClusters, outputClusterMap);
-    }
-    // Generate extenders
-    const usedExtenders: Extender[] = [];
-    const generatedExtend: GeneratedExtend[] = [];
-
-    const addGenerators = async (clusterName: string, endpoints: Zh.Endpoint[], extenders: Extender[]) => {
-        const extender = extenders.find((e) => e[0].includes(clusterName));
-        if (!extender || usedExtenders.includes(extender)) {
-            return;
-        }
-        usedExtenders.push(extender);
-        generatedExtend.push(...(await extender[1](device, endpoints)));
-    };
-
-    for (const [cluster, endpoints] of inputClusterMap) {
-        await addGenerators(cluster, endpoints, inputExtenders);
-    }
-
-    for (const [cluster, endpoints] of outputClusterMap) {
-        await addGenerators(cluster, endpoints, outputExtenders);
-    }
-
-    const extenders = generatedExtend.map((e) => e.getExtend());
-    // Generated definition below will provide this.
-    extenders.forEach((extender) => {
-        extender.endpoint = undefined;
-    });
-
-    // Currently multiEndpoint is enabled if device has more then 1 endpoint.
-    // It is possible to better check if device should be considered multiEndpoint
-    // based, for example, on generator arguments(i.e. presence of "endpointNames"),
-    // but this will be enough for now.
-    const endpointsWithoutGreenPower = device.endpoints.filter((e) => e.ID !== 242);
-    const multiEndpoint = endpointsWithoutGreenPower.length > 1;
-
-    if (multiEndpoint) {
-        const endpoints: {[n: string]: number} = {};
-        for (const endpoint of endpointsWithoutGreenPower) {
-            endpoints[endpoint.ID.toString()] = endpoint.ID;
-        }
-        // Add to beginning for better visibility.
-        generatedExtend.unshift(new ExtendGenerator({extend: m.deviceEndpoints, args: {endpoints}, source: "deviceEndpoints"}));
-        extenders.unshift(generatedExtend[0].getExtend());
-    }
-
-    const definition: DefinitionWithExtend = {
-        zigbeeModel: [device.modelID],
-        model: device.modelID ?? "",
-        vendor: device.manufacturerName ?? "",
-        description: "Automatically generated definition",
-        extend: extenders,
-        generated: true,
-    };
-
-    if (multiEndpoint) {
-        definition.meta = {multiEndpoint};
-    }
-
-    const externalDefinitionSource = generateSource(definition, generatedExtend);
-    return {externalDefinitionSource, definition};
-}
-
-function stringifyEps(endpoints: ZHModels.Endpoint[]): string[] {
-    return endpoints.map((e) => e.ID.toString());
-}
-
-// This function checks if provided array of endpoints contain
-// only first device endpoint, which is passed in as `firstEndpoint`.
-function onlyFirstDeviceEnpoint(device: Zh.Device, endpoints: ZHModels.Endpoint[]): boolean {
-    return endpoints.length === 1 && endpoints[0].ID === device.endpoints[0].ID;
-}
-
-// maybeEndpoints returns either `toExtend` if only first device endpoint is provided
-// as `endpoints`, or `endpointNames` with `toExtend`.
-// This allows to drop unnecessary `endpointNames` argument if it is not needed.
-function maybeEndpointArgs<T>(device: Zh.Device, endpoints: Zh.Endpoint[], toExtend?: T): T | undefined {
-    if (onlyFirstDeviceEnpoint(device, endpoints)) {
-        return toExtend;
-    }
-
-    return {endpointNames: stringifyEps(endpoints), ...toExtend};
-}
 
 // If generator will have endpoint argument - generator implementation
 // should not provide it if only the first device endpoint is passed in.
 // If multiple endpoints provided(maybe including the first device endpoint) -
 // they all should be passed as an argument, where possible, to be explicit.
-const inputExtenders: Extender[] = [
+const INPUT_EXTENDERS: Extender[] = [
     [
         ["msTemperatureMeasurement"],
         async (d, eps) => [new ExtendGenerator({extend: m.temperature, args: maybeEndpointArgs(d, eps), source: "temperature"})],
@@ -228,7 +102,7 @@ const inputExtenders: Extender[] = [
     [["genBinaryOutput"], extenderBinaryOutput],
 ];
 
-const outputExtenders: Extender[] = [
+const OUTPUT_EXTENDERS: Extender[] = [
     [["genOnOff"], async (d, eps) => [new ExtendGenerator({extend: m.commandsOnOff, args: maybeEndpointArgs(d, eps), source: "commandsOnOff"})]],
     [
         ["genLevelCtrl"],
@@ -245,6 +119,161 @@ const outputExtenders: Extender[] = [
         ],
     ],
 ];
+
+function generateSource(definition: DefinitionWithZigbeeModel, generatedExtend: GeneratedExtend[]): string {
+    const imports = [...new Set(generatedExtend.map((e) => e.lib ?? "modernExtend"))];
+    const importsStr = imports.map((e) => `import * as ${e === "modernExtend" ? "m" : e} from 'zigbee-herdsman-converters/lib/${e}';`).join("\n");
+    return `${importsStr}
+
+export default {
+    zigbeeModel: ['${definition.zigbeeModel}'],
+    model: '${definition.model}',
+    vendor: '${definition.vendor}',
+    description: 'Automatically generated definition',
+    extend: [${generatedExtend.map((e) => `${e.lib ?? "m"}.${e.getSource()}`).join(", ")}],
+    meta: ${JSON.stringify(definition.meta || {})},
+};
+`;
+}
+
+function generateGreenPowerSource(definition: DefinitionWithExtend, ieeeAddr: string): string {
+    return `import {genericGreenPower} from 'zigbee-herdsman-converters/lib/modernExtend';
+
+export default {
+    fingerprint: [{modelID: '${definition.model}', ieeeAddr: new RegExp('^${ieeeAddr}$')}],
+    model: '${definition.model}',
+    vendor: '${definition.vendor}',
+    description: 'Automatically generated definition for Green Power',
+    extend: [genericGreenPower()],
+};`;
+}
+
+export async function generateDefinition(device: Zh.Device): Promise<{externalDefinitionSource: string; definition: DefinitionWithExtend}> {
+    if (device.type === "GreenPower") {
+        return generateGreenPowerDefinition(device);
+    }
+
+    // Map cluster to all endpoints that have this cluster.
+    const mapClusters = (endpoint: ZHModels.Endpoint, clusters: Cluster[], clusterMap: Map<string, ZHModels.Endpoint[]>) => {
+        for (const cluster of clusters) {
+            if (!clusterMap.has(cluster.name)) {
+                clusterMap.set(cluster.name, []);
+            }
+
+            const endpointsWithCluster = clusterMap.get(cluster.name);
+            endpointsWithCluster.push(endpoint);
+        }
+    };
+
+    const knownInputClusters = INPUT_EXTENDERS.flatMap((ext) => ext[0]);
+    const knownOutputClusters = OUTPUT_EXTENDERS.flatMap((ext) => ext[0]);
+
+    const inputClusterMap = new Map<string, ZHModels.Endpoint[]>();
+    const outputClusterMap = new Map<string, ZHModels.Endpoint[]>();
+
+    for (const endpoint of device.endpoints) {
+        // Filter clusters to leave only the ones that we can generate extenders for.
+        const inputClusters = endpoint.getInputClusters().filter((c) => knownInputClusters.find((known) => known === c.name));
+        const outputClusters = endpoint.getOutputClusters().filter((c) => knownOutputClusters.find((known) => known === c.name));
+
+        mapClusters(endpoint, inputClusters, inputClusterMap);
+        mapClusters(endpoint, outputClusters, outputClusterMap);
+    }
+    // Generate extenders
+    const usedExtenders: Extender[] = [];
+    const generatedExtend: GeneratedExtend[] = [];
+
+    const addGenerators = async (clusterName: string, endpoints: Zh.Endpoint[], extenders: Extender[]) => {
+        const extender = extenders.find((e) => e[0].includes(clusterName));
+        if (!extender || usedExtenders.includes(extender)) {
+            return;
+        }
+        usedExtenders.push(extender);
+        generatedExtend.push(...(await extender[1](device, endpoints)));
+    };
+
+    for (const [cluster, endpoints] of inputClusterMap) {
+        await addGenerators(cluster, endpoints, INPUT_EXTENDERS);
+    }
+
+    for (const [cluster, endpoints] of outputClusterMap) {
+        await addGenerators(cluster, endpoints, OUTPUT_EXTENDERS);
+    }
+
+    const extenders = generatedExtend.map((e) => e.getExtend());
+    // Generated definition below will provide this.
+    for (const extender of extenders) {
+        extender.endpoint = undefined;
+    }
+
+    // Currently multiEndpoint is enabled if device has more then 1 endpoint.
+    // It is possible to better check if device should be considered multiEndpoint
+    // based, for example, on generator arguments(i.e. presence of "endpointNames"),
+    // but this will be enough for now.
+    const endpointsWithoutGreenPower = device.endpoints.filter((e) => e.ID !== 242);
+    const multiEndpoint = endpointsWithoutGreenPower.length > 1;
+
+    if (multiEndpoint) {
+        const endpoints: {[n: string]: number} = {};
+        for (const endpoint of endpointsWithoutGreenPower) {
+            endpoints[endpoint.ID.toString()] = endpoint.ID;
+        }
+        // Add to beginning for better visibility.
+        generatedExtend.unshift(new ExtendGenerator({extend: m.deviceEndpoints, args: {endpoints}, source: "deviceEndpoints"}));
+        extenders.unshift(generatedExtend[0].getExtend());
+    }
+
+    const definition: DefinitionWithExtend = {
+        zigbeeModel: [device.modelID],
+        model: device.modelID ?? "",
+        vendor: device.manufacturerName ?? "",
+        description: "Automatically generated definition",
+        extend: extenders,
+        generated: true,
+    };
+
+    if (multiEndpoint) {
+        definition.meta = {multiEndpoint};
+    }
+
+    const externalDefinitionSource = generateSource(definition, generatedExtend);
+    return {externalDefinitionSource, definition};
+}
+
+export function generateGreenPowerDefinition(device: Zh.Device): {externalDefinitionSource: string; definition: DefinitionWithExtend} {
+    const definition: DefinitionWithExtend = {
+        fingerprint: [{modelID: device.modelID, ieeeAddr: new RegExp(`^${device.ieeeAddr}$`)}],
+        model: device.modelID ?? "",
+        vendor: device.manufacturerName ?? "",
+        description: "Automatically generated definition for Green Power",
+        extend: [m.genericGreenPower()],
+        generated: true,
+    };
+
+    const externalDefinitionSource = generateGreenPowerSource(definition, device.ieeeAddr);
+    return {externalDefinitionSource, definition};
+}
+
+function stringifyEps(endpoints: ZHModels.Endpoint[]): string[] {
+    return endpoints.map((e) => e.ID.toString());
+}
+
+// This function checks if provided array of endpoints contain
+// only first device endpoint, which is passed in as `firstEndpoint`.
+function onlyFirstDeviceEnpoint(device: Zh.Device, endpoints: ZHModels.Endpoint[]): boolean {
+    return endpoints.length === 1 && endpoints[0].ID === device.endpoints[0].ID;
+}
+
+// maybeEndpoints returns either `toExtend` if only first device endpoint is provided
+// as `endpoints`, or `endpointNames` with `toExtend`.
+// This allows to drop unnecessary `endpointNames` argument if it is not needed.
+function maybeEndpointArgs<T>(device: Zh.Device, endpoints: Zh.Endpoint[], toExtend?: T): T | undefined {
+    if (onlyFirstDeviceEnpoint(device, endpoints)) {
+        return toExtend;
+    }
+
+    return {endpointNames: stringifyEps(endpoints), ...toExtend};
+}
 
 async function extenderLock(device: Zh.Device, endpoints: Zh.Endpoint[]): Promise<GeneratedExtend[]> {
     // TODO: Support multiple endpoints
@@ -309,7 +338,7 @@ async function extenderOnOffLight(device: Zh.Device, endpoints: Zh.Endpoint[]): 
     return generated;
 }
 
-async function extenderElectricityMeter(device: Zh.Device, endpoints: Zh.Endpoint[]): Promise<GeneratedExtend[]> {
+function extenderElectricityMeter(device: Zh.Device, endpoints: Zh.Endpoint[]): GeneratedExtend[] {
     // TODO: Support multiple endpoints
     if (endpoints.length > 1) {
         logger.warning("extenderElectricityMeter can accept only one endpoint", NS);

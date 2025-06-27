@@ -60,6 +60,7 @@ function getSortedList(source: {[key: string]: number}): string[] {
     });
 
     const result: string[] = [];
+    // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
     keysSorted.forEach((item) => {
         result.push(item[0]);
     });
@@ -82,7 +83,9 @@ const tzLocal = {
             await entity.read("genOnOffSwitchCfg", ["buttonMode", 0x4001, 0x4002]);
         },
         convertSet: async (entity, key, value, meta) => {
+            // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
             let payload;
+            // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
             let data;
             switch (key) {
                 case "button_mode":
@@ -107,9 +110,9 @@ const tzLocal = {
             const state = utils.isString(meta.message.state) ? meta.message.state.toLowerCase() : null;
             utils.validateValue(state, ["toggle", "off", "on"]);
 
-            if (state === "on" && (meta.message.on_time !== undefined || meta.message.off_wait_time !== undefined)) {
-                const onTime = meta.message.on_time !== undefined ? meta.message.on_time : 0;
-                const offWaitTime = meta.message.off_wait_time !== undefined ? meta.message.off_wait_time : 0;
+            if (state === "on" && (meta.message.on_time != null || meta.message.off_wait_time != null)) {
+                const onTime = meta.message.on_time != null ? meta.message.on_time : 0;
+                const offWaitTime = meta.message.off_wait_time != null ? meta.message.off_wait_time : 0;
 
                 if (typeof onTime !== "number") {
                     throw Error("The on_time value must be a number!");
@@ -156,6 +159,7 @@ const tzLocal = {
             }
         },
     } satisfies Tz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     ZigDC_interval: {
         key: ["interval"],
         convertSet: async (entity, key, value, meta) => {
@@ -175,13 +179,16 @@ const tzLocal = {
             return;
         },
     } satisfies Tz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     ZigDC_input_config: {
         key: ["switch_type", "switch_actions", "bind_command"],
         convertGet: async (entity, key, meta) => {
             await entity.read("genOnOffSwitchCfg", ["switchType", "switchActions", 0x4001, 0x4002]);
         },
         convertSet: async (entity, key, value, meta) => {
+            // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
             let payload;
+            // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
             let data;
             switch (key) {
                 case "switch_type":
@@ -288,6 +295,7 @@ const fzLocal = {
             }
         },
     } satisfies Fz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     ZigDC_ina3221: {
         cluster: "genAnalogInput",
         type: ["attributeReport", "readResponse"],
@@ -317,6 +325,7 @@ const fzLocal = {
             return payload;
         },
     } satisfies Fz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     ZigDC_uptime: {
         cluster: "genAnalogInput",
         type: ["attributeReport", "readResponse"],
@@ -331,6 +340,7 @@ const fzLocal = {
             return payload;
         },
     } satisfies Fz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     ZigDC_input_config: {
         cluster: "genOnOffSwitchCfg",
         type: ["readResponse", "attributeReport"],

@@ -1,6 +1,10 @@
 {
     "$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
-    "vcs": { "enabled": true, "clientKind": "git", "useIgnoreFile": true },
+    "vcs": {
+        "enabled": true,
+        "clientKind": "git",
+        "useIgnoreFile": true
+    },
     "formatter": {
         "indentStyle": "space",
         "indentWidth": 4,
@@ -12,20 +16,33 @@
     },
     "linter": {
         "rules": {
-            "style": {
-                "noNonNullAssertion": "off",
-                "noParameterAssign": "off"
-            },
-            "complexity": {
-                "noForEach": "off"
-            },
-            "performance": {
-                "noDelete": "off",
-                "noAccumulatingSpread": "off"
-            },
             "suspicious": {
-                "noImplicitAnyLet": "off",
-                "noExplicitAny": "off"
+                "useAwait": "error"
+            },
+            "correctness": {
+                "noUnusedImports": "error"
+            },
+            "style": {
+                "useNamingConvention": {
+                    "level": "error",
+                    "options": {
+                        "strictCase": false,
+                        "conventions": [
+                            {
+                                "selector": {
+                                    "kind": "objectLiteralProperty"
+                                },
+                                "formats": ["snake_case", "camelCase", "CONSTANT_CASE", "PascalCase"]
+                            },
+                            {
+                                "selector": {
+                                    "kind": "const"
+                                },
+                                "formats": ["snake_case", "camelCase", "CONSTANT_CASE", "PascalCase"]
+                            }
+                        ]
+                    }
+                }
             }
         }
     }

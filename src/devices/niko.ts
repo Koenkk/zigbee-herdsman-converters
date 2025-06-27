@@ -480,14 +480,20 @@ export const definitions: DefinitionWithExtend[] = [
         model: "552-72201",
         vendor: "Niko",
         description: "Connectable dimmer",
-        fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.command_move, fz.command_stop],
-        toZigbee: [tz.light_onoff_brightness, tz.level_config],
-        exposes: [e.light_brightness().withLevelConfig()],
+        fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.command_move, fz.command_stop, local.fz.switch_status_led],
+        toZigbee: [tz.light_onoff_brightness, tz.level_config, local.tz.switch_led_enable, local.tz.switch_led_state],
+        extend: [local.modernExtend.addCustomClusterManuSpecificNikoConfig(), local.modernExtend.addCustomClusterManuSpecificNikoState()],
+        exposes: [
+            e.light_brightness().withLevelConfig(),
+            e.binary("led_enable", ea.ALL, true, false).withDescription("Enable LED"),
+            e.enum("led_state", ea.ALL, ["ON", "OFF", "Blue", "Red", "Purple"]).withDescription("LED State"),
+        ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "genLevelCtrl"]);
             await reporting.onOff(endpoint);
             await reporting.brightness(endpoint);
+            await endpoint.read("manuSpecificNikoConfig", ["outletLedState", "outletLedColor"]);
         },
     },
     {

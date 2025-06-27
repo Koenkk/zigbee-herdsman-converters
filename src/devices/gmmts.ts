@@ -1741,6 +1741,7 @@ const ticmeterCustomCluster = {
         powerMaxInjectedYesterday: {ID: 0x0018, type: Zcl.DataType.UINT32},
         //
         injectedLoadN: {ID: 0x0019, type: Zcl.DataType.UINT16},
+        // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
         injectedLoadN_1: {ID: 0x001a, type: Zcl.DataType.UINT16},
         //
         startEJP1: {ID: 0x001c, type: Zcl.DataType.UINT64},
@@ -1810,9 +1811,11 @@ function toSnakeCase(str: string) {
 function ticmeterConverter(msg: Fz.Message) {
     const result: KeyValue = {};
     const keys = Object.keys(msg.data);
+    // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
     keys.forEach((key) => {
         const found = ticmeterDatas.find((x) => x.attr === key);
         if (found) {
+            // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
             let value;
             switch (found.type) {
                 case STRING:
@@ -1928,6 +1931,7 @@ async function poll(endpoint: Zh.Endpoint, device: ZHModels.Device) {
 
     toRead = toRead.sort((a, b) => a.clust.localeCompare(b.clust));
     const groupedByCluster: {[key: string]: TICMeterData[]} = {};
+    // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
     toRead.forEach((item) => {
         if (!groupedByCluster[item.clust]) {
             groupedByCluster[item.clust] = [];
@@ -2036,7 +2040,7 @@ export const definitions: DefinitionWithExtend[] = [
                 }
             }
 
-            if (options && options.contract_type !== undefined && options.contract_type !== "AUTO") {
+            if (options?.contract_type != null && options.contract_type !== "AUTO") {
                 currentContract = String(options.contract_type);
                 logger.debug(`contract: ${currentContract}`, "TICMeter");
             } else {
@@ -2048,7 +2052,7 @@ export const definitions: DefinitionWithExtend[] = [
                 }
             }
 
-            if (options && options.linky_elec !== undefined && options.linky_elec !== "AUTO") {
+            if (options?.linky_elec != null && options.linky_elec !== "AUTO") {
                 currentElec = String(options.linky_elec);
                 logger.debug(`Manual elec: ${currentElec}`, "TICMeter");
             } else {
@@ -2060,7 +2064,7 @@ export const definitions: DefinitionWithExtend[] = [
                 }
             }
 
-            if (options && options.tic_mode !== undefined && options.tic_mode !== "AUTO") {
+            if (options?.tic_mode != null && options.tic_mode !== "AUTO") {
                 currentTIC = String(options.tic_mode);
                 logger.debug(`Manual tic: ${currentTIC}`, "TICMeter");
             } else {
@@ -2072,7 +2076,7 @@ export const definitions: DefinitionWithExtend[] = [
                 }
             }
 
-            if (options && options.producer !== undefined && options.producer !== "AUTO") {
+            if (options?.producer != null && options.producer !== "AUTO") {
                 currentProducer = String(options.producer);
                 logger.debug(`Manual producer: ${currentProducer}`, "TICMeter");
             } else {
@@ -2083,7 +2087,7 @@ export const definitions: DefinitionWithExtend[] = [
                 }
             }
 
-            if (options && options.translation !== undefined) {
+            if (options?.translation != null) {
                 translation = String(options.translation);
             } else {
                 translation = TRANSLATION_FR;
@@ -2095,6 +2099,7 @@ export const definitions: DefinitionWithExtend[] = [
             globalStore.putValue(device, "producer", currentProducer);
             globalStore.putValue(device, "translation", translation);
 
+            // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
             ticmeterDatas.forEach((item) => {
                 let contractOK = false;
                 let elecOK = false;
@@ -2172,7 +2177,7 @@ export const definitions: DefinitionWithExtend[] = [
             });
             logger.debug(`Exposes ${exposes.length} attributes`, "TICMeter");
 
-            if (options.translation !== undefined) {
+            if (options.translation != null) {
                 switch (options.translation) {
                     case TRANSLATION_FR:
                         for (let i = 0; i < ticmeterOptions.length; i++) {
@@ -2225,6 +2230,7 @@ export const definitions: DefinitionWithExtend[] = [
 
             logger.debug(`Configure wanted ${wanted.length}`, "TICMeter");
 
+            // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
             endpoint.configuredReportings.forEach(async (r) => {
                 await endpoint.configureReporting(
                     r.cluster.name,
@@ -2252,7 +2258,7 @@ export const definitions: DefinitionWithExtend[] = [
                     try {
                         await config;
                     } catch (error) {
-                        if (error.message.includes("UNSUPPORTED_ATTRIBUTE")) {
+                        if ((error as Error).message.includes("UNSUPPORTED_ATTRIBUTE")) {
                             // ignore: sometimes the attribute is not supported
                         } else {
                             logger.warning(`Configure failed: ${error}`, "TICMeter");
@@ -2280,6 +2286,7 @@ export const definitions: DefinitionWithExtend[] = [
                     globalStore.putValue(device, "elec_mode", elecMode);
                 }
                 if (data.data.contractType !== undefined) {
+                    // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
                     let contractType;
                     if (Buffer.isBuffer(data.data.contractType)) {
                         contractType = data.data.contractType.toString();
@@ -2294,7 +2301,7 @@ export const definitions: DefinitionWithExtend[] = [
                 clearInterval(globalStore.getValue(device, "interval"));
                 globalStore.clearValue(device, "interval");
             } else if (!intervalDefined) {
-                // periodic scan for non-reportable attributs
+                // periodic scan for non-reportable attributes
                 const seconds: number = options?.refresh_rate ? Number(options.refresh_rate) : DEFAULT_POLL_INTERVAL;
                 const interval = setInterval(async () => {
                     try {

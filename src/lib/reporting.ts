@@ -1,5 +1,3 @@
-/* eslint camelcase: 0 */
-
 import {repInterval} from "./constants";
 import type {Reporting, Zh} from "./types";
 
@@ -168,6 +166,10 @@ export const thermostatUnoccupiedCoolingSetpoint = async (endpoint: Zh.Endpoint,
 };
 export const thermostatPIHeatingDemand = async (endpoint: Zh.Endpoint, overrides?: Reporting.Override) => {
     const p = payload("pIHeatingDemand", 0, repInterval.HOUR, 10, overrides);
+    await endpoint.configureReporting("hvacThermostat", p);
+};
+export const thermostatPICoolingDemand = async (endpoint: Zh.Endpoint, overrides?: Reporting.Override) => {
+    const p = payload("pICoolingDemand", 0, repInterval.HOUR, 10, overrides);
     await endpoint.configureReporting("hvacThermostat", p);
 };
 export const thermostatRunningState = async (endpoint: Zh.Endpoint, overrides?: Reporting.Override) => {

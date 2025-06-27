@@ -359,6 +359,7 @@ export const definitions: DefinitionWithExtend[] = [
                 const deviceConfigArray = deviceConfig.split(/[\r\n]+/);
                 const allEndpoints: {[key: number]: string} = {};
                 const allEndpointsSorted = [];
+                // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
                 let epConfig;
                 for (let i = 0; i < deviceConfigArray.length; i++) {
                     epConfig = deviceConfigArray[i];
@@ -535,17 +536,18 @@ export const definitions: DefinitionWithExtend[] = [
         },
         meta: {multiEndpoint: true, tuyaThermostatPreset: legacy.fz /* for subclassed custom converters */},
         endpoint: (device) => {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            // biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
             const endpointList: any = [];
             const deviceConfig = ptvoGetMetaOption(device, "device_config", "");
+            if (device?.endpoints) {
+                for (const endpoint of device.endpoints) {
+                    const epId = endpoint.ID;
+                    const epName = `l${epId}`;
+                    endpointList[epName] = epId;
+                }
+            }
             if (deviceConfig === "") {
-                if (device?.endpoints) {
-                    for (const endpoint of device.endpoints) {
-                        const epId = endpoint.ID;
-                        const epName = `l${epId}`;
-                        endpointList[epName] = epId;
-                    }
-                } else {
+                if (endpointList.length === 0) {
                     // fallback code
                     for (let epId = 1; epId <= 8; epId++) {
                         const epName = `l${epId}`;
@@ -553,12 +555,16 @@ export const definitions: DefinitionWithExtend[] = [
                     }
                 }
             } else {
-                for (let i = 0; i < deviceConfig.length; i++) {
-                    const epConfig = deviceConfig.charCodeAt(i);
-                    if (epConfig === 0x20) {
+                const deviceConfigArray = deviceConfig.split(/[\r\n]+/);
+                // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
+                let epConfig;
+                for (let i = 0; i < deviceConfigArray.length; i++) {
+                    epConfig = deviceConfigArray[i];
+                    const matches = epConfig.match(/^([0-9A-F]+)/);
+                    if (!matches || matches.length === 0) {
                         continue;
                     }
-                    const epId = i + 1;
+                    const epId = Number.parseInt(matches[0], 16);
                     const epName = `l${epId}`;
                     endpointList[epName] = epId;
                 }
@@ -730,7 +736,7 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.humidity(endpoint);
             await reporting.soil_moisture(endpoint);
         },
-        extend: [m.illuminance()],
+        extend: [m.illuminance(), m.identify()],
     },
     {
         zigbeeModel: ["MULTI-ZIG-SW"],
@@ -970,124 +976,6 @@ export const definitions: DefinitionWithExtend[] = [
             }),
         ],
         ota: true,
-    },
-    {
-        zigbeeModel: ["MHO-C401N-z"],
-        model: "MHO-C401N-z",
-        vendor: "Xiaomi",
-        description: "E-Ink temperature & humidity sensor with custom firmware (pvxx/ZigbeeTLc)",
-        extend: [
-            m.quirkAddEndpointCluster({
-                endpointID: 1,
-                outputClusters: [],
-                inputClusters: ["genPowerCfg", "msTemperatureMeasurement", "msRelativeHumidity", "hvacUserInterfaceCfg"],
-            }),
-            m.battery({percentage: true}),
-            m.temperature({reporting: {min: 10, max: 300, change: 10}, access: "STATE"}),
-            m.humidity({reporting: {min: 2, max: 300, change: 50}, access: "STATE"}),
-            m.enumLookup({
-                name: "temperature_display_mode",
-                lookup: {celsius: 0, fahrenheit: 1},
-                cluster: "hvacUserInterfaceCfg",
-                attribute: {ID: 0x0000, type: Zcl.DataType.ENUM8},
-                description: "The units of the temperature displayed on the device screen.",
-            }),
-            m.binary({
-                name: "smiley",
-                valueOn: ["SHOW", 0],
-                valueOff: ["HIDE", 1],
-                cluster: "hvacUserInterfaceCfg",
-                attribute: {ID: 0x0002, type: Zcl.DataType.ENUM8},
-                description: "Whether to show a smiley on the device screen.",
-            }),
-            m.numeric({
-                name: "temperature_calibration",
-                unit: "°C",
-                cluster: "hvacUserInterfaceCfg",
-                attribute: {ID: 0x0100, type: Zcl.DataType.INT16},
-                valueMin: -12.7,
-                valueMax: 12.7,
-                valueStep: 0.01,
-                scale: 10,
-                description: "The temperature calibration, in 0.01° steps.",
-            }),
-            m.numeric({
-                name: "humidity_calibration",
-                unit: "%",
-                cluster: "hvacUserInterfaceCfg",
-                attribute: {ID: 0x0101, type: Zcl.DataType.INT16},
-                valueMin: -12.7,
-                valueMax: 12.7,
-                valueStep: 0.01,
-                scale: 10,
-                description: "The humidity offset is set in 0.01 % steps.",
-            }),
-            m.numeric({
-                name: "comfort_temperature_min",
-                unit: "°C",
-                cluster: "hvacUserInterfaceCfg",
-                attribute: {ID: 0x0102, type: Zcl.DataType.INT16},
-                valueMin: -127.0,
-                valueMax: 127.0,
-                scale: 100,
-                description: "Comfort parameters/Temperature minimum, in 1°C steps.",
-            }),
-            m.numeric({
-                name: "comfort_temperature_max",
-                unit: "°C",
-                cluster: "hvacUserInterfaceCfg",
-                attribute: {ID: 0x0103, type: Zcl.DataType.INT16},
-                valueMin: -127.0,
-                valueMax: 127.0,
-                scale: 100,
-                description: "Comfort parameters/Temperature maximum, in 1°C steps.",
-            }),
-            m.numeric({
-                name: "comfort_humidity_min",
-                unit: "%",
-                cluster: "hvacUserInterfaceCfg",
-                attribute: {ID: 0x0104, type: Zcl.DataType.UINT16},
-                valueMin: 0.0,
-                valueMax: 100.0,
-                scale: 100,
-                description: "Comfort parameters/Humidity minimum, in 1% steps.",
-            }),
-            m.numeric({
-                name: "comfort_humidity_max",
-                unit: "%",
-                cluster: "hvacUserInterfaceCfg",
-                attribute: {ID: 0x0105, type: Zcl.DataType.UINT16},
-                valueMin: 0.0,
-                valueMax: 100.0,
-                scale: 100,
-                description: "Comfort parameters/Humidity maximum, in 1% steps.",
-            }),
-            m.numeric({
-                name: "measurement_interval",
-                unit: "s",
-                cluster: "hvacUserInterfaceCfg",
-                attribute: {ID: 0x0107, type: Zcl.DataType.UINT8},
-                valueMin: 3,
-                valueMax: 255,
-                description: "Measurement interval, default 10 seconds.",
-            }),
-        ],
-        ota: true,
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            const bindClusters = ["msTemperatureMeasurement", "msRelativeHumidity", "genPowerCfg"];
-            await reporting.bind(endpoint, coordinatorEndpoint, bindClusters);
-            await reporting.temperature(endpoint, {min: 10, max: 300, change: 10});
-            await reporting.humidity(endpoint, {min: 10, max: 300, change: 50});
-            await reporting.batteryPercentageRemaining(endpoint);
-            try {
-                await endpoint.read("hvacThermostat", [0x0010, 0x0011, 0x0102, 0x0103, 0x0104, 0x0105, 0x0107]);
-                await endpoint.read("msTemperatureMeasurement", [0x0010]);
-                await endpoint.read("msRelativeHumidity", [0x0010]);
-            } catch {
-                /* backward compatibility */
-            }
-        },
     },
     {
         zigbeeModel: ["QUAD-ZIG-SW"],

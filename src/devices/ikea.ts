@@ -222,7 +222,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         model: "LED1624G9",
         vendor: "IKEA",
-        description: "TRADFRI bulb E12/E14/E26/E27, color/white spectum, globe, opal, 600 lm",
+        description: "TRADFRI bulb E12/E14/E26/E27, color/white spectrum, globe, opal, 600 lm",
         extend: [
             addCustomClusterManuSpecificIkeaUnknown(),
             ikeaLight({colorTemp: {range: [153, 500], viaColor: true}, color: true}), // light is pure RGB (XY), advertise 2000K-6500K
@@ -363,10 +363,10 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight(), m.identify()],
     },
     {
-        zigbeeModel: ["TRADFRI bulb GU10 CWS 345lm", "TRADFRI bulb GU10 CWS 380lm"],
+        zigbeeModel: ["TRADFRI bulb GU10 CWS 380lm"],
         model: "LED1923R5",
         vendor: "IKEA",
-        description: "TRADFRI bulb GU10, color/white spectrum, 345/380 lm",
+        description: "TRADFRI bulb GU10, color/white spectrum, 380 lm",
         extend: [
             addCustomClusterManuSpecificIkeaUnknown(),
             ikeaLight({colorTemp: {range: [153, 500], viaColor: true}, color: true}), // light is pure RGB (XY), advertise 2000K-6500K
@@ -385,6 +385,13 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "IKEA",
         description: "TRADFRI bulb GU10, white spectrum, 345/380 lm",
         extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({colorTemp: true}), m.identify()],
+    },
+    {
+        zigbeeModel: ["TRADFRI bulb GU10 CWS 345lm"],
+        model: "LED2110R3",
+        vendor: "IKEA",
+        description: "TRADFRI bulb GU10, color/white spectrum, 345 lm",
+        extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({colorTemp: {range: [250, 454], viaColor: true}, color: true}), m.identify()],
     },
     // #endregion GU10
     // #region light panels
@@ -431,7 +438,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({colorTemp: true}), m.identify()],
     },
     {
-        zigbeeModel: ["JETSTROM 6060"],
+        zigbeeModel: ["JETSTROM 6060", "JETSTROM 6060 JP"],
         model: "L2207",
         vendor: "IKEA",
         description: "JETSTROM ceiling light panel, white spectrum, 60x60 cm",
@@ -840,12 +847,12 @@ export const definitions: DefinitionWithExtend[] = [
             m.commandsOnOff({commands: ["toggle"]}),
             ikeaMediaCommands(),
             ikeaDotsClick({endpointNames: ["1", "2"], dotsPrefix: true}),
-            m.battery({voltage: true}),
+            m.battery({voltage: true, voltageReporting: true}),
         ],
         ota: true,
     },
     {
-        zigbeeModel: ["RODRET Dimmer"],
+        zigbeeModel: ["RODRET Dimmer", "RODRET wireless dimmer"],
         model: "E2201",
         vendor: "IKEA",
         description: "RODRET wireless dimmer/power switch",
@@ -855,7 +862,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.identify({isSleepy: true}),
             m.commandsOnOff({commands: ["on", "off"]}),
             m.commandsLevelCtrl({commands: ["brightness_move_up", "brightness_move_down", "brightness_stop"]}),
-            m.battery(),
+            m.battery({voltage: true, voltageReporting: true}),
         ],
         ota: true,
     },
@@ -870,7 +877,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.deviceEndpoints({endpoints: {"1": 1, "2": 2}}),
             m.identify({isSleepy: true}),
             ikeaDotsClick({endpointNames: ["1", "2"]}),
-            m.battery(),
+            m.battery({voltage: true, voltageReporting: true}),
         ],
         ota: true,
     },
@@ -919,7 +926,13 @@ export const definitions: DefinitionWithExtend[] = [
         model: "E2134",
         vendor: "IKEA",
         description: "VALLHORN wireless motion sensor",
-        extend: [addCustomClusterManuSpecificIkeaUnknown(), m.occupancy(), m.illuminance(), m.identify({isSleepy: true}), m.battery()],
+        extend: [
+            addCustomClusterManuSpecificIkeaUnknown(),
+            m.occupancy(),
+            m.illuminance(),
+            m.identify({isSleepy: true}),
+            m.battery({voltage: true, voltageReporting: true}),
+        ],
         ota: true,
     },
     {
@@ -938,7 +951,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zoneStatusReporting: true,
             }),
             m.identify({isSleepy: true}),
-            m.battery(),
+            m.battery({voltage: true, voltageReporting: true}),
         ],
         ota: true,
     },
@@ -957,7 +970,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zoneStatusReporting: true,
             }),
             m.identify({isSleepy: true}),
-            m.battery(),
+            m.battery({voltage: true, voltageReporting: true}),
         ],
         ota: true,
     },
