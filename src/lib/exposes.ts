@@ -1067,6 +1067,7 @@ export const presets = {
     force: () => new Enum("force", access.STATE_SET, ["normal", "open", "close"]).withDescription("Force the valve position"),
     formaldehyd: () => new Numeric("formaldehyd", access.STATE).withDescription("The measured formaldehyd value").withUnit("mg/m³"),
     gas: () => new Binary("gas", access.STATE, true, false).withDescription("Indicates whether the device detected gas"),
+    dry: () => new Binary("dry", access.STATE, true, false).withDescription("Water shortage warning"),
     hcho: () => new Numeric("hcho", access.STATE).withLabel("HCHO").withUnit("mg/m³").withDescription("Measured HCHO value"),
     holiday_temperature: () =>
         new Numeric("holiday_temperature", access.STATE_SET).withUnit("°C").withDescription("Holiday temperature").withValueMin(0).withValueMax(30),
