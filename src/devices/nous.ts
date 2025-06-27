@@ -3,6 +3,8 @@ import * as exposes from "../lib/exposes";
 import * as legacy from "../lib/legacy";
 import * as reporting from "../lib/reporting";
 import * as tuya from "../lib/tuya";
+import * as tz from "../converters/toZigbee";
+import * as modernExtendz from "../lib/modernExtend";
 import type {DefinitionWithExtend} from "../lib/types";
 
 const e = exposes.presets;
@@ -128,4 +130,43 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription("Humidity sensitivity"),
         ],
     },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE284_nnhwcvbk']),
+        model: 'L14',
+        vendor: 'Nous',
+        description: 'ZigBee Smart Water Valve',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEventSetTime, 
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            
+            e.switch(),
+            e.enum('status', ea.STATE, ['Off', 'Auto', 'Disabled', 'APP manual', 'Key control']).withDescription('Status'),
+            e.numeric('countdown', ea.STATE_SET).withUnit('min').withValueMin(1).withValueMax(60).withDescription('Count down'),
+            e.numeric('countdown_left', ea.STATE).withUnit('min').withValueMin(1).withValueMax(60).withDescription('Countdown left time'),
+            e.numeric('water_total', ea.STATE).withUnit('gal').withValueMin(0).withValueStep(0.001).withDescription('Water total (gal)'),
+            e.numeric('water_current', ea.STATE).withUnit('gal/min').withValueMin(0).withValueStep(0.001).withDescription('Current water flow (gal/min)'),
+            e.binary('current_switch', ea.STATE_SET, 'ON', 'OFF').withDescription('Flow switch'),
+            e.binary('reset_switch', ea.STATE_SET, 'ON', 'OFF').withDescription('Total flow reset switch'),
+            e.binary('child_lock', ea.STATE_SET, 'ON', 'OFF').withDescription('Child lock'),
+            e.battery(),
+    ],
+        meta: {
+        tuyaDatapoints: [
+                [3, 'status', tuya.valueConverterBasic.lookup({'Off': tuya.enum(0), 'Auto': tuya.enum(1), 'Disabled': tuya.enum(2), 'APP manual': tuya.enum(3), 'Key control': tuya.enum(4)})],
+                [1, 'state', tuya.valueConverter.onOff],
+                [109, 'countdown', tuya.valueConverter.raw],
+                [6, 'countdown_left', tuya.valueConverter.raw],
+                [9, 'water_current', tuya.valueConverter.divideBy1000],
+                [15, 'water_total', tuya.valueConverter.divideBy1000],
+                [103, 'current_switch', tuya.valueConverter.onOff],
+                [101, 'reset_switch', tuya.valueConverter.onOff],
+                [104, 'child_lock', tuya.valueConverter.onOff],
+                [11, 'battery', tuya.valueConverter.raw],
+        ],
+    },
+        extend: [
+    ],
+};        
 ];
