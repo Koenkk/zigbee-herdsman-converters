@@ -168,6 +168,10 @@ export const thermostatPIHeatingDemand = async (endpoint: Zh.Endpoint, overrides
     const p = payload("pIHeatingDemand", 0, repInterval.HOUR, 10, overrides);
     await endpoint.configureReporting("hvacThermostat", p);
 };
+export const thermostatPICoolingDemand = async (endpoint: Zh.Endpoint, overrides?: Reporting.Override) => {
+    const p = payload("pICoolingDemand", 0, repInterval.HOUR, 10, overrides);
+    await endpoint.configureReporting("hvacThermostat", p);
+};
 export const thermostatRunningState = async (endpoint: Zh.Endpoint, overrides?: Reporting.Override) => {
     const p = payload("runningState", 0, repInterval.HOUR, 0, overrides);
     await endpoint.configureReporting("hvacThermostat", p);
