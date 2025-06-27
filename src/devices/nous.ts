@@ -129,25 +129,26 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-    fingerprint: tuya.fingerprint("TS0601", ["_TZE204_qvxrkeif"]),
-    model: "E9",
-    vendor: "NOUS",
-    description: "Zigbee gas sensor",
-    fromZigbee: [tuya.fz.datapoints],
-    toZigbee: [tuya.tz.datapoints],
-    configure: tuya.configureMagicPacket,
-    exposes: [
-        e.binary('gas', ea.STATE, 'ON', 'OFF').withDescription('Gas detection state (ON = Gas detected)'), // DP 1
-        e.binary('preheat', ea.STATE, 'ON', 'OFF').withDescription('Sensor is preheating'),                // DP 10
-        e.binary('fault_alarm', ea.STATE, 'ON', 'OFF').withDescription('Sensor fault detected'),           // DP 11
-        e.numeric('lifecycle', ea.STATE).withUnit('%').withDescription('Sensor life remaining'),           // DP 12
-    ],
-    meta: {
-        tuyaDatapoints: [
-            [1, 'gas', tuya.valueConverter.trueFalse0],
-            [10, 'preheat', tuya.valueConverter.trueFalse0],
-            [11, 'fault_alarm', tuya.valueConverter.trueFalse1],
-            [12, 'lifecycle', tuya.valueConverter.raw],
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_qvxrkeif"]),
+        model: "E9",
+        vendor: "Nous",
+        description: "Zigbee gas sensor",
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.binary("gas", ea.STATE, "ON", "OFF").withDescription("Gas detection state (ON = Gas detected)"),
+            e.binary("preheat", ea.STATE, "ON", "OFF").withDescription("Sensor is preheating"),
+            e.binary("fault_alarm", ea.STATE, "ON", "OFF").withDescription("Sensor fault detected"),
+            e.numeric("lifecycle", ea.STATE).withUnit("%").withDescription("Sensor life remaining"),
         ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "gas", tuya.valueConverter.trueFalse0],
+                [10, "preheat", tuya.valueConverter.trueFalse0],
+                [11, "fault_alarm", tuya.valueConverter.trueFalse1],
+                [12, "lifecycle", tuya.valueConverter.raw],
+            ],
+        },
     },
 ];
