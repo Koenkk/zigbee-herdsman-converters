@@ -10280,14 +10280,8 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: [
-            ...tuya.fingerprint("TS0225", [
-                "_TZE200_2aaelwxk",
-                "_TZE200_crq3r3la",
-            ]),
-            ...tuya.fingerprint("CK-BL702-MWS-01(7016)", [
-                "HOBEIAN",
-                "_TZE200_crq3r3la",
-            ]),
+            ...tuya.fingerprint("TS0225", ["_TZE200_2aaelwxk", "_TZE200_crq3r3la"]),
+            ...tuya.fingerprint("CK-BL702-MWS-01(7016)", ["HOBEIAN", "_TZE200_crq3r3la"]),
         ],
         model: "ZG-205Z/A",
         vendor: "Tuya",
