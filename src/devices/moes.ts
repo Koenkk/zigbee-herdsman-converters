@@ -618,9 +618,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ERS-10TZBVB-AA",
         vendor: "Moes",
         description: "Smart button",
-        whiteLabel: [
-            tuya.whitelabel("Loginovo", "ZG-101ZL", "Smart button", ["_TZ3000_ja5osu5g", "_TZ3000_lrfvzq1e", "_TZ3000_kaflzta4"]),
-        ],
+        whiteLabel: [tuya.whitelabel("Loginovo", "ZG-101ZL", "Smart button", ["_TZ3000_ja5osu5g", "_TZ3000_lrfvzq1e", "_TZ3000_kaflzta4"])],
         fromZigbee: [
             fz.command_step,
             fz.command_on,
