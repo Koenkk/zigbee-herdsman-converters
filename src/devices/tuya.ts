@@ -1539,7 +1539,7 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
-        exposes: [exposes.binary("state", ea.STATE_SET, "ON", "OFF").withDescription("Circuit Breaker On/Off State")],
+        exposes: [e.switch()],
         meta: {
             tuyaDatapoints: [[16, "state", tuya.valueConverter.onOff]],
         },
