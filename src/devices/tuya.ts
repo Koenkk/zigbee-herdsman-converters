@@ -1532,6 +1532,19 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_hiith90n"]),
+        model: "R3 Smart Switch",
+        vendor: "Tuya",
+        description: "Circuit Breaker/Switch",
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [e.switch()],
+        meta: {
+            tuyaDatapoints: [[16, "state", tuya.valueConverter.onOff]],
+        },
+    },
+    {
         zigbeeModel: ["ZG-301Z"],
         fingerprint: [
             ...tuya.fingerprint("TS0001", [
