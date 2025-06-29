@@ -1,5 +1,20 @@
 # Changelog
 
+## [23.67.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.66.0...v23.67.0) (2025-06-29)
+
+
+### Features
+
+* **add:** R3 Smart Switch ([#9551](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9551)) ([21e1c54](https://github.com/Koenkk/zigbee-herdsman-converters/commit/21e1c5426eba5c415fe7c0e2c3c0cad867ce10c5))
+* **add:** ZG-807Z, ZG-101ZS, ZG-305Z ([#9555](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9555)) ([79c9a8a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/79c9a8a13e8c85ea4c31014caa132fccdb992527))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZB210_ue01a0s2` as MiBoxer FUT035Z+ https://github.com/Koenkk/zigbee2mqtt/issues/26009 ([3c44c4e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3c44c4e261d2c6d064b39388ab07892dc5b98181))
+* **ignore:** Migrate to Biome 2 ([#9544](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9544)) ([576e8b7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/576e8b70ba5378bfac1187a3b38824cf790c851d))
+* Inovelli VZM32-SN: remove extra mmwave Control Command ([#9558](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9558)) ([3dd6c61](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3dd6c6127d4092a5adb89ba9213f0daaea077e4a))
+
 ## [23.66.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.65.0...v23.66.0) (2025-06-27)
 
 

@@ -307,7 +307,6 @@ const speedToInt = (speedIn: string): number => {
 
 // Create Expose list with Inovelli Parameters definitions
 const attributesToExposeList = (attributes: {[s: string]: Attribute}, exposesList: Expose[]) => {
-    // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
     Object.keys(attributes).forEach((key) => {
         if (attributes[key].displayType === "enum") {
             const enumE = e
@@ -338,7 +337,6 @@ const attributesToExposeList = (attributes: {[s: string]: Attribute}, exposesLis
                 .withValueMax(attributes[key].max);
 
             if (attributes[key].values) {
-                // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
                 Object.keys(attributes[key].values).forEach((value) => {
                     numeric.withPreset(value, attributes[key].values[value], "");
                 });
@@ -1651,7 +1649,7 @@ const tzLocal = {
                     ? // @ts-expect-error ignore
                       message.state.toLowerCase()
                     : undefined;
-            let brightness = undefined;
+            let brightness: number;
             if (message.brightness != null) {
                 brightness = Number(message.brightness);
             } else if (message.brightness_percent != null) {

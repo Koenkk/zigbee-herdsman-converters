@@ -316,7 +316,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_rzrrjkz2", "_TZE284_uab532m0"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_rzrrjkz2", "_TZE284_uab532m0", "_TZE284_nnhwcvbk"]),
         model: "NAS-WV05B2",
         vendor: "NEO",
         description: "Smart sprinkler timer",
@@ -341,6 +341,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.binary("child_lock", ea.STATE_SET, "ON", "OFF").withDescription("Child lock"),
             e.battery(),
         ],
+        whiteLabel: [tuya.whitelabel("Nous", "L14", "Smart water valve", ["_TZE284_nnhwcvbk"])],
         meta: {
             tuyaDatapoints: [
                 [1, "state", tuya.valueConverter.onOff],

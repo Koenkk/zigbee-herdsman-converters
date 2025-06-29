@@ -1,14 +1,14 @@
 import fs from "node:fs";
 import path from "node:path";
 import {
-    type Definition,
     addExternalDefinition,
+    type Definition,
     findByDevice,
     getConfigureKey,
     postProcessConvertedFromZigbeeMessage,
     removeExternalDefinitions,
 } from "../src/index";
-import {Composite, Enum, List, Numeric, access, presets} from "../src/lib/exposes";
+import {access, Composite, Enum, List, Numeric, presets} from "../src/lib/exposes";
 import {mockDevice} from "./utils";
 
 describe("ZHC", () => {

@@ -1,6 +1,5 @@
-import type {DeviceType} from "zigbee-herdsman/dist/controller/tstype";
-
 import type {Device} from "zigbee-herdsman/dist/controller/model";
+import type {DeviceType} from "zigbee-herdsman/dist/controller/tstype";
 import {Clusters} from "zigbee-herdsman/dist/zspec/zcl/definition/cluster";
 
 import * as tz from "../src/converters/toZigbee";

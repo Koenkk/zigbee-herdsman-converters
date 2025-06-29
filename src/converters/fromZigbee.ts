@@ -4,6 +4,7 @@ import * as exposes from "../lib/exposes";
 import {logger} from "../lib/logger";
 import * as globalStore from "../lib/store";
 import type {Fz, KeyValue, KeyValueAny, KeyValueNumberString} from "../lib/types";
+import * as utils from "../lib/utils";
 import {
     addActionGroup,
     batteryVoltageToPercentage,
@@ -15,7 +16,6 @@ import {
     precisionRound,
     toLocalISOString,
 } from "../lib/utils";
-import * as utils from "../lib/utils";
 
 const NS = "zhc:fz";
 const defaultSimulatedBrightness = 255;
@@ -1037,7 +1037,6 @@ export const ias_vibration_alarm_1_with_timeout: Fz.Converter = {
         const timeout = options?.vibration_timeout != null ? Number(options.vibration_timeout) : 90;
 
         // Stop existing timers because vibration is detected and set a new one.
-        // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
         globalStore.getValue(msg.endpoint, "timers", []).forEach((t: NodeJS.Timeout) => clearTimeout(t));
         globalStore.putValue(msg.endpoint, "timers", []);
 
@@ -5120,7 +5119,6 @@ export const metering_datek: Fz.Converter = {
         // Filter incorrect 0 energy values reported by the device:
         // https://github.com/Koenkk/zigbee2mqtt/issues/7852
         if (result && result.energy === 0) {
-            // biome-ignore lint/performance/noDelete: ignored using `--suppress`
             delete result.energy;
         }
         return result;
@@ -5209,7 +5207,6 @@ export const viessmann_thermostat: Fz.Converter = {
             // NOTE: remove the result for now, but leave it configure for reporting
             //       it will show up in the debug log still to help try and figure out
             //       what this value potentially means.
-            // biome-ignore lint/performance/noDelete: ignored using `--suppress`
             delete result.pi_heating_demand;
 
             // viessmannWindowOpenInternal

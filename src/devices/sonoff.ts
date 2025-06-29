@@ -664,7 +664,6 @@ const sonoffExtend = {
         };
     },
     overloadProtection: (powerMaxLimit: number, currentMaxLimit: number): ModernExtend => {
-        const clusterName = "customClusterEwelink";
         const exposes = e
             .composite("overload_protection", "overload_protection", ea.ALL)
             .withDescription("Over load protection, max power and max current are required,other is optional")
@@ -770,9 +769,6 @@ const sonoffExtend = {
                         let enableMinCurrentBuffer = "DISABLE";
                         let enableMinPowerBuffer = "DISABLE";
                         let enableMinVoltageBuffer = "DISABLE";
-
-                        const tag = buffer[index++];
-                        const len = buffer[index++];
 
                         if (buffer[index++] === 3) {
                             enableMinCurrentBuffer = "ENABLE";
@@ -889,7 +885,6 @@ const sonoffExtend = {
 
                     const payloadValue = [];
                     let index = 0;
-                    const length = 0;
                     payloadValue[index++] = 0;
                     payloadValue[index++] = 0x04;
                     payloadValue[index++] = 27;

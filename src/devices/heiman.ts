@@ -813,7 +813,7 @@ export const definitions: DefinitionWithExtend[] = [
 
             // Seems that it is bug in HEIMAN, device does not asks for the time with binding
             // So, we need to write time during configure
-            const time = Math.round((new Date().getTime() - constants.OneJanuary2000) / 1000);
+            const time = Math.round((Date.now() - constants.OneJanuary2000) / 1000);
             // Time-master + synchronised
             const values = {timeStatus: 3, time: time, timeZone: new Date().getTimezoneOffset() * -1 * 60};
             await endpoint.write("genTime", values);

@@ -1,31 +1,28 @@
-import type {KeyValueAny, Ota, Zh} from "../src/lib/types";
-
 import crypto from "node:crypto";
 import {existsSync, readFileSync} from "node:fs";
 import path from "node:path";
 import {EventEmitter} from "node:stream";
-
 import {Zcl} from "zigbee-herdsman";
 import ZclTransactionSequenceNumber from "zigbee-herdsman/dist/controller/helpers/zclTransactionSequenceNumber";
 import {Waitress} from "zigbee-herdsman/dist/utils/waitress";
-
 import {
     DEFAULT_IMAGE_BLOCK_RESPONSE_DELAY,
     type ImageBlockRequestPayload,
     type ImageNotifyPayload,
     type ImagePageRequestPayload,
+    isUpdateAvailable,
+    parseImage,
     type QueryNextImageRequestPayload,
     type QueryNextImageResponsePayload,
+    setConfiguration,
     UPGRADE_FILE_IDENTIFIER,
     type UpdateEndRequestPayload,
     type UpgradeEndResponsePayload,
+    update,
     ZIGBEE_OTA_LATEST_URL,
     ZIGBEE_OTA_PREVIOUS_URL,
-    isUpdateAvailable,
-    parseImage,
-    setConfiguration,
-    update,
 } from "../src/lib/ota";
+import type {KeyValueAny, Ota, Zh} from "../src/lib/types";
 import {sleep} from "../src/lib/utils";
 
 interface WaitressMatcher {
@@ -70,7 +67,6 @@ const IKEA_BASE_URL =
     "https://github.com/Koenkk/zigbee-OTA/raw/master/images/IKEA/inspelning-smart-plug-soc_release_prod_v33816645_02579ff4-6fec-42f6-8957-4048def87def.ota";
 const INNR_BASE_URL = "https://github.com/Koenkk/zigbee-OTA/raw/master/images/Innr/1166-022D-24031511-upgradeMe-BY 266.zigbee";
 const INOVELLI_BASE_URL = "https://github.com/Koenkk/zigbee-OTA/raw/master/images/Inovelli/VZM31-SN_2.18-Production.ota";
-const JET_HOME_BASE_URL = "https://github.com/Koenkk/zigbee-OTA/raw/master/images/JetHome/jethome_zigbee_release_13_zigbee.ota.zigbee";
 const LEDVANCE_BASE_URL =
     "https://github.com/Koenkk/zigbee-OTA/raw/master/images/LEDVANCE/A60_TW_Value_II-0x1189-0x008B-0x03177310-MF_DIS-20240426150951-3221010102432.ota";
 const LIXEE_BASE_URL = "https://github.com/Koenkk/zigbee-OTA/raw/master/images/LiXee/ZLinky_router_v14_limited.ota";
@@ -78,7 +74,6 @@ const SALUS_CONTROLS_BASE_URL = "https://github.com/Koenkk/zigbee-OTA/raw/master
 const SECURIFI_BASE_URL = "https://github.com/Koenkk/zigbee-OTA/raw/master/images/Tuya/ZPS_CS5490_039.ota";
 const UBISYS_BASE_URL = "https://github.com/Koenkk/zigbee-OTA/raw/master/images/Ubisys/10F2-7B3A-0000-0005-02500447-m7b-r0.ota.zigbee";
 
-const IKEA_PREV_URL = "https://github.com/Koenkk/zigbee-OTA/raw/master/images1/IKEA/10039874-1.0-TRADFRI-motion-sensor-2-2.0.022.ota.ota.signed";
 const INOVELLI_PREV_URL = "https://github.com/Koenkk/zigbee-OTA/raw/master/images1/Inovelli/VZM31-SN_2.15-Production.ota";
 const XYZROE_PREV_URL = "https://github.com/Koenkk/zigbee-OTA/raw/master/images1/xyzroe/ZigUSB_C6.ota";
 
@@ -429,8 +424,6 @@ describe("OTA", () => {
     const getInovelliDevice = (imageVersionOffset: number) =>
         getDevice(INOVELLI_BASE_URL, "0x6666666666666666", "VZM31-SN", "Inovelli", imageVersionOffset);
 
-    const getJetHomeDevice = (imageVersionOffset: number) => getDevice(JET_HOME_BASE_URL, "0x7777777777777777", "WS7", "JetHome", imageVersionOffset);
-
     const getLEDVANCEDevice = (imageVersionOffset: number) =>
         getDevice(LEDVANCE_BASE_URL, "0x8888888888888888", "A60 TW Value II", "LEDVANCE", imageVersionOffset);
 
@@ -444,12 +437,6 @@ describe("OTA", () => {
 
     const getUbisysDevice = (imageVersionOffset: number) =>
         getDevice(UBISYS_BASE_URL, "0xcccccccccccccccc", "R0 (5501)", "Ubisys", imageVersionOffset);
-
-    const getIKEAPrevDevice = (imageVersionOffset: number) =>
-        getDevice(IKEA_PREV_URL, "0xdddddddddddddddd", "TRADFRI motion sensor", "IKEA", imageVersionOffset);
-
-    const getInovelliPrevDevice = (imageVersionOffset: number) =>
-        getDevice(INOVELLI_PREV_URL, "0xeeeeeeeeeeeeeeee", "VZM31-SN", "Inovelli", imageVersionOffset);
 
     const getXyzroePrevDevice = (imageVersionOffset: number) =>
         getDevice(XYZROE_PREV_URL, "0xffffffffeeeeeeee", "ZigUSB_C6", "xyzroe", imageVersionOffset);
@@ -514,7 +501,7 @@ describe("OTA", () => {
         }
     });
 
-    it("fails when parsing invalid OTA file", async () => {
+    it("fails when parsing invalid OTA file", () => {
         expect(() => {
             parseImage(Buffer.alloc(128, 0xff));
         }).toThrow("Not a valid OTA file");
@@ -548,7 +535,7 @@ describe("OTA", () => {
         });
 
         it("fails for device without OTA endpoint", async () => {
-            const [device, image] = await getBoschDevice(-1);
+            const [device, _image] = await getBoschDevice(-1);
             device.endpoints.pop();
 
             await expect(async () => {
@@ -621,7 +608,7 @@ describe("OTA", () => {
         });
 
         it("finds no image by minFileVersion with specific request payload", async () => {
-            const [device, image] = await getInovelliDevice(-1);
+            const [device, _image] = await getInovelliDevice(-1);
             // biome-ignore lint/style/noNonNullAssertion: ignored using `--suppress`
             const metas = getMetas(INOVELLI_BASE_URL, mockGetLatestManifest())!;
             metas.minFileVersion = 16908810;
@@ -666,7 +653,7 @@ describe("OTA", () => {
         });
 
         it("finds no image by maxFileVersion with specific request payload", async () => {
-            const [device, image] = await getInovelliDevice(-1);
+            const [device, _image] = await getInovelliDevice(-1);
             // biome-ignore lint/style/noNonNullAssertion: ignored using `--suppress`
             const metas = getMetas(INOVELLI_BASE_URL, mockGetLatestManifest())!;
             metas.maxFileVersion = 16908815;
@@ -1067,11 +1054,8 @@ describe("OTA", () => {
                 const incompletePrevMetas = structuredClone(prevMetas);
                 incompletePrevMetas.url = path.join(TEST_PREV_IMAGES_DIRNAME, ...getLocalPath(incompletePrevMetas.url));
                 // TODO: set @ts-expect-error when "strict": true enabled
-                // biome-ignore lint/performance/noDelete: ignored using `--suppress`
                 delete incompletePrevMetas.imageType;
-                // biome-ignore lint/performance/noDelete: ignored using `--suppress`
                 delete incompletePrevMetas.manufacturerCode;
-                // biome-ignore lint/performance/noDelete: ignored using `--suppress`
                 delete incompletePrevMetas.fileVersion;
 
                 mockGetPreviousManifest.mockReturnValueOnce([incompletePrevMetas]);
@@ -1124,7 +1108,7 @@ describe("OTA", () => {
             const consoleInfoSpy = vi.spyOn(console, "info");
             fetchReturnedStatus.ok = false;
             fetchReturnedStatus.status = 429;
-            const [device, image] = await getBoschDevice(-1);
+            const [device, _image] = await getBoschDevice(-1);
             const result = defuseRejection(update(device as unknown as Zh.Device, {}, false, () => {}));
 
             await vi.runAllTimersAsync();
@@ -1139,7 +1123,7 @@ describe("OTA", () => {
             const consoleInfoSpy = vi.spyOn(console, "info");
             fetchReturnedStatus.ok = false;
             fetchReturnedStatus.status = 403;
-            const [device, image] = await getInovelliDevice(-1);
+            const [device, _image] = await getInovelliDevice(-1);
             const result = defuseRejection(update(device as unknown as Zh.Device, {}, true, () => {}));
 
             await vi.runAllTimersAsync();
@@ -1152,7 +1136,7 @@ describe("OTA", () => {
 
         it("fails to get firmware file from URL", async () => {
             const consoleInfoSpy = vi.spyOn(console, "info");
-            const [device, image] = await getInnrDevice(-1);
+            const [device, _image] = await getInnrDevice(-1);
 
             // first call is to manifest, let that resolve
             fetchSpy
@@ -1182,7 +1166,7 @@ describe("OTA", () => {
         it("executes workaround for Securifi modelID=PP-WHT-US to trigger OTA with genScenes cluster", async () => {
             const consoleInfoSpy = vi.spyOn(console, "info");
             // same version, short-circuit since tested logic already done
-            const [device, image] = await getSecurifiDevice(0);
+            const [device, _image] = await getSecurifiDevice(0);
             const mockEndpointWrite = vi.fn();
 
             device.endpoints.push({
@@ -1203,7 +1187,7 @@ describe("OTA", () => {
 
         it("fails queryNextImageRequest", async () => {
             failQueryNextImageRequest = true;
-            const [device, image] = await getGammaTroniquesDevice(0);
+            const [device, _image] = await getGammaTroniquesDevice(0);
 
             const resultP = defuseRejection(update(device as unknown as Zh.Device, {}, true, vi.fn()));
 
@@ -1213,7 +1197,7 @@ describe("OTA", () => {
         });
 
         it("fails to find an image", async () => {
-            const [device, image] = await getGammaTroniquesDevice(0);
+            const [device, _image] = await getGammaTroniquesDevice(0);
             const commandResponseSpy = vi.spyOn(device.endpoints[0], "commandResponse");
 
             const resultP = defuseRejection(update(device as unknown as Zh.Device, {}, true, vi.fn()));
@@ -1233,7 +1217,7 @@ describe("OTA", () => {
         });
 
         it("fails to find an upgrade image", async () => {
-            const [device, image] = await getGammaTroniquesDevice(0);
+            const [device, _image] = await getGammaTroniquesDevice(0);
             const commandResponseSpy = vi.spyOn(device.endpoints[0], "commandResponse");
 
             const resultP = update(device as unknown as Zh.Device, {}, false, vi.fn());
@@ -1253,7 +1237,7 @@ describe("OTA", () => {
         });
 
         it("fails to find a downgrade image", async () => {
-            const [device, image] = await getInovelliDevice(-10);
+            const [device, _image] = await getInovelliDevice(-10);
             const commandResponseSpy = vi.spyOn(device.endpoints[0], "commandResponse");
 
             const resultP = defuseRejection(update(device as unknown as Zh.Device, {}, true, vi.fn()));
@@ -1362,7 +1346,7 @@ describe("OTA", () => {
             }, 60000);
 
             it("upgrades with local firmware file", async () => {
-                const [device, image] = await getInovelliDevice(-10); // go before the version in prev for below mocks to work
+                const [device, _image] = await getInovelliDevice(-10); // go before the version in prev for below mocks to work
                 // biome-ignore lint/style/noNonNullAssertion: ignored using `--suppress`
                 const prevMetas = getMetas(INOVELLI_PREV_URL, mockGetPreviousManifest())!;
                 const prevImage = await getImage(INOVELLI_PREV_URL);
@@ -1426,14 +1410,12 @@ describe("OTA", () => {
                 setConfiguration({...DEFAULT_CONFIG, defaultMaximumDataSize: 512});
 
                 const [device, image] = await getLEDVANCEDevice(-1);
-                const start = Date.now();
                 const resultP = update(device as unknown as Zh.Device, {suppressElementImageParseFailure: true}, false, mockOnProgress);
 
                 await vi.runAllTimersAsync();
 
                 await expect(resultP).resolves.toStrictEqual(image.header.fileVersion);
 
-                const end = Date.now();
                 const imageChunks = expectUpdateSuccess(device.endpoints[0], image, 512);
 
                 // first call does not have remaining time
@@ -1441,7 +1423,7 @@ describe("OTA", () => {
             }, 60000);
 
             it("downgrades with defaults", async () => {
-                const [device, image] = await getInovelliDevice(0);
+                const [device, _image] = await getInovelliDevice(0);
                 const prevImage = await getImage(INOVELLI_PREV_URL);
 
                 // replace the file offset with the override image
@@ -1456,7 +1438,7 @@ describe("OTA", () => {
             }, 60000);
 
             it("downgrades using imagePageRequest", async () => {
-                const [device, image] = await getInovelliDevice(0);
+                const [device, _image] = await getInovelliDevice(0);
                 const prevImage = await getImage(INOVELLI_PREV_URL);
                 useImagePageRequest = true;
 
@@ -1473,7 +1455,7 @@ describe("OTA", () => {
             });
 
             it("starts but device stops requesting blocks", async () => {
-                const [device, image] = await getGledoptoDevice(-1);
+                const [device, _image] = await getGledoptoDevice(-1);
                 mockOnProgress = vi.fn((progress, remaining) => {
                     logOnProgress(progress, remaining);
 
@@ -1495,7 +1477,7 @@ describe("OTA", () => {
 
             it("continues on failed queryNextImageResponse", async () => {
                 failQueryNextImageResponse = true;
-                const [device, image] = await getLiXeeDevice(-1);
+                const [device, _image] = await getLiXeeDevice(-1);
                 const resultP = defuseRejection(update(device as unknown as Zh.Device, {}, false, mockOnProgress));
 
                 await vi.runAllTimersAsync();
@@ -1509,7 +1491,7 @@ describe("OTA", () => {
             }, 60000);
 
             it("continues on failed imageBlockResponse", async () => {
-                const [device, image] = await getIKEADevice(-1);
+                const [device, _image] = await getIKEADevice(-1);
                 let failed = false;
                 mockOnProgress = vi.fn((progress, remaining) => {
                     logOnProgress(progress, remaining);
@@ -1534,7 +1516,7 @@ describe("OTA", () => {
             }, 60000);
 
             it("continues on OTA file element parse failure with extra meta", async () => {
-                const [device, image] = await getInovelliDevice(-1);
+                const [device, _image] = await getInovelliDevice(-1);
                 // biome-ignore lint/style/noNonNullAssertion: ignored using `--suppress`
                 const metas = getMetas(INOVELLI_BASE_URL, mockGetLatestManifest())!;
                 const filePaths = getLocalPath(INOVELLI_BASE_URL);
@@ -1560,7 +1542,7 @@ describe("OTA", () => {
             }, 60000);
 
             it("fails on OTA file element parse failure without extra meta", async () => {
-                const [device, image] = await getInovelliDevice(-1);
+                const [device, _image] = await getInovelliDevice(-1);
                 // biome-ignore lint/style/noNonNullAssertion: ignored using `--suppress`
                 const metas = getMetas(INOVELLI_BASE_URL, mockGetLatestManifest())!;
                 const filePaths = getLocalPath(INOVELLI_BASE_URL);
@@ -1583,7 +1565,7 @@ describe("OTA", () => {
             }, 60000);
 
             it("fails file checksum validation", async () => {
-                const [device, image] = await getInovelliDevice(-1);
+                const [device, _image] = await getInovelliDevice(-1);
 
                 mockGetFirmwareFile.mockReturnValueOnce(Buffer.alloc(254, 0xff));
 
@@ -1595,7 +1577,7 @@ describe("OTA", () => {
             });
 
             it("fails to find an image due to hardware version restrictions unmet", async () => {
-                const [device, image] = await getUbisysDevice(-1);
+                const [device, _image] = await getUbisysDevice(-1);
                 device.hardwareVersion = 100;
 
                 const resultP = defuseRejection(update(device as unknown as Zh.Device, {}, false, mockOnProgress));
@@ -1606,15 +1588,13 @@ describe("OTA", () => {
             });
 
             it("fails due to hardware version restrictions unmet - with manifest missing info", async () => {
-                const [device, image] = await getUbisysDevice(-1);
+                const [device, _image] = await getUbisysDevice(-1);
                 device.hardwareVersion = 100;
                 // biome-ignore lint/style/noNonNullAssertion: ignored using `--suppress`
                 const metas = getMetas(UBISYS_BASE_URL, mockGetLatestManifest())!;
                 // workaround to reach the proper file
                 metas.url = metas.url.replace(`${PREV_IMAGES_DIRNAME}/`, `${BASE_IMAGES_DIRNAME}/`);
-                // biome-ignore lint/performance/noDelete: ignored using `--suppress`
                 delete metas.hardwareVersionMin;
-                // biome-ignore lint/performance/noDelete: ignored using `--suppress`
                 delete metas.hardwareVersionMax;
 
                 mockGetPreviousManifest.mockReturnValueOnce([metas]);
@@ -1630,7 +1610,7 @@ describe("OTA", () => {
 
             it("sends default response when upgradeEndResult != SUCCESS", async () => {
                 upgradeEndRequestBadStatus = true;
-                const [device, image] = await getIKEADevice(-1);
+                const [device, _image] = await getIKEADevice(-1);
                 const otaEndpoint = device.endpoints[0];
 
                 const resultP = defuseRejection(update(device as unknown as Zh.Device, {}, false, mockOnProgress));
@@ -1649,7 +1629,7 @@ describe("OTA", () => {
 
             it("fails to send default response when upgradeEndResult != SUCCESS", async () => {
                 upgradeEndRequestBadStatus = true;
-                const [device, image] = await getIKEADevice(-1);
+                const [device, _image] = await getIKEADevice(-1);
                 const otaEndpoint = device.endpoints[0];
 
                 otaEndpoint.defaultResponse.mockRejectedValueOnce("ignored failure");
@@ -1670,7 +1650,7 @@ describe("OTA", () => {
 
             it("fails upgradeEndResponse", async () => {
                 failUpgradeEndResponse = true;
-                const [device, image] = await getInovelliDevice(-1);
+                const [device, _image] = await getInovelliDevice(-1);
 
                 const resultP = defuseRejection(update(device as unknown as Zh.Device, {}, false, mockOnProgress));
 

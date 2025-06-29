@@ -93,7 +93,7 @@ export function onEvent(args?: OnEventArgs): OnEvent {
         if (data.type === "commandMcuSyncTime" && data.cluster === "manuSpecificTuya") {
             try {
                 const offset = args.timeStart === "2000" ? constants.OneJanuary2000 : 0;
-                const utcTime = Math.round((new Date().getTime() - offset) / 1000);
+                const utcTime = Math.round((Date.now() - offset) / 1000);
                 const localTime = utcTime - new Date().getTimezoneOffset() * 60;
                 const payload = {
                     payloadSize: 8,
@@ -195,7 +195,7 @@ export async function onEventSetTime(type: OnEventType, data: OnEventData, devic
 
     if (data.type === "commandMcuSyncTime" && data.cluster === "manuSpecificTuya") {
         try {
-            const utcTime = Math.round((new Date().getTime() - constants.OneJanuary2000) / 1000);
+            const utcTime = Math.round((Date.now() - constants.OneJanuary2000) / 1000);
             const localTime = utcTime - new Date().getTimezoneOffset() * 60;
             const endpoint = device.getEndpoint(1);
 
@@ -222,13 +222,13 @@ export async function onEventSetLocalTime(type: OnEventType, data: OnEventData, 
     //  2. Just send `mcuSyncTime` anytime (by 1-hour timer or something else)
 
     const nextLocalTimeUpdate = globalStore.getValue(device, "nextLocalTimeUpdate");
-    const forceTimeUpdate = nextLocalTimeUpdate == null || nextLocalTimeUpdate < new Date().getTime();
+    const forceTimeUpdate = nextLocalTimeUpdate == null || nextLocalTimeUpdate < Date.now();
 
     if ((data.type === "commandMcuSyncTime" && data.cluster === "manuSpecificTuya") || forceTimeUpdate) {
-        globalStore.putValue(device, "nextLocalTimeUpdate", new Date().getTime() + 3600 * 1000);
+        globalStore.putValue(device, "nextLocalTimeUpdate", Date.now() + 3600 * 1000);
 
         try {
-            const utcTime = Math.round(new Date().getTime() / 1000);
+            const utcTime = Math.round(Date.now() / 1000);
             const localTime = utcTime - new Date().getTimezoneOffset() * 60;
             const endpoint = device.getEndpoint(1);
 
@@ -1277,7 +1277,6 @@ export const valueConverter = {
             };
 
             const items = v.split(" / ");
-            // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
             items.forEach((item) => {
                 if (Object.keys(modeMapping).includes(item)) {
                     payload.push(modeMapping[item]);
@@ -2590,7 +2589,6 @@ const tuyaModernExtend = {
 
         if (args.switchMode) {
             if (args.endpoints) {
-                // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
                 args.endpoints.forEach((ep) => {
                     const epExtend = tuyaModernExtend.tuyaSwitchMode({
                         description: `Switch mode ${ep}`,

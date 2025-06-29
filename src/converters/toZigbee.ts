@@ -1085,7 +1085,7 @@ export const light_onoff_brightness: Tz.Converter = {
         const transition = utils.getTransition(entity, "brightness", meta);
         const turnsOffAtBrightness1 = utils.getMetaValue(entity, meta.mapped, "turnsOffAtBrightness1", "allEqual", false);
         let state = message.state != null ? (typeof message.state === "string" ? message.state.toLowerCase() : null) : undefined;
-        let brightness = undefined;
+        let brightness: number;
         if (message.brightness != null) {
             brightness = Number(message.brightness);
         } else if (message.brightness_percent != null) {
@@ -1173,7 +1173,7 @@ export const light_onoff_brightness: Tz.Converter = {
                     const current = utils.getObjectProperty(meta.state, "brightness", 254);
                     brightness = globalStore.getValue(entity, "brightness", current);
                 } else {
-                    brightness = onLevel;
+                    brightness = onLevel as number;
                 }
                 // Published state might have gotten clobbered by reporting.
                 publishBrightness = true;
@@ -4489,7 +4489,7 @@ export const ptvo_switch_light_brightness: Tz.Converter = {
         if (entity.supportsInputCluster(cluster) || entity.supportsOutputCluster(cluster)) {
             const message = meta.message;
 
-            let brightness = undefined;
+            let brightness: number;
             if (message.brightness != null) {
                 brightness = Number(message.brightness);
             } else if (message.brightness_percent != null) brightness = Math.round(Number(message.brightness_percent) * 2.55);
