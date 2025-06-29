@@ -1851,6 +1851,7 @@ const tuyaFz = {
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.switchType !== undefined) {
                 const lookup: KeyValue = {0: "toggle", 1: "state", 2: "momentary"};
+                utils.assertNumber(msg.data.switchType);
                 return {switch_type: lookup[msg.data.switchType]};
             }
         },
@@ -1861,6 +1862,7 @@ const tuyaFz = {
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.switchType !== undefined) {
                 const lookup: KeyValue = {0: "flip-switch", 1: "sync-switch", 2: "button-switch", 3: "button2-switch"};
+                utils.assertNumber(msg.data.switchType);
                 return {switch_type_curtain: lookup[msg.data.switchType]};
             }
         },
