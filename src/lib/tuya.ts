@@ -413,6 +413,7 @@ const tuyaExposes = {
             .withUnit("%")
             .withDescription(`Instantaneous measured power factor (phase ${phase.toUpperCase()})`),
     switchType: () => e.enum("switch_type", ea.ALL, ["toggle", "state", "momentary"]).withDescription("Type of the switch"),
+    switchTypeCurtain: () => e.enum("switch_type_curtain", ea.ALL, ["flip-switch", "sync-switch", "button-switch","button2-switch"]).withDescription("what external switch have you applied?"),
     backlightModeLowMediumHigh: () => e.enum("backlight_mode", ea.ALL, ["low", "medium", "high"]).withDescription("Intensity of the backlight"),
     backlightModeOffNormalInverted: () => e.enum("backlight_mode", ea.ALL, ["off", "normal", "inverted"]).withDescription("Mode of the backlight"),
     backlightModeOffOn: () => e.binary("backlight_mode", ea.ALL, "ON", "OFF").withDescription("Mode of the backlight"),
@@ -576,6 +577,7 @@ export const valueConverter = {
     powerOnBehavior: valueConverterBasic.lookup({off: 0, on: 1, previous: 2}),
     powerOnBehaviorEnum: valueConverterBasic.lookup({off: new Enum(0), on: new Enum(1), previous: new Enum(2)}),
     switchType: valueConverterBasic.lookup({momentary: new Enum(0), toggle: new Enum(1), state: new Enum(2)}),
+    switchTypeCurtain: exports.valueConverterBasic.lookup({"flip-switch": new Enum(0), "sync-switch": new Enum(1), "button-switch": new Enum(2), "button2-switch":new Enum(3)}),
     switchType2: valueConverterBasic.lookup({toggle: new Enum(0), state: new Enum(1), momentary: new Enum(2)}),
     backlightModeOffNormalInverted: valueConverterBasic.lookup({off: new Enum(0), normal: new Enum(1), inverted: new Enum(2)}),
     backlightModeOffLowMediumHigh: valueConverterBasic.lookup({off: new Enum(0), low: new Enum(1), medium: new Enum(2), high: new Enum(3)}),
@@ -1563,6 +1565,17 @@ const tuyaTz = {
             await entity.read("manuSpecificTuya_3", ["switchType"]);
         },
     } satisfies Tz.Converter,
+    switch_type_curtain: {
+        key: ["switch_type_curtain"],
+        convertSet: async (entity, key, value, meta) => {
+            const switchType = utils.getFromLookup(value, { "flip-switch": 0, "sync-switch": 1, "button-switch": 2, "button2-switch": 3 });
+            await entity.write("manuSpecificTuya_3", { switchType }, { disableDefaultResponse: true });
+            return { state: { [key]: value } };
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read("manuSpecificTuya_3", ["switchType"]);
+        },
+    } satisfies Tz.Converter, 
     backlight_indicator_mode_1: {
         key: ["backlight_mode", "indicator_mode"],
         convertSet: async (entity, key, value, meta) => {
@@ -1831,6 +1844,16 @@ const tuyaFz = {
             if (msg.data.switchType !== undefined) {
                 const lookup: KeyValue = {0: "toggle", 1: "state", 2: "momentary"};
                 return {switch_type: lookup[msg.data.switchType]};
+            }
+        },
+    } satisfies Fz.Converter,
+	switch_type_curtain: {
+        cluster: "manuSpecificTuya_3",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.switchType !== undefined) {
+                const lookup = { 0: "flip-switch", 1: "sync-switch", 2: "button-switch", 3: "button2-switch" };
+                return { switch_type_curtain: lookup[msg.data.switchType] };
             }
         },
     } satisfies Fz.Converter,
@@ -2514,7 +2537,11 @@ const tuyaModernExtend = {
             toZigbee.push(tuyaTz.switch_type);
             exposes.push(tuyaExposes.switchType());
         }
-
+		if (args.switchTypeCurtain) {
+            fromZigbee.push(tuyaFz.switch_type_curtain);
+            toZigbee.push(tuyaTz.switch_type_curtain);
+            exposes.push(tuyaExposes.switchTypeCurtain());
+        }
         if (args.backlightModeOffOn) {
             fromZigbee.push(tuyaFz.backlight_mode_off_on);
             exposes.push(tuyaExposes.backlightModeOffOn());
