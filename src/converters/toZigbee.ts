@@ -4008,33 +4008,40 @@ export const ts0216_alarm: Tz.Converter = {
     },
 };
 export const tuya_cover_calibration: Tz.Converter = {
-    key: ["calibration", "calibration_up", "calibration_down"],
+    key: ["calibration", "calibration_to_open", "calibration_to_close", "calibration_time", "calibration_time_to_open", "calibration_time_to_close"],
     convertSet: async (entity, key, value, meta) => {
+        if (key.startsWith("calibration_time")) {
+            utils.assertNumber(value, key);
+            const calibration_time = value * 10;
+            if (key === "calibration_time" || key === "calibration_time_to_open") {
+                await entity.write("closuresWindowCovering", {moesCalibrationTime: calibration_time});
+            } else if (key === "calibration_time_to_close") {
+                await meta.device.getEndpoint(2).write("closuresWindowCovering", {moesCalibrationTime: calibration_time});
+            }
+            return {state: {[key]: value}};
+        }
+
         utils.assertString(value, key);
         const lookup = {ON: 0, OFF: 1};
         // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         value = value.toUpperCase();
         const calibration = utils.getFromLookup(value, lookup);
-        switch (key) {
-            case "calibration":
-            case "calibration_up":
-                await entity.write("closuresWindowCovering", {tuyaCalibration: calibration});
-                break;
-            case "calibration_down":
-                await meta.device.getEndpoint(2).write("closuresWindowCovering", {tuyaCalibration: calibration});
-                break;
+        if (key === "calibration" || key === "calibration_to_open") {
+            await entity.write("closuresWindowCovering", {tuyaCalibration: calibration});
+        } else if (key === "calibration_to_close") {
+            await meta.device.getEndpoint(2).write("closuresWindowCovering", {tuyaCalibration: calibration});
         }
         return {state: {[key]: value}};
     },
     convertGet: async (entity, key, meta) => {
-        switch (key) {
-            case "calibration":
-            case "calibration_up":
-                await entity.read("closuresWindowCovering", ["tuyaCalibration"]);
-                break;
-            case "calibration_down":
-                await meta.device.getEndpoint(2).read("closuresWindowCovering", ["tuyaCalibration"]);
-                break;
+        if (key === "calibration" || key === "calibration_to_open") {
+            await entity.read("closuresWindowCovering", ["tuyaCalibration"]);
+        } else if (key === "calibration_to_close") {
+            await meta.device.getEndpoint(2).read("closuresWindowCovering", ["tuyaCalibration"]);
+        } else if (key === "calibration_time" || key === "calibration_time_to_open") {
+            await entity.read("closuresWindowCovering", ["moesCalibrationTime"]);
+        } else if (key === "calibration_time_to_close") {
+            await meta.device.getEndpoint(2).read("closuresWindowCovering", ["moesCalibrationTime"]);
         }
     },
 };

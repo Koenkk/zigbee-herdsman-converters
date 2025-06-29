@@ -2831,7 +2831,13 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS130F",
         vendor: "Tuya",
         description: "Curtain/blind switch",
-        fromZigbee: [fz.cover_position_tilt, tuya.fz.indicator_mode, fz.tuya_cover_options, tuya.fz.backlight_mode_off_on],
+        fromZigbee: [
+            fz.cover_position_tilt,
+            tuya.fz.indicator_mode,
+            fz.tuya_cover_options,
+            tuya.fz.backlight_mode_off_on,
+            tuya.fz.switch_type_curtain,
+        ],
         toZigbee: [
             tz.cover_state,
             tz.cover_position_tilt,
@@ -2839,12 +2845,14 @@ export const definitions: DefinitionWithExtend[] = [
             tz.tuya_cover_reversal,
             tuya.tz.backlight_indicator_mode_2,
             tuya.tz.backlight_indicator_mode_1,
+            tuya.tz.switch_type_curtain,
         ],
         meta: {coverInverted: true},
         whiteLabel: [
             tuya.whitelabel("Danor", "SK-Z802C-US", "Smart curtain/shutter switch", ["_TZ3000_8h7wgocw"]),
             {vendor: "LoraTap", model: "SC400"},
-            tuya.whitelabel("LoraTap", "SC500ZB", "Roller Shutter Blind Module", ["_TZ3000_e3vhyirx"]),
+            tuya.whitelabel("LoraTap", "SC500ZB", "Smart curtain/shutter switch", ["_TZ3000_e3vhyirx"]),
+            tuya.whitelabel("LoraTap", "SC500ZB-v4", "Smart curtain/shutter switch", ["_TZ3000_5iixzdo7"]),
             tuya.whitelabel("Nous", "B4Z", "Curtain switch", ["_TZ3000_yruungrl"]),
             tuya.whitelabel("Nous", "L12Z", "Smart ZigBee Curtain Module L12Z", ["_TZ3000_jwv3cwak"]),
             tuya.whitelabel("Zemismart", "ZN-LC1E", "Smart curtain/shutter switch", ["_TZ3000_74hsp7qy"]),
@@ -2855,23 +2863,28 @@ export const definitions: DefinitionWithExtend[] = [
                 e.enum("moving", ea.STATE, ["UP", "STOP", "DOWN"]),
                 e.binary("motor_reversal", ea.ALL, "ON", "OFF"),
             ];
-            if (device?.manufacturerName !== "_TZ3000_cet6ch1r") {
+            if (["_TZ3000_yruungrl"].includes(device?.manufacturerName)) {
+                exps.push(e.binary("calibration", ea.ALL, "ON", "OFF"), e.numeric("calibration_time", ea.ALL).withUnit("s"));
+            } else if (["_TZ3000_cet6ch1r", "_TZ3000_5iixzdo7"].includes(device?.manufacturerName)) {
                 exps.push(
-                    e.binary("calibration", ea.ALL, "ON", "OFF"),
-                    e.numeric("calibration_time", ea.STATE).withUnit("s").withDescription("Calibration time"),
+                    e.binary("calibration_to_open", ea.ALL, "ON", "OFF"),
+                    e.binary("calibration_to_close", ea.ALL, "ON", "OFF"),
+                    e.numeric("calibration_time_to_open", ea.ALL).withUnit("s"),
+                    e.numeric("calibration_time_to_close", ea.ALL).withUnit("s"),
                 );
             } else {
-                exps.push(
-                    e.binary("calibration_up", ea.ALL, "ON", "OFF"),
-                    e.numeric("calibration_time_up", ea.STATE).withUnit("s").withDescription("Calibration time up"),
-                    e.binary("calibration_down", ea.ALL, "ON", "OFF"),
-                    e.numeric("calibration_time_down", ea.STATE).withUnit("s").withDescription("Calibration time down"),
-                );
+                exps.push(e.binary("calibration", ea.ALL, "ON", "OFF"), e.numeric("calibration_time", ea.STATE).withUnit("s"));
             }
-            if (device?.manufacturerName !== "_TZ3210_xbpt8ewc" && device?.manufacturerName !== "_TZ3000_e3vhyirx") {
+            if (!["_TZ3210_xbpt8ewc", "_TZ3000_e3vhyirx", "_TZ3000_5iixzdo7", "_TZ3000_yruungrl"].includes(device?.manufacturerName)) {
                 exps.push(tuya.exposes.indicatorMode(), tuya.exposes.backlightModeOffOn());
             }
-
+            if (["_TZ3000_5iixzdo7"].includes(device?.manufacturerName)) {
+                exps.push(tuya.exposes.switchTypeCurtain());
+            } else if (["_TZ3000_yruungrl"].includes(device?.manufacturerName)) {
+                exps.push(
+                    e.enum("switch_type_curtain", ea.ALL, ["flip-switch", "sync-switch", "button-switch"]).withDescription("External switch type"),
+                );
+            }
             return exps;
         },
     },
