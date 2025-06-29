@@ -2884,7 +2884,7 @@ export const definitions: DefinitionWithExtend[] = [
                 exps.push(
                     e
                         .enum("switch_type_curtain", ea.ALL, ["flip-switch", "sync-switch", "button-switch"])
-                        .withDescription("what external switch have you applied?"),
+                        .withDescription("External switch type"),
                 );
             }
             return exps;
