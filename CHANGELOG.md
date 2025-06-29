@@ -1,5 +1,12 @@
 # Changelog
 
+## [23.68.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.67.0...v23.68.0) (2025-06-29)
+
+
+### Features
+
+* **add:** L14 ([#9552](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9552)) ([b3dcc94](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b3dcc94598a73d04588c5b69270b8199d721ca74))
+
 ## [23.67.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.66.0...v23.67.0) (2025-06-29)
 
 
