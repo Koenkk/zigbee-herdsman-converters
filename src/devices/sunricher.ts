@@ -70,7 +70,6 @@ const tzLocal = {
             },
 
             convertSet: async (entity, _key, value, _meta) => {
-                const newValue = value;
                 await entity.write("hvacThermostat", {
                     minSetpointDeadBand: Math.round(Number(value) * 10),
                 });
@@ -80,7 +79,6 @@ const tzLocal = {
         temperature_display: {
             key: ["temperature_display"],
             convertSet: async (entity, _key, value, _meta) => {
-                const newValue = value;
                 const lookup = {room: 0, set: 1, floor: 2};
                 const payload = {4104: {value: utils.getFromLookup(value, lookup), type: Zcl.DataType.ENUM8}};
                 await entity.write("hvacThermostat", payload, {manufacturerCode: 0x1224});
@@ -119,7 +117,7 @@ const tzLocal = {
 
 async function syncTime(endpoint: Zh.Endpoint) {
     try {
-        const time = Math.round((new Date().getTime() - constants.OneJanuary2000) / 1000 + new Date().getTimezoneOffset() * -1 * 60);
+        const time = Math.round((Date.now() - constants.OneJanuary2000) / 1000 + new Date().getTimezoneOffset() * -1 * 60);
         const values = {time: time};
         await endpoint.write("genTime", values);
     } catch {
@@ -130,7 +128,7 @@ async function syncTime(endpoint: Zh.Endpoint) {
 
 async function syncTimeWithTimeZone(endpoint: Zh.Endpoint) {
     try {
-        const time = Math.round((new Date().getTime() - constants.OneJanuary2000) / 1000);
+        const time = Math.round((Date.now() - constants.OneJanuary2000) / 1000);
         const timeZone = new Date().getTimezoneOffset() * -1 * 60;
         await endpoint.write("genTime", {time, timeZone});
     } catch {

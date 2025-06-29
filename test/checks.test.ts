@@ -1,6 +1,6 @@
 import baseDefinitions from "../src/devices/index";
 import {type Definition, prepareDefinition} from "../src/index";
-import {Numeric, access} from "../src/lib/exposes";
+import {access, Numeric} from "../src/lib/exposes";
 import * as sunricher from "../src/lib/sunricher";
 import {tz} from "../src/lib/tuya";
 import {COLORTEMP_RANGE_MISSING_ALLOWED} from "./colortemp_range_missing_allowed";

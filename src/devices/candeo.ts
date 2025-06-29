@@ -1,8 +1,7 @@
-import * as m from "../lib/modernExtend";
-import type {DefinitionWithExtend, Fz, Tz} from "../lib/types";
-
 import * as fz from "../converters/fromZigbee";
 import * as exposes from "../lib/exposes";
+import * as m from "../lib/modernExtend";
+import type {DefinitionWithExtend, Fz, Tz} from "../lib/types";
 import {assertString} from "../lib/utils";
 
 const e = exposes.presets;
@@ -41,7 +40,7 @@ const fzLocal = {
         cluster: "genBasic",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
-            if (Object.prototype.hasOwnProperty.call(msg.data, switchTypeAttribute)) {
+            if (Object.hasOwn(msg.data, switchTypeAttribute)) {
                 const value = msg.data[switchTypeAttribute];
                 return {
                     external_switch_type: valueMap[value] || "unknown",

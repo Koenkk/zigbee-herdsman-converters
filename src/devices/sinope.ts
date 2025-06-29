@@ -33,7 +33,6 @@ const fzLocal = {
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             // @ts-expect-error ignore
-            // biome-ignore lint/performance/noDelete: ignored using `--suppress`
             delete msg.running_state;
             const result: KeyValue = {};
             const occupancyLookup = {0: "unoccupied", 1: "occupied"};

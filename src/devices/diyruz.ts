@@ -113,7 +113,6 @@ export const definitions: DefinitionWithExtend[] = [
                 ];
                 await endpoint.configureReporting("genPowerCfg", payload);
             }
-            // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
             device.endpoints.forEach(async (ep) => {
                 if (ep.outputClusters.includes(18)) {
                     await reporting.bind(ep, coordinatorEndpoint, ["genMultistateInput"]);
@@ -184,7 +183,6 @@ export const definitions: DefinitionWithExtend[] = [
                 ];
                 await endpoint.configureReporting("genPowerCfg", payload);
             }
-            // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
             device.endpoints.forEach(async (ep) => {
                 if (ep.outputClusters.includes(18)) {
                     await reporting.bind(ep, coordinatorEndpoint, ["genMultistateInput"]);

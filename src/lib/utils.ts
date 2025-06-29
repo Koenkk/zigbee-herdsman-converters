@@ -543,11 +543,9 @@ export function normalizeCelsiusVersionOfFahrenheit(value: number) {
 export function noOccupancySince(endpoint: Zh.Endpoint, options: KeyValueAny, publish: Publish, action: "start" | "stop") {
     if (options?.no_occupancy_since) {
         if (action === "start") {
-            // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
             globalStore.getValue(endpoint, "no_occupancy_since_timers", []).forEach((t: ReturnType<typeof setInterval>) => clearTimeout(t));
             globalStore.putValue(endpoint, "no_occupancy_since_timers", []);
 
-            // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
             options.no_occupancy_since.forEach((since: number) => {
                 const timer = setTimeout(() => {
                     publish({no_occupancy_since: since});
@@ -555,7 +553,6 @@ export function noOccupancySince(endpoint: Zh.Endpoint, options: KeyValueAny, pu
                 globalStore.getValue(endpoint, "no_occupancy_since_timers").push(timer);
             });
         } else if (action === "stop") {
-            // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
             globalStore.getValue(endpoint, "no_occupancy_since_timers", []).forEach((t: ReturnType<typeof setInterval>) => clearTimeout(t));
             globalStore.putValue(endpoint, "no_occupancy_since_timers", []);
         }

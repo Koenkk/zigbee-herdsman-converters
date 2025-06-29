@@ -294,7 +294,7 @@ async function extenderOnOffLight(device: Zh.Device, endpoints: Zh.Endpoint[]): 
     const onOffEndpoints = endpoints.filter((e) => lightEndpoints.findIndex((ep) => e.ID === ep.ID) === -1);
 
     if (onOffEndpoints.length !== 0) {
-        let endpointNames: string[] | undefined = undefined;
+        let endpointNames: string[] | undefined;
         if (!onlyFirstDeviceEnpoint(device, endpoints)) {
             endpointNames = endpoints.map((e) => e.ID.toString());
         }

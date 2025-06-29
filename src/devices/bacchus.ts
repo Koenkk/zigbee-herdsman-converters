@@ -1,7 +1,6 @@
-import * as reporting from "../lib/reporting";
-
 import {access as ea} from "../lib/exposes";
 import * as m from "../lib/modernExtend";
+import * as reporting from "../lib/reporting";
 import type {Configure, DefinitionWithExtend, Fz, ModernExtend, Tz} from "../lib/types";
 
 import {assertNumber, getEndpointName, isString, precisionRound, validateValue} from "../lib/utils";
@@ -22,7 +21,7 @@ const str_min_to_time = (strMin: string) => {
 };
 
 function timeHHMM(args: m.TextArgs): ModernExtend {
-    const {name, cluster, attribute, description, zigbeeCommandOptions, endpointName, reporting, entityCategory, validate} = args;
+    const {name, cluster, attribute, zigbeeCommandOptions, endpointName} = args;
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
     const access = ea[args.access ?? "ALL"];
     const mExtend = m.text(args);
@@ -67,7 +66,7 @@ function timeHHMM(args: m.TextArgs): ModernExtend {
 }
 
 function binaryWithOnOffCommand(args: m.BinaryArgs): ModernExtend {
-    const {name, valueOn, valueOff, cluster, attribute, zigbeeCommandOptions, endpointName, reporting} = args;
+    const {name, cluster, attribute, zigbeeCommandOptions, endpointName, reporting} = args;
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
     const access = ea[args.access ?? "ALL"];
 
@@ -104,7 +103,7 @@ function binaryWithOnOffCommand(args: m.BinaryArgs): ModernExtend {
 }
 
 function energy(args: m.NumericArgs): ModernExtend {
-    const {name, cluster, attribute, description, zigbeeCommandOptions, reporting, scale, precision, entityCategory, endpointNames} = args;
+    const {name, cluster, attribute, zigbeeCommandOptions, reporting, scale, precision, endpointNames} = args;
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
     const access = ea[args.access ?? "ALL"];
     const mExtend = m.numeric(args);
@@ -165,7 +164,7 @@ function energy(args: m.NumericArgs): ModernExtend {
         configure.push(m.setupConfigureForReporting(cluster, attribute, {config: reporting, access, endpointNames}));
     }
 
-    return {...mExtend, fromZigbee, configure, isModernExtend: true};
+    return {...mExtend, fromZigbee, toZigbee, configure, isModernExtend: true};
 }
 
 export const definitions: DefinitionWithExtend[] = [
