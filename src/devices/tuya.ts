@@ -3292,6 +3292,7 @@ export const definitions: DefinitionWithExtend[] = [
                 "_TZ3210_jtifm80b",
                 "_TZ3210_xwqng7ol",
                 "_TZB210_lmqquxus",
+                "_TZB210_ue01a0s2",
             ]),
             tuya.whitelabel("MiBoxer", "E2-ZR", "2 in 1 LED controller", ["_TZB210_ayx58ft5", "_TZB210_eiwanbeb"]),
             tuya.whitelabel("MiBoxer", "PZ2", "2 in 1 LED controller", ["_TZB210_0bkzabht"]),

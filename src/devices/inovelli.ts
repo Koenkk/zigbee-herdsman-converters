@@ -72,7 +72,6 @@ const mmWaveControlCommands: {[key: string]: number} = {
     clear_interference: 3,
     reset_detection_area: 4,
     reset_mmwave_module: 0,
-    reset_mmwave_fw_2: 255,
 };
 
 const INOVELLI_CLUSTER_NAME: string = "manuSpecificInovelli";
