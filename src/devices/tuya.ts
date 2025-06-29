@@ -2882,9 +2882,7 @@ export const definitions: DefinitionWithExtend[] = [
                 exps.push(tuya.exposes.switchTypeCurtain());
             } else if (["_TZ3000_yruungrl"].includes(device?.manufacturerName)) {
                 exps.push(
-                    e
-                        .enum("switch_type_curtain", ea.ALL, ["flip-switch", "sync-switch", "button-switch"])
-                        .withDescription("External switch type"),
+                    e.enum("switch_type_curtain", ea.ALL, ["flip-switch", "sync-switch", "button-switch"]).withDescription("External switch type"),
                 );
             }
             return exps;
