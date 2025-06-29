@@ -8,6 +8,7 @@ import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as tuya from "../lib/tuya";
 import type {DefinitionWithExtend, Fz} from "../lib/types";
+
 const e = exposes.presets;
 
 const NS = "zhc:ewelink";
