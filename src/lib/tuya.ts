@@ -1860,7 +1860,7 @@ const tuyaFz = {
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.switchType !== undefined) {
-                const lookup = {0: "flip-switch", 1: "sync-switch", 2: "button-switch", 3: "button2-switch"};
+                const lookup: KeyValue = {0: "flip-switch", 1: "sync-switch", 2: "button-switch", 3: "button2-switch"};
                 return {switch_type_curtain: lookup[msg.data.switchType]};
             }
         },
