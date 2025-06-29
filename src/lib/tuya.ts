@@ -2492,6 +2492,7 @@ const tuyaModernExtend = {
             powerOutageMemory?: boolean;
             powerOnBehavior2?: boolean;
             switchType?: boolean;
+            switchTypeCurtain?: boolean;
             backlightModeLowMediumHigh?: boolean;
             indicatorMode?: boolean;
             indicatorModeNoneRelayPos?: boolean;
