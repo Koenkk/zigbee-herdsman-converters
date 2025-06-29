@@ -15,6 +15,8 @@ const ea = exposes.access;
 const defaultReporting = {min: 0, max: 300, change: 0};
 const ppmReporting = {min: 10, max: 300, change: 0.000001};
 const batteryReporting = {min: 3600, max: 0, change: 0};
+const temperatureReporting = {min: 10, max: 3600, change: 10};
+const humidityReporting = {min: 10, max: 3600, change: 10};
 
 const model_r01 = "Tuya_Thermostat_r01";
 const model_r02 = "Tuya_Thermostat_r02";
@@ -48,6 +50,16 @@ const attrElCityMeterMeasurementPreset = 0xf002;
 const attrElCityMeterDateRelease = 0xf003;
 const attrElCityMeterModelName = 0xf004;
 const attrElCityMeterPasswordPreset = 0xf005;
+
+const attrSensorReadPeriod = 0xf000;
+const attrTemperatureOffset = 0xf001;
+const attrTemperatureOnOff = 0xf002;
+const attrTemperatureLow = 0xf003;
+const attrTemperatureHigh = 0xf004;
+const attrHumidityOffset = 0xf005;
+const attrHumidityOnOff = 0xf006;
+const attrHumidityLow = 0xf007;
+const attrHumidityHigh = 0xf008;
 
 const fzLocal = {
     thermostat_custom_fw: {
@@ -1665,6 +1677,163 @@ export const definitions: DefinitionWithExtend[] = [
             e.text("schedule_monday", ea.STATE).withDescription("Schedule for the working week"),
             e.text("schedule_saturday", ea.STATE).withDescription("Saturday's schedule"),
             e.text("schedule_sunday", ea.STATE).withDescription("Sunday's schedule"),
+        ],
+        meta: {},
+        ota: true,
+    },
+    {
+        zigbeeModel: ["TS0201-z-SlD"],
+        model: "TS0201-z-SlD",
+        vendor: "Slacky-DIY",
+        description: "Tuya temperature and humidity sensor with custom Firmware",
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.read("msTemperatureMeasurement", [attrSensorReadPeriod]);
+            await endpoint.read("msTemperatureMeasurement", [attrTemperatureOffset]);
+            await endpoint.read("msTemperatureMeasurement", [attrTemperatureOnOff]);
+            await endpoint.read("msTemperatureMeasurement", [attrTemperatureLow]);
+            await endpoint.read("msTemperatureMeasurement", [attrTemperatureHigh]);
+            await endpoint.read("msRelativeHumidity", [attrHumidityOffset]);
+            await endpoint.read("msRelativeHumidity", [attrHumidityOnOff]);
+            await endpoint.read("msRelativeHumidity", [attrHumidityLow]);
+            await endpoint.read("msRelativeHumidity", [attrHumidityHigh]);
+        },
+        extend: [
+            m.battery({
+                voltage: true,
+                voltageReporting: true,
+                percentageReportingConfig: batteryReporting,
+                voltageReportingConfig: batteryReporting,
+            }),
+            m.temperature({
+                reporting: temperatureReporting,
+            }),
+            m.humidity({
+                reporting: humidityReporting,
+            }),
+            m.numeric({
+                name: "temperature_offset",
+                cluster: "msTemperatureMeasurement",
+                attribute: {ID: attrTemperatureOffset, type: 0x29},
+                unit: "°C",
+                valueMin: -5,
+                valueMax: 5,
+                valueStep: 0.1,
+                scale: 100,
+                description: "Offset to add/subtract to the inside temperature",
+            }),
+            m.numeric({
+                name: "humidity_offset",
+                cluster: "msRelativeHumidity",
+                attribute: {ID: attrHumidityOffset, type: 0x29},
+                unit: "%",
+                valueMin: -10,
+                valueMax: 10,
+                valueStep: 1,
+                scale: 100,
+                description: "Offset to add/subtract to the inside temperature",
+            }),
+            m.numeric({
+                name: "read_interval",
+                cluster: "msTemperatureMeasurement",
+                attribute: {ID: attrSensorReadPeriod, type: 0x21},
+                unit: "Sec",
+                valueMin: 5,
+                valueMax: 600,
+                valueStep: 1,
+                description: "Sensors reading period",
+            }),
+            m.binary({
+                name: "enabling_temperature_control",
+                cluster: "msTemperatureMeasurement",
+                attribute: {ID: attrTemperatureOnOff, type: 0x10},
+                description: "Enables/disables Tempearure control",
+                valueOn: ["ON", 0x01],
+                valueOff: ["OFF", 0x00],
+            }),
+            m.numeric({
+                name: "low_temperature",
+                cluster: "msTemperatureMeasurement",
+                attribute: {ID: attrTemperatureLow, type: 0x29},
+                unit: "°C",
+                valueMin: -40,
+                valueMax: 125,
+                valueStep: 0.1,
+                scale: 100,
+                description: "Temperature low turn-off limit",
+            }),
+            m.numeric({
+                name: "high_temperature",
+                cluster: "msTemperatureMeasurement",
+                attribute: {ID: attrTemperatureHigh, type: 0x29},
+                unit: "°C",
+                valueMin: -40,
+                valueMax: 125,
+                valueStep: 0.1,
+                scale: 100,
+                description: "Temperature high turn-on limit",
+            }),
+            m.binary({
+                name: "enabling_humidity_control",
+                cluster: "msRelativeHumidity",
+                attribute: {ID: attrHumidityOnOff, type: 0x10},
+                description: "Enables/disables Humidity control",
+                valueOn: ["ON", 0x01],
+                valueOff: ["OFF", 0x00],
+            }),
+            m.numeric({
+                name: "low_humidity",
+                cluster: "msRelativeHumidity",
+                attribute: {ID: attrHumidityLow, type: 0x29},
+                unit: "%",
+                valueMin: 1,
+                valueMax: 100,
+                valueStep: 1,
+                scale: 100,
+                description: "Humidity low turn-off limit",
+            }),
+            m.numeric({
+                name: "high_humidity",
+                cluster: "msRelativeHumidity",
+                attribute: {ID: attrHumidityHigh, type: 0x29},
+                unit: "%",
+                valueMin: 1,
+                valueMax: 100,
+                valueStep: 1,
+                scale: 100,
+                description: "Humidity high turn-on limit",
+            }),
+            m.enumLookup({
+                name: "switch_actions",
+                lookup: {off: 0, on: 1},
+                cluster: "genOnOffSwitchCfg",
+                attribute: "switchActions",
+                description: "Actions switch",
+            }),
+        ],
+        ota: true,
+    },
+    {
+        zigbeeModel: ["ZG-222ZA-z-SlD"],
+        model: "ZG-222ZA-z-SlD",
+        vendor: "Slacky-DIY",
+        description: "Tuya water leak sensor with custom firmware",
+        extend: [
+            m.battery({
+                voltage: true,
+                voltageReporting: true,
+                percentageReportingConfig: batteryReporting,
+                voltageReportingConfig: batteryReporting,
+            }),
+            m.iasZoneAlarm({zoneType: "water_leak", zoneAttributes: ["alarm_1", "battery_low"]}),
+            m.commandsOnOff(),
+            m.enumLookup({
+                name: "switch_actions",
+                lookup: {off: 0, on: 1, toggle: 2},
+                cluster: "genOnOffSwitchCfg",
+                attribute: "switchActions",
+                description: "Actions switch",
+            }),
         ],
         meta: {},
         ota: true,
