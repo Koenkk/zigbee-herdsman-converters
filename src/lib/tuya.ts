@@ -580,7 +580,12 @@ export const valueConverter = {
     powerOnBehavior: valueConverterBasic.lookup({off: 0, on: 1, previous: 2}),
     powerOnBehaviorEnum: valueConverterBasic.lookup({off: new Enum(0), on: new Enum(1), previous: new Enum(2)}),
     switchType: valueConverterBasic.lookup({momentary: new Enum(0), toggle: new Enum(1), state: new Enum(2)}),
-    switchTypeCurtain: valueConverterBasic.lookup({"flip-switch": new Enum(0), "sync-switch": new Enum(1), "button-switch": new Enum(2), "button2-switch": new Enum(3)}),
+    switchTypeCurtain: valueConverterBasic.lookup({
+        "flip-switch": new Enum(0),
+        "sync-switch": new Enum(1),
+        "button-switch": new Enum(2),
+        "button2-switch": new Enum(3),
+    }),
     switchType2: valueConverterBasic.lookup({toggle: new Enum(0), state: new Enum(1), momentary: new Enum(2)}),
     backlightModeOffNormalInverted: valueConverterBasic.lookup({off: new Enum(0), normal: new Enum(1), inverted: new Enum(2)}),
     backlightModeOffLowMediumHigh: valueConverterBasic.lookup({off: new Enum(0), low: new Enum(1), medium: new Enum(2), high: new Enum(3)}),
