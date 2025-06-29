@@ -2851,30 +2851,28 @@ export const definitions: DefinitionWithExtend[] = [
                 e.binary("motor_reversal", ea.ALL, "ON", "OFF"),
             ];
             if (["_TZ3000_yruungrl"].includes(device?.manufacturerName)) {
-                exps.push(	e.binary("calibration", ea.ALL, "ON", "OFF"),
-                            e.numeric("calibration_time", ea.ALL).withUnit("s")
+                exps.push(e.binary("calibration", ea.ALL, "ON", "OFF"), e.numeric("calibration_time", ea.ALL).withUnit("s"));
+            } else if (["_TZ3000_cet6ch1r", "_TZ3000_5iixzdo7"].includes(device?.manufacturerName)) {
+                exps.push(
+                    e.binary("calibration_to_open", ea.ALL, "ON", "OFF"),
+                    e.binary("calibration_to_close", ea.ALL, "ON", "OFF"),
+                    e.numeric("calibration_time_to_open", ea.ALL).withUnit("s"),
+                    e.numeric("calibration_time_to_close", ea.ALL).withUnit("s"),
                 );
-            }
-            else if (["_TZ3000_cet6ch1r", "_TZ3000_5iixzdo7"].includes(device?.manufacturerName)) {
-                exps.push(	e.binary("calibration_to_open", ea.ALL, "ON", "OFF"), 
-                            e.binary("calibration_to_close", ea.ALL, "ON", "OFF"),
-                            e.numeric("calibration_time_to_open", ea.ALL).withUnit("s"),
-                            e.numeric("calibration_time_to_close", ea.ALL).withUnit("s")
-                );
-            }
-            else {
-                exps.push(  e.binary("calibration", ea.ALL, "ON", "OFF"),
-                            e.numeric("calibration_time", ea.STATE).withUnit("s")
-                );
+            } else {
+                exps.push(e.binary("calibration", ea.ALL, "ON", "OFF"), e.numeric("calibration_time", ea.STATE).withUnit("s"));
             }
             if (!["_TZ3210_xbpt8ewc", "_TZ3000_e3vhyirx", "_TZ3000_5iixzdo7", "_TZ3000_yruungrl"].includes(device?.manufacturerName)) {
                 exps.push(tuya.exposes.indicatorMode(), tuya.exposes.backlightModeOffOn());
             }
             if (["_TZ3000_5iixzdo7"].includes(device?.manufacturerName)) {
                 exps.push(tuya.exposes.switchTypeCurtain());
-            }
-            else if (["_TZ3000_yruungrl"].includes(device?.manufacturerName)) {
-                exps.push( e.enum("switch_type_curtain", ea.ALL, ["flip-switch", "sync-switch", "button-switch"]).withDescription("what external switch have you applied?") );
+            } else if (["_TZ3000_yruungrl"].includes(device?.manufacturerName)) {
+                exps.push(
+                    e
+                        .enum("switch_type_curtain", ea.ALL, ["flip-switch", "sync-switch", "button-switch"])
+                        .withDescription("what external switch have you applied?"),
+                );
             }
             return exps;
         },

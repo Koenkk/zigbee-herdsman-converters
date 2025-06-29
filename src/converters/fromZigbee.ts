@@ -2336,10 +2336,9 @@ export const tuya_cover_options: Fz.Converter = {
             const value = Number.parseFloat(msg.data.moesCalibrationTime) / 10.0;
             if (["_TZ3000_cet6ch1r", "_TZ3000_5iixzdo7"].includes(meta.device.manufacturerName)) {
                 const endpoint = msg.endpoint.ID;
-                const calibrationLookup: KeyValueAny ={ 1: "to_open", 2: "to_close" };
+                const calibrationLookup: KeyValueAny = {1: "to_open", 2: "to_close"};
                 result[postfixWithEndpointName(`calibration_time_${calibrationLookup[endpoint]}`, msg, model, meta)] = value;
-            } 
-            else {
+            } else {
                 result[postfixWithEndpointName("calibration_time", msg, model, meta)] = value;
             }
         }
