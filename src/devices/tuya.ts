@@ -784,6 +784,21 @@ const fzLocal = {
         },
     } satisfies Fz.Converter,
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    TS011F_statefull_electrical_measurement: {
+        ...fz.electrical_measurement,
+        convert: (model, msg, publish, options, meta) => {
+            const result = (fz.electrical_measurement.convert(model, msg, publish, options, meta) as KeyValueAny) ?? {};
+            if (result !== undefined && meta.state.state === "OFF") {
+                if ((result.power !== undefined && result.power > 0) || (result.current !== undefined && result.current > 0)) {
+                    //reset power, current to 0 if socket is off
+                    result.power = 0;
+                    result.current = 0;
+                }
+            }
+            return result;
+        },
+    } satisfies Fz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     TS011F_threshold: {
         cluster: "manuSpecificTuya_3",
         type: "raw",
@@ -6751,6 +6766,48 @@ export const definitions: DefinitionWithExtend[] = [
                 true, // polling for voltage, current and power
                 [100, 160].includes(device.applicationVersion) || ["1.0.5\u0000"].includes(device.softwareBuildID), // polling for energy
             ),
+    },
+    {
+        fingerprint: tuya.fingerprint("TS011F", ["_TZ321A_arrqgd67", "_TZ3210_2uollq9d", "_TZ3210_5ct6e7ye"]),
+        model: "TS011F_socket",
+        description: "Socket with power monitoring",
+        vendor: "Tuya",
+        whiteLabel: [
+            tuya.whitelabel("EKF", "RCS-ST16-WD-ZB", "Smart Socket Stockholm", ["_TZ321A_arrqgd67"]),
+            tuya.whitelabel("BSEED", "GL86ZEUSKM1W", "ZigBee EU Wall Socket", ["_TZ3210_2uollq9d"]),
+            tuya.whitelabel("BSEED", "GL86ZEUSKM1PDAC1W", "ZigBee EU Wall Socket Type-C With USB", ["_TZ3210_5ct6e7ye"]),
+        ],
+        ota: false,
+        extend: [
+            tuya.modernExtend.tuyaOnOff({
+                electricalMeasurements: false,
+                electricalMeasurementsFzConverter: fzLocal.TS011F_statefull_electrical_measurement,
+                powerOutageMemory: true,
+                indicatorMode: true,
+                childLock: false,
+                onOffCountdown: true,
+            }),
+            m.electricityMeter({
+                current: {divisor: 1000, min: 3, change: 25},
+                voltage: {divisor: 1, min: 3, change: 3},
+                power: {divisor: 1, min: 3, change: 5},
+                energy: {divisor: 100, min: 3, change: 10},
+            }),
+        ],
+        fromZigbee: [
+            {
+                ...fz.on_off,
+                convert: (model, msg, publish, options, meta) => {
+                    const result = (fz.on_off.convert(model, msg, publish, options, meta) as KeyValueAny) ?? {};
+                    if (result !== undefined && msg.data.onOff === 0) {
+                        //reset power, current to 0 when socket is turned off
+                        result.power = 0;
+                        result.current = 0;
+                    }
+                    return result;
+                },
+            },
+        ],
     },
     {
         fingerprint: tuya.fingerprint("TS011F", ["_TZ3000_in5s3wn1", "_TZ3000_wbloefbf"]),
