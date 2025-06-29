@@ -4012,7 +4012,7 @@ export const tuya_cover_calibration: Tz.Converter = {
     convertSet: async (entity, key, value, meta) => {
 	if (key.startsWith( "calibration_time")) {
 		utils.assertNumber(value, key);
-		const calibration_time = parseInt(value*10);
+		const calibration_time = value*10;
         if (key === "calibration_time" || key === "calibration_time_to_open") {
             await entity.write("closuresWindowCovering", { moesCalibrationTime: calibration_time });
         }
