@@ -1,9 +1,9 @@
 import * as fz from "../converters/fromZigbee";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
+import * as s from "../lib/store";
 import type {DefinitionWithExtend, Fz, Tz} from "../lib/types";
 import * as u from "../lib/utils";
-import * as s from "../lib/store";
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -59,12 +59,12 @@ const fzLocal = {
             if (u.hasAlreadyProcessedMessage(msg, model)) return;
             const messageTypes: {[key: number]: string} = { 
                 1: "button_press", 
-                3: "ring_rotation"
+                3: "ring_rotation",
             };
             const messageType = msg.data.field1;
             if (messageType in messageTypes) {
-                let rotary_remote_control_actions = [];
-                if (messageTypes[messageType] == "button_press") {
+                const rotary_remote_control_actions = [];
+                if (messageTypes[messageType] === "button_press") {
                     const buttonNumber = msg.data.field3;
                     const buttonAction = msg.data.field4;
                     const buttonNumbers: {[key: number]: string} = { 
@@ -72,58 +72,55 @@ const fzLocal = {
                         2: "button_2_", 
                         4: "button_3_", 
                         8: "button_4_", 
-                        16: "centre_button_" 
+                        16: "centre_button_",
                     };
                     const buttonActions: {[key: number]: string} = {
                         1: "click", 
                         2: "double_click", 
                         3: "hold", 
-                        4: "release" 
+                        4: "release",
                     };
                     if (buttonNumber in buttonNumbers && buttonAction in buttonActions) {                     
                         rotary_remote_control_actions.push(buttonNumbers[buttonNumber] + buttonActions[buttonAction]);
                     }
-                }
-                else if (messageTypes[messageType] == "ring_rotation") {
+                } else if (messageTypes[messageType] === "ring_rotation") {
                     const ringAction = msg.data.field3;
                     const ringActions: {[key: number]: string} = {
                         1: "started_", 
                         2: "stopped_", 
-                        3: "continued_"
+                        3: "continued_",
                     };
                     if (ringAction in ringActions) {
-                        if (ringActions[ringAction] == "stopped_") {
+                        if (ringActions[ringAction] === "stopped_") {
                             const previous_direction = s.getValue(msg.endpoint, "previous_direction");
                             if (previous_direction !== undefined) {
-                                rotary_remote_control_actions.push("stopped_" + previous_direction);
+                                rotary_remote_control_actions.push(`stopped_${previous_direction}`);
                             }
                             s.putValue(msg.endpoint, "previous_rotation_event", "stopped_");
-                        }
-                        else {
+                        } else {
                             const ringDirection = msg.data.field2;
                             const ringDirections: {[key: number]: string} = { 
                                 1: "rotating_right", 
-                                2: "rotating_left" 
+                                2: "rotating_left", 
                             };
                             if (ringDirection in ringDirections) {
-                                const previous_rotation_event = s.getValue(msg.endpoint, "previous_rotation_event")
+                                const previous_rotation_event = s.getValue(msg.endpoint, "previous_rotation_event");
                                 if (previous_rotation_event !== undefined) {
                                     const ringClicks = msg.data.field4;
-                                    if (previous_rotation_event == "stopped_") {
-                                        rotary_remote_control_actions.push("started_" + ringDirections[ringDirection]);
+                                    if (previous_rotation_event === "stopped_") {
+                                        rotary_remote_control_actions.push(`started_${ringDirections[ringDirection]}`);                                        
                                         s.putValue(msg.endpoint, "previous_rotation_event", "started_");
                                         if (ringClicks > 1) {
                                             for (let i = 1; i < ringClicks; i++) {
-                                                rotary_remote_control_actions.push("continued_" + ringDirections[ringDirection]);
+                                                rotary_remote_control_actions.push(`continued_${ringDirections[ringDirection]}`);
                                             }
                                             s.putValue(msg.endpoint, "previous_rotation_event", "continued_");  
                                         }
-                                    }
-                                    else if (previous_rotation_event == "started_" || previous_rotation_event == "continued_") {
-                                        rotary_remote_control_actions.push("continued_" + ringDirections[ringDirection]);
+                                    } else if (previous_rotation_event === "started_" || previous_rotation_event === "continued_") {
+                                        rotary_remote_control_actions.push(`continued_${ringDirections[ringDirection]}`);
                                         if (ringClicks > 1) {
                                             for (let i = 1; i < ringClicks; i++) {   
-                                                rotary_remote_control_actions.push("continued_" + ringDirections[ringDirection]);
+                                                rotary_remote_control_actions.push(`continued_${ringDirections[ringDirection]}`);
                                             }                                            
                                         }
                                         s.putValue(msg.endpoint, "previous_rotation_event", "continued_");
@@ -477,40 +474,40 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-    fingerprint: [
-        { modelID: "C-ZB-SR5BR", manufacturerName: "Candeo" }
-    ],
-    model: "C-ZB-SR5BR",
-    vendor: "Candeo",
-    description: "Zigbee scene switch remote - 5 button rotary",
-    extend: [        
-        m.battery(),
-        m.deviceAddCustomCluster("candeoRotaryRemoteControl", {
-            ID: manufacturerSpecificRotaryRemoteControlClusterCode,
-            attributes: {},
-            commands: { 
-                rotaryRemoteControl: {
-                    ID: 0x01,
-                    parameters: [
-                        {name: "field1", type: 0x20},
-                        {name: "field2", type: 0x20},
-                        {name: "field3", type: 0x20},
-                        {name: "field4", type: 0x20},
-                    ],
+        fingerprint: [
+            { modelID: "C-ZB-SR5BR", manufacturerName: "Candeo" }
+        ],
+        model: "C-ZB-SR5BR",
+        vendor: "Candeo",
+        description: "Zigbee scene switch remote - 5 button rotary",
+        extend: [        
+            m.battery(),
+            m.deviceAddCustomCluster("candeoRotaryRemoteControl", {
+                ID: manufacturerSpecificRotaryRemoteControlClusterCode,
+                attributes: {},
+                commands: { 
+                    rotaryRemoteControl: {
+                        ID: 0x01,
+                        parameters: [
+                            {name: "field1", type: 0x20},
+                            {name: "field2", type: 0x20},
+                            {name: "field3", type: 0x20},
+                            {name: "field4", type: 0x20},
+                        ],
+                    },
                 },
-            },
-            commandsResponse: {},
-        }),
-    ],
-    fromZigbee: [
-        fzLocal.rotary_remote_control,
-        fz.ignore_genOta,
-    ],
-    exposes: [e.action(["button_1_click", "button_1_double_click", "button_1_hold", "button_1_release", "button_2_click", "button_2_double_click", "button_2_hold", "button_2_release", "button_3_click", "button_3_double_click", "button_3_hold", "button_3_release", "button_4_click", "button_4_double_click", "button_4_hold", "button_4_release", "centre_button_click", "centre_button_double_click", "centre_button_hold", "centre_button_release", "started_rotating_left", "continued_rotating_left", "stopped_rotating_left", "started_rotating_right", "continued_rotating_right", "stopped_rotating_right"])
-    ],
-    configure: async (device, coordinatorEndpoint, logger) => {
-        const endpoint1 = device.getEndpoint(1);        
-        await endpoint1.bind(manufacturerSpecificRotaryRemoteControlClusterCode, coordinatorEndpoint);
-    },
-}
+                commandsResponse: {},
+            }),
+        ],
+        fromZigbee: [
+            fzLocal.rotary_remote_control,
+            fz.ignore_genOta,
+        ],
+        exposes: [e.action(["button_1_click", "button_1_double_click", "button_1_hold", "button_1_release", "button_2_click", "button_2_double_click", "button_2_hold", "button_2_release", "button_3_click", "button_3_double_click", "button_3_hold", "button_3_release", "button_4_click", "button_4_double_click", "button_4_hold", "button_4_release", "centre_button_click", "centre_button_double_click", "centre_button_hold", "centre_button_release", "started_rotating_left", "continued_rotating_left", "stopped_rotating_left", "started_rotating_right", "continued_rotating_right", "stopped_rotating_right"])
+        ],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);        
+            await endpoint1.bind(manufacturerSpecificRotaryRemoteControlClusterCode, coordinatorEndpoint);
+        },
+    }
 ];
