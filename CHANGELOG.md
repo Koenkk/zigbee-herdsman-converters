@@ -1,5 +1,21 @@
 # Changelog
 
+## [23.68.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.67.0...v23.68.0) (2025-06-30)
+
+
+### Features
+
+* **add:** L14 ([#9552](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9552)) ([b3dcc94](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b3dcc94598a73d04588c5b69270b8199d721ca74))
+* **add:** ZBM5-1C-80/86, ZBM5-2C-80/86, ZBM5-3C-80/86 ([#9563](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9563)) ([7bd9fb6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7bd9fb64d95b357b97bce8b4f2dc7548e1bc2439))
+* Saswell SEA801-Zigbee/SEA802-Zigbee: expose `anti_scaling` ([#9564](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9564)) ([aaba795](https://github.com/Koenkk/zigbee-herdsman-converters/commit/aaba795227e475dff6b7f417e849c434fc206046))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3000_5af5r192` as Moes ZWV-YC ([#9566](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9566)) ([c4d4616](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c4d461688e564ff4d22633b75c766d50ce85ed13))
+* **ignore:** bump the minor-patch group with 3 updates ([#9562](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9562)) ([eadb1ab](https://github.com/Koenkk/zigbee-herdsman-converters/commit/eadb1abf99fc4f3fc3a9b8a2441c471d5f191a2d))
+* Improvements for LoraTap SC500ZBv2 and for Nous B4Z (with common reusability) ([#9560](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9560)) ([087efc8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/087efc8a45879d1047278a2c81463791901863b9))
+
 ## [23.67.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.66.0...v23.67.0) (2025-06-29)
 
 
