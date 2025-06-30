@@ -955,44 +955,84 @@ export const light_colortemp_step: Tz.Converter = {
 export const light_colortemp_move: Tz.Converter = {
     key: ["colortemp_move", "color_temp_move"],
     convertSet: async (entity, key, value, meta) => {
-        if (key === "color_temp_move" && (value === "stop" || utils.isNumber(value))) {
-            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
-            value = value === "stop" ? value : Number(value);
-            const payload: KeyValueAny = {minimum: 0, maximum: 600};
-            if (value === "stop" || value === 0) {
-                payload.rate = 1;
-                payload.movemode = 0;
+        // Initialize payload with default constraints
+        const payload: KeyValueAny = {minimum: 0, maximum: 600};
+        let rate: number;
+        let movemode: number;
+
+        // Handle different input formats
+        if (value === "stop") {
+            // String stop command
+            rate = 1;
+            movemode = 0;
+        } else if (utils.isNumber(value)) {
+            // Simple number input
+            const numValue = Number(value);
+            if (numValue === 0) {
+                // Stop command via 0 rate
+                rate = 1;
+                movemode = 0;
             } else {
-                utils.assertNumber(value, key);
-                payload.rate = Math.abs(value);
-                payload.movemode = value > 0 ? 1 : 3;
+                // Normal movement
+                rate = Math.abs(numValue);
+                movemode = numValue > 0 ? 1 : 3;
+            }
+        } else if (utils.isObject(value)) {
+            // Object input with rate and optional constraints
+            utils.assertObject(value, key);
+
+            if (value.rate == null) {
+                throw new Error(`${key}: object must contain 'rate' property`);
             }
 
-            await entity.command("lightingColorCtrl", "moveColorTemp", payload, utils.getOptions(meta.mapped, entity));
+            const rateValue = Number(value.rate);
+            utils.assertNumber(rateValue, `${key}.rate`);
 
-            // We cannot determine the color temperaturefrom the current state so we read it, because
-            // - Color mode could have been switched (x/y or colortemp)
-            if (value === "stop" || value === 0) {
-                const entityToRead = utils.getEntityOrFirstGroupMember(entity);
-                if (entityToRead) {
-                    await utils.sleep(100);
-                    await entityToRead.read("lightingColorCtrl", ["colorTemperature", "colorMode"]);
-                }
+            if (rateValue === 0) {
+                // Stop command via 0 rate
+                rate = 1;
+                movemode = 0;
+            } else {
+                // Normal movement
+                rate = Math.abs(rateValue);
+                movemode = rateValue > 0 ? 1 : 3;
+            }
+
+            // Apply custom constraints if provided
+            if (value.minimum != null) {
+                const minValue = Number(value.minimum);
+                utils.assertNumber(minValue, `${key}.minimum`);
+                payload.minimum = minValue;
+            }
+
+            if (value.maximum != null) {
+                const maxValue = Number(value.maximum);
+                utils.assertNumber(maxValue, `${key}.maximum`);
+                payload.maximum = maxValue;
+            }
+
+            // Validate constraints
+            if (payload.minimum >= payload.maximum) {
+                throw new Error(`${key}: minimum (${payload.minimum}) must be less than maximum (${payload.maximum})`);
             }
         } else {
-            // Deprecated
-            const payload: KeyValueAny = {minimum: 153, maximum: 370, rate: 55};
-            const stop = (val: string) => ["stop", "release", "0"].some((el) => val.includes(el));
-            const up = (val: string) => ["1", "up"].some((el) => val.includes(el));
-            const arr = [value.toString()];
-            const moverate = meta.message.rate != null ? Number(meta.message.rate) : 55;
-            payload.rate = moverate;
-            if (arr.filter(stop).length) {
-                payload.movemode = 0;
-            } else {
-                payload.movemode = arr.filter(up).length ? 1 : 3;
+            throw new Error(`${key}: invalid value type. Expected number, "stop", or object with rate property`);
+        }
+
+        // Set final payload values
+        payload.rate = rate;
+        payload.movemode = movemode;
+
+        // Send command
+        await entity.command("lightingColorCtrl", "moveColorTemp", payload, utils.getOptions(meta.mapped, entity));
+
+        // Read current color temperature if stopping
+        if (movemode === 0) {
+            const entityToRead = utils.getEntityOrFirstGroupMember(entity);
+            if (entityToRead) {
+                await utils.sleep(100);
+                await entityToRead.read("lightingColorCtrl", ["colorTemperature", "colorMode"]);
             }
-            await entity.command("lightingColorCtrl", "moveColorTemp", payload, utils.getOptions(meta.mapped, entity));
         }
     },
 };
