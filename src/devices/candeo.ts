@@ -1,9 +1,9 @@
 import * as fz from "../converters/fromZigbee";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
-import * as s from "../lib/store";
+import * as globalStore from "../lib/store";
 import type {DefinitionWithExtend, Fz, Tz} from "../lib/types";
-import * as u from "../lib/utils";
+import * as utils from "../lib/utils";
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -56,7 +56,7 @@ const fzLocal = {
         cluster: "candeoRotaryRemoteControl",
         type: ["commandRotaryRemoteControl"],
         convert: (model, msg, publish, options, meta) => {
-            if (u.hasAlreadyProcessedMessage(msg, model)) return;
+            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
             const messageTypes: {[key: number]: string} = { 
                 1: "button_press", 
                 3: "ring_rotation",
@@ -92,11 +92,11 @@ const fzLocal = {
                     };
                     if (ringAction in ringActions) {
                         if (ringActions[ringAction] === "stopped_") {
-                            const previous_direction = s.getValue(msg.endpoint, "previous_direction");
+                            const previous_direction = globalStore.getValue(msg.endpoint, "previous_direction");
                             if (previous_direction !== undefined) {
                                 rotary_remote_control_actions.push(`stopped_${previous_direction}`);
                             }
-                            s.putValue(msg.endpoint, "previous_rotation_event", "stopped_");
+                            globalStore.putValue(msg.endpoint, "previous_rotation_event", "stopped_");
                         } else {
                             const ringDirection = msg.data.field2;
                             const ringDirections: {[key: number]: string} = { 
@@ -104,17 +104,17 @@ const fzLocal = {
                                 2: "rotating_left", 
                             };
                             if (ringDirection in ringDirections) {
-                                const previous_rotation_event = s.getValue(msg.endpoint, "previous_rotation_event");
+                                const previous_rotation_event = globalStore.getValue(msg.endpoint, "previous_rotation_event");
                                 if (previous_rotation_event !== undefined) {
                                     const ringClicks = msg.data.field4;
                                     if (previous_rotation_event === "stopped_") {
                                         rotary_remote_control_actions.push(`started_${ringDirections[ringDirection]}`);                                        
-                                        s.putValue(msg.endpoint, "previous_rotation_event", "started_");
+                                        globalStore.putValue(msg.endpoint, "previous_rotation_event", "started_");
                                         if (ringClicks > 1) {
                                             for (let i = 1; i < ringClicks; i++) {
                                                 rotary_remote_control_actions.push(`continued_${ringDirections[ringDirection]}`);
                                             }
-                                            s.putValue(msg.endpoint, "previous_rotation_event", "continued_");  
+                                            globalStore.putValue(msg.endpoint, "previous_rotation_event", "continued_");  
                                         }
                                     } else if (previous_rotation_event === "started_" || previous_rotation_event === "continued_") {
                                         rotary_remote_control_actions.push(`continued_${ringDirections[ringDirection]}`);
@@ -123,17 +123,17 @@ const fzLocal = {
                                                 rotary_remote_control_actions.push(`continued_${ringDirections[ringDirection]}`);
                                             }                                            
                                         }
-                                        s.putValue(msg.endpoint, "previous_rotation_event", "continued_");
+                                        globalStore.putValue(msg.endpoint, "previous_rotation_event", "continued_");
                                     }
                                 }                                
-                                s.putValue(msg.endpoint, "previous_direction", ringDirections[ringDirection]);                                
+                                globalStore.putValue(msg.endpoint, "previous_direction", ringDirections[ringDirection]);                                
                             }
                         }
                     }
                 }
                 for (let i = 0; i < rotary_remote_control_actions.length; i++) {
                     const payload = {action: rotary_remote_control_actions[i]};
-                    u.addActionGroup(payload, msg, model);
+                    utils.addActionGroup(payload, msg, model);
                     publish(payload);
                 }
             }
@@ -146,7 +146,7 @@ const tzLocal = {
     switch_type: {
         key: ["external_switch_type"],
         convertSet: async (entity, key, value, meta) => {
-            u.assertString(value);
+            utils.assertString(value);
             const numericValue = valueLookup[value] ?? Number.parseInt(value, 10);
             await entity.write(
                 "genBasic",
