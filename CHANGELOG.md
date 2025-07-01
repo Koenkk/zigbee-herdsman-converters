@@ -1,5 +1,13 @@
 # Changelog
 
+## [23.69.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.68.0...v23.69.0) (2025-07-01)
+
+
+### Features
+
+* **add:** C-ZB-SR5BR ([#9565](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9565)) ([0bf65c4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0bf65c4bab437890b37eedb4a73598508b7c556f))
+* Sunricher SR-ZG9001K8-DIM: support multi endpoint commands for on/off and level control ([#9568](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9568)) ([e72fba2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e72fba20b00f8c4dad9cdaa382a6956ea0e696d7))
+
 ## [23.68.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.67.0...v23.68.0) (2025-06-30)
 
 
