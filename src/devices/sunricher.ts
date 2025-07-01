@@ -468,10 +468,14 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Sunricher",
         description: "Zigbee 8 button wall switch",
         extend: [
-            m.commandsOnOff(),
+            m.commandsOnOff({
+                endpointNames: ["1", "2", "3", "4"],
+            }),
             m.battery(),
-            m.commandsScenes(),
-            m.commandsLevelCtrl({commands: ["brightness_move_up", "brightness_move_down", "brightness_stop"]}),
+            m.commandsLevelCtrl({
+                commands: ["brightness_move_up", "brightness_move_down", "brightness_stop"],
+                endpointNames: ["1", "2", "3", "4"],
+            }),
         ],
         whiteLabel: [{vendor: "Sunricher", model: "SR-ZG9001NK8-DIM"}],
         meta: {multiEndpoint: true},
