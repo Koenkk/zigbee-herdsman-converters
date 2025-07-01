@@ -9227,7 +9227,7 @@ export const definitions: DefinitionWithExtend[] = [
             fz.tuya_operation_mode,
             fz.battery,
         ],
-        whiteLabel: [tuya.whitelabel("Tuya", "ZG-101Z_D", "Smart knob", ["_TZ3000_402vrq2i"])],
+        whiteLabel: [tuya.whitelabel("Tuya", "ZG-101Z_D_1", "Smart knob", ["_TZ3000_402vrq2i"])],
         toZigbee: [tz.tuya_operation_mode],
         exposes: [
             e.action([
