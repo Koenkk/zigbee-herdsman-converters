@@ -961,10 +961,26 @@ export const light_colortemp_move: Tz.Converter = {
         let movemode: number;
 
         // Handle different input formats
-        if (value === "stop") {
-            // String stop command
-            rate = 1;
-            movemode = 0;
+        if (utils.isString(value)) {
+            // String-based commands
+            const stringValue = value.toLowerCase();
+
+            if (stringValue === "stop" || stringValue === "release" || stringValue === "0") {
+                rate = 1;
+                movemode = 0;
+            } else if (stringValue === "up" || stringValue === "1") {
+                rate = meta.message?.rate != null ? Number(meta.message.rate) : 55;
+                movemode = 1; // Move to warmer (higher color temp)
+            } else if (stringValue === "down") {
+                rate = meta.message?.rate != null ? Number(meta.message.rate) : 55;
+                movemode = 3; // Move to cooler (lower color temp)
+            } else {
+                throw new Error(`${key}: invalid string value "${value}". Expected "stop", "release", "0", "up", "1", or "down"`);
+            }
+
+            // Use legacy constraints for string-based commands
+            payload.minimum = 153;
+            payload.maximum = 370;
         } else if (utils.isNumber(value)) {
             // Simple number input
             const numValue = Number(value);
@@ -1016,7 +1032,7 @@ export const light_colortemp_move: Tz.Converter = {
                 throw new Error(`${key}: minimum (${payload.minimum}) must be less than maximum (${payload.maximum})`);
             }
         } else {
-            throw new Error(`${key}: invalid value type. Expected number, "stop", or object with rate property`);
+            throw new Error(`${key}: invalid value type. Expected number, string, or object with rate property`);
         }
 
         // Set final payload values

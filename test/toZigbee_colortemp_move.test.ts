@@ -73,8 +73,102 @@ describe("light_colortemp_move converter", () => {
         expect(device.endpoints[0].command).toHaveBeenCalledWith(
             "lightingColorCtrl",
             "moveColorTemp",
-            {movemode: 0, rate: 1, minimum: 0, maximum: 600},
+            {movemode: 0, rate: 1, minimum: 153, maximum: 370},
             {},
+        );
+    });
+
+    test("should handle string release command", async () => {
+        const converter = zhc.toZigbee.light_colortemp_move;
+        await converter.convertSet(device.endpoints[0], "color_temp_move", "release", mockMeta);
+
+        expect(device.endpoints[0].command).toHaveBeenCalledWith(
+            "lightingColorCtrl",
+            "moveColorTemp",
+            {movemode: 0, rate: 1, minimum: 153, maximum: 370},
+            {},
+        );
+    });
+
+    test("should handle string zero command", async () => {
+        const converter = zhc.toZigbee.light_colortemp_move;
+        await converter.convertSet(device.endpoints[0], "color_temp_move", "0", mockMeta);
+
+        expect(device.endpoints[0].command).toHaveBeenCalledWith(
+            "lightingColorCtrl",
+            "moveColorTemp",
+            {movemode: 0, rate: 1, minimum: 153, maximum: 370},
+            {},
+        );
+    });
+
+    test("should handle string up command", async () => {
+        const converter = zhc.toZigbee.light_colortemp_move;
+        await converter.convertSet(device.endpoints[0], "color_temp_move", "up", mockMeta);
+
+        expect(device.endpoints[0].command).toHaveBeenCalledWith(
+            "lightingColorCtrl",
+            "moveColorTemp",
+            {movemode: 1, rate: 55, minimum: 153, maximum: 370},
+            {},
+        );
+    });
+
+    test("should handle string one command", async () => {
+        const converter = zhc.toZigbee.light_colortemp_move;
+        await converter.convertSet(device.endpoints[0], "color_temp_move", "1", mockMeta);
+
+        expect(device.endpoints[0].command).toHaveBeenCalledWith(
+            "lightingColorCtrl",
+            "moveColorTemp",
+            {movemode: 1, rate: 55, minimum: 153, maximum: 370},
+            {},
+        );
+    });
+
+    test("should handle string down command", async () => {
+        const converter = zhc.toZigbee.light_colortemp_move;
+        await converter.convertSet(device.endpoints[0], "color_temp_move", "down", mockMeta);
+
+        expect(device.endpoints[0].command).toHaveBeenCalledWith(
+            "lightingColorCtrl",
+            "moveColorTemp",
+            {movemode: 3, rate: 55, minimum: 153, maximum: 370},
+            {},
+        );
+    });
+
+    test("should handle string up command with custom rate from meta.message", async () => {
+        const converter = zhc.toZigbee.light_colortemp_move;
+        const metaWithRate = {...mockMeta, message: {rate: 75}};
+        await converter.convertSet(device.endpoints[0], "color_temp_move", "up", metaWithRate);
+
+        expect(device.endpoints[0].command).toHaveBeenCalledWith(
+            "lightingColorCtrl",
+            "moveColorTemp",
+            {movemode: 1, rate: 75, minimum: 153, maximum: 370},
+            {},
+        );
+    });
+
+    test("should handle string down command with custom rate from meta.message", async () => {
+        const converter = zhc.toZigbee.light_colortemp_move;
+        const metaWithRate = {...mockMeta, message: {rate: 100}};
+        await converter.convertSet(device.endpoints[0], "color_temp_move", "down", metaWithRate);
+
+        expect(device.endpoints[0].command).toHaveBeenCalledWith(
+            "lightingColorCtrl",
+            "moveColorTemp",
+            {movemode: 3, rate: 100, minimum: 153, maximum: 370},
+            {},
+        );
+    });
+
+    test("should throw error for invalid string command", async () => {
+        const converter = zhc.toZigbee.light_colortemp_move;
+
+        await expect(converter.convertSet(device.endpoints[0], "color_temp_move", "invalid", mockMeta)).rejects.toThrow(
+            'color_temp_move: invalid string value "invalid". Expected "stop", "release", "0", "up", "1", or "down"',
         );
     });
 
@@ -254,7 +348,7 @@ describe("light_colortemp_move converter", () => {
         const converter = zhc.toZigbee.light_colortemp_move;
 
         await expect(converter.convertSet(device.endpoints[0], "color_temp_move", true, mockMeta)).rejects.toThrow(
-            'color_temp_move: invalid value type. Expected number, "stop", or object with rate property',
+            "color_temp_move: invalid value type. Expected number, string, or object with rate property",
         );
     });
 
