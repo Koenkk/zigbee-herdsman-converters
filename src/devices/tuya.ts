@@ -18219,8 +18219,9 @@ export const definitions: DefinitionWithExtend[] = [
         },
         configure: tuya.configureMagicPacket,
         endpoint: (device) => ({
-    l1: 1,
-    l2: 1,
-    default: 1,}),
+            l1: 1,
+            l2: 1,
+            default: 1,
+        }),
     },
 ];
