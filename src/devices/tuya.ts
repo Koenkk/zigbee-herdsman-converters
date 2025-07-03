@@ -15007,21 +15007,16 @@ export const definitions: DefinitionWithExtend[] = [
             e.battery(),
         ],
         meta: {
-            tuyaDatapoints: [
-                [1, "state", tuya.valueConverter.onOff],
-                [
-                    8,
-                    "valve_state",
-                    tuya.valueConverterBasic.lookup({
-                        unknown: tuya.enum(0),
-                        open: tuya.enum(1),
-                        closed: tuya.enum(2),
-                    }),
-                    [101, "battery", tuya.valueConverter.raw],
-                ],
-            ],
-        },
-    },
+    tuyaDatapoints: [
+        [1, "state", tuya.valueConverter.onOff],
+        [8, "valve_state", tuya.valueConverterBasic.lookup({
+            unknown: tuya.enum(0),
+            open: tuya.enum(1),
+            closed: tuya.enum(2),
+        })],
+        [101, "battery", tuya.valueConverter.raw],
+    ],
+},
     {
         fingerprint: tuya.fingerprint("TS000F", ["_TZ3218_7fiyo3kv"]),
         model: "TYZGTH1CH-D1RF",
