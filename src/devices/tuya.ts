@@ -15017,7 +15017,7 @@ export const definitions: DefinitionWithExtend[] = [
             [101, "battery", tuya.valueConverter.raw],
         ],
     },
-}
+},
 
     {
         fingerprint: tuya.fingerprint("TS000F", ["_TZ3218_7fiyo3kv"]),
