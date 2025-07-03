@@ -642,6 +642,37 @@ const tzLocal = {
             return await legacy.toZigbee.tuya_cover_control.convertSet(entity, key, newValue, meta);
         },
     } satisfies Tz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    TS0505B_1_transitionFixes: {
+        ...tz.light_onoff_brightness,
+        convertSet: async (entity, key, value, meta) => {
+            // This light has two issues:
+            // 1. If passing transition = 0, it will behave as if transition = 1.
+            // 2. If turning off with a transition, and turning on during the transition, it will turn off
+            //    at the end of the first transition timer, despite order to turn on
+
+            // Workaround for issue 1: best we can do is set the transition to 0.1 seconds
+            // That is the same thing as is done for TS0505B_2
+            const transition = utils.getTransition(entity, "brightness", meta);
+            const transitionSeconds = (transition.time || 1) / 10;
+            meta.message.transition = transitionSeconds; // Will get re-parsed by original light_onoff_brightness
+
+            const ret = await tz.light_onoff_brightness.convertSet(entity, key, value, meta);
+
+            // Workaround for issue 2:
+            // Get the current state of the light after transition time + 0.1s
+            // This won't fix the light's state, but at least it will make us aware that it's off,
+            // allowing user apps to turn it on again if needed.
+            // This could probably be improved by actually turning it on again if necessary.
+            setTimeout(() => {
+                tz.on_off.convertGet(entity, "state", meta).catch((error) => {
+                    logger.warning(`Error getting state of TS0505B_1 after transition: ${error.message}`, NS);
+                });
+            }, transitionSeconds + 0.1);
+
+            return ret;
+        },
+    } satisfies Tz.Converter,
 };
 
 const fzLocal = {
@@ -1768,6 +1799,7 @@ export const definitions: DefinitionWithExtend[] = [
                 color: true,
             }),
         ],
+        toZigbee: [tzLocal.TS0505B_1_transitionFixes],
         configure: (device, coordinatorEndpoint) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue("lightingColorCtrl", {
                 colorCapabilities: 29,
