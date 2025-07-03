@@ -14992,32 +14992,36 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
-   {
-    fingerprint: tuya.fingerprint("TS0601", ["_TZE204_dsagrkvg", "_TZE284_zm8zpwas"]),
-    model: "ZPV-01",
-    vendor: "Novato",
-    description: "Battery Powered Smart Valve",
-    fromZigbee: [tuya.fz.datapoints],
-    toZigbee: [tuya.tz.datapoints],
-    onEvent: tuya.onEventSetTime,
-    configure: tuya.configureMagicPacket,
-    exposes: [
-        e.switch().setAccess("state", ea.STATE_SET),
-        e.enum("valve_state", ea.STATE, ["Closed", "Unknown", "Open"]).withDescription("Valve Status"),
-        e.battery(),
-    ],
-    meta: {
-        tuyaDatapoints: [
-            [1, "state", tuya.valueConverter.onOff],
-            [8, "valve_state", tuya.valueConverterBasic.lookup({
-                unknown: tuya.enum(0),
-                open: tuya.enum(1),
-                closed: tuya.enum(2),
-            })],
-            [101, "battery", tuya.valueConverter.raw],
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_dsagrkvg", "_TZE284_zm8zpwas"]),
+        model: "ZPV-01",
+        vendor: "Novato",
+        description: "Battery Powered Smart Valve",
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEventSetTime,
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.switch().setAccess("state", ea.STATE_SET),
+            e.enum("valve_state", ea.STATE, ["Closed", "Unknown", "Open"]).withDescription("Valve Status"),
+            e.battery(),
         ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "state", tuya.valueConverter.onOff],
+                [
+                    8,
+                    "valve_state",
+                    tuya.valueConverterBasic.lookup({
+                        unknown: tuya.enum(0),
+                        open: tuya.enum(1),
+                        closed: tuya.enum(2),
+                    }),
+                ],
+                [101, "battery", tuya.valueConverter.raw],
+            ],
+        },
     },
-},
 
     {
         fingerprint: tuya.fingerprint("TS000F", ["_TZ3218_7fiyo3kv"]),
