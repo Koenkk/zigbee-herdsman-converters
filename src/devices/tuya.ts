@@ -4324,7 +4324,7 @@ export const definitions: DefinitionWithExtend[] = [
     ////////////////////////
 
     {
-        fingerprint: tuya.fingerprint("TS0003", ["_TZ3000_rhkfbfcv", "_TZ3000_empogkya", "_TZ3000_lubfc1t5", "_TZ3000_lsunm46z", "_TZ3000_v4l4b0lp"]),
+        fingerprint: tuya.fingerprint("TS0003", ["_TZ3000_rhkfbfcv", "_TZ3000_empogkya", "_TZ3000_lubfc1t5", "_TZ3000_lsunm46z", "_TZ3000_v4l4b0lp", "_TZ3000_uilitwsy"]),
         model: "TS0003_switch_3_gang_with_backlight",
         vendor: "Tuya",
         description: "3-Gang switch with backlight",
@@ -4348,7 +4348,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
         whiteLabel: [
             tuya.whitelabel("Lonsonho", "X703A", "3 Gang switch with backlight", ["_TZ3000_rhkfbfcv"]),
-            tuya.whitelabel("Zemismart", "ZM-L03E-Z", "3 gang switch with neutral", ["_TZ3000_empogkya", "_TZ3000_lsunm46z"]),
+            tuya.whitelabel("Zemismart", "ZM-L03E-Z", "3 gang switch with neutral", ["_TZ3000_empogkya", "_TZ3000_lsunm46z", "_TZ3000_uilitwsy"]),
             tuya.whitelabel("Tuya", "M10Z", "2 gang switch with 20A power socket", ["_TZ3000_lubfc1t5"]),
         ],
     },
