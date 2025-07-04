@@ -647,7 +647,7 @@ const tzLocal = {
         ...tz.light_onoff_brightness,
         convertSet: async (entity, key, value, meta) => {
             // This light has two issues:
-            // 1. If passing transition = 0, it will behave as if transition = 1.
+            // 1. If passing transition = 0, it will behave as if transition = 1s.
             // 2. If turning off with a transition, and turning on during the transition, it will turn off
             //    at the end of the first transition timer, despite order to turn on
 
