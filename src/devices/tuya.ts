@@ -653,7 +653,7 @@ const tzLocal = {
 
             // Workaround for issue 1: patch transition in input message
             const transition = utils.getTransition(entity, "brightness", meta);
-            const transitionSeconds = transition.time / 10;
+            let transitionSeconds = transition.time / 10;
             let newMeta = meta;
             if (transitionSeconds === 0) {
                 const {message} = meta;
@@ -665,6 +665,7 @@ const tzLocal = {
                 } else {
                     // Best we can do is set the transition to 0.1 seconds
                     // That is the same thing as is done for TS0505B_2
+                    transitionSeconds = 0.1;
                     newMeta.message.transition = transitionSeconds; // Will get re-parsed by original light_onoff_brightness
                 }
             }
