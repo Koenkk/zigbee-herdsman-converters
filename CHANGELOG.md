@@ -1,5 +1,12 @@
 # Changelog
 
+## [23.70.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.70.0...v23.70.1) (2025-07-04)
+
+
+### Bug Fixes
+
+* TS0505B_1 transition fixes ([#9578](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9578)) ([3c1d56c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3c1d56c1db0422b3edd800f611764f9d507b9193))
+
 ## [23.70.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.69.0...v23.70.0) (2025-07-04)
 
 
