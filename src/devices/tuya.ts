@@ -658,15 +658,15 @@ const tzLocal = {
             if (transitionSeconds === 0) {
                 const {message} = meta;
                 const wantedState = message.state != null ? (typeof message.state === "string" ? message.state.toLowerCase() : null) : undefined;
-                newMeta = {...meta, message: {...message}}; // Clone meta.message to avoid modifying the original
+                newMeta = {...meta}; // Clone meta to avoid modifying the original
                 if (wantedState === "off") {
                     // Erase transition because that way we get actual instant turn off
-                    newMeta.message.transition = null;
+                    newMeta.message = {state: "OFF"};
                 } else {
                     // Best we can do is set the transition to 0.1 seconds
                     // That is the same thing as is done for TS0505B_2
                     transitionSeconds = 0.1;
-                    newMeta.message.transition = transitionSeconds; // Will get re-parsed by original light_onoff_brightness
+                    newMeta.message = {...message, transition: transitionSeconds}; // Will get re-parsed by original light_onoff_brightness
                 }
             }
 
