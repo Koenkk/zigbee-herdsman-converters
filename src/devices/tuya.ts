@@ -15002,7 +15002,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_dsagrkvg"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_dsagrkvg", "_TZE284_zm8zpwas"]),
         model: "ZPV-01",
         vendor: "Novato",
         description: "Battery powered smart valve",
@@ -15012,7 +15012,8 @@ export const definitions: DefinitionWithExtend[] = [
         configure: tuya.configureMagicPacket,
         exposes: [
             e.switch().setAccess("state", ea.STATE_SET),
-            e.enum("valve_state", ea.STATE, ["close", "unknown", "open"]).withDescription("State of the valve"),
+            e.enum("valve_state", ea.STATE, ["Closed", "Unknown", "Open"]).withDescription("Valve Status"),
+            e.battery(),
         ],
         meta: {
             tuyaDatapoints: [
@@ -15026,6 +15027,7 @@ export const definitions: DefinitionWithExtend[] = [
                         closed: tuya.enum(2),
                     }),
                 ],
+                [101, "battery", tuya.valueConverter.raw],
             ],
         },
     },
