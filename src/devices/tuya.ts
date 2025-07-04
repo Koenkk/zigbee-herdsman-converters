@@ -18263,8 +18263,8 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         exposes: [
-            e.switch().withEndpoint("l1"),
-            e.switch().withEndpoint("l2"),
+            e.switch().withProperty("state_l1").withDescription("Channel 1"),
+            e.switch().withProperty("state_l2").withDescription("Channel 2"),
             e.light_brightness_colortemp([154, 370]),
             e.enum("adjustment_mode", ea.STATE_SET, ["brightness", "color_temp"]).withDescription("Adjustment mode"),
         ],
@@ -18280,8 +18280,6 @@ export const definitions: DefinitionWithExtend[] = [
         },
         configure: tuya.configureMagicPacket,
         endpoint: (device) => ({
-            l1: 1,
-            l2: 1,
             default: 1,
         }),
     },
