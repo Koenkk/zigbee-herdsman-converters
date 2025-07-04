@@ -1,5 +1,27 @@
 # Changelog
 
+## [23.70.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.69.0...v23.70.0) (2025-07-04)
+
+
+### Features
+
+* **add:** COZIGPMS ([#9572](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9572)) ([c421d33](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c421d337d5a57f1bb94ca7665fdd2643236f6496))
+* Enhance light_colortemp_move converter to support min/max constraints ([#9567](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9567)) ([11372d2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/11372d217fcd786b39157ee8a68ffb03562aff51))
+* Novato ZPV-01: support battery ([#9577](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9577)) ([96cbefc](https://github.com/Koenkk/zigbee-herdsman-converters/commit/96cbefc7e358164176e40bab70bf42e716b321b3))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3000_uilitwsy` as `ZM-L03E-Z` and detect ` _TZ3000_66fekqhh` as ZWOT16-W2 ([#9575](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9575)) ([94213d0](https://github.com/Koenkk/zigbee-herdsman-converters/commit/94213d0b279fa7ec86d74018b437dba1e2880f04))
+* **detect:** Detect `_TZE284_k7v0eqke` as Zemismart ZMS-206EU-3 https://github.com/Koenkk/zigbee2mqtt/issues/27133 ([6bbcbfb](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6bbcbfb1a5bc514481c6065c1f62f4f5c050860b))
+* **detect:** Detect `_TZE284_uqfph8ah` as BSEED BSEED_TS0601_cover https://github.com/Koenkk/zigbee2mqtt/issues/27790 ([e0e11cb](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e0e11cbafc9b25c7ac124a7ebe15ff305bbc82cc))
+* **detect:** Detect `1 Mini` as Shelly S4SW-001X8EU and `1PM Mini` as Shelly S4SW-001P8EU https://github.com/Koenkk/zigbee2mqtt/issues/27897 ([9a20565](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9a20565b5eee919caf65c9aedddf752986cf6807))
+* **detect:** Detect `eco-dim07-zigbee` as Eco-Dim.07/Eco-Dim.10 https://github.com/Koenkk/zigbee2mqtt/issues/27891 ([26a2e77](https://github.com/Koenkk/zigbee-herdsman-converters/commit/26a2e776c9dbefec0c22d53a8a84eb788e89f54a))
+* **detect:** Detect `NimlyShared` as Onesti Products AS Nimly https://github.com/Koenkk/zigbee-herdsman-converters/pull/9527 ([c9ff530](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c9ff530b8bfd255ac027fc3fc02543b07e847eed))
+* **ignore:** Fix duplicate ZG-101Z/D model ([6bacca9](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6bacca94248ec23a410f1f08a9e2e917988517e0))
+* Smartwings WM25L-Z: fix power source (battery) https://github.com/Koenkk/zigbee2mqtt/issues/27859 ([58517d1](https://github.com/Koenkk/zigbee-herdsman-converters/commit/58517d18e2560b5b1189cc0bbaefc59a4f3b0684))
+* Tuya TS0601_knob_dimmer_switch: fix endpoints ([#9573](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9573)) ([3a307e7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3a307e77e33ba41de733976024f9218c2228a384))
+
 ## [23.69.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.68.0...v23.69.0) (2025-07-01)
 
 
