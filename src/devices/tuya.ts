@@ -642,6 +642,55 @@ const tzLocal = {
             return await legacy.toZigbee.tuya_cover_control.convertSet(entity, key, newValue, meta);
         },
     } satisfies Tz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    TS0505B_1_transitionFixesOnOffBrightness: {
+        ...tz.light_onoff_brightness,
+        convertSet: async (entity, key, value, meta) => {
+            // This light has two issues:
+            // 1. If passing transition = 0, it will behave as if transition = 1s.
+            // 2. If turning off with a transition, and turning on during the transition, it will turn off
+            //    at the end of the first transition timer, despite order to turn on
+
+            // Workaround for issue 1: patch transition in input message
+            const transition = utils.getTransition(entity, "brightness", meta);
+            let transitionSeconds = transition.time / 10;
+            let newMeta = meta;
+            if (transitionSeconds === 0) {
+                const {message} = meta;
+                const wantedState = message.state != null ? (typeof message.state === "string" ? message.state.toLowerCase() : null) : undefined;
+                newMeta = {...meta}; // Clone meta to avoid modifying the original
+                if (wantedState === "off") {
+                    // Erase transition because that way we get actual instant turn off
+                    newMeta.message = {state: "OFF"};
+                } else {
+                    // Best we can do is set the transition to 0.1 seconds
+                    // That is the same thing as is done for TS0505B_2
+                    transitionSeconds = 0.1;
+                    newMeta.message = {...message, transition: transitionSeconds}; // Will get re-parsed by original light_onoff_brightness
+                }
+            }
+
+            const ret = await tz.light_onoff_brightness.convertSet(entity, key, value, newMeta);
+
+            // Workaround for issue 2:
+            // Get the current state of the light after transition time + 0.1s
+            // This won't fix the light's state, but at least it will make us aware that it's off,
+            // allowing user apps to turn it on again if needed.
+            // This could probably be improved by actually turning it on again if necessary.
+            if (transitionSeconds !== 0) {
+                setTimeout(
+                    () => {
+                        tz.on_off.convertGet(entity, "state", meta).catch((error) => {
+                            logger.warning(`Error getting state of TS0505B_1 after transition: ${error.message}`, NS);
+                        });
+                    },
+                    transitionSeconds * 1000 + 100,
+                );
+            }
+
+            return ret;
+        },
+    } satisfies Tz.Converter,
 };
 
 const fzLocal = {
@@ -1768,6 +1817,7 @@ export const definitions: DefinitionWithExtend[] = [
                 color: true,
             }),
         ],
+        toZigbee: [tzLocal.TS0505B_1_transitionFixesOnOffBrightness],
         configure: (device, coordinatorEndpoint) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue("lightingColorCtrl", {
                 colorCapabilities: 29,
