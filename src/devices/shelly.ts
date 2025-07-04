@@ -3,7 +3,7 @@ import type {DefinitionWithExtend} from "../lib/types";
 
 export const definitions: DefinitionWithExtend[] = [
     {
-        zigbeeModel: ["Mini1"],
+        zigbeeModel: ["Mini1", "1 Mini"],
         model: "S4SW-001X8EU",
         vendor: "Shelly",
         description: "1 Mini Gen 4",
@@ -17,7 +17,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.onOff({powerOnBehavior: false})],
     },
     {
-        zigbeeModel: ["Mini1PM"],
+        zigbeeModel: ["Mini1PM", "1PM Mini"],
         model: "S4SW-001P8EU",
         vendor: "Shelly",
         description: "1PM Mini Gen 4",
