@@ -751,9 +751,7 @@ export const definitions: DefinitionWithExtend[] = [
                 powerOnBehavior: false,
                 color: false,
                 configureReporting: true,
-                levelConfig: {
-                    disabledFeatures: ["on_transition_time", "off_transition_time", "on_off_transition_time", "execute_if_off"],
-                },
+                levelConfig: {features: ["on_level", "current_level_startup"]},
             }),
             m.lightingBallast(),
             schneiderElectricExtend.dimmingMode(),
@@ -1155,7 +1153,6 @@ export const definitions: DefinitionWithExtend[] = [
         },
         exposes: [e.switch().withEndpoint("l1"), e.switch().withEndpoint("l2"), e.action(["on_s*", "off_s*"])],
         configure: (device, coordinatorEndpoint) => {
-            // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
             device.endpoints.forEach(async (ep) => {
                 if (ep.outputClusters.includes(6) || ep.ID <= 2) {
                     await reporting.bind(ep, coordinatorEndpoint, ["genOnOff"]);
@@ -1199,7 +1196,6 @@ export const definitions: DefinitionWithExtend[] = [
             const endpoint = device.getEndpoint(3);
             await reporting.bind(endpoint, coordinatorEndpoint, ["lightingBallastCfg"]);
             // Configure the four front switches
-            // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
             device.endpoints.forEach(async (ep) => {
                 if (21 <= ep.ID && ep.ID <= 22) {
                     await reporting.bind(ep, coordinatorEndpoint, ["genOnOff", "genLevelCtrl"]);
@@ -1212,7 +1208,6 @@ export const definitions: DefinitionWithExtend[] = [
             // Record the factory default bindings for easy removal/change after deviceInterview
             if (type === "deviceInterview") {
                 const dimmer = device.getEndpoint(3);
-                // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
                 device.endpoints.forEach((ep) => {
                     if (21 <= ep.ID && ep.ID <= 22) {
                         ep.addBinding("genOnOff", dimmer);
@@ -1920,22 +1915,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Schneider Electric",
         description: "Wiser AvatarOn 1G dimmer switch",
         extend: [
-            m.light({
-                effect: false,
-                color: false,
-                powerOnBehavior: false,
-                levelConfig: {
-                    disabledFeatures: [
-                        "on_off_transition_time",
-                        "on_transition_time",
-                        "off_transition_time",
-                        "execute_if_off",
-                        "on_level",
-                        "current_level_startup",
-                    ],
-                },
-                configureReporting: true,
-            }),
+            m.light({effect: false, color: false, powerOnBehavior: false, configureReporting: true}),
             schneiderElectricExtend.addVisaConfigurationCluster(Zcl.DataType.UINT8),
             schneiderElectricExtend.visaConfigIndicatorLuminanceLevel(),
             schneiderElectricExtend.visaConfigIndicatorColor(),
@@ -1954,16 +1934,6 @@ export const definitions: DefinitionWithExtend[] = [
                 effect: false,
                 color: false,
                 powerOnBehavior: false,
-                levelConfig: {
-                    disabledFeatures: [
-                        "on_off_transition_time",
-                        "on_transition_time",
-                        "off_transition_time",
-                        "execute_if_off",
-                        "on_level",
-                        "current_level_startup",
-                    ],
-                },
                 configureReporting: true,
             }),
             schneiderElectricExtend.addVisaConfigurationCluster(Zcl.DataType.ENUM8),
@@ -2094,9 +2064,7 @@ export const definitions: DefinitionWithExtend[] = [
                 powerOnBehavior: false,
                 color: false,
                 configureReporting: true,
-                levelConfig: {
-                    disabledFeatures: ["on_transition_time", "off_transition_time", "on_off_transition_time", "execute_if_off"],
-                },
+                levelConfig: {features: ["on_level", "current_level_startup"]},
             }),
             m.lightingBallast(),
             m.illuminance(),
@@ -2129,7 +2097,7 @@ export const definitions: DefinitionWithExtend[] = [
                 color: false,
                 configureReporting: true,
                 levelConfig: {
-                    disabledFeatures: ["on_off_transition_time", "on_transition_time", "off_transition_time", "execute_if_off"],
+                    features: ["on_level", "current_level_startup"],
                 },
             }),
             m.lightingBallast(),

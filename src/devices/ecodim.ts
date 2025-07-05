@@ -8,6 +8,7 @@ const e = exposes.presets;
 
 export const definitions: DefinitionWithExtend[] = [
     {
+        zigbeeModel: ["Eco-Dim.05 Zigbee"],
         fingerprint: [
             {
                 type: "Router",
@@ -29,16 +30,6 @@ export const definitions: DefinitionWithExtend[] = [
                     {ID: 242, profileID: 41440, inputClusters: [], outputClusters: [33]},
                 ],
             },
-            {
-                type: "Router",
-                manufacturerName: "EcoDim BV",
-                modelID: "Eco-Dim.05 Zigbee",
-                endpoints: [
-                    {ID: 1, profileID: 260, inputClusters: [0, 3, 4, 5, 6, 8, 4096], outputClusters: [25]},
-                    {ID: 2, profileID: 260, inputClusters: [0, 3, 4, 5, 6, 8, 4096], outputClusters: [25]},
-                    {ID: 242, profileID: 41440, inputClusters: [], outputClusters: [33]},
-                ],
-            },
         ],
         model: "Eco-Dim.05",
         vendor: "EcoDim",
@@ -49,6 +40,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
+        zigbeeModel: ["eco-dim07-zigbee"],
         fingerprint: [
             {type: "Router", manufacturerID: 4714, modelID: "Dimmer-Switch-ZB3.0"},
             {

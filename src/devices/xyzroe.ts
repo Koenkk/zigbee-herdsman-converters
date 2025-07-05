@@ -60,7 +60,6 @@ function getSortedList(source: {[key: string]: number}): string[] {
     });
 
     const result: string[] = [];
-    // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
     keysSorted.forEach((item) => {
         result.push(item[0]);
     });

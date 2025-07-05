@@ -409,7 +409,7 @@ export const definitions: DefinitionWithExtend[] = [
                     } else if (valueId === "#") {
                         // GPIO state (contact, gas, noise, occupancy, presence, smoke, sos, tamper, vibration, water leak)
                         exposeEpOptions.exposed_onoff = true;
-                        let exposeObj = undefined;
+                        let exposeObj: Expose;
                         switch (valueDescription) {
                             case "g":
                                 exposeObj = e.gas();
@@ -443,8 +443,8 @@ export const definitions: DefinitionWithExtend[] = [
                         }
                         expose.push(exposeObj.withProperty("state").withEndpoint(epName));
                     } else if (valueConfigItems.length > 0) {
-                        let valueName = undefined; // name in Z2M
-                        let valueNumIndex = undefined;
+                        let valueName: string; // name in Z2M
+                        let valueNumIndex: string;
                         const idxPos = valueId.search(/(\d+)$/);
                         if (valueId.startsWith("mcpm") || valueId.startsWith("ncpm")) {
                             const num = Number.parseInt(valueId.substr(4, 1), 16);

@@ -13,7 +13,7 @@ const ea = exposes.access;
 
 const setTime = async (device: Zh.Device) => {
     const endpoint = device.getEndpoint(1);
-    const time = Math.round((new Date().getTime() - constants.OneJanuary2000) / 1000);
+    const time = Math.round((Date.now() - constants.OneJanuary2000) / 1000);
     // Time-master + synchronised
     const values = {timeStatus: 1, time: time, timeZone: new Date().getTimezoneOffset() * -1 * 60};
     await endpoint.write("genTime", values);

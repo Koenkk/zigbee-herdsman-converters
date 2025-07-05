@@ -1,14 +1,15 @@
-import * as m from "../lib/modernExtend";
-import type {DefinitionWithExtend, Fz, Tz} from "../lib/types";
-
 import * as fz from "../converters/fromZigbee";
 import * as exposes from "../lib/exposes";
-import {assertString} from "../lib/utils";
+import * as m from "../lib/modernExtend";
+import * as globalStore from "../lib/store";
+import type {DefinitionWithExtend, Fz, Tz} from "../lib/types";
+import * as utils from "../lib/utils";
 
 const e = exposes.presets;
 const ea = exposes.access;
 
-const manufacturerSpecificClusterCode = 0x1224;
+const manufacturerSpecificSwitchTypeClusterCode = 0x1224;
+const manufacturerSpecificRotaryRemoteControlClusterCode = 0xff03;
 const switchTypeAttribute = 0x8803;
 const dataType = 0x20;
 const valueMap: {[key: number]: string} = {
@@ -20,12 +21,28 @@ const valueLookup: {[key: string]: number} = {
     toggle: 1,
 };
 
+const luxScale: m.ScaleFunction = (value: number, type: "from" | "to") => {
+    let result = value;
+    if (type === "from") {
+        result = 10 ** ((result - 1) / 10000);
+        if (result > 0 && result <= 2200) {
+            result = -7.969192 + 0.0151988 * result;
+        } else if (result > 2200 && result <= 2500) {
+            result = -1069.189434 + 0.4950663 * result;
+        } else if (result > 2500) {
+            result = 78029.21628 - 61.73575 * result + 0.01223567 * result ** 2;
+        }
+        result = result < 1 ? 1 : result;
+    }
+    return result;
+};
+
 const fzLocal = {
     switch_type: {
         cluster: "genBasic",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
-            if (Object.prototype.hasOwnProperty.call(msg.data, switchTypeAttribute)) {
+            if (Object.hasOwn(msg.data, switchTypeAttribute)) {
                 const value = msg.data[switchTypeAttribute];
                 return {
                     external_switch_type: valueMap[value] || "unknown",
@@ -35,23 +52,111 @@ const fzLocal = {
             return undefined;
         },
     } satisfies Fz.Converter,
+    rotary_remote_control: {
+        cluster: "candeoRotaryRemoteControl",
+        type: ["commandRotaryRemoteControl"],
+        convert: (model, msg, publish, options, meta) => {
+            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
+            const messageTypes: {[key: number]: string} = {
+                1: "button_press",
+                3: "ring_rotation",
+            };
+            const messageType = msg.data.field1;
+            if (messageType in messageTypes) {
+                const rotary_remote_control_actions = [];
+                if (messageTypes[messageType] === "button_press") {
+                    const buttonNumber = msg.data.field3;
+                    const buttonAction = msg.data.field4;
+                    const buttonNumbers: {[key: number]: string} = {
+                        1: "button_1_",
+                        2: "button_2_",
+                        4: "button_3_",
+                        8: "button_4_",
+                        16: "centre_button_",
+                    };
+                    const buttonActions: {[key: number]: string} = {
+                        1: "click",
+                        2: "double_click",
+                        3: "hold",
+                        4: "release",
+                    };
+                    if (buttonNumber in buttonNumbers && buttonAction in buttonActions) {
+                        rotary_remote_control_actions.push(buttonNumbers[buttonNumber] + buttonActions[buttonAction]);
+                    }
+                } else if (messageTypes[messageType] === "ring_rotation") {
+                    const ringAction = msg.data.field3;
+                    const ringActions: {[key: number]: string} = {
+                        1: "started_",
+                        2: "stopped_",
+                        3: "continued_",
+                    };
+                    if (ringAction in ringActions) {
+                        if (ringActions[ringAction] === "stopped_") {
+                            const previous_direction = globalStore.getValue(msg.endpoint, "previous_direction");
+                            if (previous_direction !== undefined) {
+                                rotary_remote_control_actions.push(`stopped_${previous_direction}`);
+                            }
+                            globalStore.putValue(msg.endpoint, "previous_rotation_event", "stopped_");
+                        } else {
+                            const ringDirection = msg.data.field2;
+                            const ringDirections: {[key: number]: string} = {
+                                1: "rotating_right",
+                                2: "rotating_left",
+                            };
+                            if (ringDirection in ringDirections) {
+                                const previous_rotation_event = globalStore.getValue(msg.endpoint, "previous_rotation_event");
+                                if (previous_rotation_event !== undefined) {
+                                    const ringClicks = msg.data.field4;
+                                    if (previous_rotation_event === "stopped_") {
+                                        rotary_remote_control_actions.push(`started_${ringDirections[ringDirection]}`);
+                                        globalStore.putValue(msg.endpoint, "previous_rotation_event", "started_");
+                                        if (ringClicks > 1) {
+                                            for (let i = 1; i < ringClicks; i++) {
+                                                rotary_remote_control_actions.push(`continued_${ringDirections[ringDirection]}`);
+                                            }
+                                            globalStore.putValue(msg.endpoint, "previous_rotation_event", "continued_");
+                                        }
+                                    } else if (previous_rotation_event === "started_" || previous_rotation_event === "continued_") {
+                                        rotary_remote_control_actions.push(`continued_${ringDirections[ringDirection]}`);
+                                        if (ringClicks > 1) {
+                                            for (let i = 1; i < ringClicks; i++) {
+                                                rotary_remote_control_actions.push(`continued_${ringDirections[ringDirection]}`);
+                                            }
+                                        }
+                                        globalStore.putValue(msg.endpoint, "previous_rotation_event", "continued_");
+                                    }
+                                }
+                                globalStore.putValue(msg.endpoint, "previous_direction", ringDirections[ringDirection]);
+                            }
+                        }
+                    }
+                }
+                for (let i = 0; i < rotary_remote_control_actions.length; i++) {
+                    const payload = {action: rotary_remote_control_actions[i]};
+                    utils.addActionGroup(payload, msg, model);
+                    publish(payload);
+                }
+            }
+            return;
+        },
+    } satisfies Fz.Converter,
 };
 
 const tzLocal = {
     switch_type: {
         key: ["external_switch_type"],
         convertSet: async (entity, key, value, meta) => {
-            assertString(value);
+            utils.assertString(value);
             const numericValue = valueLookup[value] ?? Number.parseInt(value, 10);
             await entity.write(
                 "genBasic",
                 {[switchTypeAttribute]: {value: numericValue, type: dataType}},
-                {manufacturerCode: manufacturerSpecificClusterCode},
+                {manufacturerCode: manufacturerSpecificSwitchTypeClusterCode},
             );
             return {state: {external_switch_type: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read("genBasic", [switchTypeAttribute], {manufacturerCode: manufacturerSpecificClusterCode});
+            await entity.read("genBasic", [switchTypeAttribute], {manufacturerCode: manufacturerSpecificSwitchTypeClusterCode});
         },
     } satisfies Tz.Converter,
 };
@@ -70,7 +175,7 @@ export const definitions: DefinitionWithExtend[] = [
             const endpoint1 = device.getEndpoint(1);
             await endpoint1.write("genOnOff", {16387: {value: 0xff, type: 0x30}});
             await endpoint1.read("genOnOff", ["startUpOnOff"]);
-            await endpoint1.read("genBasic", [switchTypeAttribute], {manufacturerCode: manufacturerSpecificClusterCode});
+            await endpoint1.read("genBasic", [switchTypeAttribute], {manufacturerCode: manufacturerSpecificSwitchTypeClusterCode});
         },
     },
     {
@@ -97,7 +202,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Candeo",
         description: "Zigbee micro smart dimmer",
         extend: [
-            m.light({configureReporting: true, levelConfig: {disabledFeatures: ["on_transition_time", "off_transition_time", "execute_if_off"]}}),
+            m.light({configureReporting: true, levelConfig: {features: ["on_off_transition_time", "on_level", "current_level_startup"]}}),
             m.electricityMeter(),
         ],
         fromZigbee: [fzLocal.switch_type, fz.ignore_genOta],
@@ -113,7 +218,7 @@ export const definitions: DefinitionWithExtend[] = [
             await endpoint1.read("genLevelCtrl", ["onOffTransitionTime"]);
             await endpoint1.write("genLevelCtrl", {16384: {value: 0xff, type: 0x20}});
             await endpoint1.read("genLevelCtrl", ["startUpCurrentLevel"]);
-            await endpoint1.read("genBasic", [switchTypeAttribute], {manufacturerCode: manufacturerSpecificClusterCode});
+            await endpoint1.read("genBasic", [switchTypeAttribute], {manufacturerCode: manufacturerSpecificSwitchTypeClusterCode});
         },
     },
     {
@@ -122,7 +227,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Candeo",
         description: "Zigbee micro smart dimmer",
         extend: [
-            m.light({configureReporting: true, levelConfig: {disabledFeatures: ["on_transition_time", "off_transition_time", "execute_if_off"]}}),
+            m.light({configureReporting: true, levelConfig: {features: ["on_off_transition_time", "on_level", "current_level_startup"]}}),
             m.electricityMeter(),
         ],
         fromZigbee: [fzLocal.switch_type, fz.ignore_genOta],
@@ -138,7 +243,7 @@ export const definitions: DefinitionWithExtend[] = [
             await endpoint1.read("genLevelCtrl", ["onOffTransitionTime"]);
             await endpoint1.write("genLevelCtrl", {16384: {value: 0xff, type: 0x20}});
             await endpoint1.read("genLevelCtrl", ["startUpCurrentLevel"]);
-            await endpoint1.read("genBasic", [switchTypeAttribute], {manufacturerCode: manufacturerSpecificClusterCode});
+            await endpoint1.read("genBasic", [switchTypeAttribute], {manufacturerCode: manufacturerSpecificSwitchTypeClusterCode});
         },
     },
     {
@@ -153,7 +258,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.light({
                 configureReporting: true,
-                levelConfig: {disabledFeatures: ["on_transition_time", "off_transition_time", "on_off_transition_time", "execute_if_off"]},
+                levelConfig: {features: ["on_level", "current_level_startup"]},
                 powerOnBehavior: true,
             }),
         ],
@@ -166,7 +271,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.light({
                 configureReporting: true,
-                levelConfig: {disabledFeatures: ["on_transition_time", "off_transition_time", "on_off_transition_time", "execute_if_off"]},
+                levelConfig: {features: ["on_level", "current_level_startup"]},
                 powerOnBehavior: true,
             }),
         ],
@@ -181,7 +286,7 @@ export const definitions: DefinitionWithExtend[] = [
                 colorTemp: {range: [158, 500]},
                 configureReporting: true,
                 levelConfig: {
-                    disabledFeatures: ["on_transition_time", "off_transition_time", "on_off_transition_time", "on_level", "execute_if_off"],
+                    features: ["current_level_startup"],
                 },
                 powerOnBehavior: true,
             }),
@@ -197,7 +302,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.light({
                 configureReporting: true,
                 levelConfig: {
-                    disabledFeatures: ["on_transition_time", "off_transition_time", "on_off_transition_time", "on_level", "execute_if_off"],
+                    features: ["current_level_startup"],
                 },
                 powerOnBehavior: true,
             }),
@@ -214,7 +319,7 @@ export const definitions: DefinitionWithExtend[] = [
                 color: {modes: ["xy", "hs"], enhancedHue: true},
                 configureReporting: true,
                 levelConfig: {
-                    disabledFeatures: ["on_transition_time", "off_transition_time", "on_off_transition_time", "on_level", "execute_if_off"],
+                    features: ["current_level_startup"],
                 },
                 powerOnBehavior: true,
             }),
@@ -232,7 +337,7 @@ export const definitions: DefinitionWithExtend[] = [
                 color: {modes: ["xy", "hs"], enhancedHue: true},
                 configureReporting: true,
                 levelConfig: {
-                    disabledFeatures: ["on_transition_time", "off_transition_time", "on_off_transition_time", "on_level", "execute_if_off"],
+                    features: ["current_level_startup"],
                 },
                 powerOnBehavior: true,
             }),
@@ -250,7 +355,7 @@ export const definitions: DefinitionWithExtend[] = [
                 color: {modes: ["xy", "hs"], enhancedHue: true},
                 configureReporting: true,
                 levelConfig: {
-                    disabledFeatures: ["on_transition_time", "off_transition_time", "on_off_transition_time", "on_level", "execute_if_off"],
+                    features: ["current_level_startup"],
                 },
                 powerOnBehavior: true,
             }),
@@ -282,7 +387,7 @@ export const definitions: DefinitionWithExtend[] = [
             await endpoint2.write("genOnOff", {16387: {value: 0xff, type: 0x30}});
             await endpoint2.read("genOnOff", [16387]);
             const endpoint11 = device.getEndpoint(11);
-            await endpoint11.read("genBasic", [switchTypeAttribute], {manufacturerCode: manufacturerSpecificClusterCode});
+            await endpoint11.read("genBasic", [switchTypeAttribute], {manufacturerCode: manufacturerSpecificSwitchTypeClusterCode});
         },
     },
     {
@@ -300,9 +405,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "C203",
         vendor: "Candeo",
         description: "Zigbee micro smart dimmer",
-        extend: [
-            m.light({configureReporting: true, levelConfig: {disabledFeatures: ["on_transition_time", "off_transition_time", "execute_if_off"]}}),
-        ],
+        extend: [m.light({configureReporting: true, levelConfig: {features: ["on_off_transition_time", "on_level", "current_level_startup"]}})],
         fromZigbee: [fzLocal.switch_type, fz.ignore_genOta],
         toZigbee: [tzLocal.switch_type],
         exposes: [e.enum("external_switch_type", ea.ALL, ["momentary", "toggle"]).withLabel("External switch type")],
@@ -316,7 +419,7 @@ export const definitions: DefinitionWithExtend[] = [
             await endpoint1.read("genLevelCtrl", ["onOffTransitionTime"]);
             await endpoint1.write("genLevelCtrl", {16384: {value: 0xff, type: 0x20}});
             await endpoint1.read("genLevelCtrl", ["startUpCurrentLevel"]);
-            await endpoint1.read("genBasic", [switchTypeAttribute], {manufacturerCode: manufacturerSpecificClusterCode});
+            await endpoint1.read("genBasic", [switchTypeAttribute], {manufacturerCode: manufacturerSpecificSwitchTypeClusterCode});
         },
     },
     {
@@ -347,8 +450,87 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Motion sensor",
         extend: [
             m.battery(),
-            m.illuminance({reporting: {min: 1, max: 65535, change: 1}}),
+            m.illuminance({reporting: {min: 1, max: 65535, change: 1}, scale: luxScale}),
             m.iasZoneAlarm({zoneType: "occupancy", zoneAttributes: ["alarm_1"]}),
         ],
+    },
+    {
+        fingerprint: [{modelID: "C-ZB-DM201-2G"}],
+        model: "C-ZB-DM201-2G",
+        vendor: "Candeo",
+        description: "Zigbee 2 gang dimmer module",
+        extend: [
+            m.deviceEndpoints({
+                endpoints: {l1: 1, l2: 2},
+            }),
+            m.light({
+                endpointNames: ["l1", "l2"],
+                configureReporting: true,
+                levelReportingConfig: {min: 1, max: 3600, change: 1},
+                levelConfig: {features: ["on_level", "current_level_startup"]},
+                powerOnBehavior: true,
+                effect: false,
+            }),
+        ],
+    },
+    {
+        fingerprint: [{modelID: "C-ZB-SR5BR", manufacturerName: "Candeo"}],
+        model: "C-ZB-SR5BR",
+        vendor: "Candeo",
+        description: "Zigbee scene switch remote - 5 button rotary",
+        extend: [
+            m.battery(),
+            m.deviceAddCustomCluster("candeoRotaryRemoteControl", {
+                ID: manufacturerSpecificRotaryRemoteControlClusterCode,
+                attributes: {},
+                commands: {
+                    rotaryRemoteControl: {
+                        ID: 0x01,
+                        parameters: [
+                            {name: "field1", type: 0x20},
+                            {name: "field2", type: 0x20},
+                            {name: "field3", type: 0x20},
+                            {name: "field4", type: 0x20},
+                        ],
+                    },
+                },
+                commandsResponse: {},
+            }),
+        ],
+        fromZigbee: [fzLocal.rotary_remote_control, fz.ignore_genOta],
+        exposes: [
+            e.action([
+                "button_1_click",
+                "button_1_double_click",
+                "button_1_hold",
+                "button_1_release",
+                "button_2_click",
+                "button_2_double_click",
+                "button_2_hold",
+                "button_2_release",
+                "button_3_click",
+                "button_3_double_click",
+                "button_3_hold",
+                "button_3_release",
+                "button_4_click",
+                "button_4_double_click",
+                "button_4_hold",
+                "button_4_release",
+                "centre_button_click",
+                "centre_button_double_click",
+                "centre_button_hold",
+                "centre_button_release",
+                "started_rotating_left",
+                "continued_rotating_left",
+                "stopped_rotating_left",
+                "started_rotating_right",
+                "continued_rotating_right",
+                "stopped_rotating_right",
+            ]),
+        ],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            await endpoint1.bind(manufacturerSpecificRotaryRemoteControlClusterCode, coordinatorEndpoint);
+        },
     },
 ];

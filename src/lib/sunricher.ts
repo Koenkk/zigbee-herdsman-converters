@@ -3,6 +3,7 @@ import type {Endpoint, Group} from "zigbee-herdsman/dist/controller/model";
 import * as constants from "./constants";
 import {repInterval} from "./constants";
 import * as exposes from "./exposes";
+import {logger} from "./logger";
 import * as reporting from "./reporting";
 import {payload} from "./reporting";
 import * as globalStore from "./store";
@@ -12,6 +13,7 @@ import {precisionRound} from "./utils";
 
 const e = exposes.presets;
 const ea = exposes.access;
+const NS = "zhc:sunricher";
 
 const sunricherManufacturerCode = 0x1224;
 
@@ -26,6 +28,23 @@ const tz = {
 };
 
 const extend = {
+    configureReadModelID: (): ModernExtend => {
+        const configure: Configure[] = [
+            async (device, coordinatorEndpoint, definition) => {
+                // https://github.com/Koenkk/zigbee-herdsman-converters/issues/3016#issuecomment-1027726604
+                const endpoint = device.endpoints[0];
+                const oldModel = device.modelID;
+                const newModel = (await endpoint.read("genBasic", ["modelId"])).modelId;
+                if (oldModel !== newModel) {
+                    logger.info(`Detected Sunricher device mode change, from '${oldModel}' to '${newModel}'. Triggering re-interview.`, NS);
+                    await device.interview();
+                    return;
+                }
+            },
+        ];
+        return {configure, isModernExtend: true};
+    },
+
     externalSwitchType: (): ModernExtend => {
         const attribute = 0x8803;
         const data_type = 0x20;
@@ -45,7 +64,7 @@ const extend = {
                 cluster: "genBasic",
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
-                    if (Object.prototype.hasOwnProperty.call(msg.data, attribute)) {
+                    if (Object.hasOwn(msg.data, attribute)) {
                         const value = msg.data[attribute];
                         return {
                             external_switch_type: value_map[value] || "unknown",
@@ -113,7 +132,7 @@ const extend = {
                 cluster: "genBasic",
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
-                    if (Object.prototype.hasOwnProperty.call(msg.data, attribute)) {
+                    if (Object.hasOwn(msg.data, attribute)) {
                         console.log("from ", msg.data[attribute]);
                         const value = Math.round(msg.data[attribute] / 5.1);
                         return {
@@ -409,7 +428,7 @@ const extend = {
                 cluster,
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
-                    if (!Object.prototype.hasOwnProperty.call(msg.data, attribute)) return;
+                    if (!Object.hasOwn(msg.data, attribute)) return;
                     const indicatorLight = msg.data[attribute];
                     const firstBit = indicatorLight & 0x01;
                     return {indicator_light: firstBit === 1 ? "on" : "off"};
@@ -851,6 +870,78 @@ const extend = {
             fromZigbee,
             exposes,
             configure,
+            isModernExtend: true,
+        };
+    },
+
+    motorControl: (): ModernExtend => {
+        const fromZigbee: Fz.Converter[] = [
+            {
+                cluster: "closuresWindowCovering",
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    const result: KeyValueAny = {};
+                    if (Object.hasOwn(msg.data, 0x0017)) {
+                        const value = msg.data[0x0017];
+                        result.motor_direction_reversed = (value & 0x01) > 0;
+                        result.calibration_mode = (value & 0x02) > 0;
+                    }
+                    return result;
+                },
+            },
+        ];
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ["motor_direction_reversed", "calibration_mode"],
+                convertSet: async (entity, key, value, meta) => {
+                    // First read current value to preserve other bits
+                    const current = await entity.read("closuresWindowCovering", [0x0017]);
+                    let currentValue = (current as KeyValueAny)?.[0x0017] || 0;
+
+                    if (key === "motor_direction_reversed") {
+                        if (value) {
+                            currentValue |= 0x01;
+                        } else {
+                            currentValue &= ~0x01;
+                        }
+                    } else if (key === "calibration_mode") {
+                        if (value) {
+                            currentValue |= 0x02;
+                        } else {
+                            currentValue &= ~0x02;
+                        }
+                    }
+
+                    await entity.write("closuresWindowCovering", {
+                        [0x0017]: {value: currentValue, type: 0x18}, // BITMAP8
+                    });
+
+                    return {state: {[key]: value}};
+                },
+                convertGet: async (entity, key, meta) => {
+                    await entity.read("closuresWindowCovering", [0x0017]);
+                },
+            },
+        ];
+
+        const exposes: Expose[] = [
+            e
+                .binary("motor_direction_reversed", ea.ALL, true, false)
+                .withDescription(
+                    "Reverse motor direction (if motor runs in the wrong direction after installation, use this and recalibration is required)",
+                )
+                .withCategory("config"),
+            e
+                .binary("calibration_mode", ea.ALL, true, false)
+                .withDescription("Trigger curtain calibration (motor will learn travel limits automatically)")
+                .withCategory("config"),
+        ];
+
+        return {
+            fromZigbee,
+            toZigbee,
+            exposes,
             isModernExtend: true,
         };
     },

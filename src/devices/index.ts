@@ -1,5 +1,4 @@
 import type {DefinitionWithExtend} from "../lib/types";
-import {definitions as ITCommander} from "./ITCommander";
 import {definitions as acova} from "./acova";
 import {definitions as acuityBrandsLighting} from "./acuity_brands_lighting";
 import {definitions as adeo} from "./adeo";
@@ -81,6 +80,7 @@ import {definitions as efekta} from "./efekta";
 import {definitions as eglo} from "./eglo";
 import {definitions as elko} from "./elko";
 import {definitions as enbrighten} from "./enbrighten";
+import {definitions as engo} from "./engo";
 import {definitions as enkin} from "./enkin";
 import {definitions as enocean} from "./enocean";
 import {definitions as envilar} from "./envilar";
@@ -124,6 +124,7 @@ import {definitions as hommyn} from "./hommyn";
 import {definitions as honyar} from "./honyar";
 import {definitions as hornbach} from "./hornbach";
 import {definitions as hzcElectric} from "./hzc_electric";
+import {definitions as ITCommander} from "./ITCommander";
 import {definitions as icasa} from "./icasa";
 import {definitions as idinio} from "./idinio";
 import {definitions as ihorn} from "./ihorn";
@@ -265,18 +266,20 @@ import {definitions as shinasystem} from "./shinasystem";
 import {definitions as shyugj} from "./shyugj";
 import {definitions as siglis} from "./siglis";
 import {definitions as sikom} from "./sikom";
+import {definitions as siliconLabs} from "./silicon_labs";
 import {definitions as simon} from "./simon";
 import {definitions as sinope} from "./sinope";
 import {definitions as siterwell} from "./siterwell";
 import {definitions as skydance} from "./skydance";
 import {definitions as slackyDiy} from "./slacky_diy";
 import {definitions as slv} from "./slv";
-import {definitions as smart9} from "./smart9";
 import {definitions as smartHomePty} from "./smart_home_pty";
+import {definitions as smart9} from "./smart9";
 import {definitions as smartenit} from "./smartenit";
 import {definitions as smartthings} from "./smartthings";
 import {definitions as smartwings} from "./smartwings";
 import {definitions as smlight} from "./smlight";
+import {definitions as soanalarm} from "./soanalarm";
 import {definitions as sohanElectric} from "./sohan_electric";
 import {definitions as solaredge} from "./solaredge";
 import {definitions as soma} from "./soma";
@@ -604,6 +607,7 @@ const definitions: DefinitionWithExtend[] = [
     ...shinasystem,
     ...shyugj,
     ...siglis,
+    ...siliconLabs,
     ...sikom,
     ...simon,
     ...sinope,
@@ -617,6 +621,7 @@ const definitions: DefinitionWithExtend[] = [
     ...smartthings,
     ...smartwings,
     ...smlight,
+    ...soanalarm,
     ...sohanElectric,
     ...solaredge,
     ...soma,
@@ -679,6 +684,7 @@ const definitions: DefinitionWithExtend[] = [
     ...zigbeetlc,
     ...zipato,
     ...qa,
+    ...engo,
 ];
 
 export default definitions;

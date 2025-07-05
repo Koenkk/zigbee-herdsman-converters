@@ -1126,7 +1126,6 @@ function readDaySelection(buffer: Buffer, offset: number): Day[] {
 }
 
 function validateDaySelection(selectedDays: Day[]) {
-    // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
     selectedDays
         .filter((selectedDay) => !dayNames.includes(selectedDay))
         .forEach((invalidValue) => {
@@ -1231,7 +1230,6 @@ export const trv = {
         const data = buffer2DataObject(model, messageBuffer);
         const payload: KeyValue = {};
 
-        // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
         Object.entries(data).forEach(([key, value]) => {
             switch (Number.parseInt(key)) {
                 case 3:
@@ -1309,7 +1307,6 @@ export const trv = {
             throw new Error(`The schedule object must contain an array of ${eventCount} time/temperature events`);
         }
 
-        // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
         schedule.events.forEach((event) => {
             validateTime(event.time);
 
@@ -1478,7 +1475,6 @@ export const lumiModernExtend = {
         if (args.operationMode === true) {
             const extend = lumiModernExtend.lumiOperationMode({description: "Decoupled mode for a button"});
             if (args.endpointNames) {
-                // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
                 args.endpointNames.forEach((ep) => {
                     const epExtend = lumiModernExtend.lumiOperationMode({
                         description: `Decoupled mode for ${ep.toString()} button`,
@@ -1495,7 +1491,6 @@ export const lumiModernExtend = {
         if (args.lockRelay) {
             const extend = lumiModernExtend.lumiLockRelay();
             if (args.endpointNames) {
-                // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
                 args.endpointNames.forEach((ep) => {
                     const epExtend = lumiModernExtend.lumiLockRelay({
                         description: `Locks ${ep.toString()} relay and prevents it from operating`,
@@ -2572,7 +2567,6 @@ export const lumiModernExtend = {
                     type: ["attributeReport", "readResponse"],
                     convert: (model, msg, publish, options, meta) => {
                         const result: KeyValue = {};
-                        // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
                         Object.entries(msg.data).forEach(([key, value]) => {
                             switch (Number.parseInt(key)) {
                                 case 0x0172:
@@ -2924,7 +2918,6 @@ export const fromZigbee = {
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
-            // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
             Object.entries(msg.data).forEach(([key, value]) => {
                 switch (Number.parseInt(key)) {
                     case 0xfff1: {
@@ -2963,7 +2956,6 @@ export const fromZigbee = {
                                 // schedule string
                                 const schlist = val.toString().split(",");
                                 const schedule: unknown[] = [];
-                                // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
                                 schlist.forEach((str: string) => {
                                     // 7f13000100
                                     if (str !== "//") {
@@ -3020,7 +3012,6 @@ export const fromZigbee = {
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
-            // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
             Object.entries(msg.data).forEach(([key, value]) => {
                 switch (Number.parseInt(key)) {
                     case 0x0271:
@@ -3047,7 +3038,7 @@ export const fromZigbee = {
                         result.calibrated = getFromLookup(value, {1: true, 0: false});
                         break;
                     case 0x027e:
-                        result.sensor = getFromLookup(value, {1: "external", 0: "internal"});
+                        result.sensor = getFromLookup(value, {1: "external", 0: "internal", 2: "external"});
                         break;
                     case 0x040a:
                         result.battery = value;
@@ -3072,7 +3063,6 @@ export const fromZigbee = {
                             // See https://github.com/Koenkk/zigbee-herdsman-converters/pull/5363#discussion_r1081477047
                             // @ts-expect-error ignore
                             meta.device.softwareBuildID = heartbeat.firmware_version;
-                            // biome-ignore lint/performance/noDelete: ignored using `--suppress`
                             delete heartbeat.firmware_version;
                         }
 
@@ -3116,7 +3106,6 @@ export const fromZigbee = {
         convert: (model, msg, publish, options, meta) => {
             const payload: KeyValue = {};
 
-            // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
             Object.entries(msg.data).forEach(([key, value]) => {
                 const eventKey = Number.parseInt(key);
 
@@ -4101,7 +4090,6 @@ export const toZigbee = {
                 case "schedule": {
                     const schedule: string[] = [];
                     // @ts-expect-error ignore
-                    // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
                     value.forEach((item) => {
                         const schedItem = Buffer.from([getKey(feederDaysLookup, item.days, 0x7f), item.hour, item.minute, item.size, 0]);
                         schedule.push(schedItem.toString("hex"));
@@ -5048,7 +5036,6 @@ export const toZigbee = {
             }
 
             // Reset limits is an action, not a state.
-            // biome-ignore lint/performance/noDelete: ignored using `--suppress`
             delete opts.reset_limits;
             return {state: {options: opts}};
         },

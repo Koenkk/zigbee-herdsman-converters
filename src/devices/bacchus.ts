@@ -1,12 +1,12 @@
-import * as reporting from "../lib/reporting";
-
 import {access as ea} from "../lib/exposes";
 import * as m from "../lib/modernExtend";
+import * as reporting from "../lib/reporting";
 import type {Configure, DefinitionWithExtend, Fz, ModernExtend, Tz} from "../lib/types";
 
 import {assertNumber, getEndpointName, isString, precisionRound, validateValue} from "../lib/utils";
 
 const defaultReporting = {min: 0, max: 3600, change: 0};
+const electicityReporting = {min: 0, max: 30, change: 1};
 const defaultReportingOnOff = {min: 0, max: 3600, change: 0, attribute: "onOff"};
 const defaultReportingOOS = {min: 0, max: 3600, change: 0, attribute: "outOfService"};
 
@@ -21,7 +21,7 @@ const str_min_to_time = (strMin: string) => {
 };
 
 function timeHHMM(args: m.TextArgs): ModernExtend {
-    const {name, cluster, attribute, description, zigbeeCommandOptions, endpointName, reporting, entityCategory, validate} = args;
+    const {name, cluster, attribute, zigbeeCommandOptions, endpointName} = args;
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
     const access = ea[args.access ?? "ALL"];
     const mExtend = m.text(args);
@@ -66,7 +66,7 @@ function timeHHMM(args: m.TextArgs): ModernExtend {
 }
 
 function binaryWithOnOffCommand(args: m.BinaryArgs): ModernExtend {
-    const {name, valueOn, valueOff, cluster, attribute, zigbeeCommandOptions, endpointName, reporting} = args;
+    const {name, cluster, attribute, zigbeeCommandOptions, endpointName, reporting} = args;
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
     const access = ea[args.access ?? "ALL"];
 
@@ -103,7 +103,7 @@ function binaryWithOnOffCommand(args: m.BinaryArgs): ModernExtend {
 }
 
 function energy(args: m.NumericArgs): ModernExtend {
-    const {name, cluster, attribute, description, zigbeeCommandOptions, reporting, scale, precision, entityCategory, endpointNames} = args;
+    const {name, cluster, attribute, zigbeeCommandOptions, reporting, scale, precision, endpointNames} = args;
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
     const access = ea[args.access ?? "ALL"];
     const mExtend = m.numeric(args);
@@ -164,7 +164,7 @@ function energy(args: m.NumericArgs): ModernExtend {
         configure.push(m.setupConfigureForReporting(cluster, attribute, {config: reporting, access, endpointNames}));
     }
 
-    return {...mExtend, fromZigbee, configure, isModernExtend: true};
+    return {...mExtend, fromZigbee, toZigbee, configure, isModernExtend: true};
 }
 
 export const definitions: DefinitionWithExtend[] = [
@@ -177,9 +177,9 @@ export const definitions: DefinitionWithExtend[] = [
             m.electricityMeter({
                 cluster: "electrical",
                 electricalMeasurementType: "ac",
-                voltage: defaultReporting,
-                current: defaultReporting,
-                power: defaultReporting,
+                voltage: electicityReporting,
+                current: electicityReporting,
+                power: electicityReporting,
             }),
             energy({
                 name: "energy_t1",
@@ -190,7 +190,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_GET",
                 scale: 100,
                 precision: 2,
-                reporting: defaultReporting,
+                reporting: electicityReporting,
             }),
             energy({
                 name: "energy_t2",
@@ -201,7 +201,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_GET",
                 scale: 100,
                 precision: 2,
-                reporting: defaultReporting,
+                reporting: electicityReporting,
             }),
             energy({
                 name: "energy_t3",
@@ -212,7 +212,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_GET",
                 scale: 100,
                 precision: 2,
-                reporting: defaultReporting,
+                reporting: electicityReporting,
             }),
             energy({
                 name: "energy_t4",
@@ -223,7 +223,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_GET",
                 scale: 100,
                 precision: 2,
-                reporting: defaultReporting,
+                reporting: electicityReporting,
             }),
             m.numeric({
                 name: "measurement_period",
@@ -262,9 +262,9 @@ export const definitions: DefinitionWithExtend[] = [
             m.electricityMeter({
                 cluster: "electrical",
                 electricalMeasurementType: "ac",
-                voltage: defaultReporting,
-                current: defaultReporting,
-                power: defaultReporting,
+                voltage: electicityReporting,
+                current: electicityReporting,
+                power: electicityReporting,
                 threePhase: true,
             }),
             energy({
@@ -276,7 +276,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_GET",
                 scale: 1000,
                 precision: 3,
-                reporting: defaultReporting,
+                reporting: electicityReporting,
             }),
             energy({
                 name: "energy_t2",
@@ -287,7 +287,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_GET",
                 scale: 1000,
                 precision: 3,
-                reporting: defaultReporting,
+                reporting: electicityReporting,
             }),
             energy({
                 name: "energy_t3",
@@ -298,7 +298,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_GET",
                 scale: 1000,
                 precision: 3,
-                reporting: defaultReporting,
+                reporting: electicityReporting,
             }),
             energy({
                 name: "energy_t4",
@@ -309,7 +309,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_GET",
                 scale: 1000,
                 precision: 3,
-                reporting: defaultReporting,
+                reporting: electicityReporting,
             }),
             m.numeric({
                 name: "measurement_period",
