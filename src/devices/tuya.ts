@@ -10865,7 +10865,6 @@ export const definitions: DefinitionWithExtend[] = [
             e.numeric("valve_duration", ea.STATE).withUnit("s").withDescription("Valve 1 irrigation last duration in seconds").withEndpoint("l1"),
             e.numeric("valve_duration", ea.STATE).withUnit("s").withDescription("Valve 2 irrigation last duration in seconds").withEndpoint("l2"),
             e.battery(),
-            e.battery_voltage(),
         ],
         meta: {
             tuyaSendCommand: "sendData",
@@ -10878,6 +10877,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [26, "valve_duration_l2", tuya.valueConverter.raw], // Valve 2 duration
                 [104, "valve_status_l1", tuya.valueConverterBasic.lookup({manual: 0, auto: 1, idle: 2})], // Valve 1 status
                 [105, "valve_status_l2", tuya.valueConverterBasic.lookup({manual: 0, auto: 1, idle: 2})], // Valve 2 status
+                [59, "battery", tuya.valueConverter.raw],
             ],
             multiEndpoint: true, // Enable multi-endpoint support
         },
