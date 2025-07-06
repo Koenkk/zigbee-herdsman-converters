@@ -1410,7 +1410,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Air quality sensor",
         fromZigbee: [legacy.fromZigbee.tuya_air_quality],
         toZigbee: [],
-        exposes: [e.temperature(), e.humidity(), e.co2(), e.voc().withUnit("ppm"), e.formaldehyd()],
+        exposes: [e.temperature(), e.humidity(), e.co2(), e.voc().withUnit("ppb"), e.formaldehyd().withUnit("µg/m³")],
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_rbbx5mfq"]),
