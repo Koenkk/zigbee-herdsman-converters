@@ -4102,6 +4102,6 @@ export const definitions: DefinitionWithExtend[] = [
         model: "046677577490",
         vendor: "Philips",
         description: "Hue Lightguide E26 Triangle 500lm",
-        extend: [philips.m.light({"colorTemp":{"range":[153,500]},"color":{"modes":["xy","hs"],"enhancedHue":true}})],
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
 ];
