@@ -1,5 +1,18 @@
 # Changelog
 
+## [23.70.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.70.0...v23.70.1) (2025-07-06)
+
+
+### Bug Fixes
+
+* Aqara VC-X01D: fix battery % divided by 2 https://github.com/Koenkk/zigbee2mqtt/issues/27915 ([e64eab8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e64eab876f9265630409c2674b79032cc669177d))
+* **detect:** Detect `_TZ3000_kaflzta4` as Moes ERS-10TZBVB-AA and `_TZE200_afycb3cg` as Tuya ZG-103Z ([#9581](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9581)) ([adb5266](https://github.com/Koenkk/zigbee-herdsman-converters/commit/adb52665baea839b4451545327462164aa014c35))
+* **detect:** Detect `_TZ3000_liygxtcq` as Tuya TS0004_switch_module ([#9583](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9583)) ([248e50f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/248e50f8b12fe51c3b7bf371886d65c772ad6cb2))
+* **detect:** Detect `_TZE200_fphxkxue` as Moes ZWV-YC ([#9582](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9582)) ([51be0a4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/51be0a470258fecc09ef53e4ddd8c5b8e68fce2c))
+* TS0505B_1 transition fixes ([#9578](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9578)) ([3c1d56c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3c1d56c1db0422b3edd800f611764f9d507b9193))
+* Tuya TS0601_air_quality_sensor: fix formaldehyd and voc units https://github.com/Koenkk/zigbee2mqtt/issues/27914 ([e310570](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e31057010670dd6a8cf14b78e1b8a11ea826b9c0))
+* Tuya TS0601_water_switch: fix battery % https://github.com/Koenkk/zigbee2mqtt/issues/27833 ([64c6e9e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/64c6e9e33084fd1a6dc8ae2f491c25b7bf121467))
+
 ## [23.70.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.69.0...v23.70.0) (2025-07-04)
 
 
