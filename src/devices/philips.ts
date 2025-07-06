@@ -4097,4 +4097,11 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Hue Adore white ambiance bathroom mirror",
         extend: [philips.m.light({colorTemp: {range: [153, 454]}})],
     },
+    {
+        zigbeeModel: ["LCY002", "046677577490"],
+        model: "046677577490",
+        vendor: "Philips",
+        description: "Hue Lightguide E26 Triangle 500lm",
+        extend: [philips.m.light({"colorTemp":{"range":[153,500]},"color":{"modes":["xy","hs"],"enhancedHue":true}})],
+    },
 ];
