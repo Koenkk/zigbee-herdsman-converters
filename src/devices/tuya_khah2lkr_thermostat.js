@@ -1,5 +1,3 @@
-const fz = require('zigbee-herdsman-converters/converters/fromZigbee');
-const tz = require('zigbee-herdsman-converters/converters/toZigbee');
 const exposes = require('zigbee-herdsman-converters/lib/exposes');
 const tuya = require('zigbee-herdsman-converters/lib/tuya');
 const e = exposes.presets;
