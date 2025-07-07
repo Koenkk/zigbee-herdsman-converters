@@ -1126,6 +1126,10 @@ const VZM30_ATTRIBUTES: {[s: string]: Attribute} = {
         values: {"Single Pole": 0, "Aux Switch": 1},
         max: 1,
     },
+    outputMode: {
+        ...COMMON_DIMMER_ATTRIBUTES.outputMode,
+        description: "Use device as a Dimmer or an On/Off switch. Only applies when controlling bound devices.",
+    },
 };
 
 const VZM31_ATTRIBUTES: {[s: string]: Attribute} = {
