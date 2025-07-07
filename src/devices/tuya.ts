@@ -18270,6 +18270,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.enum("adjustment_mode", ea.STATE_SET, ["brightness", "color_temp"]).withDescription("Adjustment mode"),
         ],
         meta: {
+            multiEndpoint: true,
             tuyaDatapoints: [
                 [102, "state", tuya.valueConverter.onOff],
                 [103, "brightness", tuya.valueConverterBasic.scale(0, 254, 0, 1000)],
@@ -18281,8 +18282,6 @@ export const definitions: DefinitionWithExtend[] = [
         },
         configure: tuya.configureMagicPacket,
         endpoint: (device) => ({
-            l1: 1,
-            l2: 1,
             default: 1,
         }),
     },
