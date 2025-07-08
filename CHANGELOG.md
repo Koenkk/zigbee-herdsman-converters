@@ -1,5 +1,24 @@
 # Changelog
 
+## [23.71.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.70.1...v23.71.0) (2025-07-08)
+
+
+### Features
+
+* **add:** 046677577490 ([#9587](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9587)) ([9d5a4ff](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9d5a4ffb501c621a9613da493f0ee0bc8a578423))
+* **add:** 4058075364561 ([#9586](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9586)) ([63ccd5d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/63ccd5da4d652b9f32ef93200c447778430ea676))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZE284_upagmta9` as Tuya ZTH05 ([#9590](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9590)) ([4a905dc](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4a905dc927897f70fcc6abc15b9b8f3939aac8f4))
+* **ignore:** bump the minor-patch group with 2 updates ([#9584](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9584)) ([61c8fe4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/61c8fe463ab5464de2050e0f0ec32a1debfae18b))
+* Inovelli VZM30-SN: add outputMode parameter ([#9596](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9596)) ([903d980](https://github.com/Koenkk/zigbee-herdsman-converters/commit/903d9800b919c990224abe29e1f48dd4e56063b8))
+* Inovelli: support `fanTimerMode` for all devices ([#9597](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9597)) ([4e77809](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4e7780934499d138297c920a2c28a155691a0d65))
+* Tuya _TZE204_aoclfnxz: fix local temperature calibration step size ([#9588](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9588)) ([923ba45](https://github.com/Koenkk/zigbee-herdsman-converters/commit/923ba45804d482714287f1292ca883d34c48551e))
+* Tuya TS0601_knob_dimmer_switch: fix state control ([#9593](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9593)) ([dec0f2a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/dec0f2ab396e1baa0edb22fdea9f2a526cf7c789))
+* Tuya TS0601_water_switch: fix state not controllable https://github.com/Koenkk/zigbee2mqtt/issues/27833 ([4268ca8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4268ca8aa9cef311904410d66d6894831dec1e97))
+
 ## [23.70.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.70.0...v23.70.1) (2025-07-06)
 
 
