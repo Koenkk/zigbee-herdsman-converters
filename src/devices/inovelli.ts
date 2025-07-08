@@ -962,6 +962,13 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
         max: 101,
         description: "Intensity of LED strip when off. 101 = Synchronized with default all LED strip intensity parameter.",
     },
+    fanTimerMode: {
+        ID: 121,
+        dataType: Zcl.DataType.BOOLEAN,
+        displayType: "enum",
+        values: {Disabled: 0, Enabled: 1},
+        description: "Enable or disable advanced timer mode to have the switch act like a bathroom fan timer",
+    },
     doubleTapClearNotifications: {
         ID: 262,
         dataType: Zcl.DataType.BOOLEAN,
@@ -1351,13 +1358,6 @@ const VZM35_ATTRIBUTES: {[s: string]: Attribute} = {
         ...COMMON_DIMMER_ATTRIBUTES.outputMode,
         values: {"Ceiling Fan (3-Speed)": 0, "Exhaust Fan (On/Off)": 1},
         description: "Use device in ceiling fan (3-Speed) or in exhaust fan (On/Off) mode.",
-    },
-    fanTimerMode: {
-        ID: 121,
-        dataType: Zcl.DataType.BOOLEAN,
-        displayType: "enum",
-        values: {Disabled: 0, Enabled: 1},
-        description: "Enable or disable advanced timer mode to have the switch act like a bathroom fan timer",
     },
 };
 
