@@ -10868,7 +10868,6 @@ export const definitions: DefinitionWithExtend[] = [
             e.battery(),
         ],
         meta: {
-            tuyaSendCommand: "sendData",
             tuyaDatapoints: [
                 [1, "state_l1", tuya.valueConverter.onOff], // Valve 1 on/off
                 [2, "state_l2", tuya.valueConverter.onOff], // Valve 2 on/off
