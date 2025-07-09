@@ -17595,15 +17595,6 @@ export const definitions: DefinitionWithExtend[] = [
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
         },
-
-        meta: {
-            tuyaDatapoints: [
-                [1, "state", tuya.valueConverter.onOff], // Switch
-                [7, "countdown", tuya.valueConverter.countdown], // Countdown
-                [14, "power_on_behavior", tuya.valueConverter.powerOnBehavior], // Power on behavior
-                [16, "backlight_mode", tuya.valueConverter.onOff], // Backlight
-            ],
-        },
     },
     {
         fingerprint: tuya.fingerprint("TS0726", ["_TZ3000_ezqbvrqz", "_TZ3002_ymv5vytn", "_TZ3002_6ahhkwyh"]),
