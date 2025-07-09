@@ -1,5 +1,13 @@
 # Changelog
 
+## [23.72.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.72.0...v23.72.1) (2025-07-09)
+
+
+### Bug Fixes
+
+* Develco (Frient) KEPZB-110: fix tamper and battery values ([#9594](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9594)) ([9b11d54](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9b11d545086fc987e99162cf5d6a9197a94a7d9e))
+* **ignore:** Add dummy device type ([#9601](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9601)) ([c4c519d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c4c519d332e7c15e44a49f70546df1a6e58fe49d))
+
 ## [23.72.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.71.0...v23.72.0) (2025-07-09)
 
 
