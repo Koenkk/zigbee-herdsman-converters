@@ -17591,14 +17591,8 @@ export const definitions: DefinitionWithExtend[] = [
                 backlightModeOffOn: true,
                 indicatorModeNoneRelayPos: true,
                 onOffCountdown: true,
-                endpoints: ["l1"],
             }),
         ],
-        endpoint: (device) => ({l1: 1}),
-        configure: async (device, coordinatorEndpoint) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint);
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
-        },
     },
     {
         fingerprint: tuya.fingerprint("TS0726", ["_TZ3000_ezqbvrqz", "_TZ3002_ymv5vytn"]),
