@@ -6,6 +6,7 @@ import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as globalStore from "../lib/store";
 import type {DefinitionWithExtend, KeyValue, OnEventData, OnEventType, Zh} from "../lib/types";
+import {isDummyDevice} from "../lib/utils";
 
 const NS = "zhc:profalux";
 const e = exposes.presets;
@@ -64,16 +65,13 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
         options: [],
         exposes: (device, options) => {
-            const endpoint = device?.getEndpoint(2);
             // Motor can be configured using the associated remote:
             //  0: default hard cover         : 2xF Up + Down on the associated remote
             //  1: cover using tilt (aka BSO) : 2xF Stop + Up
             //  2: soft cover (aka store)     : 2xF Stop + Down
-
-            if ((device == null && options == null) || endpoint.getClusterAttributeValue("manuSpecificProfalux1", "motorCoverType") === 1) {
-                return [e.cover_position_tilt()];
-            }
-            return [e.cover_position()];
+            return isDummyDevice(device) || device?.getEndpoint(2).getClusterAttributeValue("manuSpecificProfalux1", "motorCoverType") === 1
+                ? [e.cover_position_tilt()]
+                : [e.cover_position()];
         },
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(2);

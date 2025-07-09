@@ -1768,7 +1768,7 @@ export const definitions: DefinitionWithExtend[] = [
             // docs generation
             // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
             let exposes;
-            if (device == null && options == null) {
+            if (utils.isDummyDevice(device)) {
                 exposes = exposedData
                     .map((e) => e.exposes)
                     .filter(

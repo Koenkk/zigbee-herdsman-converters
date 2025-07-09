@@ -1923,7 +1923,7 @@ export const definitions: DefinitionWithExtend[] = [
                     .withValueStep(0.1),
             ];
 
-            if (device) {
+            if (!utils.isDummyDevice(device)) {
                 const deviceModeKey = device.getEndpoint(1).getClusterAttributeValue("boschSpecific", "deviceMode");
                 const deviceMode = Object.keys(stateDeviceMode).find((key) => stateDeviceMode[key] === deviceModeKey);
 

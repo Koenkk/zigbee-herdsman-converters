@@ -1,5 +1,5 @@
 import baseDefinitions from "../src/devices/index";
-import {type Definition, prepareDefinition} from "../src/index";
+import {type Definition, type Expose, prepareDefinition} from "../src/index";
 import {access, Numeric} from "../src/lib/exposes";
 import * as sunricher from "../src/lib/sunricher";
 import {tz} from "../src/lib/tuya";
@@ -7,6 +7,10 @@ import {COLORTEMP_RANGE_MISSING_ALLOWED} from "./colortemp_range_missing_allowed
 
 describe("Check definitions", () => {
     const definitions: Definition[] = [];
+
+    function definitionExposes(definition: Definition): Expose[] {
+        return typeof definition.exposes === "function" ? definition.exposes({isDummyDevice: true}, {}) : definition.exposes;
+    }
 
     beforeAll(() => {
         for (const def of baseDefinitions) {
@@ -23,7 +27,7 @@ describe("Check definitions", () => {
             if (definition.toZigbee.includes(sunricher.tz.setModel)) return;
 
             const toCheck = [];
-            const exposes = typeof definition.exposes === "function" ? definition.exposes(undefined, undefined) : definition.exposes;
+            const exposes = definitionExposes(definition);
 
             for (const expose of exposes) {
                 if (expose.access !== undefined) {
@@ -57,7 +61,7 @@ describe("Check definitions", () => {
 
     it("Exposes properties are unique", () => {
         for (const definition of definitions) {
-            const exposes = typeof definition.exposes === "function" ? definition.exposes(undefined, undefined) : definition.exposes;
+            const exposes = definitionExposes(definition);
             const found: string[] = [];
 
             for (const expose of exposes) {
@@ -90,7 +94,7 @@ describe("Check definitions", () => {
 
     it("Check if all exposes have a color temp range", () => {
         for (const definition of definitions) {
-            const exposes = typeof definition.exposes === "function" ? definition.exposes(undefined, undefined) : definition.exposes;
+            const exposes = definitionExposes(definition);
 
             for (const expose of exposes.filter((e) => e.type === "light")) {
                 const colorTemp = expose.features.find((f) => f.name === "color_temp");
@@ -112,7 +116,7 @@ describe("Check definitions", () => {
     it("Number exposes with set access should have a range", () => {
         for (const definition of definitions) {
             if (definition.exposes) {
-                const exposes = typeof definition.exposes === "function" ? definition.exposes(undefined, undefined) : definition.exposes;
+                const exposes = definitionExposes(definition);
 
                 for (const expose of exposes) {
                     if (expose.type === "numeric" && expose.access & access.SET) {

@@ -8,6 +8,7 @@ import type {
     BatteryNonLinearVoltage,
     Configure,
     Definition,
+    DummyDevice,
     Expose,
     Fz,
     KeyValue,
@@ -702,6 +703,10 @@ export function isEndpoint(obj: Zh.Endpoint | Zh.Group | Zh.Device): obj is Zh.E
 
 export function isDevice(obj: Zh.Endpoint | Zh.Group | Zh.Device): obj is Zh.Device {
     return obj.constructor.name.toLowerCase() === "device";
+}
+
+export function isDummyDevice(obj: Zh.Device | DummyDevice): obj is DummyDevice {
+    return "isDummyDevice" in obj;
 }
 
 export function isGroup(obj: Zh.Endpoint | Zh.Group | Zh.Device): obj is Zh.Group {
