@@ -17582,7 +17582,6 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0001_1_gang_switch",
         vendor: "Tuya",
         description: "1 gang switch with backlight",
-
         fromZigbee: [fz.ignore_basic_report],
         extend: [
             tuya.modernExtend.tuyaOnOff({
