@@ -964,7 +964,7 @@ export const ias_no_alarm: Fz.Converter = {
     cluster: "ssIasZone",
     type: ["attributeReport", "commandStatusChangeNotification"],
     convert: (model, msg, publish, options, meta) => {
-        const zoneStatus = msg.data.zoneStatus;
+        const zoneStatus = msg.data.zoneStatus ?? msg.data.zonestatus;
         if (zoneStatus !== undefined) {
             return {
                 tamper: (zoneStatus & (1 << 2)) > 0,
