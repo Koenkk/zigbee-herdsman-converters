@@ -1,5 +1,19 @@
 # Changelog
 
+## [23.72.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.71.0...v23.72.0) (2025-07-09)
+
+
+### Features
+
+* **add:** TS0001_1_gang_switch ([#9592](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9592)) ([d0f1400](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d0f140027c9e6a70024010f378b733d80e6cad2b))
+* **add:** TS0726_1_gang_scene_switch ([#9598](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9598)) ([b9b0f6a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b9b0f6a8cca928864d074186595ae402ac7e4199))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZE284_33bwcga2` as Tuya TS0601_soil_3 https://github.com/Koenkk/zigbee-herdsman-converters/issues/9591 ([9a49bfe](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9a49bfe32c4319a8548ee276bc6c914c7b67950c))
+* **detect:** Detect `915005822001` as Philips 7602031P7 https://github.com/Koenkk/zigbee2mqtt/issues/27942 ([0b0718e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0b0718e4f096b4712279cd167b4ae77f9210a88b))
+
 ## [23.71.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.70.1...v23.71.0) (2025-07-08)
 
 
