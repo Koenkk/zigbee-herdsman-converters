@@ -10,6 +10,7 @@ import {logger} from "../lib/logger";
 import * as reporting from "../lib/reporting";
 import * as globalStore from "../lib/store";
 import type {DefinitionWithExtend, Expose, Fz, KeyValue, Tz, Zh} from "../lib/types";
+import * as utils from "../lib/utils";
 
 const ea = exposes.access;
 const e = exposes.presets;
@@ -1991,7 +1992,7 @@ export const definitions: DefinitionWithExtend[] = [
             let currentProducer = "";
             let translation = "";
 
-            if (device == null) {
+            if (utils.isDummyDevice(device)) {
                 return exposes;
             }
 

@@ -938,7 +938,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
         ],
         configure: async (device, coordinatorEndpoint) => {
-            if (device?.manufacturerName === "_TZ3210_up3pngle") {
+            if (device.manufacturerName === "_TZ3210_up3pngle") {
                 // Required for this version
                 // https://github.com/Koenkk/zigbee-herdsman-converters/pull/8004
                 const endpoint = device.getEndpoint(1);
@@ -2914,9 +2914,9 @@ export const definitions: DefinitionWithExtend[] = [
                 e.enum("moving", ea.STATE, ["UP", "STOP", "DOWN"]),
                 e.binary("motor_reversal", ea.ALL, "ON", "OFF"),
             ];
-            if (["_TZ3000_yruungrl"].includes(device?.manufacturerName)) {
+            if (["_TZ3000_yruungrl"].includes(device.manufacturerName)) {
                 exps.push(e.binary("calibration", ea.ALL, "ON", "OFF"), e.numeric("calibration_time", ea.ALL).withUnit("s"));
-            } else if (["_TZ3000_cet6ch1r", "_TZ3000_5iixzdo7"].includes(device?.manufacturerName)) {
+            } else if (["_TZ3000_cet6ch1r", "_TZ3000_5iixzdo7"].includes(device.manufacturerName)) {
                 exps.push(
                     e.binary("calibration_to_open", ea.ALL, "ON", "OFF"),
                     e.binary("calibration_to_close", ea.ALL, "ON", "OFF"),
@@ -2926,12 +2926,12 @@ export const definitions: DefinitionWithExtend[] = [
             } else {
                 exps.push(e.binary("calibration", ea.ALL, "ON", "OFF"), e.numeric("calibration_time", ea.STATE).withUnit("s"));
             }
-            if (!["_TZ3210_xbpt8ewc", "_TZ3000_e3vhyirx", "_TZ3000_5iixzdo7", "_TZ3000_yruungrl"].includes(device?.manufacturerName)) {
+            if (!["_TZ3210_xbpt8ewc", "_TZ3000_e3vhyirx", "_TZ3000_5iixzdo7", "_TZ3000_yruungrl"].includes(device.manufacturerName)) {
                 exps.push(tuya.exposes.indicatorMode(), tuya.exposes.backlightModeOffOn());
             }
-            if (["_TZ3000_5iixzdo7"].includes(device?.manufacturerName)) {
+            if (["_TZ3000_5iixzdo7"].includes(device.manufacturerName)) {
                 exps.push(tuya.exposes.switchTypeCurtain());
-            } else if (["_TZ3000_yruungrl"].includes(device?.manufacturerName)) {
+            } else if (["_TZ3000_yruungrl"].includes(device.manufacturerName)) {
                 exps.push(
                     e.enum("switch_type_curtain", ea.ALL, ["flip-switch", "sync-switch", "button-switch"]).withDescription("External switch type"),
                 );
@@ -10621,7 +10621,7 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: [tz.TS110E_onoff_brightness, tz.TS110E_options, tuya.tz.power_on_behavior_1, tz.light_brightness_move, tzLocal.ts110eCountdown],
         exposes: (device, options) => {
             // https://github.com/Koenkk/zigbee2mqtt/issues/26791#issuecomment-2765734859
-            const countdownValueStep = device?.manufacturerName === "_TZ3210_ngqk6jia" ? 30 : 1;
+            const countdownValueStep = device.manufacturerName === "_TZ3210_ngqk6jia" ? 30 : 1;
             return [
                 e.light_brightness().withMinBrightness().withMaxBrightness(),
                 tuya.exposes.lightType().withAccess(ea.ALL),
@@ -11068,7 +11068,7 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: [tzLocal.TS011F_threshold],
         exposes: (device, options) => {
             const exposes: Expose[] = [];
-            if (!["_TZ3000_303avxxt", "_TZ3000_zjchz7pd"].includes(device?.manufacturerName)) {
+            if (!["_TZ3000_303avxxt", "_TZ3000_zjchz7pd"].includes(device.manufacturerName)) {
                 exposes.push(
                     e.temperature(),
                     e

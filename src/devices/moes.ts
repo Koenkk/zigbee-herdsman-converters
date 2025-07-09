@@ -224,8 +224,8 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         whiteLabel: [tuya.whitelabel("Moes", "BHT-002/BHT-006", "Smart heating thermostat", ["_TZE204_aoclfnxz"])],
         exposes: (device, options) => {
-            const heatingStepSize = device?.manufacturerName === "_TZE204_5toc8efa" ? 0.5 : 1;
-            const runningStates = device?.manufacturerName === "_TZE200_aoclfnxz" ? ["idle", "heat"] : ["idle", "heat", "cool"];
+            const heatingStepSize = device.manufacturerName === "_TZE204_5toc8efa" ? 0.5 : 1;
+            const runningStates = device.manufacturerName === "_TZE200_aoclfnxz" ? ["idle", "heat"] : ["idle", "heat", "cool"];
             return [
                 e.child_lock(),
                 e.deadzone_temperature(),
@@ -235,7 +235,7 @@ export const definitions: DefinitionWithExtend[] = [
                     .climate()
                     .withSetpoint("current_heating_setpoint", 5, 45, heatingStepSize, ea.STATE_SET)
                     .withLocalTemperature(ea.STATE)
-                    .withLocalTemperatureCalibration(-30, 30, device?.manufacturerName === "_TZE204_aoclfnxz" ? 1 : 0.1, ea.STATE_SET)
+                    .withLocalTemperatureCalibration(-30, 30, device.manufacturerName === "_TZE204_aoclfnxz" ? 1 : 0.1, ea.STATE_SET)
                     .withSystemMode(["off", "heat"], ea.STATE_SET)
                     .withRunningState(runningStates, ea.STATE)
                     .withPreset(["hold", "program"]),
@@ -523,7 +523,7 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: [tzZosung.zosung_ir_code_to_send, tzZosung.zosung_learn_ir_code],
         exposes: (device, options) => {
             const exposes: Expose[] = [ez.learn_ir_code(), ez.learned_ir_code(), ez.ir_code_to_send()];
-            if (device?.manufacturerName !== "") {
+            if (device.manufacturerName !== "") {
                 exposes.push(e.battery(), e.battery_voltage());
             }
             return exposes;

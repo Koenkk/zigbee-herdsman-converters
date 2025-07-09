@@ -6,7 +6,8 @@ import * as exposes from "../lib/exposes";
 import * as legacy from "../lib/legacy";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import type {DefinitionWithExtend, Expose, Fz, KeyValue, KeyValueAny, Tz, Zh} from "../lib/types";
+import type {DefinitionWithExtend, DummyDevice, Expose, Fz, KeyValue, KeyValueAny, Tz, Zh} from "../lib/types";
+import * as utils from "../lib/utils";
 import {calibrateAndPrecisionRoundOptions, getFromLookup, getKey, isEndpoint, postfixWithEndpointName} from "../lib/utils";
 
 const e = exposes.presets;
@@ -145,8 +146,8 @@ const fzLocal = {
     } satisfies Fz.Converter,
 };
 
-function ptvoGetMetaOption(device: Zh.Device, key: string, defaultValue: unknown) {
-    if (device != null) {
+function ptvoGetMetaOption(device: Zh.Device | DummyDevice, key: string, defaultValue: unknown) {
+    if (!utils.isDummyDevice(device)) {
         const value = device.meta[key];
         if (value === undefined) {
             return defaultValue;
@@ -340,8 +341,8 @@ export const definitions: DefinitionWithExtend[] = [
             const expose: Expose[] = [];
             const exposeDeviceOptions: KeyValue = {};
             const deviceConfig = ptvoGetMetaOption(device, "device_config", "");
-            if (deviceConfig === "") {
-                if (device?.endpoints) {
+            if (deviceConfig === "" || utils.isDummyDevice(device)) {
+                if (!utils.isDummyDevice(device)) {
                     for (const endpoint of device.endpoints) {
                         const exposeEpOptions: KeyValue = {};
                         ptvoAddStandardExposes(endpoint, expose, exposeEpOptions, exposeDeviceOptions);

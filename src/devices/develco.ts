@@ -619,12 +619,12 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: (device, options) => {
             const dynExposes = [];
             dynExposes.push(e.occupancy());
-            if (Number(device?.softwareBuildID?.split(".")[0]) >= 3) {
+            if (utils.isDummyDevice(device) || Number(device.softwareBuildID?.split(".")[0]) >= 3) {
                 dynExposes.push(e.numeric("occupancy_timeout", ea.ALL).withUnit("s").withValueMin(5).withValueMax(65535));
             }
             dynExposes.push(e.tamper());
             dynExposes.push(e.battery_low());
-            if (Number(device?.softwareBuildID?.split(".")[0]) >= 4) {
+            if (utils.isDummyDevice(device) || Number(device?.softwareBuildID?.split(".")[0]) >= 4) {
                 dynExposes.push(
                     e.enum("led_control", ea.ALL, ["off", "fault_only", "motion_only", "both"]).withDescription("Control LED indicator usage."),
                 );
@@ -682,7 +682,7 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: [develco.tz.led_control, develco.tz.ias_occupancy_timeout],
         exposes: (device, options) => {
             const dynExposes = [];
-            if (Number(device?.softwareBuildID?.split(".")[0]) >= 2) {
+            if (utils.isDummyDevice(device) || Number(device?.softwareBuildID?.split(".")[0]) >= 2) {
                 dynExposes.push(e.numeric("occupancy_timeout", ea.ALL).withUnit("s").withValueMin(5).withValueMax(65535));
                 dynExposes.push(
                     e.enum("led_control", ea.ALL, ["off", "fault_only", "motion_only", "both"]).withDescription("Control LED indicator usage."),

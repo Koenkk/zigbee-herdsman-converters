@@ -381,7 +381,7 @@ function processExtensions(definition: DefinitionWithExtend): Definition {
         if (allExposesIsExposeOnly(allExposes)) {
             exposes = allExposes;
         } else {
-            exposes = (device: Zh.Device | undefined, options: KeyValue | undefined) => {
+            exposes = (device, options) => {
                 const result: Expose[] = [];
 
                 for (const item of allExposes) {
@@ -391,7 +391,8 @@ function processExtensions(definition: DefinitionWithExtend): Definition {
 
                             result.push(...deviceExposes);
                         } catch (error) {
-                            logger.error(`Failed to process exposes for '${device.ieeeAddr}' (${(error as Error).stack})`, NS);
+                            const ieeeAddr = utils.isDummyDevice(device) ? "dummy-device" : device.ieeeAddr;
+                            logger.error(`Failed to process exposes for '${ieeeAddr}' (${(error as Error).stack})`, NS);
                         }
                     } else {
                         result.push(item);
@@ -435,7 +436,7 @@ export function prepareDefinition(definition: DefinitionWithExtend): Definition 
     const optionKeys = finalDefinition.options.map((o) => o.name);
 
     // Add calibration/precision options based on expose
-    for (const expose of Array.isArray(finalDefinition.exposes) ? finalDefinition.exposes : finalDefinition.exposes(undefined, undefined)) {
+    for (const expose of Array.isArray(finalDefinition.exposes) ? finalDefinition.exposes : finalDefinition.exposes({isDummyDevice: true}, {})) {
         if (
             !optionKeys.includes(expose.name) &&
             utils.isNumericExpose(expose) &&

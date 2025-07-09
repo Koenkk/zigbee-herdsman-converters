@@ -990,7 +990,9 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         exposes: (device, options) => {
             const coverExpose = e.cover();
-            const coverType = device?.getEndpoint(1).getClusterAttributeValue("closuresWindowCovering", "windowCoveringType") ?? undefined;
+            const coverType = !utils.isDummyDevice(device)
+                ? device.getEndpoint(1).getClusterAttributeValue("closuresWindowCovering", "windowCoveringType")
+                : undefined;
             switch (
                 coverType // cf. Ubisys J1 Technical Reference Manual, chapter 7.2.5.1 Calibration
             ) {
