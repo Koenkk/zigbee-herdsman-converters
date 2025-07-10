@@ -478,7 +478,7 @@ export function prepareDefinition(definition: DefinitionWithExtend): Definition 
 export function postProcessConvertedFromZigbeeMessage(definition: Definition, payload: KeyValue, options: KeyValue): void {
     // Apply calibration/precision options
     for (const [key, value] of Object.entries(payload)) {
-        const definitionExposes = Array.isArray(definition.exposes) ? definition.exposes : definition.exposes(undefined, undefined);
+        const definitionExposes = Array.isArray(definition.exposes) ? definition.exposes : definition.exposes({isDummyDevice: true}, {});
         const expose = definitionExposes.find((e) => e.property === key);
 
         if (expose?.name && expose.name in utils.calibrateAndPrecisionRoundOptionsDefaultPrecision && value !== "" && utils.isNumber(value)) {
