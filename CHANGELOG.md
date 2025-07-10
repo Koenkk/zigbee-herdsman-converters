@@ -1,5 +1,22 @@
 # Changelog
 
+## [24.0.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.72.1...v24.0.0) (2025-07-10)
+
+
+### ⚠ BREAKING CHANGES
+
+* **ignore:** fix c4c519d332e7c15e44a49f70546df1a6e58fe49d ([#9607](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9607))
+
+### Features
+
+* **add:** HY607W-3A ([#9602](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9602)) ([bc69cf7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/bc69cf738f82b2431ad233b33d31ab617f9d764b))
+* **add:** SFL02-Z https://github.com/Koenkk/zigbee-herdsman-converters/issues/9541 ([7877d20](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7877d20a69486ca93753bbdcc37456f2689ed8c9))
+
+
+### Bug Fixes
+
+* **ignore:** fix c4c519d332e7c15e44a49f70546df1a6e58fe49d ([#9607](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9607)) ([82503aa](https://github.com/Koenkk/zigbee-herdsman-converters/commit/82503aa17b17afcaae5578022ef761051066ac23))
+
 ## [23.72.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v23.72.0...v23.72.1) (2025-07-09)
 
 
