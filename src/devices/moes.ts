@@ -23,6 +23,46 @@ const exposesLocal = {
 
 export const definitions: DefinitionWithExtend[] = [
     {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_uenof8jd", "_TZE200_tzyy0rtq"]),
+        model: "SFL02-Z",
+        vendor: "Moes",
+        description: "Star feather smart switch 2 gangs",
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            tuya.exposes.backlightModeOffOn().withAccess(ea.STATE_SET),
+            e.switch().withEndpoint("l1").setAccess("state", ea.STATE_SET),
+            e.switch().withEndpoint("l2").setAccess("state", ea.STATE_SET),
+            tuya.exposes.countdown().withEndpoint("l1"),
+            tuya.exposes.countdown().withEndpoint("l2"),
+            e.power_on_behavior().withAccess(ea.STATE_SET),
+            exposes.enum("mode", ea.STATE_SET, ["switch_1", "scene_1"]).withEndpoint("l1").withDescription("Switch1 mode"),
+            exposes.enum("mode", ea.STATE_SET, ["switch_2", "scene_2"]).withEndpoint("l2").withDescription("Switch2 mode"),
+            e.action(["scene_1", "scene_2"]),
+        ],
+        onEvent: tuya.onEventSetTime,
+        endpoint: (device) => {
+            return {l1: 1, l2: 1, state: 1, backlight: 1};
+        },
+        meta: {
+            multiEndpoint: true,
+            tuyaDatapoints: [
+                [1, "action", tuya.valueConverter.static("scene_1")],
+                [2, "action", tuya.valueConverter.static("scene_2")],
+                [24, "state_l1", tuya.valueConverter.onOff],
+                [25, "state_l2", tuya.valueConverter.onOff],
+                [30, "countdown_l1", tuya.valueConverter.countdown],
+                [31, "countdown_l2", tuya.valueConverter.countdown],
+                [37, "indicator_mode", tuya.valueConverterBasic.lookup({none: 0, relay: 1, pos: 2})],
+                [38, "power_on_behavior", tuya.valueConverter.powerOnBehaviorEnum],
+                [36, "backlight_mode", tuya.valueConverter.onOff],
+                [18, "mode_l1", tuya.valueConverterBasic.lookup({switch_1: tuya.enum(0), scene_1: tuya.enum(1)})],
+                [19, "mode_l2", tuya.valueConverterBasic.lookup({switch_2: tuya.enum(0), scene_2: tuya.enum(1)})],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_ivdc0kwl"]),
         model: "ZTRV-S01",
         vendor: "Moes",
