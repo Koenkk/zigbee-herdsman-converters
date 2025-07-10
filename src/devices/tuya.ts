@@ -18324,7 +18324,7 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: [{modelID: "TS0601", manufacturerName: "_TZE200_khah2lkr"}],
         model: "HY607W-3A",
         vendor: "Tuya",
-        description: "Tuya thermostat",
+        description: "Thermostat",
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
@@ -18340,20 +18340,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [16, "local_temperature", tuya.valueConverter.divideBy10],
                 [50, "occupied_heating_setpoint", tuya.valueConverter.divideBy10],
                 [125, "state", tuya.valueConverter.onOff],
-                [
-                    128,
-                    "mode_state",
-                    {
-                        from: (v) => {
-                            const map = {0: "manual", 1: "auto", 3: "hybrid"};
-                            return map[v] !== undefined ? map[v] : `unknown (${v})`;
-                        },
-                        to: (v) => {
-                            const map = {manual: 0, auto: 1, hybrid: 3};
-                            return map[v];
-                        },
-                    },
-                ],
+                [128, "mode_state", tuya.valueConverterBasic.lookup({manual: 0, auto: 1, hybrid: 2})],
                 [128, "force_manual_mode", {to: () => 0}],
                 [102, "running_state", {from: (v) => (v === true ? "heat" : "idle")}],
             ],
