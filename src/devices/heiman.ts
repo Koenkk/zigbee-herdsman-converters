@@ -993,11 +993,11 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.co2(), e.battery(), e.humidity(), e.temperature()],
     },
     {
-        zigbeeModel: ['HS2SA-EF-3.0'],
-        model: 'HS2SA-5',
-        vendor: 'Heiman',
-        description: 'Smoke detector',
-        extend: [m.battery(), m.iasZoneAlarm({"zoneType":"generic","zoneAttributes":["alarm_1","alarm_2","tamper","battery_low"]}), m.iasWarning()],
+        zigbeeModel: ["HS2SA-EF-3.0"],
+        model: "HS2SA-5",
+        vendor: "Heiman",
+        description: "Smoke detector",
+        extend: [m.battery(), m.iasZoneAlarm({zoneType: "generic", zoneAttributes: ["alarm_1", "alarm_2", "tamper", "battery_low"]}), m.iasWarning()],
     },
     {
         zigbeeModel: ["RouteLight-EF-3.0"],
