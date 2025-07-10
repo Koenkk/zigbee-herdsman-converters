@@ -327,7 +327,7 @@ describe("ZHC", () => {
         const MOSZB140 = await findByDevice(device);
 
         if (typeof MOSZB140.exposes === "function") {
-            const exposes = MOSZB140.exposes(device, undefined);
+            const exposes = MOSZB140.exposes(device, {});
             expect(exposes.map((e) => e.name)).toStrictEqual([
                 "occupancy",
                 "tamper",
