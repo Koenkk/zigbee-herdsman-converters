@@ -401,7 +401,12 @@ export const definitions: DefinitionWithExtend[] = [
             sunricher.extend.configureReadModelID(),
             m.commandsScenes({endpointNames: ["1", "2"]}),
             m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3}}),
-            m.windowCovering({controls: ["lift", "tilt"]}),
+            m.windowCovering({
+                controls: ["lift", "tilt"],
+                coverInverted: true,
+                configureReporting: true,
+                endpointNames: ["1"],
+            }),
             m.electricityMeter({endpointNames: ["3"]}),
             m.enumLookup({
                 name: "dev_mode",
@@ -432,6 +437,12 @@ export const definitions: DefinitionWithExtend[] = [
             sunricher.extend.motorControl(),
             m.identify(),
         ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["closuresWindowCovering"]);
+            await reporting.currentPositionLiftPercentage(endpoint);
+            await reporting.currentPositionTiltPercentage(endpoint);
+        },
         meta: {multiEndpoint: true},
     },
     {
