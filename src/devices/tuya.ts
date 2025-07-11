@@ -18346,4 +18346,34 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
+    {
+        fingerprint:tuya.fingerprint('TS0601', ['_TZE284_o9ofysmo','_TZE284_xc3vwx5a']),
+        model: 'ZS-301Z',
+        vendor: 'arteco',
+        description: 'Suitable for agriculture and home planting, this sensor is capable of detecting soil moisture, light intensity, and ambient temperature and humidity. It adopts low power consumption to ensure long-term operation of the device.',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEventSetTime,
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.enum('battery_state',ea.STATE,['low','middle','high']).withDescription('low: 1-25%, middle: 26-50%, high: 51-100%'),
+            e.numeric('humidity',ea.STATE).withUnit('%').withDescription('Soile Relative humidity').withValueMin(0).withValueMax(100),
+            e.numeric('temp_current',ea.STATE).withUnit('°C').withDescription('Current temperature in the environment').withValueMin(-400).withValueMax(1200),
+            e.numeric('env_humidity',ea.STATE).withUnit('%RH').withDescription('Relative humidity in the environment').withValueMin(0).withValueMax(100),
+            e.numeric('dimmer',ea.STATE).withUnit('lux').withDescription('Dimmer value').withValueMin(0).withValueMax(10000),
+            e.numeric('adjust_humidity',ea.STATE).withUnit('%RH').withDescription('Adjust humidity').withValueMin(-30).withValueMax(30),
+            e.numeric('adjust_sample_time',ea.STATE).withUnit('s').withDescription('Adjust sample time').withValueMin(30).withValueMax(1200),
+        ],
+        meta: {
+            tuyaDatapoints: [
+              [3,'humidity',tuya.valueConverter.raw],
+              [5,'temp_current',tuya.valueConverter.divideBy10],
+              [14,'battery_state',tuya.valueConverterBasic.lookup({'low':tuya.enum(0),'middle':tuya.enum(1),'high':tuya.enum(2)})],
+              [101,'env_humidity',tuya.valueConverter.raw],
+              [102,'dimmer',tuya.valueConverter.raw],
+              [103,'adjust_humidity',tuya.valueConverter.raw],
+              [104,'adjust_sample_time',tuya.valueConverter.raw]
+            ],
+        },
+    },
 ];
