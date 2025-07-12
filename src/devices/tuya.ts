@@ -6793,7 +6793,7 @@ export const definitions: DefinitionWithExtend[] = [
             {modelID: "TS011F", applicationVersion: 68, priority: -1},
             {modelID: "TS011F", applicationVersion: 65, priority: -1},
             {modelID: "TS011F", applicationVersion: 64, priority: -1},
-            {modelID: "TS011F", softwareBuildID: "1.0.5\u0000", priority: -1},
+            {modelID: "TS011F", softwareBuildID: "1.0.5\u0000", manufacturerName: "_TZ3000_cehuw1lw", priority: -1},
         ],
         model: "TS011F_plug_3",
         description: "Smart plug (with power monitoring by polling)",

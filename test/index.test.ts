@@ -234,6 +234,7 @@ describe("ZHC", () => {
             {
                 modelID: "TS011F",
                 endpoints: [],
+                manufacturerName: "_TZ3000_cehuw1lw",
             },
             "Router",
             {
