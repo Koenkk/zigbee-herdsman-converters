@@ -112,6 +112,7 @@ const inovelliExtend = {
                 nonNeutralAuxLowGear: {ID: 0x001f, type: Zcl.DataType.UINT8},
                 internalTemperature: {ID: 0x0020, type: Zcl.DataType.UINT8},
                 overheat: {ID: 0x0021, type: Zcl.DataType.BOOLEAN},
+                otaImageType: {ID: 0x0022, type: Zcl.DataType.UINT8},
                 buttonDelay: {ID: 0x0032, type: Zcl.DataType.UINT8},
                 deviceBindNumber: {ID: 0x0033, type: Zcl.DataType.UINT8},
                 smartBulbMode: {ID: 0x0034, type: Zcl.DataType.BOOLEAN},
@@ -1165,6 +1166,19 @@ const VZM32_ATTRIBUTES: {[s: string]: Attribute} = {
         ...COMMON_ATTRIBUTES.switchType,
         values: {"Single Pole": 0, "Aux Switch": 1},
         max: 1,
+    },
+    otaImageType: {
+        ID: 34,
+        dataType: Zcl.DataType.UINT8,
+        displayType: "enum",
+        values: {
+            "Zigbee (259)": 0,
+            "mmWave (260)": 1,
+            "Alternating (259 & 260) (default)": 2,
+        },
+        min: 0,
+        max: 2,
+        description: "Which endpoint should the switch advertise for OTA update (Zigbee, mmWave, or both).",
     },
     mmwaveControlWiredDevice: {
         ID: 110,
