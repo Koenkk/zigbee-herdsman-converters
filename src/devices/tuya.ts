@@ -11050,6 +11050,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZ3000_zrm3oxsh",
             "_TZ3000_303avxxt",
             "_TZ3000_zjchz7pd",
+            "_TZ3000_zv6x8bt2",
         ]),
         model: "TS011F_with_threshold",
         description: "Din rail switch with power monitoring and threshold settings",
@@ -11144,6 +11145,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("UNSH", "SMKG-1KNL-EU-Z", "Smart circuit Breaker", ["_TZ3000_qystbcjg"]),
             tuya.whitelabel("Tomzn", "TOB9Z-VAP", "Smart circuit breaker", ["_TZ3000_303avxxt"]),
             tuya.whitelabel("Immax", "07573L", "Smart circuit breaker", ["_TZ3000_zjchz7pd"]),
+            tuya.whitelabel("Moes", "A5", "Smart circuit breaker", ["_TZ3000_zv6x8bt2"]),
         ],
     },
     {
