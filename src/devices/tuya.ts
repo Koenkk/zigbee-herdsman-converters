@@ -9849,6 +9849,8 @@ export const definitions: DefinitionWithExtend[] = [
                         large: tuya.enum(1),
                         small: tuya.enum(2),
                         static: tuya.enum(3),
+                        far: tuya.enum(4),
+                        near: tuya.enum(5),
                     }),
                 ],
                 [12, "fading_time", tuya.valueConverter.raw],
