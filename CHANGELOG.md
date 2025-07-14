@@ -1,5 +1,20 @@
 # Changelog
 
+## [24.2.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v24.1.0...v24.2.0) (2025-07-14)
+
+
+### Features
+
+* **add:** 915005988502 https://github.com/Koenkk/zigbee2mqtt/issues/27974 ([bd695fb](https://github.com/Koenkk/zigbee-herdsman-converters/commit/bd695fb31ce9b9625ac819c236171e6a68031e1d))
+* **add:** A5 ([#9613](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9613)) ([a58ce07](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a58ce07dfa22dd54f7d0d7595d589f56a388aecc))
+
+
+### Bug Fixes
+
+* eWeLink CK-BL702-AL-01_1: fix not controllable https://github.com/Koenkk/zigbee-herdsman-converters/issues/9617 ([bf81743](https://github.com/Koenkk/zigbee-herdsman-converters/commit/bf81743423c9482f67c812525e6a4405672e1142))
+* Inovelli: add P34 to VZM32-SN ([#9614](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9614)) ([9f245a6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9f245a68f785af37b06f45cca4a788b212b26f89))
+* Tuya ZG-205ZL: add far and near motion_state values https://github.com/Koenkk/zigbee2mqtt/issues/27968 ([81c5567](https://github.com/Koenkk/zigbee-herdsman-converters/commit/81c55675f5e942681213f4e8805fa92b6f6afe93))
+
 ## [24.1.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v24.0.0...v24.1.0) (2025-07-12)
 
 
