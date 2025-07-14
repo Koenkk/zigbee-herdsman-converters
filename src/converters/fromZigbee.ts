@@ -2121,7 +2121,7 @@ export const tuya_led_controller: Fz.Converter = {
         if (msg.data.colorTemperature !== undefined) {
             const value = Number(msg.data.colorTemperature);
             const color_temp = postfixWithEndpointName("color_temp", msg, model, meta);
-            result[color_temp] = mapNumberRange(value, 0, 255, 500, 153);
+            result[color_temp] = value;
         }
 
         if (msg.data.tuyaBrightness !== undefined) {
