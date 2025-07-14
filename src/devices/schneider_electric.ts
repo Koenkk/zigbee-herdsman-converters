@@ -1010,7 +1010,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "S520530W",
         vendor: "Schneider Electric",
         description: "Odace connectable relay switch 10A",
-        extend: [m.onOff({powerOnBehavior: false})],
+        extend: [m.onOff({powerOnBehavior: false}), m.commandsOnOff()],
     },
     {
         zigbeeModel: ["U202SRY2KWZB"],
