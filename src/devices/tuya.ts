@@ -907,22 +907,22 @@ const fzLocal = {
 };
 
 const modeLookup = {
-    from: (v) => {
-        const map = {
-            0: "manual",
-            1: "auto",
-            3: "hybrid",
-        };
-        return map[v] !== undefined ? map[v] : `unknown (${v})`;
-    },
-    to: (v) => {
-        const map = {
-            manual: 0,
-            auto: 1,
-            hybrid: 3,
-        };
-        return map[v];
-    },
+    from: (v: number) => {
+        const map = {
+            0: "manual",
+            1: "auto",
+            3: "hybrid",
+        };
+        return map[v] !== undefined ? map[v] : `unknown (${v})`;
+    },
+    to: (v: string) => {
+        const map = {
+            manual: 0,
+            auto: 1,
+            hybrid: 3,
+        };
+        return map[v];
+    },
 };
 
 export const definitions: DefinitionWithExtend[] = [
