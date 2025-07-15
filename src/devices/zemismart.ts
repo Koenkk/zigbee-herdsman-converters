@@ -72,7 +72,7 @@ const valueConverterLocal = {
 
 export const definitions: DefinitionWithExtend[] = [
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_1vxgqfba"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_1vxgqfba", "_TZE200_wdfurkoa"]),
         model: "ZM25R1",
         vendor: "Zemismart",
         description: "Tubular motor",
