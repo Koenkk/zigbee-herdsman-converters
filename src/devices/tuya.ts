@@ -908,7 +908,7 @@ const fzLocal = {
 
 const modeLookup = {
     from: (v: number) => {
-        const map = {
+        const map: { [key: number]: string } = {
             0: "manual",
             1: "auto",
             3: "hybrid",
@@ -916,7 +916,7 @@ const modeLookup = {
         return map[v] !== undefined ? map[v] : `unknown (${v})`;
     },
     to: (v: string) => {
-        const map = {
+        const map: { [key: string]: number } = {
             manual: 0,
             auto: 1,
             hybrid: 3,
