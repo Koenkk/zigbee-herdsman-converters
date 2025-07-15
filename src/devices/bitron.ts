@@ -6,6 +6,7 @@ import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import type {DefinitionWithExtend, Fz, KeyValueAny, Tz} from "../lib/types";
+import * as utils from "../lib/utils";
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -242,7 +243,9 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         exposes: (device, options) => {
             const dynExposes = [];
-            let ctrlSeqeOfOper = device?.getEndpoint(1).getClusterAttributeValue("hvacThermostat", "ctrlSeqeOfOper") ?? null;
+            let ctrlSeqeOfOper = !utils.isDummyDevice(device)
+                ? device.getEndpoint(1).getClusterAttributeValue("hvacThermostat", "ctrlSeqeOfOper")
+                : null;
             const modes = [];
 
             if (typeof ctrlSeqeOfOper === "string") ctrlSeqeOfOper = Number.parseInt(ctrlSeqeOfOper) ?? null;

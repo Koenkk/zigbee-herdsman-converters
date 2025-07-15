@@ -990,7 +990,9 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         exposes: (device, options) => {
             const coverExpose = e.cover();
-            const coverType = device?.getEndpoint(1).getClusterAttributeValue("closuresWindowCovering", "windowCoveringType") ?? undefined;
+            const coverType = !utils.isDummyDevice(device)
+                ? device.getEndpoint(1).getClusterAttributeValue("closuresWindowCovering", "windowCoveringType")
+                : undefined;
             switch (
                 coverType // cf. Ubisys J1 Technical Reference Manual, chapter 7.2.5.1 Calibration
             ) {
@@ -1197,6 +1199,8 @@ export const definitions: DefinitionWithExtend[] = [
             tz.on_off,
             tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_unoccupied_heating_setpoint,
+            tz.thermostat_occupied_cooling_setpoint,
+            tz.thermostat_unoccupied_cooling_setpoint,
             tz.thermostat_local_temperature,
             tz.thermostat_system_mode,
             tz.thermostat_weekly_schedule,
@@ -1243,80 +1247,80 @@ export const definitions: DefinitionWithExtend[] = [
             e
                 .climate()
                 .withEndpoint("th1")
-                .withSystemMode(["off", "heat"], ea.ALL)
-                .withRunningMode(["off", "heat"])
+                .withSystemMode(["off", "heat", "cool"], ea.ALL)
+                .withRunningMode(["off", "heat", "cool"])
                 .withSetpoint("occupied_heating_setpoint", 7, 30, 0.5)
                 .withLocalTemperature()
                 .withPiHeatingDemand(ea.STATE_GET),
             e
                 .climate()
                 .withEndpoint("th2")
-                .withSystemMode(["off", "heat"], ea.ALL)
-                .withRunningMode(["off", "heat"])
+                .withSystemMode(["off", "heat", "cool"], ea.ALL)
+                .withRunningMode(["off", "heat", "cool"])
                 .withSetpoint("occupied_heating_setpoint", 7, 30, 0.5)
                 .withLocalTemperature()
                 .withPiHeatingDemand(ea.STATE_GET),
             e
                 .climate()
                 .withEndpoint("th3")
-                .withSystemMode(["off", "heat"], ea.ALL)
-                .withRunningMode(["off", "heat"])
+                .withSystemMode(["off", "heat", "cool"], ea.ALL)
+                .withRunningMode(["off", "heat", "cool"])
                 .withSetpoint("occupied_heating_setpoint", 7, 30, 0.5)
                 .withLocalTemperature()
                 .withPiHeatingDemand(ea.STATE_GET),
             e
                 .climate()
                 .withEndpoint("th4")
-                .withSystemMode(["off", "heat"], ea.ALL)
-                .withRunningMode(["off", "heat"])
+                .withSystemMode(["off", "heat", "cool"], ea.ALL)
+                .withRunningMode(["off", "heat", "cool"])
                 .withSetpoint("occupied_heating_setpoint", 7, 30, 0.5)
                 .withLocalTemperature()
                 .withPiHeatingDemand(ea.STATE_GET),
             e
                 .climate()
                 .withEndpoint("th5")
-                .withSystemMode(["off", "heat"], ea.ALL)
-                .withRunningMode(["off", "heat"])
+                .withSystemMode(["off", "heat", "cool"], ea.ALL)
+                .withRunningMode(["off", "heat", "cool"])
                 .withSetpoint("occupied_heating_setpoint", 7, 30, 0.5)
                 .withLocalTemperature()
                 .withPiHeatingDemand(ea.STATE_GET),
             e
                 .climate()
                 .withEndpoint("th6")
-                .withSystemMode(["off", "heat"], ea.ALL)
-                .withRunningMode(["off", "heat"])
+                .withSystemMode(["off", "heat", "cool"], ea.ALL)
+                .withRunningMode(["off", "heat", "cool"])
                 .withSetpoint("occupied_heating_setpoint", 7, 30, 0.5)
                 .withLocalTemperature()
                 .withPiHeatingDemand(ea.STATE_GET),
             e
                 .climate()
                 .withEndpoint("th7")
-                .withSystemMode(["off", "heat"], ea.ALL)
-                .withRunningMode(["off", "heat"])
+                .withSystemMode(["off", "heat", "cool"], ea.ALL)
+                .withRunningMode(["off", "heat", "cool"])
                 .withSetpoint("occupied_heating_setpoint", 7, 30, 0.5)
                 .withLocalTemperature()
                 .withPiHeatingDemand(ea.STATE_GET),
             e
                 .climate()
                 .withEndpoint("th8")
-                .withSystemMode(["off", "heat"], ea.ALL)
-                .withRunningMode(["off", "heat"])
+                .withSystemMode(["off", "heat", "cool"], ea.ALL)
+                .withRunningMode(["off", "heat", "cool"])
                 .withSetpoint("occupied_heating_setpoint", 7, 30, 0.5)
                 .withLocalTemperature()
                 .withPiHeatingDemand(ea.STATE_GET),
             e
                 .climate()
                 .withEndpoint("th9")
-                .withSystemMode(["off", "heat"], ea.ALL)
-                .withRunningMode(["off", "heat"])
+                .withSystemMode(["off", "heat", "cool"], ea.ALL)
+                .withRunningMode(["off", "heat", "cool"])
                 .withSetpoint("occupied_heating_setpoint", 7, 30, 0.5)
                 .withLocalTemperature()
                 .withPiHeatingDemand(ea.STATE_GET),
             e
                 .climate()
                 .withEndpoint("th10")
-                .withSystemMode(["off", "heat"], ea.ALL)
-                .withRunningMode(["off", "heat"])
+                .withSystemMode(["off", "heat", "cool"], ea.ALL)
+                .withRunningMode(["off", "heat", "cool"])
                 .withSetpoint("occupied_heating_setpoint", 7, 30, 0.5)
                 .withLocalTemperature()
                 .withPiHeatingDemand(ea.STATE_GET),
@@ -1333,7 +1337,9 @@ export const definitions: DefinitionWithExtend[] = [
                 await reporting.thermostatSystemMode(endpoint);
                 await reporting.thermostatTemperature(endpoint, {min: 0, max: constants.repInterval.HOUR, change: 50});
                 await reporting.thermostatOccupiedHeatingSetpoint(endpoint, {min: 0, max: constants.repInterval.HOUR, change: 50});
+                await reporting.thermostatOccupiedCoolingSetpoint(endpoint, {min: 0, max: constants.repInterval.HOUR, change: 50});
                 await reporting.thermostatPIHeatingDemand(endpoint, {min: 15, max: constants.repInterval.HOUR, change: 1});
+                await reporting.thermostatPICoolingDemand(endpoint, {min: 15, max: constants.repInterval.HOUR, change: 1});
             }
 
             // setup ep 11-20 as on/off switches

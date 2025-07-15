@@ -70,7 +70,6 @@ const tzLocal = {
             },
 
             convertSet: async (entity, _key, value, _meta) => {
-                const newValue = value;
                 await entity.write("hvacThermostat", {
                     minSetpointDeadBand: Math.round(Number(value) * 10),
                 });
@@ -80,7 +79,6 @@ const tzLocal = {
         temperature_display: {
             key: ["temperature_display"],
             convertSet: async (entity, _key, value, _meta) => {
-                const newValue = value;
                 const lookup = {room: 0, set: 1, floor: 2};
                 const payload = {4104: {value: utils.getFromLookup(value, lookup), type: Zcl.DataType.ENUM8}};
                 await entity.write("hvacThermostat", payload, {manufacturerCode: 0x1224});
@@ -119,7 +117,7 @@ const tzLocal = {
 
 async function syncTime(endpoint: Zh.Endpoint) {
     try {
-        const time = Math.round((new Date().getTime() - constants.OneJanuary2000) / 1000 + new Date().getTimezoneOffset() * -1 * 60);
+        const time = Math.round((Date.now() - constants.OneJanuary2000) / 1000 + new Date().getTimezoneOffset() * -1 * 60);
         const values = {time: time};
         await endpoint.write("genTime", values);
     } catch {
@@ -130,7 +128,7 @@ async function syncTime(endpoint: Zh.Endpoint) {
 
 async function syncTimeWithTimeZone(endpoint: Zh.Endpoint) {
     try {
-        const time = Math.round((new Date().getTime() - constants.OneJanuary2000) / 1000);
+        const time = Math.round((Date.now() - constants.OneJanuary2000) / 1000);
         const timeZone = new Date().getTimezoneOffset() * -1 * 60;
         await endpoint.write("genTime", {time, timeZone});
     } catch {
@@ -139,6 +137,22 @@ async function syncTimeWithTimeZone(endpoint: Zh.Endpoint) {
 }
 
 export const definitions: DefinitionWithExtend[] = [
+    {
+        zigbeeModel: ["ZG2819S-DIM"],
+        model: "SR-ZG2819S-DIM",
+        vendor: "Sunricher",
+        description: "ZigBee dim remote",
+        extend: [
+            m.identify(),
+            m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3, "4": 4}}),
+            m.battery(),
+            m.commandsOnOff({endpointNames: ["1", "2", "3", "4"]}),
+            m.commandsLevelCtrl({endpointNames: ["1", "2", "3", "4"]}),
+            m.commandsColorCtrl({endpointNames: ["1", "2", "3", "4"]}),
+            m.commandsScenes({endpointNames: ["1", "2", "3", "4"]}),
+        ],
+        meta: {multiEndpoint: true},
+    },
     {
         zigbeeModel: ["HK-ZRC-K5&RS-TL-G"],
         model: "SR-ZG2836D5-G4",
@@ -168,6 +182,213 @@ export const definitions: DefinitionWithExtend[] = [
             m.commandsScenes({endpointNames: ["1"]}),
             m.commandsOnOff(),
             m.commandsLevelCtrl(),
+            m.numeric({
+                name: "network_join_search_count",
+                cluster: "genBasic",
+                attribute: {ID: 0x9000, type: 0x20},
+                valueMin: 1,
+                valueMax: 255,
+                description:
+                    "How many times will the device search and join a Zigbee network, searching every 15 seconds. Default: 2 (1~255, 255 means always searching)",
+                entityCategory: "config",
+                access: "ALL",
+            }),
+            m.numeric({
+                name: "light_pwm_frequency",
+                cluster: "genBasic",
+                attribute: {ID: 0x9001, type: 0x21},
+                valueMin: 0,
+                valueMax: 65535,
+                description:
+                    "Light PWM Frequency. Works after reset power of the device. DO NOT set the PWM frequency too high which will affect the dimming resolution. Default: 3300",
+                entityCategory: "config",
+                access: "ALL",
+            }),
+            m.enumLookup({
+                name: "dimming_brightness_curve",
+                cluster: "genBasic",
+                attribute: {ID: 0x8806, type: 0x20},
+                lookup: {
+                    linear: 0x00,
+                    gamma_1_5: 0x0f,
+                    gamma_1_8: 0x12,
+                },
+                description: "Dimming brightness curve. Options: linear, gamma 1.5, gamma 1.8. Default: linear.",
+                entityCategory: "config",
+                access: "ALL",
+            }),
+            m.enumLookup({
+                name: "start_up_on_off",
+                cluster: "genOnOff",
+                attribute: {ID: 0x4003, type: 0x30},
+                lookup: {
+                    off: 0x00,
+                    on: 0x01,
+                    last_state: 0xff,
+                },
+                description: "Device power-on state. Options: off, on, restore previous state. Default: restore previous state.",
+                entityCategory: "config",
+                access: "ALL",
+            }),
+            m.numeric({
+                name: "motion_sensor_lux_threshold",
+                cluster: "genBasic",
+                attribute: {ID: 0x8903, type: 0x21},
+                valueMin: 0,
+                valueMax: 65535,
+                description:
+                    "Daylight sensor lux threshold. When the measured lux is below this value, the light is allowed to turn on. Set to minimum value to disable this function. Default: disabled.",
+                entityCategory: "config",
+                access: "ALL",
+            }),
+            m.enumLookup({
+                name: "motion_sensor_operation_mode",
+                cluster: "genBasic",
+                attribute: {ID: 0x8904, type: 0x20},
+                lookup: {
+                    auto: 0x00,
+                    manual: 0x01,
+                },
+                description:
+                    "Motion sensor operation mode. Options: auto (PWM output on motion), manual (PWM controlled by gateway or switch). Default: auto.",
+                entityCategory: "config",
+                access: "ALL",
+            }),
+            m.numeric({
+                name: "motion_sensor_sensitivity",
+                cluster: "genBasic",
+                attribute: {ID: 0x8905, type: 0x20},
+                valueMin: 0,
+                valueMax: 15,
+                description: "Motion sensor sensitivity. 0 is highest sensitivity, 15 is lowest. Default: 1.",
+                entityCategory: "config",
+                access: "ALL",
+            }),
+            m.enumLookup({
+                name: "motion_sensor_microwave_detection",
+                cluster: "genBasic",
+                attribute: {ID: 0x8906, type: 0x20},
+                lookup: {
+                    disabled: 0x00,
+                    enabled: 0x01,
+                },
+                description: "Enable or disable microwave detection. Options: enabled, disabled. Default: enabled.",
+                entityCategory: "config",
+                access: "ALL",
+            }),
+            m.enumLookup({
+                name: "touchlink_onoff_broadcast",
+                cluster: "genBasic",
+                attribute: {ID: 0x8907, type: 0x20},
+                lookup: {
+                    do_not_send: 0,
+                    send: 1,
+                },
+                description: "Send ON/OFF command to touchlink or binding devices. Options: send, do not send. Default: send.",
+                entityCategory: "config",
+                access: "ALL",
+            }),
+            m.enumLookup({
+                name: "brightness_module_enable",
+                cluster: "genBasic",
+                attribute: {ID: 0x890c, type: 0x20},
+                lookup: {
+                    disabled: 0,
+                    enabled: 1,
+                },
+                description: "Enable or disable the brightness module. Options: enabled, disabled. Default: enabled.",
+                entityCategory: "config",
+                access: "ALL",
+            }),
+            m.numeric({
+                name: "light_on_time",
+                cluster: "genBasic",
+                attribute: {ID: 0x8902, type: 0x21},
+                valueMin: 0,
+                valueMax: 65535,
+                unit: "s",
+                description:
+                    "Light on time (first delay). When motion is detected and then the area is vacated, this is the time the light stays on. Unit: seconds. Default: 60 seconds.",
+                entityCategory: "config",
+                access: "ALL",
+            }),
+            m.numeric({
+                name: "pwm_brightness_value",
+                cluster: "genBasic",
+                attribute: {ID: 0x8908, type: 0x21},
+                valueMin: 0,
+                valueMax: 1000,
+                unit: "lux",
+                description: "Brightness value for PWM output when motion is detected. 0 disables this function. Default: disabled.",
+                entityCategory: "config",
+                access: "ALL",
+            }),
+            m.numeric({
+                name: "pwm_output_percentage",
+                cluster: "genBasic",
+                attribute: {ID: 0x8909, type: 0x20},
+                valueMin: 0,
+                valueMax: 254,
+                unit: "%",
+                description: "PWM output percentage when motion is detected. Range: 0-100%. Default: 100%.",
+                entityCategory: "config",
+                access: "ALL",
+            }),
+            m.numeric({
+                name: "light_status_after_first_delay",
+                cluster: "genBasic",
+                attribute: {ID: 0x890a, type: 0x20},
+                valueMin: 0,
+                valueMax: 254,
+                unit: "%",
+                description: "Light status after the first delay expires, during the second delay. Range: 0-100%. Default: 0% (off).",
+                entityCategory: "config",
+                access: "ALL",
+            }),
+            m.numeric({
+                name: "second_delay_time",
+                cluster: "genBasic",
+                attribute: {ID: 0x8901, type: 0x21},
+                valueMin: 0,
+                valueMax: 65535,
+                unit: "s",
+                description: "Duration of the second delay after the first delay expires. Unit: seconds. Default: 60 seconds.",
+                entityCategory: "config",
+                access: "ALL",
+            }),
+            m.numeric({
+                name: "light_status_after_second_delay",
+                cluster: "genBasic",
+                attribute: {ID: 0x890b, type: 0x20},
+                valueMin: 0,
+                valueMax: 254,
+                unit: "%",
+                description: "Light status after the second delay expires. Range: 0-100%. Default: 0% (off).",
+                entityCategory: "config",
+                access: "ALL",
+            }),
+            m.numeric({
+                name: "linearity_error_ratio_lux",
+                cluster: "genBasic",
+                attribute: {ID: 0x890d, type: 0x21},
+                valueMin: 100,
+                valueMax: 10000,
+                description:
+                    "Linearity error ratio coefficient for LUX measurement. 1000 means 1000‰ (default). Increasing this value magnifies the LUX measurement linearly, decreasing minifies it. For example, 1001 means 1.001x, 500 means 0.5x.",
+                entityCategory: "config",
+                access: "ALL",
+            }),
+            m.numeric({
+                name: "fixed_deviation_lux",
+                cluster: "genBasic",
+                attribute: {ID: 0x890e, type: 0x29},
+                valueMin: -100,
+                valueMax: 100,
+                description:
+                    "Fixed deviation of LUX measurement. Signed 2-byte integer. Positive value increases, negative value decreases the measured LUX. For example, 100 means +100 LUX, -100 means -100 LUX.",
+                entityCategory: "config",
+                access: "ALL",
+            }),
         ],
         meta: {multiEndpoint: true},
     },
@@ -180,7 +401,12 @@ export const definitions: DefinitionWithExtend[] = [
             sunricher.extend.configureReadModelID(),
             m.commandsScenes({endpointNames: ["1", "2"]}),
             m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3}}),
-            m.windowCovering({controls: ["lift", "tilt"]}),
+            m.windowCovering({
+                controls: ["lift", "tilt"],
+                coverInverted: true,
+                configureReporting: true,
+                endpointNames: ["1"],
+            }),
             m.electricityMeter({endpointNames: ["3"]}),
             m.enumLookup({
                 name: "dev_mode",
@@ -211,6 +437,12 @@ export const definitions: DefinitionWithExtend[] = [
             sunricher.extend.motorControl(),
             m.identify(),
         ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["closuresWindowCovering"]);
+            await reporting.currentPositionLiftPercentage(endpoint);
+            await reporting.currentPositionTiltPercentage(endpoint);
+        },
         meta: {multiEndpoint: true},
     },
     {
@@ -247,10 +479,14 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Sunricher",
         description: "Zigbee 8 button wall switch",
         extend: [
-            m.commandsOnOff(),
+            m.commandsOnOff({
+                endpointNames: ["1", "2", "3", "4"],
+            }),
             m.battery(),
-            m.commandsScenes(),
-            m.commandsLevelCtrl({commands: ["brightness_move_up", "brightness_move_down", "brightness_stop"]}),
+            m.commandsLevelCtrl({
+                commands: ["brightness_move_up", "brightness_move_down", "brightness_stop"],
+                endpointNames: ["1", "2", "3", "4"],
+            }),
         ],
         whiteLabel: [{vendor: "Sunricher", model: "SR-ZG9001NK8-DIM"}],
         meta: {multiEndpoint: true},
@@ -917,22 +1153,24 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "ALL",
             }),
             m.numeric({
-                name: "linear_error_ratio_coefficient_of_lux_measurement",
+                name: "linearity_error_ratio_lux",
                 cluster: "genBasic",
                 attribute: {ID: 0x890d, type: 0x21},
                 valueMin: 100,
                 valueMax: 10000,
-                description: "Linear error ratio coefficient of LUX measurement (100‰-10000‰, default: 1000‰)",
+                description:
+                    "Linearity error ratio coefficient for LUX measurement. 1000 means 1000‰ (default). Increasing this value magnifies the LUX measurement linearly, decreasing minifies it. For example, 1001 means 1.001x, 500 means 0.5x.",
                 entityCategory: "config",
                 access: "ALL",
             }),
             m.numeric({
-                name: "fixed_deviation_of_lux_measurement",
+                name: "fixed_deviation_lux",
                 cluster: "genBasic",
                 attribute: {ID: 0x890e, type: 0x29},
                 valueMin: -100,
                 valueMax: 100,
-                description: "Fixed deviation of LUX measurement (-100~100, default: 0)",
+                description:
+                    "Fixed deviation of LUX measurement. Signed 2-byte integer. Positive value increases, negative value decreases the measured LUX. For example, 100 means +100 LUX, -100 means -100 LUX.",
                 entityCategory: "config",
                 access: "ALL",
             }),

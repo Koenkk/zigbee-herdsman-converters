@@ -4,6 +4,7 @@ import * as constants from "../lib/constants";
 import * as exposes from "../lib/exposes";
 import * as reporting from "../lib/reporting";
 import type {DefinitionWithExtend, Zh} from "../lib/types";
+import * as utils from "../lib/utils";
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -115,7 +116,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: (device, options) => {
             const features = [];
 
-            if (typeof device !== "undefined" && device != null && device.endpoints) {
+            if (!utils.isDummyDevice(device)) {
                 for (let i = 1; i <= 16; i++) {
                     const endpoint = device?.getEndpoint(i);
                     if (endpoint !== undefined) {

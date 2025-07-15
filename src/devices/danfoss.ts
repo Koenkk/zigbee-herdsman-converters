@@ -7,13 +7,14 @@ import * as exposes from "../lib/exposes";
 import * as reporting from "../lib/reporting";
 import * as globalStore from "../lib/store";
 import type {DefinitionWithExtend, Zh} from "../lib/types";
+import * as utils from "../lib/utils";
 
 const e = exposes.presets;
 const ea = exposes.access;
 
 const setTime = async (device: Zh.Device) => {
     const endpoint = device.getEndpoint(1);
-    const time = Math.round((new Date().getTime() - constants.OneJanuary2000) / 1000);
+    const time = Math.round((Date.now() - constants.OneJanuary2000) / 1000);
     // Time-master + synchronised
     const values = {timeStatus: 1, time: time, timeZone: new Date().getTimezoneOffset() * -1 * 60};
     await endpoint.write("genTime", values);
@@ -74,7 +75,7 @@ export const definitions: DefinitionWithExtend[] = [
             tz.danfoss_thermostat_occupied_heating_setpoint_scheduled,
         ],
         exposes: (device, options) => {
-            const maxSetpoint = ["TRV001", "TRV003"].includes(device?.modelID) ? 32 : 35;
+            const maxSetpoint = !utils.isDummyDevice(device) && ["TRV001", "TRV003"].includes(device.modelID) ? 32 : 35;
             return [
                 e.battery(),
                 e.keypad_lockout(),

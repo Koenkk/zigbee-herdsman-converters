@@ -672,7 +672,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light()],
     },
     {
-        zigbeeModel: ["LCT026", "7602031P7", "7602031U7", "7602031PU", "7602031J6", "915005822501"],
+        zigbeeModel: ["LCT026", "7602031P7", "7602031U7", "7602031PU", "7602031J6", "915005822501", "915005822001"],
         model: "7602031P7",
         vendor: "Philips",
         description: "Hue Go with Bluetooth",
@@ -879,6 +879,13 @@ export const definitions: DefinitionWithExtend[] = [
         model: "915005988401",
         vendor: "Philips",
         description: "Hue Gradient light tube compact black",
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true, gradient: true})],
+    },
+    {
+        zigbeeModel: ["915005988502"],
+        model: "915005988502",
+        vendor: "Philips",
+        description: "Hue Gradient light tube large",
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true, gradient: true})],
     },
     {
@@ -4096,5 +4103,12 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Philips",
         description: "Hue Adore white ambiance bathroom mirror",
         extend: [philips.m.light({colorTemp: {range: [153, 454]}})],
+    },
+    {
+        zigbeeModel: ["LCY002", "046677577490"],
+        model: "046677577490",
+        vendor: "Philips",
+        description: "Hue Lightguide E26 Triangle 500lm",
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
 ];

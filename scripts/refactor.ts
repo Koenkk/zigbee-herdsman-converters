@@ -9,7 +9,6 @@ const project = new Project({
 project.addSourceFilesAtPaths("src/devices/*.ts");
 
 //#region Refactor modernExtend temperature() to m.temperature()
-// biome-ignore lint/complexity/noForEach: ignored using `--suppress`
 project.getSourceFiles().forEach((sourceFile) => {
     if (sourceFile.getBaseName() === "index.ts") return;
     console.log(`Handling ${sourceFile.getBaseName()}`);
@@ -71,9 +70,7 @@ project.getSourceFiles().forEach((sourceFile) => {
 
     if (save) {
         const modernExtendImport = sourceFile.getImportDeclarations().filter((d) => d.getModuleSpecifierSourceFile()?.getBaseName() === "tuya.ts");
-        let match = false;
         for (const i of modernExtendImport) {
-            match = true;
             i.remove();
         }
 

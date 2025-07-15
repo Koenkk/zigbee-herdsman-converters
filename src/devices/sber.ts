@@ -12,7 +12,6 @@ import * as utils from "../lib/utils";
 const e = exposes.presets;
 const ea = exposes.access;
 
-const NS = "zhc:sdevices";
 const {tuyaMagicPacket, tuyaOnOffActionLegacy} = tuya.modernExtend;
 const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD};
 const defaultResponseOptions = {disableDefaultResponse: false};

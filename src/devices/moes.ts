@@ -23,6 +23,46 @@ const exposesLocal = {
 
 export const definitions: DefinitionWithExtend[] = [
     {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_uenof8jd", "_TZE200_tzyy0rtq"]),
+        model: "SFL02-Z",
+        vendor: "Moes",
+        description: "Star feather smart switch 2 gangs",
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            tuya.exposes.backlightModeOffOn().withAccess(ea.STATE_SET),
+            e.switch().withEndpoint("l1").setAccess("state", ea.STATE_SET),
+            e.switch().withEndpoint("l2").setAccess("state", ea.STATE_SET),
+            tuya.exposes.countdown().withEndpoint("l1"),
+            tuya.exposes.countdown().withEndpoint("l2"),
+            e.power_on_behavior().withAccess(ea.STATE_SET),
+            exposes.enum("mode", ea.STATE_SET, ["switch_1", "scene_1"]).withEndpoint("l1").withDescription("Switch1 mode"),
+            exposes.enum("mode", ea.STATE_SET, ["switch_2", "scene_2"]).withEndpoint("l2").withDescription("Switch2 mode"),
+            e.action(["scene_1", "scene_2"]),
+        ],
+        onEvent: tuya.onEventSetTime,
+        endpoint: (device) => {
+            return {l1: 1, l2: 1, state: 1, backlight: 1};
+        },
+        meta: {
+            multiEndpoint: true,
+            tuyaDatapoints: [
+                [1, "action", tuya.valueConverter.static("scene_1")],
+                [2, "action", tuya.valueConverter.static("scene_2")],
+                [24, "state_l1", tuya.valueConverter.onOff],
+                [25, "state_l2", tuya.valueConverter.onOff],
+                [30, "countdown_l1", tuya.valueConverter.countdown],
+                [31, "countdown_l2", tuya.valueConverter.countdown],
+                [37, "indicator_mode", tuya.valueConverterBasic.lookup({none: 0, relay: 1, pos: 2})],
+                [38, "power_on_behavior", tuya.valueConverter.powerOnBehaviorEnum],
+                [36, "backlight_mode", tuya.valueConverter.onOff],
+                [18, "mode_l1", tuya.valueConverterBasic.lookup({switch_1: tuya.enum(0), scene_1: tuya.enum(1)})],
+                [19, "mode_l2", tuya.valueConverterBasic.lookup({switch_2: tuya.enum(0), scene_2: tuya.enum(1)})],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_ivdc0kwl"]),
         model: "ZTRV-S01",
         vendor: "Moes",
@@ -224,8 +264,8 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         whiteLabel: [tuya.whitelabel("Moes", "BHT-002/BHT-006", "Smart heating thermostat", ["_TZE204_aoclfnxz"])],
         exposes: (device, options) => {
-            const heatingStepSize = device?.manufacturerName === "_TZE204_5toc8efa" ? 0.5 : 1;
-            const runningStates = device?.manufacturerName === "_TZE200_aoclfnxz" ? ["idle", "heat"] : ["idle", "heat", "cool"];
+            const heatingStepSize = device.manufacturerName === "_TZE204_5toc8efa" ? 0.5 : 1;
+            const runningStates = device.manufacturerName === "_TZE200_aoclfnxz" ? ["idle", "heat"] : ["idle", "heat", "cool"];
             return [
                 e.child_lock(),
                 e.deadzone_temperature(),
@@ -235,7 +275,7 @@ export const definitions: DefinitionWithExtend[] = [
                     .climate()
                     .withSetpoint("current_heating_setpoint", 5, 45, heatingStepSize, ea.STATE_SET)
                     .withLocalTemperature(ea.STATE)
-                    .withLocalTemperatureCalibration(-30, 30, 0.1, ea.STATE_SET)
+                    .withLocalTemperatureCalibration(-30, 30, device.manufacturerName === "_TZE204_aoclfnxz" ? 1 : 0.1, ea.STATE_SET)
                     .withSystemMode(["off", "heat"], ea.STATE_SET)
                     .withRunningState(runningStates, ea.STATE)
                     .withPreset(["hold", "program"]),
@@ -523,7 +563,7 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: [tzZosung.zosung_ir_code_to_send, tzZosung.zosung_learn_ir_code],
         exposes: (device, options) => {
             const exposes: Expose[] = [ez.learn_ir_code(), ez.learned_ir_code(), ez.ir_code_to_send()];
-            if (device?.manufacturerName !== "") {
+            if (device.manufacturerName !== "") {
                 exposes.push(e.battery(), e.battery_voltage());
             }
             return exposes;
@@ -540,7 +580,7 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [tuya.whitelabel("Tuya", "iH-F8260", "Universal smart IR remote control", ["_TZ3290_gnl5a6a5xvql7c2a"])],
     },
     {
-        fingerprint: tuya.fingerprint("TS0049", ["_TZ3000_cjfmu5he", "_TZ3000_kz1anoi8", "_TZ3000_mq4wujmp"]),
+        fingerprint: tuya.fingerprint("TS0049", ["_TZ3000_cjfmu5he", "_TZ3000_kz1anoi8", "_TZ3000_mq4wujmp", "_TZ3000_5af5r192", "_TZE200_fphxkxue"]),
         model: "ZWV-YC",
         vendor: "Moes",
         description: "Water valve",
@@ -614,11 +654,11 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["ZG-101ZL"],
-        fingerprint: tuya.fingerprint("TS004F", ["_TZ3000_ja5osu5g", "_TZ3000_kjfzuycl", "_TZ3000_egvb1p2g"]),
+        fingerprint: tuya.fingerprint("TS004F", ["_TZ3000_ja5osu5g", "_TZ3000_kjfzuycl", "_TZ3000_egvb1p2g", "_TZ3000_kaflzta4"]),
         model: "ERS-10TZBVB-AA",
         vendor: "Moes",
         description: "Smart button",
-        whiteLabel: [tuya.whitelabel("Loginovo", "ZG-101ZL", "Smart button", ["_TZ3000_ja5osu5g", "HOBEIAN"])],
+        whiteLabel: [tuya.whitelabel("Loginovo", "ZG-101ZL", "Smart button", ["_TZ3000_ja5osu5g", "_TZ3000_lrfvzq1e", "_TZ3000_kaflzta4"])],
         fromZigbee: [
             fz.command_step,
             fz.command_on,

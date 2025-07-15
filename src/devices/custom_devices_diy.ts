@@ -6,7 +6,8 @@ import * as exposes from "../lib/exposes";
 import * as legacy from "../lib/legacy";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import type {DefinitionWithExtend, Expose, Fz, KeyValue, KeyValueAny, Tz, Zh} from "../lib/types";
+import type {DefinitionWithExtend, DummyDevice, Expose, Fz, KeyValue, KeyValueAny, Tz, Zh} from "../lib/types";
+import * as utils from "../lib/utils";
 import {calibrateAndPrecisionRoundOptions, getFromLookup, getKey, isEndpoint, postfixWithEndpointName} from "../lib/utils";
 
 const e = exposes.presets;
@@ -145,8 +146,8 @@ const fzLocal = {
     } satisfies Fz.Converter,
 };
 
-function ptvoGetMetaOption(device: Zh.Device, key: string, defaultValue: unknown) {
-    if (device != null) {
+function ptvoGetMetaOption(device: Zh.Device | DummyDevice, key: string, defaultValue: unknown) {
+    if (!utils.isDummyDevice(device)) {
         const value = device.meta[key];
         if (value === undefined) {
             return defaultValue;
@@ -238,12 +239,12 @@ export const definitions: DefinitionWithExtend[] = [
             {modelID: "SkyConnect", manufacturerName: "NabuCasa", applicationVersion: 200},
             {modelID: "SLZB-06M", manufacturerName: "SMLIGHT", applicationVersion: 200},
             {modelID: "SLZB-06MG24", manufacturerName: "SMLIGHT", applicationVersion: 200},
+            {modelID: "SLZB-06MG26", manufacturerName: "SMLIGHT", applicationVersion: 200},
             {modelID: "SLZB-07", manufacturerName: "SMLIGHT", applicationVersion: 200},
             {modelID: "SLZB-07MG24", manufacturerName: "SMLIGHT", applicationVersion: 200},
             {modelID: "DONGLE-E", manufacturerName: "SONOFF", applicationVersion: 200},
             {modelID: "MGM240P", manufacturerName: "SparkFun", applicationVersion: 200},
             {modelID: "MGM24", manufacturerName: "TubesZB", applicationVersion: 200},
-            {modelID: "MGM24PB", manufacturerName: "TubesZB", applicationVersion: 200},
         ],
         model: "Silabs series 2 router",
         vendor: "Silabs",
@@ -340,8 +341,8 @@ export const definitions: DefinitionWithExtend[] = [
             const expose: Expose[] = [];
             const exposeDeviceOptions: KeyValue = {};
             const deviceConfig = ptvoGetMetaOption(device, "device_config", "");
-            if (deviceConfig === "") {
-                if (device?.endpoints) {
+            if (deviceConfig === "" || utils.isDummyDevice(device)) {
+                if (!utils.isDummyDevice(device)) {
                     for (const endpoint of device.endpoints) {
                         const exposeEpOptions: KeyValue = {};
                         ptvoAddStandardExposes(endpoint, expose, exposeEpOptions, exposeDeviceOptions);
@@ -409,7 +410,7 @@ export const definitions: DefinitionWithExtend[] = [
                     } else if (valueId === "#") {
                         // GPIO state (contact, gas, noise, occupancy, presence, smoke, sos, tamper, vibration, water leak)
                         exposeEpOptions.exposed_onoff = true;
-                        let exposeObj = undefined;
+                        let exposeObj: Expose;
                         switch (valueDescription) {
                             case "g":
                                 exposeObj = e.gas();
@@ -443,8 +444,8 @@ export const definitions: DefinitionWithExtend[] = [
                         }
                         expose.push(exposeObj.withProperty("state").withEndpoint(epName));
                     } else if (valueConfigItems.length > 0) {
-                        let valueName = undefined; // name in Z2M
-                        let valueNumIndex = undefined;
+                        let valueName: string; // name in Z2M
+                        let valueNumIndex: string;
                         const idxPos = valueId.search(/(\d+)$/);
                         if (valueId.startsWith("mcpm") || valueId.startsWith("ncpm")) {
                             const num = Number.parseInt(valueId.substr(4, 1), 16);

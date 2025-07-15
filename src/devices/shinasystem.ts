@@ -703,7 +703,7 @@ export const definitions: DefinitionWithExtend[] = [
         // Produced_energy and ct_direction is supported in version 8 and above.
         exposes: (device, options) => {
             const exposes = [];
-            if (device?.applicationVersion >= 8) {
+            if (utils.isDummyDevice(device) || device.applicationVersion >= 8) {
                 exposes.push(e.produced_energy().withAccess(ea.STATE_GET));
                 exposes.push(
                     e
@@ -747,7 +747,7 @@ export const definitions: DefinitionWithExtend[] = [
         // Produced_energy is supported in version 9 and above.
         exposes: (device, options) => {
             const exposes = [];
-            if (device?.applicationVersion >= 9) {
+            if (utils.isDummyDevice(device) || device.applicationVersion >= 9) {
                 exposes.push(e.produced_energy().withAccess(ea.STATE_GET));
             }
             return exposes;
