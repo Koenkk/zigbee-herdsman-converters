@@ -17,18 +17,6 @@ import * as utils from "../lib/utils";
 const NS = "zhc:ubisys";
 const e = exposes.presets;
 const ea = exposes.access;
-
-const ubisysVoltage = {
-    cluster: "genPowerCfg",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        if (Object.hasOwn(msg.data, "voltage")) {
-            return {voltage: msg.data.voltage};
-        }
-        return {};
-    },
-};
-
 const manufacturerOptions = {
     /*
      * Ubisys doesn't accept a manufacturerCode on some commands
@@ -1126,81 +1114,65 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
     },
     {
-        zigbeeModel: ["H1"],
-        model: "H1",
-        vendor: "Ubisys",
-        description: "Heating regulator",
-        meta: {thermostat: {dontMapPIHeatingDemand: true}},
-        fromZigbee: [fz.battery, fz.thermostat, fz.thermostat_weekly_schedule, ubisysVoltage],
-        toZigbee: [
-            tz.thermostat_occupied_heating_setpoint,
-            tz.thermostat_unoccupied_heating_setpoint,
-            tz.thermostat_local_temperature,
-            tz.thermostat_system_mode,
-            tz.thermostat_weekly_schedule,
-            tz.thermostat_clear_weekly_schedule,
-            tz.thermostat_running_mode,
-            tz.thermostat_pi_heating_demand,
-            tz.battery_percentage_remaining,
-        ],
-        exposes: [
-            e.voltage().withUnit("mV"),
-            e.battery().withAccess(ea.STATE_GET),
-            e
-                .climate()
-                .withSystemMode(["off", "heat"], ea.ALL)
-                .withRunningMode(["off", "heat"])
-                .withSetpoint("occupied_heating_setpoint", 7, 30, 0.5)
-                .withSetpoint("unoccupied_heating_setpoint", 7, 30, 0.5)
-                .withLocalTemperature()
-                .withPiHeatingDemand(ea.STATE_GET)
-                .withWeeklySchedule(["heat"]),
-        ],
-        extend: [
-            ubisysModernExtend.addCustomClusterHvacThermostat(),
-            ubisysModernExtend.openWindowState(),
-            ubisysModernExtend.vacationMode(),
-            ubisysModernExtend.localTemperatureOffset(),
-            ubisysModernExtend.occupiedHeatingSetpointDefault(),
-            ubisysModernExtend.remoteTemperatureDuration(),
-            ubisysModernExtend.openWindowDetect(),
-            ubisysModernExtend.openWindowTimeout(),
-            ubisysModernExtend.openWindowDetectionPeriod(),
-            ubisysModernExtend.openWindowSensitivity(),
-        ],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            const binds = ["genBasic", "genPowerCfg", "genTime", "hvacThermostat"];
-            await reporting.bind(endpoint, coordinatorEndpoint, binds);
+    zigbeeModel: ["H1"],
+    model: "H1",
+    vendor: "Ubisys",
+    description: "Heating regulator",
+    meta: {thermostat: {dontMapPIHeatingDemand: true}},
+    fromZigbee: [fz.battery, fz.thermostat, fz.thermostat_weekly_schedule],  // Removed ubisysVoltage
+    toZigbee: [
+        tz.thermostat_occupied_heating_setpoint,
+        tz.thermostat_unoccupied_heating_setpoint,
+        tz.thermostat_local_temperature,
+        tz.thermostat_system_mode,
+        tz.thermostat_weekly_schedule,
+        tz.thermostat_clear_weekly_schedule,
+        tz.thermostat_running_mode,
+        tz.thermostat_pi_heating_demand,
+        tz.battery_percentage_remaining,
+    ],
+    exposes: [
+        e.voltage().withUnit('mV'), e.battery().withAccess(ea.STATE_GET),
+        e
+            .climate()
+            .withSystemMode(["off", "heat"], ea.ALL)
+            .withRunningMode(["off", "heat"])
+            .withSetpoint("occupied_heating_setpoint", 7, 30, 0.5)
+            .withSetpoint("unoccupied_heating_setpoint", 7, 30, 0.5)
+            .withLocalTemperature()
+            .withPiHeatingDemand(ea.STATE_GET)
+            .withWeeklySchedule(["heat"]),
+    ],
+    extend: [
+        ubisysModernExtend.addCustomClusterHvacThermostat(),
+        ubisysModernExtend.openWindowState(),
+        ubisysModernExtend.vacationMode(),
+        ubisysModernExtend.localTemperatureOffset(),
+        ubisysModernExtend.occupiedHeatingSetpointDefault(),
+        ubisysModernExtend.remoteTemperatureDuration(),
+        ubisysModernExtend.openWindowDetect(),
+        ubisysModernExtend.openWindowTimeout(),
+        ubisysModernExtend.openWindowDetectionPeriod(),
+        ubisysModernExtend.openWindowSensitivity(),
+    ],
+    configure: async (device, coordinatorEndpoint) => {
+        const endpoint = device.getEndpoint(1);
+        const binds = ["genBasic", "genPowerCfg", "genTime", "hvacThermostat"];
+        await reporting.bind(endpoint, coordinatorEndpoint, binds);
 
-            // reporting
-            // NOTE: temperature is 0.5 deg steps
-            // NOTE: unoccupied_heating_setpoint cannot be set via the device itself
-            //       so we do not need to setup reporting for this, as reporting slots
-            //       seem to be limited.
-            await reporting.thermostatSystemMode(endpoint);
-            await reporting.thermostatRunningMode(endpoint);
-            await reporting.thermostatTemperature(endpoint, {min: 0, max: constants.repInterval.HOUR, change: 50});
-            await reporting.thermostatOccupiedHeatingSetpoint(endpoint, {min: 0, max: constants.repInterval.HOUR, change: 50});
-            await reporting.thermostatPIHeatingDemand(endpoint, {min: 15, max: constants.repInterval.HOUR, change: 1});
-            await reporting.batteryPercentageRemaining(endpoint, {min: constants.repInterval.HOUR, max: 43200, change: 1});
+        await reporting.thermostatSystemMode(endpoint);
+        await reporting.thermostatRunningMode(endpoint);
+        await reporting.thermostatTemperature(endpoint, {min: 0, max: constants.repInterval.HOUR, change: 50});
+        await reporting.thermostatOccupiedHeatingSetpoint(endpoint, {min: 0, max: constants.repInterval.HOUR, change: 50});
+        await reporting.thermostatPIHeatingDemand(endpoint, {min: 15, max: constants.repInterval.HOUR, change: 1});
+        await reporting.batteryPercentageRemaining(endpoint, {min: constants.repInterval.HOUR, max: 43200, change: 1});
 
-            // read attributes
-            // NOTE: configuring reporting on hvacThermostat seems to trigger an immediate
-            //       report, so the values are available after configure has run.
-            //       this does not seem to be the case for genPowerCfg, so we read
-            //       the battery percentage
-            await endpoint.read("genPowerCfg", ["batteryPercentageRemaining"]);
-
-            // write attributes
-            // NOTE: device checks in every 1h once the device has entered deepsleep
-            //       this might be a bit long if you want to set the temperature remotely
-            //       update this to every 15 minutes. (value is in 1/4th of a second)
-            await endpoint.write("genPollCtrl", {checkinInterval: 4 * 60 * 15});
-        },
-        ota: true,
+        await endpoint.read("genPowerCfg", ["batteryPercentageRemaining"]);
+        await endpoint.write("genPollCtrl", {checkinInterval: 4 * 60 * 15});
     },
-    {
+    ota: true,
+},
+{
         zigbeeModel: ["H10"],
         model: "H10",
         vendor: "Ubisys",
