@@ -10,7 +10,7 @@ import * as exposes from "../lib/exposes";
 import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import type {DefinitionWithExtend, Fz, KeyValue, KeyValueAny, OnEventData, OnEventType, Tz, Zh, FromZigbeeConverter, FzMessage, KeyValueAny, Logger} from "../lib/types";
+import type {DefinitionWithExtend, Fz, KeyValue, KeyValueAny, OnEventData, OnEventType, Tz, Zh, FromZigbeeConverter, FzMessage, Logger} from "../lib/types";
 import {ubisysModernExtend} from "../lib/ubisys";
 import * as utils from "../lib/utils";
 
