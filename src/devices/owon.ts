@@ -9,6 +9,17 @@ import type {DefinitionWithExtend, Fz, KeyValue, Tz} from "../lib/types";
 
 const e = exposes.presets;
 const ea = exposes.access;
+// Custom temperature converter for OWON THS317-ET
+const owonTemperature = {
+    ...fz.temperature,
+    convert: (model, msg, publish, options, meta) => {
+        // https://github.com/Koenkk/zigbee2mqtt/issues/15173
+        if (msg.data.measuredValue < 32767) {
+            return fz.temperature.convert(model, msg, publish, options, meta);
+        }
+        return {};
+    },
+};
 
 const fzLocal = {
     temperature: {
