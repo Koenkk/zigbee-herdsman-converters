@@ -18363,7 +18363,7 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
         exposes: [
-            e.valve(),
+            e.binary("state", ea.STATE_SET, "ON", "OFF").withDescription("Switch state"),
             e.numeric('water_flow', ea.STATE).withUnit('m³/h').withDescription('Instantaneous water flow'),
             e.switch().withName('auto_clean').withProperty('auto_clean').withDescription('Enable auto clean feature'),
             e.temperature(),
