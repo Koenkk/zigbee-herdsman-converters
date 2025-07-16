@@ -10,7 +10,19 @@ import * as exposes from "../lib/exposes";
 import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import type {DefinitionWithExtend, Fz, KeyValue, KeyValueAny, OnEventData, OnEventType, Tz, Zh, FromZigbeeConverter, FzMessage, Logger} from "../lib/types";
+import type {
+    DefinitionWithExtend,
+    FromZigbeeConverter,
+    Fz,
+    FzMessage,
+    KeyValue,
+    KeyValueAny,
+    Logger,
+    OnEventData,
+    OnEventType,
+    Tz,
+    Zh,
+} from "../lib/types";
 import {ubisysModernExtend} from "../lib/ubisys";
 import * as utils from "../lib/utils";
 
@@ -19,18 +31,18 @@ const e = exposes.presets;
 const ea = exposes.access;
 
 const ubisysVoltage: FromZigbeeConverter = {
-    cluster: 'genPowerCfg',
-    type: ['attributeReport', 'readResponse'],
+    cluster: "genPowerCfg",
+    type: ["attributeReport", "readResponse"],
     convert: (
         model: Zh.Device,
         msg: FzMessage,
         publish: (payload: KeyValueAny) => void,
         options: KeyValueAny,
         meta: {
-            logger: Logger,
-            device: Zh.Device,
-            endpoint: Zh.Endpoint,
-            loggerOverride?: Logger,
+            logger: Logger;
+            device: Zh.Device;
+            endpoint: Zh.Endpoint;
+            loggerOverride?: Logger;
         },
     ): KeyValueAny => {
         if (msg.data?.voltage !== undefined) {
