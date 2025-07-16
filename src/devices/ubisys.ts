@@ -18,10 +18,10 @@ const NS = "zhc:ubisys";
 const e = exposes.presets;
 const ea = exposes.access;
 const ubisysVoltage: Fz.Converter = {
-    cluster: 'genPowerCfg',
-    type: ['attributeReport', 'readResponse'],
+    cluster: "genPowerCfg",
+    type: ["attributeReport", "readResponse"],
     convert: (model: Definition, msg: Fz.Message, publish: Fz.Publish, options: KeyValue, meta: Fz.Meta) => {
-        if (msg.data.hasOwnProperty('voltage')) {
+        if (Object.hasOwn(msg.data, "voltage")) {
             return {voltage: msg.data.voltage};
         }
         return {};
