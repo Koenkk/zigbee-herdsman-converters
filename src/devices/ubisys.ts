@@ -17,7 +17,16 @@ import * as utils from "../lib/utils";
 const NS = "zhc:ubisys";
 const e = exposes.presets;
 const ea = exposes.access;
-
+const ubisysVoltage = {
+    cluster: 'genPowerCfg',
+    type: ['attributeReport', 'readResponse'],
+    convert: (model, msg, publish, options, meta) => {
+        if (msg.data.hasOwnProperty('voltage')) {
+            return {voltage: msg.data.voltage};
+        }
+        return {};
+    },
+};
 const manufacturerOptions = {
     /*
      * Ubisys doesn't accept a manufacturerCode on some commands
@@ -1120,7 +1129,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Ubisys",
         description: "Heating regulator",
         meta: {thermostat: {dontMapPIHeatingDemand: true}},
-        fromZigbee: [fz.battery, fz.thermostat, fz.thermostat_weekly_schedule],
+        fromZigbee: [fz.battery, fz.thermostat, fz.thermostat_weekly_schedule,ubisysVoltage],
         toZigbee: [
             tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_unoccupied_heating_setpoint,
@@ -1133,7 +1142,7 @@ export const definitions: DefinitionWithExtend[] = [
             tz.battery_percentage_remaining,
         ],
         exposes: [
-            e.battery().withAccess(ea.STATE_GET),
+            e.voltage().withUnit('mV'),e.battery().withAccess(ea.STATE_GET),
             e
                 .climate()
                 .withSystemMode(["off", "heat"], ea.ALL)
