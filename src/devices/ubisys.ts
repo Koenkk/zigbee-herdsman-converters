@@ -19,10 +19,10 @@ const e = exposes.presets;
 const ea = exposes.access;
 
 const ubisysVoltage = {
-    cluster: 'genPowerCfg',
-    type: ['attributeReport', 'readResponse'],
+    cluster: "genPowerCfg",
+    type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
-        if (msg.data.hasOwnProperty('voltage')) {
+        if (Object.hasOwn(msg.data, "voltage")) {
             return {voltage: msg.data.voltage};
         }
         return {};
