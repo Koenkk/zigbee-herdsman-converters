@@ -17,16 +17,30 @@ import * as utils from "../lib/utils";
 const NS = "zhc:ubisys";
 const e = exposes.presets;
 const ea = exposes.access;
-const ubisysVoltage: Fz.Converter = {
-    cluster: "genPowerCfg",
-    type: ["attributeReport", "readResponse"],
-    convert: (model: Definition, msg: Fz.Message, publish: Fz.Publish, options: KeyValue, meta: Fz.Meta) => {
-        if (Object.hasOwn(msg.data, "voltage")) {
+import type {FromZigbeeConverter, FzMessage, KeyValueAny, Logger, OnEventType, Zh} from '../lib/types';
+
+const ubisysVoltage: FromZigbeeConverter = {
+    cluster: 'genPowerCfg',
+    type: ['attributeReport', 'readResponse'],
+    convert: (
+        model: Zh.Device,
+        msg: FzMessage,
+        publish: (payload: KeyValueAny) => void,
+        options: KeyValueAny,
+        meta: {
+            logger: Logger,
+            device: Zh.Device,
+            endpoint: Zh.Endpoint,
+            loggerOverride?: Logger,
+        },
+    ): KeyValueAny => {
+        if (msg.data?.voltage !== undefined) {
             return {voltage: msg.data.voltage};
         }
         return {};
     },
 };
+
 const manufacturerOptions = {
     /*
      * Ubisys doesn't accept a manufacturerCode on some commands
