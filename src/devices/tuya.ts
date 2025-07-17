@@ -18406,7 +18406,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [
             e.binary("state", ea.STATE_SET, "ON", "OFF").withDescription("Switch state"),
             e.numeric("water_flow", ea.STATE).withUnit("m³/h").withDescription("Instantaneous water flow"),
-            e.switch().withName("auto_clean").withProperty("auto_clean").withDescription("Enable auto clean feature"),
+            e.switch().withProperty("auto_clean").withDescription("Enable auto clean feature"),
             e.temperature(),
             e.numeric("voltage", ea.STATE).withUnit("V").withDescription("Battery voltage").withCategory("diagnostic"),
         ],
