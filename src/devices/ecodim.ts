@@ -221,4 +221,22 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Zigbee LED filament light dimmable E27, edison ST64, flame 2200K",
         extend: [tuya.modernExtend.tuyaLight({colorTemp: {range: [153, 454]}})],
     },
+    {
+        fingerprint: tuya.fingerprint("TS0502B", ["_TZ3210_09hzmirw"]),
+        model: "ED-10032",
+        vendor: "EcoDim",
+        description: "Zigbee LED filament lamp dimmable E27, bulb A60, Smokey 2000K-4000K",
+        extend: [
+            tuya.modernExtend.tuyaLight({
+                colorTemp: {range: [153,500]},
+                configureReporting: true,
+            })
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            device.getEndpoint(1).saveClusterAttributeKeyValue("lightingColorCtrl", {
+                colorCapabilities: 16,
+            });
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+        },
+    },
 ];
