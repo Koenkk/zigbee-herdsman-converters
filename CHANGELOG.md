@@ -1,5 +1,25 @@
 # Changelog
 
+## [24.3.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v24.2.0...v24.3.0) (2025-07-17)
+
+
+### Features
+
+* **add:** 4099854513718 ([#9625](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9625)) ([559120d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/559120d3cd8b3fee339baa9cae89dc4c5ad0807f))
+* **add:** 929003099102 https://github.com/Koenkk/zigbee2mqtt/issues/19658 ([f8e5b66](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f8e5b66e6900dabc9af9fab46fd70a83528c5b6c))
+* **add:** intuisradiator ([#9620](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9620)) ([d367e2a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d367e2a9cd918a6cfeda20ff273f9a57381be72f))
+* **add:** ZMS-206US-1 https://github.com/Koenkk/zigbee2mqtt/issues/27996 ([c6c7bd4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c6c7bd4fb97c1de9ad2581e1b42bdf64049ab6e8))
+* **add:** ZS-301Z https://github.com/Koenkk/zigbee2mqtt/issues/27956 ([bee62e4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/bee62e45f1ab780c5fa2dbc07c7b1b08fa18e7dd))
+* Danfoss Icon: support more features ([#9632](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9632)) ([ed2dcf1](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ed2dcf10339d4f8a0417147ba6807aec1d8f1827))
+* S520530W: expose action ([#9622](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9622)) ([5075e9a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5075e9a2f1c1f85067f8cec22afa5839e14914af))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZE200_wdfurkoa` as Zemismart ZM25R1 https://github.com/Koenkk/zigbee2mqtt/issues/27981 ([4ce4c2a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4ce4c2abf0fe851bdd8fe2d93a1f5871c3b7eb41))
+* **detect:** Detect `_TZE284_e2bedvo9` as Tuya ZSS-QY-SSD-A-EN https://github.com/zigbee2mqtt/hassio-zigbee2mqtt/issues/789 ([2d8e0c1](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2d8e0c1914e5def2672bbad8c995271e09d2afeb))
+* Fix ZG-101ZD and ZG-303Z bug ([#9623](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9623)) ([4275931](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4275931105788ec04b5b671640a2c86efa97f131))
+
 ## [24.2.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v24.1.0...v24.2.0) (2025-07-14)
 
 
