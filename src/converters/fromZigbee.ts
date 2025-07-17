@@ -3112,6 +3112,24 @@ export const danfoss_icon_floor_sensor: Fz.Converter = {
                 result[postfixWithEndpointName("floor_max_setpoint", msg, model, meta)] = value;
             }
         }
+        if (msg.data.danfossScheduleTypeUsed !== undefined) {
+            result[postfixWithEndpointName("schedule_type_used", msg, model, meta)] =
+                constants.danfossScheduleTypeUsed[msg.data.danfossScheduleTypeUsed] !== undefined
+                    ? constants.danfossScheduleTypeUsed[msg.data.danfossScheduleTypeUsed]
+                    : msg.data.danfossScheduleTypeUsed;
+        }
+        if (msg.data.danfossIcon2PreHeat !== undefined) {
+            result[postfixWithEndpointName("icon2_pre_heat", msg, model, meta)] =
+                constants.danfossIcon2PreHeat[msg.data.danfossIcon2PreHeat] !== undefined
+                    ? constants.danfossIcon2PreHeat[msg.data.danfossIcon2PreHeat]
+                    : msg.data.danfossIcon2PreHeat;
+        }
+        if (msg.data.danfossIcon2PreHeatStatus !== undefined) {
+            result[postfixWithEndpointName("icon2_pre_heat_status", msg, model, meta)] =
+                constants.danfossIcon2PreHeatStatus[msg.data.danfossIcon2PreHeatStatus] !== undefined
+                    ? constants.danfossIcon2PreHeatStatus[msg.data.danfossIcon2PreHeatStatus]
+                    : msg.data.danfossIcon2PreHeatStatus;
+        }
         return result;
     },
 };
@@ -3143,6 +3161,12 @@ export const danfoss_icon_regulator: Fz.Converter = {
                     ? constants.danfossSystemStatusCode[msg.data.danfossSystemStatusCode]
                     : msg.data.danfossSystemStatusCode;
         }
+        if (msg.data.danfossHeatsupplyRequest !== undefined) {
+            result[postfixWithEndpointName("heat_supply_request", msg, model, meta)] =
+                constants.danfossHeatsupplyRequest[msg.data.danfossHeatsupplyRequest] !== undefined
+                    ? constants.danfossHeatsupplyRequest[msg.data.danfossHeatsupplyRequest]
+                    : msg.data.danfossHeatsupplyRequest;
+        }
         if (msg.data.danfossSystemStatusWater !== undefined) {
             result[postfixWithEndpointName("system_status_water", msg, model, meta)] =
                 constants.danfossSystemStatusWater[msg.data.danfossSystemStatusWater] !== undefined
@@ -3154,6 +3178,18 @@ export const danfoss_icon_regulator: Fz.Converter = {
                 constants.danfossMultimasterRole[msg.data.danfossMultimasterRole] !== undefined
                     ? constants.danfossMultimasterRole[msg.data.danfossMultimasterRole]
                     : msg.data.danfossMultimasterRole;
+        }
+        if (msg.data.danfossIconApplication !== undefined) {
+            result[postfixWithEndpointName("icon_application", msg, model, meta)] =
+                constants.danfossIconApplication[msg.data.danfossIconApplication] !== undefined
+                    ? constants.danfossIconApplication[msg.data.danfossIconApplication]
+                    : msg.data.danfossIconApplication;
+        }
+        if (msg.data.danfossIconForcedHeatingCooling !== undefined) {
+            result[postfixWithEndpointName("icon_forced_heating_cooling", msg, model, meta)] =
+                constants.danfossIconForcedHeatingCooling[msg.data.danfossIconForcedHeatingCooling] !== undefined
+                    ? constants.danfossIconForcedHeatingCooling[msg.data.danfossIconForcedHeatingCooling]
+                    : msg.data.danfossIconForcedHeatingCooling;
         }
         return result;
     },

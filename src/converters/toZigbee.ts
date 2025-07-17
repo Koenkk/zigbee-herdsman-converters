@@ -2669,10 +2669,34 @@ export const danfoss_floor_max_setpoint: Tz.Converter = {
         await entity.read("hvacThermostat", ["danfossFloorMaxSetpoint"], manufacturerOptions.danfoss);
     },
 };
+export const danfoss_schedule_type_used: Tz.Converter = {
+    key: ["schedule_type_used"],
+    convertGet: async (entity, key, meta) => {
+        await entity.read("hvacThermostat", ["danfossScheduleTypeUsed"], manufacturerOptions.danfoss);
+    },
+};
+export const danfoss_icon2_pre_heat: Tz.Converter = {
+    key: ["icon2_pre_heat"],
+    convertGet: async (entity, key, meta) => {
+        await entity.read("hvacThermostat", ["danfossIcon2PreHeat"], manufacturerOptions.danfoss);
+    },
+};
+export const danfoss_icon2_pre_heat_status: Tz.Converter = {
+    key: ["icon2_pre_heat_status"],
+    convertGet: async (entity, key, meta) => {
+        await entity.read("hvacThermostat", ["danfossIcon2PreHeatStatus"], manufacturerOptions.danfoss);
+    },
+};
 export const danfoss_system_status_code: Tz.Converter = {
     key: ["system_status_code"],
     convertGet: async (entity, key, meta) => {
         await entity.read("haDiagnostic", ["danfossSystemStatusCode"], manufacturerOptions.danfoss);
+    },
+};
+export const danfoss_heat_supply_request: Tz.Converter = {
+    key: ["heat_supply_request"],
+    convertGet: async (entity, key, meta) => {
+        await entity.read("haDiagnostic", ["danfossHeatsupplyRequest"], manufacturerOptions.danfoss);
     },
 };
 export const danfoss_system_status_water: Tz.Converter = {
@@ -2685,6 +2709,18 @@ export const danfoss_multimaster_role: Tz.Converter = {
     key: ["multimaster_role"],
     convertGet: async (entity, key, meta) => {
         await entity.read("haDiagnostic", ["danfossMultimasterRole"], manufacturerOptions.danfoss);
+    },
+};
+export const danfoss_icon_application: Tz.Converter = {
+    key: ["icon_application"],
+    convertGet: async (entity, key, meta) => {
+        await entity.read("haDiagnostic", ["danfossIconApplication"], manufacturerOptions.danfoss);
+    },
+};
+export const danfoss_icon_forced_heating_cooling: Tz.Converter = {
+    key: ["icon_forced_heating_cooling"],
+    convertGet: async (entity, key, meta) => {
+        await entity.read("haDiagnostic", ["danfossIconForcedHeatingCooling"], manufacturerOptions.danfoss);
     },
 };
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
