@@ -38,16 +38,9 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Third Reality",
         description: "Smart switch Gen3",
         ota: true,
-        fromZigbee: [fz.on_off, fz.battery],
-        toZigbee: [tz.on_off, tz.ignore_transition],
-        exposes: [e.switch(), e.battery(), e.battery_voltage()],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await endpoint.read("genPowerCfg", ["batteryPercentageRemaining"]);
-            device.powerSource = "Battery";
-            device.save();
-        },
         extend: [
+            m.battery(),
+            m.onOff({powerOnBehavior: false}),
             m.deviceAddCustomCluster("3rSwitchGen3SpecialCluster", {
                 ID: 0xff02,
                 manufacturerCode: 0x1233,
