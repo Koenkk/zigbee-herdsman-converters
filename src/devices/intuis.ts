@@ -9,8 +9,8 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["intuisradiator                 "],
         model: "intuisradiator",
-        vendor: "intuis",
-        description: "intuis radiator with nativ and intuis 3.0",
+        vendor: "Intuis",
+        description: "Radiator with nativ and intuis 3.0",
         extend: [
             m.deviceEndpoints({endpoints: {1: 1, 5: 5}}),
             m.electricityMeter({
