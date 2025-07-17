@@ -3,7 +3,18 @@ import type {DefinitionWithExtend} from "../lib/types";
 
 export const definitions: DefinitionWithExtend[] = [
     {
-        zigbeeModel: ["SLZB-06M", "SLZB-06", "SLZB-06P7", "SLZB-06P10", "SLZB-07", "SLZB-07P10", "SLZB-0xp7", "SLZB-07Mg24", "SLZB-06Mg24", "SLZB-06Mg26"],
+        zigbeeModel: [
+            "SLZB-06M",
+            "SLZB-06",
+            "SLZB-06P7",
+            "SLZB-06P10",
+            "SLZB-07",
+            "SLZB-07P10",
+            "SLZB-0xp7",
+            "SLZB-07Mg24",
+            "SLZB-06Mg24",
+            "SLZB-06Mg26",
+        ],
         model: "SLZB-06M",
         vendor: "SMLIGHT",
         description: "Router",
