@@ -277,6 +277,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [ledvanceLight({})],
     },
     {
+        zigbeeModel: ["DR_ZBD_NFC_P_45W_220-240V_1A2"],
+        model: "4099854513718",
+        vendor: "LEDVANCE",
+        description: "PL CMFT 600 ZB P 33W 840 U19",
+        extend: [ledvanceLight({})],
+    },
+    {
         zigbeeModel: ["A60 FIL DIM T"],
         model: "4058075729209",
         vendor: "LEDVANCE",

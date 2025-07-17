@@ -3926,11 +3926,19 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true, gradient: {extraEffects: ["sparkle", "opal", "glisten"]}})],
     },
     {
-        zigbeeModel: ["929003597701"],
+        zigbeeModel: ["929003597701", "929003099102"],
         model: "929003597701",
         vendor: "Philips",
         description: "Hue white ambiance Aurelle square panel light 120x30",
         extend: [philips.m.light({colorTemp: {range: [153, 454]}})],
+        whiteLabel: [
+            {
+                model: "929003099102",
+                vendor: "Philips",
+                description: "Hue white ambiance Aurelle square panel light 120x30",
+                fingerprint: [{modelID: "929003099102"}],
+            },
+        ],
     },
     {
         zigbeeModel: ["929003055701"],
