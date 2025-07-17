@@ -7022,6 +7022,47 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_o9ofysmo", "_TZE284_xc3vwx5a"]),
+        model: "ZS-301Z",
+        vendor: "Arteco",
+        description: "Soil moisture sensor",
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEventSetTime,
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.enum("battery_state", ea.STATE, ["low", "middle", "high"]).withDescription("low: 1-25%, middle: 26-50%, high: 51-100%"),
+            e.temperature(),
+            e.humidity(),
+            e.illuminance(),
+            e
+                .numeric("humidity_calibration", ea.STATE_SET)
+                .withUnit("%")
+                .withDescription("Adjust humidity")
+                .withValueMin(-30)
+                .withValueMax(30)
+                .withValueStep(1),
+            e
+                .numeric("report_interval", ea.STATE_SET)
+                .withUnit("s")
+                .withDescription("Report interval")
+                .withValueMin(30)
+                .withValueMax(1200)
+                .withValueStep(30),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [3, "humidity", tuya.valueConverter.raw],
+                [5, "temperature", tuya.valueConverter.divideBy10],
+                [14, "battery_state", tuya.valueConverterBasic.lookup({low: tuya.enum(0), middle: tuya.enum(1), high: tuya.enum(2)})],
+                [101, "humidity", tuya.valueConverter.raw],
+                [102, "illuminance", tuya.valueConverter.raw],
+                [103, "humidity_calibration", tuya.valueConverter.raw],
+                [104, "report_interval", tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_e2bedvo9", "_TZE200_dnz6yvl2", "_TZE284_6ycgarab", "_TZE284_e2bedvo9"]),
         model: "ZSS-QY-SSD-A-EN",
         vendor: "Tuya",
