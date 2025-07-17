@@ -18405,18 +18405,18 @@ export const definitions: DefinitionWithExtend[] = [
         configure: tuya.configureMagicPacket,
         exposes: [
             e.binary("state", ea.STATE_SET, "ON", "OFF").withDescription("Switch state"),
-            e.numeric('water_flow', ea.STATE).withUnit('m³/h').withDescription('Instantaneous water flow'),
-            e.switch().withName('auto_clean').withProperty('auto_clean').withDescription('Enable auto clean feature'),
+            e.numeric("water_flow", ea.STATE).withUnit("m³/h").withDescription("Instantaneous water flow"),
+            e.switch().withName("auto_clean").withProperty("auto_clean").withDescription("Enable auto clean feature"),
             e.temperature(),
-            e.numeric('voltage', ea.STATE).withUnit('V').withDescription('Battery voltage').withCategory('diagnostic'),
+            e.numeric("voltage", ea.STATE).withUnit("V").withDescription("Battery voltage").withCategory("diagnostic"),
         ],
         meta: {
             tuyaDatapoints: [
-                [13, 'state', tuya.valueConverter.onOff],
-                [14, 'auto_clean', tuya.valueConverter.onOff],
-                [21, 'water_flow', tuya.valueConverter.divideBy1000],
-                [22, 'temperature', tuya.valueConverter.raw],
-                [26, 'voltage', tuya.valueConverter.divideBy100],
+                [13, "state", tuya.valueConverter.onOff],
+                [14, "auto_clean", tuya.valueConverter.onOff],
+                [21, "water_flow", tuya.valueConverter.divideBy1000],
+                [22, "temperature", tuya.valueConverter.raw],
+                [26, "voltage", tuya.valueConverter.divideBy100],
         ],
     },
 ];
