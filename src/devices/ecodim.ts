@@ -228,9 +228,9 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Zigbee LED filament lamp dimmable E27, bulb A60, Smokey 2000K-4000K",
         extend: [
             tuya.modernExtend.tuyaLight({
-                colorTemp: {range: [153,500]},
+                colorTemp: {range: [153, 500]},
                 configureReporting: true,
-            })
+            }),
         ],
         configure: async (device, coordinatorEndpoint) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue("lightingColorCtrl", {
