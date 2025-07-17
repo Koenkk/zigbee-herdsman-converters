@@ -18417,6 +18417,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [21, "water_flow", tuya.valueConverter.divideBy1000],
                 [22, "temperature", tuya.valueConverter.raw],
                 [26, "voltage", tuya.valueConverter.divideBy100],
-        ],
+            ],
+        },
     },
 ];
