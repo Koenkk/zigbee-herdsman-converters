@@ -65,7 +65,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         model: "Eco-Dim.07/Eco-Dim.10",
         vendor: "EcoDim",
-        description: "Zigbee & Z-wave dimmer",
+        description: "Zigbee LED dimmer",
         ota: true,
         extend: [m.light({configureReporting: true})],
     },
