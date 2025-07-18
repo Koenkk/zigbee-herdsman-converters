@@ -581,7 +581,7 @@ export function printNumbersAsHexSequence(numbers: number[], hexLength: number):
 
 // biome-ignore lint/suspicious/noExplicitAny: generic object
 export function assertObject<T extends Record<string, any>>(value: unknown, property?: string): asserts value is T {
-    if (typeof value !== "object" || Array.isArray(value) || value === null) {
+    if (typeof value !== "object" || value === null || Array.isArray(value)) {
         throw new Error(`${property} is not a object, got ${typeof value} (${JSON.stringify(value)})`);
     }
 }
@@ -604,7 +604,7 @@ export function isNumber(value: unknown): value is number {
 
 // biome-ignore lint/suspicious/noExplicitAny: generic object
 export function isObject(value: unknown): value is {[s: string]: any} {
-    return typeof value === "object" && !Array.isArray(value);
+    return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 export function isString(value: unknown): value is string {
