@@ -175,7 +175,11 @@ export const definitions: DefinitionWithExtend[] = [
             const endpoint1 = device.getEndpoint(1);
             await endpoint1.write("genOnOff", {16387: {value: 0xff, type: 0x30}});
             await endpoint1.read("genOnOff", ["startUpOnOff"]);
-            await endpoint1.write("genBasic", {[switchTypeAttribute]: {value: switchTypeValueLookup["toggle"], type: switchTypeDataType}}, {manufacturerCode: manufacturerSpecificSwitchTypeClusterCode});   
+            await endpoint1.write(
+                "genBasic",
+                {[switchTypeAttribute]: {value: switchTypeValueLookup["toggle"], type: switchTypeDataType}},
+                {manufacturerCode: manufacturerSpecificSwitchTypeClusterCode},
+            );
             await endpoint1.read("genBasic", [switchTypeAttribute], {manufacturerCode: manufacturerSpecificSwitchTypeClusterCode});
         },
     },
@@ -203,8 +207,17 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Candeo",
         description: "Zigbee micro smart dimmer",
         extend: [
-            m.light({configureReporting: true, levelReportingConfig: {min: 1, max: 3600, change: 1}, levelConfig: {features: ["on_off_transition_time", "on_level", "current_level_startup"]}}),
-            m.electricityMeter({power: {min: 10, max: 600, change: 50}, voltage: {min: 10, max: 600, change: 500}, current: {min: 10, max: 600, change: 500}, energy: {min: 10, max: 1800, change: 360000}}),
+            m.light({
+                configureReporting: true,
+                levelReportingConfig: {min: 1, max: 3600, change: 1},
+                levelConfig: {features: ["on_off_transition_time", "on_level", "current_level_startup"]},
+            }),
+            m.electricityMeter({
+                power: {min: 10, max: 600, change: 50},
+                voltage: {min: 10, max: 600, change: 500},
+                current: {min: 10, max: 600, change: 500},
+                energy: {min: 10, max: 1800, change: 360000},
+            }),
         ],
         fromZigbee: [fzLocal.switch_type, fz.ignore_genOta],
         toZigbee: [tzLocal.switch_type],
@@ -219,7 +232,11 @@ export const definitions: DefinitionWithExtend[] = [
             await endpoint1.read("genLevelCtrl", ["onOffTransitionTime"]);
             await endpoint1.write("genLevelCtrl", {16384: {value: 0xff, type: 0x20}});
             await endpoint1.read("genLevelCtrl", ["startUpCurrentLevel"]);
-            await endpoint1.write("genBasic", {[switchTypeAttribute]: {value: switchTypeValueLookup["momentary"], type: switchTypeDataType}}, {manufacturerCode: manufacturerSpecificSwitchTypeClusterCode});   
+            await endpoint1.write(
+                "genBasic",
+                {[switchTypeAttribute]: {value: switchTypeValueLookup["momentary"], type: switchTypeDataType}},
+                {manufacturerCode: manufacturerSpecificSwitchTypeClusterCode},
+            );
             await endpoint1.read("genBasic", [switchTypeAttribute], {manufacturerCode: manufacturerSpecificSwitchTypeClusterCode});
         },
     },
@@ -229,8 +246,17 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Candeo",
         description: "Zigbee micro smart dimmer",
         extend: [
-            m.light({configureReporting: true, levelReportingConfig: {min: 1, max: 3600, change: 1}, levelConfig: {features: ["on_off_transition_time", "on_level", "current_level_startup"]}}),
-            m.electricityMeter({power: {min: 10, max: 600, change: 50}, voltage: {min: 10, max: 600, change: 500}, current: {min: 10, max: 600, change: 500}, energy: {min: 10, max: 1800, change: 360000}}),
+            m.light({
+                configureReporting: true,
+                levelReportingConfig: {min: 1, max: 3600, change: 1},
+                levelConfig: {features: ["on_off_transition_time", "on_level", "current_level_startup"]},
+            }),
+            m.electricityMeter({
+                power: {min: 10, max: 600, change: 50},
+                voltage: {min: 10, max: 600, change: 500},
+                current: {min: 10, max: 600, change: 500},
+                energy: {min: 10, max: 1800, change: 360000},
+            }),
         ],
         fromZigbee: [fzLocal.switch_type, fz.ignore_genOta],
         toZigbee: [tzLocal.switch_type],
@@ -245,7 +271,11 @@ export const definitions: DefinitionWithExtend[] = [
             await endpoint1.read("genLevelCtrl", ["onOffTransitionTime"]);
             await endpoint1.write("genLevelCtrl", {16384: {value: 0xff, type: 0x20}});
             await endpoint1.read("genLevelCtrl", ["startUpCurrentLevel"]);
-            await endpoint1.write("genBasic", {[switchTypeAttribute]: {value: switchTypeValueLookup["momentary"], type: switchTypeDataType}}, {manufacturerCode: manufacturerSpecificSwitchTypeClusterCode});   
+            await endpoint1.write(
+                "genBasic",
+                {[switchTypeAttribute]: {value: switchTypeValueLookup["momentary"], type: switchTypeDataType}},
+                {manufacturerCode: manufacturerSpecificSwitchTypeClusterCode},
+            );
             await endpoint1.read("genBasic", [switchTypeAttribute], {manufacturerCode: manufacturerSpecificSwitchTypeClusterCode});
         },
     },
@@ -377,7 +407,12 @@ export const definitions: DefinitionWithExtend[] = [
                 multiEndpointSkip: ["power", "current", "voltage", "energy"],
             }),
             m.onOff({endpointNames: ["l1", "l2"]}),
-            m.electricityMeter({power: {min: 10, max: 600, change: 50}, voltage: {min: 10, max: 600, change: 500}, current: {min: 10, max: 600, change: 500}, energy: {min: 10, max: 1800, change: 360000}}),
+            m.electricityMeter({
+                power: {min: 10, max: 600, change: 50},
+                voltage: {min: 10, max: 600, change: 500},
+                current: {min: 10, max: 600, change: 500},
+                energy: {min: 10, max: 1800, change: 360000},
+            }),
         ],
         fromZigbee: [fzLocal.switch_type, fz.ignore_genOta],
         toZigbee: [tzLocal.switch_type],
@@ -391,7 +426,11 @@ export const definitions: DefinitionWithExtend[] = [
             await endpoint2.write("genOnOff", {16387: {value: 0xff, type: 0x30}});
             await endpoint2.read("genOnOff", [16387]);
             const endpoint11 = device.getEndpoint(11);
-            await endpoint1.write("genBasic", {[switchTypeAttribute]: {value: switchTypeValueLookup["toggle"], type: switchTypeDataType}}, {manufacturerCode: manufacturerSpecificSwitchTypeClusterCode});   
+            await endpoint1.write(
+                "genBasic",
+                {[switchTypeAttribute]: {value: switchTypeValueLookup["toggle"], type: switchTypeDataType}},
+                {manufacturerCode: manufacturerSpecificSwitchTypeClusterCode},
+            );
             await endpoint11.read("genBasic", [switchTypeAttribute], {manufacturerCode: manufacturerSpecificSwitchTypeClusterCode});
         },
     },
@@ -410,7 +449,13 @@ export const definitions: DefinitionWithExtend[] = [
         model: "C203",
         vendor: "Candeo",
         description: "Zigbee micro smart dimmer",
-        extend: [m.light({configureReporting: true, levelReportingConfig: {min: 1, max: 3600, change: 1}, levelConfig: {features: ["on_off_transition_time", "on_level", "current_level_startup"]}})],
+        extend: [
+            m.light({
+                configureReporting: true,
+                levelReportingConfig: {min: 1, max: 3600, change: 1},
+                levelConfig: {features: ["on_off_transition_time", "on_level", "current_level_startup"]},
+            }),
+        ],
         fromZigbee: [fzLocal.switch_type, fz.ignore_genOta],
         toZigbee: [tzLocal.switch_type],
         exposes: [e.enum("external_switch_type", ea.ALL, ["momentary", "toggle"]).withLabel("External switch type")],
@@ -424,7 +469,11 @@ export const definitions: DefinitionWithExtend[] = [
             await endpoint1.read("genLevelCtrl", ["onOffTransitionTime"]);
             await endpoint1.write("genLevelCtrl", {16384: {value: 0xff, type: 0x20}});
             await endpoint1.read("genLevelCtrl", ["startUpCurrentLevel"]);
-            await endpoint1.write("genBasic", {[switchTypeAttribute]: {value: switchTypeValueLookup["momentary"], type: switchTypeDataType}}, {manufacturerCode: manufacturerSpecificSwitchTypeClusterCode});   
+            await endpoint1.write(
+                "genBasic",
+                {[switchTypeAttribute]: {value: switchTypeValueLookup["momentary"], type: switchTypeDataType}},
+                {manufacturerCode: manufacturerSpecificSwitchTypeClusterCode},
+            );
             await endpoint1.read("genBasic", [switchTypeAttribute], {manufacturerCode: manufacturerSpecificSwitchTypeClusterCode});
         },
     },
