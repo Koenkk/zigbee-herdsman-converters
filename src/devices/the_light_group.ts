@@ -90,12 +90,11 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.light({colorTemp: {range: [160, 450]}})],
     },
     {
-        zigbeeModel: ['S57007'],
-        model: 'S57007',
-        vendor: 'The Light Group AS',
-        description: 'SLC SmartOne Zigbee Remote control Zigbee IP20',
+        zigbeeModel: ["S57007"],
+        model: "S57007",
+        vendor: "The Light Group AS",
+        description: "SLC SmartOne Zigbee Remote control Zigbee IP20",
         extend: [m.battery(), m.commandsOnOff(), m.commandsScenes()],
-        meta: {"multiEndpoint":true},
+        meta: {multiEndpoint: true},
     },
-
 ];
