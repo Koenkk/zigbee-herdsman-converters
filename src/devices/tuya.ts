@@ -18370,7 +18370,6 @@ export const definitions: DefinitionWithExtend[] = [
             l2: 1,
         }),
     },
-
     {
         fingerprint: [{modelID: "TS0601", manufacturerName: "_TZE200_khah2lkr"}],
         model: "HY607W-3A",
@@ -18394,6 +18393,31 @@ export const definitions: DefinitionWithExtend[] = [
                 [128, "mode_state", tuya.valueConverterBasic.lookup({manual: 0, auto: 1, hybrid: 2})],
                 [128, "force_manual_mode", {to: () => 0}],
                 [102, "running_state", {from: (v) => (v === true ? "heat" : "idle")}],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_vuwtqx0t"]),
+        model: "TS0601_water_valve_vuwtqx0t",
+        vendor: "Tuya",
+        description: "Ultrasonic smart water meter valve",
+        fromZigbee: [fz.ignore_basic_report, tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.binary("state", ea.STATE_SET, "ON", "OFF").withDescription("Switch state"),
+            e.numeric("water_flow", ea.STATE).withUnit("m³/h").withDescription("Instantaneous water flow"),
+            e.switch().withProperty("auto_clean").withDescription("Enable auto clean feature"),
+            e.temperature(),
+            e.numeric("voltage", ea.STATE).withUnit("V").withDescription("Battery voltage").withCategory("diagnostic"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [13, "state", tuya.valueConverter.onOff],
+                [14, "auto_clean", tuya.valueConverter.onOff],
+                [21, "water_flow", tuya.valueConverter.divideBy1000],
+                [22, "temperature", tuya.valueConverter.raw],
+                [26, "voltage", tuya.valueConverter.divideBy100],
             ],
         },
     },
