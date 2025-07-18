@@ -4371,10 +4371,22 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
 
+    {
+        fingerprint: [{modelID: 'TS0002', manufacturerName: '_TZ3000_h1ipgkwn'}],
+        model: '_TZ3000_h1ipgkwn',
+        description: '2 channel USB switch',
+        vendor: 'Tuya',
+        extend: [
+            m.deviceEndpoints({endpoints: {'1': 1, '2': 2}}),
+            m.onOff({powerOnBehavior: true, endpointNames: ['1', '2']})
+        ],
+        meta: {multiEndpoint: true},
+    },
+
     ////////////////////////
     // TS0003 DEFINITIONS //
     ////////////////////////
-
+        
     {
         fingerprint: tuya.fingerprint("TS0003", [
             "_TZ3000_rhkfbfcv",
