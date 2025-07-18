@@ -89,4 +89,13 @@ export const definitions: DefinitionWithExtend[] = [
         description: "SLC SmartOne TW led dimmable driver 24V/75W",
         extend: [m.light({colorTemp: {range: [160, 450]}})],
     },
+    {
+        zigbeeModel: ['S57007'],
+        model: 'S57007',
+        vendor: 'The Light Group AS',
+        description: 'SLC SmartOne Zigbee Remote control Zigbee IP20',
+        extend: [m.battery(), m.commandsOnOff(), m.commandsScenes()],
+        meta: {"multiEndpoint":true},
+    },
+
 ];
