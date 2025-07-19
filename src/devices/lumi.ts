@@ -59,6 +59,7 @@ const {
     lumiMultiClick,
     lumiPreventLeave,
     lumiExternalSensor,
+    lumiReadPositionOnReport,
 } = lumi.modernExtend;
 
 const NS = "zhc:lumi";
@@ -2339,25 +2340,12 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Aqara",
         fromZigbee: [lumi.fromZigbee.lumi_basic, lumi.fromZigbee.lumi_curtain_position, lumi.fromZigbee.lumi_curtain_position_tilt],
         toZigbee: [lumi.toZigbee.lumi_curtain_position_state, lumi.toZigbee.lumi_curtain_options],
-        onEvent: async (type, data, device) => {
-            if (
-                type === "message" &&
-                data.type === "attributeReport" &&
-                data.cluster === "genBasic" &&
-                data.data["1028"] !== undefined &&
-                data.data["1028"] === 0
-            ) {
-                // Try to read the position after the motor stops, the device occasionally report wrong data right after stopping
-                // Might need to add delay, seems to be working without one but needs more tests.
-                await device.getEndpoint(1).read("genAnalogOutput", ["presentValue"]);
-            }
-        },
         exposes: [
             e.cover_position().setAccess("state", ea.ALL),
             e.binary("running", ea.STATE, true, false).withDescription("Whether the motor is moving or not"),
             e.enum("motor_state", ea.STATE, ["stopped", "opening", "closing"]).withDescription("Motor state"),
         ],
-        extend: [lumiZigbeeOTA()],
+        extend: [lumiZigbeeOTA(), lumiReadPositionOnReport("genBasic")],
     },
     {
         zigbeeModel: ["lumi.curtain.aq2"],
@@ -2398,13 +2386,6 @@ export const definitions: DefinitionWithExtend[] = [
             lumi.fromZigbee.lumi_curtain_status,
         ],
         toZigbee: [lumi.toZigbee.lumi_curtain_position_state, lumi.toZigbee.lumi_curtain_options],
-        onEvent: async (type, data, device) => {
-            // The position (genAnalogOutput.presentValue) reported via an attribute contains an invalid value
-            // however when reading it will provide the correct value.
-            if (data.type === "attributeReport" && data.cluster === "genAnalogOutput") {
-                await device.endpoints[0].read("genAnalogOutput", ["presentValue"]);
-            }
-        },
         exposes: [
             e.cover_position().setAccess("state", ea.ALL),
             e.battery(),
@@ -2412,7 +2393,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.enum("motor_state", ea.STATE, ["closing", "opening", "stopped"]).withDescription("The current state of the motor."),
             e.power_outage_count(),
         ],
-        extend: [lumiZigbeeOTA()],
+        extend: [lumiZigbeeOTA(), lumiReadPositionOnReport("genAnalogOutput")],
     },
     {
         zigbeeModel: ["lumi.curtain.hagl07"],
@@ -2485,19 +2466,6 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         ota: true,
         toZigbee: [lumi.toZigbee.lumi_curtain_position_state, lumi.toZigbee.lumi_curtain_battery, lumi.toZigbee.lumi_curtain_charging_status],
-        onEvent: async (type, data, device) => {
-            if (
-                type === "message" &&
-                data.type === "attributeReport" &&
-                data.cluster === "genMultistateOutput" &&
-                data.data.presentValue !== undefined &&
-                data.data.presentValue > 1
-            ) {
-                // Try to read the position after the motor stops, the device occasionally report wrong data right after stopping
-                // Might need to add delay, seems to be working without one but needs more tests.
-                await device.getEndpoint(1).read("genAnalogOutput", ["presentValue"]);
-            }
-        },
         exposes: [
             e.cover_position().setAccess("state", ea.ALL),
             e.battery().withAccess(ea.STATE_GET),
@@ -2519,6 +2487,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             lumiZigbeeOTA(),
             lumiMotorSpeed(),
+            lumiReadPositionOnReport("genMultistateOutput"),
         ],
     },
     {

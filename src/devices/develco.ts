@@ -8,7 +8,6 @@ import * as exposes from "../lib/exposes";
 import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import * as globalStore from "../lib/store";
 import type {DefinitionWithExtend, Fz, KeyValue, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
 
@@ -35,6 +34,17 @@ const develcoLedControlMap = {
 // develco specific converters
 const develco = {
     fz: {
+        force_divisor_1000: {
+            cluster: "seMetering",
+            type: ["attributeReport"],
+            convert: (model, msg, publish, options, meta) => {
+                if (msg.data.divisor) {
+                    // Device sends wrong divisor (512) while it should be fixed to 1000
+                    // https://github.com/Koenkk/zigbee-herdsman-converters/issues/3066
+                    msg.endpoint.saveClusterAttributeKeyValue("seMetering", {divisor: 1000, multiplier: 1});
+                }
+            },
+        } satisfies Fz.Converter,
         // Some Develco devices report strange values sometimes
         // https://github.com/Koenkk/zigbee2mqtt/issues/13329
         electrical_measurement: {
@@ -316,7 +326,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "EMIZB-132",
         vendor: "Develco",
         description: "Wattle AMS HAN power-meter sensor",
-        fromZigbee: [develco.fz.metering, develco.fz.electrical_measurement, develco.fz.total_power],
+        fromZigbee: [develco.fz.metering, develco.fz.electrical_measurement, develco.fz.total_power, develco.fz.force_divisor_1000],
         toZigbee: [tz.EMIZB_132_mode],
         ota: true,
         extend: [develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(), develcoModernExtend.readGenBasicPrimaryVersions()],
@@ -360,13 +370,6 @@ export const definitions: DefinitionWithExtend[] = [
             e.current_phase_c(),
             e.voltage_phase_c(),
         ],
-        onEvent: (type, data, device) => {
-            if (type === "message" && data.type === "attributeReport" && data.cluster === "seMetering" && data.data.divisor) {
-                // Device sends wrong divisor (512) while it should be fixed to 1000
-                // https://github.com/Koenkk/zigbee-herdsman-converters/issues/3066
-                data.endpoint.saveClusterAttributeKeyValue("seMetering", {divisor: 1000, multiplier: 1});
-            }
-        },
     },
     {
         zigbeeModel: ["SMSZB-120", "GWA1512_SmokeSensor"],
@@ -929,6 +932,7 @@ export const definitions: DefinitionWithExtend[] = [
                 voltageReporting: true,
                 percentageReporting: false,
             }),
+            m.iasGetPanelStatusResponse(),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(44);
@@ -937,22 +941,6 @@ export const definitions: DefinitionWithExtend[] = [
         },
         endpoint: (device) => {
             return {default: 44};
-        },
-        onEvent: async (type, data, device) => {
-            if (
-                type === "message" &&
-                data.type === "commandGetPanelStatus" &&
-                data.cluster === "ssIasAce" &&
-                globalStore.hasValue(device.getEndpoint(44), "panelStatus")
-            ) {
-                const payload = {
-                    panelstatus: globalStore.getValue(device.getEndpoint(44), "panelStatus"),
-                    secondsremain: 0x00,
-                    audiblenotif: 0x00,
-                    alarmstatus: 0x00,
-                };
-                await data.endpoint.commandResponse("ssIasAce", "getPanelStatusRsp", payload, {}, data.meta.zclTransactionSequenceNumber);
-            }
         },
     },
     {

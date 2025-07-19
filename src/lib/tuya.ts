@@ -63,74 +63,6 @@ function convertStringToHexArray(value: string) {
     return asciiKeys;
 }
 
-interface OnEventArgs {
-    queryOnDeviceAnnounce?: boolean;
-    timeStart?: "1970" | "2000";
-    respondToMcuVersionResponse?: boolean;
-    queryIntervalSeconds?: number;
-}
-
-export function onEvent(args?: OnEventArgs): OnEvent {
-    return async (type, data, device, settings, state) => {
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
-        args = {queryOnDeviceAnnounce: false, timeStart: "1970", respondToMcuVersionResponse: true, ...args};
-
-        const endpoint = device.endpoints[0];
-
-        if (type === "message" && data.cluster === "manuSpecificTuya") {
-            if (args.respondToMcuVersionResponse && data.type === "commandMcuVersionResponse") {
-                await endpoint.command("manuSpecificTuya", "mcuVersionRequest", {seq: 0x0002});
-            } else if (data.type === "commandMcuGatewayConnectionStatus") {
-                // "payload" can have the following values:
-                // 0x00: The gateway is not connected to the internet.
-                // 0x01: The gateway is connected to the internet.
-                // 0x02: The request timed out after three seconds.
-                const payload = {payloadSize: 1, payload: 1};
-                await endpoint.command("manuSpecificTuya", "mcuGatewayConnectionStatus", payload, {});
-            }
-        }
-
-        if (data.type === "commandMcuSyncTime" && data.cluster === "manuSpecificTuya") {
-            try {
-                const offset = args.timeStart === "2000" ? constants.OneJanuary2000 : 0;
-                const utcTime = Math.round((Date.now() - offset) / 1000);
-                const localTime = utcTime - new Date().getTimezoneOffset() * 60;
-                const payload = {
-                    payloadSize: 8,
-                    payload: [...convertDecimalValueTo4ByteHexArray(utcTime), ...convertDecimalValueTo4ByteHexArray(localTime)],
-                };
-                await endpoint.command("manuSpecificTuya", "mcuSyncTime", payload, {});
-            } catch {
-                /* handle error to prevent crash */
-            }
-        }
-
-        // Some devices require a dataQuery on deviceAnnounce, otherwise they don't report any data
-        if (args.queryOnDeviceAnnounce && type === "deviceAnnounce") {
-            await endpoint.command("manuSpecificTuya", "dataQuery", {});
-        }
-        if (args.queryIntervalSeconds) {
-            if (type === "stop") {
-                clearTimeout(globalStore.getValue(device, "query_interval"));
-                globalStore.clearValue(device, "query_interval");
-            } else if (!globalStore.hasValue(device, "query_interval")) {
-                const setTimer = () => {
-                    const timer = setTimeout(async () => {
-                        try {
-                            await endpoint.command("manuSpecificTuya", "dataQuery", {});
-                        } catch {
-                            /* Do nothing*/
-                        }
-                        setTimer();
-                    }, args.queryIntervalSeconds * 1000);
-                    globalStore.putValue(device, "query_interval", timer);
-                };
-                setTimer();
-            }
-        }
-    };
-}
-
 function getDataValue(dpValue: Tuya.DpValue) {
     let dataString = "";
     switch (dpValue.datatype) {
@@ -2190,17 +2122,95 @@ const tuyaModernExtend = {
             isModernExtend: true,
         };
     },
-    tuyaBase(args?: {onEvent?: OnEventArgs; dp: true}): ModernExtend {
-        const result: ModernExtend = {
-            configure: [configureMagicPacket],
-            onEvent: [onEvent(args.onEvent)],
-            isModernExtend: true,
+    tuyaBase(args?: {
+        dp?: true;
+        queryOnDeviceAnnounce?: true;
+        queryIntervalSeconds?: number;
+        respondToMcuVersionResponse?: false;
+        timeStart?: "2000";
+    }): ModernExtend {
+        const {
+            dp = false,
+            queryOnDeviceAnnounce = false,
+            queryIntervalSeconds = undefined,
+            timeStart = "1970",
+            respondToMcuVersionResponse = true,
+        } = args;
+
+        const fzConverter: Fz.Converter = {
+            type: ["commandMcuSyncTime", "commandMcuVersionResponse", "commandMcuGatewayConnectionStatus"],
+            cluster: "manuSpecificTuya",
+            convert: (model, msg, publish, options, meta) => {
+                if (msg.type === "commandMcuSyncTime") {
+                    const offset = timeStart === "2000" ? constants.OneJanuary2000 : 0;
+                    const utcTime = Math.round((Date.now() - offset) / 1000);
+                    const localTime = utcTime - new Date().getTimezoneOffset() * 60;
+                    const payload = {
+                        payloadSize: 8,
+                        payload: [...convertDecimalValueTo4ByteHexArray(utcTime), ...convertDecimalValueTo4ByteHexArray(localTime)],
+                    };
+                    msg.endpoint
+                        .command("manuSpecificTuya", "mcuSyncTime", payload, {})
+                        .catch((error) => logger.error(`Failed to sync time with '${msg.device.ieeeAddr}' (${error})`, NS));
+                } else if (respondToMcuVersionResponse && msg.type === "commandMcuVersionResponse") {
+                    msg.endpoint
+                        .command("manuSpecificTuya", "mcuVersionRequest", {seq: 0x0002})
+                        .catch((error) => logger.error(`Failed respond to version response '${msg.device.ieeeAddr}' (${error})`, NS));
+                } else if (msg.type === "commandMcuGatewayConnectionStatus") {
+                    // "payload" can have the following values:
+                    // 0x00: The gateway is not connected to the internet.
+                    // 0x01: The gateway is connected to the internet.
+                    // 0x02: The request timed out after three seconds.
+                    msg.endpoint
+                        .command("manuSpecificTuya", "mcuGatewayConnectionStatus", {payloadSize: 1, payload: 1}, {})
+                        .catch((error) => logger.error(`Failed respond to gateway connection status '${msg.device.ieeeAddr}' (${error})`, NS));
+                }
+            },
         };
 
-        if (args?.dp) {
-            result.fromZigbee = [tuyaFz.datapoints];
-            result.toZigbee = [tuyaTz.datapoints];
+        const result: ModernExtend = {
+            configure: [configureMagicPacket],
+            isModernExtend: true,
+            fromZigbee: [fzConverter],
+            toZigbee: [],
+        };
+
+        if (queryOnDeviceAnnounce || queryIntervalSeconds !== undefined) {
+            result.onEvent = [
+                (event) => {
+                    // Some devices require a dataQuery on deviceAnnounce, otherwise they don't report any data
+                    if (queryOnDeviceAnnounce && event.type === "deviceAnnounce") {
+                        event.data.device.endpoints[0]
+                            .command("manuSpecificTuya", "dataQuery", {})
+                            .catch((error) => logger.error(`Failed to query '${event.data.device.ieeeAddr}' on device announce (${error})`, NS));
+                    }
+
+                    if (queryIntervalSeconds !== undefined) {
+                        if (event.type === "stop") {
+                            clearTimeout(globalStore.getValue(event.data.ieeeAddr, "query_interval"));
+                            globalStore.clearValue(event.data.ieeeAddr, "query_interval");
+                        } else if (event.type === "start") {
+                            const setTimer = () => {
+                                const timer = setTimeout(() => {
+                                    event.data.device.endpoints[0]
+                                        .command("manuSpecificTuya", "dataQuery", {})
+                                        .catch((error) => logger.error(`Failed to query '${event.data.device.ieeeAddr}' on interval (${error})`, NS));
+                                    setTimer();
+                                }, queryIntervalSeconds * 1000);
+                                globalStore.putValue(event.data.device.ieeeAddr, "query_interval", timer);
+                            };
+                            setTimer();
+                        }
+                    }
+                },
+            ];
         }
+
+        if (dp) {
+            result.fromZigbee.push(tuyaFz.datapoints);
+            result.toZigbee.push(tuyaTz.datapoints);
+        }
+
         return result;
     },
     dpEnumLookup(args: Partial<TuyaDPEnumLookupArgs>): ModernExtend {

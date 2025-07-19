@@ -159,22 +159,12 @@ export const definitions: DefinitionWithExtend[] = [
             e.text("action_zone", ea.STATE).withDescription("Alarm zone. Default value 23"),
             e.action(["panic", "disarm", "arm_day_zones", "arm_all_zones", "exit_delay", "entry_delay"]),
         ],
+        extend: [m.iasGetPanelStatusResponse()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const clusters = ["genPowerCfg", "ssIasZone", "ssIasAce", "genIdentify"];
             await reporting.bind(endpoint, coordinatorEndpoint, clusters);
             await reporting.batteryVoltage(endpoint);
-        },
-        onEvent: async (type, data, device) => {
-            if (data.type === "commandGetPanelStatus" && data.cluster === "ssIasAce") {
-                const payload = {
-                    panelstatus: globalStore.getValue(data.endpoint, "panelStatus"),
-                    secondsremain: 0x00,
-                    audiblenotif: 0x00,
-                    alarmstatus: 0x00,
-                };
-                await data.endpoint.commandResponse("ssIasAce", "getPanelStatusRsp", payload, {}, data.meta.zclTransactionSequenceNumber);
-            }
         },
     },
     {

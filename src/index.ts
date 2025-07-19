@@ -268,6 +268,7 @@ function processExtensions(definition: DefinitionWithExtend): Definition {
             ota,
             configure: definitionConfigure,
             onEvent: definitionOnEvent,
+            options,
             ...definitionWithoutExtend
         } = definition;
 
@@ -288,9 +289,10 @@ function processExtensions(definition: DefinitionWithExtend): Definition {
 
         toZigbee = [...(toZigbee ?? [])];
         fromZigbee = [...(fromZigbee ?? [])];
+        options = [...(options ?? [])];
 
         const configures: Configure[] = definitionConfigure ? [definitionConfigure] : [];
-        const onEvents: OnEvent[] = definitionOnEvent ? [definitionOnEvent] : [];
+        const onEvents: OnEvent.Handler[] = definitionOnEvent ? [definitionOnEvent] : [];
 
         for (const ext of extend) {
             if (!ext.isModernExtend) {
@@ -303,6 +305,10 @@ function processExtensions(definition: DefinitionWithExtend): Definition {
 
             if (ext.fromZigbee) {
                 fromZigbee.push(...ext.fromZigbee);
+            }
+
+            if (ext.options) {
+                options.push(...ext.options);
             }
 
             if (ext.exposes) {
@@ -365,12 +371,12 @@ function processExtensions(definition: DefinitionWithExtend): Definition {
             };
         }
 
-        let onEvent: OnEvent | undefined;
+        let onEvent: OnEvent.Handler | undefined;
 
         if (onEvents.length !== 0) {
-            onEvent = async (type, data, device, settings, state) => {
+            onEvent = async (event) => {
                 for (const func of onEvents) {
-                    await func(type, data, device, settings, state);
+                    await func(event);
                 }
             };
         }
@@ -403,7 +409,7 @@ function processExtensions(definition: DefinitionWithExtend): Definition {
             };
         }
 
-        return {toZigbee, fromZigbee, exposes, meta, configure, endpoint, onEvent, ota, ...definitionWithoutExtend};
+        return {toZigbee, fromZigbee, exposes, meta, configure, endpoint, onEvent, ota, options, ...definitionWithoutExtend};
     }
 
     return {...definition};

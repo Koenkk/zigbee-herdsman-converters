@@ -1,8 +1,8 @@
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
+import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import * as globalStore from "../lib/store";
 import type {DefinitionWithExtend} from "../lib/types";
 
 const e = exposes.presets;
@@ -46,21 +46,6 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.temperature(endpoint);
             await reporting.batteryVoltage(endpoint);
         },
-        onEvent: async (type, data, device) => {
-            if (
-                type === "message" &&
-                data.type === "commandGetPanelStatus" &&
-                data.cluster === "ssIasAce" &&
-                globalStore.hasValue(device.getEndpoint(1), "panelStatus")
-            ) {
-                const payload = {
-                    panelstatus: globalStore.getValue(device.getEndpoint(1), "panelStatus"),
-                    secondsremain: 0x00,
-                    audiblenotif: 0x00,
-                    alarmstatus: 0x00,
-                };
-                await device.getEndpoint(1).commandResponse("ssIasAce", "getPanelStatusRsp", payload, {}, data.meta.zclTransactionSequenceNumber);
-            }
-        },
+        extend: [m.iasGetPanelStatusResponse()],
     },
 ];
