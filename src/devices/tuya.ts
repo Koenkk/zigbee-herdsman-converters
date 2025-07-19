@@ -4376,7 +4376,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "_TZ3000_h1ipgkwn",
         description: "2 channel USB switch",
         vendor: "Tuya",
-        extend: [m.deviceEndpoints({endpoints: {"l1": 1, "l2": 2}}), m.onOff({powerOnBehavior: true, endpointNames: ["l1", "l2"]})],
+        extend: [m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}), m.onOff({powerOnBehavior: true, endpointNames: ["l1", "l2"]})],
     },
 
     ////////////////////////
