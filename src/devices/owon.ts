@@ -9,6 +9,7 @@ import type {DefinitionWithExtend, Fz, KeyValue, Tz} from "../lib/types";
 
 const e = exposes.presets;
 const ea = exposes.access;
+// Custom temperature converter for OWON THS317-ET
 
 const fzLocal = {
     temperature: {
@@ -330,9 +331,9 @@ export const definitions: DefinitionWithExtend[] = [
         model: "THS317-ET",
         vendor: "OWON",
         description: "Temperature sensor",
-        fromZigbee: [fzLocal.temperature, fz.battery],
+        fromZigbee: [fz.temperature, fz.battery],
         toZigbee: [],
-        exposes: [e.battery(), e.temperature()],
+        exposes: [e.battery(), e.voltage().withUnit("mV"), e.temperature()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(3) || device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["msTemperatureMeasurement", "genPowerCfg"]);
