@@ -1,5 +1,24 @@
 # Changelog
 
+## [24.4.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v24.3.0...v24.4.0) (2025-07-18)
+
+
+### Features
+
+* **add:** 4563 ([#9644](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9644)) ([2f10bf0](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2f10bf001f069a32d4ebc4cf7f0c7e852d0e624b))
+* **add:** LF-GAZ150B6250-24 ([#9636](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9636)) ([0ab7332](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0ab733293368b68741e4b50c52b1940b800cd186))
+* **add:** SLZB-07P10 ([#9637](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9637)) ([17ea330](https://github.com/Koenkk/zigbee-herdsman-converters/commit/17ea330b314e80013d30d2fd00fbf591946d3769))
+
+
+### Bug Fixes
+
+* Candeo: small improvements ([#9643](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9643)) ([36acca7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/36acca76307243fbd21a8d62a9c9edf6734d740f))
+* **detect:** Detect `_TZ3000_femsaaua` as LoraTap SC500ZB https://github.com/Koenkk/zigbee-herdsman-converters/issues/9640 ([bfec20b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/bfec20b76b9d402f4cc845126df23cbbe2baf747))
+* **detect:** Detect `_TZE284_2se8efxh` as Tuya TS0601_soil https://github.com/Koenkk/zigbee2mqtt/issues/22364 ([3c42bfa](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3c42bfaedde642281b0df9962fa23793aa6265fb))
+* Eco-Dim.07/Eco-Dim.10: fix description ([#9646](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9646)) ([9d72c39](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9d72c396b71750b40bdbfaaa16f12dc19a6bd9d5))
+* MAZDA TR-M2Z: fix local temperature calibration ([#9641](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9641)) ([ab715a5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ab715a59bdd6eaef576f6d89251167d9e0d7df7d))
+* Minor code cleanup ([#9645](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9645)) ([5373958](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5373958c3aa2f87c0cd1eadda01f595f948eed5c))
+
 ## [24.3.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v24.2.0...v24.3.0) (2025-07-17)
 
 

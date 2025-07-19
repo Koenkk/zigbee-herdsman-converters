@@ -2248,6 +2248,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE204_myd45weu",
             "_TZE284_myd45weu",
             "_TZE284_oitavov2",
+            "_TZE284_2se8efxh",
         ]),
         model: "TS0601_soil",
         vendor: "Tuya",
@@ -2902,7 +2903,7 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [
             tuya.whitelabel("Danor", "SK-Z802C-US", "Smart curtain/shutter switch", ["_TZ3000_8h7wgocw"]),
             {vendor: "LoraTap", model: "SC400"},
-            tuya.whitelabel("LoraTap", "SC500ZB", "Smart curtain/shutter switch", ["_TZ3000_e3vhyirx"]),
+            tuya.whitelabel("LoraTap", "SC500ZB", "Smart curtain/shutter switch", ["_TZ3000_e3vhyirx", "_TZ3000_femsaaua"]),
             tuya.whitelabel("LoraTap", "SC500ZB-v4", "Smart curtain/shutter switch", ["_TZ3000_5iixzdo7"]),
             tuya.whitelabel("Nous", "B4Z", "Curtain switch", ["_TZ3000_yruungrl"]),
             tuya.whitelabel("Nous", "L12Z", "Smart ZigBee Curtain Module L12Z", ["_TZ3000_jwv3cwak"]),
@@ -4368,6 +4369,14 @@ export const definitions: DefinitionWithExtend[] = [
             {vendor: "AVATTO", model: "ZTS02"},
             tuya.whitelabel("PSMART", "T462", "2 Gang switch with backlight, countdown, inching", ["_TZ3000_wnzoyohq"]),
         ],
+    },
+
+    {
+        fingerprint: tuya.fingerprint("TS0002", ["_TZ3000_h1ipgkwn"]),
+        model: "_TZ3000_h1ipgkwn",
+        description: "2 channel USB switch",
+        vendor: "Tuya",
+        extend: [m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}), m.onOff({powerOnBehavior: true, endpointNames: ["l1", "l2"]})],
     },
 
     ////////////////////////
@@ -12960,6 +12969,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Ltech", "TY-75-24-G2Z2", "150W 24V Zigbee CV tunable white LED driver", ["_TZE200_io0zdqh1"]),
             tuya.whitelabel("Lifud", "LF-AAZ012-0400-42", "Zigbee dimmable LED driver 4-40W 220-240Vac", ["_TZE200_drs6j6m5"]),
             tuya.whitelabel("Lifud", "LF-GAZ150A6250-24", "Lifud Zigbee LED Driver CCT 150W 24V", ["_TZE200_ywe90lt0"]),
+            tuya.whitelabel("Lifud", "LF-GAZ150B6250-24", "Lifud Zigbee LED Driver 150W 24V", ["_TZE204_drs6j6m5"]),
         ],
     },
     {
