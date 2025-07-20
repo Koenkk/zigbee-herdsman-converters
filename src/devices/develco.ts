@@ -225,20 +225,13 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.on_off, develco.fz.electrical_measurement, develco.fz.metering],
         toZigbee: [tz.on_off],
         ota: true,
-        exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy(), e.ac_frequency()],
-        extend: [develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(), develcoModernExtend.readGenBasicPrimaryVersions()],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(2);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "haElectricalMeasurement", "seMetering"]);
-            await reporting.onOff(endpoint);
-            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
-            await reporting.activePower(endpoint);
-            await reporting.rmsCurrent(endpoint);
-            await reporting.rmsVoltage(endpoint);
-            await reporting.readMeteringMultiplierDivisor(endpoint);
-            await reporting.currentSummDelivered(endpoint);
-            await reporting.acFrequency(endpoint);
-        },
+        extend: [
+            develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
+            develcoModernExtend.readGenBasicPrimaryVersions(),
+            develcoModernExtend.deviceTemperature(),
+            m.electricityMeter({acFrequency: true, fzMetering: develco.fz.metering, fzElectricalMeasurement: develco.fz.electrical_measurement}),
+            m.onOff({powerOnBehavior: false}),
+        ],
         endpoint: (device) => {
             return {default: 2};
         },
