@@ -933,10 +933,10 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         meta: {
             tuyaDatapoints: [
-                [1, "state", tuya.valueConverterBasic.lookup({"OPEN": tuya.enum(0), "STOP": tuya.enum(1), "CLOSE": tuya.enum(2)})],
+                [1, "state", tuya.valueConverterBasic.lookup({OPEN: tuya.enum(0), STOP: tuya.enum(1), CLOSE: tuya.enum(2)})],
                 [9, "position", tuya.valueConverter.coverPositionInverted],
                 [8, "position", tuya.valueConverter.coverPositionInverted],
-                [11, "motor_direction", tuya.valueConverterBasic.lookup({"forward": tuya.enum(0), "back": tuya.enum(1)})],
+                [11, "motor_direction", tuya.valueConverterBasic.lookup({forward: tuya.enum(0), back: tuya.enum(1)})],
             ],
         },
     },
