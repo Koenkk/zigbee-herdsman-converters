@@ -1819,7 +1819,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Light/shutter control unit II",
         extend: [
             m.deviceEndpoints({endpoints: {left: 2, right: 3}}),
-            m.electricityMeter({ voltage: false, current: false }),
+            m.electricityMeter({voltage: false, current: false}),
             m.deviceAddCustomCluster("boschSpecific", {
                 ID: 0xfca0,
                 manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
