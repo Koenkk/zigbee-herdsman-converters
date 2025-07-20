@@ -118,8 +118,8 @@ export function onEvent(args?: OnEventArgs): OnEvent {
                     const timer = setTimeout(async () => {
                         try {
                             await endpoint.command("manuSpecificTuya", "dataQuery", {});
-                        } catch {
-                            /* Do nothing*/
+                        } catch (error) {
+                            logger.error(`Failed to query data of '${device.ieeeAddr}' (${error})`, NS);
                         }
                         setTimer();
                     }, args.queryIntervalSeconds * 1000);

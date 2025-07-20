@@ -657,12 +657,18 @@ export const definitions: DefinitionWithExtend[] = [
             tz.danfoss_floor_sensor_mode,
             tz.danfoss_floor_min_setpoint,
             tz.danfoss_floor_max_setpoint,
+            tz.danfoss_schedule_type_used,
+            tz.danfoss_icon2_pre_heat,
+            tz.danfoss_icon2_pre_heat_status,
             tz.thermostat_keypad_lockout,
             tz.temperature,
             tz.humidity,
             tz.danfoss_system_status_code,
+            tz.danfoss_heat_supply_request,
             tz.danfoss_system_status_water,
             tz.danfoss_multimaster_role,
+            tz.danfoss_icon_application,
+            tz.danfoss_icon_forced_heating_cooling,
         ],
         meta: {multiEndpoint: true, thermostat: {dontMapPIHeatingDemand: true}},
         exposes: [].concat(
@@ -753,6 +759,27 @@ export const definitions: DefinitionWithExtend[] = [
                         );
 
                         features.push(
+                            e
+                                .enum("schedule_type_used", ea.STATE_GET, ["regular_schedule_selected", "vacation_schedule_selected"])
+                                .withEndpoint(epName)
+                                .withDescription("Danfoss schedule mode"),
+                        );
+
+                        features.push(
+                            e
+                                .enum("icon2_pre_heat", ea.STATE_GET, ["disable", "enable"])
+                                .withEndpoint(epName)
+                                .withDescription("Danfoss pre heat control"),
+                        );
+
+                        features.push(
+                            e
+                                .enum("icon2_pre_heat_status", ea.STATE_GET, ["disable", "enable"])
+                                .withEndpoint(epName)
+                                .withDescription("Danfoss pre heat status"),
+                        );
+
+                        features.push(
                             e.numeric("temperature", ea.STATE_GET).withUnit("°C").withEndpoint(epName).withDescription("Floor temperature"),
                         );
 
@@ -777,6 +804,12 @@ export const definitions: DefinitionWithExtend[] = [
                         );
                         features.push(
                             e
+                                .enum("heat_supply_request", ea.STATE_GET, ["none", "heat_supply_request"])
+                                .withEndpoint("232")
+                                .withDescription("Danfoss heat supply request"),
+                        );
+                        features.push(
+                            e
                                 .enum("system_status_water", ea.STATE_GET, ["hot_water_flow_in_pipes", "cool_water_flow_in_pipes"])
                                 .withEndpoint("232")
                                 .withDescription("Main Controller Water Status"),
@@ -786,6 +819,39 @@ export const definitions: DefinitionWithExtend[] = [
                                 .enum("multimaster_role", ea.STATE_GET, ["invalid_unused", "master", "slave_1", "slave_2"])
                                 .withEndpoint("232")
                                 .withDescription("Main Controller Role"),
+                        );
+                        features.push(
+                            e
+                                .enum("icon_application", ea.STATE_GET, [
+                                    "1",
+                                    "2",
+                                    "3",
+                                    "4",
+                                    "5",
+                                    "6",
+                                    "7",
+                                    "8",
+                                    "9",
+                                    "10",
+                                    "11",
+                                    "12",
+                                    "13",
+                                    "14",
+                                    "15",
+                                    "16",
+                                    "17",
+                                    "18",
+                                    "19",
+                                    "20",
+                                ])
+                                .withEndpoint("232")
+                                .withDescription("Main Controller application"),
+                        );
+                        features.push(
+                            e
+                                .enum("icon_forced_heating_cooling", ea.STATE_GET, ["force_heating", "force_cooling", "none"])
+                                .withEndpoint("232")
+                                .withDescription("Main Controller application"),
                         );
                     }
                 }
@@ -828,7 +894,18 @@ export const definitions: DefinitionWithExtend[] = [
                     "maxHeatSetpointLimit",
                     "systemMode",
                 ]);
-                await endpoint.read("hvacThermostat", ["danfossRoomFloorSensorMode", "danfossFloorMinSetpoint", "danfossFloorMaxSetpoint"], options);
+                await endpoint.read(
+                    "hvacThermostat",
+                    [
+                        "danfossRoomFloorSensorMode",
+                        "danfossFloorMinSetpoint",
+                        "danfossFloorMaxSetpoint",
+                        "schedule_type_used",
+                        "icon2_pre_heat",
+                        "icon2_pre_heat_status",
+                    ],
+                    options,
+                );
                 await endpoint.read("hvacUserInterfaceCfg", ["keypadLockout"]);
                 await endpoint.read("msTemperatureMeasurement", ["measuredValue"]);
                 await endpoint.read("msRelativeHumidity", ["measuredValue"]);
@@ -861,7 +938,18 @@ export const definitions: DefinitionWithExtend[] = [
 
                 await mainController.read("genBasic", ["modelId", "powerSource", "appVersion", "stackVersion", "hwVersion", "dateCode"]);
 
-                await mainController.read("haDiagnostic", ["danfossSystemStatusCode", "danfossSystemStatusWater", "danfossMultimasterRole"], options);
+                await mainController.read(
+                    "haDiagnostic",
+                    [
+                        "danfossSystemStatusCode",
+                        "danfossHeatsupplyRequest",
+                        "danfossSystemStatusWater",
+                        "danfossMultimasterRole",
+                        "danfossIconApplication",
+                        "danfossIconForcedHeatingCooling",
+                    ],
+                    options,
+                );
             }
         },
     },
