@@ -2248,6 +2248,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE204_myd45weu",
             "_TZE284_myd45weu",
             "_TZE284_oitavov2",
+            "_TZE284_2se8efxh",
         ]),
         model: "TS0601_soil",
         vendor: "Tuya",
@@ -2902,7 +2903,7 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [
             tuya.whitelabel("Danor", "SK-Z802C-US", "Smart curtain/shutter switch", ["_TZ3000_8h7wgocw"]),
             {vendor: "LoraTap", model: "SC400"},
-            tuya.whitelabel("LoraTap", "SC500ZB", "Smart curtain/shutter switch", ["_TZ3000_e3vhyirx"]),
+            tuya.whitelabel("LoraTap", "SC500ZB", "Smart curtain/shutter switch", ["_TZ3000_e3vhyirx", "_TZ3000_femsaaua"]),
             tuya.whitelabel("LoraTap", "SC500ZB-v4", "Smart curtain/shutter switch", ["_TZ3000_5iixzdo7"]),
             tuya.whitelabel("Nous", "B4Z", "Curtain switch", ["_TZ3000_yruungrl"]),
             tuya.whitelabel("Nous", "L12Z", "Smart ZigBee Curtain Module L12Z", ["_TZ3000_jwv3cwak"]),
@@ -4368,6 +4369,14 @@ export const definitions: DefinitionWithExtend[] = [
             {vendor: "AVATTO", model: "ZTS02"},
             tuya.whitelabel("PSMART", "T462", "2 Gang switch with backlight, countdown, inching", ["_TZ3000_wnzoyohq"]),
         ],
+    },
+
+    {
+        fingerprint: tuya.fingerprint("TS0002", ["_TZ3000_h1ipgkwn"]),
+        model: "_TZ3000_h1ipgkwn",
+        description: "2 channel USB switch",
+        vendor: "Tuya",
+        extend: [m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}), m.onOff({powerOnBehavior: true, endpointNames: ["l1", "l2"]})],
     },
 
     ////////////////////////
@@ -7022,7 +7031,48 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_e2bedvo9", "_TZE200_dnz6yvl2", "_TZE284_6ycgarab"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_o9ofysmo", "_TZE284_xc3vwx5a"]),
+        model: "ZS-301Z",
+        vendor: "Arteco",
+        description: "Soil moisture sensor",
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEventSetTime,
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.enum("battery_state", ea.STATE, ["low", "middle", "high"]).withDescription("low: 1-25%, middle: 26-50%, high: 51-100%"),
+            e.temperature(),
+            e.humidity(),
+            e.illuminance(),
+            e
+                .numeric("humidity_calibration", ea.STATE_SET)
+                .withUnit("%")
+                .withDescription("Adjust humidity")
+                .withValueMin(-30)
+                .withValueMax(30)
+                .withValueStep(1),
+            e
+                .numeric("report_interval", ea.STATE_SET)
+                .withUnit("s")
+                .withDescription("Report interval")
+                .withValueMin(30)
+                .withValueMax(1200)
+                .withValueStep(30),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [3, "humidity", tuya.valueConverter.raw],
+                [5, "temperature", tuya.valueConverter.divideBy10],
+                [14, "battery_state", tuya.valueConverterBasic.lookup({low: tuya.enum(0), middle: tuya.enum(1), high: tuya.enum(2)})],
+                [101, "humidity", tuya.valueConverter.raw],
+                [102, "illuminance", tuya.valueConverter.raw],
+                [103, "humidity_calibration", tuya.valueConverter.raw],
+                [104, "report_interval", tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_e2bedvo9", "_TZE200_dnz6yvl2", "_TZE284_6ycgarab", "_TZE284_e2bedvo9"]),
         model: "ZSS-QY-SSD-A-EN",
         vendor: "Tuya",
         description: "Smart smoke alarm",
@@ -12919,6 +12969,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Ltech", "TY-75-24-G2Z2", "150W 24V Zigbee CV tunable white LED driver", ["_TZE200_io0zdqh1"]),
             tuya.whitelabel("Lifud", "LF-AAZ012-0400-42", "Zigbee dimmable LED driver 4-40W 220-240Vac", ["_TZE200_drs6j6m5"]),
             tuya.whitelabel("Lifud", "LF-GAZ150A6250-24", "Lifud Zigbee LED Driver CCT 150W 24V", ["_TZE200_ywe90lt0"]),
+            tuya.whitelabel("Lifud", "LF-GAZ150B6250-24", "Lifud Zigbee LED Driver 150W 24V", ["_TZE204_drs6j6m5"]),
         ],
     },
     {
