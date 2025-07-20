@@ -331,7 +331,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "THS317-ET",
         vendor: "OWON",
         description: "Temperature sensor",
-        fromZigbee: [fz.temperature, fz.battery],
+        fromZigbee: [fzLocal.temperature, fz.battery],
         toZigbee: [],
         exposes: [e.battery(), e.battery_voltage(), e.temperature()],
         configure: async (device, coordinatorEndpoint) => {
