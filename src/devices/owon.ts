@@ -9,7 +9,6 @@ import type {DefinitionWithExtend, Fz, KeyValue, Tz} from "../lib/types";
 
 const e = exposes.presets;
 const ea = exposes.access;
-// Custom temperature converter for OWON THS317-ET
 
 const fzLocal = {
     temperature: {
