@@ -17,6 +17,7 @@ import * as utils from "../lib/utils";
 const NS = "zhc:ubisys";
 const e = exposes.presets;
 const ea = exposes.access;
+
 const manufacturerOptions = {
     /*
      * Ubisys doesn't accept a manufacturerCode on some commands
@@ -1119,7 +1120,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Ubisys",
         description: "Heating regulator",
         meta: {thermostat: {dontMapPIHeatingDemand: true}},
-        fromZigbee: [fz.battery, fz.thermostat, fz.thermostat_weekly_schedule], // Removed ubisysVoltage
+        fromZigbee: [fz.battery, fz.thermostat, fz.thermostat_weekly_schedule],
         toZigbee: [
             tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_unoccupied_heating_setpoint,
@@ -1132,8 +1133,7 @@ export const definitions: DefinitionWithExtend[] = [
             tz.battery_percentage_remaining,
         ],
         exposes: [
-            e.voltage().withUnit("mV"),
-            e.battery().withAccess(ea.STATE_GET),
+            e.battery_voltage(), e.battery().withAccess(ea.STATE_GET),
             e
                 .climate()
                 .withSystemMode(["off", "heat"], ea.ALL)
@@ -1161,6 +1161,11 @@ export const definitions: DefinitionWithExtend[] = [
             const binds = ["genBasic", "genPowerCfg", "genTime", "hvacThermostat"];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
 
+            // reporting
+            // NOTE: temperature is 0.5 deg steps
+            // NOTE: unoccupied_heating_setpoint cannot be set via the device itself
+            //       so we do not need to setup reporting for this, as reporting slots
+            //       seem to be limited.
             await reporting.thermostatSystemMode(endpoint);
             await reporting.thermostatRunningMode(endpoint);
             await reporting.thermostatTemperature(endpoint, {min: 0, max: constants.repInterval.HOUR, change: 50});
@@ -1168,7 +1173,17 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.thermostatPIHeatingDemand(endpoint, {min: 15, max: constants.repInterval.HOUR, change: 1});
             await reporting.batteryPercentageRemaining(endpoint, {min: constants.repInterval.HOUR, max: 43200, change: 1});
 
+            // read attributes
+            // NOTE: configuring reporting on hvacThermostat seems to trigger an immediate
+            //       report, so the values are available after configure has run.
+            //       this does not seem to be the case for genPowerCfg, so we read
+            //       the battery percentage
             await endpoint.read("genPowerCfg", ["batteryPercentageRemaining"]);
+
+            // write attributes
+            // NOTE: device checks in every 1h once the device has entered deepsleep
+            //       this might be a bit long if you want to set the temperature remotely
+            //       update this to every 15 minutes. (value is in 1/4th of a second)
             await endpoint.write("genPollCtrl", {checkinInterval: 4 * 60 * 15});
         },
         ota: true,
