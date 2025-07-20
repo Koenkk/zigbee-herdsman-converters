@@ -222,7 +222,6 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SPLZB-131",
         vendor: "Develco",
         description: "Power plug",
-        fromZigbee: [fz.on_off, develco.fz.electrical_measurement, develco.fz.metering],
         toZigbee: [tz.on_off],
         ota: true,
         extend: [
