@@ -400,9 +400,9 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        zigbeeModel: ['ROB_200-026-1'],
-        model: 'ROB_200-026-1',
-        vendor: 'ROBB smarrt',
+        zigbeeModel: ["ROB_200-026-1"],
+        model: "ROB_200-026-1",
+        vendor: "ROBB smarrt",
         description: "2-gang in-wall switch",
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.power_on_behavior],
         toZigbee: [tz.on_off, tz.power_on_behavior, tz.electrical_measurement_power],
