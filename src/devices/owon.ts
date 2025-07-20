@@ -333,7 +333,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Temperature sensor",
         fromZigbee: [fz.temperature, fz.battery],
         toZigbee: [],
-        exposes: [e.battery(),e.battery_voltage(), e.temperature()],
+        exposes: [e.battery(), e.battery_voltage(), e.temperature()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(3) || device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["msTemperatureMeasurement", "genPowerCfg"]);
