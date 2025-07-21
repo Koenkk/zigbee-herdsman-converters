@@ -1133,6 +1133,7 @@ export const definitions: DefinitionWithExtend[] = [
             tz.battery_percentage_remaining,
         ],
         exposes: [
+            e.battery_voltage(),
             e.battery().withAccess(ea.STATE_GET),
             e
                 .climate()
