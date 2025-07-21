@@ -18061,7 +18061,7 @@ export const definitions: DefinitionWithExtend[] = [
         configure: tuya.configureMagicPacket,
         exposes: [
             e.enum("rainwater", ea.STATE, ["none", "raining"]).withDescription("Sensor rainwater status"),
-            e.illuminance().withUnit("x"),
+            e.illuminance().withUnit("lx"),
             e
                 .numeric("sensitivity", ea.STATE_SET)
                 .withValueMin(0)
