@@ -400,15 +400,11 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        zigbeeModel: ['ROB_200-026-1'],
-        model: 'ROB_200-026-1',
-        vendor: 'ROBB smarrt',
-        description: '2-gang in-wall switch with metering',
-        extend: [
-            m.deviceEndpoints({endpoints: {'1': 1, '2': 2}}),
-            m.onOff({powerOnBehavior: true, endpointNames: ['1', '2']}),
-            m.electricityMeter(),
-        ],
+        zigbeeModel: ["ROB_200-026-1"],
+        model: "ROB_200-026-1",
+        vendor: "ROBB smarrt",
+        description: "2-gang in-wall switch with metering",
+        extend: [m.deviceEndpoints({endpoints: {"1": 1, "2": 2}}), m.onOff({powerOnBehavior: true, endpointNames: ["1", "2"]}), m.electricityMeter()],
         meta: {multiEndpoint: true},
     },
     {
