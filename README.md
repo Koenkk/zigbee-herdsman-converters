@@ -39,6 +39,10 @@ If any of those commands finish with an error your PR won't pass the tests and w
 
 ## Breaking changes
 
+24.0.0
+
+- It's not longer possible to call `definition.exposes(undefined, undefined)`, use `definition.exposes({isDummyDevice: true}, {})` instead (#9601)
+
 23.0.0
 
 - A `Publish` now has to be passed to toZigbee converters (#8875)

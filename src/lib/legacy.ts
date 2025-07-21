@@ -121,7 +121,7 @@ function convertDecimalValueTo4ByteHexArray(value: number) {
     return [chunk1, chunk2, chunk3, chunk4].map((hexVal) => Number.parseInt(hexVal, 16));
 }
 
-let gSec: number = undefined;
+let gSec: number;
 // biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
 async function sendDataPoints(entity: Zh.Endpoint | Zh.Group, dpValues: any, cmd = "dataRequest", seq: number = undefined) {
     if (seq === undefined) {
@@ -3975,7 +3975,6 @@ const fromZigbee = {
                 logDataPoint("tuya_data_point_dump", msg, dpValue, meta);
                 dataStr += `${now} ${meta.device.ieeeAddr} ${getHex(msg.data.seq)} ${getHex(i)} ${getHex(dpValue.dp)} ${getHex(dpValue.datatype)}`;
 
-                // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
                 // biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
                 dpValue.data.forEach((elem: any) => {
                     dataStr += ` ${getHex(elem)}`;
@@ -5452,7 +5451,6 @@ const toZigbee2 = {
                     // ]
                     payload.push(1 << (dayofweek - 1), 4);
                 }
-                // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
                 transitions.forEach((transition) => {
                     payload.push(...transitionToData(transition));
                 });
@@ -6904,7 +6902,7 @@ const toZigbee2 = {
     } satisfies Tz.Converter,
     woox_thermostat_current_heating_setpoint: {
         key: ["current_heating_setpoint"],
-        // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+        // biome-ignore lint/suspicious/noExplicitAny: ignore
         convertSet: async (entity, key, value: any, meta) => {
             const temp = Math.round(value * 10);
             await sendDataPointValue(entity, dataPoints.wooxControlTemperature, temp);
@@ -6945,7 +6943,7 @@ const toZigbee2 = {
 
     woox_comfort_temperature: {
         key: ["comfort_temperature"],
-        // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+        // biome-ignore lint/suspicious/noExplicitAny: ignore
         convertSet: async (entity, key, value: any, meta) => {
             const temp = Math.round(value * 2);
             await sendDataPointValue(entity, dataPoints.wooxComfortTemperature, temp);
@@ -6954,7 +6952,7 @@ const toZigbee2 = {
 
     woox_eco_temperature: {
         key: ["eco_temperature"],
-        // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+        // biome-ignore lint/suspicious/noExplicitAny: ignore
         convertSet: async (entity, key, value: any, meta) => {
             const temp = Math.round(value * 2);
             await sendDataPointValue(entity, dataPoints.wooxEnergySavingTemperature, temp);
@@ -6963,7 +6961,7 @@ const toZigbee2 = {
 
     woox_local_temperature_calibration: {
         key: ["local_temperature_calibration"],
-        // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+        // biome-ignore lint/suspicious/noExplicitAny: ignore
         convertSet: async (entity, key, value: any, meta) => {
             let val = value;
             if (val < 0) {
@@ -6976,7 +6974,7 @@ const toZigbee2 = {
 
     woox_window_detection_temperature: {
         key: ["window_detection_temperature"],
-        // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+        // biome-ignore lint/suspicious/noExplicitAny: ignore
         convertSet: async (entity, key, value: any, meta) => {
             const temp = Math.round(value * 2);
             await sendDataPointValue(entity, dataPoints.wooxWindowTemperature, temp);

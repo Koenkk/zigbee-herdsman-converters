@@ -72,7 +72,6 @@ const mmWaveControlCommands: {[key: string]: number} = {
     clear_interference: 3,
     reset_detection_area: 4,
     reset_mmwave_module: 0,
-    reset_mmwave_fw_2: 255,
 };
 
 const INOVELLI_CLUSTER_NAME: string = "manuSpecificInovelli";
@@ -113,6 +112,7 @@ const inovelliExtend = {
                 nonNeutralAuxLowGear: {ID: 0x001f, type: Zcl.DataType.UINT8},
                 internalTemperature: {ID: 0x0020, type: Zcl.DataType.UINT8},
                 overheat: {ID: 0x0021, type: Zcl.DataType.BOOLEAN},
+                otaImageType: {ID: 0x0022, type: Zcl.DataType.UINT8},
                 buttonDelay: {ID: 0x0032, type: Zcl.DataType.UINT8},
                 deviceBindNumber: {ID: 0x0033, type: Zcl.DataType.UINT8},
                 smartBulbMode: {ID: 0x0034, type: Zcl.DataType.BOOLEAN},
@@ -308,7 +308,6 @@ const speedToInt = (speedIn: string): number => {
 
 // Create Expose list with Inovelli Parameters definitions
 const attributesToExposeList = (attributes: {[s: string]: Attribute}, exposesList: Expose[]) => {
-    // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
     Object.keys(attributes).forEach((key) => {
         if (attributes[key].displayType === "enum") {
             const enumE = e
@@ -339,7 +338,6 @@ const attributesToExposeList = (attributes: {[s: string]: Attribute}, exposesLis
                 .withValueMax(attributes[key].max);
 
             if (attributes[key].values) {
-                // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
                 Object.keys(attributes[key].values).forEach((value) => {
                     numeric.withPreset(value, attributes[key].values[value], "");
                 });
@@ -965,6 +963,13 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
         max: 101,
         description: "Intensity of LED strip when off. 101 = Synchronized with default all LED strip intensity parameter.",
     },
+    fanTimerMode: {
+        ID: 121,
+        dataType: Zcl.DataType.BOOLEAN,
+        displayType: "enum",
+        values: {Disabled: 0, Enabled: 1},
+        description: "Enable or disable advanced timer mode to have the switch act like a bathroom fan timer",
+    },
     doubleTapClearNotifications: {
         ID: 262,
         dataType: Zcl.DataType.BOOLEAN,
@@ -1129,6 +1134,10 @@ const VZM30_ATTRIBUTES: {[s: string]: Attribute} = {
         values: {"Single Pole": 0, "Aux Switch": 1},
         max: 1,
     },
+    outputMode: {
+        ...COMMON_DIMMER_ATTRIBUTES.outputMode,
+        description: "Use device as a Dimmer or an On/Off switch. Only applies when controlling bound devices.",
+    },
 };
 
 const VZM31_ATTRIBUTES: {[s: string]: Attribute} = {
@@ -1157,6 +1166,19 @@ const VZM32_ATTRIBUTES: {[s: string]: Attribute} = {
         ...COMMON_ATTRIBUTES.switchType,
         values: {"Single Pole": 0, "Aux Switch": 1},
         max: 1,
+    },
+    otaImageType: {
+        ID: 34,
+        dataType: Zcl.DataType.UINT8,
+        displayType: "enum",
+        values: {
+            "Zigbee (259)": 0,
+            "mmWave (260)": 1,
+            "Alternating (259 & 260) (default)": 2,
+        },
+        min: 0,
+        max: 2,
+        description: "Which endpoint should the switch advertise for OTA update (Zigbee, mmWave, or both).",
     },
     mmwaveControlWiredDevice: {
         ID: 110,
@@ -1354,13 +1376,6 @@ const VZM35_ATTRIBUTES: {[s: string]: Attribute} = {
         ...COMMON_DIMMER_ATTRIBUTES.outputMode,
         values: {"Ceiling Fan (3-Speed)": 0, "Exhaust Fan (On/Off)": 1},
         description: "Use device in ceiling fan (3-Speed) or in exhaust fan (On/Off) mode.",
-    },
-    fanTimerMode: {
-        ID: 121,
-        dataType: Zcl.DataType.BOOLEAN,
-        displayType: "enum",
-        values: {Disabled: 0, Enabled: 1},
-        description: "Enable or disable advanced timer mode to have the switch act like a bathroom fan timer",
     },
 };
 
@@ -1652,7 +1667,7 @@ const tzLocal = {
                     ? // @ts-expect-error ignore
                       message.state.toLowerCase()
                     : undefined;
-            let brightness = undefined;
+            let brightness: number;
             if (message.brightness != null) {
                 brightness = Number(message.brightness);
             } else if (message.brightness_percent != null) {

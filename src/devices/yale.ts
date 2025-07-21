@@ -1,6 +1,5 @@
-import type {Types as ZHTypes} from "zigbee-herdsman";
-
 import type {DefinitionWithExtend, Fz, ModernExtend, Reporting, Tz} from "src/lib/types";
+import type {Types as ZHTypes} from "zigbee-herdsman";
 
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
@@ -394,7 +393,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [lockExtend()],
     },
     {
-        zigbeeModel: ["YRD450 TS"],
+        zigbeeModel: ["YRD450 TS", "YRD450-F TS"],
         model: "YRD450-BLE",
         vendor: "Yale",
         description: "Assure lock 2",

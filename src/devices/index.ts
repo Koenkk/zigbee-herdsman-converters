@@ -1,5 +1,4 @@
 import type {DefinitionWithExtend} from "../lib/types";
-import {definitions as ITCommander} from "./ITCommander";
 import {definitions as acova} from "./acova";
 import {definitions as acuityBrandsLighting} from "./acuity_brands_lighting";
 import {definitions as adeo} from "./adeo";
@@ -125,6 +124,7 @@ import {definitions as hommyn} from "./hommyn";
 import {definitions as honyar} from "./honyar";
 import {definitions as hornbach} from "./hornbach";
 import {definitions as hzcElectric} from "./hzc_electric";
+import {definitions as ITCommander} from "./ITCommander";
 import {definitions as icasa} from "./icasa";
 import {definitions as idinio} from "./idinio";
 import {definitions as ihorn} from "./ihorn";
@@ -138,6 +138,7 @@ import {definitions as imou} from "./imou";
 import {definitions as innr} from "./innr";
 import {definitions as inovelli} from "./inovelli";
 import {definitions as insta} from "./insta";
+import {definitions as intuis} from "./intuis";
 import {definitions as iolloi} from "./iolloi";
 import {definitions as iotperfect} from "./iotperfect";
 import {definitions as iris} from "./iris";
@@ -273,8 +274,8 @@ import {definitions as siterwell} from "./siterwell";
 import {definitions as skydance} from "./skydance";
 import {definitions as slackyDiy} from "./slacky_diy";
 import {definitions as slv} from "./slv";
-import {definitions as smart9} from "./smart9";
 import {definitions as smartHomePty} from "./smart_home_pty";
+import {definitions as smart9} from "./smart9";
 import {definitions as smartenit} from "./smartenit";
 import {definitions as smartthings} from "./smartthings";
 import {definitions as smartwings} from "./smartwings";
@@ -480,6 +481,7 @@ const definitions: DefinitionWithExtend[] = [
     ...innr,
     ...inovelli,
     ...insta,
+    ...intuis,
     ...iolloi,
     ...iotperfect,
     ...iris,

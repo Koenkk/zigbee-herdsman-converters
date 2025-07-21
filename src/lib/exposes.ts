@@ -206,7 +206,6 @@ export class List extends Base {
         this.property = name;
         this.access = access;
         this.item_type = itemType;
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete this.item_type.property;
     }
 
@@ -467,7 +466,6 @@ export class Light extends Base {
             feature._colorTempRangeProvided = rangeProvided;
         }
 
-        // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
         [
             {name: "coolest", value: range[0], description: "Coolest temperature supported"},
             {name: "cool", value: 250, description: "Cool temperature (250 mireds / 4000 Kelvin)"},
@@ -494,7 +492,6 @@ export class Light extends Base {
             .withValueMax(range[1])
             .withDescription("Color temperature after cold power on of this light");
 
-        // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
         [
             {name: "coolest", value: range[0], description: "Coolest temperature supported"},
             {name: "cool", value: 250, description: "Cool temperature (250 mireds / 4000 Kelvin)"},
@@ -649,7 +646,6 @@ export class Climate extends Base {
 
     withSystemMode(modes: string[], access = a.ALL, description = "Mode of this device") {
         const allowed = ["off", "heat", "cool", "auto", "dry", "fan_only", "sleep", "emergency_heating"];
-        // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
         modes.forEach((m) => assert(allowed.includes(m)));
         this.addFeature(new Enum("system_mode", access, modes).withDescription(description));
         return this;
@@ -657,7 +653,6 @@ export class Climate extends Base {
 
     withRunningState(modes: string[], access = a.STATE_GET) {
         const allowed = ["idle", "heat", "cool", "fan_only"];
-        // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
         modes.forEach((m) => assert(allowed.includes(m)));
         this.addFeature(new Enum("running_state", access, modes).withDescription("The current running state"));
         return this;
@@ -665,7 +660,6 @@ export class Climate extends Base {
 
     withRunningMode(modes: string[], access = a.STATE_GET) {
         const allowed = ["off", "cool", "heat"];
-        // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
         modes.forEach((m) => assert(allowed.includes(m)));
         this.addFeature(new Enum("running_mode", access, modes).withDescription("The current running mode"));
         return this;
@@ -673,7 +667,6 @@ export class Climate extends Base {
 
     withFanMode(modes: string[], access = a.ALL) {
         const allowed = ["off", "low", "medium", "high", "on", "auto", "smart"];
-        // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
         modes.forEach((m) => assert(allowed.includes(m)));
         this.addFeature(new Enum("fan_mode", access, modes).withDescription("Mode of the fan"));
         return this;
@@ -710,7 +703,6 @@ export class Climate extends Base {
             "cooling_and_heating_4-pipes",
             "cooling_and_heating_4-pipes_with_reheat",
         ];
-        // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
         modes.forEach((m) => assert(allowed.includes(m)));
         this.addFeature(new Enum("control_sequence_of_operation", access, modes).withDescription("Operating environment of the thermostat"));
         return this;
@@ -718,7 +710,6 @@ export class Climate extends Base {
 
     withAcLouverPosition(positions: string[], access = a.ALL) {
         const allowed = ["fully_open", "fully_closed", "half_open", "quarter_open", "three_quarters_open"];
-        // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
         positions.forEach((m) => assert(allowed.includes(m)));
         this.addFeature(
             new Enum("ac_louver_position", access, positions).withLabel("AC louver position").withDescription("AC louver position of this device"),
@@ -728,7 +719,6 @@ export class Climate extends Base {
 
     withWeeklySchedule(modes: string[], access = a.ALL) {
         const allowed = ["heat", "cool"];
-        // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
         modes.forEach((m) => assert(allowed.includes(m)));
 
         const featureDayOfWeek = new List(
@@ -1067,6 +1057,7 @@ export const presets = {
     force: () => new Enum("force", access.STATE_SET, ["normal", "open", "close"]).withDescription("Force the valve position"),
     formaldehyd: () => new Numeric("formaldehyd", access.STATE).withDescription("The measured formaldehyd value").withUnit("mg/m³"),
     gas: () => new Binary("gas", access.STATE, true, false).withDescription("Indicates whether the device detected gas"),
+    dry: () => new Binary("dry", access.STATE, true, false).withDescription("Water shortage warning"),
     hcho: () => new Numeric("hcho", access.STATE).withLabel("HCHO").withUnit("mg/m³").withDescription("Measured HCHO value"),
     holiday_temperature: () =>
         new Numeric("holiday_temperature", access.STATE_SET).withUnit("°C").withDescription("Holiday temperature").withValueMin(0).withValueMax(30),

@@ -4,6 +4,7 @@ import * as exposes from "../lib/exposes";
 import {logger} from "../lib/logger";
 import * as globalStore from "../lib/store";
 import type {Fz, KeyValue, KeyValueAny, KeyValueNumberString} from "../lib/types";
+import * as utils from "../lib/utils";
 import {
     addActionGroup,
     batteryVoltageToPercentage,
@@ -15,7 +16,6 @@ import {
     precisionRound,
     toLocalISOString,
 } from "../lib/utils";
-import * as utils from "../lib/utils";
 
 const NS = "zhc:fz";
 const defaultSimulatedBrightness = 255;
@@ -964,7 +964,7 @@ export const ias_no_alarm: Fz.Converter = {
     cluster: "ssIasZone",
     type: ["attributeReport", "commandStatusChangeNotification"],
     convert: (model, msg, publish, options, meta) => {
-        const zoneStatus = msg.data.zoneStatus;
+        const zoneStatus = msg.data.zoneStatus ?? msg.data.zonestatus;
         if (zoneStatus !== undefined) {
             return {
                 tamper: (zoneStatus & (1 << 2)) > 0,
@@ -1037,7 +1037,6 @@ export const ias_vibration_alarm_1_with_timeout: Fz.Converter = {
         const timeout = options?.vibration_timeout != null ? Number(options.vibration_timeout) : 90;
 
         // Stop existing timers because vibration is detected and set a new one.
-        // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
         globalStore.getValue(msg.endpoint, "timers", []).forEach((t: NodeJS.Timeout) => clearTimeout(t));
         globalStore.putValue(msg.endpoint, "timers", []);
 
@@ -2122,7 +2121,7 @@ export const tuya_led_controller: Fz.Converter = {
         if (msg.data.colorTemperature !== undefined) {
             const value = Number(msg.data.colorTemperature);
             const color_temp = postfixWithEndpointName("color_temp", msg, model, meta);
-            result[color_temp] = mapNumberRange(value, 0, 255, 500, 153);
+            result[color_temp] = value;
         }
 
         if (msg.data.tuyaBrightness !== undefined) {
@@ -2334,9 +2333,9 @@ export const tuya_cover_options: Fz.Converter = {
         }
         if (msg.data.moesCalibrationTime !== undefined) {
             const value = Number.parseFloat(msg.data.moesCalibrationTime) / 10.0;
-            if (meta.device.manufacturerName === "_TZ3000_cet6ch1r") {
+            if (["_TZ3000_cet6ch1r", "_TZ3000_5iixzdo7"].includes(meta.device.manufacturerName)) {
                 const endpoint = msg.endpoint.ID;
-                const calibrationLookup: KeyValueAny = {1: "up", 2: "down"};
+                const calibrationLookup: KeyValueAny = {1: "to_open", 2: "to_close"};
                 result[postfixWithEndpointName(`calibration_time_${calibrationLookup[endpoint]}`, msg, model, meta)] = value;
             } else {
                 result[postfixWithEndpointName("calibration_time", msg, model, meta)] = value;
@@ -3113,6 +3112,24 @@ export const danfoss_icon_floor_sensor: Fz.Converter = {
                 result[postfixWithEndpointName("floor_max_setpoint", msg, model, meta)] = value;
             }
         }
+        if (msg.data.danfossScheduleTypeUsed !== undefined) {
+            result[postfixWithEndpointName("schedule_type_used", msg, model, meta)] =
+                constants.danfossScheduleTypeUsed[msg.data.danfossScheduleTypeUsed] !== undefined
+                    ? constants.danfossScheduleTypeUsed[msg.data.danfossScheduleTypeUsed]
+                    : msg.data.danfossScheduleTypeUsed;
+        }
+        if (msg.data.danfossIcon2PreHeat !== undefined) {
+            result[postfixWithEndpointName("icon2_pre_heat", msg, model, meta)] =
+                constants.danfossIcon2PreHeat[msg.data.danfossIcon2PreHeat] !== undefined
+                    ? constants.danfossIcon2PreHeat[msg.data.danfossIcon2PreHeat]
+                    : msg.data.danfossIcon2PreHeat;
+        }
+        if (msg.data.danfossIcon2PreHeatStatus !== undefined) {
+            result[postfixWithEndpointName("icon2_pre_heat_status", msg, model, meta)] =
+                constants.danfossIcon2PreHeatStatus[msg.data.danfossIcon2PreHeatStatus] !== undefined
+                    ? constants.danfossIcon2PreHeatStatus[msg.data.danfossIcon2PreHeatStatus]
+                    : msg.data.danfossIcon2PreHeatStatus;
+        }
         return result;
     },
 };
@@ -3144,6 +3161,12 @@ export const danfoss_icon_regulator: Fz.Converter = {
                     ? constants.danfossSystemStatusCode[msg.data.danfossSystemStatusCode]
                     : msg.data.danfossSystemStatusCode;
         }
+        if (msg.data.danfossHeatsupplyRequest !== undefined) {
+            result[postfixWithEndpointName("heat_supply_request", msg, model, meta)] =
+                constants.danfossHeatsupplyRequest[msg.data.danfossHeatsupplyRequest] !== undefined
+                    ? constants.danfossHeatsupplyRequest[msg.data.danfossHeatsupplyRequest]
+                    : msg.data.danfossHeatsupplyRequest;
+        }
         if (msg.data.danfossSystemStatusWater !== undefined) {
             result[postfixWithEndpointName("system_status_water", msg, model, meta)] =
                 constants.danfossSystemStatusWater[msg.data.danfossSystemStatusWater] !== undefined
@@ -3155,6 +3178,18 @@ export const danfoss_icon_regulator: Fz.Converter = {
                 constants.danfossMultimasterRole[msg.data.danfossMultimasterRole] !== undefined
                     ? constants.danfossMultimasterRole[msg.data.danfossMultimasterRole]
                     : msg.data.danfossMultimasterRole;
+        }
+        if (msg.data.danfossIconApplication !== undefined) {
+            result[postfixWithEndpointName("icon_application", msg, model, meta)] =
+                constants.danfossIconApplication[msg.data.danfossIconApplication] !== undefined
+                    ? constants.danfossIconApplication[msg.data.danfossIconApplication]
+                    : msg.data.danfossIconApplication;
+        }
+        if (msg.data.danfossIconForcedHeatingCooling !== undefined) {
+            result[postfixWithEndpointName("icon_forced_heating_cooling", msg, model, meta)] =
+                constants.danfossIconForcedHeatingCooling[msg.data.danfossIconForcedHeatingCooling] !== undefined
+                    ? constants.danfossIconForcedHeatingCooling[msg.data.danfossIconForcedHeatingCooling]
+                    : msg.data.danfossIconForcedHeatingCooling;
         }
         return result;
     },
@@ -5120,7 +5155,6 @@ export const metering_datek: Fz.Converter = {
         // Filter incorrect 0 energy values reported by the device:
         // https://github.com/Koenkk/zigbee2mqtt/issues/7852
         if (result && result.energy === 0) {
-            // biome-ignore lint/performance/noDelete: ignored using `--suppress`
             delete result.energy;
         }
         return result;
@@ -5209,7 +5243,6 @@ export const viessmann_thermostat: Fz.Converter = {
             // NOTE: remove the result for now, but leave it configure for reporting
             //       it will show up in the debug log still to help try and figure out
             //       what this value potentially means.
-            // biome-ignore lint/performance/noDelete: ignored using `--suppress`
             delete result.pi_heating_demand;
 
             // viessmannWindowOpenInternal

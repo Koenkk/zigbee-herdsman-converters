@@ -1,6 +1,5 @@
-import type {Models as ZHModels} from "zigbee-herdsman";
-
 import {Buffer} from "node:buffer";
+import type {Models as ZHModels} from "zigbee-herdsman";
 
 import {Zcl} from "zigbee-herdsman";
 
@@ -11,6 +10,7 @@ import {logger} from "../lib/logger";
 import * as reporting from "../lib/reporting";
 import * as globalStore from "../lib/store";
 import type {DefinitionWithExtend, Expose, Fz, KeyValue, Tz, Zh} from "../lib/types";
+import * as utils from "../lib/utils";
 
 const ea = exposes.access;
 const e = exposes.presets;
@@ -1811,7 +1811,6 @@ function toSnakeCase(str: string) {
 function ticmeterConverter(msg: Fz.Message) {
     const result: KeyValue = {};
     const keys = Object.keys(msg.data);
-    // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
     keys.forEach((key) => {
         const found = ticmeterDatas.find((x) => x.attr === key);
         if (found) {
@@ -1931,7 +1930,6 @@ async function poll(endpoint: Zh.Endpoint, device: ZHModels.Device) {
 
     toRead = toRead.sort((a, b) => a.clust.localeCompare(b.clust));
     const groupedByCluster: {[key: string]: TICMeterData[]} = {};
-    // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
     toRead.forEach((item) => {
         if (!groupedByCluster[item.clust]) {
             groupedByCluster[item.clust] = [];
@@ -1994,7 +1992,7 @@ export const definitions: DefinitionWithExtend[] = [
             let currentProducer = "";
             let translation = "";
 
-            if (device == null) {
+            if (utils.isDummyDevice(device)) {
                 return exposes;
             }
 
@@ -2099,7 +2097,6 @@ export const definitions: DefinitionWithExtend[] = [
             globalStore.putValue(device, "producer", currentProducer);
             globalStore.putValue(device, "translation", translation);
 
-            // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
             ticmeterDatas.forEach((item) => {
                 let contractOK = false;
                 let elecOK = false;
@@ -2230,7 +2227,6 @@ export const definitions: DefinitionWithExtend[] = [
 
             logger.debug(`Configure wanted ${wanted.length}`, "TICMeter");
 
-            // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
             endpoint.configuredReportings.forEach(async (r) => {
                 await endpoint.configureReporting(
                     r.cluster.name,
