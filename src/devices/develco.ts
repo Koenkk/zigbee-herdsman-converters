@@ -38,7 +38,7 @@ const develco = {
             cluster: "seMetering",
             type: ["attributeReport"],
             convert: (model, msg, publish, options, meta) => {
-                if (msg.data.divisor) {
+                if (msg.data.divisor != null) {
                     // Device sends wrong divisor (512) while it should be fixed to 1000
                     // https://github.com/Koenkk/zigbee-herdsman-converters/issues/3066
                     msg.endpoint.saveClusterAttributeKeyValue("seMetering", {divisor: 1000, multiplier: 1});

@@ -2624,7 +2624,7 @@ export const lumiModernExtend = {
                 cluster: "genBasic",
                 type: ["attributeReport"],
                 convert: (model, msg, publish, options, meta) => {
-                    if (msg.data["1028"] !== undefined && msg.data["1028"] === 0) {
+                    if (msg.data["1028"] === 0) {
                         // Try to read the position after the motor stops, the device occasionally report wrong data right after stopping
                         // Might need to add delay, seems to be working without one but needs more tests.
                         msg.device
