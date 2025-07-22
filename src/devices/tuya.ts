@@ -1421,7 +1421,7 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
-        exposes: [e.illuminance().withUnit("lx"), e.temperature(), e.humidity()],
+        exposes: [e.illuminance(), e.temperature(), e.humidity()],
         meta: {
             tuyaDatapoints: [
                 [2, "illuminance", tuya.valueConverter.raw],
@@ -18061,7 +18061,7 @@ export const definitions: DefinitionWithExtend[] = [
         configure: tuya.configureMagicPacket,
         exposes: [
             e.enum("rainwater", ea.STATE, ["none", "raining"]).withDescription("Sensor rainwater status"),
-            e.illuminance().withUnit("x"),
+            e.illuminance(),
             e
                 .numeric("sensitivity", ea.STATE_SET)
                 .withValueMin(0)
