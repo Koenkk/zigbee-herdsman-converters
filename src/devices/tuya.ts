@@ -6304,16 +6304,16 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_9dhenr94"]),
-        model: "SFL02-Z",
-        vendor: "Moes",
-        description: "This is an innovative touch AG glass switch.",
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_9dhenr94']),
+        model: 'SFL02-Z-4',
+        vendor: 'Moes',
+        description: 'This is an innovative touch AG glass switch.',
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         onEvent: tuya.onEventSetTime,
         configure: tuya.configureMagicPacket,
         exposes: [
-            e.binary("backlight_mode", ea.STATE_SET, "ON", "OFF").withDescription("Backlight"),
+            e.binary('backlight_mode', ea.STATE_SET, 'ON', 'OFF').withDescription('Backlight'),
             e.switch().withEndpoint("l1"),
             e.switch().withEndpoint("l2"),
             e.switch().withEndpoint("l3"),
@@ -6346,10 +6346,8 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueStep(1)
                 .withUnit("s")
                 .withDescription("Countdown timer"),
-            e
-                .enum("indicator_mode", ea.ALL, ["none", "relay", "pos"])
-                .withDescription("LED indicator mode:None 'is the off indicator; Relay 'indicates the switch status; POS' indicates switch position"), //
-            e.enum("vibration", ea.STATE_SET, ["0", "1", "2", "3"]).withDescription("vibration mode"),
+            e.enum("indicator_mode", ea.ALL, ["none", "relay", "pos"]).withDescription("LED indicator mode:None 'is the off indicator; Relay 'indicates the switch status; POS' indicates switch position"),//
+            e.enum('vibration', ea.STATE_SET, ['0', '1', '2', '3']).withDescription('vibration mode')
         ],
         meta: {
             tuyaDatapoints: [
@@ -6365,32 +6363,29 @@ export const definitions: DefinitionWithExtend[] = [
                 [31, "countdown_2", tuya.valueConverter.countdown],
                 [32, "countdown_3", tuya.valueConverter.countdown],
                 [33, "countdown_4", tuya.valueConverter.countdown],
-                [36, "backlight_mode", tuya.valueConverter.onOff],
-                [37, "indicator_mode", tuya.valueConverterBasic.lookup({none: tuya.enum(0), relay: tuya.enum(1), pos: tuya.enum(2)})],
-                [
-                    104,
-                    "vibration",
-                    tuya.valueConverterBasic.lookup({
-                        0: tuya.enum(0),
-                        1: tuya.enum(1),
-                        2: tuya.enum(2),
-                        3: tuya.enum(3),
-                    }),
+                [36, 'backlight_mode', tuya.valueConverter.onOff],
+                [37, "indicator_mode", tuya.valueConverterBasic.lookup({ none: tuya.enum(0), relay: tuya.enum(1), pos: tuya.enum(2), })],
+                [104, "vibration", tuya.valueConverterBasic.lookup({
+                    0: tuya.enum(0),
+                    1: tuya.enum(1),
+                    2: tuya.enum(2),
+                    3: tuya.enum(3),
+                }),
                 ],
             ],
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_wv9ukqca"]),
-        model: "SFL02-Z",
-        vendor: "Moes",
-        description: "This is an innovative touch AG glass switch.",
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_wv9ukqca']),
+        model: 'SFL02-Z-3',
+        vendor: 'Moes',
+        description: 'This is an innovative touch AG glass switch.',
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         onEvent: tuya.onEventSetTime,
         configure: tuya.configureMagicPacket,
         exposes: [
-            e.binary("backlight_mode", ea.STATE_SET, "ON", "OFF").withDescription("Backlight"),
+            e.binary('backlight_mode', ea.STATE_SET, 'ON', 'OFF').withDescription('Backlight'),
             e.switch().withEndpoint("l1"),
             e.switch().withEndpoint("l2"),
             e.switch().withEndpoint("l3"),
@@ -6415,10 +6410,8 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueStep(1)
                 .withUnit("s")
                 .withDescription("Countdown timer"),
-            e
-                .enum("indicator_mode", ea.ALL, ["none", "relay", "pos"])
-                .withDescription("LED indicator mode:None 'is the off indicator; Relay 'indicates the switch status; POS' indicates switch position"), //
-            e.enum("vibration", ea.STATE_SET, ["0", "1", "2", "3"]).withDescription("vibration mode"),
+            e.enum("indicator_mode", ea.ALL, ["none", "relay", "pos"]).withDescription("LED indicator mode:None 'is the off indicator; Relay 'indicates the switch status; POS' indicates switch position"),//
+            e.enum('vibration', ea.STATE_SET, ['0', '1', '2', '3']).withDescription('vibration mode')
         ],
         meta: {
             tuyaDatapoints: [
@@ -6428,32 +6421,29 @@ export const definitions: DefinitionWithExtend[] = [
                 [30, "countdown_1", tuya.valueConverter.countdown],
                 [31, "countdown_2", tuya.valueConverter.countdown],
                 [32, "countdown_3", tuya.valueConverter.countdown],
-                [36, "backlight_mode", tuya.valueConverter.onOff],
-                [37, "indicator_mode", tuya.valueConverterBasic.lookup({none: tuya.enum(0), relay: tuya.enum(1), pos: tuya.enum(2)})],
-                [
-                    104,
-                    "vibration",
-                    tuya.valueConverterBasic.lookup({
-                        0: tuya.enum(0),
-                        1: tuya.enum(1),
-                        2: tuya.enum(2),
-                        3: tuya.enum(3),
-                    }),
+                [36, 'backlight_mode', tuya.valueConverter.onOff],
+                [37, "indicator_mode", tuya.valueConverterBasic.lookup({ none: tuya.enum(0), relay: tuya.enum(1), pos: tuya.enum(2), })],
+                [104, "vibration", tuya.valueConverterBasic.lookup({
+                    0: tuya.enum(0),
+                    1: tuya.enum(1),
+                    2: tuya.enum(2),
+                    3: tuya.enum(3),
+                }),
                 ],
             ],
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_tzyy0rtq"]),
-        model: "SFL02-Z",
-        vendor: "Moes",
-        description: "This is an innovative touch AG glass switch.",
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_tzyy0rtq']),
+        model: 'SFL02-Z-2',
+        vendor: 'Moes',
+        description: 'This is an innovative touch AG glass switch.',
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         onEvent: tuya.onEventSetTime,
         configure: tuya.configureMagicPacket,
         exposes: [
-            e.binary("backlight_mode", ea.STATE_SET, "ON", "OFF").withDescription("Backlight"),
+            e.binary('backlight_mode', ea.STATE_SET, 'ON', 'OFF').withDescription('Backlight'),
             e.switch().withEndpoint("l1"),
             e.switch().withEndpoint("l2"),
             e
@@ -6470,10 +6460,8 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueStep(1)
                 .withUnit("s")
                 .withDescription("Countdown timer"),
-            e
-                .enum("indicator_mode", ea.ALL, ["none", "relay", "pos"])
-                .withDescription("LED indicator mode:None 'is the off indicator; Relay 'indicates the switch status; POS' indicates switch position"), //
-            e.enum("vibration", ea.STATE_SET, ["0", "1", "2", "3"]).withDescription("vibration mode"),
+            e.enum("indicator_mode", ea.ALL, ["none", "relay", "pos"]).withDescription("LED indicator mode:None 'is the off indicator; Relay 'indicates the switch status; POS' indicates switch position"),//
+            e.enum('vibration', ea.STATE_SET, ['0', '1', '2', '3']).withDescription('vibration mode')
         ],
         meta: {
             tuyaDatapoints: [
@@ -6481,32 +6469,29 @@ export const definitions: DefinitionWithExtend[] = [
                 [25, "state_l2", tuya.valueConverter.onOff],
                 [30, "countdown_1", tuya.valueConverter.countdown],
                 [31, "countdown_2", tuya.valueConverter.countdown],
-                [36, "backlight_mode", tuya.valueConverter.onOff],
-                [37, "indicator_mode", tuya.valueConverterBasic.lookup({none: tuya.enum(0), relay: tuya.enum(1), pos: tuya.enum(2)})],
-                [
-                    104,
-                    "vibration",
-                    tuya.valueConverterBasic.lookup({
-                        0: tuya.enum(0),
-                        1: tuya.enum(1),
-                        2: tuya.enum(2),
-                        3: tuya.enum(3),
-                    }),
+                [36, 'backlight_mode', tuya.valueConverter.onOff],
+                [37, "indicator_mode", tuya.valueConverterBasic.lookup({ none: tuya.enum(0), relay: tuya.enum(1), pos: tuya.enum(2), })],
+                [104, "vibration", tuya.valueConverterBasic.lookup({
+                    0: tuya.enum(0),
+                    1: tuya.enum(1),
+                    2: tuya.enum(2),
+                    3: tuya.enum(3),
+                }),
                 ],
             ],
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_z3u99qxt"]),
-        model: "SFL02-Z",
-        vendor: "Moes",
-        description: "This is an innovative touch AG glass switch.",
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_z3u99qxt']),
+        model: 'SFL02-Z-1',
+        vendor: 'Moes',
+        description: 'This is an innovative touch AG glass switch.',
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         onEvent: tuya.onEventSetTime,
         configure: tuya.configureMagicPacket,
         exposes: [
-            e.binary("backlight_mode", ea.STATE_SET, "ON", "OFF").withDescription("Backlight"),
+            e.binary('backlight_mode', ea.STATE_SET, 'ON', 'OFF').withDescription('Backlight'),
             e.switch().withEndpoint("l1"),
             e
                 .numeric("countdown_1", ea.STATE_SET)
@@ -6515,26 +6500,21 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueStep(1)
                 .withUnit("s")
                 .withDescription("Countdown timer"),
-            e
-                .enum("indicator_mode", ea.ALL, ["none", "relay", "pos"])
-                .withDescription("LED indicator mode:None 'is the off indicator; Relay 'indicates the switch status; POS' indicates switch position"), //
-            e.enum("vibration", ea.STATE_SET, ["0", "1", "2", "3"]).withDescription("vibration mode"),
+            e.enum("indicator_mode", ea.ALL, ["none", "relay", "pos"]).withDescription("LED indicator mode:None 'is the off indicator; Relay 'indicates the switch status; POS' indicates switch position"),//
+            e.enum('vibration', ea.STATE_SET, ['0', '1', '2', '3']).withDescription('vibration mode')
         ],
         meta: {
             tuyaDatapoints: [
                 [24, "state_l1", tuya.valueConverter.onOff],
                 [30, "countdown_1", tuya.valueConverter.countdown],
-                [36, "backlight_mode", tuya.valueConverter.onOff],
-                [37, "indicator_mode", tuya.valueConverterBasic.lookup({none: tuya.enum(0), relay: tuya.enum(1), pos: tuya.enum(2)})],
-                [
-                    104,
-                    "vibration",
-                    tuya.valueConverterBasic.lookup({
-                        0: tuya.enum(0),
-                        1: tuya.enum(1),
-                        2: tuya.enum(2),
-                        3: tuya.enum(3),
-                    }),
+                [36, 'backlight_mode', tuya.valueConverter.onOff],
+                [37, "indicator_mode", tuya.valueConverterBasic.lookup({ none: tuya.enum(0), relay: tuya.enum(1), pos: tuya.enum(2), })],
+                [104, "vibration", tuya.valueConverterBasic.lookup({
+                    0: tuya.enum(0),
+                    1: tuya.enum(1),
+                    2: tuya.enum(2),
+                    3: tuya.enum(3),
+                }),
                 ],
             ],
         },
