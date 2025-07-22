@@ -210,6 +210,17 @@ const philipsModernExtend = {
                     return payload;
                 },
             },
+            // NOTE: kept for compatibility as there is no auto-reconfigure for modernExtend
+            //       this should not fire once reconfigured.
+            {
+                cluster: "genOnOff",
+                type: ["commandOff", "commandOn"],
+                convert: (model, msg, publish, options, meta) => {
+                    if (msg.type === "commandOff" || msg.type === "commandOn") {
+                        return {contact: msg.type === "commandOff"};
+                    }
+                },
+            },
         ];
         const toZigbee: Tz.Converter[] = [
             {
@@ -248,6 +259,13 @@ const philipsModernExtend = {
                 access: ea.STATE_GET,
                 singleEndpoint: true,
             }),
+            async (device, coordinatorEndpoint) => {
+                // NOTE: new fromZigbee does not use genOnoff's commandOn/commandOff
+                //       so we can unbind genOnOff so the legacy fromZigbee does not
+                //       cause double triggers.
+                const endpoint = device.getEndpoint(2);
+                await endpoint.unbind("genOnOff", coordinatorEndpoint);
+            },
         ];
         const result: ModernExtend = {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
         return result;
