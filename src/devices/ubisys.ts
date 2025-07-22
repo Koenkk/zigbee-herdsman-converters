@@ -1153,6 +1153,12 @@ export const definitions: DefinitionWithExtend[] = [
             ubisysModernExtend.openWindowTimeout(),
             ubisysModernExtend.openWindowDetectionPeriod(),
             ubisysModernExtend.openWindowSensitivity(),
+            m.battery({
+                percentage: true,
+                voltage: true,
+                voltageReporting: true,
+                percentageReporting: true,
+            }),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
