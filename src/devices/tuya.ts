@@ -6304,6 +6304,222 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_9dhenr94']),
+        model: 'SFL02-Z',
+        vendor: 'Moes',
+        description: 'This is an innovative touch AG glass switch.',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEventSetTime,
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.binary('backlight_mode', ea.STATE_SET, 'ON', 'OFF').withDescription('Backlight'),
+            e.switch().withEndpoint("l1"),
+            e.switch().withEndpoint("l2"),
+            e.switch().withEndpoint("l3"),
+            e.switch().withEndpoint("l4"),
+            e
+                .numeric("countdown_1", ea.STATE_SET)
+                .withValueMin(1)
+                .withValueMax(43200)
+                .withValueStep(1)
+                .withUnit("s")
+                .withDescription("Countdown timer"),
+            e
+                .numeric("countdown_2", ea.STATE_SET)
+                .withValueMin(1)
+                .withValueMax(43200)
+                .withValueStep(1)
+                .withUnit("s")
+                .withDescription("Countdown timer"),
+            e
+                .numeric("countdown_3", ea.STATE_SET)
+                .withValueMin(1)
+                .withValueMax(43200)
+                .withValueStep(1)
+                .withUnit("s")
+                .withDescription("Countdown timer"),
+            e
+                .numeric("countdown_4", ea.STATE_SET)
+                .withValueMin(1)
+                .withValueMax(43200)
+                .withValueStep(1)
+                .withUnit("s")
+                .withDescription("Countdown timer"),
+            e.enum("indicator_mode", ea.ALL, ["none", "relay", "pos"]).withDescription("LED indicator mode:None 'is the off indicator; Relay 'indicates the switch status; POS' indicates switch position"),//
+            e.enum('vibration', ea.STATE_SET, ['0', '1', '2', '3']).withDescription('vibration mode')
+        ],
+        meta: {
+            tuyaDatapoints: [
+                //[1, "action", tuya.valueConverter.static("scene_1")],
+                //[2, "action", tuya.valueConverter.static("scene_2")],
+                //[18, "switch_mode_1", tuya.valueConverter.switchMode],
+                //[19, "switch_mode_1", tuya.valueConverter.switchMode],
+                [24, "state_l1", tuya.valueConverter.onOff],
+                [25, "state_l2", tuya.valueConverter.onOff],
+                [26, "state_l3", tuya.valueConverter.onOff],
+                [27, "state_l4", tuya.valueConverter.onOff],
+                [30, "countdown_1", tuya.valueConverter.countdown],
+                [31, "countdown_2", tuya.valueConverter.countdown],
+                [32, "countdown_3", tuya.valueConverter.countdown],
+                [33, "countdown_4", tuya.valueConverter.countdown],
+                [36, 'backlight_mode', tuya.valueConverter.onOff],
+                [37, "indicator_mode", tuya.valueConverterBasic.lookup({ none: tuya.enum(0), relay: tuya.enum(1), pos: tuya.enum(2), })],
+                [104, "vibration", tuya.valueConverterBasic.lookup({
+                    0: tuya.enum(0),
+                    1: tuya.enum(1),
+                    2: tuya.enum(2),
+                    3: tuya.enum(3),
+                }),
+                ],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_wv9ukqca']),
+        model: 'SFL02-Z',
+        vendor: 'Moes',
+        description: 'This is an innovative touch AG glass switch.',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEventSetTime,
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.binary('backlight_mode', ea.STATE_SET, 'ON', 'OFF').withDescription('Backlight'),
+            e.switch().withEndpoint("l1"),
+            e.switch().withEndpoint("l2"),
+            e.switch().withEndpoint("l3"),
+            e
+                .numeric("countdown_1", ea.STATE_SET)
+                .withValueMin(1)
+                .withValueMax(43200)
+                .withValueStep(1)
+                .withUnit("s")
+                .withDescription("Countdown timer"),
+            e
+                .numeric("countdown_2", ea.STATE_SET)
+                .withValueMin(1)
+                .withValueMax(43200)
+                .withValueStep(1)
+                .withUnit("s")
+                .withDescription("Countdown timer"),
+            e
+                .numeric("countdown_3", ea.STATE_SET)
+                .withValueMin(1)
+                .withValueMax(43200)
+                .withValueStep(1)
+                .withUnit("s")
+                .withDescription("Countdown timer"),
+            e.enum("indicator_mode", ea.ALL, ["none", "relay", "pos"]).withDescription("LED indicator mode:None 'is the off indicator; Relay 'indicates the switch status; POS' indicates switch position"),//
+            e.enum('vibration', ea.STATE_SET, ['0', '1', '2', '3']).withDescription('vibration mode')
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [24, "state_l1", tuya.valueConverter.onOff],
+                [25, "state_l2", tuya.valueConverter.onOff],
+                [26, "state_l3", tuya.valueConverter.onOff],
+                [30, "countdown_1", tuya.valueConverter.countdown],
+                [31, "countdown_2", tuya.valueConverter.countdown],
+                [32, "countdown_3", tuya.valueConverter.countdown],
+                [36, 'backlight_mode', tuya.valueConverter.onOff],
+                [37, "indicator_mode", tuya.valueConverterBasic.lookup({ none: tuya.enum(0), relay: tuya.enum(1), pos: tuya.enum(2), })],
+                [104, "vibration", tuya.valueConverterBasic.lookup({
+                    0: tuya.enum(0),
+                    1: tuya.enum(1),
+                    2: tuya.enum(2),
+                    3: tuya.enum(3),
+                }),
+                ],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_tzyy0rtq']),
+        model: 'SFL02-Z',
+        vendor: 'Moes',
+        description: 'This is an innovative touch AG glass switch.',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEventSetTime,
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.binary('backlight_mode', ea.STATE_SET, 'ON', 'OFF').withDescription('Backlight'),
+            e.switch().withEndpoint("l1"),
+            e.switch().withEndpoint("l2"),
+            e
+                .numeric("countdown_1", ea.STATE_SET)
+                .withValueMin(1)
+                .withValueMax(43200)
+                .withValueStep(1)
+                .withUnit("s")
+                .withDescription("Countdown timer"),
+            e
+                .numeric("countdown_1", ea.STATE_SET)
+                .withValueMin(1)
+                .withValueMax(43200)
+                .withValueStep(1)
+                .withUnit("s")
+                .withDescription("Countdown timer"),
+            e.enum("indicator_mode", ea.ALL, ["none", "relay", "pos"]).withDescription("LED indicator mode:None 'is the off indicator; Relay 'indicates the switch status; POS' indicates switch position"),//
+            e.enum('vibration', ea.STATE_SET, ['0', '1', '2', '3']).withDescription('vibration mode')
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [24, "state_l1", tuya.valueConverter.onOff],
+                [25, "state_l2", tuya.valueConverter.onOff],
+                [30, "countdown_1", tuya.valueConverter.countdown],
+                [31, "countdown_2", tuya.valueConverter.countdown],
+                [36, 'backlight_mode', tuya.valueConverter.onOff],
+                [37, "indicator_mode", tuya.valueConverterBasic.lookup({ none: tuya.enum(0), relay: tuya.enum(1), pos: tuya.enum(2), })],
+                [104, "vibration", tuya.valueConverterBasic.lookup({
+                    0: tuya.enum(0),
+                    1: tuya.enum(1),
+                    2: tuya.enum(2),
+                    3: tuya.enum(3),
+                }),
+                ],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_z3u99qxt']),
+        model: 'SFL02-Z',
+        vendor: 'Moes',
+        description: 'This is an innovative touch AG glass switch.',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEventSetTime,
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.binary('backlight_mode', ea.STATE_SET, 'ON', 'OFF').withDescription('Backlight'),
+            e.switch().withEndpoint("l1"),
+            e
+                .numeric("countdown_1", ea.STATE_SET)
+                .withValueMin(1)
+                .withValueMax(43200)
+                .withValueStep(1)
+                .withUnit("s")
+                .withDescription("Countdown timer"),
+            e.enum("indicator_mode", ea.ALL, ["none", "relay", "pos"]).withDescription("LED indicator mode:None 'is the off indicator; Relay 'indicates the switch status; POS' indicates switch position"),//
+            e.enum('vibration', ea.STATE_SET, ['0', '1', '2', '3']).withDescription('vibration mode')
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [24, "state_l1", tuya.valueConverter.onOff],
+                [30, "countdown_1", tuya.valueConverter.countdown],
+                [36, 'backlight_mode', tuya.valueConverter.onOff],
+                [37, "indicator_mode", tuya.valueConverterBasic.lookup({ none: tuya.enum(0), relay: tuya.enum(1), pos: tuya.enum(2), })],
+                [104, "vibration", tuya.valueConverterBasic.lookup({
+                    0: tuya.enum(0),
+                    1: tuya.enum(1),
+                    2: tuya.enum(2),
+                    3: tuya.enum(3),
+                }),
+                ],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_qyr2m29i", "_TZE204_ltwbm23f"]),
         model: "TRV602Z",
         vendor: "Tuya",
