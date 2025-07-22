@@ -204,11 +204,12 @@ const orviboSwitchRewiring = (args: OrviboSwitchRewiringArgs): ModernExtend => {
         },
     ];
 
-    const onEvent: OnEvent[] = [
-        async (type, data, device, settings, state, meta) => {
-            if (type !== "deviceOptionsChanged") {
+    const onEvent: OnEvent.Handler[] = [
+        async (event) => {
+            if (event.type !== "deviceOptionsChanged") {
                 return;
             }
+            const device = event.data.device;
             const endpointsOptionsFrom = (data as KeyValueAny)?.from?.switch_actions ?? {};
             const endpointsOptionsTo = (data as KeyValueAny)?.to?.switch_actions ?? {};
             if (!endpointsOptionsTo) {

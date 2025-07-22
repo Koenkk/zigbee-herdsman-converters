@@ -648,7 +648,7 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.instantaneousDemand(endpoint);
         },
-        onEvent: async (type, data, device, settings) => {
+        onEvent: async (event) => {
             /*
              * As per technical doc page 18 section 7.3.4
              * https://www.ubisys.de/wp-content/uploads/ubisys-s1-technical-reference.pdf
@@ -659,9 +659,9 @@ export const definitions: DefinitionWithExtend[] = [
              *
              * We use addBinding to 'record' this default binding.
              */
-            if (type === "deviceInterview") {
-                const ep1 = device.getEndpoint(1);
-                const ep2 = device.getEndpoint(2);
+            if (event.type === "deviceInterview") {
+                const ep1 = event.data.device.getEndpoint(1);
+                const ep2 = event.data.device.getEndpoint(2);
                 ep2.addBinding("genOnOff", ep1);
             } else {
                 await ubisysPollCurrentSummDelivered(type, data, device, 3, settings);

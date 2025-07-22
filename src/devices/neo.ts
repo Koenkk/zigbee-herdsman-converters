@@ -78,7 +78,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Motion, temperature & humidity sensor",
         fromZigbee: [legacy.fz.neo_nas_pd07, fz.ignore_tuya_set_time],
         toZigbee: [legacy.tz.neo_nas_pd07],
-        onEvent: tuya.onEventSetTime,
+        extend: [tuya.modernExtend.tuyaBase({timeStart: "2000", mcuVersionRequestOnConfigure: true})],
         exposes: [
             e.occupancy(),
             e.humidity(),
@@ -101,11 +101,6 @@ export const definitions: DefinitionWithExtend[] = [
             // e.binary('unknown_111', ea.STATE_SET, 'ON', 'OFF').withDescription('Unknown datapoint 111 (default: ON)'),
             // e.binary('unknown_112', ea.STATE_SET, 'ON', 'OFF').withDescription('Unknown datapoint 112 (default: ON)')
         ],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await tuya.configureMagicPacket(device, coordinatorEndpoint);
-            await endpoint.command("manuSpecificTuya", "mcuVersionRequest", {seq: 0x0002});
-        },
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_nlrfgpny", "_TZE284_nlrfgpny", "_TZE204_nlrfgpny"]),
@@ -164,11 +159,8 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["NAS-WV03B"],
         model: "NAS-WV03B",
         vendor: "NEO",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
         description: "Smart sprinkler timer",
-        onEvent: tuya.onEventSetTime,
-        configure: tuya.configureMagicPacket,
         exposes: [
             e.switch(),
             e.enum("status", ea.STATE, ["off", "auto", "disabled"]).withDescription("Status"),
@@ -236,10 +228,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "NAS-WV03B2",
         vendor: "NEO",
         description: "Smart sprinkler timer",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime,
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
         exposes: [
             e.switch(),
             e.enum("status", ea.STATE, ["off", "auto", "disabled", "app_manual", "key_control"]).withDescription("Status"),
@@ -274,10 +263,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "NAS-WV05B2-L",
         vendor: "NEO",
         description: "Smart sprinkler timer",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime,
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
         exposes: [
             e.switch(),
             e.enum("status", ea.STATE, ["off", "auto", "disabled", "app_manual", "key_control"]).withDescription("Status"),
@@ -320,10 +306,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "NAS-WV05B2",
         vendor: "NEO",
         description: "Smart sprinkler timer",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime,
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
         exposes: [
             e.switch(),
             e.enum("status", ea.STATE, ["off", "auto", "disabled", "app_manual", "key_control"]).withDescription("Status"),

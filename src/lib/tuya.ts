@@ -15,9 +15,6 @@ import type {
     KeyValueAny,
     KeyValueNumberString,
     ModernExtend,
-    OnEvent,
-    OnEventData,
-    OnEventType,
     Publish,
     Range,
     Tuya,
@@ -120,28 +117,6 @@ export function onEventMeasurementPoll(
     };
 
     utils.onEventPoll(type, data, device, options, "measurement", 60, poll);
-}
-
-export async function onEventSetTime(type: OnEventType, data: OnEventData, device: Zh.Device) {
-    // FIXME: Need to join onEventSetTime/onEventSetLocalTime to one command
-
-    if (data.type === "commandMcuSyncTime" && data.cluster === "manuSpecificTuya") {
-        try {
-            const utcTime = Math.round((Date.now() - constants.OneJanuary2000) / 1000);
-            const localTime = utcTime - new Date().getTimezoneOffset() * 60;
-            const endpoint = device.getEndpoint(1);
-
-            const payload = {
-                payloadSize: 8,
-                payload: [...convertDecimalValueTo4ByteHexArray(utcTime), ...convertDecimalValueTo4ByteHexArray(localTime)],
-            };
-            await endpoint.command("manuSpecificTuya", "mcuSyncTime", payload, {});
-        } catch {
-            // endpoint.command can throw an error which needs to
-            // be caught or the zigbee-herdsman may crash
-            // Debug message is handled in the zigbee-herdsman
-        }
-    }
 }
 
 // set UTC and Local Time as total number of seconds from 00: 00: 00 on January 01, 1970
@@ -430,6 +405,19 @@ export const configureMagicPacket = async (device: Zh.Device, coordinatorEndpoin
             throw e;
         }
     }
+};
+
+export const configureQuery = async (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint) => {
+    // Required to get the device to start reporting
+    await device.getEndpoint(1).command("manuSpecificTuya", "dataQuery", {});
+};
+
+export const configureMcuVersionRequest = async (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint) => {
+    await device.getEndpoint(1).command("manuSpecificTuya", "mcuVersionRequest", {seq: 0x0002});
+};
+
+export const configureBindBasic = async (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint) => {
+    await device.getEndpoint(1).bind("genBasic", coordinatorEndpoint);
 };
 
 export const fingerprint = (modelID: string, manufacturerNames: string[]) => {
@@ -1730,18 +1718,6 @@ const tuyaFz = {
             }
         },
     } satisfies Fz.Converter,
-    gateway_connection_status: {
-        cluster: "manuSpecificTuya",
-        type: ["commandMcuGatewayConnectionStatus"],
-        convert: async (model, msg, publish, options, meta) => {
-            // "payload" can have the following values:
-            // 0x00: The gateway is not connected to the internet.
-            // 0x01: The gateway is connected to the internet.
-            // 0x02: The request timed out after three seconds.
-            const payload = {payloadSize: 1, payload: 1};
-            await msg.endpoint.command("manuSpecificTuya", "mcuGatewayConnectionStatus", payload, {});
-        },
-    } satisfies Fz.Converter,
     power_on_behavior_1: {
         cluster: "genOnOff",
         type: ["attributeReport", "readResponse"],
@@ -2125,14 +2101,20 @@ const tuyaModernExtend = {
     tuyaBase(args?: {
         dp?: true;
         queryOnDeviceAnnounce?: true;
+        queryOnConfigure?: true;
+        bindBasicOnConfigure?: true;
         queryIntervalSeconds?: number;
         respondToMcuVersionResponse?: false;
+        mcuVersionRequestOnConfigure?: true;
         timeStart?: "2000";
     }): ModernExtend {
         const {
             dp = false,
             queryOnDeviceAnnounce = false,
+            queryOnConfigure = false,
+            bindBasicOnConfigure = false,
             queryIntervalSeconds = undefined,
+            mcuVersionRequestOnConfigure = false,
             timeStart = "1970",
             respondToMcuVersionResponse = true,
         } = args;
@@ -2174,6 +2156,18 @@ const tuyaModernExtend = {
             fromZigbee: [fzConverter],
             toZigbee: [],
         };
+
+        if (queryOnConfigure) {
+            result.configure.push(configureQuery);
+        }
+
+        if (mcuVersionRequestOnConfigure) {
+            result.configure.push(configureMcuVersionRequest);
+        }
+
+        if (bindBasicOnConfigure) {
+            result.configure.push(configureBindBasic);
+        }
 
         if (queryOnDeviceAnnounce || queryIntervalSeconds !== undefined) {
             result.onEvent = [

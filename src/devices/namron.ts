@@ -1384,10 +1384,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "4512752/4512753",
         vendor: "Namron",
         description: "Touch thermostat 16A 2.0",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime,
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
         options: [],
         exposes: [
             e

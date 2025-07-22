@@ -12,10 +12,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ECB62-ZB",
         vendor: "ENGO",
         description: "Control box for underfloor heating system",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime,
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
         exposes: [
             e.enum("pump_delay_time", ea.STATE_SET, ["OFF", "3_min", "5_min", "15_min"]).withDescription("Pump shutdown delay"),
             e.binary("zone_1", ea.STATE, "ON", "OFF").withDescription("Zigbee zone 1 heat demand"),
