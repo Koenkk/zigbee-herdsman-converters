@@ -1120,7 +1120,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Ubisys",
         description: "Heating regulator",
         meta: {thermostat: {dontMapPIHeatingDemand: true}},
-        fromZigbee: [fz.battery, fz.thermostat, fz.thermostat_weekly_schedule],
+        fromZigbee: [fz.thermostat, fz.thermostat_weekly_schedule],
         toZigbee: [
             tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_unoccupied_heating_setpoint,
@@ -1130,11 +1130,8 @@ export const definitions: DefinitionWithExtend[] = [
             tz.thermostat_clear_weekly_schedule,
             tz.thermostat_running_mode,
             tz.thermostat_pi_heating_demand,
-            tz.battery_percentage_remaining,
         ],
         exposes: [
-            e.battery_voltage(),
-            e.battery().withAccess(ea.STATE_GET),
             e
                 .climate()
                 .withSystemMode(["off", "heat"], ea.ALL)
@@ -1172,7 +1169,6 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.thermostatTemperature(endpoint, {min: 0, max: constants.repInterval.HOUR, change: 50});
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint, {min: 0, max: constants.repInterval.HOUR, change: 50});
             await reporting.thermostatPIHeatingDemand(endpoint, {min: 15, max: constants.repInterval.HOUR, change: 1});
-            await reporting.batteryPercentageRemaining(endpoint, {min: constants.repInterval.HOUR, max: 43200, change: 1});
 
             // read attributes
             // NOTE: configuring reporting on hvacThermostat seems to trigger an immediate
