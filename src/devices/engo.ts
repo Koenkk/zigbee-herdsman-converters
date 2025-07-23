@@ -312,4 +312,109 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_cmyc8g5i"]),
+        model: "E25-230",
+        vendor: "ENGO",
+        description: "Smart thermostat",
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        exposes: [
+            e.binary("state", ea.STATE_SET, "ON", "OFF").withDescription("Turn the thermostat ON/OFF"),
+            e
+                .climate()
+                .withSystemMode(["heat", "cool"], ea.STATE_SET)
+                .withSetpoint("current_heating_setpoint", 5, 35, 0.5, ea.STATE_SET)
+                .withLocalTemperature(ea.STATE)
+                .withLocalTemperatureCalibration(-3.5, 3.5, 0.5, ea.STATE_SET)
+                .withRunningState(["idle", "heat", "cool"], ea.STATE)
+                .withPreset(["Manual", "Frost"]),
+            e
+                .enum("control_algorithm", ea.STATE_SET, [
+                    "TPI_UFH",
+                    "TPI_RAD",
+                    "TPI_ELE",
+                    "HIS_04",
+                    "HIS_08",
+                    "HIS_12",
+                    "HIS_16",
+                    "HIS_20",
+                    "HIS_30",
+                    "HIS_40",
+                ])
+                .withDescription("Sets the control algorithim of the thermostat"),
+            e.max_temperature().withValueMin(5).withValueMax(35),
+            e.min_temperature().withValueMin(5).withValueMax(35),
+            e.child_lock(),
+            e.binary("valve_protection", ea.STATE_SET, "ON", "OFF").withDescription("Enable valve protection"),
+            e.enum("relay_mode", ea.STATE_SET, ["NO", "NC", "OFF"]).withDescription("Sets the internal relay function"),
+            e
+                .numeric("backlight", ea.STATE_SET)
+                .withDescription("Set the backlight brightness of the thermostat.")
+                .withUnit("%")
+                .withValueMin(0)
+                .withValueMax(100)
+                .withValueStep(10),
+            e
+                .numeric("frost_set", ea.STATE_SET)
+                .withDescription("Set the frost protection temperature.")
+                .withUnit("°C")
+                .withValueMin(5)
+                .withValueMax(17)
+                .withValueStep(0.5),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "state", tuya.valueConverter.onOff],
+                [2, "system_mode", tuya.valueConverterBasic.lookup({heat: tuya.enum(0), cool: tuya.enum(1)})],
+                [
+                    3,
+                    "running_state",
+                    tuya.valueConverterBasic.lookup({heat: tuya.enum(2), cool: tuya.enum(3), idle: tuya.enum(4), idle_c: tuya.enum(5)}),
+                ],
+                [16, "current_heating_setpoint", tuya.valueConverter.divideBy10],
+                [19, "max_temperature", tuya.valueConverter.divideBy10],
+                [24, "local_temperature", tuya.valueConverter.divideBy10],
+                [26, "min_temperature", tuya.valueConverter.divideBy10],
+                [27, "local_temperature_calibration", tuya.valueConverter.divideBy10],
+                [40, "child_lock", tuya.valueConverter.lockUnlock],
+                [44, "backlight", tuya.valueConverter.raw],
+                [
+                    58,
+                    "preset",
+                    tuya.valueConverterBasic.lookup({
+                        Manual: tuya.enum(0),
+                        Frost: tuya.enum(3),
+                    }),
+                ],
+                [
+                    101,
+                    "control_algorithm",
+                    tuya.valueConverterBasic.lookup({
+                        TPI_UFH: tuya.enum(0),
+                        TPI_RAD: tuya.enum(1),
+                        TPI_ELE: tuya.enum(2),
+                        HIS_04: tuya.enum(3),
+                        HIS_08: tuya.enum(4),
+                        HIS_12: tuya.enum(5),
+                        HIS_16: tuya.enum(6),
+                        HIS_20: tuya.enum(8),
+                        HIS_30: tuya.enum(9),
+                        HIS_40: tuya.enum(10),
+                    }),
+                ],
+                [106, "frost_set", tuya.valueConverter.divideBy10],
+                [107, "valve_protection", tuya.valueConverter.onOff],
+                [
+                    108,
+                    "relay_mode",
+                    tuya.valueConverterBasic.lookup({
+                        NO: tuya.enum(0),
+                        NC: tuya.enum(1),
+                        OFF: tuya.enum(2),
+                    }),
+                ],
+            ],
+        },
+    },
 ];
