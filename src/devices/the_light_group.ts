@@ -95,10 +95,10 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "The Light Group",
         description: "SLC SmartOne Zigbee remote control Zigbee IP20",
         extend: [
-            m.deviceEndpoints({endpoints: {"1": 1, "2": 2}}),
+            m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3}}),
             m.battery(),
-            m.commandsOnOff({endpointNames: ["1", "2"]}),
-            m.commandsScenes({endpointNames: ["1", "2"]}),
+            m.commandsOnOff(),
+            m.commandsScenes(),
         ],
     },
 ];
