@@ -232,7 +232,14 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Lidl",
         description: "Silvercrest smart plug with power monitoring (EU, FR)",
         ota: true,
-        extend: [tuya.modernExtend.tuyaOnOff({electricalMeasurements: true, powerOutageMemory: true, indicatorMode: true, childLock: true})],
+        extend: [
+            tuya.modernExtend.tuyaOnOff({electricalMeasurements: true, powerOutageMemory: true, indicatorMode: true, childLock: true}),
+            tuya.modernExtend.electricityMeasurementPoll({
+                electricalMeasurement: false,
+                metering: true,
+                optionDescription: "Only the energy value is polled for this device.",
+            }),
+        ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
@@ -245,8 +252,6 @@ export const definitions: DefinitionWithExtend[] = [
             endpoint.saveClusterAttributeKeyValue("seMetering", {divisor: 100, multiplier: 1});
             device.save();
         },
-        options: [exposes.options.measurement_poll_interval().withDescription("Only the energy value is polled for this device.")],
-        onEvent: (type, data, device, options) => tuya.onEventMeasurementPoll(type, data, device, options, false, true),
         whiteLabel: [tuya.whitelabel("Lidl", "HG08673-BS", "Silvercrest smart plug with power monitoring (BS)", ["_TZ3000_3uimvkn6"])],
     },
     {

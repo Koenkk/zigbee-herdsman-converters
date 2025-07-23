@@ -98,27 +98,6 @@ function convertDecimalValueTo2ByteHexArray(value: number) {
     return [chunk1, chunk2].map((hexVal) => Number.parseInt(hexVal, 16));
 }
 
-export function onEventMeasurementPoll(
-    type: OnEventType,
-    data: OnEventData,
-    device: Zh.Device,
-    options: KeyValue,
-    electricalMeasurement = true,
-    metering = false,
-) {
-    const endpoint = device.getEndpoint(1);
-    const poll = async () => {
-        if (electricalMeasurement) {
-            await endpoint.read("haElectricalMeasurement", ["rmsVoltage", "rmsCurrent", "activePower"]);
-        }
-        if (metering) {
-            await endpoint.read("seMetering", ["currentSummDelivered"]);
-        }
-    };
-
-    utils.onEventPoll(type, data, device, options, "measurement", 60, poll);
-}
-
 // set UTC and Local Time as total number of seconds from 00: 00: 00 on January 01, 1970
 // force to update every device time every hour due to very poor clock
 export async function onEventSetLocalTime(type: OnEventType, data: OnEventData, device: Zh.Device) {
@@ -2038,6 +2017,33 @@ export interface TuyaDPLightArgs {
 }
 
 const tuyaModernExtend = {
+    electricityMeasurementPoll(args?: {
+        electricalMeasurement?: false | ((device: Zh.Device) => boolean);
+        metering?: true | ((device: Zh.Device) => boolean);
+        optionDescription?: string;
+    }): ModernExtend {
+        const {electricalMeasurement = true, metering = false, optionDescription = undefined} = args;
+
+        let option = exposes.options.measurement_poll_interval();
+        if (optionDescription !== undefined) {
+            option = option.withDescription(optionDescription);
+        }
+
+        return modernExtend.poll({
+            key: "measurement",
+            option,
+            defaultIntervalSeconds: 60,
+            poll: async (device) => {
+                const endpoint = device.getEndpoint(1);
+                if (typeof electricalMeasurement === "boolean" ? electricalMeasurement : electricalMeasurement(device)) {
+                    await endpoint.read("haElectricalMeasurement", ["rmsVoltage", "rmsCurrent", "activePower"]);
+                }
+                if (typeof metering === "boolean" ? metering : metering(device)) {
+                    await endpoint.read("seMetering", ["currentSummDelivered"]);
+                }
+            },
+        });
+    },
     dpTHZBSettings(): ModernExtend {
         const exp = e
             .composite("auto_settings", "auto_settings", ea.STATE_SET)

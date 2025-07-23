@@ -314,14 +314,13 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Heiman",
         fromZigbee: [fz.on_off, fz.electrical_measurement],
         toZigbee: [tz.on_off],
-        options: [exposes.options.measurement_poll_interval()],
+        extend: [tuya.modernExtend.electricityMeasurementPoll()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "haElectricalMeasurement"]);
             await reporting.onOff(endpoint);
             await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
         },
-        onEvent: (type, data, device, settings) => tuya.onEventMeasurementPoll(type, data, device, settings),
         exposes: [e.switch(), e.power(), e.current(), e.voltage()],
     },
     {
