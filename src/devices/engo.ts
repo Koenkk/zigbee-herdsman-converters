@@ -314,7 +314,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_cmyc8g5i"]),
-        model: "E25-230W",
+        model: "E25-230",
         vendor: "ENGO",
         description: "Smart thermostat",
         fromZigbee: [tuya.fz.datapoints],
