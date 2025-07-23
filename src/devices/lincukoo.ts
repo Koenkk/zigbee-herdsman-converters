@@ -206,12 +206,9 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Smart mini temperature and humidity sensor",
         extend: [m.temperature(), m.humidity(), m.identify({isSleepy: true}), m.battery({voltage: true})],
     },
-	
-	{
-        fingerprint: tuya.fingerprint("TS0601", [
-            "_TZE284_rs62zxk8",
-            "_TZE284_4dosadbh",
-        ]),
+
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_rs62zxk8", "_TZE284_4dosadbh"]),
         model: "SZT04",
         vendor: "Lincukoo",
         description: "Temperature and humidity sensor with clock",
@@ -245,18 +242,26 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueStep(1)
                 .withDescription("Humidity sensitivity"),
         ],
-		
-		meta: {
+
+        meta: {
             tuyaDatapoints: [
                 [1, "temperature", tuya.valueConverter.divideBy10],
                 [2, "humidity", tuya.valueConverter.raw],
-				[4, "battery", tuya.valueConverter.raw],
-				[9, "temperature_unit_convert", tuya.valueConverterBasic.lookup({celsius: tuya.enum(0), fahrenheit: tuya.enum(1)})],
-				[14, "temperature_alarm", tuya.valueConverterBasic.lookup({canceled: tuya.enum(0), lower_alarm: tuya.enum(1), upper_alarm: tuya.enum(2)})],
-				[10, "max_temperature", tuya.valueConverter.divideBy10],
+                [4, "battery", tuya.valueConverter.raw],
+                [9, "temperature_unit_convert", tuya.valueConverterBasic.lookup({celsius: tuya.enum(0), fahrenheit: tuya.enum(1)})],
+                [
+                    14,
+                    "temperature_alarm",
+                    tuya.valueConverterBasic.lookup({canceled: tuya.enum(0), lower_alarm: tuya.enum(1), upper_alarm: tuya.enum(2)}),
+                ],
+                [10, "max_temperature", tuya.valueConverter.divideBy10],
                 [11, "min_temperature", tuya.valueConverter.divideBy10],
                 [19, "temperature_sensitivity", tuya.valueConverter.divideBy10],
-				[15, "humidity_alarm", tuya.valueConverterBasic.lookup({canceled: tuya.enum(0), lower_alarm: tuya.enum(1), upper_alarm: tuya.enum(2)})],
+                [
+                    15,
+                    "humidity_alarm",
+                    tuya.valueConverterBasic.lookup({canceled: tuya.enum(0), lower_alarm: tuya.enum(1), upper_alarm: tuya.enum(2)}),
+                ],
                 [12, "max_humidity", tuya.valueConverter.raw],
                 [13, "min_humidity", tuya.valueConverter.raw],
                 [20, "humidity_sensitivity", tuya.valueConverter.raw],
