@@ -37,12 +37,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.enum("volume", ea.STATE_SET, ["low", "medium", "high"]),
             e.enum("power_type", ea.STATE, ["battery_full", "battery_high", "battery_medium", "battery_low", "usb"]),
         ],
-        onEvent: tuya.onEventSetLocalTime,
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await endpoint.command("manuSpecificTuya", "dataQuery", {});
-            await endpoint.command("manuSpecificTuya", "mcuVersionRequest", {seq: 0x0002});
-        },
+        extend: [tuya.modernExtend.tuyaBase({forceTimeUpdates: true, queryOnConfigure: true, mcuVersionRequestOnConfigure: true})],
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_t1blo2bj", "_TZE204_t1blo2bj", "_TZE204_q76rtoa9"]),
@@ -64,12 +59,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.enum("volume", ea.STATE_SET, ["low", "medium", "high"]),
             e.numeric("battpercentage", ea.STATE).withUnit("%"),
         ],
-        onEvent: tuya.onEventSetLocalTime,
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await endpoint.command("manuSpecificTuya", "dataQuery", {});
-            await endpoint.command("manuSpecificTuya", "mcuVersionRequest", {seq: 0x0002});
-        },
+        extend: [tuya.modernExtend.tuyaBase({forceTimeUpdates: true, queryOnConfigure: true, mcuVersionRequestOnConfigure: true})],
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_7hfcudw5"]),

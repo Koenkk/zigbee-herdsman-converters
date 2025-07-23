@@ -1240,14 +1240,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0601_temperature_humidity_sensor_3",
         vendor: "Tuya",
         description: "Temperature & humidity sensor",
-        fromZigbee: [tuya.fz.datapoints],
-        configure: async (device, coordinatorEndpoint) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint);
-            // Required to get the device to start reporting (-- Maybe needed? Copied this from another humidity sensor configuration)
-            await device.getEndpoint(1).command("manuSpecificTuya", "dataQuery", {});
-        },
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetLocalTime,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true, queryOnConfigure: true})],
         exposes: [e.temperature(), e.humidity(), e.battery(), tuya.exposes.temperatureUnit()],
         meta: {
             tuyaDatapoints: [
@@ -3806,10 +3799,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "BAC-003",
         vendor: "Tuya",
         description: "FCU thermostat temperature controller",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetLocalTime,
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true})],
         options: [
             e
                 .enum("control_sequence_of_operation", ea.SET, ["cooling_only", "cooling_and_heating_4-pipes"])
@@ -4889,10 +4879,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "_TZE284_debczeci",
         vendor: "iHseno",
         description: "Human presence sensor",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetLocalTime,
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true})],
         exposes: [
             e.presence().withDescription("Human presence detected"),
             e.battery().withDescription("Battery percentage"),
@@ -5130,7 +5117,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuyaThermostatSystemMode: legacy.thermostatSystemModes3,
         },
         ota: true,
-        onEvent: tuya.onEventSetLocalTime,
+        extend: [tuya.modernExtend.tuyaBase({forceTimeUpdates: true})],
         fromZigbee: [legacy.fromZigbee.tuya_thermostat, fz.ignore_basic_report, fz.ignore_tuya_set_time],
         toZigbee: [
             legacy.toZigbee.tuya_thermostat_child_lock,
@@ -5544,10 +5531,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("AlecoAir", "HA-08_THERMO", "Thermostat radiator valve", ["_TZE200_wsbfwodu"]),
         ],
         ota: true,
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetLocalTime,
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true})],
         exposes: [
             e.battery_low(),
             e.child_lock(),
@@ -5668,10 +5652,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Tuya",
         description: "Thermostat radiator valve",
         whiteLabel: [{vendor: "S366", model: "Cloud Even"}],
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetLocalTime,
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true})],
         meta: {
             tuyaDatapoints: [
                 [1, "system_mode", tuya.valueConverterBasic.lookup({heat: true, off: false})],
@@ -5833,10 +5814,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0601_thermostat_4",
         vendor: "Tuya",
         description: "Thermostatic radiator valve",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetLocalTime,
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true})],
         exposes: [
             e.child_lock(),
             e.battery(),
@@ -5997,10 +5975,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("id3", "GTZ06", "Thermostatic radiator valve", ["_TZE200_z1tyspqw"]),
             tuya.whitelabel("AVATTO", "TRV07", "Thermostatic radiator valve", ["_TZE200_bvrlmajk"]),
         ],
-        onEvent: tuya.onEventSetLocalTime,
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true})],
         exposes: [
             e.battery(),
             e.child_lock(),
@@ -6069,10 +6044,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Tuya",
         whiteLabel: [tuya.whitelabel("Sber", "SBDV-00185", "Thermostatic radiator valve", ["_TZE204_cvcu2p6e"])],
         description: "Thermostatic radiator valve.",
-        onEvent: tuya.onEventSetLocalTime,
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true})],
         exposes: [
             e.battery(),
             e.child_lock(),
@@ -6146,10 +6118,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Tuya",
         description: "Thermostatic radiator valve.",
         whiteLabel: [tuya.whitelabel("Moes", "TRV801", "Thermostatic radiator valve", ["_TZE204_9mjy74mp", "_TZE200_9mjy74mp"])],
-        onEvent: tuya.onEventSetLocalTime,
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true})],
         exposes: [
             e.battery(),
             e.child_lock(),
@@ -6487,10 +6456,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TRV603-WZ",
         vendor: "Tuya",
         description: "Thermostatic radiator valve.",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetLocalTime,
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true})],
         exposes: [
             e.battery(),
             e.child_lock(),
@@ -9166,10 +9132,9 @@ export const definitions: DefinitionWithExtend[] = [
             fz.tuya_operation_mode,
         ],
         toZigbee: [tz.tuya_operation_mode],
-        onEvent: tuya.onEventSetLocalTime,
+        extend: [tuya.modernExtend.tuyaBase({forceTimeUpdates: true})],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await endpoint.read("genBasic", [0x0004, 0x000, 0x0001, 0x0005, 0x0007, 0xfffe]);
             await endpoint.write("genOnOff", {tuyaOperationMode: 1});
             await endpoint.read("genOnOff", ["tuyaOperationMode"]);
             try {
@@ -9840,11 +9805,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Temperature & humidity sensor with clock",
         fromZigbee: [legacy.fromZigbee.nous_lcd_temperature_humidity_sensor, fz.ignore_tuya_set_time],
         toZigbee: [legacy.toZigbee.nous_lcd_temperature_humidity_sensor],
-        onEvent: tuya.onEventSetLocalTime,
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genBasic"]);
-        },
+        extend: [tuya.modernExtend.tuyaBase({forceTimeUpdates: true, bindBasicOnConfigure: true})],
         exposes: [
             e.temperature(),
             e.humidity(),
@@ -9922,7 +9883,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Temperature & humidity sensor with LCD",
         fromZigbee: [fz.temperature, fzLocal.humidity10, fzLocal.temperature_unit, fz.battery, fz.ignore_tuya_set_time],
         toZigbee: [tzLocal.temperature_unit],
-        onEvent: tuya.onEventSetLocalTime,
+        extend: [tuya.modernExtend.tuyaBase({forceTimeUpdates: true})],
         exposes: [
             e.temperature(),
             e.humidity(),
@@ -9944,7 +9905,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Human presence sensor Zigbee",
         fromZigbee: [legacy.fromZigbee.hpsz],
         toZigbee: [legacy.toZigbee.hpsz],
-        onEvent: tuya.onEventSetLocalTime,
+        extend: [tuya.modernExtend.tuyaBase({forceTimeUpdates: true})],
         exposes: [
             e.presence(),
             e.numeric("duration_of_attendance", ea.STATE).withUnit("min").withDescription("Shows the presence duration in minutes"),
@@ -10756,10 +10717,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0049",
         vendor: "Tuya",
         description: "Water valve",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetLocalTime,
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true})],
         exposes: [
             tuya.exposes.errorStatus(),
             tuya.exposes.switch(),
@@ -13612,10 +13570,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TYBAC-006",
         vendor: "Tuya",
         description: "Wall-mount thermostat for 2-pipe fan-coil unit",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetLocalTime,
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true})],
         options: [
             e
                 .enum("control_sequence_of_operation", ea.SET, ["cooling_only", "cooling_and_heating_4-pipes"])
@@ -16148,10 +16103,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0601_GTZ10",
         vendor: "Tuya",
         description: "Thermostat radiator valve",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetLocalTime,
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true})],
         ota: true,
         exposes: [
             e.battery(),
@@ -16324,10 +16276,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ME201WZ",
         vendor: "Tuya",
         description: "Water level sensor",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetLocalTime,
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true})],
         exposes: [
             e.numeric("liquid_level_percent", ea.STATE).withUnit("%").withDescription("Liquid level ratio"),
             e.numeric("liquid_depth", ea.STATE).withUnit("m").withDescription("Liquid Depth"),
@@ -16386,11 +16335,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TLC2206",
         vendor: "Tuya",
         description: "Water level sensor",
-        extend: [m.forcePowerSource({powerSource: "Mains (single phase)"})],
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetLocalTime,
-        configure: tuya.configureMagicPacket,
+        extend: [m.forcePowerSource({powerSource: "Mains (single phase)"}), tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true})],
         exposes: [
             e.numeric("liquid_level_percent", ea.STATE).withUnit("%").withDescription("Liquid level ratio"),
             e.numeric("liquid_depth", ea.STATE).withUnit("cm").withDescription("Liquid depth"),

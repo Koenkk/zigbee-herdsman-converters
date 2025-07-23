@@ -317,7 +317,7 @@ export const definitions: DefinitionWithExtend[] = [
                     .withFeature(exposesLocal.program_temperature("sunday_p4_temperature")),
             ];
         },
-        onEvent: tuya.onEventSetLocalTime,
+        extend: [tuya.modernExtend.tuyaBase({forceTimeUpdates: true})],
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_amp6tsvy", "_TZE200_tviaymwx"]),
@@ -333,7 +333,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         fromZigbee: [legacy.fz.tuya_switch, legacy.fz.moes_switch],
         toZigbee: [legacy.tz.tuya_switch_state, legacy.tz.moes_switch],
-        onEvent: tuya.onEventSetLocalTime,
+        extend: [tuya.modernExtend.tuyaBase({forceTimeUpdates: true})],
         configure: async (device, coordinatorEndpoint) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
             // Reports itself as battery which is not correct: https://github.com/Koenkk/zigbee2mqtt/issues/6190
@@ -356,7 +356,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         fromZigbee: [fz.ignore_basic_report, legacy.fz.tuya_switch, legacy.fz.moes_switch],
         toZigbee: [legacy.tz.tuya_switch_state, legacy.tz.moes_switch],
-        onEvent: tuya.onEventSetLocalTime,
+        extend: [tuya.modernExtend.tuyaBase({forceTimeUpdates: true})],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             // Endpoint selection is made in tuya_switch_state
@@ -386,7 +386,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         fromZigbee: [fz.ignore_basic_report, legacy.fz.tuya_switch, legacy.fz.moes_switch],
         toZigbee: [legacy.tz.tuya_switch_state, legacy.tz.moes_switch],
-        onEvent: tuya.onEventSetLocalTime,
+        extend: [tuya.modernExtend.tuyaBase({forceTimeUpdates: true})],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             // Endpoint selection is made in tuya_switch_state
@@ -418,7 +418,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         fromZigbee: [fz.ignore_basic_report, legacy.fz.tuya_switch, legacy.fz.moes_switch],
         toZigbee: [legacy.tz.tuya_switch_state, legacy.tz.moes_switch],
-        onEvent: tuya.onEventSetLocalTime,
+        extend: [tuya.modernExtend.tuyaBase({forceTimeUpdates: true})],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             // Endpoint selection is made in tuya_switch_state
@@ -452,7 +452,7 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [tuya.whitelabel("Sibling", "Powerswitch-ZK(W)", "Thermostatic radiator valve", ["_TZE200_qsoecqlk"])],
         // ota: true,
         // OTA available but bricks device https://github.com/Koenkk/zigbee2mqtt/issues/18840
-        onEvent: tuya.onEventSetLocalTime,
+        extend: [tuya.modernExtend.tuyaBase({forceTimeUpdates: true})],
         fromZigbee: [fz.ignore_basic_report, fz.ignore_tuya_set_time, legacy.fz.moesS_thermostat],
         toZigbee: [
             legacy.tz.moesS_thermostat_current_heating_setpoint,
@@ -525,7 +525,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZTS-EUR-C",
         vendor: "Moes",
         description: "Zigbee + RF curtain switch",
-        onEvent: tuya.onEventSetLocalTime,
+        extend: [tuya.modernExtend.tuyaBase({forceTimeUpdates: true})],
         fromZigbee: [legacy.fz.moes_cover, fz.ignore_basic_report],
         toZigbee: [legacy.tz.moes_cover],
         exposes: [

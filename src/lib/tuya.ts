@@ -98,39 +98,6 @@ function convertDecimalValueTo2ByteHexArray(value: number) {
     return [chunk1, chunk2].map((hexVal) => Number.parseInt(hexVal, 16));
 }
 
-// set UTC and Local Time as total number of seconds from 00: 00: 00 on January 01, 1970
-// force to update every device time every hour due to very poor clock
-export async function onEventSetLocalTime(type: OnEventType, data: OnEventData, device: Zh.Device) {
-    // FIXME: What actually nextLocalTimeUpdate/forceTimeUpdate do?
-    //  I did not find any timers or something else where it was used.
-    //  Actually, there are two ways to set time on Tuya MCU devices:
-    //  1. Respond to the `commandMcuSyncTime` event
-    //  2. Just send `mcuSyncTime` anytime (by 1-hour timer or something else)
-
-    const nextLocalTimeUpdate = globalStore.getValue(device, "nextLocalTimeUpdate");
-    const forceTimeUpdate = nextLocalTimeUpdate == null || nextLocalTimeUpdate < Date.now();
-
-    if ((data.type === "commandMcuSyncTime" && data.cluster === "manuSpecificTuya") || forceTimeUpdate) {
-        globalStore.putValue(device, "nextLocalTimeUpdate", Date.now() + 3600 * 1000);
-
-        try {
-            const utcTime = Math.round(Date.now() / 1000);
-            const localTime = utcTime - new Date().getTimezoneOffset() * 60;
-            const endpoint = device.getEndpoint(1);
-
-            const payload = {
-                payloadSize: 8,
-                payload: [...convertDecimalValueTo4ByteHexArray(utcTime), ...convertDecimalValueTo4ByteHexArray(localTime)],
-            };
-            await endpoint.command("manuSpecificTuya", "mcuSyncTime", payload, {});
-        } catch {
-            // endpoint.command can throw an error which needs to
-            // be caught or the zigbee-herdsman may crash
-            // Debug message is handled in the zigbee-herdsman
-        }
-    }
-}
-
 // Return `seq` - transaction ID for handling concrete response
 async function sendDataPoints(entity: Zh.Endpoint | Zh.Group, dpValues: Tuya.DpValue[], cmd = "dataRequest", seq?: number) {
     if (seq === undefined) {
@@ -2112,6 +2079,7 @@ const tuyaModernExtend = {
         queryIntervalSeconds?: number;
         respondToMcuVersionResponse?: false;
         mcuVersionRequestOnConfigure?: true;
+        forceTimeUpdates?: true;
         timeStart?: "2000";
     }): ModernExtend {
         const {
@@ -2121,15 +2089,33 @@ const tuyaModernExtend = {
             bindBasicOnConfigure = false,
             queryIntervalSeconds = undefined,
             mcuVersionRequestOnConfigure = false,
+            // Allow force updating for device with a very bad clock
+            // Every hour when a message is received the time will be updated.
+            forceTimeUpdates = false,
             timeStart = "1970",
             respondToMcuVersionResponse = true,
         } = args;
 
         const fzConverter: Fz.Converter = {
-            type: ["commandMcuSyncTime", "commandMcuVersionResponse", "commandMcuGatewayConnectionStatus"],
+            type: [
+                "commandMcuSyncTime",
+                "commandMcuVersionResponse",
+                "commandMcuGatewayConnectionStatus",
+                "commandDataResponse",
+                "commandDataReport",
+                "commandActiveStatusReport",
+                "commandActiveStatusReportAlt",
+            ],
             cluster: "manuSpecificTuya",
             convert: (model, msg, publish, options, meta) => {
-                if (msg.type === "commandMcuSyncTime") {
+                let forceTimeUpdate = false;
+                if (forceTimeUpdates) {
+                    const nextLocalTimeUpdate = globalStore.getValue(msg.device, "nextLocalTimeUpdate");
+                    forceTimeUpdate = nextLocalTimeUpdate == null || nextLocalTimeUpdate < Date.now();
+                }
+
+                if (msg.type === "commandMcuSyncTime" || forceTimeUpdate) {
+                    globalStore.putValue(msg.device, "nextLocalTimeUpdate", Date.now() + 3600 * 1000);
                     const offset = timeStart === "2000" ? constants.OneJanuary2000 : 0;
                     const utcTime = Math.round((Date.now() - offset) / 1000);
                     const localTime = utcTime - new Date().getTimezoneOffset() * 60;

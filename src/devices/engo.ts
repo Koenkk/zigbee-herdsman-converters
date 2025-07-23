@@ -84,10 +84,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "EONE",
         vendor: "ENGO",
         description: "Smart thermostat",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetLocalTime,
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true})],
         options: [
             e.binary("expose_device_state", ea.SET, true, false).withDescription("Expose device power state as a separate property when enabled."),
         ],
