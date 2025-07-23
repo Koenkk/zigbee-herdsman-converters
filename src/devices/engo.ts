@@ -328,7 +328,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withLocalTemperature(ea.STATE)
                 .withLocalTemperatureCalibration(-3.5, 3.5, 0.5, ea.STATE_SET)
                 .withRunningState(["idle", "heat", "cool"], ea.STATE)
-                .withPreset(["Manual", "Program", "Frost"]),
+                .withPreset(["Manual", "Frost"]),
             e
                 .enum("control_algorithm", ea.STATE_SET, [
                     "TPI_UFH",
