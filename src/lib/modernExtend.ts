@@ -1,12 +1,11 @@
+import assert from "node:assert";
 import {Zcl} from "zigbee-herdsman";
 import type {ClusterDefinition} from "zigbee-herdsman/dist/zspec/zcl/definition/tstype";
-
-import assert from "node:assert";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import {logger} from "../lib/logger";
 import * as globalStore from "../lib/store";
-import {type Cover, Numeric, presets as e, access as ea, options as opt} from "./exposes";
+import {type Cover, presets as e, access as ea, Numeric, options as opt} from "./exposes";
 import {configure as lightConfigure} from "./light";
 import type {
     Access,
@@ -645,18 +644,18 @@ export function customTimeResponse(start: "1970_UTC" | "2000_LOCAL"): ModernExte
     // 2000_LOCAL: seconds since 1 January in the local time zone.
     // Disable the responses of zigbee-herdsman and respond here instead.
     const onEvent: OnEvent[] = [
-        async (type, data, device, options, state: KeyValue) => {
+        (type, data, device, options, state: KeyValue) => {
             if (!device.customReadResponse) {
                 device.customReadResponse = (frame, endpoint) => {
                     if (frame.isCluster("genTime")) {
                         const payload: KeyValue = {};
                         if (start === "1970_UTC") {
-                            const time = Math.round(new Date().getTime() / 1000);
+                            const time = Math.round(Date.now() / 1000);
                             payload.time = time;
                             payload.localTime = time - new Date().getTimezoneOffset() * 60;
                         } else if (start === "2000_LOCAL") {
                             const oneJanuary2000 = new Date("January 01, 2000 00:00:00 UTC+00:00").getTime();
-                            const secondsUTC = Math.round((new Date().getTime() - oneJanuary2000) / 1000);
+                            const secondsUTC = Math.round((Date.now() - oneJanuary2000) / 1000);
                             payload.time = secondsUTC - new Date().getTimezoneOffset() * 60;
                         }
                         endpoint.readResponse("genTime", frame.header.transactionSequenceNumber, payload).catch((e) => {
@@ -1078,18 +1077,15 @@ export function light(args: LightArgs = {}): ModernExtend {
     }
 
     if (colorTemp) {
-        // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
         lightExpose.forEach((e) => e.withColorTemp(colorTemp.range));
         toZigbee.push(tz.light_colortemp_move, tz.light_colortemp_step);
         if (colorTemp.startup) {
             toZigbee.push(tz.light_colortemp_startup);
-            // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
             lightExpose.forEach((e) => e.withColorTempStartup(colorTemp.range));
         }
     }
 
     if (argsColor) {
-        // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
         lightExpose.forEach((e) => e.withColor(argsColor.modes));
         toZigbee.push(tz.light_hue_saturation_move, tz.light_hue_saturation_step);
         if (argsColor.modes.includes("hs")) {
@@ -1104,7 +1100,6 @@ export function light(args: LightArgs = {}): ModernExtend {
     }
 
     if (levelConfig) {
-        // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
         lightExpose.forEach((e) => (levelConfig.features ? e.withLevelConfig(levelConfig.features) : e.withLevelConfig()));
         toZigbee.push(tz.level_config);
     }
@@ -1886,114 +1881,72 @@ function genericMeter(args: MeterArgs = {}) {
     };
 
     if (args.power === false) {
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.power;
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.seMetering.power;
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.power_phase_b;
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.power_phase_c;
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.dc_power;
     }
     if (args.voltage === false) {
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.voltage;
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.voltage_phase_b;
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.voltage_phase_c;
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.dc_voltage;
     }
     if (args.current === false) {
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.current;
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.current_phase_b;
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.current_phase_c;
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.current_neutral;
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.dc_current;
     }
     if (args.energy === false) {
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.seMetering.energy;
     }
     if (args.producedEnergy === false) {
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.seMetering.produced_energy;
     }
     if (args.powerFactor === false) {
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.power_factor;
     }
     if (args.acFrequency === false) {
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.ac_frequency;
     }
     if (args.threePhase === false) {
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.power_phase_b;
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.power_phase_c;
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.current_phase_b;
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.current_phase_c;
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.current_neutral;
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.voltage_phase_b;
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.voltage_phase_c;
     }
 
     if (args.electricalMeasurementType === "dc") {
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.power;
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.voltage;
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.current;
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.power_factor;
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.ac_frequency;
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.power_phase_b;
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.power_phase_c;
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.current_phase_b;
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.current_phase_c;
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.current_neutral;
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.voltage_phase_b;
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.voltage_phase_c;
     }
 
     if (args.electricalMeasurementType === "ac") {
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.dc_power;
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.dc_voltage;
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.dc_current;
     }
 
     if (args.status === false) {
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.seMetering.status;
     }
     if (args.extendedStatus === false) {
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.seMetering.extended_status;
     }
 
@@ -2017,10 +1970,8 @@ function genericMeter(args: MeterArgs = {}) {
             tz.powerfactor,
         ];
         if (useMeteringForPower) {
-            // biome-ignore lint/performance/noDelete: ignored using `--suppress`
             delete configureLookup.haElectricalMeasurement.power;
         } else {
-            // biome-ignore lint/performance/noDelete: ignored using `--suppress`
             delete configureLookup.seMetering.power;
         }
     } else if (args.cluster === "metering" && args.type === "electricity") {
@@ -2029,7 +1980,6 @@ function genericMeter(args: MeterArgs = {}) {
         if (args.producedEnergy !== false) exposes.push(e.produced_energy().withAccess(ea.STATE_GET));
         fromZigbee = [args.fzMetering ?? fz.metering];
         toZigbee = [tz.metering_power, tz.currentsummdelivered, tz.currentsummreceived];
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement;
     } else if (args.cluster === "metering" && args.type === "gas") {
         if (args.power !== false) exposes.push(e.numeric("power", ea.STATE_GET).withUnit("m³/h").withDescription("Instantaneous gas flow in m³/h"));
@@ -2052,7 +2002,6 @@ function genericMeter(args: MeterArgs = {}) {
             tz.metering_status,
             tz.metering_extended_status,
         ];
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement;
     } else if (args.cluster === "electrical") {
         if (args.power !== false) exposes.push(e.power().withAccess(ea.STATE_GET));
@@ -2062,7 +2011,6 @@ function genericMeter(args: MeterArgs = {}) {
         if (args.powerFactor !== false) exposes.push(e.power_factor().withAccess(ea.STATE_GET));
         fromZigbee = [args.fzElectricalMeasurement ?? fz.electrical_measurement];
         toZigbee = [tz.electrical_measurement_power, tz.acvoltage, tz.accurrent, tz.frequency, tz.powerfactor];
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.seMetering;
     }
 
@@ -2722,7 +2670,7 @@ export function quirkAddEndpointCluster(args: QuirkAddEndpointClusterArgs): Mode
     const {endpointID, inputClusters, outputClusters} = args;
 
     const configure: Configure[] = [
-        async (device, coordinatorEndpoint, definition) => {
+        (device, coordinatorEndpoint, definition) => {
             const endpoint = device.getEndpoint(endpointID);
 
             if (endpoint === undefined) {
@@ -2730,7 +2678,6 @@ export function quirkAddEndpointCluster(args: QuirkAddEndpointClusterArgs): Mode
                 return;
             }
 
-            // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
             inputClusters?.forEach((cluster: number | string) => {
                 const clusterID = isString(cluster) ? Zcl.Utils.getCluster(cluster, device.manufacturerID, device.customClusters).ID : cluster;
 
@@ -2740,7 +2687,6 @@ export function quirkAddEndpointCluster(args: QuirkAddEndpointClusterArgs): Mode
                 }
             });
 
-            // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
             outputClusters?.forEach((cluster: number | string) => {
                 const clusterID = isString(cluster) ? Zcl.Utils.getCluster(cluster, device.manufacturerID, device.customClusters).ID : cluster;
 

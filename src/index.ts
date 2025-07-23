@@ -4,7 +4,9 @@ import {Zcl} from "zigbee-herdsman";
 
 import * as fromZigbee from "./converters/fromZigbee";
 import * as toZigbee from "./converters/toZigbee";
+import * as exposesLib from "./lib/exposes";
 import {
+    access,
     Binary,
     Climate,
     Composite,
@@ -19,9 +21,7 @@ import {
     Numeric,
     Switch,
     Text,
-    access,
 } from "./lib/exposes";
-import * as exposesLib from "./lib/exposes";
 import {generateDefinition} from "./lib/generateDefinition";
 import {logger} from "./lib/logger";
 import {
@@ -78,9 +78,9 @@ export {
     fromZigbee,
     Tz,
 };
-export * as ota from "./lib/ota";
-export {setLogger} from "./lib/logger";
 export {getConfigureKey} from "./lib/configureKey";
+export {setLogger} from "./lib/logger";
+export * as ota from "./lib/ota";
 export {clear as clearGlobalStore} from "./lib/store";
 
 // key: zigbeeModel, value: array of definitions (most of the times 1)
@@ -381,7 +381,7 @@ function processExtensions(definition: DefinitionWithExtend): Definition {
         if (allExposesIsExposeOnly(allExposes)) {
             exposes = allExposes;
         } else {
-            exposes = (device: Zh.Device | undefined, options: KeyValue | undefined) => {
+            exposes = (device, options) => {
                 const result: Expose[] = [];
 
                 for (const item of allExposes) {
@@ -391,7 +391,8 @@ function processExtensions(definition: DefinitionWithExtend): Definition {
 
                             result.push(...deviceExposes);
                         } catch (error) {
-                            logger.error(`Failed to process exposes for '${device.ieeeAddr}' (${(error as Error).stack})`, NS);
+                            const ieeeAddr = utils.isDummyDevice(device) ? "dummy-device" : device.ieeeAddr;
+                            logger.error(`Failed to process exposes for '${ieeeAddr}' (${(error as Error).stack})`, NS);
                         }
                     } else {
                         result.push(item);
@@ -435,7 +436,7 @@ export function prepareDefinition(definition: DefinitionWithExtend): Definition 
     const optionKeys = finalDefinition.options.map((o) => o.name);
 
     // Add calibration/precision options based on expose
-    for (const expose of Array.isArray(finalDefinition.exposes) ? finalDefinition.exposes : finalDefinition.exposes(undefined, undefined)) {
+    for (const expose of Array.isArray(finalDefinition.exposes) ? finalDefinition.exposes : finalDefinition.exposes({isDummyDevice: true}, {})) {
         if (
             !optionKeys.includes(expose.name) &&
             utils.isNumericExpose(expose) &&
@@ -477,7 +478,7 @@ export function prepareDefinition(definition: DefinitionWithExtend): Definition 
 export function postProcessConvertedFromZigbeeMessage(definition: Definition, payload: KeyValue, options: KeyValue): void {
     // Apply calibration/precision options
     for (const [key, value] of Object.entries(payload)) {
-        const definitionExposes = Array.isArray(definition.exposes) ? definition.exposes : definition.exposes(undefined, undefined);
+        const definitionExposes = Array.isArray(definition.exposes) ? definition.exposes : definition.exposes({isDummyDevice: true}, {});
         const expose = definitionExposes.find((e) => e.property === key);
 
         if (expose?.name && expose.name in utils.calibrateAndPrecisionRoundOptionsDefaultPrecision && value !== "" && utils.isNumber(value)) {
@@ -627,7 +628,7 @@ function isFingerprintMatch(fingerprint: Fingerprint, device: Zh.Device): boolea
 
 // Can be used to handle events for devices which are not fully paired yet (no modelID).
 // Example usecase: https://github.com/Koenkk/zigbee2mqtt/issues/2399#issuecomment-570583325
-export async function onEvent(type: OnEventType, data: OnEventData, device: Zh.Device, meta: OnEventMeta): Promise<void> {
+export function onEvent(type: OnEventType, data: OnEventData, device: Zh.Device, meta: OnEventMeta): Promise<void> {
     // support Legrand security protocol
     // when pairing, a powered device will send a read frame to every device on the network
     // it expects at least one answer. The payload contains the number of seconds
@@ -656,7 +657,7 @@ export async function onEvent(type: OnEventType, data: OnEventData, device: Zh.D
         device.customReadResponse = (frame, endpoint) => {
             if (frame.isCluster("genTime")) {
                 const oneJanuary2000 = new Date("January 01, 2000 00:00:00 UTC+00:00").getTime();
-                const secondsUTC = Math.round((new Date().getTime() - oneJanuary2000) / 1000);
+                const secondsUTC = Math.round((Date.now() - oneJanuary2000) / 1000);
                 const secondsLocal = secondsUTC - new Date().getTimezoneOffset() * 60;
 
                 endpoint.readResponse("genTime", frame.header.transactionSequenceNumber, {time: secondsLocal}).catch((e) => {
@@ -669,4 +670,6 @@ export async function onEvent(type: OnEventType, data: OnEventData, device: Zh.D
             return false;
         };
     }
+
+    return Promise.resolve();
 }

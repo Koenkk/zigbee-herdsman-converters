@@ -64,7 +64,7 @@ const tzLocal = {
                 if (attempts > 0) {
                     try {
                         await entity.read("genBasic", ["locationDesc"]);
-                    } catch (error) {
+                    } catch {
                         /* Do nothing */
                     }
                     setTimeout(() => retryRead(attempts - 1), 10000);

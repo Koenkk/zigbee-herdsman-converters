@@ -8,6 +8,7 @@ import type {
     BatteryNonLinearVoltage,
     Configure,
     Definition,
+    DummyDevice,
     Expose,
     Fz,
     KeyValue,
@@ -543,11 +544,9 @@ export function normalizeCelsiusVersionOfFahrenheit(value: number) {
 export function noOccupancySince(endpoint: Zh.Endpoint, options: KeyValueAny, publish: Publish, action: "start" | "stop") {
     if (options?.no_occupancy_since) {
         if (action === "start") {
-            // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
             globalStore.getValue(endpoint, "no_occupancy_since_timers", []).forEach((t: ReturnType<typeof setInterval>) => clearTimeout(t));
             globalStore.putValue(endpoint, "no_occupancy_since_timers", []);
 
-            // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
             options.no_occupancy_since.forEach((since: number) => {
                 const timer = setTimeout(() => {
                     publish({no_occupancy_since: since});
@@ -555,7 +554,6 @@ export function noOccupancySince(endpoint: Zh.Endpoint, options: KeyValueAny, pu
                 globalStore.getValue(endpoint, "no_occupancy_since_timers").push(timer);
             });
         } else if (action === "stop") {
-            // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
             globalStore.getValue(endpoint, "no_occupancy_since_timers", []).forEach((t: ReturnType<typeof setInterval>) => clearTimeout(t));
             globalStore.putValue(endpoint, "no_occupancy_since_timers", []);
         }
@@ -581,33 +579,32 @@ export function printNumbersAsHexSequence(numbers: number[], hexLength: number):
     return numbers.map((v) => v.toString(16).padStart(hexLength, "0")).join(":");
 }
 
-// biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
+// biome-ignore lint/suspicious/noExplicitAny: generic object
 export function assertObject<T extends Record<string, any>>(value: unknown, property?: string): asserts value is T {
-    const isObject = typeof value === "object" && !Array.isArray(value) && value !== null;
-    if (!isObject) {
+    if (typeof value !== "object" || value === null || Array.isArray(value)) {
         throw new Error(`${property} is not a object, got ${typeof value} (${JSON.stringify(value)})`);
     }
 }
 
 export function assertArray(value: unknown, property?: string): asserts value is Array<unknown> {
-    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
-    property = property ? `'${property}'` : "Value";
-    if (!Array.isArray(value)) throw new Error(`${property} is not an array, got ${typeof value} (${value.toString()})`);
+    if (!Array.isArray(value)) {
+        throw new Error(`${property ? `'${property}'` : "Value"} is not an array, got ${typeof value} (${value.toString()})`);
+    }
 }
 
 export function assertString(value: unknown, property?: string): asserts value is string {
-    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
-    property = property ? `'${property}'` : "Value";
-    if (typeof value !== "string") throw new Error(`${property} is not a string, got ${typeof value} (${value.toString()})`);
+    if (typeof value !== "string") {
+        throw new Error(`${property ? `'${property}'` : "Value"} is not a string, got ${typeof value} (${value.toString()})`);
+    }
 }
 
 export function isNumber(value: unknown): value is number {
     return typeof value === "number";
 }
 
-// biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
+// biome-ignore lint/suspicious/noExplicitAny: generic object
 export function isObject(value: unknown): value is {[s: string]: any} {
-    return typeof value === "object" && !Array.isArray(value);
+    return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 export function isString(value: unknown): value is string {
@@ -619,18 +616,16 @@ export function isBoolean(value: unknown): value is boolean {
 }
 
 export function assertNumber(value: unknown, property?: string): asserts value is number {
-    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
-    property = property ? `'${property}'` : "Value";
-    if (typeof value !== "number" || Number.isNaN(value)) throw new Error(`${property} is not a number, got ${typeof value} (${value?.toString()})`);
+    if (typeof value !== "number" || Number.isNaN(value)) {
+        throw new Error(`${property ? `'${property}'` : "Value"} is not a number, got ${typeof value} (${value?.toString()})`);
+    }
 }
 
 export function toNumber(value: unknown, property?: string): number {
-    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
-    property = property ? `'${property}'` : "Value";
     // @ts-expect-error ignore
     const result = Number.parseFloat(value);
     if (Number.isNaN(result)) {
-        throw new Error(`${property} is not a number, got ${typeof value} (${value.toString()})`);
+        throw new Error(`${property ? `'${property}'` : "Value"} is not a number, got ${typeof value} (${value.toString()})`);
     }
     return result;
 }
@@ -705,6 +700,10 @@ export function isEndpoint(obj: Zh.Endpoint | Zh.Group | Zh.Device): obj is Zh.E
 
 export function isDevice(obj: Zh.Endpoint | Zh.Group | Zh.Device): obj is Zh.Device {
     return obj.constructor.name.toLowerCase() === "device";
+}
+
+export function isDummyDevice(obj: Zh.Device | DummyDevice): obj is DummyDevice {
+    return "isDummyDevice" in obj;
 }
 
 export function isGroup(obj: Zh.Endpoint | Zh.Group | Zh.Device): obj is Zh.Group {

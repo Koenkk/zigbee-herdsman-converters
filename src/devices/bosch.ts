@@ -1,4 +1,4 @@
-import {ZSpec, Zcl} from "zigbee-herdsman";
+import {Zcl, ZSpec} from "zigbee-herdsman";
 
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
@@ -368,7 +368,6 @@ const boschExtend = {
                             battery_defect: (zoneStatus & (1 << 9)) > 0,
                             action: lookup[(zoneStatus >> 11) & 3],
                         };
-                        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
                         if (result.action === "none") delete result.action;
                         return result;
                     }
@@ -1047,7 +1046,7 @@ const fzLocal = {
         cluster: "boschSpecific",
         type: "raw",
         options: [e.text("led_response", ea.ALL).withLabel("LED config (confirmation response)").withDescription(labelConfirmation)],
-        convert: async (model, msg, publish, options, meta) => {
+        convert: (model, msg, publish, options, meta) => {
             const sequenceNumber = msg.data.readUInt8(3);
             const buttonId = msg.data.readUInt8(4);
             const longPress = msg.data.readUInt8(5);
@@ -1086,7 +1085,7 @@ const fzLocal = {
     bhius_config: {
         cluster: "boschSpecific",
         type: ["attributeReport", "readResponse"],
-        convert: async (model, msg, publish, options, meta) => {
+        convert: (model, msg, publish, options, meta) => {
             const result: {[key: number | string]: string} = {};
             for (const id of Object.values(buttonMap)) {
                 if (msg.data[id] !== undefined) {
@@ -1820,6 +1819,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Light/shutter control unit II",
         extend: [
             m.deviceEndpoints({endpoints: {left: 2, right: 3}}),
+            m.electricityMeter({voltage: false, current: false}),
             m.deviceAddCustomCluster("boschSpecific", {
                 ID: 0xfca0,
                 manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
@@ -1924,7 +1924,7 @@ export const definitions: DefinitionWithExtend[] = [
                     .withValueStep(0.1),
             ];
 
-            if (device) {
+            if (!utils.isDummyDevice(device)) {
                 const deviceModeKey = device.getEndpoint(1).getClusterAttributeValue("boschSpecific", "deviceMode");
                 const deviceMode = Object.keys(stateDeviceMode).find((key) => stateDeviceMode[key] === deviceModeKey);
 

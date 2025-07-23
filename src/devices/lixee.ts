@@ -1768,7 +1768,7 @@ export const definitions: DefinitionWithExtend[] = [
             // docs generation
             // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
             let exposes;
-            if (device == null && options == null) {
+            if (utils.isDummyDevice(device)) {
                 exposes = exposedData
                     .map((e) => e.exposes)
                     .filter(
@@ -1833,7 +1833,6 @@ export const definitions: DefinitionWithExtend[] = [
                 (e) => !suscribeNew.some((r) => e.cluster.name === r.cluster && e.attribute.name === r.att),
             );
             // Unsuscribe reports that doesn't correspond with the current config
-            // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
             (
                 await Promise.allSettled(
                     unsuscribe.map((e) =>
@@ -1869,7 +1868,6 @@ export const definitions: DefinitionWithExtend[] = [
                     }),
                 );
             }
-            // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
             (await Promise.allSettled(configReportings))
                 .filter((e) => e.status === "rejected")
                 .forEach((e) => {
@@ -1877,7 +1875,7 @@ export const definitions: DefinitionWithExtend[] = [
                 });
         },
         ota: {manufacturerName: "LiXee"}, // TODO: not sure if it's set properly in device
-        onEvent: async (type, data, device, options) => {
+        onEvent: (type, data, device, options) => {
             const endpoint = device.getEndpoint(1);
             if (type === "start") {
                 endpoint.read("liXeePrivate", ["linkyMode", "currentTarif"], {manufacturerCode: null}).catch((e) => {
@@ -1901,7 +1899,7 @@ export const definitions: DefinitionWithExtend[] = [
                             );
 
                             for (const key in clustersDef) {
-                                if (Object.hasOwnProperty.call(clustersDef, key)) {
+                                if (Object.hasOwn(clustersDef, key)) {
                                     // @ts-expect-error ignore
                                     const cluster = clustersDef[key];
                                     const targ = currentExposes.filter((e) => e.cluster === cluster).map((e) => e.att);
