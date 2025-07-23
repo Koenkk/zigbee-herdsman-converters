@@ -13,7 +13,7 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: [{modelID: "TS0601", manufacturerName: "_TZE284_ajhu0zqb"}],
         model: "SZW08",
         vendor: "Lincukoo",
-        description: "Smart Water Leakage/Lack Alarm Sensor",
+        description: "Smart water leakage/lack alarm sensor",
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         onEvent: tuya.onEventSetTime, // Add this if you are getting no converter for 'commandMcuSyncTime'
