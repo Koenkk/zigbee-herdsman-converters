@@ -323,7 +323,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.light({
                 colorTemp: {range: [158, 500]},
                 configureReporting: true,
-                levelReportingConfig: { min: 1, max: 3600, change: 1 },
+                levelReportingConfig: {min: 1, max: 3600, change: 1},
                 levelConfig: {
                     features: ["current_level_startup"],
                 },
@@ -341,7 +341,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.light({
                 configureReporting: true,
-                levelReportingConfig: { min: 1, max: 3600, change: 1 },
+                levelReportingConfig: {min: 1, max: 3600, change: 1},
                 levelConfig: {
                     features: ["current_level_startup"],
                 },
@@ -360,7 +360,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.light({
                 color: {modes: ["xy", "hs"], enhancedHue: true},
                 configureReporting: true,
-                levelReportingConfig: { min: 1, max: 3600, change: 1 },
+                levelReportingConfig: {min: 1, max: 3600, change: 1},
                 levelConfig: {
                     features: ["current_level_startup"],
                 },
@@ -380,7 +380,7 @@ export const definitions: DefinitionWithExtend[] = [
                 colorTemp: {range: [158, 500]},
                 color: {modes: ["xy", "hs"], enhancedHue: true},
                 configureReporting: true,
-                levelReportingConfig: { min: 1, max: 3600, change: 1 },
+                levelReportingConfig: {min: 1, max: 3600, change: 1},
                 levelConfig: {
                     features: ["current_level_startup"],
                 },
@@ -400,7 +400,7 @@ export const definitions: DefinitionWithExtend[] = [
                 colorTemp: {range: [158, 500]},
                 color: {modes: ["xy", "hs"], enhancedHue: true},
                 configureReporting: true,
-                levelReportingConfig: { min: 1, max: 3600, change: 1 },
+                levelReportingConfig: {min: 1, max: 3600, change: 1},
                 levelConfig: {
                     features: ["current_level_startup"],
                 },
