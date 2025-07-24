@@ -2098,7 +2098,7 @@ export const ias_smoke_alarm_1_develco: Fz.Converter = {
     },
 };
 export const ts0201_temperature_humidity_alarm: Fz.Converter = {
-    cluster: "manuSpecificTuya_2",
+    cluster: "manuSpecificTuya2",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
         const result: KeyValueAny = {};

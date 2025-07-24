@@ -3676,7 +3676,7 @@ export const ts0201_temperature_humidity_alarm: Tz.Converter = {
             case "alarm_temperature_min":
             case "alarm_humidity_max":
             case "alarm_humidity_min": {
-                // await entity.write('manuSpecificTuya_2', {[key]: value});
+                // await entity.write('manuSpecificTuya2', {[key]: value});
                 // instead write as custom attribute to override incorrect herdsman dataType from uint16 to int16
                 // https://github.com/Koenkk/zigbee-herdsman/blob/v0.13.191/src/zcl/definition/cluster.ts#L4235
                 const keyToAttributeLookup = {
@@ -3686,7 +3686,7 @@ export const ts0201_temperature_humidity_alarm: Tz.Converter = {
                     alarm_humidity_min: 0xd00e,
                 };
                 const payload = {[keyToAttributeLookup[key]]: {value: value, type: Zcl.DataType.INT16}};
-                await entity.write("manuSpecificTuya_2", payload);
+                await entity.write("manuSpecificTuya2", payload);
                 break;
             }
             default: // Unknown key
