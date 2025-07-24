@@ -14022,7 +14022,7 @@ export const definitions: DefinitionWithExtend[] = [
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
             const endpoint = device.endpoints[0];
-            await endpoint.write("genBasic", {0xffde: {value: 0x13, type: Zcl.DataType.UINT8}});
+            await endpoint.write("genBasic", {65502: {value: 0x13, type: Zcl.DataType.UINT8}});
         },
         exposes: [
             e.numeric("tds", ea.STATE).withUnit("ppm").withDescription("Total Dissolved Solids"),
