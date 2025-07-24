@@ -14019,7 +14019,11 @@ export const definitions: DefinitionWithExtend[] = [
             // https://github.com/Koenkk/zigbee2mqtt/issues/23946#issuecomment-2941182834
             queryIntervalSeconds: 20 * 60,
         }),
-        configure: tuya.configureMagicPacket,
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+            const endpoint = device.endpoints[0];
+            await endpoint.write("genBasic", {0xffde: {value: 0x13, type: Zcl.DataType.UINT8}});
+        },
         exposes: [
             e.numeric("tds", ea.STATE).withUnit("ppm").withDescription("Total Dissolved Solids"),
             e.temperature(),
