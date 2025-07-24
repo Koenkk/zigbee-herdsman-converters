@@ -195,11 +195,15 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.light({configureReporting: true, powerOnBehavior: false})],
     },
     {
-        fingerprint: [{modelID: "Dimmer-Switch-ZB3.0", manufacturerID: 4098}],
+        fingerprint: [
+            {modelID: "Dimmer-Switch-ZB3.0", manufacturerID: 4098},
+            {modelID: "C210", manufacturerName: "Candeo"},
+            {modelID: "Dimmer-Switch-ZB3.0", manufacturerName: "Smart Dim"},
+        ],
         model: "C210",
         vendor: "Candeo",
         description: "Zigbee dimming smart plug",
-        extend: [m.light({configureReporting: true})],
+        extend: [m.light({configureReporting: true, levelConfig: {features: ["current_level_startup"]}, powerOnBehavior: true})],
     },
     {
         fingerprint: [{modelID: "C204", manufacturerName: "Candeo"}],
@@ -319,10 +323,12 @@ export const definitions: DefinitionWithExtend[] = [
             m.light({
                 colorTemp: {range: [158, 500]},
                 configureReporting: true,
+                levelReportingConfig: { min: 1, max: 3600, change: 1 },
                 levelConfig: {
                     features: ["current_level_startup"],
                 },
                 powerOnBehavior: true,
+                effect: false,
             }),
             m.identify(),
         ],
@@ -335,10 +341,12 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.light({
                 configureReporting: true,
+                levelReportingConfig: { min: 1, max: 3600, change: 1 },
                 levelConfig: {
                     features: ["current_level_startup"],
                 },
                 powerOnBehavior: true,
+                effect: false,
             }),
             m.identify(),
         ],
@@ -352,10 +360,12 @@ export const definitions: DefinitionWithExtend[] = [
             m.light({
                 color: {modes: ["xy", "hs"], enhancedHue: true},
                 configureReporting: true,
+                levelReportingConfig: { min: 1, max: 3600, change: 1 },
                 levelConfig: {
                     features: ["current_level_startup"],
                 },
                 powerOnBehavior: true,
+                effect: false,
             }),
             m.identify(),
         ],
@@ -370,10 +380,12 @@ export const definitions: DefinitionWithExtend[] = [
                 colorTemp: {range: [158, 500]},
                 color: {modes: ["xy", "hs"], enhancedHue: true},
                 configureReporting: true,
+                levelReportingConfig: { min: 1, max: 3600, change: 1 },
                 levelConfig: {
                     features: ["current_level_startup"],
                 },
                 powerOnBehavior: true,
+                effect: false,
             }),
             m.identify(),
         ],
@@ -388,10 +400,12 @@ export const definitions: DefinitionWithExtend[] = [
                 colorTemp: {range: [158, 500]},
                 color: {modes: ["xy", "hs"], enhancedHue: true},
                 configureReporting: true,
+                levelReportingConfig: { min: 1, max: 3600, change: 1 },
                 levelConfig: {
                     features: ["current_level_startup"],
                 },
                 powerOnBehavior: true,
+                effect: false,
             }),
             m.identify(),
         ],
