@@ -4126,7 +4126,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["929004297401"],
         model: "929004297401",
         vendor: "Philips",
-        description: "Hue Devote slim ceiling light",
+        description: "Hue Devote Slim ceiling light",
         extend: [philips.m.light({"colorTemp":{"range":[153,500]},"color":{"modes":["xy","hs"],"enhancedHue":true}})],
     },
 ];
