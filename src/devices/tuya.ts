@@ -14022,6 +14022,8 @@ export const definitions: DefinitionWithExtend[] = [
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
             const endpoint = device.endpoints[0];
+            // Needed to make the device report reliable
+            // https://github.com/Koenkk/zigbee2mqtt/issues/18704#issuecomment-3109695384
             await endpoint.write("genBasic", {65502: {value: 0x13, type: Zcl.DataType.UINT8}});
         },
         exposes: [
