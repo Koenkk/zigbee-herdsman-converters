@@ -1,7 +1,6 @@
+import assert from "node:assert";
 import {gte as semverGte, valid as semverValid} from "semver";
-
 import {Zcl} from "zigbee-herdsman";
-
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as constants from "../lib/constants";
@@ -348,6 +347,7 @@ const ubisys = {
                 const cluster = Zcl.Utils.getCluster("manuSpecificUbisysDeviceSetup", null, meta.device.customClusters);
                 const attributeInputConfigurations = cluster.getAttribute("inputConfigurations");
                 const attributeInputActions = cluster.getAttribute("inputActions");
+                assert(attributeInputConfigurations && attributeInputActions);
 
                 // ubisys switched to writeStructure a while ago, change log only goes back to 1.9.x
                 // and it happened before that but to be safe we will only use writeStrucutre on 1.9.0 and up
