@@ -642,14 +642,20 @@ export function commandsOnOff(args: CommandsOnOffArgs = {}): ModernExtend {
     return result;
 }
 
-export function poll(args: {key: string; defaultIntervalSeconds: number; poll: (device: Zh.Device) => void; option?: exposes.Numeric}): ModernExtend {
+export function poll(args: {
+    key: string;
+    defaultIntervalSeconds: number;
+    poll: (device: Zh.Device) => void;
+    option?: exposes.Numeric;
+    optionKey?: string;
+}): ModernExtend {
     const onEvent: OnEvent.Handler[] = [
         (event) => {
             if (event.type === "start") {
                 let seconds = args.defaultIntervalSeconds;
                 if (args.option) {
-                    const optionsKey = `${args.key}_poll_interval`;
-                    seconds = toNumber(event.data.options[optionsKey] ?? args.defaultIntervalSeconds, optionsKey);
+                    const optionKey = args.optionKey ?? `${args.key}_poll_interval`;
+                    seconds = toNumber(event.data.options[optionKey] ?? args.defaultIntervalSeconds, optionKey);
                 }
 
                 if (seconds <= 0) {

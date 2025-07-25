@@ -4,8 +4,8 @@ import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as constants from "../lib/constants";
 import * as exposes from "../lib/exposes";
+import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import * as globalStore from "../lib/store";
 import type {DefinitionWithExtend, Zh} from "../lib/types";
 import * as utils from "../lib/utils";
 
@@ -345,26 +345,19 @@ export const definitions: DefinitionWithExtend[] = [
             // So, we need to write time during configure (same as for HEIMAN devices)
             await setTime(device);
         },
-        onEvent: async (type, data, device) => {
-            if (type === "stop") {
-                clearInterval(globalStore.getValue(device, "interval"));
-                globalStore.clearValue(device, "interval");
-            } else if (["deviceAnnounce", "start"].includes(type)) {
-                // The device might have lost its time, so reset it. It would be more proper to check if
-                // the danfossSystemStatusCode has bit 10 of the SW error code attribute (0x4000) in the
-                // diagnostics cluster (0x0b05) is set to indicate time lost, but setting it once too many
-                // times shouldn't hurt.
-                await setTime(device);
-
-                if (!globalStore.hasValue(device, "interval")) {
-                    // Set up a timer to refresh the time once a week to mitigate timer drift, as described
-                    // in the Danfoss documentation. Be careful to not bump this timer past the signed 32-bit
-                    // integer limit of setInterval, which is roughly 24.8 days.
-                    const interval = setInterval(async () => await setTime(device), 10080000);
-                    globalStore.putValue(device, "interval", interval);
-                }
-            }
-        },
+        extend: [
+            m.poll({
+                key: "time_sync",
+                defaultIntervalSeconds: 1000 * 60 * 60 * 24,
+                poll: async (device) => {
+                    // The device might have lost its time, so reset it. It would be more proper to check if
+                    // the danfossSystemStatusCode has bit 10 of the SW error code attribute (0x4000) in the
+                    // diagnostics cluster (0x0b05) is set to indicate time lost, but setting it once too many
+                    // times shouldn't hurt.
+                    await setTime(device);
+                },
+            }),
+        ],
     },
     {
         fingerprint: [

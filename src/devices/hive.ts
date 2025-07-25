@@ -3,7 +3,6 @@ import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import * as globalStore from "../lib/store";
 import type {DefinitionWithExtend} from "../lib/types";
 
 const e = exposes.presets;
@@ -722,24 +721,14 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Signal booster",
         toZigbee: [],
         fromZigbee: [fz.linkquality_from_basic],
-        onEvent: (type, data, device) => {
-            if (type === "stop") {
-                clearInterval(globalStore.getValue(device, "interval"));
-                globalStore.clearValue(device, "interval");
-            } else if (!globalStore.hasValue(device, "interval")) {
-                const interval = setInterval(
-                    async () => {
-                        try {
-                            await device.endpoints[0].read("genBasic", ["zclVersion"]);
-                        } catch {
-                            // Do nothing
-                        }
-                    },
-                    1000 * 60 * 30,
-                ); // Every 30 minutes
-                globalStore.putValue(device, "interval", interval);
-            }
-        },
+        extend: [
+            m.poll({
+                key: "interval",
+                defaultIntervalSeconds: 1000 * 60 * 30,
+                // For linkquality updates
+                poll: async (device) => await device.endpoints[0].read("genBasic", ["zclVersion"]),
+            }),
+        ],
         exposes: [],
     },
     {

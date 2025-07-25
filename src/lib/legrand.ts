@@ -219,6 +219,17 @@ export const fzLegrand = {
             return payload;
         },
     } satisfies Fz.Converter,
+    stop_poll_on_checkin: {
+        cluster: "genPollCtrl",
+        type: ["commandCheckin"],
+        convert: (model, msg, publish, options, meta) => {
+            // TODO current solution is a work around, it would be cleaner to answer to the request
+            const endpoint = msg.device.getEndpoint(1);
+            endpoint
+                .command("genPollCtrl", "fastPollStop", {}, legrandOptions)
+                .catch((error) => logger.debug(`Failed to stop poll on '${msg.device.ieeeAddr}' (${error})`, NS));
+        },
+    } satisfies Fz.Converter,
     command_cover: {
         cluster: "closuresWindowCovering",
         type: ["attributeReport", "readResponse"],

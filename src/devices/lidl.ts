@@ -389,13 +389,12 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Parkside smart watering timer",
         fromZigbee: [fz.ignore_basic_report, fz.ignore_tuya_set_time, fz.ignore_onoff_report],
         extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true})],
-        onEvent: async (type, data, device) => {
-            // @ts-expect-error ignore
-            if (type === "deviceInterview" && data.status === "successful") {
+        onEvent: async (event) => {
+            if (event.type === "deviceInterview" && event.data.status === "successful") {
                 // dirty hack: reset frost guard & frost alarm to get the initial state
                 // wait 10 seconds to ensure configure is done
                 await utils.sleep(10000);
-                const endpoint = device.getEndpoint(1);
+                const endpoint = event.data.device.getEndpoint(1);
                 try {
                     await tuya.sendDataPointBool(endpoint, 109, false);
                     await tuya.sendDataPointBool(endpoint, 108, false);
