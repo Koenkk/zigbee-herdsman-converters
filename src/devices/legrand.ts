@@ -512,15 +512,15 @@ export const definitions: DefinitionWithExtend[] = [
             e.binary("power_alarm_active", ea.STATE, true, false),
             e.binary("power_alarm", ea.ALL, true, false).withDescription("Enable/disable the power alarm"),
         ],
-        onEvent: async (type, data, device, options, state) => {
+        onEvent: async (event) => {
             /**
              * The DIN power consumption module loses the configure reporting
              * after device restart/powerloss.
              *
              * We reconfigure the reporting at deviceAnnounce.
              */
-            if (type === "deviceAnnounce") {
-                for (const endpoint of device.endpoints) {
+            if (event.type === "deviceAnnounce") {
+                for (const endpoint of event.data.device.endpoints) {
                     for (const c of endpoint.configuredReportings) {
                         await endpoint.configureReporting(c.cluster.name, [
                             {

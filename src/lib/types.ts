@@ -218,8 +218,12 @@ export namespace OnEvent {
     export type Event =
         | {type: "stop"; data: {ieeeAddr: string}}
         | {
-              type: "deviceNetworkAddressChanged" | "deviceAnnounce" | "deviceInterview" | "deviceJoined" | "start" | "deviceOptionsChanged";
-              data: {device: Zh.Device; deviceExposesChanged: () => void; options: KeyValue};
+              type: "deviceNetworkAddressChanged" | "deviceAnnounce" | "deviceInterview" | "deviceJoined" | "start";
+              data: {device: Zh.Device; deviceExposesChanged: () => void; options: KeyValue; state: KeyValue};
+          }
+        | {
+              type: "deviceOptionsChanged";
+              data: {device: Zh.Device; deviceExposesChanged: () => void; options: KeyValue; state: KeyValue; from: KeyValue; to: KeyValue};
           };
 
     export type Handler = (event: Event) => Promise<void> | void;

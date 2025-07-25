@@ -3,6 +3,7 @@ import {Zcl} from "zigbee-herdsman";
 import type {ClusterDefinition} from "zigbee-herdsman/dist/zspec/zcl/definition/tstype";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
+import * as constants from "../lib/constants";
 import {logger} from "../lib/logger";
 import * as globalStore from "../lib/store";
 import type * as exposes from "./exposes";
@@ -641,12 +642,16 @@ export function commandsOnOff(args: CommandsOnOffArgs = {}): ModernExtend {
     return result;
 }
 
-export function poll(args: {key: string; defaultIntervalSeconds: number; poll: (device: Zh.Device) => void; option: exposes.Numeric}): ModernExtend {
+export function poll(args: {key: string; defaultIntervalSeconds: number; poll: (device: Zh.Device) => void; option?: exposes.Numeric}): ModernExtend {
     const onEvent: OnEvent.Handler[] = [
         (event) => {
             if (event.type === "start") {
-                const optionsKey = `${args.key}_poll_interval`;
-                const seconds = toNumber(event.data.options[optionsKey] ?? args.defaultIntervalSeconds, optionsKey);
+                let seconds = args.defaultIntervalSeconds;
+                if (args.option) {
+                    const optionsKey = `${args.key}_poll_interval`;
+                    seconds = toNumber(event.data.options[optionsKey] ?? args.defaultIntervalSeconds, optionsKey);
+                }
+
                 if (seconds <= 0) {
                     logger.debug(`Not polling '${args.key}' for '${event.data.device.ieeeAddr}' since poll interval is <= 0 (got ${seconds})`, NS);
                 } else {
@@ -671,7 +676,21 @@ export function poll(args: {key: string; defaultIntervalSeconds: number; poll: (
         },
     ];
 
-    return {onEvent, options: [args.option], isModernExtend: true};
+    return {onEvent, options: args.option ? [args.option] : [], isModernExtend: true};
+}
+
+export function writeTimeDaily(args: {endpointId: number}): ModernExtend {
+    return poll({
+        key: "time",
+        defaultIntervalSeconds: 1000 * 60 * 60 * 24,
+        poll: (device) => {
+            const time = Math.round((Date.now() - constants.OneJanuary2000) / 1000 + new Date().getTimezoneOffset() * -1 * 60);
+            device
+                .getEndpoint(args.endpointId)
+                .write("genTime", {time: time}, {sendPolicy: "queue"})
+                .catch((error) => logger.error(`Failed to write time to '${device.ieeeAddr}' (${error})`, NS));
+        },
+    });
 }
 
 export function iasArmCommandDefaultResponse(): ModernExtend {
@@ -1394,9 +1413,10 @@ export function lightingBallast(): ModernExtend {
 export interface LockArgs {
     pinCodeCount: number;
     endpointNames?: string[];
+    readPinCodeOnProgrammingEvent?: boolean;
 }
 export function lock(args: LockArgs): ModernExtend {
-    const {endpointNames = undefined, pinCodeCount} = args;
+    const {endpointNames = undefined, pinCodeCount, readPinCodeOnProgrammingEvent = false} = args;
 
     const fromZigbee = [fz.lock, fz.lock_operation_event, fz.lock_programming_event, fz.lock_pin_code_response, fz.lock_user_status_response];
     const toZigbee = [{...tz.lock, endpoints: endpointNames}, tz.pincode_lock, tz.lock_userstatus, tz.lock_auto_relock_time, tz.lock_sound_volume];
@@ -1416,6 +1436,9 @@ export function lock(args: LockArgs): ModernExtend {
     const result: ModernExtend = {fromZigbee, toZigbee, exposes, configure, meta, isModernExtend: true};
     if (endpointNames) {
         result.exposes = flatten(exposes.map((expose) => endpointNames.map((endpoint) => expose.clone().withEndpoint(endpoint))));
+    }
+    if (readPinCodeOnProgrammingEvent) {
+        fromZigbee.push(fz.lock_programming_event_read_pincode);
     }
     return result;
 }

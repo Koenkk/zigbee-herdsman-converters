@@ -35,9 +35,6 @@ import {
     type Fingerprint,
     type KeyValue,
     type OnEvent,
-    type OnEventData,
-    type OnEventMeta,
-    OnEventType,
     Option,
     Tz,
     type Zh,
@@ -58,7 +55,6 @@ export {
     ExternalDefinitionWithExtend,
     access,
     Definition,
-    OnEventType,
     Feature,
     Expose,
     Option,
@@ -634,7 +630,10 @@ function isFingerprintMatch(fingerprint: Fingerprint, device: Zh.Device): boolea
 
 // Can be used to handle events for devices which are not fully paired yet (no modelID).
 // Example usecase: https://github.com/Koenkk/zigbee2mqtt/issues/2399#issuecomment-570583325
-export function onEvent(type: OnEventType, data: OnEventData, device: Zh.Device, meta: OnEventMeta): Promise<void> {
+export function onEvent(event: OnEvent.Event): Promise<void> {
+    if (event.type === "stop") return;
+    const {device} = event.data;
+
     // support Legrand security protocol
     // when pairing, a powered device will send a read frame to every device on the network
     // it expects at least one answer. The payload contains the number of seconds

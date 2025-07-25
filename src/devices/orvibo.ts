@@ -210,8 +210,8 @@ const orviboSwitchRewiring = (args: OrviboSwitchRewiringArgs): ModernExtend => {
                 return;
             }
             const device = event.data.device;
-            const endpointsOptionsFrom = (data as KeyValueAny)?.from?.switch_actions ?? {};
-            const endpointsOptionsTo = (data as KeyValueAny)?.to?.switch_actions ?? {};
+            const endpointsOptionsFrom = event.data.from.switch_actions as KeyValueAny;
+            const endpointsOptionsTo = event.data.to.switch_actions as KeyValueAny;
             if (!endpointsOptionsTo) {
                 return;
             }

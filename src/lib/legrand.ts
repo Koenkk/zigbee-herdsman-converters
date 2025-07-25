@@ -110,9 +110,9 @@ export const eLegrand = {
     },
 };
 
-export const readInitialBatteryState: OnEvent = async (type, data, device, options) => {
-    if (["deviceAnnounce"].includes(type)) {
-        const endpoint = device.getEndpoint(1);
+export const readInitialBatteryState: OnEvent.Handler = async (event) => {
+    if (event.type === "deviceAnnounce") {
+        const endpoint = event.data.device.getEndpoint(1);
         await endpoint.read("genPowerCfg", ["batteryVoltage"], legrandOptions);
     }
 };
