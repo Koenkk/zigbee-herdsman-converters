@@ -4122,4 +4122,11 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Hue Lightguide E26/E27 Triangle 500lm",
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
+    {
+        zigbeeModel: ["929004297401"],
+        model: "929004297401",
+        vendor: "Philips",
+        description: "Hue Devote slim ceiling light",
+        extend: [philips.m.light({"colorTemp":{"range":[153,500]},"color":{"modes":["xy","hs"],"enhancedHue":true}})],
+    },
 ];
