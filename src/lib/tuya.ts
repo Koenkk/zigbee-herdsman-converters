@@ -1984,11 +1984,13 @@ export interface TuyaDPLightArgs {
 }
 
 const tuyaModernExtend = {
-    electricityMeasurementPoll(args?: {
-        electricalMeasurement?: false | ((device: Zh.Device) => boolean);
-        metering?: true | ((device: Zh.Device) => boolean);
-        optionDescription?: string;
-    }): ModernExtend {
+    electricityMeasurementPoll(
+        args: {
+            electricalMeasurement?: false | ((device: Zh.Device) => boolean);
+            metering?: true | ((device: Zh.Device) => boolean);
+            optionDescription?: string;
+        } = {},
+    ): ModernExtend {
         const {electricalMeasurement = true, metering = false, optionDescription = undefined} = args;
 
         let option = exposes.options.measurement_poll_interval();
