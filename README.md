@@ -39,6 +39,10 @@ If any of those commands finish with an error your PR won't pass the tests and w
 
 ## Breaking changes
 
+25.0.0
+
+- Changed the `onEvent` api, see https://github.com/Koenkk/zigbee-herdsman-converters/pull/9650 for more info.
+
 24.0.0
 
 - It's not longer possible to call `definition.exposes(undefined, undefined)`, use `definition.exposes({isDummyDevice: true}, {})` instead (#9601)
