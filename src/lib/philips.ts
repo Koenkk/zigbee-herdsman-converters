@@ -2,7 +2,6 @@ import {Zcl} from "zigbee-herdsman";
 
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
-import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as libColor from "./color";
 import {ColorRGB, ColorXY} from "./color";
@@ -10,13 +9,14 @@ import * as exposes from "./exposes";
 import {logger} from "./logger";
 import * as modernExtend from "./modernExtend";
 import * as globalStore from "./store";
-import type {Configure, Fz, KeyValue, KeyValueAny, ModernExtend, Tz} from "./types";
+import type {Configure, Expose, Fz, KeyValue, KeyValueAny, ModernExtend, Tz} from "./types";
 import * as utils from "./utils";
 import {exposeEndpoints, isObject} from "./utils";
 
 const NS = "zhc:philips";
 const ea = exposes.access;
 const e = exposes.presets;
+const eNumeric = exposes.Numeric;
 
 const encodeRGBToScaledGradient = (hex: string) => {
     const xy = ColorRGB.fromHex(hex).toXY();
@@ -55,6 +55,19 @@ export const knownEffects = {
 };
 
 const philipsModernExtend = {
+    addCustomClusterManuSpecificPhilipsContact: () =>
+        modernExtend.deviceAddCustomCluster("manuSpecificPhilipsContact", {
+            ID: 0xfc06,
+            manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V,
+            attributes: {
+                contact: {ID: 0x0100, type: Zcl.DataType.ENUM8},
+                contactLastChange: {ID: 0x0101, type: Zcl.DataType.UINT32},
+                tamper: {ID: 0x0102, type: Zcl.DataType.ENUM8},
+                tamperLastChange: {ID: 0x0103, type: Zcl.DataType.UINT32},
+            },
+            commands: {},
+            commandsResponse: {},
+        }),
     light: (args?: modernExtend.LightArgs & {hueEffect?: boolean; gradient?: true | {extraEffects: string[]}}) => {
         // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         args = {hueEffect: true, turnsOffAtBrightness1: true, ota: true, ...args};
@@ -95,7 +108,7 @@ const philipsModernExtend = {
             result.exposes.push(...exposeEndpoints(e.enum("effect", ea.SET, effects), args.endpointNames));
         }
 
-        const customCluster = m.deviceAddCustomCluster("manuSpecificPhilips3", {
+        const customCluster = modernExtend.deviceAddCustomCluster("manuSpecificPhilips3", {
             ID: 0xfc01,
             manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V,
             attributes: {},
@@ -154,6 +167,104 @@ const philipsModernExtend = {
             async (device, coordinatorEndpoint) => {
                 const endpoint = device.getEndpoint(1);
                 await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "manuSpecificPhilips"]);
+            },
+        ];
+        const result: ModernExtend = {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
+        return result;
+    },
+    contact: () => {
+        const exposes: Expose[] = [
+            e.contact().withAccess(ea.STATE_GET),
+            e.tamper().withAccess(ea.STATE_GET),
+            new eNumeric("contact_last_changed", ea.STATE_GET)
+                .withUnit("s")
+                .withDescription("Time (in seconds) since when contact was last changed."),
+            new eNumeric("tamper_last_changed", ea.STATE_GET).withUnit("s").withDescription("Time (in seconds) since when tamper was last changed."),
+        ];
+        const fromZigbee: Fz.Converter[] = [
+            {
+                cluster: "manuSpecificPhilipsContact",
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    const payload: KeyValueAny = {};
+                    if (msg.data.contact !== undefined) {
+                        // NOTE: 0 = closed, 1 = open
+                        payload.contact = msg.data.contact === 0;
+                    }
+
+                    if (msg.data.tamper !== undefined) {
+                        // NOTE: 0 = OK, 1 = tampered
+                        payload.tamper = msg.data.tamper > 0;
+                    }
+
+                    if (msg.data.contactLastChange !== undefined) {
+                        // NOTE: seems to be 1/10 of a second
+                        payload.contact_last_changed = Math.round(msg.data.contactLastChange / 10);
+                    }
+
+                    if (msg.data.tamperLastChange !== undefined) {
+                        // NOTE: seems to be 1/10 of a second
+                        payload.tamper_last_changed = Math.round(msg.data.tamperLastChange / 10);
+                    }
+
+                    return payload;
+                },
+            },
+            // NOTE: kept for compatibility as there is no auto-reconfigure for modernExtend
+            //       this should not fire once reconfigured.
+            {
+                cluster: "genOnOff",
+                type: ["commandOff", "commandOn"],
+                convert: (model, msg, publish, options, meta) => {
+                    if (msg.type === "commandOff" || msg.type === "commandOn") {
+                        return {contact: msg.type === "commandOff"};
+                    }
+                },
+            },
+        ];
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ["contact", "tamper", "contact_last_changed", "tamper_last_changed"],
+                convertGet: async (entity, key, meta) => {
+                    const attrib: string = (() => {
+                        switch (key) {
+                            case "contact_last_changed":
+                                return "contactLastChange";
+                            case "tamper_last_changed":
+                                return "tamperLastChange";
+                            default:
+                                return key;
+                        }
+                    })();
+                    const ep = modernExtend.determineEndpoint(entity, meta, "manuSpecificPhilipsContact");
+                    try {
+                        await ep.read("manuSpecificPhilipsContact", [attrib]);
+                    } catch (e) {
+                        logger.debug(`Reading ${attrib} failed: ${e}, device probably doesn't support it`, "zhc:setupattribute");
+                    }
+                },
+            },
+        ];
+        const configure: Configure[] = [
+            // NOTE: trigger report after 4 hours incase the network was offline when a contact was triggered
+            //       contactLastChange and tamperLastChange seem come with every report of contact, so we do
+            //       not configure reporting
+            modernExtend.setupConfigureForReporting("manuSpecificPhilipsContact", "contact", {
+                config: {min: 0, max: "4_HOURS", change: 1},
+                access: ea.STATE_GET,
+                singleEndpoint: true,
+            }),
+            modernExtend.setupConfigureForReporting("manuSpecificPhilipsContact", "tamper", {
+                config: {min: 0, max: "4_HOURS", change: 1},
+                access: ea.STATE_GET,
+                singleEndpoint: true,
+            }),
+            async (device, coordinatorEndpoint) => {
+                // NOTE: new fromZigbee does not use genOnoff's commandOn/commandOff
+                //       so we can unbind genOnOff so the legacy fromZigbee does not
+                //       cause double triggers.
+                const endpoint = device.getEndpoint(2);
+                await endpoint.unbind("genOnOff", coordinatorEndpoint);
             },
         ];
         const result: ModernExtend = {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
@@ -410,18 +521,6 @@ export const hueEffects = {
 };
 
 const philipsFz = {
-    philips_contact: {
-        cluster: "genOnOff",
-        type: ["attributeReport", "readResponse", "commandOff", "commandOn"],
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.type === "commandOff" || msg.type === "commandOn") {
-                return {contact: msg.type === "commandOff"};
-            }
-            if (msg.data.onOff !== undefined) {
-                return {contact: msg.data.onOff === 0};
-            }
-        },
-    } satisfies Fz.Converter,
     hue_tap_dial: {
         cluster: "manuSpecificPhilips",
         type: "commandHueNotification",

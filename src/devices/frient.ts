@@ -26,6 +26,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Frient",
         description: "Smart Cable - Power switch with power measurement",
         extend: [m.onOff({configureReporting: false}), m.electricityMeter()],
+        ota: true,
         endpoint: () => {
             return {default: 2};
         },
@@ -36,5 +37,6 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Frient",
         description: "HAN P1 power-meter sensor",
         extend: [m.electricityMeter({threePhase: true})],
+        ota: true,
     },
 ];

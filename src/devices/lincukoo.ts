@@ -13,7 +13,7 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: [{modelID: "TS0601", manufacturerName: "_TZE284_ajhu0zqb"}],
         model: "SZW08",
         vendor: "Lincukoo",
-        description: "Water leakage sensor with 2 in 1",
+        description: "Smart water leakage/lack alarm sensor",
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         onEvent: tuya.onEventSetTime, // Add this if you are getting no converter for 'commandMcuSyncTime'
@@ -205,5 +205,67 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Lincukoo",
         description: "Smart mini temperature and humidity sensor",
         extend: [m.temperature(), m.humidity(), m.identify({isSleepy: true}), m.battery({voltage: true})],
+    },
+
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_rs62zxk8", "_TZE284_4dosadbh"]),
+        model: "SZT04",
+        vendor: "Lincukoo",
+        description: "Temperature and humidity sensor with clock",
+        configure: tuya.configureMagicPacket,
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEventSetTime,
+        exposes: [
+            e.temperature(),
+            e.humidity(),
+            e.battery(),
+            e.enum("temperature_unit_convert", ea.STATE_SET, ["celsius", "fahrenheit"]).withDescription("Current display unit"),
+            e.enum("temperature_alarm", ea.STATE, ["canceled", "lower_alarm", "upper_alarm"]).withDescription("Temperature alarm status"),
+            e.numeric("max_temperature", ea.STATE_SET).withUnit("°C").withValueMin(-20).withValueMax(60).withDescription("Alarm temperature max"),
+            e.numeric("min_temperature", ea.STATE_SET).withUnit("°C").withValueMin(-20).withValueMax(60).withDescription("Alarm temperature min"),
+            e
+                .numeric("temperature_sensitivity", ea.STATE_SET)
+                .withUnit("°C")
+                .withValueMin(0.3)
+                .withValueMax(5)
+                .withValueStep(0.1)
+                .withDescription("Temperature sensitivity"),
+            e.enum("humidity_alarm", ea.STATE, ["canceled", "lower_alarm", "upper_alarm"]).withDescription("Humidity alarm status"),
+            e.numeric("max_humidity", ea.STATE_SET).withUnit("%").withValueMin(0).withValueMax(100).withDescription("Alarm humidity max"),
+            e.numeric("min_humidity", ea.STATE_SET).withUnit("%").withValueMin(0).withValueMax(100).withDescription("Alarm humidity min"),
+            e
+                .numeric("humidity_sensitivity", ea.STATE_SET)
+                .withUnit("%")
+                .withValueMin(1)
+                .withValueMax(100)
+                .withValueStep(1)
+                .withDescription("Humidity sensitivity"),
+        ],
+
+        meta: {
+            tuyaDatapoints: [
+                [1, "temperature", tuya.valueConverter.divideBy10],
+                [2, "humidity", tuya.valueConverter.raw],
+                [4, "battery", tuya.valueConverter.raw],
+                [9, "temperature_unit_convert", tuya.valueConverterBasic.lookup({celsius: tuya.enum(0), fahrenheit: tuya.enum(1)})],
+                [
+                    14,
+                    "temperature_alarm",
+                    tuya.valueConverterBasic.lookup({canceled: tuya.enum(0), lower_alarm: tuya.enum(1), upper_alarm: tuya.enum(2)}),
+                ],
+                [10, "max_temperature", tuya.valueConverter.divideBy10],
+                [11, "min_temperature", tuya.valueConverter.divideBy10],
+                [19, "temperature_sensitivity", tuya.valueConverter.divideBy10],
+                [
+                    15,
+                    "humidity_alarm",
+                    tuya.valueConverterBasic.lookup({canceled: tuya.enum(0), lower_alarm: tuya.enum(1), upper_alarm: tuya.enum(2)}),
+                ],
+                [12, "max_humidity", tuya.valueConverter.raw],
+                [13, "min_humidity", tuya.valueConverter.raw],
+                [20, "humidity_sensitivity", tuya.valueConverter.raw],
+            ],
+        },
     },
 ];

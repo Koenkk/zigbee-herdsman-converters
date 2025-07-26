@@ -52,15 +52,18 @@ export const definitions: DefinitionWithExtend[] = [
         model: "9290035639",
         vendor: "Philips",
         description: "Hue Secure contact sensor",
-        fromZigbee: [fz.battery, philips.fz.philips_contact],
+        fromZigbee: [],
         toZigbee: [],
-        exposes: [e.battery(), e.contact()],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(2);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg"]);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff"]);
-            await reporting.batteryPercentageRemaining(endpoint);
-        },
+        extend: [
+            philips.m.addCustomClusterManuSpecificPhilipsContact(),
+            philips.m.contact(),
+            m.battery({
+                percentage: true,
+                lowStatus: false,
+                voltageReporting: false,
+                percentageReporting: true,
+            }),
+        ],
     },
     {
         zigbeeModel: ["LLM010", "LLM012"],
@@ -4117,6 +4120,13 @@ export const definitions: DefinitionWithExtend[] = [
         model: "046677577490",
         vendor: "Philips",
         description: "Hue Lightguide E26/E27 Triangle 500lm",
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+    },
+    {
+        zigbeeModel: ["929004297401"],
+        model: "929004297401",
+        vendor: "Philips",
+        description: "Hue Devote Slim ceiling light",
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
 ];
