@@ -1139,7 +1139,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.enumLookup({
                 name: "device_model_preset",
                 lookup: {
-                    "No Device": 0,
+                    no_device: 0,
                     "KASKAD-1-MT (MIRTEK)": 1,
                     "KASKAD-11-C1": 2,
                     "MERCURY-206": 3,
@@ -1147,6 +1147,89 @@ export const definitions: DefinitionWithExtend[] = [
                     "ENERGOMERA-CE208BY": 5,
                     "NEVA-MT124": 6,
                     "NARTIS-100": 7,
+                },
+                cluster: "seMetering",
+                attribute: {ID: attrElCityMeterModelPreset, type: 0x30},
+                description: "Device Model",
+            }),
+        ],
+        ota: true,
+    },
+    {
+        zigbeeModel: ["ElectricityMeterABC_DIY"],
+        model: "ElectricityMeter-ABC-DIY",
+        vendor: "Slacky-DIY",
+        description: "Three phase Electricity Meter via optical port",
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            await endpoint1.read("seMetering", ["remainingBattLife", "status", attrElCityMeterMeasurementPreset]);
+            await endpoint1.read("seMetering", ["divisor"]);
+            await endpoint1.read("seMetering", ["multiplier"]);
+            await endpoint1.read("seMetering", ["currentTier1SummDelivered"]);
+            await endpoint1.read("seMetering", ["currentTier2SummDelivered"]);
+            await endpoint1.read("seMetering", ["currentTier3SummDelivered"]);
+            await endpoint1.read("seMetering", ["currentTier4SummDelivered"]);
+            await endpoint1.read("seMetering", ["currentSummDelivered"]);
+            await endpoint1.read("seMetering", ["meterSerialNumber"]);
+            await endpoint1.read("seMetering", [attrElCityMeterMeasurementPreset]);
+            await endpoint1.read("seMetering", [attrElCityMeterModelName]);
+            //            await endpoint1.read("haElectricalMeasurement", ["acVoltageDivisor"]);
+            //            await endpoint1.read("haElectricalMeasurement", ["acVoltageMultiplier"]);
+            //            await endpoint1.read("haElectricalMeasurement", ["rmsVoltage"]);
+            //            await endpoint1.read("haElectricalMeasurement", ["acCurrentDivisor"]);
+            //            await endpoint1.read("haElectricalMeasurement", ["acCurrentMultiplier"]);
+            //            await endpoint1.read("haElectricalMeasurement", ["instantaneousLineCurrent"]);
+            //            await endpoint1.read("haElectricalMeasurement", ["acPowerDivisor"]);
+            //            await endpoint1.read("haElectricalMeasurement", ["acPowerMultiplier"]);
+            //            await endpoint1.read("haElectricalMeasurement", ["apparentPower"]);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ["seMetering", "haElectricalMeasurement", "genDeviceTempCfg"]);
+            const payload_tier1 = [{attribute: {ID: 0x0100, type: 0x25}, minimumReportInterval: 0, maximumReportInterval: 300, reportableChange: 0}];
+            await endpoint1.configureReporting("seMetering", payload_tier1);
+            const payload_tier2 = [{attribute: {ID: 0x0102, type: 0x25}, minimumReportInterval: 0, maximumReportInterval: 300, reportableChange: 0}];
+            await endpoint1.configureReporting("seMetering", payload_tier2);
+            const payload_tier3 = [{attribute: {ID: 0x0104, type: 0x25}, minimumReportInterval: 0, maximumReportInterval: 300, reportableChange: 0}];
+            await endpoint1.configureReporting("seMetering", payload_tier3);
+            const payload_tier4 = [{attribute: {ID: 0x0106, type: 0x25}, minimumReportInterval: 0, maximumReportInterval: 300, reportableChange: 0}];
+            await endpoint1.configureReporting("seMetering", payload_tier4);
+            await reporting.currentSummDelivered(endpoint1, {min: 0, max: 300, change: 0});
+            const payload_status = [{attribute: {ID: 0x0200, type: 0x18}, minimumReportInterval: 0, maximumReportInterval: 300, reportableChange: 0}];
+            await endpoint1.configureReporting("seMetering", payload_status);
+            const payload_battery_life = [
+                {attribute: {ID: 0x0201, type: 0x20}, minimumReportInterval: 0, maximumReportInterval: 300, reportableChange: 0},
+            ];
+            await endpoint1.configureReporting("seMetering", payload_battery_life);
+            const payload_serial_number = [
+                {attribute: {ID: 0x0308, type: 0x41}, minimumReportInterval: 0, maximumReportInterval: 300, reportableChange: 0},
+            ];
+            await endpoint1.configureReporting("seMetering", payload_serial_number);
+            const payload_date_release = [
+                {attribute: {ID: attrElCityMeterDateRelease, type: 0x41}, minimumReportInterval: 0, maximumReportInterval: 300, reportableChange: 0},
+            ];
+            await endpoint1.configureReporting("seMetering", payload_date_release);
+            const payload_model_name = [
+                {attribute: {ID: attrElCityMeterModelName, type: 0x41}, minimumReportInterval: 0, maximumReportInterval: 300, reportableChange: 0},
+            ];
+            await endpoint1.configureReporting("seMetering", payload_model_name);
+            //            await reporting.rmsVoltage(endpoint1, {min: 0, max: 300, change: 0});
+            //            const payload_current = [
+            //                {attribute: {ID: 0x0501, type: 0x21}, minimumReportInterval: 0, maximumReportInterval: 300, reportableChange: 0},
+            //            ];
+            //            await endpoint1.configureReporting("haElectricalMeasurement", payload_current);
+            //            await reporting.apparentPower(endpoint1, {min: 0, max: 300, change: 0});
+            const payload_temperature = [
+                {attribute: {ID: 0x0000, type: 0x29}, minimumReportInterval: 0, maximumReportInterval: 300, reportableChange: 0},
+            ];
+            await endpoint1.configureReporting("genDeviceTempCfg", payload_temperature);
+        },
+        extend: [
+            m.deviceTemperature(),
+            m.electricityMeter({threePhase: true}),
+            electricityMeterExtend.elMeter(),
+            m.enumLookup({
+                name: "device_model_preset",
+                lookup: {
+                    no_device: 0,
+                    "NARTIS-I300": 1,
                 },
                 cluster: "seMetering",
                 attribute: {ID: attrElCityMeterModelPreset, type: 0x30},
@@ -1808,7 +1891,7 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
     },
     {
-        zigbeeModel: ["ZG-222ZA-z-SlD"],
+        zigbeeModel: ["ZG-222ZA-z-SlD", "ZG-222Z-z-SlD", "SNZB-05-z-SlD"],
         model: "ZG-222ZA-z-SlD",
         vendor: "Slacky-DIY",
         description: "Tuya water leak sensor with custom firmware",
@@ -1823,7 +1906,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.commandsOnOff(),
             m.enumLookup({
                 name: "switch_actions",
-                lookup: {off: 0, on: 1, toggle: 2},
+                lookup: {off: 0, on: 1},
                 cluster: "genOnOffSwitchCfg",
                 attribute: "switchActions",
                 description: "Actions switch",
