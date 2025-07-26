@@ -66,8 +66,20 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [
             e.enum("moving", ea.STATE, ["UP", "STOP", "DOWN"]).withEndpoint("left"),
             e.enum("moving", ea.STATE, ["UP", "STOP", "DOWN"]).withEndpoint("right"),
-            e.numeric("calibration_time", ea.ALL).withValueMin(0).withValueMax(100).withUnit("s").withDescription("Calibration time").withEndpoint("left"),
-            e.numeric("calibration_time", ea.ALL).withValueMin(0).withValueMax(100).withUnit("s").withDescription("Calibration time").withEndpoint("right"),
+            e
+                .numeric("calibration_time", ea.ALL)
+                .withValueMin(0)
+                .withValueMax(100)
+                .withUnit("s")
+                .withDescription("Calibration time")
+                .withEndpoint("left"),
+            e
+                .numeric("calibration_time", ea.ALL)
+                .withValueMin(0)
+                .withValueMax(100)
+                .withUnit("s")
+                .withDescription("Calibration time")
+                .withEndpoint("right"),
             e.cover_position().withEndpoint("left"),
             e.binary("calibration", ea.ALL, "ON", "OFF").withEndpoint("left"),
             e.binary("motor_reversal", ea.ALL, "ON", "OFF").withEndpoint("left"),
