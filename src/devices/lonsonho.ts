@@ -52,12 +52,14 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZ3000_l6iqph4f",
             "_TZ3000_xdo0hj1k",
             "_TZ3000_bmhwnl7s",
+            "_TZ3000_j1xl73iw",
         ]),
         model: "TS130F_dual",
         vendor: "Lonsonho",
         description: "Dual curtain/blind module",
         fromZigbee: [fz.cover_position_tilt, fz.tuya_cover_options],
         toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.tuya_cover_calibration, tz.tuya_cover_reversal],
+        tuya.whitelabel("Girier", "TS130F_GIRIER_DUAL", "Dual smart curtain switch", ["_TZ3000_j1xl73iw"]),
         meta: {multiEndpoint: true, coverInverted: true},
         endpoint: (device) => {
             return {left: 1, right: 2};
@@ -65,8 +67,8 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [
             e.enum("moving", ea.STATE, ["UP", "STOP", "DOWN"]).withEndpoint("left"),
             e.enum("moving", ea.STATE, ["UP", "STOP", "DOWN"]).withEndpoint("right"),
-            e.numeric("calibration_time", ea.STATE).withUnit("s").withDescription("Calibration time").withEndpoint("left"),
-            e.numeric("calibration_time", ea.STATE).withUnit("s").withDescription("Calibration time").withEndpoint("right"),
+            e.numeric("calibration_time", ea.ALL).withUnit("s").withDescription("Calibration time").withEndpoint("left"),
+            e.numeric("calibration_time", ea.ALL).withUnit("s").withDescription("Calibration time").withEndpoint("right"),
             e.cover_position().withEndpoint("left"),
             e.binary("calibration", ea.ALL, "ON", "OFF").withEndpoint("left"),
             e.binary("motor_reversal", ea.ALL, "ON", "OFF").withEndpoint("left"),
