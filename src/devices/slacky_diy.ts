@@ -1139,7 +1139,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.enumLookup({
                 name: "device_model_preset",
                 lookup: {
-                    "No Device": 0,
+                    no_device: 0,
                     "KASKAD-1-MT (MIRTEK)": 1,
                     "KASKAD-11-C1": 2,
                     "MERCURY-206": 3,
@@ -1228,7 +1228,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.enumLookup({
                 name: "device_model_preset",
                 lookup: {
-                    "No Device": 0,
+                    no_device: 0,
                     "NARTIS-I300": 1,
                 },
                 cluster: "seMetering",
