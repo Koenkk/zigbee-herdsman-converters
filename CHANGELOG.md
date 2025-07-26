@@ -1,5 +1,22 @@
 # Changelog
 
+## [24.8.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v24.7.0...v24.8.0) (2025-07-26)
+
+
+### Features
+
+* **add:** 929004297401 ([#9682](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9682)) ([10ff1b3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/10ff1b3d68e9be8fe5cc4b845c3f1a50c028240e))
+* Tuya TS0601_dimmer_3: expose `light_type` ([#9685](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9685)) ([2a1abfe](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2a1abfea46840b202d599d06e323578518ebe98f))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZE200_py4cm3he` as GIEX TV06 ([#9689](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9689)) ([44df9fc](https://github.com/Koenkk/zigbee-herdsman-converters/commit/44df9fc5793e12252d23b227f34639b4d617bdfe))
+* **ignore:** fix breaking changes of https://github.com/Koenkk/zigbee2mqtt/pull/28077 ([14d7fe2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/14d7fe23401e8250e56b766fefe6df6be7a9ffc0))
+* LiXee zlinky: fix default value for measurement_poll_chunk in description ([#9687](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9687)) ([ca255bd](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ca255bd986c715c07198820f127d367e11f800b4))
+* Set calibration option step at 0.1 ([#9683](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9683)) ([f206a3f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f206a3f44a8308fee370c0e2e581d8949f51872a))
+* Tuya BLE-YL01: improve reliability ([#9681](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9681)) ([c097329](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c097329668ee2854875463e925022d7cac3b6ae8))
+
 ## [24.7.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v24.6.0...v24.7.0) (2025-07-24)
 
 
