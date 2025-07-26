@@ -11,15 +11,13 @@ const NS = "zhc:profalux";
 const e = exposes.presets;
 const ea = exposes.access;
 
-const DAY = 86400000;
-
 const mLocal = {
     pollBatteryVoltage: (): ModernExtend => {
         // Poll Battery voltage at most once a day
         // as the Profalux remotes do not report on battery
         return m.poll({
             key: "battery",
-            defaultIntervalSeconds: DAY,
+            defaultIntervalSeconds: 60 * 60 * 24,
             poll: (device) => {
                 const endpoint = device.endpoints.find((e) => e.supportsInputCluster("genPowerCfg"));
                 endpoint

@@ -1,12 +1,11 @@
-import type {DefinitionWithExtend, Fz, ModernExtend, Reporting, Tz} from "src/lib/types";
 import type {Types as ZHTypes} from "zigbee-herdsman";
-
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
 import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
+import type {DefinitionWithExtend, Fz, ModernExtend, Reporting, Tz} from "../lib/types";
 import {getFromLookup} from "../lib/utils";
 
 const NS = "zhc:yale";

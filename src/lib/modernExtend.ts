@@ -645,7 +645,7 @@ export function commandsOnOff(args: CommandsOnOffArgs = {}): ModernExtend {
 export function poll(args: {
     key: string;
     defaultIntervalSeconds: number;
-    poll: (device: Zh.Device) => void;
+    poll: (device: Zh.Device, options: KeyValue) => void;
     option?: exposes.Numeric;
     optionKey?: string;
 }): ModernExtend {
@@ -665,7 +665,7 @@ export function poll(args: {
                     const setTimer = () => {
                         const timer = setTimeout(async () => {
                             try {
-                                await args.poll(event.data.device);
+                                await args.poll(event.data.device, event.data.options);
                             } catch (error) {
                                 logger.debug(`Poll of '${event.data.device.ieeeAddr}' failed (${error})`, NS);
                             }
@@ -688,7 +688,7 @@ export function poll(args: {
 export function writeTimeDaily(args: {endpointId: number}): ModernExtend {
     return poll({
         key: "time",
-        defaultIntervalSeconds: 1000 * 60 * 60 * 24,
+        defaultIntervalSeconds: 60 * 60 * 24,
         poll: (device) => {
             const time = Math.round((Date.now() - constants.OneJanuary2000) / 1000 + new Date().getTimezoneOffset() * -1 * 60);
             device

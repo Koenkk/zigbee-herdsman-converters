@@ -348,7 +348,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.poll({
                 key: "time_sync",
-                defaultIntervalSeconds: 1000 * 60 * 60 * 24,
+                defaultIntervalSeconds: 60 * 60 * 24,
                 poll: async (device) => {
                     // The device might have lost its time, so reset it. It would be more proper to check if
                     // the danfossSystemStatusCode has bit 10 of the SW error code attribute (0x4000) in the

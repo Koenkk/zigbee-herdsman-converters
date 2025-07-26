@@ -1539,7 +1539,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.poll({
                 key: "time",
-                defaultIntervalSeconds: 1000 * 60 * 60 * 24,
+                defaultIntervalSeconds: 60 * 60 * 24,
                 poll: async (device) => {
                     const endpoint = device.getEndpoint(1);
                     // Device does not asks for the time with binding, therefore we write the time every 24 hours

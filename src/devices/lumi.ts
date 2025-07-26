@@ -6,7 +6,6 @@ import {logger} from "../lib/logger";
 import * as lumi from "../lib/lumi";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import * as globalStore from "../lib/store";
 import type {DefinitionWithExtend} from "../lib/types";
 
 const e = exposes.presets;
@@ -1984,7 +1983,19 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SP-EUC01",
         description: "Smart plug EU",
         vendor: "Aqara",
-        extend: [m.forceDeviceType({type: "Router"}), lumiZigbeeOTA()],
+        extend: [
+            m.forceDeviceType({type: "Router"}),
+            lumiZigbeeOTA(),
+            m.poll({
+                // This device doesn't support temperature reporting.
+                // Therefore we read the temperature every 30 min.
+                key: "interval",
+                defaultIntervalSeconds: 30 * 60,
+                poll: async (device) => {
+                    await device.getEndpoint(1)?.read("genDeviceTempCfg", ["currentTemperature"]);
+                },
+            }),
+        ],
         fromZigbee: [
             fz.on_off,
             lumi.fromZigbee.lumi_basic,
@@ -2026,28 +2037,6 @@ export const definitions: DefinitionWithExtend[] = [
             } catch (e) {
                 logger.warning(`SP-EUC01 failed to setup metering (${(e as Error).message})`, NS);
                 logger.debug(`${(e as Error).stack}`, NS);
-            }
-        },
-        onEvent: (type, data, device) => {
-            const switchEndpoint = device.getEndpoint(1);
-            if (switchEndpoint == null) {
-                return;
-            }
-
-            // This device doesn't support temperature reporting.
-            // Therefore we read the temperature every 30 min.
-            if (type === "stop") {
-                clearInterval(globalStore.getValue(device, "interval"));
-                globalStore.clearValue(device, "interval");
-            } else if (!globalStore.hasValue(device, "interval")) {
-                const interval = setInterval(async () => {
-                    try {
-                        await switchEndpoint.read("genDeviceTempCfg", ["currentTemperature"]);
-                    } catch {
-                        // Do nothing
-                    }
-                }, 1800000);
-                globalStore.putValue(device, "interval", interval);
             }
         },
         exposes: [

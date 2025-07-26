@@ -724,7 +724,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.poll({
                 key: "interval",
-                defaultIntervalSeconds: 1000 * 60 * 30,
+                defaultIntervalSeconds: 60 * 30,
                 // For linkquality updates
                 poll: async (device) => await device.endpoints[0].read("genBasic", ["zclVersion"]),
             }),
