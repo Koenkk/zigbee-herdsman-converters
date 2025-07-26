@@ -52,7 +52,6 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZ3000_l6iqph4f",
             "_TZ3000_xdo0hj1k",
             "_TZ3000_bmhwnl7s",
-            "_TZ3000_j1xl73iw",
         ]),
         model: "TS130F_dual",
         vendor: "Lonsonho",
