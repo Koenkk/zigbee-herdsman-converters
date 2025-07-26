@@ -215,12 +215,12 @@ export interface DefinitionMeta {
 export type Configure = (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint, definition: Definition) => Promise<void> | void;
 
 export namespace OnEvent {
-    type DataBase = {device: Zh.Device; deviceExposesChanged: () => void; state: KeyValue; options: KeyValue};
+    export type BaseData = {device: Zh.Device; deviceExposesChanged: () => void; state: KeyValue; options: KeyValue};
     export type Event =
         | {type: "stop"; data: {ieeeAddr: string}}
-        | {type: "deviceNetworkAddressChanged" | "deviceAnnounce" | "deviceJoined" | "start"; data: DataBase}
-        | {type: "deviceOptionsChanged"; data: DataBase & {from: KeyValue; to: KeyValue}}
-        | {type: "deviceInterview"; data: DataBase & {status: "started" | "successful" | "failed"}};
+        | {type: "deviceNetworkAddressChanged" | "deviceAnnounce" | "deviceJoined" | "start"; data: BaseData}
+        | {type: "deviceOptionsChanged"; data: BaseData & {from: KeyValue; to: KeyValue}}
+        | {type: "deviceInterview"; data: BaseData & {status: "started" | "successful" | "failed"}};
 
     export type Handler = (event: Event) => Promise<void> | void;
 }

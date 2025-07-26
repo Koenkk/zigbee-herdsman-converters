@@ -73,6 +73,7 @@ export {
     toZigbee,
     fromZigbee,
     Tz,
+    type OnEvent,
 };
 export {getConfigureKey} from "./lib/configureKey";
 export {setLogger} from "./lib/logger";
