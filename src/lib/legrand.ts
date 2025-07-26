@@ -1,6 +1,6 @@
 import {Zcl} from "zigbee-herdsman";
 
-import type {Fz, KeyValueAny, KeyValueString, OnEvent, Tz, Zh} from "../lib/types";
+import type {DummyDevice, Fz, KeyValueAny, KeyValueString, OnEvent, Tz, Zh} from "../lib/types";
 import * as utils from "../lib/utils";
 import * as exposes from "./exposes";
 import {logger} from "./logger";
@@ -76,10 +76,12 @@ export const eLegrand = {
     ledIfOn: () => {
         return e.binary("led_if_on", ea.ALL, "ON", "OFF").withDescription("Enables the LED on activity").withCategory("config");
     },
-    getCover: (device: Zh.Device) => {
+    getCover: (device: Zh.Device | DummyDevice) => {
         const c = e.cover_position();
 
-        const calMode = Number(device?.getEndpoint(1)?.clusters?.closuresWindowCovering?.attributes?.calibrationMode);
+        const calMode = !utils.isDummyDevice(device)
+            ? Number(device.getEndpoint(1)?.clusters?.closuresWindowCovering?.attributes?.calibrationMode)
+            : 0;
         const showTilt = calMode ? shutterCalibrationModes[calMode]?.supportsTilt === true : false;
 
         if (showTilt) {

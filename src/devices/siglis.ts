@@ -2,7 +2,7 @@ import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
 import * as reporting from "../lib/reporting";
-import type {DefinitionWithExtend, Fz, KeyValue, Tz, Zh} from "../lib/types";
+import type {DefinitionWithExtend, DummyDevice, Fz, KeyValue, Tz, Zh} from "../lib/types";
 import * as utils from "../lib/utils";
 
 const e = exposes.presets;
@@ -91,8 +91,8 @@ const buttonEventExposes = e.action([
     "button_4_release",
 ]);
 
-function checkOption(device: Zh.Device, options: KeyValue, key: string) {
-    if (options != null && options[key] !== undefined) {
+function checkOption(device: Zh.Device | DummyDevice, options: KeyValue, key: string) {
+    if (options != null && options[key] != null) {
         if (options[key] === "true") {
             return true;
         }
@@ -104,8 +104,8 @@ function checkOption(device: Zh.Device, options: KeyValue, key: string) {
     return checkMetaOption(device, key);
 }
 
-function checkMetaOption(device: Zh.Device, key: string) {
-    if (device != null) {
+function checkMetaOption(device: Zh.Device | DummyDevice, key: string) {
+    if (!utils.isDummyDevice(device)) {
         const enabled = device.meta[key];
         if (enabled === undefined) {
             return false;

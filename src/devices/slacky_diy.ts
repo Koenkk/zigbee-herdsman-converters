@@ -10,15 +10,14 @@ import * as utils from "../lib/utils";
 const e = exposes.presets;
 const ea = exposes.access;
 
-const defaultReporting = {min: 0, max: 300, change: 0};
 const ppmReporting = {min: 10, max: 300, change: 0.000001};
 const batteryReporting = {min: 3600, max: 0, change: 0};
+const temperatureReporting = {min: 10, max: 3600, change: 10};
+const humidityReporting = {min: 10, max: 3600, change: 10};
 
 const model_r01 = "Tuya_Thermostat_r01";
-const model_r02 = "Tuya_Thermostat_r02";
 const model_r03 = "Tuya_Thermostat_r03";
 const model_r04 = "Tuya_Thermostat_r04";
-const model_r05 = "Tuya_Thermostat_r05";
 const model_r06 = "Tuya_Thermostat_r06";
 const model_r07 = "Tuya_Thermostat_r07";
 const model_r08 = "Tuya_Thermostat_r08";
@@ -47,6 +46,16 @@ const attrElCityMeterDateRelease = 0xf003;
 const attrElCityMeterModelName = 0xf004;
 const attrElCityMeterPasswordPreset = 0xf005;
 
+const attrSensorReadPeriod = 0xf000;
+const attrTemperatureOffset = 0xf001;
+const attrTemperatureOnOff = 0xf002;
+const attrTemperatureLow = 0xf003;
+const attrTemperatureHigh = 0xf004;
+const attrHumidityOffset = 0xf005;
+const attrHumidityOnOff = 0xf006;
+const attrHumidityLow = 0xf007;
+const attrHumidityHigh = 0xf008;
+
 const fzLocal = {
     thermostat_custom_fw: {
         cluster: "hvacThermostat",
@@ -66,6 +75,7 @@ const fzLocal = {
                     data = Number.parseInt(msg.data.minSetpointDeadBand);
                     result.deadzone_temperature = data;
                 }
+                //logger.info(`DeadBand: ${data}`, NS);
             }
             if (msg.data[attrThermFrostProtect] !== undefined) {
                 const data = Number.parseInt(msg.data[attrThermFrostProtect]) / 100;
@@ -114,7 +124,6 @@ const fzLocal = {
         cluster: "hvacThermostat",
         type: ["commandSetWeeklySchedule"],
         convert: (model, msg, publish, options, meta) => {
-            const result: KeyValue = {};
             const {data} = msg;
 
             const daysOfWeekNums = [...Array.from(Array(7).keys()).filter((x) => (2 ** x) & data.dayofweek)];
@@ -181,8 +190,8 @@ const tzLocal = {
     thermostat_deadzone: {
         key: ["deadzone_temperature"],
         convertSet: async (entity, key, value, meta) => {
-            utils.assertString(value);
-            const minSetpointDeadBand = Number.parseInt(value, 10);
+            utils.assertNumber(value);
+            const minSetpointDeadBand = Number(Math.round(value));
             await entity.write("hvacThermostat", {minSetpointDeadBand});
             return {readAfterWriteTime: 250, state: {minSetpointDeadBand: value}};
         },
@@ -193,10 +202,10 @@ const tzLocal = {
     thermostat_deadzone_10: {
         key: ["histeresis_temperature"],
         convertSet: async (entity, key, value, meta) => {
-            utils.assertString(value);
-            const minSetpointDeadBand = Number.parseFloat(value) * 10;
+            utils.assertNumber(value);
+            const minSetpointDeadBand = Number(value) * 10;
             await entity.write("hvacThermostat", {minSetpointDeadBand});
-            return {readAfterWriteTime: 250, state: {minSetpointDeadBand: value}};
+            return {readAfterWriteTime: 250, state: {histeresis_temperature: value}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read("hvacThermostat", ["minSetpointDeadBand"]);
@@ -205,9 +214,9 @@ const tzLocal = {
     thermostat_frost_protect: {
         key: ["frost_protect"],
         convertSet: async (entity, key, value, meta) => {
-            utils.assertString(value);
+            utils.assertNumber(value);
             if (!utils.isInRange(0, 10, Number(value))) throw new Error(`Invalid value: ${value} (expected ${0} to ${10})`);
-            const frost_protect = Number.parseInt(value, 10) * 100;
+            const frost_protect = Number(Math.round(value)) * 100;
             await entity.write("hvacThermostat", {[attrThermFrostProtect]: {value: frost_protect, type: 0x29}});
             return {readAfterWriteTime: 250, state: {frost_protect: value}};
         },
@@ -218,9 +227,9 @@ const tzLocal = {
     thermostat_heat_protect: {
         key: ["heat_protect"],
         convertSet: async (entity, key, value, meta) => {
-            utils.assertString(value);
+            utils.assertNumber(value);
             if (!utils.isInRange(25, 70, Number(value))) throw new Error(`Invalid value: ${value} (expected ${25} to ${70})`);
-            const heat_protect = Number.parseInt(value, 10) * 100;
+            const heat_protect = Number(Math.round(value)) * 100;
             await entity.write("hvacThermostat", {[attrThermHeatProtect]: {value: heat_protect, type: 0x29}});
             return {readAfterWriteTime: 250, state: {heat_protect: value}};
         },
@@ -231,9 +240,9 @@ const tzLocal = {
     thermostat_setpoint_raise_lower: {
         key: ["setpoint_raise_lower"],
         convertSet: async (entity, key, value, meta) => {
-            utils.assertString(value);
+            utils.assertNumber(value);
             if (!utils.isInRange(-5, 5, Number(value))) throw new Error(`Invalid value: ${value} (expected ${-5} to ${5})`);
-            const setpoint_raise_lower = Number.parseInt(value, 10) * 10; //Step 0.1°C. 5°C - 50, 1°C - 10 etc.
+            const setpoint_raise_lower = Number(Math.fround(value)) * 10; //Step 0.1°C. 5°C - 50, 1°C - 10 etc.
             await entity.command("hvacThermostat", "setpointRaiseLower", {mode: 0, amount: setpoint_raise_lower});
             return {readAfterWriteTime: 250, state: {setpoint_raise_lower: value}};
         },
@@ -263,9 +272,9 @@ const tzLocal = {
     thermostat_eco_mode_cool_temperature: {
         key: ["eco_mode_cool_temperature"],
         convertSet: async (entity, key, value, meta) => {
-            utils.assertString(value);
+            utils.assertNumber(value);
             if (!utils.isInRange(5, 45, Number(value))) throw new Error(`Invalid value: ${value} (expected ${5} to ${45})`);
-            const eco_mode_cool_temperature = Number.parseInt(value, 10) * 100;
+            const eco_mode_cool_temperature = Number(Math.round(value)) * 100;
             await entity.write("hvacThermostat", {[attrThermEcoModeCoolTemperature]: {value: eco_mode_cool_temperature, type: 0x29}});
             return {readAfterWriteTime: 250, state: {eco_mode_cool_temperature: value}};
         },
@@ -276,9 +285,9 @@ const tzLocal = {
     thermostat_eco_mode_heat_temperature: {
         key: ["eco_mode_heat_temperature"],
         convertSet: async (entity, key, value, meta) => {
-            utils.assertString(value);
+            utils.assertNumber(value);
             if (!utils.isInRange(5, 45, Number(value))) throw new Error(`Invalid value: ${value} (expected ${5} to ${45})`);
-            const eco_mode_heat_temperature = Number.parseInt(value, 10) * 100;
+            const eco_mode_heat_temperature = Number(Math.round(value)) * 100;
             await entity.write("hvacThermostat", {[attrThermEcoModeHeatTemperature]: {value: eco_mode_heat_temperature, type: 0x29}});
             return {readAfterWriteTime: 250, state: {eco_mode_heat_temperature: value}};
         },
@@ -311,7 +320,7 @@ const tzLocal = {
     thermostat_brightness_level: {
         key: ["brightness_level"],
         convertSet: async (entity, key, value, meta) => {
-            utils.assertNumber(value);
+            //utils.assertNumber(value);
             const lookup = {Off: 0, Low: 1, Medium: 2, High: 3};
             await entity.write("hvacThermostat", {[attrThermLevel]: {value: utils.getFromLookup(value, lookup), type: 0x30}});
             return {state: {brightness_level: value}};
@@ -354,9 +363,9 @@ const tzLocal = {
     thermostat_ext_temperature_calibration: {
         key: ["external_temperature_calibration"],
         convertSet: async (entity, key, value, meta) => {
-            utils.assertString(value);
+            utils.assertNumber(value);
             if (!utils.isInRange(-9, 9, Number(value))) throw new Error(`Invalid value: ${value} (expected ${-9} to ${9})`);
-            const external_temperature_calibration = Number.parseInt(value, 10) * 10;
+            const external_temperature_calibration = Number(Math.round(value)) * 10;
             await entity.write("hvacThermostat", {[attrThermExtTemperatureCalibration]: {value: external_temperature_calibration, type: 0x28}});
             return {readAfterWriteTime: 250, state: {external_temperature_calibration: value}};
         },
@@ -632,8 +641,7 @@ const electricityMeterExtend = {
             {
                 key: ["device_address_preset"],
                 convertSet: async (entity, key, value, meta) => {
-                    utils.assertString(value);
-                    const device_address_preset = Number.parseInt(value, 10);
+                    const device_address_preset = value;
                     await entity.write("seMetering", {[attrElCityMeterAddressPreset]: {value: device_address_preset, type: 0x23}});
                     return {readAfterWriteTime: 250, state: {device_address_preset: value}};
                 },
@@ -649,8 +657,7 @@ const electricityMeterExtend = {
             {
                 key: ["device_measurement_preset"],
                 convertSet: async (entity, key, value, meta) => {
-                    utils.assertString(value);
-                    const device_measurement_preset = Number.parseInt(value, 10);
+                    const device_measurement_preset = value;
                     await entity.write("seMetering", {[attrElCityMeterMeasurementPreset]: {value: device_measurement_preset, type: 0x20}});
                     return {readAfterWriteTime: 250, state: {device_measurement_preset: value}};
                 },
@@ -898,15 +905,15 @@ function waterPreset(): ModernExtend {
                     // biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
                     step_water: (value as any).step_water_preset,
                 };
-                if (values.hot_water !== undefined && values.hot_water >= 0) {
+                if (values.hot_water != null && values.hot_water >= 0) {
                     const hot_water_preset = Number.parseInt(values.hot_water);
                     await endpoint.write("seMetering", {61440: {value: hot_water_preset, type: 0x23}});
                 }
-                if (values.cold_water !== undefined && values.cold_water >= 0) {
+                if (values.cold_water != null && values.cold_water >= 0) {
                     const cold_water_preset = Number.parseInt(values.cold_water);
                     await endpoint.write("seMetering", {61441: {value: cold_water_preset, type: 0x23}});
                 }
-                if (values.step_water !== undefined && values.step_water >= 0) {
+                if (values.step_water != null && values.step_water >= 0) {
                     const step_water_preset = Number.parseInt(values.step_water);
                     await endpoint.write("seMetering", {61442: {value: step_water_preset, type: 0x21}});
                 }
@@ -1664,6 +1671,163 @@ export const definitions: DefinitionWithExtend[] = [
             e.text("schedule_monday", ea.STATE).withDescription("Schedule for the working week"),
             e.text("schedule_saturday", ea.STATE).withDescription("Saturday's schedule"),
             e.text("schedule_sunday", ea.STATE).withDescription("Sunday's schedule"),
+        ],
+        meta: {},
+        ota: true,
+    },
+    {
+        zigbeeModel: ["TS0201-z-SlD"],
+        model: "TS0201-z-SlD",
+        vendor: "Slacky-DIY",
+        description: "Tuya temperature and humidity sensor with custom Firmware",
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.read("msTemperatureMeasurement", [attrSensorReadPeriod]);
+            await endpoint.read("msTemperatureMeasurement", [attrTemperatureOffset]);
+            await endpoint.read("msTemperatureMeasurement", [attrTemperatureOnOff]);
+            await endpoint.read("msTemperatureMeasurement", [attrTemperatureLow]);
+            await endpoint.read("msTemperatureMeasurement", [attrTemperatureHigh]);
+            await endpoint.read("msRelativeHumidity", [attrHumidityOffset]);
+            await endpoint.read("msRelativeHumidity", [attrHumidityOnOff]);
+            await endpoint.read("msRelativeHumidity", [attrHumidityLow]);
+            await endpoint.read("msRelativeHumidity", [attrHumidityHigh]);
+        },
+        extend: [
+            m.battery({
+                voltage: true,
+                voltageReporting: true,
+                percentageReportingConfig: batteryReporting,
+                voltageReportingConfig: batteryReporting,
+            }),
+            m.temperature({
+                reporting: temperatureReporting,
+            }),
+            m.humidity({
+                reporting: humidityReporting,
+            }),
+            m.numeric({
+                name: "temperature_offset",
+                cluster: "msTemperatureMeasurement",
+                attribute: {ID: attrTemperatureOffset, type: 0x29},
+                unit: "°C",
+                valueMin: -5,
+                valueMax: 5,
+                valueStep: 0.1,
+                scale: 100,
+                description: "Offset to add/subtract to the inside temperature",
+            }),
+            m.numeric({
+                name: "humidity_offset",
+                cluster: "msRelativeHumidity",
+                attribute: {ID: attrHumidityOffset, type: 0x29},
+                unit: "%",
+                valueMin: -10,
+                valueMax: 10,
+                valueStep: 1,
+                scale: 100,
+                description: "Offset to add/subtract to the inside temperature",
+            }),
+            m.numeric({
+                name: "read_interval",
+                cluster: "msTemperatureMeasurement",
+                attribute: {ID: attrSensorReadPeriod, type: 0x21},
+                unit: "Sec",
+                valueMin: 5,
+                valueMax: 600,
+                valueStep: 1,
+                description: "Sensors reading period",
+            }),
+            m.binary({
+                name: "enabling_temperature_control",
+                cluster: "msTemperatureMeasurement",
+                attribute: {ID: attrTemperatureOnOff, type: 0x10},
+                description: "Enables/disables Tempearure control",
+                valueOn: ["ON", 0x01],
+                valueOff: ["OFF", 0x00],
+            }),
+            m.numeric({
+                name: "low_temperature",
+                cluster: "msTemperatureMeasurement",
+                attribute: {ID: attrTemperatureLow, type: 0x29},
+                unit: "°C",
+                valueMin: -40,
+                valueMax: 125,
+                valueStep: 0.1,
+                scale: 100,
+                description: "Temperature low turn-off limit",
+            }),
+            m.numeric({
+                name: "high_temperature",
+                cluster: "msTemperatureMeasurement",
+                attribute: {ID: attrTemperatureHigh, type: 0x29},
+                unit: "°C",
+                valueMin: -40,
+                valueMax: 125,
+                valueStep: 0.1,
+                scale: 100,
+                description: "Temperature high turn-on limit",
+            }),
+            m.binary({
+                name: "enabling_humidity_control",
+                cluster: "msRelativeHumidity",
+                attribute: {ID: attrHumidityOnOff, type: 0x10},
+                description: "Enables/disables Humidity control",
+                valueOn: ["ON", 0x01],
+                valueOff: ["OFF", 0x00],
+            }),
+            m.numeric({
+                name: "low_humidity",
+                cluster: "msRelativeHumidity",
+                attribute: {ID: attrHumidityLow, type: 0x29},
+                unit: "%",
+                valueMin: 1,
+                valueMax: 100,
+                valueStep: 1,
+                scale: 100,
+                description: "Humidity low turn-off limit",
+            }),
+            m.numeric({
+                name: "high_humidity",
+                cluster: "msRelativeHumidity",
+                attribute: {ID: attrHumidityHigh, type: 0x29},
+                unit: "%",
+                valueMin: 1,
+                valueMax: 100,
+                valueStep: 1,
+                scale: 100,
+                description: "Humidity high turn-on limit",
+            }),
+            m.enumLookup({
+                name: "switch_actions",
+                lookup: {off: 0, on: 1},
+                cluster: "genOnOffSwitchCfg",
+                attribute: "switchActions",
+                description: "Actions switch",
+            }),
+        ],
+        ota: true,
+    },
+    {
+        zigbeeModel: ["ZG-222ZA-z-SlD"],
+        model: "ZG-222ZA-z-SlD",
+        vendor: "Slacky-DIY",
+        description: "Tuya water leak sensor with custom firmware",
+        extend: [
+            m.battery({
+                voltage: true,
+                voltageReporting: true,
+                percentageReportingConfig: batteryReporting,
+                voltageReportingConfig: batteryReporting,
+            }),
+            m.iasZoneAlarm({zoneType: "water_leak", zoneAttributes: ["alarm_1", "battery_low"]}),
+            m.commandsOnOff(),
+            m.enumLookup({
+                name: "switch_actions",
+                lookup: {off: 0, on: 1, toggle: 2},
+                cluster: "genOnOffSwitchCfg",
+                attribute: "switchActions",
+                description: "Actions switch",
+            }),
         ],
         meta: {},
         ota: true,

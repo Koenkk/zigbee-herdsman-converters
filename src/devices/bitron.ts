@@ -6,6 +6,7 @@ import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import type {DefinitionWithExtend, Fz, KeyValueAny, Tz} from "../lib/types";
+import * as utils from "../lib/utils";
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -39,12 +40,12 @@ const bitron = {
             key: ["hysteresis", "hysteresis"],
             convertSet: async (entity, key, value: KeyValueAny, meta) => {
                 const result: KeyValueAny = {state: {hysteresis: {}}};
-                if (value.high !== undefined) {
+                if (value.high != null) {
                     await entity.write("hvacThermostat", {fourNoksHysteresisHigh: value.high}, manufacturerOptions);
                     result.state.hysteresis.high = value.high;
                 }
 
-                if (value.low !== undefined) {
+                if (value.low != null) {
                     await entity.write("hvacThermostat", {fourNoksHysteresisLow: value.low}, manufacturerOptions);
                     result.state.hysteresis.low = value.low;
                 }
@@ -242,7 +243,9 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         exposes: (device, options) => {
             const dynExposes = [];
-            let ctrlSeqeOfOper = device?.getEndpoint(1).getClusterAttributeValue("hvacThermostat", "ctrlSeqeOfOper") ?? null;
+            let ctrlSeqeOfOper = !utils.isDummyDevice(device)
+                ? device.getEndpoint(1).getClusterAttributeValue("hvacThermostat", "ctrlSeqeOfOper")
+                : null;
             const modes = [];
 
             if (typeof ctrlSeqeOfOper === "string") ctrlSeqeOfOper = Number.parseInt(ctrlSeqeOfOper) ?? null;

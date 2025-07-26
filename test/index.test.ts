@@ -1,14 +1,14 @@
 import fs from "node:fs";
 import path from "node:path";
 import {
-    type Definition,
     addExternalDefinition,
+    type Definition,
     findByDevice,
     getConfigureKey,
     postProcessConvertedFromZigbeeMessage,
     removeExternalDefinitions,
 } from "../src/index";
-import {Composite, Enum, List, Numeric, access, presets} from "../src/lib/exposes";
+import {access, Composite, Enum, List, Numeric, presets} from "../src/lib/exposes";
 import {mockDevice} from "./utils";
 
 describe("ZHC", () => {
@@ -234,6 +234,7 @@ describe("ZHC", () => {
             {
                 modelID: "TS011F",
                 endpoints: [],
+                manufacturerName: "_TZ3000_cehuw1lw",
             },
             "Router",
             {
@@ -291,7 +292,7 @@ describe("ZHC", () => {
         );
         const definition = await findByDevice(device);
 
-        expect(definition.model).toStrictEqual("RADON TriTech ZB");
+        expect(definition.model).toStrictEqual("RADION TriTech ZB");
 
         assert(typeof definition.exposes === "function");
 
@@ -327,7 +328,7 @@ describe("ZHC", () => {
         const MOSZB140 = await findByDevice(device);
 
         if (typeof MOSZB140.exposes === "function") {
-            const exposes = MOSZB140.exposes(device, undefined);
+            const exposes = MOSZB140.exposes(device, {});
             expect(exposes.map((e) => e.name)).toStrictEqual([
                 "occupancy",
                 "tamper",

@@ -1,6 +1,5 @@
-import type {Models as ZHModels} from "zigbee-herdsman";
-
 import {Buffer} from "node:buffer";
+import type {Models as ZHModels} from "zigbee-herdsman";
 
 import {Zcl} from "zigbee-herdsman";
 
@@ -11,6 +10,7 @@ import {logger} from "../lib/logger";
 import * as reporting from "../lib/reporting";
 import * as globalStore from "../lib/store";
 import type {DefinitionWithExtend, Expose, Fz, KeyValue, Tz, Zh} from "../lib/types";
+import * as utils from "../lib/utils";
 
 const ea = exposes.access;
 const e = exposes.presets;
@@ -1811,7 +1811,6 @@ function toSnakeCase(str: string) {
 function ticmeterConverter(msg: Fz.Message) {
     const result: KeyValue = {};
     const keys = Object.keys(msg.data);
-    // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
     keys.forEach((key) => {
         const found = ticmeterDatas.find((x) => x.attr === key);
         if (found) {
@@ -1931,7 +1930,6 @@ async function poll(endpoint: Zh.Endpoint, device: ZHModels.Device) {
 
     toRead = toRead.sort((a, b) => a.clust.localeCompare(b.clust));
     const groupedByCluster: {[key: string]: TICMeterData[]} = {};
-    // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
     toRead.forEach((item) => {
         if (!groupedByCluster[item.clust]) {
             groupedByCluster[item.clust] = [];
@@ -1994,7 +1992,7 @@ export const definitions: DefinitionWithExtend[] = [
             let currentProducer = "";
             let translation = "";
 
-            if (device == null) {
+            if (utils.isDummyDevice(device)) {
                 return exposes;
             }
 
@@ -2040,7 +2038,7 @@ export const definitions: DefinitionWithExtend[] = [
                 }
             }
 
-            if (options && options.contract_type !== undefined && options.contract_type !== "AUTO") {
+            if (options?.contract_type != null && options.contract_type !== "AUTO") {
                 currentContract = String(options.contract_type);
                 logger.debug(`contract: ${currentContract}`, "TICMeter");
             } else {
@@ -2052,7 +2050,7 @@ export const definitions: DefinitionWithExtend[] = [
                 }
             }
 
-            if (options && options.linky_elec !== undefined && options.linky_elec !== "AUTO") {
+            if (options?.linky_elec != null && options.linky_elec !== "AUTO") {
                 currentElec = String(options.linky_elec);
                 logger.debug(`Manual elec: ${currentElec}`, "TICMeter");
             } else {
@@ -2064,7 +2062,7 @@ export const definitions: DefinitionWithExtend[] = [
                 }
             }
 
-            if (options && options.tic_mode !== undefined && options.tic_mode !== "AUTO") {
+            if (options?.tic_mode != null && options.tic_mode !== "AUTO") {
                 currentTIC = String(options.tic_mode);
                 logger.debug(`Manual tic: ${currentTIC}`, "TICMeter");
             } else {
@@ -2076,7 +2074,7 @@ export const definitions: DefinitionWithExtend[] = [
                 }
             }
 
-            if (options && options.producer !== undefined && options.producer !== "AUTO") {
+            if (options?.producer != null && options.producer !== "AUTO") {
                 currentProducer = String(options.producer);
                 logger.debug(`Manual producer: ${currentProducer}`, "TICMeter");
             } else {
@@ -2087,7 +2085,7 @@ export const definitions: DefinitionWithExtend[] = [
                 }
             }
 
-            if (options && options.translation !== undefined) {
+            if (options?.translation != null) {
                 translation = String(options.translation);
             } else {
                 translation = TRANSLATION_FR;
@@ -2099,7 +2097,6 @@ export const definitions: DefinitionWithExtend[] = [
             globalStore.putValue(device, "producer", currentProducer);
             globalStore.putValue(device, "translation", translation);
 
-            // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
             ticmeterDatas.forEach((item) => {
                 let contractOK = false;
                 let elecOK = false;
@@ -2177,7 +2174,7 @@ export const definitions: DefinitionWithExtend[] = [
             });
             logger.debug(`Exposes ${exposes.length} attributes`, "TICMeter");
 
-            if (options.translation !== undefined) {
+            if (options.translation != null) {
                 switch (options.translation) {
                     case TRANSLATION_FR:
                         for (let i = 0; i < ticmeterOptions.length; i++) {
@@ -2230,7 +2227,6 @@ export const definitions: DefinitionWithExtend[] = [
 
             logger.debug(`Configure wanted ${wanted.length}`, "TICMeter");
 
-            // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
             endpoint.configuredReportings.forEach(async (r) => {
                 await endpoint.configureReporting(
                     r.cluster.name,

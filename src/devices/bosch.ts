@@ -1,4 +1,4 @@
-import {ZSpec, Zcl} from "zigbee-herdsman";
+import {Zcl, ZSpec} from "zigbee-herdsman";
 
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
@@ -368,7 +368,6 @@ const boschExtend = {
                             battery_defect: (zoneStatus & (1 << 9)) > 0,
                             action: lookup[(zoneStatus >> 11) & 3],
                         };
-                        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
                         if (result.action === "none") delete result.action;
                         return result;
                     }
@@ -1047,14 +1046,14 @@ const fzLocal = {
         cluster: "boschSpecific",
         type: "raw",
         options: [e.text("led_response", ea.ALL).withLabel("LED config (confirmation response)").withDescription(labelConfirmation)],
-        convert: async (model, msg, publish, options, meta) => {
+        convert: (model, msg, publish, options, meta) => {
             const sequenceNumber = msg.data.readUInt8(3);
             const buttonId = msg.data.readUInt8(4);
             const longPress = msg.data.readUInt8(5);
             const duration = msg.data.readUInt16LE(6);
             // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
             let buffer;
-            if (options.led_response !== undefined) {
+            if (options.led_response != null) {
                 buffer = Buffer.from(options.led_response as string, "hex");
                 if (buffer.length !== 9) {
                     logger.error(`Invalid length of led_response: ${buffer.length} (should be 9)`, NS);
@@ -1086,7 +1085,7 @@ const fzLocal = {
     bhius_config: {
         cluster: "boschSpecific",
         type: ["attributeReport", "readResponse"],
-        convert: async (model, msg, publish, options, meta) => {
+        convert: (model, msg, publish, options, meta) => {
             const result: {[key: number | string]: string} = {};
             for (const id of Object.values(buttonMap)) {
                 if (msg.data[id] !== undefined) {
@@ -1302,7 +1301,7 @@ export const definitions: DefinitionWithExtend[] = [
             "RFPR-ZB-ES",
             "RFPR-ZB-MS",
         ],
-        model: "RADON TriTech ZB",
+        model: "RADION TriTech ZB",
         vendor: "Bosch",
         description: "Wireless motion detector",
         fromZigbee: [fz.temperature, fz.battery, fz.ias_occupancy_alarm_1],
@@ -1820,6 +1819,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Light/shutter control unit II",
         extend: [
             m.deviceEndpoints({endpoints: {left: 2, right: 3}}),
+            m.electricityMeter({voltage: false, current: false}),
             m.deviceAddCustomCluster("boschSpecific", {
                 ID: 0xfca0,
                 manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
@@ -1838,6 +1838,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             boschExtend.bmct(),
         ],
+        ota: true,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genIdentify", "closuresWindowCovering", "boschSpecific"]);
@@ -1923,7 +1924,7 @@ export const definitions: DefinitionWithExtend[] = [
                     .withValueStep(0.1),
             ];
 
-            if (device) {
+            if (!utils.isDummyDevice(device)) {
                 const deviceModeKey = device.getEndpoint(1).getClusterAttributeValue("boschSpecific", "deviceMode");
                 const deviceMode = Object.keys(stateDeviceMode).find((key) => stateDeviceMode[key] === deviceModeKey);
 

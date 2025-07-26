@@ -141,7 +141,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        zigbeeModel: ["ZG2833K8_EU05", "ROB_200-007-0"],
+        zigbeeModel: ["ROB_200-007-0"],
         model: "ROB_200-007-0",
         vendor: "ROBB",
         description: "Zigbee 8 button wall switch",
@@ -173,7 +173,6 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         toZigbee: [],
         meta: {multiEndpoint: true},
-        whiteLabel: [{vendor: "Sunricher", model: "SR-ZG9001K8-DIM"}],
     },
     {
         zigbeeModel: ["ROB_200-024-0"],
@@ -350,7 +349,7 @@ export const definitions: DefinitionWithExtend[] = [
             fz.command_stop,
             fz.command_move,
             fz.command_color_loop_set,
-            fz.command_ehanced_move_to_hue_and_saturation,
+            fz.command_enhanced_move_to_hue_and_saturation,
         ],
         toZigbee: [],
         exposes: [
@@ -381,7 +380,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "2-gang in-wall switch",
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.power_on_behavior],
         toZigbee: [tz.on_off, tz.power_on_behavior, tz.electrical_measurement_power],
-        exposes: [e.switch().withEndpoint("l1"), e.switch().withEndpoint("l2"), e.energy()],
+        exposes: [e.switch().withEndpoint("l1"), e.switch().withEndpoint("l2"), e.energy(), e.power_on_behavior()],
         endpoint: (device) => {
             return {l1: 1, l2: 2};
         },
@@ -399,6 +398,14 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.readMeteringMultiplierDivisor(endpoint1);
             await reporting.currentSummDelivered(endpoint1, {min: 60, change: 1});
         },
+    },
+    {
+        zigbeeModel: ["ROB_200-026-1"],
+        model: "ROB_200-026-1",
+        vendor: "ROBB smarrt",
+        description: "2-gang in-wall switch with metering",
+        extend: [m.deviceEndpoints({endpoints: {"1": 1, "2": 2}}), m.onOff({powerOnBehavior: true, endpointNames: ["1", "2"]}), m.electricityMeter()],
+        meta: {multiEndpoint: true},
     },
     {
         zigbeeModel: ["ROB_200-035-0"],

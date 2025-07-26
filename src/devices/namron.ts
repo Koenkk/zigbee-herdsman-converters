@@ -634,7 +634,7 @@ export const definitions: DefinitionWithExtend[] = [
                 const interval = setInterval(async () => {
                     try {
                         // Device does not asks for the time with binding, therefore we write the time every 24 hours
-                        const time = Math.round((new Date().getTime() - constants.OneJanuary2000) / 1000 + new Date().getTimezoneOffset() * -1 * 60);
+                        const time = Math.round((Date.now() - constants.OneJanuary2000) / 1000 + new Date().getTimezoneOffset() * -1 * 60);
                         const values = {time: time};
                         await endpoint.write("genTime", values);
                     } catch {
@@ -1545,7 +1545,7 @@ export const definitions: DefinitionWithExtend[] = [
                     try {
                         const endpoint = device.getEndpoint(1);
                         // Device does not asks for the time with binding, therefore we write the time every 24 hours
-                        const time = new Date().getTime() / 1000;
+                        const time = Date.now() / 1000;
                         await endpoint.write("hvacThermostat", {
                             [0x800b]: {
                                 value: time,

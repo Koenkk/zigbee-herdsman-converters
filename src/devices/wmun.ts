@@ -1,8 +1,10 @@
 import * as m from "../lib/modernExtend";
 import * as zosung from "../lib/zosung";
+
 const ez = zosung.presetsZosung;
 const fzZosung = zosung.fzZosung;
 const tzZosung = zosung.tzZosung;
+
 import type {DefinitionWithExtend} from "../lib/types";
 
 export const definitions: DefinitionWithExtend[] = [

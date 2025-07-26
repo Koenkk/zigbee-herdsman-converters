@@ -17,7 +17,10 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Vesternet",
         description: "Zigbee dimmer",
         extend: [
-            m.light({configureReporting: true, levelConfig: {disabledFeatures: ["on_transition_time", "off_transition_time"]}}),
+            m.light({
+                configureReporting: true,
+                levelConfig: {features: ["on_off_transition_time", "execute_if_off", "on_level", "current_level_startup"]},
+            }),
             m.electricityMeter(),
         ],
         whiteLabel: [{vendor: "Sunricher", model: "SR-ZG9040A"}],

@@ -17,6 +17,7 @@ export interface QueryNextImageRequestPayload {
     manufacturerCode: Zcl.ManufacturerCode;
     imageType: number;
     fileVersion: number;
+    hardwareVersion?: number;
 }
 
 export interface ImageBlockRequestPayload {
@@ -567,10 +568,10 @@ async function getImageMeta(
                 i.manufacturerName.includes(extraMetas.manufacturerName!)) &&
             (!extraMetas.otaHeaderString || i.otaHeaderString === extraMetas.otaHeaderString) &&
             (i.hardwareVersionMin === undefined ||
-                (device.hardwareVersion !== undefined && device.hardwareVersion >= i.hardwareVersionMin) ||
+                (current.hardwareVersion !== undefined && current.hardwareVersion >= i.hardwareVersionMin) ||
                 (extraMetas.hardwareVersionMin !== undefined && extraMetas.hardwareVersionMin >= i.hardwareVersionMin)) &&
             (i.hardwareVersionMax === undefined ||
-                (device.hardwareVersion !== undefined && device.hardwareVersion <= i.hardwareVersionMax) ||
+                (current.hardwareVersion !== undefined && current.hardwareVersion <= i.hardwareVersionMax) ||
                 (extraMetas.hardwareVersionMax !== undefined && extraMetas.hardwareVersionMax <= i.hardwareVersionMax)),
     );
 }
@@ -681,9 +682,9 @@ async function getImage(current: Ota.ImageInfo, device: Zh.Device, extraMetas: O
         "maximumHardwareVersion" in image.header &&
         image.header.maximumHardwareVersion !== undefined
     ) {
-        assert(device.hardwareVersion !== undefined, "Hardware version required");
+        assert(current.hardwareVersion !== undefined, "Hardware version required");
         assert(
-            image.header.minimumHardwareVersion <= device.hardwareVersion && device.hardwareVersion <= image.header.maximumHardwareVersion,
+            image.header.minimumHardwareVersion <= current.hardwareVersion && current.hardwareVersion <= image.header.maximumHardwareVersion,
             "Hardware version mismatch",
         );
     }
@@ -840,7 +841,7 @@ export async function update(
     const waiters: Waiters = {};
     let lastBlockResponseTime = 0;
     let lastBlockTimeout: NodeJS.Timeout;
-    let lastUpdate: number | undefined = undefined;
+    let lastUpdate: number | undefined;
     const startTime = Date.now();
 
     const sendImageBlockResponse = async (
