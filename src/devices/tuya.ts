@@ -18416,9 +18416,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZHT-S03",
         vendor: "Tuya",
         description: "Zigbee wall thermostat",
-        whiteLabel: [
-            tuya.whitelabel("Moes", "ZHT-S03", "Zigbee wall thermostat", ["_TZE204_zxkwaztm"]),
-        ],
+        whiteLabel: [tuya.whitelabel("Moes", "ZHT-S03", "Zigbee wall thermostat", ["_TZE204_zxkwaztm"])],
         onEvent: tuya.onEventSetLocalTime,
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
@@ -18443,9 +18441,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription("The delta between local_temperature and current_heating_setpoint to trigger Heat"),
             e.enum("working_day", ea.STATE_SET, ["mon_fri", "mon_sat", "mon_sun"]).withDescription("Workday setting"),
             e.text("schedule_weekday", ea.STATE_SET).withDescription("Workdays (6 times `hh:mm/cc.c°C`)"),
-            e
-                .text("schedule_holiday", ea.STATE_SET)
-                .withDescription("Holidays (2 times `hh:mm/cc.c°C)`"),
+            e.text("schedule_holiday", ea.STATE_SET).withDescription("Holidays (2 times `hh:mm/cc.c°C)`"),
             e.binary("frost_protection", ea.STATE_SET, "ON", "OFF").withDescription("Antifreeze function"),
         ],
         meta: {
@@ -18459,11 +18455,7 @@ export const definitions: DefinitionWithExtend[] = [
                         idle: tuya.enum(0),
                     }),
                 ],
-                [
-                    1,
-                    "system_mode",
-                    tuya.valueConverterBasic.lookup({ heat: true, off: false }),
-                ],
+                [1, "system_mode", tuya.valueConverterBasic.lookup({heat: true, off: false})],
                 [
                     2,
                     "preset",
