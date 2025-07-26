@@ -2962,6 +2962,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.numeric("calibration_time", ea.ALL).withValueMin(0).withValueMax(100),
             e.enum("moving", ea.STATE, ["UP", "STOP", "DOWN"]),
             e.binary("motor_reversal", ea.ALL, "ON", "OFF"),
+            e.binary("calibration", ea.ALL, "ON", "OFF"),
         ],
     },
     {
