@@ -1,5 +1,4 @@
 import {beforeEach, describe, expect, test, vi} from "vitest";
-
 import * as zhc from "../src";
 import type {Tz} from "../src/lib/types";
 import {mockDevice} from "./utils";
