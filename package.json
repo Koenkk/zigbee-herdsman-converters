@@ -1,6 +1,6 @@
 {
     "name": "zigbee-herdsman-converters",
-    "version": "24.5.0",
+    "version": "24.8.0",
     "description": "Collection of device converters to be used with zigbee-herdsman",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
@@ -23,6 +23,7 @@
     ],
     "scripts": {
         "check": "biome check --error-on-warnings",
+        "check:w": "biome check --error-on-warnings --write",
         "test": "vitest run --config ./test/vitest.config.mts",
         "test:coverage": "vitest run --config ./test/vitest.config.mts --coverage",
         "bench": "vitest bench --run --config ./test/vitest.config.mts",
@@ -42,7 +43,7 @@
         "buffer-crc32": "^1.0.0",
         "iconv-lite": "^0.6.3",
         "semver": "^7.7.1",
-        "zigbee-herdsman": "^4.4.1"
+        "zigbee-herdsman": "^5.0.0"
     },
     "exports": {
         ".": "./dist/index.js",
