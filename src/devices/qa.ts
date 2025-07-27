@@ -41,6 +41,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "QAT42Z2",
         vendor: "QA",
         description: "2 channel scene switch",
+        meta: {multiEndpoint: true},
         extend: [
             tuya.modernExtend.tuyaMagicPacket(),
             m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
@@ -66,6 +67,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "QAT42Z3",
         vendor: "QA",
         description: "3 channel scene switch",
+        meta: {multiEndpoint: true},
         extend: [
             tuya.modernExtend.tuyaMagicPacket(),
             m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3}}),
@@ -109,6 +111,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "QARZ2LR",
         vendor: "QA",
         description: "2 channel long range switch",
+        meta: {multiEndpoint: true},
         extend: [
             tuya.modernExtend.tuyaMagicPacket(),
             m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
@@ -120,6 +123,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "QARZ3LR",
         vendor: "QA",
         description: "3 channel long range switch",
+        meta: {multiEndpoint: true},
         extend: [
             tuya.modernExtend.tuyaMagicPacket(),
             m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3}}),
@@ -131,6 +135,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "QARZ4LR",
         vendor: "QA",
         description: "4 channel long range switch",
+        meta: {multiEndpoint: true},
         extend: [
             tuya.modernExtend.tuyaMagicPacket(),
             m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4}}),
@@ -153,6 +158,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "QAT42Z2H",
         vendor: "QA",
         description: "2 channel wall switch",
+        meta: {multiEndpoint: true},
         extend: [
             tuya.modernExtend.tuyaMagicPacket(),
             m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
@@ -164,6 +170,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "QAT42Z3H",
         vendor: "QA",
         description: "3 channel wall switch",
+        meta: {multiEndpoint: true},
         extend: [
             tuya.modernExtend.tuyaMagicPacket(),
             m.deviceEndpoints({endpoints: {left: 1, center: 2, right: 3}}),
@@ -244,6 +251,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "QADZ2",
         vendor: "QA",
         description: "Dimmer 2 channel",
+        meta: {multiEndpoint: true},
         extend: [
             tuya.modernExtend.tuyaMagicPacket(),
             m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
