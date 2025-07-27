@@ -12,31 +12,6 @@ const ea = exposes.access;
 
 export const definitions: DefinitionWithExtend[] = [
     {
-        fingerprint: tuya.fingerprint("TS0726", ["_TZ3000_kt6xxa4o"]),
-        model: "QAT42Z3",
-        vendor: "QA",
-        description: "3 channel scene switch",
-        extend: [
-            tuya.modernExtend.tuyaMagicPacket(),
-            m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3}}),
-            tuya.modernExtend.tuyaOnOff({endpoints: ["l1", "l2", "l3"], powerOnBehavior2: true, backlightModeOffOn: true}),
-            m.actionEnumLookup({
-                cluster: "genOnOff",
-                commands: ["commandTuyaAction"],
-                attribute: "value",
-                actionLookup: {button: 0},
-                buttonLookup: {
-                    "1_up": 4,
-                    "1_down": 1,
-                    "2_up": 5,
-                    "2_down": 2,
-                    "3_up": 6,
-                    "3_down": 3,
-                },
-            }),
-        ],
-    },
-    {
         fingerprint: tuya.fingerprint("TS0726", ["_TZ3000_wopf2sox"]),
         model: "QAT42Z1",
         vendor: "QA",
@@ -70,6 +45,31 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.modernExtend.tuyaMagicPacket(),
             m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
             tuya.modernExtend.tuyaOnOff({endpoints: ["l1", "l2"], powerOnBehavior2: true, backlightModeOffOn: true}),
+            m.actionEnumLookup({
+                cluster: "genOnOff",
+                commands: ["commandTuyaAction"],
+                attribute: "value",
+                actionLookup: {button: 0},
+                buttonLookup: {
+                    "1_up": 4,
+                    "1_down": 1,
+                    "2_up": 5,
+                    "2_down": 2,
+                    "3_up": 6,
+                    "3_down": 3,
+                },
+            }),
+        ],
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0726", ["_TZ3000_kt6xxa4o"]),
+        model: "QAT42Z3",
+        vendor: "QA",
+        description: "3 channel scene switch",
+        extend: [
+            tuya.modernExtend.tuyaMagicPacket(),
+            m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3}}),
+            tuya.modernExtend.tuyaOnOff({endpoints: ["l1", "l2", "l3"], powerOnBehavior2: true, backlightModeOffOn: true}),
             m.actionEnumLookup({
                 cluster: "genOnOff",
                 commands: ["commandTuyaAction"],
@@ -166,8 +166,8 @@ export const definitions: DefinitionWithExtend[] = [
         description: "3 channel wall switch",
         extend: [
             tuya.modernExtend.tuyaMagicPacket(),
-            m.deviceEndpoints({endpoints: {left: 1, center: 2, right: 3}}),
-            tuya.modernExtend.tuyaOnOff({endpoints: ["left", "center", "right"], backlightModeOffOn: true}),
+            m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3}}),
+            tuya.modernExtend.tuyaOnOff({endpoints: ["l1", "l2", "l3"], backlightModeOffOn: true}),
         ],
     },
     {
