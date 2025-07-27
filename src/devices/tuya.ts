@@ -2964,7 +2964,7 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: [tz.cover_state, tz.moes_cover_calibration, tz.cover_position_tilt, tz.tuya_cover_reversal],
         exposes: [
             e.cover_position(),
-            e.numeric("calibration_time", ea.ALL).withUnit("s"),
+            e.numeric("calibration_time", ea.ALL).withValueMin(0).withValueMax(100).withUnit("s"),
             e.enum("moving", ea.STATE, ["UP", "STOP", "DOWN"]),
             e.binary("motor_reversal", ea.ALL, "ON", "OFF"),
         ],
