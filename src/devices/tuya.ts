@@ -2954,7 +2954,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS130F", ["_TZ3000_1dd0d5yi", "_TZ3210_dwytrmda", "_TZ3210_xbpt8ewc"]),
+        fingerprint: tuya.fingerprint("TS130F", ["_TZ3000_1dd0d5yi"]),
         model: "MS-108ZR",
         vendor: "Moes",
         description: "Zigbee + RF curtain switch module",
