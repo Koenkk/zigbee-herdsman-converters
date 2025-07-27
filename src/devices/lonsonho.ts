@@ -69,14 +69,14 @@ export const definitions: DefinitionWithExtend[] = [
             e
                 .numeric("calibration_time", ea.ALL)
                 .withValueMin(0)
-                .withValueMax(100)
+                .withValueMax(500)
                 .withUnit("s")
                 .withDescription("Calibration time")
                 .withEndpoint("left"),
             e
                 .numeric("calibration_time", ea.ALL)
                 .withValueMin(0)
-                .withValueMax(100)
+                .withValueMax(500)
                 .withUnit("s")
                 .withDescription("Calibration time")
                 .withEndpoint("right"),
