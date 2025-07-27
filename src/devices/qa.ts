@@ -166,8 +166,8 @@ export const definitions: DefinitionWithExtend[] = [
         description: "3 channel wall switch",
         extend: [
             tuya.modernExtend.tuyaMagicPacket(),
-            m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3}}),
-            tuya.modernExtend.tuyaOnOff({endpoints: ["l1", "l2", "l3"], backlightModeOffOn: true}),
+            m.deviceEndpoints({endpoints: {left: 1, center: 2, right: 3}}),
+            tuya.modernExtend.tuyaOnOff({endpoints: ["left", "center", "right"], backlightModeOffOn: true}),
         ],
     },
     {
