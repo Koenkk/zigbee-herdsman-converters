@@ -171,6 +171,33 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_kyzjsjo3"]),
+        model: "QAT44Z4H",
+        vendor: "QA",
+        description: "4 channel wall switch",
+        exposes: [
+            e.switch().withEndpoint("l1").setAccess("state", ea.STATE_SET),
+            e.switch().withEndpoint("l2").setAccess("state", ea.STATE_SET),
+            e.switch().withEndpoint("l3").setAccess("state", ea.STATE_SET),
+            e.switch().withEndpoint("l4").setAccess("state", ea.STATE_SET),
+        ],
+        fromZigbee: [fz.ignore_basic_report, legacy.fz.tuya_switch],
+        toZigbee: [legacy.tz.tuya_switch_state],
+        meta: {multiEndpoint: true},
+        endpoint: (device) => {
+            return {l1: 1, l2: 1, l3: 1, l4: 1};
+        },
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
+            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ["genOnOff"]);
+            await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ["genOnOff"]);
+            await reporting.bind(device.getEndpoint(4), coordinatorEndpoint, ["genOnOff"]);
+            // Reports itself as battery which is not correct: https://github.com/Koenkk/zigbee2mqtt/issues/6190
+            device.powerSource = "Mains (single phase)";
+            device.save();
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_4cl0dzt4"]),
         model: "QAT44Z6H",
         vendor: "QA",
@@ -196,33 +223,6 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(device.getEndpoint(4), coordinatorEndpoint, ["genOnOff"]);
             await reporting.bind(device.getEndpoint(5), coordinatorEndpoint, ["genOnOff"]);
             await reporting.bind(device.getEndpoint(6), coordinatorEndpoint, ["genOnOff"]);
-            // Reports itself as battery which is not correct: https://github.com/Koenkk/zigbee2mqtt/issues/6190
-            device.powerSource = "Mains (single phase)";
-            device.save();
-        },
-    },
-    {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_kyzjsjo3"]),
-        model: "QAT44Z4H",
-        vendor: "QA",
-        description: "4 channel wall switch",
-        exposes: [
-            e.switch().withEndpoint("l1").setAccess("state", ea.STATE_SET),
-            e.switch().withEndpoint("l2").setAccess("state", ea.STATE_SET),
-            e.switch().withEndpoint("l3").setAccess("state", ea.STATE_SET),
-            e.switch().withEndpoint("l4").setAccess("state", ea.STATE_SET),
-        ],
-        fromZigbee: [fz.ignore_basic_report, legacy.fz.tuya_switch],
-        toZigbee: [legacy.tz.tuya_switch_state],
-        meta: {multiEndpoint: true},
-        endpoint: (device) => {
-            return {l1: 1, l2: 1, l3: 1, l4: 1};
-        },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
-            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ["genOnOff"]);
-            await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ["genOnOff"]);
-            await reporting.bind(device.getEndpoint(4), coordinatorEndpoint, ["genOnOff"]);
             // Reports itself as battery which is not correct: https://github.com/Koenkk/zigbee2mqtt/issues/6190
             device.powerSource = "Mains (single phase)";
             device.save();
