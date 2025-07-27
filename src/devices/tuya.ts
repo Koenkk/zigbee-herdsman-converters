@@ -2936,7 +2936,11 @@ export const definitions: DefinitionWithExtend[] = [
             } else {
                 exps.push(e.binary("calibration", ea.ALL, "ON", "OFF"), e.numeric("calibration_time", ea.STATE).withUnit("s"));
             }
-            if (!["_TZ3000_e3vhyirx", "_TZ3000_5iixzdo7", "_TZ3000_yruungrl", "_TZ3210_dwytrmda", "_TZ3210_xbpt8ewc"].includes(device.manufacturerName)) {
+            if (
+                !["_TZ3000_e3vhyirx", "_TZ3000_5iixzdo7", "_TZ3000_yruungrl", "_TZ3210_dwytrmda", "_TZ3210_xbpt8ewc"].includes(
+                    device.manufacturerName,
+                )
+            ) {
                 exps.push(tuya.exposes.indicatorMode(), tuya.exposes.backlightModeOffOn());
             }
             if (["_TZ3000_5iixzdo7"].includes(device.manufacturerName)) {
