@@ -194,6 +194,10 @@ const inovelliExtend = {
                         {name: "duration", type: Zcl.DataType.UINT8},
                     ],
                 },
+                ledEffectComplete: {
+                    ID: 0x24,
+                    parameters: [{name: "notificationType", type: Zcl.DataType.UINT8}],
+                },
             },
             commandsResponse: {},
         }),
@@ -237,6 +241,17 @@ const inovelliExtend = {
 
 const fanModes: {[key: string]: number} = {off: 0, low: 2, smart: 4, medium: 86, high: 170, on: 255};
 const breezemodes: string[] = ["off", "low", "medium", "high"];
+const LED_NOTIFICATION_TYPES: {[key: number]: string} = {
+    0: "LED_1",
+    1: "LED_2",
+    2: "LED_3",
+    3: "LED_4",
+    4: "LED_5",
+    5: "LED_6",
+    6: "LED_7",
+    16: "ALL_LEDS",
+    255: "CONFIG_BUTTON_DOUBLE_PRESS",
+};
 
 const INOVELLI = 0x122f;
 
@@ -2099,6 +2114,16 @@ const fzLocal = {
             }
         },
     } satisfies Fz.Converter,
+    led_effect_complete: {
+        cluster: INOVELLI_CLUSTER_NAME,
+        type: ["commandLedEffectComplete"],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.notificationType in LED_NOTIFICATION_TYPES) {
+                return {notificationComplete: LED_NOTIFICATION_TYPES[msg.data.notificationType]};
+            }
+            return {notificationComplete: "Unknown"};
+        },
+    } satisfies Fz.Converter,
 };
 
 const exposeLedEffects = () => {
@@ -2177,17 +2202,31 @@ const exposeMMWaveControl = () => {
         .withCategory("config");
 };
 
-const exposesListVZM30: Expose[] = [e.light_brightness(), exposeLedEffects(), exposeIndividualLedEffects()];
+const exposeLedEffectComplete = () => {
+    return e
+        .enum("notificationComplete", ea.STATE_GET, Object.values(LED_NOTIFICATION_TYPES))
+        .withDescription("Indication that a specific notification has completed.")
+        .withCategory("diagnostic");
+};
 
-const exposesListVZM31: Expose[] = [e.light_brightness(), exposeLedEffects(), exposeIndividualLedEffects()];
+const exposesListVZM30: Expose[] = [e.light_brightness(), exposeLedEffects(), exposeIndividualLedEffects(), exposeLedEffectComplete()];
 
-const exposesListVZM32: Expose[] = [e.light_brightness(), exposeLedEffects(), exposeIndividualLedEffects(), exposeMMWaveControl()];
+const exposesListVZM31: Expose[] = [e.light_brightness(), exposeLedEffects(), exposeIndividualLedEffects(), exposeLedEffectComplete()];
+
+const exposesListVZM32: Expose[] = [
+    e.light_brightness(),
+    exposeLedEffects(),
+    exposeIndividualLedEffects(),
+    exposeMMWaveControl(),
+    exposeLedEffectComplete(),
+];
 
 const exposesListVZM35: Expose[] = [
     e.fan().withState("fan_state").withModes(Object.keys(fanModes)),
     exposeLedEffects(),
     exposeIndividualLedEffects(),
     exposeBreezeMode(),
+    exposeLedEffectComplete(),
 ];
 
 const exposesListVZM36: Expose[] = [e.light_brightness(), e.fan().withState("fan_state").withModes(Object.keys(fanModes)), exposeBreezeMode()];
@@ -2277,6 +2316,7 @@ export const definitions: DefinitionWithExtend[] = [
             fz.power_on_behavior,
             fz.ignore_basic_report,
             fzLocal.inovelli(VZM30_ATTRIBUTES, INOVELLI_CLUSTER_NAME),
+            fzLocal.led_effect_complete,
         ],
         ota: true,
         configure: async (device, coordinatorEndpoint) => {
@@ -2329,11 +2369,12 @@ export const definitions: DefinitionWithExtend[] = [
             fz.power_on_behavior,
             fz.ignore_basic_report,
             fzLocal.inovelli(VZM31_ATTRIBUTES, INOVELLI_CLUSTER_NAME),
+            fzLocal.led_effect_complete,
         ],
         ota: true,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "genLevelCtrl"]);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "genLevelCtrl", INOVELLI_CLUSTER_NAME]);
             await reporting.onOff(endpoint);
 
             await chunkedRead(endpoint, Object.keys(VZM31_ATTRIBUTES), INOVELLI_CLUSTER_NAME);
@@ -2383,11 +2424,12 @@ export const definitions: DefinitionWithExtend[] = [
             fz.ignore_basic_report,
             fzLocal.inovelli(VZM32_ATTRIBUTES, INOVELLI_CLUSTER_NAME),
             fzLocal.inovelli(VZM32_MMWAVE_ATTRIBUTES, INOVELLI_MMWAVE_CLUSTER_NAME),
+            fzLocal.led_effect_complete,
         ],
         ota: true,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "genLevelCtrl"]);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "genLevelCtrl", INOVELLI_CLUSTER_NAME]);
             await reporting.onOff(endpoint);
 
             await chunkedRead(endpoint, Object.keys(VZM32_ATTRIBUTES), INOVELLI_CLUSTER_NAME);
@@ -2403,7 +2445,13 @@ export const definitions: DefinitionWithExtend[] = [
         model: "VZM35-SN",
         vendor: "Inovelli",
         description: "Fan controller",
-        fromZigbee: [fzLocal.fan_state, fzLocal.fan_mode(1), fzLocal.breeze_mode(1), fzLocal.inovelli(VZM35_ATTRIBUTES, INOVELLI_CLUSTER_NAME)],
+        fromZigbee: [
+            fzLocal.fan_state,
+            fzLocal.fan_mode(1),
+            fzLocal.breeze_mode(1),
+            fzLocal.inovelli(VZM35_ATTRIBUTES, INOVELLI_CLUSTER_NAME),
+            fzLocal.led_effect_complete,
+        ],
         toZigbee: [
             tz.identify,
             tzLocal.fan_state,
@@ -2419,7 +2467,7 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "genLevelCtrl"]);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "genLevelCtrl", INOVELLI_CLUSTER_NAME]);
 
             await chunkedRead(endpoint, Object.keys(VZM35_ATTRIBUTES), INOVELLI_CLUSTER_NAME);
 
