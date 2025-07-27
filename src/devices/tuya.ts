@@ -2918,7 +2918,6 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Zemismart", "TS130F_ZEMISMART", "Smart curtain wall switch", ["_TZ3000_vw8pawxa"],
             tuya.whitelabel("QA", "QACZ1", "Smart curtain switch", ["_TZ3210_xbpt8ewc"]),
         ],
-        ],
         exposes: (device) => {
             const exps: Expose[] = [
                 e.cover_position(),
