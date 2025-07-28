@@ -23,10 +23,83 @@ const exposesLocal = {
 
 export const definitions: DefinitionWithExtend[] = [
     {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_zxkwaztm"]),
+        model: "ZHT-S03",
+        vendor: "Moes",
+        description: "Zigbee wall thermostat",
+        onEvent: tuya.onEventSetLocalTime,
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.child_lock(),
+            e
+                .climate()
+                .withSystemMode(["off", "heat"], ea.STATE)
+                .withSetpoint("current_heating_setpoint", 5, 35, 0.5, ea.STATE_SET)
+                .withRunningState(["idle", "heat"], ea.STATE)
+                .withPreset(["schedule", "manual"])
+                .withLocalTemperature(ea.STATE)
+                .withLocalTemperatureCalibration(-9.9, 9.9, 0.1, ea.STATE_SET),
+            e
+                .numeric("temperature_delta", ea.STATE_SET)
+                .withUnit("°C")
+                .withValueMax(10)
+                .withValueMin(0.5)
+                .withValueStep(0.5)
+                .withPreset("default", 1, "Default value")
+                .withDescription("The delta between local_temperature and current_heating_setpoint to trigger Heat"),
+            e.enum("working_day", ea.STATE_SET, ["mon_fri", "mon_sat", "mon_sun"]).withDescription("Workday setting"),
+            e.text("schedule_weekday", ea.STATE_SET).withDescription("Workdays (6 times `hh:mm/cc.c°C`)"),
+            e.text("schedule_holiday", ea.STATE_SET).withDescription("Holidays (2 times `hh:mm/cc.c°C)`"),
+            e.binary("frost_protection", ea.STATE_SET, "ON", "OFF").withDescription("Antifreeze function"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [
+                    36,
+                    "running_state",
+                    tuya.valueConverterBasic.lookup({
+                        cool: tuya.enum(2),
+                        heat: tuya.enum(1),
+                        idle: tuya.enum(0),
+                    }),
+                ],
+                [1, "system_mode", tuya.valueConverterBasic.lookup({heat: true, off: false})],
+                [
+                    2,
+                    "preset",
+                    tuya.valueConverterBasic.lookup({
+                        schedule: tuya.enum(0),
+                        manual: tuya.enum(1),
+                    }),
+                ],
+                [10, "frost_protection", tuya.valueConverter.onOff],
+                [16, "current_heating_setpoint", tuya.valueConverter.divideBy10],
+                [24, "local_temperature", tuya.valueConverter.divideBy10],
+                [40, "child_lock", tuya.valueConverter.lockUnlock],
+                [109, "local_temperature_calibration", tuya.valueConverter.localTempCalibration3],
+                [112, "temperature_delta", tuya.valueConverter.divideBy10],
+                [
+                    31,
+                    "working_day",
+                    tuya.valueConverterBasic.lookup({
+                        mon_fri: tuya.enum(0),
+                        mon_sat: tuya.enum(1),
+                        mon_sun: tuya.enum(2),
+                    }),
+                ],
+                [67, null, tuya.valueConverter.ZWT198_schedule],
+                [67, "schedule_weekday", tuya.valueConverter.ZWT198_schedule],
+                [68, "schedule_holiday", tuya.valueConverter.ZWT198_schedule],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_9dhenr94", "_TZE200_dq8bu0pt"]),
         model: "SFL02-Z-4",
         vendor: "Moes",
-        description: "This is an innovative touch AG glass switch.",
+        description: "Star feather smart switch 4 gang.",
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         onEvent: tuya.onEventSetTime,
@@ -65,6 +138,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueStep(1)
                 .withUnit("s")
                 .withDescription("Countdown timer"),
+            e.power_on_behavior().withAccess(ea.STATE_SET),
             exposes.enum("mode", ea.STATE_SET, ["switch_1", "scene_1"]).withEndpoint("l1").withDescription("Switch1 mode"),
             exposes.enum("mode", ea.STATE_SET, ["switch_2", "scene_2"]).withEndpoint("l2").withDescription("Switch2 mode"),
             exposes.enum("mode", ea.STATE_SET, ["switch_3", "scene_3"]).withEndpoint("l3").withDescription("Switch3 mode"),
@@ -95,6 +169,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [33, "countdown_4", tuya.valueConverter.countdown],
                 [36, "backlight_mode", tuya.valueConverter.onOff],
                 [37, "indicator_mode", tuya.valueConverterBasic.lookup({none: tuya.enum(0), relay: tuya.enum(1), pos: tuya.enum(2)})],
+                [38, "power_on_behavior", tuya.valueConverter.powerOnBehaviorEnum],
                 [
                     104,
                     "vibration",
@@ -112,7 +187,7 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_wv9ukqca", "_TZE200_zo0cfekv"]),
         model: "SFL02-Z-3",
         vendor: "Moes",
-        description: "Star feather smart switch:This is an innovative touch AG glass switch.",
+        description: "Star feather smart switch 3 gang.",
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         onEvent: tuya.onEventSetTime,
@@ -143,6 +218,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueStep(1)
                 .withUnit("s")
                 .withDescription("Countdown timer"),
+            e.power_on_behavior().withAccess(ea.STATE_SET),
             exposes.enum("mode", ea.STATE_SET, ["switch_1", "scene_1"]).withEndpoint("l1").withDescription("Switch1 mode"),
             exposes.enum("mode", ea.STATE_SET, ["switch_2", "scene_2"]).withEndpoint("l2").withDescription("Switch2 mode"),
             exposes.enum("mode", ea.STATE_SET, ["switch_3", "scene_3"]).withEndpoint("l3").withDescription("Switch3 mode"),
@@ -162,6 +238,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [32, "countdown_3", tuya.valueConverter.countdown],
                 [36, "backlight_mode", tuya.valueConverter.onOff],
                 [37, "indicator_mode", tuya.valueConverterBasic.lookup({none: tuya.enum(0), relay: tuya.enum(1), pos: tuya.enum(2)})],
+                [38, "power_on_behavior", tuya.valueConverter.powerOnBehaviorEnum],
                 [
                     104,
                     "vibration",
@@ -179,7 +256,7 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_tzyy0rtq", "_TZE200_uenof8jd"]),
         model: "SFL02-Z-2",
         vendor: "Moes",
-        description: "This is an innovative touch AG glass switch.",
+        description: "Star feather smart switch 2 gangs.",
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         onEvent: tuya.onEventSetTime,
@@ -202,6 +279,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueStep(1)
                 .withUnit("s")
                 .withDescription("Countdown timer"),
+            e.power_on_behavior().withAccess(ea.STATE_SET),
             exposes.enum("mode", ea.STATE_SET, ["switch_1", "scene_1"]).withEndpoint("l1").withDescription("Switch1 mode"),
             exposes.enum("mode", ea.STATE_SET, ["switch_2", "scene_2"]).withEndpoint("l2").withDescription("Switch2 mode"),
             e.action(["scene_1", "scene_2"]),
@@ -222,6 +300,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [31, "countdown_2", tuya.valueConverter.countdown],
                 [36, "backlight_mode", tuya.valueConverter.onOff],
                 [37, "indicator_mode", tuya.valueConverterBasic.lookup({none: tuya.enum(0), relay: tuya.enum(1), pos: tuya.enum(2)})],
+                [38, "power_on_behavior", tuya.valueConverter.powerOnBehaviorEnum],
                 [
                     104,
                     "vibration",
@@ -239,7 +318,7 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_z3u99qxt", "_TZE200_stvgmdjz"]),
         model: "SFL02-Z-1",
         vendor: "Moes",
-        description: "This is an innovative touch AG glass switch.",
+        description: "Star feather smart switch 1 gang.",
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         onEvent: tuya.onEventSetTime,
@@ -254,6 +333,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueStep(1)
                 .withUnit("s")
                 .withDescription("Countdown timer"),
+            e.power_on_behavior().withAccess(ea.STATE_SET),
             exposes.enum("mode", ea.STATE_SET, ["switch_1", "scene_1"]).withEndpoint("l1").withDescription("Switch1 mode"),
             e.action(["scene_1"]),
             e
@@ -269,6 +349,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [30, "countdown_1", tuya.valueConverter.countdown],
                 [36, "backlight_mode", tuya.valueConverter.onOff],
                 [37, "indicator_mode", tuya.valueConverterBasic.lookup({none: tuya.enum(0), relay: tuya.enum(1), pos: tuya.enum(2)})],
+                [38, "power_on_behavior", tuya.valueConverter.powerOnBehaviorEnum],
                 [
                     104,
                     "vibration",

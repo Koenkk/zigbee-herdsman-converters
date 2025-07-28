@@ -1,5 +1,39 @@
 # Changelog
 
+## [24.8.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v24.7.0...v24.8.0) (2025-07-26)
+
+
+### Features
+
+* **add:** 929004297401 ([#9682](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9682)) ([10ff1b3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/10ff1b3d68e9be8fe5cc4b845c3f1a50c028240e))
+* Tuya TS0601_dimmer_3: expose `light_type` ([#9685](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9685)) ([2a1abfe](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2a1abfea46840b202d599d06e323578518ebe98f))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZE200_py4cm3he` as GIEX TV06 ([#9689](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9689)) ([44df9fc](https://github.com/Koenkk/zigbee-herdsman-converters/commit/44df9fc5793e12252d23b227f34639b4d617bdfe))
+* **ignore:** fix breaking changes of https://github.com/Koenkk/zigbee2mqtt/pull/28077 ([14d7fe2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/14d7fe23401e8250e56b766fefe6df6be7a9ffc0))
+* LiXee zlinky: fix default value for measurement_poll_chunk in description ([#9687](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9687)) ([ca255bd](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ca255bd986c715c07198820f127d367e11f800b4))
+* Set calibration option step at 0.1 ([#9683](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9683)) ([f206a3f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f206a3f44a8308fee370c0e2e581d8949f51872a))
+* Tuya BLE-YL01: improve reliability ([#9681](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9681)) ([c097329](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c097329668ee2854875463e925022d7cac3b6ae8))
+
+## [24.7.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v24.6.0...v24.7.0) (2025-07-24)
+
+
+### Features
+
+* **add:** 91-943-PRO https://github.com/Koenkk/zigbee2mqtt/issues/28063 ([217e1e0](https://github.com/Koenkk/zigbee-herdsman-converters/commit/217e1e08ebb78b4d145c4676467ec7e0e23138e8))
+* **add:** E25-230 ([#9673](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9673)) ([119a11c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/119a11c4b8e702ba49985a7084ff15935c349220))
+* **add:** S57007 ([#9642](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9642)) ([3ab3a39](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3ab3a397c1075d776cdd5ec74d7b9de4822d629b))
+* **add:** SZT04 ([#9674](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9674)) ([e5d2e10](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e5d2e1046292308e55c9438937a0fc130e5589f1))
+* Frient SMRZB-153 and EMIZB-151: enable OTA https://github.com/Koenkk/zigbee2mqtt/discussions/28056 ([a380f8c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a380f8c94af63e8578b5bfb24264b8bc47aa2424))
+* Philips 9290035639: improve `contact` reliability by using manuspecific cluster ([#9668](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9668)) ([48a455f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/48a455f16d2e369c95ca2c85fff60466ef4e2233))
+
+
+### Bug Fixes
+
+* Candeo C210 and LC20: various improvements ([#9680](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9680)) ([46f31e1](https://github.com/Koenkk/zigbee-herdsman-converters/commit/46f31e1346f3269414cc8f152ac34cd82ee7725a))
+
 ## [24.6.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v24.5.0...v24.6.0) (2025-07-22)
 
 
