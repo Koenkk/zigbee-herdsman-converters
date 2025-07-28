@@ -649,14 +649,16 @@ export function poll(args: {
     option?: exposes.Numeric;
     optionKey?: string;
 }): ModernExtend {
+    const optionKey = args.optionKey ?? `${args.key}_poll_interval`;
     const onEvent: OnEvent.Handler[] = [
         (event) => {
-            if (event.type === "start") {
+            if (event.type === "start" || (event.type === "deviceOptionsChanged" && event.data.from[optionKey] !== event.data.to[optionKey])) {
                 let seconds = args.defaultIntervalSeconds;
                 if (args.option) {
-                    const optionKey = args.optionKey ?? `${args.key}_poll_interval`;
                     seconds = toNumber(event.data.options[optionKey] ?? args.defaultIntervalSeconds, optionKey);
                 }
+
+                clearTimeout(globalStore.getValue(event.data.device.ieeeAddr, args.key));
 
                 if (seconds <= 0) {
                     logger.debug(`Not polling '${args.key}' for '${event.data.device.ieeeAddr}' since poll interval is <= 0 (got ${seconds})`, NS);
