@@ -1,3 +1,4 @@
+import {describe, expect, test} from "vitest";
 import * as fz from "../src/converters/fromZigbee";
 import {repInterval} from "../src/lib/constants";
 import {fromZigbee as lumiFz} from "../src/lib/lumi";

@@ -2578,6 +2578,9 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.exposes.countdown().withEndpoint("l1"),
             tuya.exposes.countdown().withEndpoint("l2"),
             tuya.exposes.countdown().withEndpoint("l3"),
+            tuya.exposes.lightType().withEndpoint("l1"),
+            tuya.exposes.lightType().withEndpoint("l2"),
+            tuya.exposes.lightType().withEndpoint("l3"),
             e.power_on_behavior().withAccess(ea.STATE_SET),
             tuya.exposes.backlightModeOffNormalInverted().withAccess(ea.STATE_SET),
         ],
@@ -2587,19 +2590,22 @@ export const definitions: DefinitionWithExtend[] = [
                 [1, "state_l1", tuya.valueConverter.onOff, {skip: tuya.skip.stateOnAndBrightnessPresent}],
                 [2, "brightness_l1", tuya.valueConverter.scale0_254to0_1000],
                 [3, "min_brightness_l1", tuya.valueConverter.scale0_254to0_1000],
+                [4, "light_type_l1", tuya.valueConverter.lightType],
                 [5, "max_brightness_l1", tuya.valueConverter.scale0_254to0_1000],
                 [6, "countdown_l1", tuya.valueConverter.countdown],
                 [7, "state_l2", tuya.valueConverter.onOff, {skip: tuya.skip.stateOnAndBrightnessPresent}],
                 [8, "brightness_l2", tuya.valueConverter.scale0_254to0_1000],
                 [9, "min_brightness_l2", tuya.valueConverter.scale0_254to0_1000],
+                [10, "light_type_l2", tuya.valueConverter.lightType],
                 [11, "max_brightness_l2", tuya.valueConverter.scale0_254to0_1000],
                 [12, "countdown_l2", tuya.valueConverter.countdown],
+                [14, "power_on_behavior", tuya.valueConverter.powerOnBehaviorEnum],
                 [15, "state_l3", tuya.valueConverter.onOff, {skip: tuya.skip.stateOnAndBrightnessPresent}],
                 [16, "brightness_l3", tuya.valueConverter.scale0_254to0_1000],
                 [17, "min_brightness_l3", tuya.valueConverter.scale0_254to0_1000],
+                [18, "light_type_l3", tuya.valueConverter.lightType],
                 [19, "max_brightness_l3", tuya.valueConverter.scale0_254to0_1000],
                 [20, "countdown_l3", tuya.valueConverter.countdown],
-                [14, "power_on_behavior", tuya.valueConverter.powerOnBehaviorEnum],
                 [21, "backlight_mode", tuya.valueConverter.backlightModeOffNormalInverted],
             ],
         },
@@ -5604,6 +5610,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Moes", "ZTRV-ZX-TV01-MS", "Thermostat radiator valve", ["_TZE200_7yoranx2"]),
             tuya.whitelabel("Moes", "TV01-ZB", "Thermostat radiator valve", ["_TZE200_e9ba97vf"]),
             tuya.whitelabel("AlecoAir", "HA-08_THERMO", "Thermostat radiator valve", ["_TZE200_wsbfwodu"]),
+            tuya.whitelabel("GIEX", "TV06", "Thermostat radiator valve", ["_TZE200_py4cm3he"]),
         ],
         ota: true,
         fromZigbee: [tuya.fz.datapoints],
@@ -14019,7 +14026,13 @@ export const definitions: DefinitionWithExtend[] = [
             // https://github.com/Koenkk/zigbee2mqtt/issues/23946#issuecomment-2941182834
             queryIntervalSeconds: 20 * 60,
         }),
-        configure: tuya.configureMagicPacket,
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+            const endpoint = device.endpoints[0];
+            // Needed to make the device report reliable
+            // https://github.com/Koenkk/zigbee2mqtt/issues/18704#issuecomment-3109695384
+            await endpoint.write("genBasic", {65502: {value: 0x13, type: Zcl.DataType.UINT8}});
+        },
         exposes: [
             e.numeric("tds", ea.STATE).withUnit("ppm").withDescription("Total Dissolved Solids"),
             e.temperature(),
@@ -14779,7 +14792,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_edl8pz1k", "_TZE204_edl8pz1k"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_edl8pz1k", "_TZE204_edl8pz1k", "_TZE204_6a4vxfnv"]),
         model: "TS0601_floor_thermostat",
         vendor: "Tuya",
         description: "Zigbee thermostat for electric floors",

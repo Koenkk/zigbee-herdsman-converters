@@ -1,7 +1,6 @@
+import {describe, expect, test} from "vitest";
 import type {Models as ZHModels} from "zigbee-herdsman";
-
 import {Zcl} from "zigbee-herdsman";
-
 import {findByDevice, generateExternalDefinitionSource} from "../src";
 import * as fz from "../src/converters/fromZigbee";
 import {repInterval} from "../src/lib/constants";

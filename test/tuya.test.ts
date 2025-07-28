@@ -1,4 +1,5 @@
 import type {Fz} from "src/lib/types";
+import {describe, expect, it} from "vitest";
 import {findByDevice, type Tz} from "../src/index";
 import * as tuya from "../src/lib/tuya";
 import {mockDevice} from "./utils";
