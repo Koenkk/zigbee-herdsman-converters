@@ -2914,6 +2914,9 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Nous", "B4Z", "Curtain switch", ["_TZ3000_yruungrl"]),
             tuya.whitelabel("Nous", "L12Z", "Smart ZigBee Curtain Module L12Z", ["_TZ3000_jwv3cwak"]),
             tuya.whitelabel("Zemismart", "ZN-LC1E", "Smart curtain/shutter switch", ["_TZ3000_74hsp7qy"]),
+            tuya.whitelabel("Girier", "TS130F_GIRIER", "Smart curtain switch", ["_TZ3210_dwytrmda"]),
+            tuya.whitelabel("Zemismart", "TS130F_ZEMISMART", "Smart curtain wall switch", ["_TZ3000_vw8pawxa"]),
+            tuya.whitelabel("QA", "QACZ1", "Smart curtain switch", ["_TZ3210_xbpt8ewc"]),
         ],
         exposes: (device) => {
             const exps: Expose[] = [
@@ -2921,7 +2924,7 @@ export const definitions: DefinitionWithExtend[] = [
                 e.enum("moving", ea.STATE, ["UP", "STOP", "DOWN"]),
                 e.binary("motor_reversal", ea.ALL, "ON", "OFF"),
             ];
-            if (["_TZ3000_yruungrl"].includes(device.manufacturerName)) {
+            if (["_TZ3000_yruungrl", "_TZ3210_dwytrmda", "_TZ3210_xbpt8ewc", "_TZ3000_vw8pawxa"].includes(device.manufacturerName)) {
                 exps.push(e.binary("calibration", ea.ALL, "ON", "OFF"), e.numeric("calibration_time", ea.ALL).withUnit("s"));
             } else if (["_TZ3000_cet6ch1r", "_TZ3000_5iixzdo7"].includes(device.manufacturerName)) {
                 exps.push(
@@ -2933,7 +2936,11 @@ export const definitions: DefinitionWithExtend[] = [
             } else {
                 exps.push(e.binary("calibration", ea.ALL, "ON", "OFF"), e.numeric("calibration_time", ea.STATE).withUnit("s"));
             }
-            if (!["_TZ3210_xbpt8ewc", "_TZ3000_e3vhyirx", "_TZ3000_5iixzdo7", "_TZ3000_yruungrl"].includes(device.manufacturerName)) {
+            if (
+                !["_TZ3000_e3vhyirx", "_TZ3000_5iixzdo7", "_TZ3000_yruungrl", "_TZ3210_dwytrmda", "_TZ3210_xbpt8ewc"].includes(
+                    device.manufacturerName,
+                )
+            ) {
                 exps.push(tuya.exposes.indicatorMode(), tuya.exposes.backlightModeOffOn());
             }
             if (["_TZ3000_5iixzdo7"].includes(device.manufacturerName)) {
@@ -2947,18 +2954,17 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS130F", ["_TZ3210_dwytrmda", "_TZ3000_1dd0d5yi"]),
+        fingerprint: tuya.fingerprint("TS130F", ["_TZ3000_1dd0d5yi"]),
         model: "MS-108ZR",
         vendor: "Moes",
         description: "Zigbee + RF curtain switch module",
-        whiteLabel: [tuya.whitelabel("Girier", "TS130F_GIRIER", "Smart curtain switch", ["_TZ3210_dwytrmda"])],
         ota: true,
         meta: {coverInverted: true},
         fromZigbee: [fz.tuya_cover_options, fz.cover_position_tilt],
         toZigbee: [tz.cover_state, tz.moes_cover_calibration, tz.cover_position_tilt, tz.tuya_cover_reversal],
         exposes: [
             e.cover_position(),
-            e.numeric("calibration_time", ea.ALL).withValueMin(0).withValueMax(100),
+            e.numeric("calibration_time", ea.ALL).withValueMin(0).withValueMax(500).withUnit("s"),
             e.enum("moving", ea.STATE, ["UP", "STOP", "DOWN"]),
             e.binary("motor_reversal", ea.ALL, "ON", "OFF"),
         ],

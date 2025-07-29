@@ -52,6 +52,10 @@ export const knownEffects = {
     "0a80": "sparkle",
     "0b80": "opal",
     "0c80": "glisten",
+    "0d80": "underwater",
+    "0e80": "cosmos",
+    "0f80": "sunbeam",
+    "1080": "enchant",
 };
 
 const philipsModernExtend = {
@@ -517,6 +521,10 @@ export const hueEffects = {
     sparkle: "2100010a",
     opal: "2100010b",
     glisten: "2100010c",
+    underwater: "2100010e",
+    cosmos: "2100010f",
+    sunbeam: "21000110",
+    enchant: "21000111",
     stop_hue_effect: "200000",
 };
 
