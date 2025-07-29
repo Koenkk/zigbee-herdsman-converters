@@ -35,7 +35,6 @@ export const definitions: DefinitionWithExtend[] = [
         model: "2PM",
         vendor: "Shelly",
         description: "2PM Gen4",
-        extend: [m.deviceEndpoints({endpoints: {"1": 1, "239": 239}}), m.windowCovering({controls: ["lift", "tilt"]})],
-        meta: {multiEndpoint: true},
+        extend: [m.windowCovering({controls: ["lift"]})],
     },
 ];
