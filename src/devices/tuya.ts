@@ -8999,14 +8999,11 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_nklqjk62", "_TZE200_nklqjk62", "_TZE204_jktmrpoj"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_nklqjk62", "_TZE200_nklqjk62", "_TZE204_jktmrpoj", "_TZE200_jktmrpoj"]),
         model: "PJ-ZGD01",
-        vendor: "Tuya",
+        vendor: "MatSee Plus",
         description: "Garage door opener",
-        whiteLabel: [
-            tuya.whitelabel("MatSee Plus", "PJ-ZGD01", "Garage door opener", ["_TZE204_nklqjk62"]),
-            tuya.whitelabel("Moes", "ZM-102-M", "Garage door opener", ["_TZE204_jktmrpoj"]),
-        ],
+        whiteLabel: [tuya.whitelabel("Moes", "ZM-102-M", "Garage door opener", ["_TZE204_jktmrpoj", "_TZE200_jktmrpoj"])],
         extend: [
             tuyaMagicPacket(),
             dpBinary({
