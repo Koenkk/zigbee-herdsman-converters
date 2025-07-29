@@ -14736,7 +14736,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.temperature(), m.humidity(), m.identify({isSleepy: true}), m.battery({voltage: true})],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_pl31aqf5"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_pl31aqf5", "_TZE200_xpvamyfz"]),
         model: "ZR360CDB",
         vendor: "Zorro Alert",
         fromZigbee: [tuya.fz.datapoints],
