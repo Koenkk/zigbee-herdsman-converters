@@ -4758,13 +4758,11 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        zigbeeModel: ['lumi.light.acn006'],
-        model: 'lumi.light.acn006',
-        vendor: 'Aqara',
-        description: 'Aqara H1 Pro Track Light',
-        extend: [
-            m.light({"colorTemp":{"range":[166,370]}})
-        ],
+        zigbeeModel: ["lumi.light.acn006"],
+        model: "lumi.light.acn006",
+        vendor: "Aqara",
+        description: "Aqara H1 Pro Track Light",
+        extend: [m.light({colorTemp: {range: [166, 370]}})],
         meta: {},
-    },    
+    },
 ];
