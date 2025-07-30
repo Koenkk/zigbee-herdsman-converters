@@ -659,12 +659,12 @@ export const definitions: DefinitionWithExtend[] = [
         model: "C-ZB-RD1",
         vendor: "Candeo",
         description: "Candeo C-ZB-RD1 Zigbee Rotary Dimmer",
-        extend: [ 
+        extend: [
             m.light({
                 levelConfig: {features: ["on_level", "current_level_startup", "on_transition_time", "off_transition_time"]},
-                configureReporting: true, 
+                configureReporting: true,
                 levelReportingConfig: {min: 1, max: 3600, change: 1},
-                powerOnBehavior: true, 
+                powerOnBehavior: true,
                 effect: false,
             }),
             m.electricityMeter({
@@ -681,12 +681,12 @@ export const definitions: DefinitionWithExtend[] = [
         model: "C-ZB-RD1P-DIM",
         vendor: "Candeo",
         description: "Candeo C-ZB-RD1P Zigbee Rotary Dimmer Pro (Dimmer Mode)",
-        extend: [ 
+        extend: [
             m.light({
                 levelConfig: {features: ["on_level", "current_level_startup", "on_transition_time", "off_transition_time"]},
-                configureReporting: true, 
+                configureReporting: true,
                 levelReportingConfig: {min: 1, max: 3600, change: 1},
-                powerOnBehavior: true, 
+                powerOnBehavior: true,
                 effect: false,
             }),
             m.electricityMeter({
@@ -710,9 +710,9 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.light({
                 levelConfig: {features: ["on_level", "current_level_startup", "on_transition_time", "off_transition_time"]},
-                configureReporting: true, 
+                configureReporting: true,
                 levelReportingConfig: {min: 1, max: 3600, change: 1},
-                powerOnBehavior: true, 
+                powerOnBehavior: true,
                 effect: false,
             }),
             m.electricityMeter({
