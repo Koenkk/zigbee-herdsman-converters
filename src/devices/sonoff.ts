@@ -68,6 +68,8 @@ const sonoffExtend = {
                 energyToday: {ID: 0x7009, type: Zcl.DataType.UINT32},
                 energyMonth: {ID: 0x700a, type: Zcl.DataType.UINT32},
                 energyYesterday: {ID: 0x700b, type: Zcl.DataType.UINT32},
+                // @ts-expect-error ignore
+                testData: {ID: 20489, type: Zcl.BuffaloZclDataType.BUFFER},
             },
             commands: {
                 protocolData: {ID: 0x01, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8}]},
