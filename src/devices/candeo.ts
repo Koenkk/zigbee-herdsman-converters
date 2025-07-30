@@ -20,6 +20,18 @@ const switchTypeValueLookup: {[key: string]: number} = {
     momentary: 0,
     toggle: 1,
 };
+const rd1pKnobActionsMap: {[key: string]: string} = {
+    commandOff: "double_pressed",
+    commandOn: "pressed",
+    commandToggle: "held",
+    commandRelease: "released",
+    commandMoveWithOnOff: "started_rotating_",
+    commandStepWithOnOff: "rotating_",
+    commandStop: "stopped_rotating",
+};
+const rd1pKnobCommands: {[key: number]: string} = {
+    3: "commandRelease",
+};
 
 const luxScale: m.ScaleFunction = (value: number, type: "from" | "to") => {
     let result = value;
@@ -138,6 +150,46 @@ const fzLocal = {
                 }
             }
             return;
+        },
+    } satisfies Fz.Converter,
+    rd1p_knob_rotation: {
+        cluster: "genLevelCtrl",
+        type: ["commandMoveWithOnOff", "commandStepWithOnOff", "commandStop"],
+        convert: (model, msg, publish, options, meta) => {
+            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
+            let knobAction = "unknown";
+            if (msg.type in rd1pKnobActionsMap) {
+                knobAction = rd1pKnobActionsMap[msg.type];
+                if (msg.type === "commandMoveWithOnOff" || msg.type === "commandStepWithOnOff") {
+                    const direction = msg.type === "commandMoveWithOnOff" ? "movemode" : "stepmode";
+                    if (msg.data[direction] === 0 || msg.data[direction] === 1) {
+                        knobAction += msg.data[direction] === 1 ? "left" : "right";
+                    }
+                }
+            }
+            const payload = {action: knobAction};
+            utils.addActionGroup(payload, msg, model);
+            return payload;
+        },
+    } satisfies Fz.Converter,
+    rd1p_knob_press: {
+        cluster: "genOnOff",
+        type: ["commandOn", "commandOff", "commandToggle", "raw"],
+        convert: (model, msg, publish, options, meta) => {
+            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
+            let knobAction = "unknown";
+            if (msg.type in rd1pKnobActionsMap) {
+                knobAction = rd1pKnobActionsMap[msg.type];
+            } else if (msg.type === "raw") {
+                const command = msg.data[2];
+                if (command in rd1pKnobCommands) {
+                    const knobCommand = rd1pKnobCommands[command];
+                    knobAction = rd1pKnobActionsMap[knobCommand];
+                }
+            }
+            const payload = {action: knobAction};
+            utils.addActionGroup(payload, msg, model);
+            return payload;
         },
     } satisfies Fz.Converter,
 };
@@ -600,6 +652,139 @@ export const definitions: DefinitionWithExtend[] = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             await endpoint1.bind(manufacturerSpecificRotaryRemoteControlClusterCode, coordinatorEndpoint);
+        },
+    },
+    {
+        fingerprint: [{modelID: "C-ZB-RD1", manufacturerName: "Candeo"}],
+        model: "C-ZB-RD1",
+        vendor: "Candeo",
+        description: "Candeo C-ZB-RD1 Zigbee Rotary Dimmer",
+        extend: [ 
+            m.light({
+                levelConfig: {features: ["on_level", "current_level_startup", "on_transition_time", "off_transition_time"]},
+                configureReporting: true, 
+                levelReportingConfig: {min: 1, max: 3600, change: 1},
+                powerOnBehavior: true, 
+                effect: false,
+            }),
+            m.electricityMeter({
+                power: {min: 5, max: 300, change: 10},
+                voltage: {min: 5, max: 600, change: 500},
+                current: {min: 5, max: 900, change: 10},
+                energy: {min: 5, max: 1800, change: 50},
+            }),
+        ],
+        meta: {},
+    },
+    {
+        fingerprint: [{modelID: "C-ZB-RD1P-DIM", manufacturerName: "Candeo"}],
+        model: "C-ZB-RD1P-DIM",
+        vendor: "Candeo",
+        description: "Candeo C-ZB-RD1P Zigbee Rotary Dimmer Pro (Dimmer Mode)",
+        extend: [ 
+            m.light({
+                levelConfig: {features: ["on_level", "current_level_startup", "on_transition_time", "off_transition_time"]},
+                configureReporting: true, 
+                levelReportingConfig: {min: 1, max: 3600, change: 1},
+                powerOnBehavior: true, 
+                effect: false,
+            }),
+            m.electricityMeter({
+                power: {min: 5, max: 300, change: 10},
+                voltage: {min: 5, max: 600, change: 500},
+                current: {min: 5, max: 900, change: 10},
+                energy: {min: 5, max: 1800, change: 50},
+            }),
+        ],
+        meta: {},
+    },
+    {
+        fingerprint: [{modelID: "C-ZB-RD1P-DPM", manufacturerName: "Candeo"}],
+        model: "C-ZB-RD1P-DPM",
+        vendor: "Candeo",
+        description: "Candeo C-ZB-RD1P Zigbee Rotary Dimmer Pro (Dual Purpose Mode)",
+        extend: [
+            m.deviceEndpoints({
+                endpoints: {l1: 1, l2: 2},
+                multiEndpointSkip: ["power", "current", "voltage", "energy"],
+            }),
+            m.light({
+                levelConfig: {features: ["on_level", "current_level_startup", "on_transition_time", "off_transition_time"]},
+                configureReporting: true, 
+                levelReportingConfig: {min: 1, max: 3600, change: 1},
+                powerOnBehavior: true, 
+                effect: false,
+            }),
+            m.electricityMeter({
+                power: {min: 5, max: 300, change: 10},
+                voltage: {min: 5, max: 600, change: 500},
+                current: {min: 5, max: 900, change: 10},
+                energy: {min: 5, max: 1800, change: 50},
+            }),
+        ],
+        fromZigbee: [fzLocal.rd1p_knob_rotation, fzLocal.rd1p_knob_press, fz.ignore_genOta],
+        toZigbee: [],
+        exposes: [
+            e
+                .action([
+                    "pressed",
+                    "double_pressed",
+                    "held",
+                    "released",
+                    "started_rotating_left",
+                    "started_rotating_right",
+                    "rotating_right",
+                    "rotating_left",
+                    "stopped_rotating",
+                ])
+                .withEndpoint("l2"),
+        ],
+        meta: {},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint2 = device.getEndpoint(2);
+            await endpoint2.bind("genOnOff", coordinatorEndpoint);
+            await endpoint2.bind("genLevelCtrl", coordinatorEndpoint);
+        },
+    },
+    {
+        fingerprint: [{modelID: "C-ZB-RD1P-REM", manufacturerName: "Candeo"}],
+        model: "C-ZB-RD1P-REM",
+        vendor: "Candeo",
+        description: "Candeo C-ZB-RD1P Zigbee Rotary Dimmer Pro (Remote Mode)",
+        extend: [
+            m.deviceEndpoints({
+                endpoints: {l1: 1, l2: 2},
+                multiEndpointSkip: ["power", "current", "voltage", "energy"],
+            }),
+            m.electricityMeter({
+                power: {min: 5, max: 300, change: 10},
+                voltage: {min: 5, max: 600, change: 500},
+                current: {min: 5, max: 900, change: 10},
+                energy: {min: 5, max: 1800, change: 50},
+            }),
+        ],
+        fromZigbee: [fzLocal.rd1p_knob_rotation, fzLocal.rd1p_knob_press, fz.ignore_genOta],
+        toZigbee: [],
+        exposes: [
+            e
+                .action([
+                    "pressed",
+                    "double_pressed",
+                    "held",
+                    "released",
+                    "started_rotating_left",
+                    "started_rotating_right",
+                    "rotating_right",
+                    "rotating_left",
+                    "stopped_rotating",
+                ])
+                .withEndpoint("l2"),
+        ],
+        meta: {},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint2 = device.getEndpoint(2);
+            await endpoint2.bind("genOnOff", coordinatorEndpoint);
+            await endpoint2.bind("genLevelCtrl", coordinatorEndpoint);
         },
     },
 ];
