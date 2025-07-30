@@ -1735,20 +1735,23 @@ const tzLocal = {
             globalStore.putValue(entity, "brightness", brightness);
             await entity.command(
                 "genLevelCtrl",
-                "moveToLevelWithOnOff",
+                state === undefined ? "moveToLevel" : "moveToLevelWithOnOff",
                 {
                     level: Number(brightness),
                     transtime: !transition.specified ? 0xffff : transition.time,
                 },
                 utils.getOptions(meta.mapped, entity),
             );
-
-            return {
+            const result = {
                 state: {
-                    state: brightness === 0 ? "OFF" : "ON",
+                    state: {},
                     brightness: Number(brightness),
                 },
             };
+            if (state !== undefined) {
+                result.state.state = brightness === 0 ? "OFF" : "ON";
+            }
+            return result;
         },
         convertGet: async (entity, key, meta) => {
             if (key === "brightness") {
