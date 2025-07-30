@@ -1,5 +1,22 @@
 # Changelog
 
+## [24.10.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v24.9.0...v24.10.0) (2025-07-30)
+
+
+### Features
+
+* **add:** 929003812801 ([#9708](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9708)) ([e1da849](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e1da8493488dbda9955a216e1b7d08e1f72eaa30))
+* **add:** C-ZB-RD1, C-ZB-RD1P-DIM, C-ZB-RD1P-DPM, C-ZB-RD1P-REM ([#9709](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9709)) ([e006b26](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e006b26f86a1a823411e815b270c11875c0f2418))
+* iCasa ICZB-RM11S: expose `action_group` https://github.com/Koenkk/zigbee2mqtt/issues/27557 ([0a44040](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0a440405b839d8e6ab0b51a9c95d1a3ca26b7500))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3000_1adss9de` as Nous L6Z https://github.com/Koenkk/zigbee2mqtt/issues/22462 ([4ff580a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4ff580afdc727c0e2a407096a2cec4d39318e33c))
+* **detect:** Detect `_TZE204_jktmrpoj` as Moes ZM-102-M ([#9706](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9706)) ([272beb7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/272beb7d9594b7d02380d0a9bc0887274bff1b7a))
+* **detect:** Detect `929003808201_0*` as Philips 5062431P7 https://github.com/Koenkk/zigbee2mqtt/issues/28115 ([428a4c5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/428a4c56a8d58737ef222bb433c71b8adc0cb086))
+* **ignore:** fixes for e006b26f86a1a823411e815b270c11875c0f2418 ([a3c9db6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a3c9db60793791bb3fedd8da4c243432e5872448))
+
 ## [24.9.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v24.8.0...v24.9.0) (2025-07-29)
 
 
