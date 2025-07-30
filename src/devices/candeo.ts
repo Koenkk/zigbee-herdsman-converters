@@ -658,7 +658,7 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: [{modelID: "C-ZB-RD1", manufacturerName: "Candeo"}],
         model: "C-ZB-RD1",
         vendor: "Candeo",
-        description: "Candeo C-ZB-RD1 Zigbee Rotary Dimmer",
+        description: "Zigbee rotary dimmer",
         extend: [
             m.light({
                 levelConfig: {features: ["on_level", "current_level_startup", "on_transition_time", "off_transition_time"]},
@@ -680,7 +680,7 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: [{modelID: "C-ZB-RD1P-DIM", manufacturerName: "Candeo"}],
         model: "C-ZB-RD1P-DIM",
         vendor: "Candeo",
-        description: "Candeo C-ZB-RD1P Zigbee Rotary Dimmer Pro (Dimmer Mode)",
+        description: "Zigbee rotary dimmer pro (dimmer mode)",
         extend: [
             m.light({
                 levelConfig: {features: ["on_level", "current_level_startup", "on_transition_time", "off_transition_time"]},
@@ -696,13 +696,12 @@ export const definitions: DefinitionWithExtend[] = [
                 energy: {min: 5, max: 1800, change: 50},
             }),
         ],
-        meta: {},
     },
     {
         fingerprint: [{modelID: "C-ZB-RD1P-DPM", manufacturerName: "Candeo"}],
         model: "C-ZB-RD1P-DPM",
         vendor: "Candeo",
-        description: "Candeo C-ZB-RD1P Zigbee Rotary Dimmer Pro (Dual Purpose Mode)",
+        description: "Zigbee rotary dimmer pro (dual purpose mode)",
         extend: [
             m.deviceEndpoints({
                 endpoints: {l1: 1, l2: 2},
@@ -750,7 +749,7 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: [{modelID: "C-ZB-RD1P-REM", manufacturerName: "Candeo"}],
         model: "C-ZB-RD1P-REM",
         vendor: "Candeo",
-        description: "Candeo C-ZB-RD1P Zigbee Rotary Dimmer Pro (Remote Mode)",
+        description: "Zigbee rotary dimmer pro (remote mode)",
         extend: [
             m.deviceEndpoints({
                 endpoints: {l1: 1, l2: 2},
