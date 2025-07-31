@@ -1,6 +1,5 @@
-import * as m from "../lib/modernExtend";
-
 import * as exposes from "../lib/exposes";
+import * as m from "../lib/modernExtend";
 import type {DefinitionWithExtend} from "../lib/types";
 import * as utils from "../lib/utils";
 
