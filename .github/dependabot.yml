@@ -1,6 +1,7 @@
 version: 2
 updates:
     - package-ecosystem: npm
+      versioning-strategy: increase
       directory: /
       schedule:
           interval: weekly
@@ -10,6 +11,8 @@ updates:
               update-types:
                   - minor
                   - patch
+      commit-message:
+        prefix: fix(ignore)
     - package-ecosystem: github-actions
       directory: /
       schedule:

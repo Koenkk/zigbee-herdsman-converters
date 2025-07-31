@@ -3,6 +3,7 @@ import type {Endpoint, Group} from "zigbee-herdsman/dist/controller/model";
 import * as constants from "./constants";
 import {repInterval} from "./constants";
 import * as exposes from "./exposes";
+import {logger} from "./logger";
 import * as reporting from "./reporting";
 import {payload} from "./reporting";
 import * as globalStore from "./store";
@@ -12,6 +13,7 @@ import {precisionRound} from "./utils";
 
 const e = exposes.presets;
 const ea = exposes.access;
+const NS = "zhc:sunricher";
 
 const sunricherManufacturerCode = 0x1224;
 
@@ -26,6 +28,23 @@ const tz = {
 };
 
 const extend = {
+    configureReadModelID: (): ModernExtend => {
+        const configure: Configure[] = [
+            async (device, coordinatorEndpoint, definition) => {
+                // https://github.com/Koenkk/zigbee-herdsman-converters/issues/3016#issuecomment-1027726604
+                const endpoint = device.endpoints[0];
+                const oldModel = device.modelID;
+                const newModel = (await endpoint.read("genBasic", ["modelId"])).modelId;
+                if (oldModel !== newModel) {
+                    logger.info(`Detected Sunricher device mode change, from '${oldModel}' to '${newModel}'. Triggering re-interview.`, NS);
+                    await device.interview();
+                    return;
+                }
+            },
+        ];
+        return {configure, isModernExtend: true};
+    },
+
     externalSwitchType: (): ModernExtend => {
         const attribute = 0x8803;
         const data_type = 0x20;
@@ -45,7 +64,7 @@ const extend = {
                 cluster: "genBasic",
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
-                    if (Object.prototype.hasOwnProperty.call(msg.data, attribute)) {
+                    if (Object.hasOwn(msg.data, attribute)) {
                         const value = msg.data[attribute];
                         return {
                             external_switch_type: value_map[value] || "unknown",
@@ -113,7 +132,7 @@ const extend = {
                 cluster: "genBasic",
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
-                    if (Object.prototype.hasOwnProperty.call(msg.data, attribute)) {
+                    if (Object.hasOwn(msg.data, attribute)) {
                         console.log("from ", msg.data[attribute]);
                         const value = Math.round(msg.data[attribute] / 5.1);
                         return {
@@ -409,7 +428,7 @@ const extend = {
                 cluster,
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
-                    if (!Object.prototype.hasOwnProperty.call(msg.data, attribute)) return;
+                    if (!Object.hasOwn(msg.data, attribute)) return;
                     const indicatorLight = msg.data[attribute];
                     const firstBit = indicatorLight & 0x01;
                     return {indicator_light: firstBit === 1 ? "on" : "off"};
@@ -851,6 +870,42 @@ const extend = {
             fromZigbee,
             exposes,
             configure,
+            isModernExtend: true,
+        };
+    },
+
+    motorControl: (): ModernExtend => {
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ["calibrate"],
+                convertSet: async (entity, key, value, meta) => {
+                    if (value === "calibrate") {
+                        // Read current value to preserve other bits
+                        const current = await entity.read("closuresWindowCovering", [0x0017]);
+                        let currentValue = (current as KeyValueAny)?.[0x0017] || 0;
+
+                        // Set only the calibration bit (bit 1 = 0x02)
+                        currentValue |= 0x02;
+
+                        await entity.write("closuresWindowCovering", {
+                            [0x0017]: {value: currentValue, type: 0x18}, // BITMAP8
+                        });
+                    }
+                    return {};
+                },
+            },
+        ];
+
+        const exposes: Expose[] = [
+            e
+                .enum("calibrate", ea.SET, ["calibrate"])
+                .withDescription("Calibrate curtain (motor will learn travel limits automatically)")
+                .withCategory("config"),
+        ];
+
+        return {
+            toZigbee,
+            exposes,
             isModernExtend: true,
         };
     },

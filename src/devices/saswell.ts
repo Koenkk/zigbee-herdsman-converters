@@ -71,6 +71,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
         exposes: [
             e.battery_low(),
+            e.binary("anti_scaling", ea.STATE_SET, "ON", "OFF").withDescription("Enables/disables bi-weekly anti-scaling feature"),
             e.window_detection(),
             e.child_lock(),
             e.away_mode(),

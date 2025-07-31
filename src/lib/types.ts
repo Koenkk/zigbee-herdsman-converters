@@ -256,7 +256,13 @@ export interface OnEventData {
     data?: KeyValueAny;
 }
 
-export type DefinitionExposesFunction = (device: Zh.Device | undefined, options: KeyValue | undefined) => Expose[];
+// Special type for the zigbee2mqtt.io device page docgen
+export type DummyDevice = {
+    manufacturerName?: string;
+    isDummyDevice: true;
+};
+
+export type DefinitionExposesFunction = (device: Zh.Device | DummyDevice, options: KeyValue) => Expose[];
 
 export type DefinitionExposes = Expose[] | DefinitionExposesFunction;
 
@@ -420,6 +426,7 @@ export namespace Ota {
         imageType: ImageHeader["imageType"];
         fileVersion: ImageHeader["fileVersion"];
         manufacturerCode: ImageHeader["manufacturerCode"];
+        hardwareVersion?: number;
     }
     export interface ImageMeta {
         fileVersion: ImageHeader["fileVersion"];

@@ -43,7 +43,7 @@ export const definitions: DefinitionWithExtend[] = [
             // If endpoint 0x12 (18) is present this means the following two things:
             //  1. The device is connected to a relay or dimmer and needs to be exposed as a dimmable light
             //  2. The top rocker will not be usable (not emit any events) as it's hardwired to the relay/dimmer
-            if (!device || device.getEndpoint(0x12) != null) {
+            if (utils.isDummyDevice(device) || device.getEndpoint(0x12) != null) {
                 expose.push(e.light_brightness().withEndpoint("relay"));
             }
             // Not all devices support all actions (depends on number of rocker rows and if relay/dimmer is installed),

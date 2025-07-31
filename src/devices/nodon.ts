@@ -1,6 +1,5 @@
-import {Zcl} from "zigbee-herdsman";
-
 import {gt as semverGt, valid as semverValid} from "semver";
+import {Zcl} from "zigbee-herdsman";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as constants from "../lib/constants";
@@ -9,6 +8,7 @@ import * as m from "../lib/modernExtend";
 import {nodonPilotWire} from "../lib/nodon";
 import * as reporting from "../lib/reporting";
 import type {DefinitionWithExtend, ModernExtend} from "../lib/types";
+import {isDummyDevice} from "../lib/utils";
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -109,7 +109,12 @@ const nodonModernExtend = {
         // NOTE: make exposes dynamic based on fw version
         result.exposes = [
             (device, options) => {
-                if (device?.softwareBuildID && semverValid(device.softwareBuildID) && semverGt(device.softwareBuildID, "3.4.0")) {
+                if (
+                    !isDummyDevice(device) &&
+                    device.softwareBuildID &&
+                    semverValid(device.softwareBuildID) &&
+                    semverGt(device.softwareBuildID, "3.4.0")
+                ) {
                     return [
                         e
                             .numeric(resultName, ea.ALL)
@@ -143,7 +148,12 @@ const nodonModernExtend = {
         // NOTE: make exposes dynamic based on fw version
         result.exposes = [
             (device, options) => {
-                if (device?.softwareBuildID && semverValid(device.softwareBuildID) && semverGt(device.softwareBuildID, "3.4.0")) {
+                if (
+                    !isDummyDevice(device) &&
+                    device.softwareBuildID &&
+                    semverValid(device.softwareBuildID) &&
+                    semverGt(device.softwareBuildID, "3.4.0")
+                ) {
                     return [e.enum(resultName, ea.ALL, Object.keys(resultLookup)).withDescription(resultDescription)];
                 }
                 return [];
@@ -170,7 +180,12 @@ const nodonModernExtend = {
         // NOTE: make exposes dynamic based on fw version
         result.exposes = [
             (device, options) => {
-                if (device?.softwareBuildID && semverValid(device.softwareBuildID) && semverGt(device.softwareBuildID, "3.4.0")) {
+                if (
+                    !isDummyDevice(device) &&
+                    device.softwareBuildID &&
+                    semverValid(device.softwareBuildID) &&
+                    semverGt(device.softwareBuildID, "3.4.0")
+                ) {
                     return [e.enum(resultName, ea.ALL, Object.keys(resultLookup)).withDescription(resultDescription)];
                 }
                 return [];

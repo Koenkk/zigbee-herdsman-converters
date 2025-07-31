@@ -215,11 +215,11 @@ export class ColorXY {
      * @param xy - object with properties x and y
      * @returns new ColorXY object
      */
-    static fromObject(xy: {x: number; y: number}): ColorXY {
+    static fromObject(xy: {x: number | string; y: number | string}): ColorXY {
         if (xy.x === undefined || xy.y === undefined) {
             throw new Error('One or more required properties missing. Required properties: "x", "y"');
         }
-        return new ColorXY(xy.x, xy.y);
+        return new ColorXY(Number(xy.x), Number(xy.y));
     }
 
     /**
@@ -515,7 +515,7 @@ export class ColorHSV {
      */
     static correctHue(hue: number, meta: Tz.Meta): number {
         const {options} = meta;
-        if (options.hue_correction !== undefined) {
+        if (options.hue_correction != null) {
             // @ts-expect-error ignore
             return ColorHSV.interpolateHue(hue, options.hue_correction);
         }
@@ -583,20 +583,20 @@ export class Color {
 
     // biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
     static fromConverterArg(value: any): Color {
-        if (value.x !== undefined && value.y !== undefined) {
+        if (value.x != null && value.y != null) {
             const xy = ColorXY.fromObject(value);
             return new Color(null, null, xy);
         }
-        if (value.r !== undefined && value.g !== undefined && value.b !== undefined) {
+        if (value.r != null && value.g != null && value.b != null) {
             const rgb = new ColorRGB(value.r / 255, value.g / 255, value.b / 255);
             return new Color(null, rgb, null);
         }
-        if (value.rgb !== undefined) {
+        if (value.rgb != null) {
             const [r, g, b] = value.rgb.split(",").map((i: string) => Number.parseInt(i));
             const rgb = new ColorRGB(r / 255, g / 255, b / 255);
             return new Color(null, rgb, null);
         }
-        if (value.hex !== undefined) {
+        if (value.hex != null) {
             const rgb = ColorRGB.fromHex(value.hex);
             return new Color(null, rgb, null);
         }
@@ -604,46 +604,46 @@ export class Color {
             const rgb = ColorRGB.fromHex(value);
             return new Color(null, rgb, null);
         }
-        if (value.h !== undefined && value.s !== undefined && value.l !== undefined) {
+        if (value.h != null && value.s != null && value.l != null) {
             const hsv = ColorHSV.fromHSL({hue: value.h, saturation: value.s, lightness: value.l});
             return new Color(hsv, null, null);
         }
-        if (value.hsl !== undefined) {
+        if (value.hsl != null) {
             const [h, s, l] = value.hsl.split(",").map((i: string) => Number.parseInt(i));
             const hsv = ColorHSV.fromHSL({hue: h, saturation: s, lightness: l});
             return new Color(hsv, null, null);
         }
-        if (value.h !== undefined && value.s !== undefined && value.b !== undefined) {
+        if (value.h != null && value.s != null && value.b != null) {
             const hsv = new ColorHSV(value.h, value.s, value.b);
             return new Color(hsv, null, null);
         }
-        if (value.hsb !== undefined) {
+        if (value.hsb != null) {
             const [h, s, b] = value.hsb.split(",").map((i: string) => Number.parseInt(i));
             const hsv = new ColorHSV(h, s, b);
             return new Color(hsv, null, null);
         }
-        if (value.h !== undefined && value.s !== undefined && value.v !== undefined) {
+        if (value.h != null && value.s != null && value.v != null) {
             const hsv = new ColorHSV(value.h, value.s, value.v);
             return new Color(hsv, null, null);
         }
-        if (value.hsv !== undefined) {
+        if (value.hsv != null) {
             const [h, s, v] = value.hsv.split(",").map((i: string) => Number.parseInt(i));
             const hsv = new ColorHSV(h, s, v);
             return new Color(hsv, null, null);
         }
-        if (value.h !== undefined && value.s !== undefined) {
+        if (value.h != null && value.s != null) {
             const hsv = new ColorHSV(value.h, value.s);
             return new Color(hsv, null, null);
         }
-        if (value.h !== undefined) {
+        if (value.h != null) {
             const hsv = new ColorHSV(value.h);
             return new Color(hsv, null, null);
         }
-        if (value.s !== undefined) {
+        if (value.s != null) {
             const hsv = new ColorHSV(null, value.s);
             return new Color(hsv, null, null);
         }
-        if (value.hue !== undefined || value.saturation !== undefined) {
+        if (value.hue != null || value.saturation != null) {
             const hsv = ColorHSV.fromObject(value);
             return new Color(hsv, null, null);
         }
@@ -691,7 +691,7 @@ export function syncColorState(
     epPostfix?: string,
 ): KeyValueAny {
     const colorTargets = [];
-    const colorSync = options && options.color_sync !== undefined ? options.color_sync : true;
+    const colorSync = options?.color_sync != null ? options.color_sync : true;
     const result: KeyValueAny = {};
     const [colorTempMin, colorTempMax] = findColorTempRange(endpoint);
 

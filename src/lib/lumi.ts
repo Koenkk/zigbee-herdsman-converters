@@ -1126,7 +1126,6 @@ function readDaySelection(buffer: Buffer, offset: number): Day[] {
 }
 
 function validateDaySelection(selectedDays: Day[]) {
-    // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
     selectedDays
         .filter((selectedDay) => !dayNames.includes(selectedDay))
         .forEach((invalidValue) => {
@@ -1231,7 +1230,6 @@ export const trv = {
         const data = buffer2DataObject(model, messageBuffer);
         const payload: KeyValue = {};
 
-        // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
         Object.entries(data).forEach(([key, value]) => {
             switch (Number.parseInt(key)) {
                 case 3:
@@ -1309,7 +1307,6 @@ export const trv = {
             throw new Error(`The schedule object must contain an array of ${eventCount} time/temperature events`);
         }
 
-        // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
         schedule.events.forEach((event) => {
             validateTime(event.time);
 
@@ -1478,7 +1475,6 @@ export const lumiModernExtend = {
         if (args.operationMode === true) {
             const extend = lumiModernExtend.lumiOperationMode({description: "Decoupled mode for a button"});
             if (args.endpointNames) {
-                // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
                 args.endpointNames.forEach((ep) => {
                     const epExtend = lumiModernExtend.lumiOperationMode({
                         description: `Decoupled mode for ${ep.toString()} button`,
@@ -1495,7 +1491,6 @@ export const lumiModernExtend = {
         if (args.lockRelay) {
             const extend = lumiModernExtend.lumiLockRelay();
             if (args.endpointNames) {
-                // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
                 args.endpointNames.forEach((ep) => {
                     const epExtend = lumiModernExtend.lumiLockRelay({
                         description: `Locks ${ep.toString()} relay and prevents it from operating`,
@@ -2541,6 +2536,7 @@ export const lumiModernExtend = {
                                     const data = [...lumiHeader(0x12, params.length, 0x05), ...params];
 
                                     await entity.write("manuSpecificLumi", {65522: {value: data, type: 0x41}}, {manufacturerCode: manufacturerCode});
+                                    return {state: {external_temperature: value}};
                                 }
                                 break;
                             case "external_humidity":
@@ -2553,6 +2549,7 @@ export const lumiModernExtend = {
                                     const data = [...lumiHeader(0x12, params.length, 0x05), ...params];
 
                                     await entity.write("manuSpecificLumi", {65522: {value: data, type: 0x41}}, {manufacturerCode: manufacturerCode});
+                                    return {state: {external_humidity: value}};
                                 }
                                 break;
                             default: // Unknown key
@@ -2570,11 +2567,10 @@ export const lumiModernExtend = {
                     type: ["attributeReport", "readResponse"],
                     convert: (model, msg, publish, options, meta) => {
                         const result: KeyValue = {};
-                        // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
                         Object.entries(msg.data).forEach(([key, value]) => {
                             switch (Number.parseInt(key)) {
                                 case 0x0172:
-                                    result.sensor = getFromLookup(value, {2: "external", 0: "internal"});
+                                    result.sensor = getFromLookup(value, {2: "external", 0: "internal", 1: "internal", 3: "external"});
                                     break;
                                 case 0xfff2:
                                     logger.debug(`Unhandled key ${key} = ${value}`, "zhc:lumi:externalSensor");
@@ -2922,7 +2918,6 @@ export const fromZigbee = {
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
-            // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
             Object.entries(msg.data).forEach(([key, value]) => {
                 switch (Number.parseInt(key)) {
                     case 0xfff1: {
@@ -2961,7 +2956,6 @@ export const fromZigbee = {
                                 // schedule string
                                 const schlist = val.toString().split(",");
                                 const schedule: unknown[] = [];
-                                // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
                                 schlist.forEach((str: string) => {
                                     // 7f13000100
                                     if (str !== "//") {
@@ -3018,7 +3012,6 @@ export const fromZigbee = {
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
-            // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
             Object.entries(msg.data).forEach(([key, value]) => {
                 switch (Number.parseInt(key)) {
                     case 0x0271:
@@ -3045,7 +3038,7 @@ export const fromZigbee = {
                         result.calibrated = getFromLookup(value, {1: true, 0: false});
                         break;
                     case 0x027e:
-                        result.sensor = getFromLookup(value, {1: "external", 0: "internal"});
+                        result.sensor = getFromLookup(value, {1: "external", 0: "internal", 2: "external"});
                         break;
                     case 0x040a:
                         result.battery = value;
@@ -3070,7 +3063,6 @@ export const fromZigbee = {
                             // See https://github.com/Koenkk/zigbee-herdsman-converters/pull/5363#discussion_r1081477047
                             // @ts-expect-error ignore
                             meta.device.softwareBuildID = heartbeat.firmware_version;
-                            // biome-ignore lint/performance/noDelete: ignored using `--suppress`
                             delete heartbeat.firmware_version;
                         }
 
@@ -3114,7 +3106,6 @@ export const fromZigbee = {
         convert: (model, msg, publish, options, meta) => {
             const payload: KeyValue = {};
 
-            // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
             Object.entries(msg.data).forEach(([key, value]) => {
                 const eventKey = Number.parseInt(key);
 
@@ -3207,7 +3198,7 @@ export const fromZigbee = {
                           ? 30
                           : 60;
                 timeout =
-                    options && options.occupancy_timeout !== undefined && Number(options.occupancy_timeout) >= timeout
+                    options?.occupancy_timeout != null && Number(options.occupancy_timeout) >= timeout
                         ? Number(options.occupancy_timeout)
                         : timeout + 2;
 
@@ -3381,7 +3372,7 @@ export const fromZigbee = {
                 if (result.action === "vibration") {
                     result.vibration = true;
 
-                    const timeout = options && options.vibration_timeout !== undefined ? Number(options.vibration_timeout) : 90;
+                    const timeout = options?.vibration_timeout != null ? Number(options.vibration_timeout) : 90;
 
                     // Stop any existing timer cause vibration detected
                     clearTimeout(globalStore.getValue(msg.endpoint, "vibration_timer", null));
@@ -3476,9 +3467,7 @@ export const fromZigbee = {
             // Therefore we need to publish the no_motion detected by ourselves.
             let timeout: number = meta && meta.state && meta.state.detection_interval !== undefined ? Number(meta.state.detection_interval) : 60;
             timeout =
-                options && options.occupancy_timeout !== undefined && Number(options.occupancy_timeout) >= timeout
-                    ? Number(options.occupancy_timeout)
-                    : timeout + 2;
+                options?.occupancy_timeout != null && Number(options.occupancy_timeout) >= timeout ? Number(options.occupancy_timeout) : timeout + 2;
 
             // Stop existing timers because motion is detected and set a new one.
             clearTimeout(globalStore.getValue(msg.endpoint, "occupancy_timer", null));
@@ -4101,7 +4090,6 @@ export const toZigbee = {
                 case "schedule": {
                     const schedule: string[] = [];
                     // @ts-expect-error ignore
-                    // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
                     value.forEach((item) => {
                         const schedItem = Buffer.from([getKey(feederDaysLookup, item.days, 0x7f), item.hour, item.minute, item.size, 0]);
                         schedule.push(schedItem.toString("hex"));
@@ -4503,7 +4491,7 @@ export const toZigbee = {
         convertSet: async (entity, key, value, meta) => {
             assertEndpoint(entity);
             if (Array.isArray(meta.mapped)) throw new Error("Not supported for groups");
-            let targetValue = isObject(value) && value.state !== undefined ? value.state : value;
+            let targetValue = isObject(value) && value.state != null ? value.state : value;
 
             // 1/2 gang switches using genBasic on endpoint 1.
             // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
@@ -4555,7 +4543,7 @@ export const toZigbee = {
         key: ["operation_mode"],
         convertSet: async (entity, key, value, meta) => {
             // Support existing syntax of a nested object just for the state field. Though it's quite silly IMO.
-            const targetValue = isObject(value) && value.state !== undefined ? value.state : value;
+            const targetValue = isObject(value) && value.state != null ? value.state : value;
             // Switches using manuSpecificLumi 0x0200 on the same endpoints as the onOff clusters.
             const lookupState = {control_relay: 0x01, decoupled: 0x00};
             await entity.write("manuSpecificLumi", {512: {value: getFromLookup(targetValue, lookupState), type: 0x20}}, manufacturerOptions.lumi);
@@ -4746,7 +4734,7 @@ export const toZigbee = {
                 await entity.write("genBasic", {65520: {value: payload, type: 0x41}}, manufacturerOptions.lumi);
             } else if (["ZNQBKG38LM", "ZNQBKG39LM", "ZNQBKG40LM", "ZNQBKG41LM"].includes(meta.mapped.model)) {
                 // Support existing syntax of a nested object just for the state field. Though it's quite silly IMO.
-                const targetValue = isObject(value) && value.state !== undefined ? value.state : value;
+                const targetValue = isObject(value) && value.state != null ? value.state : value;
                 const lookupState = {on: 0x01, electric_appliances_on: 0x00, electric_appliances_off: 0x02, inverted: 0x03};
                 await entity.write(
                     "manuSpecificLumi",
@@ -5016,8 +5004,8 @@ export const toZigbee = {
             };
 
             // Legacy names
-            if (value.auto_close !== undefined) opts.hand_open = value.auto_close;
-            if (value.reset_move !== undefined) opts.reset_limits = value.reset_move;
+            if (value.auto_close != null) opts.hand_open = value.auto_close;
+            if (value.reset_move != null) opts.reset_limits = value.reset_move;
 
             if (meta.mapped.model === "ZNCLDJ12LM") {
                 await entity.write("genBasic", {65320: {value: opts.reverse_direction, type: 0x10}}, manufacturerOptions.lumi);
@@ -5048,7 +5036,6 @@ export const toZigbee = {
             }
 
             // Reset limits is an action, not a state.
-            // biome-ignore lint/performance/noDelete: ignored using `--suppress`
             delete opts.reset_limits;
             return {state: {options: opts}};
         },
@@ -5501,14 +5488,14 @@ export const toZigbee = {
                 const payload = [];
                 const statearr: KeyValue = {};
                 assertObject(value);
-                if (value.switch_1_icon !== undefined) {
+                if (value.switch_1_icon != null) {
                     payload.push(getFromLookup(value.switch_1_icon, lookup));
                     statearr.switch_1_icon = value.switch_1_icon;
                 } else {
                     payload.push(1);
                     statearr.switch_1_icon = "1";
                 }
-                if (value.switch_1_text !== undefined) {
+                if (value.switch_1_text != null) {
                     payload.push(...value.switch_1_text.split("").map((c: string) => c.charCodeAt(0)));
                     statearr.switch_1_text = value.switch_1_text;
                 } else {
@@ -5524,14 +5511,14 @@ export const toZigbee = {
                 const payload = [];
                 const statearr: KeyValue = {};
                 assertObject(value);
-                if (value.switch_2_icon !== undefined) {
+                if (value.switch_2_icon != null) {
                     payload.push(getFromLookup(value.switch_2_icon, lookup));
                     statearr.switch_2_icon = value.switch_2_icon;
                 } else {
                     payload.push(1);
                     statearr.switch_2_icon = "1";
                 }
-                if (value.switch_2_text !== undefined) {
+                if (value.switch_2_text != null) {
                     payload.push(...value.switch_2_text.split("").map((c: string) => c.charCodeAt(0)));
                     statearr.switch_2_text = value.switch_2_text;
                 } else {
@@ -5547,14 +5534,14 @@ export const toZigbee = {
                 const payload = [];
                 const statearr: KeyValue = {};
                 assertObject(value);
-                if (value.switch_3_icon !== undefined) {
+                if (value.switch_3_icon != null) {
                     payload.push(getFromLookup(value.switch_3_icon, lookup));
                     statearr.switch_3_icon = value.switch_3_icon;
                 } else {
                     payload.push(1);
                     statearr.switch_3_icon = "1";
                 }
-                if (value.switch_3_text !== undefined) {
+                if (value.switch_3_text != null) {
                     payload.push(...value.switch_3_text.split("").map((c: string) => c.charCodeAt(0)));
                     statearr.switch_3_text = value.switch_3_text;
                 } else {
