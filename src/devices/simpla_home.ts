@@ -2,6 +2,7 @@ import * as m from "../lib/modernExtend";
 
 import * as exposes from "../lib/exposes";
 import type {DefinitionWithExtend} from "../lib/types";
+import * as utils from "../lib/utils";
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -37,7 +38,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         exposes: (device, options) => {
             const dynExposes = [];
-            if (Number(`0x${device?.softwareBuildID}`) > 0x01010101) {
+            if (utils.isDummyDevice(device) || Number(`0x${device?.softwareBuildID}`) > 0x01010101) {
                 dynExposes.push(
                     e
                         .numeric("measurementInterval", ea.ALL)
