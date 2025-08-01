@@ -1087,7 +1087,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [13, "state", tuya.valueConverter.onOffNotStrict],
                 [14, "auto_clean", tuya.valueConverter.raw],
                 [21, "flow_rate", tuya.valueConverter.divideBy1000],
-                [22, "temperature", tuya.valueConverter.divideBy10],
+                [22, "temperature", tuya.valueConverter.divideBy100],
                 [26, "voltage", tuya.valueConverter.divideBy100],
             ],
         },
