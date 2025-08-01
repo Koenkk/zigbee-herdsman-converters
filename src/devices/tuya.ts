@@ -14261,7 +14261,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["ZG-101Z"],
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_nojsjtj2","_TZE200_vrcfo4i0"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_nojsjtj2", "_TZE200_vrcfo4i0"]),
         model: "ZG-101Z",
         vendor: "Loginovo",
         description: "SOS button",
