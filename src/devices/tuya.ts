@@ -9407,7 +9407,6 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZ3000_qja6nq5z",
             "_TZ3000_402vrq2i",
             "_TZ3000_abrsvsou",
-            "_TZ3000_gwkzibhs",
         ]),
         model: "ERS-10TZBVK-AA",
         vendor: "Tuya",
@@ -9422,10 +9421,7 @@ export const definitions: DefinitionWithExtend[] = [
             fz.tuya_operation_mode,
             fz.battery,
         ],
-        whiteLabel: [
-            tuya.whitelabel("Tuya", "ZG-101Z_D_1", "Smart knob", ["_TZ3000_402vrq2i"]),
-            tuya.whitelabel("HOBEIAN", "ZG-101ZD", "Smart knob", ["_TZ3000_gwkzibhs"]),
-        ],
+        whiteLabel: [tuya.whitelabel("Tuya", "ZG-101Z_D_1", "Smart knob", ["_TZ3000_402vrq2i"])],
         toZigbee: [tz.tuya_operation_mode],
         exposes: [
             e.action([
@@ -9470,6 +9466,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         // Only the ones with applicationVersion 145 should be detected as this, e.g. applicationVersion 66 should be detected as ERS-10TZBVK-AA.
         // https://github.com/Koenkk/zigbee2mqtt/issues/25053
+        zigbeeModel: ["ZG-101ZD"],
         fingerprint: [
             {
                 modelID: "TS004F",
@@ -9477,6 +9474,7 @@ export const definitions: DefinitionWithExtend[] = [
                 applicationVersion: 145,
                 priority: 1,
             },
+        {modelID: "TS004F", manufacturerName: "_TZ3000_gwkzibhs"},
         ],
         model: "ZG-101Z/D",
         vendor: "Tuya",
