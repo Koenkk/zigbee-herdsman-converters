@@ -1,10 +1,52 @@
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
-import type {DefinitionWithExtend} from "../lib/types";
+import type {DefinitionWithExtend, ModernExtend} from "../lib/types";
 import * as utils from "../lib/utils";
 
 const e = exposes.presets;
 const ea = exposes.access;
+
+export const simplaHomeModernExtend = {
+    measurementInterval: (args?: Partial<m.NumericArgs>) => {
+        const resultName = "measurement_interval";
+        const resultUnit = "s";
+        const resultValueMin = 5;
+        const resultValueMax = 4 * 60 * 60;
+        const resultDescription = "Defines how often the device performs measurements";
+
+        const result: ModernExtend = m.numeric({
+            name: resultName,
+            access: "ALL",
+            unit: resultUnit,
+            cluster: "genAnalogOutput",
+            attribute: "presentValue",
+            scale: 1,
+            valueMin: resultValueMin,
+            valueMax: resultValueMax,
+            description: resultDescription,
+            ...args,
+        });
+
+        // exposes is dynamic based on fw version
+        result.exposes = [
+            (device, options) => {
+                if (!utils.isDummyDevice(device) && device.softwareBuildID && Number(`0x${device?.softwareBuildID}`) > 0x01010101) {
+                    return [
+                        e
+                            .numeric(resultName, ea.ALL)
+                            .withDescription(resultDescription)
+                            .withUnit(resultUnit)
+                            .withValueMin(resultValueMin)
+                            .withValueMax(resultValueMax),
+                    ];
+                }
+                return [];
+            },
+        ];
+
+        return result;
+    },
+};
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -33,48 +75,8 @@ export const definitions: DefinitionWithExtend[] = [
                 endpointNames: ["z2_bottom"],
             }),
             m.battery(),
+            simplaHomeModernExtend.measurementInterval(),
             m.illuminance(),
-        ],
-        exposes: (device, options) => {
-            const dynExposes = [];
-            if (utils.isDummyDevice(device) || Number(`0x${device?.softwareBuildID}`) > 0x01010101) {
-                dynExposes.push(
-                    e
-                        .numeric("measurementInterval", ea.ALL)
-                        .withLabel("Measurement Interval")
-                        .withUnit("s")
-                        .withValueMin(5)
-                        .withValueMax(4 * 60 * 60)
-                        .withCategory("config")
-                        .withDescription("Defines how often the device performs measurements"),
-                );
-            }
-            return dynExposes;
-        },
-        fromZigbee: [
-            {
-                cluster: "genAnalogOutput",
-                type: ["attributeReport", "readResponse"],
-                convert: (model, msg, publish, options, meta) => {
-                    if (msg.endpoint.ID === 2 && Object.hasOwn(msg.data, "presentValue")) {
-                        return {measurementInterval: msg.data.presentValue};
-                    }
-                },
-            },
-        ],
-        toZigbee: [
-            {
-                key: ["measurementInterval"],
-                convertSet: async (entity, key, value, meta) => {
-                    const endpoint = meta.device.getEndpoint(2);
-                    await endpoint.write("genAnalogOutput", {presentValue: value});
-                    return {state: {measurementInterval: value}};
-                },
-                convertGet: async (entity, key, meta) => {
-                    const endpoint = meta.device.getEndpoint(2);
-                    await endpoint.read("genAnalogOutput", ["presentValue"]);
-                },
-            },
         ],
 
         configure: async (device, coordinatorEndpoint, logger) => {
