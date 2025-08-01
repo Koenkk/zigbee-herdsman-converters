@@ -275,7 +275,7 @@ export const definitions: DefinitionWithExtend[] = [
 
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_khoqss0a"]),
-        model: "SZR07U",
+        model: "SZR07",
         vendor: "Lincukoo",
         description: "24GHz millimeter wave radar",
         configure: tuya.configureMagicPacket,
@@ -312,7 +312,7 @@ export const definitions: DefinitionWithExtend[] = [
 
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_b8vxct9l"]),
-        model: "SZLR08",
+        model: "SZLR08T",
         vendor: "Lincukoo",
         description: "24GHz millimeter wave radar",
         configure: tuya.configureMagicPacket,
