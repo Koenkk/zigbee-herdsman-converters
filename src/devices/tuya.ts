@@ -9473,7 +9473,7 @@ export const definitions: DefinitionWithExtend[] = [
                 applicationVersion: 145,
                 priority: 1,
             },
-        {modelID: "TS004F", manufacturerName: "_TZ3000_gwkzibhs"},
+            {modelID: "TS004F", manufacturerName: "_TZ3000_gwkzibhs"},
         ],
         model: "ZG-101Z/D",
         vendor: "Tuya",
