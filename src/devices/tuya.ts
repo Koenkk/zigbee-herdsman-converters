@@ -9070,7 +9070,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_wfxuhoea"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_wfxuhoea", "_TZE204_wfxuhoea"]),
         model: "GDC311ZBQ1",
         vendor: "Tuya",
         description: "LoraTap garage door opener with wireless sensor",
