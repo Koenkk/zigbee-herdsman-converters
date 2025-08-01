@@ -10165,7 +10165,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.battery(),
         ],
         whiteLabel: [
-            tuya.whitelabel("HOBEIAN", "ZG-227Z", "Temperature and humidity sensor", ["_TZE200_a8sdabtg", "_TZE200_vs0skpuc","_TZE200_ehhrv2e3"]),
+            tuya.whitelabel("HOBEIAN", "ZG-227Z", "Temperature and humidity sensor", ["_TZE200_a8sdabtg", "_TZE200_vs0skpuc", "_TZE200_ehhrv2e3"]),
             tuya.whitelabel("KOJIMA", "KOJIMA-THS-ZG-LCD", "Temperature and humidity sensor", ["_TZE200_dikkika5"]),
         ],
         meta: {
@@ -10380,7 +10380,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["ZG-102ZL"],
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_pay2byax", "_TZE200_ijey4q29", "_TZE200_ykglasuj","_TZE200_kf2hbko4"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_pay2byax", "_TZE200_ijey4q29", "_TZE200_ykglasuj", "_TZE200_kf2hbko4"]),
         model: "ZG-102ZL",
         vendor: "Tuya",
         description: "Luminance door sensor",
@@ -10435,7 +10435,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["ZG-225Z"],
-        fingerprint: [...tuya.fingerprint("TS0601", ["_TZE200_8isdky6j"]), ...tuya.fingerprint("TS0225", ["_TZE200_p6fuhvez","_TZE200_aj0oxo1i"])],
+        fingerprint: [...tuya.fingerprint("TS0601", ["_TZE200_8isdky6j"]), ...tuya.fingerprint("TS0225", ["_TZE200_p6fuhvez", "_TZE200_aj0oxo1i"])],
         model: "ZG-225Z",
         vendor: "Tuya",
         description: "Gas sensor",
@@ -18534,7 +18534,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueStep(1)
                 .withUnit("minutes")
                 .withDescription("Light sensing sampling(refresh and update only while active)"),
-           e
+            e
                 .numeric("static_detection_distance", ea.STATE_SET)
                 .withValueMin(0)
                 .withValueMax(5)
