@@ -6,12 +6,13 @@ import * as utils from "../lib/utils";
 const e = exposes.presets;
 const ea = exposes.access;
 
+const measurementIntervalMin = 5;
+const measurementIntervalMax = 4 * 60 * 60;
+
 export const simplaHomeModernExtend = {
     measurementInterval: (args?: Partial<m.NumericArgs>) => {
         const resultName = "measurement_interval";
         const resultUnit = "s";
-        const resultValueMin = 5;
-        const resultValueMax = 4 * 60 * 60;
         const resultDescription = "Defines how often the device performs measurements";
 
         const result: ModernExtend = m.numeric({
@@ -21,8 +22,8 @@ export const simplaHomeModernExtend = {
             cluster: "genAnalogOutput",
             attribute: "presentValue",
             scale: 1,
-            valueMin: resultValueMin,
-            valueMax: resultValueMax,
+            valueMin: measurementIntervalMin,
+            valueMax: measurementIntervalMax,
             description: resultDescription,
             ...args,
         });
@@ -36,8 +37,8 @@ export const simplaHomeModernExtend = {
                             .numeric(resultName, ea.ALL)
                             .withDescription(resultDescription)
                             .withUnit(resultUnit)
-                            .withValueMin(resultValueMin)
-                            .withValueMax(resultValueMax),
+                            .withValueMin(measurementIntervalMin)
+                            .withValueMax(measurementIntervalMax),
                     ];
                 }
                 return [];
@@ -65,18 +66,24 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.deviceEndpoints({endpoints: {"1": 1, z1_top: 2, z2_bottom: 3}}),
             m.identify(),
-            m.temperature(),
+            m.temperature({
+                reporting: {min: measurementIntervalMin, max: measurementIntervalMax, change: 10},
+            }),
             m.soilMoisture({
                 description: "Soil Moisture of Zone 1 (Top Zone)",
                 endpointNames: ["z1_top"],
+                reporting: {min: measurementIntervalMin, max: measurementIntervalMax, change: 100},
             }),
             m.soilMoisture({
                 description: "Soil Moisture of Zone 2 (Bottom Zone)",
                 endpointNames: ["z2_bottom"],
+                reporting: {min: measurementIntervalMin, max: measurementIntervalMax, change: 100},
             }),
             m.battery(),
             simplaHomeModernExtend.measurementInterval(),
-            m.illuminance(),
+            m.illuminance({
+                reporting: {min: measurementIntervalMin, max: measurementIntervalMax, change: 5},
+            }),
         ],
 
         configure: async (device, coordinatorEndpoint, logger) => {
