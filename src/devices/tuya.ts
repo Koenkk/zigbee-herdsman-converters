@@ -1278,6 +1278,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE284_hdyjyqjm",
             "_TZE284_d7lpruvi",
             "_TZE284_upagmta9",
+            "_TZE204_1wnh8bqp",
         ]),
         model: "TS0601_temperature_humidity_sensor_2",
         vendor: "Tuya",
