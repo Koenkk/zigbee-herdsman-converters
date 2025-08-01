@@ -1673,6 +1673,7 @@ export const definitions: DefinitionWithExtend[] = [
                 "_TZ3000_qsp2pwtf",
                 "_TZ3000_kycczpw8",
                 "_TZ3000_46t1rvdu",
+                "_TZ3000_bhcpnvud",
             ]),
             ...tuya.fingerprint("TS000F", [
                 "_TZ3000_hktqahrq",
@@ -9907,6 +9908,7 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: [
             {modelID: "TS0225", manufacturerName: "_TZE200_hl0ss9oa"},
             {modelID: "CK-BL702-MWS-01(7016)", manufacturerName: "ZGAF-205L"},
+            {modelID: "TS0225", manufacturerName: "_TZE200_y4mdop0b"},
         ],
         model: "ZG-205ZL",
         vendor: "Tuya",
@@ -10147,6 +10149,8 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE200_dikkika5",
             "_TZE200_vs0skpuc",
             "_TZE200_3xfjp0ag",
+            "_TZE200_ehhrv2e3",
+            "_TZE200_lhqtjwax",
         ]),
         model: "ZG-227ZL",
         vendor: "Tuya",
@@ -10163,7 +10167,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.battery(),
         ],
         whiteLabel: [
-            tuya.whitelabel("HOBEIAN", "ZG-227Z", "Temperature and humidity sensor", ["_TZE200_a8sdabtg", "_TZE200_vs0skpuc"]),
+            tuya.whitelabel("HOBEIAN", "ZG-227Z", "Temperature and humidity sensor", ["_TZE200_a8sdabtg", "_TZE200_vs0skpuc", "_TZE200_ehhrv2e3"]),
             tuya.whitelabel("KOJIMA", "KOJIMA-THS-ZG-LCD", "Temperature and humidity sensor", ["_TZE200_dikkika5"]),
         ],
         meta: {
@@ -10378,7 +10382,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["ZG-102ZL"],
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_pay2byax", "_TZE200_ijey4q29", "_TZE200_ykglasuj"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_pay2byax", "_TZE200_ijey4q29", "_TZE200_ykglasuj", "_TZE200_kf2hbko4"]),
         model: "ZG-102ZL",
         vendor: "Tuya",
         description: "Luminance door sensor",
@@ -10433,7 +10437,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["ZG-225Z"],
-        fingerprint: [...tuya.fingerprint("TS0601", ["_TZE200_8isdky6j"]), ...tuya.fingerprint("TS0225", ["_TZE200_p6fuhvez"])],
+        fingerprint: [...tuya.fingerprint("TS0601", ["_TZE200_8isdky6j"]), ...tuya.fingerprint("TS0225", ["_TZE200_p6fuhvez", "_TZE200_aj0oxo1i"])],
         model: "ZG-225Z",
         vendor: "Tuya",
         description: "Gas sensor",
@@ -10480,6 +10484,8 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE200_gjldowol",
             "_TZE200_s6hzw8g2",
             "_TZE200_jxyhl4eq",
+            "_TZE200_qxyh4r7g",
+            "_TZE200_na5qlzow",
         ]),
         model: "ZG-204ZL",
         vendor: "Tuya",
@@ -14257,7 +14263,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["ZG-101Z"],
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_nojsjtj2"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_nojsjtj2", "_TZE200_vrcfo4i0"]),
         model: "ZG-101Z",
         vendor: "Loginovo",
         description: "SOS button",
@@ -18495,6 +18501,71 @@ export const definitions: DefinitionWithExtend[] = [
                 [128, "mode_state", tuya.valueConverterBasic.lookup({manual: 0, auto: 1, hybrid: 2})],
                 [128, "force_manual_mode", {to: () => 0}],
                 [102, "running_state", {from: (v) => (v === true ? "heat" : "idle")}],
+            ],
+        },
+    },
+    {
+        zigbeeModel: ["ZG-204ZH"],
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_vuqzj1ej"]),
+        model: "ZG-204ZH",
+        vendor: "HOBEIAN",
+        description: "PIR 24Ghz human presence sensor",
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        exposes: [
+            e.presence(),
+            e.illuminance(),
+            e.temperature(),
+            e.humidity(),
+            tuya.exposes.temperatureUnit(),
+            tuya.exposes.temperatureCalibration(),
+            tuya.exposes.humidityCalibration(),
+            e.battery(),
+            e
+                .numeric("fading_time", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(28800)
+                .withValueStep(1)
+                .withUnit("s")
+                .withDescription("Motion keep time"),
+            e.binary("indicator", ea.STATE_SET, "ON", "OFF").withDescription("LED indicator mode"),
+            e
+                .numeric("illuminance_interval", ea.STATE_SET)
+                .withValueMin(1)
+                .withValueMax(720)
+                .withValueStep(1)
+                .withUnit("minutes")
+                .withDescription("Light sensing sampling(refresh and update only while active)"),
+            e
+                .numeric("static_detection_distance", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(5)
+                .withValueStep(0.01)
+                .withUnit("m")
+                .withDescription("Static detection distance"),
+            e
+                .numeric("static_detection_sensitivity", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(10)
+                .withValueStep(1)
+                .withUnit("x")
+                .withDescription("Static detection sensitivity"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "presence", tuya.valueConverter.trueFalse1],
+                [106, "illuminance", tuya.valueConverter.raw],
+                [102, "fading_time", tuya.valueConverter.raw],
+                [2, "static_detection_sensitivity", tuya.valueConverter.raw],
+                [4, "static_detection_distance", tuya.valueConverter.divideBy100],
+                [108, "indicator", tuya.valueConverter.onOff],
+                [110, "battery", tuya.valueConverter.raw],
+                [111, "temperature", tuya.valueConverter.divideBy10],
+                [101, "humidity", tuya.valueConverter.raw],
+                [109, "temperature_unit", tuya.valueConverter.temperatureUnit],
+                [105, "temperature_calibration", tuya.valueConverter.divideBy10],
+                [104, "humidity_calibration", tuya.valueConverter.raw],
+                [107, "illuminance_interval", tuya.valueConverter.raw],
             ],
         },
     },
