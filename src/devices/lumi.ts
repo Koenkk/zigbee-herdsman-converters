@@ -4757,4 +4757,11 @@ export const definitions: DefinitionWithExtend[] = [
             lumiSwitchMode(),
         ],
     },
+    {
+        zigbeeModel: ["lumi.light.acn006"],
+        model: "H1-EU",
+        vendor: "Aqara",
+        description: "Pro track light",
+        extend: [m.light({colorTemp: {range: [166, 370]}})],
+    },
 ];

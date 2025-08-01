@@ -2237,7 +2237,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
-        zigbeeModel: ["5062431P7"],
+        zigbeeModel: ["5062431P7", "929003808201_01", "929003808201_02", "929003808201_03", "929003808201_04"],
         model: "5062431P7",
         vendor: "Philips",
         description: "Hue white and color ambience Argenta spot white (4 spots)",
@@ -4067,6 +4067,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
     {
+        zigbeeModel: ["929003812801"],
+        model: "929003812801",
+        vendor: "Philips",
+        description: "Hue White and Color Ambiance GU10",
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+    },
+    {
         zigbeeModel: ["915005821901"],
         model: "915005821901",
         vendor: "Philips",
@@ -4128,5 +4135,18 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Philips",
         description: "Hue Devote Slim ceiling light",
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+    },
+    {
+        zigbeeModel: ["LGT012", "046677590161", "046677590130"],
+        model: "046677590161",
+        vendor: "Philips",
+        description: "Hue Play wall washer",
+        extend: [
+            philips.m.light({
+                colorTemp: {range: [153, 500]},
+                color: {modes: ["xy", "hs"], enhancedHue: true},
+                gradient: {extraEffects: ["sparkle", "opal", "glisten", "underwater", "cosmos", "sunbeam", "enchant"]},
+            }),
+        ],
     },
 ];

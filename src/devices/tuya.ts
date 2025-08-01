@@ -1041,6 +1041,67 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_vuwtqx0t"]),
+        model: "TS0601_water_valve",
+        vendor: "Tuya",
+        description: "Ultrasonic water meter valve",
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEventSetTime,
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            // Main valve switch
+            e
+                .switch()
+                .setAccess("state", ea.STATE_SET),
+
+            // Water consumption sensor
+            e
+                .numeric("water_consumed", ea.STATE)
+                .withUnit("m³")
+                .withDescription("Total water consumption")
+                .withValueMin(0)
+                .withValueStep(0.001),
+
+            // Flow rate sensor
+            e
+                .numeric("flow_rate", ea.STATE)
+                .withUnit("m³/h")
+                .withDescription("Instantaneous water flow rate")
+                .withValueMin(0)
+                .withValueStep(0.001),
+
+            // Temperature sensor
+            e.temperature(),
+
+            // Voltage monitoring
+            e.voltage(),
+            // Auto clean mode toggle
+            e
+                .binary("auto_clean", ea.STATE_SET, true, false)
+                .withDescription("Auto clean mode"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "water_consumed", tuya.valueConverter.divideBy1000],
+                [13, "state", tuya.valueConverter.onOffNotStrict],
+                [14, "auto_clean", tuya.valueConverter.raw],
+                [21, "flow_rate", tuya.valueConverter.divideBy1000],
+                [22, "temperature", tuya.valueConverter.divideBy10],
+                [26, "voltage", tuya.valueConverter.divideBy100],
+            ],
+        },
+        // Optional: Add device-specific options
+        options: [
+            exposes.options.precision("water_consumed"),
+            exposes.options.calibration("water_consumed"),
+            exposes.options.precision("flow_rate"),
+            exposes.options.calibration("flow_rate"),
+            exposes.options.precision("temperature"),
+            exposes.options.calibration("temperature"),
+        ],
+    },
+    {
         fingerprint: tuya.fingerprint("TS0203", ["_TZ3210_jowhpxop"]),
         model: "TS0203_1",
         vendor: "Tuya",
@@ -2914,6 +2975,9 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Nous", "B4Z", "Curtain switch", ["_TZ3000_yruungrl"]),
             tuya.whitelabel("Nous", "L12Z", "Smart ZigBee Curtain Module L12Z", ["_TZ3000_jwv3cwak"]),
             tuya.whitelabel("Zemismart", "ZN-LC1E", "Smart curtain/shutter switch", ["_TZ3000_74hsp7qy"]),
+            tuya.whitelabel("Girier", "TS130F_GIRIER", "Smart curtain switch", ["_TZ3210_dwytrmda"]),
+            tuya.whitelabel("Zemismart", "TS130F_ZEMISMART", "Smart curtain wall switch", ["_TZ3000_vw8pawxa"]),
+            tuya.whitelabel("QA", "QACZ1", "Smart curtain switch", ["_TZ3210_xbpt8ewc"]),
         ],
         exposes: (device) => {
             const exps: Expose[] = [
@@ -2921,7 +2985,7 @@ export const definitions: DefinitionWithExtend[] = [
                 e.enum("moving", ea.STATE, ["UP", "STOP", "DOWN"]),
                 e.binary("motor_reversal", ea.ALL, "ON", "OFF"),
             ];
-            if (["_TZ3000_yruungrl"].includes(device.manufacturerName)) {
+            if (["_TZ3000_yruungrl", "_TZ3210_dwytrmda", "_TZ3210_xbpt8ewc", "_TZ3000_vw8pawxa"].includes(device.manufacturerName)) {
                 exps.push(e.binary("calibration", ea.ALL, "ON", "OFF"), e.numeric("calibration_time", ea.ALL).withUnit("s"));
             } else if (["_TZ3000_cet6ch1r", "_TZ3000_5iixzdo7"].includes(device.manufacturerName)) {
                 exps.push(
@@ -2933,7 +2997,11 @@ export const definitions: DefinitionWithExtend[] = [
             } else {
                 exps.push(e.binary("calibration", ea.ALL, "ON", "OFF"), e.numeric("calibration_time", ea.STATE).withUnit("s"));
             }
-            if (!["_TZ3210_xbpt8ewc", "_TZ3000_e3vhyirx", "_TZ3000_5iixzdo7", "_TZ3000_yruungrl"].includes(device.manufacturerName)) {
+            if (
+                !["_TZ3000_e3vhyirx", "_TZ3000_5iixzdo7", "_TZ3000_yruungrl", "_TZ3210_dwytrmda", "_TZ3210_xbpt8ewc"].includes(
+                    device.manufacturerName,
+                )
+            ) {
                 exps.push(tuya.exposes.indicatorMode(), tuya.exposes.backlightModeOffOn());
             }
             if (["_TZ3000_5iixzdo7"].includes(device.manufacturerName)) {
@@ -2947,18 +3015,17 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS130F", ["_TZ3210_dwytrmda", "_TZ3000_1dd0d5yi"]),
+        fingerprint: tuya.fingerprint("TS130F", ["_TZ3000_1dd0d5yi"]),
         model: "MS-108ZR",
         vendor: "Moes",
         description: "Zigbee + RF curtain switch module",
-        whiteLabel: [tuya.whitelabel("Girier", "TS130F_GIRIER", "Smart curtain switch", ["_TZ3210_dwytrmda"])],
         ota: true,
         meta: {coverInverted: true},
         fromZigbee: [fz.tuya_cover_options, fz.cover_position_tilt],
         toZigbee: [tz.cover_state, tz.moes_cover_calibration, tz.cover_position_tilt, tz.tuya_cover_reversal],
         exposes: [
             e.cover_position(),
-            e.numeric("calibration_time", ea.ALL).withValueMin(0).withValueMax(100),
+            e.numeric("calibration_time", ea.ALL).withValueMin(0).withValueMax(500).withUnit("s"),
             e.enum("moving", ea.STATE, ["UP", "STOP", "DOWN"]),
             e.binary("motor_reversal", ea.ALL, "ON", "OFF"),
         ],
@@ -4058,6 +4125,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZ3000_hzlsaltw",
             "_TZ3000_jsfzkftc",
             "_TZ3000_0ghwhypc",
+            "_TZ3000_1adss9de",
         ]),
         model: "TS0001_power",
         description: "Switch with power monitoring",
@@ -4107,7 +4175,7 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [
             tuya.whitelabel("Nous", "B2Z", "1 gang switch with power monitoring", ["_TZ3000_qlai3277"]),
             tuya.whitelabel("Colorock", "CR-MNZ1", "1 gang switch 30A with power monitoring", ["_TZ3000_tgddllx4"]),
-            tuya.whitelabel("Nous", "L6Z", "Switch with power monitoring", ["_TZ3000_qaabwu5c"]),
+            tuya.whitelabel("Nous", "L6Z", "Switch with power monitoring", ["_TZ3000_qaabwu5c", "_TZ3000_1adss9de"]),
             tuya.whitelabel("Tuya", "XSH01A", "1 gang switch", ["_TZ3000_x3ewpzyr"]),
         ],
         onEvent: async (type, data, device, options) => {
@@ -8932,11 +9000,14 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_nklqjk62", "_TZE200_nklqjk62"]),
-        model: "PJ-ZGD01",
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_nklqjk62", "_TZE204_nklqjk62", "_TZE204_jktmrpoj"]),
+        model: "TS0601_garage_door_opener",
         vendor: "Tuya",
         description: "Garage door opener",
-        whiteLabel: [{vendor: "MatSee Plus", model: "PJ-ZGD01"}],
+        whiteLabel: [
+            tuya.whitelabel("MatSee Plus", "PJ-ZGD01", "Garage door opener", ["_TZE204_nklqjk62"]),
+            tuya.whitelabel("Moes", "ZM-102-M", "Garage door opener", ["_TZE204_jktmrpoj"]),
+        ],
         extend: [
             tuyaMagicPacket(),
             dpBinary({
@@ -14730,12 +14801,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.temperature(), m.humidity(), m.identify({isSleepy: true}), m.battery({voltage: true})],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_pl31aqf5"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_pl31aqf5", "_TZE200_xpvamyfz"]),
         model: "ZR360CDB",
         vendor: "Zorro Alert",
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         description: "Multifunctional CO2 detector",
+        whiteLabel: [tuya.whitelabel("Nous", "E10", "Multifunctional CO2 detector", ["_TZE200_xpvamyfz"])],
         onEvent: tuya.onEventSetTime,
         configure: tuya.configureMagicPacket,
         exposes: [
