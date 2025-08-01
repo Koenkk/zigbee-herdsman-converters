@@ -1,5 +1,6 @@
 import type {Models as ZHModels} from "zigbee-herdsman";
 import type {Header as ZHZclHeader} from "zigbee-herdsman/dist/zspec/zcl";
+import type {TClusterAttributeKeys, TClusterPayload, TPartialClusterAttributes} from "zigbee-herdsman/dist/zspec/zcl/definition/clusters-types";
 import type {FrameControl} from "zigbee-herdsman/dist/zspec/zcl/definition/tstype";
 
 import type * as exposes from "./exposes";
@@ -287,7 +288,8 @@ type DefinitionConfig = {
 };
 
 type DefinitionFeatures = {
-    fromZigbee: Fz.Converter[];
+    // biome-ignore lint/suspicious/noExplicitAny: generic
+    fromZigbee: Fz.Converter<any, any>[];
     toZigbee: Tz.Converter[];
     exposes: DefinitionExposes;
 };
@@ -302,9 +304,25 @@ export type DefinitionWithExtend = DefinitionMatcher &
 export type ExternalDefinitionWithExtend = DefinitionWithExtend & {externalConverterName: string};
 
 export namespace Fz {
-    export interface Message {
-        // biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
-        data: any;
+    export interface Message<
+        Cl extends string | number,
+        K extends string | number | undefined = undefined,
+        Custom extends Record<string, unknown> | undefined = undefined,
+    > {
+        data: Custom extends undefined
+            ? K extends undefined
+                ? TPartialClusterAttributes<Cl>
+                : K extends "raw"
+                  ? Buffer
+                  : K extends "custom"
+                    ? // biome-ignore lint/suspicious/noExplicitAny: custom
+                      any
+                    : K extends "attributeReport" | "readResponse" | "write"
+                      ? TPartialClusterAttributes<Cl>
+                      : K extends "read"
+                        ? TClusterAttributeKeys<Cl>
+                        : TClusterPayload<Cl, K>
+            : Custom;
         endpoint: Zh.Endpoint;
         device: Zh.Device;
         meta: {zclTransactionSequenceNumber?: number; manufacturerCode?: number; frameControl?: FrameControl};
@@ -318,11 +336,21 @@ export namespace Fz {
         device: Zh.Device;
         deviceExposesChanged: () => void;
     }
-    export interface Converter {
-        cluster: string | number;
+    export interface Converter<
+        Cl extends string | number,
+        K extends string | undefined = undefined,
+        Custom extends Record<string, unknown> | undefined = undefined,
+    > {
+        cluster: Cl;
         type: string[] | string;
         options?: Option[] | ((definition: Definition) => Option[]);
-        convert: (model: Definition, msg: Message, publish: Publish, options: KeyValue, meta: Fz.Meta) => KeyValueAny | void | Promise<void>;
+        convert: (
+            model: Definition,
+            msg: Message<Cl, K, Custom>,
+            publish: Publish,
+            options: KeyValue,
+            meta: Fz.Meta,
+        ) => KeyValueAny | void | Promise<void>;
     }
 }
 
@@ -365,8 +393,15 @@ export namespace Tuya {
     export interface ValueConverterSingle {
         // biome-ignore lint/suspicious/noExplicitAny: value is validated on per-case basis
         to?: (value: any, meta?: Tz.Meta) => unknown;
-        // biome-ignore lint/suspicious/noExplicitAny: value is validated on per-case basis
-        from?: (value: any, meta?: Fz.Meta, options?: KeyValue, publish?: Publish, msg?: Fz.Message) => number | string | boolean | KeyValue | null;
+        from?: (
+            // biome-ignore lint/suspicious/noExplicitAny: value is validated on per-case basis
+            value: any,
+            meta?: Fz.Meta,
+            options?: KeyValue,
+            publish?: Publish,
+            // biome-ignore lint/suspicious/noExplicitAny: generic
+            msg?: Fz.Message<any>,
+        ) => number | string | boolean | KeyValue | null;
     }
     export interface MetaTuyaDataPointsMeta {
         skip?: (meta: Tz.Meta) => boolean;
