@@ -272,35 +272,30 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
-	
-		{
-    fingerprint: tuya.fingerprint("TS0601", ["_TZE204_khoqss0a"]),
-	model: "SZR07U",
-	vendor: "Lincukoo",
-	description: "24GHz millimeter wave radar",
-	configure: tuya.configureMagicPacket,
-	fromZigbee: [tuya.fz.datapoints],
-	toZigbee: [tuya.tz.datapoints],
-	onEvent: tuya.onEventSetTime,
-	exposes: [
-		e.presence(),
-		e.illuminance(),
-		e
-			.numeric("detection_distance", ea.STATE_SET)
-			.withValueMin(3)
-			.withValueMax(6)
-			.withValueStep(1.5)
-			.withUnit("m")
-			.withDescription("Maximum range"),
-		e
-			.numeric("radar_sensitivity", ea.STATE_SET)
-			.withValueMin(0)
-			.withValueMax(9)
-			.withValueStep(1)
-			.withDescription("Sensitivity of the radar"),
-		e.numeric("fading_time", ea.STATE_SET).withValueMin(5).withValueMax(300).withValueStep(1).withDescription("Fading time").withUnit("s"),
-		e.binary("radar_switch", ea.STATE_SET, "ON", "OFF").withDescription("Radar switch"),
-		e.binary("indicator", ea.STATE_SET, "ON", "OFF").withDescription("LED indicator"),
+
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_khoqss0a"]),
+        model: "SZR07U",
+        vendor: "Lincukoo",
+        description: "24GHz millimeter wave radar",
+        configure: tuya.configureMagicPacket,
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEventSetTime,
+        exposes: [
+            e.presence(),
+            e.illuminance(),
+            e
+                .numeric("detection_distance", ea.STATE_SET)
+                .withValueMin(3)
+                .withValueMax(6)
+                .withValueStep(1.5)
+                .withUnit("m")
+                .withDescription("Maximum range"),
+            e.numeric("radar_sensitivity", ea.STATE_SET).withValueMin(0).withValueMax(9).withValueStep(1).withDescription("Sensitivity of the radar"),
+            e.numeric("fading_time", ea.STATE_SET).withValueMin(5).withValueMax(300).withValueStep(1).withDescription("Fading time").withUnit("s"),
+            e.binary("radar_switch", ea.STATE_SET, "ON", "OFF").withDescription("Radar switch"),
+            e.binary("indicator", ea.STATE_SET, "ON", "OFF").withDescription("LED indicator"),
         ],
         meta: {
             tuyaDatapoints: [
@@ -309,43 +304,38 @@ export const definitions: DefinitionWithExtend[] = [
                 [13, "detection_distance", tuya.valueConverter.divideBy100],
                 [16, "radar_sensitivity", tuya.valueConverter.raw],
                 [103, "fading_time", tuya.valueConverter.raw],
-				[102, "radar_switch", tuya.valueConverter.onOff], // toggle to enable presence notifications in app is ignored
+                [102, "radar_switch", tuya.valueConverter.onOff], // toggle to enable presence notifications in app is ignored
                 [101, "indicator", tuya.valueConverter.onOff],
             ],
         },
     },
-	
-	{
-    fingerprint: tuya.fingerprint("TS0601", ["_TZE204_b8vxct9l"]),
-	model: "SZLR08",
-	vendor: "Lincukoo",
-	description: "24GHz millimeter wave radar",
-	configure: tuya.configureMagicPacket,
-	fromZigbee: [tuya.fz.datapoints],
-	toZigbee: [tuya.tz.datapoints],
-	onEvent: tuya.onEventSetTime,
-	exposes: [
-		e.presence(),
-		e.illuminance(),
-		e
-			.numeric("installation_height", ea.STATE_SET)
-			.withValueMin(3)
-			.withValueMax(5)
-			.withValueStep(1)
-			.withUnit("m")
-			.withDescription("Maximum range"),
-		e
-			.numeric("radar_sensitivity", ea.STATE_SET)
-			.withValueMin(0)
-			.withValueMax(9)
-			.withValueStep(1)
-			.withDescription("Sensitivity of the radar"),
-		e.numeric("fading_time", ea.STATE_SET).withValueMin(5).withValueMax(300).withValueStep(1).withDescription("Fading time").withUnit("s"),
-		e.binary("radar_switch", ea.STATE_SET, "ON", "OFF").withDescription("Radar switch"),
-		e.binary("indicator", ea.STATE_SET, "ON", "OFF").withDescription("LED indicator"),
-		e.binary("relay_switch", ea.STATE_SET, "ON", "OFF").withDescription("Relay switch"),
-		e.enum("relay_mode", ea.STATE_SET, ["auto", "manual"]).withDescription("control mode of the relay"),
-		e.enum("radar_mode", ea.STATE_SET, ["people_on", "people_off"]).withDescription("radar mode for the relay controlling"),
+
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_b8vxct9l"]),
+        model: "SZLR08",
+        vendor: "Lincukoo",
+        description: "24GHz millimeter wave radar",
+        configure: tuya.configureMagicPacket,
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEventSetTime,
+        exposes: [
+            e.presence(),
+            e.illuminance(),
+            e
+                .numeric("installation_height", ea.STATE_SET)
+                .withValueMin(3)
+                .withValueMax(5)
+                .withValueStep(1)
+                .withUnit("m")
+                .withDescription("Maximum range"),
+            e.numeric("radar_sensitivity", ea.STATE_SET).withValueMin(0).withValueMax(9).withValueStep(1).withDescription("Sensitivity of the radar"),
+            e.numeric("fading_time", ea.STATE_SET).withValueMin(5).withValueMax(300).withValueStep(1).withDescription("Fading time").withUnit("s"),
+            e.binary("radar_switch", ea.STATE_SET, "ON", "OFF").withDescription("Radar switch"),
+            e.binary("indicator", ea.STATE_SET, "ON", "OFF").withDescription("LED indicator"),
+            e.binary("relay_switch", ea.STATE_SET, "ON", "OFF").withDescription("Relay switch"),
+            e.enum("relay_mode", ea.STATE_SET, ["auto", "manual"]).withDescription("control mode of the relay"),
+            e.enum("radar_mode", ea.STATE_SET, ["people_on", "people_off"]).withDescription("radar mode for the relay controlling"),
         ],
         meta: {
             tuyaDatapoints: [
@@ -354,7 +344,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [13, "installation_height", tuya.valueConverter.divideBy100],
                 [16, "radar_sensitivity", tuya.valueConverter.raw],
                 [103, "fading_time", tuya.valueConverter.raw],
-				[102, "radar_switch", tuya.valueConverter.onOff], // toggle to enable presence notifications in app is ignored
+                [102, "radar_switch", tuya.valueConverter.onOff], // toggle to enable presence notifications in app is ignored
                 [101, "indicator", tuya.valueConverter.onOff],
                 [104, "relay_switch", tuya.valueConverter.onOff],
                 [106, "relay_mode", tuya.valueConverterBasic.lookup({auto: tuya.enum(0), manual: tuya.enum(1)})],
