@@ -173,7 +173,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["4512789"],
         model: "4512789",
         vendor: "Namron AS",
-        description: "Zigbee Smart Plug 16A IP44",
+        description: "Zigbee smart plug 16A IP44",
         extend: [m.deviceTemperature({scale: 100}), m.onOff(), m.electricityMeter()],
     },
     {
