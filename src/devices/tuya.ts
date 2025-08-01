@@ -9399,7 +9399,6 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        zigbeeModel: ["ZG-101ZD"],
         fingerprint: tuya.fingerprint("TS004F", [
             "_TZ3000_4fjiwweb",
             "_TZ3000_uri7ongn",
