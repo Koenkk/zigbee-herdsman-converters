@@ -52,14 +52,6 @@ export const simplaHomeModernExtend = {
 export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["Soil Pro"],
-        fingerprint: [
-            {
-                type: "EndDevice",
-                manufacturerName: "Simpla",
-                modelID: "Soil Pro",
-                hardwareVersion: 2,
-            },
-        ],
         model: "Soil Pro",
         vendor: "Simpla Home",
         description: "Soil moisture sensor: Simpla Home Soil Pro",
