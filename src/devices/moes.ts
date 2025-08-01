@@ -206,6 +206,49 @@ export const definitions: DefinitionWithExtend[] = [
         }, 
     },
     {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_stvgmdjz"]),
+        model: "SFL01-Z",
+        vendor: "MOES",
+        description: "Star Feather Smart switch 1 gang",
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            tuya.exposes.backlightModeOffOn().withAccess(ea.STATE_SET),
+            e.switch().withEndpoint("l1").setAccess("state", ea.STATE_SET),
+            tuya.exposes.countdown().withEndpoint("l1"),
+            e.power_on_behavior().withAccess(ea.STATE_SET),
+            exposes.enum("mode", ea.STATE_SET, ["switch_1", "scene_1"]).withEndpoint("l1").withDescription("Switch1 mode"),
+            e.action(["scene_1"]),
+            exposes.enum('induction_mode', ea.ALL, ['ON', 'OFF']).withDescription('Induction mode'),
+            exposes.enum("vibration_mode", ea.ALL, ["Gear 0", "Gear 1", "Gear 2", "Gear 3"]).withDescription("Vibration"),
+        ],
+        onEvent: tuya.onEventSetTime,
+        endpoint: (device) => {
+            return {
+                l1: 1,
+                state: 1,
+                backlight: 1,
+                induction: 1,
+            };
+        },
+        meta: {
+            multiEndpoint: true,
+            tuyaDatapoints: [
+                [1, "action", tuya.valueConverter.static("scene_1")],       
+                [24, "state_l1", tuya.valueConverter.onOff],
+                [30, "countdown_l1", tuya.valueConverter.countdown],
+                [37, "indicator_mode", tuya.valueConverterBasic.lookup({none: 0, relay: 1, pos: 2})],
+                [38, "power_on_behavior", tuya.valueConverter.powerOnBehaviorEnum],
+                [36, "backlight_mode", tuya.valueConverter.onOff],
+                [18, "mode_l1", tuya.valueConverterBasic.lookup({switch_1: tuya.enum(0), scene_1: tuya.enum(1)})],
+                [103, 'induction_mode', tuya.valueConverter.onOff],
+                [104, 'vibration_mode', tuya.valueConverterBasic.lookup({"Gear 0": tuya.enum(0), "Gear 1": tuya.enum(1), "Gear 2": tuya.enum(2), "Gear 3": tuya.enum(3)})],
+   
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_ivdc0kwl"]),
         model: "ZTRV-S01",
         vendor: "Moes",
