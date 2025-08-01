@@ -3533,7 +3533,7 @@ export const definitions: DefinitionWithExtend[] = [
                 "_TZ3000_bjawzodf",
             ]),
             ...tuya.fingerprint("TS0203", ["Zbeacon"]),
-],
+        ],
         model: "WSD500A",
         vendor: "Tuya",
         description: "Temperature & humidity sensor",
