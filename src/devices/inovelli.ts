@@ -1735,20 +1735,23 @@ const tzLocal = {
             globalStore.putValue(entity, "brightness", brightness);
             await entity.command(
                 "genLevelCtrl",
-                "moveToLevelWithOnOff",
+                state === undefined ? "moveToLevel" : "moveToLevelWithOnOff",
                 {
                     level: Number(brightness),
                     transtime: !transition.specified ? 0xffff : transition.time,
                 },
                 utils.getOptions(meta.mapped, entity),
             );
-
-            return {
+            const result = {
                 state: {
-                    state: brightness === 0 ? "OFF" : "ON",
+                    state: {},
                     brightness: Number(brightness),
                 },
             };
+            if (state !== undefined) {
+                result.state.state = brightness === 0 ? "OFF" : "ON";
+            }
+            return result;
         },
         convertGet: async (entity, key, meta) => {
             if (key === "brightness") {
@@ -2265,6 +2268,7 @@ export const definitions: DefinitionWithExtend[] = [
             tz.identify,
             tz.light_brightness_move,
             tz.light_brightness_step,
+            tz.level_config,
             tzLocal.inovelli_led_effect,
             tzLocal.inovelli_individual_led_effect,
             tzLocal.inovelli_parameters(VZM30_ATTRIBUTES, INOVELLI_CLUSTER_NAME),
@@ -2317,6 +2321,7 @@ export const definitions: DefinitionWithExtend[] = [
             tz.identify,
             tz.light_brightness_move,
             tz.light_brightness_step,
+            tz.level_config,
             tzLocal.inovelli_led_effect,
             tzLocal.inovelli_individual_led_effect,
             tzLocal.inovelli_parameters(VZM31_ATTRIBUTES, INOVELLI_CLUSTER_NAME),
@@ -2367,6 +2372,7 @@ export const definitions: DefinitionWithExtend[] = [
             tz.identify,
             tz.light_brightness_move,
             tz.light_brightness_step,
+            tz.level_config,
             tzLocal.inovelli_led_effect,
             tzLocal.inovelli_individual_led_effect,
             tzLocal.inovelli_mmwave_control_commands,
@@ -2445,6 +2451,7 @@ export const definitions: DefinitionWithExtend[] = [
             tzLocal.vzm36_fan_on_off, // Need to use VZM36 specific converter
             tz.light_brightness_move,
             tz.light_brightness_step,
+            tz.level_config,
             tzLocal.fan_mode(2),
             tzLocal.light_onoff_brightness_inovelli,
             tzLocal.inovelli_parameters(VZM36_ATTRIBUTES, INOVELLI_CLUSTER_NAME),
