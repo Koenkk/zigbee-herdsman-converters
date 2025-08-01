@@ -1,5 +1,27 @@
 # Changelog
 
+## [24.11.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v24.10.0...v24.11.0) (2025-08-01)
+
+
+### Features
+
+* **add:** 4512789 ([#9720](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9720)) ([a0e118b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a0e118b0d195f8aeef3f6738593c7fb1bb06fb1e))
+* **add:** ZG-204ZH ([#9716](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9716)) ([8ad4e9e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8ad4e9e98ce3a8022c4369d6674fde21328e45e5))
+
+
+### Bug Fixes
+
+* Allow light messages to pass a null state to indicate no state change ([#9712](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9712)) ([a04aaa5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a04aaa54baa5b2e1a5489c2da56d6e2c10b7943f))
+* **detect:** Detect `_TZE204_1wnh8bqp` as Tuya TS0601_temperature_humidity_sensor_2 https://github.com/Koenkk/zigbee2mqtt/issues/28139 ([9c4f340](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9c4f340a17285b479d3f8614470f2b20206a9faa))
+* **detect:** Detect `_TZE204_wfxuhoea` as Tuya GDC311ZBQ1 https://github.com/Koenkk/zigbee-herdsman-converters/issues/9719 ([e232a75](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e232a759016b1ee399cbef971b099b461bd0bd07))
+* **detect:** Detect `_TZE204_wskr3up8` as Nova Digital FZB-6 ([#9714](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9714)) ([9cbbb4f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9cbbb4fd4cd721f5c86e4438b29e3f16b9e5ea64))
+* **detect:** Detect `_TZE284_cvub6xbb` as Tuya TGM50-ZB https://github.com/Koenkk/zigbee-herdsman-converters/issues/9718 ([37d3f48](https://github.com/Koenkk/zigbee-herdsman-converters/commit/37d3f4823c52ae021e28a15ba7a1f246ab654801))
+* **detect:** Detect `_TZE284_xpvamyfz` as Nous E10 https://github.com/Koenkk/zigbee2mqtt/issues/28136 ([8728cb7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8728cb76d624d176426a41d29fc03f2d11d988c4))
+* **detect:** Detect `eco-dim07-Pro-zigbee` as Eco-Dim.07/Eco-Dim.10 https://github.com/Koenkk/zigbee2mqtt/issues/28112 ([68ca801](https://github.com/Koenkk/zigbee-herdsman-converters/commit/68ca8014a03ed2d65d9d33943aa0cf02f5cb5f48))
+* Inovelli: add MoveToLevel support ([#9713](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9713)) ([6dbef9d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6dbef9d91498e946e57488e32856965e76a18981))
+* SONOFF SWV: fix on_time multiplied by 10 https://github.com/Koenkk/zigbee2mqtt/issues/27980 ([a204ef1](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a204ef1131fe4d06594591cff8edf866ae5b7395))
+* Tuya TS0601_water_valve: fix temperature conversion ([#9717](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9717)) ([5109c36](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5109c369fe279bdd482705b3c661b4903322f2c9))
+
 ## [24.10.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v24.9.0...v24.10.0) (2025-07-30)
 
 
