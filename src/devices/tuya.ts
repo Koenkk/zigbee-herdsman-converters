@@ -6169,15 +6169,10 @@ export const definitions: DefinitionWithExtend[] = [
                 )
                 .withSystemMode(["auto", "heat", "off"], ea.STATE)
                 .withRunningState(["idle", "heat"], ea.STATE),
-        	e
-                .enum("screen_orientation", ea.STATE_SET, ["up", "down"])
-                .withDescription(
-                    "How do you look at the display (up and down supported only)",
-                ),
-			e
-				.enum("display_brightness", ea.STATE_SET, ["high", "middle", "low"] )
-				.withDescription("How strong the LED diplay is light up (high is default)",
-				),
+            e.enum("screen_orientation", ea.STATE_SET, ["up", "down"]).withDescription("How do you look at the display (up and down supported only)"),
+            e
+                .enum("display_brightness", ea.STATE_SET, ["high", "middle", "low"])
+                .withDescription("How strong the LED diplay is light up (high is default)"),
 
             e
                 .enum("mode", ea.STATE_SET, ["comfort", "eco"])
@@ -6185,20 +6180,19 @@ export const definitions: DefinitionWithExtend[] = [
                     "Hysteresis - comfort > switches off/on exactly at reached " +
                         "temperature with valve smooth from 0 to 100%, eco > 0.5 degrees above or below, valve either 0 or 100%",
                 ),
-			e
-				.numeric("switch_deviation_eco", ea.STATE_SET )
-				.withValueMin(0.5)
-				.withValueMax(5.0)
-				.withValueStep(0.1)
-				.withUnit('°C')
-				.withDescription(
-                    "Switch deviation (energy-saving mode only)",
-                ),
+            e
+                .numeric("switch_deviation_eco", ea.STATE_SET)
+                .withValueMin(0.5)
+                .withValueMax(5.0)
+                .withValueStep(0.1)
+                .withUnit("°C")
+                .withDescription("Switch deviation (energy-saving mode only)"),
             ...tuya.exposes.scheduleAllDays(ea.STATE_SET, "HH:MM/C HH:MM/C HH:MM/C HH:MM/C"),
             e
                 .binary("boost_heating", ea.STATE_SET, "ON", "OFF")
                 .withDescription(
-                    "Boost Heating: press and hold "+" for 3 seconds, " +
+                    "Boost Heating: press and hold " +
+                        " for 3 seconds, " +
                         "the device will enter the boost heating mode, and the ▷╵◁ will flash. The countdown will be displayed in the APP",
                 ),
             e.numeric("boost_time", ea.STATE_SET).withUnit("min").withDescription("Countdown in minutes").withValueMin(0).withValueMax(1000),
@@ -6229,10 +6223,10 @@ export const definitions: DefinitionWithExtend[] = [
                 [23, "schedule_sunday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(7)],
                 [101, "local_temperature_calibration", tuya.valueConverter.localTempCalibration1],
                 [102, "position", tuya.valueConverter.divideBy10],
-				[116, "screen_orientation",tuya.valueConverterBasic.lookup({up: tuya.enum(0), down: tuya.enum(2)})],
-				[152, "display_brightness",tuya.valueConverterBasic.lookup({'high': tuya.enum(0), 'middle': tuya.enum(1), 'low': tuya.enum(2)})],
+                [116, "screen_orientation", tuya.valueConverterBasic.lookup({up: tuya.enum(0), down: tuya.enum(2)})],
+                [152, "display_brightness", tuya.valueConverterBasic.lookup({high: tuya.enum(0), middle: tuya.enum(1), low: tuya.enum(2)})],
                 [153, "mode", tuya.valueConverterBasic.lookup({comfort: tuya.enum(0), eco: tuya.enum(1)})],
-				[154, "switch_deviation_eco",tuya.valueConverter.divideBy10],
+                [154, "switch_deviation_eco", tuya.valueConverter.divideBy10],
             ],
         },
     },
