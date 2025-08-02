@@ -1,3 +1,4 @@
+import * as m from 'zigbee-herdsman-converters/lib/modernExtend';
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
@@ -69,5 +70,13 @@ export const definitions: DefinitionWithExtend[] = [
             device.powerSource = "Mains (single phase)";
             device.save();
         },
+    },
+    {
+    zigbeeModel: ['STLO-23'],
+    model: 'STLO-23',
+    vendor: 'Stello',
+    description: 'Hilo Water Heater Controller',
+    extend: [m.onOff({"powerOnBehavior":false}), m.electricityMeter({"cluster":"metering"})],
+    meta: {},
     },
 ];
