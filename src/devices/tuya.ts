@@ -6268,7 +6268,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.enum("screen_orientation", ea.STATE_SET, ["up", "down"]).withDescription("How do you look at the display (up and down supported only)"),
             e
                 .enum("display_brightness", ea.STATE_SET, ["high", "middle", "low"])
-                .withDescription("how strong the LED diplay is light up (high is default)"),
+                .withDescription("How strong the LED diplay is light up (high is default)"),
 
             e
                 .enum("mode", ea.STATE_SET, ["comfort", "eco"])
