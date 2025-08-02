@@ -99,7 +99,7 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_stvgmdjz", "_TZE200_ydkqbmpt"]),
         model: "SFL01-Z",
         vendor: "MOES",
-        description: "Star Feather Smart switch 1 gang",
+        description: "Star feather smart switch 1 gang",
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
@@ -150,7 +150,7 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
-        whiteLabel: [tuya.whitelabel("Nova Digital", "TPZ-2", "Topazio smart switch 2 gang", ["_TZE200_hktk6hze"])],
+        whiteLabel: [tuya.whitelabel("Nova Digital", "TPZ-2", "Topazio smart switch 2 gangs", ["_TZE200_hktk6hze"])],
         exposes: [
             tuya.exposes.backlightModeOffOn().withAccess(ea.STATE_SET),
             e.switch().withEndpoint("l1").setAccess("state", ea.STATE_SET),
