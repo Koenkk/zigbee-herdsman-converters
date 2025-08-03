@@ -35,6 +35,6 @@ export const definitions: DefinitionWithExtend[] = [
         model: "2PM",
         vendor: "Shelly",
         description: "2PM Gen4",
-        extend: [m.windowCovering({controls: ["lift","tilt"]})],
+        extend: [m.windowCovering({controls: ["lift", "tilt"]})],
     },
 ];
