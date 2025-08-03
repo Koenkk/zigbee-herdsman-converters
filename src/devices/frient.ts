@@ -10,11 +10,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "WISZB-131",
         vendor: "frient A/S",
         description: "Temperature and contact sensor",
-        extend: [
-            m.battery(),
-            m.iasZoneAlarm({zoneType: "contact", zoneAttributes: ["alarm_1", "battery_low"]}),
-            m.temperature(),
-        ],
+        extend: [m.battery(), m.iasZoneAlarm({zoneType: "contact", zoneAttributes: ["alarm_1", "battery_low"]}), m.temperature()],
         meta: {multiEndpoint: true},
     },
     {
