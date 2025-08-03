@@ -165,7 +165,8 @@ export function calibrateAndPrecisionRoundOptionsIsPercentual(type: string) {
 export function calibrateAndPrecisionRoundOptions(number: number, options: KeyValue, type: string) {
     // Calibrate
     const calibrateKey = `${type}_calibration`;
-    let calibrationOffset = toNumber(options?.[calibrateKey] != null ? options[calibrateKey] : 0, calibrateKey);
+    const calibrateValue = options?.[calibrateKey];
+    let calibrationOffset = toNumber(calibrateValue != null && calibrateValue !== "" ? calibrateValue : 0, calibrateKey);
     if (calibrateAndPrecisionRoundOptionsIsPercentual(type)) {
         // linear calibration because measured value is zero based
         // +/- percent
@@ -176,8 +177,9 @@ export function calibrateAndPrecisionRoundOptions(number: number, options: KeyVa
 
     // Precision round
     const precisionKey = `${type}_precision`;
+    const precisionValue = options?.[precisionKey];
     const defaultValue = calibrateAndPrecisionRoundOptionsDefaultPrecision[type] || 0;
-    const precision = toNumber(options?.[precisionKey] != null ? options[precisionKey] : defaultValue, precisionKey);
+    const precision = toNumber(precisionValue != null && precisionValue !== "" ? precisionValue : defaultValue, precisionKey);
     return precisionRound(number, precision);
 }
 

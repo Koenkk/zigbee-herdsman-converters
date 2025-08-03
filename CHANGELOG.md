@@ -1,5 +1,69 @@
 # Changelog
 
+## [24.11.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v24.10.0...v24.11.0) (2025-08-01)
+
+
+### Features
+
+* **add:** 4512789 ([#9720](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9720)) ([a0e118b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a0e118b0d195f8aeef3f6738593c7fb1bb06fb1e))
+* **add:** ZG-204ZH ([#9716](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9716)) ([8ad4e9e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8ad4e9e98ce3a8022c4369d6674fde21328e45e5))
+
+
+### Bug Fixes
+
+* Allow light messages to pass a null state to indicate no state change ([#9712](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9712)) ([a04aaa5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a04aaa54baa5b2e1a5489c2da56d6e2c10b7943f))
+* **detect:** Detect `_TZE204_1wnh8bqp` as Tuya TS0601_temperature_humidity_sensor_2 https://github.com/Koenkk/zigbee2mqtt/issues/28139 ([9c4f340](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9c4f340a17285b479d3f8614470f2b20206a9faa))
+* **detect:** Detect `_TZE204_wfxuhoea` as Tuya GDC311ZBQ1 https://github.com/Koenkk/zigbee-herdsman-converters/issues/9719 ([e232a75](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e232a759016b1ee399cbef971b099b461bd0bd07))
+* **detect:** Detect `_TZE204_wskr3up8` as Nova Digital FZB-6 ([#9714](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9714)) ([9cbbb4f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9cbbb4fd4cd721f5c86e4438b29e3f16b9e5ea64))
+* **detect:** Detect `_TZE284_cvub6xbb` as Tuya TGM50-ZB https://github.com/Koenkk/zigbee-herdsman-converters/issues/9718 ([37d3f48](https://github.com/Koenkk/zigbee-herdsman-converters/commit/37d3f4823c52ae021e28a15ba7a1f246ab654801))
+* **detect:** Detect `_TZE284_xpvamyfz` as Nous E10 https://github.com/Koenkk/zigbee2mqtt/issues/28136 ([8728cb7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8728cb76d624d176426a41d29fc03f2d11d988c4))
+* **detect:** Detect `eco-dim07-Pro-zigbee` as Eco-Dim.07/Eco-Dim.10 https://github.com/Koenkk/zigbee2mqtt/issues/28112 ([68ca801](https://github.com/Koenkk/zigbee-herdsman-converters/commit/68ca8014a03ed2d65d9d33943aa0cf02f5cb5f48))
+* Inovelli: add MoveToLevel support ([#9713](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9713)) ([6dbef9d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6dbef9d91498e946e57488e32856965e76a18981))
+* SONOFF SWV: fix on_time multiplied by 10 https://github.com/Koenkk/zigbee2mqtt/issues/27980 ([a204ef1](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a204ef1131fe4d06594591cff8edf866ae5b7395))
+* Tuya TS0601_water_valve: fix temperature conversion ([#9717](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9717)) ([5109c36](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5109c369fe279bdd482705b3c661b4903322f2c9))
+
+## [24.10.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v24.9.0...v24.10.0) (2025-07-30)
+
+
+### Features
+
+* **add:** 929003812801 ([#9708](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9708)) ([e1da849](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e1da8493488dbda9955a216e1b7d08e1f72eaa30))
+* **add:** C-ZB-RD1, C-ZB-RD1P-DIM, C-ZB-RD1P-DPM, C-ZB-RD1P-REM ([#9709](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9709)) ([e006b26](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e006b26f86a1a823411e815b270c11875c0f2418))
+* iCasa ICZB-RM11S: expose `action_group` https://github.com/Koenkk/zigbee2mqtt/issues/27557 ([0a44040](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0a440405b839d8e6ab0b51a9c95d1a3ca26b7500))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3000_1adss9de` as Nous L6Z https://github.com/Koenkk/zigbee2mqtt/issues/22462 ([4ff580a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4ff580afdc727c0e2a407096a2cec4d39318e33c))
+* **detect:** Detect `_TZE204_jktmrpoj` as Moes ZM-102-M ([#9706](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9706)) ([272beb7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/272beb7d9594b7d02380d0a9bc0887274bff1b7a))
+* **detect:** Detect `929003808201_0*` as Philips 5062431P7 https://github.com/Koenkk/zigbee2mqtt/issues/28115 ([428a4c5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/428a4c56a8d58737ef222bb433c71b8adc0cb086))
+* **ignore:** fixes for e006b26f86a1a823411e815b270c11875c0f2418 ([a3c9db6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a3c9db60793791bb3fedd8da4c243432e5872448))
+
+## [24.9.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v24.8.0...v24.9.0) (2025-07-29)
+
+
+### Features
+
+* **add:** 046677590161 ([#9698](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9698)) ([f3b3361](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f3b33616878727ab993605b91c9a9accb7122526))
+* **add:** 2PM ([#9697](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9697)) ([8320975](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8320975e2bcb1c4ee36c76f691b8672238b6b613))
+* **add:** E10 ([#9703](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9703)) ([8c35918](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8c35918dc42ece5eae9aac417e0b7bc03bbcff2f))
+* **add:** ElectricityMeter-ABC-DIY ([#9663](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9663)) ([148ab14](https://github.com/Koenkk/zigbee-herdsman-converters/commit/148ab14814eee05fa58dcbdf153e0c0d8c639872))
+* **add:** H1 ([#9705](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9705)) ([aa03465](https://github.com/Koenkk/zigbee-herdsman-converters/commit/aa034654a31659f9abbdea6f7721c3488b6732e6))
+* **add:** RB 282 C https://github.com/Koenkk/zigbee2mqtt/issues/28091 ([d553f9c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d553f9c1f2baf6b9936757544f948ec50867eaf9))
+* **add:** TS0601_water_valve ([#9701](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9701)) ([1c36bc5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1c36bc54ee2a61fd34b0282d0c49bd80b0589607))
+* **add:** ZHT-S03 ([#9690](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9690)) ([6510ef5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6510ef5134f952255d36f77eccc86632e6f26e66))
+* POK010: add humidity ([#9704](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9704)) ([e8faad8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e8faad8b0e9953e309c50083d8d727927b5c7689))
+
+
+### Bug Fixes
+
+* Add some options to QA and Girier devices ([#9691](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9691)) ([44d4291](https://github.com/Koenkk/zigbee-herdsman-converters/commit/44d42911a2ea6cce427abb1ebc24b9f022562f1e))
+* **detect:** Detect `_TZE204_6a4vxfnv` as Tuya TS0601_floor_thermostat ([#9694](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9694)) ([8cafb55](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8cafb558f20e3a9dea5e69bb6b50b055ff5f02b0))
+* **detect:** Detect `_TZE284_ye5jkfsb` as Moes BHT-002 https://github.com/Koenkk/zigbee2mqtt/issues/28099 ([67a08ff](https://github.com/Koenkk/zigbee-herdsman-converters/commit/67a08ff66244f8e81378c7b5a18e4113d9b0dfb5))
+* Don't throw `Failed to apply calibration to` when value is an empty string ([#9700](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9700)) ([501d8a2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/501d8a2a15b3047aa1f88e0e030785187949571e))
+* **ignore:** bump the minor-patch group with 3 updates ([#9699](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9699)) ([d27e97b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d27e97b4d360d5b77603c106ac776015b47bf9b0))
+* **ignore:** fix aa034654a31659f9abbdea6f7721c3488b6732e6 ([97aa0e7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/97aa0e747c55f3000339f3a46c8a2c8b5c7c49ef))
+
 ## [24.8.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v24.7.0...v24.8.0) (2025-07-26)
 
 

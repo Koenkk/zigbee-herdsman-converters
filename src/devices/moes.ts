@@ -315,6 +315,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE204_5toc8efa",
             "_TZE200_5toc8efa",
             "_TZE200_ye5jkfsb",
+            "_TZE284_ye5jkfsb",
             "_TZE204_aoclfnxz",
             "_TZE200_u9bfwha0",
             "_TZE204_u9bfwha0",
@@ -727,7 +728,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["ZG-101ZL"],
-        fingerprint: tuya.fingerprint("TS004F", ["_TZ3000_ja5osu5g", "_TZ3000_kjfzuycl", "_TZ3000_egvb1p2g", "_TZ3000_kaflzta4"]),
+        fingerprint: tuya.fingerprint("TS004F", ["_TZ3000_ja5osu5g", "_TZ3000_kjfzuycl", "_TZ3000_egvb1p2g", "_TZ3000_kaflzta4", "_TZ3000_lrfvzq1e"]),
         model: "ERS-10TZBVB-AA",
         vendor: "Moes",
         description: "Smart button",
