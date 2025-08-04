@@ -8579,7 +8579,14 @@ export const definitions: DefinitionWithExtend[] = [
         onEvent: tuya.onEventSetTime,
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_viy9ihs7", "_TZE204_lzriup1j", "_TZE204_xnbkhhdr", "_TZE284_xnbkhhdr", "_TZE204_oh8y8pv8"]),
+        fingerprint: tuya.fingerprint("TS0601", [
+            "_TZE200_viy9ihs7",
+            "_TZE204_lzriup1j",
+            "_TZE204_xnbkhhdr",
+            "_TZE284_xnbkhhdr",
+            "_TZE204_oh8y8pv8",
+            "_TZE204_gops3slb",
+        ]),
         model: "ZWT198/ZWT100-BH",
         vendor: "Tuya",
         description: "Wall thermostat",
@@ -8651,7 +8658,8 @@ export const definitions: DefinitionWithExtend[] = [
                     "preset",
                     tuya.valueConverterBasic.lookup((_, device) => {
                         // https://github.com/Koenkk/zigbee2mqtt/issues/21353#issuecomment-1938328429
-                        if (device.manufacturerName === "_TZE204_lzriup1j") {
+                        // https://github.com/Koenkk/zigbee2mqtt/issues/28035
+                        if (device.manufacturerName === "_TZE204_lzriup1j" || device.manufacturerName === "_TZE204_gops3slb") {
                             return {
                                 auto: tuya.enum(1),
                                 manual: tuya.enum(0),
