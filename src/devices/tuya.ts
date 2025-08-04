@@ -9517,6 +9517,13 @@ export const definitions: DefinitionWithExtend[] = [
                 applicationVersion: 145,
                 priority: 1,
             },
+            // https://github.com/Koenkk/zigbee2mqtt/issues/28149
+            {
+                modelID: "TS004F",
+                manufacturerName: "_TZ3000_gwkzibhs",
+                applicationVersion: 147,
+                priority: 1,
+            },
         ],
         model: "ZG-101Z/D",
         vendor: "Tuya",
