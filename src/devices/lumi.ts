@@ -4764,4 +4764,12 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Pro track light",
         extend: [m.light({colorTemp: {range: [166, 370]}})],
     },
+    {
+        zigbeeModel: ['lumi.light.agl005'],
+        model: 'lumi.light.agl005',
+        vendor: 'Aqara',
+        description: 'Automatically generated definition',
+        extend: [m.deviceEndpoints({"endpoints":{"1":1,"21":21}}), m.light({"colorTemp":{"range":[111,500]},"color":true}), m.electricityMeter()],
+        meta: {"multiEndpoint":true},
+    },
 ];
