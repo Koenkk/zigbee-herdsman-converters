@@ -6169,11 +6169,30 @@ export const definitions: DefinitionWithExtend[] = [
                 )
                 .withSystemMode(["auto", "heat", "off"], ea.STATE)
                 .withRunningState(["idle", "heat"], ea.STATE),
+            e.enum("screen_orientation", ea.STATE_SET, ["up", "down"]).withDescription("How do you look at the display (up and down supported only)"),
+            e
+                .enum("display_brightness", ea.STATE_SET, ["high", "middle", "low"])
+                .withDescription("How strong the LED diplay is light up (high is default)"),
+
+            e
+                .enum("mode", ea.STATE_SET, ["comfort", "eco"])
+                .withDescription(
+                    "Hysteresis - comfort > switches off/on exactly at reached " +
+                        "temperature with valve smooth from 0 to 100%, eco > 0.5 degrees above or below, valve either 0 or 100%",
+                ),
+            e
+                .numeric("switch_deviation_eco", ea.STATE_SET)
+                .withValueMin(0.5)
+                .withValueMax(5.0)
+                .withValueStep(0.1)
+                .withUnit("°C")
+                .withDescription("Switch deviation (energy-saving mode only)"),
             ...tuya.exposes.scheduleAllDays(ea.STATE_SET, "HH:MM/C HH:MM/C HH:MM/C HH:MM/C"),
             e
                 .binary("boost_heating", ea.STATE_SET, "ON", "OFF")
                 .withDescription(
-                    'Boost Heating: press and hold "+" for 3 seconds, ' +
+                    "Boost Heating: press and hold " +
+                        " for 3 seconds, " +
                         "the device will enter the boost heating mode, and the ▷╵◁ will flash. The countdown will be displayed in the APP",
                 ),
             e.numeric("boost_time", ea.STATE_SET).withUnit("min").withDescription("Countdown in minutes").withValueMin(0).withValueMax(1000),
@@ -6204,6 +6223,10 @@ export const definitions: DefinitionWithExtend[] = [
                 [23, "schedule_sunday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(7)],
                 [101, "local_temperature_calibration", tuya.valueConverter.localTempCalibration1],
                 [102, "position", tuya.valueConverter.divideBy10],
+                [116, "screen_orientation", tuya.valueConverterBasic.lookup({up: tuya.enum(0), down: tuya.enum(2)})],
+                [152, "display_brightness", tuya.valueConverterBasic.lookup({high: tuya.enum(0), middle: tuya.enum(1), low: tuya.enum(2)})],
+                [153, "mode", tuya.valueConverterBasic.lookup({comfort: tuya.enum(0), eco: tuya.enum(1)})],
+                [154, "switch_deviation_eco", tuya.valueConverter.divideBy10],
             ],
         },
     },
@@ -6212,7 +6235,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TRV601",
         vendor: "Tuya",
         whiteLabel: [tuya.whitelabel("Sber", "SBDV-00185", "Thermostatic radiator valve", ["_TZE204_cvcu2p6e"])],
-        description: "Thermostatic radiator valve.",
+        description: "Thermostatic radiator valve",
         onEvent: tuya.onEventSetLocalTime,
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
@@ -6242,12 +6265,24 @@ export const definitions: DefinitionWithExtend[] = [
                 .withSystemMode(["auto", "heat", "off"], ea.STATE)
                 .withRunningState(["idle", "heat"], ea.STATE),
             ...tuya.exposes.scheduleAllDays(ea.STATE_SET, "HH:MM/C HH:MM/C HH:MM/C HH:MM/C"),
+            e.enum("screen_orientation", ea.STATE_SET, ["up", "down"]).withDescription("How do you look at the display (up and down supported only)"),
+            e
+                .enum("display_brightness", ea.STATE_SET, ["high", "middle", "low"])
+                .withDescription("How strong the LED diplay is light up (high is default)"),
+
             e
                 .enum("mode", ea.STATE_SET, ["comfort", "eco"])
                 .withDescription(
                     "Hysteresis - comfort > switches off/on exactly at reached " +
                         "temperature with valve smooth from 0 to 100%, eco > 0.5 degrees above or below, valve either 0 or 100%",
                 ),
+            e
+                .numeric("switch_deviation_eco", ea.STATE_SET)
+                .withValueMin(0.5)
+                .withValueMax(5.0)
+                .withValueStep(0.1)
+                .withUnit("°C")
+                .withDescription("Switch deviation (energy-saving mode only)"),
         ],
         meta: {
             tuyaDatapoints: [
@@ -6273,14 +6308,10 @@ export const definitions: DefinitionWithExtend[] = [
                 [23, "schedule_sunday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(7)],
                 [101, "local_temperature_calibration", tuya.valueConverter.localTempCalibration1],
                 [108, "position", tuya.valueConverter.divideBy10],
-                [
-                    114,
-                    "mode",
-                    tuya.valueConverterBasic.lookup({
-                        comfort: tuya.enum(0),
-                        eco: tuya.enum(1),
-                    }),
-                ],
+                [111, "display_brightness", tuya.valueConverterBasic.lookup({high: tuya.enum(0), middle: tuya.enum(1), low: tuya.enum(2)})],
+                [113, "screen_orientation", tuya.valueConverterBasic.lookup({up: tuya.enum(0), down: tuya.enum(2)})],
+                [114, "mode", tuya.valueConverterBasic.lookup({comfort: tuya.enum(0), eco: tuya.enum(1)})],
+                [115, "switch_deviation_eco", tuya.valueConverter.divideBy10],
             ],
         },
     },
@@ -8548,7 +8579,14 @@ export const definitions: DefinitionWithExtend[] = [
         onEvent: tuya.onEventSetTime,
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_viy9ihs7", "_TZE204_lzriup1j", "_TZE204_xnbkhhdr", "_TZE284_xnbkhhdr", "_TZE204_oh8y8pv8"]),
+        fingerprint: tuya.fingerprint("TS0601", [
+            "_TZE200_viy9ihs7",
+            "_TZE204_lzriup1j",
+            "_TZE204_xnbkhhdr",
+            "_TZE284_xnbkhhdr",
+            "_TZE204_oh8y8pv8",
+            "_TZE204_gops3slb",
+        ]),
         model: "ZWT198/ZWT100-BH",
         vendor: "Tuya",
         description: "Wall thermostat",
@@ -8620,7 +8658,8 @@ export const definitions: DefinitionWithExtend[] = [
                     "preset",
                     tuya.valueConverterBasic.lookup((_, device) => {
                         // https://github.com/Koenkk/zigbee2mqtt/issues/21353#issuecomment-1938328429
-                        if (device.manufacturerName === "_TZE204_lzriup1j") {
+                        // https://github.com/Koenkk/zigbee2mqtt/issues/28035
+                        if (device.manufacturerName === "_TZE204_lzriup1j" || device.manufacturerName === "_TZE204_gops3slb") {
                             return {
                                 auto: tuya.enum(1),
                                 manual: tuya.enum(0),
