@@ -4022,7 +4022,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 438]}})],
     },
     {
-        zigbeeModel: ["929003823501", "929003823701", "929003823901", "929003823601", "929003823801", "929003824001", "929003846601"],
+        zigbeeModel: ["929003823501", "929003823701", "929003823901", "929003823601", "929003823801", "929003824001", "929003846601", "929003846201"],
         model: "929003823501",
         vendor: "Philips",
         description: "Hue Tento WCA 29,1cm (White)",
@@ -4033,6 +4033,7 @@ export const definitions: DefinitionWithExtend[] = [
             {model: "929003823801", vendor: "Philips", description: "Hue Tento WCA 42,1 cm (Black)", fingerprint: [{modelID: "929003823801"}]},
             {model: "929003824001", vendor: "Philips", description: "Hue Tento WCA 54,2 cm (Black)", fingerprint: [{modelID: "929003824001"}]},
             {model: "929003846601", vendor: "Philips", description: "Hue Tento WCA 39,5x39,5 cm (White)", fingerprint: [{modelID: "929003846601"}]},
+            {model: "929003846201", vendor: "Philips", description: "Hue Tento WCA slim ceiling SQ S (White)", fingerprint: [{modelID: "929003846201"}]},
         ],
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
