@@ -8,7 +8,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["WISZB-131"],
         model: "WISZB-131",
-        vendor: "frient A/S",
+        vendor: "Frient",
         description: "Temperature and contact sensor",
         extend: [m.battery(), m.iasZoneAlarm({zoneType: "contact", zoneAttributes: ["alarm_1", "battery_low"]}), m.temperature()],
     },
