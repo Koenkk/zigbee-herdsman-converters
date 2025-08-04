@@ -13797,9 +13797,9 @@ export const definitions: DefinitionWithExtend[] = [
             // were received. They can be several seconds in the past if
             // the publication was delayed because of the late_energy_flow options.
             e
-                .numeric("timestamp_a", ea.STATE)
+                .text("timestamp_a", ea.STATE)
                 .withDescription("Timestamp at power measure (phase a)"),
-            e.numeric("timestamp_b", ea.STATE).withDescription("Timestamp at power measure (phase b)"),
+            e.text("timestamp_b", ea.STATE).withDescription("Timestamp at power measure (phase b)"),
         ],
         meta: {
             multiEndpointSkip: ["power_factor", "power_factor_phase_b", "power_factor_phase_c", "energy"],
