@@ -1,10 +1,6 @@
-import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
-import type {DefinitionWithExtend, ModernExtend} from "../lib/types";
+import type {DefinitionWithExtend, Expose, ModernExtend} from "../lib/types";
 import * as utils from "../lib/utils";
-
-const e = exposes.presets;
-const ea = exposes.access;
 
 const measurementIntervalMin = 5;
 const measurementIntervalMax = 4 * 60 * 60;
@@ -30,16 +26,9 @@ export const simplaHomeModernExtend = {
 
         // exposes is dynamic based on fw version
         result.exposes = [
-            (device, options) => {
+            (device) => {
                 if (!utils.isDummyDevice(device) && device.softwareBuildID && Number(`0x${device?.softwareBuildID}`) > 0x01010101) {
-                    return [
-                        e
-                            .numeric(resultName, ea.ALL)
-                            .withDescription(resultDescription)
-                            .withUnit(resultUnit)
-                            .withValueMin(measurementIntervalMin)
-                            .withValueMax(measurementIntervalMax),
-                    ];
+                    return result.exposes as Expose[];
                 }
                 return [];
             },
