@@ -1804,6 +1804,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Bosch",
         description: "Phase-cut dimmer",
         extend: [m.identify(), m.light({configureReporting: true, effect: false})],
+        ota: true,
     },
     {
         zigbeeModel: ["RBSH-MMR-ZB-EU"],
