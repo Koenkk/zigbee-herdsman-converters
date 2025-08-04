@@ -11,7 +11,6 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "frient A/S",
         description: "Temperature and contact sensor",
         extend: [m.battery(), m.iasZoneAlarm({zoneType: "contact", zoneAttributes: ["alarm_1", "battery_low"]}), m.temperature()],
-        meta: {multiEndpoint: true},
     },
     {
         zigbeeModel: ["EMIZB-141"],
