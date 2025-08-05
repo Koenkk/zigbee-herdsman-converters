@@ -48,6 +48,9 @@ export const definitions: DefinitionWithExtend[] = [
             m.deviceEndpoints({endpoints: {"1": 1, z1_top: 2, z2_bottom: 3}}),
             m.identify(),
             m.temperature({
+                // the device allows to set the internal measurement interval in the specified range
+                // the Min/Max reporting interval needs to be aligned in order to synchronize the
+                // value reporting interval to the measurements
                 reporting: {min: measurementIntervalMin, max: measurementIntervalMax, change: 10},
             }),
             m.soilMoisture({
