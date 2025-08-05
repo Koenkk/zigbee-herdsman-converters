@@ -1,5 +1,22 @@
 # Changelog
 
+## [24.13.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v24.12.0...v24.13.0) (2025-08-05)
+
+
+### Features
+
+* **add:** 915005914701 https://github.com/Koenkk/zigbee2mqtt/issues/28174 ([9225b68](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9225b6890ef55e941074e2e41e2a5c41506cfeb2))
+* **add:** 929003846201 ([#9742](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9742)) ([6f96585](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6f965850d6be9a6d7ccb00b2964504d19a850c83))
+* **add:** Soil Pro ([#9264](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9264)) ([c98ad88](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c98ad88125f81126abafe416e8575c093f401f36))
+* **add:** TOSA1 ([#9747](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9747)) ([6e09cc4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6e09cc40ccc0379324a4c71891e3d100270fa29f))
+* **add:** ZS-D1, ZS-D2, ZS-D3 ([#9745](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9745)) ([985caf6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/985caf6d9cca2a1d36bf5380089a77f5832fe445))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZE200_ba69l9ol` as Tuya TS0601_cover_1 https://github.com/Koenkk/zigbee2mqtt/issues/27843 ([ee7b2a6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ee7b2a661b2359ff2b689cebe9d298cd3a45e5e8))
+* **detect:** Detect `_TZE284_1wnh8bqp` as Tuya TS0601_temperature_humidity_sensor_2 ([#9746](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9746)) ([6010b11](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6010b11c2cc1991fce6955045e12ccd916fbfd70))
+
 ## [24.12.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v24.11.0...v24.12.0) (2025-08-04)
 
 
