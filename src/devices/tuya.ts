@@ -14420,7 +14420,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_kobbcyum", "_TZE284_kobbcyum", "_TZE284_hecsejsb"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_kobbcyum", "_TZE284_kobbcyum", "_TZE284_hecsejsb", "_TZE284_432zhuwe"]),
         model: "TOWSMR1",
         vendor: "Tongou",
         description: "Single-phase multifunction RCBO (DIN Module)",
@@ -14431,6 +14431,7 @@ export const definitions: DefinitionWithExtend[] = [
             // Required to get the device to start reporting
             await device.getEndpoint(1).command("manuSpecificTuya", "dataQuery", {});
         },
+        whiteLabel: [tuya.whitelabel("Tongou", "TOSA1", "Single-phase multifunction RCBO (DIN Module)", ["_TZE284_432zhuwe"])],
         exposes: [
             tuya.exposes.switch(),
             e.temperature(),
@@ -14515,6 +14516,24 @@ export const definitions: DefinitionWithExtend[] = [
                     "When the circuit breaker trips due to voltage protection, it will automatically close when the circuit voltage returns to normal",
                 ),
             e.binary("restore_default", ea.STATE_SET, "ON", "OFF").withDescription("Turn ON to restore default settings"),
+            e
+                .binary("overcurrent_recloser", ea.STATE_SET, "ON", "OFF")
+                .withLabel("Overcurrent Recloser")
+                .withDescription(
+                    "When the circuit breaker trips due to overcurrent protection, it will automatically close when the circuit voltage returns to normal",
+                ),
+            e
+                .binary("leakage_recloser", ea.STATE_SET, "ON", "OFF")
+                .withLabel("Leakage Recloser")
+                .withDescription(
+                    "When the circuit breaker trips due to leakage protection, it will automatically close when the circuit voltage returns to normal",
+                ),
+            e
+                .binary("overpower_recloser", ea.STATE_SET, "ON", "OFF")
+                .withLabel("Overpower Recloser")
+                .withDescription(
+                    "When the circuit breaker trips due to overpower protection, it will automatically close when the circuit voltage returns to normal",
+                ),
         ],
         meta: {
             tuyaDatapoints: [
@@ -14614,6 +14633,11 @@ export const definitions: DefinitionWithExtend[] = [
                 [118, "temperature_threshold", tuya.valueConverter.divideBy10],
                 [119, "over_power_threshold", tuya.valueConverter.raw],
                 [131, "temperature", tuya.valueConverter.divideBy10],
+                // The ones below might only work for _TZE284_432zhuwe
+                // https://github.com/Koenkk/zigbee-herdsman-converters/pull/9747
+                [143, "overcurrent_recloser", tuya.valueConverter.onOff],
+                [144, "leakage_recloser", tuya.valueConverter.onOff],
+                [145, "overpower_recloser", tuya.valueConverter.onOff],
             ],
         },
         onEvent: tuya.onEvent({
