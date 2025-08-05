@@ -4723,6 +4723,7 @@ export const definitions: DefinitionWithExtend[] = [
                 "_TZE200_7shyddj3",
                 "_TZE204_a2jcoyuk",
                 "_TZE204_zuq5xxib",
+                "_TZE200_ba69l9ol",
             ]),
             ...tuya.fingerprint("zo2pocs\u0000", ["_TYST11_fzo2pocs"]),
             ...tuya.fingerprint("dank5zs\u0000", ["_TYST11_udank5zs"]),
