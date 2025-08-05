@@ -43,7 +43,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["Soil Pro"],
         model: "Soil Pro",
         vendor: "Simpla Home",
-        description: "Soil moisture sensor: Simpla Home Soil Pro",
+        description: "Soil Pro",
         extend: [
             m.deviceEndpoints({endpoints: {"1": 1, z1_top: 2, z2_bottom: 3}}),
             m.identify(),
