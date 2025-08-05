@@ -96,8 +96,305 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_stvgmdjz", "_TZE200_ydkqbmpt"]),
-        model: "SFL01-Z",
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_a1ovdobn"]),
+        model: "ZS-D1",
+        vendor: "MOES",
+        description: "Intelligent dimming switch - 1 gang",
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEventSetTime,
+        configure: tuya.configureMagicPacket,
+        exposes: (device, options) => {
+            return [
+                e.switch().withEndpoint("l1"),
+                e.numeric("brightness_1", ea.STATE_SET).withValueMin(10).withValueMax(1000).withValueStep(1).withDescription("Channel 1 brightness"),
+                e
+                    .numeric("brightness_min_1", ea.STATE_SET)
+                    .withValueMin(10)
+                    .withValueMax(1000)
+                    .withValueStep(1)
+                    .withDescription("Channel 1 minimum brightness"),
+                e
+                    .numeric("brightness_max_1", ea.STATE_SET)
+                    .withValueMin(10)
+                    .withValueMax(1000)
+                    .withValueStep(1)
+                    .withDescription("Channel 1 maximum brightness"),
+                e
+                    .numeric("countdown_1", ea.STATE_SET)
+                    .withValueMin(0)
+                    .withValueMax(86400)
+                    .withValueStep(1)
+                    .withUnit("s")
+                    .withDescription("Channel 1 countdown"),
+                e.enum("relay_status", ea.STATE_SET, ["off", "on", "memory"]).withDescription("Relay mode after power restoration"),
+                e.enum("light_mode", ea.STATE_SET, ["none", "relay", "pos"]).withDescription("Indicator light mode"),
+                e.binary("switch_backlight", ea.STATE_SET, "ON", "OFF").withDescription("Backlight switch"),
+            ];
+        },
+        meta: {
+            multiEndpoint: true,
+            tuyaDatapoints: [
+                [1, "state_l1", tuya.valueConverter.onOff],
+                [2, "brightness_1", tuya.valueConverter.raw],
+                [3, "brightness_min_1", tuya.valueConverter.raw],
+                [5, "brightness_max_1", tuya.valueConverter.raw],
+                [6, "countdown_1", tuya.valueConverter.raw],
+                [
+                    14,
+                    "relay_status",
+                    tuya.valueConverterBasic.lookup({
+                        off: tuya.enum(0),
+                        on: tuya.enum(1),
+                        memory: tuya.enum(2),
+                    }),
+                ],
+                [
+                    21,
+                    "light_mode",
+                    tuya.valueConverterBasic.lookup({
+                        none: tuya.enum(0),
+                        relay: tuya.enum(1),
+                        pos: tuya.enum(2),
+                    }),
+                ],
+                [26, "switch_backlight", tuya.valueConverter.onOff],
+            ],
+        },
+        endpoint: (device) => {
+            return {
+                l1: 1,
+            };
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_rlqamjhp"]),
+        model: "ZS-D2",
+        vendor: "Moes",
+        description: "Intelligent dimming switch - 2 gang",
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEventSetTime,
+        configure: tuya.configureMagicPacket,
+        exposes: (device, options) => {
+            return [
+                e.switch().withEndpoint("l1"),
+                e.numeric("brightness_1", ea.STATE_SET).withValueMin(10).withValueMax(1000).withValueStep(1).withDescription("Channel 1 brightness"),
+                e
+                    .numeric("brightness_min_1", ea.STATE_SET)
+                    .withValueMin(10)
+                    .withValueMax(1000)
+                    .withValueStep(1)
+                    .withDescription("Channel 1 minimum brightness"),
+                e
+                    .numeric("brightness_max_1", ea.STATE_SET)
+                    .withValueMin(10)
+                    .withValueMax(1000)
+                    .withValueStep(1)
+                    .withDescription("Channel 1 maximum brightness"),
+                e
+                    .numeric("countdown_1", ea.STATE_SET)
+                    .withValueMin(0)
+                    .withValueMax(86400)
+                    .withValueStep(1)
+                    .withUnit("s")
+                    .withDescription("Channel 1 countdown"),
+                e.switch().withEndpoint("l2"),
+                e.numeric("brightness_2", ea.STATE_SET).withValueMin(10).withValueMax(1000).withValueStep(1).withDescription("Channel 2 brightness"),
+                e
+                    .numeric("brightness_min_2", ea.STATE_SET)
+                    .withValueMin(10)
+                    .withValueMax(1000)
+                    .withValueStep(1)
+                    .withDescription("Channel 2 minimum brightness"),
+                e
+                    .numeric("brightness_max_2", ea.STATE_SET)
+                    .withValueMin(10)
+                    .withValueMax(1000)
+                    .withValueStep(1)
+                    .withDescription("Channel 2 maximum brightness"),
+                e
+                    .numeric("countdown_2", ea.STATE_SET)
+                    .withValueMin(0)
+                    .withValueMax(86400)
+                    .withValueStep(1)
+                    .withUnit("s")
+                    .withDescription("Channel 2 countdown"),
+                e.enum("relay_status", ea.STATE_SET, ["off", "on", "memory"]).withDescription("Relay mode after power restoration"),
+                e.enum("light_mode", ea.STATE_SET, ["none", "relay", "pos"]).withDescription("Indicator light mode"),
+                e.binary("switch_backlight", ea.STATE_SET, "ON", "OFF").withDescription("Backlight switch"),
+            ];
+        },
+        meta: {
+            multiEndpoint: true,
+            tuyaDatapoints: [
+                [1, "state_l1", tuya.valueConverter.onOff],
+                [2, "brightness_1", tuya.valueConverter.raw],
+                [3, "brightness_min_1", tuya.valueConverter.raw],
+                [5, "brightness_max_1", tuya.valueConverter.raw],
+                [6, "countdown_1", tuya.valueConverter.raw],
+                [7, "state_l2", tuya.valueConverter.onOff],
+                [8, "brightness_2", tuya.valueConverter.raw],
+                [9, "brightness_min_2", tuya.valueConverter.raw],
+                [11, "brightness_max_2", tuya.valueConverter.raw],
+                [12, "countdown_2", tuya.valueConverter.raw],
+                [
+                    14,
+                    "relay_status",
+                    tuya.valueConverterBasic.lookup({
+                        off: tuya.enum(0),
+                        on: tuya.enum(1),
+                        memory: tuya.enum(2),
+                    }),
+                ],
+                [
+                    21,
+                    "light_mode",
+                    tuya.valueConverterBasic.lookup({
+                        none: tuya.enum(0),
+                        relay: tuya.enum(1),
+                        pos: tuya.enum(2),
+                    }),
+                ],
+                [26, "switch_backlight", tuya.valueConverter.onOff],
+            ],
+        },
+        endpoint: (device) => {
+            return {
+                l1: 1,
+                l2: 1,
+            };
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_vizxbhco"]),
+        model: "ZS-D3",
+        vendor: "Moes",
+        description: "Intelligent dimming switch - 3 gang",
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEventSetTime,
+        configure: tuya.configureMagicPacket,
+        exposes: (device, options) => {
+            return [
+                e.switch().withEndpoint("l1"),
+                e.switch().withEndpoint("l2"),
+                e.switch().withEndpoint("l3"),
+                e.numeric("brightness_1", ea.STATE_SET).withValueMin(10).withValueMax(1000).withValueStep(1).withDescription("Channel 1 brightness"),
+                e
+                    .numeric("brightness_min_1", ea.STATE_SET)
+                    .withValueMin(10)
+                    .withValueMax(1000)
+                    .withValueStep(1)
+                    .withDescription("Channel 1 minimum brightness"),
+                e
+                    .numeric("brightness_max_1", ea.STATE_SET)
+                    .withValueMin(10)
+                    .withValueMax(1000)
+                    .withValueStep(1)
+                    .withDescription("Channel 1 maximum brightness"),
+                e
+                    .numeric("countdown_1", ea.STATE_SET)
+                    .withValueMin(0)
+                    .withValueMax(86400)
+                    .withValueStep(1)
+                    .withUnit("s")
+                    .withDescription("Channel 1 countdown"),
+                e.numeric("brightness_2", ea.STATE_SET).withValueMin(10).withValueMax(1000).withValueStep(1).withDescription("Channel 2 brightness"),
+                e
+                    .numeric("brightness_min_2", ea.STATE_SET)
+                    .withValueMin(10)
+                    .withValueMax(1000)
+                    .withValueStep(1)
+                    .withDescription("Channel 2 minimum brightness"),
+                e
+                    .numeric("brightness_max_2", ea.STATE_SET)
+                    .withValueMin(10)
+                    .withValueMax(1000)
+                    .withValueStep(1)
+                    .withDescription("Channel 2 maximum brightness"),
+                e
+                    .numeric("countdown_2", ea.STATE_SET)
+                    .withValueMin(0)
+                    .withValueMax(86400)
+                    .withValueStep(1)
+                    .withUnit("s")
+                    .withDescription("Channel 2 countdown"),
+                e.enum("relay_status", ea.STATE_SET, ["off", "on", "memory"]).withDescription("Relay mode after power restoration"),
+                e.numeric("brightness_3", ea.STATE_SET).withValueMin(10).withValueMax(1000).withValueStep(1).withDescription("Channel 3 brightness"),
+                e
+                    .numeric("brightness_min_3", ea.STATE_SET)
+                    .withValueMin(10)
+                    .withValueMax(1000)
+                    .withValueStep(1)
+                    .withDescription("Channel 3 minimum brightness"),
+                e
+                    .numeric("brightness_max_3", ea.STATE_SET)
+                    .withValueMin(10)
+                    .withValueMax(1000)
+                    .withValueStep(1)
+                    .withDescription("Channel 3 maximum brightness"),
+                e
+                    .numeric("countdown_3", ea.STATE_SET)
+                    .withValueMin(0)
+                    .withValueMax(86400)
+                    .withValueStep(1)
+                    .withUnit("s")
+                    .withDescription("Channel 3 countdown"),
+                e.enum("light_mode", ea.STATE_SET, ["none", "relay", "pos"]).withDescription("Indicator light mode"),
+                e.binary("switch_backlight", ea.STATE_SET, "ON", "OFF").withDescription("Backlight switch"),
+            ];
+        },
+        meta: {
+            multiEndpoint: true,
+            tuyaDatapoints: [
+                [1, "state_l1", tuya.valueConverter.onOff],
+                [2, "brightness_1", tuya.valueConverter.raw],
+                [3, "brightness_min_1", tuya.valueConverter.raw],
+                [5, "brightness_max_1", tuya.valueConverter.raw],
+                [6, "countdown_1", tuya.valueConverter.raw],
+                [7, "state_l2", tuya.valueConverter.onOff],
+                [8, "brightness_2", tuya.valueConverter.raw],
+                [9, "brightness_min_2", tuya.valueConverter.raw],
+                [11, "brightness_max_2", tuya.valueConverter.raw],
+                [12, "countdown_2", tuya.valueConverter.raw],
+                [
+                    14,
+                    "relay_status",
+                    tuya.valueConverterBasic.lookup({
+                        off: tuya.enum(0),
+                        on: tuya.enum(1),
+                        memory: tuya.enum(2),
+                    }),
+                ],
+                [15, "state_l3", tuya.valueConverter.onOff],
+                [16, "brightness_3", tuya.valueConverter.raw],
+                [17, "brightness_min_3", tuya.valueConverter.raw],
+                [19, "brightness_max_3", tuya.valueConverter.raw],
+                [20, "countdown_3", tuya.valueConverter.raw],
+                [
+                    21,
+                    "light_mode",
+                    tuya.valueConverterBasic.lookup({
+                        none: tuya.enum(0),
+                        relay: tuya.enum(1),
+                        pos: tuya.enum(2),
+                    }),
+                ],
+                [26, "switch_backlight", tuya.valueConverter.onOff],
+            ],
+        },
+        endpoint: (device) => {
+            return {
+                l1: 1,
+                l2: 1,
+                l3: 1,
+            };
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_stvgmdjz", "_TZE200_ydkqbmpt", "_TZE200_z3u99qxt"]),
+        model: "SFL02-Z-1",
         vendor: "MOES",
         description: "Star feather smart switch 1 gang",
         fromZigbee: [tuya.fz.datapoints],
@@ -108,6 +405,13 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.exposes.backlightModeOffOn().withAccess(ea.STATE_SET),
             e.switch().withEndpoint("l1").setAccess("state", ea.STATE_SET),
             tuya.exposes.countdown().withEndpoint("l1"),
+            e
+                .numeric("momentary_1", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(3600)
+                .withValueStep(1)
+                .withUnit("s")
+                .withDescription("Momentary switch timer (0=disable)"),
             e.power_on_behavior().withAccess(ea.STATE_SET),
             exposes.enum("mode", ea.STATE_SET, ["switch_1", "scene_1"]).withEndpoint("l1").withDescription("Switch1 mode"),
             e.action(["scene_1"]),
@@ -139,12 +443,13 @@ export const definitions: DefinitionWithExtend[] = [
                     "vibration_mode",
                     tuya.valueConverterBasic.lookup({"Gear 0": tuya.enum(0), "Gear 1": tuya.enum(1), "Gear 2": tuya.enum(2), "Gear 3": tuya.enum(3)}),
                 ],
+                [105, "momentary_1", tuya.valueConverter.countdown],
             ],
         },
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_uenof8jd", "_TZE200_tzyy0rtq", "_TZE200_hktk6hze"]),
-        model: "SFL02-Z",
+        model: "SFL02-Z-2",
         vendor: "Moes",
         description: "Star feather smart switch 2 gangs",
         fromZigbee: [tuya.fz.datapoints],
@@ -157,6 +462,20 @@ export const definitions: DefinitionWithExtend[] = [
             e.switch().withEndpoint("l2").setAccess("state", ea.STATE_SET),
             tuya.exposes.countdown().withEndpoint("l1"),
             tuya.exposes.countdown().withEndpoint("l2"),
+            e
+                .numeric("momentary_1", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(3600)
+                .withValueStep(1)
+                .withUnit("s")
+                .withDescription("Momentary switch timer (0=disable)"),
+            e
+                .numeric("momentary_2", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(3600)
+                .withValueStep(1)
+                .withUnit("s")
+                .withDescription("Momentary switch timer (0=disable)"),
             e.power_on_behavior().withAccess(ea.STATE_SET),
             exposes.enum("mode", ea.STATE_SET, ["switch_1", "scene_1"]).withEndpoint("l1").withDescription("Switch1 mode"),
             exposes.enum("mode", ea.STATE_SET, ["switch_2", "scene_2"]).withEndpoint("l2").withDescription("Switch2 mode"),
@@ -188,12 +507,14 @@ export const definitions: DefinitionWithExtend[] = [
                     "vibration_mode",
                     tuya.valueConverterBasic.lookup({"Gear 0": tuya.enum(0), "Gear 1": tuya.enum(1), "Gear 2": tuya.enum(2), "Gear 3": tuya.enum(3)}),
                 ],
+                [105, "momentary_1", tuya.valueConverter.countdown],
+                [106, "momentary_2", tuya.valueConverter.countdown],
             ],
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_rd8cdssd"]),
-        model: "SFL03-Z",
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_rd8cdssd", "_TZE200_wv9ukqca", "_TZE200_zo0cfekv"]),
+        model: "SFL02-Z-3",
         vendor: "MOES",
         description: "Star feather smart switch 3 gangs",
         fromZigbee: [tuya.fz.datapoints],
@@ -207,6 +528,27 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.exposes.countdown().withEndpoint("l1"),
             tuya.exposes.countdown().withEndpoint("l2"),
             tuya.exposes.countdown().withEndpoint("l3"),
+            e
+                .numeric("momentary_1", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(3600)
+                .withValueStep(1)
+                .withUnit("s")
+                .withDescription("Momentary switch timer (0=disable)"),
+            e
+                .numeric("momentary_2", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(3600)
+                .withValueStep(1)
+                .withUnit("s")
+                .withDescription("Momentary switch timer (0=disable)"),
+            e
+                .numeric("momentary_3", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(3600)
+                .withValueStep(1)
+                .withUnit("s")
+                .withDescription("Momentary switch timer (0=disable)"),
             exposes.enum("mode", ea.STATE_SET, ["switch_1", "scene_1"]).withEndpoint("l1").withDescription("Switch1 mode"),
             exposes.enum("mode", ea.STATE_SET, ["switch_2", "scene_2"]).withEndpoint("l2").withDescription("Switch2 mode"),
             exposes.enum("mode", ea.STATE_SET, ["switch_3", "scene_3"]).withEndpoint("l3").withDescription("Switch3 mode"),
@@ -253,12 +595,15 @@ export const definitions: DefinitionWithExtend[] = [
                     "vibration_mode",
                     tuya.valueConverterBasic.lookup({"Gear 0": tuya.enum(0), "Gear 1": tuya.enum(1), "Gear 2": tuya.enum(2), "Gear 3": tuya.enum(3)}),
                 ],
+                [105, "momentary_1", tuya.valueConverter.countdown],
+                [106, "momentary_2", tuya.valueConverter.countdown],
+                [107, "momentary_3", tuya.valueConverter.countdown],
             ],
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_dq8bu0pt", "_TZE200_hmabvy81"]),
-        model: "SFL04-Z",
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_dq8bu0pt", "_TZE200_hmabvy81", "_TZE200_9dhenr94"]),
+        model: "SFL02-Z-4",
         vendor: "MOES",
         description: "Star feather smart switch 4 gangs",
         fromZigbee: [tuya.fz.datapoints],
@@ -274,6 +619,34 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.exposes.countdown().withEndpoint("l2"),
             tuya.exposes.countdown().withEndpoint("l3"),
             tuya.exposes.countdown().withEndpoint("l4"),
+            e
+                .numeric("momentary_1", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(3600)
+                .withValueStep(1)
+                .withUnit("s")
+                .withDescription("Momentary switch timer (0=disable)"),
+            e
+                .numeric("momentary_2", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(3600)
+                .withValueStep(1)
+                .withUnit("s")
+                .withDescription("Momentary switch timer (0=disable)"),
+            e
+                .numeric("momentary_3", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(3600)
+                .withValueStep(1)
+                .withUnit("s")
+                .withDescription("Momentary switch timer (0=disable)"),
+            e
+                .numeric("momentary_4", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(3600)
+                .withValueStep(1)
+                .withUnit("s")
+                .withDescription("Momentary switch timer (0=disable)"),
             exposes.enum("mode", ea.STATE_SET, ["switch_1", "scene_1"]).withEndpoint("l1").withDescription("Switch1 mode"),
             exposes.enum("mode", ea.STATE_SET, ["switch_2", "scene_2"]).withEndpoint("l2").withDescription("Switch2 mode"),
             exposes.enum("mode", ea.STATE_SET, ["switch_3", "scene_3"]).withEndpoint("l3").withDescription("Switch3 mode"),
@@ -325,6 +698,10 @@ export const definitions: DefinitionWithExtend[] = [
                     "vibration_mode",
                     tuya.valueConverterBasic.lookup({"Gear 0": tuya.enum(0), "Gear 1": tuya.enum(1), "Gear 2": tuya.enum(2), "Gear 3": tuya.enum(3)}),
                 ],
+                [105, "momentary_1", tuya.valueConverter.countdown],
+                [106, "momentary_2", tuya.valueConverter.countdown],
+                [107, "momentary_3", tuya.valueConverter.countdown],
+                [108, "momentary_4", tuya.valueConverter.countdown],
             ],
         },
     },
