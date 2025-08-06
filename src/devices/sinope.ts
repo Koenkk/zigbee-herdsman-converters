@@ -1510,7 +1510,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "DM2550ZB",
         vendor: "Sinopé",
         description: "Zigbee Adaptive phase smart dimmer",
-        extend: [m.light({configureReporting: true}),m.electricityMeter()],
+        extend: [m.light({configureReporting: true}), m.electricityMeter()],
         fromZigbee: [fzLocal.sinope],
         toZigbee: [
             tzLocal.timer_seconds,
