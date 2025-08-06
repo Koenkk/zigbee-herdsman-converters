@@ -1125,7 +1125,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "ShinaSystem",
         ota: true,
         description: "SiHAS Round Temperature/Humidity Sensor",
-        extend: [m.temperature({reporting: {min: 30, max: 300, change: 30}}), m.humidity({reporting: {min: 30, max: 3600, change: 60}}), m.battery()],
+        extend: [m.temperature(), m.humidity(), m.battery()],
     },
     {
         zigbeeModel: ["WCM-300Z"],
@@ -1140,8 +1140,8 @@ export const definitions: DefinitionWithExtend[] = [
             m.electricityMeter({endpointNames: ["p1", "p2", "p3", "p4"], cluster: "metering"}),
             m.binary({
                 name: "button_lock_mode",
-                valueOn: ["Lock", 1],
-                valueOff: ["Unlock", 0],
+                valueOn: ["lock", 1],
+                valueOff: ["unlock", 0],
                 cluster: "genOnOff",
                 attribute: {ID: 0x900e, type: 0x20},
                 description: "Enables/disables the physical input lock for Button 1.",
@@ -1149,8 +1149,8 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.binary({
                 name: "button_lock_mode",
-                valueOn: ["Lock", 1],
-                valueOff: ["Unlock", 0],
+                valueOn: ["lock", 1],
+                valueOff: ["unlock", 0],
                 cluster: "genOnOff",
                 attribute: {ID: 0x900e, type: 0x20},
                 description: "Enables/disables the physical input lock for Button 2.",
@@ -1158,8 +1158,8 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.binary({
                 name: "button_lock_mode",
-                valueOn: ["Lock", 1],
-                valueOff: ["Unlock", 0],
+                valueOn: ["lock", 1],
+                valueOff: ["unlock", 0],
                 cluster: "genOnOff",
                 attribute: {ID: 0x900e, type: 0x20},
                 description: "Enables/disables the physical input lock for Button 3.",
@@ -1167,8 +1167,8 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.binary({
                 name: "button_lock_mode",
-                valueOn: ["Lock", 1],
-                valueOff: ["Unlock", 0],
+                valueOn: ["lock", 1],
+                valueOff: ["unlock", 0],
                 cluster: "genOnOff",
                 attribute: {ID: 0x900e, type: 0x20},
                 description: "Enables/disables the physical input lock for Button 4.",
