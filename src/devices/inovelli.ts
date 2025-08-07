@@ -5,7 +5,6 @@ import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import * as globalStore from "../lib/store";
 import type {DefinitionWithExtend, Expose, Fz, Tz, Zh} from "../lib/types";
 import * as utils from "../lib/utils";
 
@@ -1667,115 +1666,30 @@ const tzLocal = {
             return {state: {[key]: values}};
         },
     } satisfies Tz.Converter,
-    /**
-     * Inovelli VZM31SN has a default transition property that the device should
-     * fallback to if a transition is not specified by passing 0xffff
-     */
     light_onoff_brightness_inovelli: {
-        key: ["state", "brightness", "brightness_percent"],
+        /*
+         * Inovelli devices have a default transition property that the device should
+         * fallback to if a transition is not specified by passing 0xffff
+         *
+         */
+        ...tz.light_onoff_brightness_onoff_payload,
         convertSet: async (entity, key, value, meta) => {
-            const {message} = meta;
+            const localMeta = meta;
             const transition = utils.getTransition(entity, "brightness", meta);
-            const turnsOffAtBrightness1 = utils.getMetaValue(entity, meta.mapped, "turnsOffAtBrightness1", "allEqual", false);
-            let state =
-                message.state != null
-                    ? // @ts-expect-error ignore
-                      message.state.toLowerCase()
-                    : undefined;
-            let brightness: number;
-            if (message.brightness != null) {
-                brightness = Number(message.brightness);
-            } else if (message.brightness_percent != null) {
-                brightness = utils.mapNumberRange(Number(message.brightness_percent), 0, 100, 0, 255);
-            }
-
-            if (brightness !== undefined && (Number.isNaN(brightness) || brightness < 0 || brightness > 255)) {
-                // Allow 255 value, changing this to 254 would be a breaking change.
-                throw new Error(`Brightness value of message: '${JSON.stringify(message)}' invalid, must be a number >= 0 and =< 254`);
-            }
-
-            if (state !== undefined && ["on", "off", "toggle"].includes(state) === false) {
-                throw new Error(`State value of message: '${JSON.stringify(message)}' invalid, must be 'ON', 'OFF' or 'TOGGLE'`);
-            }
-
-            if (state === "toggle" || state === "off" || (brightness === undefined && state === "on")) {
-                if (transition.specified && transition.time > 0) {
-                    if (state === "toggle") {
-                        state = meta.state.state === "ON" ? "off" : "on";
-                    }
-
-                    if (state === "off" && meta.state.brightness && meta.state.state === "ON") {
-                        // https://github.com/Koenkk/zigbee2mqtt/issues/2850#issuecomment-580365633
-                        // We need to remember the state before turning the device off as we need to restore
-                        // it once we turn it on again.
-                        // We cannot rely on the meta.state as when reporting is enabled the bulb will reports
-                        // it brightness while decreasing the brightness.
-                        globalStore.putValue(entity, "brightness", meta.state.brightness);
-                        globalStore.putValue(entity, "turnedOffWithTransition", true);
-                    }
-
-                    const fallbackLevel = utils.getObjectProperty(meta.state, "brightness", 254);
-                    let level = state === "off" ? 0 : globalStore.getValue(entity, "brightness", fallbackLevel);
-                    if (state === "on" && level === 0) {
-                        level = turnsOffAtBrightness1 ? 2 : 1;
-                    }
-
-                    const payload = {level, transtime: transition.time};
-                    await entity.command("genLevelCtrl", "moveToLevelWithOnOff", payload, utils.getOptions(meta.mapped, entity));
-                    const result = {state: {state: state.toUpperCase()}};
-                    // @ts-expect-error ignore
-                    if (state === "on") result.state.brightness = level;
-                    return result;
-                }
-                // Store brightness where the bulb was turned off with as we need it when the bulb is turned on
-                // with transition.
-                if (meta.state.brightness !== undefined && state === "off") {
-                    globalStore.putValue(entity, "brightness", meta.state.brightness);
-                    globalStore.putValue(entity, "turnedOffWithTransition", true);
-                }
-
-                const result = await inovelliOnOffConvertSet(entity, "state", state, meta);
-                if (result.state && result.state.state === "ON" && meta.state.brightness === 0) {
-                    // @ts-expect-error ignore
-                    result.state.brightness = 1;
-                }
-
-                return result;
-            }
-            brightness = Math.min(254, brightness);
-            if (brightness === 1 && turnsOffAtBrightness1) {
-                brightness = 2;
-            }
-
-            globalStore.putValue(entity, "brightness", brightness);
-            await entity.command(
-                "genLevelCtrl",
-                state === undefined ? "moveToLevel" : "moveToLevelWithOnOff",
-                {
-                    level: Number(brightness),
-                    transtime: !transition.specified ? 0xffff : transition.time,
-                },
-                utils.getOptions(meta.mapped, entity),
-            );
-            const result = {
-                state: {
-                    state: {},
-                    brightness: Number(brightness),
+            localMeta.message = {
+                ...localMeta.message,
+                transition: !transition.specified ? 0xffff : transition.time,
+                payload: {
+                    ctrlbits: 0,
+                    ontime: localMeta.message.on_time != null ? Math.round((localMeta.message.on_time as number) * 10) : 0xffff,
+                    offwaittime: localMeta.message.off_wait_time != null ? Math.round((localMeta.message.off_wait_time as number) * 10) : 0xffff,
                 },
             };
-            if (state !== undefined) {
-                result.state.state = brightness === 0 ? "OFF" : "ON";
-            }
-            return result;
-        },
-        convertGet: async (entity, key, meta) => {
-            if (key === "brightness") {
-                await entity.read("genLevelCtrl", ["currentLevel"]);
-            } else if (key === "state") {
-                await tz.on_off.convertGet(entity, key, meta);
-            }
+
+            return await tz.light_onoff_brightness_onoff_payload.convertSet(entity, key, value, localMeta);
         },
     } satisfies Tz.Converter,
+
     fan_mode: (endpointId: number) =>
         ({
             key: ["fan_mode"],
@@ -1931,42 +1845,6 @@ const tzLocal = {
                 return {state: {[key]: value}};
             },
         }) satisfies Tz.Converter,
-};
-
-/*
- * Inovelli VZM31SN has a default transition property that the device should
- * fallback to if a transition is not specified by passing 0xffff
- */
-const inovelliOnOffConvertSet = async (entity: Zh.Endpoint | Zh.Group, key: string, value: unknown, meta: Tz.Meta) => {
-    // @ts-expect-error ignore
-    const state = meta.message.state != null ? meta.message.state.toLowerCase() : null;
-    utils.validateValue(state, ["toggle", "off", "on"]);
-
-    if (state === "on" && (meta.message.on_time != null || meta.message.off_wait_time != null)) {
-        const onTime = meta.message.on_time != null ? meta.message.on_time : 0;
-        const offWaitTime = meta.message.off_wait_time != null ? meta.message.off_wait_time : 0;
-
-        if (typeof onTime !== "number") {
-            throw Error("The on_time value must be a number!");
-        }
-        if (typeof offWaitTime !== "number") {
-            throw Error("The off_wait_time value must be a number!");
-        }
-
-        const payload = {
-            ctrlbits: 0,
-            ontime: meta.message.on_time != null ? Math.round(onTime * 10) : 0xffff,
-            offwaittime: meta.message.off_wait_time != null ? Math.round(offWaitTime * 10) : 0xffff,
-        };
-        await entity.command("genOnOff", "onWithTimedOff", payload, utils.getOptions(meta.mapped, entity));
-    } else {
-        await entity.command("genOnOff", state, {}, utils.getOptions(meta.mapped, entity));
-        if (state === "toggle") {
-            const currentState = meta.state[`state${meta.endpoint_name ? `_${meta.endpoint_name}` : ""}`];
-            return currentState ? {state: {state: currentState === "OFF" ? "ON" : "OFF"}} : {};
-        }
-        return {state: {state: state.toUpperCase()}};
-    }
 };
 
 const fzLocal = {
