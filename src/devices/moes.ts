@@ -1095,7 +1095,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.illuminance()],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_b6wax7g0", "_TZE200_qsoecqlk"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_b6wax7g0", "_TZE200_qsoecqlk", "_TZE200_6y7kyjga"]),
         model: "BRT-100-TRV",
         vendor: "Moes",
         description: "Thermostatic radiator valve",
