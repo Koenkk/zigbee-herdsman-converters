@@ -2128,7 +2128,11 @@ const fzLocal = {
             }
             return {notificationComplete: "Unknown"};
         },
-    } satisfies Fz.Converter<typeof INOVELLI_CLUSTER_NAME, undefined, {notificationType: keyof typeof LED_NOTIFICATION_TYPES} /** TODO: type whole cluster at top */>,
+    } satisfies Fz.Converter<
+        typeof INOVELLI_CLUSTER_NAME,
+        undefined,
+        {notificationType: keyof typeof LED_NOTIFICATION_TYPES} /** TODO: type whole cluster at top */
+    >,
 };
 
 const exposeLedEffects = () => {
