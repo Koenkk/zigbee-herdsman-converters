@@ -1666,12 +1666,12 @@ const tzLocal = {
             return {state: {[key]: values}};
         },
     } satisfies Tz.Converter,
+    /*
+     * Inovelli devices have a default transition property that the device should
+     * fallback to if a transition is not specified by passing 0xffff
+     *
+     */
     light_onoff_brightness_inovelli: {
-        /*
-         * Inovelli devices have a default transition property that the device should
-         * fallback to if a transition is not specified by passing 0xffff
-         *
-         */
         ...tz.light_onoff_brightness_onoff_payload,
         convertSet: async (entity, key, value, meta) => {
             const localMeta = meta;
