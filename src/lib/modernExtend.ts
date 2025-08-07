@@ -709,7 +709,7 @@ export function iasArmCommandDefaultResponse(): ModernExtend {
             // Since arm command has a response zigbee-herdsman doesn't send a default response.
             // This causes the remote to repeat the arm command, so send a default response here.
             msg.endpoint
-                .defaultResponse(0, 0, 1281, msg.meta.zclTransactionSequenceNumber)
+                .defaultResponse(0, 0, 1281, msg.meta.zclFrame.header.transactionSequenceNumber)
                 .catch((error) => logger.error(`Failed to send default response to '${msg.device.ieeeAddr}' (${error})`, NS));
         },
     };

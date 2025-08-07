@@ -4356,7 +4356,7 @@ export const CCTSwitch_D0001_levelctrl: Fz.Converter = {
             }
 
             if (clk !== "memory") {
-                globalStore.putValue(msg.endpoint, "last_seq", msg.meta.zclTransactionSequenceNumber);
+                globalStore.putValue(msg.endpoint, "last_seq", msg.meta.zclFrame.header.transactionSequenceNumber);
                 globalStore.putValue(msg.endpoint, "last_clk", clk);
                 payload.action = cmd;
             }
@@ -4400,7 +4400,7 @@ export const CCTSwitch_D0001_lighting: Fz.Converter = {
             const lastClk = globalStore.getValue(msg.endpoint, "last_clk");
             const lastSeq = globalStore.getValue(msg.endpoint, "last_seq");
 
-            const seq = msg.meta.zclTransactionSequenceNumber;
+            const seq = msg.meta.zclFrame.header.transactionSequenceNumber;
             let clk = "colortemp";
             payload.color_temp = msg.data.colortemp;
             payload.transition = Number.parseFloat(msg.data.transtime) / 10.0;
@@ -4430,7 +4430,7 @@ export const CCTSwitch_D0001_lighting: Fz.Converter = {
             }
 
             if (clk != null) {
-                globalStore.putValue(msg.endpoint, "last_seq", msg.meta.zclTransactionSequenceNumber);
+                globalStore.putValue(msg.endpoint, "last_seq", msg.meta.zclFrame.header.transactionSequenceNumber);
                 globalStore.putValue(msg.endpoint, "last_clk", clk);
             }
         }
@@ -4703,7 +4703,7 @@ export const wiser_smart_thermostat_client: Fz.Converter = {
             const lookup: KeyValueAny = {manual: 1, schedule: 2, energy_saver: 3, holiday: 6};
             const zonemodeNum = meta.state.zone_mode ? lookup[meta.state.zone_mode] : 1;
             response[0xe010] = {value: zonemodeNum, type: 0x30};
-            await msg.endpoint.readResponse(msg.cluster, msg.meta.zclTransactionSequenceNumber, response, {srcEndpoint: 11});
+            await msg.endpoint.readResponse(msg.cluster, msg.meta.zclFrame.header.transactionSequenceNumber, response, {srcEndpoint: 11});
         }
     },
 };
@@ -5157,7 +5157,7 @@ export const command_arm_with_transaction: Fz.Converter = {
     convert: (model, msg, publish, options, meta) => {
         const payload = command_arm.convert(model, msg, publish, options, meta) as KeyValueAny;
         if (!payload) return;
-        payload.action_transaction = msg.meta.zclTransactionSequenceNumber;
+        payload.action_transaction = msg.meta.zclFrame.header.transactionSequenceNumber;
         return payload;
     },
 };
