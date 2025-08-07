@@ -28,7 +28,7 @@ const NS = "zhc:ikea";
 
 export const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.IKEA_OF_SWEDEN};
 
-const bulbOnEvent: OnEvent = async (type, data, device, options, state: KeyValue) => {
+const bulbOnEvent: OnEvent.Handler = async (event) => {
     /**
      * IKEA bulbs lose their configured reportings when losing power.
      * A deviceAnnounce indicates they are powered on again.
@@ -39,7 +39,8 @@ const bulbOnEvent: OnEvent = async (type, data, device, options, state: KeyValue
      *
      * NOTE: binds are not lost so rebinding is not needed!
      */
-    if (type === "deviceAnnounce") {
+    if (event.type === "deviceAnnounce") {
+        const {state, device} = event.data;
         for (const endpoint of device.endpoints) {
             for (const c of endpoint.configuredReportings) {
                 await endpoint.configureReporting(c.cluster.name, [
