@@ -1510,7 +1510,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "DM2550ZB",
         vendor: "Sinopé",
         description: "Zigbee Adaptive phase smart dimmer",
-        extend: [m.light({configureReporting: true})],
+        extend: [m.light({configureReporting: true}), m.electricityMeter({energy: {divisor: 1000, multiplier: 1}})],
         fromZigbee: [fzLocal.sinope],
         toZigbee: [
             tzLocal.timer_seconds,
@@ -1554,20 +1554,30 @@ export const definitions: DefinitionWithExtend[] = [
                 .withFeature(e.numeric("b", ea.SET))
                 .withDescription("Control status LED color when load OFF"),
         ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            const binds = ["manuSpecificSinope"];
+            await reporting.bind(endpoint, coordinatorEndpoint, binds);
+        },
     },
     {
         zigbeeModel: ["SP2600ZB"],
         model: "SP2600ZB",
         vendor: "Sinopé",
         description: "Zigbee smart plug",
-        extend: [m.onOff(), m.electricityMeter()],
+        extend: [m.onOff(), m.electricityMeter({energy: {divisor: 1000, multiplier: 1}})],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            const binds = ["manuSpecificSinope"];
+            await reporting.bind(endpoint, coordinatorEndpoint, binds);
+        },
     },
     {
         zigbeeModel: ["SP2610ZB"],
         model: "SP2610ZB",
         vendor: "Sinopé",
         description: "Zigbee smart plug",
-        extend: [m.onOff(), m.electricityMeter()],
+        extend: [m.onOff(), m.electricityMeter({energy: {divisor: 1000, multiplier: 1}})],
     },
     {
         zigbeeModel: ["RM3250ZB"],
@@ -1694,7 +1704,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "RM3500ZB",
         vendor: "Sinopé",
         description: "Calypso smart water heater controller",
-        extend: [m.onOff({powerOnBehavior: false}), m.electricityMeter()],
+        extend: [m.onOff({powerOnBehavior: false}), m.electricityMeter({energy: {divisor: 1000, multiplier: 1}})],
         fromZigbee: [fzLocal.ias_water_leak_alarm, fzLocal.sinope, fz.temperature],
         toZigbee: [tzLocal.low_water_temp_protection],
         exposes: [
