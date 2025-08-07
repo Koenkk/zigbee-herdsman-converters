@@ -1,5 +1,26 @@
 # Changelog
 
+## [24.14.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v24.13.0...v24.14.0) (2025-08-07)
+
+
+### Features
+
+* **add:** E1XCTW3001 ([#9749](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9749)) ([9df9a11](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9df9a1148ca970105bc22e5c6dd2feecb6a46f85))
+* **add:** Sinope: support electrical measurements for some devices ([#9753](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9753)) ([54c6238](https://github.com/Koenkk/zigbee-herdsman-converters/commit/54c6238c33e1a39af09338fa2ce60d6400f6457d))
+* **add:** TQM-300ZB, WCM-300Z ([#9744](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9744)) ([2ddc7f5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2ddc7f5bd54210cb0df0c09f6755603a8a56e6f1))
+* **add:** ZC-W1 https://github.com/Koenkk/zigbee2mqtt/issues/28167 ([10f859d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/10f859d2275152a92e381c20d9f9ff8d0051c443))
+
+
+### Bug Fixes
+
+* Aqara WS-K07E and WS-K08E: fix configure failing https://github.com/Koenkk/zigbee2mqtt/issues/27525 ([7fbe167](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7fbe16730fcb744bd0c1db0a6b6bf99038dcf576))
+* Cleanup for https://github.com/Koenkk/zigbee-herdsman/pull/1424 ([#9754](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9754)) ([5baf028](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5baf02889c6c9aa791b41d3ebff55b11fc3edc34))
+* Connecto COZIGPMS: remove not supported battery expose https://github.com/Koenkk/zigbee2mqtt.io/pull/4018 ([d35a294](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d35a2942b432f91c130e1ec2c6209554b67d0c85))
+* **detect:** Detect `_TZE200_6y7kyjga` as Moes BRT-100-TRV ([#9759](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9759)) ([d4acd60](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d4acd6005c22adb6376e104422c2b77dfea7e4ba))
+* **detect:** Detect `_TZE204_zuepxzck` as Zemismart ZMS-206US-1 ([#9755](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9755)) ([fb3d1b6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/fb3d1b66b8fd10efc3191bab24b20c7bbecc5d90))
+* Fix state not reported for some Ledvane plugs https://github.com/Koenkk/zigbee2mqtt/issues/28177 ([0943ea8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0943ea8b05af5fff2ce738d6a3e18ce4d213d755))
+* Inovelli VZM31: temporarily remove fanTimerMode ([#9756](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9756)) ([0a03e53](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0a03e535e8c285953387dc2408c52d783fb9afc7))
+
 ## [24.13.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v24.12.0...v24.13.0) (2025-08-05)
 
 
