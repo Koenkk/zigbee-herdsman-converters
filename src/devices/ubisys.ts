@@ -1,7 +1,6 @@
+import assert from "node:assert";
 import {gte as semverGte, valid as semverValid} from "semver";
-
 import {Zcl} from "zigbee-herdsman";
-
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as constants from "../lib/constants";
@@ -348,6 +347,7 @@ const ubisys = {
                 const cluster = Zcl.Utils.getCluster("manuSpecificUbisysDeviceSetup", null, meta.device.customClusters);
                 const attributeInputConfigurations = cluster.getAttribute("inputConfigurations");
                 const attributeInputActions = cluster.getAttribute("inputActions");
+                assert(attributeInputConfigurations && attributeInputActions);
 
                 // ubisys switched to writeStructure a while ago, change log only goes back to 1.9.x
                 // and it happened before that but to be safe we will only use writeStrucutre on 1.9.0 and up
@@ -1120,7 +1120,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Ubisys",
         description: "Heating regulator",
         meta: {thermostat: {dontMapPIHeatingDemand: true}},
-        fromZigbee: [fz.battery, fz.thermostat, fz.thermostat_weekly_schedule],
+        fromZigbee: [fz.thermostat, fz.thermostat_weekly_schedule],
         toZigbee: [
             tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_unoccupied_heating_setpoint,
@@ -1130,10 +1130,8 @@ export const definitions: DefinitionWithExtend[] = [
             tz.thermostat_clear_weekly_schedule,
             tz.thermostat_running_mode,
             tz.thermostat_pi_heating_demand,
-            tz.battery_percentage_remaining,
         ],
         exposes: [
-            e.battery().withAccess(ea.STATE_GET),
             e
                 .climate()
                 .withSystemMode(["off", "heat"], ea.ALL)
@@ -1155,6 +1153,12 @@ export const definitions: DefinitionWithExtend[] = [
             ubisysModernExtend.openWindowTimeout(),
             ubisysModernExtend.openWindowDetectionPeriod(),
             ubisysModernExtend.openWindowSensitivity(),
+            m.battery({
+                percentage: true,
+                voltage: true,
+                voltageReporting: true,
+                percentageReporting: true,
+            }),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -1171,7 +1175,6 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.thermostatTemperature(endpoint, {min: 0, max: constants.repInterval.HOUR, change: 50});
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint, {min: 0, max: constants.repInterval.HOUR, change: 50});
             await reporting.thermostatPIHeatingDemand(endpoint, {min: 15, max: constants.repInterval.HOUR, change: 1});
-            await reporting.batteryPercentageRemaining(endpoint, {min: constants.repInterval.HOUR, max: 43200, change: 1});
 
             // read attributes
             // NOTE: configuring reporting on hvacThermostat seems to trigger an immediate

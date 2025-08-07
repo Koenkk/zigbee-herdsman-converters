@@ -18,6 +18,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.light()],
     },
     {
+        zigbeeModel: ["FWGU10Bulb03UK"],
+        model: "FWGU10Bulb03UK",
+        vendor: "Hive",
+        description: "GU10 warm white",
+        extend: [m.light()],
+    },
+    {
         zigbeeModel: ["MOT003"],
         model: "MOT003",
         vendor: "Hive",

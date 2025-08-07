@@ -165,7 +165,8 @@ export function calibrateAndPrecisionRoundOptionsIsPercentual(type: string) {
 export function calibrateAndPrecisionRoundOptions(number: number, options: KeyValue, type: string) {
     // Calibrate
     const calibrateKey = `${type}_calibration`;
-    let calibrationOffset = toNumber(options?.[calibrateKey] != null ? options[calibrateKey] : 0, calibrateKey);
+    const calibrateValue = options?.[calibrateKey];
+    let calibrationOffset = toNumber(calibrateValue != null && calibrateValue !== "" ? calibrateValue : 0, calibrateKey);
     if (calibrateAndPrecisionRoundOptionsIsPercentual(type)) {
         // linear calibration because measured value is zero based
         // +/- percent
@@ -176,8 +177,9 @@ export function calibrateAndPrecisionRoundOptions(number: number, options: KeyVa
 
     // Precision round
     const precisionKey = `${type}_precision`;
+    const precisionValue = options?.[precisionKey];
     const defaultValue = calibrateAndPrecisionRoundOptionsDefaultPrecision[type] || 0;
-    const precision = toNumber(options?.[precisionKey] != null ? options[precisionKey] : defaultValue, precisionKey);
+    const precision = toNumber(precisionValue != null && precisionValue !== "" ? precisionValue : defaultValue, precisionKey);
     return precisionRound(number, precision);
 }
 
@@ -579,33 +581,32 @@ export function printNumbersAsHexSequence(numbers: number[], hexLength: number):
     return numbers.map((v) => v.toString(16).padStart(hexLength, "0")).join(":");
 }
 
-// biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
+// biome-ignore lint/suspicious/noExplicitAny: generic object
 export function assertObject<T extends Record<string, any>>(value: unknown, property?: string): asserts value is T {
-    const isObject = typeof value === "object" && !Array.isArray(value) && value !== null;
-    if (!isObject) {
+    if (typeof value !== "object" || value === null || Array.isArray(value)) {
         throw new Error(`${property} is not a object, got ${typeof value} (${JSON.stringify(value)})`);
     }
 }
 
 export function assertArray(value: unknown, property?: string): asserts value is Array<unknown> {
-    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
-    property = property ? `'${property}'` : "Value";
-    if (!Array.isArray(value)) throw new Error(`${property} is not an array, got ${typeof value} (${value.toString()})`);
+    if (!Array.isArray(value)) {
+        throw new Error(`${property ? `'${property}'` : "Value"} is not an array, got ${typeof value} (${value.toString()})`);
+    }
 }
 
 export function assertString(value: unknown, property?: string): asserts value is string {
-    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
-    property = property ? `'${property}'` : "Value";
-    if (typeof value !== "string") throw new Error(`${property} is not a string, got ${typeof value} (${value.toString()})`);
+    if (typeof value !== "string") {
+        throw new Error(`${property ? `'${property}'` : "Value"} is not a string, got ${typeof value} (${value.toString()})`);
+    }
 }
 
 export function isNumber(value: unknown): value is number {
     return typeof value === "number";
 }
 
-// biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
+// biome-ignore lint/suspicious/noExplicitAny: generic object
 export function isObject(value: unknown): value is {[s: string]: any} {
-    return typeof value === "object" && !Array.isArray(value);
+    return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 export function isString(value: unknown): value is string {
@@ -617,18 +618,16 @@ export function isBoolean(value: unknown): value is boolean {
 }
 
 export function assertNumber(value: unknown, property?: string): asserts value is number {
-    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
-    property = property ? `'${property}'` : "Value";
-    if (typeof value !== "number" || Number.isNaN(value)) throw new Error(`${property} is not a number, got ${typeof value} (${value?.toString()})`);
+    if (typeof value !== "number" || Number.isNaN(value)) {
+        throw new Error(`${property ? `'${property}'` : "Value"} is not a number, got ${typeof value} (${value?.toString()})`);
+    }
 }
 
 export function toNumber(value: unknown, property?: string): number {
-    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
-    property = property ? `'${property}'` : "Value";
     // @ts-expect-error ignore
     const result = Number.parseFloat(value);
     if (Number.isNaN(result)) {
-        throw new Error(`${property} is not a number, got ${typeof value} (${value.toString()})`);
+        throw new Error(`${property ? `'${property}'` : "Value"} is not a number, got ${typeof value} (${value.toString()})`);
     }
     return result;
 }

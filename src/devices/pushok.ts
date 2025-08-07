@@ -300,6 +300,7 @@ export const definitions: DefinitionWithExtend[] = [
                 reporting: null,
             }),
             m.temperature({reporting: null}),
+            m.humidity({reporting: null, access: "STATE"}),
             m.battery({percentage: true, voltage: true, lowStatus: false, percentageReporting: false}),
         ],
         ota: true,

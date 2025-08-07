@@ -11,14 +11,26 @@ const ea = exposes.access;
 const manufacturerSpecificSwitchTypeClusterCode = 0x1224;
 const manufacturerSpecificRotaryRemoteControlClusterCode = 0xff03;
 const switchTypeAttribute = 0x8803;
-const dataType = 0x20;
-const valueMap: {[key: number]: string} = {
+const switchTypeDataType = 0x20;
+const switchTypeValueMap: {[key: number]: string} = {
     0: "momentary",
     1: "toggle",
 };
-const valueLookup: {[key: string]: number} = {
+const switchTypeValueLookup: {[key: string]: number} = {
     momentary: 0,
     toggle: 1,
+};
+const rd1pKnobActionsMap: {[key: string]: string} = {
+    commandOff: "double_pressed",
+    commandOn: "pressed",
+    commandToggle: "held",
+    commandRelease: "released",
+    commandMoveWithOnOff: "started_rotating_",
+    commandStepWithOnOff: "rotating_",
+    commandStop: "stopped_rotating",
+};
+const rd1pKnobCommands: {[key: number]: string} = {
+    3: "commandRelease",
 };
 
 const luxScale: m.ScaleFunction = (value: number, type: "from" | "to") => {
@@ -45,7 +57,7 @@ const fzLocal = {
             if (Object.hasOwn(msg.data, switchTypeAttribute)) {
                 const value = msg.data[switchTypeAttribute];
                 return {
-                    external_switch_type: valueMap[value] || "unknown",
+                    external_switch_type: switchTypeValueMap[value] || "unknown",
                     external_switch_type_numeric: value,
                 };
             }
@@ -140,6 +152,46 @@ const fzLocal = {
             return;
         },
     } satisfies Fz.Converter,
+    rd1p_knob_rotation: {
+        cluster: "genLevelCtrl",
+        type: ["commandMoveWithOnOff", "commandStepWithOnOff", "commandStop"],
+        convert: (model, msg, publish, options, meta) => {
+            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
+            let knobAction = "unknown";
+            if (msg.type in rd1pKnobActionsMap) {
+                knobAction = rd1pKnobActionsMap[msg.type];
+                if (msg.type === "commandMoveWithOnOff" || msg.type === "commandStepWithOnOff") {
+                    const direction = msg.type === "commandMoveWithOnOff" ? "movemode" : "stepmode";
+                    if (msg.data[direction] === 0 || msg.data[direction] === 1) {
+                        knobAction += msg.data[direction] === 1 ? "left" : "right";
+                    }
+                }
+            }
+            const payload = {action: knobAction};
+            utils.addActionGroup(payload, msg, model);
+            return payload;
+        },
+    } satisfies Fz.Converter,
+    rd1p_knob_press: {
+        cluster: "genOnOff",
+        type: ["commandOn", "commandOff", "commandToggle", "raw"],
+        convert: (model, msg, publish, options, meta) => {
+            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
+            let knobAction = "unknown";
+            if (msg.type in rd1pKnobActionsMap) {
+                knobAction = rd1pKnobActionsMap[msg.type];
+            } else if (msg.type === "raw") {
+                const command = msg.data[2];
+                if (command in rd1pKnobCommands) {
+                    const knobCommand = rd1pKnobCommands[command];
+                    knobAction = rd1pKnobActionsMap[knobCommand];
+                }
+            }
+            const payload = {action: knobAction};
+            utils.addActionGroup(payload, msg, model);
+            return payload;
+        },
+    } satisfies Fz.Converter,
 };
 
 const tzLocal = {
@@ -147,10 +199,10 @@ const tzLocal = {
         key: ["external_switch_type"],
         convertSet: async (entity, key, value, meta) => {
             utils.assertString(value);
-            const numericValue = valueLookup[value] ?? Number.parseInt(value, 10);
+            const numericValue = switchTypeValueLookup[value] ?? Number.parseInt(value, 10);
             await entity.write(
                 "genBasic",
-                {[switchTypeAttribute]: {value: numericValue, type: dataType}},
+                {[switchTypeAttribute]: {value: numericValue, type: switchTypeDataType}},
                 {manufacturerCode: manufacturerSpecificSwitchTypeClusterCode},
             );
             return {state: {external_switch_type: value}};
@@ -175,6 +227,11 @@ export const definitions: DefinitionWithExtend[] = [
             const endpoint1 = device.getEndpoint(1);
             await endpoint1.write("genOnOff", {16387: {value: 0xff, type: 0x30}});
             await endpoint1.read("genOnOff", ["startUpOnOff"]);
+            await endpoint1.write(
+                "genBasic",
+                {[switchTypeAttribute]: {value: switchTypeValueLookup["toggle"], type: switchTypeDataType}},
+                {manufacturerCode: manufacturerSpecificSwitchTypeClusterCode},
+            );
             await endpoint1.read("genBasic", [switchTypeAttribute], {manufacturerCode: manufacturerSpecificSwitchTypeClusterCode});
         },
     },
@@ -190,11 +247,15 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.light({configureReporting: true, powerOnBehavior: false})],
     },
     {
-        fingerprint: [{modelID: "Dimmer-Switch-ZB3.0", manufacturerID: 4098}],
+        fingerprint: [
+            {modelID: "Dimmer-Switch-ZB3.0", manufacturerID: 4098},
+            {modelID: "C210", manufacturerName: "Candeo"},
+            {modelID: "Dimmer-Switch-ZB3.0", manufacturerName: "Smart Dim"},
+        ],
         model: "C210",
         vendor: "Candeo",
         description: "Zigbee dimming smart plug",
-        extend: [m.light({configureReporting: true})],
+        extend: [m.light({configureReporting: true, levelConfig: {features: ["current_level_startup"]}, powerOnBehavior: true})],
     },
     {
         fingerprint: [{modelID: "C204", manufacturerName: "Candeo"}],
@@ -202,8 +263,17 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Candeo",
         description: "Zigbee micro smart dimmer",
         extend: [
-            m.light({configureReporting: true, levelConfig: {features: ["on_off_transition_time", "on_level", "current_level_startup"]}}),
-            m.electricityMeter(),
+            m.light({
+                configureReporting: true,
+                levelReportingConfig: {min: 1, max: 3600, change: 1},
+                levelConfig: {features: ["on_off_transition_time", "on_level", "current_level_startup"]},
+            }),
+            m.electricityMeter({
+                power: {min: 10, max: 600, change: 50},
+                voltage: {min: 10, max: 600, change: 500},
+                current: {min: 10, max: 600, change: 500},
+                energy: {min: 10, max: 1800, change: 360000},
+            }),
         ],
         fromZigbee: [fzLocal.switch_type, fz.ignore_genOta],
         toZigbee: [tzLocal.switch_type],
@@ -218,6 +288,11 @@ export const definitions: DefinitionWithExtend[] = [
             await endpoint1.read("genLevelCtrl", ["onOffTransitionTime"]);
             await endpoint1.write("genLevelCtrl", {16384: {value: 0xff, type: 0x20}});
             await endpoint1.read("genLevelCtrl", ["startUpCurrentLevel"]);
+            await endpoint1.write(
+                "genBasic",
+                {[switchTypeAttribute]: {value: switchTypeValueLookup["momentary"], type: switchTypeDataType}},
+                {manufacturerCode: manufacturerSpecificSwitchTypeClusterCode},
+            );
             await endpoint1.read("genBasic", [switchTypeAttribute], {manufacturerCode: manufacturerSpecificSwitchTypeClusterCode});
         },
     },
@@ -227,8 +302,17 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Candeo",
         description: "Zigbee micro smart dimmer",
         extend: [
-            m.light({configureReporting: true, levelConfig: {features: ["on_off_transition_time", "on_level", "current_level_startup"]}}),
-            m.electricityMeter(),
+            m.light({
+                configureReporting: true,
+                levelReportingConfig: {min: 1, max: 3600, change: 1},
+                levelConfig: {features: ["on_off_transition_time", "on_level", "current_level_startup"]},
+            }),
+            m.electricityMeter({
+                power: {min: 10, max: 600, change: 50},
+                voltage: {min: 10, max: 600, change: 500},
+                current: {min: 10, max: 600, change: 500},
+                energy: {min: 10, max: 1800, change: 360000},
+            }),
         ],
         fromZigbee: [fzLocal.switch_type, fz.ignore_genOta],
         toZigbee: [tzLocal.switch_type],
@@ -243,6 +327,11 @@ export const definitions: DefinitionWithExtend[] = [
             await endpoint1.read("genLevelCtrl", ["onOffTransitionTime"]);
             await endpoint1.write("genLevelCtrl", {16384: {value: 0xff, type: 0x20}});
             await endpoint1.read("genLevelCtrl", ["startUpCurrentLevel"]);
+            await endpoint1.write(
+                "genBasic",
+                {[switchTypeAttribute]: {value: switchTypeValueLookup["momentary"], type: switchTypeDataType}},
+                {manufacturerCode: manufacturerSpecificSwitchTypeClusterCode},
+            );
             await endpoint1.read("genBasic", [switchTypeAttribute], {manufacturerCode: manufacturerSpecificSwitchTypeClusterCode});
         },
     },
@@ -258,6 +347,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.light({
                 configureReporting: true,
+                levelReportingConfig: {min: 1, max: 3600, change: 1},
                 levelConfig: {features: ["on_level", "current_level_startup"]},
                 powerOnBehavior: true,
             }),
@@ -285,10 +375,12 @@ export const definitions: DefinitionWithExtend[] = [
             m.light({
                 colorTemp: {range: [158, 500]},
                 configureReporting: true,
+                levelReportingConfig: {min: 1, max: 3600, change: 1},
                 levelConfig: {
                     features: ["current_level_startup"],
                 },
                 powerOnBehavior: true,
+                effect: false,
             }),
             m.identify(),
         ],
@@ -301,10 +393,12 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.light({
                 configureReporting: true,
+                levelReportingConfig: {min: 1, max: 3600, change: 1},
                 levelConfig: {
                     features: ["current_level_startup"],
                 },
                 powerOnBehavior: true,
+                effect: false,
             }),
             m.identify(),
         ],
@@ -318,10 +412,12 @@ export const definitions: DefinitionWithExtend[] = [
             m.light({
                 color: {modes: ["xy", "hs"], enhancedHue: true},
                 configureReporting: true,
+                levelReportingConfig: {min: 1, max: 3600, change: 1},
                 levelConfig: {
                     features: ["current_level_startup"],
                 },
                 powerOnBehavior: true,
+                effect: false,
             }),
             m.identify(),
         ],
@@ -336,10 +432,12 @@ export const definitions: DefinitionWithExtend[] = [
                 colorTemp: {range: [158, 500]},
                 color: {modes: ["xy", "hs"], enhancedHue: true},
                 configureReporting: true,
+                levelReportingConfig: {min: 1, max: 3600, change: 1},
                 levelConfig: {
                     features: ["current_level_startup"],
                 },
                 powerOnBehavior: true,
+                effect: false,
             }),
             m.identify(),
         ],
@@ -354,10 +452,12 @@ export const definitions: DefinitionWithExtend[] = [
                 colorTemp: {range: [158, 500]},
                 color: {modes: ["xy", "hs"], enhancedHue: true},
                 configureReporting: true,
+                levelReportingConfig: {min: 1, max: 3600, change: 1},
                 levelConfig: {
                     features: ["current_level_startup"],
                 },
                 powerOnBehavior: true,
+                effect: false,
             }),
             m.identify(),
         ],
@@ -373,7 +473,12 @@ export const definitions: DefinitionWithExtend[] = [
                 multiEndpointSkip: ["power", "current", "voltage", "energy"],
             }),
             m.onOff({endpointNames: ["l1", "l2"]}),
-            m.electricityMeter(),
+            m.electricityMeter({
+                power: {min: 10, max: 600, change: 50},
+                voltage: {min: 10, max: 600, change: 500},
+                current: {min: 10, max: 600, change: 500},
+                energy: {min: 10, max: 1800, change: 360000},
+            }),
         ],
         fromZigbee: [fzLocal.switch_type, fz.ignore_genOta],
         toZigbee: [tzLocal.switch_type],
@@ -387,6 +492,11 @@ export const definitions: DefinitionWithExtend[] = [
             await endpoint2.write("genOnOff", {16387: {value: 0xff, type: 0x30}});
             await endpoint2.read("genOnOff", [16387]);
             const endpoint11 = device.getEndpoint(11);
+            await endpoint1.write(
+                "genBasic",
+                {[switchTypeAttribute]: {value: switchTypeValueLookup["toggle"], type: switchTypeDataType}},
+                {manufacturerCode: manufacturerSpecificSwitchTypeClusterCode},
+            );
             await endpoint11.read("genBasic", [switchTypeAttribute], {manufacturerCode: manufacturerSpecificSwitchTypeClusterCode});
         },
     },
@@ -405,7 +515,13 @@ export const definitions: DefinitionWithExtend[] = [
         model: "C203",
         vendor: "Candeo",
         description: "Zigbee micro smart dimmer",
-        extend: [m.light({configureReporting: true, levelConfig: {features: ["on_off_transition_time", "on_level", "current_level_startup"]}})],
+        extend: [
+            m.light({
+                configureReporting: true,
+                levelReportingConfig: {min: 1, max: 3600, change: 1},
+                levelConfig: {features: ["on_off_transition_time", "on_level", "current_level_startup"]},
+            }),
+        ],
         fromZigbee: [fzLocal.switch_type, fz.ignore_genOta],
         toZigbee: [tzLocal.switch_type],
         exposes: [e.enum("external_switch_type", ea.ALL, ["momentary", "toggle"]).withLabel("External switch type")],
@@ -419,6 +535,11 @@ export const definitions: DefinitionWithExtend[] = [
             await endpoint1.read("genLevelCtrl", ["onOffTransitionTime"]);
             await endpoint1.write("genLevelCtrl", {16384: {value: 0xff, type: 0x20}});
             await endpoint1.read("genLevelCtrl", ["startUpCurrentLevel"]);
+            await endpoint1.write(
+                "genBasic",
+                {[switchTypeAttribute]: {value: switchTypeValueLookup["momentary"], type: switchTypeDataType}},
+                {manufacturerCode: manufacturerSpecificSwitchTypeClusterCode},
+            );
             await endpoint1.read("genBasic", [switchTypeAttribute], {manufacturerCode: manufacturerSpecificSwitchTypeClusterCode});
         },
     },
@@ -531,6 +652,138 @@ export const definitions: DefinitionWithExtend[] = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             await endpoint1.bind(manufacturerSpecificRotaryRemoteControlClusterCode, coordinatorEndpoint);
+        },
+    },
+    {
+        fingerprint: [{modelID: "C-ZB-RD1", manufacturerName: "Candeo"}],
+        model: "C-ZB-RD1",
+        vendor: "Candeo",
+        description: "Zigbee rotary dimmer",
+        extend: [
+            m.light({
+                levelConfig: {features: ["on_level", "current_level_startup", "on_transition_time", "off_transition_time"]},
+                configureReporting: true,
+                levelReportingConfig: {min: 1, max: 3600, change: 1},
+                powerOnBehavior: true,
+                effect: false,
+            }),
+            m.electricityMeter({
+                power: {min: 5, max: 300, change: 10},
+                voltage: {min: 5, max: 600, change: 500},
+                current: {min: 5, max: 900, change: 10},
+                energy: {min: 5, max: 1800, change: 50},
+            }),
+        ],
+        meta: {},
+    },
+    {
+        fingerprint: [{modelID: "C-ZB-RD1P-DIM", manufacturerName: "Candeo"}],
+        model: "C-ZB-RD1P-DIM",
+        vendor: "Candeo",
+        description: "Zigbee rotary dimmer pro (dimmer mode)",
+        extend: [
+            m.light({
+                levelConfig: {features: ["on_level", "current_level_startup", "on_transition_time", "off_transition_time"]},
+                configureReporting: true,
+                levelReportingConfig: {min: 1, max: 3600, change: 1},
+                powerOnBehavior: true,
+                effect: false,
+            }),
+            m.electricityMeter({
+                power: {min: 5, max: 300, change: 10},
+                voltage: {min: 5, max: 600, change: 500},
+                current: {min: 5, max: 900, change: 10},
+                energy: {min: 5, max: 1800, change: 50},
+            }),
+        ],
+    },
+    {
+        fingerprint: [{modelID: "C-ZB-RD1P-DPM", manufacturerName: "Candeo"}],
+        model: "C-ZB-RD1P-DPM",
+        vendor: "Candeo",
+        description: "Zigbee rotary dimmer pro (dual purpose mode)",
+        extend: [
+            m.deviceEndpoints({
+                endpoints: {l1: 1, l2: 2},
+                multiEndpointSkip: ["power", "current", "voltage", "energy"],
+            }),
+            m.light({
+                levelConfig: {features: ["on_level", "current_level_startup", "on_transition_time", "off_transition_time"]},
+                configureReporting: true,
+                levelReportingConfig: {min: 1, max: 3600, change: 1},
+                powerOnBehavior: true,
+                effect: false,
+            }),
+            m.electricityMeter({
+                power: {min: 5, max: 300, change: 10},
+                voltage: {min: 5, max: 600, change: 500},
+                current: {min: 5, max: 900, change: 10},
+                energy: {min: 5, max: 1800, change: 50},
+            }),
+        ],
+        fromZigbee: [fzLocal.rd1p_knob_rotation, fzLocal.rd1p_knob_press, fz.ignore_genOta],
+        toZigbee: [],
+        exposes: [
+            e
+                .action([
+                    "pressed",
+                    "double_pressed",
+                    "held",
+                    "released",
+                    "started_rotating_left",
+                    "started_rotating_right",
+                    "rotating_right",
+                    "rotating_left",
+                    "stopped_rotating",
+                ])
+                .withEndpoint("l2"),
+        ],
+        meta: {},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint2 = device.getEndpoint(2);
+            await endpoint2.bind("genOnOff", coordinatorEndpoint);
+            await endpoint2.bind("genLevelCtrl", coordinatorEndpoint);
+        },
+    },
+    {
+        fingerprint: [{modelID: "C-ZB-RD1P-REM", manufacturerName: "Candeo"}],
+        model: "C-ZB-RD1P-REM",
+        vendor: "Candeo",
+        description: "Zigbee rotary dimmer pro (remote mode)",
+        extend: [
+            m.deviceEndpoints({
+                endpoints: {l1: 1, l2: 2},
+                multiEndpointSkip: ["power", "current", "voltage", "energy"],
+            }),
+            m.electricityMeter({
+                power: {min: 5, max: 300, change: 10},
+                voltage: {min: 5, max: 600, change: 500},
+                current: {min: 5, max: 900, change: 10},
+                energy: {min: 5, max: 1800, change: 50},
+            }),
+        ],
+        fromZigbee: [fzLocal.rd1p_knob_rotation, fzLocal.rd1p_knob_press, fz.ignore_genOta],
+        toZigbee: [],
+        exposes: [
+            e
+                .action([
+                    "pressed",
+                    "double_pressed",
+                    "held",
+                    "released",
+                    "started_rotating_left",
+                    "started_rotating_right",
+                    "rotating_right",
+                    "rotating_left",
+                    "stopped_rotating",
+                ])
+                .withEndpoint("l2"),
+        ],
+        meta: {},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint2 = device.getEndpoint(2);
+            await endpoint2.bind("genOnOff", coordinatorEndpoint);
+            await endpoint2.bind("genLevelCtrl", coordinatorEndpoint);
         },
     },
 ];
