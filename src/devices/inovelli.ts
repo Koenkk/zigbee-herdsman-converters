@@ -1156,7 +1156,8 @@ const VZM30_ATTRIBUTES: {[s: string]: Attribute} = {
 };
 
 const VZM31_ATTRIBUTES: {[s: string]: Attribute} = {
-    ...COMMON_DIMMER_ATTRIBUTES,
+    // Temporarily exclude fanTimerMode from the VZM31. While the specifications indicate that this attribute should be present, it's missing in the current firmware (2.18). This can be removed once the firmware bug is corrected.
+    ...Object.fromEntries(Object.entries(COMMON_DIMMER_ATTRIBUTES).filter(([key]) => key !== "fanTimerMode")),
     ...COMMON_DIMMER_ON_OFF_ATTRIBUTES,
     ...COMMON_DIMMABLE_LIGHT_ATTRIBUTES,
     relayClick: {
