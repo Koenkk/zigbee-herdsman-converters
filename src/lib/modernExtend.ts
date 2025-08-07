@@ -2374,7 +2374,6 @@ export interface NumericArgs {
     valueMin?: number;
     valueMax?: number;
     valueStep?: number;
-    valueIgnore?: number[];
     scale?: number | ScaleFunction;
     label?: string;
     entityCategory?: "config" | "diagnostic";
@@ -2392,7 +2391,6 @@ export function numeric(args: NumericArgs): ModernExtend {
         valueMin,
         valueMax,
         valueStep,
-        valueIgnore,
         scale,
         label,
         entityCategory,
@@ -2439,8 +2437,6 @@ export function numeric(args: NumericArgs): ModernExtend {
 
                     let value = msg.data[attributeKey];
                     assertNumber(value);
-
-                    if (valueIgnore?.includes(value)) return;
 
                     if (scale !== undefined) {
                         value = typeof scale === "number" ? value / scale : scale(value, "from");
