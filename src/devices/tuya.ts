@@ -964,6 +964,13 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: [],
     },
     {
+        fingerprint: tuya.fingerprint("TS0203", ["Zbeacon"]),
+        model: "ZC-W1",
+        vendor: "iHseno",
+        description: "Temperature & humidity sensor",
+        extend: [m.temperature(), m.humidity(), m.battery()],
+    },
+    {
         zigbeeModel: ["TS0203", "ZG-102Z"],
         model: "TS0203",
         vendor: "Tuya",
