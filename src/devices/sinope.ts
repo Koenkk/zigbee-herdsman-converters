@@ -1565,7 +1565,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SP2600ZB",
         vendor: "Sinopé",
         description: "Zigbee smart plug",
-        extend: [m.onOff(),  m.electricityMeter({energy: {divisor: 1000, multiplier: 1}})],
+        extend: [m.onOff(), m.electricityMeter({energy: {divisor: 1000, multiplier: 1}})],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const binds = ["manuSpecificSinope"];
@@ -1577,7 +1577,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SP2610ZB",
         vendor: "Sinopé",
         description: "Zigbee smart plug",
-        extend: [m.onOff(),  m.electricityMeter({energy: {divisor: 1000, multiplier: 1}})],
+        extend: [m.onOff(), m.electricityMeter({energy: {divisor: 1000, multiplier: 1}})],
     },
     {
         zigbeeModel: ["RM3250ZB"],
@@ -1704,7 +1704,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "RM3500ZB",
         vendor: "Sinopé",
         description: "Calypso smart water heater controller",
-        extend: [m.onOff({powerOnBehavior: false}),  m.electricityMeter({energy: {divisor: 1000, multiplier: 1}})],
+        extend: [m.onOff({powerOnBehavior: false}), m.electricityMeter({energy: {divisor: 1000, multiplier: 1}})],
         fromZigbee: [fzLocal.ias_water_leak_alarm, fzLocal.sinope, fz.temperature],
         toZigbee: [tzLocal.low_water_temp_protection],
         exposes: [
