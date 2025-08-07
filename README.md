@@ -42,6 +42,7 @@ If any of those commands finish with an error your PR won't pass the tests and w
 25.0.0
 
 - Changed the `onEvent` api, see https://github.com/Koenkk/zigbee-herdsman-converters/pull/9650 for more info.
+- A `device` argument has been added to `postProcessConvertedFromZigbeeMessage` (https://github.com/Koenkk/zigbee-herdsman-converters/pull/9693)
 
 24.0.0
 

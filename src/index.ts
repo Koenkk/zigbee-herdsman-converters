@@ -478,10 +478,10 @@ export function prepareDefinition(definition: DefinitionWithExtend): Definition 
     return finalDefinition;
 }
 
-export function postProcessConvertedFromZigbeeMessage(definition: Definition, payload: KeyValue, options: KeyValue): void {
+export function postProcessConvertedFromZigbeeMessage(definition: Definition, payload: KeyValue, options: KeyValue, device: Zh.Device): void {
     // Apply calibration/precision options
     for (const [key, value] of Object.entries(payload)) {
-        const definitionExposes = Array.isArray(definition.exposes) ? definition.exposes : definition.exposes({isDummyDevice: true}, {});
+        const definitionExposes = Array.isArray(definition.exposes) ? definition.exposes : definition.exposes(device, {});
         const expose = definitionExposes.find((e) => e.property === key);
 
         if (expose?.name && expose.name in utils.calibrateAndPrecisionRoundOptionsDefaultPrecision && value !== "" && utils.isNumber(value)) {
