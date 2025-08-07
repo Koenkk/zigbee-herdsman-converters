@@ -6,7 +6,6 @@ import {logger} from "../lib/logger";
 import * as lumi from "../lib/lumi";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import * as globalStore from "../lib/store";
 import type {DefinitionWithExtend} from "../lib/types";
 
 const e = exposes.presets;
@@ -59,6 +58,7 @@ const {
     lumiMultiClick,
     lumiPreventLeave,
     lumiExternalSensor,
+    lumiReadPositionOnReport,
 } = lumi.modernExtend;
 
 const NS = "zhc:lumi";
@@ -1983,7 +1983,19 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SP-EUC01",
         description: "Smart plug EU",
         vendor: "Aqara",
-        extend: [m.forceDeviceType({type: "Router"}), lumiZigbeeOTA()],
+        extend: [
+            m.forceDeviceType({type: "Router"}),
+            lumiZigbeeOTA(),
+            m.poll({
+                // This device doesn't support temperature reporting.
+                // Therefore we read the temperature every 30 min.
+                key: "interval",
+                defaultIntervalSeconds: 30 * 60,
+                poll: async (device) => {
+                    await device.getEndpoint(1)?.read("genDeviceTempCfg", ["currentTemperature"]);
+                },
+            }),
+        ],
         fromZigbee: [
             fz.on_off,
             lumi.fromZigbee.lumi_basic,
@@ -2025,28 +2037,6 @@ export const definitions: DefinitionWithExtend[] = [
             } catch (e) {
                 logger.warning(`SP-EUC01 failed to setup metering (${(e as Error).message})`, NS);
                 logger.debug(`${(e as Error).stack}`, NS);
-            }
-        },
-        onEvent: (type, data, device) => {
-            const switchEndpoint = device.getEndpoint(1);
-            if (switchEndpoint == null) {
-                return;
-            }
-
-            // This device doesn't support temperature reporting.
-            // Therefore we read the temperature every 30 min.
-            if (type === "stop") {
-                clearInterval(globalStore.getValue(device, "interval"));
-                globalStore.clearValue(device, "interval");
-            } else if (!globalStore.hasValue(device, "interval")) {
-                const interval = setInterval(async () => {
-                    try {
-                        await switchEndpoint.read("genDeviceTempCfg", ["currentTemperature"]);
-                    } catch {
-                        // Do nothing
-                    }
-                }, 1800000);
-                globalStore.putValue(device, "interval", interval);
             }
         },
         exposes: [
@@ -2339,25 +2329,12 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Aqara",
         fromZigbee: [lumi.fromZigbee.lumi_basic, lumi.fromZigbee.lumi_curtain_position, lumi.fromZigbee.lumi_curtain_position_tilt],
         toZigbee: [lumi.toZigbee.lumi_curtain_position_state, lumi.toZigbee.lumi_curtain_options],
-        onEvent: async (type, data, device) => {
-            if (
-                type === "message" &&
-                data.type === "attributeReport" &&
-                data.cluster === "genBasic" &&
-                data.data["1028"] !== undefined &&
-                data.data["1028"] === 0
-            ) {
-                // Try to read the position after the motor stops, the device occasionally report wrong data right after stopping
-                // Might need to add delay, seems to be working without one but needs more tests.
-                await device.getEndpoint(1).read("genAnalogOutput", ["presentValue"]);
-            }
-        },
         exposes: [
             e.cover_position().setAccess("state", ea.ALL),
             e.binary("running", ea.STATE, true, false).withDescription("Whether the motor is moving or not"),
             e.enum("motor_state", ea.STATE, ["stopped", "opening", "closing"]).withDescription("Motor state"),
         ],
-        extend: [lumiZigbeeOTA()],
+        extend: [lumiZigbeeOTA(), lumiReadPositionOnReport("genBasic")],
     },
     {
         zigbeeModel: ["lumi.curtain.aq2"],
@@ -2398,13 +2375,6 @@ export const definitions: DefinitionWithExtend[] = [
             lumi.fromZigbee.lumi_curtain_status,
         ],
         toZigbee: [lumi.toZigbee.lumi_curtain_position_state, lumi.toZigbee.lumi_curtain_options],
-        onEvent: async (type, data, device) => {
-            // The position (genAnalogOutput.presentValue) reported via an attribute contains an invalid value
-            // however when reading it will provide the correct value.
-            if (data.type === "attributeReport" && data.cluster === "genAnalogOutput") {
-                await device.endpoints[0].read("genAnalogOutput", ["presentValue"]);
-            }
-        },
         exposes: [
             e.cover_position().setAccess("state", ea.ALL),
             e.battery(),
@@ -2412,7 +2382,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.enum("motor_state", ea.STATE, ["closing", "opening", "stopped"]).withDescription("The current state of the motor."),
             e.power_outage_count(),
         ],
-        extend: [lumiZigbeeOTA()],
+        extend: [lumiZigbeeOTA(), lumiReadPositionOnReport("genAnalogOutput")],
     },
     {
         zigbeeModel: ["lumi.curtain.hagl07"],
@@ -2485,19 +2455,6 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         ota: true,
         toZigbee: [lumi.toZigbee.lumi_curtain_position_state, lumi.toZigbee.lumi_curtain_battery, lumi.toZigbee.lumi_curtain_charging_status],
-        onEvent: async (type, data, device) => {
-            if (
-                type === "message" &&
-                data.type === "attributeReport" &&
-                data.cluster === "genMultistateOutput" &&
-                data.data.presentValue !== undefined &&
-                data.data.presentValue > 1
-            ) {
-                // Try to read the position after the motor stops, the device occasionally report wrong data right after stopping
-                // Might need to add delay, seems to be working without one but needs more tests.
-                await device.getEndpoint(1).read("genAnalogOutput", ["presentValue"]);
-            }
-        },
         exposes: [
             e.cover_position().setAccess("state", ea.ALL),
             e.battery().withAccess(ea.STATE_GET),
@@ -2519,6 +2476,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             lumiZigbeeOTA(),
             lumiMotorSpeed(),
+            lumiReadPositionOnReport("genMultistateOutput"),
         ],
     },
     {

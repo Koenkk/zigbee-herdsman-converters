@@ -1,7 +1,6 @@
 import * as fz from "../converters/fromZigbee";
 import * as exposes from "../lib/exposes";
 import * as legacy from "../lib/legacy";
-import * as reporting from "../lib/reporting";
 import * as tuya from "../lib/tuya";
 import type {DefinitionWithExtend} from "../lib/types";
 
@@ -57,17 +56,13 @@ export const definitions: DefinitionWithExtend[] = [
             legacy.tz.saswell_thermostat_anti_scaling,
             legacy.tz.tuya_thermostat_weekly_schedule,
         ],
-        onEvent: (type, data, device) => !["_TZE200_c88teujp"].includes(device.manufacturerName) && tuya.onEventSetTime(type, data, device),
+        extend: [tuya.modernExtend.tuyaBase({bindBasicOnConfigure: true})],
         meta: {
             thermostat: {
                 weeklyScheduleMaxTransitions: 4,
                 weeklyScheduleSupportedModes: [1], // bits: 0-heat present, 1-cool present (dec: 1-heat,2-cool,3-heat+cool)
                 weeklyScheduleConversion: "saswell",
             },
-        },
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genBasic"]);
         },
         exposes: [
             e.battery_low(),

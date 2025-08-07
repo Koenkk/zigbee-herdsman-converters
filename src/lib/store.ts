@@ -3,7 +3,10 @@ import {isDevice, isEndpoint, isGroup} from "./utils";
 
 let store = new Map();
 
-function getEntityKey(entity: Zh.Endpoint | Zh.Group | Zh.Device) {
+function getEntityKey(entity: Zh.Endpoint | Zh.Group | Zh.Device | string) {
+    if (typeof entity === "string") {
+        return entity;
+    }
     if (isGroup(entity)) {
         return entity.groupID;
     }
@@ -16,12 +19,12 @@ function getEntityKey(entity: Zh.Endpoint | Zh.Group | Zh.Device) {
     throw new Error("Invalid entity type");
 }
 
-export function hasValue(entity: Zh.Endpoint | Zh.Group | Zh.Device, key: string) {
+export function hasValue(entity: Zh.Endpoint | Zh.Group | Zh.Device | string, key: string) {
     const entityKey = getEntityKey(entity);
     return store.has(entityKey) && store.get(entityKey)[key] !== undefined;
 }
 
-export function getValue(entity: Zh.Endpoint | Zh.Group | Zh.Device, key: string, default_: unknown = undefined) {
+export function getValue(entity: Zh.Endpoint | Zh.Group | Zh.Device | string, key: string, default_: unknown = undefined) {
     const entityKey = getEntityKey(entity);
     if (store.has(entityKey) && store.get(entityKey)[key] !== undefined) {
         return store.get(entityKey)[key];
@@ -30,7 +33,7 @@ export function getValue(entity: Zh.Endpoint | Zh.Group | Zh.Device, key: string
     return default_;
 }
 
-export function putValue(entity: Zh.Endpoint | Zh.Group | Zh.Device, key: string, value: unknown) {
+export function putValue(entity: Zh.Endpoint | Zh.Group | Zh.Device | string, key: string, value: unknown) {
     const entityKey = getEntityKey(entity);
     if (!store.has(entityKey)) {
         store.set(entityKey, {});
@@ -39,7 +42,7 @@ export function putValue(entity: Zh.Endpoint | Zh.Group | Zh.Device, key: string
     store.get(entityKey)[key] = value;
 }
 
-export function clearValue(entity: Zh.Endpoint | Zh.Group | Zh.Device, key: string) {
+export function clearValue(entity: Zh.Endpoint | Zh.Group | Zh.Device | string, key: string) {
     if (hasValue(entity, key)) {
         const entityKey = getEntityKey(entity);
         delete store.get(entityKey)[key];

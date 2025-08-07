@@ -1,16 +1,40 @@
+import assert from "node:assert";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
+import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as globalStore from "../lib/store";
 import type {DefinitionWithExtend, Fz, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
 
+const NS = "zhc:shinasystem";
+
 const e = exposes.presets;
 const ea = exposes.access;
 
 const fzLocal = {
+    poll_summ_received_on_electrical_measurement: {
+        // Additionally, this Produced_energy does not support reporting,
+        // so we implemented a read operation within onEvent upon receiving a 'current' message.
+        cluster: "haElectricalMeasurement",
+        type: ["attributeReport"],
+        options: [exposes.options.no_occupancy_since_false()],
+        convert: (model, msg, publish, options, meta) => {
+            assert(["PMM-300Z3", "PMM-300Z2"].includes(msg.device.modelID), "Poll summ received converter not supported for device");
+            if (
+                (msg.device.modelID === "PMM-300Z3" && msg.device.applicationVersion >= 9) ||
+                (msg.device.modelID === "PMM-300Z2" && msg.device.applicationVersion >= 8)
+            ) {
+                if (msg.data.rmsCurrent) {
+                    msg.endpoint
+                        .read("seMetering", ["currentSummReceived"])
+                        .catch((error) => logger.debug(`Failed to poll currentSummReceived of '${msg.device.ieeeAddr}' (${error})`, NS));
+                }
+            }
+        },
+    } satisfies Fz.Converter,
     DMS300_IN: {
         cluster: "msOccupancySensing",
         type: ["attributeReport", "readResponse"],
@@ -697,7 +721,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "ShinaSystem",
         ota: true,
         description: "SiHAS energy monitor",
-        fromZigbee: [fzLocal.ct_direction],
+        fromZigbee: [fzLocal.ct_direction, fzLocal.poll_summ_received_on_electrical_measurement],
         toZigbee: [tzLocal.ct_direction],
         extend: [m.electricityMeter({power: {cluster: "metering"}, acFrequency: {multiplier: 1, divisor: 10}, powerFactor: true}), m.temperature()],
         // Produced_energy and ct_direction is supported in version 8 and above.
@@ -719,16 +743,6 @@ export const definitions: DefinitionWithExtend[] = [
             }
             return exposes;
         },
-        // Additionally, this Produced_energy does not support reporting,
-        // so we implemented a read operation within onEvent upon receiving a 'current' message.
-        onEvent: async (type, data, device, options) => {
-            if (device?.applicationVersion >= 8) {
-                if (type === "message" && data.type === "attributeReport" && data.cluster === "haElectricalMeasurement" && data.data.rmsCurrent) {
-                    const endpoint = device.getEndpoint(1);
-                    await endpoint.read("seMetering", ["currentSummReceived"]);
-                }
-            }
-        },
         // Ct direction(seMetering, 0x9001) is supported in version 8 and above.
         configure: async (device, coordinatorEndpoint) => {
             if (device?.applicationVersion >= 8) {
@@ -744,6 +758,7 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         description: "SiHAS 3phase energy monitor",
         extend: [m.electricityMeter({power: {cluster: "metering"}, acFrequency: {multiplier: 1, divisor: 10}, powerFactor: true}), m.temperature()],
+        fromZigbee: [fzLocal.poll_summ_received_on_electrical_measurement],
         // Produced_energy is supported in version 9 and above.
         exposes: (device, options) => {
             const exposes = [];
@@ -751,16 +766,6 @@ export const definitions: DefinitionWithExtend[] = [
                 exposes.push(e.produced_energy().withAccess(ea.STATE_GET));
             }
             return exposes;
-        },
-        // Additionally, this device does not support reporting,
-        // so we implemented a read operation within onEvent upon receiving a 'current' message.
-        onEvent: async (type, data, device, options) => {
-            if (device?.applicationVersion >= 9) {
-                if (type === "message" && data.type === "attributeReport" && data.cluster === "haElectricalMeasurement" && data.data.rmsCurrent) {
-                    const endpoint = device.getEndpoint(1);
-                    await endpoint.read("seMetering", ["currentSummReceived"]);
-                }
-            }
         },
     },
     {
