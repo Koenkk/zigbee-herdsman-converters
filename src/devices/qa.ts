@@ -12,31 +12,6 @@ const ea = exposes.access;
 
 export const definitions: DefinitionWithExtend[] = [
     {
-        fingerprint: tuya.fingerprint("TS0726", ["_TZ3000_kt6xxa4o"]),
-        model: "QAT42Z3",
-        vendor: "QA",
-        description: "3 channel scene switch",
-        extend: [
-            tuya.modernExtend.tuyaMagicPacket(),
-            m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3}}),
-            tuya.modernExtend.tuyaOnOff({endpoints: ["l1", "l2", "l3"], powerOnBehavior2: true, backlightModeOffOn: true}),
-            m.actionEnumLookup({
-                cluster: "genOnOff",
-                commands: ["commandTuyaAction"],
-                attribute: "value",
-                actionLookup: {button: 0},
-                buttonLookup: {
-                    "1_up": 4,
-                    "1_down": 1,
-                    "2_up": 5,
-                    "2_down": 2,
-                    "3_up": 6,
-                    "3_down": 3,
-                },
-            }),
-        ],
-    },
-    {
         fingerprint: tuya.fingerprint("TS0726", ["_TZ3000_wopf2sox"]),
         model: "QAT42Z1",
         vendor: "QA",
@@ -66,10 +41,37 @@ export const definitions: DefinitionWithExtend[] = [
         model: "QAT42Z2",
         vendor: "QA",
         description: "2 channel scene switch",
+        meta: {multiEndpoint: true},
         extend: [
             tuya.modernExtend.tuyaMagicPacket(),
             m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
             tuya.modernExtend.tuyaOnOff({endpoints: ["l1", "l2"], powerOnBehavior2: true, backlightModeOffOn: true}),
+            m.actionEnumLookup({
+                cluster: "genOnOff",
+                commands: ["commandTuyaAction"],
+                attribute: "value",
+                actionLookup: {button: 0},
+                buttonLookup: {
+                    "1_up": 4,
+                    "1_down": 1,
+                    "2_up": 5,
+                    "2_down": 2,
+                    "3_up": 6,
+                    "3_down": 3,
+                },
+            }),
+        ],
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0726", ["_TZ3000_kt6xxa4o"]),
+        model: "QAT42Z3",
+        vendor: "QA",
+        description: "3 channel scene switch",
+        meta: {multiEndpoint: true},
+        extend: [
+            tuya.modernExtend.tuyaMagicPacket(),
+            m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3}}),
+            tuya.modernExtend.tuyaOnOff({endpoints: ["l1", "l2", "l3"], powerOnBehavior2: true, backlightModeOffOn: true}),
             m.actionEnumLookup({
                 cluster: "genOnOff",
                 commands: ["commandTuyaAction"],
@@ -109,6 +111,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "QARZ2LR",
         vendor: "QA",
         description: "2 channel long range switch",
+        meta: {multiEndpoint: true},
         extend: [
             tuya.modernExtend.tuyaMagicPacket(),
             m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
@@ -120,6 +123,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "QARZ3LR",
         vendor: "QA",
         description: "3 channel long range switch",
+        meta: {multiEndpoint: true},
         extend: [
             tuya.modernExtend.tuyaMagicPacket(),
             m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3}}),
@@ -131,6 +135,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "QARZ4LR",
         vendor: "QA",
         description: "4 channel long range switch",
+        meta: {multiEndpoint: true},
         extend: [
             tuya.modernExtend.tuyaMagicPacket(),
             m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4}}),
@@ -153,6 +158,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "QAT42Z2H",
         vendor: "QA",
         description: "2 channel wall switch",
+        meta: {multiEndpoint: true},
         extend: [
             tuya.modernExtend.tuyaMagicPacket(),
             m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
@@ -164,11 +170,39 @@ export const definitions: DefinitionWithExtend[] = [
         model: "QAT42Z3H",
         vendor: "QA",
         description: "3 channel wall switch",
+        meta: {multiEndpoint: true},
         extend: [
             tuya.modernExtend.tuyaMagicPacket(),
             m.deviceEndpoints({endpoints: {left: 1, center: 2, right: 3}}),
             tuya.modernExtend.tuyaOnOff({endpoints: ["left", "center", "right"], backlightModeOffOn: true}),
         ],
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_kyzjsjo3"]),
+        model: "QAT44Z4H",
+        vendor: "QA",
+        description: "4 channel wall switch",
+        exposes: [
+            e.switch().withEndpoint("l1").setAccess("state", ea.STATE_SET),
+            e.switch().withEndpoint("l2").setAccess("state", ea.STATE_SET),
+            e.switch().withEndpoint("l3").setAccess("state", ea.STATE_SET),
+            e.switch().withEndpoint("l4").setAccess("state", ea.STATE_SET),
+        ],
+        fromZigbee: [fz.ignore_basic_report, legacy.fz.tuya_switch],
+        toZigbee: [legacy.tz.tuya_switch_state],
+        meta: {multiEndpoint: true},
+        endpoint: (device) => {
+            return {l1: 1, l2: 1, l3: 1, l4: 1};
+        },
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
+            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ["genOnOff"]);
+            await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ["genOnOff"]);
+            await reporting.bind(device.getEndpoint(4), coordinatorEndpoint, ["genOnOff"]);
+            // Reports itself as battery which is not correct: https://github.com/Koenkk/zigbee2mqtt/issues/6190
+            device.powerSource = "Mains (single phase)";
+            device.save();
+        },
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_4cl0dzt4"]),
@@ -202,33 +236,6 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_kyzjsjo3"]),
-        model: "QAT44Z4H",
-        vendor: "QA",
-        description: "4 channel wall switch",
-        exposes: [
-            e.switch().withEndpoint("l1").setAccess("state", ea.STATE_SET),
-            e.switch().withEndpoint("l2").setAccess("state", ea.STATE_SET),
-            e.switch().withEndpoint("l3").setAccess("state", ea.STATE_SET),
-            e.switch().withEndpoint("l4").setAccess("state", ea.STATE_SET),
-        ],
-        fromZigbee: [fz.ignore_basic_report, legacy.fz.tuya_switch],
-        toZigbee: [legacy.tz.tuya_switch_state],
-        meta: {multiEndpoint: true},
-        endpoint: (device) => {
-            return {l1: 1, l2: 1, l3: 1, l4: 1};
-        },
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
-            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ["genOnOff"]);
-            await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ["genOnOff"]);
-            await reporting.bind(device.getEndpoint(4), coordinatorEndpoint, ["genOnOff"]);
-            // Reports itself as battery which is not correct: https://github.com/Koenkk/zigbee2mqtt/issues/6190
-            device.powerSource = "Mains (single phase)";
-            device.save();
-        },
-    },
-    {
         fingerprint: tuya.fingerprint("TS110E", ["_TZ3210_hzdhb62z", "_TZ3210_v5yquxma"]),
         model: "QADZ1",
         vendor: "QA",
@@ -244,6 +251,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "QADZ2",
         vendor: "QA",
         description: "Dimmer 2 channel",
+        meta: {multiEndpoint: true},
         extend: [
             tuya.modernExtend.tuyaMagicPacket(),
             m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}),

@@ -36,6 +36,21 @@ const fzLocal = {
     } satisfies Fz.Converter,
 };
 
+const tzLocal = {
+    on_off_fixed_on_time: {
+        ...tz.on_off,
+        convertSet: async (entity, key, value, meta) => {
+            // https://github.com/Koenkk/zigbee2mqtt/issues/27980
+            const localMeta = meta;
+            if (localMeta.message.on_time != null) {
+                utils.assertNumber(localMeta.message.on_time, "on_time");
+                localMeta.message = {...localMeta.message, on_time: localMeta.message.on_time / 10};
+            }
+            return await tz.on_off.convertSet(entity, key, value, localMeta);
+        },
+    } satisfies Tz.Converter,
+};
+
 type EntityCategoryArgs = {
     entityCategory?: "config" | "diagnostic";
 };
@@ -1934,6 +1949,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "SONOFF",
         description: "Zigbee smart water valve",
         fromZigbee: [fz.flow],
+        toZigbee: [tzLocal.on_off_fixed_on_time],
         exposes: [e.numeric("flow", ea.STATE).withDescription("Current water flow").withUnit("m³/h")],
         extend: [
             m.battery(),

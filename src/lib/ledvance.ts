@@ -54,7 +54,7 @@ export const ledvanceTz = {
 
 export function ledvanceOnOff(args?: modernExtend.OnOffArgs) {
     // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
-    args = {ota: {suppressElementImageParseFailure: true}, ...args};
+    args = {ota: {suppressElementImageParseFailure: true}, configureReporting: true, ...args};
     return modernExtend.onOff(args);
 }
 

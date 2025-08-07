@@ -105,7 +105,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [32, "schedule_friday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(5, 6)],
                 [33, "schedule_saturday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(6, 6)],
                 [34, "schedule_sunday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(7, 6)],
-                [47, "local_temperature_calibration", tuya.valueConverter.localTempCalibration1],
+                [47, "local_temperature_calibration", tuya.valueConverter.localTempCalibration2],
             ],
         },
     },

@@ -239,7 +239,7 @@ export const definitions: DefinitionWithExtend[] = [
             develcoModernExtend.readGenBasicPrimaryVersions(),
             develcoModernExtend.deviceTemperature(),
             m.electricityMeter({acFrequency: true, fzMetering: develco.fz.metering, fzElectricalMeasurement: develco.fz.electrical_measurement}),
-            m.onOff(),
+            m.onOff({powerOnBehavior: false}),
         ],
         endpoint: (device) => {
             return {default: 2};

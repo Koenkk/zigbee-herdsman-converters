@@ -2481,7 +2481,7 @@ const tuyaModernExtend = {
             result.exposes.push(tuyaExposes.colorPowerOnBehavior());
         }
 
-        result.configure = [configureSetPowerSourceWhenUnknown("Mains (single phase)")];
+        result.configure.push(configureSetPowerSourceWhenUnknown("Mains (single phase)"));
 
         return result;
     },

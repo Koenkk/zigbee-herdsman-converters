@@ -1804,7 +1804,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .numeric("measurement_poll_chunk", ea.SET)
                 .withValueMin(1)
                 .withDescription(
-                    "During the poll, request multiple exposes to the Zlinky at once for reducing Zigbee network overload. Too much request at once could exceed device limit. Requires Z2M restart. Default: 1",
+                    "During the poll, request multiple exposes to the Zlinky at once for reducing Zigbee network overload. Too much request at once could exceed device limit. Requires Z2M restart. Default: 4",
                 ),
             e
                 .text("tic_command_whitelist", ea.SET)

@@ -452,7 +452,7 @@ export function prepareDefinition(definition: DefinitionWithExtend): Definition 
 
             const type = utils.calibrateAndPrecisionRoundOptionsIsPercentual(expose.name) ? "percentual" : "absolute";
 
-            finalDefinition.options.push(exposesLib.options.calibration(expose.name, type));
+            finalDefinition.options.push(exposesLib.options.calibration(expose.name, type).withValueStep(0.1));
 
             if (utils.calibrateAndPrecisionRoundOptionsDefaultPrecision[expose.name] !== 0) {
                 finalDefinition.options.push(exposesLib.options.precision(expose.name));
