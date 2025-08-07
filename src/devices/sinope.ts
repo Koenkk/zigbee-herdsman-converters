@@ -1554,6 +1554,11 @@ export const definitions: DefinitionWithExtend[] = [
                 .withFeature(e.numeric("b", ea.SET))
                 .withDescription("Control status LED color when load OFF"),
         ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            const binds = ["manuSpecificSinope"];
+            await reporting.bind(endpoint, coordinatorEndpoint, binds);
+        },
     },
     {
         zigbeeModel: ["SP2600ZB"],
@@ -1561,6 +1566,11 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Sinopé",
         description: "Zigbee smart plug",
         extend: [m.onOff(), m.electricityMeter()],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            const binds = ["manuSpecificSinope"];
+            await reporting.bind(endpoint, coordinatorEndpoint, binds);
+        },
     },
     {
         zigbeeModel: ["SP2610ZB"],
