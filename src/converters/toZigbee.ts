@@ -41,8 +41,9 @@ export const on_off: Tz.Converter = {
             if (typeof offWaitTime !== "number") {
                 throw Error("The off_wait_time value must be a number!");
             }
-
-            const payload = {ctrlbits: 0, ontime: Math.round(onTime * 10), offwaittime: Math.round(offWaitTime * 10)};
+            const payload = meta.converterOptions
+                ? meta.converterOptions
+                : {ctrlbits: 0, ontime: Math.round(onTime * 10), offwaittime: Math.round(offWaitTime * 10)};
             await entity.command("genOnOff", "onWithTimedOff", payload, utils.getOptions(meta.mapped, entity));
         } else {
             await entity.command("genOnOff", state, {}, utils.getOptions(meta.mapped, entity));
@@ -1133,6 +1134,7 @@ export const light_hue_saturation_move: Tz.Converter = {
         }
     },
 };
+
 export const light_onoff_brightness: Tz.Converter = {
     key: ["state", "brightness", "brightness_percent", "on_time", "off_wait_time"],
     options: [exposes.options.transition()],
