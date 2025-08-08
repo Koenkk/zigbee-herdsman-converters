@@ -7054,6 +7054,32 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_ai4rqhky"]),
+        model: "HS2SA-1",
+        vendor: "Heiman",
+        description: "Photoelectric Smoke Alarm",
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEventSetTime,
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.smoke(),
+            e.battery(),
+            tuya.exposes.batteryState(),
+            e.binary("silence", ea.STATE_SET, "ON", "OFF"),
+            e.enum("self_test", ea.STATE, ["checking", "check_success", "check_failure"]),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "smoke", tuya.valueConverter.trueFalse0],
+                [9, "self_test", tuya.valueConverterBasic.lookup({checking: 0, check_success: 1, check_failure: 2})],
+                [14, "battery_state", tuya.valueConverter.batteryState],
+                [15, "battery", tuya.valueConverter.raw],
+                [16, "silence", tuya.valueConverter.onOff],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_m9skfctm", "_TZE200_rccxox8p", "_TZE284_rccxox8p"]),
         model: "PA-44Z",
         vendor: "Tuya",
