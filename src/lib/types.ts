@@ -337,6 +337,7 @@ export namespace Tz {
         endpoint_name: string | undefined;
         membersState?: {[s: string]: KeyValue};
         publish: Publish;
+        payload?: KeyValue;
     }
     // biome-ignore lint/suspicious/noConfusingVoidType: ignored using `--suppress`
     export type ConvertSetResult = {state?: KeyValue; membersState?: {[s: string]: KeyValue}} | void;

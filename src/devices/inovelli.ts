@@ -1672,21 +1672,23 @@ const tzLocal = {
      *
      */
     light_onoff_brightness_inovelli: {
-        ...tz.light_onoff_brightness_onoff_payload,
+        ...tz.light_onoff_brightness,
         convertSet: async (entity, key, value, meta) => {
-            const localMeta = meta;
             const transition = utils.getTransition(entity, "brightness", meta);
-            localMeta.message = {
-                ...localMeta.message,
-                transition: !transition.specified ? 0xffff : transition.time,
+            const localMeta = {
+                ...meta,
+                message: {
+                    ...meta.message,
+                    transition: !transition.specified ? 0xffff : transition.time,
+                },
                 payload: {
                     ctrlbits: 0,
-                    ontime: localMeta.message.on_time != null ? Math.round((localMeta.message.on_time as number) * 10) : 0xffff,
-                    offwaittime: localMeta.message.off_wait_time != null ? Math.round((localMeta.message.off_wait_time as number) * 10) : 0xffff,
+                    ontime: meta.message.on_time != null ? Math.round((meta.message.on_time as number) * 10) : 0xffff,
+                    offwaittime: meta.message.off_wait_time != null ? Math.round((meta.message.off_wait_time as number) * 10) : 0xffff,
                 },
             };
 
-            return await tz.light_onoff_brightness_onoff_payload.convertSet(entity, key, value, localMeta);
+            return await tz.light_onoff_brightness.convertSet(entity, key, value, localMeta);
         },
     } satisfies Tz.Converter,
 

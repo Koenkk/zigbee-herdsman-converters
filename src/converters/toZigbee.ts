@@ -41,9 +41,7 @@ export const on_off: Tz.Converter = {
             if (typeof offWaitTime !== "number") {
                 throw Error("The off_wait_time value must be a number!");
             }
-            const payload = meta.message.payload
-                ? meta.message.payload
-                : {ctrlbits: 0, ontime: Math.round(onTime * 10), offwaittime: Math.round(offWaitTime * 10)};
+            const payload = meta.payload ? meta.payload : {ctrlbits: 0, ontime: Math.round(onTime * 10), offwaittime: Math.round(offWaitTime * 10)};
             await entity.command("genOnOff", "onWithTimedOff", payload, utils.getOptions(meta.mapped, entity));
         } else {
             await entity.command("genOnOff", state, {}, utils.getOptions(meta.mapped, entity));
@@ -1137,21 +1135,6 @@ export const light_hue_saturation_move: Tz.Converter = {
 
 export const light_onoff_brightness: Tz.Converter = {
     key: ["state", "brightness", "brightness_percent", "on_time", "off_wait_time"],
-    options: [exposes.options.transition()],
-    convertSet: async (entity, key, value, meta) => {
-        return await light_onoff_brightness_onoff_payload.convertSet(entity, key, value, meta);
-    },
-    convertGet: async (entity, key, meta) => {
-        return await light_onoff_brightness_onoff_payload.convertGet(entity, key, meta);
-    },
-};
-
-export const light_onoff_brightness_onoff_payload: Tz.Converter = {
-    /**
-     * This converter allows you to pass in a payload object to the on_off converter
-     * This is useful for devices that need to pass along a specific onTime/offWaitTime without any modifications.
-     */
-    key: ["state", "brightness", "brightness_percent", "on_time", "off_wait_time", "payload"],
     options: [exposes.options.transition()],
     convertSet: async (entity, key, value, meta) => {
         const {message} = meta;
