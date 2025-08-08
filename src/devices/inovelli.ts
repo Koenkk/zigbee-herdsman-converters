@@ -2012,7 +2012,7 @@ const fzLocal = {
                 }
                 return msg.data;
             },
-        }) satisfies Fz.Converter,
+        }) satisfies Fz.Converter<typeof cluster, "custom">,
     fan_mode: (endpointId: number) =>
         ({
             cluster: "genLevelCtrl",
@@ -2028,7 +2028,7 @@ const fzLocal = {
                 }
                 return msg.data;
             },
-        }) satisfies Fz.Converter,
+        }) satisfies Fz.Converter<"genLevelCtrl">,
     fan_state: {
         cluster: "genOnOff",
         type: ["attributeReport", "readResponse"],
@@ -2038,7 +2038,7 @@ const fzLocal = {
             }
             return msg.data;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genOnOff">,
     brightness: {
         cluster: "genLevelCtrl",
         type: ["attributeReport", "readResponse"],
@@ -2049,7 +2049,7 @@ const fzLocal = {
                 }
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genLevelCtrl">,
     /**
      * Decode breeze mode value:
      *
@@ -2068,6 +2068,7 @@ const fzLocal = {
             type: ["attributeReport", "readResponse"],
             convert: (model, msg, publish, options, meta) => {
                 if (msg.endpoint.ID === endpointId) {
+                    // XXX: breeze_mode vs breezeMode in cluster?
                     if (msg.data.breeze_mode !== undefined) {
                         const bitmasks = [3, 60, 192, 3840, 12288, 245760, 786432, 15728640, 50331648, 1006632960];
                         const raw = msg.data.breeze_mode;
@@ -2100,7 +2101,7 @@ const fzLocal = {
                     }
                 }
             },
-        }) satisfies Fz.Converter,
+        }) satisfies Fz.Converter<typeof INOVELLI_CLUSTER_NAME, undefined, {breezeMode?: number} /** TODO: type whole cluster at top */>,
     vzm36_fan_light_state: {
         cluster: "genOnOff",
         type: ["attributeReport", "readResponse"],
@@ -2117,7 +2118,7 @@ const fzLocal = {
                 return msg.data;
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genOnOff">,
     led_effect_complete: {
         cluster: INOVELLI_CLUSTER_NAME,
         type: ["commandLedEffectComplete"],
@@ -2127,7 +2128,11 @@ const fzLocal = {
             }
             return {notificationComplete: "Unknown"};
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<
+        typeof INOVELLI_CLUSTER_NAME,
+        undefined,
+        {notificationType: keyof typeof LED_NOTIFICATION_TYPES} /** TODO: type whole cluster at top */
+    >,
 };
 
 const exposeLedEffects = () => {
