@@ -14235,16 +14235,8 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription("Free Chlorine minimal value")
                 .withValueMin(0)
                 .withValueMax(15),
-            e
-                .numeric("salinity", ea.STATE)
-                .withUnit("ppm")
-                .withDescription("Salt value"),
-            e
-                .numeric("backlightvalue", ea.STATE_SET)
-                .withUnit("gg")
-                .withDescription("Backlight Value")
-                .withValueMin(0)
-                .withValueMax(1),
+            e.numeric("salinity", ea.STATE).withUnit("ppm").withDescription("Salt value"),
+            e.numeric("backlightvalue", ea.STATE_SET).withUnit("gg").withDescription("Backlight Value").withValueMin(0).withValueMax(1),
         ],
         meta: {
             // All datapoints go in here
@@ -14256,7 +14248,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [11, "ec", tuya.valueConverter.raw],
                 [101, "orp", tuya.valueConverter.raw],
                 [102, "free_chlorine", tuya.valueConverter.raw],
-                [105, 'backlightvalue', tuya.valueConverter.raw],
+                [105, "backlightvalue", tuya.valueConverter.raw],
                 [106, "ph_max", tuya.valueConverter.divideBy10],
                 [107, "ph_min", tuya.valueConverter.divideBy10],
                 [108, "ec_max", tuya.valueConverter.raw],
