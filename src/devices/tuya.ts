@@ -514,7 +514,7 @@ const tzLocal = {
             switch (key) {
                 case "temperature_unit": {
                     utils.assertString(value, "temperature_unit");
-                    await entity.write("manuSpecificTuya_2", {
+                    await entity.write("manuSpecificTuya2", {
                         "57355": {value: {celsius: 0, fahrenheit: 1}[value], type: 48},
                     });
                     break;
@@ -544,7 +544,7 @@ const tzLocal = {
                 case "temperature_threshold": {
                     const state = meta.state.temperature_breaker;
                     const buf = Buffer.from([5, utils.getFromLookup(state, onOffLookup), 0, utils.toNumber(value, "temperature_threshold")]);
-                    await entity.command("manuSpecificTuya_3", "setOptions2", {
+                    await entity.command("manuSpecificTuya3", "setOptions2", {
                         data: buf,
                     });
                     break;
@@ -553,7 +553,7 @@ const tzLocal = {
                     const threshold = meta.state.temperature_threshold;
                     const number = utils.toNumber(threshold, "temperature_threshold");
                     const buf = Buffer.from([5, utils.getFromLookup(value, onOffLookup), 0, number]);
-                    await entity.command("manuSpecificTuya_3", "setOptions2", {
+                    await entity.command("manuSpecificTuya3", "setOptions2", {
                         data: buf,
                     });
                     break;
@@ -561,7 +561,7 @@ const tzLocal = {
                 case "power_threshold": {
                     const state = meta.state.power_breaker;
                     const buf = Buffer.from([7, utils.getFromLookup(state, onOffLookup), 0, utils.toNumber(value, "power_breaker")]);
-                    await entity.command("manuSpecificTuya_3", "setOptions2", {
+                    await entity.command("manuSpecificTuya3", "setOptions2", {
                         data: buf,
                     });
                     break;
@@ -570,7 +570,7 @@ const tzLocal = {
                     const threshold = meta.state.power_threshold;
                     const number = utils.toNumber(threshold, "power_breaker");
                     const buf = Buffer.from([7, utils.getFromLookup(value, onOffLookup), 0, number]);
-                    await entity.command("manuSpecificTuya_3", "setOptions2", {
+                    await entity.command("manuSpecificTuya3", "setOptions2", {
                         data: buf,
                     });
                     break;
@@ -578,7 +578,7 @@ const tzLocal = {
                 case "over_current_threshold": {
                     const state = meta.state.over_current_breaker;
                     const buf = Buffer.from([1, utils.getFromLookup(state, onOffLookup), 0, utils.toNumber(value, "over_current_threshold")]);
-                    await entity.command("manuSpecificTuya_3", "setOptions3", {
+                    await entity.command("manuSpecificTuya3", "setOptions3", {
                         data: buf,
                     });
                     break;
@@ -587,7 +587,7 @@ const tzLocal = {
                     const threshold = meta.state.over_current_threshold;
                     const number = utils.toNumber(threshold, "over_current_threshold");
                     const buf = Buffer.from([1, utils.getFromLookup(value, onOffLookup), 0, number]);
-                    await entity.command("manuSpecificTuya_3", "setOptions3", {
+                    await entity.command("manuSpecificTuya3", "setOptions3", {
                         data: buf,
                     });
                     break;
@@ -598,7 +598,7 @@ const tzLocal = {
                     buf.writeUInt8(3, 0);
                     buf.writeUInt8(utils.getFromLookup(state, onOffLookup), 1);
                     buf.writeUInt16BE(utils.toNumber(value, "over_voltage_threshold"), 2);
-                    await entity.command("manuSpecificTuya_3", "setOptions3", {
+                    await entity.command("manuSpecificTuya3", "setOptions3", {
                         data: buf,
                     });
                     break;
@@ -607,7 +607,7 @@ const tzLocal = {
                     const threshold = meta.state.over_voltage_threshold;
                     const number = utils.toNumber(threshold, "over_voltage_threshold");
                     const buf = Buffer.from([3, utils.getFromLookup(value, onOffLookup), 0, number]);
-                    await entity.command("manuSpecificTuya_3", "setOptions3", {
+                    await entity.command("manuSpecificTuya3", "setOptions3", {
                         data: buf,
                     });
                     break;
@@ -615,7 +615,7 @@ const tzLocal = {
                 case "under_voltage_threshold": {
                     const state = meta.state.under_voltage_breaker;
                     const buf = Buffer.from([4, utils.getFromLookup(state, onOffLookup), 0, utils.toNumber(value, "under_voltage_threshold")]);
-                    await entity.command("manuSpecificTuya_3", "setOptions3", {
+                    await entity.command("manuSpecificTuya3", "setOptions3", {
                         data: buf,
                     });
                     break;
@@ -624,7 +624,7 @@ const tzLocal = {
                     const threshold = meta.state.under_voltage_threshold;
                     const number = utils.toNumber(threshold, "under_voltage_breaker");
                     const buf = Buffer.from([4, utils.getFromLookup(value, onOffLookup), 0, number]);
-                    await entity.command("manuSpecificTuya_3", "setOptions3", {
+                    await entity.command("manuSpecificTuya3", "setOptions3", {
                         data: buf,
                     });
                     break;
@@ -768,7 +768,7 @@ const fzLocal = {
         },
     } satisfies Fz.Converter,
     temperature_unit: {
-        cluster: "manuSpecificTuya_2",
+        cluster: "manuSpecificTuya2",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
@@ -834,7 +834,7 @@ const fzLocal = {
     } satisfies Fz.Converter,
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     TS011F_threshold: {
-        cluster: "manuSpecificTuya_3",
+        cluster: "manuSpecificTuya3",
         type: "raw",
         convert: (model, msg, publish, options, meta) => {
             const splitToAttributes = (value: Buffer): KeyValueAny => {
@@ -9053,7 +9053,7 @@ export const definitions: DefinitionWithExtend[] = [
                 "genPowerCfg",
                 "msTemperatureMeasurement",
                 "msRelativeHumidity",
-                "manuSpecificTuya_2",
+                "manuSpecificTuya2",
             ]);
         },
         exposes: [

@@ -1420,33 +1420,33 @@ const tuyaTz = {
         key: ["power_on_behavior"],
         convertSet: async (entity, key, value, meta) => {
             const powerOnBehavior = utils.getFromLookup(value, {off: 0, on: 1, previous: 2});
-            await entity.write("manuSpecificTuya_3", {powerOnBehavior});
+            await entity.write("manuSpecificTuya3", {powerOnBehavior});
             return {state: {[key]: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read("manuSpecificTuya_3", ["powerOnBehavior"]);
+            await entity.read("manuSpecificTuya3", ["powerOnBehavior"]);
         },
     } satisfies Tz.Converter,
     switch_type: {
         key: ["switch_type"],
         convertSet: async (entity, key, value, meta) => {
             const switchType = utils.getFromLookup(value, {toggle: 0, state: 1, momentary: 2});
-            await entity.write("manuSpecificTuya_3", {switchType}, {disableDefaultResponse: true});
+            await entity.write("manuSpecificTuya3", {switchType}, {disableDefaultResponse: true});
             return {state: {[key]: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read("manuSpecificTuya_3", ["switchType"]);
+            await entity.read("manuSpecificTuya3", ["switchType"]);
         },
     } satisfies Tz.Converter,
     switch_type_curtain: {
         key: ["switch_type_curtain"],
         convertSet: async (entity, key, value, meta) => {
             const switchType = utils.getFromLookup(value, {"flip-switch": 0, "sync-switch": 1, "button-switch": 2, "button2-switch": 3});
-            await entity.write("manuSpecificTuya_3", {switchType}, {disableDefaultResponse: true});
+            await entity.write("manuSpecificTuya3", {switchType}, {disableDefaultResponse: true});
             return {state: {[key]: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read("manuSpecificTuya_3", ["switchType"]);
+            await entity.read("manuSpecificTuya3", ["switchType"]);
         },
     } satisfies Tz.Converter,
     backlight_indicator_mode_1: {
@@ -1645,7 +1645,7 @@ const tuyaTz = {
             const inching = valueConverter.inchingSwitch.to(value);
             const payload = {payload: inching};
             const endpoint = meta.device.getEndpoint(1);
-            await endpoint.command("manuSpecificTuya_4", "setInchingSwitch", payload, utils.getOptions(meta.mapped, endpoint));
+            await endpoint.command("manuSpecificTuya4", "setInchingSwitch", payload, utils.getOptions(meta.mapped, endpoint));
 
             return {state: {inching_control_set: value}};
         },
@@ -1676,7 +1676,7 @@ const tuyaFz = {
         },
     } satisfies Fz.Converter,
     power_on_behavior_2: {
-        cluster: "manuSpecificTuya_3",
+        cluster: "manuSpecificTuya3",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             const attribute = "powerOnBehavior";
@@ -1699,7 +1699,7 @@ const tuyaFz = {
         },
     } satisfies Fz.Converter,
     switch_type: {
-        cluster: "manuSpecificTuya_3",
+        cluster: "manuSpecificTuya3",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.switchType !== undefined) {
@@ -1710,7 +1710,7 @@ const tuyaFz = {
         },
     } satisfies Fz.Converter,
     switch_type_curtain: {
-        cluster: "manuSpecificTuya_3",
+        cluster: "manuSpecificTuya3",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.switchType !== undefined) {
@@ -1843,7 +1843,7 @@ const tuyaFz = {
         },
     } satisfies Fz.Converter,
     inchingSwitch: {
-        cluster: "manuSpecificTuya_4",
+        cluster: "manuSpecificTuya4",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.inching !== undefined) {
@@ -2651,7 +2651,7 @@ const tuyaModernExtend = {
         modernExtend.enumLookup({
             name: "switch_mode",
             lookup: {switch: 0, scene: 1},
-            cluster: "manuSpecificTuya_3",
+            cluster: "manuSpecificTuya3",
             attribute: "switchMode",
             description: "Work mode for switch",
             entityCategory: "config",
@@ -2697,7 +2697,7 @@ export {tuyaModernExtend as modernExtend};
 
 const tuyaClusters = {
     addTuyaCommonPrivateCluster: (): ModernExtend =>
-        modernExtend.deviceAddCustomCluster("manuSpecificTuya_4", {
+        modernExtend.deviceAddCustomCluster("manuSpecificTuya4", {
             ID: 0xe000,
             attributes: {
                 random_timing: {ID: 0xd001, type: Zcl.DataType.CHAR_STR},
