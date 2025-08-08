@@ -326,7 +326,7 @@ const boschExtend = {
                             dstEnd: {attribute: 0x0004, status: Zcl.Status.SUCCESS, value: 0x00},
                             dstShift: {attribute: 0x0005, status: Zcl.Status.SUCCESS, value: 0x00},
                         };
-                        await msg.endpoint.readResponse(msg.cluster, msg.meta.zclTransactionSequenceNumber, response);
+                        await msg.endpoint.readResponse(msg.cluster, msg.meta.zclFrame.header.transactionSequenceNumber, response);
                     }
                 },
             },
