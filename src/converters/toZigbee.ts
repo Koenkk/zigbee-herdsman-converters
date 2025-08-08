@@ -41,7 +41,9 @@ export const on_off: Tz.Converter = {
             if (typeof offWaitTime !== "number") {
                 throw Error("The off_wait_time value must be a number!");
             }
-            const payload = meta.payload ? meta.payload : {ctrlbits: 0, ontime: Math.round(onTime * 10), offwaittime: Math.round(offWaitTime * 10)};
+            const payload = meta.converterOptions
+                ? meta.converterOptions
+                : {ctrlbits: 0, ontime: Math.round(onTime * 10), offwaittime: Math.round(offWaitTime * 10)};
             await entity.command("genOnOff", "onWithTimedOff", payload, utils.getOptions(meta.mapped, entity));
         } else {
             await entity.command("genOnOff", state, {}, utils.getOptions(meta.mapped, entity));

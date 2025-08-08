@@ -1681,7 +1681,7 @@ const tzLocal = {
                     ...meta.message,
                     transition: !transition.specified ? 0xffff : transition.time,
                 },
-                payload: {
+                converterOptions: {
                     ctrlbits: 0,
                     ontime: meta.message.on_time != null ? Math.round((meta.message.on_time as number) * 10) : 0xffff,
                     offwaittime: meta.message.off_wait_time != null ? Math.round((meta.message.off_wait_time as number) * 10) : 0xffff,
