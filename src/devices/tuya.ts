@@ -1940,9 +1940,16 @@ export const definitions: DefinitionWithExtend[] = [
         model: "CK-BL702-AL-01_1",
         vendor: "eWeLink",
         description: "Zigbee 3.0 15W led light bulb E27 RGBCW",
-        toZigbee: [tz.on_off, tzLocal.led_control, tuya.tz.do_not_disturb],
-        fromZigbee: [fz.on_off, fz.tuya_led_controller, fz.brightness, fz.ignore_basic_report],
-        exposes: [e.light_brightness_colortemp_colorhs([50, 1000]).removeFeature("color_temp_startup"), tuya.exposes.doNotDisturb()],
+        toZigbee: [tuya.tz.do_not_disturb],
+        extend: [
+            m.light({
+                colorTemp: {range: [50, 500], startup: false},
+                effect: false,
+                powerOnBehavior: false,
+                color: {modes: ["xy", "hs"], enhancedHue: false},
+            }),
+        ],
+        exposes: [tuya.exposes.doNotDisturb()],
         configure: (device, coordinatorEndpoint) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue("lightingColorCtrl", {colorCapabilities: 29});
         },
