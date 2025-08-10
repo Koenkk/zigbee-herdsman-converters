@@ -1,5 +1,5 @@
 import {Zcl, ZSpec} from "zigbee-herdsman";
-
+import type {ClusterOrRawAttributeKeys, PartialClusterOrRawWriteAttributes} from "zigbee-herdsman/dist/controller/tstype";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as constants from "../lib/constants";
@@ -259,7 +259,11 @@ const boschExtend = {
                     return {state: {valve_adapt_process: value}};
                 },
                 convertGet: async (entity, key, meta) => {
-                    await entity.read("hvacThermostat", ["valveAdaptStatus"], manufacturerOptions);
+                    await entity.read(
+                        "hvacThermostat",
+                        ["valveAdaptStatus"] as unknown as ClusterOrRawAttributeKeys<"hvacThermostat">,
+                        manufacturerOptions,
+                    );
                 },
             },
         ];
@@ -293,18 +297,30 @@ const boschExtend = {
                     if (key === "pi_heating_demand") {
                         let demand = utils.toNumber(value, key);
                         demand = utils.numberWithinRange(demand, 0, 100);
-                        await entity.write("hvacThermostat", {heatingDemand: demand}, manufacturerOptions);
+                        await entity.write(
+                            "hvacThermostat",
+                            {heatingDemand: demand} as PartialClusterOrRawWriteAttributes<"hvacThermostat">,
+                            manufacturerOptions,
+                        );
                         return {state: {pi_heating_demand: demand}};
                     }
                 },
                 convertGet: async (entity, key, meta) => {
-                    await entity.read("hvacThermostat", ["heatingDemand"], manufacturerOptions);
+                    await entity.read(
+                        "hvacThermostat",
+                        ["heatingDemand"] as unknown as ClusterOrRawAttributeKeys<"hvacThermostat">,
+                        manufacturerOptions,
+                    );
                 },
             },
             {
                 key: ["running_state"],
                 convertGet: async (entity, key, meta) => {
-                    await entity.read("hvacThermostat", ["heatingDemand"], manufacturerOptions);
+                    await entity.read(
+                        "hvacThermostat",
+                        ["heatingDemand"] as unknown as ClusterOrRawAttributeKeys<"hvacThermostat">,
+                        manufacturerOptions,
+                    );
                 },
             },
         ];
@@ -1479,13 +1495,25 @@ export const definitions: DefinitionWithExtend[] = [
             await endpoint.read("hvacThermostat", ["localTemperatureCalibration", "setpointChangeSource"]);
             await endpoint.read(
                 "hvacThermostat",
-                ["operatingMode", "heatingDemand", "valveAdaptStatus", "remoteTemperature", "windowDetection", "boostHeating"],
+                [
+                    "operatingMode",
+                    "heatingDemand",
+                    "valveAdaptStatus",
+                    "remoteTemperature",
+                    "windowDetection",
+                    "boostHeating",
+                ] as unknown as ClusterOrRawAttributeKeys<"hvacThermostat">,
                 manufacturerOptions,
             );
             await endpoint.read("hvacUserInterfaceCfg", ["keypadLockout"]);
             await endpoint.read(
                 "hvacUserInterfaceCfg",
-                ["displayOrientation", "displayedTemperature", "displayOntime", "displayBrightness"],
+                [
+                    "displayOrientation",
+                    "displayedTemperature",
+                    "displayOntime",
+                    "displayBrightness",
+                ] as unknown as ClusterOrRawAttributeKeys<"hvacUserInterfaceCfg">,
                 manufacturerOptions,
             );
         },
@@ -1560,9 +1588,17 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.thermostatKeypadLockMode(endpoint);
             await endpoint.read("genPowerCfg", ["batteryVoltage"]);
             await endpoint.read("hvacThermostat", ["localTemperatureCalibration"]);
-            await endpoint.read("hvacThermostat", ["operatingMode", "windowDetection", "boostHeating"], manufacturerOptions);
+            await endpoint.read(
+                "hvacThermostat",
+                ["operatingMode", "windowDetection", "boostHeating"] as unknown as ClusterOrRawAttributeKeys<"hvacThermostat">,
+                manufacturerOptions,
+            );
             await endpoint.read("hvacUserInterfaceCfg", ["keypadLockout"]);
-            await endpoint.read("hvacUserInterfaceCfg", ["displayOntime", "displayBrightness"], manufacturerOptions);
+            await endpoint.read(
+                "hvacUserInterfaceCfg",
+                ["displayOntime", "displayBrightness"] as unknown as ClusterOrRawAttributeKeys<"hvacUserInterfaceCfg">,
+                manufacturerOptions,
+            );
         },
     },
     {
@@ -1622,9 +1658,17 @@ export const definitions: DefinitionWithExtend[] = [
             });
             await reporting.thermostatKeypadLockMode(endpoint);
             await endpoint.read("hvacThermostat", ["localTemperatureCalibration"]);
-            await endpoint.read("hvacThermostat", ["operatingMode", "windowDetection", "boostHeating"], manufacturerOptions);
+            await endpoint.read(
+                "hvacThermostat",
+                ["operatingMode", "windowDetection", "boostHeating"] as unknown as ClusterOrRawAttributeKeys<"hvacThermostat">,
+                manufacturerOptions,
+            );
             await endpoint.read("hvacUserInterfaceCfg", ["keypadLockout"]);
-            await endpoint.read("hvacUserInterfaceCfg", ["displayOntime", "displayBrightness"], manufacturerOptions);
+            await endpoint.read(
+                "hvacUserInterfaceCfg",
+                ["displayOntime", "displayBrightness"] as unknown as ClusterOrRawAttributeKeys<"hvacUserInterfaceCfg">,
+                manufacturerOptions,
+            );
         },
     },
     {

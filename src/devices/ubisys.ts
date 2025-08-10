@@ -1,6 +1,7 @@
 import assert from "node:assert";
 import {gte as semverGte, valid as semverValid} from "semver";
 import {Zcl} from "zigbee-herdsman";
+import type {ClusterOrRawAttributeKeys, PartialClusterOrRawWriteAttributes} from "zigbee-herdsman/dist/controller/tstype";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as constants from "../lib/constants";
@@ -176,7 +177,7 @@ const ubisys = {
                             ubisysTotalSteps: 0xffff,
                             ubisysLiftToTiltTransitionSteps2: 0xffff,
                             ubisysTotalSteps2: 0xffff,
-                        },
+                        } as PartialClusterOrRawWriteAttributes<"closuresWindowCovering">,
                         manufacturerOptions.ubisys,
                     );
                     // enable calibration mode
@@ -274,7 +275,7 @@ const ubisys = {
                             "ubisysAdditionalSteps",
                             "ubisysInactivePowerThreshold",
                             "ubisysStartupSteps",
-                        ],
+                        ] as unknown as ClusterOrRawAttributeKeys<"closuresWindowCovering">,
                         manufacturerOptions.ubisys,
                     ),
                 );
@@ -319,12 +320,20 @@ const ubisys = {
             key: ["minimum_on_level"],
             convertSet: async (entity, key, value, meta) => {
                 if (key === "minimum_on_level") {
-                    await entity.write("genLevelCtrl", {ubisysMinimumOnLevel: value}, manufacturerOptions.ubisys);
+                    await entity.write(
+                        "genLevelCtrl",
+                        {ubisysMinimumOnLevel: value} as PartialClusterOrRawWriteAttributes<"genLevelCtrl">,
+                        manufacturerOptions.ubisys,
+                    );
                 }
                 await ubisys.tz.dimmer_setup_genLevelCtrl.convertGet(entity, key, meta);
             },
             convertGet: async (entity, key, meta) => {
-                await entity.read("genLevelCtrl", ["ubisysMinimumOnLevel"], manufacturerOptions.ubisys);
+                await entity.read(
+                    "genLevelCtrl",
+                    ["ubisysMinimumOnLevel"] as unknown as ClusterOrRawAttributeKeys<"genLevelCtrl">,
+                    manufacturerOptions.ubisys,
+                );
             },
         } satisfies Tz.Converter,
         configure_device_setup: {
@@ -367,7 +376,9 @@ const ubisys = {
                     } else {
                         await devMgmtEp.write(
                             "manuSpecificUbisysDeviceSetup",
-                            {[attributeInputConfigurations.name]: {elementType: Zcl.DataType.DATA8, elements: value.input_configurations}},
+                            {
+                                [attributeInputConfigurations.name]: {elementType: Zcl.DataType.DATA8, elements: value.input_configurations},
+                            } as PartialClusterOrRawWriteAttributes<"manuSpecificUbisysDeviceSetup">,
                             manufacturerOptions.ubisysNull,
                         );
                     }
@@ -394,7 +405,9 @@ const ubisys = {
                     } else {
                         await devMgmtEp.write(
                             "manuSpecificUbisysDeviceSetup",
-                            {[attributeInputActions.name]: {elementType: Zcl.DataType.OCTET_STR, elements: value.input_actions}},
+                            {
+                                [attributeInputActions.name]: {elementType: Zcl.DataType.OCTET_STR, elements: value.input_actions},
+                            } as PartialClusterOrRawWriteAttributes<"manuSpecificUbisysDeviceSetup">,
                             manufacturerOptions.ubisysNull,
                         );
                     }
@@ -589,7 +602,9 @@ const ubisys = {
                     } else {
                         await devMgmtEp.write(
                             "manuSpecificUbisysDeviceSetup",
-                            {[attributeInputActions.name]: {elementType: Zcl.DataType.OCTET_STR, elements: resultingInputActions}},
+                            {
+                                [attributeInputActions.name]: {elementType: Zcl.DataType.OCTET_STR, elements: resultingInputActions},
+                            } as PartialClusterOrRawWriteAttributes<"manuSpecificUbisysDeviceSetup">,
                             manufacturerOptions.ubisysNull,
                         );
                     }

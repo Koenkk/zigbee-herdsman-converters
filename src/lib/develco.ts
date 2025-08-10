@@ -1,5 +1,5 @@
 import {Zcl} from "zigbee-herdsman";
-
+import {ClusterOrRawAttributeKeys} from "zigbee-herdsman/dist/controller/tstype";
 import {presets as e, access as ea} from "./exposes";
 import {deviceAddCustomCluster, deviceTemperature, type NumericArgs, numeric, temperature} from "./modernExtend";
 import type {Configure, Fz, ModernExtend} from "./types";
@@ -41,7 +41,11 @@ export const develcoModernExtend = {
                 for (const ep of device.endpoints) {
                     if (ep.supportsInputCluster("genBasic")) {
                         try {
-                            const data = await ep.read("genBasic", ["develcoPrimarySwVersion", "develcoPrimaryHwVersion"], manufacturerOptions);
+                            const data = (await ep.read(
+                                "genBasic",
+                                ["develcoPrimarySwVersion", "develcoPrimaryHwVersion"] as unknown as ClusterOrRawAttributeKeys<"genBasic">,
+                                manufacturerOptions,
+                            )) as {develcoPrimarySwVersion?: Buffer; develcoPrimaryHwVersion?: Buffer};
 
                             if (data.develcoPrimarySwVersion !== undefined) {
                                 device.softwareBuildID = data.develcoPrimarySwVersion.join(".");

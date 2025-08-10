@@ -1,5 +1,5 @@
 import type {Endpoint, Group} from "zigbee-herdsman/dist/controller/model";
-
+import type {ClusterOrRawAttributeKeys, PartialClusterOrRawWriteAttributes} from "zigbee-herdsman/dist/controller/tstype";
 import * as constants from "./constants";
 import {repInterval} from "./constants";
 import * as exposes from "./exposes";
@@ -688,7 +688,7 @@ const extend = {
                         if (value === "away") {
                             await entity.read("hvacThermostat", ["unoccupiedHeatingSetpoint"]);
                         }
-                        await entity.write("hvacThermostat", {awayOrBoostMode});
+                        await entity.write("hvacThermostat", {awayOrBoostMode} as PartialClusterOrRawWriteAttributes<"hvacThermostat">);
                         return {state: {preset: value, away_or_boost_mode: value}};
                     }
                     globalStore.putValue(entity, "awayOrBoostMode", 0);
@@ -732,7 +732,7 @@ const extend = {
             async (device, coordinatorEndpoint, definition) => {
                 const endpoint = device.getEndpoint(1);
                 await endpoint.read("hvacThermostat", ["systemMode"]);
-                await endpoint.read("hvacThermostat", ["awayOrBoostMode"]);
+                await endpoint.read("hvacThermostat", ["awayOrBoostMode"] as unknown as ClusterOrRawAttributeKeys<"hvacThermostat">);
 
                 await reporting.bind(endpoint, coordinatorEndpoint, ["hvacThermostat"]);
                 await reporting.thermostatSystemMode(endpoint);
@@ -747,7 +747,9 @@ const extend = {
         const getAwayOrBoostMode = async (entity: Endpoint | Group) => {
             let result = globalStore.getValue(entity, "awayOrBoostMode");
             if (result === undefined) {
-                const attributeRead = await entity.read("hvacThermostat", ["awayOrBoostMode"]);
+                const attributeRead = await entity.read("hvacThermostat", [
+                    "awayOrBoostMode",
+                ] as unknown as ClusterOrRawAttributeKeys<"hvacThermostat">);
                 // @ts-expect-error ignore
                 result = attributeRead.awayOrBoostMode;
                 globalStore.putValue(entity, "awayOrBoostMode", result);

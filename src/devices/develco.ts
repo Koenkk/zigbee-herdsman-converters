@@ -1,5 +1,5 @@
 import {Zcl} from "zigbee-herdsman";
-
+import type {ClusterOrRawAttributeKeys, PartialClusterOrRawWriteAttributes} from "zigbee-herdsman/dist/controller/tstype";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as constants from "../lib/constants";
@@ -195,11 +195,15 @@ const develco = {
             key: ["led_control"],
             convertSet: async (entity, key, value, meta) => {
                 const ledControl = utils.getKey(develcoLedControlMap, value, value, Number);
-                await entity.write("genBasic", {develcoLedControl: ledControl}, manufacturerOptions);
+                await entity.write(
+                    "genBasic",
+                    {develcoLedControl: ledControl} as PartialClusterOrRawWriteAttributes<"genBasic">,
+                    manufacturerOptions,
+                );
                 return {state: {led_control: value}};
             },
             convertGet: async (entity, key, meta) => {
-                await entity.read("genBasic", ["develcoLedControl"], manufacturerOptions);
+                await entity.read("genBasic", ["develcoLedControl"] as unknown as ClusterOrRawAttributeKeys<"genBasic">, manufacturerOptions);
             },
         } satisfies Tz.Converter,
         ias_occupancy_timeout: {
@@ -660,7 +664,7 @@ export const definitions: DefinitionWithExtend[] = [
                 await endpoint35.read("ssIasZone", ["develcoAlarmOffDelay"], manufacturerOptions);
             }
             if (Number(device?.softwareBuildID?.split(".")[0]) >= 4) {
-                await endpoint35.read("genBasic", ["develcoLedControl"], manufacturerOptions);
+                await endpoint35.read("genBasic", ["develcoLedControl"] as unknown as ClusterOrRawAttributeKeys<"genBasic">, manufacturerOptions);
             }
         },
     },
@@ -716,7 +720,7 @@ export const definitions: DefinitionWithExtend[] = [
             if (device?.softwareBuildID && Number(device.softwareBuildID.split(".")[0]) >= 2) {
                 const endpoint35 = device.getEndpoint(35);
                 await endpoint35.read("ssIasZone", ["develcoAlarmOffDelay"], manufacturerOptions);
-                await endpoint35.read("genBasic", ["develcoLedControl"], manufacturerOptions);
+                await endpoint35.read("genBasic", ["develcoLedControl"] as unknown as ClusterOrRawAttributeKeys<"genBasic">, manufacturerOptions);
             }
         },
     },

@@ -1,5 +1,5 @@
 import {Zcl} from "zigbee-herdsman";
-
+import type {ClusterOrRawAttributeKeys, PartialClusterOrRawWriteAttributes} from "zigbee-herdsman/dist/controller/tstype";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
@@ -199,14 +199,20 @@ const sdevices = {
                     throw new Error(`relay_mode was called with an invalid value (${value})`);
                 }
                 utils.assertEndpoint(entity);
-                await utils
-                    .enforceEndpoint(entity, key, meta)
-                    .write("genOnOff", {sdevicesRelayDecouple: relayDecoupleLookup[value as keyof typeof relayDecoupleLookup]}, manufacturerOptions);
+                await utils.enforceEndpoint(entity, key, meta).write(
+                    "genOnOff",
+                    {
+                        sdevicesRelayDecouple: relayDecoupleLookup[value as keyof typeof relayDecoupleLookup],
+                    } as PartialClusterOrRawWriteAttributes<"genOnOff">,
+                    manufacturerOptions,
+                );
                 return {state: {relay_mode: value.toLowerCase()}};
             },
             convertGet: async (entity, key, meta) => {
                 utils.assertEndpoint(entity);
-                await utils.enforceEndpoint(entity, key, meta).read("genOnOff", ["sdevicesRelayDecouple"], manufacturerOptions);
+                await utils
+                    .enforceEndpoint(entity, key, meta)
+                    .read("genOnOff", ["sdevicesRelayDecouple"] as unknown as ClusterOrRawAttributeKeys<"genOnOff">, manufacturerOptions);
             },
         } satisfies Tz.Converter,
         allow_double_click: {
@@ -803,8 +809,12 @@ export const definitions: DefinitionWithExtend[] = [
             await device.getEndpoint(1).read("genBasic", ["serialNumber"]);
             await device.getEndpoint(1).read("genOnOff", ["onOff", "startUpOnOff"]);
             await device.getEndpoint(2).read("genOnOff", ["onOff", "startUpOnOff"]);
-            await device.getEndpoint(1).read("genOnOff", ["sdevicesRelayDecouple"], manufacturerOptions);
-            await device.getEndpoint(2).read("genOnOff", ["sdevicesRelayDecouple"], manufacturerOptions);
+            await device
+                .getEndpoint(1)
+                .read("genOnOff", ["sdevicesRelayDecouple"] as unknown as ClusterOrRawAttributeKeys<"genOnOff">, manufacturerOptions);
+            await device
+                .getEndpoint(2)
+                .read("genOnOff", ["sdevicesRelayDecouple"] as unknown as ClusterOrRawAttributeKeys<"genOnOff">, manufacturerOptions);
             await device
                 .getEndpoint(1)
                 .read(

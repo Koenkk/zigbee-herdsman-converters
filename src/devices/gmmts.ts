@@ -1,6 +1,7 @@
 import {Buffer} from "node:buffer";
 import type {Models as ZHModels} from "zigbee-herdsman";
 import {Zcl} from "zigbee-herdsman";
+import type {PartialClusterOrRawWriteAttributes} from "zigbee-herdsman/dist/controller/tstype";
 import * as fz from "../converters/fromZigbee";
 import {repInterval} from "../lib/constants";
 import * as exposes from "../lib/exposes";
@@ -1912,7 +1913,9 @@ function genereateTzLocal() {
                 if (Number(value) < 0 || Number(value) > 65535) {
                     throw new Error("Value must be between 0 and 65535");
                 }
-                await entity.write(item.clust, {[item.attr]: value}, {manufacturerCode: null});
+                await entity.write(item.clust, {[item.attr]: value} as PartialClusterOrRawWriteAttributes<typeof item.clust>, {
+                    manufacturerCode: null,
+                });
             };
         }
         tzLocal.push(tz);

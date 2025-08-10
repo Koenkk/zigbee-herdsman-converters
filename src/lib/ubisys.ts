@@ -1,4 +1,5 @@
 import {Zcl} from "zigbee-herdsman";
+import type {PartialClusterOrRawWriteAttributes} from "zigbee-herdsman/dist/controller/tstype";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import {presets as e, access as ea} from "./exposes";
@@ -243,7 +244,7 @@ export const ubisysModernExtend = {
                         //       ZCL DataType used does still need to be 0x0010 (BOOLEAN)
                         await entity.write(
                             clusterName,
-                            {[writeableAttributeName]: value ? 1 : 0},
+                            {[writeableAttributeName]: value ? 1 : 0} as PartialClusterOrRawWriteAttributes<typeof clusterName>,
                             {manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
                         );
                     } else {

@@ -1,5 +1,5 @@
 import {Zcl} from "zigbee-herdsman";
-
+import type {ClusterOrRawAttributeKeys} from "zigbee-herdsman/dist/controller/tstype";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as constants from "../lib/constants";
@@ -756,7 +756,7 @@ export const definitions: DefinitionWithExtend[] = [
                             "windowOpenFlag",
                             "forcedHeatingTime",
                             "errorCode",
-                        ]),
+                        ] as unknown as ClusterOrRawAttributeKeys<"hvacThermostat">),
                     ];
 
                     await Promise.all(readPromises);
