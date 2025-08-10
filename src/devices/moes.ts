@@ -27,10 +27,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZHT-S03",
         vendor: "Moes",
         description: "Zigbee wall thermostat",
-        onEvent: tuya.onEventSetLocalTime,
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true})],
         exposes: [
             e.child_lock(),
             e
@@ -100,10 +97,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZS-D1",
         vendor: "MOES",
         description: "Intelligent dimming switch - 1 gang",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime,
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
         exposes: (device, options) => {
             return [
                 e.switch().withEndpoint("l1"),
@@ -172,10 +166,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZS-D2",
         vendor: "Moes",
         description: "Intelligent dimming switch - 2 gang",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime,
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
         exposes: (device, options) => {
             return [
                 e.switch().withEndpoint("l1"),
@@ -271,10 +262,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZS-D3",
         vendor: "Moes",
         description: "Intelligent dimming switch - 3 gang",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime,
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
         exposes: (device, options) => {
             return [
                 e.switch().withEndpoint("l1"),
@@ -397,9 +385,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SFL02-Z-1",
         vendor: "MOES",
         description: "Star feather smart switch 1 gang",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
         whiteLabel: [tuya.whitelabel("Nova Digital", "TPZ-1", "Topazio smart switch 1 gang", ["_TZE200_ydkqbmpt"])],
         exposes: [
             tuya.exposes.backlightModeOffOn().withAccess(ea.STATE_SET),
@@ -418,7 +404,6 @@ export const definitions: DefinitionWithExtend[] = [
             exposes.enum("induction_mode", ea.ALL, ["ON", "OFF"]).withDescription("Induction mode"),
             exposes.enum("vibration_mode", ea.ALL, ["Gear 0", "Gear 1", "Gear 2", "Gear 3"]).withDescription("Vibration"),
         ],
-        onEvent: tuya.onEventSetTime,
         endpoint: (device) => {
             return {
                 l1: 1,
@@ -452,9 +437,6 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SFL02-Z-2",
         vendor: "Moes",
         description: "Star feather smart switch 2 gangs",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
         whiteLabel: [tuya.whitelabel("Nova Digital", "TPZ-2", "Topazio smart switch 2 gangs", ["_TZE200_hktk6hze"])],
         exposes: [
             tuya.exposes.backlightModeOffOn().withAccess(ea.STATE_SET),
@@ -483,7 +465,7 @@ export const definitions: DefinitionWithExtend[] = [
             exposes.enum("induction_mode", ea.ALL, ["ON", "OFF"]).withDescription("Induction mode"),
             exposes.enum("vibration_mode", ea.ALL, ["Gear 0", "Gear 1", "Gear 2", "Gear 3"]).withDescription("Vibration"),
         ],
-        onEvent: tuya.onEventSetTime,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
         endpoint: (device) => {
             return {l1: 1, l2: 1, state: 1, backlight: 1};
         },
@@ -517,9 +499,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SFL02-Z-3",
         vendor: "MOES",
         description: "Star feather smart switch 3 gangs",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
         whiteLabel: [tuya.whitelabel("Nova Digital", "TPZ-3", "Topazio smart switch 3 gangs", ["_TZE200_rd8cdssd"])],
         exposes: [
             e.switch().withEndpoint("l1").setAccess("state", ea.STATE_SET),
@@ -559,7 +539,6 @@ export const definitions: DefinitionWithExtend[] = [
             exposes.enum("induction_mode", ea.ALL, ["ON", "OFF"]).withDescription("Induction mode"),
             exposes.enum("vibration_mode", ea.ALL, ["Gear 0", "Gear 1", "Gear 2", "Gear 3"]).withDescription("Vibration"),
         ],
-        onEvent: tuya.onEventSetTime,
         endpoint: (device) => {
             return {
                 l1: 1,
@@ -606,9 +585,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SFL02-Z-4",
         vendor: "MOES",
         description: "Star feather smart switch 4 gangs",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
         whiteLabel: [tuya.whitelabel("Nova Digital", "TPZ-4", "Topazio smart switch 4 gangs", ["_TZE200_hmabvy81"])],
         exposes: [
             e.switch().withEndpoint("l1").setAccess("state", ea.STATE_SET),
@@ -658,7 +635,6 @@ export const definitions: DefinitionWithExtend[] = [
             exposes.enum("induction_mode", ea.ALL, ["ON", "OFF"]).withDescription("Induction mode"),
             exposes.enum("vibration_mode", ea.ALL, ["Gear 0", "Gear 1", "Gear 2", "Gear 3"]).withDescription("Vibration"),
         ],
-        onEvent: tuya.onEventSetTime,
         endpoint: (device) => {
             return {
                 l1: 1,
@@ -710,10 +686,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZTRV-S01",
         vendor: "Moes",
         description: "Zigbee temperature control valve",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime,
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
         exposes: [
             e
                 .climate()
@@ -967,7 +940,7 @@ export const definitions: DefinitionWithExtend[] = [
                     .withFeature(exposesLocal.program_temperature("sunday_p4_temperature")),
             ];
         },
-        onEvent: tuya.onEventSetLocalTime,
+        extend: [tuya.modernExtend.tuyaBase({forceTimeUpdates: true})],
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_amp6tsvy", "_TZE200_tviaymwx"]),
@@ -983,7 +956,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         fromZigbee: [legacy.fz.tuya_switch, legacy.fz.moes_switch],
         toZigbee: [legacy.tz.tuya_switch_state, legacy.tz.moes_switch],
-        onEvent: tuya.onEventSetLocalTime,
+        extend: [tuya.modernExtend.tuyaBase({forceTimeUpdates: true})],
         configure: async (device, coordinatorEndpoint) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
             // Reports itself as battery which is not correct: https://github.com/Koenkk/zigbee2mqtt/issues/6190
@@ -1006,7 +979,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         fromZigbee: [fz.ignore_basic_report, legacy.fz.tuya_switch, legacy.fz.moes_switch],
         toZigbee: [legacy.tz.tuya_switch_state, legacy.tz.moes_switch],
-        onEvent: tuya.onEventSetLocalTime,
+        extend: [tuya.modernExtend.tuyaBase({forceTimeUpdates: true})],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             // Endpoint selection is made in tuya_switch_state
@@ -1036,7 +1009,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         fromZigbee: [fz.ignore_basic_report, legacy.fz.tuya_switch, legacy.fz.moes_switch],
         toZigbee: [legacy.tz.tuya_switch_state, legacy.tz.moes_switch],
-        onEvent: tuya.onEventSetLocalTime,
+        extend: [tuya.modernExtend.tuyaBase({forceTimeUpdates: true})],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             // Endpoint selection is made in tuya_switch_state
@@ -1068,7 +1041,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         fromZigbee: [fz.ignore_basic_report, legacy.fz.tuya_switch, legacy.fz.moes_switch],
         toZigbee: [legacy.tz.tuya_switch_state, legacy.tz.moes_switch],
-        onEvent: tuya.onEventSetLocalTime,
+        extend: [tuya.modernExtend.tuyaBase({forceTimeUpdates: true})],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             // Endpoint selection is made in tuya_switch_state
@@ -1102,7 +1075,7 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [tuya.whitelabel("Sibling", "Powerswitch-ZK(W)", "Thermostatic radiator valve", ["_TZE200_qsoecqlk"])],
         // ota: true,
         // OTA available but bricks device https://github.com/Koenkk/zigbee2mqtt/issues/18840
-        onEvent: tuya.onEventSetLocalTime,
+        extend: [tuya.modernExtend.tuyaBase({forceTimeUpdates: true})],
         fromZigbee: [fz.ignore_basic_report, fz.ignore_tuya_set_time, legacy.fz.moesS_thermostat],
         toZigbee: [
             legacy.tz.moesS_thermostat_current_heating_setpoint,
@@ -1175,7 +1148,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZTS-EUR-C",
         vendor: "Moes",
         description: "Zigbee + RF curtain switch",
-        onEvent: tuya.onEventSetLocalTime,
+        extend: [tuya.modernExtend.tuyaBase({forceTimeUpdates: true})],
         fromZigbee: [legacy.fz.moes_cover, fz.ignore_basic_report],
         toZigbee: [legacy.tz.moes_cover],
         exposes: [
@@ -1267,10 +1240,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZSS-HM-SSD01",
         vendor: "Moes",
         description: "Smoke sensor",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime,
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
         exposes: [
             e.smoke(),
             e.battery(),
@@ -1426,10 +1396,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZHT-SR",
         vendor: "Moes",
         description: "Smart ring thermostat",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime,
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
         exposes: [
             e
                 .climate()
@@ -1567,10 +1534,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "GM25TEQ-TYZ-2/25",
         vendor: "Moes",
         description: "Roller Shade Blinds Motor for 38mm Tube",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime,
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
         exposes: [
             e.cover_position().setAccess("position", ea.STATE_SET),
             e.enum("motor_direction", ea.STATE_SET, ["forward", "back"]).withDescription("Set the motor direction"),

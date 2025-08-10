@@ -9,7 +9,6 @@ import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import {payload} from "../lib/reporting";
-import * as globalStore from "../lib/store";
 import * as sunricher from "../lib/sunricher";
 import type {DefinitionWithExtend, Fz, KeyValue, Tz, Zh} from "../lib/types";
 import * as utils from "../lib/utils";
@@ -1816,18 +1815,8 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMax(60)
                 .withDescription("Room temperature alarm threshold, between 20 and 60 in °C.  0 means disabled.  Default: 45."),
         ],
-        onEvent: (type, data, device, options) => {
-            if (type === "stop") {
-                clearInterval(globalStore.getValue(device, "time"));
-                globalStore.clearValue(device, "time");
-            } else if (!globalStore.hasValue(device, "time")) {
-                const endpoint = device.getEndpoint(1);
-                const hours24 = 1000 * 60 * 60 * 24;
-                // Device does not ask for the time with binding, therefore we write the time every 24 hours
-                const interval = setInterval(async () => await syncTime(endpoint), hours24);
-                globalStore.putValue(device, "time", interval);
-            }
-        },
+        // Device does not ask for the time with binding, therefore we write the time every 24 hours
+        extend: [m.writeTimeDaily({endpointId: 1})],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const binds = [
@@ -2155,18 +2144,8 @@ export const definitions: DefinitionWithExtend[] = [
                     "This parameter refers to the minimum difference between cooling and heating temperatures. between 1 and 1.5 in 0.1 °C  Default: 1 °C. The hysteresis used by this device = MinSetpointDeadBand /2",
                 ),
         ],
-        onEvent: async (type, _data, device, _options) => {
-            if (type === "stop") {
-                await clearInterval(globalStore.getValue(device, "time"));
-                await globalStore.clearValue(device, "time");
-            } else if (!globalStore.hasValue(device, "time")) {
-                const endpoint = await device.getEndpoint(1);
-                const hours24 = 1000 * 60 * 60 * 24;
-                // Device does not ask for the time with binding, therefore we write the time every 24 hours
-                const interval = await setInterval(async () => await syncTime(endpoint), hours24);
-                await globalStore.putValue(device, "time", interval);
-            }
-        },
+        // Device does not ask for the time with binding, therefore we write the time every 24 hours
+        extend: [m.writeTimeDaily({endpointId: 1})],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const binds = ["genBasic", "genIdentify", "hvacThermostat", "seMetering", "genTime", "hvacUserInterfaceCfg"];

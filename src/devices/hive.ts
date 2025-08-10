@@ -3,7 +3,6 @@ import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import * as globalStore from "../lib/store";
 import type {DefinitionWithExtend} from "../lib/types";
 
 const e = exposes.presets;
@@ -166,22 +165,12 @@ export const definitions: DefinitionWithExtend[] = [
             e.text("action_zone", ea.STATE).withDescription("Alarm zone. Default value 23"),
             e.action(["panic", "disarm", "arm_day_zones", "arm_all_zones", "exit_delay", "entry_delay"]),
         ],
+        extend: [m.iasGetPanelStatusResponse()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const clusters = ["genPowerCfg", "ssIasZone", "ssIasAce", "genIdentify"];
             await reporting.bind(endpoint, coordinatorEndpoint, clusters);
             await reporting.batteryVoltage(endpoint);
-        },
-        onEvent: async (type, data, device) => {
-            if (data.type === "commandGetPanelStatus" && data.cluster === "ssIasAce") {
-                const payload = {
-                    panelstatus: globalStore.getValue(data.endpoint, "panelStatus"),
-                    secondsremain: 0x00,
-                    audiblenotif: 0x00,
-                    alarmstatus: 0x00,
-                };
-                await data.endpoint.commandResponse("ssIasAce", "getPanelStatusRsp", payload, {}, data.meta.zclTransactionSequenceNumber);
-            }
         },
     },
     {
@@ -739,24 +728,14 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Signal booster",
         toZigbee: [],
         fromZigbee: [fz.linkquality_from_basic],
-        onEvent: (type, data, device) => {
-            if (type === "stop") {
-                clearInterval(globalStore.getValue(device, "interval"));
-                globalStore.clearValue(device, "interval");
-            } else if (!globalStore.hasValue(device, "interval")) {
-                const interval = setInterval(
-                    async () => {
-                        try {
-                            await device.endpoints[0].read("genBasic", ["zclVersion"]);
-                        } catch {
-                            // Do nothing
-                        }
-                    },
-                    1000 * 60 * 30,
-                ); // Every 30 minutes
-                globalStore.putValue(device, "interval", interval);
-            }
-        },
+        extend: [
+            m.poll({
+                key: "interval",
+                defaultIntervalSeconds: 60 * 30,
+                // For linkquality updates
+                poll: async (device) => await device.endpoints[0].read("genBasic", ["zclVersion"]),
+            }),
+        ],
         exposes: [],
     },
     {

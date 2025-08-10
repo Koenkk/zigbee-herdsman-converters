@@ -13,8 +13,6 @@ import type {
     Fz,
     KeyValue,
     KeyValueAny,
-    OnEventData,
-    OnEventType,
     Publish,
     Tz,
     Zh,
@@ -24,41 +22,6 @@ const NS = "zhc:utils";
 
 export function flatten<Type>(arr: Type[][]): Type[] {
     return [].concat(...arr);
-}
-
-export function onEventPoll(
-    type: OnEventType,
-    data: OnEventData,
-    device: Zh.Device,
-    options: KeyValue,
-    key: string,
-    defaultIntervalSeconds: number,
-    poll: () => Promise<void>,
-) {
-    if (type === "stop") {
-        clearTimeout(globalStore.getValue(device, key));
-        globalStore.clearValue(device, key);
-    } else if (!globalStore.hasValue(device, key)) {
-        const optionsKey = `${key}_poll_interval`;
-        const seconds = toNumber(options[optionsKey] || defaultIntervalSeconds, optionsKey);
-        if (seconds <= 0) {
-            logger.debug(`Not polling '${key}' for '${device.ieeeAddr}' since poll interval is <= 0 (got ${seconds})`, NS);
-        } else {
-            logger.debug(`Polling '${key}' for '${device.ieeeAddr}' at an interval of ${seconds}`, NS);
-            const setTimer = () => {
-                const timer = setTimeout(async () => {
-                    try {
-                        await poll();
-                    } catch {
-                        /* Do nothing*/
-                    }
-                    setTimer();
-                }, seconds * 1000);
-                globalStore.putValue(device, key, timer);
-            };
-            setTimer();
-        }
-    }
 }
 
 export function precisionRound(number: number, precision: number): number {

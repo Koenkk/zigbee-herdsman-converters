@@ -1204,11 +1204,11 @@ export const definitions: DefinitionWithExtend[] = [
                 }
             });
         },
-        onEvent: (type, data, device) => {
+        onEvent: (event) => {
             // Record the factory default bindings for easy removal/change after deviceInterview
-            if (type === "deviceInterview") {
-                const dimmer = device.getEndpoint(3);
-                device.endpoints.forEach((ep) => {
+            if (event.type === "deviceInterview") {
+                const dimmer = event.data.device.getEndpoint(3);
+                event.data.device.endpoints.forEach((ep) => {
                     if (21 <= ep.ID && ep.ID <= 22) {
                         ep.addBinding("genOnOff", dimmer);
                         ep.addBinding("genLevelCtrl", dimmer);
@@ -2165,13 +2165,16 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint4, coordinatorEndpoint, ["msOccupancySensing"]);
             await reporting.thermostatOccupancy(endpoint4);
         },
-        options: [exposes.options.measurement_poll_interval()],
-        onEvent: (type, data, device, options) => {
-            const endpoint = device.getEndpoint(1);
-            const poll = async () => {
-                await endpoint.read("hvacThermostat", ["occupiedHeatingSetpoint"]);
-            };
-            utils.onEventPoll(type, data, device, options, "measurement", 20, poll);
-        },
+        extend: [
+            m.poll({
+                key: "measurement",
+                option: exposes.options.measurement_poll_interval().withDescription("Polling interval of the occupied heating setpoint"),
+                defaultIntervalSeconds: 20,
+                poll: async (device) => {
+                    const endpoint = device.getEndpoint(1);
+                    await endpoint.read("hvacThermostat", ["occupiedHeatingSetpoint"]);
+                },
+            }),
+        ],
     },
 ];
