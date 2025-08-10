@@ -1,6 +1,6 @@
 import type {Models as ZHModels} from "zigbee-herdsman";
-import type {Frame as ZHZclFrame, Header as ZHZclHeader} from "zigbee-herdsman/dist/zspec/zcl";
-
+import type {Header as ZHZclHeader} from "zigbee-herdsman/dist/zspec/zcl";
+import type {FrameControl} from "zigbee-herdsman/dist/zspec/zcl/definition/tstype";
 import type * as exposes from "./exposes";
 
 export interface Logger {
@@ -288,7 +288,7 @@ export namespace Fz {
         data: any;
         endpoint: Zh.Endpoint;
         device: Zh.Device;
-        meta: {zclFrame: ZHZclFrame};
+        meta: {zclTransactionSequenceNumber?: number; manufacturerCode?: number; frameControl?: FrameControl; rawData: Buffer};
         groupID: number;
         type: string;
         cluster: string | number;

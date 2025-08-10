@@ -1887,6 +1887,7 @@ export const definitions: DefinitionWithExtend[] = [
                 unit: "W",
                 scale: 1000,
                 access: "STATE_GET",
+                reporting: {min: "10_SECONDS", max: "MAX", change: 0},
             }),
             m.numeric({
                 name: "energy_yesterday",
