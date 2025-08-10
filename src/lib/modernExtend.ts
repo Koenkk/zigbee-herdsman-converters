@@ -1,7 +1,7 @@
 import assert from "node:assert";
 import {Zcl} from "zigbee-herdsman";
 import type {ClusterOrRawAttributeKeys, PartialClusterOrRawWriteAttributes} from "zigbee-herdsman/dist/controller/tstype";
-import type {TPartialClusterAttributes} from "zigbee-herdsman/dist/zspec/zcl/definition/clusters-types";
+import type {TClusterPayload, TPartialClusterAttributes} from "zigbee-herdsman/dist/zspec/zcl/definition/clusters-types";
 import type {ClusterDefinition} from "zigbee-herdsman/dist/zspec/zcl/definition/tstype";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
@@ -2400,12 +2400,18 @@ export function commandsScenes(args: CommandsScenesArgs = {}) {
     return result;
 }
 
-export interface ClusterWithAttribute<Cl extends string | number, Custom extends true | undefined = undefined> {
+export interface ClusterWithAttribute<
+    Cl extends string | number,
+    Custom extends true | undefined = undefined,
+    Co extends string | number | undefined = undefined,
+> {
     cluster: Cl;
     attribute:
         | (Cl extends keyof Zcl.ClusterTypes.TClusters
               ? Custom extends undefined
-                  ? keyof Zcl.ClusterTypes.TClusters[Cl]["attributes"]
+                  ? Co extends undefined
+                      ? keyof Zcl.ClusterTypes.TClusters[Cl]["attributes"]
+                      : keyof TClusterPayload<Cl, Co>
                   : keyof Zcl.ClusterTypes.TClusters[Cl]["attributes"] | string
               : Custom extends undefined
                 ? never
@@ -2761,8 +2767,11 @@ export function text<Cl extends string | number, Custom extends true | undefined
 }
 
 export type Parse = (msg: Fz.Message, attributeKey: string | number) => unknown;
-export interface ActionEnumLookupArgs<Cl extends string | number, Custom extends true | undefined = undefined>
-    extends ClusterWithAttribute<Cl, Custom> {
+export interface ActionEnumLookupArgs<
+    Cl extends string | number,
+    Custom extends true | undefined = undefined,
+    Co extends string | number | undefined = undefined,
+> extends ClusterWithAttribute<Cl, Custom, Co> {
     actionLookup: KeyValue;
     endpointNames?: string[];
     buttonLookup?: KeyValue;
@@ -2770,9 +2779,11 @@ export interface ActionEnumLookupArgs<Cl extends string | number, Custom extends
     commands?: string[];
     parse?: Parse;
 }
-export function actionEnumLookup<Cl extends string | number, Custom extends true | undefined = undefined>(
-    args: ActionEnumLookupArgs<Cl, Custom>,
-): ModernExtend {
+export function actionEnumLookup<
+    Cl extends string | number,
+    Custom extends true | undefined = undefined,
+    Co extends string | number | undefined = undefined,
+>(args: ActionEnumLookupArgs<Cl, Custom, Co>): ModernExtend {
     const {actionLookup: lookup, attribute, cluster, buttonLookup} = args;
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
     const commands = args.commands || ["attributeReport", "readResponse"];

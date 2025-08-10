@@ -2671,11 +2671,10 @@ const tuyaModernExtend = {
         return {configure: [configureMagicPacket], isModernExtend: true};
     },
     tuyaOnOffAction(args?: Partial<modernExtend.ActionEnumLookupArgs<"genOnOff">>): ModernExtend {
-        return modernExtend.actionEnumLookup({
+        return modernExtend.actionEnumLookup<"genOnOff", undefined, "tuyaAction">({
             actionLookup: {0: "single", 1: "double", 2: "hold"},
             cluster: "genOnOff",
             commands: ["commandTuyaAction"],
-            // TODO: using commands payload not attributes
             attribute: "value",
         });
     },

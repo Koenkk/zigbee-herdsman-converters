@@ -14272,11 +14272,10 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.modernExtend.tuyaMagicPacket(),
             m.battery({voltage: true}),
             tuya.modernExtend.combineActions([
-                m.actionEnumLookup({
+                m.actionEnumLookup<"genOnOff", undefined, "tuyaAction">({
                     actionLookup: {scene_1: 1, scene_2: 2, scene_3: 3, scene_4: 4},
                     cluster: "genOnOff",
                     commands: ["commandTuyaAction"],
-                    // TODO: using command payload not attribute
                     attribute: "data",
                     parse: (msg, attr) => msg.data[attr][1],
                 }),

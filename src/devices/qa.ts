@@ -20,10 +20,9 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.modernExtend.tuyaMagicPacket(),
             m.deviceEndpoints({endpoints: {l1: 1}}),
             tuya.modernExtend.tuyaOnOff({endpoints: ["l1"], powerOnBehavior2: true, backlightModeOffOn: true}),
-            m.actionEnumLookup({
+            m.actionEnumLookup<"genOnOff", undefined, "tuyaAction">({
                 cluster: "genOnOff",
                 commands: ["commandTuyaAction"],
-                // TODO: using command payload not attribute
                 attribute: "value",
                 actionLookup: {button: 0},
                 buttonLookup: {
@@ -47,7 +46,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.modernExtend.tuyaMagicPacket(),
             m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
             tuya.modernExtend.tuyaOnOff({endpoints: ["l1", "l2"], powerOnBehavior2: true, backlightModeOffOn: true}),
-            m.actionEnumLookup({
+            m.actionEnumLookup<"genOnOff", undefined, "tuyaAction">({
                 cluster: "genOnOff",
                 commands: ["commandTuyaAction"],
                 attribute: "value",
@@ -73,7 +72,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.modernExtend.tuyaMagicPacket(),
             m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3}}),
             tuya.modernExtend.tuyaOnOff({endpoints: ["l1", "l2", "l3"], powerOnBehavior2: true, backlightModeOffOn: true}),
-            m.actionEnumLookup({
+            m.actionEnumLookup<"genOnOff", undefined, "tuyaAction">({
                 cluster: "genOnOff",
                 commands: ["commandTuyaAction"],
                 attribute: "value",
