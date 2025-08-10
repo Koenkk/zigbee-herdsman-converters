@@ -8786,6 +8786,14 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.illuminance()],
     },
     {
+        fingerprint: tuya.fingerprint("TS0222", ["_TZ3000_j6adk9id"]),
+        model: "TS0222_solar_light",
+        vendor: "Tuya",
+        description: "Solar light sensor",
+        configure: tuya.configureMagicPacket,
+        extend: [m.illuminance(), m.battery()],
+    },
+    {
         zigbeeModel: ["TS0210"],
         model: "TS0210",
         vendor: "Tuya",
