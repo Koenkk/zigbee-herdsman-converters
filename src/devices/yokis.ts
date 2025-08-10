@@ -1487,7 +1487,7 @@ const YokisDeviceExtend: ModernExtend[] = [
 
 const YokisInputExtend: ModernExtend[] = [
     // InputMode
-    m.enumLookup({
+    m.enumLookup<"manuSpecificYokisInput", true>({
         name: "input_mode",
         lookup: inputModeEnum,
         cluster: "manuSpecificYokisInput",
@@ -1502,7 +1502,7 @@ const YokisInputExtend: ModernExtend[] = [
     }),
 
     // InputMode
-    m.enumLookup({
+    m.enumLookup<"manuSpecificYokisInput", true>({
         name: "contact_mode",
         lookup: {nc: 0x00, no: 0x01},
         cluster: "manuSpecificYokisInput",
@@ -1514,7 +1514,7 @@ const YokisInputExtend: ModernExtend[] = [
     }),
 
     // LastLocalCommandState
-    m.binary({
+    m.binary<"manuSpecificYokisInput", true>({
         name: "last_local_command_state",
         cluster: "manuSpecificYokisInput",
         attribute: "lastLocalCommandState",
@@ -1526,7 +1526,7 @@ const YokisInputExtend: ModernExtend[] = [
     }),
 
     // LastBPConnectState
-    m.binary({
+    m.binary<"manuSpecificYokisInput", true>({
         name: "last_bp_connect_state",
         cluster: "manuSpecificYokisInput",
         attribute: "lastBPConnectState",
@@ -1561,7 +1561,7 @@ const YokisInputExtendWithBacklight: ModernExtend[] = [
 
 const YokisEntryExtend: ModernExtend[] = [
     // eShortPress
-    m.binary({
+    m.binary<"manuSpecificYokisEntryConfigurator", true>({
         name: "enable_short_press",
         cluster: "manuSpecificYokisEntryConfigurator",
         attribute: "eShortPress",
@@ -1572,7 +1572,7 @@ const YokisEntryExtend: ModernExtend[] = [
     }),
 
     // eLongPress
-    m.binary({
+    m.binary<"manuSpecificYokisEntryConfigurator", true>({
         name: "enable_long_press",
         cluster: "manuSpecificYokisEntryConfigurator",
         attribute: "eLongPress",
@@ -1583,7 +1583,7 @@ const YokisEntryExtend: ModernExtend[] = [
     }),
 
     // LongPressDuration
-    m.numeric({
+    m.numeric<"manuSpecificYokisEntryConfigurator", true>({
         name: "long_press_duration",
         cluster: "manuSpecificYokisEntryConfigurator",
         attribute: "longPressDuration",
@@ -1596,7 +1596,7 @@ const YokisEntryExtend: ModernExtend[] = [
     }),
 
     // TimeBetweenPress
-    m.numeric({
+    m.numeric<"manuSpecificYokisEntryConfigurator", true>({
         name: "time_between_press",
         cluster: "manuSpecificYokisEntryConfigurator",
         attribute: "timeBetweenPress",
@@ -1609,7 +1609,7 @@ const YokisEntryExtend: ModernExtend[] = [
     }),
 
     // eR12MLongPress
-    m.binary({
+    m.binary<"manuSpecificYokisEntryConfigurator", true>({
         name: "enable_R12M_long_press",
         cluster: "manuSpecificYokisEntryConfigurator",
         attribute: "eR12MLongPress",
@@ -1620,7 +1620,7 @@ const YokisEntryExtend: ModernExtend[] = [
     }),
 
     // eLocalConfigLock
-    m.binary({
+    m.binary<"manuSpecificYokisEntryConfigurator", true>({
         name: "enable_local_config_lock",
         cluster: "manuSpecificYokisEntryConfigurator",
         attribute: "eLocalConfigLock",
@@ -1632,7 +1632,7 @@ const YokisEntryExtend: ModernExtend[] = [
 ];
 
 const YokisSubSystemExtend: ModernExtend[] = [
-    m.enumLookup({
+    m.enumLookup<"manuSpecificYokisSubSystem", true>({
         name: "power_failure_mode",
         lookup: {last_state: 0x00, off: 0x01, on: 0x02, blink: 0x03},
         cluster: "manuSpecificYokisSubSystem",
@@ -1660,7 +1660,7 @@ const yokisLightControlExtend: ModernExtend[] = [
     // }),
 
     // PrevState
-    m.binary({
+    m.binary<"manuSpecificYokisLightControl", true>({
         name: "prev_state",
         cluster: "manuSpecificYokisLightControl",
         attribute: "prevState",
@@ -1684,7 +1684,7 @@ const yokisLightControlExtend: ModernExtend[] = [
     //     valueOff: ['OFF', 0x00],
     //     entityCategory: 'config',
     // }),
-    m.numeric({
+    m.numeric<"manuSpecificYokisLightControl", true>({
         name: "on_timer",
         cluster: "manuSpecificYokisLightControl",
         attribute: "onTimer",
@@ -1697,7 +1697,7 @@ const yokisLightControlExtend: ModernExtend[] = [
     }),
 
     // preOnDelay
-    m.binary({
+    m.binary<"manuSpecificYokisLightControl", true>({
         name: "enable_pre_on_delay",
         cluster: "manuSpecificYokisLightControl",
         attribute: "ePreOnDelay",
@@ -1706,7 +1706,7 @@ const yokisLightControlExtend: ModernExtend[] = [
         valueOff: ["OFF", 0x00],
         entityCategory: "config",
     }),
-    m.numeric({
+    m.numeric<"manuSpecificYokisLightControl", true>({
         name: "pre_on_delay",
         cluster: "manuSpecificYokisLightControl",
         attribute: "preOnDelay",
@@ -1719,7 +1719,7 @@ const yokisLightControlExtend: ModernExtend[] = [
     }),
 
     // preOffDelay
-    m.binary({
+    m.binary<"manuSpecificYokisLightControl", true>({
         name: "enable_pre_off_delay",
         cluster: "manuSpecificYokisLightControl",
         attribute: "ePreOffDelay",
@@ -1728,7 +1728,7 @@ const yokisLightControlExtend: ModernExtend[] = [
         valueOff: ["OFF", 0x00],
         entityCategory: "config",
     }),
-    m.numeric({
+    m.numeric<"manuSpecificYokisLightControl", true>({
         name: "pre_off_delay",
         cluster: "manuSpecificYokisLightControl",
         attribute: "preOffDelay",
@@ -1741,7 +1741,7 @@ const yokisLightControlExtend: ModernExtend[] = [
     }),
 
     // Pulseduration
-    m.numeric({
+    m.numeric<"manuSpecificYokisLightControl", true>({
         name: "pulse_duration",
         cluster: "manuSpecificYokisLightControl",
         attribute: "pulseDuration",
@@ -1754,7 +1754,7 @@ const yokisLightControlExtend: ModernExtend[] = [
     }),
 
     // TimeType
-    m.enumLookup({
+    m.enumLookup<"manuSpecificYokisLightControl", true>({
         name: "time_type",
         lookup: {seconds: 0x00, minutes: 0x01},
         cluster: "manuSpecificYokisLightControl",
@@ -1766,7 +1766,7 @@ const yokisLightControlExtend: ModernExtend[] = [
     }),
 
     // LongOnDuration
-    m.numeric({
+    m.numeric<"manuSpecificYokisLightControl", true>({
         name: "long_on_duration",
         cluster: "manuSpecificYokisLightControl",
         attribute: "longOnDuration",
@@ -1779,7 +1779,7 @@ const yokisLightControlExtend: ModernExtend[] = [
     }),
 
     // OperatingMode
-    m.enumLookup({
+    m.enumLookup<"manuSpecificYokisLightControl", true>({
         name: "operating_mode",
         lookup: {timer: 0x00, staircase: 0x01, pulse: 0x02},
         cluster: "manuSpecificYokisLightControl",
@@ -1792,7 +1792,7 @@ const yokisLightControlExtend: ModernExtend[] = [
     }),
 
     // stopAnnounce
-    m.binary({
+    m.binary<"manuSpecificYokisLightControl", true>({
         name: "enable_stop_announce",
         cluster: "manuSpecificYokisLightControl",
         attribute: "eStopAnnounce",
@@ -1801,7 +1801,7 @@ const yokisLightControlExtend: ModernExtend[] = [
         valueOff: ["OFF", 0x00],
         entityCategory: "config",
     }),
-    m.numeric({
+    m.numeric<"manuSpecificYokisLightControl", true>({
         name: "stop_announce_time",
         cluster: "manuSpecificYokisLightControl",
         attribute: "stopAnnounceTime",
@@ -1814,7 +1814,7 @@ const yokisLightControlExtend: ModernExtend[] = [
     }),
 
     // eDeaf
-    m.binary({
+    m.binary<"manuSpecificYokisLightControl", true>({
         name: "enable_deaf",
         cluster: "manuSpecificYokisLightControl",
         attribute: "eDeaf",
@@ -1823,7 +1823,7 @@ const yokisLightControlExtend: ModernExtend[] = [
         valueOff: ["OFF", 0x00],
         entityCategory: "config",
     }),
-    m.numeric({
+    m.numeric<"manuSpecificYokisLightControl", true>({
         name: "deaf_blink_amount",
         cluster: "manuSpecificYokisLightControl",
         attribute: "deafBlinkAmount",
@@ -1833,7 +1833,7 @@ const yokisLightControlExtend: ModernExtend[] = [
         valueStep: 1,
         entityCategory: "config",
     }),
-    m.numeric({
+    m.numeric<"manuSpecificYokisLightControl", true>({
         name: "deaf_blink_time",
         cluster: "manuSpecificYokisLightControl",
         attribute: "deafBlinkTime",
@@ -1845,7 +1845,7 @@ const yokisLightControlExtend: ModernExtend[] = [
     }),
 
     // Blink
-    m.binary({
+    m.binary<"manuSpecificYokisLightControl", true>({
         name: "enable_blink",
         cluster: "manuSpecificYokisLightControl",
         attribute: "eBlink",
@@ -1854,7 +1854,7 @@ const yokisLightControlExtend: ModernExtend[] = [
         valueOff: ["OFF", 0x00],
         entityCategory: "config",
     }),
-    m.numeric({
+    m.numeric<"manuSpecificYokisLightControl", true>({
         name: "blink_amount",
         cluster: "manuSpecificYokisLightControl",
         attribute: "blinkAmount",
@@ -1864,7 +1864,7 @@ const yokisLightControlExtend: ModernExtend[] = [
         valueStep: 1,
         entityCategory: "config",
     }),
-    m.numeric({
+    m.numeric<"manuSpecificYokisLightControl", true>({
         name: "blink_on_time",
         cluster: "manuSpecificYokisLightControl",
         attribute: "blinkOnTime",
@@ -1874,7 +1874,7 @@ const yokisLightControlExtend: ModernExtend[] = [
         valueStep: 1,
         entityCategory: "config",
     }),
-    m.numeric({
+    m.numeric<"manuSpecificYokisLightControl", true>({
         name: "blink_off_time",
         cluster: "manuSpecificYokisLightControl",
         attribute: "blinkOffTime",
@@ -1886,7 +1886,7 @@ const yokisLightControlExtend: ModernExtend[] = [
     }),
 
     // StateAfterBlink
-    m.enumLookup({
+    m.enumLookup<"manuSpecificYokisLightControl", true>({
         name: "state_after_blink",
         lookup: stateAfterBlinkEnum,
         cluster: "manuSpecificYokisLightControl",
@@ -1900,7 +1900,7 @@ const yokisLightControlExtend: ModernExtend[] = [
     }),
 
     // eNcCommand
-    m.binary({
+    m.binary<"manuSpecificYokisLightControl", true>({
         name: "enable_nc_command",
         cluster: "manuSpecificYokisLightControl",
         attribute: "eNcCommand",
@@ -1919,7 +1919,7 @@ const yokisLightControlExtend: ModernExtend[] = [
 
 const YokisDimmerExtend: ModernExtend[] = [
     // currentPosition
-    m.numeric({
+    m.numeric<"manuSpecificYokisDimmer", true>({
         name: "current_position",
         cluster: "manuSpecificYokisDimmer",
         attribute: "currentPosition",
@@ -1929,7 +1929,7 @@ const YokisDimmerExtend: ModernExtend[] = [
     }),
 
     // memoryPosition
-    m.numeric({
+    m.numeric<"manuSpecificYokisDimmer", true>({
         name: "memory_position",
         cluster: "manuSpecificYokisDimmer",
         attribute: "memoryPosition",
@@ -1939,7 +1939,7 @@ const YokisDimmerExtend: ModernExtend[] = [
     }),
 
     // RampUp
-    m.binary({
+    m.binary<"manuSpecificYokisDimmer", true>({
         name: "enable_ramp_up",
         cluster: "manuSpecificYokisDimmer",
         attribute: "eRampUp",
@@ -1948,7 +1948,7 @@ const YokisDimmerExtend: ModernExtend[] = [
         valueOff: ["OFF", 0x00],
         entityCategory: "config",
     }),
-    m.numeric({
+    m.numeric<"manuSpecificYokisDimmer", true>({
         name: "ramp_up",
         cluster: "manuSpecificYokisDimmer",
         attribute: "rampUp",
@@ -1960,7 +1960,7 @@ const YokisDimmerExtend: ModernExtend[] = [
     }),
 
     // RampDown
-    m.binary({
+    m.binary<"manuSpecificYokisDimmer", true>({
         name: "enable_ramp_down",
         cluster: "manuSpecificYokisDimmer",
         attribute: "eRampDown",
@@ -1969,7 +1969,7 @@ const YokisDimmerExtend: ModernExtend[] = [
         valueOff: ["OFF", 0x00],
         entityCategory: "config",
     }),
-    m.numeric({
+    m.numeric<"manuSpecificYokisDimmer", true>({
         name: "ramp_down",
         cluster: "manuSpecificYokisDimmer",
         attribute: "rampDown",
@@ -1981,7 +1981,7 @@ const YokisDimmerExtend: ModernExtend[] = [
     }),
 
     // rampContinuousTime
-    m.numeric({
+    m.numeric<"manuSpecificYokisDimmer", true>({
         name: "ramp_continuous_time",
         cluster: "manuSpecificYokisDimmer",
         attribute: "rampContinuousTime",
@@ -1993,7 +1993,7 @@ const YokisDimmerExtend: ModernExtend[] = [
     }),
 
     // stepUp
-    m.numeric({
+    m.numeric<"manuSpecificYokisDimmer", true>({
         name: "step_up",
         cluster: "manuSpecificYokisDimmer",
         attribute: "stepUp",
@@ -2005,7 +2005,7 @@ const YokisDimmerExtend: ModernExtend[] = [
     }),
 
     // lowDimLimit
-    m.numeric({
+    m.numeric<"manuSpecificYokisDimmer", true>({
         name: "low_dim_limit",
         cluster: "manuSpecificYokisDimmer",
         attribute: "lowDimLimit",
@@ -2018,7 +2018,7 @@ const YokisDimmerExtend: ModernExtend[] = [
     }),
 
     // highDimLimit
-    m.numeric({
+    m.numeric<"manuSpecificYokisDimmer", true>({
         name: "high_dim_limit",
         cluster: "manuSpecificYokisDimmer",
         attribute: "highDimLimit",
@@ -2031,7 +2031,7 @@ const YokisDimmerExtend: ModernExtend[] = [
     }),
 
     // nightLightStartingDelay
-    m.numeric({
+    m.numeric<"manuSpecificYokisDimmer", true>({
         name: "nightlight_starting_delay",
         cluster: "manuSpecificYokisDimmer",
         attribute: "nightLightStartingDelay",
@@ -2043,7 +2043,7 @@ const YokisDimmerExtend: ModernExtend[] = [
     }),
 
     // nightLightStartingBrightness
-    m.numeric({
+    m.numeric<"manuSpecificYokisDimmer", true>({
         name: "nightlight_starting_brightness",
         cluster: "manuSpecificYokisDimmer",
         attribute: "nightLightStartingBrightness",
@@ -2055,7 +2055,7 @@ const YokisDimmerExtend: ModernExtend[] = [
     }),
 
     // nightLightEndingBrightness
-    m.numeric({
+    m.numeric<"manuSpecificYokisDimmer", true>({
         name: "nightlight_ending_brightness",
         cluster: "manuSpecificYokisDimmer",
         attribute: "nightLightEndingBrightness",
@@ -2068,7 +2068,7 @@ const YokisDimmerExtend: ModernExtend[] = [
     }),
 
     // nightLightRampTime
-    m.numeric({
+    m.numeric<"manuSpecificYokisDimmer", true>({
         name: "nightlight_ramp_time",
         cluster: "manuSpecificYokisDimmer",
         attribute: "nightLightRampTime",
@@ -2081,7 +2081,7 @@ const YokisDimmerExtend: ModernExtend[] = [
     }),
 
     // nightLightOnTime
-    m.numeric({
+    m.numeric<"manuSpecificYokisDimmer", true>({
         name: "nightlight_on_time",
         cluster: "manuSpecificYokisDimmer",
         attribute: "nightLightOnTime",
@@ -2094,7 +2094,7 @@ const YokisDimmerExtend: ModernExtend[] = [
     }),
 
     // favoritePosition1
-    m.numeric({
+    m.numeric<"manuSpecificYokisDimmer", true>({
         name: "favorite_position_1",
         cluster: "manuSpecificYokisDimmer",
         attribute: "favoritePosition1",
@@ -2106,7 +2106,7 @@ const YokisDimmerExtend: ModernExtend[] = [
     }),
 
     // favoritePosition2
-    m.numeric({
+    m.numeric<"manuSpecificYokisDimmer", true>({
         name: "favorite_position_2",
         cluster: "manuSpecificYokisDimmer",
         attribute: "favoritePosition2",
@@ -2118,7 +2118,7 @@ const YokisDimmerExtend: ModernExtend[] = [
     }),
 
     // favoritePosition3
-    m.numeric({
+    m.numeric<"manuSpecificYokisDimmer", true>({
         name: "favorite_position_3",
         cluster: "manuSpecificYokisDimmer",
         attribute: "favoritePosition3",
@@ -2130,7 +2130,7 @@ const YokisDimmerExtend: ModernExtend[] = [
     }),
 
     // stepControllerMode
-    m.binary({
+    m.binary<"manuSpecificYokisDimmer", true>({
         name: "step_controller_mode",
         cluster: "manuSpecificYokisDimmer",
         attribute: "stepControllerMode",
@@ -2142,7 +2142,7 @@ const YokisDimmerExtend: ModernExtend[] = [
     }),
 
     // memoryPositionMode
-    m.binary({
+    m.binary<"manuSpecificYokisDimmer", true>({
         name: "memory_position_mode",
         cluster: "manuSpecificYokisDimmer",
         attribute: "memoryPositionMode",
@@ -2153,7 +2153,7 @@ const YokisDimmerExtend: ModernExtend[] = [
     }),
 
     // stepDown
-    m.numeric({
+    m.numeric<"manuSpecificYokisDimmer", true>({
         name: "step_down",
         cluster: "manuSpecificYokisDimmer",
         attribute: "stepDown",
@@ -2165,7 +2165,7 @@ const YokisDimmerExtend: ModernExtend[] = [
     }),
 
     // stepContinuous
-    m.numeric({
+    m.numeric<"manuSpecificYokisDimmer", true>({
         name: "step_continuous",
         cluster: "manuSpecificYokisDimmer",
         attribute: "stepContinuous",
@@ -2177,7 +2177,7 @@ const YokisDimmerExtend: ModernExtend[] = [
     }),
 
     // stepNightLigth
-    m.numeric({
+    m.numeric<"manuSpecificYokisDimmer", true>({
         name: "step_nightlight",
         cluster: "manuSpecificYokisDimmer",
         attribute: "stepNightLight",

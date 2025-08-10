@@ -267,7 +267,7 @@ const sprutModernExtend = {
             ...args,
         }),
     sprutIsConnected: (args?: Partial<m.BinaryArgs<"sprutDevice">>) =>
-        m.binary({
+        m.binary<"sprutDevice", true>({
             name: "uart_connection",
             cluster: "sprutDevice",
             attribute: "isConnected",
@@ -279,7 +279,7 @@ const sprutModernExtend = {
             ...args,
         }),
     sprutUartBaudRate: (args?: Partial<m.EnumLookupArgs<"sprutDevice">>) =>
-        m.enumLookup({
+        m.enumLookup<"sprutDevice", true>({
             name: "uart_baud_rate",
             lookup: {
                 "9600": 9600,

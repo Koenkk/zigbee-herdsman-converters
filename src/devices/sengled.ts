@@ -316,7 +316,7 @@ export const definitions: DefinitionWithExtend[] = [
                 commands: {},
                 commandsResponse: {},
             }),
-            m.enumLookup({
+            m.enumLookup<"manuSpecificSengledMotionSensor", true>({
                 name: "trigger_condition",
                 lookup: {dark: 0, weak_light: 1},
                 cluster: "manuSpecificSengledMotionSensor",
@@ -325,7 +325,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode: 0x1160},
                 access: "STATE_SET",
             }),
-            m.binary({
+            m.binary<"manuSpecificSengledMotionSensor", true>({
                 name: "enable_auto_on_off",
                 cluster: "manuSpecificSengledMotionSensor",
                 attribute: "enableAutoOnOff",
@@ -335,7 +335,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode: 0x1160},
                 access: "STATE_SET",
             }),
-            m.binary({
+            m.binary<"manuSpecificSengledMotionSensor", true>({
                 name: "motion_status",
                 cluster: "manuSpecificSengledMotionSensor",
                 attribute: "motionStatus",
@@ -346,7 +346,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode: 0x1160},
                 access: "STATE_GET",
             }),
-            m.numeric({
+            m.numeric<"manuSpecificSengledMotionSensor", true>({
                 name: "off_delay",
                 cluster: "manuSpecificSengledMotionSensor",
                 attribute: "offDelay",

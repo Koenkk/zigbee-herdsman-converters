@@ -68,7 +68,7 @@ function timeHHMM(args: m.TextArgs<"genTime">): ModernExtend {
     return {...mExtend, fromZigbee, toZigbee, configure, isModernExtend: true};
 }
 
-function binaryWithOnOffCommand<Cl extends string | number>(args: m.BinaryArgs<Cl>): ModernExtend {
+function binaryWithOnOffCommand(args: m.BinaryArgs<"genOnOff", undefined>): ModernExtend {
     const {name, cluster, attribute, zigbeeCommandOptions, endpointName, reporting} = args;
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
     const access = ea[args.access ?? "ALL"];

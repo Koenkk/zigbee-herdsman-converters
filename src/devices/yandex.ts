@@ -11,16 +11,16 @@ import {getFromLookup, isString} from "../lib/utils";
 const NS = "zhc:yandex";
 const manufacturerCode = 0x140a;
 
-interface EnumLookupWithSetCommandArgs<Cl extends string | number> extends m.EnumLookupArgs<Cl> {
+interface EnumLookupWithSetCommandArgs extends m.EnumLookupArgs<"manuSpecificYandex", true> {
     setCommand: string;
 }
 
-function enumLookupWithSetCommand<Cl extends string | number>(args: EnumLookupWithSetCommandArgs<Cl>): ModernExtend {
+function enumLookupWithSetCommand(args: EnumLookupWithSetCommandArgs): ModernExtend {
     const {name, lookup, cluster, attribute, zigbeeCommandOptions, setCommand} = args;
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
     const access = ea[args.access ?? "ALL"];
 
-    const mExtend = m.enumLookup(args);
+    const mExtend = m.enumLookup<"manuSpecificYandex", true>(args);
 
     const toZigbee: Tz.Converter[] = [
         {
@@ -46,16 +46,16 @@ function enumLookupWithSetCommand<Cl extends string | number>(args: EnumLookupWi
     return {...mExtend, toZigbee};
 }
 
-interface BinaryWithSetCommandArgs<Cl extends string | number> extends m.BinaryArgs<Cl> {
+interface BinaryWithSetCommandArgs extends m.BinaryArgs<"manuSpecificYandex", true> {
     setCommand: string;
 }
 
-function binaryWithSetCommand<Cl extends string | number>(args: BinaryWithSetCommandArgs<Cl>): ModernExtend {
+function binaryWithSetCommand(args: BinaryWithSetCommandArgs): ModernExtend {
     const {name, valueOn, valueOff, cluster, attribute, zigbeeCommandOptions, setCommand} = args;
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
     const access = ea[args.access ?? "ALL"];
 
-    const mExtend = m.binary(args);
+    const mExtend = m.binary<"manuSpecificYandex", true>(args);
 
     const toZigbee: Tz.Converter[] = [
         {

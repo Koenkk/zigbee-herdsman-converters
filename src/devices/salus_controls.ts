@@ -133,7 +133,7 @@ export const definitions: DefinitionWithExtend[] = [
                 },
                 commandsResponse: {},
             }),
-            m.enumLookup({
+            m.enumLookup<"manuSpecificSalus", true>({
                 name: "preset",
                 lookup: {schedule: 0, temporary_override: 1, permanent_override: 2, standby: 7, eco: 10},
                 cluster: "manuSpecificSalus",

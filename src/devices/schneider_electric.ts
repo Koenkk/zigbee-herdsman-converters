@@ -131,7 +131,7 @@ const schneiderElectricExtend = {
             commandsResponse: {},
         }),
     visaConfigIndicatorLuminanceLevel: (): ModernExtend => {
-        return m.enumLookup({
+        return m.enumLookup<"visaConfiguration", true>({
             name: "indicator_luminance_level",
             lookup: {
                 "100": 0,
@@ -147,7 +147,7 @@ const schneiderElectricExtend = {
         });
     },
     visaConfigIndicatorColor: (): ModernExtend => {
-        return m.enumLookup({
+        return m.enumLookup<"visaConfiguration", true>({
             name: "indicator_color",
             lookup: {
                 white: 0,
@@ -159,7 +159,7 @@ const schneiderElectricExtend = {
         });
     },
     visaIndicatorMode: ([reverseWithLoad, consistentWithLoad, alwaysOff, alwaysOn]: number[]): ModernExtend => {
-        return m.enumLookup({
+        return m.enumLookup<"visaConfiguration", true>({
             name: "indicator_mode",
             lookup: {
                 reverse_with_load: reverseWithLoad,
@@ -176,7 +176,7 @@ const schneiderElectricExtend = {
         const attribute = `motorTypeChannel${channel || ""}`;
         const description = `Set motor type for channel ${channel || ""}`;
 
-        return m.enumLookup({
+        return m.enumLookup<"visaConfiguration", true>({
             name: `motor_type${channel ? `_${channel}` : ""}`,
             lookup: {
                 ac_motor: 0,
@@ -191,7 +191,7 @@ const schneiderElectricExtend = {
         const attribute = `curtainStatusChannel${channel || ""}`;
         const description = `Set curtain status for channel ${channel}`;
 
-        return m.enumLookup({
+        return m.enumLookup<"visaConfiguration", true>({
             access: "STATE",
             name: `curtain_status${channel ? `_${channel}` : ""}`,
             lookup: {
@@ -353,7 +353,7 @@ const schneiderElectricExtend = {
             return Math.round(10000 * Math.log10(value) + 1);
         };
 
-        const luxThresholdExtend = m.numeric({
+        const luxThresholdExtend = m.numeric<"occupancyConfiguration", true>({
             name: "ambience_light_threshold",
             cluster: "occupancyConfiguration",
             attribute: "ambienceLightThreshold",

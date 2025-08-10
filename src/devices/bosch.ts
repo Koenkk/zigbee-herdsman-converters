@@ -149,7 +149,7 @@ const boschExtend = {
             commandsResponse: {},
         }),
     operatingMode: () =>
-        m.enumLookup({
+        m.enumLookup<"hvacThermostat", true>({
             name: "operating_mode",
             cluster: "hvacThermostat",
             attribute: "operatingMode",
@@ -159,7 +159,7 @@ const boschExtend = {
             zigbeeCommandOptions: manufacturerOptions,
         }),
     windowDetection: () =>
-        m.binary({
+        m.binary<"hvacThermostat", true>({
             name: "window_detection",
             cluster: "hvacThermostat",
             attribute: "windowDetection",
@@ -169,7 +169,7 @@ const boschExtend = {
             zigbeeCommandOptions: manufacturerOptions,
         }),
     boostHeating: () =>
-        m.binary({
+        m.binary<"hvacThermostat", true>({
             name: "boost_heating",
             cluster: "hvacThermostat",
             attribute: "boostHeating",
@@ -189,7 +189,7 @@ const boschExtend = {
             valueOff: ["UNLOCK", 0x00],
         }),
     displayOntime: () =>
-        m.numeric({
+        m.numeric<"hvacUserInterfaceCfg", true>({
             name: "display_ontime",
             cluster: "hvacUserInterfaceCfg",
             attribute: "displayOntime",
@@ -200,7 +200,7 @@ const boschExtend = {
             zigbeeCommandOptions: manufacturerOptions,
         }),
     displayBrightness: () =>
-        m.numeric({
+        m.numeric<"hvacUserInterfaceCfg", true>({
             name: "display_brightness",
             cluster: "hvacUserInterfaceCfg",
             attribute: "displayBrightness",
@@ -1218,7 +1218,7 @@ export const definitions: DefinitionWithExtend[] = [
                 percentage: true,
                 lowStatus: true,
             }),
-            m.binary({
+            m.binary<"boschSpecific", true>({
                 name: "alarm_on_motion",
                 cluster: "boschSpecific",
                 attribute: "alarmOnMotion",
@@ -1388,7 +1388,7 @@ export const definitions: DefinitionWithExtend[] = [
             boschExtend.operatingMode(),
             boschExtend.windowDetection(),
             boschExtend.boostHeating(),
-            m.numeric({
+            m.numeric<"hvacThermostat", true>({
                 name: "remote_temperature",
                 cluster: "hvacThermostat",
                 attribute: "remoteTemperature",
@@ -1412,7 +1412,7 @@ export const definitions: DefinitionWithExtend[] = [
             boschExtend.childLock(),
             boschExtend.displayOntime(),
             boschExtend.displayBrightness(),
-            m.enumLookup({
+            m.enumLookup<"hvacUserInterfaceCfg", true>({
                 name: "display_orientation",
                 cluster: "hvacUserInterfaceCfg",
                 attribute: "displayOrientation",
@@ -1420,7 +1420,7 @@ export const definitions: DefinitionWithExtend[] = [
                 lookup: {normal: 0x00, flipped: 0x01},
                 zigbeeCommandOptions: manufacturerOptions,
             }),
-            m.enumLookup({
+            m.enumLookup<"hvacUserInterfaceCfg", true>({
                 name: "displayed_temperature",
                 cluster: "hvacUserInterfaceCfg",
                 attribute: "displayedTemperature",
@@ -1428,7 +1428,7 @@ export const definitions: DefinitionWithExtend[] = [
                 lookup: {target: 0x00, measured: 0x01},
                 zigbeeCommandOptions: manufacturerOptions,
             }),
-            m.enumLookup({
+            m.enumLookup<"hvacThermostat", true>({
                 name: "valve_adapt_status",
                 cluster: "hvacThermostat",
                 attribute: "valveAdaptStatus",

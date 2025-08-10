@@ -578,7 +578,7 @@ export const definitions: DefinitionWithExtend[] = [
             sunricher.extend.thermostatCurrentHeatingSetpoint(),
             m.battery(),
             m.identify(),
-            m.numeric({
+            m.numeric<"hvacThermostat", true>({
                 name: "screen_timeout",
                 cluster: "hvacThermostat",
                 attribute: "screenTimeout",
@@ -589,7 +589,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "ALL",
                 entityCategory: "config",
             }),
-            m.numeric({
+            m.numeric<"hvacThermostat", true>({
                 name: "anti_freezing_temp",
                 cluster: "hvacThermostat",
                 attribute: "antiFreezingTemp",
@@ -600,7 +600,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "ALL",
                 entityCategory: "config",
             }),
-            m.enumLookup({
+            m.enumLookup<"hvacThermostat", true>({
                 name: "temperature_display_mode",
                 cluster: "hvacThermostat",
                 attribute: "temperatureDisplayMode",
@@ -611,7 +611,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Temperature Display Mode. 1: displays set temp, 2: displays room temp (default)",
                 access: "ALL",
             }),
-            m.numeric({
+            m.numeric<"hvacThermostat", true>({
                 name: "window_open_check",
                 cluster: "hvacThermostat",
                 attribute: "windowOpenCheck",
@@ -622,7 +622,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "ALL",
                 entityCategory: "config",
             }),
-            m.numeric({
+            m.numeric<"hvacThermostat", true>({
                 name: "hysteresis",
                 cluster: "hvacThermostat",
                 attribute: "hysteresis",
@@ -635,7 +635,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "ALL",
                 entityCategory: "config",
             }),
-            m.binary({
+            m.binary<"hvacThermostat", true>({
                 name: "window_open_flag",
                 cluster: "hvacThermostat",
                 attribute: "windowOpenFlag",
@@ -644,7 +644,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueOff: ["not_opened", 0],
                 access: "STATE_GET",
             }),
-            m.numeric({
+            m.numeric<"hvacThermostat", true>({
                 name: "forced_heating_time",
                 cluster: "hvacThermostat",
                 attribute: "forcedHeatingTime",
@@ -655,7 +655,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "ALL",
                 entityCategory: "config",
             }),
-            m.enumLookup({
+            m.enumLookup<"hvacThermostat", true>({
                 name: "error_code",
                 cluster: "hvacThermostat",
                 attribute: "errorCode",
@@ -812,7 +812,7 @@ export const definitions: DefinitionWithExtend[] = [
                 commandsResponse: {},
             }),
             sunricher.extend.indicatorLight(),
-            m.numeric({
+            m.numeric<"sunricherSensor", true>({
                 name: "detection_area",
                 cluster: "sunricherSensor",
                 attribute: "detectionArea",
@@ -824,7 +824,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "ALL",
                 entityCategory: "config",
             }),
-            m.numeric({
+            m.numeric<"sunricherSensor", true>({
                 name: "illuminance_threshold",
                 cluster: "sunricherSensor",
                 attribute: "illuminanceThreshold",

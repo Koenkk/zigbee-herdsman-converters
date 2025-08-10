@@ -269,7 +269,7 @@ const sdevicesExtend = {
             commandsResponse: {},
         }),
     onOffRelayDecouple: (args?: Partial<m.EnumLookupArgs<"genOnOff">>) =>
-        m.enumLookup({
+        m.enumLookup<"genOnOff", true>({
             name: "relay_mode",
             description: "Decoupled mode for button",
             cluster: "genOnOff",
@@ -472,7 +472,7 @@ const sdevicesExtend = {
         return {exposes, fromZigbee, toZigbee, isModernExtend: true};
     },
     childLock: () =>
-        m.binary({
+        m.binary<"manuSpecificSDevices", true>({
             name: "child_lock",
             cluster: "manuSpecificSDevices",
             attribute: "childLock",
@@ -492,7 +492,7 @@ const sdevicesExtend = {
             entityCategory: "diagnostic",
         }),
     emergencyShutoffRecovery: () =>
-        m.enumLookup({
+        m.enumLookup<"manuSpecificSDevices", true>({
             name: "emergency_shutoff_recovery",
             cluster: "manuSpecificSDevices",
             attribute: "emergencyShutoffRecovery",
@@ -501,7 +501,7 @@ const sdevicesExtend = {
             zigbeeCommandOptions: manufacturerOptions,
         }),
     upperVoltageThreshold: () =>
-        m.numeric({
+        m.numeric<"manuSpecificSDevices", true>({
             name: "upper_voltage_threshold",
             cluster: "manuSpecificSDevices",
             attribute: "upperVoltageThreshold",
@@ -513,7 +513,7 @@ const sdevicesExtend = {
             zigbeeCommandOptions: manufacturerOptions,
         }),
     lowerVoltageThreshold: () =>
-        m.numeric({
+        m.numeric<"manuSpecificSDevices", true>({
             name: "lower_voltage_threshold",
             cluster: "manuSpecificSDevices",
             attribute: "lowerVoltageThreshold",
@@ -525,7 +525,7 @@ const sdevicesExtend = {
             zigbeeCommandOptions: manufacturerOptions,
         }),
     upperCurrentThreshold: () =>
-        m.numeric({
+        m.numeric<"manuSpecificSDevices", true>({
             name: "upper_current_threshold",
             cluster: "manuSpecificSDevices",
             attribute: "upperCurrentThreshold",
@@ -537,7 +537,7 @@ const sdevicesExtend = {
             zigbeeCommandOptions: manufacturerOptions,
         }),
     temperatureThreshold: () =>
-        m.numeric({
+        m.numeric<"manuSpecificSDevices", true>({
             name: "temperature_threshold",
             cluster: "manuSpecificSDevices",
             attribute: "upperTempThreshold",
@@ -618,7 +618,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             sdevicesExtend.sdevicesCustomCluster(),
             sdevicesExtend.genOnOffCluster(),
-            m.binary({
+            m.binary<"manuSpecificSDevices", true>({
                 name: "allow_double_click",
                 cluster: "manuSpecificSDevices",
                 attribute: "buttonEnableMultiClick",

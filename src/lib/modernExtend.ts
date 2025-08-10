@@ -1,5 +1,6 @@
 import assert from "node:assert";
 import {Zcl} from "zigbee-herdsman";
+import type {ClusterOrRawAttributeKeys, PartialClusterOrRawWriteAttributes} from "zigbee-herdsman/dist/controller/tstype";
 import type {TPartialClusterAttributes} from "zigbee-herdsman/dist/zspec/zcl/definition/clusters-types";
 import type {ClusterDefinition} from "zigbee-herdsman/dist/zspec/zcl/definition/tstype";
 import * as fz from "../converters/fromZigbee";
@@ -940,7 +941,7 @@ export function occupancy(args: OccupancyArgs = {}): ModernExtend {
     const settingsExtends: ModernExtend[] = [];
 
     const settingsTemplate = {
-        cluster: "msOccupancySensing",
+        cluster: "msOccupancySensing" as const,
         description: "",
         endpointNames: endpointNames,
         access: "ALL" as "STATE" | "STATE_GET" | "ALL",
@@ -2399,15 +2400,21 @@ export function commandsScenes(args: CommandsScenesArgs = {}) {
     return result;
 }
 
-export interface ClusterWithAttribute<Cl extends string | number> {
+export interface ClusterWithAttribute<Cl extends string | number, Custom extends true | undefined = undefined> {
     cluster: Cl;
     attribute:
-        | (Cl extends keyof Zcl.ClusterTypes.TClusters ? keyof Zcl.ClusterTypes.TClusters[Cl]["attributes"] : string)
+        | (Cl extends keyof Zcl.ClusterTypes.TClusters
+              ? Custom extends undefined
+                  ? keyof Zcl.ClusterTypes.TClusters[Cl]["attributes"]
+                  : keyof Zcl.ClusterTypes.TClusters[Cl]["attributes"] | string
+              : Custom extends undefined
+                ? never
+                : string)
         // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
         | {ID: number; type: number};
 }
 
-export interface EnumLookupArgs<Cl extends string | number> extends ClusterWithAttribute<Cl> {
+export interface EnumLookupArgs<Cl extends string | number, Custom extends true | undefined = undefined> extends ClusterWithAttribute<Cl, Custom> {
     name: string;
     lookup: KeyValue;
     description: string;
@@ -2418,7 +2425,7 @@ export interface EnumLookupArgs<Cl extends string | number> extends ClusterWithA
     entityCategory?: "config" | "diagnostic";
     label?: string;
 }
-export function enumLookup<Cl extends string | number>(args: EnumLookupArgs<Cl>): ModernExtend {
+export function enumLookup<Cl extends string | number, Custom extends true | undefined = undefined>(args: EnumLookupArgs<Cl, Custom>): ModernExtend {
     const {name, lookup, cluster, attribute, description, zigbeeCommandOptions, endpointName, reporting, entityCategory, label} = args;
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
     const access = ea[args.access ?? "ALL"];
@@ -2451,14 +2458,24 @@ export function enumLookup<Cl extends string | number>(args: EnumLookupArgs<Cl>)
                           const payload = isString(attribute)
                               ? {[attribute]: payloadValue}
                               : {[attribute.ID]: {value: payloadValue, type: attribute.type}};
-                          await determineEndpoint(entity, meta, cluster).write(cluster, payload, zigbeeCommandOptions);
+                          await determineEndpoint(entity, meta, cluster).write(
+                              cluster,
+                              // XXX: too dynamic for typing
+                              payload as PartialClusterOrRawWriteAttributes<Cl>,
+                              zigbeeCommandOptions,
+                          );
                           return {state: {[key]: value}};
                       }
                     : undefined,
             convertGet:
                 access & ea.GET
                     ? async (entity, key, meta) => {
-                          await determineEndpoint(entity, meta, cluster).read(cluster, [attributeKey], zigbeeCommandOptions);
+                          await determineEndpoint(entity, meta, cluster).read(
+                              cluster,
+                              // XXX: too dynamic for typing
+                              [attributeKey] as ClusterOrRawAttributeKeys<Cl>,
+                              zigbeeCommandOptions,
+                          );
                       }
                     : undefined,
         },
@@ -2472,7 +2489,7 @@ export function enumLookup<Cl extends string | number>(args: EnumLookupArgs<Cl>)
 // type provides a way to distinguish between fromZigbee and toZigbee value conversions if they are asymmetrical
 export type ScaleFunction = (value: number, type: "from" | "to") => number;
 
-export interface NumericArgs<Cl extends string | number> extends ClusterWithAttribute<Cl> {
+export interface NumericArgs<Cl extends string | number, Custom extends true | undefined = undefined> extends ClusterWithAttribute<Cl, Custom> {
     name: string;
     description: string;
     zigbeeCommandOptions?: {manufacturerCode?: number; disableDefaultResponse?: boolean};
@@ -2488,7 +2505,7 @@ export interface NumericArgs<Cl extends string | number> extends ClusterWithAttr
     entityCategory?: "config" | "diagnostic";
     precision?: number;
 }
-export function numeric<Cl extends string | number>(args: NumericArgs<Cl>): ModernExtend {
+export function numeric<Cl extends string | number, Custom extends true | undefined = undefined>(args: NumericArgs<Cl, Custom>): ModernExtend {
     const {
         name,
         cluster,
@@ -2576,14 +2593,24 @@ export function numeric<Cl extends string | number>(args: NumericArgs<Cl>): Mode
                           const payload = isString(attribute)
                               ? {[attribute]: payloadValue}
                               : {[attribute.ID]: {value: payloadValue, type: attribute.type}};
-                          await determineEndpoint(entity, meta, cluster).write(cluster, payload, zigbeeCommandOptions);
+                          await determineEndpoint(entity, meta, cluster).write(
+                              cluster,
+                              // XXX: too dynamic for typing
+                              payload as PartialClusterOrRawWriteAttributes<Cl>,
+                              zigbeeCommandOptions,
+                          );
                           return {state: {[key]: value}};
                       }
                     : undefined,
             convertGet:
                 access & ea.GET
                     ? async (entity, key, meta) => {
-                          await determineEndpoint(entity, meta, cluster).read(cluster, [attributeKey], zigbeeCommandOptions);
+                          await determineEndpoint(entity, meta, cluster).read(
+                              cluster,
+                              // XXX: too dynamic for typing
+                              [attributeKey] as ClusterOrRawAttributeKeys<Cl>,
+                              zigbeeCommandOptions,
+                          );
                       }
                     : undefined,
         },
@@ -2594,7 +2621,7 @@ export function numeric<Cl extends string | number>(args: NumericArgs<Cl>): Mode
     return {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
 }
 
-export interface BinaryArgs<Cl extends string | number> extends ClusterWithAttribute<Cl> {
+export interface BinaryArgs<Cl extends string | number, Custom extends true | undefined = undefined> extends ClusterWithAttribute<Cl, Custom> {
     name: string;
     valueOn: [string | boolean, unknown];
     valueOff: [string | boolean, unknown];
@@ -2606,7 +2633,7 @@ export interface BinaryArgs<Cl extends string | number> extends ClusterWithAttri
     label?: string;
     entityCategory?: "config" | "diagnostic";
 }
-export function binary<Cl extends string | number>(args: BinaryArgs<Cl>): ModernExtend {
+export function binary<Cl extends string | number, Custom extends true | undefined = undefined>(args: BinaryArgs<Cl, Custom>): ModernExtend {
     const {name, valueOn, valueOff, cluster, attribute, description, zigbeeCommandOptions, endpointName, reporting, label, entityCategory} = args;
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
     const access = ea[args.access ?? "ALL"];
@@ -2638,14 +2665,24 @@ export function binary<Cl extends string | number>(args: BinaryArgs<Cl>): Modern
                           const payload = isString(attribute)
                               ? {[attribute]: payloadValue}
                               : {[attribute.ID]: {value: payloadValue, type: attribute.type}};
-                          await determineEndpoint(entity, meta, cluster).write(cluster, payload, zigbeeCommandOptions);
+                          await determineEndpoint(entity, meta, cluster).write(
+                              cluster,
+                              // XXX: too dynamic for typing
+                              payload as PartialClusterOrRawWriteAttributes<Cl>,
+                              zigbeeCommandOptions,
+                          );
                           return {state: {[key]: value}};
                       }
                     : undefined,
             convertGet:
                 access & ea.GET
                     ? async (entity, key, meta) => {
-                          await determineEndpoint(entity, meta, cluster).read(cluster, [attributeKey], zigbeeCommandOptions);
+                          await determineEndpoint(entity, meta, cluster).read(
+                              cluster,
+                              // XXX: too dynamic for typing
+                              [attributeKey] as ClusterOrRawAttributeKeys<Cl>,
+                              zigbeeCommandOptions,
+                          );
                       }
                     : undefined,
         },
@@ -2656,7 +2693,7 @@ export function binary<Cl extends string | number>(args: BinaryArgs<Cl>): Modern
     return {exposes: [expose], fromZigbee, toZigbee, configure, isModernExtend: true};
 }
 
-export interface TextArgs<Cl extends string | number> extends ClusterWithAttribute<Cl> {
+export interface TextArgs<Cl extends string | number, Custom extends true | undefined = undefined> extends ClusterWithAttribute<Cl, Custom> {
     name: string;
     description: string;
     zigbeeCommandOptions?: {manufacturerCode: number};
@@ -2666,7 +2703,7 @@ export interface TextArgs<Cl extends string | number> extends ClusterWithAttribu
     entityCategory?: "config" | "diagnostic";
     validate?(value: unknown): void;
 }
-export function text<Cl extends string | number>(args: TextArgs<Cl>): ModernExtend {
+export function text<Cl extends string | number, Custom extends true | undefined = undefined>(args: TextArgs<Cl, Custom>): ModernExtend {
     const {name, cluster, attribute, description, zigbeeCommandOptions, endpointName, reporting, entityCategory, validate} = args;
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
     const access = ea[args.access ?? "ALL"];
@@ -2695,14 +2732,24 @@ export function text<Cl extends string | number>(args: TextArgs<Cl>): ModernExte
                     ? async (entity, key, value, meta) => {
                           void validate(value);
                           const payload = isString(attribute) ? {[attribute]: value} : {[attribute.ID]: {value, type: attribute.type}};
-                          await determineEndpoint(entity, meta, cluster).write(cluster, payload, zigbeeCommandOptions);
+                          await determineEndpoint(entity, meta, cluster).write(
+                              cluster,
+                              // XXX: too dynamic for typing
+                              payload as PartialClusterOrRawWriteAttributes<Cl>,
+                              zigbeeCommandOptions,
+                          );
                           return {state: {[key]: value}};
                       }
                     : undefined,
             convertGet:
                 access & ea.GET
                     ? async (entity, key, meta) => {
-                          await determineEndpoint(entity, meta, cluster).read(cluster, [attributeKey], zigbeeCommandOptions);
+                          await determineEndpoint(entity, meta, cluster).read(
+                              cluster,
+                              // XXX: too dynamic for typing
+                              [attributeKey] as ClusterOrRawAttributeKeys<Cl>,
+                              zigbeeCommandOptions,
+                          );
                       }
                     : undefined,
         },
@@ -2714,7 +2761,8 @@ export function text<Cl extends string | number>(args: TextArgs<Cl>): ModernExte
 }
 
 export type Parse = (msg: Fz.Message, attributeKey: string | number) => unknown;
-export interface ActionEnumLookupArgs<Cl extends string | number> extends ClusterWithAttribute<Cl> {
+export interface ActionEnumLookupArgs<Cl extends string | number, Custom extends true | undefined = undefined>
+    extends ClusterWithAttribute<Cl, Custom> {
     actionLookup: KeyValue;
     endpointNames?: string[];
     buttonLookup?: KeyValue;
@@ -2722,7 +2770,9 @@ export interface ActionEnumLookupArgs<Cl extends string | number> extends Cluste
     commands?: string[];
     parse?: Parse;
 }
-export function actionEnumLookup<Cl extends string | number>(args: ActionEnumLookupArgs<Cl>): ModernExtend {
+export function actionEnumLookup<Cl extends string | number, Custom extends true | undefined = undefined>(
+    args: ActionEnumLookupArgs<Cl, Custom>,
+): ModernExtend {
     const {actionLookup: lookup, attribute, cluster, buttonLookup} = args;
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
     const commands = args.commands || ["attributeReport", "readResponse"];

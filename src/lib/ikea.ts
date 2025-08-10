@@ -483,8 +483,8 @@ export function ikeaAirPurifier(): ModernExtend {
     return {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
 }
 
-export function ikeaVoc(args?: Partial<m.NumericArgs<"manuSpecificIkeaVocIndexMeasurement">>) {
-    return m.numeric({
+export function ikeaVoc(args?: Partial<m.NumericArgs<"manuSpecificIkeaVocIndexMeasurement", true>>) {
+    return m.numeric<"manuSpecificIkeaVocIndexMeasurement", true>({
         name: "voc_index",
         label: "VOC index",
         cluster: "manuSpecificIkeaVocIndexMeasurement",

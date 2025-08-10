@@ -168,8 +168,8 @@ export const ubisysModernExtend = {
             commands: {},
             commandsResponse: {},
         }),
-    localTemperatureOffset: (args?: Partial<NumericArgs<"hvacThermostat">>) =>
-        numeric({
+    localTemperatureOffset: (args?: Partial<NumericArgs<"hvacThermostat", true>>) =>
+        numeric<"hvacThermostat", true>({
             name: "local_temperature_offset",
             cluster: "hvacThermostat",
             attribute: "ubisysTemperatureOffset",
@@ -180,8 +180,8 @@ export const ubisysModernExtend = {
             unit: "ºC",
             ...args,
         }),
-    occupiedHeatingSetpointDefault: (args?: Partial<NumericArgs<"hvacThermostat">>) =>
-        numeric({
+    occupiedHeatingSetpointDefault: (args?: Partial<NumericArgs<"hvacThermostat", true>>) =>
+        numeric<"hvacThermostat", true>({
             name: "occupied_heating_default_setpoint",
             cluster: "hvacThermostat",
             attribute: "ubisysDefaultOccupiedHeatingSetpoint",
@@ -196,8 +196,8 @@ export const ubisysModernExtend = {
             unit: "ºC",
             ...args,
         }),
-    remoteTemperatureDuration: (args?: Partial<NumericArgs<"hvacThermostat">>) =>
-        numeric({
+    remoteTemperatureDuration: (args?: Partial<NumericArgs<"hvacThermostat", true>>) =>
+        numeric<"hvacThermostat", true>({
             name: "remote_temperature_duration",
             cluster: "hvacThermostat",
             attribute: "ubisysRemoteTemperatureValidDuration",
@@ -262,8 +262,8 @@ export const ubisysModernExtend = {
 
         return {exposes: [expose], fromZigbee, toZigbee, configure, isModernExtend: true};
     },
-    openWindowState: (args?: Partial<BinaryArgs<"hvacThermostat">>) =>
-        binary({
+    openWindowState: (args?: Partial<BinaryArgs<"hvacThermostat", true>>) =>
+        binary<"hvacThermostat", true>({
             name: "open_window_state",
             cluster: "hvacThermostat",
             attribute: "ubisysOpenWindowState",
@@ -273,8 +273,8 @@ export const ubisysModernExtend = {
             description: "Presents the currently detected window state.",
             ...args,
         }),
-    openWindowDetect: (args?: Partial<BinaryArgs<"hvacThermostat">>) =>
-        binary({
+    openWindowDetect: (args?: Partial<BinaryArgs<"hvacThermostat", true>>) =>
+        binary<"hvacThermostat", true>({
             name: "open_window_detect",
             cluster: "hvacThermostat",
             attribute: "ubisysDetectOpenWindow",
@@ -284,8 +284,8 @@ export const ubisysModernExtend = {
             description: "Specifies whether the Open Window Detection is activated or deactivated.",
             ...args,
         }),
-    openWindowTimeout: (args?: Partial<NumericArgs<"hvacThermostat">>) =>
-        numeric({
+    openWindowTimeout: (args?: Partial<NumericArgs<"hvacThermostat", true>>) =>
+        numeric<"hvacThermostat", true>({
             name: "open_window_timeout",
             cluster: "hvacThermostat",
             attribute: "ubisysOpenWindowTimeout",
@@ -299,8 +299,8 @@ export const ubisysModernExtend = {
             unit: "s",
             ...args,
         }),
-    openWindowDetectionPeriod: (args?: Partial<NumericArgs<"hvacThermostat">>) =>
-        numeric({
+    openWindowDetectionPeriod: (args?: Partial<NumericArgs<"hvacThermostat", true>>) =>
+        numeric<"hvacThermostat", true>({
             name: "open_window_detection_periode",
             cluster: "hvacThermostat",
             attribute: "ubisysOpenWindowDetectionPeriod",
@@ -313,8 +313,8 @@ export const ubisysModernExtend = {
             unit: "m",
             ...args,
         }),
-    openWindowSensitivity: (args?: Partial<NumericArgs<"hvacThermostat">>) =>
-        numeric({
+    openWindowSensitivity: (args?: Partial<NumericArgs<"hvacThermostat", true>>) =>
+        numeric<"hvacThermostat", true>({
             name: "open_window_sensitivity",
             cluster: "hvacThermostat",
             attribute: "ubisysOpenWindowSensitivity",

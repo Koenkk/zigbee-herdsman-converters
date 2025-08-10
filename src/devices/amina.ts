@@ -205,7 +205,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_GET",
             }),
 
-            m.numeric({
+            m.numeric<"aminaControlCluster", true>({
                 name: "total_active_energy",
                 cluster: "aminaControlCluster",
                 attribute: "totalActiveEnergy",
@@ -217,7 +217,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_GET",
             }),
 
-            m.numeric({
+            m.numeric<"aminaControlCluster", true>({
                 name: "last_session_energy",
                 cluster: "aminaControlCluster",
                 attribute: "lastSessionEnergy",
@@ -229,7 +229,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_GET",
             }),
 
-            m.binary({
+            m.binary<"aminaControlCluster", true>({
                 name: "ev_connected",
                 cluster: "aminaControlCluster",
                 attribute: "evConnected",
@@ -239,7 +239,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE",
             }),
 
-            m.binary({
+            m.binary<"aminaControlCluster", true>({
                 name: "charging",
                 cluster: "aminaControlCluster",
                 attribute: "charging",
@@ -249,7 +249,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE",
             }),
 
-            m.binary({
+            m.binary<"aminaControlCluster", true>({
                 name: "derated",
                 cluster: "aminaControlCluster",
                 attribute: "derated",
@@ -259,7 +259,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE",
             }),
 
-            m.binary({
+            m.binary<"aminaControlCluster", true>({
                 name: "alarm_active",
                 cluster: "aminaControlCluster",
                 attribute: "alarmActive",
@@ -275,7 +275,7 @@ export const definitions: DefinitionWithExtend[] = [
                 threePhase: true,
             }),
 
-            m.binary({
+            m.binary<"aminaControlCluster", true>({
                 name: "single_phase",
                 cluster: "aminaControlCluster",
                 attribute: "singlePhase",
@@ -285,7 +285,7 @@ export const definitions: DefinitionWithExtend[] = [
                 entityCategory: "config",
             }),
 
-            m.binary({
+            m.binary<"aminaControlCluster", true>({
                 name: "enable_offline",
                 cluster: "aminaControlCluster",
                 attribute: "enableOffline",
@@ -295,7 +295,7 @@ export const definitions: DefinitionWithExtend[] = [
                 entityCategory: "config",
             }),
 
-            m.numeric({
+            m.numeric<"aminaControlCluster", true>({
                 name: "time_to_offline",
                 cluster: "aminaControlCluster",
                 attribute: "timeToOffline",
@@ -307,7 +307,7 @@ export const definitions: DefinitionWithExtend[] = [
                 entityCategory: "config",
             }),
 
-            m.numeric({
+            m.numeric<"aminaControlCluster", true>({
                 name: "offline_current",
                 cluster: "aminaControlCluster",
                 attribute: "offlineCurrent",
@@ -319,7 +319,7 @@ export const definitions: DefinitionWithExtend[] = [
                 entityCategory: "config",
             }),
 
-            m.binary({
+            m.binary<"aminaControlCluster", true>({
                 name: "offline_single_phase",
                 cluster: "aminaControlCluster",
                 attribute: "offlineSinglePhase",

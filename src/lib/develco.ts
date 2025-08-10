@@ -62,8 +62,8 @@ export const develcoModernExtend = {
         ];
         return {configure, isModernExtend: true};
     },
-    voc: (args?: Partial<NumericArgs>) =>
-        numeric({
+    voc: (args?: Partial<NumericArgs<"manuSpecificDevelcoAirQuality", true>>) =>
+        numeric<"manuSpecificDevelcoAirQuality", true>({
             name: "voc",
             cluster: "manuSpecificDevelcoAirQuality",
             attribute: "measuredValue",
@@ -160,16 +160,16 @@ export const develcoModernExtend = {
 
         return {exposes: [expose], fromZigbee, isModernExtend: true};
     },
-    temperature: (args?: Partial<NumericArgs>) =>
+    temperature: (args?: Partial<NumericArgs<"msTemperatureMeasurement">>) =>
         temperature({
             ...args,
         }),
-    deviceTemperature: (args?: Partial<NumericArgs>) =>
+    deviceTemperature: (args?: Partial<NumericArgs<"genDeviceTempCfg">>) =>
         deviceTemperature({
             reporting: {min: "5_MINUTES", max: "1_HOUR", change: 2}, // Device temperature reports with 2 degree change
             ...args,
         }),
-    currentSummation: (args?: Partial<NumericArgs>) =>
+    currentSummation: (args?: Partial<NumericArgs<"seMetering">>) =>
         numeric({
             name: "current_summation",
             cluster: "seMetering",
@@ -180,7 +180,7 @@ export const develcoModernExtend = {
             valueMax: 268435455,
             ...args,
         }),
-    pulseConfiguration: (args?: Partial<NumericArgs>) =>
+    pulseConfiguration: (args?: Partial<NumericArgs<"seMetering">>) =>
         numeric({
             name: "pulse_configuration",
             cluster: "seMetering",
