@@ -1,5 +1,5 @@
 import {Zcl} from "zigbee-herdsman";
-import {ClusterOrRawAttributeKeys} from "zigbee-herdsman/dist/controller/tstype";
+import type {ClusterOrRawAttributeKeys} from "zigbee-herdsman/dist/controller/tstype";
 import {presets as e, access as ea} from "./exposes";
 import {deviceAddCustomCluster, deviceTemperature, type NumericArgs, numeric, temperature} from "./modernExtend";
 import type {Configure, Fz, ModernExtend} from "./types";
