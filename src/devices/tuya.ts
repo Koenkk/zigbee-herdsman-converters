@@ -15623,7 +15623,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_zqq3cipq"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_zqq3cipq", "_TZE284_zqq3cipq"]),
         model: "PN16",
         vendor: "ZSVIOT",
         description: "16-way controller",
