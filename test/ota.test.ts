@@ -2,6 +2,7 @@ import crypto from "node:crypto";
 import {existsSync, readFileSync} from "node:fs";
 import path from "node:path";
 import {EventEmitter} from "node:stream";
+import {afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi} from "vitest";
 import {Zcl} from "zigbee-herdsman";
 import ZclTransactionSequenceNumber from "zigbee-herdsman/dist/controller/helpers/zclTransactionSequenceNumber";
 import {Waitress} from "zigbee-herdsman/dist/utils/waitress";

@@ -1140,7 +1140,7 @@ export const light_onoff_brightness: Tz.Converter = {
         const {message} = meta;
         const transition = utils.getTransition(entity, "brightness", meta);
         const turnsOffAtBrightness1 = utils.getMetaValue(entity, meta.mapped, "turnsOffAtBrightness1", "allEqual", false);
-        let state = message.state != null ? (typeof message.state === "string" ? message.state.toLowerCase() : null) : undefined;
+        let state = message.state !== undefined ? (typeof message.state === "string" ? message.state.toLowerCase() : null) : undefined;
         let brightness: number;
         if (message.brightness != null) {
             brightness = Number(message.brightness);

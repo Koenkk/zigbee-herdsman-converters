@@ -162,13 +162,11 @@ export const develcoModernExtend = {
     },
     temperature: (args?: Partial<NumericArgs>) =>
         temperature({
-            valueIgnore: [0xffff, -0x8000],
             ...args,
         }),
     deviceTemperature: (args?: Partial<NumericArgs>) =>
         deviceTemperature({
             reporting: {min: "5_MINUTES", max: "1_HOUR", change: 2}, // Device temperature reports with 2 degree change
-            valueIgnore: [0xffff, -0x8000],
             ...args,
         }),
     currentSummation: (args?: Partial<NumericArgs>) =>
