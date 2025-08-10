@@ -6955,10 +6955,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "HS2SA-1",
         vendor: "Heiman",
         description: "Photoelectric Smoke Alarm",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime,
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
         exposes: [
             e.smoke(),
             e.battery(),
