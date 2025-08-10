@@ -1480,10 +1480,13 @@ const tuyaTz = {
         key: ["backlight_mode", "indicator_mode"],
         convertSet: async (entity, key, value, meta) => {
             const lookup = key === "backlight_mode" ? {off: 0, on: 1} : {none: 0, relay: 1, pos: 2};
-            const attribute = key === "backlight_mode" ? "tuyaBacklightSwitch" : "tuyaBacklightMode";
             const result = utils.getFromLookup(value, lookup);
 
-            await entity.write("genOnOff", {[attribute]: result});
+            if (key === "backlight_mode") {
+                await entity.write("genOnOff", {tuyaBacklightSwitch: result});
+            } else {
+                await entity.write("genOnOff", {tuyaBacklightMode: result});
+            }
             return {state: {[key]: value}};
         },
         convertGet: async (entity, key, meta) => {
@@ -2647,7 +2650,7 @@ const tuyaModernExtend = {
 
         return {exposes: [exp], fromZigbee: newFromZigbee, isModernExtend: true};
     },
-    tuyaSwitchMode: (args?: Partial<modernExtend.EnumLookupArgs>) =>
+    tuyaSwitchMode: (args?: Partial<modernExtend.EnumLookupArgs<"manuSpecificTuya3">>) =>
         modernExtend.enumLookup({
             name: "switch_mode",
             lookup: {switch: 0, scene: 1},
@@ -2667,11 +2670,12 @@ const tuyaModernExtend = {
     tuyaMagicPacket(): ModernExtend {
         return {configure: [configureMagicPacket], isModernExtend: true};
     },
-    tuyaOnOffAction(args?: Partial<modernExtend.ActionEnumLookupArgs>): ModernExtend {
+    tuyaOnOffAction(args?: Partial<modernExtend.ActionEnumLookupArgs<"genOnOff">>): ModernExtend {
         return modernExtend.actionEnumLookup({
             actionLookup: {0: "single", 1: "double", 2: "hold"},
             cluster: "genOnOff",
             commands: ["commandTuyaAction"],
+            // TODO: using commands payload not attributes
             attribute: "value",
         });
     },

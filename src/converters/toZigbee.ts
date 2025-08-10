@@ -368,7 +368,7 @@ export const lock: Tz.Converter = {
 export const lock_auto_relock_time: Tz.Converter = {
     key: ["auto_relock_time"],
     convertSet: async (entity, key, value, meta) => {
-        await entity.write("closuresDoorLock", {autoRelockTime: value}, utils.getOptions(meta.mapped, entity));
+        await entity.write("closuresDoorLock", {autoRelockTime: value as number}, utils.getOptions(meta.mapped, entity));
         return {state: {auto_relock_time: value}};
     },
     convertGet: async (entity, key, meta) => {
@@ -566,7 +566,7 @@ export const warning: Tz.Converter = {
 export const ias_max_duration: Tz.Converter = {
     key: ["max_duration"],
     convertSet: async (entity, key, value, meta) => {
-        await entity.write("ssIasWd", {maxDuration: value});
+        await entity.write("ssIasWd", {maxDuration: value as number});
         return {state: {max_duration: value}};
     },
     convertGet: async (entity, key, meta) => {
@@ -807,7 +807,14 @@ export const level_config: Tz.Converter = {
         }
     },
     convertGet: async (entity, key, meta) => {
-        for (const attribute of ["onOffTransitionTime", "onTransitionTime", "offTransitionTime", "startUpCurrentLevel", "onLevel", "options"]) {
+        for (const attribute of [
+            "onOffTransitionTime",
+            "onTransitionTime",
+            "offTransitionTime",
+            "startUpCurrentLevel",
+            "onLevel",
+            "options",
+        ] as const) {
             try {
                 await entity.read("genLevelCtrl", [attribute]);
             } catch {
@@ -829,37 +836,36 @@ export const ballast_config: Tz.Converter = {
             }
         }
         if (key === "ballast_minimum_level") {
-            await entity.write("lightingBallastCfg", {minLevel: value});
+            await entity.write("lightingBallastCfg", {minLevel: value as number});
         }
         if (key === "ballast_maximum_level") {
-            await entity.write("lightingBallastCfg", {maxLevel: value});
+            await entity.write("lightingBallastCfg", {maxLevel: value as number});
         }
         if (key === "ballast_power_on_level") {
-            await entity.write("lightingBallastCfg", {powerOnLevel: value});
+            await entity.write("lightingBallastCfg", {powerOnLevel: value as number});
         }
         return {state: {[key]: value}};
     },
     convertGet: async (entity, key, meta) => {
         let result = {};
         for (const attrName of [
-            "ballast_status",
-            "min_level",
-            "max_level",
-            "power_on_level",
-            "power_on_fade_time",
-            "intrinsic_ballast_factor",
-            "ballast_factor_adjustment",
-            "lamp_quantity",
-            "lamp_type",
-            "lamp_manufacturer",
-            "lamp_rated_hours",
-            "lamp_burn_hours",
-            "lamp_alarm_mode",
-            "lamp_burn_hours_trip_point",
-        ]) {
+            "ballastStatus",
+            "minLevel",
+            "maxLevel",
+            "powerOnLevel",
+            "powerOnFadeTime",
+            "intrinsicBallastFactor",
+            "ballastFactorAdjustment",
+            "lampQuantity",
+            "lampType",
+            "lampManufacturer",
+            "lampRatedHours",
+            "lampBurnHours",
+            "lampAlarmMode",
+            "lampBurnHoursTripPoint",
+        ] as const) {
             try {
-                // @ts-expect-error ignore
-                result = {...result, ...(await entity.read("lightingBallastCfg", [utils.toCamelCase(attrName)]))};
+                result = {...result, ...(await entity.read("lightingBallastCfg", [attrName]))};
             } catch {
                 // continue regardless of error
             }
@@ -1215,7 +1221,6 @@ export const light_onoff_brightness: Tz.Converter = {
                     try {
                         const attributeRead = await entity.read("genLevelCtrl", ["onLevel"]);
                         if (attributeRead !== undefined) {
-                            // @ts-expect-error ignore
                             onLevel = attributeRead.onLevel;
                         }
                     } catch {
@@ -1305,7 +1310,11 @@ export const light_colortemp_startup: Tz.Converter = {
             value = light.clampColorTemp(value, colorTempMin, colorTempMax);
         }
 
-        await entity.write("lightingColorCtrl", {startUpColorTemperature: value}, utils.getOptions(meta.mapped, entity));
+        await entity.write(
+            "lightingColorCtrl",
+            {startUpColorTemperature: value as number /* type failure? */},
+            utils.getOptions(meta.mapped, entity),
+        );
         return {state: {color_temp_startup: value}};
     },
     convertGet: async (entity, key, meta) => {
@@ -1383,7 +1392,7 @@ export const effect: Tz.Converter = {
 export const thermostat_remote_sensing: Tz.Converter = {
     key: ["remote_sensing"],
     convertSet: async (entity, key, value, meta) => {
-        await entity.write("hvacThermostat", {remoteSensing: value});
+        await entity.write("hvacThermostat", {remoteSensing: value as number});
     },
     convertGet: async (entity, key, meta) => {
         await entity.read("hvacThermostat", ["remoteSensing"]);
@@ -1531,7 +1540,7 @@ export const thermostat_system_mode: Tz.Converter = {
     convertSet: async (entity, key, value, meta) => {
         let systemMode = utils.getKey(constants.thermostatSystemModes, value, undefined, Number);
         if (systemMode === undefined) {
-            systemMode = utils.getKey(legacy.thermostatSystemModes, value, value, Number);
+            systemMode = utils.getKey(legacy.thermostatSystemModes, value, value as number, Number);
         }
         await entity.write("hvacThermostat", {systemMode});
         return {state: {system_mode: value}};
@@ -1545,7 +1554,7 @@ export const acova_thermostat_system_mode: Tz.Converter = {
     convertSet: async (entity, key, value, meta) => {
         let systemMode = utils.getKey(constants.acovaThermostatSystemModes, value, undefined, Number);
         if (systemMode === undefined) {
-            systemMode = utils.getKey(legacy.thermostatSystemModes, value, value, Number);
+            systemMode = utils.getKey(legacy.thermostatSystemModes, value, value as number, Number);
         }
         await entity.write("hvacThermostat", {systemMode});
         return {state: {system_mode: value}};
@@ -1560,7 +1569,7 @@ export const thermostat_control_sequence_of_operation: Tz.Converter = {
         utils.assertEndpoint(entity);
         let val = utils.getKey(constants.thermostatControlSequenceOfOperations, value, undefined, Number);
         if (val === undefined) {
-            val = utils.getKey(constants.thermostatControlSequenceOfOperations, value, value, Number);
+            val = utils.getKey(constants.thermostatControlSequenceOfOperations, value, value as number, Number);
         }
         const attributes = {ctrlSeqeOfOper: val};
         await entity.write("hvacThermostat", attributes);
@@ -1592,7 +1601,7 @@ export const thermostat_programming_operation_mode: Tz.Converter = {
 export const thermostat_temperature_display_mode: Tz.Converter = {
     key: ["temperature_display_mode"],
     convertSet: async (entity, key, value, meta) => {
-        const tempDisplayMode = utils.getKey(constants.temperatureDisplayMode, value, value, Number);
+        const tempDisplayMode = utils.getKey(constants.temperatureDisplayMode, value, value as number, Number);
         await entity.write("hvacUserInterfaceCfg", {tempDisplayMode});
         return {state: {temperature_display_mode: value}};
     },
@@ -1603,7 +1612,7 @@ export const thermostat_temperature_display_mode: Tz.Converter = {
 export const thermostat_keypad_lockout: Tz.Converter = {
     key: ["keypad_lockout"],
     convertSet: async (entity, key, value, meta) => {
-        const keypadLockout = utils.getKey(constants.keypadLockoutMode, value, value, Number);
+        const keypadLockout = utils.getKey(constants.keypadLockoutMode, value, value as number, Number);
         await entity.write("hvacUserInterfaceCfg", {keypadLockout});
         return {state: {keypad_lockout: value}};
     },
@@ -1614,8 +1623,7 @@ export const thermostat_keypad_lockout: Tz.Converter = {
 export const thermostat_temperature_setpoint_hold: Tz.Converter = {
     key: ["temperature_setpoint_hold"],
     convertSet: async (entity, key, value, meta) => {
-        const tempSetpointHold = value;
-        await entity.write("hvacThermostat", {tempSetpointHold});
+        await entity.write("hvacThermostat", {tempSetpointHold: value as number});
     },
     convertGet: async (entity, key, meta) => {
         await entity.read("hvacThermostat", ["tempSetpointHold"]);
@@ -1624,8 +1632,7 @@ export const thermostat_temperature_setpoint_hold: Tz.Converter = {
 export const thermostat_temperature_setpoint_hold_duration: Tz.Converter = {
     key: ["temperature_setpoint_hold_duration"],
     convertSet: async (entity, key, value, meta) => {
-        const tempSetpointHoldDuration = value;
-        await entity.write("hvacThermostat", {tempSetpointHoldDuration});
+        await entity.write("hvacThermostat", {tempSetpointHoldDuration: value as number});
     },
     convertGet: async (entity, key, meta) => {
         await entity.read("hvacThermostat", ["tempSetpointHoldDuration"]);
@@ -1881,7 +1888,7 @@ export const thermostat_ac_louver_position: Tz.Converter = {
     convertSet: async (entity, key, value, meta) => {
         let acLouverPosition = utils.getKey(constants.thermostatAcLouverPositions, value, undefined, Number);
         if (acLouverPosition === undefined) {
-            acLouverPosition = utils.getKey(constants.thermostatAcLouverPositions, value, value, Number);
+            acLouverPosition = utils.getKey(constants.thermostatAcLouverPositions, value, value as number, Number);
         }
         await entity.write("hvacThermostat", {acLouverPosition});
         return {state: {ac_louver_position: value}};
@@ -2036,7 +2043,7 @@ export const humidity: Tz.Converter = {
 export const elko_power_status: Tz.Converter = {
     key: ["system_mode"],
     convertSet: async (entity, key, value, meta) => {
-        await entity.write("hvacThermostat", {elkoPowerStatus: value === "heat"});
+        await entity.write("hvacThermostat", {elkoPowerStatus: value === "heat" ? 1 : 0});
         return {state: {system_mode: value}};
     },
     convertGet: async (entity, key, meta) => {
@@ -2297,7 +2304,7 @@ export const livolo_cover_options: Tz.Converter = {
                      (must be one of 'FORWARD' or 'REVERSE')`);
             }
 
-            const payload = {4865: {value: [direction, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]}};
+            const payload = {4865: {value: [direction, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00], type: Zcl.BuffaloZclDataType.LIST_UINT8}};
             await entity.write("genPowerCfg", payload, options);
         }
 
@@ -2305,7 +2312,7 @@ export const livolo_cover_options: Tz.Converter = {
             if (value.motor_speed < 20 || value.motor_speed > 40) {
                 throw new Error("livolo_cover_options: Motor speed is out of range (20-40)");
             }
-            const payload = {4609: {value: [value.motor_speed, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]}};
+            const payload = {4609: {value: [value.motor_speed, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00], type: Zcl.BuffaloZclDataType.LIST_UINT8}};
             await entity.write("genPowerCfg", payload, options);
         }
     },
@@ -2436,7 +2443,7 @@ export const danfoss_mounted_mode_active: Tz.Converter = {
 export const danfoss_mounted_mode_control: Tz.Converter = {
     key: ["mounted_mode_control"],
     convertSet: async (entity, key, value, meta) => {
-        await entity.write("hvacThermostat", {danfossMountedModeControl: value}, manufacturerOptions.danfoss);
+        await entity.write("hvacThermostat", {danfossMountedModeControl: value as number}, manufacturerOptions.danfoss);
         return {state: {mounted_mode_control: value}};
     },
     convertGet: async (entity, key, meta) => {
@@ -2446,7 +2453,7 @@ export const danfoss_mounted_mode_control: Tz.Converter = {
 export const danfoss_thermostat_vertical_orientation: Tz.Converter = {
     key: ["thermostat_vertical_orientation"],
     convertSet: async (entity, key, value, meta) => {
-        await entity.write("hvacThermostat", {danfossThermostatOrientation: value}, manufacturerOptions.danfoss);
+        await entity.write("hvacThermostat", {danfossThermostatOrientation: value as number}, manufacturerOptions.danfoss);
         return {state: {thermostat_vertical_orientation: value}};
     },
     convertGet: async (entity, key, meta) => {
@@ -2456,7 +2463,7 @@ export const danfoss_thermostat_vertical_orientation: Tz.Converter = {
 export const danfoss_external_measured_room_sensor: Tz.Converter = {
     key: ["external_measured_room_sensor"],
     convertSet: async (entity, key, value, meta) => {
-        await entity.write("hvacThermostat", {danfossExternalMeasuredRoomSensor: value}, manufacturerOptions.danfoss);
+        await entity.write("hvacThermostat", {danfossExternalMeasuredRoomSensor: value as number}, manufacturerOptions.danfoss);
         return {state: {external_measured_room_sensor: value}};
     },
     convertGet: async (entity, key, meta) => {
@@ -2466,7 +2473,7 @@ export const danfoss_external_measured_room_sensor: Tz.Converter = {
 export const danfoss_radiator_covered: Tz.Converter = {
     key: ["radiator_covered"],
     convertSet: async (entity, key, value, meta) => {
-        await entity.write("hvacThermostat", {danfossRadiatorCovered: value}, manufacturerOptions.danfoss);
+        await entity.write("hvacThermostat", {danfossRadiatorCovered: value as number}, manufacturerOptions.danfoss);
         return {state: {radiator_covered: value}};
     },
     convertGet: async (entity, key, meta) => {
@@ -2476,7 +2483,7 @@ export const danfoss_radiator_covered: Tz.Converter = {
 export const danfoss_viewing_direction: Tz.Converter = {
     key: ["viewing_direction"],
     convertSet: async (entity, key, value, meta) => {
-        await entity.write("hvacUserInterfaceCfg", {danfossViewingDirection: value}, manufacturerOptions.danfoss);
+        await entity.write("hvacUserInterfaceCfg", {danfossViewingDirection: value as number}, manufacturerOptions.danfoss);
         return {state: {viewing_direction: value}};
     },
     convertGet: async (entity, key, meta) => {
@@ -2486,7 +2493,7 @@ export const danfoss_viewing_direction: Tz.Converter = {
 export const danfoss_algorithm_scale_factor: Tz.Converter = {
     key: ["algorithm_scale_factor"],
     convertSet: async (entity, key, value, meta) => {
-        await entity.write("hvacThermostat", {danfossAlgorithmScaleFactor: value}, manufacturerOptions.danfoss);
+        await entity.write("hvacThermostat", {danfossAlgorithmScaleFactor: value as number}, manufacturerOptions.danfoss);
         return {state: {algorithm_scale_factor: value}};
     },
     convertGet: async (entity, key, meta) => {
@@ -2496,7 +2503,7 @@ export const danfoss_algorithm_scale_factor: Tz.Converter = {
 export const danfoss_heat_available: Tz.Converter = {
     key: ["heat_available"],
     convertSet: async (entity, key, value, meta) => {
-        await entity.write("hvacThermostat", {danfossHeatAvailable: value}, manufacturerOptions.danfoss);
+        await entity.write("hvacThermostat", {danfossHeatAvailable: value as number}, manufacturerOptions.danfoss);
         return {state: {heat_available: value}};
     },
     convertGet: async (entity, key, meta) => {
@@ -2523,7 +2530,7 @@ export const danfoss_day_of_week: Tz.Converter = {
 export const danfoss_trigger_time: Tz.Converter = {
     key: ["trigger_time"],
     convertSet: async (entity, key, value, meta) => {
-        await entity.write("hvacThermostat", {danfossTriggerTime: value}, manufacturerOptions.danfoss);
+        await entity.write("hvacThermostat", {danfossTriggerTime: value as number}, manufacturerOptions.danfoss);
         return {state: {trigger_time: value}};
     },
     convertGet: async (entity, key, meta) => {
@@ -2533,7 +2540,7 @@ export const danfoss_trigger_time: Tz.Converter = {
 export const danfoss_window_open_feature: Tz.Converter = {
     key: ["window_open_feature"],
     convertSet: async (entity, key, value, meta) => {
-        await entity.write("hvacThermostat", {danfossWindowOpenFeatureEnable: value}, manufacturerOptions.danfoss);
+        await entity.write("hvacThermostat", {danfossWindowOpenFeatureEnable: value as number}, manufacturerOptions.danfoss);
         return {state: {window_open_feature: value}};
     },
     convertGet: async (entity, key, meta) => {
@@ -2549,7 +2556,7 @@ export const danfoss_window_open_internal: Tz.Converter = {
 export const danfoss_window_open_external: Tz.Converter = {
     key: ["window_open_external"],
     convertSet: async (entity, key, value, meta) => {
-        await entity.write("hvacThermostat", {danfossWindowOpenExternal: value}, manufacturerOptions.danfoss);
+        await entity.write("hvacThermostat", {danfossWindowOpenExternal: value as number}, manufacturerOptions.danfoss);
         return {state: {window_open_external: value}};
     },
     convertGet: async (entity, key, meta) => {
@@ -2559,7 +2566,7 @@ export const danfoss_window_open_external: Tz.Converter = {
 export const danfoss_load_balancing_enable: Tz.Converter = {
     key: ["load_balancing_enable"],
     convertSet: async (entity, key, value, meta) => {
-        await entity.write("hvacThermostat", {danfossLoadBalancingEnable: value}, manufacturerOptions.danfoss);
+        await entity.write("hvacThermostat", {danfossLoadBalancingEnable: value as number}, manufacturerOptions.danfoss);
         return {state: {load_balancing_enable: value}};
     },
     convertGet: async (entity, key, meta) => {
@@ -2569,7 +2576,7 @@ export const danfoss_load_balancing_enable: Tz.Converter = {
 export const danfoss_load_room_mean: Tz.Converter = {
     key: ["load_room_mean"],
     convertSet: async (entity, key, value, meta) => {
-        await entity.write("hvacThermostat", {danfossLoadRoomMean: value}, manufacturerOptions.danfoss);
+        await entity.write("hvacThermostat", {danfossLoadRoomMean: value as number}, manufacturerOptions.danfoss);
         return {state: {load_room_mean: value}};
     },
     convertGet: async (entity, key, meta) => {
@@ -2597,7 +2604,7 @@ export const danfoss_adaptation_status: Tz.Converter = {
 export const danfoss_adaptation_settings: Tz.Converter = {
     key: ["adaptation_run_settings"],
     convertSet: async (entity, key, value, meta) => {
-        await entity.write("hvacThermostat", {danfossAdaptionRunSettings: value}, manufacturerOptions.danfoss);
+        await entity.write("hvacThermostat", {danfossAdaptionRunSettings: value as number}, manufacturerOptions.danfoss);
         return {state: {adaptation_run_settings: value}};
     },
 
@@ -2608,8 +2615,11 @@ export const danfoss_adaptation_settings: Tz.Converter = {
 export const danfoss_adaptation_control: Tz.Converter = {
     key: ["adaptation_run_control"],
     convertSet: async (entity, key, value, meta) => {
-        const payload = {danfossAdaptionRunControl: utils.getKey(constants.danfossAdaptionRunControl, value, value, Number)};
-        await entity.write("hvacThermostat", payload, manufacturerOptions.danfoss);
+        await entity.write(
+            "hvacThermostat",
+            {danfossAdaptionRunControl: utils.getKey(constants.danfossAdaptionRunControl, value, value as number, Number)},
+            manufacturerOptions.danfoss,
+        );
         return {state: {adaptation_run_control: value}};
     },
 
@@ -2620,8 +2630,7 @@ export const danfoss_adaptation_control: Tz.Converter = {
 export const danfoss_regulation_setpoint_offset: Tz.Converter = {
     key: ["regulation_setpoint_offset"],
     convertSet: async (entity, key, value, meta) => {
-        const payload = {danfossRegulationSetpointOffset: value};
-        await entity.write("hvacThermostat", payload, manufacturerOptions.danfoss);
+        await entity.write("hvacThermostat", {danfossRegulationSetpointOffset: value as number}, manufacturerOptions.danfoss);
         return {state: {regulation_setpoint_offset: value}};
     },
 
@@ -2698,7 +2707,7 @@ export const danfoss_system_status_code: Tz.Converter = {
 export const danfoss_heat_supply_request: Tz.Converter = {
     key: ["heat_supply_request"],
     convertGet: async (entity, key, meta) => {
-        await entity.read("haDiagnostic", ["danfossHeatsupplyRequest"], manufacturerOptions.danfoss);
+        await entity.read("haDiagnostic", ["danfossHeatSupplyRequest"], manufacturerOptions.danfoss);
     },
 };
 export const danfoss_system_status_water: Tz.Converter = {
@@ -3759,11 +3768,9 @@ export const scene_store: Tz.Converter = {
                     utils.saveSceneState(member, sceneid, groupid, meta.membersState[member.getDevice().ieeeAddr], scenename);
                 }
             }
-            // @ts-expect-error ignore
         } else if (response.status === 0) {
             utils.saveSceneState(entity, sceneid, groupid, meta.state, scenename);
         } else {
-            // @ts-expect-error ignore
             throw new Error(`Scene add not successful ('${Zcl.Status[response.status]}')`);
         }
         logger.info("Successfully stored scene", NS);
@@ -3992,11 +3999,9 @@ export const scene_remove: Tz.Converter = {
                     utils.deleteSceneState(member, sceneid, groupid);
                 }
             }
-            // @ts-expect-error ignore
         } else if (response.status === 0) {
             utils.deleteSceneState(entity, sceneid, groupid);
         } else {
-            // @ts-expect-error ignore
             throw new Error(`Scene remove not successful ('${Zcl.Status[response.status]}')`);
         }
         logger.info("Successfully removed scene", NS);
@@ -4072,7 +4077,7 @@ export const TS0003_curtain_switch: Tz.Converter = {
 export const ts0216_duration: Tz.Converter = {
     key: ["duration"],
     convertSet: async (entity, key, value, meta) => {
-        await entity.write("ssIasWd", {maxDuration: value});
+        await entity.write("ssIasWd", {maxDuration: value as number});
     },
     convertGet: async (entity, key, meta) => {
         await entity.read("ssIasWd", ["maxDuration"]);
@@ -4193,7 +4198,7 @@ export const TS0210_sensitivity: Tz.Converter = {
     convertSet: async (entity, key, value, meta) => {
         // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         value = utils.toNumber(value, "sensitivity");
-        await entity.write("ssIasZone", {currentZoneSensitivityLevel: value});
+        await entity.write("ssIasZone", {currentZoneSensitivityLevel: value as number});
         return {state: {sensitivity: value}};
     },
 };
@@ -4207,7 +4212,7 @@ export const viessmann_window_open_force: Tz.Converter = {
     key: ["window_open_force"],
     convertSet: async (entity, key, value, meta) => {
         if (typeof value === "boolean") {
-            await entity.write("hvacThermostat", {viessmannWindowOpenForce: value}, manufacturerOptions.viessmann);
+            await entity.write("hvacThermostat", {viessmannWindowOpenForce: value ? 1 : 0}, manufacturerOptions.viessmann);
             return {state: {window_open_force: value}};
         }
         logger.error("window_open_force must be a boolean!", NS);
@@ -4338,8 +4343,11 @@ export const schneider_dimmer_mode: Tz.Converter = {
 export const wiser_dimmer_mode: Tz.Converter = {
     key: ["dimmer_mode"],
     convertSet: async (entity, key, value, meta) => {
-        const controlMode = utils.getKey(constants.wiserDimmerControlMode, value, value, Number);
-        await entity.write("lightingBallastCfg", {wiserControlMode: controlMode}, {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC});
+        await entity.write(
+            "lightingBallastCfg",
+            {wiserControlMode: utils.getKey(constants.wiserDimmerControlMode, value, value as number, Number)},
+            {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+        );
         return {state: {dimmer_mode: value}};
     },
     convertGet: async (entity, key, meta) => {
@@ -4394,7 +4402,7 @@ export const schneider_thermostat_keypad_lockout: Tz.Converter = {
     key: ["keypad_lockout"],
     convertSet: async (entity, key, value, meta) => {
         utils.assertEndpoint(entity);
-        const keypadLockout = utils.getKey(constants.keypadLockoutMode, value, value, Number);
+        const keypadLockout = utils.getKey(constants.keypadLockoutMode, value, value as number, Number);
         await entity.write("hvacUserInterfaceCfg", {keypadLockout});
         entity.saveClusterAttributeKeyValue("hvacUserInterfaceCfg", {keypadLockout});
         return {state: {keypad_lockout: value}};
@@ -4487,17 +4495,19 @@ export const wiser_sed_thermostat_local_temperature_calibration: Tz.Converter = 
 export const wiser_sed_thermostat_keypad_lockout: Tz.Converter = {
     key: ["keypad_lockout"],
     convertSet: async (entity, key, value, meta) => {
-        const keypadLockout = utils.getKey(constants.keypadLockoutMode, value, value, Number);
-        await entity.write("hvacUserInterfaceCfg", {keypadLockout}, {srcEndpoint: 11, disableDefaultResponse: true});
+        await entity.write(
+            "hvacUserInterfaceCfg",
+            {keypadLockout: utils.getKey(constants.keypadLockoutMode, value, value as number, Number)},
+            {srcEndpoint: 11, disableDefaultResponse: true},
+        );
         return {state: {keypad_lockout: value}};
     },
 };
 export const sihas_set_people: Tz.Converter = {
     key: ["people"],
     convertSet: async (entity, key, value, meta) => {
-        const payload = {presentValue: value};
         const endpoint = meta.device.endpoints.find((e) => e.supportsInputCluster("genAnalogInput"));
-        await endpoint.write("genAnalogInput", payload);
+        await endpoint.write("genAnalogInput", {presentValue: value as number});
     },
     convertGet: async (entity, key, meta) => {
         const endpoint = meta.device.endpoints.find((e) => e.supportsInputCluster("genAnalogInput"));

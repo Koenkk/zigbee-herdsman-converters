@@ -206,14 +206,24 @@ export function enforceEndpoint(entity: Zh.Endpoint, key: string, meta: Tz.Meta)
     return entity;
 }
 
-export function getKey<T>(object: {[s: string]: T} | {[s: number]: T}, value: T, fallback?: T, convertTo?: (v: unknown) => T) {
+type RecordStringOrNumber<T> = Record<string, T> | Record<number, T>;
+
+export function getKey<T>(object: RecordStringOrNumber<T>, value: T): string | undefined;
+export function getKey<T, F>(object: RecordStringOrNumber<T>, value: T, fallback: F): string | F;
+export function getKey<T, R>(object: RecordStringOrNumber<T>, value: T, fallback: undefined, convertTo: (v: string | number) => R): R | undefined;
+export function getKey<T, R, F>(object: RecordStringOrNumber<T>, value: T, fallback: F, convertTo: (v: string | number) => R): R | F;
+export function getKey<T, R, F>(
+    object: RecordStringOrNumber<T>,
+    value: T,
+    fallback?: F,
+    convertTo?: (v: string | number) => R,
+): R | F | string | undefined {
     for (const key in object) {
-        // @ts-expect-error ignore
+        // @ts-expect-error too generic
         if (object[key] === value) {
             return convertTo ? convertTo(key) : key;
         }
     }
-
     return fallback;
 }
 

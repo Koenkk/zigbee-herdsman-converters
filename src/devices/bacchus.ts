@@ -1,8 +1,9 @@
+import type {RawClusterAttributes} from "zigbee-herdsman/dist/controller/tstype";
+import type {TPartialClusterAttributes} from "zigbee-herdsman/dist/zspec/zcl/definition/clusters-types";
 import {access as ea} from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import type {Configure, DefinitionWithExtend, Fz, ModernExtend, Tz} from "../lib/types";
-
 import {assertNumber, getEndpointName, isString, precisionRound, validateValue} from "../lib/utils";
 
 const defaultReporting = {min: 0, max: 3600, change: 0};
@@ -20,7 +21,7 @@ const str_min_to_time = (strMin: string) => {
     return Number(strMin.substring(0, 2)) * 60 * 60 + Number(strMin.substring(3, 5)) * 60;
 };
 
-function timeHHMM(args: m.TextArgs): ModernExtend {
+function timeHHMM(args: m.TextArgs<"genTime">): ModernExtend {
     const {name, cluster, attribute, zigbeeCommandOptions, endpointName} = args;
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
     const access = ea[args.access ?? "ALL"];
@@ -45,7 +46,9 @@ function timeHHMM(args: m.TextArgs): ModernExtend {
                 access & ea.SET
                     ? async (entity, key, value, meta) => {
                           const value_str = str_min_to_time(value.toString());
-                          const payload = isString(attribute) ? {[attribute]: value_str} : {[attribute.ID]: {value_str, type: attribute.type}};
+                          const payload: TPartialClusterAttributes<"genTime"> | RawClusterAttributes = isString(attribute)
+                              ? {[attribute]: value_str}
+                              : {[attribute.ID]: {value: value_str, type: attribute.type}};
                           await m.determineEndpoint(entity, meta, cluster).write(cluster, payload, zigbeeCommandOptions);
                           return {state: {[key]: value}};
                       }
@@ -65,11 +68,10 @@ function timeHHMM(args: m.TextArgs): ModernExtend {
     return {...mExtend, fromZigbee, toZigbee, configure, isModernExtend: true};
 }
 
-function binaryWithOnOffCommand(args: m.BinaryArgs): ModernExtend {
+function binaryWithOnOffCommand<Cl extends string | number>(args: m.BinaryArgs<Cl>): ModernExtend {
     const {name, cluster, attribute, zigbeeCommandOptions, endpointName, reporting} = args;
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
     const access = ea[args.access ?? "ALL"];
-
     const mExtend = m.binary(args);
 
     const toZigbee: Tz.Converter[] = [
@@ -102,7 +104,7 @@ function binaryWithOnOffCommand(args: m.BinaryArgs): ModernExtend {
     return {...mExtend, toZigbee, configure, isModernExtend: true};
 }
 
-function energy(args: m.NumericArgs): ModernExtend {
+function energy(args: m.NumericArgs<"seMetering">): ModernExtend {
     const {name, cluster, attribute, zigbeeCommandOptions, reporting, scale, precision, endpointNames} = args;
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
     const access = ea[args.access ?? "ALL"];
@@ -142,7 +144,7 @@ function energy(args: m.NumericArgs): ModernExtend {
                           }
                           assertNumber(payloadValue);
                           if (precision != null) payloadValue = precisionRound(payloadValue, precision);
-                          const payload = isString(attribute)
+                          const payload: TPartialClusterAttributes<"genTime"> | RawClusterAttributes = isString(attribute)
                               ? {[attribute]: payloadValue}
                               : {[attribute.ID]: {value: payloadValue, type: attribute.type}};
                           await m.determineEndpoint(entity, meta, cluster).write(cluster, payload, zigbeeCommandOptions);

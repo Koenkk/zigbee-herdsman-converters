@@ -80,18 +80,19 @@ const tzLocal = {
             }
         },
         convertSet: async (entity, key, value, meta) => {
-            let payload: KeyValue = {};
             let newValue = value;
             switch (key) {
-                case "sensor_type":
+                case "sensor_type": {
                     newValue = sensorTypes.indexOf(value as string);
-                    payload = {30464: {value: newValue, type: Zcl.DataType.ENUM8}};
+                    const payload = {30464: {value: newValue, type: Zcl.DataType.ENUM8}};
                     await entity.write("hvacThermostat", payload, manufacturerOptions);
                     break;
-                case "target_temp_first":
-                    payload = {30465: {value: newValue, type: Zcl.DataType.BOOLEAN}};
+                }
+                case "target_temp_first": {
+                    const payload = {30465: {value: newValue, type: Zcl.DataType.BOOLEAN}};
                     await entity.write("hvacThermostat", payload, manufacturerOptions);
                     break;
+                }
                 case "min_setpoint_deadband":
                     await entity.write("hvacThermostat", {minSetpointDeadBand: Math.round(toNumber(value) * 10)});
                     break;
@@ -120,17 +121,18 @@ const tzLocal = {
             }
         },
         convertSet: async (entity, key, value, meta) => {
-            let payload: KeyValue = {};
             const newValue = value;
             switch (key) {
-                case "brightness":
-                    payload = {30464: {value: newValue, type: Zcl.DataType.ENUM8}};
+                case "brightness": {
+                    const payload = {30464: {value: newValue, type: Zcl.DataType.ENUM8}};
                     await entity.write("hvacUserInterfaceCfg", payload, manufacturerOptions);
                     break;
-                case "brightness_standby":
-                    payload = {30465: {value: newValue, type: Zcl.DataType.ENUM8}};
+                }
+                case "brightness_standby": {
+                    const payload = {30465: {value: newValue, type: Zcl.DataType.ENUM8}};
                     await entity.write("hvacUserInterfaceCfg", payload, manufacturerOptions);
                     break;
+                }
                 default:
                     break;
             }

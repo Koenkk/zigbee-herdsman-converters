@@ -113,7 +113,6 @@ const ubisys = {
                     do {
                         await sleepSeconds(2);
                         const response = await entity.read("closuresWindowCovering", ["operationalStatus"]);
-                        // @ts-expect-error ignore
                         operationalStatus = response.operationalStatus;
                     } while (operationalStatus !== 0);
                     await sleepSeconds(2);
@@ -135,8 +134,7 @@ const ubisys = {
                         if (converterFunc) {
                             attrValue = converterFunc(attrValue);
                         }
-                        const attributes: KeyValue = {};
-                        attributes[attr] = attrValue;
+                        const attributes = {[attr]: attrValue};
                         await entity.write("closuresWindowCovering", attributes, manufacturerOptions.ubisys);
                         if (delaySecondsAfter) {
                             await sleepSeconds(delaySecondsAfter);
@@ -146,7 +144,6 @@ const ubisys = {
                 const stepsPerSecond = value.steps_per_second || 50;
                 const hasCalibrate = value.calibrate != null;
                 // cancel any running calibration
-                // @ts-expect-error ignore
                 let mode = (await entity.read("closuresWindowCovering", ["windowCoveringMode"])).windowCoveringMode;
                 const modeCalibrationBitMask = 0x02;
                 if (mode & modeCalibrationBitMask) {

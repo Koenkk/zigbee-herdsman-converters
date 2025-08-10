@@ -1505,7 +1505,7 @@ export const lumiModernExtend = {
         }
         return result;
     },
-    lumiSwitchType: (args?: Partial<modernExtend.EnumLookupArgs>) =>
+    lumiSwitchType: (args?: Partial<modernExtend.EnumLookupArgs<"manuSpecificLumi">>) =>
         modernExtend.enumLookup({
             name: "switch_type",
             lookup: {toggle: 1, momentary: 2, none: 3},
@@ -1516,7 +1516,7 @@ export const lumiModernExtend = {
             zigbeeCommandOptions: {manufacturerCode},
             ...args,
         }),
-    lumiMotorSpeed: (args?: Partial<modernExtend.EnumLookupArgs>) =>
+    lumiMotorSpeed: (args?: Partial<modernExtend.EnumLookupArgs<"manuSpecificLumi">>) =>
         modernExtend.enumLookup({
             name: "motor_speed",
             lookup: {low: 0, medium: 1, high: 2},
@@ -1527,7 +1527,7 @@ export const lumiModernExtend = {
             zigbeeCommandOptions: {manufacturerCode},
             ...args,
         }),
-    lumiCurtainSpeed: (args?: Partial<modernExtend.NumericArgs>) =>
+    lumiCurtainSpeed: (args?: Partial<modernExtend.NumericArgs<"manuSpecificLumi">>) =>
         modernExtend.numeric({
             name: "curtain_speed",
             cluster: "manuSpecificLumi",
@@ -1541,7 +1541,7 @@ export const lumiModernExtend = {
             entityCategory: "config",
             ...args,
         }),
-    lumiCurtainManualOpenClose: (args?: Partial<modernExtend.BinaryArgs>) =>
+    lumiCurtainManualOpenClose: (args?: Partial<modernExtend.BinaryArgs<"manuSpecificLumi">>) =>
         modernExtend.binary({
             name: "manual_open_close",
             valueOn: ["ON", 1],
@@ -1554,7 +1554,7 @@ export const lumiModernExtend = {
             entityCategory: "config",
             ...args,
         }),
-    lumiCurtainAdaptivePullingSpeed: (args?: Partial<modernExtend.BinaryArgs>) =>
+    lumiCurtainAdaptivePullingSpeed: (args?: Partial<modernExtend.BinaryArgs<"manuSpecificLumi">>) =>
         modernExtend.binary({
             name: "adaptive_pulling_speed",
             valueOn: ["ON", 1],
@@ -1567,7 +1567,7 @@ export const lumiModernExtend = {
             entityCategory: "config",
             ...args,
         }),
-    lumiCurtainManualStop: (args?: Partial<modernExtend.BinaryArgs>) =>
+    lumiCurtainManualStop: (args?: Partial<modernExtend.BinaryArgs<"manuSpecificLumi">>) =>
         modernExtend.binary({
             name: "manual_stop",
             valueOn: ["ON", 1],
@@ -1580,7 +1580,7 @@ export const lumiModernExtend = {
             entityCategory: "config",
             ...args,
         }),
-    lumiCurtainReverse: (args?: Partial<modernExtend.BinaryArgs>) =>
+    lumiCurtainReverse: (args?: Partial<modernExtend.BinaryArgs<"closuresWindowCovering">>) =>
         modernExtend.binary({
             name: "reverse_direction",
             valueOn: [true, 1],
@@ -1592,7 +1592,7 @@ export const lumiModernExtend = {
             entityCategory: "config",
             ...args,
         }),
-    lumiCurtainStatus: (args?: Partial<modernExtend.EnumLookupArgs>) =>
+    lumiCurtainStatus: (args?: Partial<modernExtend.EnumLookupArgs<"manuSpecificLumi">>) =>
         modernExtend.enumLookup({
             name: "status",
             lookup: {closing: 0, opening: 1, stopped: 2, blocked: 3},
@@ -1604,7 +1604,7 @@ export const lumiModernExtend = {
             entityCategory: "diagnostic",
             ...args,
         }),
-    lumiCurtainLastManualOperation: (args?: Partial<modernExtend.EnumLookupArgs>) =>
+    lumiCurtainLastManualOperation: (args?: Partial<modernExtend.EnumLookupArgs<"manuSpecificLumi">>) =>
         modernExtend.enumLookup({
             name: "last_manual_operation",
             lookup: {open: 1, close: 2, stop: 3},
@@ -1616,7 +1616,7 @@ export const lumiModernExtend = {
             entityCategory: "diagnostic",
             ...args,
         }),
-    lumiCurtainPosition: (args?: Partial<modernExtend.NumericArgs>) =>
+    lumiCurtainPosition: (args?: Partial<modernExtend.NumericArgs<"manuSpecificLumi">>) =>
         modernExtend.numeric({
             name: "curtain_position",
             cluster: "manuSpecificLumi",
@@ -1630,7 +1630,7 @@ export const lumiModernExtend = {
             entityCategory: "diagnostic",
             ...args,
         }),
-    lumiCurtainTraverseTime: (args?: Partial<modernExtend.NumericArgs>) =>
+    lumiCurtainTraverseTime: (args?: Partial<modernExtend.NumericArgs<"manuSpecificLumi">>) =>
         modernExtend.numeric({
             name: "traverse_time",
             cluster: "manuSpecificLumi",
@@ -1642,7 +1642,7 @@ export const lumiModernExtend = {
             entityCategory: "diagnostic",
             ...args,
         }),
-    lumiCurtainCalibrationStatus: (args?: Partial<modernExtend.EnumLookupArgs>) =>
+    lumiCurtainCalibrationStatus: (args?: Partial<modernExtend.EnumLookupArgs<"manuSpecificLumi">>) =>
         modernExtend.enumLookup({
             name: "calibration_status",
             lookup: {not_calibrated: 0, half_calibrated: 1, fully_calibrated: 2},
@@ -1654,7 +1654,7 @@ export const lumiModernExtend = {
             entityCategory: "diagnostic",
             ...args,
         }),
-    lumiCurtainCalibrated: (args?: Partial<modernExtend.BinaryArgs>) =>
+    lumiCurtainCalibrated: (args?: Partial<modernExtend.BinaryArgs<"manuSpecificLumi">>) =>
         modernExtend.binary({
             name: "calibrated",
             valueOn: [true, 1],
@@ -1667,7 +1667,7 @@ export const lumiModernExtend = {
             entityCategory: "diagnostic",
             ...args,
         }),
-    lumiCurtainIdentifyBeep: (args?: Partial<modernExtend.EnumLookupArgs>) =>
+    lumiCurtainIdentifyBeep: (args?: Partial<modernExtend.EnumLookupArgs<"manuSpecificLumi">>) =>
         modernExtend.enumLookup({
             name: "identify_beep",
             lookup: {short: 0, "1_sec": 1, "2_sec": 2},
@@ -1679,7 +1679,7 @@ export const lumiModernExtend = {
             entityCategory: "config",
             ...args,
         }),
-    lumiPowerOnBehavior: (args?: Partial<modernExtend.EnumLookupArgs>) =>
+    lumiPowerOnBehavior: (args?: Partial<modernExtend.EnumLookupArgs<"manuSpecificLumi">>) =>
         modernExtend.enumLookup({
             name: "power_on_behavior",
             lookup: {on: 0, previous: 1, off: 2, inverted: 3},
@@ -1690,7 +1690,7 @@ export const lumiModernExtend = {
             zigbeeCommandOptions: {manufacturerCode},
             ...args,
         }),
-    lumiPowerOutageMemory: (args?: Partial<modernExtend.BinaryArgs>) =>
+    lumiPowerOutageMemory: (args?: Partial<modernExtend.BinaryArgs<"manuSpecificLumi">>) =>
         modernExtend.binary({
             name: "power_outage_memory",
             cluster: "manuSpecificLumi",
@@ -1703,7 +1703,7 @@ export const lumiModernExtend = {
             zigbeeCommandOptions: {manufacturerCode},
             ...args,
         }),
-    lumiOperationMode: (args?: Partial<modernExtend.EnumLookupArgs>) =>
+    lumiOperationMode: (args?: Partial<modernExtend.EnumLookupArgs<"manuSpecificLumi">>) =>
         modernExtend.enumLookup({
             name: "operation_mode",
             lookup: {decoupled: 0, control_relay: 1},
@@ -1714,14 +1714,14 @@ export const lumiModernExtend = {
             zigbeeCommandOptions: {manufacturerCode},
             ...args,
         }),
-    lumiAction: (args?: Partial<modernExtend.ActionEnumLookupArgs>) =>
+    lumiAction: (args?: Partial<modernExtend.ActionEnumLookupArgs<"genMultistateInput">>) =>
         modernExtend.actionEnumLookup({
             actionLookup: {single: 1},
             cluster: "genMultistateInput",
             attribute: "presentValue",
             ...args,
         }),
-    lumiVoc: (args?: Partial<modernExtend.NumericArgs>) =>
+    lumiVoc: (args?: Partial<modernExtend.NumericArgs<"genAnalogInput">>) =>
         modernExtend.numeric({
             name: "voc",
             cluster: "genAnalogInput",
@@ -1732,7 +1732,7 @@ export const lumiModernExtend = {
             access: "STATE_GET",
             ...args,
         }),
-    lumiAirQuality: (args?: Partial<modernExtend.EnumLookupArgs>) =>
+    lumiAirQuality: (args?: Partial<modernExtend.EnumLookupArgs<"manuSpecificLumi">>) =>
         modernExtend.enumLookup({
             name: "air_quality",
             lookup: {excellent: 1, good: 2, moderate: 3, poor: 4, unhealthy: 5, unknown: 0},
@@ -1743,7 +1743,7 @@ export const lumiModernExtend = {
             access: "STATE_GET",
             ...args,
         }),
-    lumiDisplayUnit: (args?: Partial<modernExtend.EnumLookupArgs>) =>
+    lumiDisplayUnit: (args?: Partial<modernExtend.EnumLookupArgs<"manuSpecificLumi">>) =>
         modernExtend.enumLookup({
             name: "display_unit",
             lookup: {
@@ -1837,7 +1837,7 @@ export const lumiModernExtend = {
         result.ota = true;
         return result;
     },
-    lumiPower: (args?: Partial<modernExtend.NumericArgs>) =>
+    lumiPower: (args?: Partial<modernExtend.NumericArgs<"genAnalogInput">>) =>
         modernExtend.numeric({
             name: "power",
             cluster: "genAnalogInput",
@@ -1864,7 +1864,7 @@ export const lumiModernExtend = {
 
         return {exposes, fromZigbee, isModernExtend: true};
     },
-    lumiOverloadProtection: (args?: Partial<modernExtend.NumericArgs>) =>
+    lumiOverloadProtection: (args?: Partial<modernExtend.NumericArgs<"manuSpecificLumi">>) =>
         modernExtend.numeric({
             name: "overload_protection",
             cluster: "manuSpecificLumi",
@@ -1878,7 +1878,7 @@ export const lumiModernExtend = {
             zigbeeCommandOptions: {manufacturerCode},
             ...args,
         }),
-    lumiLedIndicator: (args?: Partial<modernExtend.BinaryArgs>) =>
+    lumiLedIndicator: (args?: Partial<modernExtend.BinaryArgs<"manuSpecificLumi">>) =>
         modernExtend.binary({
             name: "led_indicator",
             cluster: "manuSpecificLumi",
@@ -1891,7 +1891,7 @@ export const lumiModernExtend = {
             zigbeeCommandOptions: {manufacturerCode},
             ...args,
         }),
-    lumiLedDisabledNight: (args?: Partial<modernExtend.BinaryArgs>) =>
+    lumiLedDisabledNight: (args?: Partial<modernExtend.BinaryArgs<"manuSpecificLumi">>) =>
         modernExtend.binary({
             name: "led_disabled_night",
             cluster: "manuSpecificLumi",
@@ -1905,7 +1905,7 @@ export const lumiModernExtend = {
             reporting: false,
             ...args,
         }),
-    lumiButtonLock: (args?: Partial<modernExtend.BinaryArgs>) =>
+    lumiButtonLock: (args?: Partial<modernExtend.BinaryArgs<"manuSpecificLumi">>) =>
         modernExtend.binary({
             name: "button_lock",
             cluster: "manuSpecificLumi",
@@ -1918,7 +1918,7 @@ export const lumiModernExtend = {
             zigbeeCommandOptions: {manufacturerCode},
             ...args,
         }),
-    lumiFlipIndicatorLight: (args?: Partial<modernExtend.BinaryArgs>) =>
+    lumiFlipIndicatorLight: (args?: Partial<modernExtend.BinaryArgs<"manuSpecificLumi">>) =>
         modernExtend.binary({
             name: "flip_indicator_light",
             cluster: "manuSpecificLumi",
@@ -1958,7 +1958,7 @@ export const lumiModernExtend = {
         };
         return {fromZigbee: [converter], isModernExtend: true};
     },
-    lumiClickMode: (args?: Partial<modernExtend.EnumLookupArgs>) =>
+    lumiClickMode: (args?: Partial<modernExtend.EnumLookupArgs<"manuSpecificLumi">>) =>
         modernExtend.enumLookup({
             name: "click_mode",
             lookup: {fast: 1, multi: 2},
@@ -2010,7 +2010,7 @@ export const lumiModernExtend = {
 
         return {fromZigbee, exposes, isModernExtend: true};
     },
-    lumiLockRelay: (args?: Partial<modernExtend.BinaryArgs>) =>
+    lumiLockRelay: (args?: Partial<modernExtend.BinaryArgs<"manuSpecificLumi">>) =>
         modernExtend.binary({
             name: "lock_relay",
             cluster: "manuSpecificLumi",
@@ -2035,7 +2035,7 @@ export const lumiModernExtend = {
         ];
         return {configure, isModernExtend: true};
     },
-    lumiSwitchMode: (args?: Partial<modernExtend.EnumLookupArgs>) =>
+    lumiSwitchMode: (args?: Partial<modernExtend.EnumLookupArgs<"manuSpecificLumi">>) =>
         modernExtend.enumLookup({
             name: "mode_switch",
             lookup: {quick_mode: 1, anti_flicker_mode: 4},
@@ -2083,7 +2083,7 @@ export const lumiModernExtend = {
 
         return {exposes, fromZigbee, isModernExtend: true};
     },
-    lumiSensitivityAdjustment: (args?: Partial<modernExtend.EnumLookupArgs>) =>
+    lumiSensitivityAdjustment: (args?: Partial<modernExtend.EnumLookupArgs<"manuSpecificLumi">>) =>
         modernExtend.enumLookup({
             name: "sensitivity_adjustment",
             lookup: {high: 1, medium: 2, low: 3},
@@ -2095,7 +2095,7 @@ export const lumiModernExtend = {
             entityCategory: "config",
             ...args,
         }),
-    lumiReportInterval: (args?: Partial<modernExtend.EnumLookupArgs>) =>
+    lumiReportInterval: (args?: Partial<modernExtend.EnumLookupArgs<"manuSpecificLumi">>) =>
         modernExtend.enumLookup({
             name: "report_interval",
             lookup: {"1s": 0x01, "5s": 0x02, "10s": 0x03},
@@ -2338,7 +2338,7 @@ export const lumiModernExtend = {
             ],
         } satisfies ModernExtend;
     },
-    lumiMultiClick: (args?: Partial<modernExtend.BinaryArgs>) =>
+    lumiMultiClick: (args?: Partial<modernExtend.BinaryArgs<"manuSpecificLumi">>) =>
         modernExtend.binary({
             name: "multi_click",
             cluster: "manuSpecificLumi",
@@ -5147,7 +5147,7 @@ export const toZigbee = {
                         getOptions(meta.mapped, entity),
                     );
                 } else {
-                    const payload = {presentValue: value};
+                    const payload = {presentValue: value as number};
                     await entity.write("genAnalogOutput", payload);
                 }
 
@@ -5217,7 +5217,7 @@ export const toZigbee = {
     lumi_curtain_hand_open: {
         key: ["hand_open"],
         convertSet: async (entity, key, value, meta) => {
-            await entity.write("manuSpecificLumi", {curtainHandOpen: !value}, manufacturerOptions.lumi);
+            await entity.write("manuSpecificLumi", {curtainHandOpen: value ? 0 : 1}, manufacturerOptions.lumi);
         },
         convertGet: async (entity, key, meta) => {
             await entity.read("manuSpecificLumi", ["curtainHandOpen"], manufacturerOptions.lumi);
@@ -5226,7 +5226,7 @@ export const toZigbee = {
     lumi_curtain_reverse: {
         key: ["reverse_direction"],
         convertSet: async (entity, key, value, meta) => {
-            await entity.write("manuSpecificLumi", {curtainReverse: value}, manufacturerOptions.lumi);
+            await entity.write("manuSpecificLumi", {curtainReverse: value ? 1 : 0}, manufacturerOptions.lumi);
         },
         convertGet: async (entity, key, meta) => {
             await entity.read("manuSpecificLumi", ["curtainReverse"], manufacturerOptions.lumi);
@@ -5260,7 +5260,7 @@ export const toZigbee = {
         convertSet: async (entity, key, value, meta) => {
             switch (value) {
                 case "recalibrate":
-                    await entity.write("manuSpecificLumi", {curtainCalibrated: false}, manufacturerOptions.lumi);
+                    await entity.write("manuSpecificLumi", {curtainCalibrated: 0}, manufacturerOptions.lumi);
                     break;
                 case "open":
                     await entity.write("genMultistateOutput", {presentValue: 1}, manufacturerOptions.lumi);
@@ -5278,7 +5278,7 @@ export const toZigbee = {
             // Check if the curtain is already calibrated
             const checkIfCalibrated = async (): Promise<boolean> => {
                 const result = await entity.read("manuSpecificLumi", ["curtainCalibrated"]);
-                return result ? result.curtainCalibrated : false;
+                return result ? !!result.curtainCalibrated : false;
             };
 
             if (await checkIfCalibrated()) {
@@ -5302,12 +5302,12 @@ export const toZigbee = {
                 return await new Promise<void>((resolve) => {
                     const checkState = async () => {
                         const result = await entity.read("manuSpecificLumi", [0x0421]);
-                        const state = result ? result[0x0421] : null;
-                        if (!initialStates.includes(state)) {
+
+                        if (result && !initialStates.includes(result[0x0421] as number)) {
                             const checkDesiredState = async () => {
-                                const result = await entity.read("manuSpecificLumi", [0x0421]);
-                                const state = result ? result[0x0421] : null;
-                                if (desiredStates.includes(state)) {
+                                const result2 = await entity.read("manuSpecificLumi", [0x0421]);
+
+                                if (result2 && desiredStates.includes(result[0x0421] as number)) {
                                     resolve();
                                 } else {
                                     setTimeout(checkDesiredState, 500);

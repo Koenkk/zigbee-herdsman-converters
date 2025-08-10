@@ -193,14 +193,15 @@ const sdevices = {
                 if (typeof value !== "string") {
                     return;
                 }
-                const relayDecoupleLookup: KeyValueAny = {control_relay: 0, decoupled: 1};
-                if (relayDecoupleLookup[value] === undefined) {
+                const relayDecoupleLookup = {control_relay: 0, decoupled: 1};
+                // XXX: probably should make sure `value in "relayDecoupleLookup"`?
+                if (relayDecoupleLookup[value as keyof typeof relayDecoupleLookup] === undefined) {
                     throw new Error(`relay_mode was called with an invalid value (${value})`);
                 }
                 utils.assertEndpoint(entity);
                 await utils
                     .enforceEndpoint(entity, key, meta)
-                    .write("genOnOff", {sdevicesRelayDecouple: relayDecoupleLookup[value]}, manufacturerOptions);
+                    .write("genOnOff", {sdevicesRelayDecouple: relayDecoupleLookup[value as keyof typeof relayDecoupleLookup]}, manufacturerOptions);
                 return {state: {relay_mode: value.toLowerCase()}};
             },
             convertGet: async (entity, key, meta) => {
@@ -267,7 +268,7 @@ const sdevicesExtend = {
             commands: {},
             commandsResponse: {},
         }),
-    onOffRelayDecouple: (args?: Partial<m.EnumLookupArgs>) =>
+    onOffRelayDecouple: (args?: Partial<m.EnumLookupArgs<"genOnOff">>) =>
         m.enumLookup({
             name: "relay_mode",
             description: "Decoupled mode for button",

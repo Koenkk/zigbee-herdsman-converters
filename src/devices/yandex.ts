@@ -11,11 +11,11 @@ import {getFromLookup, isString} from "../lib/utils";
 const NS = "zhc:yandex";
 const manufacturerCode = 0x140a;
 
-interface EnumLookupWithSetCommandArgs extends m.EnumLookupArgs {
+interface EnumLookupWithSetCommandArgs<Cl extends string | number> extends m.EnumLookupArgs<Cl> {
     setCommand: string;
 }
 
-function enumLookupWithSetCommand(args: EnumLookupWithSetCommandArgs): ModernExtend {
+function enumLookupWithSetCommand<Cl extends string | number>(args: EnumLookupWithSetCommandArgs<Cl>): ModernExtend {
     const {name, lookup, cluster, attribute, zigbeeCommandOptions, setCommand} = args;
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
     const access = ea[args.access ?? "ALL"];
@@ -46,11 +46,11 @@ function enumLookupWithSetCommand(args: EnumLookupWithSetCommandArgs): ModernExt
     return {...mExtend, toZigbee};
 }
 
-interface BinaryWithSetCommandArgs extends m.BinaryArgs {
+interface BinaryWithSetCommandArgs<Cl extends string | number> extends m.BinaryArgs<Cl> {
     setCommand: string;
 }
 
-function binaryWithSetCommand(args: BinaryWithSetCommandArgs): ModernExtend {
+function binaryWithSetCommand<Cl extends string | number>(args: BinaryWithSetCommandArgs<Cl>): ModernExtend {
     const {name, valueOn, valueOff, cluster, attribute, zigbeeCommandOptions, setCommand} = args;
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
     const access = ea[args.access ?? "ALL"];

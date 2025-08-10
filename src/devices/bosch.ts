@@ -1030,8 +1030,9 @@ const tzLocal = {
             const buffer = Buffer.from(value as string, "hex");
             if (buffer.length !== 9) throw new Error(`Invalid configuration length: ${buffer.length} (should be 9)`);
 
-            const payload: {[key: number | string]: KeyValue} = {};
-            payload[buttonMap[key as keyof typeof buttonMap]] = {value: buffer, type: 65};
+            const payload = {
+                [buttonMap[key as keyof typeof buttonMap]]: {value: buffer, type: 65},
+            };
             await entity.write("boschSpecific", payload, manufacturerOptions);
 
             const result: {[key: number | string]: string} = {};
