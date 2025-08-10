@@ -1,5 +1,6 @@
 import assert from "node:assert";
 import {Zcl} from "zigbee-herdsman";
+import type {TPartialClusterAttributes} from "zigbee-herdsman/dist/zspec/zcl/definition/clusters-types";
 import type {ClusterDefinition} from "zigbee-herdsman/dist/zspec/zcl/definition/tstype";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
@@ -492,7 +493,7 @@ export function battery(args: BatteryArgs = {}): ModernExtend {
     return result;
 }
 
-export function deviceTemperature(args: Partial<NumericArgs> = {}) {
+export function deviceTemperature(args: Partial<NumericArgs<"genDeviceTempCfg">> = {}) {
     return numeric({
         name: "device_temperature",
         cluster: "genDeviceTempCfg",
@@ -750,7 +751,7 @@ export function customTimeResponse(start: "1970_UTC" | "2000_LOCAL"): ModernExte
             if (event.type === "start" && !event.data.device.customReadResponse) {
                 event.data.device.customReadResponse = (frame, endpoint) => {
                     if (frame.isCluster("genTime")) {
-                        const payload: KeyValue = {};
+                        const payload: TPartialClusterAttributes<"genTime"> = {};
                         if (start === "1970_UTC") {
                             const time = Math.round(Date.now() / 1000);
                             payload.time = time;
@@ -778,7 +779,7 @@ export function customTimeResponse(start: "1970_UTC" | "2000_LOCAL"): ModernExte
 
 // #region Measurement and Sensing
 
-export function illuminance(args: Partial<NumericArgs> = {}): ModernExtend {
+export function illuminance(args: Partial<NumericArgs<"msIlluminanceMeasurement">> = {}): ModernExtend {
     const luxScale: ScaleFunction = (value: number, type: "from" | "to") => {
         let result = value;
         if (type === "from") {
@@ -818,7 +819,7 @@ export function illuminance(args: Partial<NumericArgs> = {}): ModernExtend {
     return result;
 }
 
-export function temperature(args: Partial<NumericArgs> = {}) {
+export function temperature(args: Partial<NumericArgs<"msTemperatureMeasurement">> = {}) {
     return numeric({
         name: "temperature",
         cluster: "msTemperatureMeasurement",
@@ -832,7 +833,7 @@ export function temperature(args: Partial<NumericArgs> = {}) {
     });
 }
 
-export function pressure(args: Partial<NumericArgs> = {}): ModernExtend {
+export function pressure(args: Partial<NumericArgs<"msPressureMeasurement">> = {}): ModernExtend {
     return numeric({
         name: "pressure",
         cluster: "msPressureMeasurement",
@@ -846,7 +847,7 @@ export function pressure(args: Partial<NumericArgs> = {}): ModernExtend {
     });
 }
 
-export function flow(args: Partial<NumericArgs> = {}) {
+export function flow(args: Partial<NumericArgs<"msFlowMeasurement">> = {}) {
     return numeric({
         name: "flow",
         cluster: "msFlowMeasurement",
@@ -860,7 +861,7 @@ export function flow(args: Partial<NumericArgs> = {}) {
     });
 }
 
-export function humidity(args: Partial<NumericArgs> = {}) {
+export function humidity(args: Partial<NumericArgs<"msRelativeHumidity">> = {}) {
     return numeric({
         name: "humidity",
         cluster: "msRelativeHumidity",
@@ -874,7 +875,7 @@ export function humidity(args: Partial<NumericArgs> = {}) {
     });
 }
 
-export function soilMoisture(args: Partial<NumericArgs> = {}) {
+export function soilMoisture(args: Partial<NumericArgs<"msSoilMoisture">> = {}) {
     return numeric({
         name: "soil_moisture",
         cluster: "msSoilMoisture",
@@ -1088,7 +1089,7 @@ export function occupancy(args: OccupancyArgs = {}): ModernExtend {
     return {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
 }
 
-export function co2(args: Partial<NumericArgs> = {}) {
+export function co2(args: Partial<NumericArgs<"msCO2">> = {}) {
     return numeric({
         name: "co2",
         cluster: "msCO2",
@@ -1103,7 +1104,7 @@ export function co2(args: Partial<NumericArgs> = {}) {
     });
 }
 
-export function pm25(args: Partial<NumericArgs> = {}): ModernExtend {
+export function pm25(args: Partial<NumericArgs<"pm25Measurement">> = {}): ModernExtend {
     return numeric({
         name: "pm25",
         cluster: "pm25Measurement",
@@ -2398,12 +2399,17 @@ export function commandsScenes(args: CommandsScenesArgs = {}) {
     return result;
 }
 
-export interface EnumLookupArgs {
+export interface ClusterWithAttribute<Cl extends string | number> {
+    cluster: Cl;
+    attribute:
+        | (Cl extends keyof Zcl.ClusterTypes.TClusters ? keyof Zcl.ClusterTypes.TClusters[Cl]["attributes"] : string)
+        // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+        | {ID: number; type: number};
+}
+
+export interface EnumLookupArgs<Cl extends string | number> extends ClusterWithAttribute<Cl> {
     name: string;
     lookup: KeyValue;
-    cluster: string | number;
-    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-    attribute: string | {ID: number; type: number};
     description: string;
     zigbeeCommandOptions?: {manufacturerCode?: number; disableDefaultResponse?: boolean};
     access?: "STATE" | "STATE_GET" | "STATE_SET" | "SET" | "ALL";
@@ -2412,7 +2418,7 @@ export interface EnumLookupArgs {
     entityCategory?: "config" | "diagnostic";
     label?: string;
 }
-export function enumLookup(args: EnumLookupArgs): ModernExtend {
+export function enumLookup<Cl extends string | number>(args: EnumLookupArgs<Cl>): ModernExtend {
     const {name, lookup, cluster, attribute, description, zigbeeCommandOptions, endpointName, reporting, entityCategory, label} = args;
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
     const access = ea[args.access ?? "ALL"];
@@ -2466,11 +2472,8 @@ export function enumLookup(args: EnumLookupArgs): ModernExtend {
 // type provides a way to distinguish between fromZigbee and toZigbee value conversions if they are asymmetrical
 export type ScaleFunction = (value: number, type: "from" | "to") => number;
 
-export interface NumericArgs {
+export interface NumericArgs<Cl extends string | number> extends ClusterWithAttribute<Cl> {
     name: string;
-    cluster: string | number;
-    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-    attribute: string | {ID: number; type: number};
     description: string;
     zigbeeCommandOptions?: {manufacturerCode?: number; disableDefaultResponse?: boolean};
     access?: "STATE" | "STATE_GET" | "STATE_SET" | "SET" | "ALL";
@@ -2485,7 +2488,7 @@ export interface NumericArgs {
     entityCategory?: "config" | "diagnostic";
     precision?: number;
 }
-export function numeric(args: NumericArgs): ModernExtend {
+export function numeric<Cl extends string | number>(args: NumericArgs<Cl>): ModernExtend {
     const {
         name,
         cluster,
@@ -2591,13 +2594,10 @@ export function numeric(args: NumericArgs): ModernExtend {
     return {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
 }
 
-export interface BinaryArgs {
+export interface BinaryArgs<Cl extends string | number> extends ClusterWithAttribute<Cl> {
     name: string;
     valueOn: [string | boolean, unknown];
     valueOff: [string | boolean, unknown];
-    cluster: string | number;
-    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-    attribute: string | {ID: number; type: number};
     description: string;
     zigbeeCommandOptions?: {manufacturerCode: number};
     endpointName?: string;
@@ -2606,7 +2606,7 @@ export interface BinaryArgs {
     label?: string;
     entityCategory?: "config" | "diagnostic";
 }
-export function binary(args: BinaryArgs): ModernExtend {
+export function binary<Cl extends string | number>(args: BinaryArgs<Cl>): ModernExtend {
     const {name, valueOn, valueOff, cluster, attribute, description, zigbeeCommandOptions, endpointName, reporting, label, entityCategory} = args;
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
     const access = ea[args.access ?? "ALL"];
@@ -2656,11 +2656,8 @@ export function binary(args: BinaryArgs): ModernExtend {
     return {exposes: [expose], fromZigbee, toZigbee, configure, isModernExtend: true};
 }
 
-export interface TextArgs {
+export interface TextArgs<Cl extends string | number> extends ClusterWithAttribute<Cl> {
     name: string;
-    cluster: string | number;
-    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-    attribute: string | {ID: number; type: number};
     description: string;
     zigbeeCommandOptions?: {manufacturerCode: number};
     endpointName?: string;
@@ -2669,7 +2666,7 @@ export interface TextArgs {
     entityCategory?: "config" | "diagnostic";
     validate?(value: unknown): void;
 }
-export function text(args: TextArgs): ModernExtend {
+export function text<Cl extends string | number>(args: TextArgs<Cl>): ModernExtend {
     const {name, cluster, attribute, description, zigbeeCommandOptions, endpointName, reporting, entityCategory, validate} = args;
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
     const access = ea[args.access ?? "ALL"];
@@ -2717,18 +2714,15 @@ export function text(args: TextArgs): ModernExtend {
 }
 
 export type Parse = (msg: Fz.Message, attributeKey: string | number) => unknown;
-export interface ActionEnumLookupArgs {
+export interface ActionEnumLookupArgs<Cl extends string | number> extends ClusterWithAttribute<Cl> {
     actionLookup: KeyValue;
-    cluster: string | number;
-    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-    attribute: string | {ID: number; type: number};
     endpointNames?: string[];
     buttonLookup?: KeyValue;
     extraActions?: string[];
     commands?: string[];
     parse?: Parse;
 }
-export function actionEnumLookup(args: ActionEnumLookupArgs): ModernExtend {
+export function actionEnumLookup<Cl extends string | number>(args: ActionEnumLookupArgs<Cl>): ModernExtend {
     const {actionLookup: lookup, attribute, cluster, buttonLookup} = args;
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
     const commands = args.commands || ["attributeReport", "readResponse"];

@@ -455,7 +455,9 @@ const tzLocal = {
             return {state: newState};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read("lightingColorCtrl", ["currentHue", "currentSaturation", "currentLevel", "tuyaRgbMode", "colorTemperature"]);
+            // TODO: correct?
+            await entity.read("genLevelCtrl", ["currentLevel"]);
+            await entity.read("lightingColorCtrl", ["currentHue", "currentSaturation", "tuyaRgbMode", "colorTemperature"]);
         },
     } satisfies Tz.Converter,
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
@@ -495,7 +497,7 @@ const tzLocal = {
                 utils.assertString(value, "light");
                 await entity.command("genOnOff", value.toLowerCase() === "on" ? "on" : "off", {}, utils.getOptions(meta.mapped, entity));
             } else if (key === "duration") {
-                await entity.write("ssIasWd", {maxDuration: value}, utils.getOptions(meta.mapped, entity));
+                await entity.write("ssIasWd", {maxDuration: value as number}, utils.getOptions(meta.mapped, entity));
             } else if (key === "volume") {
                 const lookup: KeyValue = {mute: 0, low: 10, medium: 30, high: 50};
                 utils.assertString(value, "volume");
@@ -14235,6 +14237,7 @@ export const definitions: DefinitionWithExtend[] = [
                     actionLookup: {scene_1: 1, scene_2: 2, scene_3: 3, scene_4: 4},
                     cluster: "genOnOff",
                     commands: ["commandTuyaAction"],
+                    // TODO: using command payload not attribute
                     attribute: "data",
                     parse: (msg, attr) => msg.data[attr][1],
                 }),

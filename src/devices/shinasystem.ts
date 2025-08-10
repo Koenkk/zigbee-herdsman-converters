@@ -82,8 +82,8 @@ const fzLocal = {
         cluster: "seMetering",
         type: ["readResponse"],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data[0x9001] !== undefined) {
-                const value = msg.data[0x9001];
+            if (msg.data[36865] !== undefined) {
+                const value = msg.data[36865];
                 const lookup = {0: "Auto", 1: "Manual(Forward)", 2: "Manual(Reverse)"};
                 return {ct_direction: utils.getFromLookup(value, lookup)};
             }
@@ -242,11 +242,11 @@ const tzLocal = {
         key: ["ct_direction"],
         convertSet: async (entity, key, value, meta) => {
             const lookup = {Auto: 0, "Manual(Forward)": 1, "Manual(Reverse)": 2};
-            await entity.write("seMetering", {"0x9001": {value: utils.getFromLookup(value, lookup), type: 0x20}});
+            await entity.write("seMetering", {36865: {value: utils.getFromLookup(value, lookup), type: 0x20}});
             return {state: {[key]: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read("seMetering", [0x9001]);
+            await entity.read("seMetering", [36865]);
         },
     } satisfies Tz.Converter,
     force_smoke_alarm: {

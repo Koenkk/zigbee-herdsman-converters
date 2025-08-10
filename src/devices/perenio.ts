@@ -134,14 +134,19 @@ const tzPerenio = {
         key: ["switch_type"],
         convertSet: async (entity, key, value, meta) => {
             utils.assertString(value, key);
-            const switchTypeLookup: KeyValue = {
+            const switchTypeLookup = {
                 momentary_state: 0x0001,
                 maintained_state: 0x0010,
                 maintained_toggle: 0x00cc,
                 momentary_release: 0x00cd,
                 momentary_press: 0x00dc,
             };
-            await entity.write("genMultistateValue", {presentValue: switchTypeLookup[value]}, utils.getOptions(meta.mapped, entity));
+            await entity.write(
+                "genMultistateValue",
+                // XXX: probably should make sure `value in "switchTypeLookup"`?
+                {presentValue: switchTypeLookup[value as keyof typeof switchTypeLookup]},
+                utils.getOptions(meta.mapped, entity),
+            );
             return {state: {switch_type: value}};
         },
         convertGet: async (entity, key, meta) => {

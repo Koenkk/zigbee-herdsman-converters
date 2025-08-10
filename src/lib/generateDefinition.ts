@@ -359,7 +359,7 @@ async function extenderBinaryInput(device: Zh.Device, endpoints: Zh.Endpoint[]):
     const generated: GeneratedExtend[] = [];
     for (const endpoint of endpoints) {
         const description = `binary_input_${endpoint.ID}`;
-        const args: m.BinaryArgs = {
+        const args: m.BinaryArgs<"genBinaryInput"> = {
             name: await getClusterAttributeValue<string>(endpoint, "genBinaryInput", "description", description),
             cluster: "genBinaryInput",
             attribute: "presentValue",
@@ -379,7 +379,7 @@ async function extenderBinaryOutput(device: Zh.Device, endpoints: Zh.Endpoint[])
     const generated: GeneratedExtend[] = [];
     for (const endpoint of endpoints) {
         const description = `binary_output_${endpoint.ID}`;
-        const args: m.BinaryArgs = {
+        const args: m.BinaryArgs<"genBinaryOutput"> = {
             name: await getClusterAttributeValue<string>(endpoint, "genBinaryOutput", "description", description),
             cluster: "genBinaryOutput",
             attribute: "presentValue",

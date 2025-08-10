@@ -23,6 +23,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.actionEnumLookup({
                 cluster: "genOnOff",
                 commands: ["commandTuyaAction"],
+                // TODO: using command payload not attribute
                 attribute: "value",
                 actionLookup: {button: 0},
                 buttonLookup: {

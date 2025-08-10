@@ -1,5 +1,5 @@
 import {Buffer} from "node:buffer";
-
+import type {TPartialClusterAttributes} from "zigbee-herdsman/dist/zspec/zcl/definition/clusters-types";
 import * as fz from "../converters/fromZigbee";
 import {repInterval} from "../lib/constants";
 import * as exposes from "../lib/exposes";
@@ -43,9 +43,10 @@ const tzSeMetering: Tz.Converter = {
             await entity.read("seMetering", [key]);
             return {state: {unitOfMeasure: value}};
         }
-        await entity.write("seMetering", {
-            [key]: value,
-        });
+        const payload: TPartialClusterAttributes<"seMetering"> = {
+            [key as "divisor" | "multiplier" | "unitOfMeasure"]: value,
+        };
+        await entity.write("seMetering", payload);
 
         return {state: {[key]: value}};
     },

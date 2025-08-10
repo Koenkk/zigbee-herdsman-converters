@@ -1,5 +1,4 @@
 import {Zcl} from "zigbee-herdsman";
-
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as constants from "../lib/constants";
@@ -893,6 +892,7 @@ export const definitions: DefinitionWithExtend[] = [
                         "danfossRoomFloorSensorMode",
                         "danfossFloorMinSetpoint",
                         "danfossFloorMaxSetpoint",
+                        // TODO: ???
                         "schedule_type_used",
                         "icon2_pre_heat",
                         "icon2_pre_heat_status",
@@ -935,7 +935,7 @@ export const definitions: DefinitionWithExtend[] = [
                     "haDiagnostic",
                     [
                         "danfossSystemStatusCode",
-                        "danfossHeatsupplyRequest",
+                        "danfossHeatSupplyRequest",
                         "danfossSystemStatusWater",
                         "danfossMultimasterRole",
                         "danfossIconApplication",

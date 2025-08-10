@@ -133,7 +133,7 @@ export const tzLegrand = {
             convertSet: async (entity, key, value, meta) => {
                 const applicableModes = getApplicableCalibrationModes(isNLLVSwitch);
                 utils.validateValue(value, Object.values(applicableModes));
-                const idx = utils.getKey(applicableModes, value);
+                const idx = Number(utils.getKey(applicableModes, value));
                 await entity.write("closuresWindowCovering", {calibrationMode: idx}, legrandOptions);
             },
             convertGet: async (entity, key, meta) => {

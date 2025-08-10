@@ -578,10 +578,9 @@ export const definitions: DefinitionWithExtend[] = [
                 const controlEp = device.getEndpoint(1);
                 if (controlEp != null) {
                     try {
-                        let deviceConfig = await controlEp.read("genBasic", [32768]);
+                        const deviceConfig = await controlEp.read("genBasic", [32768]);
                         if (deviceConfig) {
-                            deviceConfig = deviceConfig["32768"];
-                            ptvoSetMetaOption(device, "device_config", deviceConfig);
+                            ptvoSetMetaOption(device, "device_config", deviceConfig["32768"]);
                             device.save();
                         }
                     } catch {

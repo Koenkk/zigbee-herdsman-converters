@@ -21,7 +21,7 @@ const tz = {
     setModel: {
         key: ["model"],
         convertSet: async (entity, key, value, meta) => {
-            await entity.write("genBasic", {modelId: value});
+            await entity.write("genBasic", {modelId: value as string});
             return {state: {model: value}};
         },
     } satisfies Tz.Converter,
@@ -443,8 +443,7 @@ const extend = {
                     const attributeRead = await entity.read(cluster, [attribute]);
                     if (attributeRead === undefined) return;
 
-                    // @ts-expect-error ignore
-                    const currentValue = attributeRead[attribute];
+                    const currentValue = attributeRead[attribute] as number;
                     const newValue = value === "on" ? currentValue | 0x01 : currentValue & ~0x01;
 
                     await entity.write(cluster, {[attribute]: {value: newValue, type: data_type}}, {manufacturerCode});
@@ -802,8 +801,11 @@ const extend = {
                         convertedValue = Number((Math.round(Number((value * 2).toFixed(1))) / 2).toFixed(1)) * 100;
                     }
 
-                    const attribute = awayOrBoostMode === 1 ? "unoccupiedHeatingSetpoint" : "occupiedHeatingSetpoint";
-                    await entity.write("hvacThermostat", {[attribute]: convertedValue});
+                    if (awayOrBoostMode === 1) {
+                        await entity.write("hvacThermostat", {unoccupiedHeatingSetpoint: convertedValue});
+                    } else {
+                        await entity.write("hvacThermostat", {occupiedHeatingSetpoint: convertedValue});
+                    }
                     return {state: {current_heating_setpoint: value}};
                 },
                 convertGet: async (entity, key, meta) => {
