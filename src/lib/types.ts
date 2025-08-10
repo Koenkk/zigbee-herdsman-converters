@@ -289,7 +289,7 @@ export namespace Fz {
         data: any;
         endpoint: Zh.Endpoint;
         device: Zh.Device;
-        meta: {zclTransactionSequenceNumber?: number; manufacturerCode?: number; frameControl?: FrameControl};
+        meta: {zclTransactionSequenceNumber?: number; manufacturerCode?: number; frameControl?: FrameControl; rawData: Buffer};
         groupID: number;
         type: string;
         cluster: string | number;
