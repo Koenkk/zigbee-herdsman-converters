@@ -6748,7 +6748,7 @@ export const definitions: DefinitionWithExtend[] = [
             {vendor: "Aubess", model: "TS011F_plug_1"},
             tuya.whitelabel("BSEED", "FK86ZEUSK1W", "Wall-mounted electrical socket", ["_TZ3000_4ux0ondb"]),
             tuya.whitelabel("Nous", "A1Z", "Smart plug (with power monitoring)", ["_TZ3000_2putqrmw", "_TZ3000_ksw8qtmt"]),
-            tuya.whitelabel("Moes", "MOES_plug", "Smart plug (with power monitoring)", ["_TZ3000_yujkchbz"]),
+            tuya.whitelabel("Moes", "Moes_plug", "Smart plug (with power monitoring)", ["_TZ3000_yujkchbz"]),
             tuya.whitelabel("Moes", "ZK-EU", "Smart wallsocket (with power monitoring)", ["_TZ3000_ss98ec5d"]),
             tuya.whitelabel("Elivco", "LSPA9", "Smart plug (with power monitoring)", ["_TZ3000_okaz9tjs"]),
             tuya.whitelabel("PSMART", "T440", "Smart wallsocket (with power monitoring)", ["_TZ3000_y4ona9me"]),
