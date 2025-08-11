@@ -14021,14 +14021,21 @@ export const definitions: DefinitionWithExtend[] = [
                 dp: true,
                 queryOnDeviceAnnounce: true,
                 // https://github.com/Koenkk/zigbee2mqtt/issues/23946#issuecomment-2941182834
-                queryIntervalSeconds: 20 * 60,
+                queryIntervalSeconds: 10 * 60,
+            }),
+            m.poll({
+                key: "backlight",
+                defaultIntervalSeconds: 30 * 60,
+                poll: async (device) => {
+                    // Set backlight ever 30 mins, otherwise device stops updating.
+                    // https://github.com/Koenkk/zigbee2mqtt/issues/23946#issuecomment-3176121660
+                    const ep = device.getEndpoint(1);
+                    await tuya.sendDataPointValue(ep, 105, 0, "dataRequest", 1);
+                    await utils.sleep(2000);
+                    await tuya.sendDataPointValue(ep, 105, 0, "dataRequest", 0);
+                },
             }),
         ],
-        configure: async (device, coordinatorEndpoint) => {
-            // Needed to make the device report reliable
-            // https://github.com/Koenkk/zigbee2mqtt/issues/18704#issuecomment-3109695384
-            await device.getEndpoint(1).write("genBasic", {65502: {value: 0x13, type: Zcl.DataType.UINT8}});
-        },
         exposes: [
             e.numeric("tds", ea.STATE).withUnit("ppm").withDescription("Total Dissolved Solids"),
             e.temperature(),
@@ -14095,11 +14102,8 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription("Free Chlorine minimal value")
                 .withValueMin(0)
                 .withValueMax(15),
-            e
-                .numeric("salinity", ea.STATE)
-                .withUnit("ppm")
-                .withDescription("Salt value"),
-            // e.numeric('backlightvalue', ea.STATE).withUnit('gg').withDescription('Backlight Value'),
+            e.numeric("salinity", ea.STATE).withUnit("ppm").withDescription("Salt value"),
+            e.numeric("backlightvalue", ea.STATE_SET).withUnit("gg").withDescription("Backlight Value").withValueMin(0).withValueMax(1),
         ],
         meta: {
             // All datapoints go in here
@@ -14107,19 +14111,19 @@ export const definitions: DefinitionWithExtend[] = [
                 [1, "tds", tuya.valueConverter.raw],
                 [2, "temperature", tuya.valueConverter.divideBy10],
                 [7, "battery", tuya.valueConverter.raw],
-                [10, "ph", tuya.valueConverter.divideBy100],
+                [10, "ph", tuya.valueConverter.divideBy10],
                 [11, "ec", tuya.valueConverter.raw],
                 [101, "orp", tuya.valueConverter.raw],
-                [102, "free_chlorine", tuya.valueConverter.divideBy10],
-                // [105, 'backlightvalue', tuya.valueConverter.raw],
+                [102, "free_chlorine", tuya.valueConverter.raw],
+                [105, "backlightvalue", tuya.valueConverter.raw],
                 [106, "ph_max", tuya.valueConverter.divideBy10],
                 [107, "ph_min", tuya.valueConverter.divideBy10],
                 [108, "ec_max", tuya.valueConverter.raw],
                 [109, "ec_min", tuya.valueConverter.raw],
                 [110, "orp_max", tuya.valueConverter.raw],
                 [111, "orp_min", tuya.valueConverter.raw],
-                [112, "free_chlorine_max", tuya.valueConverter.divideBy10],
-                [113, "free_chlorine_min", tuya.valueConverter.divideBy10],
+                [112, "free_chlorine_max", tuya.valueConverter.raw],
+                [113, "free_chlorine_min", tuya.valueConverter.raw],
                 [117, "salinity", tuya.valueConverter.raw],
             ],
         },
