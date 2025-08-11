@@ -240,7 +240,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "QADZ1",
         vendor: "QA",
         description: "Dimmer 1 channel",
-        extend: [m.light({powerOnBehavior: false, configureReporting: true, effect: false})],
+        extend: [m.light({powerOnBehavior: false, configureReporting: true, effect: false}), tuya.modernExtend.tuyaMagicPacket()],
         fromZigbee: [tuya.fz.power_on_behavior_1, fz.TS110E_switch_type, fz.TS110E, fz.on_off],
         toZigbee: [tz.TS110E_light_onoff_brightness, tuya.tz.power_on_behavior_1, tz.TS110E_options],
         exposes: [e.power_on_behavior(), tuya.exposes.switchType()],
