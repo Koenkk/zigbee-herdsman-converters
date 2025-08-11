@@ -3712,6 +3712,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Tuya", "TS0044_1", "Zigbee 4 button remote - 12 scene", ["_TZ3000_dziaict4", "_TZ3000_mh9px7cq", "_TZ3000_j61x9rxn"]),
             tuya.whitelabel("Tuya", "TM-YKQ004", "Zigbee 4 button remote - 12 scene", ["_TZ3000_u3nv1jwk"]),
             tuya.whitelabel("HOBEIAN", "ZG-101ZS", "Star Ring 4 Gang Scene Switch", ["_TZ3000_bgtzm4ny"]),
+            tuya.whitelabel("Moes", "XH-SY-04Z", "4 button portable remote control", ["_TZ3000_zgyzgdua"]),
         ],
         fromZigbee: [tuya.fz.on_off_action, fz.battery],
         exposes: [
