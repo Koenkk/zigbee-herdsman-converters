@@ -14,21 +14,21 @@ const tzLocal = {
             switch (key) {
                 case "motion_detection_distance": {
                     utils.assertNumber(value, "motion_detection_distance");
-                    await entity.write("manuSpecificTuya_2", {57355: {value, type: 0x21}});
+                    await entity.write("manuSpecificTuya2", {57355: {value, type: 0x21}});
                     break;
                 }
                 case "motion_detection_sensitivity": {
                     utils.assertNumber(value, "motion_detection_sensitivity");
-                    await entity.write("manuSpecificTuya_2", {57348: {value, type: 0x20}});
+                    await entity.write("manuSpecificTuya2", {57348: {value, type: 0x20}});
                     break;
                 }
                 case "static_detection_sensitivity": {
                     utils.assertNumber(value, "static_detection_sensitivity");
-                    await entity.write("manuSpecificTuya_2", {57349: {value, type: 0x20}});
+                    await entity.write("manuSpecificTuya2", {57349: {value, type: 0x20}});
                     break;
                 }
                 case "led_indicator": {
-                    await entity.write("manuSpecificTuya_2", {57353: {value: value ? 0x01 : 0x00, type: 0x10}});
+                    await entity.write("manuSpecificTuya2", {57353: {value: value ? 0x01 : 0x00, type: 0x10}});
                     break;
                 }
             }
@@ -48,7 +48,7 @@ const fzLocal = {
         },
     } satisfies Fz.Converter,
     TS0225: {
-        cluster: "manuSpecificTuya_2",
+        cluster: "manuSpecificTuya2",
         type: ["attributeReport"],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};

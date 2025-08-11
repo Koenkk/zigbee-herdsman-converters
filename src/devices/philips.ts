@@ -185,6 +185,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
+        zigbeeModel: ["929003809701_01", "929003809701_02", "929003809701_03"],
+        model: "929003809701",
+        vendor: "Philips",
+        description: "Hue White and Color Ambiance GU10 (Centura round white)",
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
+    },
+    {
         zigbeeModel: ["929003047401"],
         model: "929003047401",
         vendor: "Philips",

@@ -120,16 +120,11 @@ export const definitions: DefinitionWithExtend[] = [
             fz.command_cover_stop,
             fz.battery,
             fz.legrand_binary_input_moving,
+            fzLegrand.stop_poll_on_checkin,
         ],
         toZigbee: [],
         exposes: [e.battery(), e.action(["identify", "open", "close", "stop", "moving", "stopped"])],
-        onEvent: async (type, data, device, options, state) => {
-            await readInitialBatteryState(type, data, device, options, state);
-            if (data.type === "commandCheckin" && data.cluster === "genPollCtrl") {
-                const endpoint = device.getEndpoint(1);
-                await endpoint.command("genPollCtrl", "fastPollStop", {}, legrandOptions);
-            }
-        },
+        onEvent: readInitialBatteryState,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg", "genBinaryInput", "closuresWindowCovering", "genIdentify"]);
@@ -396,17 +391,10 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [{vendor: "BTicino", model: "LN4570CWI"}],
         ota: true,
         meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
-        fromZigbee: [fz.legrand_scenes, fz.legrand_master_switch_center, fz.ignore_poll_ctrl, fz.battery],
+        fromZigbee: [fz.legrand_scenes, fz.legrand_master_switch_center, fz.ignore_poll_ctrl, fz.battery, fzLegrand.stop_poll_on_checkin],
         toZigbee: [],
         exposes: [e.battery(), e.action(["enter", "leave", "sleep", "wakeup", "center"])],
-        onEvent: async (type, data, device, options, state) => {
-            await readInitialBatteryState(type, data, device, options, state);
-            if (data.type === "commandCheckin" && data.cluster === "genPollCtrl") {
-                // TODO current solution is a work around, it would be cleaner to answer to the request
-                const endpoint = device.getEndpoint(1);
-                await endpoint.command("genPollCtrl", "fastPollStop", {}, legrandOptions);
-            }
-        },
+        onEvent: readInitialBatteryState,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genIdentify", "genPowerCfg"]);
@@ -444,15 +432,15 @@ export const definitions: DefinitionWithExtend[] = [
             e.binary("power_alarm_active", ea.STATE, true, false),
             e.binary("power_alarm", ea.ALL, true, false).withDescription("Enable/disable the power alarm"),
         ],
-        onEvent: async (type, data, device, options, state) => {
+        onEvent: async (event) => {
             /**
              * The DIN power consumption module loses the configure reporting
              * after device restart/powerloss.
              *
              * We reconfigure the reporting at deviceAnnounce.
              */
-            if (type === "deviceAnnounce") {
-                for (const endpoint of device.endpoints) {
+            if (event.type === "deviceAnnounce") {
+                for (const endpoint of event.data.device.endpoints) {
                     for (const c of endpoint.configuredReportings) {
                         await endpoint.configureReporting(c.cluster.name, [
                             {
@@ -512,15 +500,15 @@ export const definitions: DefinitionWithExtend[] = [
             e.binary("power_alarm_active", ea.STATE, true, false),
             e.binary("power_alarm", ea.ALL, true, false).withDescription("Enable/disable the power alarm"),
         ],
-        onEvent: async (type, data, device, options, state) => {
+        onEvent: async (event) => {
             /**
              * The DIN power consumption module loses the configure reporting
              * after device restart/powerloss.
              *
              * We reconfigure the reporting at deviceAnnounce.
              */
-            if (type === "deviceAnnounce") {
-                for (const endpoint of device.endpoints) {
+            if (event.type === "deviceAnnounce") {
+                for (const endpoint of event.data.device.endpoints) {
                     for (const c of endpoint.configuredReportings) {
                         await endpoint.configureReporting(c.cluster.name, [
                             {

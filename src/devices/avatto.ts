@@ -13,14 +13,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZWSH16",
         vendor: "AVATTO",
         description: "Smart Temperature and Humidity Detector",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime,
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await tuya.configureMagicPacket(device, coordinatorEndpoint);
-            await endpoint.command("manuSpecificTuya", "mcuVersionRequest", {seq: 0x0002});
-        },
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000", mcuVersionRequestOnConfigure: true})],
         exposes: [e.battery(), e.temperature(), e.humidity(), tuya.exposes.temperatureUnit(), tuya.exposes.batteryState()],
         meta: {
             tuyaDatapoints: [
@@ -37,11 +30,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ME168_AVATTO",
         vendor: "AVATTO",
         description: "Thermostatic radiator valve",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
         whiteLabel: [tuya.whitelabel("Girier", "ME168_Girier", "Thermostatic radiator valve", ["_TZE200_cxakecfo", "_TZE200_4aijvczq"])],
-        onEvent: tuya.onEventSetTime,
-        configure: tuya.configureMagicPacket,
         ota: true,
         exposes: [
             e.battery(),
