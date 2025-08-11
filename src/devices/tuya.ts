@@ -10792,11 +10792,9 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: [tz.TS110E_onoff_brightness, tz.TS110E_options, tuya.tz.power_on_behavior_1, tz.light_brightness_move],
         meta: {multiEndpoint: true},
         exposes: [
+            e.power_on_behavior(),
             e.light_brightness().withMinBrightness().withMaxBrightness().withEndpoint("l1"),
             e.light_brightness().withMinBrightness().withMaxBrightness().withEndpoint("l2"),
-            e.power_on_behavior().withEndpoint("l1"),
-            e.power_on_behavior().withEndpoint("l2"),
-            tuya.exposes.lightType().withAccess(ea.ALL),
             tuya.exposes.switchType().withEndpoint("l1"),
             tuya.exposes.switchType().withEndpoint("l2"),
         ],
