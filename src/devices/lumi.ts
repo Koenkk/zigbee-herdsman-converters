@@ -4361,8 +4361,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "VC-X01D",
         vendor: "Aqara",
         description: "Valve controller T1",
-        extend: [lumiZigbeeOTA(), m.onOff({powerOnBehavior: false}), m.battery()],
-        meta: {battery: {dontDividePercentage: true}},
+        extend: [lumiZigbeeOTA(), m.onOff({powerOnBehavior: false}), m.battery({dontDividePercentage: true})],
     },
     {
         zigbeeModel: ["lumi.switch.agl009"],
