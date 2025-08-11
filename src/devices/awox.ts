@@ -243,6 +243,17 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [{vendor: "EGLO", model: "12239"}],
     },
     {
+        zigbeeModel: ['EBF_RGB_Zm'],
+        model: 'EBF_RGB_Zm',
+        vendor: 'AwoX',
+        description: 'LED with adjustable color temp on main ring; extra RGB strip for full colors.',
+        extend: [m.deviceEndpoints({"endpoints":{"1":1,"3":3}}), m.light({"colorTemp":{"range":[153,370]},"color":{"modes":["xy","hs"]}}), m.commandsOnOff()],
+        whiteLabel: [
+            {vendor: "EGLO", model: "900566"},
+        ],
+        meta: {"multiEndpoint":true},
+    },
+    {
         zigbeeModel: ["EGLO_ZM_TW"],
         fingerprint: [
             {
