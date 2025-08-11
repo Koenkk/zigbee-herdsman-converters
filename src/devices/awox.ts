@@ -253,7 +253,6 @@ export const definitions: DefinitionWithExtend[] = [
             m.commandsOnOff(),
         ],
         whiteLabel: [{vendor: "EGLO", model: "900566"}],
-        meta: {multiEndpoint: true},
     },
     {
         zigbeeModel: ["EGLO_ZM_TW"],
