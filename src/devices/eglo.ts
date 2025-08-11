@@ -8,7 +8,7 @@ const ea = exposes.access;
 
 export const definitions: DefinitionWithExtend[] = [
     {
-        zigbeeModel: ["EBF_RGB_Zm", "EBF_RGB_Zm_CLP"],
+        zigbeeModel: ["EBF_RGB_Zm_CLP"],
         model: "900091",
         vendor: "EGLO",
         description: "ROVITO-Z ceiling light",
