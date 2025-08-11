@@ -2242,7 +2242,12 @@ export const livolo_cover_state: Tz.Converter = {
             default:
                 throw new Error(`Value '${value}' is not a valid cover position (must be one of 'OPEN' or 'CLOSE')`);
         }
-        await entity.writeStructured("genPowerCfg", [payload], options);
+        await entity.writeStructured(
+            "genPowerCfg",
+            // @ts-expect-error workaround write custom payload
+            [payload],
+            options,
+        );
         return {
             state: {
                 moving: true,
@@ -2304,16 +2309,26 @@ export const livolo_cover_options: Tz.Converter = {
                      (must be one of 'FORWARD' or 'REVERSE')`);
             }
 
-            const payload = {4865: {value: [direction, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00], type: Zcl.BuffaloZclDataType.LIST_UINT8}};
-            await entity.write("genPowerCfg", payload, options);
+            const payload = {4865: {value: [direction, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]}};
+            await entity.write(
+                "genPowerCfg",
+                // @ts-expect-error workaround write custom payload
+                payload,
+                options,
+            );
         }
 
         if (value.motor_speed != null) {
             if (value.motor_speed < 20 || value.motor_speed > 40) {
                 throw new Error("livolo_cover_options: Motor speed is out of range (20-40)");
             }
-            const payload = {4609: {value: [value.motor_speed, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00], type: Zcl.BuffaloZclDataType.LIST_UINT8}};
-            await entity.write("genPowerCfg", payload, options);
+            const payload = {4609: {value: [value.motor_speed, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]}};
+            await entity.write(
+                "genPowerCfg",
+                // @ts-expect-error workaround write custom payload
+                payload,
+                options,
+            );
         }
     },
 };
