@@ -14013,7 +14013,7 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_v1jqz5cy", "_TZE200_d9mzkhoq"]),
         model: "BLE-YL01",
         vendor: "Tuya",
-        description: "Smart WiFi Zigbee chlorine meter V2025-AUG-09",
+        description: "Smart WiFi Zigbee chlorine meter",
         whiteLabel: [tuya.whitelabel("Tuya", "YK-S03", "Smart pH and Chlorine Tester for Swimming Pool", ["_TZE200_d9mzkhoq"])],
         // Don't query too often. Values are not always updated. https://github.com/Koenkk/zigbee2mqtt/issues/18704
         extend: [
