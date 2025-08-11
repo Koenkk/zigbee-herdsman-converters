@@ -27,9 +27,9 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: [
-		{modelID: "ON/OFF -M", softwareBuildID: "2.9.2_r54"},
-		{modelID: "ON/OFF -M", softwareBuildID: "2.9.2_r55"},
-	],
+            {modelID: "ON/OFF -M", softwareBuildID: "2.9.2_r54"},
+            {modelID: "ON/OFF -M", softwareBuildID: "2.9.2_r55"},
+        ],
         model: "VES-ZB-HLD-017",
         vendor: "Vesternet",
         description: "Zigbee high load switch",
