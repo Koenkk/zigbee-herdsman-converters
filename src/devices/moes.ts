@@ -95,7 +95,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_a1ovdobn"]),
         model: "ZS-D1",
-        vendor: "MOES",
+        vendor: "Moes",
         description: "Intelligent dimming switch - 1 gang",
         extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
         exposes: (device, options) => {
@@ -383,7 +383,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_stvgmdjz", "_TZE200_ydkqbmpt", "_TZE200_z3u99qxt"]),
         model: "SFL02-Z-1",
-        vendor: "MOES",
+        vendor: "Moes",
         description: "Star feather smart switch 1 gang",
         extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
         whiteLabel: [tuya.whitelabel("Nova Digital", "TPZ-1", "Topazio smart switch 1 gang", ["_TZE200_ydkqbmpt"])],
@@ -497,7 +497,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_rd8cdssd", "_TZE200_wv9ukqca", "_TZE200_zo0cfekv"]),
         model: "SFL02-Z-3",
-        vendor: "MOES",
+        vendor: "Moes",
         description: "Star feather smart switch 3 gangs",
         extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
         whiteLabel: [tuya.whitelabel("Nova Digital", "TPZ-3", "Topazio smart switch 3 gangs", ["_TZE200_rd8cdssd"])],
@@ -583,7 +583,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_dq8bu0pt", "_TZE200_hmabvy81", "_TZE200_9dhenr94"]),
         model: "SFL02-Z-4",
-        vendor: "MOES",
+        vendor: "Moes",
         description: "Star feather smart switch 4 gangs",
         extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
         whiteLabel: [tuya.whitelabel("Nova Digital", "TPZ-4", "Topazio smart switch 4 gangs", ["_TZE200_hmabvy81"])],
