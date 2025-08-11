@@ -4505,7 +4505,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             lumiZigbeeOTA(),
             lumiPreventReset(),
-            m.deviceEndpoints({endpoints: {top: 1, wireless: 2}}),
+            m.deviceEndpoints({endpoints: {top: 1, wireless: 4}}),
             m.bindCluster({endpointNames: ["top", "wireless"], cluster: "manuSpecificLumi", clusterType: "input"}),
             m.bindCluster({endpointNames: ["top"], cluster: "genOnOff", clusterType: "input"}),
             lumiPower(),
