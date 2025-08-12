@@ -15,9 +15,6 @@ import type {
     KeyValueAny,
     KeyValueNumberString,
     ModernExtend,
-    OnEvent,
-    OnEventData,
-    OnEventType,
     Publish,
     Range,
     Tuya,
@@ -63,74 +60,6 @@ function convertStringToHexArray(value: string) {
     return asciiKeys;
 }
 
-interface OnEventArgs {
-    queryOnDeviceAnnounce?: boolean;
-    timeStart?: "1970" | "2000";
-    respondToMcuVersionResponse?: boolean;
-    queryIntervalSeconds?: number;
-}
-
-export function onEvent(args?: OnEventArgs): OnEvent {
-    return async (type, data, device, settings, state) => {
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
-        args = {queryOnDeviceAnnounce: false, timeStart: "1970", respondToMcuVersionResponse: true, ...args};
-
-        const endpoint = device.endpoints[0];
-
-        if (type === "message" && data.cluster === "manuSpecificTuya") {
-            if (args.respondToMcuVersionResponse && data.type === "commandMcuVersionResponse") {
-                await endpoint.command("manuSpecificTuya", "mcuVersionRequest", {seq: 0x0002});
-            } else if (data.type === "commandMcuGatewayConnectionStatus") {
-                // "payload" can have the following values:
-                // 0x00: The gateway is not connected to the internet.
-                // 0x01: The gateway is connected to the internet.
-                // 0x02: The request timed out after three seconds.
-                const payload = {payloadSize: 1, payload: 1};
-                await endpoint.command("manuSpecificTuya", "mcuGatewayConnectionStatus", payload, {});
-            }
-        }
-
-        if (data.type === "commandMcuSyncTime" && data.cluster === "manuSpecificTuya") {
-            try {
-                const offset = args.timeStart === "2000" ? constants.OneJanuary2000 : 0;
-                const utcTime = Math.round((Date.now() - offset) / 1000);
-                const localTime = utcTime - new Date().getTimezoneOffset() * 60;
-                const payload = {
-                    payloadSize: 8,
-                    payload: [...convertDecimalValueTo4ByteHexArray(utcTime), ...convertDecimalValueTo4ByteHexArray(localTime)],
-                };
-                await endpoint.command("manuSpecificTuya", "mcuSyncTime", payload, {});
-            } catch {
-                /* handle error to prevent crash */
-            }
-        }
-
-        // Some devices require a dataQuery on deviceAnnounce, otherwise they don't report any data
-        if (args.queryOnDeviceAnnounce && type === "deviceAnnounce") {
-            await endpoint.command("manuSpecificTuya", "dataQuery", {});
-        }
-        if (args.queryIntervalSeconds) {
-            if (type === "stop") {
-                clearTimeout(globalStore.getValue(device, "query_interval"));
-                globalStore.clearValue(device, "query_interval");
-            } else if (!globalStore.hasValue(device, "query_interval")) {
-                const setTimer = () => {
-                    const timer = setTimeout(async () => {
-                        try {
-                            await endpoint.command("manuSpecificTuya", "dataQuery", {});
-                        } catch (error) {
-                            logger.error(`Failed to query data of '${device.ieeeAddr}' (${error})`, NS);
-                        }
-                        setTimer();
-                    }, args.queryIntervalSeconds * 1000);
-                    globalStore.putValue(device, "query_interval", timer);
-                };
-                setTimer();
-            }
-        }
-    };
-}
-
 function getDataValue(dpValue: Tuya.DpValue) {
     let dataString = "";
     switch (dpValue.datatype) {
@@ -167,82 +96,6 @@ function convertDecimalValueTo2ByteHexArray(value: number) {
     const chunk1 = hexValue.substring(0, 2);
     const chunk2 = hexValue.substring(2);
     return [chunk1, chunk2].map((hexVal) => Number.parseInt(hexVal, 16));
-}
-
-export function onEventMeasurementPoll(
-    type: OnEventType,
-    data: OnEventData,
-    device: Zh.Device,
-    options: KeyValue,
-    electricalMeasurement = true,
-    metering = false,
-) {
-    const endpoint = device.getEndpoint(1);
-    const poll = async () => {
-        if (electricalMeasurement) {
-            await endpoint.read("haElectricalMeasurement", ["rmsVoltage", "rmsCurrent", "activePower"]);
-        }
-        if (metering) {
-            await endpoint.read("seMetering", ["currentSummDelivered"]);
-        }
-    };
-
-    utils.onEventPoll(type, data, device, options, "measurement", 60, poll);
-}
-
-export async function onEventSetTime(type: OnEventType, data: OnEventData, device: Zh.Device) {
-    // FIXME: Need to join onEventSetTime/onEventSetLocalTime to one command
-
-    if (data.type === "commandMcuSyncTime" && data.cluster === "manuSpecificTuya") {
-        try {
-            const utcTime = Math.round((Date.now() - constants.OneJanuary2000) / 1000);
-            const localTime = utcTime - new Date().getTimezoneOffset() * 60;
-            const endpoint = device.getEndpoint(1);
-
-            const payload = {
-                payloadSize: 8,
-                payload: [...convertDecimalValueTo4ByteHexArray(utcTime), ...convertDecimalValueTo4ByteHexArray(localTime)],
-            };
-            await endpoint.command("manuSpecificTuya", "mcuSyncTime", payload, {});
-        } catch {
-            // endpoint.command can throw an error which needs to
-            // be caught or the zigbee-herdsman may crash
-            // Debug message is handled in the zigbee-herdsman
-        }
-    }
-}
-
-// set UTC and Local Time as total number of seconds from 00: 00: 00 on January 01, 1970
-// force to update every device time every hour due to very poor clock
-export async function onEventSetLocalTime(type: OnEventType, data: OnEventData, device: Zh.Device) {
-    // FIXME: What actually nextLocalTimeUpdate/forceTimeUpdate do?
-    //  I did not find any timers or something else where it was used.
-    //  Actually, there are two ways to set time on Tuya MCU devices:
-    //  1. Respond to the `commandMcuSyncTime` event
-    //  2. Just send `mcuSyncTime` anytime (by 1-hour timer or something else)
-
-    const nextLocalTimeUpdate = globalStore.getValue(device, "nextLocalTimeUpdate");
-    const forceTimeUpdate = nextLocalTimeUpdate == null || nextLocalTimeUpdate < Date.now();
-
-    if ((data.type === "commandMcuSyncTime" && data.cluster === "manuSpecificTuya") || forceTimeUpdate) {
-        globalStore.putValue(device, "nextLocalTimeUpdate", Date.now() + 3600 * 1000);
-
-        try {
-            const utcTime = Math.round(Date.now() / 1000);
-            const localTime = utcTime - new Date().getTimezoneOffset() * 60;
-            const endpoint = device.getEndpoint(1);
-
-            const payload = {
-                payloadSize: 8,
-                payload: [...convertDecimalValueTo4ByteHexArray(utcTime), ...convertDecimalValueTo4ByteHexArray(localTime)],
-            };
-            await endpoint.command("manuSpecificTuya", "mcuSyncTime", payload, {});
-        } catch {
-            // endpoint.command can throw an error which needs to
-            // be caught or the zigbee-herdsman may crash
-            // Debug message is handled in the zigbee-herdsman
-        }
-    }
 }
 
 // Return `seq` - transaction ID for handling concrete response
@@ -498,6 +351,19 @@ export const configureMagicPacket = async (device: Zh.Device, coordinatorEndpoin
             throw e;
         }
     }
+};
+
+export const configureQuery = async (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint) => {
+    // Required to get the device to start reporting
+    await device.getEndpoint(1).command("manuSpecificTuya", "dataQuery", {});
+};
+
+export const configureMcuVersionRequest = async (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint) => {
+    await device.getEndpoint(1).command("manuSpecificTuya", "mcuVersionRequest", {seq: 0x0002});
+};
+
+export const configureBindBasic = async (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint) => {
+    await device.getEndpoint(1).bind("genBasic", coordinatorEndpoint);
 };
 
 export const fingerprint = (modelID: string, manufacturerNames: string[]) => {
@@ -1554,33 +1420,33 @@ const tuyaTz = {
         key: ["power_on_behavior"],
         convertSet: async (entity, key, value, meta) => {
             const powerOnBehavior = utils.getFromLookup(value, {off: 0, on: 1, previous: 2});
-            await entity.write("manuSpecificTuya_3", {powerOnBehavior});
+            await entity.write("manuSpecificTuya3", {powerOnBehavior});
             return {state: {[key]: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read("manuSpecificTuya_3", ["powerOnBehavior"]);
+            await entity.read("manuSpecificTuya3", ["powerOnBehavior"]);
         },
     } satisfies Tz.Converter,
     switch_type: {
         key: ["switch_type"],
         convertSet: async (entity, key, value, meta) => {
             const switchType = utils.getFromLookup(value, {toggle: 0, state: 1, momentary: 2});
-            await entity.write("manuSpecificTuya_3", {switchType}, {disableDefaultResponse: true});
+            await entity.write("manuSpecificTuya3", {switchType}, {disableDefaultResponse: true});
             return {state: {[key]: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read("manuSpecificTuya_3", ["switchType"]);
+            await entity.read("manuSpecificTuya3", ["switchType"]);
         },
     } satisfies Tz.Converter,
     switch_type_curtain: {
         key: ["switch_type_curtain"],
         convertSet: async (entity, key, value, meta) => {
             const switchType = utils.getFromLookup(value, {"flip-switch": 0, "sync-switch": 1, "button-switch": 2, "button2-switch": 3});
-            await entity.write("manuSpecificTuya_3", {switchType}, {disableDefaultResponse: true});
+            await entity.write("manuSpecificTuya3", {switchType}, {disableDefaultResponse: true});
             return {state: {[key]: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read("manuSpecificTuya_3", ["switchType"]);
+            await entity.read("manuSpecificTuya3", ["switchType"]);
         },
     } satisfies Tz.Converter,
     backlight_indicator_mode_1: {
@@ -1779,7 +1645,7 @@ const tuyaTz = {
             const inching = valueConverter.inchingSwitch.to(value);
             const payload = {payload: inching};
             const endpoint = meta.device.getEndpoint(1);
-            await endpoint.command("manuSpecificTuya_4", "setInchingSwitch", payload, utils.getOptions(meta.mapped, endpoint));
+            await endpoint.command("manuSpecificTuya4", "setInchingSwitch", payload, utils.getOptions(meta.mapped, endpoint));
 
             return {state: {inching_control_set: value}};
         },
@@ -1798,18 +1664,6 @@ const tuyaFz = {
             }
         },
     } satisfies Fz.Converter,
-    gateway_connection_status: {
-        cluster: "manuSpecificTuya",
-        type: ["commandMcuGatewayConnectionStatus"],
-        convert: async (model, msg, publish, options, meta) => {
-            // "payload" can have the following values:
-            // 0x00: The gateway is not connected to the internet.
-            // 0x01: The gateway is connected to the internet.
-            // 0x02: The request timed out after three seconds.
-            const payload = {payloadSize: 1, payload: 1};
-            await msg.endpoint.command("manuSpecificTuya", "mcuGatewayConnectionStatus", payload, {});
-        },
-    } satisfies Fz.Converter,
     power_on_behavior_1: {
         cluster: "genOnOff",
         type: ["attributeReport", "readResponse"],
@@ -1822,7 +1676,7 @@ const tuyaFz = {
         },
     } satisfies Fz.Converter,
     power_on_behavior_2: {
-        cluster: "manuSpecificTuya_3",
+        cluster: "manuSpecificTuya3",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             const attribute = "powerOnBehavior";
@@ -1845,7 +1699,7 @@ const tuyaFz = {
         },
     } satisfies Fz.Converter,
     switch_type: {
-        cluster: "manuSpecificTuya_3",
+        cluster: "manuSpecificTuya3",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.switchType !== undefined) {
@@ -1856,7 +1710,7 @@ const tuyaFz = {
         },
     } satisfies Fz.Converter,
     switch_type_curtain: {
-        cluster: "manuSpecificTuya_3",
+        cluster: "manuSpecificTuya3",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.switchType !== undefined) {
@@ -1989,7 +1843,7 @@ const tuyaFz = {
         },
     } satisfies Fz.Converter,
     inchingSwitch: {
-        cluster: "manuSpecificTuya_4",
+        cluster: "manuSpecificTuya4",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.inching !== undefined) {
@@ -2130,6 +1984,35 @@ export interface TuyaDPLightArgs {
 }
 
 const tuyaModernExtend = {
+    electricityMeasurementPoll(
+        args: {
+            electricalMeasurement?: false | ((device: Zh.Device) => boolean);
+            metering?: true | ((device: Zh.Device) => boolean);
+            optionDescription?: string;
+        } = {},
+    ): ModernExtend {
+        const {electricalMeasurement = true, metering = false, optionDescription = undefined} = args;
+
+        let option = exposes.options.measurement_poll_interval();
+        if (optionDescription !== undefined) {
+            option = option.withDescription(optionDescription);
+        }
+
+        return modernExtend.poll({
+            key: "measurement",
+            option,
+            defaultIntervalSeconds: 60,
+            poll: async (device) => {
+                const endpoint = device.getEndpoint(1);
+                if (typeof electricalMeasurement === "boolean" ? electricalMeasurement : electricalMeasurement(device)) {
+                    await endpoint.read("haElectricalMeasurement", ["rmsVoltage", "rmsCurrent", "activePower"]);
+                }
+                if (typeof metering === "boolean" ? metering : metering(device)) {
+                    await endpoint.read("seMetering", ["currentSummDelivered"]);
+                }
+            },
+        });
+    },
     dpTHZBSettings(): ModernExtend {
         const exp = e
             .composite("auto_settings", "auto_settings", ea.STATE_SET)
@@ -2190,17 +2073,132 @@ const tuyaModernExtend = {
             isModernExtend: true,
         };
     },
-    tuyaBase(args?: {onEvent?: OnEventArgs; dp: true}): ModernExtend {
-        const result: ModernExtend = {
-            configure: [configureMagicPacket],
-            onEvent: [onEvent(args.onEvent)],
-            isModernExtend: true,
+    tuyaBase(args?: {
+        dp?: true;
+        queryOnDeviceAnnounce?: true;
+        queryOnConfigure?: true;
+        bindBasicOnConfigure?: true;
+        queryIntervalSeconds?: number;
+        respondToMcuVersionResponse?: false;
+        mcuVersionRequestOnConfigure?: true;
+        forceTimeUpdates?: true;
+        timeStart?: "2000";
+    }): ModernExtend {
+        const {
+            dp = false,
+            queryOnDeviceAnnounce = false,
+            queryOnConfigure = false,
+            bindBasicOnConfigure = false,
+            queryIntervalSeconds = undefined,
+            mcuVersionRequestOnConfigure = false,
+            // Allow force updating for device with a very bad clock
+            // Every hour when a message is received the time will be updated.
+            forceTimeUpdates = false,
+            timeStart = "1970",
+            respondToMcuVersionResponse = true,
+        } = args;
+
+        const fzConverter: Fz.Converter = {
+            type: [
+                "commandMcuSyncTime",
+                "commandMcuVersionResponse",
+                "commandMcuGatewayConnectionStatus",
+                "commandDataResponse",
+                "commandDataReport",
+                "commandActiveStatusReport",
+                "commandActiveStatusReportAlt",
+            ],
+            cluster: "manuSpecificTuya",
+            convert: (model, msg, publish, options, meta) => {
+                let forceTimeUpdate = false;
+                if (forceTimeUpdates) {
+                    const nextLocalTimeUpdate = globalStore.getValue(msg.device, "nextLocalTimeUpdate");
+                    forceTimeUpdate = nextLocalTimeUpdate == null || nextLocalTimeUpdate < Date.now();
+                }
+
+                if (msg.type === "commandMcuSyncTime" || forceTimeUpdate) {
+                    globalStore.putValue(msg.device, "nextLocalTimeUpdate", Date.now() + 3600 * 1000);
+                    const offset = timeStart === "2000" ? constants.OneJanuary2000 : 0;
+                    const utcTime = Math.round((Date.now() - offset) / 1000);
+                    const localTime = utcTime - new Date().getTimezoneOffset() * 60;
+                    const payload = {
+                        payloadSize: 8,
+                        payload: [...convertDecimalValueTo4ByteHexArray(utcTime), ...convertDecimalValueTo4ByteHexArray(localTime)],
+                    };
+                    msg.endpoint
+                        .command("manuSpecificTuya", "mcuSyncTime", payload, {})
+                        .catch((error) => logger.error(`Failed to sync time with '${msg.device.ieeeAddr}' (${error})`, NS));
+                } else if (respondToMcuVersionResponse && msg.type === "commandMcuVersionResponse") {
+                    msg.endpoint
+                        .command("manuSpecificTuya", "mcuVersionRequest", {seq: 0x0002})
+                        .catch((error) => logger.error(`Failed respond to version response '${msg.device.ieeeAddr}' (${error})`, NS));
+                } else if (msg.type === "commandMcuGatewayConnectionStatus") {
+                    // "payload" can have the following values:
+                    // 0x00: The gateway is not connected to the internet.
+                    // 0x01: The gateway is connected to the internet.
+                    // 0x02: The request timed out after three seconds.
+                    msg.endpoint
+                        .command("manuSpecificTuya", "mcuGatewayConnectionStatus", {payloadSize: 1, payload: 1}, {})
+                        .catch((error) => logger.error(`Failed respond to gateway connection status '${msg.device.ieeeAddr}' (${error})`, NS));
+                }
+            },
         };
 
-        if (args?.dp) {
-            result.fromZigbee = [tuyaFz.datapoints];
-            result.toZigbee = [tuyaTz.datapoints];
+        const result: ModernExtend = {
+            configure: [configureMagicPacket],
+            isModernExtend: true,
+            fromZigbee: [fzConverter],
+            toZigbee: [],
+        };
+
+        if (queryOnConfigure) {
+            result.configure.push(configureQuery);
         }
+
+        if (mcuVersionRequestOnConfigure) {
+            result.configure.push(configureMcuVersionRequest);
+        }
+
+        if (bindBasicOnConfigure) {
+            result.configure.push(configureBindBasic);
+        }
+
+        if (queryOnDeviceAnnounce || queryIntervalSeconds !== undefined) {
+            result.onEvent = [
+                (event) => {
+                    // Some devices require a dataQuery on deviceAnnounce, otherwise they don't report any data
+                    if (queryOnDeviceAnnounce && event.type === "deviceAnnounce") {
+                        event.data.device.endpoints[0]
+                            .command("manuSpecificTuya", "dataQuery", {})
+                            .catch((error) => logger.error(`Failed to query '${event.data.device.ieeeAddr}' on device announce (${error})`, NS));
+                    }
+
+                    if (queryIntervalSeconds !== undefined) {
+                        if (event.type === "stop") {
+                            clearTimeout(globalStore.getValue(event.data.ieeeAddr, "query_interval"));
+                            globalStore.clearValue(event.data.ieeeAddr, "query_interval");
+                        } else if (event.type === "start") {
+                            const setTimer = () => {
+                                const timer = setTimeout(() => {
+                                    event.data.device.endpoints[0]
+                                        .command("manuSpecificTuya", "dataQuery", {})
+                                        .catch((error) => logger.error(`Failed to query '${event.data.device.ieeeAddr}' on interval (${error})`, NS));
+                                    setTimer();
+                                }, queryIntervalSeconds * 1000);
+                                globalStore.putValue(event.data.device.ieeeAddr, "query_interval", timer);
+                            };
+                            setTimer();
+                        }
+                    }
+                },
+            ];
+        }
+
+        if (dp) {
+            result.fromZigbee.push(tuyaFz.datapoints);
+            result.toZigbee.push(tuyaTz.datapoints);
+        }
+
         return result;
     },
     dpEnumLookup(args: Partial<TuyaDPEnumLookupArgs>): ModernExtend {
@@ -2483,7 +2481,7 @@ const tuyaModernExtend = {
             result.exposes.push(tuyaExposes.colorPowerOnBehavior());
         }
 
-        result.configure = [configureSetPowerSourceWhenUnknown("Mains (single phase)")];
+        result.configure.push(configureSetPowerSourceWhenUnknown("Mains (single phase)"));
 
         return result;
     },
@@ -2653,7 +2651,7 @@ const tuyaModernExtend = {
         modernExtend.enumLookup({
             name: "switch_mode",
             lookup: {switch: 0, scene: 1},
-            cluster: "manuSpecificTuya_3",
+            cluster: "manuSpecificTuya3",
             attribute: "switchMode",
             description: "Work mode for switch",
             entityCategory: "config",
@@ -2699,7 +2697,7 @@ export {tuyaModernExtend as modernExtend};
 
 const tuyaClusters = {
     addTuyaCommonPrivateCluster: (): ModernExtend =>
-        modernExtend.deviceAddCustomCluster("manuSpecificTuya_4", {
+        modernExtend.deviceAddCustomCluster("manuSpecificTuya4", {
             ID: 0xe000,
             attributes: {
                 random_timing: {ID: 0xd001, type: Zcl.DataType.CHAR_STR},

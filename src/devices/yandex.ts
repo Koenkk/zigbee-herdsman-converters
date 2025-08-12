@@ -130,10 +130,11 @@ function reinterview(): ModernExtend {
             coordEnd = coordinatorEndpoint;
         },
     ];
-    const onEvent: OnEvent[] = [
-        async (type, data, device, settings, state, meta) => {
-            if (type === "deviceAnnounce") {
+    const onEvent: OnEvent.Handler[] = [
+        async (event) => {
+            if (event.type === "deviceAnnounce") {
                 // reinterview
+                const {device, deviceExposesChanged} = event.data;
                 try {
                     await device.interview(true);
                     logger.info(`Successfully interviewed '${device.ieeeAddr}'`, NS);
@@ -144,7 +145,7 @@ function reinterview(): ModernExtend {
                         }
                     }
                     // send updates to clients
-                    if (meta) meta.deviceExposesChanged();
+                    deviceExposesChanged();
                 } catch (error) {
                     logger.error(`Reinterview failed for '${device.ieeeAddr} with error '${error}'`, NS);
                 }

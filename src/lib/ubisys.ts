@@ -1,13 +1,25 @@
 import {Zcl} from "zigbee-herdsman";
-
+import * as exposes from "../lib/exposes";
+import * as m from "../lib/modernExtend";
 import {presets as e, access as ea} from "./exposes";
 import {logger} from "./logger";
 import {type BinaryArgs, binary, deviceAddCustomCluster, type NumericArgs, numeric, setupConfigureForReporting} from "./modernExtend";
-import type {Configure, Fz, ModernExtend, Tz} from "./types";
+import type {Configure, Fz, ModernExtend, Tz, Zh} from "./types";
 
 const NS = "zhc:ubisys";
 
 export const ubisysModernExtend = {
+    pollCurrentSummDelivered: (endpointId: number | ((device: Zh.Device) => number)): ModernExtend => {
+        return m.poll({
+            key: "measurement",
+            defaultIntervalSeconds: 60,
+            option: exposes.options.measurement_poll_interval(),
+            poll: async (device) => {
+                const endpoint = device.getEndpoint(typeof endpointId === "number" ? endpointId : endpointId(device));
+                await endpoint.read("seMetering", ["currentSummDelivered"]);
+            },
+        });
+    },
     addCustomClusterHvacThermostat: () =>
         deviceAddCustomCluster("hvacThermostat", {
             ID: 0x0201,
