@@ -1904,7 +1904,11 @@ function genereateTzLocal() {
         const tz: Tz.Converter = {
             key: [key],
             convertGet: async (entity, key, meta) => {
-                await entity.read(item.clust, [item.attr]);
+                await entity.read(
+                    item.clust,
+                    // @ts-expect-error too dynamic to type
+                    [item.attr],
+                );
             },
         } satisfies Tz.Converter;
         if (item.type === NUM_RW) {
@@ -1912,7 +1916,12 @@ function genereateTzLocal() {
                 if (Number(value) < 0 || Number(value) > 65535) {
                     throw new Error("Value must be between 0 and 65535");
                 }
-                await entity.write(item.clust, {[item.attr]: value}, {manufacturerCode: null});
+                await entity.write(
+                    item.clust,
+                    // @ts-expect-error too dynamic to type
+                    {[item.attr]: value},
+                    {manufacturerCode: null},
+                );
             };
         }
         tzLocal.push(tz);
@@ -1971,7 +1980,11 @@ async function poll(endpoint: Zh.Endpoint, device: ZHModels.Device) {
     for (const item of splited) {
         for (const attr of item.attributes) {
             await endpoint
-                .read(item.cluster, attr)
+                .read(
+                    item.cluster,
+                    // @ts-expect-error too dynamic to type
+                    attr,
+                )
                 .catch((e) => {
                     if (e.message.includes(`Cannot read properties of undefined (reading 'manufacturerID')`)) {
                         // if we remove the device, we stop the polling
@@ -2259,7 +2272,13 @@ export const definitions: DefinitionWithExtend[] = [
             endpoint.configuredReportings.forEach(async (r) => {
                 await endpoint.configureReporting(
                     r.cluster.name,
-                    reporting.payload(r.attribute.name, r.minimumReportInterval, 65535, r.reportableChange),
+                    reporting.payload(
+                        // @ts-expect-error dynamic, expected correct since already applied
+                        r.attribute.name,
+                        r.minimumReportInterval,
+                        65535,
+                        r.reportableChange,
+                    ),
                     {manufacturerCode: null},
                 );
             });
@@ -2274,7 +2293,17 @@ export const definitions: DefinitionWithExtend[] = [
 
                 logger.debug(`Configure ${item.name} ${item.clust} ${item.attr} ${conf.min} ${conf.max} ${conf.change}`, "TICMeter");
                 reportingConfig.push(
-                    endpoint.configureReporting(item.clust, reporting.payload(item.attr, conf.min, conf.max, conf.change), {manufacturerCode: null}),
+                    endpoint.configureReporting(
+                        item.clust,
+                        reporting.payload(
+                            // @ts-expect-error too dynamic to type
+                            item.attr,
+                            conf.min,
+                            conf.max,
+                            conf.change,
+                        ),
+                        {manufacturerCode: null},
+                    ),
                 );
             }
 

@@ -87,8 +87,8 @@ export const develcoModernExtend = {
         ];
         return {configure, isModernExtend: true};
     },
-    voc: (args?: Partial<NumericArgs<"manuSpecificDevelcoAirQuality", true>>) =>
-        numeric<"manuSpecificDevelcoAirQuality", true>({
+    voc: (args?: Partial<NumericArgs<"manuSpecificDevelcoAirQuality", DevelcoAirQuality>>) =>
+        numeric<"manuSpecificDevelcoAirQuality", DevelcoAirQuality>({
             name: "voc",
             cluster: "manuSpecificDevelcoAirQuality",
             attribute: "measuredValue",

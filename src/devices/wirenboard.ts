@@ -12,6 +12,18 @@ import {assertString, getFromLookup, getOptions, toNumber} from "../lib/utils";
 const e = exposes.presets;
 const ea = exposes.access;
 
+interface SprutDevice {
+    attributes: {
+        isConnected: number;
+        // biome-ignore lint/style/useNamingConvention: TODO
+        UartBaudRate: number;
+    };
+    commands: {
+        debug: {data: number};
+    };
+    commandResponses: never;
+}
+
 const sprutCode = 0x6666;
 const manufacturerOptions = {manufacturerCode: sprutCode};
 const switchActionValues = ["OFF", "ON"];
@@ -266,8 +278,8 @@ const sprutModernExtend = {
             entityCategory: "config",
             ...args,
         }),
-    sprutIsConnected: (args?: Partial<m.BinaryArgs<"sprutDevice">>) =>
-        m.binary<"sprutDevice", true>({
+    sprutIsConnected: (args?: Partial<m.BinaryArgs<"sprutDevice", SprutDevice>>) =>
+        m.binary<"sprutDevice", SprutDevice>({
             name: "uart_connection",
             cluster: "sprutDevice",
             attribute: "isConnected",
@@ -278,8 +290,8 @@ const sprutModernExtend = {
             entityCategory: "diagnostic",
             ...args,
         }),
-    sprutUartBaudRate: (args?: Partial<m.EnumLookupArgs<"sprutDevice">>) =>
-        m.enumLookup<"sprutDevice", true>({
+    sprutUartBaudRate: (args?: Partial<m.EnumLookupArgs<"sprutDevice", SprutDevice>>) =>
+        m.enumLookup<"sprutDevice", SprutDevice>({
             name: "uart_baud_rate",
             lookup: {
                 "9600": 9600,

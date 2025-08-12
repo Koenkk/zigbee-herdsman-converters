@@ -155,6 +155,12 @@ interface BoschSpecificBmct extends TCustomCluster {
     commandResponses: never;
 }
 
+interface BoschSpecificBwa1 extends TCustomCluster {
+    attributes: {alarmOnMotion: number};
+    commands: never;
+    commandResponses: never;
+}
+
 const boschExtend = {
     hvacThermostatCluster: () =>
         m.deviceAddCustomCluster("hvacThermostat", {
@@ -228,7 +234,7 @@ const boschExtend = {
             commandsResponse: {},
         }),
     operatingMode: () =>
-        m.enumLookup<"hvacThermostat", true>({
+        m.enumLookup<"hvacThermostat", BoschHvacThermostat>({
             name: "operating_mode",
             cluster: "hvacThermostat",
             attribute: "operatingMode",
@@ -238,7 +244,7 @@ const boschExtend = {
             zigbeeCommandOptions: manufacturerOptions,
         }),
     windowDetection: () =>
-        m.binary<"hvacThermostat", true>({
+        m.binary<"hvacThermostat", BoschHvacThermostat>({
             name: "window_detection",
             cluster: "hvacThermostat",
             attribute: "windowDetection",
@@ -248,7 +254,7 @@ const boschExtend = {
             zigbeeCommandOptions: manufacturerOptions,
         }),
     boostHeating: () =>
-        m.binary<"hvacThermostat", true>({
+        m.binary<"hvacThermostat", BoschHvacThermostat>({
             name: "boost_heating",
             cluster: "hvacThermostat",
             attribute: "boostHeating",
@@ -268,7 +274,7 @@ const boschExtend = {
             valueOff: ["UNLOCK", 0x00],
         }),
     displayOntime: () =>
-        m.numeric<"hvacUserInterfaceCfg", true>({
+        m.numeric<"hvacUserInterfaceCfg", BoschHvacUserInterfaceCfg>({
             name: "display_ontime",
             cluster: "hvacUserInterfaceCfg",
             attribute: "displayOntime",
@@ -279,7 +285,7 @@ const boschExtend = {
             zigbeeCommandOptions: manufacturerOptions,
         }),
     displayBrightness: () =>
-        m.numeric<"hvacUserInterfaceCfg", true>({
+        m.numeric<"hvacUserInterfaceCfg", BoschHvacUserInterfaceCfg>({
             name: "display_brightness",
             cluster: "hvacUserInterfaceCfg",
             attribute: "displayBrightness",
@@ -1315,7 +1321,7 @@ export const definitions: DefinitionWithExtend[] = [
                 percentage: true,
                 lowStatus: true,
             }),
-            m.binary<"boschSpecific", true>({
+            m.binary<"boschSpecific", BoschSpecificBwa1>({
                 name: "alarm_on_motion",
                 cluster: "boschSpecific",
                 attribute: "alarmOnMotion",
@@ -1331,15 +1337,10 @@ export const definitions: DefinitionWithExtend[] = [
             }),
         ],
         configure: async (device, coordinatorEndpoint) => {
-            interface BoschSpecific extends TCustomCluster {
-                attributes: {alarmOnMotion: number};
-                commands: never;
-                commandResponses: never;
-            }
             const endpoint = device.getEndpoint(1);
             await endpoint.read("genPowerCfg", ["batteryPercentageRemaining"]);
             await endpoint.read("ssIasZone", ["zoneStatus"]);
-            await endpoint.read<"boschSpecific", BoschSpecific>("boschSpecific", ["alarmOnMotion"], manufacturerOptions);
+            await endpoint.read<"boschSpecific", BoschSpecificBwa1>("boschSpecific", ["alarmOnMotion"], manufacturerOptions);
         },
     },
     {
@@ -1490,7 +1491,7 @@ export const definitions: DefinitionWithExtend[] = [
             boschExtend.operatingMode(),
             boschExtend.windowDetection(),
             boschExtend.boostHeating(),
-            m.numeric<"hvacThermostat", true>({
+            m.numeric<"hvacThermostat", BoschHvacThermostat>({
                 name: "remote_temperature",
                 cluster: "hvacThermostat",
                 attribute: "remoteTemperature",
@@ -1514,7 +1515,7 @@ export const definitions: DefinitionWithExtend[] = [
             boschExtend.childLock(),
             boschExtend.displayOntime(),
             boschExtend.displayBrightness(),
-            m.enumLookup<"hvacUserInterfaceCfg", true>({
+            m.enumLookup<"hvacUserInterfaceCfg", BoschHvacUserInterfaceCfg>({
                 name: "display_orientation",
                 cluster: "hvacUserInterfaceCfg",
                 attribute: "displayOrientation",
@@ -1522,7 +1523,7 @@ export const definitions: DefinitionWithExtend[] = [
                 lookup: {normal: 0x00, flipped: 0x01},
                 zigbeeCommandOptions: manufacturerOptions,
             }),
-            m.enumLookup<"hvacUserInterfaceCfg", true>({
+            m.enumLookup<"hvacUserInterfaceCfg", BoschHvacUserInterfaceCfg>({
                 name: "displayed_temperature",
                 cluster: "hvacUserInterfaceCfg",
                 attribute: "displayedTemperature",
@@ -1530,7 +1531,7 @@ export const definitions: DefinitionWithExtend[] = [
                 lookup: {target: 0x00, measured: 0x01},
                 zigbeeCommandOptions: manufacturerOptions,
             }),
-            m.enumLookup<"hvacThermostat", true>({
+            m.enumLookup<"hvacThermostat", BoschHvacThermostat>({
                 name: "valve_adapt_status",
                 cluster: "hvacThermostat",
                 attribute: "valveAdaptStatus",

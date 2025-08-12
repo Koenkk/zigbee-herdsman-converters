@@ -1,7 +1,6 @@
 import type {Models as ZHModels} from "zigbee-herdsman";
 
 import {Zcl} from "zigbee-herdsman";
-import {TCustomCluster} from "zigbee-herdsman/dist/controller/tstype";
 import {access as ea} from "../lib/exposes";
 import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
@@ -11,7 +10,27 @@ import {getFromLookup, isString} from "../lib/utils";
 const NS = "zhc:yandex";
 const manufacturerCode = 0x140a;
 
-interface EnumLookupWithSetCommandArgs extends m.EnumLookupArgs<"manuSpecificYandex", true> {
+interface Yandex {
+    attributes: {
+        switchMode: number;
+        switchType: number;
+        powerType: number;
+        ledIndicator: number;
+        interlock: number;
+        buttonMode: number;
+    };
+    commands: {
+        switchMode: {value: number};
+        switchType: {value: number};
+        powerType: {value: number};
+        ledIndicator: {value: number};
+        interlock: {value: number};
+        buttonMode: {value: number};
+    };
+    commandResponses: never;
+}
+
+interface EnumLookupWithSetCommandArgs extends m.EnumLookupArgs<"manuSpecificYandex", Yandex> {
     setCommand: string;
 }
 
@@ -20,7 +39,7 @@ function enumLookupWithSetCommand(args: EnumLookupWithSetCommandArgs): ModernExt
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
     const access = ea[args.access ?? "ALL"];
 
-    const mExtend = m.enumLookup<"manuSpecificYandex", true>(args);
+    const mExtend = m.enumLookup<"manuSpecificYandex", Yandex>(args);
 
     const toZigbee: Tz.Converter[] = [
         {
@@ -50,7 +69,7 @@ function enumLookupWithSetCommand(args: EnumLookupWithSetCommandArgs): ModernExt
     return {...mExtend, toZigbee};
 }
 
-interface BinaryWithSetCommandArgs extends m.BinaryArgs<"manuSpecificYandex", true> {
+interface BinaryWithSetCommandArgs extends m.BinaryArgs<"manuSpecificYandex", Yandex> {
     setCommand: string;
 }
 
@@ -59,7 +78,7 @@ function binaryWithSetCommand(args: BinaryWithSetCommandArgs): ModernExtend {
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
     const access = ea[args.access ?? "ALL"];
 
-    const mExtend = m.binary<"manuSpecificYandex", true>(args);
+    const mExtend = m.binary<"manuSpecificYandex", Yandex>(args);
 
     const toZigbee: Tz.Converter[] = [
         {
@@ -87,26 +106,6 @@ function binaryWithSetCommand(args: BinaryWithSetCommandArgs): ModernExtend {
     ];
 
     return {...mExtend, toZigbee};
-}
-
-interface Yandex extends TCustomCluster {
-    attributes: {
-        switchMode: number;
-        switchType: number;
-        powerType: number;
-        ledIndicator: number;
-        interlock: number;
-        buttonMode: number;
-    };
-    commands: {
-        switchMode: {value: number};
-        switchType: {value: number};
-        powerType: {value: number};
-        ledIndicator: {value: number};
-        interlock: {value: number};
-        buttonMode: {value: number};
-    };
-    commandResponses: never;
 }
 
 function YandexCluster(): ModernExtend {

@@ -24,6 +24,24 @@ interface SchneiderOccupancyConfig extends TCustomCluster {
     commandResponses: never;
 }
 
+interface SchneiderVisaConfig {
+    attributes: {
+        indicatorLuminanceLevel: number;
+        indicatorColor: number;
+        indicatorMode: number;
+        motorTypeChannel1: number;
+        motorTypeChannel2: number;
+        curtainStatusChannel1: number;
+        curtainStatusChannel2: number;
+        key1EventNotification: number;
+        key2EventNotification: number;
+        key3EventNotification: number;
+        key4EventNotification: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
 function indicatorMode(endpoint?: string) {
     let description = "Set Indicator Mode.";
     if (endpoint) {
@@ -142,7 +160,7 @@ const schneiderElectricExtend = {
             commandsResponse: {},
         }),
     visaConfigIndicatorLuminanceLevel: (): ModernExtend => {
-        return m.enumLookup<"visaConfiguration", true>({
+        return m.enumLookup<"visaConfiguration", SchneiderVisaConfig>({
             name: "indicator_luminance_level",
             lookup: {
                 "100": 0,
@@ -158,7 +176,7 @@ const schneiderElectricExtend = {
         });
     },
     visaConfigIndicatorColor: (): ModernExtend => {
-        return m.enumLookup<"visaConfiguration", true>({
+        return m.enumLookup<"visaConfiguration", SchneiderVisaConfig>({
             name: "indicator_color",
             lookup: {
                 white: 0,
@@ -170,7 +188,7 @@ const schneiderElectricExtend = {
         });
     },
     visaIndicatorMode: ([reverseWithLoad, consistentWithLoad, alwaysOff, alwaysOn]: number[]): ModernExtend => {
-        return m.enumLookup<"visaConfiguration", true>({
+        return m.enumLookup<"visaConfiguration", SchneiderVisaConfig>({
             name: "indicator_mode",
             lookup: {
                 reverse_with_load: reverseWithLoad,
@@ -184,10 +202,11 @@ const schneiderElectricExtend = {
         });
     },
     visaConfigMotorType: (channel?: number): ModernExtend => {
-        const attribute = `motorTypeChannel${channel || ""}`;
+        // TODO: was defaulting `motorTypeChannel` which is not part of the custom cluster
+        const attribute = `motorTypeChannel${channel as 1 | 2}` as const;
         const description = `Set motor type for channel ${channel || ""}`;
 
-        return m.enumLookup<"visaConfiguration", true>({
+        return m.enumLookup<"visaConfiguration", SchneiderVisaConfig>({
             name: `motor_type${channel ? `_${channel}` : ""}`,
             lookup: {
                 ac_motor: 0,
@@ -199,10 +218,11 @@ const schneiderElectricExtend = {
         });
     },
     visaConfigCurtainStatus: (channel?: number): ModernExtend => {
-        const attribute = `curtainStatusChannel${channel || ""}`;
+        // TODO: was defaulting `motorTypeChannel` which is not part of the custom cluster
+        const attribute = `curtainStatusChannel${channel as 1 | 2}` as const;
         const description = `Set curtain status for channel ${channel}`;
 
-        return m.enumLookup<"visaConfiguration", true>({
+        return m.enumLookup<"visaConfiguration", SchneiderVisaConfig>({
             access: "STATE",
             name: `curtain_status${channel ? `_${channel}` : ""}`,
             lookup: {
@@ -364,7 +384,7 @@ const schneiderElectricExtend = {
             return Math.round(10000 * Math.log10(value) + 1);
         };
 
-        const luxThresholdExtend = m.numeric<"occupancyConfiguration", true>({
+        const luxThresholdExtend = m.numeric<"occupancyConfiguration", SchneiderOccupancyConfig>({
             name: "ambience_light_threshold",
             cluster: "occupancyConfiguration",
             attribute: "ambienceLightThreshold",

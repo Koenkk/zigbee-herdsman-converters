@@ -2450,25 +2450,19 @@ export function commandsScenes(args: CommandsScenesArgs = {}) {
 
 export interface ClusterWithAttribute<
     Cl extends string | number,
-    Custom extends true | undefined = undefined,
+    Custom extends TCustomCluster | undefined = undefined,
     Co extends string | number | undefined = undefined,
 > {
     cluster: Cl;
-    attribute:
-        | (Cl extends keyof Zcl.ClusterTypes.TClusters
-              ? Custom extends undefined
-                  ? Co extends undefined
-                      ? keyof Zcl.ClusterTypes.TClusters[Cl]["attributes"]
-                      : keyof TClusterPayload<Cl, Co>
-                  : keyof Zcl.ClusterTypes.TClusters[Cl]["attributes"] | string
-              : Custom extends undefined
-                ? never
-                : string)
-        // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-        | {ID: number; type: number};
+    // `& string` prevents `number[]`
+    attribute: Co extends undefined
+        ? // biome-ignore lint/style/useNamingConvention: API
+          (ClusterOrRawAttributeKeys<Cl, Custom> & string)[number] | {ID: number; type: number}
+        : keyof TClusterPayload<Cl, Co> & string;
 }
 
-export interface EnumLookupArgs<Cl extends string | number, Custom extends true | undefined = undefined> extends ClusterWithAttribute<Cl, Custom> {
+export interface EnumLookupArgs<Cl extends string | number, Custom extends TCustomCluster | undefined = undefined>
+    extends ClusterWithAttribute<Cl, Custom> {
     name: string;
     lookup: KeyValue;
     description: string;
@@ -2479,7 +2473,9 @@ export interface EnumLookupArgs<Cl extends string | number, Custom extends true 
     entityCategory?: "config" | "diagnostic";
     label?: string;
 }
-export function enumLookup<Cl extends string | number, Custom extends true | undefined = undefined>(args: EnumLookupArgs<Cl, Custom>): ModernExtend {
+export function enumLookup<Cl extends string | number, Custom extends TCustomCluster | undefined = undefined>(
+    args: EnumLookupArgs<Cl, Custom>,
+): ModernExtend {
     const {name, lookup, cluster, attribute, description, zigbeeCommandOptions, endpointName, reporting, entityCategory, label} = args;
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
     const access = ea[args.access ?? "ALL"];
@@ -2543,7 +2539,8 @@ export function enumLookup<Cl extends string | number, Custom extends true | und
 // type provides a way to distinguish between fromZigbee and toZigbee value conversions if they are asymmetrical
 export type ScaleFunction = (value: number, type: "from" | "to") => number;
 
-export interface NumericArgs<Cl extends string | number, Custom extends true | undefined = undefined> extends ClusterWithAttribute<Cl, Custom> {
+export interface NumericArgs<Cl extends string | number, Custom extends TCustomCluster | undefined = undefined>
+    extends ClusterWithAttribute<Cl, Custom> {
     name: string;
     description: string;
     zigbeeCommandOptions?: {manufacturerCode?: number; disableDefaultResponse?: boolean};
@@ -2559,7 +2556,9 @@ export interface NumericArgs<Cl extends string | number, Custom extends true | u
     entityCategory?: "config" | "diagnostic";
     precision?: number;
 }
-export function numeric<Cl extends string | number, Custom extends true | undefined = undefined>(args: NumericArgs<Cl, Custom>): ModernExtend {
+export function numeric<Cl extends string | number, Custom extends TCustomCluster | undefined = undefined>(
+    args: NumericArgs<Cl, Custom>,
+): ModernExtend {
     const {
         name,
         cluster,
@@ -2675,19 +2674,22 @@ export function numeric<Cl extends string | number, Custom extends true | undefi
     return {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
 }
 
-export interface BinaryArgs<Cl extends string | number, Custom extends true | undefined = undefined> extends ClusterWithAttribute<Cl, Custom> {
+export interface BinaryArgs<Cl extends string | number, Custom extends TCustomCluster | undefined = undefined>
+    extends ClusterWithAttribute<Cl, Custom> {
     name: string;
     valueOn: [string | boolean, unknown];
     valueOff: [string | boolean, unknown];
     description: string;
     zigbeeCommandOptions?: {manufacturerCode: number};
     endpointName?: string;
-    reporting?: false | ReportingConfig<Cl>;
+    reporting?: false | ReportingConfig<Cl, Custom>;
     access?: "STATE" | "STATE_GET" | "STATE_SET" | "SET" | "ALL";
     label?: string;
     entityCategory?: "config" | "diagnostic";
 }
-export function binary<Cl extends string | number, Custom extends true | undefined = undefined>(args: BinaryArgs<Cl, Custom>): ModernExtend {
+export function binary<Cl extends string | number, Custom extends TCustomCluster | undefined = undefined>(
+    args: BinaryArgs<Cl, Custom>,
+): ModernExtend {
     const {name, valueOn, valueOff, cluster, attribute, description, zigbeeCommandOptions, endpointName, reporting, label, entityCategory} = args;
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
     const access = ea[args.access ?? "ALL"];
@@ -2747,17 +2749,18 @@ export function binary<Cl extends string | number, Custom extends true | undefin
     return {exposes: [expose], fromZigbee, toZigbee, configure, isModernExtend: true};
 }
 
-export interface TextArgs<Cl extends string | number, Custom extends true | undefined = undefined> extends ClusterWithAttribute<Cl, Custom> {
+export interface TextArgs<Cl extends string | number, Custom extends TCustomCluster | undefined = undefined>
+    extends ClusterWithAttribute<Cl, Custom> {
     name: string;
     description: string;
     zigbeeCommandOptions?: {manufacturerCode: number};
     endpointName?: string;
-    reporting?: ReportingConfig<Cl>;
+    reporting?: ReportingConfig<Cl, Custom>;
     access?: "STATE" | "STATE_GET" | "STATE_SET" | "SET" | "ALL";
     entityCategory?: "config" | "diagnostic";
     validate?(value: unknown): void;
 }
-export function text<Cl extends string | number, Custom extends true | undefined = undefined>(args: TextArgs<Cl, Custom>): ModernExtend {
+export function text<Cl extends string | number, Custom extends TCustomCluster | undefined = undefined>(args: TextArgs<Cl, Custom>): ModernExtend {
     const {name, cluster, attribute, description, zigbeeCommandOptions, endpointName, reporting, entityCategory, validate} = args;
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
     const access = ea[args.access ?? "ALL"];
@@ -2817,20 +2820,20 @@ export function text<Cl extends string | number, Custom extends true | undefined
 export type Parse = (msg: Fz.Message, attributeKey: string | number) => unknown;
 export interface ActionEnumLookupArgs<
     Cl extends string | number,
-    Custom extends true | undefined = undefined,
-    Co extends string | number | undefined = undefined,
+    Custom extends TCustomCluster | undefined = undefined,
+    Co extends string | undefined = undefined,
 > extends ClusterWithAttribute<Cl, Custom, Co> {
     actionLookup: KeyValue;
     endpointNames?: string[];
     buttonLookup?: KeyValue;
     extraActions?: string[];
-    commands?: string[];
+    commands?: `command${Capitalize<Co>}`[];
     parse?: Parse;
 }
 export function actionEnumLookup<
     Cl extends string | number,
-    Custom extends true | undefined = undefined,
-    Co extends string | number | undefined = undefined,
+    Custom extends TCustomCluster | undefined = undefined,
+    Co extends string | undefined = undefined,
 >(args: ActionEnumLookupArgs<Cl, Custom, Co>): ModernExtend {
     const {actionLookup: lookup, attribute, cluster, buttonLookup} = args;
     const attributeKey = isString(attribute) ? attribute : attribute.ID;

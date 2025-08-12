@@ -8,8 +8,8 @@ import {assertNumber, getEndpointName, isString, precisionRound, validateValue} 
 
 const defaultReporting = {min: 0, max: 3600, change: 0};
 const electicityReporting = {min: 0, max: 30, change: 1};
-const defaultReportingOnOff = {min: 0, max: 3600, change: 0, attribute: "onOff"};
-const defaultReportingOOS = {min: 0, max: 3600, change: 0, attribute: "outOfService"};
+const defaultReportingOnOff = {min: 0, max: 3600, change: 0, attribute: "onOff" as const};
+const defaultReportingOOS = {min: 0, max: 3600, change: 0, attribute: "outOfService" as const};
 
 const time_to_str_min = (time: number) => {
     const date = new Date(null);

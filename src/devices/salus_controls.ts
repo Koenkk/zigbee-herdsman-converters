@@ -9,6 +9,31 @@ import type {DefinitionWithExtend} from "../lib/types";
 
 const e = exposes.presets;
 
+interface Salus {
+    attributes: {
+        frostSetpoint: number;
+        minFrostSetpoint: number;
+        maxFrostSetpoint: number;
+        timeDisplayFormat: number;
+        attr4: number;
+        attr5: number;
+        attr6: number;
+        attr7: number;
+        autoCoolingSetpoint: number;
+        autoHeatingSetpoint: number;
+        holdType: number;
+        shortCycleProtection: number;
+        coolingFanDelay: number;
+        ruleCoolingSetpoint: number;
+        ruleHeatingSetpoint: number;
+        attr15: number;
+    };
+    commands: {
+        resetDevice: Record<string, never>;
+    };
+    commandResponses: never;
+}
+
 export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["SPE600"],
@@ -133,7 +158,7 @@ export const definitions: DefinitionWithExtend[] = [
                 },
                 commandsResponse: {},
             }),
-            m.enumLookup<"manuSpecificSalus", true>({
+            m.enumLookup<"manuSpecificSalus", Salus>({
                 name: "preset",
                 lookup: {schedule: 0, temporary_override: 1, permanent_override: 2, standby: 7, eco: 10},
                 cluster: "manuSpecificSalus",

@@ -224,7 +224,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_GET",
             }),
 
-            m.numeric<"aminaControlCluster", true>({
+            m.numeric<"aminaControlCluster", AminaControlCluster>({
                 name: "total_active_energy",
                 cluster: "aminaControlCluster",
                 attribute: "totalActiveEnergy",
@@ -236,7 +236,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_GET",
             }),
 
-            m.numeric<"aminaControlCluster", true>({
+            m.numeric<"aminaControlCluster", AminaControlCluster>({
                 name: "last_session_energy",
                 cluster: "aminaControlCluster",
                 attribute: "lastSessionEnergy",
@@ -248,7 +248,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_GET",
             }),
 
-            m.binary<"aminaControlCluster", true>({
+            m.binary<"aminaControlCluster", AminaControlCluster>({
                 name: "ev_connected",
                 cluster: "aminaControlCluster",
                 attribute: "evConnected",
@@ -258,7 +258,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE",
             }),
 
-            m.binary<"aminaControlCluster", true>({
+            m.binary<"aminaControlCluster", AminaControlCluster>({
                 name: "charging",
                 cluster: "aminaControlCluster",
                 attribute: "charging",
@@ -268,7 +268,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE",
             }),
 
-            m.binary<"aminaControlCluster", true>({
+            m.binary<"aminaControlCluster", AminaControlCluster>({
                 name: "derated",
                 cluster: "aminaControlCluster",
                 attribute: "derated",
@@ -278,7 +278,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE",
             }),
 
-            m.binary<"aminaControlCluster", true>({
+            m.binary<"aminaControlCluster", AminaControlCluster>({
                 name: "alarm_active",
                 cluster: "aminaControlCluster",
                 attribute: "alarmActive",
@@ -294,7 +294,7 @@ export const definitions: DefinitionWithExtend[] = [
                 threePhase: true,
             }),
 
-            m.binary<"aminaControlCluster", true>({
+            m.binary<"aminaControlCluster", AminaControlCluster>({
                 name: "single_phase",
                 cluster: "aminaControlCluster",
                 attribute: "singlePhase",
@@ -304,7 +304,7 @@ export const definitions: DefinitionWithExtend[] = [
                 entityCategory: "config",
             }),
 
-            m.binary<"aminaControlCluster", true>({
+            m.binary<"aminaControlCluster", AminaControlCluster>({
                 name: "enable_offline",
                 cluster: "aminaControlCluster",
                 attribute: "enableOffline",
@@ -314,7 +314,7 @@ export const definitions: DefinitionWithExtend[] = [
                 entityCategory: "config",
             }),
 
-            m.numeric<"aminaControlCluster", true>({
+            m.numeric<"aminaControlCluster", AminaControlCluster>({
                 name: "time_to_offline",
                 cluster: "aminaControlCluster",
                 attribute: "timeToOffline",
@@ -326,7 +326,7 @@ export const definitions: DefinitionWithExtend[] = [
                 entityCategory: "config",
             }),
 
-            m.numeric<"aminaControlCluster", true>({
+            m.numeric<"aminaControlCluster", AminaControlCluster>({
                 name: "offline_current",
                 cluster: "aminaControlCluster",
                 attribute: "offlineCurrent",
@@ -338,7 +338,7 @@ export const definitions: DefinitionWithExtend[] = [
                 entityCategory: "config",
             }),
 
-            m.binary<"aminaControlCluster", true>({
+            m.binary<"aminaControlCluster", AminaControlCluster>({
                 name: "offline_single_phase",
                 cluster: "aminaControlCluster",
                 attribute: "offlineSinglePhase",
