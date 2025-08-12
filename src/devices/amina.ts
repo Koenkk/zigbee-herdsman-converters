@@ -1,5 +1,4 @@
 import {Zcl} from "zigbee-herdsman";
-import type {TCustomCluster} from "zigbee-herdsman/dist/controller/tstype";
 import * as constants from "../lib/constants";
 import * as exposes from "../lib/exposes";
 import {logger} from "../lib/logger";
@@ -15,7 +14,7 @@ const ea = exposes.access;
 
 const manufacturerOptions = {manufacturerCode: 0x143b};
 
-interface AminaControlCluster extends TCustomCluster {
+interface AminaControlCluster {
     attributes: {
         alarms: number;
         evStatus: number;

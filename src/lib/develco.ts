@@ -1,12 +1,11 @@
 import {Zcl} from "zigbee-herdsman";
-import type {TCustomCluster} from "zigbee-herdsman/dist/controller/tstype";
 import {presets as e, access as ea} from "./exposes";
 import {deviceAddCustomCluster, deviceTemperature, type NumericArgs, numeric, temperature} from "./modernExtend";
 import type {Configure, Fz, ModernExtend} from "./types";
 
 const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.DEVELCO};
 
-export interface DevelcoGenBasic extends TCustomCluster {
+export interface DevelcoGenBasic {
     attributes: {
         develcoPrimarySwVersion: Buffer;
         develcoPrimaryHwVersion: Buffer;
@@ -16,7 +15,7 @@ export interface DevelcoGenBasic extends TCustomCluster {
     commandResponses: never;
 }
 
-export interface DevelcoAirQuality extends TCustomCluster {
+export interface DevelcoAirQuality {
     attributes: {
         measuredValue: number;
         minMeasuredValue: number;

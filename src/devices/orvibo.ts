@@ -1,5 +1,4 @@
 import {Zcl} from "zigbee-herdsman";
-import type {TCustomCluster} from "zigbee-herdsman/dist/controller/tstype";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
@@ -104,7 +103,7 @@ const clusterManuSpecifcOrviboSwitchRewiring = () => {
     });
 };
 
-interface Orvibo2 extends TCustomCluster {
+interface Orvibo2 {
     attributes: {
         powerOnBehavior: number;
     };

@@ -1,5 +1,4 @@
 import {Zcl} from "zigbee-herdsman";
-import type {TCustomCluster} from "zigbee-herdsman/dist/controller/tstype";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as reporting from "../lib/reporting";
@@ -58,7 +57,7 @@ export const knownEffects = {
     "1080": "enchant",
 };
 
-interface PhilipsContact extends TCustomCluster {
+interface PhilipsContact {
     attributes: {
         contact: number;
         contactLastChange: number;

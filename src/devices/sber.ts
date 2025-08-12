@@ -1,5 +1,4 @@
 import {Zcl} from "zigbee-herdsman";
-import type {TCustomCluster} from "zigbee-herdsman/dist/controller/tstype";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
@@ -259,7 +258,7 @@ const sdevicesCustomClusterDefinition = {
     commandsResponse: {},
 };
 
-interface SberDevices extends TCustomCluster {
+interface SberDevices {
     attributes: {
         buttonEnableMultiClick: number;
         childLock: number;
@@ -285,7 +284,7 @@ interface SberDevices extends TCustomCluster {
     commandResponses: never;
 }
 
-interface SberGenOnOff extends TCustomCluster {
+interface SberGenOnOff {
     attributes: {sdevicesRelayDecouple: number};
     commands: never;
     commandResponses: never;

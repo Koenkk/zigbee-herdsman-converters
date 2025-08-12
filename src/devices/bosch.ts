@@ -1,5 +1,4 @@
 import {Zcl, ZSpec} from "zigbee-herdsman";
-import type {TCustomCluster} from "zigbee-herdsman/dist/controller/tstype";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as constants from "../lib/constants";
@@ -76,7 +75,7 @@ const labelConfirmation = `Specifies LED color (rgb) and pattern of the confirma
 8: Number of Repetitions (01=1 to ff=255)
 Example: 30ff00000102010001`;
 
-interface BoschHvacThermostat extends TCustomCluster {
+interface BoschHvacThermostat {
     attributes: {
         operatingMode: number;
         heatingDemand: number;
@@ -91,7 +90,7 @@ interface BoschHvacThermostat extends TCustomCluster {
     commandResponses: never;
 }
 
-interface BoschHvacUserInterfaceCfg extends TCustomCluster {
+interface BoschHvacUserInterfaceCfg {
     attributes: {
         displayOrientation: number;
         displayedTemperature: number;
@@ -102,7 +101,7 @@ interface BoschHvacUserInterfaceCfg extends TCustomCluster {
     commandResponses: never;
 }
 
-interface TwinguardSmokeDetector extends TCustomCluster {
+interface TwinguardSmokeDetector {
     attributes: {
         sensitivity: number;
     };
@@ -111,7 +110,7 @@ interface TwinguardSmokeDetector extends TCustomCluster {
     };
     commandResponses: never;
 }
-interface TwinguardOptions extends TCustomCluster {
+interface TwinguardOptions {
     attributes: {
         unknown1: number;
         // biome-ignore lint/style/useNamingConvention: TODO
@@ -122,7 +121,7 @@ interface TwinguardOptions extends TCustomCluster {
     };
     commandResponses: never;
 }
-interface TwinguardSetup extends TCustomCluster {
+interface TwinguardSetup {
     attributes: {
         unknown1: number;
         unknown2: number;
@@ -131,7 +130,7 @@ interface TwinguardSetup extends TCustomCluster {
     commands: {pairingCompleted: Record<string, never>};
     commandResponses: never;
 }
-interface TwinguardAlarm extends TCustomCluster {
+interface TwinguardAlarm {
     attributes: {
         // biome-ignore lint/style/useNamingConvention: TODO
         alarm_status: number;
@@ -140,7 +139,7 @@ interface TwinguardAlarm extends TCustomCluster {
     commandResponses: never;
 }
 
-interface BoschSpecificBmct extends TCustomCluster {
+interface BoschSpecificBmct {
     attributes: {
         deviceMode: number;
         switchType: number;
@@ -155,7 +154,7 @@ interface BoschSpecificBmct extends TCustomCluster {
     commandResponses: never;
 }
 
-interface BoschSpecificBwa1 extends TCustomCluster {
+interface BoschSpecificBwa1 {
     attributes: {alarmOnMotion: number};
     commands: never;
     commandResponses: never;

@@ -1,5 +1,4 @@
 import {Zcl} from "zigbee-herdsman";
-import type {TCustomCluster} from "zigbee-herdsman/dist/controller/tstype";
 import type {Struct, ZclArray} from "zigbee-herdsman/dist/zspec/zcl/definition/tstype";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
@@ -10,7 +9,7 @@ import type {Configure, Fz, ModernExtend, Tz, Zh} from "./types";
 
 const NS = "zhc:ubisys";
 
-interface UbisysHvacThermostat extends TCustomCluster {
+interface UbisysHvacThermostat {
     attributes: {
         ubisysClassBTemperatureOffset: number;
         ubisysReturnFlowTemperatureWeight: number;
@@ -37,7 +36,7 @@ interface UbisysHvacThermostat extends TCustomCluster {
     commands: never;
     commandResponses: never;
 }
-export interface UbisysGenLevelCtrl extends TCustomCluster {
+export interface UbisysGenLevelCtrl {
     attributes: {
         ubisysMinimumOnLevel: number;
         ubisysValveType: number;
@@ -57,7 +56,7 @@ export interface UbisysGenLevelCtrl extends TCustomCluster {
     commands: never;
     commandResponses: never;
 }
-export interface UbisysClosuresWindowCovering extends TCustomCluster {
+export interface UbisysClosuresWindowCovering {
     attributes: {
         ubisysTurnaroundGuardTime: number;
         ubisysLiftToTiltTransitionSteps: number;
@@ -71,7 +70,7 @@ export interface UbisysClosuresWindowCovering extends TCustomCluster {
     commands: never;
     commandResponses: never;
 }
-export interface UbisysDeviceSetup extends TCustomCluster {
+export interface UbisysDeviceSetup {
     attributes: {
         inputConfigurations: ZclArray | unknown[];
         inputActions: ZclArray | unknown[];
@@ -79,7 +78,7 @@ export interface UbisysDeviceSetup extends TCustomCluster {
     commands: never;
     commandResponses: never;
 }
-export interface UbisysDimmerSetup extends TCustomCluster {
+export interface UbisysDimmerSetup {
     attributes: {
         capabilities: number;
         status: number;

@@ -1,5 +1,4 @@
 import {Zcl} from "zigbee-herdsman";
-import type {TCustomCluster} from "zigbee-herdsman/dist/controller/tstype";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as constants from "../lib/constants";
@@ -13,7 +12,7 @@ import {postfixWithEndpointName} from "../lib/utils";
 const e = exposes.presets;
 const ea = exposes.access;
 
-interface SchneiderOccupancyConfig extends TCustomCluster {
+interface SchneiderOccupancyConfig {
     attributes: {
         ambienceLightThreshold: number;
         occupancyActions: number;

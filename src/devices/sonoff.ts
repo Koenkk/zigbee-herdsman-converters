@@ -1,5 +1,4 @@
 import {Zcl} from "zigbee-herdsman";
-import type {TCustomCluster} from "zigbee-herdsman/dist/controller/tstype";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as constants from "../lib/constants";
@@ -109,7 +108,7 @@ type EntityCategoryArgs = {
     entityCategory?: "config" | "diagnostic";
 };
 
-interface SonoffEwelink extends TCustomCluster {
+interface SonoffEwelink {
     attributes: {
         networkLed: number;
         backLight: number;

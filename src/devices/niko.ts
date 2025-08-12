@@ -1,5 +1,4 @@
 import {Zcl} from "zigbee-herdsman";
-import type {TCustomCluster} from "zigbee-herdsman/dist/controller/tstype";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
@@ -11,7 +10,7 @@ import * as utils from "../lib/utils";
 const e = exposes.presets;
 const ea = exposes.access;
 
-interface NikoConfig extends TCustomCluster {
+interface NikoConfig {
     attributes: {
         switchOperationMode: number;
         outletLedColor: number;
@@ -23,7 +22,7 @@ interface NikoConfig extends TCustomCluster {
     commandResponses: never;
 }
 
-interface NikoState extends TCustomCluster {
+interface NikoState {
     manufacturerCode: Zcl.ManufacturerCode.NIKO_NV;
     attributes: {
         switchActionReporting: number;

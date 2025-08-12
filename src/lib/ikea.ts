@@ -1,7 +1,6 @@
 import {gt as semverGt, gte as semverGte, lt as semverLt, valid as semverValid} from "semver";
 
 import {Zcl} from "zigbee-herdsman";
-import type {TCustomCluster} from "zigbee-herdsman/dist/controller/tstype";
 import * as tz from "../converters/toZigbee";
 import * as constants from "../lib/constants";
 import {access, options, presets} from "../lib/exposes";
@@ -820,7 +819,7 @@ export function ikeaMediaCommands(): ModernExtend {
     return {exposes, fromZigbee, configure, isModernExtend: true};
 }
 
-export interface IkeaAirPurifier extends TCustomCluster {
+export interface IkeaAirPurifier {
     attributes: {
         filterRunTime: number;
         replaceFilter: number;
@@ -856,7 +855,7 @@ export function addCustomClusterManuSpecificIkeaAirPurifier(): ModernExtend {
     });
 }
 
-export interface IkeaVocIndexMeasurement extends TCustomCluster {
+export interface IkeaVocIndexMeasurement {
     attributes: {
         measuredValue: number;
         measuredMinValue: number;
@@ -880,7 +879,7 @@ export function addCustomClusterManuSpecificIkeaVocIndexMeasurement(): ModernExt
     });
 }
 
-export interface IkeaUnknown extends TCustomCluster {
+export interface IkeaUnknown {
     attributes: never;
     commands: never;
     commandResponses: never;

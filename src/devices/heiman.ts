@@ -1,5 +1,4 @@
 import {Zcl} from "zigbee-herdsman";
-import type {TCustomCluster} from "zigbee-herdsman/dist/controller/tstype";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as constants from "../lib/constants";
@@ -1095,7 +1094,7 @@ export const definitions: DefinitionWithExtend[] = [
                 ),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
-            interface HeimanRadar extends TCustomCluster {
+            interface HeimanRadar {
                 attributes: {
                     // biome-ignore lint/style/useNamingConvention: TODO
                     enable_indicator: number;
@@ -1112,7 +1111,7 @@ export const definitions: DefinitionWithExtend[] = [
                     sub_region_isolation_table: Buffer;
                 };
                 commands: never;
-                commandResponse: never;
+                commandResponses: never;
             }
 
             const endpoint = device.getEndpoint(1);

@@ -1,5 +1,4 @@
 import {Zcl} from "zigbee-herdsman";
-import type {TCustomCluster} from "zigbee-herdsman/dist/controller/tstype";
 import * as exposes from "./exposes";
 import {logger} from "./logger";
 import {deviceAddCustomCluster} from "./modernExtend";
@@ -13,7 +12,7 @@ const NS = "zhc:nodon";
 const PILOT_WIRE_CLUSTER = "customClusterNodOnPilotWire";
 const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.NODON};
 
-interface NodonPilotWire extends TCustomCluster {
+interface NodonPilotWire {
     attributes: {
         mode: number;
     };
