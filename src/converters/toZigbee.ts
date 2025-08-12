@@ -3676,16 +3676,16 @@ export const diyruz_zintercom_config: Tz.Converter = {
     },
     convertGet: async (entity, key, meta) => {
         const payloads = {
-            mode: ["closuresDoorLock", 0x0051],
-            sound: ["closuresDoorLock", 0x0052],
-            time_ring: ["closuresDoorLock", 0x0053],
-            time_talk: ["closuresDoorLock", 0x0054],
-            time_open: ["closuresDoorLock", 0x0055],
-            time_bell: ["closuresDoorLock", 0x0057],
-            time_report: ["closuresDoorLock", 0x0056],
+            mode: 0x0051,
+            sound: 0x0052,
+            time_ring: 0x0053,
+            time_talk: 0x0054,
+            time_open: 0x0055,
+            time_bell: 0x0057,
+            time_report: 0x0056,
         };
         const v = utils.getFromLookup(key, payloads);
-        await entity.read(v[0], [v[1]]);
+        await entity.read("closuresDoorLock", [v]);
     },
 };
 export const power_source: Tz.Converter = {

@@ -1446,7 +1446,7 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
             const payload = [
                 {
-                    attribute: "actionReport",
+                    attribute: "actionReport" as const,
                     minimumReportInterval: 0,
                     maximumReportInterval: 0,
                     reportableChange: 0,
@@ -1749,7 +1749,7 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.batteryAlarmState(endpoint);
             await reporting.temperature(endpoint);
 
-            const payload = reporting.payload("presentValue", 10, constants.repInterval.HOUR, 1);
+            const payload = reporting.payload<"genAnalogInput">("presentValue", 10, constants.repInterval.HOUR, 1);
             await endpoint.configureReporting("genAnalogInput", payload);
             await endpoint.read("genAnalogInput", ["presentValue"]);
         },

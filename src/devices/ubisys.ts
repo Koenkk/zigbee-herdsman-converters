@@ -1,7 +1,6 @@
 import assert from "node:assert";
 import {gte as semverGte, valid as semverValid} from "semver";
 import {Zcl} from "zigbee-herdsman";
-import type {ClusterOrRawAttributeKeys, PartialClusterOrRawWriteAttributes} from "zigbee-herdsman/dist/controller/tstype";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as constants from "../lib/constants";
@@ -10,7 +9,13 @@ import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import type {DefinitionWithExtend, Fz, KeyValue, KeyValueAny, Tz, Zh} from "../lib/types";
-import {ubisysModernExtend} from "../lib/ubisys";
+import {
+    type UbisysClosuresWindowCovering,
+    type UbisysDeviceSetup,
+    type UbisysDimmerSetup,
+    type UbisysGenLevelCtrl,
+    ubisysModernExtend,
+} from "../lib/ubisys";
 import * as utils from "../lib/utils";
 
 const NS = "zhc:ubisys";
@@ -166,7 +171,7 @@ const ubisys = {
                     await waitUntilStopped();
                     log("  Settings some attributes...");
                     // reset attributes
-                    await entity.write(
+                    await entity.write<"closuresWindowCovering", UbisysClosuresWindowCovering>(
                         "closuresWindowCovering",
                         {
                             installedOpenLimitLiftCm: 0,
@@ -177,7 +182,7 @@ const ubisys = {
                             ubisysTotalSteps: 0xffff,
                             ubisysLiftToTiltTransitionSteps2: 0xffff,
                             ubisysTotalSteps2: 0xffff,
-                        } as PartialClusterOrRawWriteAttributes<"closuresWindowCovering">,
+                        },
                         manufacturerOptions.ubisys,
                     );
                     // enable calibration mode
@@ -264,7 +269,7 @@ const ubisys = {
                     ]),
                 );
                 log(
-                    await entity.read(
+                    await entity.read<"closuresWindowCovering", UbisysClosuresWindowCovering>(
                         "closuresWindowCovering",
                         [
                             "ubisysTurnaroundGuardTime",
@@ -275,7 +280,7 @@ const ubisys = {
                             "ubisysAdditionalSteps",
                             "ubisysInactivePowerThreshold",
                             "ubisysStartupSteps",
-                        ] as unknown as ClusterOrRawAttributeKeys<"closuresWindowCovering">,
+                        ],
                         manufacturerOptions.ubisys,
                     ),
                 );
@@ -301,7 +306,7 @@ const ubisys = {
                     const phaseControl = value.toLowerCase();
                     const phaseControlValues = {automatic: 0, forward: 1, reverse: 2};
                     utils.validateValue(phaseControl, Object.keys(phaseControlValues));
-                    await entity.write(
+                    await entity.write<"manuSpecificUbisysDimmerSetup", UbisysDimmerSetup>(
                         "manuSpecificUbisysDimmerSetup",
                         {mode: utils.getFromLookup(phaseControl, phaseControlValues)},
                         manufacturerOptions.ubisysNull,
@@ -310,9 +315,21 @@ const ubisys = {
                 await ubisys.tz.dimmer_setup.convertGet(entity, key, meta);
             },
             convertGet: async (entity, key, meta) => {
-                await entity.read("manuSpecificUbisysDimmerSetup", ["capabilities"], manufacturerOptions.ubisysNull);
-                await entity.read("manuSpecificUbisysDimmerSetup", ["status"], manufacturerOptions.ubisysNull);
-                await entity.read("manuSpecificUbisysDimmerSetup", ["mode"], manufacturerOptions.ubisysNull);
+                await entity.read<"manuSpecificUbisysDimmerSetup", UbisysDimmerSetup>(
+                    "manuSpecificUbisysDimmerSetup",
+                    ["capabilities"],
+                    manufacturerOptions.ubisysNull,
+                );
+                await entity.read<"manuSpecificUbisysDimmerSetup", UbisysDimmerSetup>(
+                    "manuSpecificUbisysDimmerSetup",
+                    ["status"],
+                    manufacturerOptions.ubisysNull,
+                );
+                await entity.read<"manuSpecificUbisysDimmerSetup", UbisysDimmerSetup>(
+                    "manuSpecificUbisysDimmerSetup",
+                    ["mode"],
+                    manufacturerOptions.ubisysNull,
+                );
             },
         } satisfies Tz.Converter,
         // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
@@ -320,20 +337,16 @@ const ubisys = {
             key: ["minimum_on_level"],
             convertSet: async (entity, key, value, meta) => {
                 if (key === "minimum_on_level") {
-                    await entity.write(
+                    await entity.write<"genLevelCtrl", UbisysGenLevelCtrl>(
                         "genLevelCtrl",
-                        {ubisysMinimumOnLevel: value} as PartialClusterOrRawWriteAttributes<"genLevelCtrl">,
+                        {ubisysMinimumOnLevel: value as number},
                         manufacturerOptions.ubisys,
                     );
                 }
                 await ubisys.tz.dimmer_setup_genLevelCtrl.convertGet(entity, key, meta);
             },
             convertGet: async (entity, key, meta) => {
-                await entity.read(
-                    "genLevelCtrl",
-                    ["ubisysMinimumOnLevel"] as unknown as ClusterOrRawAttributeKeys<"genLevelCtrl">,
-                    manufacturerOptions.ubisys,
-                );
+                await entity.read<"genLevelCtrl", UbisysGenLevelCtrl>("genLevelCtrl", ["ubisysMinimumOnLevel"], manufacturerOptions.ubisys);
             },
         } satisfies Tz.Converter,
         configure_device_setup: {
@@ -374,11 +387,9 @@ const ubisys = {
                             manufacturerOptions.ubisysNull,
                         );
                     } else {
-                        await devMgmtEp.write(
+                        await devMgmtEp.write<"manuSpecificUbisysDeviceSetup", UbisysDeviceSetup>(
                             "manuSpecificUbisysDeviceSetup",
-                            {
-                                [attributeInputConfigurations.name]: {elementType: Zcl.DataType.DATA8, elements: value.input_configurations},
-                            } as PartialClusterOrRawWriteAttributes<"manuSpecificUbisysDeviceSetup">,
+                            {inputConfigurations: {elementType: Zcl.DataType.DATA8, elements: value.input_configurations}},
                             manufacturerOptions.ubisysNull,
                         );
                     }
@@ -403,11 +414,9 @@ const ubisys = {
                             manufacturerOptions.ubisysNull,
                         );
                     } else {
-                        await devMgmtEp.write(
+                        await devMgmtEp.write<"manuSpecificUbisysDeviceSetup", UbisysDeviceSetup>(
                             "manuSpecificUbisysDeviceSetup",
-                            {
-                                [attributeInputActions.name]: {elementType: Zcl.DataType.OCTET_STR, elements: value.input_actions},
-                            } as PartialClusterOrRawWriteAttributes<"manuSpecificUbisysDeviceSetup">,
+                            {inputActions: {elementType: Zcl.DataType.OCTET_STR, elements: value.input_actions}},
                             manufacturerOptions.ubisysNull,
                         );
                     }
@@ -600,11 +609,9 @@ const ubisys = {
                             manufacturerOptions.ubisysNull,
                         );
                     } else {
-                        await devMgmtEp.write(
+                        await devMgmtEp.write<"manuSpecificUbisysDeviceSetup", UbisysDeviceSetup>(
                             "manuSpecificUbisysDeviceSetup",
-                            {
-                                [attributeInputActions.name]: {elementType: Zcl.DataType.OCTET_STR, elements: resultingInputActions},
-                            } as PartialClusterOrRawWriteAttributes<"manuSpecificUbisysDeviceSetup">,
+                            {inputActions: {elementType: Zcl.DataType.OCTET_STR, elements: resultingInputActions}},
                             manufacturerOptions.ubisysNull,
                         );
                     }
@@ -616,8 +623,16 @@ const ubisys = {
 
             convertGet: async (entity, key, meta) => {
                 const devMgmtEp = meta.device.getEndpoint(232);
-                await devMgmtEp.read("manuSpecificUbisysDeviceSetup", ["inputConfigurations"], manufacturerOptions.ubisysNull);
-                await devMgmtEp.read("manuSpecificUbisysDeviceSetup", ["inputActions"], manufacturerOptions.ubisysNull);
+                await devMgmtEp.read<"manuSpecificUbisysDeviceSetup", UbisysDeviceSetup>(
+                    "manuSpecificUbisysDeviceSetup",
+                    ["inputConfigurations"],
+                    manufacturerOptions.ubisysNull,
+                );
+                await devMgmtEp.read<"manuSpecificUbisysDeviceSetup", UbisysDeviceSetup>(
+                    "manuSpecificUbisysDeviceSetup",
+                    ["inputActions"],
+                    manufacturerOptions.ubisysNull,
+                );
             },
         } satisfies Tz.Converter,
     },

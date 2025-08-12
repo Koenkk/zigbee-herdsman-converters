@@ -1804,6 +1804,7 @@ export const lumiModernExtend = {
                                         try {
                                             await endpoint.configureReporting(c.cluster.name, [
                                                 {
+                                                    // @ts-expect-error dynamic, expected correct since already applied
                                                     attribute: c.attribute.name,
                                                     minimumReportInterval: c.minimumReportInterval,
                                                     maximumReportInterval: c.maximumReportInterval,

@@ -1838,7 +1838,13 @@ export const definitions: DefinitionWithExtend[] = [
                     unsuscribe.map((e) =>
                         endpoint.configureReporting(
                             e.cluster.name,
-                            reporting.payload(e.attribute.name, e.minimumReportInterval, 65535, e.reportableChange),
+                            reporting.payload(
+                                // @ts-expect-error dynamic, expected correct since already applied
+                                e.attribute.name,
+                                e.minimumReportInterval,
+                                65535,
+                                e.reportableChange,
+                            ),
                             {manufacturerCode: null},
                         ),
                     ),
@@ -1863,9 +1869,19 @@ export const definitions: DefinitionWithExtend[] = [
                     params = {...params, ...e.report};
                 }
                 configReportings.push(
-                    endpoint.configureReporting(e.cluster, reporting.payload(params.att, params.min, params.max, params.change), {
-                        manufacturerCode: null,
-                    }),
+                    endpoint.configureReporting(
+                        e.cluster,
+                        reporting.payload(
+                            // @ts-expect-error dynamic, expected correct since already applied
+                            params.att,
+                            params.min,
+                            params.max,
+                            params.change,
+                        ),
+                        {
+                            manufacturerCode: null,
+                        },
+                    ),
                 );
             }
             (await Promise.allSettled(configReportings))

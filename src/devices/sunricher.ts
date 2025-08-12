@@ -1,5 +1,5 @@
 import {Zcl} from "zigbee-herdsman";
-import type {ClusterOrRawAttributeKeys} from "zigbee-herdsman/dist/controller/tstype";
+import type {TCustomCluster} from "zigbee-herdsman/dist/controller/tstype";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as constants from "../lib/constants";
@@ -18,6 +18,22 @@ const e = exposes.presets;
 const ea = exposes.access;
 
 const sunricherManufacturerCode = 0x1224;
+
+export interface SunricherHvacThermostat extends TCustomCluster {
+    attributes: {
+        screenTimeout: number;
+        antiFreezingTemp: number;
+        temperatureDisplayMode: number;
+        windowOpenCheck: number;
+        hysteresis: number;
+        windowOpenFlag: number;
+        forcedHeatingTime: number;
+        errorCode: number;
+        awayOrBoostMode: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
 
 const fzLocal = {
     SRZGP2801K45C: {
@@ -725,7 +741,10 @@ export const definitions: DefinitionWithExtend[] = [
                         reporting.thermostatUnoccupiedHeatingSetpoint(endpoint),
                         reporting.thermostatRunningState(endpoint),
                         reporting.batteryPercentageRemaining(endpoint),
-                        endpoint.configureReporting("hvacUserInterfaceCfg", payload("tempDisplayMode", 10, repInterval.MINUTE, null)),
+                        endpoint.configureReporting(
+                            "hvacUserInterfaceCfg",
+                            payload<"hvacUserInterfaceCfg">("tempDisplayMode", 10, repInterval.MINUTE, null),
+                        ),
                     ];
 
                     await Promise.all(configPromises);
@@ -738,16 +757,21 @@ export const definitions: DefinitionWithExtend[] = [
                         "hysteresis",
                         "windowOpenFlag",
                         "forcedHeatingTime",
-                    ];
+                    ] as const;
 
                     await Promise.all(
-                        customAttributes.map((attr) => endpoint.configureReporting("hvacThermostat", payload(attr, 10, repInterval.MINUTE, null))),
+                        customAttributes.map((attr) =>
+                            endpoint.configureReporting<"hvacThermostat", SunricherHvacThermostat>(
+                                "hvacThermostat",
+                                payload<"hvacThermostat", SunricherHvacThermostat>(attr, 10, repInterval.MINUTE, null),
+                            ),
+                        ),
                     );
 
                     const readPromises = [
                         endpoint.read("hvacUserInterfaceCfg", ["tempDisplayMode"]),
                         endpoint.read("hvacThermostat", ["localTemp", "runningState"]),
-                        endpoint.read("hvacThermostat", [
+                        endpoint.read<"hvacThermostat", SunricherHvacThermostat>("hvacThermostat", [
                             "screenTimeout",
                             "antiFreezingTemp",
                             "temperatureDisplayMode",
@@ -756,7 +780,7 @@ export const definitions: DefinitionWithExtend[] = [
                             "windowOpenFlag",
                             "forcedHeatingTime",
                             "errorCode",
-                        ] as unknown as ClusterOrRawAttributeKeys<"hvacThermostat">),
+                        ]),
                     ];
 
                     await Promise.all(readPromises);

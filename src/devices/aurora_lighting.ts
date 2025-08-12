@@ -75,6 +75,7 @@ const batteryRotaryDimmer = (...endpointsIds: number[]) => ({
                 for (const c of endpoint.configuredReportings) {
                     await endpoint.configureReporting(c.cluster.name, [
                         {
+                            // @ts-expect-error dynamic, assumed correct since already applied
                             attribute: c.attribute.name,
                             minimumReportInterval: c.minimumReportInterval,
                             maximumReportInterval: c.maximumReportInterval,

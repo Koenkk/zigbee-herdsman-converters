@@ -1,5 +1,5 @@
 import type {Endpoint, Group} from "zigbee-herdsman/dist/controller/model";
-import type {ClusterOrRawAttributeKeys, PartialClusterOrRawWriteAttributes} from "zigbee-herdsman/dist/controller/tstype";
+import type {SunricherHvacThermostat} from "../devices/sunricher";
 import * as constants from "./constants";
 import {repInterval} from "./constants";
 import * as exposes from "./exposes";
@@ -688,7 +688,7 @@ const extend = {
                         if (value === "away") {
                             await entity.read("hvacThermostat", ["unoccupiedHeatingSetpoint"]);
                         }
-                        await entity.write("hvacThermostat", {awayOrBoostMode} as PartialClusterOrRawWriteAttributes<"hvacThermostat">);
+                        await entity.write<"hvacThermostat", SunricherHvacThermostat>("hvacThermostat", {awayOrBoostMode});
                         return {state: {preset: value, away_or_boost_mode: value}};
                     }
                     globalStore.putValue(entity, "awayOrBoostMode", 0);
@@ -732,11 +732,14 @@ const extend = {
             async (device, coordinatorEndpoint, definition) => {
                 const endpoint = device.getEndpoint(1);
                 await endpoint.read("hvacThermostat", ["systemMode"]);
-                await endpoint.read("hvacThermostat", ["awayOrBoostMode"] as unknown as ClusterOrRawAttributeKeys<"hvacThermostat">);
+                await endpoint.read<"hvacThermostat", SunricherHvacThermostat>("hvacThermostat", ["awayOrBoostMode"]);
 
                 await reporting.bind(endpoint, coordinatorEndpoint, ["hvacThermostat"]);
                 await reporting.thermostatSystemMode(endpoint);
-                await endpoint.configureReporting("hvacThermostat", payload("awayOrBoostMode", 10, repInterval.HOUR, null));
+                await endpoint.configureReporting<"hvacThermostat", SunricherHvacThermostat>(
+                    "hvacThermostat",
+                    payload<"hvacThermostat", SunricherHvacThermostat>("awayOrBoostMode", 10, repInterval.HOUR, null),
+                );
             },
         ];
 
@@ -747,10 +750,7 @@ const extend = {
         const getAwayOrBoostMode = async (entity: Endpoint | Group) => {
             let result = globalStore.getValue(entity, "awayOrBoostMode");
             if (result === undefined) {
-                const attributeRead = await entity.read("hvacThermostat", [
-                    "awayOrBoostMode",
-                ] as unknown as ClusterOrRawAttributeKeys<"hvacThermostat">);
-                // @ts-expect-error ignore
+                const attributeRead = await entity.read<"hvacThermostat", SunricherHvacThermostat>("hvacThermostat", ["awayOrBoostMode"]);
                 result = attributeRead.awayOrBoostMode;
                 globalStore.putValue(entity, "awayOrBoostMode", result);
             }

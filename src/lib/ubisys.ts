@@ -1,5 +1,6 @@
 import {Zcl} from "zigbee-herdsman";
-import type {PartialClusterOrRawWriteAttributes} from "zigbee-herdsman/dist/controller/tstype";
+import type {TCustomCluster} from "zigbee-herdsman/dist/controller/tstype";
+import type {Struct, ZclArray} from "zigbee-herdsman/dist/zspec/zcl/definition/tstype";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import {presets as e, access as ea} from "./exposes";
@@ -8,6 +9,85 @@ import {type BinaryArgs, binary, deviceAddCustomCluster, type NumericArgs, numer
 import type {Configure, Fz, ModernExtend, Tz, Zh} from "./types";
 
 const NS = "zhc:ubisys";
+
+interface UbisysHvacThermostat extends TCustomCluster {
+    attributes: {
+        ubisysClassBTemperatureOffset: number;
+        ubisysReturnFlowTemperatureWeight: number;
+        ubisysRawOutdoorTemperature: Struct;
+        ubisysRawLocalTemperatureA: Struct;
+        ubisysRawLocalTemperatureB: Struct;
+        ubisysRawForwardFlowTemperature: Struct;
+        ubisysRawReturnFlowTemperature: Struct;
+        ubisysInstalledExtensions: bigint;
+        ubisysTemperatureOffset: number;
+        ubisysDefaultOccupiedHeatingSetpoint: number;
+        ubisysVacationMode: number;
+        ubisysRemoteTemperature: number;
+        ubisysRemoteTemperatureValidDuration: number;
+        ubisysDetectOpenWindow: number;
+        ubisysOpenWindowState: number;
+        ubisysOpenWindowSensitivity: number;
+        ubisysOpenWindowDetectionPeriod: number;
+        ubisysOpenWindowTimeout: number;
+        ubisysProportionalGain: number;
+        ubisysProportionalShift: number;
+        ubisysIntegralFactor: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+export interface UbisysGenLevelCtrl extends TCustomCluster {
+    attributes: {
+        ubisysMinimumOnLevel: number;
+        ubisysValveType: number;
+        ubisysCyclePeriod: number;
+        ubisysSeason: number;
+        ubisysBackupLevel: number;
+        ubisysAlternateBackupLevel: number;
+        ubisysLowerRange: number;
+        ubisysUpperRange: number;
+        ubisysPumpThresholdOn: number;
+        ubisysPumpThresholdOff: number;
+        ubisysHeatingDemandEnableThreshold: number;
+        ubisysHeatingDemandDisableThreshold: number;
+        ubisysCoolingDemandEnableThreshold: number;
+        ubisysCoolingDemandDisableThreshold: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+export interface UbisysClosuresWindowCovering extends TCustomCluster {
+    attributes: {
+        ubisysTurnaroundGuardTime: number;
+        ubisysLiftToTiltTransitionSteps: number;
+        ubisysTotalSteps: number;
+        ubisysLiftToTiltTransitionSteps2: number;
+        ubisysTotalSteps2: number;
+        ubisysAdditionalSteps: number;
+        ubisysInactivePowerThreshold: number;
+        ubisysStartupSteps: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+export interface UbisysDeviceSetup extends TCustomCluster {
+    attributes: {
+        inputConfigurations: ZclArray | unknown[];
+        inputActions: ZclArray | unknown[];
+    };
+    commands: never;
+    commandResponses: never;
+}
+export interface UbisysDimmerSetup extends TCustomCluster {
+    attributes: {
+        capabilities: number;
+        status: number;
+        mode: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
 
 export const ubisysModernExtend = {
     pollCurrentSummDelivered: (endpointId: number | ((device: Zh.Device) => number)): ModernExtend => {
@@ -239,12 +319,9 @@ export const ubisysModernExtend = {
                 key: [propertyName],
                 convertSet: async (entity, key, value, meta) => {
                     if (typeof value === "boolean") {
-                        // NOTE: DataType is BOOLEAN in zcl definition as per the device technical reference
-                        //       passing a BOOLEAN type 'value' throws INVALID_DATA_TYPE, we need to pass 1 (true) or 0 (false)
-                        //       ZCL DataType used does still need to be 0x0010 (BOOLEAN)
-                        await entity.write(
+                        await entity.write<typeof clusterName, UbisysHvacThermostat>(
                             clusterName,
-                            {[writeableAttributeName]: value ? 1 : 0} as PartialClusterOrRawWriteAttributes<typeof clusterName>,
+                            {[writeableAttributeName]: value ? 1 : 0},
                             {manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
                         );
                     } else {

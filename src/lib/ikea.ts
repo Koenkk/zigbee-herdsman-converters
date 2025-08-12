@@ -1,7 +1,7 @@
 import {gt as semverGt, gte as semverGte, lt as semverLt, valid as semverValid} from "semver";
 
 import {Zcl} from "zigbee-herdsman";
-
+import type {TCustomCluster} from "zigbee-herdsman/dist/controller/tstype";
 import * as tz from "../converters/toZigbee";
 import * as constants from "../lib/constants";
 import {access, options, presets} from "../lib/exposes";
@@ -45,6 +45,7 @@ const bulbOnEvent: OnEvent.Handler = async (event) => {
             for (const c of endpoint.configuredReportings) {
                 await endpoint.configureReporting(c.cluster.name, [
                     {
+                        // @ts-expect-error dynamic, expected correct since already applied
                         attribute: c.attribute.name,
                         minimumReportInterval: c.minimumReportInterval,
                         maximumReportInterval: c.maximumReportInterval,
@@ -382,56 +383,68 @@ export function ikeaAirPurifier(): ModernExtend {
                         fanMode = (Number(value) / 2.0) * 10 + 5;
                 }
 
-                await entity.write("manuSpecificIkeaAirPurifier", {fanMode: fanMode}, manufacturerOptions);
+                await entity.write<"manuSpecificIkeaAirPurifier", IkeaAirPurifier>(
+                    "manuSpecificIkeaAirPurifier",
+                    {fanMode: fanMode},
+                    manufacturerOptions,
+                );
                 return {state: {fan_mode: value, fan_state: value === "off" ? "OFF" : "ON"}};
             },
             convertGet: async (entity, key, meta) => {
-                await entity.read("manuSpecificIkeaAirPurifier", ["fanMode"]);
+                await entity.read<"manuSpecificIkeaAirPurifier", IkeaAirPurifier>("manuSpecificIkeaAirPurifier", ["fanMode"]);
             },
         },
         {
             key: ["fan_speed"],
             convertGet: async (entity, key, meta) => {
-                await entity.read("manuSpecificIkeaAirPurifier", ["fanSpeed"]);
+                await entity.read<"manuSpecificIkeaAirPurifier", IkeaAirPurifier>("manuSpecificIkeaAirPurifier", ["fanSpeed"]);
             },
         },
         {
             key: ["pm25", "air_quality"],
             convertGet: async (entity, key, meta) => {
-                await entity.read("manuSpecificIkeaAirPurifier", ["particulateMatter25Measurement"]);
+                await entity.read<"manuSpecificIkeaAirPurifier", IkeaAirPurifier>("manuSpecificIkeaAirPurifier", ["particulateMatter25Measurement"]);
             },
         },
         {
             key: ["replace_filter", "filter_age"],
             convertGet: async (entity, key, meta) => {
-                await entity.read("manuSpecificIkeaAirPurifier", ["filterRunTime"]);
+                await entity.read<"manuSpecificIkeaAirPurifier", IkeaAirPurifier>("manuSpecificIkeaAirPurifier", ["filterRunTime"]);
             },
         },
         {
             key: ["device_age"],
             convertGet: async (entity, key, meta) => {
-                await entity.read("manuSpecificIkeaAirPurifier", ["deviceRunTime"]);
+                await entity.read<"manuSpecificIkeaAirPurifier", IkeaAirPurifier>("manuSpecificIkeaAirPurifier", ["deviceRunTime"]);
             },
         },
         {
             key: ["child_lock"],
             convertSet: async (entity, key, value, meta) => {
                 assertString(value);
-                await entity.write("manuSpecificIkeaAirPurifier", {childLock: value.toLowerCase() === "unlock" ? 0 : 1}, manufacturerOptions);
+                await entity.write<"manuSpecificIkeaAirPurifier", IkeaAirPurifier>(
+                    "manuSpecificIkeaAirPurifier",
+                    {childLock: value.toLowerCase() === "unlock" ? 0 : 1},
+                    manufacturerOptions,
+                );
                 return {state: {child_lock: value.toLowerCase() === "lock" ? "LOCK" : "UNLOCK"}};
             },
             convertGet: async (entity, key, meta) => {
-                await entity.read("manuSpecificIkeaAirPurifier", ["childLock"]);
+                await entity.read<"manuSpecificIkeaAirPurifier", IkeaAirPurifier>("manuSpecificIkeaAirPurifier", ["childLock"]);
             },
         },
         {
             key: ["led_enable"],
             convertSet: async (entity, key, value, meta) => {
-                await entity.write("manuSpecificIkeaAirPurifier", {controlPanelLight: value ? 0 : 1}, manufacturerOptions);
+                await entity.write<"manuSpecificIkeaAirPurifier", IkeaAirPurifier>(
+                    "manuSpecificIkeaAirPurifier",
+                    {controlPanelLight: value ? 0 : 1},
+                    manufacturerOptions,
+                );
                 return {state: {led_enable: !!value}};
             },
             convertGet: async (entity, key, meta) => {
-                await entity.read("manuSpecificIkeaAirPurifier", ["controlPanelLight"]);
+                await entity.read<"manuSpecificIkeaAirPurifier", IkeaAirPurifier>("manuSpecificIkeaAirPurifier", ["controlPanelLight"]);
             },
         },
     ];
@@ -441,7 +454,7 @@ export function ikeaAirPurifier(): ModernExtend {
             const endpoint = device.getEndpoint(1);
 
             await reporting.bind(endpoint, coordinatorEndpoint, ["manuSpecificIkeaAirPurifier"]);
-            await endpoint.configureReporting(
+            await endpoint.configureReporting<"manuSpecificIkeaAirPurifier", IkeaAirPurifier>(
                 "manuSpecificIkeaAirPurifier",
                 [
                     {
@@ -453,7 +466,7 @@ export function ikeaAirPurifier(): ModernExtend {
                 ],
                 manufacturerOptions,
             );
-            await endpoint.configureReporting(
+            await endpoint.configureReporting<"manuSpecificIkeaAirPurifier", IkeaAirPurifier>(
                 "manuSpecificIkeaAirPurifier",
                 [
                     {
@@ -465,18 +478,22 @@ export function ikeaAirPurifier(): ModernExtend {
                 ],
                 manufacturerOptions,
             );
-            await endpoint.configureReporting(
+            await endpoint.configureReporting<"manuSpecificIkeaAirPurifier", IkeaAirPurifier>(
                 "manuSpecificIkeaAirPurifier",
                 [{attribute: "fanMode", minimumReportInterval: 0, maximumReportInterval: m.TIME_LOOKUP["1_HOUR"], reportableChange: 1}],
                 manufacturerOptions,
             );
-            await endpoint.configureReporting(
+            await endpoint.configureReporting<"manuSpecificIkeaAirPurifier", IkeaAirPurifier>(
                 "manuSpecificIkeaAirPurifier",
                 [{attribute: "fanSpeed", minimumReportInterval: 0, maximumReportInterval: m.TIME_LOOKUP["1_HOUR"], reportableChange: 1}],
                 manufacturerOptions,
             );
 
-            await endpoint.read("manuSpecificIkeaAirPurifier", ["controlPanelLight", "childLock", "filterRunTime"]);
+            await endpoint.read<"manuSpecificIkeaAirPurifier", IkeaAirPurifier>("manuSpecificIkeaAirPurifier", [
+                "controlPanelLight",
+                "childLock",
+                "filterRunTime",
+            ]);
         },
     ];
 
@@ -803,6 +820,22 @@ export function ikeaMediaCommands(): ModernExtend {
     return {exposes, fromZigbee, configure, isModernExtend: true};
 }
 
+export interface IkeaAirPurifier extends TCustomCluster {
+    attributes: {
+        filterRunTime: number;
+        replaceFilter: number;
+        filterLifeTime: number;
+        controlPanelLight: number;
+        particulateMatter25Measurement: number;
+        childLock: number;
+        fanMode: number;
+        fanSpeed: number;
+        deviceRunTime: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
 export function addCustomClusterManuSpecificIkeaAirPurifier(): ModernExtend {
     return m.deviceAddCustomCluster("manuSpecificIkeaAirPurifier", {
         ID: 0xfc7d,
@@ -823,6 +856,16 @@ export function addCustomClusterManuSpecificIkeaAirPurifier(): ModernExtend {
     });
 }
 
+export interface IkeaVocIndexMeasurement extends TCustomCluster {
+    attributes: {
+        measuredValue: number;
+        measuredMinValue: number;
+        measuredMaxValue: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
 export function addCustomClusterManuSpecificIkeaVocIndexMeasurement(): ModernExtend {
     return m.deviceAddCustomCluster("manuSpecificIkeaVocIndexMeasurement", {
         ID: 0xfc7e,
@@ -835,6 +878,12 @@ export function addCustomClusterManuSpecificIkeaVocIndexMeasurement(): ModernExt
         commands: {},
         commandsResponse: {},
     });
+}
+
+export interface IkeaUnknown extends TCustomCluster {
+    attributes: never;
+    commands: never;
+    commandResponses: never;
 }
 
 // Seems to be present on newer IKEA devices like: VINDSTYRKA, RODRET, and BADRING

@@ -1,7 +1,7 @@
 import type {Models as ZHModels} from "zigbee-herdsman";
 
 import {Zcl} from "zigbee-herdsman";
-
+import {TCustomCluster} from "zigbee-herdsman/dist/controller/tstype";
 import {access as ea} from "../lib/exposes";
 import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
@@ -30,14 +30,18 @@ function enumLookupWithSetCommand(args: EnumLookupWithSetCommandArgs): ModernExt
                     ? async (entity, key, value, meta) => {
                           const payloadValue = getFromLookup(value, lookup);
                           await m.determineEndpoint(entity, meta, cluster).command(cluster, setCommand, {value: payloadValue}, zigbeeCommandOptions);
-                          await m.determineEndpoint(entity, meta, cluster).read(cluster, [attributeKey], zigbeeCommandOptions);
+                          await m
+                              .determineEndpoint(entity, meta, cluster)
+                              .read<typeof cluster, Yandex>(cluster, [attributeKey], zigbeeCommandOptions);
                           return {state: {[key]: value}};
                       }
                     : undefined,
             convertGet:
                 access & ea.GET
                     ? async (entity, key, meta) => {
-                          await m.determineEndpoint(entity, meta, cluster).read(cluster, [attributeKey], zigbeeCommandOptions);
+                          await m
+                              .determineEndpoint(entity, meta, cluster)
+                              .read<typeof cluster, Yandex>(cluster, [attributeKey], zigbeeCommandOptions);
                       }
                     : undefined,
         },
@@ -65,20 +69,44 @@ function binaryWithSetCommand(args: BinaryWithSetCommandArgs): ModernExtend {
                     ? async (entity, key, value, meta) => {
                           const payloadValue = value === valueOn[0] ? valueOn[1] : valueOff[1];
                           await m.determineEndpoint(entity, meta, cluster).command(cluster, setCommand, {value: payloadValue}, zigbeeCommandOptions);
-                          await m.determineEndpoint(entity, meta, cluster).read(cluster, [attributeKey], zigbeeCommandOptions);
+                          await m
+                              .determineEndpoint(entity, meta, cluster)
+                              .read<typeof cluster, Yandex>(cluster, [attributeKey], zigbeeCommandOptions);
                           return {state: {[key]: value}};
                       }
                     : undefined,
             convertGet:
                 access & ea.GET
                     ? async (entity, key, meta) => {
-                          await m.determineEndpoint(entity, meta, cluster).read(cluster, [attributeKey], zigbeeCommandOptions);
+                          await m
+                              .determineEndpoint(entity, meta, cluster)
+                              .read<typeof cluster, Yandex>(cluster, [attributeKey], zigbeeCommandOptions);
                       }
                     : undefined,
         },
     ];
 
     return {...mExtend, toZigbee};
+}
+
+interface Yandex extends TCustomCluster {
+    attributes: {
+        switchMode: number;
+        switchType: number;
+        powerType: number;
+        ledIndicator: number;
+        interlock: number;
+        buttonMode: number;
+    };
+    commands: {
+        switchMode: {value: number};
+        switchType: {value: number};
+        powerType: {value: number};
+        ledIndicator: {value: number};
+        interlock: {value: number};
+        buttonMode: {value: number};
+    };
+    commandResponses: never;
 }
 
 function YandexCluster(): ModernExtend {

@@ -321,7 +321,7 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint10, coordinatorEndpoint, ["haDiagnostic"]);
             const payload = [
                 {
-                    attribute: "onOff",
+                    attribute: "onOff" as const,
                     minimumReportInterval: 0,
                     maximumReportInterval: 3600,
                     reportableChange: 0,
@@ -329,13 +329,13 @@ export const definitions: DefinitionWithExtend[] = [
             ];
             const payloadDiagnostic = [
                 {
-                    attribute: "lastMessageLqi",
+                    attribute: "lastMessageLqi" as const,
                     minimumReportInterval: 5,
                     maximumReportInterval: 60,
                     reportableChange: 0,
                 },
                 {
-                    attribute: "lastMessageRssi",
+                    attribute: "lastMessageRssi" as const,
                     minimumReportInterval: 5,
                     maximumReportInterval: 60,
                     reportableChange: 0,
@@ -374,7 +374,7 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "perenioSpecific"]);
             const payload = [
                 {
-                    attribute: "onOff",
+                    attribute: "onOff" as const,
                     minimumReportInterval: 1,
                     maximumReportInterval: 3600,
                     reportableChange: 0,

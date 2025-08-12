@@ -73,8 +73,8 @@ const mmWaveControlCommands: {[key: string]: number} = {
     reset_mmwave_module: 0,
 };
 
-const INOVELLI_CLUSTER_NAME: string = "manuSpecificInovelli";
-const INOVELLI_MMWAVE_CLUSTER_NAME: string = "manuSpecificInovelliMMWave";
+const INOVELLI_CLUSTER_NAME = "manuSpecificInovelli" as const;
+const INOVELLI_MMWAVE_CLUSTER_NAME = "manuSpecificInovelliMMWave" as const;
 
 const inovelliExtend = {
     addCustomClusterInovelli: () =>
@@ -1540,7 +1540,7 @@ const VZM36_ATTRIBUTES: {[s: string]: Attribute} = {
 };
 
 const tzLocal = {
-    inovelli_parameters: (attributes: {[s: string]: Attribute}, cluster: string) =>
+    inovelli_parameters: (attributes: {[s: string]: Attribute}, cluster: typeof INOVELLI_CLUSTER_NAME | typeof INOVELLI_MMWAVE_CLUSTER_NAME) =>
         ({
             key: Object.keys(attributes).filter((a) => !attributes[a].readOnly),
             convertSet: async (entity, key, value, meta) => {
@@ -1585,7 +1585,8 @@ const tzLocal = {
                     entityToUse = meta.device.getEndpoint(Number(keysplit[1]));
                     keyToUse = keysplit[0];
                 }
-                await entityToUse.read(cluster, [keyToUse], {
+                // XXX: far too dynamic to properly type
+                await entityToUse.read(cluster, [keyToUse] as Parameters<typeof entityToUse.read>[1], {
                     manufacturerCode: INOVELLI,
                 });
             },
@@ -1603,7 +1604,8 @@ const tzLocal = {
                     entityToUse = meta.device.getEndpoint(Number(keysplit[1]));
                     keyToUse = keysplit[0];
                 }
-                await entityToUse.read(cluster, [keyToUse], {
+                // XXX: far too dynamic to properly type
+                await entityToUse.read(cluster, [keyToUse] as Parameters<typeof entityToUse.read>[1], {
                     manufacturerCode: INOVELLI,
                 });
             },
@@ -2160,7 +2162,8 @@ exposesListVZM35.push(e.action(buttonTapSequences));
 const chunkedRead = async (endpoint: Zh.Endpoint, attributes: string[], cluster: string) => {
     const chunkSize = 10;
     for (let i = 0; i < attributes.length; i += chunkSize) {
-        await endpoint.read(cluster, attributes.slice(i, i + chunkSize));
+        // XXX: far too dynamic to properly type
+        await endpoint.read(cluster, attributes.slice(i, i + chunkSize) as Parameters<typeof endpoint.read>[1]);
     }
 };
 

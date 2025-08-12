@@ -283,7 +283,7 @@ export const definitions: DefinitionWithExtend[] = [
             const binds = ["genPowerCfg", "genAnalogInput"];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
             await reporting.batteryVoltage(endpoint);
-            const payload = reporting.payload("presentValue", 1, 600, 0);
+            const payload = reporting.payload<"genAnalogInput">("presentValue", 1, 600, 0);
             await endpoint.configureReporting("genAnalogInput", payload);
         },
         exposes: [
@@ -307,7 +307,7 @@ export const definitions: DefinitionWithExtend[] = [
             const binds = ["genPowerCfg", "genAnalogInput"];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
             await reporting.batteryVoltage(endpoint);
-            const payload = reporting.payload("presentValue", 1, 600, 0);
+            const payload = reporting.payload<"genAnalogInput">("presentValue", 1, 600, 0);
             await endpoint.configureReporting("genAnalogInput", payload);
         },
         exposes: [
@@ -814,7 +814,7 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.occupancy(endpoint, {min: 1, max: 600, change: 1});
             const payload = [
                 {
-                    attribute: "zoneStatus",
+                    attribute: "zoneStatus" as const,
                     minimumReportInterval: 1,
                     maximumReportInterval: 600,
                     reportableChange: 1,
@@ -1119,7 +1119,7 @@ export const definitions: DefinitionWithExtend[] = [
             const binds = ["genPowerCfg", "ssIasZone"];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
             await reporting.batteryVoltage(endpoint, {min: 30, max: 21600, change: 1});
-            const payload = reporting.payload("currentZoneSensitivityLevel", 0, 7200, 1);
+            const payload = reporting.payload<"ssIasZone">("currentZoneSensitivityLevel", 0, 7200, 1);
             await endpoint.configureReporting("ssIasZone", payload);
             await endpoint.read("ssIasZone", ["currentZoneSensitivityLevel"]);
         },

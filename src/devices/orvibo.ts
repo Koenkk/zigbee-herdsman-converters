@@ -1,5 +1,5 @@
 import {Zcl} from "zigbee-herdsman";
-
+import type {TCustomCluster} from "zigbee-herdsman/dist/controller/tstype";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
@@ -103,6 +103,15 @@ const clusterManuSpecifcOrviboSwitchRewiring = () => {
         commandsResponse: {},
     });
 };
+
+interface Orvibo2 extends TCustomCluster {
+    attributes: {
+        powerOnBehavior: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
 const clusterManuSpecificOrviboPowerOnBehavior = () => {
     return m.deviceAddCustomCluster("manuSpecificOrvibo2", {
         ID: 0xff00,
@@ -274,12 +283,12 @@ const orviboSwitchPowerOnBehavior = (): ModernExtend => {
             key: ["power_on_behavior"],
             convertSet: async (entity, key, value, meta) => {
                 if (key === "power_on_behavior") {
-                    await entity.write("manuSpecificOrvibo2", {powerOnBehavior: powerOnLookup2[value as string]});
+                    await entity.write<"manuSpecificOrvibo2", Orvibo2>("manuSpecificOrvibo2", {powerOnBehavior: powerOnLookup2[value as string]});
                 }
             },
             convertGet: async (entity, key, meta) => {
                 if (key === "power_on_behavior") {
-                    await entity.read("manuSpecificOrvibo2", ["powerOnBehavior"]);
+                    await entity.read<"manuSpecificOrvibo2", Orvibo2>("manuSpecificOrvibo2", ["powerOnBehavior"]);
                 }
             },
         },

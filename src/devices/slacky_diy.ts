@@ -471,7 +471,9 @@ async function configureCommon(device: Zh.Device, coordinatorEndpoint: Zh.Endpoi
     await reporting.thermostatSystemMode(endpoint1, {min: 0, max: 3600, change: 0});
     await reporting.thermostatTemperatureCalibration(endpoint1, {min: 0, max: 3600, change: 0});
     await reporting.thermostatKeypadLockMode(endpoint1, {min: 0, max: 3600, change: 0});
-    const payload_oper_mode = [{attribute: "programingOperMode", minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0}];
+    const payload_oper_mode = [
+        {attribute: "programingOperMode" as const, minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0},
+    ];
     await endpoint1.configureReporting("hvacThermostat", payload_oper_mode);
     const payload_sensor_used = [
         {attribute: {ID: attrThermSensorUser, type: 0x30}, minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0},

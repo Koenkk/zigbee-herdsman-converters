@@ -1,10 +1,31 @@
 import {Zcl} from "zigbee-herdsman";
-import type {ClusterOrRawAttributeKeys} from "zigbee-herdsman/dist/controller/tstype";
+import type {TCustomCluster} from "zigbee-herdsman/dist/controller/tstype";
 import {presets as e, access as ea} from "./exposes";
 import {deviceAddCustomCluster, deviceTemperature, type NumericArgs, numeric, temperature} from "./modernExtend";
 import type {Configure, Fz, ModernExtend} from "./types";
 
 const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.DEVELCO};
+
+export interface DevelcoGenBasic extends TCustomCluster {
+    attributes: {
+        develcoPrimarySwVersion: Buffer;
+        develcoPrimaryHwVersion: Buffer;
+        develcoLedControl: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+export interface DevelcoAirQuality extends TCustomCluster {
+    attributes: {
+        measuredValue: number;
+        minMeasuredValue: number;
+        maxMeasuredValue: number;
+        resolution: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
 
 export const develcoModernExtend = {
     addCustomClusterManuSpecificDevelcoGenBasic: () =>
@@ -41,11 +62,11 @@ export const develcoModernExtend = {
                 for (const ep of device.endpoints) {
                     if (ep.supportsInputCluster("genBasic")) {
                         try {
-                            const data = (await ep.read(
+                            const data = await ep.read<"genBasic", DevelcoGenBasic>(
                                 "genBasic",
-                                ["develcoPrimarySwVersion", "develcoPrimaryHwVersion"] as unknown as ClusterOrRawAttributeKeys<"genBasic">,
+                                ["develcoPrimarySwVersion", "develcoPrimaryHwVersion"],
                                 manufacturerOptions,
-                            )) as {develcoPrimarySwVersion?: Buffer; develcoPrimaryHwVersion?: Buffer};
+                            );
 
                             if (data.develcoPrimarySwVersion !== undefined) {
                                 device.softwareBuildID = data.develcoPrimarySwVersion.join(".");

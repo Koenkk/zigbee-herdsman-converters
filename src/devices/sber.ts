@@ -1,5 +1,5 @@
 import {Zcl} from "zigbee-herdsman";
-import type {ClusterOrRawAttributeKeys, PartialClusterOrRawWriteAttributes} from "zigbee-herdsman/dist/controller/tstype";
+import type {TCustomCluster} from "zigbee-herdsman/dist/controller/tstype";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
@@ -139,7 +139,7 @@ const sdevices = {
             convertGet: async (entity, key, meta) => {
                 await m
                     .determineEndpoint(entity, meta, "manuSpecificSDevices")
-                    .read(
+                    .read<"manuSpecificSDevices", SberDevices>(
                         "manuSpecificSDevices",
                         ["ledIndicatorOnEnable", "ledIndicatorOnH", "ledIndicatorOnS", "ledIndicatorOnB"],
                         defaultResponseOptions,
@@ -172,7 +172,7 @@ const sdevices = {
             convertGet: async (entity, key, meta) => {
                 await m
                     .determineEndpoint(entity, meta, "manuSpecificSDevices")
-                    .read(
+                    .read<"manuSpecificSDevices", SberDevices>(
                         "manuSpecificSDevices",
                         ["ledIndicatorOffEnable", "ledIndicatorOffH", "ledIndicatorOffS", "ledIndicatorOffB"],
                         defaultResponseOptions,
@@ -199,11 +199,11 @@ const sdevices = {
                     throw new Error(`relay_mode was called with an invalid value (${value})`);
                 }
                 utils.assertEndpoint(entity);
-                await utils.enforceEndpoint(entity, key, meta).write(
+                await utils.enforceEndpoint(entity, key, meta).write<"genOnOff", SberGenOnOff>(
                     "genOnOff",
                     {
                         sdevicesRelayDecouple: relayDecoupleLookup[value as keyof typeof relayDecoupleLookup],
-                    } as PartialClusterOrRawWriteAttributes<"genOnOff">,
+                    },
                     manufacturerOptions,
                 );
                 return {state: {relay_mode: value.toLowerCase()}};
@@ -212,7 +212,7 @@ const sdevices = {
                 utils.assertEndpoint(entity);
                 await utils
                     .enforceEndpoint(entity, key, meta)
-                    .read("genOnOff", ["sdevicesRelayDecouple"] as unknown as ClusterOrRawAttributeKeys<"genOnOff">, manufacturerOptions);
+                    .read<"genOnOff", SberGenOnOff>("genOnOff", ["sdevicesRelayDecouple"], manufacturerOptions);
             },
         } satisfies Tz.Converter,
         allow_double_click: {
@@ -229,7 +229,7 @@ const sdevices = {
             convertGet: async (entity, key, meta) => {
                 await m
                     .determineEndpoint(entity, meta, "manuSpecificSDevices")
-                    .read("manuSpecificSDevices", ["buttonEnableMultiClick"], defaultResponseOptions);
+                    .read<"manuSpecificSDevices", SberDevices>("manuSpecificSDevices", ["buttonEnableMultiClick"], defaultResponseOptions);
             },
         } satisfies Tz.Converter,
     },
@@ -262,6 +262,38 @@ const sdevicesCustomClusterDefinition = {
     commands: {},
     commandsResponse: {},
 };
+
+interface SberDevices extends TCustomCluster {
+    attributes: {
+        buttonEnableMultiClick: number;
+        childLock: number;
+        ledIndicatorOnEnable: number;
+        ledIndicatorOnH: number;
+        ledIndicatorOnS: number;
+        ledIndicatorOnB: number;
+        ledIndicatorOffEnable: number;
+        ledIndicatorOffH: number;
+        ledIndicatorOffS: number;
+        ledIndicatorOffB: number;
+        emergencyShutoffState: number;
+        emergencyShutoffRecovery: number;
+        upperVoltageThreshold: number;
+        lowerVoltageThreshold: number;
+        upperCurrentThreshold: number;
+        upperTempThreshold: number;
+        rmsVoltageMv: number;
+        rmsCurrentMa: number;
+        activePowerMw: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+interface SberGenOnOff extends TCustomCluster {
+    attributes: {sdevicesRelayDecouple: number};
+    commands: never;
+    commandResponses: never;
+}
 
 const sdevicesExtend = {
     sdevicesCustomCluster: () => m.deviceAddCustomCluster("manuSpecificSDevices", sdevicesCustomClusterDefinition),
@@ -343,7 +375,7 @@ const sdevicesExtend = {
                     return {state: {[key]: value}};
                 },
                 convertGet: async (entity, key, meta) => {
-                    await entity.read(
+                    await entity.read<"manuSpecificSDevices", SberDevices>(
                         "manuSpecificSDevices",
                         ["ledIndicatorOnEnable", "ledIndicatorOnH", "ledIndicatorOnS", "ledIndicatorOnB"],
                         defaultResponseOptions,
@@ -373,7 +405,7 @@ const sdevicesExtend = {
                     return {state: {[key]: value}};
                 },
                 convertGet: async (entity, key, meta) => {
-                    await entity.read(
+                    await entity.read<"manuSpecificSDevices", SberDevices>(
                         "manuSpecificSDevices",
                         ["ledIndicatorOffEnable", "ledIndicatorOffH", "ledIndicatorOffS", "ledIndicatorOffB"],
                         defaultResponseOptions,
@@ -459,19 +491,19 @@ const sdevicesExtend = {
             {
                 key: ["voltage"],
                 convertGet: async (entity, key, meta) => {
-                    await entity.read("manuSpecificSDevices", ["rmsVoltageMv"]);
+                    await entity.read<"manuSpecificSDevices", SberDevices>("manuSpecificSDevices", ["rmsVoltageMv"]);
                 },
             },
             {
                 key: ["current"],
                 convertGet: async (entity, key, meta) => {
-                    await entity.read("manuSpecificSDevices", ["rmsCurrentMa"]);
+                    await entity.read<"manuSpecificSDevices", SberDevices>("manuSpecificSDevices", ["rmsCurrentMa"]);
                 },
             },
             {
                 key: ["power"],
                 convertGet: async (entity, key, meta) => {
-                    await entity.read("manuSpecificSDevices", ["activePowerMw"]);
+                    await entity.read<"manuSpecificSDevices", SberDevices>("manuSpecificSDevices", ["activePowerMw"]);
                 },
             },
         ];
@@ -651,7 +683,7 @@ export const definitions: DefinitionWithExtend[] = [
             await device.getEndpoint(1).read("genBasic", ["serialNumber"]);
             await device
                 .getEndpoint(1)
-                .read("manuSpecificSDevices", [
+                .read<"manuSpecificSDevices", SberDevices>("manuSpecificSDevices", [
                     "ledIndicatorOnEnable",
                     "ledIndicatorOnH",
                     "ledIndicatorOnS",
@@ -661,7 +693,7 @@ export const definitions: DefinitionWithExtend[] = [
                     "ledIndicatorOffS",
                     "ledIndicatorOffB",
                 ]);
-            await device.getEndpoint(1).read("manuSpecificSDevices", ["buttonEnableMultiClick"]);
+            await device.getEndpoint(1).read<"manuSpecificSDevices", SberDevices>("manuSpecificSDevices", ["buttonEnableMultiClick"]);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff", "genMultistateInput"]);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["haDiagnostic"]);
         },
@@ -809,15 +841,11 @@ export const definitions: DefinitionWithExtend[] = [
             await device.getEndpoint(1).read("genBasic", ["serialNumber"]);
             await device.getEndpoint(1).read("genOnOff", ["onOff", "startUpOnOff"]);
             await device.getEndpoint(2).read("genOnOff", ["onOff", "startUpOnOff"]);
+            await device.getEndpoint(1).read<"genOnOff", SberGenOnOff>("genOnOff", ["sdevicesRelayDecouple"], manufacturerOptions);
+            await device.getEndpoint(2).read<"genOnOff", SberGenOnOff>("genOnOff", ["sdevicesRelayDecouple"], manufacturerOptions);
             await device
                 .getEndpoint(1)
-                .read("genOnOff", ["sdevicesRelayDecouple"] as unknown as ClusterOrRawAttributeKeys<"genOnOff">, manufacturerOptions);
-            await device
-                .getEndpoint(2)
-                .read("genOnOff", ["sdevicesRelayDecouple"] as unknown as ClusterOrRawAttributeKeys<"genOnOff">, manufacturerOptions);
-            await device
-                .getEndpoint(1)
-                .read(
+                .read<"manuSpecificSDevices", SberDevices>(
                     "manuSpecificSDevices",
                     [
                         "buttonEnableMultiClick",
@@ -834,7 +862,7 @@ export const definitions: DefinitionWithExtend[] = [
                 );
             await device
                 .getEndpoint(2)
-                .read(
+                .read<"manuSpecificSDevices", SberDevices>(
                     "manuSpecificSDevices",
                     [
                         "buttonEnableMultiClick",
@@ -889,8 +917,13 @@ export const definitions: DefinitionWithExtend[] = [
             const endpoint = device.getEndpoint(1);
             await endpoint.read("genBasic", ["serialNumber"]);
             await endpoint.read("genOnOff", ["onOff", "startUpOnOff"]);
-            await endpoint.read("manuSpecificSDevices", ["childLock", "rmsVoltageMv", "rmsCurrentMa", "activePowerMw"]);
-            await endpoint.read("manuSpecificSDevices", [
+            await endpoint.read<"manuSpecificSDevices", SberDevices>("manuSpecificSDevices", [
+                "childLock",
+                "rmsVoltageMv",
+                "rmsCurrentMa",
+                "activePowerMw",
+            ]);
+            await endpoint.read<"manuSpecificSDevices", SberDevices>("manuSpecificSDevices", [
                 "ledIndicatorOnEnable",
                 "ledIndicatorOnH",
                 "ledIndicatorOnS",
@@ -900,7 +933,7 @@ export const definitions: DefinitionWithExtend[] = [
                 "ledIndicatorOffS",
                 "ledIndicatorOffB",
             ]);
-            await endpoint.read("manuSpecificSDevices", [
+            await endpoint.read<"manuSpecificSDevices", SberDevices>("manuSpecificSDevices", [
                 "upperVoltageThreshold",
                 "lowerVoltageThreshold",
                 "upperCurrentThreshold",

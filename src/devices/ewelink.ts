@@ -197,7 +197,7 @@ export const definitions: DefinitionWithExtend[] = [
             ewelinkModernExtend.ewelinkMotorSpeed("customClusterEwelink", "protocolData", 0x00, 0x0e),
         ],
         configure: async (device, coordinatorEndpoint) => {
-            const windowCoveringAttributes = [{attribute: "currentPositionLiftPercentage", min: 0, max: 3600, change: 10}];
+            const windowCoveringAttributes = [{attribute: "currentPositionLiftPercentage" as const, min: 0, max: 3600, change: 10}];
             await m.setupAttributes(device, coordinatorEndpoint, "closuresWindowCovering", windowCoveringAttributes);
         },
         onEvent: async (event) => {
@@ -249,7 +249,7 @@ export const definitions: DefinitionWithExtend[] = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["customClusterEwelink"]);
 
-            const windowCoveringAttributes = [{attribute: "currentPositionLiftPercentage", min: 0, max: 3600, change: 10}];
+            const windowCoveringAttributes = [{attribute: "currentPositionLiftPercentage" as const, min: 0, max: 3600, change: 10}];
             await m.setupAttributes(device, coordinatorEndpoint, "closuresWindowCovering", windowCoveringAttributes);
         },
         ota: true,
@@ -288,7 +288,7 @@ export const definitions: DefinitionWithExtend[] = [
             ewelinkModernExtend.ewelinkMotorClbByPosition("customClusterEwelink", "protocolData"),
         ],
         configure: async (device, coordinatorEndpoint) => {
-            const windowCoveringAttributes = [{attribute: "currentPositionLiftPercentage", min: 0, max: 3600, change: 10}];
+            const windowCoveringAttributes = [{attribute: "currentPositionLiftPercentage" as const, min: 0, max: 3600, change: 10}];
             await m.setupAttributes(device, coordinatorEndpoint, "closuresWindowCovering", windowCoveringAttributes);
         },
         ota: true,

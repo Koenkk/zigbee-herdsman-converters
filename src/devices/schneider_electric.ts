@@ -1,5 +1,5 @@
 import {Zcl} from "zigbee-herdsman";
-
+import type {TCustomCluster} from "zigbee-herdsman/dist/controller/tstype";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as constants from "../lib/constants";
@@ -12,6 +12,17 @@ import {postfixWithEndpointName} from "../lib/utils";
 
 const e = exposes.presets;
 const ea = exposes.access;
+
+interface SchneiderOccupancyConfig extends TCustomCluster {
+    attributes: {
+        ambienceLightThreshold: number;
+        occupancyActions: number;
+        unoccupiedLevelDflt: number;
+        unoccupiedLevel: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
 
 function indicatorMode(endpoint?: string) {
     let description = "Set Indicator Mode.";
@@ -368,7 +379,9 @@ const schneiderElectricExtend = {
         extend.fromZigbee.push(...luxThresholdExtend.fromZigbee);
         extend.toZigbee.push(...luxThresholdExtend.toZigbee);
         extend.exposes.push(...luxThresholdExtend.exposes);
-        extend.configure.push(m.setupConfigureForReading("occupancyConfiguration", ["ambienceLightThreshold"]));
+        extend.configure.push(
+            m.setupConfigureForReading<"occupancyConfiguration", SchneiderOccupancyConfig>("occupancyConfiguration", ["ambienceLightThreshold"]),
+        );
 
         return extend;
     },

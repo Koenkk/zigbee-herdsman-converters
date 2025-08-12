@@ -1,5 +1,5 @@
 import {Zcl} from "zigbee-herdsman";
-
+import type {TCustomCluster} from "zigbee-herdsman/dist/controller/tstype";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
@@ -9,6 +9,29 @@ import type {DefinitionWithExtend, Fz, KeyValue, Tz} from "../lib/types";
 
 const e = exposes.presets;
 const ea = exposes.access;
+
+interface OwonFallDetection extends TCustomCluster {
+    attributes: {
+        status: number;
+        // biome-ignore lint/style/useNamingConvention: TODO
+        breathing_rate: number;
+        // biome-ignore lint/style/useNamingConvention: TODO
+        location_x: number;
+        // biome-ignore lint/style/useNamingConvention: TODO
+        location_y: number;
+        bedUpperLeftX: number;
+        bedUpperLeftY: number;
+        bedLowerRightX: number;
+        bedLowerRightY: number;
+        doorCenterX: number;
+        doorCenterY: number;
+        leftFallDetectionRange: number;
+        rightFallDetectionRange: number;
+        frontFallDetectionRange: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
 
 const fzLocal = {
     temperature: {
@@ -199,22 +222,25 @@ const tzLocal = {
                 payload[id] = {value: val, type};
             });
 
-            await entity.write("fallDetectionOwon", payload, {manufacturerCode: 0x113c});
+            await entity.write<"fallDetectionOwon", OwonFallDetection>("fallDetectionOwon", payload, {manufacturerCode: 0x113c});
             return {state: {fall_detection_settings: value}};
         },
         convertGet: async (entity, key, meta) => {
-            const attrs = [
-                "bedUpperLeftX",
-                "bedUpperLeftY",
-                "bedLowerRightX",
-                "bedLowerRightY",
-                "doorCenterX",
-                "doorCenterY",
-                "leftFallDetectionRange",
-                "rightFallDetectionRange",
-                "frontFallDetectionRange",
-            ];
-            await entity.read("fallDetectionOwon", attrs, {manufacturerCode: 0x113c});
+            await entity.read<"fallDetectionOwon", OwonFallDetection>(
+                "fallDetectionOwon",
+                [
+                    "bedUpperLeftX",
+                    "bedUpperLeftY",
+                    "bedLowerRightX",
+                    "bedLowerRightY",
+                    "doorCenterX",
+                    "doorCenterY",
+                    "leftFallDetectionRange",
+                    "rightFallDetectionRange",
+                    "frontFallDetectionRange",
+                ],
+                {manufacturerCode: 0x113c},
+            );
         },
     } satisfies Tz.Converter,
 };

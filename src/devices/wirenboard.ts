@@ -608,10 +608,10 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.humidity(endpoint1);
             await reporting.occupancy(endpoint1);
 
-            let payload = reporting.payload("sprutOccupancyLevel", 10, constants.repInterval.MINUTE, 5);
+            let payload = reporting.payload<"msOccupancySensing">("sprutOccupancyLevel", 10, constants.repInterval.MINUTE, 5);
             await endpoint1.configureReporting("msOccupancySensing", payload, manufacturerOptions);
 
-            payload = reporting.payload("noise", 10, constants.repInterval.MINUTE, 5);
+            payload = reporting.payload<"sprutNoise">("noise", 10, constants.repInterval.MINUTE, 5);
             await endpoint1.configureReporting("sprutNoise", payload);
 
             // led_red

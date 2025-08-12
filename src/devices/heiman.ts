@@ -1,5 +1,5 @@
 import {Zcl} from "zigbee-herdsman";
-
+import type {TCustomCluster} from "zigbee-herdsman/dist/controller/tstype";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as constants from "../lib/constants";
@@ -754,27 +754,45 @@ export const definitions: DefinitionWithExtend[] = [
             const heiman = {
                 configureReporting: {
                     pm25MeasuredValue: async (endpoint: Zh.Endpoint, overrides?: Reporting.Override) => {
-                        const payload = reporting.payload("measuredValue", 0, constants.repInterval.HOUR, 1, overrides);
+                        const payload = reporting.payload<"pm25Measurement">("measuredValue", 0, constants.repInterval.HOUR, 1, overrides);
                         await endpoint.configureReporting("pm25Measurement", payload);
                     },
                     formAldehydeMeasuredValue: async (endpoint: Zh.Endpoint, overrides?: Reporting.Override) => {
-                        const payload = reporting.payload("measuredValue", 0, constants.repInterval.HOUR, 1, overrides);
+                        const payload = reporting.payload<"msFormaldehyde">("measuredValue", 0, constants.repInterval.HOUR, 1, overrides);
                         await endpoint.configureReporting("msFormaldehyde", payload);
                     },
                     batteryState: async (endpoint: Zh.Endpoint, overrides?: Reporting.Override) => {
-                        const payload = reporting.payload("batteryState", 0, constants.repInterval.HOUR, 1, overrides);
+                        const payload = reporting.payload<"heimanSpecificAirQuality">("batteryState", 0, constants.repInterval.HOUR, 1, overrides);
                         await endpoint.configureReporting("heimanSpecificAirQuality", payload);
                     },
                     pm10measuredValue: async (endpoint: Zh.Endpoint, overrides?: Reporting.Override) => {
-                        const payload = reporting.payload("pm10measuredValue", 0, constants.repInterval.HOUR, 1, overrides);
+                        const payload = reporting.payload<"heimanSpecificAirQuality">(
+                            "pm10measuredValue",
+                            0,
+                            constants.repInterval.HOUR,
+                            1,
+                            overrides,
+                        );
                         await endpoint.configureReporting("heimanSpecificAirQuality", payload);
                     },
                     tvocMeasuredValue: async (endpoint: Zh.Endpoint, overrides?: Reporting.Override) => {
-                        const payload = reporting.payload("tvocMeasuredValue", 0, constants.repInterval.HOUR, 1, overrides);
+                        const payload = reporting.payload<"heimanSpecificAirQuality">(
+                            "tvocMeasuredValue",
+                            0,
+                            constants.repInterval.HOUR,
+                            1,
+                            overrides,
+                        );
                         await endpoint.configureReporting("heimanSpecificAirQuality", payload);
                     },
                     aqiMeasuredValue: async (endpoint: Zh.Endpoint, overrides?: Reporting.Override) => {
-                        const payload = reporting.payload("aqiMeasuredValue", 0, constants.repInterval.HOUR, 1, overrides);
+                        const payload = reporting.payload<"heimanSpecificAirQuality">(
+                            "aqiMeasuredValue",
+                            0,
+                            constants.repInterval.HOUR,
+                            1,
+                            overrides,
+                        );
                         await endpoint.configureReporting("heimanSpecificAirQuality", payload);
                     },
                 },
@@ -1077,10 +1095,34 @@ export const definitions: DefinitionWithExtend[] = [
                 ),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
+            interface HeimanRadar extends TCustomCluster {
+                attributes: {
+                    // biome-ignore lint/style/useNamingConvention: TODO
+                    enable_indicator: number;
+                    sensitivity: number;
+                    // biome-ignore lint/style/useNamingConvention: TODO
+                    enable_sub_region_isolation: number;
+                    // biome-ignore lint/style/useNamingConvention: TODO
+                    installation_method: number;
+                    // biome-ignore lint/style/useNamingConvention: TODO
+                    cell_mounted_table: Buffer;
+                    // biome-ignore lint/style/useNamingConvention: TODO
+                    wall_mounted_table: Buffer;
+                    // biome-ignore lint/style/useNamingConvention: TODO
+                    sub_region_isolation_table: Buffer;
+                };
+                commands: never;
+                commandResponse: never;
+            }
+
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["msOccupancySensing", "RadarSensorHeiman"]);
             await reporting.occupancy(endpoint);
-            await endpoint.read("RadarSensorHeiman", ["cell_mounted_table", "wall_mounted_table", "sub_region_isolation_table"]);
+            await endpoint.read<"RadarSensorHeiman", HeimanRadar>("RadarSensorHeiman", [
+                "cell_mounted_table",
+                "wall_mounted_table",
+                "sub_region_isolation_table",
+            ]);
         },
         endpoint: (device) => ({default: 1}),
     },

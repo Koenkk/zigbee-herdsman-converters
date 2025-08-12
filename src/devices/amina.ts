@@ -1,5 +1,5 @@
 import {Zcl} from "zigbee-herdsman";
-
+import type {TCustomCluster} from "zigbee-herdsman/dist/controller/tstype";
 import * as constants from "../lib/constants";
 import * as exposes from "../lib/exposes";
 import {logger} from "../lib/logger";
@@ -14,6 +14,23 @@ const e = exposes.presets;
 const ea = exposes.access;
 
 const manufacturerOptions = {manufacturerCode: 0x143b};
+
+interface AminaControlCluster extends TCustomCluster {
+    attributes: {
+        alarms: number;
+        evStatus: number;
+        connectStatus: number;
+        singlePhase: number;
+        offlineCurrent: number;
+        offlineSinglePhase: number;
+        timeToOffline: number;
+        enableOffline: number;
+        totalActiveEnergy: number;
+        lastSessionEnergy: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
 
 const aminaControlAttributes = {
     cluster: 0xfee7,
@@ -55,7 +72,7 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.totalActivePower != null) {
                 // Device does not support reporting of energy attributes, so we poll them manually when power is updated
-                msg.endpoint.read("aminaControlCluster", ["totalActiveEnergy"]).catch((error) => {
+                msg.endpoint.read<"aminaControlCluster", AminaControlCluster>("aminaControlCluster", ["totalActiveEnergy"]).catch((error) => {
                     logger.error(`Failed to poll energy of '${msg.device.ieeeAddr}' (${error})`, NS);
                 });
             }
@@ -70,9 +87,11 @@ const fzLocal = {
             if (msg.type === "attributeReport") {
                 // Device does not support reporting of energy attributes, so we poll them manually when charging is stopped
                 if ((msg.data.evStatus & (1 << 2)) === 0) {
-                    msg.endpoint.read("aminaControlCluster", ["totalActiveEnergy", "lastSessionEnergy"]).catch((error) => {
-                        logger.error(`Failed to poll energy of '${msg.device.ieeeAddr}' (${error})`, NS);
-                    });
+                    msg.endpoint
+                        .read<"aminaControlCluster", AminaControlCluster>("aminaControlCluster", ["totalActiveEnergy", "lastSessionEnergy"])
+                        .catch((error) => {
+                            logger.error(`Failed to poll energy of '${msg.device.ieeeAddr}' (${error})`, NS);
+                        });
                 }
             }
 
@@ -132,13 +151,13 @@ const tzLocal = {
     ev_status: {
         key: ["ev_status"],
         convertGet: async (entity, key, meta) => {
-            await entity.read("aminaControlCluster", ["evStatus"], manufacturerOptions);
+            await entity.read<"aminaControlCluster", AminaControlCluster>("aminaControlCluster", ["evStatus"], manufacturerOptions);
         },
     } satisfies Tz.Converter,
     alarms: {
         key: ["alarms"],
         convertGet: async (entity, key, meta) => {
-            await entity.read("aminaControlCluster", ["alarms"], manufacturerOptions);
+            await entity.read<"aminaControlCluster", AminaControlCluster>("aminaControlCluster", ["alarms"], manufacturerOptions);
         },
     } satisfies Tz.Converter,
 };
@@ -338,7 +357,7 @@ export const definitions: DefinitionWithExtend[] = [
             const binds = ["genBasic", "genLevelCtrl", "aminaControlCluster"];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
 
-            await endpoint.configureReporting("aminaControlCluster", [
+            await endpoint.configureReporting<"aminaControlCluster", AminaControlCluster>("aminaControlCluster", [
                 {
                     attribute: "evStatus",
                     minimumReportInterval: 0,
@@ -347,7 +366,7 @@ export const definitions: DefinitionWithExtend[] = [
                 },
             ]);
 
-            await endpoint.configureReporting("aminaControlCluster", [
+            await endpoint.configureReporting<"aminaControlCluster", AminaControlCluster>("aminaControlCluster", [
                 {
                     attribute: "alarms",
                     minimumReportInterval: 0,
@@ -356,7 +375,7 @@ export const definitions: DefinitionWithExtend[] = [
                 },
             ]);
 
-            await endpoint.read("aminaControlCluster", [
+            await endpoint.read<"aminaControlCluster", AminaControlCluster>("aminaControlCluster", [
                 "alarms",
                 "evStatus",
                 "connectStatus",

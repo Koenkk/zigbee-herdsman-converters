@@ -1,5 +1,5 @@
 import {Zcl} from "zigbee-herdsman";
-
+import type {TCustomCluster} from "zigbee-herdsman/dist/controller/tstype";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as constants from "../lib/constants";
@@ -54,6 +54,35 @@ const tzLocal = {
 type EntityCategoryArgs = {
     entityCategory?: "config" | "diagnostic";
 };
+
+interface Ewelink extends TCustomCluster {
+    attributes: {
+        networkLed: number;
+        backLight: number;
+        faultCode: number;
+        radioPower: number;
+        radioPowerWithManuCode: number;
+        delayedPowerOnState: number;
+        delayedPowerOnTime: number;
+        externalTriggerMode: number;
+        detachRelayMode: number;
+        deviceWorkMode: number;
+        detachRelayMode2: number;
+        lackWaterCloseValveTimeout: number;
+        acCurrentCurrentValue: number;
+        acCurrentVoltageValue: number;
+        acCurrentPowerValue: number;
+        // biome-ignore lint/style/useNamingConvention: TODO
+        outlet_control_protect: number;
+        energyToday: number;
+        energyMonth: number;
+        energyYesterday: number;
+    };
+    commands: {
+        protocolData: {data: number[]};
+    };
+    commandResponses: never;
+}
 
 const sonoffExtend = {
     addCustomClusterEwelink: () =>
@@ -516,8 +545,8 @@ const sonoffExtend = {
     externalSwitchTriggerMode: (args: EntityCategoryArgs = {}): ModernExtend => {
         const {entityCategory} = args;
 
-        const clusterName = "customClusterEwelink";
-        const attributeName = "externalTriggerMode";
+        const clusterName = "customClusterEwelink" as const;
+        const attributeName = "externalTriggerMode" as const;
         let exposes = e
             .enum("external_trigger_mode", ea.ALL, ["edge", "pulse", "following(off)", "following(on)"])
             .withDescription(
@@ -557,11 +586,11 @@ const sonoffExtend = {
                     value = value.toLowerCase();
                     const lookup = {edge: 0, pulse: 1, "following(off)": 2, "following(on)": 130};
                     const tmpValue = utils.getFromLookup(value, lookup);
-                    await entity.write(clusterName, {[attributeName]: tmpValue}, defaultResponseOptions);
+                    await entity.write<typeof clusterName, Ewelink>(clusterName, {[attributeName]: tmpValue}, defaultResponseOptions);
                     return {state: {[key]: value}};
                 },
                 convertGet: async (entity, key, meta) => {
-                    await entity.read(clusterName, [attributeName], defaultResponseOptions);
+                    await entity.read<typeof clusterName, Ewelink>(clusterName, [attributeName], defaultResponseOptions);
                 },
             },
         ];
@@ -663,11 +692,11 @@ const sonoffExtend = {
                         detachRelayMask &= ~0x04;
                     }
                     // logger.info(`from zigbee detachRelayMask: ${detachRelayMask}`, NS);
-                    await entity.write(clusterName, {[attributeName]: detachRelayMask}, defaultResponseOptions);
+                    await entity.write<typeof clusterName, Ewelink>(clusterName, {[attributeName]: detachRelayMask}, defaultResponseOptions);
                     return {state: {[key]: value}};
                 },
                 convertGet: async (entity, key, meta) => {
-                    await entity.read(clusterName, [attributeName], defaultResponseOptions);
+                    await entity.read<typeof clusterName, Ewelink>(clusterName, [attributeName], defaultResponseOptions);
                 },
             },
         ];
@@ -1969,12 +1998,12 @@ export const definitions: DefinitionWithExtend[] = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "customClusterEwelink"]);
             await reporting.onOff(endpoint, {min: 1, max: 1800, change: 0});
-            await endpoint.read(
+            await endpoint.read<"customClusterEwelink", Ewelink>(
                 "customClusterEwelink",
                 ["acCurrentCurrentValue", "acCurrentVoltageValue", "acCurrentPowerValue", 0x7003, "outlet_control_protect"],
                 defaultResponseOptions,
             );
-            await endpoint.configureReporting("customClusterEwelink", [
+            await endpoint.configureReporting<"customClusterEwelink", Ewelink>("customClusterEwelink", [
                 {attribute: "energyMonth", minimumReportInterval: 60, maximumReportInterval: 3600, reportableChange: 50},
                 {attribute: "energyYesterday", minimumReportInterval: 60, maximumReportInterval: 3600, reportableChange: 50},
                 {attribute: "energyToday", minimumReportInterval: 60, maximumReportInterval: 3600, reportableChange: 50},
@@ -2050,7 +2079,7 @@ export const definitions: DefinitionWithExtend[] = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff"]);
             await reporting.onOff(endpoint, {min: 1, max: 1800, change: 0});
-            await endpoint.read("customClusterEwelink", ["radioPowerWithManuCode"], manufacturerOptions);
+            await endpoint.read<"customClusterEwelink", Ewelink>("customClusterEwelink", ["radioPowerWithManuCode"], manufacturerOptions);
         },
     },
     {
@@ -2119,7 +2148,11 @@ export const definitions: DefinitionWithExtend[] = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "customClusterEwelink"]);
             await reporting.onOff(endpoint, {min: 1, max: 1800, change: 0});
-            await endpoint.read("customClusterEwelink", ["radioPower", 0x0001, 0x0014, 0x0015, 0x0016, 0x0017], defaultResponseOptions);
+            await endpoint.read<"customClusterEwelink", Ewelink>(
+                "customClusterEwelink",
+                ["radioPower", 0x0001, 0x0014, 0x0015, 0x0016, 0x0017],
+                defaultResponseOptions,
+            );
         },
     },
     {

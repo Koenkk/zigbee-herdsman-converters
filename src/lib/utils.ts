@@ -1,5 +1,5 @@
 import {Zcl} from "zigbee-herdsman";
-
+import type {ClusterOrRawAttributeKeys, ClusterOrRawAttributes, TCustomCluster} from "zigbee-herdsman/dist/controller/tstype";
 import type {Light, Numeric} from "./exposes";
 import {logger} from "./logger";
 import * as globalStore from "./store";
@@ -498,12 +498,24 @@ export function validateValue(value: unknown, allowed: unknown[]) {
     }
 }
 
-export async function getClusterAttributeValue<T>(endpoint: Zh.Endpoint, cluster: string, attribute: string, fallback: T = undefined): Promise<T> {
+export async function getClusterAttributeValue<
+    Cl extends string,
+    Attr extends ClusterOrRawAttributeKeys<Cl, Custom>[number],
+    Custom extends TCustomCluster | undefined = undefined,
+>(
+    endpoint: Zh.Endpoint,
+    cluster: Cl,
+    attribute: Attr,
+    fallback: ClusterOrRawAttributes<Cl, Custom>[Attr] = undefined,
+): Promise<ClusterOrRawAttributes<Cl, Custom>[Attr]> {
     try {
         if (endpoint.getClusterAttributeValue(cluster, attribute) == null) {
-            await endpoint.read(cluster, [attribute], {sendPolicy: "immediate", disableRecovery: true});
+            await endpoint.read<Cl, Custom>(cluster, [attribute] as ClusterOrRawAttributeKeys<Cl, Custom>, {
+                sendPolicy: "immediate",
+                disableRecovery: true,
+            });
         }
-        return endpoint.getClusterAttributeValue(cluster, attribute) as T;
+        return endpoint.getClusterAttributeValue(cluster, attribute) as ClusterOrRawAttributes<Cl, Custom>[Attr];
     } catch (error) {
         if (fallback !== undefined) return fallback;
         throw error;

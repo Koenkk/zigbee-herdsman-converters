@@ -1,6 +1,6 @@
 import assert from "node:assert";
 import {Zcl} from "zigbee-herdsman";
-import type {ClusterOrRawAttributeKeys, PartialClusterOrRawWriteAttributes} from "zigbee-herdsman/dist/controller/tstype";
+import type {ClusterOrRawAttributeKeys, PartialClusterOrRawWriteAttributes, TCustomCluster} from "zigbee-herdsman/dist/controller/tstype";
 import type {TClusterPayload, TPartialClusterAttributes} from "zigbee-herdsman/dist/zspec/zcl/definition/clusters-types";
 import type {ClusterDefinition} from "zigbee-herdsman/dist/zspec/zcl/definition/tstype";
 import * as fz from "../converters/fromZigbee";
@@ -129,10 +129,18 @@ export const TIME_LOOKUP = {
 };
 
 type ReportingConfigTime = number | keyof typeof TIME_LOOKUP;
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-type ReportingConfigAttribute = string | number | {ID: number; type: number};
-type ReportingConfig = {min: ReportingConfigTime; max: ReportingConfigTime; change: number; attribute: ReportingConfigAttribute};
-export type ReportingConfigWithoutAttribute = Omit<ReportingConfig, "attribute">;
+type ReportingConfigAttribute<Cl extends string | number, Custom extends TCustomCluster | undefined = undefined> =
+    | ClusterOrRawAttributeKeys<Cl, Custom>[number]
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    | {ID: number; type: number};
+export type ReportingConfigWithoutAttribute = {
+    min: ReportingConfigTime;
+    max: ReportingConfigTime;
+    change: number;
+};
+type ReportingConfig<Cl extends string | number, Custom extends TCustomCluster | undefined = undefined> = ReportingConfigWithoutAttribute & {
+    attribute: ReportingConfigAttribute<Cl, Custom>;
+};
 
 function convertReportingConfigTime(time: ReportingConfigTime): number {
     if (isString(time)) {
@@ -142,11 +150,11 @@ function convertReportingConfigTime(time: ReportingConfigTime): number {
     return time;
 }
 
-export async function setupAttributes(
+export async function setupAttributes<Cl extends string | number, Custom extends TCustomCluster | undefined = undefined>(
     entity: Zh.Device | Zh.Endpoint,
     coordinatorEndpoint: Zh.Endpoint,
-    cluster: string | number,
-    config: ReportingConfig[],
+    cluster: Cl,
+    config: ReportingConfig<Cl, Custom>[],
     configureReporting = true,
     read = true,
 ) {
@@ -164,7 +172,7 @@ export async function setupAttributes(
         if (configureReporting) {
             await endpoint.bind(cluster, coordinatorEndpoint);
             for (const chunk of chunks) {
-                await endpoint.configureReporting(
+                await endpoint.configureReporting<Cl, Custom>(
                     cluster,
                     chunk.map((a) => ({
                         minimumReportInterval: convertReportingConfigTime(a.min),
@@ -181,8 +189,9 @@ export async function setupAttributes(
                 try {
                     // Don't fail configuration if reading this attribute fails
                     // https://github.com/Koenkk/zigbee-herdsman-converters/pull/7074
-                    await endpoint.read(
+                    await endpoint.read<Cl, Custom>(
                         cluster,
+                        // @ts-expect-error too dynamic to properly type
                         chunk.map((a) => (isString(a) ? a : isObject(a.attribute) ? a.attribute.ID : a.attribute)),
                     );
                 } catch (e) {
@@ -193,9 +202,9 @@ export async function setupAttributes(
     }
 }
 
-export function setupConfigureForReporting(
-    cluster: string | number,
-    attribute: ReportingConfigAttribute,
+export function setupConfigureForReporting<Cl extends string | number, Custom extends TCustomCluster | undefined = undefined>(
+    cluster: Cl,
+    attribute: ReportingConfigAttribute<Cl, Custom>,
     args: {
         config?: false | ReportingConfigWithoutAttribute;
         access?: Access;
@@ -225,7 +234,7 @@ export function setupConfigureForReporting(
             }
 
             for (const endpoint of endpoints) {
-                await setupAttributes(endpoint, coordinatorEndpoint, cluster, [reportConfig], configureReporting, read);
+                await setupAttributes<Cl, Custom>(endpoint, coordinatorEndpoint, cluster, [reportConfig], configureReporting, read);
             }
         };
         return configure;
@@ -252,19 +261,23 @@ export function setupConfigureForBinding(cluster: string | number, clusterType: 
     return configure;
 }
 
-export function setupConfigureForReading(cluster: string | number, attributes: (string | number)[], endpointNames?: string[]) {
+export function setupConfigureForReading<Cl extends string | number, Custom extends TCustomCluster | undefined = undefined>(
+    cluster: Cl,
+    attributes: ClusterOrRawAttributeKeys<Cl, Custom>,
+    endpointNames?: string[],
+) {
     const configure: Configure = async (device, coordinatorEndpoint, definition) => {
         if (endpointNames) {
             const definitionEndpoints = definition.endpoint(device);
             const endpointIds = endpointNames.map((e) => definitionEndpoints[e]);
             const endpoints = device.endpoints.filter((e) => endpointIds.includes(e.ID));
             for (const endpoint of endpoints) {
-                await endpoint.read(cluster, attributes);
+                await endpoint.read<Cl, Custom>(cluster, attributes);
             }
         } else {
             const endpoints = getEndpointsWithCluster(device, cluster, "input");
             for (const endpoint of endpoints) {
-                await endpoint.read(cluster, attributes);
+                await endpoint.read<Cl, Custom>(cluster, attributes);
             }
         }
     };
@@ -305,8 +318,7 @@ export function forcePowerSource(args: {powerSource: "Mains (single phase)" | "B
 
 export interface LinkQualityArgs {
     reporting?: boolean;
-    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-    attribute?: string | {ID: number; type: number};
+    attribute?: ClusterOrRawAttributeKeys<"genBasic">[number];
     reportingConfig?: ReportingConfigWithoutAttribute;
 }
 export function linkQuality(args: LinkQualityArgs = {}): ModernExtend {
@@ -948,7 +960,7 @@ export function occupancy(args: OccupancyArgs = {}): ModernExtend {
         entityCategory: "config" as "config" | "diagnostic",
     };
 
-    const attributesForReading: string[] = [];
+    const attributesForReading: ClusterOrRawAttributeKeys<typeof settingsTemplate.cluster> = [];
 
     if (pirConfig) {
         if (pirConfig.includes("otu_delay")) {
@@ -1245,7 +1257,7 @@ export function light(args: LightArgs = {}): ModernExtend {
                     ]);
                 }
                 if (argsColor) {
-                    const attributes: ReportingConfig[] = [];
+                    const attributes: ReportingConfig<"lightingColorCtrl">[] = [];
                     if (argsColor.modes.includes("xy")) {
                         attributes.push(
                             {attribute: "currentX", min: "10_SECONDS", max: "MAX", change: 1},
@@ -1892,71 +1904,107 @@ function genericMeter(args: MeterArgs = {}) {
     const configureLookup = {
         haElectricalMeasurement: {
             // Report change with every 5W change
-            power: {attribute: "activePower", divisor: "acPowerDivisor", multiplier: "acPowerMultiplier", forced: args.power, change: 5},
-            power_phase_b: {attribute: "activePowerPhB", divisor: "acPowerDivisor", multiplier: "acPowerMultiplier", forced: args.power, change: 5},
-            power_phase_c: {attribute: "activePowerPhC", divisor: "acPowerDivisor", multiplier: "acPowerMultiplier", forced: args.power, change: 5},
+            power: {attribute: "activePower" as const, divisor: "acPowerDivisor", multiplier: "acPowerMultiplier", forced: args.power, change: 5},
+            power_phase_b: {
+                attribute: "activePowerPhB" as const,
+                divisor: "acPowerDivisor",
+                multiplier: "acPowerMultiplier",
+                forced: args.power,
+                change: 5,
+            },
+            power_phase_c: {
+                attribute: "activePowerPhC" as const,
+                divisor: "acPowerDivisor",
+                multiplier: "acPowerMultiplier",
+                forced: args.power,
+                change: 5,
+            },
             // Report change with every 0.05A change
-            current: {attribute: "rmsCurrent", divisor: "acCurrentDivisor", multiplier: "acCurrentMultiplier", forced: args.current, change: 0.05},
+            current: {
+                attribute: "rmsCurrent" as const,
+                divisor: "acCurrentDivisor",
+                multiplier: "acCurrentMultiplier",
+                forced: args.current,
+                change: 0.05,
+            },
             // Report change every 1 Hz
             ac_frequency: {
-                attribute: "acFrequency",
+                attribute: "acFrequency" as const,
                 divisor: "acFrequencyDivisor",
                 multiplier: "acFrequencyMultiplier",
                 forced: isObject(args.acFrequency) ? args.acFrequency : (false as const),
                 change: 1,
             },
             current_phase_b: {
-                attribute: "rmsCurrentPhB",
+                attribute: "rmsCurrentPhB" as const,
                 divisor: "acCurrentDivisor",
                 multiplier: "acCurrentMultiplier",
                 forced: args.current,
                 change: 0.05,
             },
             current_phase_c: {
-                attribute: "rmsCurrentPhC",
+                attribute: "rmsCurrentPhC" as const,
                 divisor: "acCurrentDivisor",
                 multiplier: "acCurrentMultiplier",
                 forced: args.current,
                 change: 0.05,
             },
             current_neutral: {
-                attribute: "neutralCurrent",
+                attribute: "neutralCurrent" as const,
                 divisor: "acCurrentDivisor",
                 multiplier: "acCurrentMultiplier",
                 forced: args.current,
                 change: 0.05,
             },
             power_factor: {
-                attribute: "powerFactor",
+                attribute: "powerFactor" as const,
                 change: 10,
             },
             // Report change with every 5V change
-            voltage: {attribute: "rmsVoltage", divisor: "acVoltageDivisor", multiplier: "acVoltageMultiplier", forced: args.voltage, change: 5},
+            voltage: {
+                attribute: "rmsVoltage" as const,
+                divisor: "acVoltageDivisor",
+                multiplier: "acVoltageMultiplier",
+                forced: args.voltage,
+                change: 5,
+            },
             voltage_phase_b: {
-                attribute: "rmsVoltagePhB",
+                attribute: "rmsVoltagePhB" as const,
                 divisor: "acVoltageDivisor",
                 multiplier: "acVoltageMultiplier",
                 forced: args.voltage,
                 change: 5,
             },
             voltage_phase_c: {
-                attribute: "rmsVoltagePhC",
+                attribute: "rmsVoltagePhC" as const,
                 divisor: "acVoltageDivisor",
                 multiplier: "acVoltageMultiplier",
                 forced: args.voltage,
                 change: 5,
             },
             // Report change with every 100mW change
-            dc_power: {attribute: "dcPower", divisor: "dcPowerDivisor", multiplier: "dcPowerMultiplier", forced: args.power, change: 100},
+            dc_power: {attribute: "dcPower" as const, divisor: "dcPowerDivisor", multiplier: "dcPowerMultiplier", forced: args.power, change: 100},
             // Report change with every 100mV change
-            dc_voltage: {attribute: "dcVoltage", divisor: "dcVoltageDivisor", multiplier: "dcVoltageMultiplier", forced: args.voltage, change: 100},
+            dc_voltage: {
+                attribute: "dcVoltage" as const,
+                divisor: "dcVoltageDivisor",
+                multiplier: "dcVoltageMultiplier",
+                forced: args.voltage,
+                change: 100,
+            },
             // Report change with every 100mA change
-            dc_current: {attribute: "dcCurrent", divisor: "dcCurrentDivisor", multiplier: "dcCurrentMultiplier", forced: args.current, change: 100},
+            dc_current: {
+                attribute: "dcCurrent" as const,
+                divisor: "dcCurrentDivisor",
+                multiplier: "dcCurrentMultiplier",
+                forced: args.current,
+                change: 100,
+            },
         },
         seMetering: {
             // Report change with every 5W change
             power: {
-                attribute: "instantaneousDemand",
+                attribute: "instantaneousDemand" as const,
                 divisor: "divisor",
                 multiplier: "multiplier",
                 forced: args.power,
@@ -1964,25 +2012,25 @@ function genericMeter(args: MeterArgs = {}) {
             },
             // Report change with every 0.1kWh change
             energy: {
-                attribute: "currentSummDelivered",
+                attribute: "currentSummDelivered" as const,
                 divisor: "divisor",
                 multiplier: "multiplier",
                 forced: args.energy,
                 change: changeLookup[args.type].energy,
             },
             produced_energy: {
-                attribute: "currentSummReceived",
+                attribute: "currentSummReceived" as const,
                 divisor: "divisor",
                 multiplier: "multiplier",
                 forced: isObject(args.producedEnergy) ? args.producedEnergy : (false as const),
                 change: 0.1,
             },
             status: {
-                attribute: "status",
+                attribute: "status" as const,
                 change: 1,
             },
             extended_status: {
-                attribute: "extendedStatus",
+                attribute: "extendedStatus" as const,
                 change: 1,
             },
         },
@@ -2154,7 +2202,7 @@ function genericMeter(args: MeterArgs = {}) {
             async (device, coordinatorEndpoint) => {
                 for (const [cluster, properties] of Object.entries(configureLookup)) {
                     for (const endpoint of getEndpointsWithCluster(device, cluster, "input")) {
-                        const items: ReportingConfig[] = [];
+                        const items: ReportingConfig<typeof cluster>[] = [];
                         for (const property of Object.values(properties)) {
                             let change = property.change;
                             let min: ReportingConfigTime = "10_SECONDS";
@@ -2634,7 +2682,7 @@ export interface BinaryArgs<Cl extends string | number, Custom extends true | un
     description: string;
     zigbeeCommandOptions?: {manufacturerCode: number};
     endpointName?: string;
-    reporting?: false | ReportingConfig;
+    reporting?: false | ReportingConfig<Cl>;
     access?: "STATE" | "STATE_GET" | "STATE_SET" | "SET" | "ALL";
     label?: string;
     entityCategory?: "config" | "diagnostic";
@@ -2704,7 +2752,7 @@ export interface TextArgs<Cl extends string | number, Custom extends true | unde
     description: string;
     zigbeeCommandOptions?: {manufacturerCode: number};
     endpointName?: string;
-    reporting?: ReportingConfig;
+    reporting?: ReportingConfig<Cl>;
     access?: "STATE" | "STATE_GET" | "STATE_SET" | "SET" | "ALL";
     entityCategory?: "config" | "diagnostic";
     validate?(value: unknown): void;
@@ -2879,6 +2927,7 @@ export function reconfigureReportingsOnDeviceAnnounce(): ModernExtend {
                     for (const c of endpoint.configuredReportings) {
                         await endpoint.configureReporting(c.cluster.name, [
                             {
+                                // @ts-expect-error dynamic, expected valid since already applied
                                 attribute: c.attribute.name,
                                 minimumReportInterval: c.minimumReportInterval,
                                 maximumReportInterval: c.maximumReportInterval,

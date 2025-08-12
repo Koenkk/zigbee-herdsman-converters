@@ -1,5 +1,5 @@
 import {Zcl} from "zigbee-herdsman";
-
+import type {TCustomCluster} from "zigbee-herdsman/dist/controller/tstype";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as reporting from "../lib/reporting";
@@ -57,6 +57,17 @@ export const knownEffects = {
     "0f80": "sunbeam",
     "1080": "enchant",
 };
+
+interface PhilipsContact extends TCustomCluster {
+    attributes: {
+        contact: number;
+        contactLastChange: number;
+        tamper: number;
+        tamperLastChange: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
 
 const philipsModernExtend = {
     addCustomClusterManuSpecificPhilipsContact: () =>
@@ -230,19 +241,20 @@ const philipsModernExtend = {
             {
                 key: ["contact", "tamper", "contact_last_changed", "tamper_last_changed"],
                 convertGet: async (entity, key, meta) => {
-                    const attrib: string = (() => {
-                        switch (key) {
-                            case "contact_last_changed":
-                                return "contactLastChange";
-                            case "tamper_last_changed":
-                                return "tamperLastChange";
-                            default:
-                                return key;
-                        }
-                    })();
+                    let attrib = key as "contact" | "tamper" | "contactLastChange" | "tamperLastChange";
+
+                    switch (key) {
+                        case "contact_last_changed":
+                            attrib = "contactLastChange";
+                            break;
+                        case "tamper_last_changed":
+                            attrib = "tamperLastChange";
+                            break;
+                    }
+
                     const ep = modernExtend.determineEndpoint(entity, meta, "manuSpecificPhilipsContact");
                     try {
-                        await ep.read("manuSpecificPhilipsContact", [attrib]);
+                        await ep.read<"manuSpecificPhilipsContact", PhilipsContact>("manuSpecificPhilipsContact", [attrib]);
                     } catch (e) {
                         logger.debug(`Reading ${attrib} failed: ${e}, device probably doesn't support it`, "zhc:setupattribute");
                     }
@@ -253,12 +265,12 @@ const philipsModernExtend = {
             // NOTE: trigger report after 4 hours incase the network was offline when a contact was triggered
             //       contactLastChange and tamperLastChange seem come with every report of contact, so we do
             //       not configure reporting
-            modernExtend.setupConfigureForReporting("manuSpecificPhilipsContact", "contact", {
+            modernExtend.setupConfigureForReporting<"manuSpecificPhilipsContact", PhilipsContact>("manuSpecificPhilipsContact", "contact", {
                 config: {min: 0, max: "4_HOURS", change: 1},
                 access: ea.STATE_GET,
                 singleEndpoint: true,
             }),
-            modernExtend.setupConfigureForReporting("manuSpecificPhilipsContact", "tamper", {
+            modernExtend.setupConfigureForReporting<"manuSpecificPhilipsContact", PhilipsContact>("manuSpecificPhilipsContact", "tamper", {
                 config: {min: 0, max: "4_HOURS", change: 1},
                 access: ea.STATE_GET,
                 singleEndpoint: true,

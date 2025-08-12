@@ -1,5 +1,5 @@
 import {Zcl, ZSpec} from "zigbee-herdsman";
-import type {ClusterOrRawAttributeKeys, PartialClusterOrRawWriteAttributes} from "zigbee-herdsman/dist/controller/tstype";
+import type {TCustomCluster} from "zigbee-herdsman/dist/controller/tstype";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as constants from "../lib/constants";
@@ -75,6 +75,85 @@ const labelConfirmation = `Specifies LED color (rgb) and pattern of the confirma
 4-7: Durations for sequence fade-in -> on -> fade-out -> off (e.g. 01020102)
 8: Number of Repetitions (01=1 to ff=255)
 Example: 30ff00000102010001`;
+
+interface BoschHvacThermostat extends TCustomCluster {
+    attributes: {
+        operatingMode: number;
+        heatingDemand: number;
+        valveAdaptStatus: number;
+        remoteTemperature: number;
+        windowDetection: number;
+        boostHeating: number;
+    };
+    commands: {
+        calibrateValve: Record<string, never>;
+    };
+    commandResponses: never;
+}
+
+interface BoschHvacUserInterfaceCfg extends TCustomCluster {
+    attributes: {
+        displayOrientation: number;
+        displayedTemperature: number;
+        displayOntime: number;
+        displayBrightness: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+interface TwinguardSmokeDetector extends TCustomCluster {
+    attributes: {
+        sensitivity: number;
+    };
+    commands: {
+        initiateTestMode: Record<string, never>;
+    };
+    commandResponses: never;
+}
+interface TwinguardOptions extends TCustomCluster {
+    attributes: {
+        unknown1: number;
+        // biome-ignore lint/style/useNamingConvention: TODO
+        pre_alarm: number;
+    };
+    commands: {
+        burglarAlarm: {data: number};
+    };
+    commandResponses: never;
+}
+interface TwinguardSetup extends TCustomCluster {
+    attributes: {
+        unknown1: number;
+        unknown2: number;
+        heartbeat: number;
+    };
+    commands: {pairingCompleted: Record<string, never>};
+    commandResponses: never;
+}
+interface TwinguardAlarm extends TCustomCluster {
+    attributes: {
+        // biome-ignore lint/style/useNamingConvention: TODO
+        alarm_status: number;
+    };
+    commands: {burglarAlarm: {data: number}};
+    commandResponses: never;
+}
+
+interface BoschSpecificBmct extends TCustomCluster {
+    attributes: {
+        deviceMode: number;
+        switchType: number;
+        calibrationOpeningTime: number;
+        calibrationClosingTime: number;
+        calibrationButtonHoldTime: number;
+        childLock: number;
+        calibrationMotorStartDelay: number;
+        motorState: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
 
 const boschExtend = {
     hvacThermostatCluster: () =>
@@ -259,11 +338,7 @@ const boschExtend = {
                     return {state: {valve_adapt_process: value}};
                 },
                 convertGet: async (entity, key, meta) => {
-                    await entity.read(
-                        "hvacThermostat",
-                        ["valveAdaptStatus"] as unknown as ClusterOrRawAttributeKeys<"hvacThermostat">,
-                        manufacturerOptions,
-                    );
+                    await entity.read<"hvacThermostat", BoschHvacThermostat>("hvacThermostat", ["valveAdaptStatus"], manufacturerOptions);
                 },
             },
         ];
@@ -297,30 +372,18 @@ const boschExtend = {
                     if (key === "pi_heating_demand") {
                         let demand = utils.toNumber(value, key);
                         demand = utils.numberWithinRange(demand, 0, 100);
-                        await entity.write(
-                            "hvacThermostat",
-                            {heatingDemand: demand} as PartialClusterOrRawWriteAttributes<"hvacThermostat">,
-                            manufacturerOptions,
-                        );
+                        await entity.write<"hvacThermostat", BoschHvacThermostat>("hvacThermostat", {heatingDemand: demand}, manufacturerOptions);
                         return {state: {pi_heating_demand: demand}};
                     }
                 },
                 convertGet: async (entity, key, meta) => {
-                    await entity.read(
-                        "hvacThermostat",
-                        ["heatingDemand"] as unknown as ClusterOrRawAttributeKeys<"hvacThermostat">,
-                        manufacturerOptions,
-                    );
+                    await entity.read<"hvacThermostat", BoschHvacThermostat>("hvacThermostat", ["heatingDemand"], manufacturerOptions);
                 },
             },
             {
                 key: ["running_state"],
                 convertGet: async (entity, key, meta) => {
-                    await entity.read(
-                        "hvacThermostat",
-                        ["heatingDemand"] as unknown as ClusterOrRawAttributeKeys<"hvacThermostat">,
-                        manufacturerOptions,
-                    );
+                    await entity.read<"hvacThermostat", BoschHvacThermostat>("hvacThermostat", ["heatingDemand"], manufacturerOptions);
                 },
             },
         ];
@@ -708,18 +771,22 @@ const boschExtend = {
                 convertSet: async (entity, key, value, meta) => {
                     if (key === "sensitivity") {
                         const index = utils.getFromLookup(value, smokeSensitivity);
-                        await entity.write("twinguardSmokeDetector", {sensitivity: index}, manufacturerOptions);
+                        await entity.write<"twinguardSmokeDetector", TwinguardSmokeDetector>(
+                            "twinguardSmokeDetector",
+                            {sensitivity: index},
+                            manufacturerOptions,
+                        );
                         return {state: {sensitivity: value}};
                     }
                     if (key === "pre_alarm") {
                         const index = utils.getFromLookup(value, stateOffOn);
-                        await entity.write("twinguardOptions", {pre_alarm: index}, manufacturerOptions);
+                        await entity.write<"twinguardOptions", TwinguardOptions>("twinguardOptions", {pre_alarm: index}, manufacturerOptions);
                         return {state: {pre_alarm: value}};
                     }
                     if (key === "heartbeat") {
                         const endpoint = meta.device.getEndpoint(12);
                         const index = utils.getFromLookup(value, stateOffOn);
-                        await endpoint.write("twinguardSetup", {heartbeat: index}, manufacturerOptions);
+                        await endpoint.write<"twinguardSetup", TwinguardSetup>("twinguardSetup", {heartbeat: index}, manufacturerOptions);
                         return {state: {heartbeat: value}};
                     }
                     if (key === "self_test") {
@@ -749,17 +816,25 @@ const boschExtend = {
                 convertGet: async (entity, key, meta) => {
                     switch (key) {
                         case "sensitivity":
-                            await entity.read("twinguardSmokeDetector", ["sensitivity"], manufacturerOptions);
+                            await entity.read<"twinguardSmokeDetector", TwinguardSmokeDetector>(
+                                "twinguardSmokeDetector",
+                                ["sensitivity"],
+                                manufacturerOptions,
+                            );
                             break;
                         case "pre_alarm":
-                            await entity.read("twinguardOptions", ["pre_alarm"], manufacturerOptions);
+                            await entity.read<"twinguardOptions", TwinguardOptions>("twinguardOptions", ["pre_alarm"], manufacturerOptions);
                             break;
                         case "heartbeat":
-                            await meta.device.getEndpoint(12).read("twinguardSetup", ["heartbeat"], manufacturerOptions);
+                            await meta.device
+                                .getEndpoint(12)
+                                .read<"twinguardSetup", TwinguardSetup>("twinguardSetup", ["heartbeat"], manufacturerOptions);
                             break;
                         case "alarm":
                         case "self_test":
-                            await meta.device.getEndpoint(12).read("twinguardAlarm", ["alarm_status"], manufacturerOptions);
+                            await meta.device
+                                .getEndpoint(12)
+                                .read<"twinguardAlarm", TwinguardAlarm>("twinguardAlarm", ["alarm_status"], manufacturerOptions);
                             break;
                         default:
                             throw new Error(`Unhandled key boschExtend.twinguard.toZigbee.convertGet ${key}`);
@@ -775,17 +850,17 @@ const boschExtend = {
         };
     },
     bmct: (): ModernExtend => {
-        const stateDeviceMode: KeyValue = {
+        const stateDeviceMode = {
             light: 0x04,
             shutter: 0x01,
             disabled: 0x00,
         };
-        const stateMotor: KeyValue = {
+        const stateMotor = {
             stopped: 0x00,
             opening: 0x01,
             closing: 0x02,
         };
-        const stateSwitchType: KeyValue = {
+        const stateSwitchType = {
             button: 0x01,
             button_key_change: 0x02,
             rocker_switch: 0x03,
@@ -806,7 +881,9 @@ const boschExtend = {
                     const result: KeyValue = {};
                     const data = msg.data;
                     if (data.deviceMode !== undefined) {
-                        result.device_mode = Object.keys(stateDeviceMode).find((key) => stateDeviceMode[key] === msg.data.deviceMode);
+                        result.device_mode = Object.keys(stateDeviceMode).find(
+                            (key) => stateDeviceMode[key as keyof typeof stateDeviceMode] === msg.data.deviceMode,
+                        );
                         const deviceMode = msg.data.deviceMode;
                         if (deviceMode !== meta.device.meta.deviceMode) {
                             meta.device.meta.deviceMode = deviceMode;
@@ -814,7 +891,9 @@ const boschExtend = {
                         }
                     }
                     if (data.switchType !== undefined) {
-                        result.switch_type = Object.keys(stateSwitchType).find((key) => stateSwitchType[key] === msg.data.switchType);
+                        result.switch_type = Object.keys(stateSwitchType).find(
+                            (key) => stateSwitchType[key as keyof typeof stateSwitchType] === msg.data.switchType,
+                        );
                     }
                     if (data.calibrationOpeningTime !== undefined) {
                         result.calibration_opening_time = msg.data.calibrationOpeningTime / 10;
@@ -833,7 +912,9 @@ const boschExtend = {
                         result[property] = msg.data.childLock === 1 ? "ON" : "OFF";
                     }
                     if (data.motorState !== undefined) {
-                        result.motor_state = Object.keys(stateMotor).find((key) => stateMotor[key] === msg.data.motorState);
+                        result.motor_state = Object.keys(stateMotor).find(
+                            (key) => stateMotor[key as keyof typeof stateMotor] === msg.data.motorState,
+                        );
                     }
                     return result;
                 },
@@ -859,18 +940,18 @@ const boschExtend = {
                     }
                     if (key === "device_mode") {
                         const index = utils.getFromLookup(value, stateDeviceMode);
-                        await entity.write("boschSpecific", {deviceMode: index});
-                        await entity.read("boschSpecific", ["deviceMode"]);
+                        await entity.write<"boschSpecific", BoschSpecificBmct>("boschSpecific", {deviceMode: index});
+                        await entity.read<"boschSpecific", BoschSpecificBmct>("boschSpecific", ["deviceMode"]);
                         return {state: {device_mode: value}};
                     }
                     if (key === "switch_type") {
                         const index = utils.getFromLookup(value, stateSwitchType);
-                        await entity.write("boschSpecific", {switchType: index});
+                        await entity.write<"boschSpecific", BoschSpecificBmct>("boschSpecific", {switchType: index});
                         return {state: {switch_type: value}};
                     }
                     if (key === "child_lock") {
                         const index = utils.getFromLookup(value, stateOffOn);
-                        await entity.write("boschSpecific", {childLock: index});
+                        await entity.write<"boschSpecific", BoschSpecificBmct>("boschSpecific", {childLock: index});
                         return {state: {child_lock: value}};
                     }
                 },
@@ -884,13 +965,13 @@ const boschExtend = {
                             }
                             break;
                         case "device_mode":
-                            await entity.read("boschSpecific", ["deviceMode"]);
+                            await entity.read<"boschSpecific", BoschSpecificBmct>("boschSpecific", ["deviceMode"]);
                             break;
                         case "switch_type":
-                            await entity.read("boschSpecific", ["switchType"]);
+                            await entity.read<"boschSpecific", BoschSpecificBmct>("boschSpecific", ["switchType"]);
                             break;
                         case "child_lock":
-                            await entity.read("boschSpecific", ["childLock"]);
+                            await entity.read<"boschSpecific", BoschSpecificBmct>("boschSpecific", ["childLock"]);
                             break;
                         default:
                             throw new Error(`Unhandled key boschExtend.bmct.toZigbee.convertGet ${key}`);
@@ -903,41 +984,41 @@ const boschExtend = {
                     if (key === "calibration_opening_time") {
                         const number = utils.toNumber(value, "calibration_opening_time");
                         const index = number * 10;
-                        await entity.write("boschSpecific", {calibrationOpeningTime: index});
+                        await entity.write<"boschSpecific", BoschSpecificBmct>("boschSpecific", {calibrationOpeningTime: index});
                         return {state: {calibration_opening_time: number}};
                     }
                     if (key === "calibration_closing_time") {
                         const number = utils.toNumber(value, "calibration_closing_time");
                         const index = number * 10;
-                        await entity.write("boschSpecific", {calibrationClosingTime: index});
+                        await entity.write<"boschSpecific", BoschSpecificBmct>("boschSpecific", {calibrationClosingTime: index});
                         return {state: {calibration_closing_time: number}};
                     }
                     if (key === "calibration_button_hold_time") {
                         const number = utils.toNumber(value, "calibration_button_hold_time");
                         const index = number * 10;
-                        await entity.write("boschSpecific", {calibrationButtonHoldTime: index});
+                        await entity.write<"boschSpecific", BoschSpecificBmct>("boschSpecific", {calibrationButtonHoldTime: index});
                         return {state: {calibration_button_hold_time: number}};
                     }
                     if (key === "calibration_motor_start_delay") {
                         const number = utils.toNumber(value, "calibration_motor_start_delay");
                         const index = number * 10;
-                        await entity.write("boschSpecific", {calibrationMotorStartDelay: index});
+                        await entity.write<"boschSpecific", BoschSpecificBmct>("boschSpecific", {calibrationMotorStartDelay: index});
                         return {state: {calibration_motor_start_delay: number}};
                     }
                 },
                 convertGet: async (entity, key, meta) => {
                     switch (key) {
                         case "calibration_opening_time":
-                            await entity.read("boschSpecific", ["calibrationOpeningTime"]);
+                            await entity.read<"boschSpecific", BoschSpecificBmct>("boschSpecific", ["calibrationOpeningTime"]);
                             break;
                         case "calibration_closing_time":
-                            await entity.read("boschSpecific", ["calibrationClosingTime"]);
+                            await entity.read<"boschSpecific", BoschSpecificBmct>("boschSpecific", ["calibrationClosingTime"]);
                             break;
                         case "calibration_button_hold_time":
-                            await entity.read("boschSpecific", ["calibrationButtonHoldTime"]);
+                            await entity.read<"boschSpecific", BoschSpecificBmct>("boschSpecific", ["calibrationButtonHoldTime"]);
                             break;
                         case "calibration_motor_start_delay":
-                            await entity.read("boschSpecific", ["calibrationMotorStartDelay"]);
+                            await entity.read<"boschSpecific", BoschSpecificBmct>("boschSpecific", ["calibrationMotorStartDelay"]);
                             break;
                         default:
                             throw new Error(`Unhandled key boschExtend.bmct.toZigbee.convertGet ${key}`);
@@ -1250,10 +1331,15 @@ export const definitions: DefinitionWithExtend[] = [
             }),
         ],
         configure: async (device, coordinatorEndpoint) => {
+            interface BoschSpecific extends TCustomCluster {
+                attributes: {alarmOnMotion: number};
+                commands: never;
+                commandResponses: never;
+            }
             const endpoint = device.getEndpoint(1);
             await endpoint.read("genPowerCfg", ["batteryPercentageRemaining"]);
             await endpoint.read("ssIasZone", ["zoneStatus"]);
-            await endpoint.read("boschSpecific", ["alarmOnMotion"], manufacturerOptions);
+            await endpoint.read<"boschSpecific", BoschSpecific>("boschSpecific", ["alarmOnMotion"], manufacturerOptions);
         },
     },
     {
@@ -1479,7 +1565,7 @@ export const definitions: DefinitionWithExtend[] = [
                 change: 50,
             });
             await reporting.thermostatKeypadLockMode(endpoint);
-            await endpoint.configureReporting(
+            await endpoint.configureReporting<"hvacThermostat", BoschHvacThermostat>(
                 "hvacThermostat",
                 [
                     {
@@ -1493,27 +1579,15 @@ export const definitions: DefinitionWithExtend[] = [
             );
             await endpoint.read("genPowerCfg", ["batteryPercentageRemaining"]);
             await endpoint.read("hvacThermostat", ["localTemperatureCalibration", "setpointChangeSource"]);
-            await endpoint.read(
+            await endpoint.read<"hvacThermostat", BoschHvacThermostat>(
                 "hvacThermostat",
-                [
-                    "operatingMode",
-                    "heatingDemand",
-                    "valveAdaptStatus",
-                    "remoteTemperature",
-                    "windowDetection",
-                    "boostHeating",
-                ] as unknown as ClusterOrRawAttributeKeys<"hvacThermostat">,
+                ["operatingMode", "heatingDemand", "valveAdaptStatus", "remoteTemperature", "windowDetection", "boostHeating"],
                 manufacturerOptions,
             );
             await endpoint.read("hvacUserInterfaceCfg", ["keypadLockout"]);
-            await endpoint.read(
+            await endpoint.read<"hvacUserInterfaceCfg", BoschHvacUserInterfaceCfg>(
                 "hvacUserInterfaceCfg",
-                [
-                    "displayOrientation",
-                    "displayedTemperature",
-                    "displayOntime",
-                    "displayBrightness",
-                ] as unknown as ClusterOrRawAttributeKeys<"hvacUserInterfaceCfg">,
+                ["displayOrientation", "displayedTemperature", "displayOntime", "displayBrightness"],
                 manufacturerOptions,
             );
         },
@@ -1588,15 +1662,15 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.thermostatKeypadLockMode(endpoint);
             await endpoint.read("genPowerCfg", ["batteryVoltage"]);
             await endpoint.read("hvacThermostat", ["localTemperatureCalibration"]);
-            await endpoint.read(
+            await endpoint.read<"hvacThermostat", BoschHvacThermostat>(
                 "hvacThermostat",
-                ["operatingMode", "windowDetection", "boostHeating"] as unknown as ClusterOrRawAttributeKeys<"hvacThermostat">,
+                ["operatingMode", "windowDetection", "boostHeating"],
                 manufacturerOptions,
             );
             await endpoint.read("hvacUserInterfaceCfg", ["keypadLockout"]);
-            await endpoint.read(
+            await endpoint.read<"hvacUserInterfaceCfg", BoschHvacUserInterfaceCfg>(
                 "hvacUserInterfaceCfg",
-                ["displayOntime", "displayBrightness"] as unknown as ClusterOrRawAttributeKeys<"hvacUserInterfaceCfg">,
+                ["displayOntime", "displayBrightness"],
                 manufacturerOptions,
             );
         },
@@ -1658,15 +1732,15 @@ export const definitions: DefinitionWithExtend[] = [
             });
             await reporting.thermostatKeypadLockMode(endpoint);
             await endpoint.read("hvacThermostat", ["localTemperatureCalibration"]);
-            await endpoint.read(
+            await endpoint.read<"hvacThermostat", BoschHvacThermostat>(
                 "hvacThermostat",
-                ["operatingMode", "windowDetection", "boostHeating"] as unknown as ClusterOrRawAttributeKeys<"hvacThermostat">,
+                ["operatingMode", "windowDetection", "boostHeating"],
                 manufacturerOptions,
             );
             await endpoint.read("hvacUserInterfaceCfg", ["keypadLockout"]);
-            await endpoint.read(
+            await endpoint.read<"hvacUserInterfaceCfg", BoschHvacUserInterfaceCfg>(
                 "hvacUserInterfaceCfg",
-                ["displayOntime", "displayBrightness"] as unknown as ClusterOrRawAttributeKeys<"hvacUserInterfaceCfg">,
+                ["displayOntime", "displayBrightness"],
                 manufacturerOptions,
             );
         },
@@ -1761,14 +1835,18 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genAlarms", "twinguardSmokeDetector", "twinguardOptions"]);
             await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ["twinguardMeasurements"]);
             await reporting.bind(device.getEndpoint(12), coordinatorEndpoint, ["twinguardSetup", "twinguardAlarm"]);
-            await device.getEndpoint(1).read("twinguardOptions", ["unknown1"], manufacturerOptions); // Needed for pairing
+            await device.getEndpoint(1).read<"twinguardOptions", TwinguardOptions>("twinguardOptions", ["unknown1"], manufacturerOptions); // Needed for pairing
             await device.getEndpoint(12).command("twinguardSetup", "pairingCompleted", manufacturerOptions); // Needed for pairing
-            await device.getEndpoint(1).write("twinguardSmokeDetector", {sensitivity: 0x0002}, manufacturerOptions); // Setting defaults
-            await device.getEndpoint(1).write("twinguardOptions", {pre_alarm: 0x01}, manufacturerOptions); // Setting defaults
-            await device.getEndpoint(12).write("twinguardSetup", {heartbeat: 0x01}, manufacturerOptions); // Setting defaults
-            await device.getEndpoint(1).read("twinguardSmokeDetector", ["sensitivity"], manufacturerOptions);
-            await device.getEndpoint(1).read("twinguardOptions", ["pre_alarm"], manufacturerOptions);
-            await device.getEndpoint(12).read("twinguardSetup", ["heartbeat"], manufacturerOptions);
+            await device
+                .getEndpoint(1)
+                .write<"twinguardSmokeDetector", TwinguardSmokeDetector>("twinguardSmokeDetector", {sensitivity: 0x0002}, manufacturerOptions); // Setting defaults
+            await device.getEndpoint(1).write<"twinguardOptions", TwinguardOptions>("twinguardOptions", {pre_alarm: 0x01}, manufacturerOptions); // Setting defaults
+            await device.getEndpoint(12).write<"twinguardSetup", TwinguardSetup>("twinguardSetup", {heartbeat: 0x01}, manufacturerOptions); // Setting defaults
+            await device
+                .getEndpoint(1)
+                .read<"twinguardSmokeDetector", TwinguardSmokeDetector>("twinguardSmokeDetector", ["sensitivity"], manufacturerOptions);
+            await device.getEndpoint(1).read<"twinguardOptions", TwinguardOptions>("twinguardOptions", ["pre_alarm"], manufacturerOptions);
+            await device.getEndpoint(12).read<"twinguardSetup", TwinguardSetup>("twinguardSetup", ["heartbeat"], manufacturerOptions);
         },
     },
     {
@@ -1889,7 +1967,7 @@ export const definitions: DefinitionWithExtend[] = [
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genIdentify", "closuresWindowCovering", "boschSpecific"]);
             await reporting.currentPositionLiftPercentage(endpoint1);
-            await endpoint1.read("boschSpecific", [
+            await endpoint1.read<"boschSpecific", BoschSpecificBmct>("boschSpecific", [
                 "deviceMode",
                 "switchType",
                 "motorState",
@@ -1900,11 +1978,11 @@ export const definitions: DefinitionWithExtend[] = [
                 "calibrationMotorStartDelay",
             ]);
             const endpoint2 = device.getEndpoint(2);
-            await endpoint2.read("boschSpecific", ["childLock"]);
+            await endpoint2.read<"boschSpecific", BoschSpecificBmct>("boschSpecific", ["childLock"]);
             await reporting.bind(endpoint2, coordinatorEndpoint, ["genIdentify", "genOnOff"]);
             await reporting.onOff(endpoint2);
             const endpoint3 = device.getEndpoint(3);
-            await endpoint3.read("boschSpecific", ["childLock"]);
+            await endpoint3.read<"boschSpecific", BoschSpecificBmct>("boschSpecific", ["childLock"]);
             await reporting.bind(endpoint3, coordinatorEndpoint, ["genIdentify", "genOnOff"]);
             await reporting.onOff(endpoint3);
         },

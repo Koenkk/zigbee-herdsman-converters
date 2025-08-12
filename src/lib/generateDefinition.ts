@@ -283,7 +283,7 @@ async function extenderLock(device: Zh.Device, endpoints: Zh.Endpoint[]): Promis
 
     const endpoint = endpoints[0];
 
-    const pinCodeCount = await getClusterAttributeValue<number>(endpoint, "closuresDoorLock", "numOfPinUsersSupported", 50);
+    const pinCodeCount = await getClusterAttributeValue(endpoint, "closuresDoorLock", "numOfPinUsersSupported", 50);
     return [new ExtendGenerator({extend: m.lock, args: {pinCodeCount}, source: "lock"})];
 }
 
@@ -305,7 +305,7 @@ async function extenderOnOffLight(device: Zh.Device, endpoints: Zh.Endpoint[]): 
         // In case read fails, support all features with 31
         let colorCapabilities = 0;
         if (endpoint.supportsInputCluster("lightingColorCtrl")) {
-            colorCapabilities = await getClusterAttributeValue<number>(endpoint, "lightingColorCtrl", "colorCapabilities", 31);
+            colorCapabilities = await getClusterAttributeValue(endpoint, "lightingColorCtrl", "colorCapabilities", 31);
         }
         const supportsHueSaturation = (colorCapabilities & (1 << 0)) > 0;
         const supportsEnhancedHueSaturation = (colorCapabilities & (1 << 1)) > 0;
@@ -314,8 +314,8 @@ async function extenderOnOffLight(device: Zh.Device, endpoints: Zh.Endpoint[]): 
         const args: m.LightArgs = {};
 
         if (supportsColorTemperature) {
-            const minColorTemp = await getClusterAttributeValue<number>(endpoint, "lightingColorCtrl", "colorTempPhysicalMin", 150);
-            const maxColorTemp = await getClusterAttributeValue<number>(endpoint, "lightingColorCtrl", "colorTempPhysicalMax", 500);
+            const minColorTemp = await getClusterAttributeValue(endpoint, "lightingColorCtrl", "colorTempPhysicalMin", 150);
+            const maxColorTemp = await getClusterAttributeValue(endpoint, "lightingColorCtrl", "colorTempPhysicalMax", 500);
             args.colorTemp = {range: [minColorTemp, maxColorTemp]};
         }
 
@@ -360,7 +360,7 @@ async function extenderBinaryInput(device: Zh.Device, endpoints: Zh.Endpoint[]):
     for (const endpoint of endpoints) {
         const description = `binary_input_${endpoint.ID}`;
         const args: m.BinaryArgs<"genBinaryInput"> = {
-            name: await getClusterAttributeValue<string>(endpoint, "genBinaryInput", "description", description),
+            name: await getClusterAttributeValue(endpoint, "genBinaryInput", "description", description),
             cluster: "genBinaryInput",
             attribute: "presentValue",
             reporting: {attribute: "presentValue", min: "MIN", max: "MAX", change: 1},
@@ -380,7 +380,7 @@ async function extenderBinaryOutput(device: Zh.Device, endpoints: Zh.Endpoint[])
     for (const endpoint of endpoints) {
         const description = `binary_output_${endpoint.ID}`;
         const args: m.BinaryArgs<"genBinaryOutput"> = {
-            name: await getClusterAttributeValue<string>(endpoint, "genBinaryOutput", "description", description),
+            name: await getClusterAttributeValue(endpoint, "genBinaryOutput", "description", description),
             cluster: "genBinaryOutput",
             attribute: "presentValue",
             reporting: {attribute: "presentValue", min: "MIN", max: "MAX", change: 1},

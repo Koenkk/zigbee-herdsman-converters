@@ -1,5 +1,5 @@
 import {Zcl} from "zigbee-herdsman";
-
+import type {TCustomCluster} from "zigbee-herdsman/dist/controller/tstype";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
@@ -10,6 +10,28 @@ import * as utils from "../lib/utils";
 
 const e = exposes.presets;
 const ea = exposes.access;
+
+interface NikoConfig extends TCustomCluster {
+    attributes: {
+        switchOperationMode: number;
+        outletLedColor: number;
+        outletChildLock: number;
+        outletLedState: number;
+        ledSyncMode: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+interface NikoState extends TCustomCluster {
+    manufacturerCode: Zcl.ManufacturerCode.NIKO_NV;
+    attributes: {
+        switchActionReporting: number;
+        switchAction: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
 
 const local = {
     modernExtend: {
@@ -169,7 +191,9 @@ const local = {
             },
             convertGet: async (entity, key, meta) => {
                 utils.assertEndpoint(entity);
-                await utils.enforceEndpoint(entity, key, meta).read("manuSpecificNikoConfig", ["switchOperationMode"]);
+                await utils
+                    .enforceEndpoint(entity, key, meta)
+                    .read<"manuSpecificNikoConfig", NikoConfig>("manuSpecificNikoConfig", ["switchOperationMode"]);
             },
         } satisfies Tz.Converter,
         switch_action_reporting: {
@@ -188,18 +212,18 @@ const local = {
                 return {state: {action_reporting: value}};
             },
             convertGet: async (entity, key, meta) => {
-                await entity.read("manuSpecificNikoState", ["switchActionReporting"]);
+                await entity.read<"manuSpecificNikoState", NikoState>("manuSpecificNikoState", ["switchActionReporting"]);
             },
         } satisfies Tz.Converter,
         switch_led_enable: {
             key: ["led_enable"],
             convertSet: async (entity, key, value, meta) => {
-                await entity.write("manuSpecificNikoConfig", {outletLedState: value ? 1 : 0});
-                await entity.read("manuSpecificNikoConfig", ["outletLedColor"]);
+                await entity.write<"manuSpecificNikoConfig", NikoConfig>("manuSpecificNikoConfig", {outletLedState: value ? 1 : 0});
+                await entity.read<"manuSpecificNikoConfig", NikoConfig>("manuSpecificNikoConfig", ["outletLedColor"]);
                 return {state: {led_enable: !!value}};
             },
             convertGet: async (entity, key, meta) => {
-                await entity.read("manuSpecificNikoConfig", ["outletLedState"]);
+                await entity.read<"manuSpecificNikoConfig", NikoConfig>("manuSpecificNikoConfig", ["outletLedState"]);
             },
         } satisfies Tz.Converter,
         switch_led_state: {
@@ -218,7 +242,7 @@ const local = {
                 return {state: {led_state: value}};
             },
             convertGet: async (entity, key, meta) => {
-                await entity.read("manuSpecificNikoConfig", ["outletLedColor"]);
+                await entity.read<"manuSpecificNikoConfig", NikoConfig>("manuSpecificNikoConfig", ["outletLedColor"]);
             },
         } satisfies Tz.Converter,
         switch_led_sync_mode: {
@@ -245,32 +269,34 @@ const local = {
                     // @ts-expect-error ignore
                     result = ledSyncMap[value];
                 }
-                await entity.write("manuSpecificNikoConfig", {ledSyncMode: result});
+                await entity.write<"manuSpecificNikoConfig", NikoConfig>("manuSpecificNikoConfig", {ledSyncMode: result});
                 return {state: {led_sync_mode: value}};
             },
             convertGet: async (entity, key, meta) => {
-                await entity.read("manuSpecificNikoConfig", ["ledSyncMode"]);
+                await entity.read<"manuSpecificNikoConfig", NikoConfig>("manuSpecificNikoConfig", ["ledSyncMode"]);
             },
         } satisfies Tz.Converter,
         outlet_child_lock: {
             key: ["child_lock"],
             convertSet: async (entity, key, value, meta) => {
                 utils.assertString(value, key);
-                await entity.write("manuSpecificNikoConfig", {outletChildLock: value.toLowerCase() === "lock" ? 0 : 1});
+                await entity.write<"manuSpecificNikoConfig", NikoConfig>("manuSpecificNikoConfig", {
+                    outletChildLock: value.toLowerCase() === "lock" ? 0 : 1,
+                });
                 return {state: {child_lock: value.toLowerCase() === "lock" ? "LOCK" : "UNLOCK"}};
             },
             convertGet: async (entity, key, meta) => {
-                await entity.read("manuSpecificNikoConfig", ["outletChildLock"]);
+                await entity.read<"manuSpecificNikoConfig", NikoConfig>("manuSpecificNikoConfig", ["outletChildLock"]);
             },
         } satisfies Tz.Converter,
         outlet_led_enable: {
             key: ["led_enable"],
             convertSet: async (entity, key, value, meta) => {
-                await entity.write("manuSpecificNikoConfig", {outletLedState: value ? 1 : 0});
+                await entity.write<"manuSpecificNikoConfig", NikoConfig>("manuSpecificNikoConfig", {outletLedState: value ? 1 : 0});
                 return {state: {led_enable: !!value}};
             },
             convertGet: async (entity, key, meta) => {
-                await entity.read("manuSpecificNikoConfig", ["outletLedState"]);
+                await entity.read<"manuSpecificNikoConfig", NikoConfig>("manuSpecificNikoConfig", ["outletLedState"]);
             },
         } satisfies Tz.Converter,
     },
@@ -302,8 +328,8 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.currentSummDelivered(endpoint, {min: 60, change: 1});
 
-            await endpoint.read("manuSpecificNikoConfig", ["outletChildLock"]);
-            await endpoint.read("manuSpecificNikoConfig", ["outletLedState"]);
+            await endpoint.read<"manuSpecificNikoConfig", NikoConfig>("manuSpecificNikoConfig", ["outletChildLock"]);
+            await endpoint.read<"manuSpecificNikoConfig", NikoConfig>("manuSpecificNikoConfig", ["outletLedState"]);
         },
         exposes: [
             e.switch(),
@@ -398,11 +424,15 @@ export const definitions: DefinitionWithExtend[] = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff"]);
             await reporting.onOff(endpoint);
-            await endpoint.read("manuSpecificNikoConfig", ["switchOperationMode", "outletLedState", "outletLedColor"]);
+            await endpoint.read<"manuSpecificNikoConfig", NikoConfig>("manuSpecificNikoConfig", [
+                "switchOperationMode",
+                "outletLedState",
+                "outletLedColor",
+            ]);
             // Enable action reporting by default
-            await endpoint.write("manuSpecificNikoState", {switchActionReporting: true});
-            await endpoint.read("manuSpecificNikoState", ["switchActionReporting"]);
-            await endpoint.read("manuSpecificNikoConfig", ["ledSyncMode"]);
+            await endpoint.write<"manuSpecificNikoState", NikoState>("manuSpecificNikoState", {switchActionReporting: 1});
+            await endpoint.read<"manuSpecificNikoState", NikoState>("manuSpecificNikoState", ["switchActionReporting"]);
+            await endpoint.read<"manuSpecificNikoConfig", NikoConfig>("manuSpecificNikoConfig", ["ledSyncMode"]);
         },
         exposes: [
             e.switch(),
@@ -440,13 +470,21 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(ep2, coordinatorEndpoint, ["genOnOff"]);
             await reporting.onOff(ep1);
             await reporting.onOff(ep2);
-            await ep1.read("manuSpecificNikoConfig", ["switchOperationMode", "outletLedState", "outletLedColor"]);
-            await ep2.read("manuSpecificNikoConfig", ["switchOperationMode", "outletLedState", "outletLedColor"]);
+            await ep1.read<"manuSpecificNikoConfig", NikoConfig>("manuSpecificNikoConfig", [
+                "switchOperationMode",
+                "outletLedState",
+                "outletLedColor",
+            ]);
+            await ep2.read<"manuSpecificNikoConfig", NikoConfig>("manuSpecificNikoConfig", [
+                "switchOperationMode",
+                "outletLedState",
+                "outletLedColor",
+            ]);
             // Enable action reporting by default
-            await ep1.write("manuSpecificNikoState", {switchActionReporting: true});
-            await ep1.read("manuSpecificNikoState", ["switchActionReporting"]);
-            await ep1.read("manuSpecificNikoConfig", ["ledSyncMode"]);
-            await ep2.read("manuSpecificNikoConfig", ["ledSyncMode"]);
+            await ep1.write<"manuSpecificNikoState", NikoState>("manuSpecificNikoState", {switchActionReporting: 1});
+            await ep1.read<"manuSpecificNikoState", NikoState>("manuSpecificNikoState", ["switchActionReporting"]);
+            await ep1.read<"manuSpecificNikoConfig", NikoConfig>("manuSpecificNikoConfig", ["ledSyncMode"]);
+            await ep2.read<"manuSpecificNikoConfig", NikoConfig>("manuSpecificNikoConfig", ["ledSyncMode"]);
         },
         exposes: [
             e.switch().withEndpoint("l1"),
@@ -493,7 +531,7 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "genLevelCtrl"]);
             await reporting.onOff(endpoint);
             await reporting.brightness(endpoint);
-            await endpoint.read("manuSpecificNikoConfig", ["outletLedState", "outletLedColor"]);
+            await endpoint.read<"manuSpecificNikoConfig", NikoConfig>("manuSpecificNikoConfig", ["outletLedState", "outletLedColor"]);
         },
     },
     {
