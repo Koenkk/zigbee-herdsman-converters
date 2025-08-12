@@ -4374,7 +4374,9 @@ export const definitions: DefinitionWithExtend[] = [
             m.deviceEndpoints({endpoints: {up: 1, down: 4}}),
             m.bindCluster({endpointNames: ["up", "down"], cluster: "manuSpecificLumi", clusterType: "input"}),
             m.bindCluster({endpointNames: ["up"], cluster: "genOnOff", clusterType: "input"}),
-            m.electricityMeter({voltage: false, current: {divisor: 1, multiplier: 1}}),
+            // Configuring reporting for current fails
+            // https://github.com/Koenkk/zigbee2mqtt/issues/27525
+            m.electricityMeter({voltage: false, current: {divisor: 1, multiplier: 1}, configureReporting: false}),
             lumiLedIndicator(),
             lumiFlipIndicatorLight(),
             lumiAction({endpointNames: ["up", "down"], actionLookup: {hold: 0, single: 1, double: 2, release: 255}}),
@@ -4395,7 +4397,9 @@ export const definitions: DefinitionWithExtend[] = [
             m.deviceEndpoints({endpoints: {left: 1, right: 2, left_down: 4, right_down: 5}}),
             m.bindCluster({endpointNames: ["left", "left_down", "right", "right_down"], cluster: "manuSpecificLumi", clusterType: "input"}),
             m.bindCluster({endpointNames: ["left", "right"], cluster: "genOnOff", clusterType: "input"}),
-            m.electricityMeter({voltage: false, current: {divisor: 1, multiplier: 1}}),
+            // Configuring reporting for current fails
+            // https://github.com/Koenkk/zigbee2mqtt/issues/27525
+            m.electricityMeter({voltage: false, current: {divisor: 1, multiplier: 1}, configureReporting: false}),
             lumiLedIndicator(),
             lumiFlipIndicatorLight(),
             lumiAction({endpointNames: ["left", "left_down", "right", "right_down"], actionLookup: {hold: 0, single: 1, double: 2, release: 255}}),
