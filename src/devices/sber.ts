@@ -194,15 +194,11 @@ const sdevices = {
                     return;
                 }
                 const relayDecoupleLookup = {control_relay: 0, decoupled: 1};
-                // XXX: probably should make sure `value in "relayDecoupleLookup"`?
-                if (relayDecoupleLookup[value as keyof typeof relayDecoupleLookup] === undefined) {
-                    throw new Error(`relay_mode was called with an invalid value (${value})`);
-                }
                 utils.assertEndpoint(entity);
                 await utils.enforceEndpoint(entity, key, meta).write<"genOnOff", SberGenOnOff>(
                     "genOnOff",
                     {
-                        sdevicesRelayDecouple: relayDecoupleLookup[value as keyof typeof relayDecoupleLookup],
+                        sdevicesRelayDecouple: utils.getFromLookup(value, relayDecoupleLookup),
                     },
                     manufacturerOptions,
                 );

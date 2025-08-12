@@ -455,7 +455,6 @@ const tzLocal = {
             return {state: newState};
         },
         convertGet: async (entity, key, meta) => {
-            // TODO: correct?
             await entity.read("genLevelCtrl", ["currentLevel"]);
             await entity.read("lightingColorCtrl", ["currentHue", "currentSaturation", "tuyaRgbMode", "colorTemperature"]);
         },

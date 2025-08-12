@@ -79,8 +79,7 @@ const tzLocal = {
     zigusb_button_config: {
         key: ["button_mode", "link_to_output", "bind_command"],
         convertGet: async (entity, key, meta) => {
-            // TODO: fix this unknown attr => `switchType`?
-            await entity.read("genOnOffSwitchCfg", ["buttonMode", 0x4001, 0x4002]);
+            await entity.read("genOnOffSwitchCfg", ["switchType", 0x4001, 0x4002]);
         },
         convertSet: async (entity, key, value, meta) => {
             let payload: Parameters<typeof entity.write<"genOnOffSwitchCfg">>[1];
@@ -88,7 +87,7 @@ const tzLocal = {
             switch (key) {
                 case "button_mode":
                     data = utils.getFromLookup(value, buttonModesList);
-                    payload = {buttonMode: data};
+                    payload = {switchType: data as number};
                     break;
                 case "link_to_output":
                     data = utils.getFromLookup(value, inputLinkList);

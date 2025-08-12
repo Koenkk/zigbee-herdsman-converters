@@ -143,8 +143,7 @@ const tzPerenio = {
             };
             await entity.write(
                 "genMultistateValue",
-                // XXX: probably should make sure `value in "switchTypeLookup"`?
-                {presentValue: switchTypeLookup[value as keyof typeof switchTypeLookup]},
+                {presentValue: utils.getFromLookup(value, switchTypeLookup)},
                 utils.getOptions(meta.mapped, entity),
             );
             return {state: {switch_type: value}};
