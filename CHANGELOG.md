@@ -1,5 +1,25 @@
 # Changelog
 
+## [25.1.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.0.0...v25.1.0) (2025-08-13)
+
+
+### Features
+
+* **add:** T2 https://github.com/Koenkk/zigbee2mqtt/issues/26182 ([8207b98](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8207b98ce8af02b4e29ff98e03fb3f2ecd526bde))
+
+
+### Bug Fixes
+
+* Aqara WS-K07E and WS-K08E: fix configure failing https://github.com/Koenkk/zigbee2mqtt/issues/27525 ([9893002](https://github.com/Koenkk/zigbee-herdsman-converters/commit/98930022e7620eac00816d615fc43fe7f7330e52))
+* **detect:** Detect `_TZ3000_b28wrpvx` as BSEED FK86ZEUSK1W https://github.com/Koenkk/zigbee2mqtt/issues/28256 ([8f8cb6a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8f8cb6a8d87f2cc8b606c2c041c274bee71cf665))
+* **detect:** Detect `_TZ3210_p68kms0l` Tuya RB-SRAIN01 https://github.com/Koenkk/zigbee2mqtt/issues/28248 ([0e0a85a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0e0a85aca63241c50ac5b7bd1bd10c2b61dc9cea))
+* **detect:** Detect `_TZE200_nhyj64w2` as Tuya TS0601_cover_1 https://github.com/Koenkk/zigbee2mqtt/issues/28240 ([d66719f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d66719f96d2d95af67c4b7ca77365e43fbb8938e))
+* **detect:** Detect `_TZE284_dvosyycn` as Tuya TS0601_switch_8 https://github.com/Koenkk/zigbee2mqtt/issues/28255 ([8233e57](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8233e5726f7dfb912a46462747eb2eeb723214b5))
+* **detect:** Detect `_TZE608_lapuuoke` as Tuya TS0603 ([#9791](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9791)) ([e87c7c8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e87c7c89ffe7dcf7e35f7c585536c725da151df6))
+* Develco: split sirzb110 and sirzb111 converter due missing temperature sensor on sirzb-111 ([#9796](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9796)) ([8963dfd](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8963dfda6aa8e7b1ae72d1921bfa1862d007ba1d))
+* **ignore:** Philips 8719514440937/8719514440999: fix direction https://github.com/Koenkk/zigbee-herdsman/pull/1459 ([a551834](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a551834394b690d4f9af345692542f1c180066c0))
+* Tuya TS110E_2gang_2: remove duplicated options ([#9785](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9785)) ([1628c3c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1628c3c6aeddeb5b2a3fdbe32f885a7b17a55881))
+
 ## [25.0.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v24.14.0...v25.0.0) (2025-08-11)
 
 
