@@ -583,7 +583,7 @@ const boschExtend = {
         };
     },
     broadcastAlarm: (): ModernExtend => {
-        const sirenState: KeyValue = {
+        const sirenState = {
             smoke_off: 0x0000,
             smoke_on: 0x3c00,
             burglar_off: 0x0001,
@@ -602,10 +602,10 @@ const boschExtend = {
                     if (key === "broadcast_alarm") {
                         const index = utils.getFromLookup(value, sirenState);
                         utils.assertEndpoint(entity);
-                        await entity.zclCommandBroadcast(
+                        await entity.zclCommandBroadcast<"ssIasZone", "boschSmokeAlarmSiren", BoschSmokeAlarmSiren>(
                             255,
                             ZSpec.BroadcastAddress.SLEEPY,
-                            Zcl.Clusters.ssIasZone.ID,
+                            "ssIasZone",
                             "boschSmokeAlarmSiren",
                             {data: index},
                             manufacturerOptions,
