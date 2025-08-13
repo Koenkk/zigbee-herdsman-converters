@@ -1087,10 +1087,10 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         meta: {
             tuyaDatapoints: [
-                [1, "water_consumed", tuya.valueConverter.divideBy1000],
+                [1, "water_consumed", tuya.valueConverter.divideBy100],
                 [13, "state", tuya.valueConverter.onOffNotStrict],
                 [14, "auto_clean", tuya.valueConverter.raw],
-                [21, "flow_rate", tuya.valueConverter.divideBy1000],
+                [21, "flow_rate", tuya.valueConverter.divideBy100],
                 [22, "temperature", tuya.valueConverter.divideBy100],
                 [26, "voltage", tuya.valueConverter.divideBy100],
             ],
