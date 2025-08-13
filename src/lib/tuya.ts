@@ -142,8 +142,8 @@ export function dpValueFromString(dp: number, string: string) {
     return {dp, datatype: dataTypes.string, data: Buffer.from(convertStringToHexArray(string))};
 }
 
-function dpValueFromRaw(dp: number, rawBuffer: number[]) {
-    return {dp, datatype: dataTypes.raw, data: Buffer.from(rawBuffer)};
+function dpValueFromRaw(dp: number, rawBuffer: Buffer) {
+    return {dp, datatype: dataTypes.raw, data: rawBuffer};
 }
 
 function dpValueFromBitmap(dp: number, bitmapBuffer: number) {
@@ -162,7 +162,7 @@ export async function sendDataPointEnum(entity: Zh.Group | Zh.Endpoint, dp: numb
     return await sendDataPoints(entity, [dpValueFromEnum(dp, value)], cmd, seq);
 }
 
-export async function sendDataPointRaw(entity: Zh.Group | Zh.Endpoint, dp: number, value: number[], cmd?: string, seq?: number) {
+export async function sendDataPointRaw(entity: Zh.Group | Zh.Endpoint, dp: number, value: Buffer, cmd?: string, seq?: number) {
     return await sendDataPoints(entity, [dpValueFromRaw(dp, value)], cmd, seq);
 }
 
@@ -612,7 +612,7 @@ export const valueConverter = {
                     0,
                     utils.toNumber(threshold, "overload_threshold"),
                 ]);
-                await sendDataPointRaw(entity, 17, Array.from(buf), sendCommand, 1);
+                await sendDataPointRaw(entity, 17, buf, sendCommand, 1);
             } else if (meta.message.overload_threshold) {
                 const state = meta.state.overload_breaker;
                 const buf = Buffer.from([
@@ -621,35 +621,35 @@ export const valueConverter = {
                     0,
                     utils.toNumber(meta.message.overload_threshold, "overload_threshold"),
                 ]);
-                await sendDataPointRaw(entity, 17, Array.from(buf), sendCommand, 1);
+                await sendDataPointRaw(entity, 17, buf, sendCommand, 1);
             } else if (meta.message.leakage_threshold) {
                 const state = meta.state.leakage_breaker;
                 const buf = Buffer.alloc(8);
                 buf.writeUInt8(4, 4);
                 buf.writeUInt8(utils.getFromLookup(state, onOffLookup), 5);
                 buf.writeUInt16BE(utils.toNumber(meta.message.leakage_threshold, "leakage_threshold"), 6);
-                await sendDataPointRaw(entity, 17, Array.from(buf), sendCommand, 1);
+                await sendDataPointRaw(entity, 17, buf, sendCommand, 1);
             } else if (meta.message.leakage_breaker) {
                 const threshold = meta.state.leakage_threshold;
                 const buf = Buffer.alloc(8);
                 buf.writeUInt8(4, 4);
                 buf.writeUInt8(utils.getFromLookup(meta.message.leakage_breaker, onOffLookup), 5);
                 buf.writeUInt16BE(utils.toNumber(threshold, "leakage_threshold"), 6);
-                await sendDataPointRaw(entity, 17, Array.from(buf), sendCommand, 1);
+                await sendDataPointRaw(entity, 17, buf, sendCommand, 1);
             } else if (meta.message.high_temperature_threshold) {
                 const state = meta.state.high_temperature_breaker;
                 const buf = Buffer.alloc(12);
                 buf.writeUInt8(5, 8);
                 buf.writeUInt8(utils.getFromLookup(state, onOffLookup), 9);
                 buf.writeUInt16BE(utils.toNumber(meta.message.high_temperature_threshold, "high_temperature_threshold"), 10);
-                await sendDataPointRaw(entity, 17, Array.from(buf), sendCommand, 1);
+                await sendDataPointRaw(entity, 17, buf, sendCommand, 1);
             } else if (meta.message.high_temperature_breaker) {
                 const threshold = meta.state.high_temperature_threshold;
                 const buf = Buffer.alloc(12);
                 buf.writeUInt8(5, 8);
                 buf.writeUInt8(utils.getFromLookup(meta.message.high_temperature_breaker, onOffLookup), 9);
                 buf.writeUInt16BE(utils.toNumber(threshold, "high_temperature_threshold"), 10);
-                await sendDataPointRaw(entity, 17, Array.from(buf), sendCommand, 1);
+                await sendDataPointRaw(entity, 17, buf, sendCommand, 1);
             }
         },
         from: (v: string) => {
@@ -687,7 +687,7 @@ export const valueConverter = {
                     0,
                     utils.toNumber(meta.message.over_current_threshold, "over_current_threshold"),
                 ]);
-                await sendDataPointRaw(entity, 18, Array.from(buf), sendCommand, 1);
+                await sendDataPointRaw(entity, 18, buf, sendCommand, 1);
             } else if (meta.message.over_current_breaker) {
                 const threshold = meta.state.over_current_threshold;
                 const buf = Buffer.from([
@@ -696,49 +696,49 @@ export const valueConverter = {
                     0,
                     utils.toNumber(threshold, "over_current_threshold"),
                 ]);
-                await sendDataPointRaw(entity, 18, Array.from(buf), sendCommand, 1);
+                await sendDataPointRaw(entity, 18, buf, sendCommand, 1);
             } else if (meta.message.over_voltage_threshold) {
                 const state = meta.state.over_voltage_breaker;
                 const buf = Buffer.alloc(8);
                 buf.writeUInt8(3, 4);
                 buf.writeUInt8(utils.getFromLookup(state, onOffLookup), 5);
                 buf.writeUInt16BE(utils.toNumber(meta.message.over_voltage_threshold, "over_voltage_threshold"), 6);
-                await sendDataPointRaw(entity, 18, Array.from(buf), sendCommand, 1);
+                await sendDataPointRaw(entity, 18, buf, sendCommand, 1);
             } else if (meta.message.over_voltage_breaker) {
                 const threshold = meta.state.over_voltage_threshold;
                 const buf = Buffer.alloc(8);
                 buf.writeUInt8(3, 4);
                 buf.writeUInt8(utils.getFromLookup(meta.message.over_voltage_breaker, onOffLookup), 5);
                 buf.writeUInt16BE(utils.toNumber(threshold, "over_voltage_threshold"), 6);
-                await sendDataPointRaw(entity, 18, Array.from(buf), sendCommand, 1);
+                await sendDataPointRaw(entity, 18, buf, sendCommand, 1);
             } else if (meta.message.under_voltage_threshold) {
                 const state = meta.state.under_voltage_breaker;
                 const buf = Buffer.alloc(12);
                 buf.writeUInt8(4, 8);
                 buf.writeUInt8(utils.getFromLookup(state, onOffLookup), 9);
                 buf.writeUInt16BE(utils.toNumber(meta.message.under_voltage_threshold, "under_voltage_threshold"), 10);
-                await sendDataPointRaw(entity, 18, Array.from(buf), sendCommand, 1);
+                await sendDataPointRaw(entity, 18, buf, sendCommand, 1);
             } else if (meta.message.under_voltage_breaker) {
                 const threshold = meta.state.under_voltage_threshold;
                 const buf = Buffer.alloc(12);
                 buf.writeUInt8(4, 8);
                 buf.writeUInt8(utils.getFromLookup(meta.message.under_voltage_breaker, onOffLookup), 9);
                 buf.writeUInt16BE(utils.toNumber(threshold, "under_voltage_threshold"), 10);
-                await sendDataPointRaw(entity, 18, Array.from(buf), sendCommand, 1);
+                await sendDataPointRaw(entity, 18, buf, sendCommand, 1);
             } else if (meta.message.insufficient_balance_threshold) {
                 const state = meta.state.insufficient_balance_breaker;
                 const buf = Buffer.alloc(16);
                 buf.writeUInt8(8, 12);
                 buf.writeUInt8(utils.getFromLookup(state, onOffLookup), 13);
                 buf.writeUInt16BE(utils.toNumber(meta.message.insufficient_balance_threshold, "insufficient_balance_threshold"), 14);
-                await sendDataPointRaw(entity, 18, Array.from(buf), sendCommand, 1);
+                await sendDataPointRaw(entity, 18, buf, sendCommand, 1);
             } else if (meta.message.insufficient_balance_breaker) {
                 const threshold = meta.state.insufficient_balance_threshold;
                 const buf = Buffer.alloc(16);
                 buf.writeUInt8(8, 12);
                 buf.writeUInt8(utils.getFromLookup(meta.message.insufficient_balance_breaker, onOffLookup), 13);
                 buf.writeUInt16BE(utils.toNumber(threshold, "insufficient_balance_threshold"), 14);
-                await sendDataPointRaw(entity, 18, Array.from(buf), sendCommand, 1);
+                await sendDataPointRaw(entity, 18, buf, sendCommand, 1);
             }
         },
         from: (v: string) => {
@@ -1142,7 +1142,7 @@ export const valueConverter = {
 
             const entity = meta.device.endpoints[0];
             const sendCommand = utils.getMetaValue(entity, meta.mapped, "tuyaSendCommand", undefined, "dataRequest");
-            await sendDataPointRaw(entity, dpId, payload, sendCommand, 1);
+            await sendDataPointRaw(entity, dpId, Buffer.from(payload), sendCommand, 1);
         },
     },
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
@@ -1581,7 +1581,7 @@ const tuyaTz = {
                 } else if (typeof convertedValue === "string") {
                     await sendDataPointStringBuffer(entity, dpId, convertedValue, sendCommand, 1);
                 } else if (Array.isArray(convertedValue)) {
-                    await sendDataPointRaw(entity, dpId, convertedValue, sendCommand, 1);
+                    await sendDataPointRaw(entity, dpId, Buffer.from(convertedValue), sendCommand, 1);
                 } else if (convertedValue instanceof Enum) {
                     await sendDataPointEnum(entity, dpId, convertedValue.valueOf(), sendCommand, 1);
                 } else if (convertedValue instanceof Bitmap) {
@@ -1940,7 +1940,7 @@ export function getHandlersForDP(
                           } else if (type === dataTypes.string) {
                               await sendDataPointStringBuffer(entity, dp, convertedValue as string, sendCommand, seq);
                           } else if (type === dataTypes.raw) {
-                              await sendDataPointRaw(entity, dp, convertedValue as number[], sendCommand, seq);
+                              await sendDataPointRaw(entity, dp, Buffer.from(convertedValue as number[]), sendCommand, seq);
                           } else if (type === dataTypes.enum) {
                               await sendDataPointEnum(entity, dp, convertedValue as number, sendCommand, seq);
                           } else if (type === dataTypes.bitmap) {

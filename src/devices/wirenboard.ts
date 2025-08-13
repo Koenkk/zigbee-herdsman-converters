@@ -648,7 +648,6 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Wirenboard",
         description: "Wall-mounted multi sensor",
         extend: [
-            // TODO: looks like this was moved out of ZH but left also in ZH?
             m.deviceAddCustomCluster("sprutDevice", {
                 ID: 26112,
                 manufacturerCode: 26214,
