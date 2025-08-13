@@ -2219,7 +2219,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0207", ["_TZ3210_tgvtvdoc"]),
+        fingerprint: tuya.fingerprint("TS0207", ["_TZ3210_tgvtvdoc", "_TZ3210_p68kms0l"]),
         model: "RB-SRAIN01",
         vendor: "Tuya",
         description: "Solar rain sensor",
