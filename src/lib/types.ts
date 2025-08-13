@@ -26,15 +26,6 @@ export interface KeyValueAny {
     [s: string]: any;
 }
 export type Publish = (payload: KeyValue) => void;
-export type OnEventType =
-    | "start"
-    | "stop"
-    | "message"
-    | "deviceJoined"
-    | "deviceInterview"
-    | "deviceAnnounce"
-    | "deviceNetworkAddressChanged"
-    | "deviceOptionsChanged";
 export type Access = 0b001 | 0b010 | 0b100 | 0b011 | 0b101 | 0b111;
 export type Expose =
     | exposes.Numeric
@@ -223,18 +214,16 @@ export interface DefinitionMeta {
 
 export type Configure = (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint, definition: Definition) => Promise<void> | void;
 
-export interface OnEventMeta {
-    deviceExposesChanged: () => void;
-}
+export namespace OnEvent {
+    export type BaseData = {device: Zh.Device; deviceExposesChanged: () => void; state: KeyValue; options: KeyValue};
+    export type Event =
+        | {type: "stop"; data: {ieeeAddr: string}}
+        | {type: "deviceNetworkAddressChanged" | "deviceAnnounce" | "deviceJoined" | "start"; data: BaseData}
+        | {type: "deviceOptionsChanged"; data: BaseData & {from: KeyValue; to: KeyValue}}
+        | {type: "deviceInterview"; data: BaseData & {status: "started" | "successful" | "failed"}};
 
-export type OnEvent = (
-    type: OnEventType,
-    data: OnEventData,
-    device: Zh.Device,
-    settings: KeyValue,
-    state: KeyValue,
-    meta?: OnEventMeta,
-) => Promise<void> | void;
+    export type Handler = (event: Event) => Promise<void> | void;
+}
 
 export interface ModernExtend {
     fromZigbee?: Definition["fromZigbee"];
@@ -243,17 +232,10 @@ export interface ModernExtend {
     configure?: Definition["configure"][];
     meta?: Definition["meta"];
     ota?: Definition["ota"];
+    options?: Option[];
     onEvent?: Definition["onEvent"][];
     endpoint?: Definition["endpoint"];
     isModernExtend: true;
-}
-
-export interface OnEventData {
-    endpoint?: Zh.Endpoint;
-    meta?: {zclTransactionSequenceNumber?: number; manufacturerCode?: number};
-    cluster?: string;
-    type?: string;
-    data?: KeyValueAny;
 }
 
 // Special type for the zigbee2mqtt.io device page docgen
@@ -282,7 +264,7 @@ type DefinitionConfig = {
     configure?: Configure;
     options?: Option[];
     meta?: DefinitionMeta;
-    onEvent?: OnEvent;
+    onEvent?: OnEvent.Handler;
     ota?: boolean | Ota.ExtraMetas;
 };
 
@@ -307,7 +289,7 @@ export namespace Fz {
         data: any;
         endpoint: Zh.Endpoint;
         device: Zh.Device;
-        meta: {zclTransactionSequenceNumber?: number; manufacturerCode?: number; frameControl?: FrameControl};
+        meta: {zclTransactionSequenceNumber?: number; manufacturerCode?: number; frameControl?: FrameControl; rawData: Buffer};
         groupID: number;
         type: string;
         cluster: string | number;

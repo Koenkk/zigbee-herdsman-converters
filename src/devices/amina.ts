@@ -2,10 +2,13 @@ import {Zcl} from "zigbee-herdsman";
 
 import * as constants from "../lib/constants";
 import * as exposes from "../lib/exposes";
+import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import type {DefinitionWithExtend, Fz, KeyValue, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
+
+const NS = "zhc:amina";
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -46,11 +49,32 @@ const aminaAlarms = [
 ];
 
 const fzLocal = {
+    poll_energy: {
+        cluster: "haElectricalMeasurement",
+        type: ["attributeReport"],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.totalActivePower != null) {
+                // Device does not support reporting of energy attributes, so we poll them manually when power is updated
+                msg.endpoint.read("aminaControlCluster", ["totalActiveEnergy"]).catch((error) => {
+                    logger.error(`Failed to poll energy of '${msg.device.ieeeAddr}' (${error})`, NS);
+                });
+            }
+        },
+    } satisfies Fz.Converter,
     ev_status: {
         cluster: "aminaControlCluster",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
+
+            if (msg.type === "attributeReport") {
+                // Device does not support reporting of energy attributes, so we poll them manually when charging is stopped
+                if ((msg.data.evStatus & (1 << 2)) === 0) {
+                    msg.endpoint.read("aminaControlCluster", ["totalActiveEnergy", "lastSessionEnergy"]).catch((error) => {
+                        logger.error(`Failed to poll energy of '${msg.device.ieeeAddr}' (${error})`, NS);
+                    });
+                }
+            }
 
             if (msg.data.evStatus !== undefined) {
                 let statusText = "Not Connected";
@@ -73,7 +97,6 @@ const fzLocal = {
             }
         },
     } satisfies Fz.Converter,
-
     alarms: {
         cluster: "aminaControlCluster",
         type: ["attributeReport", "readResponse"],
@@ -106,14 +129,12 @@ const tzLocal = {
             await entity.read("genLevelCtrl", ["currentLevel"]);
         },
     } satisfies Tz.Converter,
-
     ev_status: {
         key: ["ev_status"],
         convertGet: async (entity, key, meta) => {
             await entity.read("aminaControlCluster", ["evStatus"], manufacturerOptions);
         },
     } satisfies Tz.Converter,
-
     alarms: {
         key: ["alarms"],
         convertGet: async (entity, key, meta) => {
@@ -308,11 +329,9 @@ export const definitions: DefinitionWithExtend[] = [
                 entityCategory: "config",
             }),
         ],
-
         endpoint: (device) => {
             return {default: 10};
         },
-
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(10);
 
@@ -349,20 +368,6 @@ export const definitions: DefinitionWithExtend[] = [
                 "totalActiveEnergy",
                 "lastSessionEnergy",
             ]);
-        },
-
-        onEvent: async (type, data, device) => {
-            if (type === "message" && data.type === "attributeReport" && data.cluster === "haElectricalMeasurement" && data.data.totalActivePower) {
-                // Device does not support reporting of energy attributes, so we poll them manually when power is updated
-                await data.endpoint.read("aminaControlCluster", ["totalActiveEnergy"]);
-            }
-
-            if (type === "message" && data.type === "attributeReport" && data.cluster === "aminaControlCluster" && data.data.evStatus) {
-                // Device does not support reporting of energy attributes, so we poll them manually when charging is stopped
-                if ((data.data.evStatus & (1 << 2)) === 0) {
-                    await data.endpoint.read("aminaControlCluster", ["totalActiveEnergy", "lastSessionEnergy"]);
-                }
-            }
         },
     },
 ];
