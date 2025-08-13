@@ -44,7 +44,6 @@ const inputModeEnum: {[s: string]: number} = {
 
 // #region Custom cluster definition
 
-// biome-ignore lint/correctness/noUnusedVariables: for later use
 interface YokisDevice {
     attributes: {
         configurationChanged: number;
@@ -1042,7 +1041,11 @@ const yokisCommandsExtend = {
 
                     yokisExtendChecks.log(key, value);
 
-                    await entity.command("manuSpecificYokisDevice", "resetToFactorySettings", commandWrapper.payload);
+                    await entity.command<"manuSpecificYokisDevice", "resetToFactorySettings", YokisDevice>(
+                        "manuSpecificYokisDevice",
+                        "resetToFactorySettings",
+                        commandWrapper.payload,
+                    );
                 },
             },
         ];
@@ -1064,7 +1067,11 @@ const yokisCommandsExtend = {
                 key: ["relaunch_ble_advert"],
                 convertSet: async (entity, key, value, meta) => {
                     yokisExtendChecks.log(key, value);
-                    await entity.command("manuSpecificYokisDevice", "relaunchBleAdvert", {});
+                    await entity.command<"manuSpecificYokisDevice", "relaunchBleAdvert", YokisDevice>(
+                        "manuSpecificYokisDevice",
+                        "relaunchBleAdvert",
+                        {},
+                    );
                 },
             },
         ];
@@ -1097,7 +1104,11 @@ const yokisCommandsExtend = {
 
                     yokisExtendChecks.log(key, value);
 
-                    await entity.command("manuSpecificYokisDevice", "OpenNetwork", commandWrapper.payload);
+                    await entity.command<"manuSpecificYokisDevice", "openNetwork", YokisDevice>(
+                        "manuSpecificYokisDevice",
+                        "openNetwork",
+                        commandWrapper.payload,
+                    );
                 },
             },
         ];
@@ -1165,7 +1176,11 @@ const yokisCommandsExtend = {
 
                     yokisExtendChecks.log(key, value, commandWrapper.payload);
 
-                    await entity.command("manuSpecificYokisLightControl", "moveToPosition", commandWrapper.payload);
+                    await entity.command<"manuSpecificYokisLightControl", "moveToPosition", YokisLightControl>(
+                        "manuSpecificYokisLightControl",
+                        "moveToPosition",
+                        commandWrapper.payload,
+                    );
                 },
             },
         ];
@@ -1219,7 +1234,11 @@ const yokisCommandsExtend = {
 
                     yokisExtendChecks.log(key, value, commandWrapper.payload);
 
-                    await entity.command("manuSpecificYokisLightControl", "blink", commandWrapper.payload);
+                    await entity.command<"manuSpecificYokisLightControl", "blink", YokisLightControl>(
+                        "manuSpecificYokisLightControl",
+                        "blink",
+                        commandWrapper.payload,
+                    );
                 },
             },
         ];
@@ -1309,7 +1328,11 @@ const yokisCommandsExtend = {
 
                     yokisExtendChecks.log(key, value, commandWrapper.payload);
 
-                    await entity.command("manuSpecificYokisLightControl", "deafBlink", commandWrapper.payload);
+                    await entity.command<"manuSpecificYokisLightControl", "deafBlink", YokisLightControl>(
+                        "manuSpecificYokisLightControl",
+                        "deafBlink",
+                        commandWrapper.payload,
+                    );
                 },
             },
         ];
@@ -1331,7 +1354,7 @@ const yokisCommandsExtend = {
                 key: ["long_on_command"],
                 convertSet: async (entity, key, value, meta) => {
                     yokisExtendChecks.log(key, value);
-                    await entity.command("manuSpecificYokisLightControl", "longOn", {});
+                    await entity.command<"manuSpecificYokisLightControl", "longOn", YokisLightControl>("manuSpecificYokisLightControl", "longOn", {});
                 },
             },
         ];
@@ -1353,7 +1376,7 @@ const yokisCommandsExtend = {
                 key: ["send_press"],
                 convertSet: async (entity, key, value, meta) => {
                     yokisExtendChecks.log(key, value);
-                    await entity.command("manuSpecificYokisDevice", "sendPress", {});
+                    await entity.command<"manuSpecificYokisInput", "sendPress", YokisInput>("manuSpecificYokisInput", "sendPress", {});
                 },
             },
         ];
@@ -1375,7 +1398,7 @@ const yokisCommandsExtend = {
                 key: ["send_release"],
                 convertSet: async (entity, key, value, meta) => {
                     yokisExtendChecks.log(key, value);
-                    await entity.command("manuSpecificYokisDevice", "sendRelease", {});
+                    await entity.command<"manuSpecificYokisInput", "sendRelease", YokisInput>("manuSpecificYokisInput", "sendRelease", {});
                 },
             },
         ];
@@ -1400,7 +1423,11 @@ const yokisCommandsExtend = {
 
                     yokisExtendChecks.log(key, value);
 
-                    await entity.command("manuSpecificYokisLightControl", "selectInputMode", commandWrapper.payload);
+                    await entity.command<"manuSpecificYokisInput", "selectInputMode", YokisInput>(
+                        "manuSpecificYokisInput",
+                        "selectInputMode",
+                        commandWrapper.payload,
+                    );
                 },
             },
         ];
@@ -1442,7 +1469,7 @@ const yokisCommandsExtend = {
 
                     yokisExtendChecks.log(key, value, commandWrapper.payload);
 
-                    await entity.command("manuSpecificYokisDimmer", "dim", commandWrapper.payload);
+                    await entity.command<"manuSpecificYokisDimmer", "dim", YokisDimmer>("manuSpecificYokisDimmer", "dim", commandWrapper.payload);
                 },
             },
         ];
@@ -1499,7 +1526,11 @@ const yokisCommandsExtend = {
                 convertSet: async (entity, key, value, meta) => {
                     utils.assertString(value);
                     yokisExtendChecks.log(key, value);
-                    await entity.command("manuSpecificYokisDimmer", value, {});
+                    await entity.command<"manuSpecificYokisDimmer", "dimUp" | "dimDown", YokisDimmer>(
+                        "manuSpecificYokisDimmer",
+                        value as "dimUp" | "dimDown",
+                        {},
+                    );
                 },
             },
         ];
@@ -1522,7 +1553,11 @@ const yokisCommandsExtend = {
                 convertSet: async (entity, key, value, meta) => {
                     utils.assertString(value);
                     yokisExtendChecks.log(key, value);
-                    await entity.command("manuSpecificYokisDimmer", value, {});
+                    await entity.command<"manuSpecificYokisDimmer", "moveToFavorite1" | "moveToFavorite2" | "moveToFavorite3", YokisDimmer>(
+                        "manuSpecificYokisDimmer",
+                        value as "moveToFavorite1" | "moveToFavorite2" | "moveToFavorite3",
+                        {},
+                    );
                 },
             },
         ];
@@ -1545,7 +1580,11 @@ const yokisCommandsExtend = {
                 convertSet: async (entity, key, value, meta) => {
                     utils.assertString(value);
                     yokisExtendChecks.log(key, value);
-                    await entity.command("manuSpecificYokisDimmer", value, {});
+                    await entity.command<"manuSpecificYokisDimmer", "startNightLightModeCurrent", YokisDimmer>(
+                        "manuSpecificYokisDimmer",
+                        value as "startNightLightModeCurrent",
+                        {},
+                    );
                 },
             },
         ];
@@ -1616,7 +1655,11 @@ const yokisCommandsExtend = {
 
                     yokisExtendChecks.log(key, value, commandWrapper.payload);
 
-                    await entity.command("manuSpecificYokisDimmer", "startNightLightMode", commandWrapper.payload);
+                    await entity.command<"manuSpecificYokisDimmer", "startNightLightMode", YokisDimmer>(
+                        "manuSpecificYokisDimmer",
+                        "startNightLightMode",
+                        commandWrapper.payload,
+                    );
                 },
             },
         ];

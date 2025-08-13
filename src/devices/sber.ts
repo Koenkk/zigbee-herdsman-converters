@@ -182,7 +182,7 @@ const sdevices = {
             key: ["identify"],
             options: tz.identify.options,
             convertSet: async (entity, key, value, meta) => {
-                const identifyTimeout = meta.options.identify_timeout ?? 30;
+                const identifyTimeout = (meta.options.identify_timeout as number) ?? 30;
                 await entity.command("genIdentify", "identify", {identifytime: identifyTimeout}, utils.getOptions(meta.mapped, entity));
             },
         } satisfies Tz.Converter,

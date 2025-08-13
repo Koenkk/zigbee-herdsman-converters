@@ -557,22 +557,26 @@ const fzLocal = {
                 // Send Schneider specific ACK to make PowerTag happy
                 // @ts-expect-error ignore
                 const networkParameters = await msg.device.constructor.adapter.getNetworkParameters();
-                const payload = {
-                    options: 0b000,
-                    tempMaster: msg.data.gppNwkAddr,
-                    tempMasterTx: networkParameters.channel - 11,
-                    srcID: msg.data.srcID,
-                    gpdCmd: 0xfe,
-                    gpdPayload: {
-                        commandID: 0xfe,
-                        buffer: Buffer.alloc(1), // I hope it's zero initialised
-                    },
-                };
 
-                await msg.endpoint.commandResponse("greenPower", "response", payload, {
-                    srcEndpoint: 242,
-                    disableDefaultResponse: true,
-                });
+                await msg.endpoint.commandResponse(
+                    "greenPower",
+                    "response",
+                    {
+                        options: 0b000,
+                        tempMaster: msg.data.gppNwkAddr,
+                        tempMasterTx: networkParameters.channel - 11,
+                        srcID: msg.data.srcID,
+                        gpdCmd: 0xfe,
+                        gpdPayload: {
+                            commandID: 0xfe,
+                            buffer: Buffer.alloc(1),
+                        },
+                    },
+                    {
+                        srcEndpoint: 242,
+                        disableDefaultResponse: true,
+                    },
+                );
             }
 
             return ret;

@@ -26,6 +26,12 @@ const fzZosung = zosung.fzZosung;
 const tzZosung = zosung.tzZosung;
 const ez = zosung.presetsZosung;
 
+interface TuyaGenOnOff {
+    attributes: never;
+    commands: {tuyaCountdown: {data: Buffer}};
+    commandResponses: never;
+}
+
 const storeLocal = {
     getPrivatePJ1203A: (device: Zh.Device) => {
         let priv = globalStore.getValue(device, "private_state");
@@ -321,7 +327,7 @@ const tzLocal = {
             utils.assertNumber(value);
             const data = Buffer.alloc(4);
             data.writeUInt32LE(value);
-            await entity.command("genOnOff", "tuyaCountdown", {data});
+            await entity.command<"genOnOff", "tuyaCountdown", TuyaGenOnOff>("genOnOff", "tuyaCountdown", {data});
         },
     } satisfies Tz.Converter,
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
@@ -365,7 +371,7 @@ const tzLocal = {
                 newState.color_mode = colorMode;
 
                 // To switch between white mode and color mode, we have to send a special command:
-                const rgbMode = colorMode === colorModeLookup[ColorMode.HS];
+                const rgbMode = colorMode === colorModeLookup[ColorMode.HS] ? 1 : 0;
                 await entity.command("lightingColorCtrl", "tuyaRgbMode", {
                     enable: rgbMode,
                 });
@@ -377,17 +383,25 @@ const tzLocal = {
 
             if (colorMode === colorModeLookup[ColorMode.ColorTemp]) {
                 if ("brightness" in meta.message) {
-                    const zclData = {level: Number(meta.message.brightness), transtime};
-                    await entity.command("genLevelCtrl", "moveToLevel", zclData, utils.getOptions(meta.mapped, entity));
+                    await entity.command(
+                        "genLevelCtrl",
+                        "moveToLevel",
+                        {level: Number(meta.message.brightness), transtime},
+                        utils.getOptions(meta.mapped, entity),
+                    );
                     newState.brightness = meta.message.brightness;
                 }
 
                 if ("color_temp" in meta.message) {
-                    const zclData = {
-                        colortemp: meta.message.color_temp,
-                        transtime: transtime,
-                    };
-                    await entity.command("lightingColorCtrl", "moveToColorTemp", zclData, utils.getOptions(meta.mapped, entity));
+                    await entity.command(
+                        "lightingColorCtrl",
+                        "moveToColorTemp",
+                        {
+                            colortemp: meta.message.color_temp as number,
+                            transtime: transtime,
+                        },
+                        utils.getOptions(meta.mapped, entity),
+                    );
                     newState.color_temp = meta.message.color_temp;
                 }
             } else if (colorMode === colorModeLookup[ColorMode.HS]) {
@@ -472,9 +486,7 @@ const tzLocal = {
                 (color.isXY() && (color.xy.x === 0.323 || color.xy.y === 0.329));
 
             if (enableWhite) {
-                await entity.command("lightingColorCtrl", "tuyaRgbMode", {
-                    enable: false,
-                });
+                await entity.command("lightingColorCtrl", "tuyaRgbMode", {enable: 0});
                 const newState: KeyValue = {color_mode: "xy"};
                 if (color.isXY()) {
                     newState.color = color.xy;

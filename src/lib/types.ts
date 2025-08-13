@@ -342,7 +342,7 @@ export namespace Tuya {
     export interface DpValue {
         dp: number;
         datatype: number;
-        data: Buffer | number[];
+        data: Buffer;
     }
     export interface ValueConverterSingle {
         // biome-ignore lint/suspicious/noExplicitAny: value is validated on per-case basis

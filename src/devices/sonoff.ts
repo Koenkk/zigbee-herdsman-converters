@@ -8,7 +8,7 @@ import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as tuya from "../lib/tuya";
-import type {DefinitionWithExtend, Fz, KeyValue, KeyValueAny, ModernExtend, Tz} from "../lib/types";
+import type {DefinitionWithExtend, Fz, KeyValue, ModernExtend, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
 
 const {ewelinkAction, ewelinkBattery} = ewelinkModernExtend;
@@ -108,7 +108,7 @@ type EntityCategoryArgs = {
     entityCategory?: "config" | "diagnostic";
 };
 
-interface SonoffEwelink {
+export interface SonoffEwelink {
     attributes: {
         networkLed: number;
         backLight: number;
@@ -207,7 +207,7 @@ const sonoffExtend = {
 
                     const tmpTime = Number(Math.round(Number((value[inchingTime as keyof typeof value] * 2).toFixed(1))).toFixed(1));
 
-                    const payloadValue: Uint8Array = new Uint8Array(11);
+                    const payloadValue: number[] = [];
                     payloadValue[0] = 0x01; // Cmd
                     payloadValue[1] = 0x17; // SubCmd
                     payloadValue[2] = 0x07; // Length
@@ -234,7 +234,7 @@ const sonoffExtend = {
                         payloadValue[10] ^= payloadValue[i];
                     }
 
-                    await entity.command(
+                    await entity.command<typeof clusterName, typeof commandName, SonoffEwelink>(
                         clusterName,
                         commandName,
                         {data: payloadValue},
@@ -319,20 +319,15 @@ const sonoffExtend = {
 
                         const dayOfWeekBit = Number(dayKey);
 
-                        const transitions = value[dayOfWeekName].split(" ").sort();
+                        const rawTransitions = value[dayOfWeekName].split(" ").sort();
 
-                        if (transitions.length > 6) {
+                        if (rawTransitions.length > 6) {
                             throw new Error("Invalid schedule: days must have no more than 6 transitions");
                         }
 
-                        const payload: KeyValueAny = {
-                            dayofweek: 1 << Number(dayOfWeekBit),
-                            numoftrans: transitions.length,
-                            mode: 1 << 0, // heat
-                            transitions: [],
-                        };
+                        const transitions = [];
 
-                        for (const transition of transitions) {
+                        for (const transition of rawTransitions) {
                             const matches = transition.match(transitionRegex);
 
                             if (!matches) {
@@ -349,17 +344,27 @@ const sonoffExtend = {
                                 throw new Error(`Invalid schedule: temperature value must be between 4-35 (inclusive), found: ${temp}`);
                             }
 
-                            payload.transitions.push({
+                            transitions.push({
                                 transitionTime: hour * 60 + mins,
                                 heatSetpoint: Math.round(temp * 100),
                             });
                         }
 
-                        if (payload.transitions[0].transitionTime !== 0) {
+                        if (transitions[0].transitionTime !== 0) {
                             throw new Error("Invalid schedule: the first transition of each day should start at 00:00");
                         }
 
-                        await entity.command("hvacThermostat", "setWeeklySchedule", payload, utils.getOptions(meta.mapped, entity));
+                        await entity.command(
+                            "hvacThermostat",
+                            "setWeeklySchedule",
+                            {
+                                dayofweek: 1 << Number(dayOfWeekBit),
+                                numoftrans: rawTransitions.length,
+                                mode: 1 << 0, // heat
+                                transitions,
+                            },
+                            utils.getOptions(meta.mapped, entity),
+                        );
                     }
                 },
             },

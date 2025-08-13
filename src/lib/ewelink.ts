@@ -1,3 +1,4 @@
+import type {SonoffEwelink} from "../devices/sonoff";
 import {access, options, presets} from "./exposes";
 import {battery, setupConfigureForBinding} from "./modernExtend";
 import type {Configure, Expose, Fz, KeyValueAny, ModernExtend, Tz, Zh} from "./types";
@@ -48,7 +49,7 @@ export const ewelinkFromZigbee = {
 };
 
 // ======================= Custom Extend =================================
-function privateMotorClbByPosition(clusterName: string, writeCommand: string): ModernExtend {
+function privateMotorClbByPosition(clusterName: "customClusterEwelink", writeCommand: "protocolData"): ModernExtend {
     const protocol = {
         dooya: {
             supportModel: ["CK-MG22-Z310EE07DOOYA-01(7015)", "MYDY25Z-1", "CK-MG22-JLDJ-01(7015)"],
@@ -215,7 +216,7 @@ function privateMotorClbByPosition(clusterName: string, writeCommand: string): M
                         payloadValue[2] = mapping[value as keyof typeof mapping];
                     }
 
-                    await entity.command(clusterName, writeCommand, {data: payloadValue});
+                    await entity.command<typeof clusterName, typeof writeCommand, SonoffEwelink>(clusterName, writeCommand, {data: payloadValue});
                 } else if (protocol.raex.supportModel.includes(modelID)) {
                     const {deleteMotorClbCommand, updateMotorClbCommand, mapping} = protocol.raex;
                     // Raex Protocol
@@ -234,7 +235,7 @@ function privateMotorClbByPosition(clusterName: string, writeCommand: string): M
                         payloadValue[3] = mapping[value as keyof typeof mapping];
                     }
 
-                    await entity.command(clusterName, writeCommand, {data: payloadValue});
+                    await entity.command<typeof clusterName, typeof writeCommand, SonoffEwelink>(clusterName, writeCommand, {data: payloadValue});
                 } else if (protocol.ak.supportModel.includes(modelID)) {
                     // AK Protocol
                     const {updateMotorClbCommand, mapping} = protocol.ak;
@@ -245,7 +246,7 @@ function privateMotorClbByPosition(clusterName: string, writeCommand: string): M
                     payloadValue[3] = updateMotorClbCommand.dataType;
                     payloadValue.push(...updateMotorClbCommand.dataLength);
                     payloadValue[6] = mapping[value as keyof typeof mapping];
-                    await entity.command(clusterName, writeCommand, {data: payloadValue});
+                    await entity.command<typeof clusterName, typeof writeCommand, SonoffEwelink>(clusterName, writeCommand, {data: payloadValue});
                 }
                 return {state: {[key]: value}};
             },
@@ -255,7 +256,7 @@ function privateMotorClbByPosition(clusterName: string, writeCommand: string): M
     return {exposes, toZigbee, fromZigbee, isModernExtend: true};
 }
 
-function privateMotorMode(clusterName: string, writeCommand: string): ModernExtend {
+function privateMotorMode(clusterName: "customClusterEwelink", writeCommand: "protocolData"): ModernExtend {
     const mode = ["inching", "continuou"];
     const protocol = {
         dooya: {
@@ -369,7 +370,7 @@ function privateMotorMode(clusterName: string, writeCommand: string): ModernExte
                     payloadValue[0] = updateMotorModeCommand.privateCmd;
                     payloadValue[1] = updateMotorModeCommand.subCmd;
                     payloadValue[2] = mapping[value as keyof typeof mapping];
-                    await entity.command(clusterName, writeCommand, {data: payloadValue});
+                    await entity.command<typeof clusterName, typeof writeCommand, SonoffEwelink>(clusterName, writeCommand, {data: payloadValue});
                 } else if (protocol.raex.supportModel.includes(modelID)) {
                     // Raex Protocol
                     const payloadValue = [];
@@ -378,7 +379,7 @@ function privateMotorMode(clusterName: string, writeCommand: string): ModernExte
                     payloadValue[1] = updateMotorModeCommand.dataLength;
                     payloadValue[2] = updateMotorModeCommand.subCmd;
                     payloadValue[3] = mapping[value as keyof typeof mapping];
-                    await entity.command(clusterName, writeCommand, {data: payloadValue});
+                    await entity.command<typeof clusterName, typeof writeCommand, SonoffEwelink>(clusterName, writeCommand, {data: payloadValue});
                 } else if (protocol.ak.supportModel.includes(modelID)) {
                     // AK Protocol
                     const payloadValue = [];
@@ -389,7 +390,7 @@ function privateMotorMode(clusterName: string, writeCommand: string): ModernExte
                     payloadValue[3] = updateMotorModeCommand.dataType;
                     payloadValue.push(...updateMotorModeCommand.dataLength);
                     payloadValue[6] = mapping[value as keyof typeof mapping];
-                    await entity.command(clusterName, writeCommand, {data: payloadValue});
+                    await entity.command<typeof clusterName, typeof writeCommand, SonoffEwelink>(clusterName, writeCommand, {data: payloadValue});
                 }
 
                 return {state: {[key]: value}};
@@ -560,7 +561,7 @@ function privateReportMotorInfo(clusterName: string): ModernExtend {
     return {exposes: [expose], fromZigbee, isModernExtend: true};
 }
 
-function privateMotorSpeed(clusterName: string, writeCommand: string, minSpeed: number, maxSpeed: number): ModernExtend {
+function privateMotorSpeed(clusterName: "customClusterEwelink", writeCommand: "protocolData", minSpeed: number, maxSpeed: number): ModernExtend {
     const protocol = {
         dooya: {
             supportModel: ["CK-MG22-Z310EE07DOOYA-01(7015)", "MYDY25Z-1", "CK-MG22-JLDJ-01(7015)", "Grandekor Smart Curtain Grandekor"],
@@ -631,20 +632,20 @@ function privateMotorSpeed(clusterName: string, writeCommand: string, minSpeed: 
                 const modelID = device.modelID;
 
                 if (protocol.dooya.supportModel.includes(modelID)) {
-                    const payloadValue = [];
+                    const payloadValue: number[] = [];
                     const {updateMotorSpeedCommand} = protocol.dooya;
                     payloadValue[0] = updateMotorSpeedCommand.privateCmd;
                     payloadValue[1] = updateMotorSpeedCommand.subCmd;
-                    payloadValue[2] = value;
-                    await entity.command(clusterName, writeCommand, {data: payloadValue});
+                    payloadValue[2] = value as number;
+                    await entity.command<typeof clusterName, typeof writeCommand, SonoffEwelink>(clusterName, writeCommand, {data: payloadValue});
                 } else if (protocol.raex.supportModel.includes(modelID)) {
-                    const payloadValue = [];
+                    const payloadValue: number[] = [];
                     const {updateMotorSpeedCommand} = protocol.raex;
                     payloadValue[0] = updateMotorSpeedCommand.privateCmd;
                     payloadValue[1] = updateMotorSpeedCommand.dataLength;
                     payloadValue[2] = updateMotorSpeedCommand.subCmd;
-                    payloadValue[3] = value;
-                    await entity.command(clusterName, writeCommand, {data: payloadValue});
+                    payloadValue[3] = value as number;
+                    await entity.command<typeof clusterName, typeof writeCommand, SonoffEwelink>(clusterName, writeCommand, {data: payloadValue});
                 }
 
                 return {state: {[key]: value}};
@@ -696,16 +697,16 @@ export const ewelinkModernExtend = {
             isModernExtend: true,
         };
     },
-    ewelinkMotorClbByPosition: (clusterName: string, writeCommand: string): ModernExtend => {
+    ewelinkMotorClbByPosition: (clusterName: "customClusterEwelink", writeCommand: "protocolData"): ModernExtend => {
         return privateMotorClbByPosition(clusterName, writeCommand);
     },
-    ewelinkMotorMode: (clusterName: string, writeCommand: string): ModernExtend => {
+    ewelinkMotorMode: (clusterName: "customClusterEwelink", writeCommand: "protocolData"): ModernExtend => {
         return privateMotorMode(clusterName, writeCommand);
     },
-    ewelinkReportMotorInfo: (clusterName: string): ModernExtend => {
+    ewelinkReportMotorInfo: (clusterName: "customClusterEwelink"): ModernExtend => {
         return privateReportMotorInfo(clusterName);
     },
-    ewelinkMotorSpeed: (clusterName: string, writeCommand: string, min: number, max: number): ModernExtend => {
+    ewelinkMotorSpeed: (clusterName: "customClusterEwelink", writeCommand: "protocolData", min: number, max: number): ModernExtend => {
         return privateMotorSpeed(clusterName, writeCommand, min, max);
     },
 };

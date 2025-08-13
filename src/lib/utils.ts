@@ -492,7 +492,7 @@ export function getObjectProperty(object: KeyValue, key: string, defaultValue: u
     return object && object[key] !== undefined ? object[key] : defaultValue;
 }
 
-export function validateValue(value: unknown, allowed: unknown[]) {
+export function validateValue<T>(value: T, allowed: readonly T[]): asserts value is (typeof allowed)[number] {
     if (!allowed.includes(value)) {
         throw new Error(`'${value}' not allowed, choose between: ${allowed}`);
     }
@@ -652,9 +652,9 @@ export function getFromLookup<V>(value: unknown, lookup: {[s: number | string]: 
 }
 
 export function getFromLookupByValue(value: unknown, lookup: {[s: string]: unknown}, defaultValue: string = undefined): string {
-    for (const entry of Object.entries(lookup)) {
-        if (entry[1] === value) {
-            return entry[0];
+    for (const [key, val] of Object.entries(lookup)) {
+        if (val === value) {
+            return key;
         }
     }
     if (defaultValue === undefined) {

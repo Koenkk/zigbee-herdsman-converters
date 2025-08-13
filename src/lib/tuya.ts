@@ -34,6 +34,22 @@ interface KeyValueStringEnum {
     [s: string]: Enum;
 }
 
+interface Tuya4 {
+    attributes: {
+        // biome-ignore lint/style/useNamingConvention: TODO
+        random_timing: string;
+        // biome-ignore lint/style/useNamingConvention: TODO
+        cycle_timing: string;
+        inching: string;
+    };
+    commands: {
+        setRandomTiming: {payload: Buffer};
+        setCycleTiming: {payload: Buffer};
+        setInchingSwitch: {payload: Buffer};
+    };
+    commandResponses: never;
+}
+
 export const dataTypes = {
     raw: 0, // [ bytes ]
     bool: 1, // [0/1]
@@ -106,32 +122,32 @@ async function sendDataPoints(entity: Zh.Endpoint | Zh.Group, dpValues: Tuya.DpV
         globalStore.putValue(entity, "sequence", (seq + 1) % 0xffff);
     }
 
-    await entity.command("manuSpecificTuya", cmd, {seq, dpValues}, {disableDefaultResponse: true});
+    await entity.command("manuSpecificTuya", cmd as "dataRequest", {seq, dpValues}, {disableDefaultResponse: true});
     return seq;
 }
 
 function dpValueFromNumberValue(dp: number, value: number) {
-    return {dp, datatype: dataTypes.number, data: convertDecimalValueTo4ByteHexArray(value)};
+    return {dp, datatype: dataTypes.number, data: Buffer.from(convertDecimalValueTo4ByteHexArray(value))};
 }
 
 function dpValueFromBool(dp: number, value: boolean) {
-    return {dp, datatype: dataTypes.bool, data: [value ? 1 : 0]};
+    return {dp, datatype: dataTypes.bool, data: Buffer.from([value ? 1 : 0])};
 }
 
 function dpValueFromEnum(dp: number, value: number) {
-    return {dp, datatype: dataTypes.enum, data: [value]};
+    return {dp, datatype: dataTypes.enum, data: Buffer.from([value])};
 }
 
 export function dpValueFromString(dp: number, string: string) {
-    return {dp, datatype: dataTypes.string, data: convertStringToHexArray(string)};
+    return {dp, datatype: dataTypes.string, data: Buffer.from(convertStringToHexArray(string))};
 }
 
 function dpValueFromRaw(dp: number, rawBuffer: number[]) {
-    return {dp, datatype: dataTypes.raw, data: rawBuffer};
+    return {dp, datatype: dataTypes.raw, data: Buffer.from(rawBuffer)};
 }
 
 function dpValueFromBitmap(dp: number, bitmapBuffer: number) {
-    return {dp, datatype: dataTypes.bitmap, data: [bitmapBuffer]};
+    return {dp, datatype: dataTypes.bitmap, data: Buffer.from([bitmapBuffer])};
 }
 
 export async function sendDataPointValue(entity: Zh.Group | Zh.Endpoint, dp: number, value: number, cmd?: string, seq?: number) {
@@ -1598,12 +1614,11 @@ const tuyaTz = {
         convertSet: async (entity, key, value, meta) => {
             const state =
                 meta.message.state != null ? (utils.isString(meta.message.state) ? meta.message.state.toLowerCase() : undefined) : undefined;
-            const countdown = meta.message.countdown != null ? meta.message.countdown : undefined;
+            const countdown = meta.message.countdown != null ? (meta.message.countdown as number) : undefined;
             const result: KeyValue = {};
             if (countdown !== undefined) {
                 // OnTime is a 16bit register and so might very well work up to 0xFFFF seconds but
                 // the Tuya documentation says that the maximum is 43200 (so 12 hours).
-                // @ts-expect-error ignore
                 if (!Number.isInteger(countdown) || countdown < 0 || countdown > 12 * 3600) {
                     throw new Error("countdown must be an integer between 1 and 43200 (12 hours) or 0 to cancel");
                 }
@@ -1611,7 +1626,7 @@ const tuyaTz = {
             // The order of the commands matters because 'on/off/toggle' cancels 'onWithTimedOff'.
             if (state !== undefined) {
                 utils.validateValue(state, ["toggle", "off", "on"]);
-                await entity.command("genOnOff", state, {}, utils.getOptions(meta.mapped, entity));
+                await entity.command("genOnOff", state as "toggle" | "off" | "on", {}, utils.getOptions(meta.mapped, entity));
                 if (state === "toggle") {
                     const currentState = meta.state[`state${meta.endpoint_name ? `_${meta.endpoint_name}` : ""}`];
                     if (currentState) {
@@ -1626,8 +1641,12 @@ const tuyaTz = {
             if (countdown !== undefined) {
                 // offwaittime is probably not used but according to the Tuya documentation, it should
                 // be set to the same value than ontime.
-                const payload = {ctrlbits: 0, ontime: countdown, offwaittime: countdown};
-                await entity.command("genOnOff", "onWithTimedOff", payload, utils.getOptions(meta.mapped, entity));
+                await entity.command(
+                    "genOnOff",
+                    "onWithTimedOff",
+                    {ctrlbits: 0, ontime: countdown, offwaittime: countdown},
+                    utils.getOptions(meta.mapped, entity),
+                );
                 if (result.state !== undefined) {
                     result.countdown = countdown;
                 }
@@ -1645,10 +1664,14 @@ const tuyaTz = {
     inchingSwitch: {
         key: ["inching_control_set"],
         convertSet: async (entity, key, value, meta) => {
-            const inching = valueConverter.inchingSwitch.to(value);
-            const payload = {payload: inching};
             const endpoint = meta.device.getEndpoint(1);
-            await endpoint.command("manuSpecificTuya4", "setInchingSwitch", payload, utils.getOptions(meta.mapped, endpoint));
+            await endpoint.command<"manuSpecificTuya4", "setInchingSwitch", Tuya4>(
+                "manuSpecificTuya4",
+                "setInchingSwitch",
+                // TODO: correct? seems it would take the `!(values instanceof Buffer)` codepath of ZH before
+                {payload: Buffer.from(valueConverter.inchingSwitch.to(value))},
+                utils.getOptions(meta.mapped, endpoint),
+            );
 
             return {state: {inching_control_set: value}};
         },

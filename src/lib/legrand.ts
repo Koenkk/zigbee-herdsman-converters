@@ -9,7 +9,7 @@ const NS = "zhc:legrand";
 const e = exposes.presets;
 const ea = exposes.access;
 
-const shutterCalibrationModes: {[k: number]: {description: string; onlyNLLV: boolean; supportsTilt: boolean}} = {
+const shutterCalibrationModes = {
     0: {description: "classic_nllv", onlyNLLV: true, supportsTilt: false},
     1: {description: "specific_nllv", onlyNLLV: true, supportsTilt: false},
     2: {description: "up_down_stop", onlyNLLV: false, supportsTilt: false},
@@ -17,19 +17,19 @@ const shutterCalibrationModes: {[k: number]: {description: string; onlyNLLV: boo
     4: {description: "venetian_bso", onlyNLLV: false, supportsTilt: true},
 };
 
-const ledModes: {[k: number]: string} = {
+const ledModes = {
     1: "led_in_dark",
     2: "led_if_on",
 };
 
-const ledEffects: {[k: number]: string} = {
+const ledEffects = {
     0: "blink 3",
     1: "fixed",
     2: "blink green",
     3: "blink blue",
 };
 
-const ledColors: {[k: number]: string} = {
+const ledColors = {
     0: "default",
     1: "red",
     2: "green",
@@ -82,7 +82,7 @@ export const eLegrand = {
         const calMode = !utils.isDummyDevice(device)
             ? Number(device.getEndpoint(1)?.clusters?.closuresWindowCovering?.attributes?.calibrationMode)
             : 0;
-        const showTilt = calMode ? shutterCalibrationModes[calMode]?.supportsTilt === true : false;
+        const showTilt = calMode ? utils.getFromLookup(calMode, shutterCalibrationModes)?.supportsTilt === true : false;
 
         if (showTilt) {
             c.addFeature(
@@ -165,12 +165,11 @@ export const tzLegrand = {
             const selEffect = identityEffect?.effect ?? ledEffects[0];
             const selColor = identityEffect?.color ?? ledColors[0];
 
-            const effectID = utils.getFromLookupByValue(selEffect, ledEffects, "0");
-            const effectVariant = utils.getFromLookupByValue(selColor, ledColors, "0");
+            const effectID = Number.parseInt(utils.getFromLookupByValue(selEffect, ledEffects, "0"));
+            const effectVariant = Number.parseInt(utils.getFromLookupByValue(selColor, ledColors, "0"));
 
             // Trigger an effect
-            const payload = {effectid: effectID, effectvariant: effectVariant};
-            await entity.command("genIdentify", "triggerEffect", payload, {});
+            await entity.command("genIdentify", "triggerEffect", {effectid: effectID, effectvariant: effectVariant}, {});
             // Trigger the identification
             await entity.command("genIdentify", "identify", {identifytime: 10}, {});
         },

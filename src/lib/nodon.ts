@@ -75,7 +75,7 @@ const pilotWireConfig = (configureReporting: boolean): ModernExtend => {
                         "comfort_-2": 0x05,
                     });
                     const payload = {mode: mode};
-                    await entity.command(PILOT_WIRE_CLUSTER, "setMode", payload);
+                    await entity.command<typeof PILOT_WIRE_CLUSTER, "setMode", NodonPilotWire>(PILOT_WIRE_CLUSTER, "setMode", payload);
                     return {state: {pilot_wire_mode: value}};
                 },
                 convertGet: async (entity, key, meta) => {

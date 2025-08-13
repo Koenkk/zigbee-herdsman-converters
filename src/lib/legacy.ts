@@ -137,7 +137,7 @@ async function sendDataPoints(entity: Zh.Endpoint | Zh.Group, dpValues: any, cmd
 
     await entity.command(
         "manuSpecificTuya",
-        cmd || "dataRequest",
+        cmd as "dataRequest",
         {
             seq,
             dpValues,

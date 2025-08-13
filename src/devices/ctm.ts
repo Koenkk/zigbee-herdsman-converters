@@ -419,7 +419,7 @@ const tzLocal = {
         key: ["device_enabled"],
         convertSet: async (entity, key, value, meta) => {
             utils.assertString(value, "device_enabled");
-            await entity.command("genOnOff", value.toLowerCase(), {}, utils.getOptions(meta.mapped, entity));
+            await entity.command("genOnOff", value.toLowerCase() as "off" | "on", {}, utils.getOptions(meta.mapped, entity));
         },
         convertGet: async (entity, key, meta) => {
             await entity.read("genOnOff", ["onOff"]);
@@ -428,7 +428,7 @@ const tzLocal = {
     ctm_mbd_brightness: {
         key: ["brightness"],
         convertSet: async (entity, key, value, meta) => {
-            await entity.command("genLevelCtrl", "moveToLevel", {level: value, transtime: 1}, utils.getOptions(meta.mapped, entity));
+            await entity.command("genLevelCtrl", "moveToLevel", {level: value as number, transtime: 1}, utils.getOptions(meta.mapped, entity));
         },
         convertGet: async (entity, key, meta) => {
             await entity.read("genLevelCtrl", ["currentLevel"]);

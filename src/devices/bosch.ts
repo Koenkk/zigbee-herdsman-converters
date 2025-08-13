@@ -101,6 +101,12 @@ interface BoschHvacUserInterfaceCfg {
     commandResponses: never;
 }
 
+interface BoschSsIasWd {
+    attributes: never;
+    commands: {boschOutdoorSiren: {data: number}};
+    commandResponses: never;
+}
+
 interface TwinguardSmokeDetector {
     attributes: {
         sensitivity: number;
@@ -157,6 +163,21 @@ interface BoschSpecificBmct {
 interface BoschSpecificBwa1 {
     attributes: {alarmOnMotion: number};
     commands: never;
+    commandResponses: never;
+}
+
+interface BoschSpecificBhius {
+    attributes: never;
+    commands: {
+        confirmButtonPressed: {data: Buffer};
+        pairingCompleted: {data: Buffer};
+    };
+    commandResponses: never;
+}
+
+interface BoschSmokeAlarmSiren {
+    attributes: never;
+    commands: {boschSmokeAlarmSiren: {data: number}};
     commandResponses: never;
 }
 
@@ -334,7 +355,12 @@ const boschExtend = {
                         switch (adaptStatus) {
                             case adaptationStatus.ready_to_calibrate:
                             case adaptationStatus.error:
-                                await entity.command("hvacThermostat", "calibrateValve", {}, manufacturerOptions);
+                                await entity.command<"hvacThermostat", "calibrateValve", BoschHvacThermostat>(
+                                    "hvacThermostat",
+                                    "calibrateValve",
+                                    {},
+                                    manufacturerOptions,
+                                );
                                 break;
                             default:
                                 throw new Error("Valve adaptation process not possible right now.");
@@ -465,11 +491,11 @@ const boschExtend = {
         };
     },
     smokeAlarm: (): ModernExtend => {
-        const smokeAlarm: KeyValue = {
+        const smokeAlarm = {
             OFF: 0x0000,
             ON: 0x3c00, // 15360 or 46080 works
         };
-        const burglarAlarm: KeyValue = {
+        const burglarAlarm = {
             OFF: 0x0001,
             ON: 0xb401, // 46081
         };
@@ -513,7 +539,12 @@ const boschExtend = {
                             transformedValue = "ON";
                         }
                         const index = utils.getFromLookup(transformedValue, smokeAlarm);
-                        await entity.command("ssIasZone", "boschSmokeAlarmSiren", {data: index}, manufacturerOptions);
+                        await entity.command<"ssIasZone", "boschSmokeAlarmSiren", BoschSmokeAlarmSiren>(
+                            "ssIasZone",
+                            "boschSmokeAlarmSiren",
+                            {data: index},
+                            manufacturerOptions,
+                        );
                         return {state: {alarm_smoke: value}};
                     }
                     if (key === "alarm_burglar") {
@@ -522,7 +553,12 @@ const boschExtend = {
                             transformedValue = "ON";
                         }
                         const index = utils.getFromLookup(transformedValue, burglarAlarm);
-                        await entity.command("ssIasZone", "boschSmokeAlarmSiren", {data: index}, manufacturerOptions);
+                        await entity.command<"ssIasZone", "boschSmokeAlarmSiren", BoschSmokeAlarmSiren>(
+                            "ssIasZone",
+                            "boschSmokeAlarmSiren",
+                            {data: index},
+                            manufacturerOptions,
+                        );
                         return {state: {alarm_burglar: value}};
                     }
                 },
@@ -796,7 +832,12 @@ const boschExtend = {
                     }
                     if (key === "self_test") {
                         if (value) {
-                            await entity.command("twinguardSmokeDetector", "initiateTestMode", manufacturerOptions);
+                            await entity.command<"twinguardSmokeDetector", "initiateTestMode", TwinguardSmokeDetector>(
+                                "twinguardSmokeDetector",
+                                "initiateTestMode",
+                                {},
+                                manufacturerOptions,
+                            );
                         }
                     }
                     if (key === "alarm") {
@@ -806,7 +847,12 @@ const boschExtend = {
                         if (index === 0x00) {
                             await entity.commandResponse("genAlarms", "alarm", {alarmcode: 0x16, clusterid: 0xe000}, {direction: 1});
                             await entity.commandResponse("genAlarms", "alarm", {alarmcode: 0x14, clusterid: 0xe000}, {direction: 1});
-                            await endpoint.command("twinguardAlarm", "burglarAlarm", {data: 0x00}, manufacturerOptions);
+                            await endpoint.command<"twinguardAlarm", "burglarAlarm", TwinguardAlarm>(
+                                "twinguardAlarm",
+                                "burglarAlarm",
+                                {data: 0x00},
+                                manufacturerOptions,
+                            );
                         } else if (index === 0x01) {
                             await entity.commandResponse("genAlarms", "alarm", {alarmcode: 0x11, clusterid: 0xe000}, {direction: 1});
                             return {state: {siren_state: "pre_alarm"}};
@@ -814,7 +860,12 @@ const boschExtend = {
                             await entity.commandResponse("genAlarms", "alarm", {alarmcode: 0x10, clusterid: 0xe000}, {direction: 1});
                             return {state: {siren_state: "fire"}};
                         } else if (index === 0x03) {
-                            await endpoint.command("twinguardAlarm", "burglarAlarm", {data: 0x01}, manufacturerOptions);
+                            await endpoint.command<"twinguardAlarm", "burglarAlarm", TwinguardAlarm>(
+                                "twinguardAlarm",
+                                "burglarAlarm",
+                                {data: 0x01},
+                                manufacturerOptions,
+                            );
                         }
                     }
                 },
@@ -1044,32 +1095,32 @@ const tzLocal = {
         convertSet: async (entity, key, value, meta) => {
             if (key === "light_delay") {
                 const index = value;
-                await entity.write(0x0502, {40964: {value: index, type: 0x21}}, manufacturerOptions);
+                await entity.write("ssIasWd", {40964: {value: index, type: 0x21}}, manufacturerOptions);
                 return {state: {light_delay: value}};
             }
             if (key === "siren_delay") {
                 const index = value;
-                await entity.write(0x0502, {40963: {value: index, type: 0x21}}, manufacturerOptions);
+                await entity.write("ssIasWd", {40963: {value: index, type: 0x21}}, manufacturerOptions);
                 return {state: {siren_delay: value}};
             }
             if (key === "light_duration") {
                 const index = value;
-                await entity.write(0x0502, {40965: {value: index, type: 0x20}}, manufacturerOptions);
+                await entity.write("ssIasWd", {40965: {value: index, type: 0x20}}, manufacturerOptions);
                 return {state: {light_duration: value}};
             }
             if (key === "siren_duration") {
                 const index = value;
-                await entity.write(0x0502, {40960: {value: index, type: 0x20}}, manufacturerOptions);
+                await entity.write("ssIasWd", {40960: {value: index, type: 0x20}}, manufacturerOptions);
                 return {state: {siren_duration: value}};
             }
             if (key === "siren_and_light") {
                 const index = utils.getFromLookup(value, sirenLight);
-                await entity.write(0x0502, {40961: {value: index, type: 0x20}}, manufacturerOptions);
+                await entity.write("ssIasWd", {40961: {value: index, type: 0x20}}, manufacturerOptions);
                 return {state: {siren_and_light: value}};
             }
             if (key === "siren_volume") {
                 const index = utils.getFromLookup(value, sirenVolume);
-                await entity.write(0x0502, {40962: {value: index, type: 0x20}}, manufacturerOptions);
+                await entity.write("ssIasWd", {40962: {value: index, type: 0x20}}, manufacturerOptions);
                 return {state: {siren_volume: value}};
             }
             if (key === "power_source") {
@@ -1081,35 +1132,40 @@ const tzLocal = {
                 const endpoint = meta.device.getEndpoint(1);
                 const index = utils.getFromLookup(value, outdoorSirenState);
                 if (index === 0) {
-                    await endpoint.command(0x0502, 0xf0, {data: 0}, manufacturerOptions);
+                    await endpoint.command<"ssIasWd", "boschOutdoorSiren", BoschSsIasWd>(
+                        "ssIasWd",
+                        "boschOutdoorSiren",
+                        {data: 0},
+                        manufacturerOptions,
+                    );
                     return {state: {alarm_state: value}};
                 }
-                await endpoint.command(0x0502, 0xf0, {data: 7}, manufacturerOptions);
+                await endpoint.command<"ssIasWd", "boschOutdoorSiren", BoschSsIasWd>("ssIasWd", "boschOutdoorSiren", {data: 7}, manufacturerOptions);
                 return {state: {alarm_state: value}};
             }
         },
         convertGet: async (entity, key, meta) => {
             switch (key) {
                 case "light_delay":
-                    await entity.read(0x0502, [0xa004], manufacturerOptions);
+                    await entity.read("ssIasWd", [0xa004], manufacturerOptions);
                     break;
                 case "siren_delay":
-                    await entity.read(0x0502, [0xa003], manufacturerOptions);
+                    await entity.read("ssIasWd", [0xa003], manufacturerOptions);
                     break;
                 case "light_duration":
-                    await entity.read(0x0502, [0xa005], manufacturerOptions);
+                    await entity.read("ssIasWd", [0xa005], manufacturerOptions);
                     break;
                 case "siren_duration":
-                    await entity.read(0x0502, [0xa000], manufacturerOptions);
+                    await entity.read("ssIasWd", [0xa000], manufacturerOptions);
                     break;
                 case "siren_and_light":
-                    await entity.read(0x0502, [0xa001], manufacturerOptions);
+                    await entity.read("ssIasWd", [0xa001], manufacturerOptions);
                     break;
                 case "siren_volume":
-                    await entity.read(0x0502, [0xa002], manufacturerOptions);
+                    await entity.read("ssIasWd", [0xa002], manufacturerOptions);
                     break;
                 case "alarm_state":
-                    await entity.read(0x0502, [0xf0], manufacturerOptions);
+                    await entity.read("ssIasWd", [0xf0], manufacturerOptions);
                     break;
                 default: // Unknown key
                     throw new Error(`Unhandled key toZigbee.rbshoszbeu.convertGet ${key}`);
@@ -1178,7 +1234,14 @@ const fzLocal = {
                 } else {
                     globalStore.clearValue(msg.endpoint, buttons[buttonId]);
                     command = longPress ? "longpress_release" : "release";
-                    msg.endpoint.command("boschSpecific", "confirmButtonPressed", {data: buffer}, {sendPolicy: "immediate"}).catch((error) => {});
+                    msg.endpoint
+                        .command<"boschSpecific", "confirmButtonPressed", BoschSpecificBhius>(
+                            "boschSpecific",
+                            "confirmButtonPressed",
+                            {data: buffer},
+                            {sendPolicy: "immediate"},
+                        )
+                        .catch((error) => {});
                 }
                 return {action: `button_${buttons[buttonId]}_${command}`};
             }
@@ -1836,7 +1899,9 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ["twinguardMeasurements"]);
             await reporting.bind(device.getEndpoint(12), coordinatorEndpoint, ["twinguardSetup", "twinguardAlarm"]);
             await device.getEndpoint(1).read<"twinguardOptions", TwinguardOptions>("twinguardOptions", ["unknown1"], manufacturerOptions); // Needed for pairing
-            await device.getEndpoint(12).command("twinguardSetup", "pairingCompleted", manufacturerOptions); // Needed for pairing
+            await device
+                .getEndpoint(12)
+                .command<"twinguardSetup", "pairingCompleted", TwinguardSetup>("twinguardSetup", "pairingCompleted", {}, manufacturerOptions); // Needed for pairing
             await device
                 .getEndpoint(1)
                 .write<"twinguardSmokeDetector", TwinguardSmokeDetector>("twinguardSmokeDetector", {sensitivity: 0x0002}, manufacturerOptions); // Setting defaults
@@ -2159,7 +2224,12 @@ export const definitions: DefinitionWithExtend[] = [
             // We also have to read this one. Value reads 0x0f, looks like a bitmap
             await endpoint.read("boschSpecific", [0x0024], {...manufacturerOptions, sendPolicy: "immediate"});
 
-            await endpoint.command("boschSpecific", "pairingCompleted", {data: Buffer.from([0x00])}, {sendPolicy: "immediate"});
+            await endpoint.command<"boschSpecific", "pairingCompleted", BoschSpecificBhius>(
+                "boschSpecific",
+                "pairingCompleted",
+                {data: Buffer.from([0x00])},
+                {sendPolicy: "immediate"},
+            );
 
             await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg", "genBasic", "boschSpecific"]);
             await reporting.batteryPercentageRemaining(endpoint);

@@ -11,6 +11,154 @@ import * as utils from "../lib/utils";
 const e = exposes.presets;
 const ea = exposes.access;
 
+interface Inovelli {
+    attributes: {
+        dimmingSpeedUpRemote: number;
+        dimmingSpeedUpLocal: number;
+        rampRateOffToOnRemote: number;
+        rampRateOffToOnLocal: number;
+        dimmingSpeedDownRemote: number;
+        dimmingSpeedDownLocal: number;
+        rampRateOnToOffRemote: number;
+        rampRateOnToOffLocal: number;
+        minimumLevel: number;
+        maximumLevel: number;
+        invertSwitch: number;
+        autoTimerOff: number;
+        defaultLevelLocal: number;
+        defaultLevelRemote: number;
+        stateAfterPowerRestored: number;
+        loadLevelIndicatorTimeout: number;
+        activePowerReports: number;
+        periodicPowerAndEnergyReports: number;
+        activeEnergyReports: number;
+        powerType: number;
+        switchType: number;
+        quickStartTime: number;
+        quickStartLevel: number;
+        higherOutputInNonNeutral: number;
+        dimmingMode: number;
+        nonNeutralAuxMediumGear: number;
+        nonNeutralAuxLowGear: number;
+        internalTemperature: number;
+        overheat: number;
+        otaImageType: number;
+        buttonDelay: number;
+        deviceBindNumber: number;
+        smartBulbMode: number;
+        doubleTapUpToParam55: number;
+        doubleTapDownToParam56: number;
+        brightnessLevelForDoubleTapUp: number;
+        brightnessLevelForDoubleTapDown: number;
+        defaultLed1ColorWhenOn: number;
+        defaultLed1ColorWhenOff: number;
+        defaultLed1IntensityWhenOn: number;
+        defaultLed1IntensityWhenOff: number;
+        defaultLed2ColorWhenOn: number;
+        defaultLed2ColorWhenOff: number;
+        defaultLed2IntensityWhenOn: number;
+        defaultLed2IntensityWhenOff: number;
+        defaultLed3ColorWhenOn: number;
+        defaultLed3ColorWhenOff: number;
+        defaultLed3IntensityWhenOn: number;
+        defaultLed3IntensityWhenOff: number;
+        defaultLed4ColorWhenOn: number;
+        defaultLed4ColorWhenOff: number;
+        defaultLed4IntensityWhenOn: number;
+        defaultLed4IntensityWhenOff: number;
+        defaultLed5ColorWhenOn: number;
+        defaultLed5ColorWhenOff: number;
+        defaultLed5IntensityWhenOn: number;
+        defaultLed5IntensityWhenOff: number;
+        defaultLed6ColorWhenOn: number;
+        defaultLed6ColorWhenOff: number;
+        defaultLed6IntensityWhenOn: number;
+        defaultLed6IntensityWhenOff: number;
+        defaultLed7ColorWhenOn: number;
+        defaultLed7ColorWhenOff: number;
+        defaultLed7IntensityWhenOn: number;
+        defaultLed7IntensityWhenOff: number;
+        ledColorWhenOn: number;
+        ledColorWhenOff: number;
+        ledIntensityWhenOn: number;
+        ledIntensityWhenOff: number;
+        ledBarScaling: number;
+        mmwaveControlWiredDevice: number;
+        mmWaveRoomSizePreset: number;
+        singleTapBehavior: number;
+        fanTimerMode: number;
+        auxSwitchUniqueScenes: number;
+        bindingOffToOnSyncLevel: number;
+        breezeMode: number;
+        fanControlMode: number;
+        lowLevelForFanControlMode: number;
+        mediumLevelForFanControlMode: number;
+        highLevelForFanControlMode: number;
+        ledColorForFanControlMode: number;
+        localProtection: number;
+        remoteProtection: number;
+        outputMode: number;
+        onOffLedMode: number;
+        firmwareUpdateInProgressIndicator: number;
+        relayClick: number;
+        doubleTapClearNotifications: number;
+        fanLedLevelType: number;
+    };
+    commands: {
+        ledEffect: {
+            effect: number;
+            color: number;
+            level: number;
+            duration: number;
+        };
+        individualLedEffect: {
+            led: number;
+            effect: number;
+            color: number;
+            level: number;
+            duration: number;
+        };
+        ledEffectComplete: {
+            notificationType: number;
+        };
+    };
+    commandResponses: never;
+}
+
+interface InovelliMmWave {
+    attributes: {
+        mmWaveHoldTime: number;
+        mmWaveDetectSensitivity: number;
+        mmWaveDetectTrigger: number;
+        mmWaveTargetInfoReport: number;
+        mmWaveStayLife: number;
+        mmWaveVersion: number;
+        mmWaveHeightMin: number;
+        mmWaveHeightMax: number;
+        mmWaveWidthMin: number;
+        mmWaveWidthMax: number;
+        mmWaveDepthMin: number;
+        mmWaveDepthMax: number;
+    };
+    commands: {
+        mmWaveControl: {
+            controlID: number;
+        };
+    };
+    commandResponses: {
+        anyoneInReportingArea: {
+            /** boolean */
+            area1: number;
+            /** boolean */
+            area2: number;
+            /** boolean */
+            area3: number;
+            /** boolean */
+            area4: number;
+        };
+    };
+}
+
 const clickLookup: {[key: number]: string} = {
     0: "single",
     1: "release",
@@ -1613,7 +1761,7 @@ const tzLocal = {
     inovelli_led_effect: {
         key: ["led_effect"],
         convertSet: async (entity, key, values, meta) => {
-            await entity.command(
+            await entity.command<typeof INOVELLI_CLUSTER_NAME, "ledEffect", Inovelli>(
                 INOVELLI_CLUSTER_NAME,
                 "ledEffect",
                 {
@@ -1634,19 +1782,16 @@ const tzLocal = {
     inovelli_individual_led_effect: {
         key: ["individual_led_effect"],
         convertSet: async (entity, key, values, meta) => {
-            await entity.command(
+            utils.assertObject(values);
+
+            await entity.command<typeof INOVELLI_CLUSTER_NAME, "individualLedEffect", Inovelli>(
                 INOVELLI_CLUSTER_NAME,
                 "individualLedEffect",
                 {
-                    // @ts-expect-error ignore
                     led: Math.min(Math.max(1, Number.parseInt(values.led)), 7) - 1,
-                    // @ts-expect-error ignore
                     effect: individualLedEffects[values.effect],
-                    // @ts-expect-error ignore
                     color: Math.min(Math.max(0, values.color), 255),
-                    // @ts-expect-error ignore
                     level: Math.min(Math.max(0, values.level), 100),
-                    // @ts-expect-error ignore
                     duration: Math.min(Math.max(0, values.duration), 255),
                 },
                 {disableResponse: true, disableDefaultResponse: true},
@@ -1657,11 +1802,12 @@ const tzLocal = {
     inovelli_mmwave_control_commands: {
         key: ["mmwave_control_commands"],
         convertSet: async (entity, key, values, meta) => {
-            await entity.command(
+            utils.assertObject(values);
+
+            await entity.command<typeof INOVELLI_MMWAVE_CLUSTER_NAME, "mmWaveControl", InovelliMmWave>(
                 INOVELLI_MMWAVE_CLUSTER_NAME,
                 "mmWaveControl",
                 {
-                    // @ts-expect-error ignore
                     controlID: mmWaveControlCommands[values.controlID],
                 },
                 {disableResponse: true, disableDefaultResponse: true},
@@ -1740,7 +1886,7 @@ const tzLocal = {
             const state = meta.message.fan_state != null ? meta.message.fan_state.toString().toLowerCase() : null;
             utils.validateValue(state, ["toggle", "off", "on"]);
 
-            await entity.command("genOnOff", state, {}, utils.getOptions(meta.mapped, entity));
+            await entity.command("genOnOff", state as "toggle" | "off" | "on", {}, utils.getOptions(meta.mapped, entity));
             if (state === "toggle") {
                 const currentState = meta.state[`state${meta.endpoint_name ? `_${meta.endpoint_name}` : ""}`];
                 return currentState ? {state: {fan_state: currentState === "OFF" ? "ON" : "OFF"}} : {};
@@ -1780,7 +1926,7 @@ const tzLocal = {
                 const payload = {ctrlbits: 0, ontime: Math.round(onTime * 10), offwaittime: Math.round(offWaitTime * 10)};
                 await endpoint.command("genOnOff", "onWithTimedOff", payload, utils.getOptions(meta.mapped, entity));
             } else {
-                await endpoint.command("genOnOff", state, {}, utils.getOptions(meta.mapped, endpoint));
+                await endpoint.command("genOnOff", state as "toggle" | "off" | "on", {}, utils.getOptions(meta.mapped, endpoint));
                 if (state === "toggle") {
                     const currentState = meta.state[`state${meta.endpoint_name ? `_${meta.endpoint_name}` : ""}`];
                     return currentState ? {state: {fan_state: currentState === "OFF" ? "ON" : "OFF"}} : {};

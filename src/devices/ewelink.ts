@@ -1,5 +1,4 @@
 import {Zcl} from "zigbee-herdsman";
-
 import * as fz from "../converters/fromZigbee";
 import {modernExtend as ewelinkModernExtend} from "../lib/ewelink";
 import * as exposes from "../lib/exposes";
@@ -8,6 +7,7 @@ import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as tuya from "../lib/tuya";
 import type {DefinitionWithExtend, Fz} from "../lib/types";
+import type {SonoffEwelink} from "./sonoff";
 
 const e = exposes.presets;
 
@@ -203,13 +203,9 @@ export const definitions: DefinitionWithExtend[] = [
         onEvent: async (event) => {
             if (event.type === "deviceInterview") {
                 const endpoint = event.data.device.getEndpoint(1);
-                const payloadValue = [];
-                payloadValue[0] = 0x02;
-                payloadValue[1] = 0x0e;
-                payloadValue[2] = 0x00;
                 // Query the maximum level supported for speed adjustment.
-                await endpoint.command("customClusterEwelink", "protocolData", {
-                    data: payloadValue,
+                await endpoint.command<"customClusterEwelink", "protocolData", SonoffEwelink>("customClusterEwelink", "protocolData", {
+                    data: [0x02, 0x0e, 0x00],
                 });
             }
         },

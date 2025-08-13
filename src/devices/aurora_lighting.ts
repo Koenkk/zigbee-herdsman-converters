@@ -18,7 +18,7 @@ const tzLocal = {
             const state = value.toLowerCase();
             utils.validateValue(state, ["toggle", "off", "on"]);
             const endpoint = meta.device.getEndpoint(3);
-            await endpoint.command("genOnOff", state, {});
+            await endpoint.command("genOnOff", state as "toggle" | "off" | "on", {});
             return {state: {backlight_led: state.toUpperCase()}};
         },
     } satisfies Tz.Converter,
@@ -26,7 +26,7 @@ const tzLocal = {
         key: ["brightness"],
         options: [exposes.options.transition()],
         convertSet: async (entity, key, value, meta) => {
-            await entity.command("genLevelCtrl", "moveToLevel", {level: value, transtime: 0}, utils.getOptions(meta.mapped, entity));
+            await entity.command("genLevelCtrl", "moveToLevel", {level: value as number, transtime: 0}, utils.getOptions(meta.mapped, entity));
             return {state: {brightness: value}};
         },
         convertGet: async (entity, key, meta) => {

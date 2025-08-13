@@ -547,7 +547,7 @@ export function identify(args: {isSleepy: boolean} = {isSleepy: false}): ModernE
             key: ["identify"],
             options: [identifyTimeout],
             convertSet: async (entity, key, value, meta) => {
-                const identifyTimeout = meta.options.identify_timeout ?? 3;
+                const identifyTimeout = (meta.options.identify_timeout as number) ?? 3;
                 await entity.command("genIdentify", "identify", {identifytime: identifyTimeout}, getOptions(meta.mapped, entity));
             },
         },

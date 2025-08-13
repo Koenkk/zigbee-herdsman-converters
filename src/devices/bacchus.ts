@@ -82,7 +82,9 @@ function binaryWithOnOffCommand(args: m.BinaryArgs<"genOnOff", undefined>): Mode
                     ? async (entity, key, value, meta) => {
                           const state = isString(meta.message[key]) ? meta.message[key].toLowerCase() : null;
                           validateValue(state, ["toggle", "off", "on"]);
-                          await m.determineEndpoint(entity, meta, cluster).command(cluster, state, {}, zigbeeCommandOptions);
+                          await m
+                              .determineEndpoint(entity, meta, cluster)
+                              .command(cluster, state as "toggle" | "off" | "on", {}, zigbeeCommandOptions);
                           await m.determineEndpoint(entity, meta, cluster).read(cluster, [attributeKey], zigbeeCommandOptions);
                           return {state: {[key]: value}};
                       }

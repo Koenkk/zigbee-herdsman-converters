@@ -5144,7 +5144,7 @@ export const toZigbee = {
                     await entity.command(
                         "closuresWindowCovering",
                         "goToLiftPercentage",
-                        {percentageliftvalue: value},
+                        {percentageliftvalue: value as number},
                         getOptions(meta.mapped, entity),
                     );
                 } else {

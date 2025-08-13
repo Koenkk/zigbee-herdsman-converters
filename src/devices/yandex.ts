@@ -1,6 +1,6 @@
 import type {Models as ZHModels} from "zigbee-herdsman";
-
 import {Zcl} from "zigbee-herdsman";
+import type {ClusterCommandKeys} from "zigbee-herdsman/dist/controller/tstype";
 import {access as ea} from "../lib/exposes";
 import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
@@ -31,7 +31,7 @@ interface Yandex {
 }
 
 interface EnumLookupWithSetCommandArgs extends m.EnumLookupArgs<"manuSpecificYandex", Yandex> {
-    setCommand: string;
+    setCommand: ClusterCommandKeys<"manuSpecificYandex", Yandex>[number];
 }
 
 function enumLookupWithSetCommand(args: EnumLookupWithSetCommandArgs): ModernExtend {
@@ -48,7 +48,9 @@ function enumLookupWithSetCommand(args: EnumLookupWithSetCommandArgs): ModernExt
                 access & ea.SET
                     ? async (entity, key, value, meta) => {
                           const payloadValue = getFromLookup(value, lookup);
-                          await m.determineEndpoint(entity, meta, cluster).command(cluster, setCommand, {value: payloadValue}, zigbeeCommandOptions);
+                          await m
+                              .determineEndpoint(entity, meta, cluster)
+                              .command<typeof cluster, typeof setCommand, Yandex>(cluster, setCommand, {value: payloadValue}, zigbeeCommandOptions);
                           await m
                               .determineEndpoint(entity, meta, cluster)
                               .read<typeof cluster, Yandex>(cluster, [attributeKey], zigbeeCommandOptions);
@@ -70,7 +72,7 @@ function enumLookupWithSetCommand(args: EnumLookupWithSetCommandArgs): ModernExt
 }
 
 interface BinaryWithSetCommandArgs extends m.BinaryArgs<"manuSpecificYandex", Yandex> {
-    setCommand: string;
+    setCommand: ClusterCommandKeys<"manuSpecificYandex", Yandex>[number];
 }
 
 function binaryWithSetCommand(args: BinaryWithSetCommandArgs): ModernExtend {
@@ -87,7 +89,9 @@ function binaryWithSetCommand(args: BinaryWithSetCommandArgs): ModernExtend {
                 access & ea.SET
                     ? async (entity, key, value, meta) => {
                           const payloadValue = value === valueOn[0] ? valueOn[1] : valueOff[1];
-                          await m.determineEndpoint(entity, meta, cluster).command(cluster, setCommand, {value: payloadValue}, zigbeeCommandOptions);
+                          await m
+                              .determineEndpoint(entity, meta, cluster)
+                              .command<typeof cluster, typeof setCommand, Yandex>(cluster, setCommand, {value: payloadValue}, zigbeeCommandOptions);
                           await m
                               .determineEndpoint(entity, meta, cluster)
                               .read<typeof cluster, Yandex>(cluster, [attributeKey], zigbeeCommandOptions);

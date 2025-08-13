@@ -12,6 +12,24 @@ const e = exposes.presets;
 const ea = exposes.access;
 const NS = "zhc:orvibo";
 
+interface Orvibo {
+    attributes: never;
+    commands: {
+        setSwitchRelay: {data: Buffer};
+        clearSwitchAction: {data: Buffer};
+        setSwitchScene: {data: Buffer};
+    };
+    commandResponses: never;
+}
+
+interface Orvibo2 {
+    attributes: {
+        powerOnBehavior: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
 const tzLocal = {
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     DD10Z_brightness: {
@@ -102,14 +120,6 @@ const clusterManuSpecifcOrviboSwitchRewiring = () => {
         commandsResponse: {},
     });
 };
-
-interface Orvibo2 {
-    attributes: {
-        powerOnBehavior: number;
-    };
-    commands: never;
-    commandResponses: never;
-}
 
 const clusterManuSpecificOrviboPowerOnBehavior = () => {
     return m.deviceAddCustomCluster("manuSpecificOrvibo2", {
@@ -238,15 +248,21 @@ const orviboSwitchRewiring = (args: OrviboSwitchRewiringArgs): ModernExtend => {
                 from = from ?? {};
                 if (from.sceneid !== to.sceneid || from.relaynumber !== to.relaynumber || from.relayaction !== to.relayaction || forceUpdate) {
                     const switchId = args.endpoints[endpointName];
-                    await device.getEndpoint(7).command("manuSpecificOrvibo", "clearSwitchAction", {data: [switchId, 0, 0]});
+                    await device
+                        .getEndpoint(7)
+                        .command<"manuSpecificOrvibo", "clearSwitchAction", Orvibo>("manuSpecificOrvibo", "clearSwitchAction", {
+                            data: Buffer.from([switchId, 0, 0]),
+                        });
                     const {sceneid, relaynumber, relayaction} = to;
                     if (sceneid) {
-                        await device.getEndpoint(7).command("manuSpecificOrvibo", "setSwitchScene", {data: [switchId, 0, 0, 0, 0, sceneid]});
+                        await device.getEndpoint(7).command<"manuSpecificOrvibo", "setSwitchScene", Orvibo>("manuSpecificOrvibo", "setSwitchScene", {
+                            data: Buffer.from([switchId, 0, 0, 0, 0, sceneid]),
+                        });
                     }
                     if (relaynumber && device.ieeeAddr.length > 3) {
                         const invertedAddress = hexToBytes(device.ieeeAddr).reverse();
-                        await device.getEndpoint(7).command("manuSpecificOrvibo", "setSwitchRelay", {
-                            data: [switchId, 0, 0, ...invertedAddress, relaynumber, 4, 1, 6, 0, 1, relayaction],
+                        await device.getEndpoint(7).command<"manuSpecificOrvibo", "setSwitchRelay", Orvibo>("manuSpecificOrvibo", "setSwitchRelay", {
+                            data: Buffer.from([switchId, 0, 0, ...invertedAddress, relaynumber, 4, 1, 6, 0, 1, relayaction]),
                         });
                     }
                 }
