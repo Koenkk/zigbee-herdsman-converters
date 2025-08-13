@@ -6748,7 +6748,7 @@ export const definitions: DefinitionWithExtend[] = [
             {vendor: "MODEMIX", model: "MOD048"},
             {vendor: "Coswall", model: "CS-AJ-DE2U-ZG-11"},
             {vendor: "Aubess", model: "TS011F_plug_1"},
-            tuya.whitelabel("BSEED", "FK86ZEUSK1W", "Wall-mounted electrical socket", ["_TZ3000_4ux0ondb"]),
+            tuya.whitelabel("BSEED", "FK86ZEUSK1W", "Wall-mounted electrical socket", ["_TZ3000_4ux0ondb", "_TZ3000_b28wrpvx"]),
             tuya.whitelabel("Nous", "A1Z", "Smart plug (with power monitoring)", ["_TZ3000_2putqrmw", "_TZ3000_ksw8qtmt"]),
             tuya.whitelabel("Moes", "Moes_plug", "Smart plug (with power monitoring)", ["_TZ3000_yujkchbz"]),
             tuya.whitelabel("Moes", "ZK-EU", "Smart wallsocket (with power monitoring)", ["_TZ3000_ss98ec5d"]),
@@ -15573,18 +15573,10 @@ export const definitions: DefinitionWithExtend[] = [
                     null,
                     {
                         from: (v: number) => {
-                            const lookup = {
-                                none: tuya.enum(0),
-                                presence: tuya.enum(1),
-                                peaceful: tuya.enum(2),
-                                small_movement: tuya.enum(3),
-                                large_movement: tuya.enum(4),
-                            };
-                            const presenceState = Object.entries(lookup).find((i) => i[1].valueOf() === v)[0];
-                            return {
-                                presence: presenceState !== "none",
-                                presence_state: presenceState,
-                            };
+                            if (v > 99) {
+                                return v / 10;
+                            }
+                            return v / 100;
                         },
                     },
                 ],
