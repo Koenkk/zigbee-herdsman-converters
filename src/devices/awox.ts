@@ -247,10 +247,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "EBF_RGB_Zm",
         vendor: "AwoX",
         description: "LED with adjustable color temp on main ring; extra RGB strip for full colors.",
-        extend: [
-            m.light({colorTemp: {range: [153, 370]}, color: {modes: ["xy", "hs"]}}),
-            m.commandsOnOff(),
-        ],
+        extend: [m.light({colorTemp: {range: [153, 370]}, color: {modes: ["xy", "hs"]}}), m.commandsOnOff()],
         whiteLabel: [{vendor: "EGLO", model: "900566"}],
     },
     {
