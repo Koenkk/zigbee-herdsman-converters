@@ -248,7 +248,6 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "AwoX",
         description: "LED with adjustable color temp on main ring; extra RGB strip for full colors.",
         extend: [
-            m.deviceEndpoints({endpoints: {"1": 1, "3": 3}}),
             m.light({colorTemp: {range: [153, 370]}, color: {modes: ["xy", "hs"]}}),
             m.commandsOnOff(),
         ],
