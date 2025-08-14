@@ -287,11 +287,6 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [
             e.battery(),
             e.action([
-                "on",
-                "off",
-                "brightness_move_to_level",
-                "color_temperature_move",
-                "color_move",
                 "on_1",
                 "off_1",
                 "brightness_move_to_level_1",
@@ -300,6 +295,7 @@ export const definitions: DefinitionWithExtend[] = [
             ]),
         ],
         toZigbee: [],
+        // DEPRECATED BREAKING CHANGE: remove multiEndpoint: true here and drop `_1` postfix from actions
         meta: {multiEndpoint: true, battery: {dontDividePercentage: true}},
         whiteLabel: [{vendor: "Sunricher", model: "SR-ZG2835"}],
     },
