@@ -8025,7 +8025,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Tuya", "DS-111", "Smart light switch - 4 gang with neutral wire", ["_TZ3000_mdj7kra9"]),
             tuya.whitelabel("MHCOZY", "TYWB 4ch-RF", "4 channel relay", ["_TZ3000_u3oupgdy", "_TZ3000_imaccztn"]),
             tuya.whitelabel("AVATTO", "TS0004_1", "Smart light switch - 4 gang with neutral wire", ["_TZ3000_nivavasg", "_TZ3000_gexniqbq"]),
-            tuya.whitelabel("Nova Digital", "SA-4", "Safira smart light switch - 4 gang", ["TZ3000_iymfxdis"]),
+            tuya.whitelabel("Nova Digital", "SA-4", "Safira smart light switch - 4 gang", ["_TZ3000_iymfxdis"]),
         ],
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint) => {
