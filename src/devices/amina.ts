@@ -173,6 +173,10 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [
             e.text("ev_status", ea.STATE_GET).withDescription("Current charging status"),
             e.list("alarms", ea.STATE_GET, e.enum("alarm", ea.STATE_GET, aminaAlarms)).withDescription("List of active alarms"),
+            e.binary("ev_connected", ea.STATE, true, false).withDescription("An EV is connected to the charger"),
+            e.binary("charging", ea.STATE, true, false).withDescription("Power is being delivered to the EV"),
+            e.binary("derated", ea.STATE, true, false).withDescription("Charging derated due to high temperature"),
+            e.binary("alarm_active", ea.STATE, true, false).withDescription("An active alarm is present"),
         ],
         extend: [
             m.deviceAddCustomCluster("aminaControlCluster", {
@@ -245,46 +249,6 @@ export const definitions: DefinitionWithExtend[] = [
                 scale: 1000,
                 precision: 2,
                 access: "STATE_GET",
-            }),
-
-            m.binary<"aminaControlCluster", AminaControlCluster>({
-                name: "ev_connected",
-                cluster: "aminaControlCluster",
-                attribute: "evConnected",
-                description: "An EV is connected to the charger",
-                valueOn: [true, 1],
-                valueOff: [false, 0],
-                access: "STATE",
-            }),
-
-            m.binary<"aminaControlCluster", AminaControlCluster>({
-                name: "charging",
-                cluster: "aminaControlCluster",
-                attribute: "charging",
-                description: "Power is being delivered to the EV",
-                valueOn: [true, 1],
-                valueOff: [false, 0],
-                access: "STATE",
-            }),
-
-            m.binary<"aminaControlCluster", AminaControlCluster>({
-                name: "derated",
-                cluster: "aminaControlCluster",
-                attribute: "derated",
-                description: "Charging derated due to high temperature",
-                valueOn: [true, 1],
-                valueOff: [false, 0],
-                access: "STATE",
-            }),
-
-            m.binary<"aminaControlCluster", AminaControlCluster>({
-                name: "alarm_active",
-                cluster: "aminaControlCluster",
-                attribute: "alarmActive",
-                description: "An active alarm is present",
-                valueOn: [true, 1],
-                valueOff: [false, 0],
-                access: "STATE",
             }),
 
             m.electricityMeter({

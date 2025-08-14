@@ -886,19 +886,7 @@ export const definitions: DefinitionWithExtend[] = [
                     "maxHeatSetpointLimit",
                     "systemMode",
                 ]);
-                await endpoint.read(
-                    "hvacThermostat",
-                    [
-                        "danfossRoomFloorSensorMode",
-                        "danfossFloorMinSetpoint",
-                        "danfossFloorMaxSetpoint",
-                        // TODO: ???
-                        "schedule_type_used",
-                        "icon2_pre_heat",
-                        "icon2_pre_heat_status",
-                    ],
-                    options,
-                );
+                await endpoint.read("hvacThermostat", ["danfossRoomFloorSensorMode", "danfossFloorMinSetpoint", "danfossFloorMaxSetpoint"], options);
                 await endpoint.read("hvacUserInterfaceCfg", ["keypadLockout"]);
                 await endpoint.read("msTemperatureMeasurement", ["measuredValue"]);
                 await endpoint.read("msRelativeHumidity", ["measuredValue"]);

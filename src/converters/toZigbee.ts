@@ -1520,11 +1520,9 @@ export const thermostat_weekly_schedule: Tz.Converter = {
         // map array of desired modes to bitmask
         let mode = 0;
 
-        for (let m of modes) {
+        for (const m of modes) {
             // lookup mode bit
-            // TODO: fallback is string, but need number?
-            m = utils.getKey(constants.thermostatScheduleMode, m.toLowerCase(), m, Number);
-            mode |= 1 << m;
+            mode |= 1 << utils.getKey(constants.thermostatScheduleMode, m, 0, Number);
         }
 
         // map array of days to desired dayofweek bitmask

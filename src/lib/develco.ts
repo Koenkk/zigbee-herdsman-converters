@@ -72,7 +72,7 @@ export const develcoModernExtend = {
                             }
 
                             if (data.develcoPrimaryHwVersion !== undefined) {
-                                device.hardwareVersion = data.develcoPrimaryHwVersion.join(".");
+                                device.hardwareVersion = Number.parseInt(data.develcoPrimaryHwVersion.join(""), 10);
                             }
 
                             device.save();
