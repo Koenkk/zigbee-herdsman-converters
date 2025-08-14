@@ -284,16 +284,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "ROBB",
         description: "ZigBee knob smart dimmer",
         fromZigbee: [fz.command_on, fz.command_off, fz.command_move_to_level, fz.command_move_to_color_temp, fz.battery, fz.command_move_to_color],
-        exposes: [
-            e.battery(),
-            e.action([
-                "on_1",
-                "off_1",
-                "brightness_move_to_level_1",
-                "color_temperature_move_1",
-                "color_move_1",
-            ]),
-        ],
+        exposes: [e.battery(), e.action(["on_1", "off_1", "brightness_move_to_level_1", "color_temperature_move_1", "color_move_1"])],
         toZigbee: [],
         // DEPRECATED BREAKING CHANGE: remove multiEndpoint: true here and drop `_1` postfix from actions
         meta: {multiEndpoint: true, battery: {dontDividePercentage: true}},
