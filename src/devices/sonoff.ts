@@ -1546,16 +1546,16 @@ export const definitions: DefinitionWithExtend[] = [
             m.deviceAddCustomCluster("customSonoffSnzb02p", {
                 ID: 0xfc11,
                 attributes: {
-                    temperatureCalibration: { ID: 0x2003, type: Zcl.DataType.INT16 },
-                    humidityCalibration: { ID: 0x2004, type: Zcl.DataType.INT16 },
+                    temperatureCalibration: {ID: 0x2003, type: Zcl.DataType.INT16},
+                    humidityCalibration: {ID: 0x2004, type: Zcl.DataType.INT16},
                 },
                 commands: {},
                 commandsResponse: {},
             }),
-            m.battery({ percentage: true }),
+            m.battery({percentage: true}),
             m.temperature(),
             m.humidity(),
-            m.bindCluster({ cluster: "genPollCtrl", clusterType: "input" }),
+            m.bindCluster({cluster: "genPollCtrl", clusterType: "input"}),
             m.numeric({
                 name: "temperature_calibration",
                 cluster: "customSonoffSnzb02p",
