@@ -411,9 +411,9 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["RS 240"],
         model: "RS 240",
         vendor: "Innr",
-        description: "Innr Smart Spot White GU10 ",
+        description: "Smart spot white GU10 ",
         extend: [m.light({turnsOffAtBrightness1: true})],
-        meta: {},
+        ota: true,
     },
     {
         zigbeeModel: ["RS 241 T"],
