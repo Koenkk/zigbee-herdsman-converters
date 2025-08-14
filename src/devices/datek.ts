@@ -113,7 +113,16 @@ export const definitions: DefinitionWithExtend[] = [
         model: "0402946",
         vendor: "Datek",
         description: "Zigbee module for ID lock",
-        fromZigbee: [fz.lock, fz.battery, fz.lock_operation_event, fz.lock_programming_event, fz.idlock, fz.idlock_fw, fz.lock_pin_code_response],
+        fromZigbee: [
+            fz.lock,
+            fz.battery,
+            fz.lock_operation_event,
+            fz.lock_programming_event,
+            fz.idlock,
+            fz.idlock_fw,
+            fz.lock_pin_code_response,
+            fz.lock_programming_event_read_pincode,
+        ],
         toZigbee: [
             tz.lock,
             tz.lock_sound_volume,
@@ -167,18 +176,6 @@ export const definitions: DefinitionWithExtend[] = [
             await endpoint.read("closuresDoorLock", ["lockState", "soundVolume", "doorState"]);
             await endpoint.read("closuresDoorLock", [0x4000, 0x4001, 0x4003, 0x4004, 0x4005], options);
             await endpoint.read("genBasic", [0x5000], options);
-        },
-        onEvent: async (type, data, device) => {
-            // When we receive a code updated message, lets read the new value
-            if (
-                data.type === "commandProgrammingEventNotification" &&
-                data.cluster === "closuresDoorLock" &&
-                data.data &&
-                data.data.userid !== undefined &&
-                (data.data.programeventsrc === undefined || constants.lockSourceName[data.data.programeventsrc] !== "rf")
-            ) {
-                await device.endpoints[0].command("closuresDoorLock", "getPinCode", {userid: data.data.userid}, {});
-            }
         },
         exposes: [
             e.lock(),

@@ -200,9 +200,9 @@ export const definitions: DefinitionWithExtend[] = [
             const windowCoveringAttributes = [{attribute: "currentPositionLiftPercentage", min: 0, max: 3600, change: 10}];
             await m.setupAttributes(device, coordinatorEndpoint, "closuresWindowCovering", windowCoveringAttributes);
         },
-        onEvent: async (type, data, device, settings, state) => {
-            if (type === "deviceInterview") {
-                const endpoint = device.getEndpoint(1);
+        onEvent: async (event) => {
+            if (event.type === "deviceInterview") {
+                const endpoint = event.data.device.getEndpoint(1);
                 const payloadValue = [];
                 payloadValue[0] = 0x02;
                 payloadValue[1] = 0x0e;

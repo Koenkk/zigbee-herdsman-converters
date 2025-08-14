@@ -3,8 +3,10 @@ import {Zcl} from "zigbee-herdsman";
 import type {ClusterDefinition} from "zigbee-herdsman/dist/zspec/zcl/definition/tstype";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
+import * as constants from "../lib/constants";
 import {logger} from "../lib/logger";
 import * as globalStore from "../lib/store";
+import type * as exposes from "./exposes";
 import {type Cover, presets as e, access as ea, Numeric, options as opt} from "./exposes";
 import {configure as lightConfigure} from "./light";
 import type {
@@ -47,6 +49,7 @@ import {
     postfixWithEndpointName,
     precisionRound,
     splitArrayIntoChunks,
+    toNumber,
 } from "./utils";
 
 function getEndpointsWithCluster(device: Zh.Device, cluster: string | number, type: "input" | "output") {
@@ -62,6 +65,8 @@ function getEndpointsWithCluster(device: Zh.Device, cluster: string | number, ty
     }
     return endpoints;
 }
+
+const NS = "zhc:modernextend";
 
 const IAS_EXPOSE_LOOKUP = {
     occupancy: e.binary("occupancy", ea.STATE, true, false).withDescription("Indicates whether the device detected occupancy"),
@@ -637,16 +642,113 @@ export function commandsOnOff(args: CommandsOnOffArgs = {}): ModernExtend {
     return result;
 }
 
+export function poll(args: {
+    key: string;
+    defaultIntervalSeconds: number;
+    poll: (device: Zh.Device, options: KeyValue) => void;
+    option?: exposes.Numeric;
+    optionKey?: string;
+}): ModernExtend {
+    const optionKey = args.optionKey ?? `${args.key}_poll_interval`;
+    const onEvent: OnEvent.Handler[] = [
+        (event) => {
+            if (event.type === "start" || (event.type === "deviceOptionsChanged" && event.data.from[optionKey] !== event.data.to[optionKey])) {
+                let seconds = args.defaultIntervalSeconds;
+                if (args.option) {
+                    seconds = toNumber(event.data.options[optionKey] ?? args.defaultIntervalSeconds, optionKey);
+                }
+
+                clearTimeout(globalStore.getValue(event.data.device.ieeeAddr, args.key));
+
+                if (seconds <= 0) {
+                    logger.debug(`Not polling '${args.key}' for '${event.data.device.ieeeAddr}' since poll interval is <= 0 (got ${seconds})`, NS);
+                } else {
+                    logger.debug(`Polling '${args.key}' for '${event.data.device.ieeeAddr}' at an interval of ${seconds}`, NS);
+                    const setTimer = () => {
+                        const timer = setTimeout(async () => {
+                            try {
+                                await args.poll(event.data.device, event.data.options);
+                            } catch (error) {
+                                logger.debug(`Poll of '${event.data.device.ieeeAddr}' failed (${error})`, NS);
+                            }
+                            setTimer();
+                        }, seconds * 1000);
+                        globalStore.putValue(event.data.device.ieeeAddr, args.key, timer);
+                    };
+                    setTimer();
+                }
+            } else if (event.type === "stop") {
+                clearTimeout(globalStore.getValue(event.data.ieeeAddr, args.key));
+                globalStore.clearValue(event.data.ieeeAddr, args.key);
+            }
+        },
+    ];
+
+    return {onEvent, options: args.option ? [args.option] : [], isModernExtend: true};
+}
+
+export function writeTimeDaily(args: {endpointId: number}): ModernExtend {
+    return poll({
+        key: "time",
+        defaultIntervalSeconds: 60 * 60 * 24,
+        poll: (device) => {
+            const time = Math.round((Date.now() - constants.OneJanuary2000) / 1000 + new Date().getTimezoneOffset() * -1 * 60);
+            device
+                .getEndpoint(args.endpointId)
+                .write("genTime", {time: time}, {sendPolicy: "queue"})
+                .catch((error) => logger.error(`Failed to write time to '${device.ieeeAddr}' (${error})`, NS));
+        },
+    });
+}
+
+export function iasArmCommandDefaultResponse(): ModernExtend {
+    const converter: Fz.Converter = {
+        cluster: "ssIasAce",
+        type: ["commandArm"],
+        convert: (model, msg, publish, options, meta) => {
+            // Since arm command has a response zigbee-herdsman doesn't send a default response.
+            // This causes the remote to repeat the arm command, so send a default response here.
+            msg.endpoint
+                .defaultResponse(0, 0, 1281, msg.meta.zclTransactionSequenceNumber)
+                .catch((error) => logger.error(`Failed to send default response to '${msg.device.ieeeAddr}' (${error})`, NS));
+        },
+    };
+
+    return {fromZigbee: [converter], isModernExtend: true};
+}
+
+export function iasGetPanelStatusResponse(): ModernExtend {
+    const converter: Fz.Converter = {
+        cluster: "ssIasAce",
+        type: ["commandGetPanelStatus"],
+        convert: (model, msg, publish, options, meta) => {
+            if (globalStore.hasValue(msg.endpoint, "panelStatus")) {
+                const payload = {
+                    panelstatus: globalStore.getValue(msg.endpoint, "panelStatus"),
+                    secondsremain: 0x00,
+                    audiblenotif: 0x00,
+                    alarmstatus: 0x00,
+                };
+                msg.endpoint
+                    .commandResponse("ssIasAce", "getPanelStatusRsp", payload, {}, msg.data.meta.zclTransactionSequenceNumber)
+                    .catch((error) => logger.error(`Failed to send panel status response '${msg.device.ieeeAddr}' (${error})`, NS));
+            }
+        },
+    };
+
+    return {fromZigbee: [converter], isModernExtend: true};
+}
+
 export function customTimeResponse(start: "1970_UTC" | "2000_LOCAL"): ModernExtend {
     // The Zigbee Cluster Library specification states that the genTime.time response should be the
     // number of seconds since 1st Jan 2000 00:00:00 UTC. This extend modifies that:
     // 1970_UTC: number of seconds since the Unix Epoch (1st Jan 1970 00:00:00 UTC)
     // 2000_LOCAL: seconds since 1 January in the local time zone.
     // Disable the responses of zigbee-herdsman and respond here instead.
-    const onEvent: OnEvent[] = [
-        (type, data, device, options, state: KeyValue) => {
-            if (!device.customReadResponse) {
-                device.customReadResponse = (frame, endpoint) => {
+    const onEvent: OnEvent.Handler[] = [
+        (event) => {
+            if (event.type === "start" && !event.data.device.customReadResponse) {
+                event.data.device.customReadResponse = (frame, endpoint) => {
                     if (frame.isCluster("genTime")) {
                         const payload: KeyValue = {};
                         if (start === "1970_UTC") {
@@ -659,7 +761,7 @@ export function customTimeResponse(start: "1970_UTC" | "2000_LOCAL"): ModernExte
                             payload.time = secondsUTC - new Date().getTimezoneOffset() * 60;
                         }
                         endpoint.readResponse("genTime", frame.header.transactionSequenceNumber, payload).catch((e) => {
-                            logger.warning(`Custom time response failed for '${device.ieeeAddr}': ${e}`, "zhc:customtimeresponse");
+                            logger.warning(`Custom time response failed for '${event.data.device.ieeeAddr}': ${e}`, "zhc:customtimeresponse");
                         });
                         return true;
                     }
@@ -1319,9 +1421,10 @@ export function lightingBallast(): ModernExtend {
 export interface LockArgs {
     pinCodeCount: number;
     endpointNames?: string[];
+    readPinCodeOnProgrammingEvent?: boolean;
 }
 export function lock(args: LockArgs): ModernExtend {
-    const {endpointNames = undefined, pinCodeCount} = args;
+    const {endpointNames = undefined, pinCodeCount, readPinCodeOnProgrammingEvent = false} = args;
 
     const fromZigbee = [fz.lock, fz.lock_operation_event, fz.lock_programming_event, fz.lock_pin_code_response, fz.lock_user_status_response];
     const toZigbee = [{...tz.lock, endpoints: endpointNames}, tz.pincode_lock, tz.lock_userstatus, tz.lock_auto_relock_time, tz.lock_sound_volume];
@@ -1341,6 +1444,9 @@ export function lock(args: LockArgs): ModernExtend {
     const result: ModernExtend = {fromZigbee, toZigbee, exposes, configure, meta, isModernExtend: true};
     if (endpointNames) {
         result.exposes = flatten(exposes.map((expose) => endpointNames.map((endpoint) => expose.clone().withEndpoint(endpoint))));
+    }
+    if (readPinCodeOnProgrammingEvent) {
+        fromZigbee.push(fz.lock_programming_event_read_pincode);
     }
     return result;
 }
@@ -2374,7 +2480,6 @@ export interface NumericArgs {
     valueMin?: number;
     valueMax?: number;
     valueStep?: number;
-    valueIgnore?: number[];
     scale?: number | ScaleFunction;
     label?: string;
     entityCategory?: "config" | "diagnostic";
@@ -2392,7 +2497,6 @@ export function numeric(args: NumericArgs): ModernExtend {
         valueMin,
         valueMax,
         valueStep,
-        valueIgnore,
         scale,
         label,
         entityCategory,
@@ -2439,8 +2543,6 @@ export function numeric(args: NumericArgs): ModernExtend {
 
                     let value = msg.data[attributeKey];
                     assertNumber(value);
-
-                    if (valueIgnore?.includes(value)) return;
 
                     if (scale !== undefined) {
                         value = typeof scale === "number" ? value / scale : scale(value, "from");
@@ -2715,10 +2817,10 @@ export function quirkCheckinInterval(timeout: number | keyof typeof TIME_LOOKUP)
 }
 
 export function reconfigureReportingsOnDeviceAnnounce(): ModernExtend {
-    const onEvent: OnEvent[] = [
-        async (type, data, device, options, state: KeyValue) => {
-            if (type === "deviceAnnounce") {
-                for (const endpoint of device.endpoints) {
+    const onEvent: OnEvent.Handler[] = [
+        async (event) => {
+            if (event.type === "deviceAnnounce") {
+                for (const endpoint of event.data.device.endpoints) {
                     for (const c of endpoint.configuredReportings) {
                         await endpoint.configureReporting(c.cluster.name, [
                             {
@@ -2738,9 +2840,11 @@ export function reconfigureReportingsOnDeviceAnnounce(): ModernExtend {
 }
 
 export function skipDefaultResponse(): ModernExtend {
-    const onEvent: OnEvent[] = [
-        (type, data, device, options, state: KeyValue) => {
-            device.skipDefaultResponse = true;
+    const onEvent: OnEvent.Handler[] = [
+        (event) => {
+            if (event.type === "start") {
+                event.data.device.skipDefaultResponse = true;
+            }
         },
     ];
 
@@ -2766,7 +2870,7 @@ export function deviceAddCustomCluster(clusterName: string, clusterDefinition: C
         }
     };
 
-    const onEvent: OnEvent[] = [async (type, data, device, options, state: KeyValue) => addCluster(device)];
+    const onEvent: OnEvent.Handler[] = [(event) => event.type === "start" && addCluster(event.data.device)];
     const configure: Configure[] = [async (device) => addCluster(device)];
 
     return {onEvent, configure, isModernExtend: true};

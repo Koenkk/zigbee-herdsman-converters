@@ -7,7 +7,6 @@ import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as namron from "../lib/namron";
 import * as reporting from "../lib/reporting";
-import * as globalStore from "../lib/store";
 import * as tuya from "../lib/tuya";
 import type {DefinitionWithExtend, Fz, KeyValue, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
@@ -168,6 +167,13 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Zigbee smart plug 16A",
         ota: true,
         extend: [m.onOff(), m.electricityMeter()],
+    },
+    {
+        zigbeeModel: ["4512789"],
+        model: "4512789",
+        vendor: "Namron AS",
+        description: "Zigbee smart plug 16A IP44",
+        extend: [m.deviceTemperature({scale: 100}), m.onOff(), m.electricityMeter()],
     },
     {
         zigbeeModel: ["1402767"],
@@ -624,26 +630,8 @@ export const definitions: DefinitionWithExtend[] = [
                         "0 means this function is disabled, default value is 27.",
                 ),
         ],
-        onEvent: (type, data, device, options) => {
-            const endpoint = device.getEndpoint(1);
-            if (type === "stop") {
-                clearInterval(globalStore.getValue(device, "time"));
-                globalStore.clearValue(device, "time");
-            } else if (!globalStore.hasValue(device, "time")) {
-                const hours24 = 1000 * 60 * 60 * 24;
-                const interval = setInterval(async () => {
-                    try {
-                        // Device does not asks for the time with binding, therefore we write the time every 24 hours
-                        const time = Math.round((Date.now() - constants.OneJanuary2000) / 1000 + new Date().getTimezoneOffset() * -1 * 60);
-                        const values = {time: time};
-                        await endpoint.write("genTime", values);
-                    } catch {
-                        /* Do nothing*/
-                    }
-                }, hours24);
-                globalStore.putValue(device, "time", interval);
-            }
-        },
+        // Device does not asks for the time with binding, therefore we write the time every 24 hours
+        extend: [m.writeTimeDaily({endpointId: 1})],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const binds = [
@@ -1384,10 +1372,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "4512752/4512753",
         vendor: "Namron",
         description: "Touch thermostat 16A 2.0",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime,
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
         options: [],
         exposes: [
             e
@@ -1529,36 +1514,6 @@ export const definitions: DefinitionWithExtend[] = [
             namron.toZigbee.namron_edge_thermostat_holiday_temp,
             namron.toZigbee.namron_edge_thermostat_vacation_date,
         ],
-        onEvent: (type, data, device, options) => {
-            if (type === "stop") {
-                try {
-                    const key = "time_sync_value";
-                    clearInterval(globalStore.getValue(device, key));
-                    globalStore.clearValue(device, key);
-                } catch {
-                    /* Do nothing*/
-                }
-            }
-            if (!globalStore.hasValue(device, "time_sync_value")) {
-                const hours24 = 1000 * 60 * 60 * 24;
-                const interval = setInterval(async () => {
-                    try {
-                        const endpoint = device.getEndpoint(1);
-                        // Device does not asks for the time with binding, therefore we write the time every 24 hours
-                        const time = Date.now() / 1000;
-                        await endpoint.write("hvacThermostat", {
-                            [0x800b]: {
-                                value: time,
-                                type: Zcl.DataType.UINT32,
-                            },
-                        });
-                    } catch {
-                        /* Do nothing*/
-                    }
-                }, hours24);
-                globalStore.putValue(device, "time_sync_value", interval);
-            }
-        },
         configure: async (device, coordinatorEndpoint, _logger) => {
             const endpoint = device.getEndpoint(1);
             const binds = [
@@ -1589,6 +1544,20 @@ export const definitions: DefinitionWithExtend[] = [
             device.save();
         },
         extend: [
+            m.poll({
+                key: "time",
+                defaultIntervalSeconds: 60 * 60 * 24,
+                poll: async (device) => {
+                    const endpoint = device.getEndpoint(1);
+                    // Device does not asks for the time with binding, therefore we write the time every 24 hours
+                    await endpoint.write("hvacThermostat", {
+                        [0x800b]: {
+                            value: Date.now() / 1000,
+                            type: Zcl.DataType.UINT32,
+                        },
+                    });
+                },
+            }),
             m.electricityMeter({voltage: false}),
             m.onOff({powerOnBehavior: false}),
             namron.edgeThermostat.systemMode(),

@@ -16,7 +16,6 @@ import type {
     KeyValueAny,
     KeyValueNumberString,
     ModernExtend,
-    OnEvent,
     Range,
     Tz,
 } from "./types";
@@ -1934,16 +1933,14 @@ export const lumiModernExtend = {
             ...args,
         }),
     lumiPreventReset: (): ModernExtend => {
-        const onEvent: OnEvent[] = [
-            async (type, data, device) => {
+        const converter: Fz.Converter = {
+            cluster: "genBasic",
+            type: ["attributeReport"],
+            convert: (model, msg, publish, options, meta) => {
                 if (
-                    // options.allow_reset ||
-                    type !== "message" ||
-                    data.type !== "attributeReport" ||
-                    data.cluster !== "genBasic" ||
-                    !data.data[0xfff0] ||
+                    !msg.data[0xfff0] ||
                     // eg: [0xaa, 0x10, 0x05, 0x41, 0x87, 0x01, 0x01, 0x10, 0x00]
-                    !data.data[0xfff0].slice(0, 5).equals(Buffer.from([0xaa, 0x10, 0x05, 0x41, 0x87]))
+                    !msg.data[0xfff0].slice(0, 5).equals(Buffer.from([0xaa, 0x10, 0x05, 0x41, 0x87]))
                 ) {
                     return;
                 }
@@ -1953,10 +1950,13 @@ export const lumiModernExtend = {
                         type: 0x41,
                     },
                 };
-                await device.getEndpoint(1).write("genBasic", payload, {manufacturerCode});
+                msg.device
+                    .getEndpoint(1)
+                    .write("genBasic", payload, {manufacturerCode})
+                    .catch((error) => logger.error(`Failed to prevent reset of '${msg.device.ieeeAddr}' (${error})`, NS));
             },
-        ];
-        return {onEvent, isModernExtend: true};
+        };
+        return {fromZigbee: [converter], isModernExtend: true};
     },
     lumiClickMode: (args?: Partial<modernExtend.EnumLookupArgs>) =>
         modernExtend.enumLookup({
@@ -2352,20 +2352,25 @@ export const lumiModernExtend = {
             ...args,
         }),
     lumiPreventLeave: (): ModernExtend => {
-        const onEvent: OnEvent[] = [
-            async (type, data, device) => {
-                if (type === "message" && data.type === "attributeReport" && data.cluster === "manuSpecificLumi" && data.data[0x00fc] === false) {
+        const converter: Fz.Converter = {
+            cluster: "manuSpecificLumi",
+            type: ["attributeReport"],
+            convert: (model, msg, publish, options, meta) => {
+                if (msg.cluster === "manuSpecificLumi" && msg.data[0x00fc] === false) {
                     const payload = {
                         [0x00fc]: {
                             value: true,
                             type: 0x10,
                         },
                     };
-                    await device.getEndpoint(1).write("manuSpecificLumi", payload, {manufacturerCode});
+                    msg.device
+                        .getEndpoint(1)
+                        .write("manuSpecificLumi", payload, {manufacturerCode})
+                        .catch((error) => logger.error(`Failed to prevent leave of '${msg.device.ieeeAddr}' (${error})`, NS));
                 }
             },
-        ];
-        return {onEvent, isModernExtend: true};
+        };
+        return {fromZigbee: [converter], isModernExtend: true};
     },
     lumiExternalSensor: (): ModernExtend => {
         return {
@@ -2584,6 +2589,53 @@ export const lumiModernExtend = {
                 } satisfies Fz.Converter,
             ],
         } satisfies ModernExtend;
+    },
+    lumiReadPositionOnReport: (type: "genAnalogOutput" | "genMultistateOutput" | "genBasic"): ModernExtend => {
+        let converter: Fz.Converter;
+        if (type === "genAnalogOutput") {
+            converter = {
+                cluster: "genAnalogOutput",
+                type: ["attributeReport"],
+                convert: (model, msg, publish, options, meta) => {
+                    // The position (genAnalogOutput.presentValue) reported via an attribute contains an invalid value
+                    // however when reading it will provide the correct value.
+                    msg.device.endpoints[0]
+                        .read("genAnalogOutput", ["presentValue"])
+                        .catch((error) => logger.error(`Failed to read position '${msg.device.ieeeAddr}' (${error})`, NS));
+                },
+            };
+        } else if (type === "genMultistateOutput") {
+            converter = {
+                cluster: "genMultistateOutput",
+                type: ["attributeReport"],
+                convert: (model, msg, publish, options, meta) => {
+                    if (msg.data.presentValue !== undefined && msg.data.presentValue > 1) {
+                        // Try to read the position after the motor stops, the device occasionally report wrong data right after stopping
+                        // Might need to add delay, seems to be working without one but needs more tests.
+                        msg.device
+                            .getEndpoint(1)
+                            .read("genAnalogOutput", ["presentValue"])
+                            .catch((error) => logger.error(`Failed to read position '${msg.device.ieeeAddr}' (${error})`, NS));
+                    }
+                },
+            };
+        } else if (type === "genBasic") {
+            converter = {
+                cluster: "genBasic",
+                type: ["attributeReport"],
+                convert: (model, msg, publish, options, meta) => {
+                    if (msg.data["1028"] === 0) {
+                        // Try to read the position after the motor stops, the device occasionally report wrong data right after stopping
+                        // Might need to add delay, seems to be working without one but needs more tests.
+                        msg.device
+                            .getEndpoint(1)
+                            .read("genAnalogOutput", ["presentValue"])
+                            .catch((error) => logger.error(`Failed to read position '${msg.device.ieeeAddr}' (${error})`, NS));
+                    }
+                },
+            };
+        }
+        return {fromZigbee: [converter], isModernExtend: true};
     },
 };
 

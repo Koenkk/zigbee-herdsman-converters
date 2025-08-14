@@ -110,9 +110,9 @@ export const eLegrand = {
     },
 };
 
-export const readInitialBatteryState: OnEvent = async (type, data, device, options) => {
-    if (["deviceAnnounce"].includes(type)) {
-        const endpoint = device.getEndpoint(1);
+export const readInitialBatteryState: OnEvent.Handler = async (event) => {
+    if (event.type === "deviceAnnounce") {
+        const endpoint = event.data.device.getEndpoint(1);
         await endpoint.read("genPowerCfg", ["batteryVoltage"], legrandOptions);
     }
 };
@@ -217,6 +217,17 @@ export const fzLegrand = {
             if (msg.data["1"] !== undefined) payload.led_in_dark = msg.data["1"] === 0x00 ? "OFF" : "ON";
             if (msg.data["2"] !== undefined) payload.led_if_on = msg.data["2"] === 0x00 ? "OFF" : "ON";
             return payload;
+        },
+    } satisfies Fz.Converter,
+    stop_poll_on_checkin: {
+        cluster: "genPollCtrl",
+        type: ["commandCheckin"],
+        convert: (model, msg, publish, options, meta) => {
+            // TODO current solution is a work around, it would be cleaner to answer to the request
+            const endpoint = msg.device.getEndpoint(1);
+            endpoint
+                .command("genPollCtrl", "fastPollStop", {}, legrandOptions)
+                .catch((error) => logger.debug(`Failed to stop poll on '${msg.device.ieeeAddr}' (${error})`, NS));
         },
     } satisfies Fz.Converter,
     command_cover: {
