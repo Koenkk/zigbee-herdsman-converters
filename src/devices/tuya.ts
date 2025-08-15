@@ -18430,7 +18430,6 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Ceiling fan control module",
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetLocalTime,
         configure: tuya.configureMagicPacket,
         exposes: [
             e.fan().withState().withSpeed(),
