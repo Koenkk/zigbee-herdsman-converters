@@ -90,16 +90,6 @@ export const light_color: Tz.Converter = {
             const colorx = utils.mapNumberRange(xy.x, 0, 1, 0, 65535);
             const colory = utils.mapNumberRange(xy.y, 0, 1, 0, 65535);
 
-            // XXX: should this be skipped entirely in this codepath?
-            if (utils.isObject(value) && value.brightness != null) {
-                await entity.command(
-                    "genLevelCtrl",
-                    "moveToLevelWithOnOff",
-                    {level: Number(value.brightness), transtime},
-                    utils.getOptions(meta.mapped, entity),
-                );
-            }
-
             await entity.command("lightingColorCtrl", "moveToColor", {transtime, colorx, colory}, utils.getOptions(meta.mapped, entity));
         } else if (newColor.isHSV()) {
             const hsv = newColor.hsv;
@@ -157,7 +147,7 @@ export const light_color: Tz.Converter = {
                 await entity.command("lightingColorCtrl", "moveToSaturation", {transtime, saturation}, utils.getOptions(meta.mapped, entity));
             }
         } else {
-            // TODO: throw?
+            throw new Error("Invalid color");
         }
 
         return {state: libColor.syncColorState(newState, meta.state, entity, meta.options)};
