@@ -94,7 +94,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_7a5ob7xq"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_7a5ob7xq", "_TZE284_7a5ob7xq"]),
         model: "_TZE200_7a5ob7xq",
         vendor: "Orztech",
         description: "4 gang touch wall switch",
