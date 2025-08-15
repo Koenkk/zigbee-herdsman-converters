@@ -1,5 +1,24 @@
 # Changelog
 
+## [25.2.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.1.0...v25.2.0) (2025-08-14)
+
+
+### Features
+
+* **add:** 929003809401 ([#9802](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9802)) ([7de216b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7de216b78e149f32687fd256992d8e2724146079))
+* **add:** EBF_RGB_Zm ([#9784](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9784)) ([07bbe67](https://github.com/Koenkk/zigbee-herdsman-converters/commit/07bbe671ba79183befc711b51d5390114b3a0921))
+* **add:** RS 240 ([#9797](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9797)) ([9ea53a5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9ea53a55d6260081953e4cea08de0202a86fe7c0))
+* **add:** SA-1, SA-4 ([#9799](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9799)) ([086c3b7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/086c3b7e33de67df39dcffb6641114999dd51080))
+* SONOFF SNZB-02P: add more features ([#9798](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9798)) ([e0f6afb](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e0f6afb1932570c064cfb5b87de5a0ae9cd7d530))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZB210_w9hcix2r` as MiBoxer SZ5 ([#9767](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9767)) ([a802003](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a8020036053e7330056c25dbebe34189f78545c3))
+* **detect:** Detect `_TZE284_7a5ob7xq` as _TZE200_7a5ob7xq https://github.com/Koenkk/zigbee2mqtt/issues/28275 ([5967c05](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5967c05e4a01803565edcbcec3d773303ab8ef05))
+* Inovelli: re-use on_off and light_onoff_brightness converters ([#9757](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9757)) ([4e77376](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4e7737674781f222d2572e546fbcae994acebdc7))
+* ROB_200-018-0: fix exposed actions ([#9800](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9800)) ([c72f7c9](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c72f7c9860e00cfa120d7c81499dd70dbb06d903))
+
 ## [25.1.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.0.0...v25.1.0) (2025-08-13)
 
 
