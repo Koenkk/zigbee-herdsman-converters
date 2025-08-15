@@ -10,11 +10,11 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["AUX-1-ZB-S"],
         model: "AUX-1-ZB-S",
         vendor: "ONOKOM",
-        description: "ONOKOM AIR AUX-1-MB-B (Adapter for household and semi-industrial AUX systems)",
+        description: "AIR AUX-1-MB-B (Adapter for household and semi-industrial AUX systems)",
         ota: true,
         extend: [
             m.enumLookup({
-                name: "AC connected",
+                name: "ac_connected",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4734, type: Zcl.DataType.ENUM8},
                 lookup: {
@@ -31,7 +31,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "On/off state",
             }),
             m.numeric({
-                name: "Current temperature",
+                name: "current_temperature",
                 cluster: "hvacThermostat",
                 attribute: "localTemp",
                 scale: 100,
@@ -40,7 +40,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE",
             }),
             m.numeric({
-                name: "Target temperature",
+                name: "target_temperature",
                 cluster: "hvacThermostat",
                 attribute: "occupiedCoolingSetpoint",
                 valueMin: 16,
@@ -51,7 +51,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Target temperature",
             }),
             m.enumLookup({
-                name: "System mode",
+                name: "system_mode",
                 cluster: "hvacThermostat",
                 attribute: "systemMode",
                 lookup: {
@@ -65,7 +65,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "System mode",
             }),
             m.numeric({
-                name: "Outdoor air temperature",
+                name: "outdoor_air_temperature",
                 cluster: "hvacThermostat",
                 attribute: "outdoorTemp",
                 scale: 100,
@@ -74,7 +74,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE",
             }),
             m.numeric({
-                name: "ZB Fan speed",
+                name: "zb_fan_speed",
                 cluster: "hvacFanCtrl",
                 attribute: "fanMode",
                 valueMin: 1,
@@ -83,7 +83,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Fan speed modes: Auto(5), Low(1), Medium(2), Maximum(3)",
             }),
             m.numeric({
-                name: "Vertical vanes",
+                name: "vertical_vanes",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4701, type: Zcl.DataType.ENUM8},
                 valueMin: 0,
@@ -93,7 +93,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.numeric({
-                name: "Horizontal vanes",
+                name: "horizontal_vanes",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4700, type: Zcl.DataType.ENUM8},
                 valueMin: 0,
@@ -103,7 +103,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.numeric({
-                name: "Fan speed",
+                name: "fan_speed",
                 cluster: "hvacFanCtrl",
                 attribute: {ID: 0x4700, type: Zcl.DataType.ENUM8},
                 valueMin: 0,
@@ -113,7 +113,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.numeric({
-                name: "Smart fan speed",
+                name: "smart_fan_speed",
                 cluster: "hvacFanCtrl",
                 attribute: {ID: 0x4701, type: Zcl.DataType.ENUM8},
                 valueMin: 0,
@@ -123,7 +123,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.numeric({
-                name: "Vanes swing",
+                name: "vanes_swing",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4702, type: Zcl.DataType.ENUM8},
                 valueMin: 0,
@@ -133,7 +133,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.binary({
-                name: "Quiet mode",
+                name: "quiet_mode",
                 cluster: "hvacFanCtrl",
                 attribute: {ID: 0x4710, type: Zcl.DataType.BOOLEAN},
                 valueOn: ["ON", 1],
@@ -142,7 +142,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.binary({
-                name: "Turbo mode",
+                name: "turbo_mode",
                 cluster: "hvacFanCtrl",
                 attribute: {ID: 0x4711, type: Zcl.DataType.BOOLEAN},
                 valueOn: ["ON", 1],
@@ -151,7 +151,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.binary({
-                name: "Sleep mode",
+                name: "sleep_mode",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4728, type: Zcl.DataType.BOOLEAN},
                 valueOn: ["ON", 1],
@@ -160,7 +160,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.binary({
-                name: "Ionization",
+                name: "ionization",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4720, type: Zcl.DataType.BOOLEAN},
                 valueOn: ["ON", 1],
@@ -169,7 +169,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.binary({
-                name: "Self cleaning",
+                name: "self_cleaning",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4721, type: Zcl.DataType.BOOLEAN},
                 valueOn: ["ON", 1],
@@ -178,7 +178,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.binary({
-                name: "Mold protection",
+                name: "mold_protection",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4722, type: Zcl.DataType.BOOLEAN},
                 valueOn: ["ON", 1],
@@ -187,7 +187,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.binary({
-                name: "Screen light",
+                name: "screen_light",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4731, type: Zcl.DataType.BOOLEAN},
                 valueOn: ["ON", 1],
@@ -208,11 +208,11 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["DK-1-ZB-S"],
         model: "DK-1-ZB-S",
         vendor: "ONOKOM",
-        description: "ONOKOM AIR DK-1-MB-B (Adapter for household Daikin systems)",
+        description: "AIR DK-1-MB-B (Adapter for household Daikin systems)",
         ota: true,
         extend: [
             m.enumLookup({
-                name: "AC connected",
+                name: "ac_connected",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4734, type: Zcl.DataType.ENUM8},
                 lookup: {
@@ -229,7 +229,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "On/off state",
             }),
             m.numeric({
-                name: "Current temperature",
+                name: "current_temperature",
                 cluster: "hvacThermostat",
                 attribute: "localTemp",
                 scale: 100,
@@ -238,7 +238,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE",
             }),
             m.numeric({
-                name: "Target temperature",
+                name: "target_temperature",
                 cluster: "hvacThermostat",
                 attribute: "occupiedCoolingSetpoint",
                 valueMin: 16,
@@ -249,7 +249,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Target temperature",
             }),
             m.enumLookup({
-                name: "System mode",
+                name: "system_mode",
                 cluster: "hvacThermostat",
                 attribute: "systemMode",
                 lookup: {
@@ -263,7 +263,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "System mode",
             }),
             m.numeric({
-                name: "Outdoor air temperature",
+                name: "outdoor_air_temperature",
                 cluster: "hvacThermostat",
                 attribute: "outdoorTemp",
                 scale: 100,
@@ -272,7 +272,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE",
             }),
             m.numeric({
-                name: "ZB Fan speed",
+                name: "zb_fan_speed",
                 cluster: "hvacFanCtrl",
                 attribute: "fanMode",
                 valueMin: 1,
@@ -281,7 +281,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Fan speed modes: Auto(5), Low(1), Medium(2), Maximum(3)",
             }),
             m.numeric({
-                name: "Vertical vanes",
+                name: "vertical_vanes",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4701, type: Zcl.DataType.ENUM8},
                 valueMin: 0,
@@ -291,7 +291,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.numeric({
-                name: "Horizontal vanes",
+                name: "horizontal_vanes",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4700, type: Zcl.DataType.ENUM8},
                 valueMin: 0,
@@ -301,7 +301,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.numeric({
-                name: "Fan speed",
+                name: "fan_speed",
                 cluster: "hvacFanCtrl",
                 attribute: {ID: 0x4700, type: Zcl.DataType.ENUM8},
                 valueMin: 0,
@@ -311,7 +311,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.numeric({
-                name: "Smart fan speed",
+                name: "smart_fan_speed",
                 cluster: "hvacFanCtrl",
                 attribute: {ID: 0x4701, type: Zcl.DataType.ENUM8},
                 valueMin: 0,
@@ -321,7 +321,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.numeric({
-                name: "Vanes swing",
+                name: "vanes_swing",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4702, type: Zcl.DataType.ENUM8},
                 valueMin: 0,
@@ -331,7 +331,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.binary({
-                name: "Quiet mode",
+                name: "quiet_mode",
                 cluster: "hvacFanCtrl",
                 attribute: {ID: 0x4710, type: Zcl.DataType.BOOLEAN},
                 valueOn: ["ON", 1],
@@ -340,7 +340,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.binary({
-                name: "Eco mode",
+                name: "eco_mode",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4727, type: Zcl.DataType.BOOLEAN},
                 valueOn: ["ON", 1],
@@ -349,7 +349,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.binary({
-                name: "Turbo mode",
+                name: "turbo_mode",
                 cluster: "hvacFanCtrl",
                 attribute: {ID: 0x4711, type: Zcl.DataType.BOOLEAN},
                 valueOn: ["ON", 1],
@@ -358,7 +358,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.binary({
-                name: "Screen light",
+                name: "screen_light",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4731, type: Zcl.DataType.BOOLEAN},
                 valueOn: ["ON", 1],
@@ -367,7 +367,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.binary({
-                name: "Screen low bright",
+                name: "screen_low_bright",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4733, type: Zcl.DataType.BOOLEAN},
                 valueOn: ["ON", 1],
@@ -388,11 +388,11 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["GR-1-ZB-S"],
         model: "GR-1-ZB-S",
         vendor: "ONOKOM",
-        description: "ONOKOM AIR GR-1-MB-B (Adapter for household GREE systems)",
+        description: "AIR GR-1-MB-B (Adapter for household GREE systems)",
         ota: true,
         extend: [
             m.enumLookup({
-                name: "AC connected",
+                name: "ac_connected",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4734, type: Zcl.DataType.ENUM8},
                 lookup: {
@@ -409,7 +409,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "On/off state",
             }),
             m.numeric({
-                name: "Current temperature",
+                name: "current_temperature",
                 cluster: "hvacThermostat",
                 attribute: "localTemp",
                 scale: 100,
@@ -418,7 +418,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE",
             }),
             m.numeric({
-                name: "Target temperature",
+                name: "target_temperature",
                 cluster: "hvacThermostat",
                 attribute: "occupiedCoolingSetpoint",
                 valueMin: 16,
@@ -429,7 +429,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Target temperature",
             }),
             m.enumLookup({
-                name: "System mode",
+                name: "system_mode",
                 cluster: "hvacThermostat",
                 attribute: "systemMode",
                 lookup: {
@@ -443,7 +443,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "System mode",
             }),
             m.numeric({
-                name: "Outdoor air temperature",
+                name: "outdoor_air_temperature",
                 cluster: "hvacThermostat",
                 attribute: "outdoorTemp",
                 scale: 100,
@@ -452,7 +452,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE",
             }),
             m.numeric({
-                name: "ZB Fan speed",
+                name: "zb_fan_speed",
                 cluster: "hvacFanCtrl",
                 attribute: "fanMode",
                 valueMin: 1,
@@ -461,7 +461,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Fan speed modes: Auto(5), Low(1), Medium(2), Maximum(3)",
             }),
             m.numeric({
-                name: "Vertical vanes",
+                name: "vertical_vanes",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4701, type: Zcl.DataType.ENUM8},
                 valueMin: 0,
@@ -471,7 +471,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.numeric({
-                name: "Horizontal vanes",
+                name: "horizontal_vanes",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4700, type: Zcl.DataType.ENUM8},
                 valueMin: 0,
@@ -481,7 +481,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.numeric({
-                name: "Fan speed",
+                name: "fan_speed",
                 cluster: "hvacFanCtrl",
                 attribute: {ID: 0x4700, type: Zcl.DataType.ENUM8},
                 valueMin: 0,
@@ -491,7 +491,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.numeric({
-                name: "Smart fan speed",
+                name: "smart_fan_speed",
                 cluster: "hvacFanCtrl",
                 attribute: {ID: 0x4701, type: Zcl.DataType.ENUM8},
                 valueMin: 0,
@@ -501,7 +501,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.numeric({
-                name: "Vanes swing",
+                name: "vanes_swing",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4702, type: Zcl.DataType.ENUM8},
                 valueMin: 0,
@@ -511,7 +511,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.binary({
-                name: "Quiet mode",
+                name: "quiet_mode",
                 cluster: "hvacFanCtrl",
                 attribute: {ID: 0x4710, type: Zcl.DataType.BOOLEAN},
                 valueOn: ["ON", 1],
@@ -520,7 +520,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.binary({
-                name: "Eco mode",
+                name: "eco_mode",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4727, type: Zcl.DataType.BOOLEAN},
                 valueOn: ["ON", 1],
@@ -529,7 +529,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.binary({
-                name: "Turbo mode",
+                name: "turbo_mode",
                 cluster: "hvacFanCtrl",
                 attribute: {ID: 0x4711, type: Zcl.DataType.BOOLEAN},
                 valueOn: ["ON", 1],
@@ -538,7 +538,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.binary({
-                name: "Sleep mode",
+                name: "sleep_mode",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4728, type: Zcl.DataType.BOOLEAN},
                 valueOn: ["ON", 1],
@@ -547,7 +547,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.binary({
-                name: "Ionization",
+                name: "ionization",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4720, type: Zcl.DataType.BOOLEAN},
                 valueOn: ["ON", 1],
@@ -556,7 +556,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.binary({
-                name: "Screen light",
+                name: "screen_light",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4731, type: Zcl.DataType.BOOLEAN},
                 valueOn: ["ON", 1],
@@ -565,7 +565,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.binary({
-                name: "Disable screen when power off",
+                name: "disable_screen_when_power_off",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4732, type: Zcl.DataType.BOOLEAN},
                 valueOn: ["ON", 1],
@@ -586,11 +586,11 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["GR-3-ZB-S"],
         model: "GR-3-ZB-S",
         vendor: "ONOKOM",
-        description: "ONOKOM AIR GR-3-MB-B (Adapter for control of semi-industrial and multi-split systems GREE)",
+        description: "AIR GR-3-MB-B (Adapter for control of semi-industrial and multi-split systems GREE)",
         ota: true,
         extend: [
             m.enumLookup({
-                name: "AC connected",
+                name: "ac_connected",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4734, type: Zcl.DataType.ENUM8},
                 lookup: {
@@ -607,7 +607,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "On/off state",
             }),
             m.numeric({
-                name: "Current temperature",
+                name: "current_temperature",
                 cluster: "hvacThermostat",
                 attribute: "localTemp",
                 scale: 100,
@@ -616,7 +616,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE",
             }),
             m.numeric({
-                name: "Target temperature",
+                name: "target_temperature",
                 cluster: "hvacThermostat",
                 attribute: "occupiedCoolingSetpoint",
                 valueMin: 16,
@@ -627,7 +627,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Target temperature",
             }),
             m.enumLookup({
-                name: "System mode",
+                name: "system_mode",
                 cluster: "hvacThermostat",
                 attribute: "systemMode",
                 lookup: {
@@ -641,7 +641,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "System mode",
             }),
             m.numeric({
-                name: "Outdoor air temperature",
+                name: "outdoor_air_temperature",
                 cluster: "hvacThermostat",
                 attribute: "outdoorTemp",
                 scale: 100,
@@ -650,7 +650,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE",
             }),
             m.numeric({
-                name: "ZB Fan speed",
+                name: "zb_fan_speed",
                 cluster: "hvacFanCtrl",
                 attribute: "fanMode",
                 valueMin: 1,
@@ -659,7 +659,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Fan speed modes: Auto(5), Low(1), Medium(2), Maximum(3)",
             }),
             m.numeric({
-                name: "Vertical vanes",
+                name: "vertical_vanes",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4701, type: Zcl.DataType.ENUM8},
                 valueMin: 0,
@@ -669,7 +669,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.numeric({
-                name: "Horizontal vanes",
+                name: "horizontal_vanes",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4700, type: Zcl.DataType.ENUM8},
                 valueMin: 0,
@@ -679,7 +679,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.numeric({
-                name: "Fan speed",
+                name: "fan_speed",
                 cluster: "hvacFanCtrl",
                 attribute: {ID: 0x4700, type: Zcl.DataType.ENUM8},
                 valueMin: 0,
@@ -689,7 +689,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.numeric({
-                name: "Smart fan speed",
+                name: "smart_fan_speed",
                 cluster: "hvacFanCtrl",
                 attribute: {ID: 0x4701, type: Zcl.DataType.ENUM8},
                 valueMin: 0,
@@ -699,7 +699,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.numeric({
-                name: "Vanes swing",
+                name: "vanes_swing",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4702, type: Zcl.DataType.ENUM8},
                 valueMin: 0,
@@ -709,7 +709,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.binary({
-                name: "Quiet mode",
+                name: "quiet_mode",
                 cluster: "hvacFanCtrl",
                 attribute: {ID: 0x4710, type: Zcl.DataType.BOOLEAN},
                 valueOn: ["ON", 1],
@@ -718,7 +718,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.binary({
-                name: "Eco mode",
+                name: "eco_mode",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4727, type: Zcl.DataType.BOOLEAN},
                 valueOn: ["ON", 1],
@@ -727,7 +727,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.binary({
-                name: "Turbo mode",
+                name: "turbo_mode",
                 cluster: "hvacFanCtrl",
                 attribute: {ID: 0x4711, type: Zcl.DataType.BOOLEAN},
                 valueOn: ["ON", 1],
@@ -736,7 +736,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.binary({
-                name: "Sleep mode",
+                name: "sleep_mode",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4728, type: Zcl.DataType.BOOLEAN},
                 valueOn: ["ON", 1],
@@ -745,7 +745,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.binary({
-                name: "Ionization",
+                name: "ionization",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4720, type: Zcl.DataType.BOOLEAN},
                 valueOn: ["ON", 1],
@@ -754,7 +754,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.binary({
-                name: "Self cleaning",
+                name: "self_cleaning",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4721, type: Zcl.DataType.BOOLEAN},
                 valueOn: ["ON", 1],
@@ -775,11 +775,11 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["HR-1-ZB-S"],
         model: "HR-1-ZB-S",
         vendor: "ONOKOM",
-        description: "ONOKOM AIR HR-1-MB-B (Adapter for household and semi-industrial Haier systems)",
+        description: "AIR HR-1-MB-B (Adapter for household and semi-industrial Haier systems)",
         ota: true,
         extend: [
             m.enumLookup({
-                name: "AC connected",
+                name: "ac_connected",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4734, type: Zcl.DataType.ENUM8},
                 lookup: {
@@ -796,7 +796,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "On/off state",
             }),
             m.numeric({
-                name: "Current temperature",
+                name: "current_temperature",
                 cluster: "hvacThermostat",
                 attribute: "localTemp",
                 scale: 100,
@@ -805,7 +805,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE",
             }),
             m.numeric({
-                name: "Target temperature",
+                name: "target_temperature",
                 cluster: "hvacThermostat",
                 attribute: "occupiedCoolingSetpoint",
                 valueMin: 16,
@@ -816,7 +816,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Target temperature",
             }),
             m.enumLookup({
-                name: "System mode",
+                name: "system_mode",
                 cluster: "hvacThermostat",
                 attribute: "systemMode",
                 lookup: {
@@ -830,7 +830,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "System mode",
             }),
             m.numeric({
-                name: "Outdoor air temperature",
+                name: "outdoor_air_temperature",
                 cluster: "hvacThermostat",
                 attribute: "outdoorTemp",
                 scale: 100,
@@ -839,7 +839,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE",
             }),
             m.numeric({
-                name: "ZB Fan speed",
+                name: "zb_fan_speed",
                 cluster: "hvacFanCtrl",
                 attribute: "fanMode",
                 valueMin: 1,
@@ -848,7 +848,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Fan speed modes: Auto(5), Low(1), Medium(2), Maximum(3)",
             }),
             m.numeric({
-                name: "Vertical vanes",
+                name: "vertical_vanes",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4701, type: Zcl.DataType.ENUM8},
                 valueMin: 0,
@@ -858,7 +858,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.numeric({
-                name: "Horizontal vanes",
+                name: "horizontal_vanes",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4700, type: Zcl.DataType.ENUM8},
                 valueMin: 0,
@@ -868,7 +868,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.numeric({
-                name: "Fan speed",
+                name: "fan_speed",
                 cluster: "hvacFanCtrl",
                 attribute: {ID: 0x4700, type: Zcl.DataType.ENUM8},
                 valueMin: 0,
@@ -878,7 +878,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.numeric({
-                name: "Smart fan speed",
+                name: "smart_fan_speed",
                 cluster: "hvacFanCtrl",
                 attribute: {ID: 0x4701, type: Zcl.DataType.ENUM8},
                 valueMin: 0,
@@ -888,7 +888,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.numeric({
-                name: "Vanes swing",
+                name: "vanes_swing",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4702, type: Zcl.DataType.ENUM8},
                 valueMin: 0,
@@ -898,7 +898,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.binary({
-                name: "Quiet mode",
+                name: "quiet_mode",
                 cluster: "hvacFanCtrl",
                 attribute: {ID: 0x4710, type: Zcl.DataType.BOOLEAN},
                 valueOn: ["ON", 1],
@@ -907,7 +907,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.binary({
-                name: "Turbo mode",
+                name: "turbo_mode",
                 cluster: "hvacFanCtrl",
                 attribute: {ID: 0x4711, type: Zcl.DataType.BOOLEAN},
                 valueOn: ["ON", 1],
@@ -916,7 +916,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.binary({
-                name: "Sleep mode",
+                name: "sleep_mode",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4728, type: Zcl.DataType.BOOLEAN},
                 valueOn: ["ON", 1],
@@ -925,7 +925,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.binary({
-                name: "Ionization",
+                name: "ionization",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4720, type: Zcl.DataType.BOOLEAN},
                 valueOn: ["ON", 1],
@@ -934,7 +934,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.binary({
-                name: "Self cleaning",
+                name: "self_cleaning",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4721, type: Zcl.DataType.BOOLEAN},
                 valueOn: ["ON", 1],
@@ -943,7 +943,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.binary({
-                name: "Screen light",
+                name: "screen_light",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4731, type: Zcl.DataType.BOOLEAN},
                 valueOn: ["ON", 1],
@@ -952,7 +952,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.binary({
-                name: "Beeper",
+                name: "beeper",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4730, type: Zcl.DataType.BOOLEAN},
                 valueOn: ["ON", 1],
@@ -973,11 +973,11 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["HS-3-ZB-S"],
         model: "HS-3-ZB-S",
         vendor: "ONOKOM",
-        description: "ONOKOM AIR HS-3-MB-B (Adapter for household Hisesnse systems)",
+        description: "AIR HS-3-MB-B (Adapter for household Hisesnse systems)",
         ota: true,
         extend: [
             m.enumLookup({
-                name: "AC connected",
+                name: "ac_connected",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4734, type: Zcl.DataType.ENUM8},
                 lookup: {
@@ -994,7 +994,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "On/off state",
             }),
             m.numeric({
-                name: "Current temperature",
+                name: "current_temperature",
                 cluster: "hvacThermostat",
                 attribute: "localTemp",
                 scale: 100,
@@ -1003,7 +1003,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE",
             }),
             m.numeric({
-                name: "Target temperature",
+                name: "target_temperature",
                 cluster: "hvacThermostat",
                 attribute: "occupiedCoolingSetpoint",
                 valueMin: 16,
@@ -1014,7 +1014,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Target temperature",
             }),
             m.enumLookup({
-                name: "System mode",
+                name: "system_mode",
                 cluster: "hvacThermostat",
                 attribute: "systemMode",
                 lookup: {
@@ -1028,7 +1028,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "System mode",
             }),
             m.numeric({
-                name: "Outdoor air temperature",
+                name: "outdoor_air_temperature",
                 cluster: "hvacThermostat",
                 attribute: "outdoorTemp",
                 scale: 100,
@@ -1037,7 +1037,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE",
             }),
             m.numeric({
-                name: "ZB Fan speed",
+                name: "zb_fan_speed",
                 cluster: "hvacFanCtrl",
                 attribute: "fanMode",
                 valueMin: 1,
@@ -1046,7 +1046,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Fan speed modes: Auto(5), Low(1), Medium(2), Maximum(3)",
             }),
             m.numeric({
-                name: "Vertical vanes",
+                name: "vertical_vanes",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4701, type: Zcl.DataType.ENUM8},
                 valueMin: 0,
@@ -1056,7 +1056,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.numeric({
-                name: "Horizontal vanes",
+                name: "horizontal_vanes",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4700, type: Zcl.DataType.ENUM8},
                 valueMin: 0,
@@ -1066,7 +1066,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.numeric({
-                name: "Fan speed",
+                name: "fan_speed",
                 cluster: "hvacFanCtrl",
                 attribute: {ID: 0x4700, type: Zcl.DataType.ENUM8},
                 valueMin: 0,
@@ -1076,7 +1076,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.numeric({
-                name: "Smart fan speed",
+                name: "smart_fan_speed",
                 cluster: "hvacFanCtrl",
                 attribute: {ID: 0x4701, type: Zcl.DataType.ENUM8},
                 valueMin: 0,
@@ -1086,7 +1086,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.numeric({
-                name: "Vanes swing",
+                name: "vanes_swing",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4702, type: Zcl.DataType.ENUM8},
                 valueMin: 0,
@@ -1096,7 +1096,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.binary({
-                name: "Quiet mode",
+                name: "quiet_mode",
                 cluster: "hvacFanCtrl",
                 attribute: {ID: 0x4710, type: Zcl.DataType.BOOLEAN},
                 valueOn: ["ON", 1],
@@ -1105,7 +1105,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.binary({
-                name: "Eco mode",
+                name: "eco_mode",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4727, type: Zcl.DataType.BOOLEAN},
                 valueOn: ["ON", 1],
@@ -1114,7 +1114,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.binary({
-                name: "Turbo mode",
+                name: "turbo_mode",
                 cluster: "hvacFanCtrl",
                 attribute: {ID: 0x4711, type: Zcl.DataType.BOOLEAN},
                 valueOn: ["ON", 1],
@@ -1123,7 +1123,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.binary({
-                name: "Sleep mode",
+                name: "sleep_mode",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4728, type: Zcl.DataType.BOOLEAN},
                 valueOn: ["ON", 1],
@@ -1132,7 +1132,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.binary({
-                name: "Smart sleep mode",
+                name: "smart_sleep_mode",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4736, type: Zcl.DataType.ENUM8},
                 valueOn: ["ON", 1],
@@ -1141,7 +1141,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.binary({
-                name: "Ionization",
+                name: "ionization",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4720, type: Zcl.DataType.BOOLEAN},
                 valueOn: ["ON", 1],
@@ -1150,7 +1150,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.binary({
-                name: "Smart eye",
+                name: "smart_eye",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4735, type: Zcl.DataType.ENUM8},
                 valueOn: ["ON", 1],
@@ -1159,7 +1159,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.binary({
-                name: "Screen light",
+                name: "screen_light",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4731, type: Zcl.DataType.BOOLEAN},
                 valueOn: ["ON", 1],
@@ -1168,7 +1168,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.binary({
-                name: "Beeper",
+                name: "beeper",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4730, type: Zcl.DataType.BOOLEAN},
                 valueOn: ["ON", 1],
@@ -1189,11 +1189,11 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["HT-1-ZB-S"],
         model: "HT-1-ZB-S",
         vendor: "ONOKOM",
-        description: "ONOKOM AIR HT-1-MB-B (Adapter for household Hitachi systems)",
+        description: "AIR HT-1-MB-B (Adapter for household Hitachi systems)",
         ota: true,
         extend: [
             m.enumLookup({
-                name: "AC connected",
+                name: "ac_connected",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4734, type: Zcl.DataType.ENUM8},
                 lookup: {
@@ -1210,7 +1210,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "On/off state",
             }),
             m.numeric({
-                name: "Current temperature",
+                name: "current_temperature",
                 cluster: "hvacThermostat",
                 attribute: "localTemp",
                 scale: 100,
@@ -1219,7 +1219,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE",
             }),
             m.numeric({
-                name: "Target temperature",
+                name: "target_temperature",
                 cluster: "hvacThermostat",
                 attribute: "occupiedCoolingSetpoint",
                 valueMin: 16,
@@ -1230,7 +1230,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Target temperature",
             }),
             m.enumLookup({
-                name: "System mode",
+                name: "system_mode",
                 cluster: "hvacThermostat",
                 attribute: "systemMode",
                 lookup: {
@@ -1244,7 +1244,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "System mode",
             }),
             m.numeric({
-                name: "ZB Fan speed",
+                name: "zb_fan_speed",
                 cluster: "hvacFanCtrl",
                 attribute: "fanMode",
                 valueMin: 1,
@@ -1253,7 +1253,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Fan speed modes: Auto(5), Low(1), Medium(2), Maximum(3)",
             }),
             m.numeric({
-                name: "Fan speed",
+                name: "fan_speed",
                 cluster: "hvacFanCtrl",
                 attribute: {ID: 0x4700, type: Zcl.DataType.ENUM8},
                 valueMin: 0,
@@ -1263,7 +1263,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.numeric({
-                name: "Smart fan speed",
+                name: "smart_fan_speed",
                 cluster: "hvacFanCtrl",
                 attribute: {ID: 0x4701, type: Zcl.DataType.ENUM8},
                 valueMin: 0,
@@ -1285,11 +1285,11 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["MD-1-ZB-S"],
         model: "MD-1-ZB-S",
         vendor: "ONOKOM",
-        description: "ONOKOM AIR MD-1-MB-B (Adapter for household MDV systems)",
+        description: "AIR MD-1-MB-B (Adapter for household MDV systems)",
         ota: true,
         extend: [
             m.enumLookup({
-                name: "AC connected",
+                name: "ac_connected",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4734, type: Zcl.DataType.ENUM8},
                 lookup: {
@@ -1306,7 +1306,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "On/off state",
             }),
             m.numeric({
-                name: "Current temperature",
+                name: "current_temperature",
                 cluster: "hvacThermostat",
                 attribute: "localTemp",
                 scale: 100,
@@ -1315,7 +1315,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE",
             }),
             m.numeric({
-                name: "Target temperature",
+                name: "target_temperature",
                 cluster: "hvacThermostat",
                 attribute: "occupiedCoolingSetpoint",
                 valueMin: 16,
@@ -1326,7 +1326,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Target temperature",
             }),
             m.enumLookup({
-                name: "System mode",
+                name: "system_mode",
                 cluster: "hvacThermostat",
                 attribute: "systemMode",
                 lookup: {
@@ -1340,7 +1340,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "System mode",
             }),
             m.numeric({
-                name: "ZB Fan speed",
+                name: "zb_fan_speed",
                 cluster: "hvacFanCtrl",
                 attribute: "fanMode",
                 valueMin: 1,
@@ -1349,7 +1349,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Fan speed modes: Auto(5), Low(1), Medium(2), Maximum(3)",
             }),
             m.numeric({
-                name: "Vertical vanes",
+                name: "vertical_vanes",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4701, type: Zcl.DataType.ENUM8},
                 valueMin: 0,
@@ -1359,7 +1359,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.numeric({
-                name: "Horizontal vanes",
+                name: "horizontal_vanes",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4700, type: Zcl.DataType.ENUM8},
                 valueMin: 0,
@@ -1369,7 +1369,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.numeric({
-                name: "Fan speed",
+                name: "fan_speed",
                 cluster: "hvacFanCtrl",
                 attribute: {ID: 0x4700, type: Zcl.DataType.ENUM8},
                 valueMin: 0,
@@ -1379,7 +1379,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.numeric({
-                name: "Smart fan speed",
+                name: "smart_fan_speed",
                 cluster: "hvacFanCtrl",
                 attribute: {ID: 0x4701, type: Zcl.DataType.ENUM8},
                 valueMin: 0,
@@ -1389,7 +1389,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.numeric({
-                name: "Vanes swing",
+                name: "vanes_swing",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4702, type: Zcl.DataType.ENUM8},
                 valueMin: 0,
@@ -1399,7 +1399,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.binary({
-                name: "Quiet mode",
+                name: "quiet_mode",
                 cluster: "hvacFanCtrl",
                 attribute: {ID: 0x4710, type: Zcl.DataType.BOOLEAN},
                 valueOn: ["ON", 1],
@@ -1408,7 +1408,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.binary({
-                name: "Turbo mode",
+                name: "turbo_mode",
                 cluster: "hvacFanCtrl",
                 attribute: {ID: 0x4711, type: Zcl.DataType.BOOLEAN},
                 valueOn: ["ON", 1],
@@ -1429,11 +1429,11 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["MD-3-ZB-S"],
         model: "MD-3-ZB-S",
         vendor: "ONOKOM",
-        description: "ONOKOM AIR MD-3-MB-B (Adapter for semi-industrial MDV systems)",
+        description: "AIR MD-3-MB-B (Adapter for semi-industrial MDV systems)",
         ota: true,
         extend: [
             m.enumLookup({
-                name: "AC connected",
+                name: "ac_connected",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4734, type: Zcl.DataType.ENUM8},
                 lookup: {
@@ -1450,7 +1450,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "On/off state",
             }),
             m.numeric({
-                name: "Current temperature",
+                name: "current_temperature",
                 cluster: "hvacThermostat",
                 attribute: "localTemp",
                 scale: 100,
@@ -1459,7 +1459,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE",
             }),
             m.numeric({
-                name: "Target temperature",
+                name: "target_temperature",
                 cluster: "hvacThermostat",
                 attribute: "occupiedCoolingSetpoint",
                 valueMin: 16,
@@ -1470,7 +1470,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Target temperature",
             }),
             m.enumLookup({
-                name: "System mode",
+                name: "system_mode",
                 cluster: "hvacThermostat",
                 attribute: "systemMode",
                 lookup: {
@@ -1484,7 +1484,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "System mode",
             }),
             m.numeric({
-                name: "ZB Fan speed",
+                name: "zb_fan_speed",
                 cluster: "hvacFanCtrl",
                 attribute: "fanMode",
                 valueMin: 1,
@@ -1493,7 +1493,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Fan speed modes: Auto(5), Low(1), Medium(2), Maximum(3)",
             }),
             m.numeric({
-                name: "Horizontal vanes",
+                name: "horizontal_vanes",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4700, type: Zcl.DataType.ENUM8},
                 valueMin: 0,
@@ -1503,7 +1503,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.numeric({
-                name: "Fan speed",
+                name: "fan_speed",
                 cluster: "hvacFanCtrl",
                 attribute: {ID: 0x4700, type: Zcl.DataType.ENUM8},
                 valueMin: 0,
@@ -1513,7 +1513,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.numeric({
-                name: "Smart fan speed",
+                name: "smart_fan_speed",
                 cluster: "hvacFanCtrl",
                 attribute: {ID: 0x4701, type: Zcl.DataType.ENUM8},
                 valueMin: 0,
@@ -1523,7 +1523,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.numeric({
-                name: "Vanes swing",
+                name: "vanes_swing",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4702, type: Zcl.DataType.ENUM8},
                 valueMin: 0,
@@ -1533,7 +1533,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.binary({
-                name: "Eco mode",
+                name: "eco_mode",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4727, type: Zcl.DataType.BOOLEAN},
                 valueOn: ["ON", 1],
@@ -1558,7 +1558,7 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         extend: [
             m.enumLookup({
-                name: "AC connected",
+                name: "ac_connected",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4734, type: Zcl.DataType.ENUM8},
                 lookup: {
@@ -1575,7 +1575,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "On/off state",
             }),
             m.numeric({
-                name: "Current temperature",
+                name: "current_temperature",
                 cluster: "hvacThermostat",
                 attribute: "localTemp",
                 scale: 100,
@@ -1584,7 +1584,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE",
             }),
             m.numeric({
-                name: "Target temperature",
+                name: "target_temperature",
                 cluster: "hvacThermostat",
                 attribute: "occupiedCoolingSetpoint",
                 valueMin: 16,
@@ -1595,7 +1595,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Target temperature",
             }),
             m.enumLookup({
-                name: "System mode",
+                name: "system_mode",
                 cluster: "hvacThermostat",
                 attribute: "systemMode",
                 lookup: {
@@ -1609,7 +1609,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "System mode",
             }),
             m.numeric({
-                name: "ZB Fan speed",
+                name: "zb_fan_speed",
                 cluster: "hvacFanCtrl",
                 attribute: "fanMode",
                 valueMin: 1,
@@ -1618,7 +1618,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Fan speed modes: Auto(5), Low(1), Medium(2), Maximum(3)",
             }),
             m.numeric({
-                name: "Vertical vanes",
+                name: "vertical_vanes",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4701, type: Zcl.DataType.ENUM8},
                 valueMin: 0,
@@ -1628,7 +1628,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.numeric({
-                name: "Horizontal vanes",
+                name: "horizontal_vanes",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4700, type: Zcl.DataType.ENUM8},
                 valueMin: 0,
@@ -1638,7 +1638,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.numeric({
-                name: "Fan speed",
+                name: "fan_speed",
                 cluster: "hvacFanCtrl",
                 attribute: {ID: 0x4700, type: Zcl.DataType.ENUM8},
                 valueMin: 0,
@@ -1648,7 +1648,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.numeric({
-                name: "Smart fan speed",
+                name: "smart_fan_speed",
                 cluster: "hvacFanCtrl",
                 attribute: {ID: 0x4701, type: Zcl.DataType.ENUM8},
                 valueMin: 0,
@@ -1658,7 +1658,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.numeric({
-                name: "Vanes swing",
+                name: "vanes_swing",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4702, type: Zcl.DataType.ENUM8},
                 valueMin: 0,
@@ -1668,7 +1668,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.binary({
-                name: "Quiet mode",
+                name: "quiet_mode",
                 cluster: "hvacFanCtrl",
                 attribute: {ID: 0x4710, type: Zcl.DataType.BOOLEAN},
                 valueOn: ["ON", 1],
@@ -1693,7 +1693,7 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         extend: [
             m.enumLookup({
-                name: "AC connected",
+                name: "ac_connected",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4734, type: Zcl.DataType.ENUM8},
                 lookup: {
@@ -1710,7 +1710,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "On/off state",
             }),
             m.numeric({
-                name: "Current temperature",
+                name: "current_temperature",
                 cluster: "hvacThermostat",
                 attribute: "localTemp",
                 scale: 100,
@@ -1719,7 +1719,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE",
             }),
             m.numeric({
-                name: "Target temperature",
+                name: "target_temperature",
                 cluster: "hvacThermostat",
                 attribute: "occupiedCoolingSetpoint",
                 valueMin: 16,
@@ -1730,7 +1730,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Target temperature",
             }),
             m.enumLookup({
-                name: "System mode",
+                name: "system_mode",
                 cluster: "hvacThermostat",
                 attribute: "systemMode",
                 lookup: {
@@ -1744,7 +1744,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "System mode",
             }),
             m.numeric({
-                name: "Outdoor air temperature",
+                name: "outdoor_air_temperature",
                 cluster: "hvacThermostat",
                 attribute: "outdoorTemp",
                 scale: 100,
@@ -1753,7 +1753,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE",
             }),
             m.numeric({
-                name: "ZB Fan speed",
+                name: "zb_fan_speed",
                 cluster: "hvacFanCtrl",
                 attribute: "fanMode",
                 valueMin: 1,
@@ -1762,7 +1762,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Fan speed modes: Auto(5), Low(1), Medium(2), Maximum(3)",
             }),
             m.numeric({
-                name: "Vertical vanes",
+                name: "vertical_vanes",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4701, type: Zcl.DataType.ENUM8},
                 valueMin: 0,
@@ -1772,7 +1772,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.numeric({
-                name: "Horizontal vanes",
+                name: "horizontal_vanes",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4700, type: Zcl.DataType.ENUM8},
                 valueMin: 0,
@@ -1782,7 +1782,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.numeric({
-                name: "Fan speed",
+                name: "fan_speed",
                 cluster: "hvacFanCtrl",
                 attribute: {ID: 0x4700, type: Zcl.DataType.ENUM8},
                 valueMin: 0,
@@ -1792,7 +1792,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.numeric({
-                name: "Smart fan speed",
+                name: "smart_fan_speed",
                 cluster: "hvacFanCtrl",
                 attribute: {ID: 0x4701, type: Zcl.DataType.ENUM8},
                 valueMin: 0,
@@ -1802,7 +1802,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.numeric({
-                name: "Vanes swing",
+                name: "vanes_swing",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4702, type: Zcl.DataType.ENUM8},
                 valueMin: 0,
@@ -1812,7 +1812,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.binary({
-                name: "Quiet mode",
+                name: "quiet_mode",
                 cluster: "hvacFanCtrl",
                 attribute: {ID: 0x4710, type: Zcl.DataType.BOOLEAN},
                 valueOn: ["ON", 1],
@@ -1821,7 +1821,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.binary({
-                name: "Eco mode",
+                name: "eco_mode",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4727, type: Zcl.DataType.BOOLEAN},
                 valueOn: ["ON", 1],
@@ -1830,7 +1830,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.binary({
-                name: "Turbo mode",
+                name: "turbo_mode",
                 cluster: "hvacFanCtrl",
                 attribute: {ID: 0x4711, type: Zcl.DataType.BOOLEAN},
                 valueOn: ["ON", 1],
@@ -1839,7 +1839,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.binary({
-                name: "Sleep mode",
+                name: "sleep_mode",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4728, type: Zcl.DataType.BOOLEAN},
                 valueOn: ["ON", 1],
@@ -1848,7 +1848,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.binary({
-                name: "Ionization",
+                name: "ionization",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4720, type: Zcl.DataType.BOOLEAN},
                 valueOn: ["ON", 1],
@@ -1857,7 +1857,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.binary({
-                name: "Self cleaning",
+                name: "self_cleaning",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4721, type: Zcl.DataType.BOOLEAN},
                 valueOn: ["ON", 1],
@@ -1866,7 +1866,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.binary({
-                name: "Mold protection",
+                name: "mold_protection",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4722, type: Zcl.DataType.BOOLEAN},
                 valueOn: ["ON", 1],
@@ -1875,7 +1875,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.binary({
-                name: "Heating 8 deg",
+                name: "heating_8_deg",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4724, type: Zcl.DataType.BOOLEAN},
                 valueOn: ["ON", 1],
@@ -1884,7 +1884,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.binary({
-                name: "Gentle wind",
+                name: "gentle_wind",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4725, type: Zcl.DataType.BOOLEAN},
                 valueOn: ["ON", 1],
@@ -1893,7 +1893,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.binary({
-                name: "Screen light",
+                name: "screen_light",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4731, type: Zcl.DataType.BOOLEAN},
                 valueOn: ["ON", 1],
@@ -1902,7 +1902,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.binary({
-                name: "Beeper",
+                name: "beeper",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4730, type: Zcl.DataType.BOOLEAN},
                 valueOn: ["ON", 1],
@@ -1923,11 +1923,11 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["TCL-3-ZB-S"],
         model: "TCL-3-ZB-S",
         vendor: "ONOKOM",
-        description: "ONOKOM AIR TCL-3-MB-B (Adapter for semi industrial TCL systems)",
+        description: "AIR TCL-3-MB-B (Adapter for semi industrial TCL systems)",
         ota: true,
         extend: [
             m.enumLookup({
-                name: "AC connected",
+                name: "ac_connected",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4734, type: Zcl.DataType.ENUM8},
                 lookup: {
@@ -1944,7 +1944,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "On/off state",
             }),
             m.numeric({
-                name: "Current temperature",
+                name: "current_temperature",
                 cluster: "hvacThermostat",
                 attribute: "localTemp",
                 scale: 100,
@@ -1953,7 +1953,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE",
             }),
             m.numeric({
-                name: "Target temperature",
+                name: "target_temperature",
                 cluster: "hvacThermostat",
                 attribute: "occupiedCoolingSetpoint",
                 valueMin: 16,
@@ -1964,7 +1964,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Target temperature",
             }),
             m.enumLookup({
-                name: "System mode",
+                name: "system_mode",
                 cluster: "hvacThermostat",
                 attribute: "systemMode",
                 lookup: {
@@ -1978,7 +1978,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "System mode",
             }),
             m.numeric({
-                name: "ZB Fan speed",
+                name: "zb_fan_speed",
                 cluster: "hvacFanCtrl",
                 attribute: "fanMode",
                 valueMin: 1,
@@ -1987,7 +1987,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Fan speed modes: Auto(5), Low(1), Medium(2), Maximum(3)",
             }),
             m.numeric({
-                name: "Vertical vanes",
+                name: "vertical_vanes",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4701, type: Zcl.DataType.ENUM8},
                 valueMin: 0,
@@ -1997,7 +1997,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.numeric({
-                name: "Horizontal vanes",
+                name: "horizontal_vanes",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4700, type: Zcl.DataType.ENUM8},
                 valueMin: 1,
@@ -2007,7 +2007,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.numeric({
-                name: "Fan speed",
+                name: "fan_speed",
                 cluster: "hvacFanCtrl",
                 attribute: {ID: 0x4700, type: Zcl.DataType.ENUM8},
                 valueMin: 0,
@@ -2017,7 +2017,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.numeric({
-                name: "Smart fan speed",
+                name: "smart_fan_speed",
                 cluster: "hvacFanCtrl",
                 attribute: {ID: 0x4701, type: Zcl.DataType.ENUM8},
                 valueMin: 0,
@@ -2027,7 +2027,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.numeric({
-                name: "Vanes swing",
+                name: "vanes_swing",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4702, type: Zcl.DataType.ENUM8},
                 valueMin: 0,
@@ -2037,7 +2037,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.binary({
-                name: "Quiet mode",
+                name: "quiet_mode",
                 cluster: "hvacFanCtrl",
                 attribute: {ID: 0x4710, type: Zcl.DataType.BOOLEAN},
                 valueOn: ["ON", 1],
@@ -2046,7 +2046,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.binary({
-                name: "Eco mode",
+                name: "eco_mode",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4727, type: Zcl.DataType.BOOLEAN},
                 valueOn: ["ON", 1],
@@ -2055,7 +2055,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.binary({
-                name: "Turbo mode",
+                name: "turbo_mode",
                 cluster: "hvacFanCtrl",
                 attribute: {ID: 0x4711, type: Zcl.DataType.BOOLEAN},
                 valueOn: ["ON", 1],
@@ -2064,7 +2064,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.binary({
-                name: "Sleep mode",
+                name: "sleep_mode",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4728, type: Zcl.DataType.BOOLEAN},
                 valueOn: ["ON", 1],
@@ -2073,7 +2073,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.binary({
-                name: "Screen light",
+                name: "screen_light",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4731, type: Zcl.DataType.BOOLEAN},
                 valueOn: ["ON", 1],
