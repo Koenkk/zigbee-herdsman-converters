@@ -2405,7 +2405,7 @@ export interface EnumLookupArgs {
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     attribute: string | {ID: number; type: number};
     description: string;
-    zigbeeCommandOptions?: {manufacturerCode?: number; disableDefaultResponse?: boolean};
+    zigbeeCommandOptions?: {manufacturerCode?: number; profileId?: number; disableDefaultResponse?: boolean};
     access?: "STATE" | "STATE_GET" | "STATE_SET" | "SET" | "ALL";
     endpointName?: string;
     reporting?: ReportingConfigWithoutAttribute;
@@ -2472,7 +2472,7 @@ export interface NumericArgs {
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     attribute: string | {ID: number; type: number};
     description: string;
-    zigbeeCommandOptions?: {manufacturerCode?: number; disableDefaultResponse?: boolean};
+    zigbeeCommandOptions?: {manufacturerCode?: number; profileId?: number; disableDefaultResponse?: boolean};
     access?: "STATE" | "STATE_GET" | "STATE_SET" | "SET" | "ALL";
     unit?: string;
     endpointNames?: string[];
@@ -2599,7 +2599,7 @@ export interface BinaryArgs {
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     attribute: string | {ID: number; type: number};
     description: string;
-    zigbeeCommandOptions?: {manufacturerCode: number};
+    zigbeeCommandOptions?: {manufacturerCode?: number; profileId?: number};
     endpointName?: string;
     reporting?: false | ReportingConfig;
     access?: "STATE" | "STATE_GET" | "STATE_SET" | "SET" | "ALL";
@@ -2662,7 +2662,7 @@ export interface TextArgs {
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     attribute: string | {ID: number; type: number};
     description: string;
-    zigbeeCommandOptions?: {manufacturerCode: number};
+    zigbeeCommandOptions?: {manufacturerCode?: number; profileId?: number};
     endpointName?: string;
     reporting?: ReportingConfig;
     access?: "STATE" | "STATE_GET" | "STATE_SET" | "SET" | "ALL";
