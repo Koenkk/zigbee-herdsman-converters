@@ -259,10 +259,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SZR07",
         vendor: "Lincukoo",
         description: "24GHz millimeter wave radar",
-        configure: tuya.configureMagicPacket,
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
         exposes: [
             e.presence(),
             e.illuminance(),
@@ -296,10 +293,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SZLR08T",
         vendor: "Lincukoo",
         description: "24GHz millimeter wave radar",
-        configure: tuya.configureMagicPacket,
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
         exposes: [
             e.presence(),
             e.illuminance(),
