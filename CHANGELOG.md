@@ -1,5 +1,17 @@
 # Changelog
 
+## [25.3.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.2.0...v25.3.0) (2025-08-15)
+
+
+### Features
+
+* **add:** SZR07, SZLR08T ([#9715](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9715)) ([a816bcd](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a816bcd55c14bf0f1bcb169be629955fccc8c542))
+
+
+### Bug Fixes
+
+* SONOFF SNZB-02P: enable OTA https://github.com/Koenkk/zigbee-OTA/pull/834 ([3d2aff4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3d2aff45c92af3a7ed2cdfd296726e233e5da069))
+
 ## [25.2.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.1.0...v25.2.0) (2025-08-14)
 
 
