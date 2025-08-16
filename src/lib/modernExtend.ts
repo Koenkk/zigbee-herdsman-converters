@@ -1022,7 +1022,7 @@ export interface LightArgs {
     effect?: boolean;
     powerOnBehavior?: boolean;
     colorTemp?: {startup?: boolean; range: Range};
-    color?: boolean | {modes?: ("xy" | "hs")[]; applyRedFix?: boolean; enhancedHue?: boolean};
+    color?: boolean | {modes?: ("xy" | "hs")[]; applyRedFix?: boolean; enhancedHue?: boolean; moveToLevelWithOnOffDisable?: boolean};
     turnsOffAtBrightness1?: boolean;
     configureReporting?: boolean;
     endpointNames?: string[];
@@ -1051,6 +1051,7 @@ export function light(args: LightArgs = {}): ModernExtend {
               modes: ["xy"] satisfies ("xy" | "hs")[],
               applyRedFix: false,
               enhancedHue: true,
+              moveToLevelWithOnOffDisable: false,
               ...(isObject(color) ? color : {}),
           }
         : false;
@@ -1096,6 +1097,9 @@ export function light(args: LightArgs = {}): ModernExtend {
         }
         if (!argsColor.enhancedHue) {
             meta.supportsEnhancedHue = false;
+        }
+        if (argsColor.moveToLevelWithOnOffDisable) {
+            meta.moveToLevelWithOnOffDisable = true;
         }
     }
 

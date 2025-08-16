@@ -182,6 +182,7 @@ export interface DefinitionMeta {
      * @defaultValue false
      */
     turnsOffAtBrightness1?: boolean;
+    moveToLevelWithOnOffDisable?: boolean;
     tuyaThermostatPreset?: {[s: number]: string};
     /** Tuya specific thermostat options */
     tuyaThermostatSystemMode?: {[s: number]: string};

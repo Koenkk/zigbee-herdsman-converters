@@ -1943,10 +1943,10 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: [tuya.tz.do_not_disturb],
         extend: [
             m.light({
-                colorTemp: {range: [50, 500], startup: false},
-                effect: false,
-                powerOnBehavior: false,
-                color: {modes: ["xy", "hs"], enhancedHue: false},
+                colorTemp: {range: [50, 500], startup: true},
+                effect: true,
+                powerOnBehavior: true,
+                color: {modes: ["xy", "hs"], enhancedHue: false, moveToLevelWithOnOffDisable: true},
             }),
         ],
         exposes: [tuya.exposes.doNotDisturb()],

@@ -1140,6 +1140,7 @@ export const light_onoff_brightness: Tz.Converter = {
         const {message} = meta;
         const transition = utils.getTransition(entity, "brightness", meta);
         const turnsOffAtBrightness1 = utils.getMetaValue(entity, meta.mapped, "turnsOffAtBrightness1", "allEqual", false);
+        const moveToLevelWithOnOffDisable = utils.getMetaValue(entity, meta.mapped, "moveToLevelWithOnOffDisable", "allEqual", false);
         let state = message.state !== undefined ? (typeof message.state === "string" ? message.state.toLowerCase() : null) : undefined;
         let brightness: number;
         if (message.brightness != null) {
@@ -1259,7 +1260,7 @@ export const light_onoff_brightness: Tz.Converter = {
         }
         await entity.command(
             "genLevelCtrl",
-            state === null ? "moveToLevel" : "moveToLevelWithOnOff",
+            state === null || moveToLevelWithOnOffDisable ? "moveToLevel" : "moveToLevelWithOnOff",
             {level: Number(brightness), transtime: transition.time},
             utils.getOptions(meta.mapped, entity),
         );
@@ -1268,7 +1269,7 @@ export const light_onoff_brightness: Tz.Converter = {
         if (publishBrightness) {
             result.state.brightness = Number(brightness);
         }
-        if (state !== null) {
+        if (state !== null && !moveToLevelWithOnOffDisable) {
             result.state.state = brightness === 0 ? "OFF" : "ON";
         }
         return result;
