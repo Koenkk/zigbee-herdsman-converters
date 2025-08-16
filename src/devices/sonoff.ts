@@ -36,6 +36,15 @@ interface SonoffSnzb02d {
     commandResponses: never;
 }
 
+interface SonoffSnzb02p {
+    attributes: {
+        temperatureCalibration: number;
+        humidityCalibration: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
 interface SonoffSnzb02ld {
     attributes: {
         temperatureUnits: number;
@@ -1644,7 +1653,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.temperature(),
             m.humidity(),
             m.bindCluster({cluster: "genPollCtrl", clusterType: "input"}),
-            m.numeric({
+            m.numeric<"customSonoffSnzb02p", SonoffSnzb02p>({
                 name: "temperature_calibration",
                 cluster: "customSonoffSnzb02p",
                 attribute: "temperatureCalibration",
@@ -1655,7 +1664,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueStep: 0.1,
                 unit: "°C",
             }),
-            m.numeric({
+            m.numeric<"customSonoffSnzb02p", SonoffSnzb02p>({
                 name: "humidity_calibration",
                 cluster: "customSonoffSnzb02p",
                 attribute: "humidityCalibration",

@@ -1,4 +1,5 @@
 import {Zcl} from "zigbee-herdsman";
+import type {TClusterCommandPayload} from "zigbee-herdsman/dist/zspec/zcl/definition/clusters-types";
 import * as libColor from "../lib/color";
 import * as constants from "../lib/constants";
 import * as exposes from "../lib/exposes";
@@ -41,7 +42,8 @@ export const on_off: Tz.Converter = {
                 throw Error("The off_wait_time value must be a number!");
             }
             const payload = meta.converterOptions
-                ? meta.converterOptions
+                ? // TODO: better typing? currently used in a single place??
+                  (meta.converterOptions as TClusterCommandPayload<"genOnOff", "onWithTimedOff">)
                 : {ctrlbits: 0, ontime: Math.round(onTime * 10), offwaittime: Math.round(offWaitTime * 10)};
             await entity.command("genOnOff", "onWithTimedOff", payload, utils.getOptions(meta.mapped, entity));
         } else {
