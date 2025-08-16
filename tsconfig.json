@@ -1,7 +1,7 @@
 {
     "compilerOptions": {
         "allowSyntheticDefaultImports": true,
-        "module": "NodeNext",
+        "module": "commonjs",
         "esModuleInterop": true,
         "target": "esnext",
         "lib": ["esnext"],
