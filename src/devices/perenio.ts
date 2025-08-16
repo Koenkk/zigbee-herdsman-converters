@@ -134,14 +134,18 @@ const tzPerenio = {
         key: ["switch_type"],
         convertSet: async (entity, key, value, meta) => {
             utils.assertString(value, key);
-            const switchTypeLookup: KeyValue = {
+            const switchTypeLookup = {
                 momentary_state: 0x0001,
                 maintained_state: 0x0010,
                 maintained_toggle: 0x00cc,
                 momentary_release: 0x00cd,
                 momentary_press: 0x00dc,
             };
-            await entity.write("genMultistateValue", {presentValue: switchTypeLookup[value]}, utils.getOptions(meta.mapped, entity));
+            await entity.write(
+                "genMultistateValue",
+                {presentValue: utils.getFromLookup(value, switchTypeLookup)},
+                utils.getOptions(meta.mapped, entity),
+            );
             return {state: {switch_type: value}};
         },
         convertGet: async (entity, key, meta) => {
@@ -316,7 +320,7 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint10, coordinatorEndpoint, ["haDiagnostic"]);
             const payload = [
                 {
-                    attribute: "onOff",
+                    attribute: "onOff" as const,
                     minimumReportInterval: 0,
                     maximumReportInterval: 3600,
                     reportableChange: 0,
@@ -324,13 +328,13 @@ export const definitions: DefinitionWithExtend[] = [
             ];
             const payloadDiagnostic = [
                 {
-                    attribute: "lastMessageLqi",
+                    attribute: "lastMessageLqi" as const,
                     minimumReportInterval: 5,
                     maximumReportInterval: 60,
                     reportableChange: 0,
                 },
                 {
-                    attribute: "lastMessageRssi",
+                    attribute: "lastMessageRssi" as const,
                     minimumReportInterval: 5,
                     maximumReportInterval: 60,
                     reportableChange: 0,
@@ -369,7 +373,7 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "perenioSpecific"]);
             const payload = [
                 {
-                    attribute: "onOff",
+                    attribute: "onOff" as const,
                     minimumReportInterval: 1,
                     maximumReportInterval: 3600,
                     reportableChange: 0,

@@ -16,7 +16,7 @@ const tzLocal = {
     ts0219_duration: {
         key: ["duration"],
         convertSet: async (entity, key, value, meta) => {
-            await entity.write("ssIasWd", {maxDuration: value});
+            await entity.write("ssIasWd", {maxDuration: value as number});
         },
         convertGet: async (entity, key, meta) => {
             await entity.read("ssIasWd", ["maxDuration"]);
