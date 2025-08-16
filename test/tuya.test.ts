@@ -35,7 +35,7 @@ describe("lib/tuya", () => {
                 1,
                 "manuSpecificTuya",
                 "sendData",
-                {seq: 1, dpValues: [{data: [0], datatype: 4, dp: 101}]},
+                {seq: 1, dpValues: [{data: Buffer.from([0]), datatype: 4, dp: 101}]},
                 {disableDefaultResponse: true},
             );
             expect(device.endpoints[0].command).toHaveBeenNthCalledWith(
