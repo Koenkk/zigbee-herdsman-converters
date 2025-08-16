@@ -3,7 +3,7 @@ import * as m from "../lib/modernExtend";
 import type {DefinitionWithExtend, Fz, ModernExtend, Tz} from "../lib/types";
 
 const pushokExtend = {
-    valveStatus: (args?: Partial<m.EnumLookupArgs>) =>
+    valveStatus: (args?: Partial<m.EnumLookupArgs<"genMultistateInput">>) =>
         m.enumLookup({
             name: "status",
             lookup: {OFF: 0, ON: 1, MOVING: 2, STUCK: 3},
@@ -15,7 +15,7 @@ const pushokExtend = {
             reporting: null,
             ...args,
         }),
-    stallTime: (args?: Partial<m.NumericArgs>) =>
+    stallTime: (args?: Partial<m.NumericArgs<"genMultistateValue">>) =>
         m.numeric({
             name: "stall_time",
             cluster: "genMultistateValue",

@@ -1,5 +1,7 @@
 import assert from "node:assert";
 import {Zcl} from "zigbee-herdsman";
+import type {ClusterOrRawAttributeKeys, PartialClusterOrRawWriteAttributes, TCustomCluster} from "zigbee-herdsman/dist/controller/tstype";
+import type {TClusterPayload, TPartialClusterAttributes} from "zigbee-herdsman/dist/zspec/zcl/definition/clusters-types";
 import type {ClusterDefinition} from "zigbee-herdsman/dist/zspec/zcl/definition/tstype";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
@@ -127,10 +129,18 @@ export const TIME_LOOKUP = {
 };
 
 type ReportingConfigTime = number | keyof typeof TIME_LOOKUP;
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-type ReportingConfigAttribute = string | number | {ID: number; type: number};
-type ReportingConfig = {min: ReportingConfigTime; max: ReportingConfigTime; change: number; attribute: ReportingConfigAttribute};
-export type ReportingConfigWithoutAttribute = Omit<ReportingConfig, "attribute">;
+type ReportingConfigAttribute<Cl extends string | number, Custom extends TCustomCluster | undefined = undefined> =
+    | ClusterOrRawAttributeKeys<Cl, Custom>[number]
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    | {ID: number; type: number};
+export type ReportingConfigWithoutAttribute = {
+    min: ReportingConfigTime;
+    max: ReportingConfigTime;
+    change: number;
+};
+type ReportingConfig<Cl extends string | number, Custom extends TCustomCluster | undefined = undefined> = ReportingConfigWithoutAttribute & {
+    attribute: ReportingConfigAttribute<Cl, Custom>;
+};
 
 function convertReportingConfigTime(time: ReportingConfigTime): number {
     if (isString(time)) {
@@ -140,11 +150,11 @@ function convertReportingConfigTime(time: ReportingConfigTime): number {
     return time;
 }
 
-export async function setupAttributes(
+export async function setupAttributes<Cl extends string | number, Custom extends TCustomCluster | undefined = undefined>(
     entity: Zh.Device | Zh.Endpoint,
     coordinatorEndpoint: Zh.Endpoint,
-    cluster: string | number,
-    config: ReportingConfig[],
+    cluster: Cl,
+    config: ReportingConfig<Cl, Custom>[],
     configureReporting = true,
     read = true,
 ) {
@@ -162,7 +172,7 @@ export async function setupAttributes(
         if (configureReporting) {
             await endpoint.bind(cluster, coordinatorEndpoint);
             for (const chunk of chunks) {
-                await endpoint.configureReporting(
+                await endpoint.configureReporting<Cl, Custom>(
                     cluster,
                     chunk.map((a) => ({
                         minimumReportInterval: convertReportingConfigTime(a.min),
@@ -179,8 +189,9 @@ export async function setupAttributes(
                 try {
                     // Don't fail configuration if reading this attribute fails
                     // https://github.com/Koenkk/zigbee-herdsman-converters/pull/7074
-                    await endpoint.read(
+                    await endpoint.read<Cl, Custom>(
                         cluster,
+                        // @ts-expect-error too dynamic to properly type
                         chunk.map((a) => (isString(a) ? a : isObject(a.attribute) ? a.attribute.ID : a.attribute)),
                     );
                 } catch (e) {
@@ -191,9 +202,9 @@ export async function setupAttributes(
     }
 }
 
-export function setupConfigureForReporting(
-    cluster: string | number,
-    attribute: ReportingConfigAttribute,
+export function setupConfigureForReporting<Cl extends string | number, Custom extends TCustomCluster | undefined = undefined>(
+    cluster: Cl,
+    attribute: ReportingConfigAttribute<Cl, Custom>,
     args: {
         config?: false | ReportingConfigWithoutAttribute;
         access?: Access;
@@ -223,7 +234,7 @@ export function setupConfigureForReporting(
             }
 
             for (const endpoint of endpoints) {
-                await setupAttributes(endpoint, coordinatorEndpoint, cluster, [reportConfig], configureReporting, read);
+                await setupAttributes<Cl, Custom>(endpoint, coordinatorEndpoint, cluster, [reportConfig], configureReporting, read);
             }
         };
         return configure;
@@ -250,19 +261,23 @@ export function setupConfigureForBinding(cluster: string | number, clusterType: 
     return configure;
 }
 
-export function setupConfigureForReading(cluster: string | number, attributes: (string | number)[], endpointNames?: string[]) {
+export function setupConfigureForReading<Cl extends string | number, Custom extends TCustomCluster | undefined = undefined>(
+    cluster: Cl,
+    attributes: ClusterOrRawAttributeKeys<Cl, Custom>,
+    endpointNames?: string[],
+) {
     const configure: Configure = async (device, coordinatorEndpoint, definition) => {
         if (endpointNames) {
             const definitionEndpoints = definition.endpoint(device);
             const endpointIds = endpointNames.map((e) => definitionEndpoints[e]);
             const endpoints = device.endpoints.filter((e) => endpointIds.includes(e.ID));
             for (const endpoint of endpoints) {
-                await endpoint.read(cluster, attributes);
+                await endpoint.read<Cl, Custom>(cluster, attributes);
             }
         } else {
             const endpoints = getEndpointsWithCluster(device, cluster, "input");
             for (const endpoint of endpoints) {
-                await endpoint.read(cluster, attributes);
+                await endpoint.read<Cl, Custom>(cluster, attributes);
             }
         }
     };
@@ -303,8 +318,7 @@ export function forcePowerSource(args: {powerSource: "Mains (single phase)" | "B
 
 export interface LinkQualityArgs {
     reporting?: boolean;
-    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-    attribute?: string | {ID: number; type: number};
+    attribute?: ClusterOrRawAttributeKeys<"genBasic">[number];
     reportingConfig?: ReportingConfigWithoutAttribute;
 }
 export function linkQuality(args: LinkQualityArgs = {}): ModernExtend {
@@ -492,7 +506,7 @@ export function battery(args: BatteryArgs = {}): ModernExtend {
     return result;
 }
 
-export function deviceTemperature(args: Partial<NumericArgs> = {}) {
+export function deviceTemperature(args: Partial<NumericArgs<"genDeviceTempCfg">> = {}) {
     return numeric({
         name: "device_temperature",
         cluster: "genDeviceTempCfg",
@@ -533,7 +547,7 @@ export function identify(args: {isSleepy: boolean} = {isSleepy: false}): ModernE
             key: ["identify"],
             options: [identifyTimeout],
             convertSet: async (entity, key, value, meta) => {
-                const identifyTimeout = meta.options.identify_timeout ?? 3;
+                const identifyTimeout = (meta.options.identify_timeout as number) ?? 3;
                 await entity.command("genIdentify", "identify", {identifytime: identifyTimeout}, getOptions(meta.mapped, entity));
             },
         },
@@ -750,7 +764,7 @@ export function customTimeResponse(start: "1970_UTC" | "2000_LOCAL"): ModernExte
             if (event.type === "start" && !event.data.device.customReadResponse) {
                 event.data.device.customReadResponse = (frame, endpoint) => {
                     if (frame.isCluster("genTime")) {
-                        const payload: KeyValue = {};
+                        const payload: TPartialClusterAttributes<"genTime"> = {};
                         if (start === "1970_UTC") {
                             const time = Math.round(Date.now() / 1000);
                             payload.time = time;
@@ -778,7 +792,7 @@ export function customTimeResponse(start: "1970_UTC" | "2000_LOCAL"): ModernExte
 
 // #region Measurement and Sensing
 
-export function illuminance(args: Partial<NumericArgs> = {}): ModernExtend {
+export function illuminance(args: Partial<NumericArgs<"msIlluminanceMeasurement">> = {}): ModernExtend {
     const luxScale: ScaleFunction = (value: number, type: "from" | "to") => {
         let result = value;
         if (type === "from") {
@@ -818,7 +832,7 @@ export function illuminance(args: Partial<NumericArgs> = {}): ModernExtend {
     return result;
 }
 
-export function temperature(args: Partial<NumericArgs> = {}) {
+export function temperature(args: Partial<NumericArgs<"msTemperatureMeasurement">> = {}) {
     return numeric({
         name: "temperature",
         cluster: "msTemperatureMeasurement",
@@ -832,7 +846,7 @@ export function temperature(args: Partial<NumericArgs> = {}) {
     });
 }
 
-export function pressure(args: Partial<NumericArgs> = {}): ModernExtend {
+export function pressure(args: Partial<NumericArgs<"msPressureMeasurement">> = {}): ModernExtend {
     return numeric({
         name: "pressure",
         cluster: "msPressureMeasurement",
@@ -846,7 +860,7 @@ export function pressure(args: Partial<NumericArgs> = {}): ModernExtend {
     });
 }
 
-export function flow(args: Partial<NumericArgs> = {}) {
+export function flow(args: Partial<NumericArgs<"msFlowMeasurement">> = {}) {
     return numeric({
         name: "flow",
         cluster: "msFlowMeasurement",
@@ -860,7 +874,7 @@ export function flow(args: Partial<NumericArgs> = {}) {
     });
 }
 
-export function humidity(args: Partial<NumericArgs> = {}) {
+export function humidity(args: Partial<NumericArgs<"msRelativeHumidity">> = {}) {
     return numeric({
         name: "humidity",
         cluster: "msRelativeHumidity",
@@ -874,7 +888,7 @@ export function humidity(args: Partial<NumericArgs> = {}) {
     });
 }
 
-export function soilMoisture(args: Partial<NumericArgs> = {}) {
+export function soilMoisture(args: Partial<NumericArgs<"msSoilMoisture">> = {}) {
     return numeric({
         name: "soil_moisture",
         cluster: "msSoilMoisture",
@@ -939,14 +953,14 @@ export function occupancy(args: OccupancyArgs = {}): ModernExtend {
     const settingsExtends: ModernExtend[] = [];
 
     const settingsTemplate = {
-        cluster: "msOccupancySensing",
+        cluster: "msOccupancySensing" as const,
         description: "",
         endpointNames: endpointNames,
         access: "ALL" as "STATE" | "STATE_GET" | "ALL",
         entityCategory: "config" as "config" | "diagnostic",
     };
 
-    const attributesForReading: string[] = [];
+    const attributesForReading: ClusterOrRawAttributeKeys<typeof settingsTemplate.cluster> = [];
 
     if (pirConfig) {
         if (pirConfig.includes("otu_delay")) {
@@ -1088,7 +1102,7 @@ export function occupancy(args: OccupancyArgs = {}): ModernExtend {
     return {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
 }
 
-export function co2(args: Partial<NumericArgs> = {}) {
+export function co2(args: Partial<NumericArgs<"msCO2">> = {}) {
     return numeric({
         name: "co2",
         cluster: "msCO2",
@@ -1103,7 +1117,7 @@ export function co2(args: Partial<NumericArgs> = {}) {
     });
 }
 
-export function pm25(args: Partial<NumericArgs> = {}): ModernExtend {
+export function pm25(args: Partial<NumericArgs<"pm25Measurement">> = {}): ModernExtend {
     return numeric({
         name: "pm25",
         cluster: "pm25Measurement",
@@ -1243,7 +1257,7 @@ export function light(args: LightArgs = {}): ModernExtend {
                     ]);
                 }
                 if (argsColor) {
-                    const attributes: ReportingConfig[] = [];
+                    const attributes: ReportingConfig<"lightingColorCtrl">[] = [];
                     if (argsColor.modes.includes("xy")) {
                         attributes.push(
                             {attribute: "currentX", min: "10_SECONDS", max: "MAX", change: 1},
@@ -1890,71 +1904,107 @@ function genericMeter(args: MeterArgs = {}) {
     const configureLookup = {
         haElectricalMeasurement: {
             // Report change with every 5W change
-            power: {attribute: "activePower", divisor: "acPowerDivisor", multiplier: "acPowerMultiplier", forced: args.power, change: 5},
-            power_phase_b: {attribute: "activePowerPhB", divisor: "acPowerDivisor", multiplier: "acPowerMultiplier", forced: args.power, change: 5},
-            power_phase_c: {attribute: "activePowerPhC", divisor: "acPowerDivisor", multiplier: "acPowerMultiplier", forced: args.power, change: 5},
+            power: {attribute: "activePower" as const, divisor: "acPowerDivisor", multiplier: "acPowerMultiplier", forced: args.power, change: 5},
+            power_phase_b: {
+                attribute: "activePowerPhB" as const,
+                divisor: "acPowerDivisor",
+                multiplier: "acPowerMultiplier",
+                forced: args.power,
+                change: 5,
+            },
+            power_phase_c: {
+                attribute: "activePowerPhC" as const,
+                divisor: "acPowerDivisor",
+                multiplier: "acPowerMultiplier",
+                forced: args.power,
+                change: 5,
+            },
             // Report change with every 0.05A change
-            current: {attribute: "rmsCurrent", divisor: "acCurrentDivisor", multiplier: "acCurrentMultiplier", forced: args.current, change: 0.05},
+            current: {
+                attribute: "rmsCurrent" as const,
+                divisor: "acCurrentDivisor",
+                multiplier: "acCurrentMultiplier",
+                forced: args.current,
+                change: 0.05,
+            },
             // Report change every 1 Hz
             ac_frequency: {
-                attribute: "acFrequency",
+                attribute: "acFrequency" as const,
                 divisor: "acFrequencyDivisor",
                 multiplier: "acFrequencyMultiplier",
                 forced: isObject(args.acFrequency) ? args.acFrequency : (false as const),
                 change: 1,
             },
             current_phase_b: {
-                attribute: "rmsCurrentPhB",
+                attribute: "rmsCurrentPhB" as const,
                 divisor: "acCurrentDivisor",
                 multiplier: "acCurrentMultiplier",
                 forced: args.current,
                 change: 0.05,
             },
             current_phase_c: {
-                attribute: "rmsCurrentPhC",
+                attribute: "rmsCurrentPhC" as const,
                 divisor: "acCurrentDivisor",
                 multiplier: "acCurrentMultiplier",
                 forced: args.current,
                 change: 0.05,
             },
             current_neutral: {
-                attribute: "neutralCurrent",
+                attribute: "neutralCurrent" as const,
                 divisor: "acCurrentDivisor",
                 multiplier: "acCurrentMultiplier",
                 forced: args.current,
                 change: 0.05,
             },
             power_factor: {
-                attribute: "powerFactor",
+                attribute: "powerFactor" as const,
                 change: 10,
             },
             // Report change with every 5V change
-            voltage: {attribute: "rmsVoltage", divisor: "acVoltageDivisor", multiplier: "acVoltageMultiplier", forced: args.voltage, change: 5},
+            voltage: {
+                attribute: "rmsVoltage" as const,
+                divisor: "acVoltageDivisor",
+                multiplier: "acVoltageMultiplier",
+                forced: args.voltage,
+                change: 5,
+            },
             voltage_phase_b: {
-                attribute: "rmsVoltagePhB",
+                attribute: "rmsVoltagePhB" as const,
                 divisor: "acVoltageDivisor",
                 multiplier: "acVoltageMultiplier",
                 forced: args.voltage,
                 change: 5,
             },
             voltage_phase_c: {
-                attribute: "rmsVoltagePhC",
+                attribute: "rmsVoltagePhC" as const,
                 divisor: "acVoltageDivisor",
                 multiplier: "acVoltageMultiplier",
                 forced: args.voltage,
                 change: 5,
             },
             // Report change with every 100mW change
-            dc_power: {attribute: "dcPower", divisor: "dcPowerDivisor", multiplier: "dcPowerMultiplier", forced: args.power, change: 100},
+            dc_power: {attribute: "dcPower" as const, divisor: "dcPowerDivisor", multiplier: "dcPowerMultiplier", forced: args.power, change: 100},
             // Report change with every 100mV change
-            dc_voltage: {attribute: "dcVoltage", divisor: "dcVoltageDivisor", multiplier: "dcVoltageMultiplier", forced: args.voltage, change: 100},
+            dc_voltage: {
+                attribute: "dcVoltage" as const,
+                divisor: "dcVoltageDivisor",
+                multiplier: "dcVoltageMultiplier",
+                forced: args.voltage,
+                change: 100,
+            },
             // Report change with every 100mA change
-            dc_current: {attribute: "dcCurrent", divisor: "dcCurrentDivisor", multiplier: "dcCurrentMultiplier", forced: args.current, change: 100},
+            dc_current: {
+                attribute: "dcCurrent" as const,
+                divisor: "dcCurrentDivisor",
+                multiplier: "dcCurrentMultiplier",
+                forced: args.current,
+                change: 100,
+            },
         },
         seMetering: {
             // Report change with every 5W change
             power: {
-                attribute: "instantaneousDemand",
+                attribute: "instantaneousDemand" as const,
                 divisor: "divisor",
                 multiplier: "multiplier",
                 forced: args.power,
@@ -1962,25 +2012,25 @@ function genericMeter(args: MeterArgs = {}) {
             },
             // Report change with every 0.1kWh change
             energy: {
-                attribute: "currentSummDelivered",
+                attribute: "currentSummDelivered" as const,
                 divisor: "divisor",
                 multiplier: "multiplier",
                 forced: args.energy,
                 change: changeLookup[args.type].energy,
             },
             produced_energy: {
-                attribute: "currentSummReceived",
+                attribute: "currentSummReceived" as const,
                 divisor: "divisor",
                 multiplier: "multiplier",
                 forced: isObject(args.producedEnergy) ? args.producedEnergy : (false as const),
                 change: 0.1,
             },
             status: {
-                attribute: "status",
+                attribute: "status" as const,
                 change: 1,
             },
             extended_status: {
-                attribute: "extendedStatus",
+                attribute: "extendedStatus" as const,
                 change: 1,
             },
         },
@@ -2152,7 +2202,7 @@ function genericMeter(args: MeterArgs = {}) {
             async (device, coordinatorEndpoint) => {
                 for (const [cluster, properties] of Object.entries(configureLookup)) {
                     for (const endpoint of getEndpointsWithCluster(device, cluster, "input")) {
-                        const items: ReportingConfig[] = [];
+                        const items: ReportingConfig<typeof cluster>[] = [];
                         for (const property of Object.values(properties)) {
                             let change = property.change;
                             let min: ReportingConfigTime = "10_SECONDS";
@@ -2398,12 +2448,23 @@ export function commandsScenes(args: CommandsScenesArgs = {}) {
     return result;
 }
 
-export interface EnumLookupArgs {
+export interface ClusterWithAttribute<
+    Cl extends string | number,
+    Custom extends TCustomCluster | undefined = undefined,
+    Co extends string | number | undefined = undefined,
+> {
+    cluster: Cl;
+    // `& string` prevents `number[]`
+    attribute: Co extends undefined
+        ? // biome-ignore lint/style/useNamingConvention: API
+          (ClusterOrRawAttributeKeys<Cl, Custom> & string)[number] | {ID: number; type: number}
+        : keyof TClusterPayload<Cl, Co> & string;
+}
+
+export interface EnumLookupArgs<Cl extends string | number, Custom extends TCustomCluster | undefined = undefined>
+    extends ClusterWithAttribute<Cl, Custom> {
     name: string;
     lookup: KeyValue;
-    cluster: string | number;
-    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-    attribute: string | {ID: number; type: number};
     description: string;
     zigbeeCommandOptions?: {manufacturerCode?: number; disableDefaultResponse?: boolean};
     access?: "STATE" | "STATE_GET" | "STATE_SET" | "SET" | "ALL";
@@ -2412,7 +2473,9 @@ export interface EnumLookupArgs {
     entityCategory?: "config" | "diagnostic";
     label?: string;
 }
-export function enumLookup(args: EnumLookupArgs): ModernExtend {
+export function enumLookup<Cl extends string | number, Custom extends TCustomCluster | undefined = undefined>(
+    args: EnumLookupArgs<Cl, Custom>,
+): ModernExtend {
     const {name, lookup, cluster, attribute, description, zigbeeCommandOptions, endpointName, reporting, entityCategory, label} = args;
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
     const access = ea[args.access ?? "ALL"];
@@ -2445,14 +2508,24 @@ export function enumLookup(args: EnumLookupArgs): ModernExtend {
                           const payload = isString(attribute)
                               ? {[attribute]: payloadValue}
                               : {[attribute.ID]: {value: payloadValue, type: attribute.type}};
-                          await determineEndpoint(entity, meta, cluster).write(cluster, payload, zigbeeCommandOptions);
+                          await determineEndpoint(entity, meta, cluster).write(
+                              cluster,
+                              // XXX: too dynamic for typing
+                              payload as PartialClusterOrRawWriteAttributes<Cl>,
+                              zigbeeCommandOptions,
+                          );
                           return {state: {[key]: value}};
                       }
                     : undefined,
             convertGet:
                 access & ea.GET
                     ? async (entity, key, meta) => {
-                          await determineEndpoint(entity, meta, cluster).read(cluster, [attributeKey], zigbeeCommandOptions);
+                          await determineEndpoint(entity, meta, cluster).read(
+                              cluster,
+                              // XXX: too dynamic for typing
+                              [attributeKey] as ClusterOrRawAttributeKeys<Cl>,
+                              zigbeeCommandOptions,
+                          );
                       }
                     : undefined,
         },
@@ -2466,11 +2539,9 @@ export function enumLookup(args: EnumLookupArgs): ModernExtend {
 // type provides a way to distinguish between fromZigbee and toZigbee value conversions if they are asymmetrical
 export type ScaleFunction = (value: number, type: "from" | "to") => number;
 
-export interface NumericArgs {
+export interface NumericArgs<Cl extends string | number, Custom extends TCustomCluster | undefined = undefined>
+    extends ClusterWithAttribute<Cl, Custom> {
     name: string;
-    cluster: string | number;
-    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-    attribute: string | {ID: number; type: number};
     description: string;
     zigbeeCommandOptions?: {manufacturerCode?: number; disableDefaultResponse?: boolean};
     access?: "STATE" | "STATE_GET" | "STATE_SET" | "SET" | "ALL";
@@ -2485,7 +2556,9 @@ export interface NumericArgs {
     entityCategory?: "config" | "diagnostic";
     precision?: number;
 }
-export function numeric(args: NumericArgs): ModernExtend {
+export function numeric<Cl extends string | number, Custom extends TCustomCluster | undefined = undefined>(
+    args: NumericArgs<Cl, Custom>,
+): ModernExtend {
     const {
         name,
         cluster,
@@ -2573,14 +2646,24 @@ export function numeric(args: NumericArgs): ModernExtend {
                           const payload = isString(attribute)
                               ? {[attribute]: payloadValue}
                               : {[attribute.ID]: {value: payloadValue, type: attribute.type}};
-                          await determineEndpoint(entity, meta, cluster).write(cluster, payload, zigbeeCommandOptions);
+                          await determineEndpoint(entity, meta, cluster).write(
+                              cluster,
+                              // XXX: too dynamic for typing
+                              payload as PartialClusterOrRawWriteAttributes<Cl>,
+                              zigbeeCommandOptions,
+                          );
                           return {state: {[key]: value}};
                       }
                     : undefined,
             convertGet:
                 access & ea.GET
                     ? async (entity, key, meta) => {
-                          await determineEndpoint(entity, meta, cluster).read(cluster, [attributeKey], zigbeeCommandOptions);
+                          await determineEndpoint(entity, meta, cluster).read(
+                              cluster,
+                              // XXX: too dynamic for typing
+                              [attributeKey] as ClusterOrRawAttributeKeys<Cl>,
+                              zigbeeCommandOptions,
+                          );
                       }
                     : undefined,
         },
@@ -2591,22 +2674,22 @@ export function numeric(args: NumericArgs): ModernExtend {
     return {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
 }
 
-export interface BinaryArgs {
+export interface BinaryArgs<Cl extends string | number, Custom extends TCustomCluster | undefined = undefined>
+    extends ClusterWithAttribute<Cl, Custom> {
     name: string;
     valueOn: [string | boolean, unknown];
     valueOff: [string | boolean, unknown];
-    cluster: string | number;
-    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-    attribute: string | {ID: number; type: number};
     description: string;
     zigbeeCommandOptions?: {manufacturerCode: number};
     endpointName?: string;
-    reporting?: false | ReportingConfig;
+    reporting?: false | ReportingConfig<Cl, Custom>;
     access?: "STATE" | "STATE_GET" | "STATE_SET" | "SET" | "ALL";
     label?: string;
     entityCategory?: "config" | "diagnostic";
 }
-export function binary(args: BinaryArgs): ModernExtend {
+export function binary<Cl extends string | number, Custom extends TCustomCluster | undefined = undefined>(
+    args: BinaryArgs<Cl, Custom>,
+): ModernExtend {
     const {name, valueOn, valueOff, cluster, attribute, description, zigbeeCommandOptions, endpointName, reporting, label, entityCategory} = args;
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
     const access = ea[args.access ?? "ALL"];
@@ -2638,14 +2721,24 @@ export function binary(args: BinaryArgs): ModernExtend {
                           const payload = isString(attribute)
                               ? {[attribute]: payloadValue}
                               : {[attribute.ID]: {value: payloadValue, type: attribute.type}};
-                          await determineEndpoint(entity, meta, cluster).write(cluster, payload, zigbeeCommandOptions);
+                          await determineEndpoint(entity, meta, cluster).write(
+                              cluster,
+                              // XXX: too dynamic for typing
+                              payload as PartialClusterOrRawWriteAttributes<Cl>,
+                              zigbeeCommandOptions,
+                          );
                           return {state: {[key]: value}};
                       }
                     : undefined,
             convertGet:
                 access & ea.GET
                     ? async (entity, key, meta) => {
-                          await determineEndpoint(entity, meta, cluster).read(cluster, [attributeKey], zigbeeCommandOptions);
+                          await determineEndpoint(entity, meta, cluster).read(
+                              cluster,
+                              // XXX: too dynamic for typing
+                              [attributeKey] as ClusterOrRawAttributeKeys<Cl>,
+                              zigbeeCommandOptions,
+                          );
                       }
                     : undefined,
         },
@@ -2656,20 +2749,18 @@ export function binary(args: BinaryArgs): ModernExtend {
     return {exposes: [expose], fromZigbee, toZigbee, configure, isModernExtend: true};
 }
 
-export interface TextArgs {
+export interface TextArgs<Cl extends string | number, Custom extends TCustomCluster | undefined = undefined>
+    extends ClusterWithAttribute<Cl, Custom> {
     name: string;
-    cluster: string | number;
-    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-    attribute: string | {ID: number; type: number};
     description: string;
     zigbeeCommandOptions?: {manufacturerCode: number};
     endpointName?: string;
-    reporting?: ReportingConfig;
+    reporting?: ReportingConfig<Cl, Custom>;
     access?: "STATE" | "STATE_GET" | "STATE_SET" | "SET" | "ALL";
     entityCategory?: "config" | "diagnostic";
     validate?(value: unknown): void;
 }
-export function text(args: TextArgs): ModernExtend {
+export function text<Cl extends string | number, Custom extends TCustomCluster | undefined = undefined>(args: TextArgs<Cl, Custom>): ModernExtend {
     const {name, cluster, attribute, description, zigbeeCommandOptions, endpointName, reporting, entityCategory, validate} = args;
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
     const access = ea[args.access ?? "ALL"];
@@ -2698,14 +2789,24 @@ export function text(args: TextArgs): ModernExtend {
                     ? async (entity, key, value, meta) => {
                           void validate(value);
                           const payload = isString(attribute) ? {[attribute]: value} : {[attribute.ID]: {value, type: attribute.type}};
-                          await determineEndpoint(entity, meta, cluster).write(cluster, payload, zigbeeCommandOptions);
+                          await determineEndpoint(entity, meta, cluster).write(
+                              cluster,
+                              // XXX: too dynamic for typing
+                              payload as PartialClusterOrRawWriteAttributes<Cl>,
+                              zigbeeCommandOptions,
+                          );
                           return {state: {[key]: value}};
                       }
                     : undefined,
             convertGet:
                 access & ea.GET
                     ? async (entity, key, meta) => {
-                          await determineEndpoint(entity, meta, cluster).read(cluster, [attributeKey], zigbeeCommandOptions);
+                          await determineEndpoint(entity, meta, cluster).read(
+                              cluster,
+                              // XXX: too dynamic for typing
+                              [attributeKey] as ClusterOrRawAttributeKeys<Cl>,
+                              zigbeeCommandOptions,
+                          );
                       }
                     : undefined,
         },
@@ -2717,18 +2818,23 @@ export function text(args: TextArgs): ModernExtend {
 }
 
 export type Parse = (msg: Fz.Message, attributeKey: string | number) => unknown;
-export interface ActionEnumLookupArgs {
+export interface ActionEnumLookupArgs<
+    Cl extends string | number,
+    Custom extends TCustomCluster | undefined = undefined,
+    Co extends string | undefined = undefined,
+> extends ClusterWithAttribute<Cl, Custom, Co> {
     actionLookup: KeyValue;
-    cluster: string | number;
-    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-    attribute: string | {ID: number; type: number};
     endpointNames?: string[];
     buttonLookup?: KeyValue;
     extraActions?: string[];
-    commands?: string[];
+    commands?: `command${Capitalize<Co>}`[];
     parse?: Parse;
 }
-export function actionEnumLookup(args: ActionEnumLookupArgs): ModernExtend {
+export function actionEnumLookup<
+    Cl extends string | number,
+    Custom extends TCustomCluster | undefined = undefined,
+    Co extends string | undefined = undefined,
+>(args: ActionEnumLookupArgs<Cl, Custom, Co>): ModernExtend {
     const {actionLookup: lookup, attribute, cluster, buttonLookup} = args;
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
     const commands = args.commands || ["attributeReport", "readResponse"];
@@ -2824,6 +2930,7 @@ export function reconfigureReportingsOnDeviceAnnounce(): ModernExtend {
                     for (const c of endpoint.configuredReportings) {
                         await endpoint.configureReporting(c.cluster.name, [
                             {
+                                // @ts-expect-error dynamic, expected valid since already applied
                                 attribute: c.attribute.name,
                                 minimumReportInterval: c.minimumReportInterval,
                                 maximumReportInterval: c.maximumReportInterval,

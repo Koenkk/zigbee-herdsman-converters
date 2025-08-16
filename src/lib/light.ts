@@ -1,3 +1,4 @@
+import type {TClusterAttributeKeys} from "zigbee-herdsman/dist/zspec/zcl/definition/clusters-types";
 import {logger} from "./logger";
 import type {Tz, Zh} from "./types";
 import * as utils from "./utils";
@@ -12,7 +13,11 @@ export async function readColorTempMinMax(endpoint: Zh.Endpoint) {
     await endpoint.read("lightingColorCtrl", ["colorTempPhysicalMin", "colorTempPhysicalMax"]);
 }
 
-export function readColorAttributes(entity: Zh.Endpoint | Zh.Group, meta: Tz.Meta, additionalAttributes: string[] = []) {
+export function readColorAttributes(
+    entity: Zh.Endpoint | Zh.Group,
+    meta: Tz.Meta,
+    additionalAttributes: TClusterAttributeKeys<"lightingColorCtrl"> = [],
+) {
     /**
      * Not all bulbs support the same features, we need to take care we read what is supported.
      * `supportsHueAndSaturation` indicates support for currentHue and currentSaturation
@@ -22,7 +27,7 @@ export function readColorAttributes(entity: Zh.Endpoint | Zh.Group, meta: Tz.Met
      *
      * Additionally when we get a "get payload", only request the fields included.
      */
-    const attributes = ["colorMode"];
+    const attributes: TClusterAttributeKeys<"lightingColorCtrl"> = ["colorMode"];
     if (meta?.message) {
         if (!meta.message.color || (utils.isObject(meta.message.color) && meta.message.color.x != null)) {
             attributes.push("currentX");

@@ -1,5 +1,5 @@
 import type {Endpoint, Group} from "zigbee-herdsman/dist/controller/model";
-
+import type {SunricherHvacThermostat} from "../devices/sunricher";
 import * as constants from "./constants";
 import {repInterval} from "./constants";
 import * as exposes from "./exposes";
@@ -21,7 +21,7 @@ const tz = {
     setModel: {
         key: ["model"],
         convertSet: async (entity, key, value, meta) => {
-            await entity.write("genBasic", {modelId: value});
+            await entity.write("genBasic", {modelId: value as string});
             return {state: {model: value}};
         },
     } satisfies Tz.Converter,
@@ -443,8 +443,7 @@ const extend = {
                     const attributeRead = await entity.read(cluster, [attribute]);
                     if (attributeRead === undefined) return;
 
-                    // @ts-expect-error ignore
-                    const currentValue = attributeRead[attribute];
+                    const currentValue = attributeRead[attribute] as number;
                     const newValue = value === "on" ? currentValue | 0x01 : currentValue & ~0x01;
 
                     await entity.write(cluster, {[attribute]: {value: newValue, type: data_type}}, {manufacturerCode});
@@ -689,7 +688,7 @@ const extend = {
                         if (value === "away") {
                             await entity.read("hvacThermostat", ["unoccupiedHeatingSetpoint"]);
                         }
-                        await entity.write("hvacThermostat", {awayOrBoostMode});
+                        await entity.write<"hvacThermostat", SunricherHvacThermostat>("hvacThermostat", {awayOrBoostMode});
                         return {state: {preset: value, away_or_boost_mode: value}};
                     }
                     globalStore.putValue(entity, "awayOrBoostMode", 0);
@@ -733,11 +732,14 @@ const extend = {
             async (device, coordinatorEndpoint, definition) => {
                 const endpoint = device.getEndpoint(1);
                 await endpoint.read("hvacThermostat", ["systemMode"]);
-                await endpoint.read("hvacThermostat", ["awayOrBoostMode"]);
+                await endpoint.read<"hvacThermostat", SunricherHvacThermostat>("hvacThermostat", ["awayOrBoostMode"]);
 
                 await reporting.bind(endpoint, coordinatorEndpoint, ["hvacThermostat"]);
                 await reporting.thermostatSystemMode(endpoint);
-                await endpoint.configureReporting("hvacThermostat", payload("awayOrBoostMode", 10, repInterval.HOUR, null));
+                await endpoint.configureReporting<"hvacThermostat", SunricherHvacThermostat>(
+                    "hvacThermostat",
+                    payload<"hvacThermostat", SunricherHvacThermostat>("awayOrBoostMode", 10, repInterval.HOUR, null),
+                );
             },
         ];
 
@@ -748,8 +750,7 @@ const extend = {
         const getAwayOrBoostMode = async (entity: Endpoint | Group) => {
             let result = globalStore.getValue(entity, "awayOrBoostMode");
             if (result === undefined) {
-                const attributeRead = await entity.read("hvacThermostat", ["awayOrBoostMode"]);
-                // @ts-expect-error ignore
+                const attributeRead = await entity.read<"hvacThermostat", SunricherHvacThermostat>("hvacThermostat", ["awayOrBoostMode"]);
                 result = attributeRead.awayOrBoostMode;
                 globalStore.putValue(entity, "awayOrBoostMode", result);
             }
@@ -802,8 +803,11 @@ const extend = {
                         convertedValue = Number((Math.round(Number((value * 2).toFixed(1))) / 2).toFixed(1)) * 100;
                     }
 
-                    const attribute = awayOrBoostMode === 1 ? "unoccupiedHeatingSetpoint" : "occupiedHeatingSetpoint";
-                    await entity.write("hvacThermostat", {[attribute]: convertedValue});
+                    if (awayOrBoostMode === 1) {
+                        await entity.write("hvacThermostat", {unoccupiedHeatingSetpoint: convertedValue});
+                    } else {
+                        await entity.write("hvacThermostat", {occupiedHeatingSetpoint: convertedValue});
+                    }
                     return {state: {current_heating_setpoint: value}};
                 },
                 convertGet: async (entity, key, meta) => {

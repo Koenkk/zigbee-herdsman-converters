@@ -1,9 +1,10 @@
+import type {RawClusterAttributes} from "zigbee-herdsman/dist/controller/tstype";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
 import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
-import type {DefinitionWithExtend, Fz, KeyValue, ModernExtend, Zh} from "../lib/types";
+import type {DefinitionWithExtend, Fz, ModernExtend, Zh} from "../lib/types";
 
 const NS = "zhc:livolo";
 
@@ -33,7 +34,7 @@ const mLocal = {
 
 const fzLocal = {
     // biome-ignore lint/suspicious/noExplicitAny: ignore
-    prevent_disconnect: (args: {dp: number; payload: ((data: any) => KeyValue) | KeyValue}): Fz.Converter => {
+    prevent_disconnect: (args: {dp: number; payload: ((data: any) => RawClusterAttributes) | RawClusterAttributes}): Fz.Converter => {
         return {
             // This is needed while pairing in order to let the device know that the interview went right and prevent
             // it from disconnecting from the Zigbee network.

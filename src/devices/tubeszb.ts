@@ -13,7 +13,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(8);
-            const payload = [{attribute: "zclVersion", minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0}];
+            const payload = [{attribute: "zclVersion" as const, minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0}];
             await reporting.bind(endpoint, coordinatorEndpoint, ["genBasic"]);
             await endpoint.configureReporting("genBasic", payload);
         },

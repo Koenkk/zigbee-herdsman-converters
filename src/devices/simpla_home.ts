@@ -6,7 +6,7 @@ const measurementIntervalMin = 5;
 const measurementIntervalMax = 4 * 60 * 60;
 
 export const simplaHomeModernExtend = {
-    measurementInterval: (args?: Partial<m.NumericArgs>) => {
+    measurementInterval: (args?: Partial<m.NumericArgs<"genAnalogOutput">>) => {
         const resultName = "measurement_interval";
         const resultUnit = "s";
         const resultDescription = "Defines how often the device performs measurements";

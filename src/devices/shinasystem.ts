@@ -82,8 +82,8 @@ const fzLocal = {
         cluster: "seMetering",
         type: ["readResponse"],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data[0x9001] !== undefined) {
-                const value = msg.data[0x9001];
+            if (msg.data[36865] !== undefined) {
+                const value = msg.data[36865];
                 const lookup = {0: "Auto", 1: "Manual(Forward)", 2: "Manual(Reverse)"};
                 return {ct_direction: utils.getFromLookup(value, lookup)};
             }
@@ -242,11 +242,11 @@ const tzLocal = {
         key: ["ct_direction"],
         convertSet: async (entity, key, value, meta) => {
             const lookup = {Auto: 0, "Manual(Forward)": 1, "Manual(Reverse)": 2};
-            await entity.write("seMetering", {"0x9001": {value: utils.getFromLookup(value, lookup), type: 0x20}});
+            await entity.write("seMetering", {36865: {value: utils.getFromLookup(value, lookup), type: 0x20}});
             return {state: {[key]: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read("seMetering", [0x9001]);
+            await entity.read("seMetering", [36865]);
         },
     } satisfies Tz.Converter,
     force_smoke_alarm: {
@@ -283,7 +283,7 @@ export const definitions: DefinitionWithExtend[] = [
             const binds = ["genPowerCfg", "genAnalogInput"];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
             await reporting.batteryVoltage(endpoint);
-            const payload = reporting.payload("presentValue", 1, 600, 0);
+            const payload = reporting.payload<"genAnalogInput">("presentValue", 1, 600, 0);
             await endpoint.configureReporting("genAnalogInput", payload);
         },
         exposes: [
@@ -307,7 +307,7 @@ export const definitions: DefinitionWithExtend[] = [
             const binds = ["genPowerCfg", "genAnalogInput"];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
             await reporting.batteryVoltage(endpoint);
-            const payload = reporting.payload("presentValue", 1, 600, 0);
+            const payload = reporting.payload<"genAnalogInput">("presentValue", 1, 600, 0);
             await endpoint.configureReporting("genAnalogInput", payload);
         },
         exposes: [
@@ -814,7 +814,7 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.occupancy(endpoint, {min: 1, max: 600, change: 1});
             const payload = [
                 {
-                    attribute: "zoneStatus",
+                    attribute: "zoneStatus" as const,
                     minimumReportInterval: 1,
                     maximumReportInterval: 600,
                     reportableChange: 1,
@@ -1119,7 +1119,7 @@ export const definitions: DefinitionWithExtend[] = [
             const binds = ["genPowerCfg", "ssIasZone"];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
             await reporting.batteryVoltage(endpoint, {min: 30, max: 21600, change: 1});
-            const payload = reporting.payload("currentZoneSensitivityLevel", 0, 7200, 1);
+            const payload = reporting.payload<"ssIasZone">("currentZoneSensitivityLevel", 0, 7200, 1);
             await endpoint.configureReporting("ssIasZone", payload);
             await endpoint.read("ssIasZone", ["currentZoneSensitivityLevel"]);
         },

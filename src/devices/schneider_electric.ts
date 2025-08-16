@@ -1,5 +1,4 @@
 import {Zcl} from "zigbee-herdsman";
-
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as constants from "../lib/constants";
@@ -12,6 +11,35 @@ import {postfixWithEndpointName} from "../lib/utils";
 
 const e = exposes.presets;
 const ea = exposes.access;
+
+interface SchneiderOccupancyConfig {
+    attributes: {
+        ambienceLightThreshold: number;
+        occupancyActions: number;
+        unoccupiedLevelDflt: number;
+        unoccupiedLevel: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+interface SchneiderVisaConfig {
+    attributes: {
+        indicatorLuminanceLevel: number;
+        indicatorColor: number;
+        indicatorMode: number;
+        motorTypeChannel1: number;
+        motorTypeChannel2: number;
+        curtainStatusChannel1: number;
+        curtainStatusChannel2: number;
+        key1EventNotification: number;
+        key2EventNotification: number;
+        key3EventNotification: number;
+        key4EventNotification: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
 
 function indicatorMode(endpoint?: string) {
     let description = "Set Indicator Mode.";
@@ -131,7 +159,7 @@ const schneiderElectricExtend = {
             commandsResponse: {},
         }),
     visaConfigIndicatorLuminanceLevel: (): ModernExtend => {
-        return m.enumLookup({
+        return m.enumLookup<"visaConfiguration", SchneiderVisaConfig>({
             name: "indicator_luminance_level",
             lookup: {
                 "100": 0,
@@ -147,7 +175,7 @@ const schneiderElectricExtend = {
         });
     },
     visaConfigIndicatorColor: (): ModernExtend => {
-        return m.enumLookup({
+        return m.enumLookup<"visaConfiguration", SchneiderVisaConfig>({
             name: "indicator_color",
             lookup: {
                 white: 0,
@@ -159,7 +187,7 @@ const schneiderElectricExtend = {
         });
     },
     visaIndicatorMode: ([reverseWithLoad, consistentWithLoad, alwaysOff, alwaysOn]: number[]): ModernExtend => {
-        return m.enumLookup({
+        return m.enumLookup<"visaConfiguration", SchneiderVisaConfig>({
             name: "indicator_mode",
             lookup: {
                 reverse_with_load: reverseWithLoad,
@@ -173,10 +201,11 @@ const schneiderElectricExtend = {
         });
     },
     visaConfigMotorType: (channel?: number): ModernExtend => {
-        const attribute = `motorTypeChannel${channel || ""}`;
+        // TODO: was defaulting `motorTypeChannel` which is not part of the custom cluster
+        const attribute = `motorTypeChannel${channel as 1 | 2}` as const;
         const description = `Set motor type for channel ${channel || ""}`;
 
-        return m.enumLookup({
+        return m.enumLookup<"visaConfiguration", SchneiderVisaConfig>({
             name: `motor_type${channel ? `_${channel}` : ""}`,
             lookup: {
                 ac_motor: 0,
@@ -188,10 +217,11 @@ const schneiderElectricExtend = {
         });
     },
     visaConfigCurtainStatus: (channel?: number): ModernExtend => {
-        const attribute = `curtainStatusChannel${channel || ""}`;
+        // TODO: was defaulting `motorTypeChannel` which is not part of the custom cluster
+        const attribute = `curtainStatusChannel${channel as 1 | 2}` as const;
         const description = `Set curtain status for channel ${channel}`;
 
-        return m.enumLookup({
+        return m.enumLookup<"visaConfiguration", SchneiderVisaConfig>({
             access: "STATE",
             name: `curtain_status${channel ? `_${channel}` : ""}`,
             lookup: {
@@ -353,7 +383,7 @@ const schneiderElectricExtend = {
             return Math.round(10000 * Math.log10(value) + 1);
         };
 
-        const luxThresholdExtend = m.numeric({
+        const luxThresholdExtend = m.numeric<"occupancyConfiguration", SchneiderOccupancyConfig>({
             name: "ambience_light_threshold",
             cluster: "occupancyConfiguration",
             attribute: "ambienceLightThreshold",
@@ -368,7 +398,9 @@ const schneiderElectricExtend = {
         extend.fromZigbee.push(...luxThresholdExtend.fromZigbee);
         extend.toZigbee.push(...luxThresholdExtend.toZigbee);
         extend.exposes.push(...luxThresholdExtend.exposes);
-        extend.configure.push(m.setupConfigureForReading("occupancyConfiguration", ["ambienceLightThreshold"]));
+        extend.configure.push(
+            m.setupConfigureForReading<"occupancyConfiguration", SchneiderOccupancyConfig>("occupancyConfiguration", ["ambienceLightThreshold"]),
+        );
 
         return extend;
     },
@@ -525,22 +557,26 @@ const fzLocal = {
                 // Send Schneider specific ACK to make PowerTag happy
                 // @ts-expect-error ignore
                 const networkParameters = await msg.device.constructor.adapter.getNetworkParameters();
-                const payload = {
-                    options: 0b000,
-                    tempMaster: msg.data.gppNwkAddr,
-                    tempMasterTx: networkParameters.channel - 11,
-                    srcID: msg.data.srcID,
-                    gpdCmd: 0xfe,
-                    gpdPayload: {
-                        commandID: 0xfe,
-                        buffer: Buffer.alloc(1), // I hope it's zero initialised
-                    },
-                };
 
-                await msg.endpoint.commandResponse("greenPower", "response", payload, {
-                    srcEndpoint: 242,
-                    disableDefaultResponse: true,
-                });
+                await msg.endpoint.commandResponse(
+                    "greenPower",
+                    "response",
+                    {
+                        options: 0b000,
+                        tempMaster: msg.data.gppNwkAddr,
+                        tempMasterTx: networkParameters.channel - 11,
+                        srcID: msg.data.srcID,
+                        gpdCmd: 0xfe,
+                        gpdPayload: {
+                            commandID: 0xfe,
+                            buffer: Buffer.alloc(1),
+                        },
+                    },
+                    {
+                        srcEndpoint: 242,
+                        disableDefaultResponse: true,
+                    },
+                );
             }
 
             return ret;

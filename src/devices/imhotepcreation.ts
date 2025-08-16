@@ -181,19 +181,19 @@ export const definitions: DefinitionWithExtend[] = [
                     await reporting.thermostatOccupiedCoolingSetpoint(endpoint);
 
                     const thermostatMinHeatSetpointLimit = async (endpoint: Zh.Endpoint) => {
-                        const p = reporting.payload("minHeatSetpointLimit", 0, constants.repInterval.HOUR, 10);
+                        const p = reporting.payload<"hvacThermostat">("minHeatSetpointLimit", 0, constants.repInterval.HOUR, 10);
                         await endpoint.configureReporting("hvacThermostat", p);
                     };
                     const thermostatMaxHeatSetpointLimit = async (endpoint: Zh.Endpoint) => {
-                        const p = reporting.payload("maxHeatSetpointLimit", 0, constants.repInterval.HOUR, 10);
+                        const p = reporting.payload<"hvacThermostat">("maxHeatSetpointLimit", 0, constants.repInterval.HOUR, 10);
                         await endpoint.configureReporting("hvacThermostat", p);
                     };
                     const thermostatMinCoolSetpointLimit = async (endpoint: Zh.Endpoint) => {
-                        const p = reporting.payload("minCoolSetpointLimit", 0, constants.repInterval.HOUR, 10);
+                        const p = reporting.payload<"hvacThermostat">("minCoolSetpointLimit", 0, constants.repInterval.HOUR, 10);
                         await endpoint.configureReporting("hvacThermostat", p);
                     };
                     const thermostatMaxCoolSetpointLimit = async (endpoint: Zh.Endpoint) => {
-                        const p = reporting.payload("maxCoolSetpointLimit", 0, constants.repInterval.HOUR, 10);
+                        const p = reporting.payload<"hvacThermostat">("maxCoolSetpointLimit", 0, constants.repInterval.HOUR, 10);
                         await endpoint.configureReporting("hvacThermostat", p);
                     };
                     await thermostatMinHeatSetpointLimit(endpoint);

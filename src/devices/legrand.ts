@@ -158,10 +158,10 @@ export const definitions: DefinitionWithExtend[] = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genBinaryInput", "closuresWindowCovering", "genIdentify"]);
-            let p = reporting.payload("currentPositionLiftPercentage", 1, 120, 1);
+            let p = reporting.payload<"closuresWindowCovering">("currentPositionLiftPercentage", 1, 120, 1);
             await endpoint.configureReporting("closuresWindowCovering", p, legrandOptions);
 
-            p = reporting.payload("currentPositionTiltPercentage", 1, 120, 1);
+            p = reporting.payload<"closuresWindowCovering">("currentPositionTiltPercentage", 1, 120, 1);
             await endpoint.configureReporting("closuresWindowCovering", p, legrandOptions);
         },
     },
@@ -229,10 +229,10 @@ export const definitions: DefinitionWithExtend[] = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genBinaryInput", "closuresWindowCovering", "genIdentify"]);
-            let p = reporting.payload("currentPositionLiftPercentage", 1, 120, 1);
+            let p = reporting.payload<"closuresWindowCovering">("currentPositionLiftPercentage", 1, 120, 1);
             await endpoint.configureReporting("closuresWindowCovering", p, legrandOptions);
 
-            p = reporting.payload("currentPositionTiltPercentage", 1, 120, 1);
+            p = reporting.payload<"closuresWindowCovering">("currentPositionTiltPercentage", 1, 120, 1);
             await endpoint.configureReporting("closuresWindowCovering", p, legrandOptions);
         },
     },
@@ -444,6 +444,7 @@ export const definitions: DefinitionWithExtend[] = [
                     for (const c of endpoint.configuredReportings) {
                         await endpoint.configureReporting(c.cluster.name, [
                             {
+                                // @ts-expect-error dynamic, expected correct since already applied
                                 attribute: c.attribute.name,
                                 minimumReportInterval: c.minimumReportInterval,
                                 maximumReportInterval: c.maximumReportInterval,
@@ -512,6 +513,7 @@ export const definitions: DefinitionWithExtend[] = [
                     for (const c of endpoint.configuredReportings) {
                         await endpoint.configureReporting(c.cluster.name, [
                             {
+                                // @ts-expect-error dynamic, expected correct since already applied
                                 attribute: c.attribute.name,
                                 minimumReportInterval: c.minimumReportInterval,
                                 maximumReportInterval: c.maximumReportInterval,
