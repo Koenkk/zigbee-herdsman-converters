@@ -137,7 +137,7 @@ async function sendDataPoints(entity: Zh.Endpoint | Zh.Group, dpValues: any, cmd
 
     await entity.command(
         "manuSpecificTuya",
-        cmd || "dataRequest",
+        cmd as "dataRequest",
         {
             seq,
             dpValues,
@@ -384,7 +384,7 @@ const tvThermostatPreset: KeyValueAny = {
     3: "holiday",
 };
 // Zemismart ZM_AM02 Roller Shade Converter
-const ZMLookups: KeyValueAny = {
+const ZMLookups = {
     AM02Mode: {
         0: "morning",
         1: "night",
@@ -5497,9 +5497,14 @@ const toZigbee2 = {
     tuya_thermostat_system_mode: {
         key: ["system_mode"],
         convertSet: async (entity, key, value, meta) => {
-            const modeId = utils.getKey(utils.getMetaValue(entity, meta.mapped, "tuyaThermostatSystemMode"), value, null, Number);
+            const modeId = utils.getKey(
+                utils.getMetaValue(entity, meta.mapped, "tuyaThermostatSystemMode") as Record<number, string>,
+                value,
+                null,
+                Number,
+            );
             if (modeId !== null) {
-                await sendDataPointEnum(entity, dataPoints.mode, Number.parseInt(modeId as string));
+                await sendDataPointEnum(entity, dataPoints.mode, modeId);
             } else {
                 throw new Error(`TRV system mode ${value} is not recognized.`);
             }
@@ -5508,9 +5513,14 @@ const toZigbee2 = {
     tuya_thermostat_preset: {
         key: ["preset"],
         convertSet: async (entity, key, value, meta) => {
-            const presetId = utils.getKey(utils.getMetaValue(entity, meta.mapped, "tuyaThermostatPreset"), value, null, Number);
+            const presetId = utils.getKey(
+                utils.getMetaValue(entity, meta.mapped, "tuyaThermostatPreset") as Record<number, string>,
+                value,
+                null,
+                Number,
+            );
             if (presetId !== null) {
-                await sendDataPointEnum(entity, dataPoints.mode, Number.parseInt(presetId as string));
+                await sendDataPointEnum(entity, dataPoints.mode, presetId);
             } else {
                 throw new Error(`TRV preset ${value} is not recognized.`);
             }
@@ -5520,20 +5530,23 @@ const toZigbee2 = {
         key: ["away_mode"],
         convertSet: async (entity, key, value, meta) => {
             // HA has special behavior for the away mode
-            // @ts-expect-error ignore
-            const awayPresetId = utils.getKey(utils.getMetaValue(entity, meta.mapped, "tuyaThermostatPreset"), "away", null, Number);
+            const awayPresetId = utils.getKey(
+                utils.getMetaValue(entity, meta.mapped, "tuyaThermostatPreset") as Record<number, string>,
+                "away",
+                null,
+                Number,
+            );
             const schedulePresetId = utils.getKey(
-                utils.getMetaValue(entity, meta.mapped, "tuyaThermostatPreset"),
+                utils.getMetaValue(entity, meta.mapped, "tuyaThermostatPreset") as Record<number, string>,
                 "schedule",
                 null,
-                // @ts-expect-error ignore
                 Number,
             );
             if (awayPresetId !== null) {
                 if (value === "ON") {
-                    await sendDataPointEnum(entity, dataPoints.mode, Number.parseInt(awayPresetId));
+                    await sendDataPointEnum(entity, dataPoints.mode, awayPresetId);
                 } else if (schedulePresetId != null) {
-                    await sendDataPointEnum(entity, dataPoints.mode, Number.parseInt(schedulePresetId));
+                    await sendDataPointEnum(entity, dataPoints.mode, schedulePresetId);
                 }
                 // In case 'OFF' tuya_thermostat_preset() should be called with another preset
             } else {
@@ -5546,7 +5559,7 @@ const toZigbee2 = {
         convertSet: async (entity, key, value, meta) => {
             const modeId = utils.getKey(fanModes, value, null, Number);
             if (modeId !== null) {
-                await sendDataPointEnum(entity, dataPoints.fanMode, Number.parseInt(modeId as string));
+                await sendDataPointEnum(entity, dataPoints.fanMode, modeId);
             } else {
                 throw new Error(`TRV fan mode ${value} is not recognized.`);
             }
@@ -5557,7 +5570,7 @@ const toZigbee2 = {
         convertSet: async (entity, key, value, meta) => {
             const modeId = utils.getKey(fanModes, value, null, Number);
             if (modeId !== null) {
-                await sendDataPointEnum(entity, dataPoints.bacFanMode, Number.parseInt(modeId as string));
+                await sendDataPointEnum(entity, dataPoints.bacFanMode, modeId);
             } else {
                 throw new Error(`TRV fan mode ${value} is not recognized.`);
             }
@@ -5615,7 +5628,7 @@ const toZigbee2 = {
         convertSet: async (entity, key, value, meta) => {
             const modeId = utils.getKey(thermostatForceMode, value, null, Number);
             if (modeId !== null) {
-                await sendDataPointEnum(entity, dataPoints.forceMode, Number.parseInt(modeId as string));
+                await sendDataPointEnum(entity, dataPoints.forceMode, modeId);
             } else {
                 throw new Error(`TRV force mode ${value} is not recognized.`);
             }
@@ -5624,9 +5637,14 @@ const toZigbee2 = {
     tuya_thermostat_force_to_mode: {
         key: ["system_mode"],
         convertSet: async (entity, key, value, meta) => {
-            const modeId = utils.getKey(utils.getMetaValue(entity, meta.mapped, "tuyaThermostatSystemMode"), value, null, Number);
+            const modeId = utils.getKey(
+                utils.getMetaValue(entity, meta.mapped, "tuyaThermostatSystemMode") as Record<number, string>,
+                value,
+                null,
+                Number,
+            );
             if (modeId !== null) {
-                await sendDataPointEnum(entity, dataPoints.forceMode, Number.parseInt(modeId as string));
+                await sendDataPointEnum(entity, dataPoints.forceMode, modeId);
             } else {
                 throw new Error(`TRV system mode ${value} is not recognized.`);
             }
@@ -6385,10 +6403,10 @@ const toZigbee2 = {
         convertSet: async (entity, key, value: any, meta) => {
             switch (key) {
                 case "o_sensitivity":
-                    await sendDataPointEnum(entity, dataPoints.msOSensitivity, utils.getKey(msLookups.OSensitivity, value));
+                    await sendDataPointEnum(entity, dataPoints.msOSensitivity, utils.getKey(msLookups.OSensitivity, value, undefined, Number));
                     break;
                 case "v_sensitivity":
-                    await sendDataPointEnum(entity, dataPoints.msVSensitivity, utils.getKey(msLookups.VSensitivity, value));
+                    await sendDataPointEnum(entity, dataPoints.msVSensitivity, utils.getKey(msLookups.VSensitivity, value, undefined, Number));
                     break;
                 case "led_status":
                     // @ts-expect-error ignore
@@ -6404,7 +6422,7 @@ const toZigbee2 = {
                     await sendDataPointValue(entity, dataPoints.msLightOffLuminancePrefer, value);
                     break;
                 case "mode":
-                    await sendDataPointEnum(entity, dataPoints.msMode, utils.getKey(msLookups.Mode, value));
+                    await sendDataPointEnum(entity, dataPoints.msMode, utils.getKey(msLookups.Mode, value, undefined, Number));
                     break;
                 default: // Unknown key
                     logger.warning(`toZigbee.tuya_motion_sensor: Unhandled key ${key}`, "zhc:legacy:tz:tuya_motion_sensor");
@@ -6466,7 +6484,7 @@ const toZigbee2 = {
                 case "system_mode":
                     if (value !== "off") {
                         await sendDataPointBool(entity, dataPoints.tvHeatingStop, 0);
-                        await sendDataPointEnum(entity, dataPoints.tvMode, utils.getKey(tvThermostatMode, value));
+                        await sendDataPointEnum(entity, dataPoints.tvMode, utils.getKey(tvThermostatMode, value, undefined, Number));
                     } else {
                         await sendDataPointBool(entity, dataPoints.tvHeatingStop, 1);
                     }
@@ -6532,7 +6550,7 @@ const toZigbee2 = {
                     break;
                 case "preset":
                     await sendDataPointBool(entity, dataPoints.tvHeatingStop, 0);
-                    await sendDataPointEnum(entity, dataPoints.tvMode, utils.getKey(tvThermostatPreset, value));
+                    await sendDataPointEnum(entity, dataPoints.tvMode, utils.getKey(tvThermostatPreset, value, undefined, Number));
                     break;
                 default: // Unknown key
                     logger.warning(`Unhandled key ${key}`, "zhc:legacy:tz:moes_thermostat_tv");
@@ -6721,17 +6739,22 @@ const toZigbee2 = {
             }
             switch (key) {
                 case "mode":
-                    await sendDataPointEnum(entity, dataPoints.AM02Mode, utils.getKey(ZMLookups.AM02Mode, value));
+                    await sendDataPointEnum(entity, dataPoints.AM02Mode, utils.getKey(ZMLookups.AM02Mode, value, undefined, Number));
                     break;
                 case "motor_direction":
-                    await sendDataPointEnum(entity, dataPoints.AM02Direction, utils.getKey(ZMLookups.AM02Direction, value));
+                    await sendDataPointEnum(entity, dataPoints.AM02Direction, utils.getKey(ZMLookups.AM02Direction, value, undefined, Number));
                     break;
                 case "border":
-                    await sendDataPointEnum(entity, dataPoints.AM02Border, utils.getKey(ZMLookups.AM02Border, value));
+                    await sendDataPointEnum(entity, dataPoints.AM02Border, utils.getKey(ZMLookups.AM02Border, value, undefined, Number));
                     break;
-                case "motor_working_mode":
-                    await sendDataPointEnum(entity, dataPoints.AM02MotorWorkingMode, utils.getKey(ZMLookups.AM02MotorWorkingMode, value));
+                case "motor_working_mode": {
+                    await sendDataPointEnum(
+                        entity,
+                        dataPoints.AM02MotorWorkingMode,
+                        utils.getKey(ZMLookups.AM02MotorWorkingMode, value, undefined, Number),
+                    );
                     break;
+                }
             }
         },
     } satisfies Tz.Converter,

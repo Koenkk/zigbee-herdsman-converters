@@ -1,9 +1,8 @@
 import {Zcl} from "zigbee-herdsman";
-
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as constants from "../lib/constants";
-import {develcoModernExtend} from "../lib/develco";
+import {type DevelcoGenBasic, develcoModernExtend} from "../lib/develco";
 import * as exposes from "../lib/exposes";
 import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
@@ -166,7 +165,7 @@ const develco = {
         pulse_configuration: {
             key: ["pulse_configuration"],
             convertSet: async (entity, key, value, meta) => {
-                await entity.write("seMetering", {develcoPulseConfiguration: value}, manufacturerOptions);
+                await entity.write("seMetering", {develcoPulseConfiguration: value as number}, manufacturerOptions);
                 return {state: {pulse_configuration: value}};
             },
             convertGet: async (entity, key, meta) => {
@@ -187,19 +186,19 @@ const develco = {
         current_summation: {
             key: ["current_summation"],
             convertSet: async (entity, key, value, meta) => {
-                await entity.write("seMetering", {develcoCurrentSummation: value}, manufacturerOptions);
+                await entity.write("seMetering", {develcoCurrentSummation: value as number}, manufacturerOptions);
                 return {state: {current_summation: value}};
             },
         } satisfies Tz.Converter,
         led_control: {
             key: ["led_control"],
             convertSet: async (entity, key, value, meta) => {
-                const ledControl = utils.getKey(develcoLedControlMap, value, value, Number);
-                await entity.write("genBasic", {develcoLedControl: ledControl}, manufacturerOptions);
+                const ledControl = utils.getKey(develcoLedControlMap, value, value as number, Number);
+                await entity.write<"genBasic", DevelcoGenBasic>("genBasic", {develcoLedControl: ledControl}, manufacturerOptions);
                 return {state: {led_control: value}};
             },
             convertGet: async (entity, key, meta) => {
-                await entity.read("genBasic", ["develcoLedControl"], manufacturerOptions);
+                await entity.read<"genBasic", DevelcoGenBasic>("genBasic", ["develcoLedControl"], manufacturerOptions);
             },
         } satisfies Tz.Converter,
         ias_occupancy_timeout: {
@@ -660,7 +659,7 @@ export const definitions: DefinitionWithExtend[] = [
                 await endpoint35.read("ssIasZone", ["develcoAlarmOffDelay"], manufacturerOptions);
             }
             if (Number(device?.softwareBuildID?.split(".")[0]) >= 4) {
-                await endpoint35.read("genBasic", ["develcoLedControl"], manufacturerOptions);
+                await endpoint35.read<"genBasic", DevelcoGenBasic>("genBasic", ["develcoLedControl"], manufacturerOptions);
             }
         },
     },
@@ -716,7 +715,7 @@ export const definitions: DefinitionWithExtend[] = [
             if (device?.softwareBuildID && Number(device.softwareBuildID.split(".")[0]) >= 2) {
                 const endpoint35 = device.getEndpoint(35);
                 await endpoint35.read("ssIasZone", ["develcoAlarmOffDelay"], manufacturerOptions);
-                await endpoint35.read("genBasic", ["develcoLedControl"], manufacturerOptions);
+                await endpoint35.read<"genBasic", DevelcoGenBasic>("genBasic", ["develcoLedControl"], manufacturerOptions);
             }
         },
     },
