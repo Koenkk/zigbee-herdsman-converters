@@ -1,5 +1,4 @@
 import {Zcl} from "zigbee-herdsman";
-
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as constants from "../lib/constants";
@@ -9,7 +8,7 @@ import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as tuya from "../lib/tuya";
-import type {DefinitionWithExtend, Fz, KeyValue, KeyValueAny, ModernExtend, Tz} from "../lib/types";
+import type {DefinitionWithExtend, Fz, KeyValue, ModernExtend, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
 
 const {ewelinkAction, ewelinkBattery} = ewelinkModernExtend;
@@ -22,6 +21,69 @@ const manufacturerOptions = {
 const defaultResponseOptions = {disableDefaultResponse: false};
 const e = exposes.presets;
 const ea = exposes.access;
+
+interface SonoffSnzb02d {
+    attributes: {
+        comfortTemperatureMax: number;
+        comfortTemperatureMin: number;
+        comfortHumidityMin: number;
+        comfortHumidityMax: number;
+        temperatureUnits: number;
+        temperatureCalibration: number;
+        humidityCalibration: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+interface SonoffSnzb02p {
+    attributes: {
+        temperatureCalibration: number;
+        humidityCalibration: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+interface SonoffSnzb02ld {
+    attributes: {
+        temperatureUnits: number;
+        temperatureCalibration: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+interface SonoffSnzb02wd {
+    attributes: {
+        temperatureUnits: number;
+        temperatureCalibration: number;
+        humidityCalibration: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+interface SonoffTrvzb {
+    attributes: {
+        childLock: number;
+        tamper: number;
+        illumination: number;
+        openWindow: number;
+        frostProtectionTemperature: number;
+        idleSteps: number;
+        closingSteps: number;
+        valveOpeningLimitVoltage: number;
+        valveClosingLimitVoltage: number;
+        valveMotorRunningVoltage: number;
+        valveOpeningDegree: number;
+        valveClosingDegree: number;
+        tempAccuracy: number;
+        externalTemperatureInput: number;
+        temperatureSensorSelect: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
 
 const fzLocal = {
     router_config: {
@@ -54,6 +116,35 @@ const tzLocal = {
 type EntityCategoryArgs = {
     entityCategory?: "config" | "diagnostic";
 };
+
+export interface SonoffEwelink {
+    attributes: {
+        networkLed: number;
+        backLight: number;
+        faultCode: number;
+        radioPower: number;
+        radioPowerWithManuCode: number;
+        delayedPowerOnState: number;
+        delayedPowerOnTime: number;
+        externalTriggerMode: number;
+        detachRelayMode: number;
+        deviceWorkMode: number;
+        detachRelayMode2: number;
+        lackWaterCloseValveTimeout: number;
+        acCurrentCurrentValue: number;
+        acCurrentVoltageValue: number;
+        acCurrentPowerValue: number;
+        // biome-ignore lint/style/useNamingConvention: TODO
+        outlet_control_protect: number;
+        energyToday: number;
+        energyMonth: number;
+        energyYesterday: number;
+    };
+    commands: {
+        protocolData: {data: number[]};
+    };
+    commandResponses: never;
+}
 
 const sonoffExtend = {
     addCustomClusterEwelink: () =>
@@ -125,7 +216,7 @@ const sonoffExtend = {
 
                     const tmpTime = Number(Math.round(Number((value[inchingTime as keyof typeof value] * 2).toFixed(1))).toFixed(1));
 
-                    const payloadValue: Uint8Array = new Uint8Array(11);
+                    const payloadValue: number[] = [];
                     payloadValue[0] = 0x01; // Cmd
                     payloadValue[1] = 0x17; // SubCmd
                     payloadValue[2] = 0x07; // Length
@@ -152,7 +243,7 @@ const sonoffExtend = {
                         payloadValue[10] ^= payloadValue[i];
                     }
 
-                    await entity.command(
+                    await entity.command<typeof clusterName, typeof commandName, SonoffEwelink>(
                         clusterName,
                         commandName,
                         {data: payloadValue},
@@ -237,20 +328,15 @@ const sonoffExtend = {
 
                         const dayOfWeekBit = Number(dayKey);
 
-                        const transitions = value[dayOfWeekName].split(" ").sort();
+                        const rawTransitions = value[dayOfWeekName].split(" ").sort();
 
-                        if (transitions.length > 6) {
+                        if (rawTransitions.length > 6) {
                             throw new Error("Invalid schedule: days must have no more than 6 transitions");
                         }
 
-                        const payload: KeyValueAny = {
-                            dayofweek: 1 << Number(dayOfWeekBit),
-                            numoftrans: transitions.length,
-                            mode: 1 << 0, // heat
-                            transitions: [],
-                        };
+                        const transitions = [];
 
-                        for (const transition of transitions) {
+                        for (const transition of rawTransitions) {
                             const matches = transition.match(transitionRegex);
 
                             if (!matches) {
@@ -267,17 +353,27 @@ const sonoffExtend = {
                                 throw new Error(`Invalid schedule: temperature value must be between 4-35 (inclusive), found: ${temp}`);
                             }
 
-                            payload.transitions.push({
+                            transitions.push({
                                 transitionTime: hour * 60 + mins,
                                 heatSetpoint: Math.round(temp * 100),
                             });
                         }
 
-                        if (payload.transitions[0].transitionTime !== 0) {
+                        if (transitions[0].transitionTime !== 0) {
                             throw new Error("Invalid schedule: the first transition of each day should start at 00:00");
                         }
 
-                        await entity.command("hvacThermostat", "setWeeklySchedule", payload, utils.getOptions(meta.mapped, entity));
+                        await entity.command(
+                            "hvacThermostat",
+                            "setWeeklySchedule",
+                            {
+                                dayofweek: 1 << Number(dayOfWeekBit),
+                                numoftrans: rawTransitions.length,
+                                mode: 1 << 0, // heat
+                                transitions,
+                            },
+                            utils.getOptions(meta.mapped, entity),
+                        );
                     }
                 },
             },
@@ -516,8 +612,8 @@ const sonoffExtend = {
     externalSwitchTriggerMode: (args: EntityCategoryArgs = {}): ModernExtend => {
         const {entityCategory} = args;
 
-        const clusterName = "customClusterEwelink";
-        const attributeName = "externalTriggerMode";
+        const clusterName = "customClusterEwelink" as const;
+        const attributeName = "externalTriggerMode" as const;
         let exposes = e
             .enum("external_trigger_mode", ea.ALL, ["edge", "pulse", "following(off)", "following(on)"])
             .withDescription(
@@ -557,11 +653,11 @@ const sonoffExtend = {
                     value = value.toLowerCase();
                     const lookup = {edge: 0, pulse: 1, "following(off)": 2, "following(on)": 130};
                     const tmpValue = utils.getFromLookup(value, lookup);
-                    await entity.write(clusterName, {[attributeName]: tmpValue}, defaultResponseOptions);
+                    await entity.write<typeof clusterName, SonoffEwelink>(clusterName, {[attributeName]: tmpValue}, defaultResponseOptions);
                     return {state: {[key]: value}};
                 },
                 convertGet: async (entity, key, meta) => {
-                    await entity.read(clusterName, [attributeName], defaultResponseOptions);
+                    await entity.read<typeof clusterName, SonoffEwelink>(clusterName, [attributeName], defaultResponseOptions);
                 },
             },
         ];
@@ -663,11 +759,11 @@ const sonoffExtend = {
                         detachRelayMask &= ~0x04;
                     }
                     // logger.info(`from zigbee detachRelayMask: ${detachRelayMask}`, NS);
-                    await entity.write(clusterName, {[attributeName]: detachRelayMask}, defaultResponseOptions);
+                    await entity.write<typeof clusterName, SonoffEwelink>(clusterName, {[attributeName]: detachRelayMask}, defaultResponseOptions);
                     return {state: {[key]: value}};
                 },
                 convertGet: async (entity, key, meta) => {
-                    await entity.read(clusterName, [attributeName], defaultResponseOptions);
+                    await entity.read<typeof clusterName, SonoffEwelink>(clusterName, [attributeName], defaultResponseOptions);
                 },
             },
         ];
@@ -1238,7 +1334,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.temperature(),
             m.humidity(),
             m.bindCluster({cluster: "genPollCtrl", clusterType: "input"}),
-            m.numeric({
+            m.numeric<"customSonoffSnzb02d", SonoffSnzb02d>({
                 name: "comfort_temperature_min",
                 cluster: "customSonoffSnzb02d",
                 attribute: "comfortTemperatureMin",
@@ -1250,7 +1346,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueStep: 0.1,
                 unit: "°C",
             }),
-            m.numeric({
+            m.numeric<"customSonoffSnzb02d", SonoffSnzb02d>({
                 name: "comfort_temperature_max",
                 cluster: "customSonoffSnzb02d",
                 attribute: "comfortTemperatureMax",
@@ -1262,7 +1358,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueStep: 0.1,
                 unit: "°C",
             }),
-            m.numeric({
+            m.numeric<"customSonoffSnzb02d", SonoffSnzb02d>({
                 name: "comfort_humidity_min",
                 cluster: "customSonoffSnzb02d",
                 attribute: "comfortHumidityMin",
@@ -1274,7 +1370,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueStep: 0.1,
                 unit: "%",
             }),
-            m.numeric({
+            m.numeric<"customSonoffSnzb02d", SonoffSnzb02d>({
                 name: "comfort_humidity_max",
                 cluster: "customSonoffSnzb02d",
                 attribute: "comfortHumidityMax",
@@ -1286,7 +1382,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueStep: 0.1,
                 unit: "%",
             }),
-            m.enumLookup({
+            m.enumLookup<"customSonoffSnzb02d", SonoffSnzb02d>({
                 name: "temperature_units",
                 lookup: {celsius: 0, fahrenheit: 1},
                 cluster: "customSonoffSnzb02d",
@@ -1294,7 +1390,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description:
                     "The unit of the temperature displayed on the device screen. Note: wake up the device by pressing the button on the back before changing this value.",
             }),
-            m.numeric({
+            m.numeric<"customSonoffSnzb02d", SonoffSnzb02d>({
                 name: "temperature_calibration",
                 cluster: "customSonoffSnzb02d",
                 attribute: "temperatureCalibration",
@@ -1305,7 +1401,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueStep: 0.1,
                 unit: "°C",
             }),
-            m.numeric({
+            m.numeric<"customSonoffSnzb02d", SonoffSnzb02d>({
                 name: "humidity_calibration",
                 cluster: "customSonoffSnzb02d",
                 attribute: "humidityCalibration",
@@ -1336,7 +1432,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.battery(),
             m.temperature(),
             m.bindCluster({cluster: "genPollCtrl", clusterType: "input"}),
-            m.enumLookup({
+            m.enumLookup<"customSonoffSnzb02ld", SonoffSnzb02ld>({
                 name: "temperature_units",
                 lookup: {celsius: 0, fahrenheit: 1},
                 cluster: "customSonoffSnzb02ld",
@@ -1344,7 +1440,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description:
                     "The unit of the temperature displayed on the device screen. Note: wake up the device by pressing the button on the back before changing this value.",
             }),
-            m.numeric({
+            m.numeric<"customSonoffSnzb02ld", SonoffSnzb02ld>({
                 name: "temperature_calibration",
                 cluster: "customSonoffSnzb02ld",
                 attribute: "temperatureCalibration",
@@ -1377,7 +1473,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.temperature(),
             m.humidity(),
             m.bindCluster({cluster: "genPollCtrl", clusterType: "input"}),
-            m.enumLookup({
+            m.enumLookup<"customSonoffSnzb02wd", SonoffSnzb02wd>({
                 name: "temperature_units",
                 lookup: {celsius: 0, fahrenheit: 1},
                 cluster: "customSonoffSnzb02wd",
@@ -1385,7 +1481,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description:
                     "The unit of the temperature displayed on the device screen. Note: wake up the device by pressing the button on the back before changing this value.",
             }),
-            m.numeric({
+            m.numeric<"customSonoffSnzb02wd", SonoffSnzb02wd>({
                 name: "temperature_calibration",
                 cluster: "customSonoffSnzb02wd",
                 attribute: "temperatureCalibration",
@@ -1396,7 +1492,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueStep: 0.1,
                 unit: "°C",
             }),
-            m.numeric({
+            m.numeric<"customSonoffSnzb02wd", SonoffSnzb02wd>({
                 name: "humidity_calibration",
                 cluster: "customSonoffSnzb02wd",
                 attribute: "humidityCalibration",
@@ -1557,7 +1653,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.temperature(),
             m.humidity(),
             m.bindCluster({cluster: "genPollCtrl", clusterType: "input"}),
-            m.numeric({
+            m.numeric<"customSonoffSnzb02p", SonoffSnzb02p>({
                 name: "temperature_calibration",
                 cluster: "customSonoffSnzb02p",
                 attribute: "temperatureCalibration",
@@ -1568,7 +1664,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueStep: 0.1,
                 unit: "°C",
             }),
-            m.numeric({
+            m.numeric<"customSonoffSnzb02p", SonoffSnzb02p>({
                 name: "humidity_calibration",
                 cluster: "customSonoffSnzb02p",
                 attribute: "humidityCalibration",
@@ -1723,7 +1819,7 @@ export const definitions: DefinitionWithExtend[] = [
                 commands: {},
                 commandsResponse: {},
             }),
-            m.binary({
+            m.binary<"customSonoffTrvzb", SonoffTrvzb>({
                 name: "child_lock",
                 cluster: "customSonoffTrvzb",
                 attribute: "childLock",
@@ -1732,7 +1828,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueOn: ["LOCK", 0x01],
                 valueOff: ["UNLOCK", 0x00],
             }),
-            m.binary({
+            m.binary<"customSonoffTrvzb", SonoffTrvzb>({
                 name: "open_window",
                 cluster: "customSonoffTrvzb",
                 attribute: "openWindow",
@@ -1741,7 +1837,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueOn: ["ON", 0x01],
                 valueOff: ["OFF", 0x00],
             }),
-            m.numeric({
+            m.numeric<"customSonoffTrvzb", SonoffTrvzb>({
                 name: "frost_protection_temperature",
                 cluster: "customSonoffTrvzb",
                 attribute: "frostProtectionTemperature",
@@ -1753,7 +1849,7 @@ export const definitions: DefinitionWithExtend[] = [
                 unit: "°C",
                 scale: 100,
             }),
-            m.enumLookup({
+            m.enumLookup<"customSonoffTrvzb", SonoffTrvzb>({
                 name: "temperature_sensor_select",
                 label: "Temperature sensor",
                 lookup: {internal: 0, external: 1, external_2: 2, external_3: 3},
@@ -1762,7 +1858,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description:
                     "Whether to use the value of the internal temperature sensor or an external temperature sensor for the perceived local temperature. Using an external sensor does not require local temperature calibration.",
             }),
-            m.numeric({
+            m.numeric<"customSonoffTrvzb", SonoffTrvzb>({
                 name: "external_temperature_input",
                 label: "External temperature",
                 cluster: "customSonoffTrvzb",
@@ -1777,7 +1873,7 @@ export const definitions: DefinitionWithExtend[] = [
                 scale: 100,
                 precision: 1,
             }),
-            m.numeric({
+            m.numeric<"customSonoffTrvzb", SonoffTrvzb>({
                 name: "idle_steps",
                 cluster: "customSonoffTrvzb",
                 attribute: "idleSteps",
@@ -1785,7 +1881,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Number of steps used for calibration (no-load steps)",
                 access: "STATE_GET",
             }),
-            m.numeric({
+            m.numeric<"customSonoffTrvzb", SonoffTrvzb>({
                 name: "closing_steps",
                 cluster: "customSonoffTrvzb",
                 attribute: "closingSteps",
@@ -1793,7 +1889,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Number of steps it takes to close the valve",
                 access: "STATE_GET",
             }),
-            m.numeric({
+            m.numeric<"customSonoffTrvzb", SonoffTrvzb>({
                 name: "valve_opening_limit_voltage",
                 cluster: "customSonoffTrvzb",
                 attribute: "valveOpeningLimitVoltage",
@@ -1802,7 +1898,7 @@ export const definitions: DefinitionWithExtend[] = [
                 unit: "mV",
                 access: "STATE_GET",
             }),
-            m.numeric({
+            m.numeric<"customSonoffTrvzb", SonoffTrvzb>({
                 name: "valve_closing_limit_voltage",
                 cluster: "customSonoffTrvzb",
                 attribute: "valveClosingLimitVoltage",
@@ -1811,7 +1907,7 @@ export const definitions: DefinitionWithExtend[] = [
                 unit: "mV",
                 access: "STATE_GET",
             }),
-            m.numeric({
+            m.numeric<"customSonoffTrvzb", SonoffTrvzb>({
                 name: "valve_motor_running_voltage",
                 cluster: "customSonoffTrvzb",
                 attribute: "valveMotorRunningVoltage",
@@ -1820,7 +1916,7 @@ export const definitions: DefinitionWithExtend[] = [
                 unit: "mV",
                 access: "STATE_GET",
             }),
-            m.numeric({
+            m.numeric<"customSonoffTrvzb", SonoffTrvzb>({
                 name: "valve_opening_degree",
                 cluster: "customSonoffTrvzb",
                 attribute: "valveOpeningDegree",
@@ -1836,7 +1932,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueStep: 1.0,
                 unit: "%",
             }),
-            m.numeric({
+            m.numeric<"customSonoffTrvzb", SonoffTrvzb>({
                 name: "valve_closing_degree",
                 cluster: "customSonoffTrvzb",
                 attribute: "valveClosingDegree",
@@ -1852,7 +1948,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueStep: 1.0,
                 unit: "%",
             }),
-            m.numeric({
+            m.numeric<"customSonoffTrvzb", SonoffTrvzb>({
                 name: "temperature_accuracy",
                 cluster: "customSonoffTrvzb",
                 attribute: "tempAccuracy",
@@ -1898,7 +1994,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             // m.electricityMeter({current: {divisor: 100}, voltage: {divisor: 100}, power: {divisor: 1}, energy: {divisor: 1000}}),
             sonoffExtend.addCustomClusterEwelink(),
-            m.numeric({
+            m.numeric<"customClusterEwelink", SonoffEwelink>({
                 name: "current",
                 cluster: "customClusterEwelink",
                 attribute: "acCurrentCurrentValue",
@@ -1907,7 +2003,7 @@ export const definitions: DefinitionWithExtend[] = [
                 scale: 1000,
                 access: "STATE_GET",
             }),
-            m.numeric({
+            m.numeric<"customClusterEwelink", SonoffEwelink>({
                 name: "voltage",
                 cluster: "customClusterEwelink",
                 attribute: "acCurrentVoltageValue",
@@ -1916,7 +2012,7 @@ export const definitions: DefinitionWithExtend[] = [
                 scale: 1000,
                 access: "STATE_GET",
             }),
-            m.numeric({
+            m.numeric<"customClusterEwelink", SonoffEwelink>({
                 name: "power",
                 cluster: "customClusterEwelink",
                 attribute: "acCurrentPowerValue",
@@ -1926,7 +2022,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_GET",
                 reporting: {min: "10_SECONDS", max: "MAX", change: 0},
             }),
-            m.numeric({
+            m.numeric<"customClusterEwelink", SonoffEwelink>({
                 name: "energy_yesterday",
                 cluster: "customClusterEwelink",
                 attribute: "energyYesterday",
@@ -1935,7 +2031,7 @@ export const definitions: DefinitionWithExtend[] = [
                 scale: 1000,
                 access: "STATE_GET",
             }),
-            m.numeric({
+            m.numeric<"customClusterEwelink", SonoffEwelink>({
                 name: "energy_today",
                 cluster: "customClusterEwelink",
                 attribute: "energyToday",
@@ -1944,7 +2040,7 @@ export const definitions: DefinitionWithExtend[] = [
                 scale: 1000,
                 access: "STATE_GET",
             }),
-            m.numeric({
+            m.numeric<"customClusterEwelink", SonoffEwelink>({
                 name: "energy_month",
                 cluster: "customClusterEwelink",
                 attribute: "energyMonth",
@@ -1954,7 +2050,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_GET",
             }),
             sonoffExtend.inchingControlSet(),
-            m.binary({
+            m.binary<"customClusterEwelink", SonoffEwelink>({
                 name: "outlet_control_protect",
                 cluster: "customClusterEwelink",
                 attribute: "outlet_control_protect",
@@ -1969,12 +2065,12 @@ export const definitions: DefinitionWithExtend[] = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "customClusterEwelink"]);
             await reporting.onOff(endpoint, {min: 1, max: 1800, change: 0});
-            await endpoint.read(
+            await endpoint.read<"customClusterEwelink", SonoffEwelink>(
                 "customClusterEwelink",
                 ["acCurrentCurrentValue", "acCurrentVoltageValue", "acCurrentPowerValue", 0x7003, "outlet_control_protect"],
                 defaultResponseOptions,
             );
-            await endpoint.configureReporting("customClusterEwelink", [
+            await endpoint.configureReporting<"customClusterEwelink", SonoffEwelink>("customClusterEwelink", [
                 {attribute: "energyMonth", minimumReportInterval: 60, maximumReportInterval: 3600, reportableChange: 50},
                 {attribute: "energyYesterday", minimumReportInterval: 60, maximumReportInterval: 3600, reportableChange: 50},
                 {attribute: "energyToday", minimumReportInterval: 60, maximumReportInterval: 3600, reportableChange: 50},
@@ -2005,7 +2101,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "The water valve is in normal state, water shortage or water leakage",
                 access: "STATE_GET",
             }),
-            m.binary({
+            m.binary<"customClusterEwelink", SonoffEwelink>({
                 name: "auto_close_when_water_shortage",
                 cluster: "customClusterEwelink",
                 attribute: "lackWaterCloseValveTimeout",
@@ -2034,7 +2130,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.onOff(),
             sonoffExtend.addCustomClusterEwelink(),
-            m.binary({
+            m.binary<"customClusterEwelink", SonoffEwelink>({
                 name: "rf_turbo_mode",
                 cluster: "customClusterEwelink",
                 attribute: "radioPowerWithManuCode",
@@ -2050,7 +2146,7 @@ export const definitions: DefinitionWithExtend[] = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff"]);
             await reporting.onOff(endpoint, {min: 1, max: 1800, change: 0});
-            await endpoint.read("customClusterEwelink", ["radioPowerWithManuCode"], manufacturerOptions);
+            await endpoint.read<"customClusterEwelink", SonoffEwelink>("customClusterEwelink", ["radioPowerWithManuCode"], manufacturerOptions);
         },
     },
     {
@@ -2063,7 +2159,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.commandsOnOff({commands: ["toggle"]}),
             m.onOff({configureReporting: false}),
             sonoffExtend.addCustomClusterEwelink(),
-            m.binary({
+            m.binary<"customClusterEwelink", SonoffEwelink>({
                 name: "network_indicator",
                 cluster: "customClusterEwelink",
                 attribute: "networkLed",
@@ -2072,7 +2168,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueOff: [false, 0],
                 valueOn: [true, 1],
             }),
-            m.binary({
+            m.binary<"customClusterEwelink", SonoffEwelink>({
                 name: "turbo_mode",
                 cluster: "customClusterEwelink",
                 attribute: "radioPower",
@@ -2081,7 +2177,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueOff: [false, 0x09],
                 valueOn: [true, 0x14],
             }),
-            m.binary({
+            m.binary<"customClusterEwelink", SonoffEwelink>({
                 name: "delayed_power_on_state",
                 cluster: "customClusterEwelink",
                 attribute: "delayedPowerOnState",
@@ -2090,7 +2186,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueOff: [false, 0],
                 valueOn: [true, 1],
             }),
-            m.numeric({
+            m.numeric<"customClusterEwelink", SonoffEwelink>({
                 name: "delayed_power_on_time",
                 cluster: "customClusterEwelink",
                 attribute: "delayedPowerOnTime",
@@ -2102,7 +2198,7 @@ export const definitions: DefinitionWithExtend[] = [
                 unit: "seconds",
                 scale: 2,
             }),
-            m.binary({
+            m.binary<"customClusterEwelink", SonoffEwelink>({
                 name: "detach_relay_mode",
                 cluster: "customClusterEwelink",
                 attribute: "detachRelayMode",
@@ -2119,7 +2215,11 @@ export const definitions: DefinitionWithExtend[] = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "customClusterEwelink"]);
             await reporting.onOff(endpoint, {min: 1, max: 1800, change: 0});
-            await endpoint.read("customClusterEwelink", ["radioPower", 0x0001, 0x0014, 0x0015, 0x0016, 0x0017], defaultResponseOptions);
+            await endpoint.read<"customClusterEwelink", SonoffEwelink>(
+                "customClusterEwelink",
+                ["radioPower", 0x0001, 0x0014, 0x0015, 0x0016, 0x0017],
+                defaultResponseOptions,
+            );
         },
     },
     {
@@ -2132,7 +2232,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.commandsOnOff({commands: ["toggle"]}),
             m.onOff(),
             sonoffExtend.addCustomClusterEwelink(),
-            m.enumLookup({
+            m.enumLookup<"customClusterEwelink", SonoffEwelink>({
                 name: "device_work_mode",
                 lookup: {"Zigbee end device": 0, "Zigbee router": 1},
                 cluster: "customClusterEwelink",
@@ -2140,7 +2240,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "The device runs as a Zigbee End device or Zigbee router.",
                 access: "STATE_GET",
             }),
-            m.binary({
+            m.binary<"customClusterEwelink", SonoffEwelink>({
                 name: "network_indicator",
                 cluster: "customClusterEwelink",
                 attribute: "networkLed",
@@ -2170,7 +2270,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.commandsOnOff({commands: ["toggle"], endpointNames: ["l1", "l2"]}),
             m.onOff({endpointNames: ["l1", "l2"]}),
             sonoffExtend.addCustomClusterEwelink(),
-            m.enumLookup({
+            m.enumLookup<"customClusterEwelink", SonoffEwelink>({
                 name: "device_work_mode",
                 lookup: {"Zigbee end device": 0, "Zigbee router": 1},
                 cluster: "customClusterEwelink",
@@ -2178,7 +2278,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "The device runs as a Zigbee End device or Zigbee router.",
                 access: "STATE_GET",
             }),
-            m.binary({
+            m.binary<"customClusterEwelink", SonoffEwelink>({
                 name: "network_indicator",
                 cluster: "customClusterEwelink",
                 attribute: "networkLed",
@@ -2212,7 +2312,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.commandsOnOff({commands: ["toggle"], endpointNames: ["l1", "l2", "l3"]}),
             m.onOff({endpointNames: ["l1", "l2", "l3"]}),
             sonoffExtend.addCustomClusterEwelink(),
-            m.enumLookup({
+            m.enumLookup<"customClusterEwelink", SonoffEwelink>({
                 name: "device_work_mode",
                 lookup: {"Zigbee end device": 0, "Zigbee router": 1},
                 cluster: "customClusterEwelink",
@@ -2220,7 +2320,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "The device runs as a Zigbee End device or Zigbee router.",
                 access: "STATE_GET",
             }),
-            m.binary({
+            m.binary<"customClusterEwelink", SonoffEwelink>({
                 name: "network_indicator",
                 cluster: "customClusterEwelink",
                 attribute: "networkLed",
@@ -2256,7 +2356,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.commandsOnOff({commands: ["toggle"]}),
             m.onOff(),
             sonoffExtend.addCustomClusterEwelink(),
-            m.enumLookup({
+            m.enumLookup<"customClusterEwelink", SonoffEwelink>({
                 name: "device_work_mode",
                 lookup: {"Zigbee end device": 0, "Zigbee router": 1},
                 cluster: "customClusterEwelink",
@@ -2264,7 +2364,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "The device runs as a Zigbee End device or Zigbee router.",
                 access: "STATE_GET",
             }),
-            m.binary({
+            m.binary<"customClusterEwelink", SonoffEwelink>({
                 name: "network_indicator",
                 cluster: "customClusterEwelink",
                 attribute: "networkLed",
@@ -2294,7 +2394,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.commandsOnOff({commands: ["toggle"], endpointNames: ["l1", "l2"]}),
             m.onOff({endpointNames: ["l1", "l2"]}),
             sonoffExtend.addCustomClusterEwelink(),
-            m.enumLookup({
+            m.enumLookup<"customClusterEwelink", SonoffEwelink>({
                 name: "device_work_mode",
                 lookup: {"Zigbee end device": 0, "Zigbee router": 1},
                 cluster: "customClusterEwelink",
@@ -2302,7 +2402,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "The device runs as a Zigbee End device or Zigbee router.",
                 access: "STATE_GET",
             }),
-            m.binary({
+            m.binary<"customClusterEwelink", SonoffEwelink>({
                 name: "network_indicator",
                 cluster: "customClusterEwelink",
                 attribute: "networkLed",
@@ -2336,7 +2436,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.commandsOnOff({commands: ["toggle"], endpointNames: ["l1", "l2", "l3"]}),
             m.onOff({endpointNames: ["l1", "l2", "l3"]}),
             sonoffExtend.addCustomClusterEwelink(),
-            m.enumLookup({
+            m.enumLookup<"customClusterEwelink", SonoffEwelink>({
                 name: "device_work_mode",
                 lookup: {"Zigbee end device": 0, "Zigbee router": 1},
                 cluster: "customClusterEwelink",
@@ -2344,7 +2444,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "The device runs as a Zigbee End device or Zigbee router.",
                 access: "STATE_GET",
             }),
-            m.binary({
+            m.binary<"customClusterEwelink", SonoffEwelink>({
                 name: "network_indicator",
                 cluster: "customClusterEwelink",
                 attribute: "networkLed",

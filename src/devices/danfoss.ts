@@ -1,5 +1,4 @@
 import {Zcl} from "zigbee-herdsman";
-
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as constants from "../lib/constants";
@@ -887,18 +886,7 @@ export const definitions: DefinitionWithExtend[] = [
                     "maxHeatSetpointLimit",
                     "systemMode",
                 ]);
-                await endpoint.read(
-                    "hvacThermostat",
-                    [
-                        "danfossRoomFloorSensorMode",
-                        "danfossFloorMinSetpoint",
-                        "danfossFloorMaxSetpoint",
-                        "schedule_type_used",
-                        "icon2_pre_heat",
-                        "icon2_pre_heat_status",
-                    ],
-                    options,
-                );
+                await endpoint.read("hvacThermostat", ["danfossRoomFloorSensorMode", "danfossFloorMinSetpoint", "danfossFloorMaxSetpoint"], options);
                 await endpoint.read("hvacUserInterfaceCfg", ["keypadLockout"]);
                 await endpoint.read("msTemperatureMeasurement", ["measuredValue"]);
                 await endpoint.read("msRelativeHumidity", ["measuredValue"]);
@@ -935,7 +923,7 @@ export const definitions: DefinitionWithExtend[] = [
                     "haDiagnostic",
                     [
                         "danfossSystemStatusCode",
-                        "danfossHeatsupplyRequest",
+                        "danfossHeatSupplyRequest",
                         "danfossSystemStatusWater",
                         "danfossMultimasterRole",
                         "danfossIconApplication",

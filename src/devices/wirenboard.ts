@@ -1,5 +1,5 @@
 import {Zcl} from "zigbee-herdsman";
-
+import type {TPartialClusterAttributes} from "zigbee-herdsman/dist/zspec/zcl/definition/clusters-types";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as constants from "../lib/constants";
@@ -12,13 +12,25 @@ import {assertString, getFromLookup, getOptions, toNumber} from "../lib/utils";
 const e = exposes.presets;
 const ea = exposes.access;
 
+interface SprutDevice {
+    attributes: {
+        isConnected: number;
+        // biome-ignore lint/style/useNamingConvention: TODO
+        UartBaudRate: number;
+    };
+    commands: {
+        debug: {data: number};
+    };
+    commandResponses: never;
+}
+
 const sprutCode = 0x6666;
 const manufacturerOptions = {manufacturerCode: sprutCode};
 const switchActionValues = ["OFF", "ON"];
 const co2Lookup = {
     co2_autocalibration: "sprutCO2AutoCalibration",
     co2_manual_calibration: "sprutCO2Calibration",
-};
+} as const;
 
 const fzLocal = {
     temperature: {
@@ -224,7 +236,11 @@ const tzLocal = {
             assertString(value, "co2_autocalibration/co2_manual_calibration");
             newValue = switchActionValues.indexOf(value);
             const options = getOptions(meta.mapped, entity, manufacturerOptions);
-            await entity.write("msCO2", {[getFromLookup(key, co2Lookup)]: newValue}, options);
+            const payload: TPartialClusterAttributes<"msCO2"> = {
+                [getFromLookup(key, co2Lookup)]: newValue,
+            };
+
+            await entity.write("msCO2", payload, options);
 
             return {state: {[key]: value}};
         },
@@ -235,9 +251,8 @@ const tzLocal = {
     th_heater: {
         key: ["th_heater"],
         convertSet: async (entity, key, value, meta) => {
-            let newValue = value;
             assertString(value, "th_heater");
-            newValue = switchActionValues.indexOf(value);
+            const newValue = switchActionValues.indexOf(value);
             const options = getOptions(meta.mapped, entity, manufacturerOptions);
             await entity.write("msRelativeHumidity", {sprutHeater: newValue}, options);
 
@@ -250,7 +265,7 @@ const tzLocal = {
 };
 
 const sprutModernExtend = {
-    sprutActivityIndicator: (args?: Partial<m.BinaryArgs>) =>
+    sprutActivityIndicator: (args?: Partial<m.BinaryArgs<"genBinaryOutput">>) =>
         m.binary({
             name: "activity_led",
             cluster: "genBinaryOutput",
@@ -263,8 +278,8 @@ const sprutModernExtend = {
             entityCategory: "config",
             ...args,
         }),
-    sprutIsConnected: (args?: Partial<m.BinaryArgs>) =>
-        m.binary({
+    sprutIsConnected: (args?: Partial<m.BinaryArgs<"sprutDevice", SprutDevice>>) =>
+        m.binary<"sprutDevice", SprutDevice>({
             name: "uart_connection",
             cluster: "sprutDevice",
             attribute: "isConnected",
@@ -275,8 +290,8 @@ const sprutModernExtend = {
             entityCategory: "diagnostic",
             ...args,
         }),
-    sprutUartBaudRate: (args?: Partial<m.EnumLookupArgs>) =>
-        m.enumLookup({
+    sprutUartBaudRate: (args?: Partial<m.EnumLookupArgs<"sprutDevice", SprutDevice>>) =>
+        m.enumLookup<"sprutDevice", SprutDevice>({
             name: "uart_baud_rate",
             lookup: {
                 "9600": 9600,
@@ -292,7 +307,7 @@ const sprutModernExtend = {
             entityCategory: "config",
             ...args,
         }),
-    sprutTemperatureOffset: (args?: Partial<m.NumericArgs>) =>
+    sprutTemperatureOffset: (args?: Partial<m.NumericArgs<"msTemperatureMeasurement">>) =>
         m.numeric({
             name: "temperature_offset",
             cluster: "msTemperatureMeasurement",
@@ -307,7 +322,7 @@ const sprutModernExtend = {
             zigbeeCommandOptions: manufacturerOptions,
             ...args,
         }),
-    sprutThHeater: (args?: Partial<m.BinaryArgs>) =>
+    sprutThHeater: (args?: Partial<m.BinaryArgs<"msRelativeHumidity">>) =>
         m.binary({
             name: "th_heater",
             cluster: "msRelativeHumidity",
@@ -320,7 +335,7 @@ const sprutModernExtend = {
             zigbeeCommandOptions: manufacturerOptions,
             ...args,
         }),
-    sprutOccupancyLevel: (args?: Partial<m.NumericArgs>) =>
+    sprutOccupancyLevel: (args?: Partial<m.NumericArgs<"msOccupancySensing">>) =>
         m.numeric({
             name: "occupancy_level",
             cluster: "msOccupancySensing",
@@ -331,7 +346,7 @@ const sprutModernExtend = {
             entityCategory: "diagnostic",
             ...args,
         }),
-    sprutOccupancyTimeout: (args?: Partial<m.NumericArgs>) =>
+    sprutOccupancyTimeout: (args?: Partial<m.NumericArgs<"msOccupancySensing">>) =>
         m.numeric({
             name: "occupancy_timeout",
             cluster: "msOccupancySensing",
@@ -344,7 +359,7 @@ const sprutModernExtend = {
             entityCategory: "config",
             ...args,
         }),
-    sprutOccupancySensitivity: (args?: Partial<m.NumericArgs>) =>
+    sprutOccupancySensitivity: (args?: Partial<m.NumericArgs<"msOccupancySensing">>) =>
         m.numeric({
             name: "occupancy_sensitivity",
             cluster: "msOccupancySensing",
@@ -357,7 +372,7 @@ const sprutModernExtend = {
             zigbeeCommandOptions: manufacturerOptions,
             ...args,
         }),
-    sprutNoise: (args?: Partial<m.NumericArgs>) =>
+    sprutNoise: (args?: Partial<m.NumericArgs<"sprutNoise">>) =>
         m.numeric({
             name: "noise",
             cluster: "sprutNoise",
@@ -370,7 +385,7 @@ const sprutModernExtend = {
             entityCategory: "diagnostic",
             ...args,
         }),
-    sprutNoiseDetectLevel: (args?: Partial<m.NumericArgs>) =>
+    sprutNoiseDetectLevel: (args?: Partial<m.NumericArgs<"sprutNoise">>) =>
         m.numeric({
             name: "noise_detect_level",
             cluster: "sprutNoise",
@@ -384,7 +399,7 @@ const sprutModernExtend = {
             zigbeeCommandOptions: manufacturerOptions,
             ...args,
         }),
-    sprutNoiseDetected: (args?: Partial<m.BinaryArgs>) =>
+    sprutNoiseDetected: (args?: Partial<m.BinaryArgs<"sprutNoise">>) =>
         m.binary({
             name: "noise_detected",
             cluster: "sprutNoise",
@@ -395,7 +410,7 @@ const sprutModernExtend = {
             access: "STATE_GET",
             ...args,
         }),
-    sprutNoiseTimeout: (args?: Partial<m.NumericArgs>) =>
+    sprutNoiseTimeout: (args?: Partial<m.NumericArgs<"sprutNoise">>) =>
         m.numeric({
             name: "noise_timeout",
             cluster: "sprutNoise",
@@ -408,7 +423,7 @@ const sprutModernExtend = {
             entityCategory: "config",
             ...args,
         }),
-    sprutVoc: (args?: Partial<m.NumericArgs>) =>
+    sprutVoc: (args?: Partial<m.NumericArgs<"sprutVoc">>) =>
         m.numeric({
             name: "voc",
             label: "VOC",
@@ -605,10 +620,10 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.humidity(endpoint1);
             await reporting.occupancy(endpoint1);
 
-            let payload = reporting.payload("sprutOccupancyLevel", 10, constants.repInterval.MINUTE, 5);
+            let payload = reporting.payload<"msOccupancySensing">("sprutOccupancyLevel", 10, constants.repInterval.MINUTE, 5);
             await endpoint1.configureReporting("msOccupancySensing", payload, manufacturerOptions);
 
-            payload = reporting.payload("noise", 10, constants.repInterval.MINUTE, 5);
+            payload = reporting.payload<"sprutNoise">("noise", 10, constants.repInterval.MINUTE, 5);
             await endpoint1.configureReporting("sprutNoise", payload);
 
             // led_red
