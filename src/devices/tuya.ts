@@ -14131,13 +14131,11 @@ export const definitions: DefinitionWithExtend[] = [
                     10,
                     "ph",
                     {
-                        from: (v) => 
-                        {
-                            if (v > 99)
-                            {
-                                return v/100;
+                        from: (v) => {
+                            if (v > 99) {
+                                return v / 100;
                             }
-                            return v/10;
+                            return v / 10;
                         },
                     },
                 ],
