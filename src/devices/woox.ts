@@ -30,7 +30,7 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {applyRedFix: true},
     },
     {
-        fingerprint: tuya.fingerprint("TS0201", ["_TZ3000_rusu2vzb"]),
+        fingerprint: tuya.fingerprint("TS0201", ["_TZ3000_rusu2vzb", "_TZ3000_amqudjr0"]),
         model: "R7048",
         vendor: "Woox",
         description: "Smart humidity & temperature sensor",
