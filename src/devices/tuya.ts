@@ -1923,9 +1923,16 @@ export const definitions: DefinitionWithExtend[] = [
         model: "CK-BL702-AL-01_1",
         vendor: "eWeLink",
         description: "Zigbee 3.0 15W led light bulb E27 RGBCW",
-        toZigbee: [tz.on_off, tzLocal.led_control, tuya.tz.do_not_disturb],
-        fromZigbee: [fz.on_off, fz.tuya_led_controller, fz.brightness, fz.ignore_basic_report],
-        exposes: [e.light_brightness_colortemp_colorhs([50, 1000]).removeFeature("color_temp_startup"), tuya.exposes.doNotDisturb()],
+        toZigbee: [tuya.tz.do_not_disturb],
+        extend: [
+            m.light({
+                colorTemp: {range: [50, 500], startup: true},
+                effect: true,
+                powerOnBehavior: true,
+                color: {modes: ["xy", "hs"], enhancedHue: false, moveToLevelWithOnOffDisable: true},
+            }),
+        ],
+        exposes: [tuya.exposes.doNotDisturb()],
         configure: (device, coordinatorEndpoint) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue("lightingColorCtrl", {colorCapabilities: 29});
         },
@@ -2200,6 +2207,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Meian", "SW02", "Water leak sensor", ["_TZ3000_kyb656no"]),
             tuya.whitelabel("Aubess", "IH-K665", "Water leak sensor", ["_TZ3000_kstbkt6a"]),
             tuya.whitelabel("HOBEIAN", "ZG-222ZA", "Water leak sensor", ["_TZ3000_k4ej3ww2", "_TZ3000_abaplimj"]),
+            tuya.whitelabel("Tuya", "_TZ3000_mqiev3jk", "Solar powered rain sensor", ["_TZ3000_mqiev3jk"]),
             tuya.whitelabel("Tuya", "TS0207_water_leak_detector_1", "Zigbee water flood sensor + 1m probe cable", [
                 "_TZ3000_ocjlo4ea",
                 "_TZ3000_upgcbody",
@@ -14129,7 +14137,18 @@ export const definitions: DefinitionWithExtend[] = [
                 [1, "tds", tuya.valueConverter.raw],
                 [2, "temperature", tuya.valueConverter.divideBy10],
                 [7, "battery", tuya.valueConverter.raw],
-                [10, "ph", tuya.valueConverter.divideBy10],
+                [
+                    10,
+                    "ph",
+                    {
+                        from: (v) => {
+                            if (v > 99) {
+                                return v / 100;
+                            }
+                            return v / 10;
+                        },
+                    },
+                ],
                 [11, "ec", tuya.valueConverter.raw],
                 [101, "orp", tuya.valueConverter.raw],
                 [102, "free_chlorine", tuya.valueConverter.raw],
@@ -18430,6 +18449,52 @@ export const definitions: DefinitionWithExtend[] = [
                 [105, "temperature_calibration", tuya.valueConverter.divideBy10],
                 [104, "humidity_calibration", tuya.valueConverter.raw],
                 [107, "illuminance_interval", tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_z5jz7wpo"]),
+        model: "_TZE284_z5jz7wpo",
+        vendor: "Tuya",
+        description: "Ceiling fan control module",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.fan().withState().withSpeed(),
+            e.power_on_behavior(["off", "on", "restore"]).withAccess(ea.STATE_SET),
+            exposes
+                .numeric("countdown_hours", ea.STATE_SET)
+                .withUnit("h")
+                .withValueMin(0.25)
+                .withValueMax(12)
+                .withValueStep(0.25)
+                .withDescription("Fan ON time in hours (15 min increments)"),
+            e.enum("light_mode", ea.STATE_SET, ["none", "relay", "pos"]),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "state", tuya.valueConverter.onOff],
+                [
+                    2,
+                    "countdown_hours",
+                    {
+                        from: (seconds) => +(seconds / 3600).toFixed(2), // device → HA (hours with 2 decimal places)
+                        to: (hours) => Math.min(43200, Math.round(hours * 3600)), // HA → device (seconds)
+                    },
+                ],
+                [
+                    3,
+                    "speed",
+                    {
+                        from: (value) => (value + 1) * 51, // device → HA %
+                        to: (value) => {
+                            // Snap HA % to nearest step: 20%, 40%, 60%, 80%, 100%
+                            const snappedStep = Math.max(0, Math.min(4, Math.round(value / 51) - 1));
+                            return tuya.enum(snappedStep);
+                        },
+                    },
+                ],
+                [11, "power_on_behavior", tuya.valueConverterBasic.lookup({off: tuya.enum(0), on: tuya.enum(1), restore: tuya.enum(2)})],
+                [12, "light_mode", tuya.valueConverterBasic.lookup({none: tuya.enum(0), relay: tuya.enum(1), pos: tuya.enum(2)})],
             ],
         },
     },
