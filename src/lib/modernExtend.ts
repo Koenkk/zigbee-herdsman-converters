@@ -1193,16 +1193,22 @@ export function light(args: LightArgs = {}): ModernExtend {
     }
 
     if (colorTemp) {
-        lightExpose.forEach((e) => e.withColorTemp(colorTemp.range));
+        lightExpose.forEach((e) => {
+            e.withColorTemp(colorTemp.range);
+        });
         toZigbee.push(tz.light_colortemp_move, tz.light_colortemp_step);
         if (colorTemp.startup) {
             toZigbee.push(tz.light_colortemp_startup);
-            lightExpose.forEach((e) => e.withColorTempStartup(colorTemp.range));
+            lightExpose.forEach((e) => {
+                e.withColorTempStartup(colorTemp.range);
+            });
         }
     }
 
     if (argsColor) {
-        lightExpose.forEach((e) => e.withColor(argsColor.modes));
+        lightExpose.forEach((e) => {
+            e.withColor(argsColor.modes);
+        });
         toZigbee.push(tz.light_hue_saturation_move, tz.light_hue_saturation_step);
         if (argsColor.modes.includes("hs")) {
             meta.supportsHueAndSaturation = true;
@@ -1216,7 +1222,9 @@ export function light(args: LightArgs = {}): ModernExtend {
     }
 
     if (levelConfig) {
-        lightExpose.forEach((e) => (levelConfig.features ? e.withLevelConfig(levelConfig.features) : e.withLevelConfig()));
+        lightExpose.forEach((e) => {
+            levelConfig.features ? e.withLevelConfig(levelConfig.features) : e.withLevelConfig();
+        });
         toZigbee.push(tz.level_config);
     }
 
@@ -1619,7 +1627,7 @@ export function iasZoneAlarm(args: IasArgs): ModernExtend {
     let alarm2Name = "alarm_2";
 
     if (args.zoneType === "generic") {
-        args.zoneAttributes.map((attr) => {
+        args.zoneAttributes.forEach((attr) => {
             let expose = IAS_EXPOSE_LOOKUP[attr];
             if (args.description) {
                 expose = expose.clone().withDescription(args.description);
@@ -1645,13 +1653,13 @@ export function iasZoneAlarm(args: IasArgs): ModernExtend {
             alarm1Name = args.zoneType;
             alarm2Name = args.zoneType;
         }
-        args.zoneAttributes.map((attr) => {
+        args.zoneAttributes.forEach((attr) => {
             if (attr !== "alarm_1" && attr !== "alarm_2") exposes.push(IAS_EXPOSE_LOOKUP[attr]);
         });
     }
 
     if (args.manufacturerZoneAttributes)
-        args.manufacturerZoneAttributes.map((attr) => {
+        args.manufacturerZoneAttributes.forEach((attr) => {
             let expose = e.binary(attr.name, ea.STATE, attr.valueOn, attr.valueOff).withDescription(attr.description);
             if (attr.entityCategory) expose = expose.withCategory(attr.entityCategory);
             exposes.push(expose);
@@ -1742,7 +1750,7 @@ export function iasZoneAlarm(args: IasArgs): ModernExtend {
                     }
 
                     if (args.manufacturerZoneAttributes)
-                        args.manufacturerZoneAttributes.map((attr) => {
+                        args.manufacturerZoneAttributes.forEach((attr) => {
                             payload = {[attr.name]: (zoneStatus & (1 << attr.bit)) > 0, ...payload};
                         });
 

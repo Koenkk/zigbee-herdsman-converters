@@ -162,7 +162,7 @@ const tzLocal = {
         convertSet: async (entity, key, value, meta) => {
             const epId = 2;
             const endpoint = meta.device.getEndpoint(epId);
-            const value2 = Number.parseInt(value.toString());
+            const value2 = Number.parseInt(value.toString(), 10);
             if (!Number.isNaN(value2) && value2 > 0) {
                 await endpoint.configureReporting("genOnOff", [
                     {

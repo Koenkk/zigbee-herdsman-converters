@@ -242,10 +242,10 @@ function convertRawToCycleTimer(value: any) {
         // biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
         let minsincemidnight: any = value[4] * 256 + value[5];
         // @ts-expect-error ignore
-        starttime = `${String(Number.parseInt(minsincemidnight / 60)).padStart(2, "0")}:${String(minsincemidnight % 60).padStart(2, "0")}`;
+        starttime = `${String(Number.parseInt(minsincemidnight / 60, 10)).padStart(2, "0")}:${String(minsincemidnight % 60).padStart(2, "0")}`;
         minsincemidnight = value[6] * 256 + value[7];
         // @ts-expect-error ignore
-        endtime = `${String(Number.parseInt(minsincemidnight / 60)).padStart(2, "0")}:${String(minsincemidnight % 60).padStart(2, "0")}`;
+        endtime = `${String(Number.parseInt(minsincemidnight / 60, 10)).padStart(2, "0")}:${String(minsincemidnight % 60).padStart(2, "0")}`;
         irrigationDuration = value[8] * 256 + value[9];
         pauseDuration = value[10] * 256 + value[11];
     }
@@ -480,7 +480,7 @@ function convertRawToTimer(value: any) {
         timernr = value[1];
         const minsincemidnight = value[2] * 256 + value[3];
         // @ts-expect-error ignore
-        starttime = `${String(Number.parseInt(minsincemidnight / 60)).padStart(2, "0")}:${String(minsincemidnight % 60).padStart(2, "0")}`;
+        starttime = `${String(Number.parseInt(minsincemidnight / 60, 10)).padStart(2, "0")}:${String(minsincemidnight % 60).padStart(2, "0")}`;
         duration = value[4] * 256 + value[5];
         if (value[6] > 0) {
             weekdays =
@@ -577,8 +577,8 @@ function convertTimeTo2ByteHexArray(time: string) {
     if (timeArray.length !== 2) {
         throw new Error("Time format incorrect");
     }
-    const timeHour = Number.parseInt(timeArray[0]);
-    const timeMinute = Number.parseInt(timeArray[1]);
+    const timeHour = Number.parseInt(timeArray[0], 10);
+    const timeMinute = Number.parseInt(timeArray[1], 10);
 
     if (timeHour > 23 || timeMinute > 59) {
         throw new Error("Time incorrect");
@@ -3671,7 +3671,7 @@ const fromZigbee = {
             } else if (dp === dataPoints.silvercrestSetEffect) {
                 result.effect = {
                     effect: utils.getKey(silvercrestEffects, value.substring(0, 2), "", String),
-                    speed: utils.mapNumberRange(Number.parseInt(value.substring(2, 4)), 0, 64, 0, 100),
+                    speed: utils.mapNumberRange(Number.parseInt(value.substring(2, 4), 10), 0, 64, 0, 100),
                     colors: [],
                 };
 
@@ -4250,7 +4250,7 @@ const toZigbee2 = {
                         value = meta.state ? meta.state.favorite_position : null;
                     } else {
                         // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
-                        value = Number.parseInt(value);
+                        value = Number.parseInt(value, 10);
                     }
                     return await toZigbee1.tuya_cover_control.convertSet(entity, "position", value, meta);
                 }
@@ -4389,8 +4389,8 @@ const toZigbee2 = {
                     for (let i = 0; i < periodsNumber; i++) {
                         const timeTemp = periods[i].split("/");
                         const hm = timeTemp[0].split(":", 2);
-                        const h = Number.parseInt(hm[0]);
-                        const m = Number.parseInt(hm[1]);
+                        const h = Number.parseInt(hm[0], 10);
+                        const m = Number.parseInt(hm[1], 10);
                         const temp = Number.parseFloat(timeTemp[1]);
 
                         if (h < 0 || h >= 24 || m < 0 || m >= 60 || temp < 5 || temp > 60) {
@@ -5044,9 +5044,9 @@ const toZigbee2 = {
             for (let i = 0; i < 12; i++) {
                 const hourTemperature = items[i].split("/");
                 const hourMinute = hourTemperature[0].split(":", 2);
-                const h = Number.parseInt(hourMinute[0]);
-                const m = Number.parseInt(hourMinute[1]);
-                const temp = Number.parseInt(hourTemperature[1]);
+                const h = Number.parseInt(hourMinute[0], 10);
+                const m = Number.parseInt(hourMinute[1], 10);
+                const temp = Number.parseInt(hourTemperature[1], 10);
                 if (h < 0 || h >= 24 || m < 0 || m >= 60 || temp < 5 || temp >= 35) {
                     throw new Error(`Invalid hour, minute or temperature of:${items[i]}`);
                 }
@@ -5234,7 +5234,7 @@ const toZigbee2 = {
             if (value === "") {
                 // delete
                 data.push(0x04);
-                data.push(Number.parseInt(key.substr(-1)));
+                data.push(Number.parseInt(key.substr(-1), 10));
                 await sendDataPointRaw(entity, 16, data);
                 const ret: KeyValueAny = {state: {}};
                 ret.state[key] = value;
@@ -5244,7 +5244,7 @@ const toZigbee2 = {
                 data.push(0x03);
             } else {
                 data.push(0x02);
-                data.push(Number.parseInt(key.substr(-1)));
+                data.push(Number.parseInt(key.substr(-1), 10));
             }
 
             const tarray = value.replace(/ /g, "").split("/");
@@ -5264,7 +5264,7 @@ const toZigbee2 = {
             const irrigationDuration = tarray[2];
             const pauseDuration = tarray[3];
             const weekdays = tarray[4];
-            const active = Number.parseInt(tarray[5]);
+            const active = Number.parseInt(tarray[5], 10);
 
             if (!(active === 0 || active === 1)) {
                 throw new Error("Active value only 0 or 1 allowed");
@@ -5297,7 +5297,7 @@ const toZigbee2 = {
             if (value === "") {
                 // delete
                 data.push(0x04);
-                data.push(Number.parseInt(key.substr(-1)));
+                data.push(Number.parseInt(key.substr(-1), 10));
                 await sendDataPointRaw(entity, 17, data);
                 const ret: KeyValueAny = {state: {}};
                 ret.state[key] = value;
@@ -5307,7 +5307,7 @@ const toZigbee2 = {
                 data.push(0x03);
             } else {
                 data.push(0x02);
-                data.push(Number.parseInt(key.substr(-1)));
+                data.push(Number.parseInt(key.substr(-1), 10));
             }
 
             const tarray = value.replace(/ /g, "").split("/");
@@ -5325,7 +5325,7 @@ const toZigbee2 = {
             const time = tarray[0];
             const duration = tarray[1];
             const weekdays = tarray[2];
-            const active = Number.parseInt(tarray[3]);
+            const active = Number.parseInt(tarray[3], 10);
 
             if (!(active === 0 || active === 1)) {
                 throw new Error("Active value only 0 or 1 allowed");
@@ -5406,10 +5406,10 @@ const toZigbee2 = {
             }
 
             for (const [, daySchedule] of Object.entries(value)) {
-                const dayofweek = Number.parseInt(daySchedule.dayofweek);
-                const numoftrans = Number.parseInt(daySchedule.numoftrans);
+                const dayofweek = Number.parseInt(daySchedule.dayofweek, 10);
+                const numoftrans = Number.parseInt(daySchedule.numoftrans, 10);
                 let transitions = [...daySchedule.transitions];
-                const mode = Number.parseInt(daySchedule.mode);
+                const mode = Number.parseInt(daySchedule.mode, 10);
                 if (!supportedModes.includes(mode)) {
                     throw new Error(`Invalid mode: ${mode} for device ${meta.options.friendly_name}`);
                 }
@@ -5707,9 +5707,9 @@ const toZigbee2 = {
             for (let i = 0; i < 6; i++) {
                 const hourTemperature = items[i].split("/");
                 const hourMinute = hourTemperature[0].split(":", 2);
-                const hour = Number.parseInt(hourMinute[0]);
-                const minute = Number.parseInt(hourMinute[1]);
-                const temperature = Number.parseInt(hourTemperature[1]);
+                const hour = Number.parseInt(hourMinute[0], 10);
+                const minute = Number.parseInt(hourMinute[1], 10);
+                const temperature = Number.parseInt(hourTemperature[1], 10);
 
                 if (hour < 0 || hour >= 24 || minute < 0 || minute >= 60 || temperature < 5 || temperature >= 35) {
                     throw new Error(`Invalid hour, minute or temperature of:${items[i]}`);
@@ -6146,7 +6146,7 @@ const toZigbee2 = {
                 let hsb: KeyValueAny = {};
 
                 if (value.hsb != null) {
-                    const split = value.hsb.split(",").map((i: string) => Number.parseInt(i));
+                    const split = value.hsb.split(",").map((i: string) => Number.parseInt(i, 10));
                     hsb = fillInHSB(split[0], split[1], split[2], meta.state);
                 } else {
                     hsb = fillInHSB(
@@ -6173,13 +6173,13 @@ const toZigbee2 = {
             utils.assertString(value);
             const args = value.split(",");
             const mode = args[0];
-            const dp = Number.parseInt(args[1]);
+            const dp = Number.parseInt(args[1], 10);
             const data = [];
 
             switch (mode) {
                 case "raw":
                     for (let i = 2; i < args.length; i++) {
-                        data.push(Number.parseInt(args[i]));
+                        data.push(Number.parseInt(args[i], 10));
                     }
                     await sendDataPointRaw(entity, dp, data);
                     break;
@@ -6187,14 +6187,14 @@ const toZigbee2 = {
                     await sendDataPointBool(entity, dp, args[2] === "1");
                     break;
                 case "value":
-                    await sendDataPointValue(entity, dp, Number.parseInt(args[2]));
+                    await sendDataPointValue(entity, dp, Number.parseInt(args[2], 10));
                     break;
                 case "enum":
-                    await sendDataPointEnum(entity, dp, Number.parseInt(args[2]));
+                    await sendDataPointEnum(entity, dp, Number.parseInt(args[2], 10));
                     break;
                 case "bitmap":
                     for (let i = 2; i < args.length; i++) {
-                        data.push(Number.parseInt(args[i]));
+                        data.push(Number.parseInt(args[i], 10));
                     }
                     await sendDataPointBitmap(entity, dp, data);
                     break;

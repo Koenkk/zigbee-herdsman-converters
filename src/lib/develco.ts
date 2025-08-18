@@ -175,7 +175,7 @@ export const develcoModernExtend = {
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
                     if (msg.data[attributeName] !== undefined && msg.data[attributeName] < 255) {
-                        const voltage = Number.parseInt(msg.data[attributeName]);
+                        const voltage = Number.parseInt(msg.data[attributeName], 10);
                         return {[propertyName]: voltage <= 25};
                     }
                 },

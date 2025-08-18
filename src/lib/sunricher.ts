@@ -149,7 +149,7 @@ const extend = {
                 key: ["minimum_pwm"],
                 convertSet: async (entity, key, value, meta) => {
                     console.log("to ", value);
-                    const numValue = typeof value === "string" ? Number.parseInt(value) : value;
+                    const numValue = typeof value === "string" ? Number.parseInt(value, 10) : value;
                     utils.assertNumber(numValue);
                     const zgValue = Math.round(numValue * 5.1);
                     await entity.write("genBasic", {[attribute]: {value: zgValue, type: data_type}}, {manufacturerCode: sunricherManufacturerCode});
@@ -548,7 +548,7 @@ const extend = {
                             }
 
                             return {
-                                transitionTime: Number.parseInt(hours) * 60 + Number.parseInt(minutes),
+                                transitionTime: Number.parseInt(hours, 10) * 60 + Number.parseInt(minutes, 10),
                                 heatSetpoint: Math.round(temperature * 100),
                             };
                         }),

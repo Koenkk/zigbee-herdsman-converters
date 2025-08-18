@@ -72,28 +72,28 @@ const fzLocal = {
                     data = Number.parseFloat(msg.data.minSetpointDeadBand) / 10;
                     result.histeresis_temperature = data;
                 } else {
-                    data = Number.parseInt(msg.data.minSetpointDeadBand);
+                    data = Number.parseInt(msg.data.minSetpointDeadBand, 10);
                     result.deadzone_temperature = data;
                 }
                 //logger.info(`DeadBand: ${data}`, NS);
             }
             if (msg.data[attrThermFrostProtect] !== undefined) {
-                const data = Number.parseInt(msg.data[attrThermFrostProtect]) / 100;
+                const data = Number.parseInt(msg.data[attrThermFrostProtect], 10) / 100;
                 result.frost_protect = data;
             }
             if (msg.data[attrThermHeatProtect] !== undefined) {
-                const data = Number.parseInt(msg.data[attrThermHeatProtect]) / 100;
+                const data = Number.parseInt(msg.data[attrThermHeatProtect], 10) / 100;
                 result.heat_protect = data;
             }
             if (msg.data[attrThermEcoMode] !== undefined) {
                 result.eco_mode = msg.data[attrThermEcoMode] === 1 ? "On" : "Off";
             }
             if (msg.data[attrThermEcoModeCoolTemperature] !== undefined) {
-                const data = Number.parseInt(msg.data[attrThermEcoModeCoolTemperature]) / 100;
+                const data = Number.parseInt(msg.data[attrThermEcoModeCoolTemperature], 10) / 100;
                 result.eco_mode_cool_temperature = data;
             }
             if (msg.data[attrThermEcoModeHeatTemperature] !== undefined) {
-                const data = Number.parseInt(msg.data[attrThermEcoModeHeatTemperature]) / 100;
+                const data = Number.parseInt(msg.data[attrThermEcoModeHeatTemperature], 10) / 100;
                 result.eco_mode_heat_temperature = data;
             }
             if (msg.data[attrThermFrostProtectOnOff] !== undefined) {
@@ -114,7 +114,7 @@ const fzLocal = {
                 result.schedule_mode = utils.getFromLookup(msg.data[attrThermScheduleMode], lookup);
             }
             if (msg.data[attrThermExtTemperatureCalibration] !== undefined) {
-                const data = Number.parseInt(msg.data[attrThermExtTemperatureCalibration]) / 10;
+                const data = Number.parseInt(msg.data[attrThermExtTemperatureCalibration], 10) / 10;
                 result.external_temperature_calibration = data;
             }
             return result;
@@ -675,7 +675,7 @@ const electricityMeterExtend = {
                 convert: (model, msg, publish, options, meta) => {
                     const result: KeyValueAny = {};
                     if (msg.data.divisor !== undefined) {
-                        const energyDivisor = Number.parseInt(msg.data.divisor);
+                        const energyDivisor = Number.parseInt(msg.data.divisor, 10);
                         globalStore.putValue(meta.device, "energyDivisor", energyDivisor);
                         result.e_divisor = energyDivisor;
                     }
@@ -688,7 +688,7 @@ const electricityMeterExtend = {
                 convert: (model, msg, publish, options, meta) => {
                     const result: KeyValueAny = {};
                     if (msg.data.multiplier !== undefined) {
-                        const energyMultiplier = Number.parseInt(msg.data.multiplier);
+                        const energyMultiplier = Number.parseInt(msg.data.multiplier, 10);
                         globalStore.putValue(meta.device, "energyMultiplier", energyMultiplier);
                         result.e_multiplier = energyMultiplier;
                     }
@@ -710,7 +710,7 @@ const electricityMeterExtend = {
                             energyMultiplier = 1;
                         }
                         const data = msg.data.currentTier1SummDelivered;
-                        result.energy_tier_1 = (Number.parseInt(data) / energyDivisor) * energyMultiplier;
+                        result.energy_tier_1 = (Number.parseInt(data, 10) / energyDivisor) * energyMultiplier;
                     }
                     return result;
                 },
@@ -730,7 +730,7 @@ const electricityMeterExtend = {
                             energyMultiplier = 1;
                         }
                         const data = msg.data.currentTier2SummDelivered;
-                        result.energy_tier_2 = (Number.parseInt(data) / energyDivisor) * energyMultiplier;
+                        result.energy_tier_2 = (Number.parseInt(data, 10) / energyDivisor) * energyMultiplier;
                     }
                     return result;
                 },
@@ -750,7 +750,7 @@ const electricityMeterExtend = {
                             energyMultiplier = 1;
                         }
                         const data = msg.data.currentTier3SummDelivered;
-                        result.energy_tier_3 = (Number.parseInt(data) / energyDivisor) * energyMultiplier;
+                        result.energy_tier_3 = (Number.parseInt(data, 10) / energyDivisor) * energyMultiplier;
                     }
                     return result;
                 },
@@ -770,7 +770,7 @@ const electricityMeterExtend = {
                             energyMultiplier = 1;
                         }
                         const data = msg.data.currentTier4SummDelivered;
-                        result.energy_tier_4 = (Number.parseInt(data) / energyDivisor) * energyMultiplier;
+                        result.energy_tier_4 = (Number.parseInt(data, 10) / energyDivisor) * energyMultiplier;
                     }
                     return result;
                 },
@@ -818,7 +818,7 @@ const electricityMeterExtend = {
                     const result: KeyValueAny = {};
                     if (msg.data.status !== undefined) {
                         const data = msg.data.status;
-                        const value = Number.parseInt(data);
+                        const value = Number.parseInt(data, 10);
                         return {
                             battery_low: (value & (1 << 1)) > 0,
                             tamper: (value & (1 << 2)) > 0,
@@ -833,7 +833,7 @@ const electricityMeterExtend = {
                 convert: (model, msg, publish, options, meta) => {
                     const result: KeyValueAny = {};
                     if (msg.data.remainingBattLife !== undefined) {
-                        const data = Number.parseInt(msg.data.remainingBattLife);
+                        const data = Number.parseInt(msg.data.remainingBattLife, 10);
                         result.battery_life = data;
                     }
                     return result;
@@ -845,7 +845,7 @@ const electricityMeterExtend = {
                 convert: (model, msg, publish, options, meta) => {
                     const result: KeyValueAny = {};
                     if (msg.data[attrElCityMeterMeasurementPreset] !== undefined) {
-                        const data = Number.parseInt(msg.data[attrElCityMeterMeasurementPreset]);
+                        const data = Number.parseInt(msg.data[attrElCityMeterMeasurementPreset], 10);
                         result.device_measurement_preset = data;
                     }
                     return result;
@@ -908,15 +908,15 @@ function waterPreset(): ModernExtend {
                     step_water: (value as any).step_water_preset,
                 };
                 if (values.hot_water != null && values.hot_water >= 0) {
-                    const hot_water_preset = Number.parseInt(values.hot_water);
+                    const hot_water_preset = Number.parseInt(values.hot_water, 10);
                     await endpoint.write("seMetering", {61440: {value: hot_water_preset, type: 0x23}});
                 }
                 if (values.cold_water != null && values.cold_water >= 0) {
-                    const cold_water_preset = Number.parseInt(values.cold_water);
+                    const cold_water_preset = Number.parseInt(values.cold_water, 10);
                     await endpoint.write("seMetering", {61441: {value: cold_water_preset, type: 0x23}});
                 }
                 if (values.step_water != null && values.step_water >= 0) {
-                    const step_water_preset = Number.parseInt(values.step_water);
+                    const step_water_preset = Number.parseInt(values.step_water, 10);
                     await endpoint.write("seMetering", {61442: {value: step_water_preset, type: 0x21}});
                 }
             },
