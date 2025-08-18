@@ -857,6 +857,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Push button dimmer",
         fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.lighting_ballast_configuration],
         toZigbee: [tz.light_onoff_brightness, tz.level_config, tz.ballast_config],
+        extend: [indicatorMode("smart"), m.identify()],
         exposes: [
             e.light_brightness().withLevelConfig(),
             e
@@ -869,12 +870,18 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMin(1)
                 .withValueMax(254)
                 .withDescription("Specifies the maximum light output of the ballast"),
+            e
+                .enum("dimmer_mode", ea.ALL, ["auto", "rl_led"])
+                .withDescription("Sets dimming mode to autodetect or fixed RL_LED mode (max load is reduced in RL_LED)"),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(3);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "genLevelCtrl", "lightingBallastCfg"]);
             await reporting.onOff(endpoint);
             await reporting.brightness(endpoint);
+        },
+        endpoint: (device) => {
+            return {smart: 21};
         },
     },
     {
