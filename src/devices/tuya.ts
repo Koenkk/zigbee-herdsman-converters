@@ -18433,22 +18433,14 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [
-            {
-                modelID: "TS0601",
-                manufacturerName: "_TZE284_z5jz7wpo",
-            },
-        ],
-        model: "TS0601_TZE284_z5jz7wpo",
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_z5jz7wpo"]),
+        model: "_TZE284_z5jz7wpo",
         vendor: "Tuya",
         description: "Ceiling fan control module",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.fan().withState().withSpeed(),
             e.power_on_behavior(["off", "on", "restore"]).withAccess(ea.STATE_SET),
-            // Countdown in hours (fractional allowed)
             exposes
                 .numeric("countdown_hours", ea.STATE_SET)
                 .withUnit("h")
@@ -18460,9 +18452,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         meta: {
             tuyaDatapoints: [
-                // dp1: Fan on/off
                 [1, "state", tuya.valueConverter.onOff],
-                // dp2: Countdown timer in hours
                 [
                     2,
                     "countdown_hours",
@@ -18471,7 +18461,6 @@ export const definitions: DefinitionWithExtend[] = [
                         to: (hours) => Math.min(43200, Math.round(hours * 3600)), // HA → device (seconds)
                     },
                 ],
-                // dp3: Speed control (enum 0–4), with math mapping to HA 0–254 & control with snapping
                 [
                     3,
                     "speed",
@@ -18484,26 +18473,8 @@ export const definitions: DefinitionWithExtend[] = [
                         },
                     },
                 ],
-                // dp11: Power-on behavior
-                [
-                    11,
-                    "power_on_behavior",
-                    tuya.valueConverterBasic.lookup({
-                        off: tuya.enum(0),
-                        on: tuya.enum(1),
-                        restore: tuya.enum(2),
-                    }),
-                ],
-                // dp12: Indicator light mode
-                [
-                    12,
-                    "light_mode",
-                    tuya.valueConverterBasic.lookup({
-                        none: tuya.enum(0),
-                        relay: tuya.enum(1),
-                        pos: tuya.enum(2),
-                    }),
-                ],
+                [11, "power_on_behavior", tuya.valueConverterBasic.lookup({off: tuya.enum(0), on: tuya.enum(1), restore: tuya.enum(2)})],
+                [12, "light_mode", tuya.valueConverterBasic.lookup({none: tuya.enum(0), relay: tuya.enum(1), pos: tuya.enum(2)})],
             ],
         },
     },
