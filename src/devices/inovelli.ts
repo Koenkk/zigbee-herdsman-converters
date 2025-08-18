@@ -1788,7 +1788,7 @@ const tzLocal = {
                 INOVELLI_CLUSTER_NAME,
                 "individualLedEffect",
                 {
-                    led: Math.min(Math.max(1, Number.parseInt(values.led)), 7) - 1,
+                    led: Math.min(Math.max(1, Number.parseInt(values.led, 10)), 7) - 1,
                     effect: individualLedEffects[values.effect],
                     color: Math.min(Math.max(0, values.color), 255),
                     level: Math.min(Math.max(0, values.level), 100),

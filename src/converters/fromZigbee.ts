@@ -478,7 +478,7 @@ export const device_temperature: Fz.Converter = {
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
         if (msg.data.currentTemperature !== undefined) {
-            const value = Number.parseInt(msg.data.currentTemperature);
+            const value = Number.parseInt(msg.data.currentTemperature, 10);
             return {device_temperature: value};
         }
     },
@@ -1051,7 +1051,9 @@ export const ias_vibration_alarm_1_with_timeout: Fz.Converter = {
         const timeout = options?.vibration_timeout != null ? Number(options.vibration_timeout) : 90;
 
         // Stop existing timers because vibration is detected and set a new one.
-        globalStore.getValue(msg.endpoint, "timers", []).forEach((t: NodeJS.Timeout) => clearTimeout(t));
+        globalStore.getValue(msg.endpoint, "timers", []).forEach((t: NodeJS.Timeout) => {
+            clearTimeout(t);
+        });
         globalStore.putValue(msg.endpoint, "timers", []);
 
         if (timeout !== 0) {
@@ -2183,7 +2185,7 @@ export const wiser_device_info: Fz.Converter = {
             result.ALG = alg.join(",");
             result.occupied_heating_setpoint = alg[2] / 10;
             result.local_temperature = alg[3] / 10;
-            result.pi_heating_demand = Number.parseInt(alg[9]);
+            result.pi_heating_demand = Number.parseInt(alg[9], 10);
         } else if (data[0] === "ADC") {
             // TODO What is ADC
             const adc = data.slice(1);

@@ -898,8 +898,8 @@ export const valueConverter = {
             for (const period of schedule) {
                 const timeTemp = period.split("/");
                 const hm = timeTemp[0].split(":", 2);
-                const h = Number.parseInt(hm[0]);
-                const m = Number.parseInt(hm[1]);
+                const h = Number.parseInt(hm[0], 10);
+                const m = Number.parseInt(hm[1], 10);
                 const temp = Number.parseFloat(timeTemp[1]);
                 if (h < 0 || h > 24 || m < 0 || m >= 60 || m % 10 !== 0 || temp < 5 || temp > 30 || temp % 0.5 !== 0) {
                     throw new Error(`Invalid hour, minute or temperature of: ${period}`);
@@ -933,7 +933,7 @@ export const valueConverter = {
                 for (let index = 1; index < transitionCount * 4 - 1; index = index + 4) {
                     schedule.push(
                         // @ts-expect-error
-                        `${String(Number.parseInt(v[index + 0])).padStart(2, "0")}:${String(Number.parseInt(v[index + 1])).padStart(2, "0")}/${(Number.parseFloat((v[index + 2] << 8) + v[index + 3]) / 10.0).toFixed(1)}`,
+                        `${String(Number.parseInt(v[index + 0], 10)).padStart(2, "0")}:${String(Number.parseInt(v[index + 1], 10)).padStart(2, "0")}/${(Number.parseFloat((v[index + 2] << 8) + v[index + 3]) / 10.0).toFixed(1)}`,
                     );
                 }
                 return schedule.join(" ");
@@ -950,8 +950,8 @@ export const valueConverter = {
                         throw new Error(`Invalid schedule: wrong transition format: ${transition}`);
                     }
                     const hourMin = timeTemp[0].split(":");
-                    const hour = Number.parseInt(hourMin[0]);
-                    const min = Number.parseInt(hourMin[1]);
+                    const hour = Number.parseInt(hourMin[0], 10);
+                    const min = Number.parseInt(hourMin[1], 10);
                     const temperature = Math.floor(Number.parseFloat(timeTemp[1]) * 10);
                     if (hour < 0 || hour > 24 || min < 0 || min > 60 || temperature < 50 || temperature > 350) {
                         throw new Error(`Invalid hour, minute or temperature of: ${transition}`);
@@ -977,8 +977,8 @@ export const valueConverter = {
         from: (v: string) => {
             const schedule = [];
             for (let index = 1; index < 24; index = index + 4) {
-                const firstByte = (Number.parseInt(v[index + 0]) - 192) << 8;
-                const secondByte = Number.parseInt(v[index + 1]);
+                const firstByte = (Number.parseInt(v[index + 0], 10) - 192) << 8;
+                const secondByte = Number.parseInt(v[index + 1], 10);
 
                 const minutesSinceMidnight = firstByte | secondByte;
 
@@ -1003,8 +1003,8 @@ export const valueConverter = {
                     throw new Error(`Invalid schedule: wrong transition format: ${transition}`);
                 }
                 const hourMin = timeTemp[0].split(":");
-                const hour = Number.parseInt(hourMin[0]);
-                const min = Number.parseInt(hourMin[1]);
+                const hour = Number.parseInt(hourMin[0], 10);
+                const min = Number.parseInt(hourMin[1], 10);
                 const temperature = Math.floor(Number.parseFloat(timeTemp[1]) * 10);
                 if (hour < 0 || hour > 24 || min < 0 || min > 60 || temperature < 50 || temperature > 300) {
                     throw new Error(`Invalid hour, minute or temperature of: ${transition}`);
@@ -1111,8 +1111,8 @@ export const valueConverter = {
                         throw new Error(`Invalid schedule: wrong transition format: ${items[i]}`);
                     }
                     const hourMinute = timeTemperature[0].split(":", 2);
-                    const hour = Number.parseInt(hourMinute[0]);
-                    const minute = Number.parseInt(hourMinute[1]);
+                    const hour = Number.parseInt(hourMinute[0], 10);
+                    const minute = Number.parseInt(hourMinute[1], 10);
                     const temperature = Number.parseFloat(timeTemperature[1]);
 
                     if (
@@ -1164,8 +1164,8 @@ export const valueConverter = {
                     payload.push(modeMapping[item]);
                 } else {
                     const time = item.split(":");
-                    const hours = Number.parseInt(time[0]);
-                    const minutes = Math.floor(Number.parseInt(time[1]) / 5);
+                    const hours = Number.parseInt(time[0], 10);
+                    const minutes = Math.floor(Number.parseInt(time[1], 10) / 5);
                     const total = hours * 12 + minutes;
                     if (total > 0) payload.push(total);
                 }
@@ -1222,18 +1222,18 @@ export const valueConverter = {
 
             const {startYear, startMonth, startDay, startHours, startMinutes, endYear, endMonth, endDay, endHours, endMin, mode} = regexResult.groups;
             const startDate = new Date(
-                Number.parseInt(startYear),
-                Number.parseInt(startMonth) - 1,
-                Number.parseInt(startDay),
-                Number.parseInt(startHours),
-                Number.parseInt(startMinutes),
+                Number.parseInt(startYear, 10),
+                Number.parseInt(startMonth, 10) - 1,
+                Number.parseInt(startDay, 10),
+                Number.parseInt(startHours, 10),
+                Number.parseInt(startMinutes, 10),
             );
             const endDate = new Date(
-                Number.parseInt(endYear),
-                Number.parseInt(endMonth) - 1,
-                Number.parseInt(endDay),
-                Number.parseInt(endHours),
-                Number.parseInt(startMinutes),
+                Number.parseInt(endYear, 10),
+                Number.parseInt(endMonth, 10) - 1,
+                Number.parseInt(endDay, 10),
+                Number.parseInt(endHours, 10),
+                Number.parseInt(startMinutes, 10),
             );
             const diffHours = Math.abs(startDate.getTime() - endDate.getTime()) / 36e5;
             const modeMapping: Record<string, number> = {
@@ -1251,11 +1251,11 @@ export const valueConverter = {
             if (startDate.getTime() > endDate.getTime()) throw new Error("You cannot set a negative interval.");
 
             payload.push(
-                Number.parseInt(startYear.slice(2)),
-                Number.parseInt(startMonth),
-                Number.parseInt(startDay),
-                Number.parseInt(startHours),
-                Number.parseInt(startMinutes),
+                Number.parseInt(startYear.slice(2), 10),
+                Number.parseInt(startMonth, 10),
+                Number.parseInt(startDay, 10),
+                Number.parseInt(startHours, 10),
+                Number.parseInt(startMinutes, 10),
                 modeMapping[mode],
                 0,
                 diffHours,
@@ -1280,11 +1280,11 @@ export const valueConverter = {
                 0: "comfort",
             };
             const endDate = new Date(
-                Number.parseInt(startYear),
-                Number.parseInt(startMonth) - 1,
-                Number.parseInt(startDay),
-                Number.parseInt(startHours),
-                Number.parseInt(startMinutes),
+                Number.parseInt(startYear, 10),
+                Number.parseInt(startMonth, 10) - 1,
+                Number.parseInt(startDay, 10),
+                Number.parseInt(startHours, 10),
+                Number.parseInt(startMinutes, 10),
             );
             endDate.setHours(endDate.getHours() + diffHours);
             const endYear = endDate.getFullYear().toString();
@@ -1354,7 +1354,7 @@ export const valueConverter = {
                     // Second endpoint onwards base number is determined by 2 powered by endpoint number less 1
                     state += 2 ** (i - 1);
                 }
-                const secs: number = Number.parseInt(value[`inching_time_${i}`]);
+                const secs: number = Number.parseInt(value[`inching_time_${i}`], 10);
                 const byte1 = secs >> 8; // Equivalent to Math.truc(secs / 256)
                 const byte2 = secs % 256;
                 const ascii = String.fromCharCode(state, byte1, byte2);

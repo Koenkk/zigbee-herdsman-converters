@@ -1482,8 +1482,8 @@ export const thermostat_weekly_schedule: Tz.Converter = {
                 // accept 24h time notation (e.g. 19:30)
                 if (typeof elem.transitionTime === "string") {
                     const time = elem.transitionTime.split(":");
-                    const timeHour = Number.parseInt(time[0]) * 60;
-                    const timeMinute = Number.parseInt(time[1]);
+                    const timeHour = Number.parseInt(time[0], 10) * 60;
+                    const timeMinute = Number.parseInt(time[1], 10);
 
                     if (time.length !== 2 || Number.isNaN(timeHour) || Number.isNaN(timeMinute)) {
                         logger.warning(`weekly_schedule: expected 24h time notation (e.g. 19:30) but got '${elem.transitionTime}'!`, NS);
@@ -1502,7 +1502,7 @@ export const thermostat_weekly_schedule: Tz.Converter = {
                     if (Number.isNaN(elem.transitionTime.minute)) {
                         throw new Error(`weekly_schedule: expected time.minute to be a number, but got '${elem.transitionTime.minute}'!`);
                     }
-                    elem.transitionTime = Number.parseInt(elem.transitionTime.hour) * 60 + Number.parseInt(elem.transitionTime.minute);
+                    elem.transitionTime = Number.parseInt(elem.transitionTime.hour, 10) * 60 + Number.parseInt(elem.transitionTime.minute, 10);
                 }
             }
         } else {
@@ -3355,14 +3355,14 @@ export const ptvo_switch_uart: Tz.Converter = {
 export const ptvo_switch_analog_input: Tz.Converter = {
     key: ["l1", "l2", "l3", "l4", "l5", "l6", "l7", "l8", "l9", "l10", "l11", "l12", "l13", "l14", "l15", "l16"],
     convertGet: async (entity, key, meta) => {
-        const epId = Number.parseInt(key.substr(1, 2));
+        const epId = Number.parseInt(key.substr(1, 2), 10);
         if (utils.hasEndpoints(meta.device, [epId])) {
             const endpoint = meta.device.getEndpoint(epId);
             await endpoint.read("genAnalogInput", ["presentValue", "description"]);
         }
     },
     convertSet: async (entity, key, value, meta) => {
-        const epId = Number.parseInt(key.substr(1, 2));
+        const epId = Number.parseInt(key.substr(1, 2), 10);
         if (utils.hasEndpoints(meta.device, [epId])) {
             const endpoint = meta.device.getEndpoint(epId);
             let cluster = "genLevelCtrl";

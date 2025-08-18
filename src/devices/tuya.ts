@@ -4042,8 +4042,8 @@ export const definitions: DefinitionWithExtend[] = [
 
                                 if (matches.length === 4) {
                                     return matches.reduce((arr, m) => {
-                                        arr.push(Number.parseInt(m.groups.h));
-                                        arr.push(Number.parseInt(m.groups.m));
+                                        arr.push(Number.parseInt(m.groups.h, 10));
+                                        arr.push(Number.parseInt(m.groups.m, 10));
                                         arr.push(Number.parseFloat(m.groups.t) * 2);
                                         return arr;
                                     }, []);
@@ -4069,6 +4069,8 @@ export const definitions: DefinitionWithExtend[] = [
                                         // Setpoint
                                         case 2:
                                             return `${a}/${v / 2}`;
+                                        default:
+                                            throw new Error(`Unexpected index ${i} in schedule data`);
                                     }
                                 }, "");
                             };

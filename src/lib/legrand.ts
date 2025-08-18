@@ -165,8 +165,8 @@ export const tzLegrand = {
             const selEffect = identityEffect?.effect ?? ledEffects[0];
             const selColor = identityEffect?.color ?? ledColors[0];
 
-            const effectID = Number.parseInt(utils.getFromLookupByValue(selEffect, ledEffects, "0"));
-            const effectVariant = Number.parseInt(utils.getFromLookupByValue(selColor, ledColors, "0"));
+            const effectID = Number.parseInt(utils.getFromLookupByValue(selEffect, ledEffects, "0"), 10);
+            const effectVariant = Number.parseInt(utils.getFromLookupByValue(selColor, ledColors, "0"), 10);
 
             // Trigger an effect
             await entity.command("genIdentify", "triggerEffect", {effectid: effectID, effectvariant: effectVariant}, {});

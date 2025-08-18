@@ -1194,8 +1194,8 @@ function parseTime(timeString: string): number {
         throw new Error(`Cannot parse time string ${timeString}`);
     }
 
-    const hours = Number.parseInt(parts[0]);
-    const minutes = Number.parseInt(parts[1]);
+    const hours = Number.parseInt(parts[0], 10);
+    const minutes = Number.parseInt(parts[1], 10);
 
     return hours * 60 + minutes;
 }
@@ -1230,7 +1230,7 @@ export const trv = {
         const payload: KeyValue = {};
 
         Object.entries(data).forEach(([key, value]) => {
-            switch (Number.parseInt(key)) {
+            switch (Number.parseInt(key, 10)) {
                 case 3:
                     payload.device_temperature = value;
                     break;
@@ -2574,7 +2574,7 @@ export const lumiModernExtend = {
                     convert: (model, msg, publish, options, meta) => {
                         const result: KeyValue = {};
                         Object.entries(msg.data).forEach(([key, value]) => {
-                            switch (Number.parseInt(key)) {
+                            switch (Number.parseInt(key, 10)) {
                                 case 0x0172:
                                     result.sensor = getFromLookup(value, {2: "external", 0: "internal", 1: "internal", 3: "external"});
                                     break;
@@ -2972,7 +2972,7 @@ export const fromZigbee = {
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
             Object.entries(msg.data).forEach(([key, value]) => {
-                switch (Number.parseInt(key)) {
+                switch (Number.parseInt(key, 10)) {
                     case 0xfff1: {
                         // @ts-expect-error ignore
                         if (value.length < 8) {
@@ -2992,8 +2992,8 @@ export const fromZigbee = {
                             case 0x041502bc: {
                                 // feeding report
                                 const report = val.toString();
-                                result.feeding_source = {0: "schedule", 1: "manual", 2: "remote"}[Number.parseInt(report.slice(0, 2))];
-                                result.feeding_size = Number.parseInt(report.slice(3, 4));
+                                result.feeding_source = {0: "schedule", 1: "manual", 2: "remote"}[Number.parseInt(report.slice(0, 2), 10)];
+                                result.feeding_size = Number.parseInt(report.slice(3, 4), 10);
                                 break;
                             }
                             case 0x0d680055: // portions per day
@@ -3066,7 +3066,7 @@ export const fromZigbee = {
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
             Object.entries(msg.data).forEach(([key, value]) => {
-                switch (Number.parseInt(key)) {
+                switch (Number.parseInt(key, 10)) {
                     case 0x0271:
                         result.system_mode = getFromLookup(value, {1: "heat", 0: "off"});
                         break;
@@ -3160,7 +3160,7 @@ export const fromZigbee = {
             const payload: KeyValue = {};
 
             Object.entries(msg.data).forEach(([key, value]) => {
-                const eventKey = Number.parseInt(key);
+                const eventKey = Number.parseInt(key, 10);
 
                 switch (eventKey) {
                     case presence.constants.region_event_key: {

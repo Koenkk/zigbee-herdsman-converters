@@ -345,8 +345,8 @@ const sonoffExtend = {
                                 );
                             }
 
-                            const hour = Number.parseInt(matches[1]);
-                            const mins = Number.parseInt(matches[2]);
+                            const hour = Number.parseInt(matches[1], 10);
+                            const mins = Number.parseInt(matches[2], 10);
                             const temp = Number.parseFloat(matches[3]);
 
                             if (temp < 4 || temp > 35) {

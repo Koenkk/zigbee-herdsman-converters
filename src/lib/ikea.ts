@@ -311,12 +311,12 @@ export function ikeaAirPurifier(): ModernExtend {
 
                 if (msg.data.filterRunTime !== undefined) {
                     // Filter needs to be replaced after 6 months
-                    state.replace_filter = Number.parseInt(msg.data.filterRunTime) >= 259200;
-                    state.filter_age = Number.parseInt(msg.data.filterRunTime);
+                    state.replace_filter = Number.parseInt(msg.data.filterRunTime, 10) >= 259200;
+                    state.filter_age = Number.parseInt(msg.data.filterRunTime, 10);
                 }
 
                 if (msg.data.deviceRunTime !== undefined) {
-                    state.device_age = Number.parseInt(msg.data.deviceRunTime);
+                    state.device_age = Number.parseInt(msg.data.deviceRunTime, 10);
                 }
 
                 if (msg.data.controlPanelLight !== undefined) {
