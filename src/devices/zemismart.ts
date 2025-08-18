@@ -72,7 +72,7 @@ const valueConverterLocal = {
 
 export const definitions: DefinitionWithExtend[] = [
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_1vxgqfba", "_TZE200_wdfurkoa"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_1vxgqfba", "_TZE200_wdfurkoa", "_TZE200_sq6affpe"]),
         model: "ZM25R1",
         vendor: "Zemismart",
         description: "Tubular motor",
@@ -93,6 +93,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withCategory("config"),
             e.enum("lower_stroke_limit", ea.STATE_SET, ["SET", "RESET"]).withDescription("Set / Reset the lower stroke limit").withCategory("config"),
         ],
+        whiteLabel: [tuya.whitelabel("Zemismart", "ZM25R3", "Tubular motor", ["_TZE200_sq6affpe"])],
         meta: {
             // All datapoints go in here
             tuyaDatapoints: [

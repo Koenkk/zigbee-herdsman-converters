@@ -79,17 +79,15 @@ const tzLocal = {
     zigusb_button_config: {
         key: ["button_mode", "link_to_output", "bind_command"],
         convertGet: async (entity, key, meta) => {
-            await entity.read("genOnOffSwitchCfg", ["buttonMode", 0x4001, 0x4002]);
+            await entity.read("genOnOffSwitchCfg", ["switchType", 0x4001, 0x4002]);
         },
         convertSet: async (entity, key, value, meta) => {
-            // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
-            let payload;
-            // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
-            let data;
+            let payload: Parameters<typeof entity.write<"genOnOffSwitchCfg">>[1];
+            let data: unknown;
             switch (key) {
                 case "button_mode":
                     data = utils.getFromLookup(value, buttonModesList);
-                    payload = {buttonMode: data};
+                    payload = {switchType: data as number};
                     break;
                 case "link_to_output":
                     data = utils.getFromLookup(value, inputLinkList);

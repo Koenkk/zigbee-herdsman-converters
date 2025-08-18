@@ -1374,7 +1374,7 @@ export const definitions: DefinitionWithExtend[] = [
                 powerOnBehavior2: true,
                 switchMode: true,
             }),
-            m.actionEnumLookup({
+            m.actionEnumLookup<"genOnOff", undefined, "tuyaAction">({
                 cluster: "genOnOff",
                 commands: ["commandTuyaAction"],
                 attribute: "value",

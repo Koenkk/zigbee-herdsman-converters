@@ -1,4 +1,5 @@
 import {Zcl} from "zigbee-herdsman";
+import type {Struct, ZclArray} from "zigbee-herdsman/dist/zspec/zcl/definition/tstype";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import {presets as e, access as ea} from "./exposes";
@@ -7,6 +8,85 @@ import {type BinaryArgs, binary, deviceAddCustomCluster, type NumericArgs, numer
 import type {Configure, Fz, ModernExtend, Tz, Zh} from "./types";
 
 const NS = "zhc:ubisys";
+
+interface UbisysHvacThermostat {
+    attributes: {
+        ubisysClassBTemperatureOffset: number;
+        ubisysReturnFlowTemperatureWeight: number;
+        ubisysRawOutdoorTemperature: Struct;
+        ubisysRawLocalTemperatureA: Struct;
+        ubisysRawLocalTemperatureB: Struct;
+        ubisysRawForwardFlowTemperature: Struct;
+        ubisysRawReturnFlowTemperature: Struct;
+        ubisysInstalledExtensions: bigint;
+        ubisysTemperatureOffset: number;
+        ubisysDefaultOccupiedHeatingSetpoint: number;
+        ubisysVacationMode: number;
+        ubisysRemoteTemperature: number;
+        ubisysRemoteTemperatureValidDuration: number;
+        ubisysDetectOpenWindow: number;
+        ubisysOpenWindowState: number;
+        ubisysOpenWindowSensitivity: number;
+        ubisysOpenWindowDetectionPeriod: number;
+        ubisysOpenWindowTimeout: number;
+        ubisysProportionalGain: number;
+        ubisysProportionalShift: number;
+        ubisysIntegralFactor: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+export interface UbisysGenLevelCtrl {
+    attributes: {
+        ubisysMinimumOnLevel: number;
+        ubisysValveType: number;
+        ubisysCyclePeriod: number;
+        ubisysSeason: number;
+        ubisysBackupLevel: number;
+        ubisysAlternateBackupLevel: number;
+        ubisysLowerRange: number;
+        ubisysUpperRange: number;
+        ubisysPumpThresholdOn: number;
+        ubisysPumpThresholdOff: number;
+        ubisysHeatingDemandEnableThreshold: number;
+        ubisysHeatingDemandDisableThreshold: number;
+        ubisysCoolingDemandEnableThreshold: number;
+        ubisysCoolingDemandDisableThreshold: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+export interface UbisysClosuresWindowCovering {
+    attributes: {
+        ubisysTurnaroundGuardTime: number;
+        ubisysLiftToTiltTransitionSteps: number;
+        ubisysTotalSteps: number;
+        ubisysLiftToTiltTransitionSteps2: number;
+        ubisysTotalSteps2: number;
+        ubisysAdditionalSteps: number;
+        ubisysInactivePowerThreshold: number;
+        ubisysStartupSteps: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+export interface UbisysDeviceSetup {
+    attributes: {
+        inputConfigurations: ZclArray | unknown[];
+        inputActions: ZclArray | unknown[];
+    };
+    commands: never;
+    commandResponses: never;
+}
+export interface UbisysDimmerSetup {
+    attributes: {
+        capabilities: number;
+        status: number;
+        mode: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
 
 export const ubisysModernExtend = {
     pollCurrentSummDelivered: (endpointId: number | ((device: Zh.Device) => number)): ModernExtend => {
@@ -168,8 +248,8 @@ export const ubisysModernExtend = {
             commands: {},
             commandsResponse: {},
         }),
-    localTemperatureOffset: (args?: Partial<NumericArgs>) =>
-        numeric({
+    localTemperatureOffset: (args?: Partial<NumericArgs<"hvacThermostat", UbisysHvacThermostat>>) =>
+        numeric<"hvacThermostat", UbisysHvacThermostat>({
             name: "local_temperature_offset",
             cluster: "hvacThermostat",
             attribute: "ubisysTemperatureOffset",
@@ -180,8 +260,8 @@ export const ubisysModernExtend = {
             unit: "ºC",
             ...args,
         }),
-    occupiedHeatingSetpointDefault: (args?: Partial<NumericArgs>) =>
-        numeric({
+    occupiedHeatingSetpointDefault: (args?: Partial<NumericArgs<"hvacThermostat", UbisysHvacThermostat>>) =>
+        numeric<"hvacThermostat", UbisysHvacThermostat>({
             name: "occupied_heating_default_setpoint",
             cluster: "hvacThermostat",
             attribute: "ubisysDefaultOccupiedHeatingSetpoint",
@@ -196,8 +276,8 @@ export const ubisysModernExtend = {
             unit: "ºC",
             ...args,
         }),
-    remoteTemperatureDuration: (args?: Partial<NumericArgs>) =>
-        numeric({
+    remoteTemperatureDuration: (args?: Partial<NumericArgs<"hvacThermostat", UbisysHvacThermostat>>) =>
+        numeric<"hvacThermostat", UbisysHvacThermostat>({
             name: "remote_temperature_duration",
             cluster: "hvacThermostat",
             attribute: "ubisysRemoteTemperatureValidDuration",
@@ -211,10 +291,10 @@ export const ubisysModernExtend = {
             ...args,
         }),
     vacationMode: (): ModernExtend => {
-        const clusterName = "hvacThermostat";
-        const writeableAttributeName = "ubisysVacationMode";
-        const readableAttributeName = "occupancy";
-        const propertyName = "vacation_mode";
+        const clusterName = "hvacThermostat" as const;
+        const writeableAttributeName = "ubisysVacationMode" as const;
+        const readableAttributeName = "occupancy" as const;
+        const propertyName = "vacation_mode" as const;
         const access = ea.ALL;
 
         const expose = e
@@ -238,10 +318,7 @@ export const ubisysModernExtend = {
                 key: [propertyName],
                 convertSet: async (entity, key, value, meta) => {
                     if (typeof value === "boolean") {
-                        // NOTE: DataType is BOOLEAN in zcl definition as per the device technical reference
-                        //       passing a BOOLEAN type 'value' throws INVALID_DATA_TYPE, we need to pass 1 (true) or 0 (false)
-                        //       ZCL DataType used does still need to be 0x0010 (BOOLEAN)
-                        await entity.write(
+                        await entity.write<typeof clusterName, UbisysHvacThermostat>(
                             clusterName,
                             {[writeableAttributeName]: value ? 1 : 0},
                             {manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
@@ -262,8 +339,8 @@ export const ubisysModernExtend = {
 
         return {exposes: [expose], fromZigbee, toZigbee, configure, isModernExtend: true};
     },
-    openWindowState: (args?: Partial<BinaryArgs>) =>
-        binary({
+    openWindowState: (args?: Partial<BinaryArgs<"hvacThermostat", UbisysHvacThermostat>>) =>
+        binary<"hvacThermostat", UbisysHvacThermostat>({
             name: "open_window_state",
             cluster: "hvacThermostat",
             attribute: "ubisysOpenWindowState",
@@ -273,8 +350,8 @@ export const ubisysModernExtend = {
             description: "Presents the currently detected window state.",
             ...args,
         }),
-    openWindowDetect: (args?: Partial<BinaryArgs>) =>
-        binary({
+    openWindowDetect: (args?: Partial<BinaryArgs<"hvacThermostat", UbisysHvacThermostat>>) =>
+        binary<"hvacThermostat", UbisysHvacThermostat>({
             name: "open_window_detect",
             cluster: "hvacThermostat",
             attribute: "ubisysDetectOpenWindow",
@@ -284,8 +361,8 @@ export const ubisysModernExtend = {
             description: "Specifies whether the Open Window Detection is activated or deactivated.",
             ...args,
         }),
-    openWindowTimeout: (args?: Partial<NumericArgs>) =>
-        numeric({
+    openWindowTimeout: (args?: Partial<NumericArgs<"hvacThermostat", UbisysHvacThermostat>>) =>
+        numeric<"hvacThermostat", UbisysHvacThermostat>({
             name: "open_window_timeout",
             cluster: "hvacThermostat",
             attribute: "ubisysOpenWindowTimeout",
@@ -299,8 +376,8 @@ export const ubisysModernExtend = {
             unit: "s",
             ...args,
         }),
-    openWindowDetectionPeriod: (args?: Partial<NumericArgs>) =>
-        numeric({
+    openWindowDetectionPeriod: (args?: Partial<NumericArgs<"hvacThermostat", UbisysHvacThermostat>>) =>
+        numeric<"hvacThermostat", UbisysHvacThermostat>({
             name: "open_window_detection_periode",
             cluster: "hvacThermostat",
             attribute: "ubisysOpenWindowDetectionPeriod",
@@ -313,8 +390,8 @@ export const ubisysModernExtend = {
             unit: "m",
             ...args,
         }),
-    openWindowSensitivity: (args?: Partial<NumericArgs>) =>
-        numeric({
+    openWindowSensitivity: (args?: Partial<NumericArgs<"hvacThermostat", UbisysHvacThermostat>>) =>
+        numeric<"hvacThermostat", UbisysHvacThermostat>({
             name: "open_window_sensitivity",
             cluster: "hvacThermostat",
             attribute: "ubisysOpenWindowSensitivity",

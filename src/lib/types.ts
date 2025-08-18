@@ -1,7 +1,6 @@
 import type {Models as ZHModels} from "zigbee-herdsman";
 import type {Header as ZHZclHeader} from "zigbee-herdsman/dist/zspec/zcl";
 import type {FrameControl} from "zigbee-herdsman/dist/zspec/zcl/definition/tstype";
-
 import type * as exposes from "./exposes";
 
 export interface Logger {
@@ -343,7 +342,7 @@ export namespace Tuya {
     export interface DpValue {
         dp: number;
         datatype: number;
-        data: Buffer | number[];
+        data: Buffer;
     }
     export interface ValueConverterSingle {
         // biome-ignore lint/suspicious/noExplicitAny: value is validated on per-case basis
