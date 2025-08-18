@@ -1,5 +1,28 @@
 # Changelog
 
+## [25.4.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.3.0...v25.4.0) (2025-08-18)
+
+
+### Features
+
+* **add:** _TZE284_z5jz7wpo ([#9805](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9805)) ([99d5dfc](https://github.com/Koenkk/zigbee-herdsman-converters/commit/99d5dfca6f1e687b67394294e1bdec31f77ea5c0))
+* **add:** AUX-1-ZB-S, DK-1-ZB-S, GR-1-ZB-S, GR-3-ZB-S, HR-1-ZB-S, HS-3-ZB-S, HT-1-ZB-S, MD-1-ZB-S, MD-3-ZB-S, ME-1-ZB-S, TCL-1-ZB-S, TCL-3-ZB-S ([#9795](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9795)) ([c374180](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c3741802a238f1c5c74a662ae4f2c6ee15fc8d31))
+* **add:** OTR1 ([#9811](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9811)) ([b43088a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b43088ac4fde7119b465f996b6c2a60ffc6dc295))
+* **add:** ZM25R3 https://github.com/Koenkk/zigbee-herdsman-converters/issues/9803 ([60f543e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/60f543e33f57f8552db231e220bce946afd82031))
+* Soil Pro: support measurement mode selection ([#9806](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9806)) ([8623aac](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8623aacf431471397141018d3e9202859ac77534))
+* WDE002386: add more features ([#9816](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9816)) ([c3830bc](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c3830bc4ce296d3423e2c4dab4571faf65b21f23))
+
+
+### Bug Fixes
+
+* CK-BL702-AL-01_1: improve converter ([#9769](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9769)) ([3305d13](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3305d13cc6abaa40f1fd613493ecd77a4fa32f15))
+* **detect:** Detect `_TZ3000_mqiev3jk` as Tuya _TZ3000_mqiev3jk https://github.com/Koenkk/zigbee2mqtt.io/pull/4039 ([5fca18f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5fca18f2ec066b33875dcc00c7cc21767d95b04a))
+* **detect:** Detect `JETSTROM 6060 NA` as IKEA L2207 ([#9815](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9815)) ([31bb16c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/31bb16c067c8817f85e4272384c194ecd89b076b))
+* **detect:** Detect `TZ3000_amqudjr0` as Woox R7048 ([#9814](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9814)) ([808fb07](https://github.com/Koenkk/zigbee-herdsman-converters/commit/808fb0719b423e6b2a798eedebc4d51004c4185e))
+* **ignore:** bump the minor-patch group with 2 updates ([#9807](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9807)) ([b32801f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b32801f27555a0779895425cfd39e92f3bf1d09c))
+* **ignore:** Tuya dpValues not always using Buffer ([#9818](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9818)) ([f0a4cff](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f0a4cffb901446a8d4e8a7ba3ee0ee2741029c4d))
+* Tuya BLE-YL01: Ph value if Ph &gt; 99 ([#9812](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9812)) ([16416fa](https://github.com/Koenkk/zigbee-herdsman-converters/commit/16416faf7a183d5b943448814da21ef097e5f6fd))
+
 ## [25.3.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.2.0...v25.3.0) (2025-08-17)
 
 
