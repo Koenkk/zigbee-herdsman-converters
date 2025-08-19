@@ -1828,7 +1828,7 @@ const tzLocal = {
                 ...meta,
                 message: {
                     ...meta.message,
-                    transition: !transition.specified ? 0xffff : transition.time,
+                    transition: (!transition.specified ? 0xffff : Math.round(transition.time)) / 10,
                 },
                 converterOptions: {
                     ctrlbits: 0,
