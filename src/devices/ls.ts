@@ -29,4 +29,11 @@ export const definitions: DefinitionWithExtend[] = [
             return Object.fromEntries(device.endpoints.filter((ep) => ep.ID !== 242).map((ep) => [`l${ep.ID}`, ep.ID]));
         },
     },
+    {
+        zigbeeModel: ["Mec Driver module"],
+        model: "7061427",
+        vendor: "LS Deutschland GmbH",
+        description: "Mec Driver power supply platform",
+        extend: [m.light({colorTemp: {range: [153, 500]}})],
+    },
 ];
