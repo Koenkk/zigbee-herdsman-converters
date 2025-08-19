@@ -1,6 +1,5 @@
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
-import * as philips from "../lib/philips";
 import type {DefinitionWithExtend} from "../lib/types";
 import * as utils from "../lib/utils";
 
@@ -32,10 +31,9 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["Mec Driver module"],
-        model: "Mec Driver module",
-        vendor: "L&S Germany",
+        model: "7061427",
+        vendor: "LS Deutschland GmbH",
         description: "Mec Driver power supply platform",
-        extend: [philips.m.light({colorTemp: {range: [153, 500]}})],
-        meta: {},
+        extend: [m.light({colorTemp: {range: [153, 500]}})],
     },
 ];
