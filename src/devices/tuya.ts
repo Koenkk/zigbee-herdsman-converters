@@ -7104,6 +7104,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [
             e.enum("battery_state", ea.STATE, ["low", "middle", "high"]).withDescription("low: 1-25%, middle: 26-50%, high: 51-100%"),
             e.temperature(),
+            e.soil_moisture(),
             e.humidity(),
             e.illuminance(),
             e
@@ -7123,7 +7124,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         meta: {
             tuyaDatapoints: [
-                [3, "humidity", tuya.valueConverter.raw],
+                [3, "soil_moisture", tuya.valueConverter.raw],
                 [5, "temperature", tuya.valueConverter.divideBy10],
                 [14, "battery_state", tuya.valueConverterBasic.lookup({low: tuya.enum(0), middle: tuya.enum(1), high: tuya.enum(2)})],
                 [101, "humidity", tuya.valueConverter.raw],
