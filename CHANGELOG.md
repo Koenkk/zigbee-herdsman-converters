@@ -1,5 +1,18 @@
 # Changelog
 
+## [25.5.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.4.0...v25.5.0) (2025-08-19)
+
+
+### Features
+
+* **add:** 7061427 ([#9729](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9729)) ([6cdd279](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6cdd279712a094dce1ba874fdd57e98617b7f72e))
+
+
+### Bug Fixes
+
+* Arteco ZS-301Z: expose soil moisture ([#9822](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9822)) ([1be3aeb](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1be3aeb5d173f32b505835bd2bf331017ac14681))
+* Inovelli: Fix broken on/off command with recent code cleanup ([#9821](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9821)) ([e0dd291](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e0dd2914981c76019a77240c5e92bd77d1d1f045))
+
 ## [25.4.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.3.0...v25.4.0) (2025-08-18)
 
 
