@@ -18365,7 +18365,7 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: [{modelID: "TS0601", manufacturerName: "_TZE200_khah2lkr"}],
         model: "HY607W-3A",
         vendor: "Tuya",
-        description: "Tuya thermostat HY607W-3A for gas boiler",
+        description: "Thermostat for gas boiler",
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
