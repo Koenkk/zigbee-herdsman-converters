@@ -162,10 +162,18 @@ async function syncTimeWithTimeZone(endpoint: Zh.Endpoint) {
 
 export const definitions: DefinitionWithExtend[] = [
     {
+        zigbeeModel: ["ZG9100B-5A"],
+        model: "SR-ZG9041A-R",
+        vendor: "Sunricher",
+        description: "Zigbee smart relay module",
+        extend: [m.onOff({powerOnBehavior: false}), m.electricityMeter(), sunricher.extend.externalSwitchType()],
+        meta: {},
+    },
+    {
         zigbeeModel: ["ZG2819S-DIM"],
         model: "SR-ZG2819S-DIM",
         vendor: "Sunricher",
-        description: "ZigBee dim remote",
+        description: "Zigbee dim remote",
         extend: [
             m.identify(),
             m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3, "4": 4}}),
