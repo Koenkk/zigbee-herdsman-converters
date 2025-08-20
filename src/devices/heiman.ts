@@ -929,8 +929,8 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["ColorLight"],
         model: "HS1RGB",
         vendor: "Heiman",
-        description: "HS1RGB bulb E26/E27, RGB+WW 2700K, globe, opal, 400 lm",
-        extend: [light({colorTemp: {range: [275, 295]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+        description: "Bulb E26/E27, RGB+WW 2700K, globe, opal, 400lm",
+        extend: [m.light({colorTemp: {range: [275, 295]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
         meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
