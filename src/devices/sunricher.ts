@@ -167,7 +167,6 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Sunricher",
         description: "Zigbee smart relay module",
         extend: [m.onOff({powerOnBehavior: false}), m.electricityMeter(), sunricher.extend.externalSwitchType()],
-        meta: {},
     },
     {
         zigbeeModel: ["ZG2819S-DIM"],
