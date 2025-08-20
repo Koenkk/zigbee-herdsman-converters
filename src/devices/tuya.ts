@@ -18371,7 +18371,9 @@ export const definitions: DefinitionWithExtend[] = [
         configure: tuya.configureMagicPacket,
         exposes: [
             e.climate().withLocalTemperature(ea.STATE).withSetpoint("occupied_heating_setpoint", 5, 35, 0.5, ea.STATE_SET),
-            e.enum("mode_state", ea.STATE_SET, ["auto", "manual", "temp_override"]).withDescription("Thermostat mode: manual, auto, or temp_override"),
+            e
+                .enum("mode_state", ea.STATE_SET, ["auto", "manual", "temp_override"])
+                .withDescription("Thermostat mode: manual, auto, or temp_override"),
             e.binary("state", ea.STATE_SET, "ON", "OFF").withDescription("ON/OFF thermostat"),
             e.enum("running_state", ea.STATE, ["idle", "heat"]).withDescription("State of heating"),
         ],
