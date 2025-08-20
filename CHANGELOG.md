@@ -1,5 +1,20 @@
 # Changelog
 
+## [25.6.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.5.0...v25.6.0) (2025-08-20)
+
+
+### Features
+
+* **add:** HS1RGB ([#9826](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9826)) ([b266378](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b266378ac10f770a8b3b8a0fcf4fef817db72565))
+* **add:** SR-ZG9041A-R ([#9827](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9827)) ([c926b31](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c926b318cc2647aebacd540940b969455edd9991))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZE200_6wi2mope` as Tuya TS0601_switch_4_gang_1 https://github.com/Koenkk/zigbee2mqtt/issues/28339 ([4a39ec7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4a39ec718c07ec5f4c62e4ef2252e5e133252bbc))
+* **detect:** Detect `_TZE284_jtbgusdc` as AVATTO ZDMS16-2 https://github.com/Koenkk/zigbee2mqtt/issues/28341 ([2fc9844](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2fc9844cf9f8e855e0d0cb12c019e7ea2ba59557))
+* Tuya HY607W-3A: various improvements ([#9828](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9828)) ([dd11472](https://github.com/Koenkk/zigbee-herdsman-converters/commit/dd114720e47cf0d6b1f8a319ddc27de4d6e71cc6))
+
 ## [25.5.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.4.0...v25.5.0) (2025-08-19)
 
 
