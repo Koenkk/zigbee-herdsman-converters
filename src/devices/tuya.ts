@@ -16147,7 +16147,7 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
         extend: [],
-        whiteLabel: [{vendor: "Nova Digital", model: "ZTS-MM"}],
+        whiteLabel: [tuya.whitelabel("Nova Digital", "ZTS-MM", "mmWave radar 5.8GHz", ["_TZE204_lbbg34rj"])],
         exposes: [
             e.illuminance().withUnit("lx"),
             e.occupancy(),
