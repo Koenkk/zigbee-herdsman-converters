@@ -16139,12 +16139,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", 
-          [
-              "_TZE204_ex3rcdha",
-              "_TZE204_lbbg34rj",
-          ]
-        ),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_ex3rcdha", "_TZE204_lbbg34rj"]),
         model: "ZY_HPS01",
         vendor: "Tuya",
         description: "mmWave radar 5.8GHz",
@@ -16152,9 +16147,7 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
         extend: [],
-        whiteLabel: [
-            {vendor: "Nova Digital", model: "ZTS-MM"},
-        ],
+        whiteLabel: [{vendor: "Nova Digital", model: "ZTS-MM"}],
         exposes: [
             e.illuminance().withUnit("lx"),
             e.occupancy(),
