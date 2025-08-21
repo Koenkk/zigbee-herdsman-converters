@@ -16142,7 +16142,7 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: tuya.fingerprint("TS0601", 
           [
               "_TZE204_ex3rcdha",
-              "_TZE204_lbbg34rj"
+              "_TZE204_lbbg34rj",
           ]
         ),
         model: "ZY_HPS01",
@@ -16154,7 +16154,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [],
         whiteLabel: [
             {vendor: "Nova Digital", model: "ZTS-MM"},
-        ]
+        ],
         exposes: [
             e.illuminance().withUnit("lx"),
             e.occupancy(),
