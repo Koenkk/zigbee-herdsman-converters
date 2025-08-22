@@ -828,7 +828,6 @@ export const definitions: DefinitionWithExtend[] = [
                 zoneType: "smoke",
                 zoneAttributes: ["alarm_1", "alarm_2", "tamper", "battery_low"],
             }),
-            m.iasWarning(),
         ],
     },
     {
@@ -888,7 +887,6 @@ export const definitions: DefinitionWithExtend[] = [
                 zoneType: "gas",
                 zoneAttributes: ["alarm_1", "alarm_2", "tamper", "battery_low"],
             }),
-            m.iasWarning(),
         ],
     },
     {
@@ -902,7 +900,6 @@ export const definitions: DefinitionWithExtend[] = [
                 zoneType: "carbon_monoxide",
                 zoneAttributes: ["alarm_1", "alarm_2", "tamper", "battery_low"],
             }),
-            m.iasWarning(),
         ],
     },
     {
@@ -930,7 +927,6 @@ export const definitions: DefinitionWithExtend[] = [
                 zoneType: "water_leak",
                 zoneAttributes: ["alarm_1", "alarm_2", "tamper", "battery_low"],
             }),
-            m.iasWarning(),
         ],
     },
     {
