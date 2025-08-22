@@ -467,6 +467,7 @@ const definitions: DefinitionWithExtend[] = [
     ...hfh,
     ...hilux,
     ...hive,
+    ...homeseer,
     ...hommyn,
     ...honyar,
     ...hornbach,
