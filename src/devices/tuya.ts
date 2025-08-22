@@ -3730,7 +3730,6 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [
             {vendor: "Lonsonho", model: "TS0044"},
             {vendor: "Haozee", model: "ESW-OZAA-EU"},
-            {vendor: "LoraTap", model: "SS6400ZB"},
             {vendor: "Moes", model: "ZT-SY-EU-G-4S-WH-MS"},
             {vendor: "Nedis", model: "ZBWS40WT"},
             tuya.whitelabel("Moes", "ZT-SR-EU4", "Star Ring 4 Gang Scene Switch", ["_TZ3000_a4xycprs"]),
@@ -3738,6 +3737,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Tuya", "TM-YKQ004", "Zigbee 4 button remote - 12 scene", ["_TZ3000_u3nv1jwk"]),
             tuya.whitelabel("HOBEIAN", "ZG-101ZS", "Star Ring 4 Gang Scene Switch", ["_TZ3000_bgtzm4ny"]),
             tuya.whitelabel("Moes", "XH-SY-04Z", "4 button portable remote control", ["_TZ3000_zgyzgdua"]),
+            tuya.whitelabel("LoraTap", "SS6400ZB", "4 button portable remote control", ["_TZ3000_ee8nrt2l"]),
         ],
         fromZigbee: [tuya.fz.on_off_action, fz.battery],
         exposes: [
