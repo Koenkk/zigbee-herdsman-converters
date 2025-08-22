@@ -1,5 +1,20 @@
 # Changelog
 
+## [25.7.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.6.0...v25.7.0) (2025-08-22)
+
+
+### Features
+
+* **add:** DS150ZB ([#9831](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9831)) ([a12df0c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a12df0c27a19b310e4df6b89e1a8f01aab52164d))
+* **add:** SA-6 ([#9830](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9830)) ([baa7819](https://github.com/Koenkk/zigbee-herdsman-converters/commit/baa7819aeaddfe2dd87b8e744a5a8e1727e7f006))
+* **add:** SS6400ZB ([#9832](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9832)) ([715af48](https://github.com/Koenkk/zigbee-herdsman-converters/commit/715af48b5b9ff593b83153879e6b755f5e68a656))
+* Shelly 2PM: support cover and switch mode ([#9834](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9834)) ([b3426e9](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b3426e94e031c3c9909ddf75e0c477eedab95ac6))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZE204_lbbg34rj` as Nova Digital ZTS-MM ([#9833](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9833)) ([f88f4cc](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f88f4cc7ec219cd5fdc25e13af1284b6d86dd790))
+
 ## [25.6.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.5.0...v25.6.0) (2025-08-20)
 
 
