@@ -1,42 +1,8 @@
 import * as m from "../lib/modernExtend";
-import type {DefinitionWithExtend, Expose, ModernExtend} from "../lib/types";
-import * as utils from "../lib/utils";
+import type {DefinitionWithExtend} from "../lib/types";
 
 const measurementIntervalMin = 5;
 const measurementIntervalMax = 4 * 60 * 60;
-
-export const simplaHomeModernExtend = {
-    measurementInterval: (args?: Partial<m.NumericArgs>) => {
-        const resultName = "measurement_interval";
-        const resultUnit = "s";
-        const resultDescription = "Defines how often the device performs measurements";
-
-        const result: ModernExtend = m.numeric({
-            name: resultName,
-            access: "ALL",
-            unit: resultUnit,
-            cluster: "genAnalogOutput",
-            attribute: "presentValue",
-            scale: 1,
-            valueMin: measurementIntervalMin,
-            valueMax: measurementIntervalMax,
-            description: resultDescription,
-            ...args,
-        });
-
-        // exposes is dynamic based on fw version
-        result.exposes = [
-            (device) => {
-                if (!utils.isDummyDevice(device) && device.softwareBuildID && Number(`0x${device?.softwareBuildID}`) > 0x01010101) {
-                    return result.exposes as Expose[];
-                }
-                return [];
-            },
-        ];
-
-        return result;
-    },
-};
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -64,22 +30,33 @@ export const definitions: DefinitionWithExtend[] = [
                 reporting: {min: measurementIntervalMin, max: measurementIntervalMax, change: 100},
             }),
             m.battery(),
-            simplaHomeModernExtend.measurementInterval(),
+            m.numeric({
+                name: "measurement_interval",
+                access: "ALL",
+                unit: "s",
+                cluster: "genAnalogOutput",
+                attribute: "presentValue",
+                scale: 1,
+                valueMin: measurementIntervalMin,
+                valueMax: measurementIntervalMax,
+                description: "Defines how often the device performs measurements",
+                reporting: {min: measurementIntervalMin, max: measurementIntervalMax, change: 100},
+                entityCategory: "config",
+            }),
+            m.binary({
+                name: "linear_mode",
+                cluster: "genBinaryOutput",
+                attribute: "presentValue",
+                description: "Soil moisture measurement mode: Volumetric Water Content (VWC) (0-45 %) or linear (0-100 %)",
+                valueOn: ["linear", 1],
+                valueOff: ["VWC", 0],
+                access: "ALL",
+                entityCategory: "config",
+            }),
             m.illuminance({
                 reporting: {min: measurementIntervalMin, max: measurementIntervalMax, change: 5},
             }),
         ],
-
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpointId = device.getEndpoint(1);
-            await endpointId.read("genBasic", ["swBuildId"]);
-
-            if (Number(`0x${device?.softwareBuildID}`) > 0x01010101) {
-                const endpointAnalogOutput = device.getEndpoint(2);
-                await endpointAnalogOutput.bind("genAnalogOutput", coordinatorEndpoint);
-                await endpointAnalogOutput.read("genAnalogOutput", ["presentValue"]);
-            }
-        },
         meta: {multiEndpoint: true},
         ota: true,
     },

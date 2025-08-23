@@ -333,7 +333,7 @@ export const definitions: DefinitionWithExtend[] = [
 
             const payload = [
                 {
-                    attribute: "measuredValue",
+                    attribute: "measuredValue" as const,
                     minimumReportInterval: 10,
                     maximumReportInterval: constants.repInterval.HOUR,
                     reportableChange: 10,

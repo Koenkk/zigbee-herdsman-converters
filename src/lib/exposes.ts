@@ -474,7 +474,9 @@ export class Light extends Base {
             {name: "warmest", value: range[1], description: "Warmest temperature supported"},
         ]
             .filter((p) => p.value >= range[0] && p.value <= range[1])
-            .forEach((p) => feature.withPreset(p.name, p.value, p.description));
+            .forEach((p) => {
+                feature.withPreset(p.name, p.value, p.description);
+            });
 
         this.addFeature(feature);
         return this;
@@ -500,7 +502,9 @@ export class Light extends Base {
             {name: "warmest", value: range[1], description: "Warmest temperature supported"},
         ]
             .filter((p) => p.value >= range[0] && p.value <= range[1])
-            .forEach((p) => feature.withPreset(p.name, p.value, p.description));
+            .forEach((p) => {
+                feature.withPreset(p.name, p.value, p.description);
+            });
         feature.withPreset("previous", 65535, "Restore previous color_temp on cold power on");
 
         this.addFeature(feature);
@@ -646,28 +650,36 @@ export class Climate extends Base {
 
     withSystemMode(modes: string[], access = a.ALL, description = "Mode of this device") {
         const allowed = ["off", "heat", "cool", "auto", "dry", "fan_only", "sleep", "emergency_heating"];
-        modes.forEach((m) => assert(allowed.includes(m)));
+        modes.forEach((m) => {
+            assert(allowed.includes(m));
+        });
         this.addFeature(new Enum("system_mode", access, modes).withDescription(description));
         return this;
     }
 
     withRunningState(modes: string[], access = a.STATE_GET) {
         const allowed = ["idle", "heat", "cool", "fan_only"];
-        modes.forEach((m) => assert(allowed.includes(m)));
+        modes.forEach((m) => {
+            assert(allowed.includes(m));
+        });
         this.addFeature(new Enum("running_state", access, modes).withDescription("The current running state"));
         return this;
     }
 
     withRunningMode(modes: string[], access = a.STATE_GET) {
         const allowed = ["off", "cool", "heat"];
-        modes.forEach((m) => assert(allowed.includes(m)));
+        modes.forEach((m) => {
+            assert(allowed.includes(m));
+        });
         this.addFeature(new Enum("running_mode", access, modes).withDescription("The current running mode"));
         return this;
     }
 
     withFanMode(modes: string[], access = a.ALL) {
         const allowed = ["off", "low", "medium", "high", "on", "auto", "smart"];
-        modes.forEach((m) => assert(allowed.includes(m)));
+        modes.forEach((m) => {
+            assert(allowed.includes(m));
+        });
         this.addFeature(new Enum("fan_mode", access, modes).withDescription("Mode of the fan"));
         return this;
     }
@@ -703,14 +715,18 @@ export class Climate extends Base {
             "cooling_and_heating_4-pipes",
             "cooling_and_heating_4-pipes_with_reheat",
         ];
-        modes.forEach((m) => assert(allowed.includes(m)));
+        modes.forEach((m) => {
+            assert(allowed.includes(m));
+        });
         this.addFeature(new Enum("control_sequence_of_operation", access, modes).withDescription("Operating environment of the thermostat"));
         return this;
     }
 
     withAcLouverPosition(positions: string[], access = a.ALL) {
         const allowed = ["fully_open", "fully_closed", "half_open", "quarter_open", "three_quarters_open"];
-        positions.forEach((m) => assert(allowed.includes(m)));
+        positions.forEach((m) => {
+            assert(allowed.includes(m));
+        });
         this.addFeature(
             new Enum("ac_louver_position", access, positions).withLabel("AC louver position").withDescription("AC louver position of this device"),
         );
@@ -719,7 +735,9 @@ export class Climate extends Base {
 
     withWeeklySchedule(modes: string[], access = a.ALL) {
         const allowed = ["heat", "cool"];
-        modes.forEach((m) => assert(allowed.includes(m)));
+        modes.forEach((m) => {
+            assert(allowed.includes(m));
+        });
 
         const featureDayOfWeek = new List(
             "dayofweek",
