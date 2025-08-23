@@ -13,6 +13,13 @@ const ea = exposes.access;
 
 export const definitions: DefinitionWithExtend[] = [
     {
+        zigbeeModel: ["929003809401"],
+        model: "929003809401",
+        vendor: "Philips",
+        description: "Hue White and Color Ambiance GU10 (Centura)",
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+    },
+    {
         zigbeeModel: ["929002297503"],
         model: "929002297503",
         vendor: "Philips",
@@ -180,6 +187,13 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["929003045201_01", "929003045201_02", "929003045201_03"],
         model: "929003045201",
+        vendor: "Philips",
+        description: "Hue White and Color Ambiance GU10 (Centura round white)",
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
+    },
+    {
+        zigbeeModel: ["929003809701_01", "929003809701_02", "929003809701_03"],
+        model: "929003809701",
         vendor: "Philips",
         description: "Hue White and Color Ambiance GU10 (Centura round white)",
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],

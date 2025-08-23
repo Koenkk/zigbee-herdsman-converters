@@ -16,7 +16,7 @@ const tzLocal = {
     ts0219_duration: {
         key: ["duration"],
         convertSet: async (entity, key, value, meta) => {
-            await entity.write("ssIasWd", {maxDuration: value});
+            await entity.write("ssIasWd", {maxDuration: value as number});
         },
         convertGet: async (entity, key, meta) => {
             await entity.read("ssIasWd", ["maxDuration"]);
@@ -253,7 +253,7 @@ export const definitions: DefinitionWithExtend[] = [
             legacy.tz.tuya_thermostat_current_heating_setpoint,
             legacy.tz.tuya_thermostat_weekly_schedule,
         ],
-        onEvent: tuya.onEventSetTime,
+        extend: [tuya.modernExtend.tuyaBase({timeStart: "2000"})],
         meta: {
             timeout: 20000, // TRV wakes up every 10sec
             thermostat: {

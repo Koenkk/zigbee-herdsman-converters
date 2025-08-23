@@ -35,7 +35,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Temperature and humidity sensor with clock",
         fromZigbee: [legacy.fz.nous_lcd_temperature_humidity_sensor, fz.ignore_tuya_set_time],
         toZigbee: [legacy.tz.nous_lcd_temperature_humidity_sensor],
-        onEvent: tuya.onEventSetLocalTime,
+        extend: [tuya.modernExtend.tuyaBase({forceTimeUpdates: true})],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genBasic"]);
@@ -88,11 +88,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Temperature & humidity LCD sensor",
         fromZigbee: [legacy.fz.nous_lcd_temperature_humidity_sensor, fz.ignore_tuya_set_time],
         toZigbee: [legacy.tz.nous_lcd_temperature_humidity_sensor],
-        onEvent: tuya.onEventSetLocalTime,
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genBasic"]);
-        },
+        extend: [tuya.modernExtend.tuyaBase({forceTimeUpdates: true, bindBasicOnConfigure: true})],
         exposes: [
             e.temperature(),
             e.humidity(),

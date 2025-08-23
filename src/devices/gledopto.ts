@@ -3,8 +3,7 @@ import * as libColor from "../lib/color";
 import * as exposes from "../lib/exposes";
 import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
-import * as globalStore from "../lib/store";
-import type {Configure, DefinitionWithExtend, ModernExtend, OnEventData, OnEventType, Tz, Zh} from "../lib/types";
+import type {Configure, DefinitionWithExtend, ModernExtend, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
 
 const NS = "zhc:gledopto";
@@ -140,26 +139,20 @@ function gledoptoLight(args?: m.LightArgs) {
 
 function gledoptoOnOff(args?: m.OnOffArgs) {
     const result = m.onOff({powerOnBehavior: false, ...args});
-    result.onEvent = [
-        (type: OnEventType, data: OnEventData, device: Zh.Device) => {
+    result.onEvent = m.poll({
+        key: "interval",
+        defaultIntervalSeconds: 5,
+        poll: async (device) => {
             // This device doesn't support reporting.
             // Therefore we read the on/off state every 5 seconds.
             // This is the same way as the Hue bridge does it.
-            if (type === "stop") {
-                clearInterval(globalStore.getValue(device, "interval"));
-                globalStore.clearValue(device, "interval");
-            } else if (!globalStore.hasValue(device, "interval")) {
-                const interval = setInterval(async () => {
-                    try {
-                        await device.endpoints[0].read("genOnOff", ["onOff"]);
-                    } catch {
-                        // Do nothing
-                    }
-                }, 5000);
-                globalStore.putValue(device, "interval", interval);
+            try {
+                await device.endpoints[0].read("genOnOff", ["onOff"]);
+            } catch {
+                // Do nothing
             }
         },
-    ];
+    }).onEvent;
     return result;
 }
 
