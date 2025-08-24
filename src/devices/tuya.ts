@@ -6834,6 +6834,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZ3000_bfn1w0mm",
             "_TZ3000_nzkqcvvs",
             "_TZ3000_rtcrrvia",
+            "_TZ3000_ysiog9xi",
         ]),
         model: "TS011F_plug_2",
         description: "Smart plug (without power monitoring)",
