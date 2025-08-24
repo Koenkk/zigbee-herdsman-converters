@@ -2556,7 +2556,7 @@ export const definitions: DefinitionWithExtend[] = [
                 splitValuesByEndpoint: true,
             }),
             inovelliExtend.inovelliLight({splitValuesByEndpoint: true}),
-            inovelliExtend.inovelliLight({splitValuesByEndpoint: true}),
+            inovelliExtend.inovelliFan({endpointId: 2, splitValuesByEndpoint: true}),
             inovelliExtend.addCustomClusterInovelli(),
             m.identify(),
         ],
