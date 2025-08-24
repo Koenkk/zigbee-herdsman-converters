@@ -363,6 +363,20 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.smoke(), e.battery_low(), e.battery(), e.test()],
     },
     {
+        zigbeeModel: ["HS2SA-EF-3.0"],
+        model: "HS2SA-EF-3.0",
+        vendor: "Heiman",
+        description: "Smoke detector",
+        fromZigbee: [fz.ias_smoke_alarm_1, fz.battery],
+        toZigbee: [],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg"]);
+            await reporting.batteryPercentageRemaining(endpoint);
+        },
+        exposes: [e.smoke(), e.battery_low(), e.battery(), e.test()],
+    },
+    {
         zigbeeModel: ["GASSensor-N", "GASSensor-N-3.0", "d90d7c61c44d468a8e906ca0841e0a0c"],
         model: "HS3CG",
         vendor: "Heiman",
