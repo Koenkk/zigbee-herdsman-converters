@@ -2309,6 +2309,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE284_myd45weu",
             "_TZE284_oitavov2",
             "_TZE284_2se8efxh",
+            "_TZE200_9cqcpkgb",
         ]),
         model: "TS0601_soil",
         vendor: "Tuya",
