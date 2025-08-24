@@ -2515,7 +2515,11 @@ export const definitions: DefinitionWithExtend[] = [
             inovelliExtend.addCustomClusterInovelli(),
             inovelliExtend.addCustomMMWaveClusterInovelli(),
             m.identify(),
-            m.electricityMeter(),
+            m.electricityMeter({
+                // Current and voltage were removed in version 0.8 of the firmware and expected to be restored in the future
+                current: false,
+                voltage: false,
+            }),
             m.illuminance(),
             m.occupancy(),
         ],
