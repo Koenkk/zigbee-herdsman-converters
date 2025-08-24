@@ -1,5 +1,21 @@
 # Changelog
 
+## [25.8.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.7.0...v25.8.0) (2025-08-24)
+
+
+### Features
+
+* **add:** HS2SA-EF-3.0 https://github.com/Koenkk/zigbee-herdsman-converters/issues/9843 ([4e2760e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4e2760eab8491ac943c5494556b61aacc9bad205))
+* **add:** SLZB-07P7 ([#9842](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9842)) ([cf3c343](https://github.com/Koenkk/zigbee-herdsman-converters/commit/cf3c343d27adbc15c4b1fb29cf3b611760c7c5b0))
+* **add:** T2_GU10 https://github.com/Koenkk/zigbee2mqtt/issues/26182 ([20c2be4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/20c2be457e67abbdac85b3c1b313be40cf6f641e))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3000_ysiog9xi` as Tuya TS011F_plug_2 https://github.com/Koenkk/zigbee2mqtt/issues/28302 ([52040ab](https://github.com/Koenkk/zigbee-herdsman-converters/commit/52040ab4e87bd7329269c189a239116bffedd268))
+* **detect:** Detect `_TZE200_9cqcpkgb` as Tuya TS0601_soil https://github.com/Koenkk/zigbee2mqtt/issues/28342 ([829d736](https://github.com/Koenkk/zigbee-herdsman-converters/commit/829d7367934459f9fe21f7c452ac55d3daf64b21))
+* **detect:** Detect `TZE284_tzreobvu` as Tongou TOQCB2-80 https://github.com/Koenkk/zigbee2mqtt/issues/28348 ([bce585c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/bce585c869b42b4488416944af2c1f540198c44f))
+
 ## [25.7.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.6.0...v25.7.0) (2025-08-22)
 
 
