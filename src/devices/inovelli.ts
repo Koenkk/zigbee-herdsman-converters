@@ -459,7 +459,7 @@ const inovelliExtend = {
         return {
             fromZigbee,
             toZigbee,
-            exposes: [],
+            exposes,
             configure,
             isModernExtend: true,
         } as ModernExtend;
@@ -500,6 +500,7 @@ const inovelliExtend = {
     inovelliFan: ({endpointId, splitValuesByEndpoint = false}: {endpointId: number; splitValuesByEndpoint?: boolean}) => {
         const fromZigbee: Fz.Converter[] = [fzLocal.fan_mode(endpointId), fzLocal.breeze_mode(endpointId)];
         const toZigbee: Tz.Converter[] = [tzLocal.fan_mode(endpointId), tzLocal.breezeMode(endpointId)];
+        const exposes: Expose[] = [exposeBreezeMode()];
         const bindingList = ["genOnOff"];
 
         if (!splitValuesByEndpoint) {
@@ -524,7 +525,7 @@ const inovelliExtend = {
         return {
             fromZigbee,
             toZigbee,
-            exposes: [],
+            exposes,
             configure,
             isModernExtend: true,
         } as ModernExtend;
@@ -2392,15 +2393,9 @@ const exposesListVZM31: Expose[] = [];
 
 const exposesListVZM32: Expose[] = [exposeMMWaveControl()];
 
-const exposesListVZM35: Expose[] = [
-    e.fan().withState("fan_state").withModes(Object.keys(fanModes)),
-    exposeLedEffects(),
-    exposeIndividualLedEffects(),
-    exposeBreezeMode(),
-    exposeLedEffectComplete(),
-];
+const exposesListVZM35: Expose[] = [e.fan().withState("fan_state").withModes(Object.keys(fanModes))];
 
-const exposesListVZM36: Expose[] = [e.light_brightness(), e.fan().withState("fan_state").withModes(Object.keys(fanModes)), exposeBreezeMode()];
+const exposesListVZM36: Expose[] = [e.fan().withState("fan_state").withModes(Object.keys(fanModes))];
 
 // Populate exposes list from the attributes description
 attributesToExposeList(VZM30_ATTRIBUTES, exposesListVZM30);
