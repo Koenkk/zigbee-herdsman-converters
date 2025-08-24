@@ -2478,7 +2478,7 @@ export interface EnumLookupArgs<Cl extends string | number, Custom extends TCust
     name: string;
     lookup: KeyValue;
     description: string;
-    zigbeeCommandOptions?: {manufacturerCode?: number; disableDefaultResponse?: boolean};
+    zigbeeCommandOptions?: {manufacturerCode?: number; profileId?: number; disableDefaultResponse?: boolean};
     access?: "STATE" | "STATE_GET" | "STATE_SET" | "SET" | "ALL";
     endpointName?: string;
     reporting?: ReportingConfigWithoutAttribute;
@@ -2555,7 +2555,7 @@ export interface NumericArgs<Cl extends string | number, Custom extends TCustomC
     extends ClusterWithAttribute<Cl, Custom> {
     name: string;
     description: string;
-    zigbeeCommandOptions?: {manufacturerCode?: number; disableDefaultResponse?: boolean};
+    zigbeeCommandOptions?: {manufacturerCode?: number; profileId?: number; disableDefaultResponse?: boolean};
     access?: "STATE" | "STATE_GET" | "STATE_SET" | "SET" | "ALL";
     unit?: string;
     endpointNames?: string[];
@@ -2692,7 +2692,7 @@ export interface BinaryArgs<Cl extends string | number, Custom extends TCustomCl
     valueOn: [string | boolean, unknown];
     valueOff: [string | boolean, unknown];
     description: string;
-    zigbeeCommandOptions?: {manufacturerCode: number};
+    zigbeeCommandOptions?: {manufacturerCode?: number; profileId?: number};
     endpointName?: string;
     reporting?: false | ReportingConfig<Cl, Custom>;
     access?: "STATE" | "STATE_GET" | "STATE_SET" | "SET" | "ALL";
@@ -2765,7 +2765,7 @@ export interface TextArgs<Cl extends string | number, Custom extends TCustomClus
     extends ClusterWithAttribute<Cl, Custom> {
     name: string;
     description: string;
-    zigbeeCommandOptions?: {manufacturerCode: number};
+    zigbeeCommandOptions?: {manufacturerCode?: number; profileId?: number};
     endpointName?: string;
     reporting?: ReportingConfig<Cl, Custom>;
     access?: "STATE" | "STATE_GET" | "STATE_SET" | "SET" | "ALL";
