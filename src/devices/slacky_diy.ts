@@ -61,7 +61,7 @@ const attrFeaturesSensors = 0xf009;
 const attrDisplayRotate = 0xf00a;
 const attrDisplayInversion = 0xf00b;
 
-const switchFeatures = ["Nothing", "CO2 forced calibration", "CO2 factory reset", "Bind reset", ""];
+const switchFeatures = ["nothing", "co2_forced_calibration", "co2_factory_reset", "bind_reset", ""];
 
 const fzLocal = {
     thermostat_custom_fw: {
@@ -993,9 +993,9 @@ const air_extend = {
                     if (value != null) {
                         const lookup = {
                             Nothing: 0,
-                            "CO2 forced calibration": 1,
-                            "CO2 factory reset": 2,
-                            "Bind reset": 3,
+                            co2_forced_calibration: 1,
+                            co2_factory_reset: 2,
+                            bind_reset: 3,
                         };
 
                         const value_lookup = utils.getFromLookup(value, lookup);
@@ -2036,8 +2036,8 @@ export const definitions: DefinitionWithExtend[] = [
                 unit: "VOC Index points",
                 description: "VOC index",
             }),
-            m.temperature({reporting: {min: 10, max: 3600, change: 10}}),
-            m.humidity({reporting: {min: 10, max: 3600, change: 10}}),
+            m.temperature(),
+            m.humidity(),
             m.pressure(),
             m.illuminance(),
             m.enumLookup({
@@ -2050,7 +2050,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.enumLookup({
                 name: "display_inversion",
-                lookup: {"black on white": 0, "white on black": 1},
+                lookup: {black_on_white: 0, white_on_black: 1},
                 cluster: "hvacUserInterfaceCfg",
                 attribute: {ID: attrDisplayInversion, type: 0x30},
                 reporting: {min: 0, max: 65000, change: 0},
@@ -2097,7 +2097,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "low_co2",
                 cluster: "msCO2",
                 attribute: {ID: 0xf003, type: 0x21},
-                unit: "PPM",
+                unit: "ppm",
                 valueMin: 400,
                 valueMax: 2000,
                 valueStep: 1,
@@ -2107,7 +2107,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "high_co2",
                 cluster: "msCO2",
                 attribute: {ID: 0xf004, type: 0x21},
-                unit: "PPM",
+                unit: "ppm",
                 valueMin: 400,
                 valueMax: 2000,
                 valueStep: 1,
@@ -2163,7 +2163,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msCO2",
                 attribute: {ID: attrCo2Calibration, type: 0x29},
                 reporting: {min: 0, max: 3600, change: 0},
-                unit: "PPM",
+                unit: "ppm",
                 description: "FRC CO2 correction",
             }),
             air_extend.features_sensors(),
@@ -2173,7 +2173,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "genTime",
                 attribute: "time",
                 reporting: {min: 60, max: 3600, change: 0},
-                unit: "Hours",
+                unit: "h",
                 description: "Life time of device",
             }),
         ],
