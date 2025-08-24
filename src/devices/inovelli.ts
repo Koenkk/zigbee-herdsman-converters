@@ -2565,16 +2565,5 @@ export const definitions: DefinitionWithExtend[] = [
             m.identify(),
         ],
         ota: true,
-        // The configure method below is needed to make the device reports on/off state changes
-        // when the device is controlled manually through the button on it.
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff"]);
-            await reporting.onOff(endpoint);
-
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genOnOff"]);
-            await reporting.onOff(endpoint2);
-        },
     },
 ];
