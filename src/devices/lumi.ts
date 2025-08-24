@@ -4387,10 +4387,11 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        zigbeeModel: ["lumi.light.agl003"],
-        model: "T2",
+        zigbeeModel: ["lumi.light.agl003", "lumi.light.agl005"],
+        model: "T2_E27",
         vendor: "Aqara",
         description: "E27 led bulb",
+        whiteLabel: [{model: "T2_GU10", vendor: "Aqara", description: "GU10 led bulb", fingerprint: [{modelID: "lumi.light.agl005"}]}],
         extend: [lumiLight({colorTemp: true, color: true, colorTempRange: [111, 500], powerOutageMemory: "light"}), lumiZigbeeOTA()],
     },
     {
