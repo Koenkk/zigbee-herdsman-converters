@@ -936,7 +936,7 @@ const boschExtend = {
             ON: 0x01,
         };
         const fromZigbee: Fz.Converter[] = [
-            fz.on_off,
+            fz.on_off_force_multiendpoint,
             fz.power_on_behavior,
             fz.cover_position_tilt,
             {
