@@ -1,4 +1,5 @@
 import {Zcl, ZSpec} from "zigbee-herdsman";
+import type {TPartialClusterAttributes} from "zigbee-herdsman/dist/zspec/zcl/definition/clusters-types";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as constants from "../lib/constants";
@@ -971,6 +972,28 @@ const boschExtend = {
 
                     const triggeredSide = command === 0x03 ? "left" : "right";
                     return {action: `${state}_${triggeredSide}`, action_duration: duration};
+                },
+            },
+            {
+                cluster: "genBasic",
+                type: "read",
+                convert: async (model, msg, publish, options, meta) => {
+                    if (utils.hasAlreadyProcessedMessage(msg, model)) {
+                        return;
+                    }
+
+                    // The BMCT-SLZ asks the coordinator for their ZCL version.
+                    // Without any answer, the device will rejoin the network
+                    // every 10 minutes. This signifies an unnecessary strain
+                    // on the network. Additionally, the LED on the device will
+                    // blink during that operation. To avoid that, we mimic the
+                    // answer from the Bosch Smart Home Controller II.
+                    if (msg.data.includes("zclVersion")) {
+                        const payload: TPartialClusterAttributes<"genBasic"> = {
+                            zclVersion: 1,
+                        };
+                        await msg.endpoint.readResponse(msg.cluster, msg.meta.zclTransactionSequenceNumber, payload);
+                    }
                 },
             },
             {
