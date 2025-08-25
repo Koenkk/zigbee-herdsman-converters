@@ -924,6 +924,7 @@ const boschExtend = {
             button_key_change: 0x02,
             rocker_switch: 0x03,
             rocker_switch_key_change: 0x04,
+            none: 0x00,
         };
         const stateSwitchMode = {
             coupled: 0x00,
@@ -2138,6 +2139,7 @@ export const definitions: DefinitionWithExtend[] = [
                 button_key_change: 0x02,
                 rocker_switch: 0x03,
                 rocker_switch_key_change: 0x04,
+                none: 0x00,
             };
             const stateSwitchMode: KeyValue = {
                 coupled: 0x00,
