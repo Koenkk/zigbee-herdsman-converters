@@ -1181,4 +1181,20 @@ export const definitions: DefinitionWithExtend[] = [
             }),
         ],
     },
+    {
+        zigbeeModel: ["OSM-300Z"],
+        model: "OSM-300ZB",
+        vendor: "ShinaSystem",
+        ota: true,
+        description: "SiHAS Motion Sensor",
+        extend: [
+            m.occupancy(),
+            m.battery({
+                voltageToPercentage: {min: 2100, max: 3000},
+                voltage: true,
+                voltageReporting: true,
+                percentageReporting: false,
+            }),
+        ],
+    },
 ];
