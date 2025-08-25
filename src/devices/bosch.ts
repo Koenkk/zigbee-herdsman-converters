@@ -919,6 +919,7 @@ const boschExtend = {
             stopped: 0x00,
             opening: 0x01,
             closing: 0x02,
+            unknown: 0x04,
         };
         const stateSwitchType = {
             button: 0x01,
@@ -2110,14 +2111,42 @@ export const definitions: DefinitionWithExtend[] = [
                     switchMode: {ID: 0x0031, type: Zcl.DataType.UINT8},
                     calibrationOpeningTime: {ID: 0x0002, type: Zcl.DataType.UINT32},
                     calibrationClosingTime: {ID: 0x0003, type: Zcl.DataType.UINT32},
+                    // 0x0005 isn't used at all when using the Bosch SHC as of 30-06-2025.
                     calibrationButtonHoldTime: {ID: 0x0005, type: Zcl.DataType.UINT8},
                     autoOffEnabled: {ID: 0x0006, type: Zcl.DataType.BOOLEAN},
                     autoOffTime: {ID: 0x0007, type: Zcl.DataType.UINT16},
                     childLock: {ID: 0x0008, type: Zcl.DataType.BOOLEAN},
+                    // See comment on calibrationNewMotorStartDelay
                     calibrationMotorStartDelay: {ID: 0x000f, type: Zcl.DataType.UINT8},
+                    calibrationMotorReverseDirection: {ID: 0x0032, type: Zcl.DataType.BOOLEAN},
                     motorState: {ID: 0x0013, type: Zcl.DataType.ENUM8},
+                    // unknownAttributeOne is always being configured as reporting
+                    // attribute on endpoint 1 when using the Bosch SHC.
+                    unknownAttributeOne: {ID: 0x0004, type: Zcl.DataType.BITMAP8},
+                    // Attribute is being set to 255 when deactivating the automatic
+                    // detection of the motor end position by the Bosch SHC. After
+                    // activating the automatic end position detection it's being set
+                    // to 0 by the Bosch SHC. Apart from that, there's no way to manually
+                    // change the value.
+                    calibrationMotorEndPosition: {ID: 0x0021, type: Zcl.DataType.UINT8},
+                    // 0x0033 is used when setting the motor start delay manually
+                    // using the Bosch SHC as of 30-06-2025. Looks like 0x000f is being
+                    // discontinued _OR_ being set automatically during calibration
+                    // as it's always set to 0 when changing the calibrationOpeningTime
+                    // and calibrationClosingTime manually over the Bosch app.
+                    // I couldn't find any way to set 0x000f manually in the Bosch app.
+                    // If the user wants to automatically detect the delay during
+                    // calibration, it's being set to 0 over the Bosch app.
+                    calibrationNewMotorStartDelay: {ID: 0x0033, type: Zcl.DataType.UINT16},
                 },
-                commands: {},
+                commands: {
+                    // Command being sent by the Bosch SHC when starting an
+                    // automatic shutter calibration.
+                    startAutomaticMotorCalibration: {ID: 0x00, parameters: []},
+                    // Command being sent by the Bosch SHC when resetting the
+                    // energy meter readings on light control mode.
+                    resetElectricityMeterReadings: {ID: 0x80, parameters: []},
+                },
                 commandsResponse: {},
             }),
             boschExtend.bmct(),
