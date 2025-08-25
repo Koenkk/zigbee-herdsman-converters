@@ -149,6 +149,7 @@ interface BoschSpecificBmct {
     attributes: {
         deviceMode: number;
         switchType: number;
+        switchMode: number;
         calibrationOpeningTime: number;
         calibrationClosingTime: number;
         calibrationButtonHoldTime: number;
@@ -922,6 +923,12 @@ const boschExtend = {
             rocker_switch: 0x03,
             rocker_switch_key_change: 0x04,
         };
+        const stateSwitchMode = {
+            coupled: 0x00,
+            decoupled: 0x01,
+            only_short_press_decoupled: 0x02,
+            only_long_press_decoupled: 0x03,
+        };
         const stateOffOn = {
             OFF: 0x00,
             ON: 0x01,
@@ -930,6 +937,39 @@ const boschExtend = {
             fz.on_off,
             fz.power_on_behavior,
             fz.cover_position_tilt,
+            {
+                cluster: "boschSpecific",
+                type: ["raw"],
+                convert: (model, msg, publish, options, meta) => {
+                    const command = msg.data[4];
+
+                    if (command !== 0x03 && command !== 0x04) {
+                        return;
+                    }
+
+                    let state: string;
+                    const status = msg.data[5];
+                    const duration = msg.data[6] / 10;
+
+                    switch (status) {
+                        case 0:
+                            state = "press_released";
+                            break;
+                        case 1:
+                            state = duration !== 0 ? "hold" : "hold_released";
+                            break;
+                        case 2:
+                            state = "closed";
+                            break;
+                        case 3:
+                            state = "opened";
+                            break;
+                    }
+
+                    const triggeredSide = command === 0x03 ? "left" : "right";
+                    return {action: `${state}_${triggeredSide}`, action_duration: duration};
+                },
+            },
             {
                 cluster: "boschSpecific",
                 type: ["attributeReport", "readResponse"],
@@ -949,6 +989,12 @@ const boschExtend = {
                     if (data.switchType !== undefined) {
                         result.switch_type = Object.keys(stateSwitchType).find(
                             (key) => stateSwitchType[key as keyof typeof stateSwitchType] === msg.data.switchType,
+                        );
+                    }
+                    if (data.switchMode !== undefined) {
+                        const property = utils.postfixWithEndpointName("switch_mode", msg, model, meta);
+                        result[property] = Object.keys(stateSwitchMode).find(
+                            (key) => stateSwitchMode[key as keyof typeof stateSwitchMode] === msg.data.switchMode,
                         );
                     }
                     if (data.calibrationOpeningTime !== undefined) {
@@ -980,7 +1026,7 @@ const boschExtend = {
             tz.power_on_behavior,
             tz.cover_position_tilt,
             {
-                key: ["device_mode", "switch_type", "child_lock", "state", "on_time", "off_wait_time"],
+                key: ["device_mode", "switch_type", "switch_mode", "child_lock", "state", "on_time", "off_wait_time"],
                 convertSet: async (entity, key, value, meta) => {
                     if (key === "state") {
                         if ("ID" in entity && entity.ID === 1) {
@@ -1005,6 +1051,11 @@ const boschExtend = {
                         await entity.write<"boschSpecific", BoschSpecificBmct>("boschSpecific", {switchType: index});
                         return {state: {switch_type: value}};
                     }
+                    if (key === "switch_mode") {
+                        const index = utils.getFromLookup(value, stateSwitchMode);
+                        await entity.write<"boschSpecific", BoschSpecificBmct>("boschSpecific", {switchMode: index});
+                        return {state: {switch_mode: value}};
+                    }
                     if (key === "child_lock") {
                         const index = utils.getFromLookup(value, stateOffOn);
                         await entity.write<"boschSpecific", BoschSpecificBmct>("boschSpecific", {childLock: index});
@@ -1025,6 +1076,9 @@ const boschExtend = {
                             break;
                         case "switch_type":
                             await entity.read<"boschSpecific", BoschSpecificBmct>("boschSpecific", ["switchType"]);
+                            break;
+                        case "switch_mode":
+                            await entity.read<"boschSpecific", BoschSpecificBmct>("boschSpecific", ["switchMode"]);
                             break;
                         case "child_lock":
                             await entity.read<"boschSpecific", BoschSpecificBmct>("boschSpecific", ["childLock"]);
@@ -2015,6 +2069,7 @@ export const definitions: DefinitionWithExtend[] = [
                 attributes: {
                     deviceMode: {ID: 0x0000, type: Zcl.DataType.ENUM8},
                     switchType: {ID: 0x0001, type: Zcl.DataType.ENUM8},
+                    switchMode: {ID: 0x0031, type: Zcl.DataType.UINT8},
                     calibrationOpeningTime: {ID: 0x0002, type: Zcl.DataType.UINT32},
                     calibrationClosingTime: {ID: 0x0003, type: Zcl.DataType.UINT32},
                     calibrationButtonHoldTime: {ID: 0x0005, type: Zcl.DataType.UINT8},
@@ -2068,14 +2123,41 @@ export const definitions: DefinitionWithExtend[] = [
                 rocker_switch: 0x03,
                 rocker_switch_key_change: 0x04,
             };
+            const stateSwitchMode: KeyValue = {
+                coupled: 0x00,
+                decoupled: 0x01,
+                only_short_press_decoupled: 0x02,
+                only_long_press_decoupled: 0x03,
+            };
             const commonExposes = [
                 e.enum("switch_type", ea.ALL, Object.keys(stateSwitchType)).withDescription("Module controlled by a rocker switch or a button"),
+                e.action([
+                    "press_released_left",
+                    "press_released_right",
+                    "hold_left",
+                    "hold_right",
+                    "hold_released_left",
+                    "hold_released_right",
+                    "opened_left",
+                    "opened_right",
+                    "closed_left",
+                    "closed_right",
+                ]),
+                e.action_duration(),
             ];
             const lightExposes = [
                 e.switch().withEndpoint("left"),
                 e.switch().withEndpoint("right"),
                 e.power_on_behavior().withEndpoint("left"),
                 e.power_on_behavior().withEndpoint("right"),
+                e
+                    .enum("switch_mode", ea.ALL, Object.keys(stateSwitchMode))
+                    .withEndpoint("left")
+                    .withDescription("Decouple the switch from the corresponding output to use it for other purposes."),
+                e
+                    .enum("switch_mode", ea.ALL, Object.keys(stateSwitchMode))
+                    .withEndpoint("right")
+                    .withDescription("Decouple the switch from the corresponding output to use it for other purposes."),
                 e.binary("child_lock", ea.ALL, "ON", "OFF").withEndpoint("left").withDescription("Enable/Disable child lock"),
                 e.binary("child_lock", ea.ALL, "ON", "OFF").withEndpoint("right").withDescription("Enable/Disable child lock"),
             ];
@@ -2083,6 +2165,13 @@ export const definitions: DefinitionWithExtend[] = [
                 e.cover_position(),
                 e.enum("motor_state", ea.STATE, Object.keys(stateMotor)).withDescription("Current shutter motor state"),
                 e.binary("child_lock", ea.ALL, "ON", "OFF").withDescription("Enable/Disable child lock"),
+                e
+                    .enum(
+                        "switch_mode",
+                        ea.ALL,
+                        Object.keys(stateSwitchMode).filter((switchMode) => switchMode === "coupled" || switchMode === "only_long_press_decoupled"),
+                    )
+                    .withDescription("Decouple the switch from the corresponding output to use it for other purposes."),
                 e
                     .numeric("calibration_closing_time", ea.ALL)
                     .withUnit("s")
