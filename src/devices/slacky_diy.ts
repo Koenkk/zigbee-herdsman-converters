@@ -351,7 +351,7 @@ const tzLocal = {
         key: ["schedule_mode"],
         convertSet: async (entity, key, value, meta) => {
             //utils.assertNumber(value);
-            const lookup = {Off: 0, "5+2": 1, "6+1": 2, "7": 3};
+            const lookup = {off: 0, "5+2": 1, "6+1": 2, "7": 3};
             await entity.write("hvacThermostat", {[attrThermScheduleMode]: {value: utils.getFromLookup(value, lookup), type: 0x30}});
             return {state: {schedule_mode: value}};
         },
@@ -992,7 +992,7 @@ const air_extend = {
                     const value = (rawValue as any).features;
                     if (value != null) {
                         const lookup = {
-                            Nothing: 0,
+                            nothing: 0,
                             co2_forced_calibration: 1,
                             co2_factory_reset: 2,
                             bind_reset: 3,
