@@ -343,7 +343,7 @@ const inovelliExtend = {
                 },
                 ledEffectComplete: {
                     ID: 0x24,
-                    parameters: [{name: "notificationType", type: Zcl.DataType.UINT8}],
+                    parameters: [{name: "notificationType", type: Zcl.DataType.INT8}],
                 },
             },
             commandsResponse: {},
