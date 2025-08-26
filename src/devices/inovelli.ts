@@ -399,6 +399,12 @@ const inovelliExtend = {
         const toZigbee: Tz.Converter[] = [];
         const exposes: Expose[] = [];
 
+        if (supportsLedEffects) {
+            fromZigbee.push(fzLocal.led_effect_complete);
+            toZigbee.push(tzLocal.inovelli_led_effect, tzLocal.inovelli_individual_led_effect);
+            exposes.push(exposeLedEffects(), exposeIndividualLedEffects(), exposeLedEffectComplete());
+        }
+
         for (const attr of attrs) {
             fromZigbee.push(fzLocal.inovelli(attr.attributes, attr.clusterName, splitValuesByEndpoint));
             toZigbee.push(
@@ -406,12 +412,6 @@ const inovelliExtend = {
                 tzLocal.inovelli_parameters_readOnly(attr.attributes, attr.clusterName),
             );
             attributesToExposeList(attr.attributes, exposes);
-        }
-
-        if (supportsLedEffects) {
-            fromZigbee.push(fzLocal.led_effect_complete);
-            toZigbee.push(tzLocal.inovelli_led_effect, tzLocal.inovelli_individual_led_effect);
-            exposes.push(exposeLedEffects(), exposeIndividualLedEffects(), exposeLedEffectComplete());
         }
 
         if (supportsButtonTaps) {
@@ -1981,7 +1981,7 @@ const tzLocal = {
                 ...meta,
                 message: {
                     ...meta.message,
-                    transition: (!transition.specified ? 0xffff : Math.round(transition.time)) / 10,
+                    transition: (!transition.specified ? 0xffff : transition.time) / 10,
                 },
                 converterOptions: {
                     ctrlbits: 0,
