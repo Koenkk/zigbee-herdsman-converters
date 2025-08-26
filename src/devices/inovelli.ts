@@ -2451,7 +2451,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.identify(),
             m.temperature(),
             m.humidity(),
-            m.electricityMeter(),
+            m.electricityMeter({energy: {divisor: 1000}}),
         ],
         ota: true,
     },
@@ -2509,6 +2509,7 @@ export const definitions: DefinitionWithExtend[] = [
                 // Current and voltage were removed in version 0.8 of the firmware and expected to be restored in the future
                 current: false,
                 voltage: false,
+                energy: {divisor: 1000},
             }),
             m.illuminance(),
             m.occupancy(),
