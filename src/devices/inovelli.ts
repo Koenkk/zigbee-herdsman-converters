@@ -387,10 +387,12 @@ const inovelliExtend = {
     inovelliDevice: ({
         attrs,
         supportsLedEffects,
+        supportsButtonTaps,
         splitValuesByEndpoint = false,
     }: {
         attrs: Array<{attributes: {[s: string]: Attribute}; clusterName: typeof INOVELLI_CLUSTER_NAME | typeof INOVELLI_MMWAVE_CLUSTER_NAME}>;
         supportsLedEffects?: boolean;
+        supportsButtonTaps: boolean;
         splitValuesByEndpoint?: boolean;
     }) => {
         const fromZigbee: Fz.Converter[] = [];
@@ -403,12 +405,17 @@ const inovelliExtend = {
                 tzLocal.inovelli_parameters(attr.attributes, attr.clusterName),
                 tzLocal.inovelli_parameters_readOnly(attr.attributes, attr.clusterName),
             );
+            attributesToExposeList(attr.attributes, exposes);
         }
 
         if (supportsLedEffects) {
             fromZigbee.push(fzLocal.led_effect_complete);
             toZigbee.push(tzLocal.inovelli_led_effect, tzLocal.inovelli_individual_led_effect);
             exposes.push(exposeLedEffects(), exposeIndividualLedEffects(), exposeLedEffectComplete());
+        }
+
+        if (supportsButtonTaps) {
+            exposes.push(e.action(BUTTON_TAP_SEQUENCES));
         }
 
         const configure: Configure[] = [
@@ -484,13 +491,13 @@ const inovelliExtend = {
         return {
             fromZigbee,
             toZigbee: [
+                tz.on_off,
                 tzLocal.light_onoff_brightness_inovelli,
                 tz.power_on_behavior,
                 tz.ignore_transition,
                 tz.light_brightness_move,
                 tz.light_brightness_step,
                 tz.level_config,
-                tz.on_off,
             ],
             exposes: [e.light_brightness()],
             configure,
@@ -500,7 +507,7 @@ const inovelliExtend = {
     inovelliFan: ({endpointId, splitValuesByEndpoint = false}: {endpointId: number; splitValuesByEndpoint?: boolean}) => {
         const fromZigbee: Fz.Converter[] = [fzLocal.fan_mode(endpointId), fzLocal.breeze_mode(endpointId)];
         const toZigbee: Tz.Converter[] = [tzLocal.fan_mode(endpointId), tzLocal.breezeMode(endpointId)];
-        const exposes: Expose[] = [exposeBreezeMode()];
+        const exposes: Expose[] = [e.fan().withState("fan_state").withModes(Object.keys(FAN_MODES)), exposeBreezeMode()];
         const bindingList = ["genOnOff"];
 
         if (!splitValuesByEndpoint) {
@@ -532,8 +539,8 @@ const inovelliExtend = {
     },
 };
 
-const fanModes: {[key: string]: number} = {off: 0, low: 2, smart: 4, medium: 86, high: 170, on: 255};
-const breezemodes: string[] = ["off", "low", "medium", "high"];
+const FAN_MODES: {[key: string]: number} = {off: 0, low: 2, smart: 4, medium: 86, high: 170, on: 255};
+const BREEZE_MODES: string[] = ["off", "low", "medium", "high"];
 const LED_NOTIFICATION_TYPES: {[key: number]: string} = {
     0: "LED_1",
     1: "LED_2",
@@ -578,13 +585,13 @@ interface BreezeModeValues {
 // Converts brightness level to a fan mode
 const intToFanMode = (value: number) => {
     let selectedMode = "low";
-    if (value >= fanModes.low) {
+    if (value >= FAN_MODES.low) {
         selectedMode = "low";
     }
-    if (value >= fanModes.medium) {
+    if (value >= FAN_MODES.medium) {
         selectedMode = "medium";
     }
-    if (value >= fanModes.high) {
+    if (value >= FAN_MODES.high) {
         selectedMode = "high";
     }
     if (value === 4) {
@@ -1997,7 +2004,7 @@ const tzLocal = {
                     "genLevelCtrl",
                     "moveToLevelWithOnOff",
                     {
-                        level: fanModes[value],
+                        level: FAN_MODES[value],
                         transtime: 0xffff,
                     },
                     utils.getOptions(meta.mapped, entity),
@@ -2245,11 +2252,11 @@ const fzLocal = {
                     if (msg.data.breeze_mode !== undefined) {
                         const bitmasks = [3, 60, 192, 3840, 12288, 245760, 786432, 15728640, 50331648, 1006632960];
                         const raw = msg.data.breeze_mode;
-                        const s1 = breezemodes[raw & bitmasks[0]];
-                        const s2 = breezemodes[(raw & bitmasks[2]) / 64];
-                        const s3 = breezemodes[(raw & bitmasks[4]) / 4096];
-                        const s4 = breezemodes[(raw & bitmasks[6]) / 262144];
-                        const s5 = breezemodes[(raw & bitmasks[8]) / 16777216];
+                        const s1 = BREEZE_MODES[raw & bitmasks[0]];
+                        const s2 = BREEZE_MODES[(raw & bitmasks[2]) / 64];
+                        const s3 = BREEZE_MODES[(raw & bitmasks[4]) / 4096];
+                        const s4 = BREEZE_MODES[(raw & bitmasks[6]) / 262144];
+                        const s5 = BREEZE_MODES[(raw & bitmasks[8]) / 16777216];
 
                         const d1 = ((raw & bitmasks[1]) / 4) * 5;
                         const d2 = ((raw & bitmasks[3]) / 256) * 5;
@@ -2387,26 +2394,7 @@ const exposeLedEffectComplete = () => {
         .withCategory("diagnostic");
 };
 
-const exposesListVZM30: Expose[] = [];
-
-const exposesListVZM31: Expose[] = [];
-
-const exposesListVZM32: Expose[] = [exposeMMWaveControl()];
-
-const exposesListVZM35: Expose[] = [e.fan().withState("fan_state").withModes(Object.keys(fanModes))];
-
-const exposesListVZM36: Expose[] = [e.fan().withState("fan_state").withModes(Object.keys(fanModes))];
-
-// Populate exposes list from the attributes description
-attributesToExposeList(VZM30_ATTRIBUTES, exposesListVZM30);
-attributesToExposeList(VZM31_ATTRIBUTES, exposesListVZM31);
-attributesToExposeList(VZM32_ATTRIBUTES, exposesListVZM32);
-attributesToExposeList(VZM32_MMWAVE_ATTRIBUTES, exposesListVZM32);
-attributesToExposeList(VZM35_ATTRIBUTES, exposesListVZM35);
-attributesToExposeList(VZM36_ATTRIBUTES, exposesListVZM36);
-
-// Put actions at the bottom of ui
-const buttonTapSequences = [
+const BUTTON_TAP_SEQUENCES = [
     "down_single",
     "up_single",
     "config_single",
@@ -2430,11 +2418,6 @@ const buttonTapSequences = [
     "config_quintuple",
 ];
 
-exposesListVZM30.push(e.action(buttonTapSequences));
-exposesListVZM31.push(e.action(buttonTapSequences));
-exposesListVZM32.push(e.action(buttonTapSequences));
-exposesListVZM35.push(e.action(buttonTapSequences));
-
 /*
  * Inovelli devices have a huge number of attributes. Calling endpoint.read() in a single call
  * for all attributes causes timeouts even with the timeout set to an absurdly high number (2 minutes)
@@ -2453,14 +2436,17 @@ export const definitions: DefinitionWithExtend[] = [
         model: "VZM30-SN",
         vendor: "Inovelli",
         description: "On/off switch",
-        exposes: exposesListVZM30,
         extend: [
             m.deviceEndpoints({
                 endpoints: {"1": 1, "2": 2, "3": 3, "4": 4},
                 multiEndpointSkip: ["state", "voltage", "power", "current", "energy", "brightness", "temperature", "humidity"],
             }),
-            inovelliExtend.inovelliDevice({attrs: [{attributes: VZM30_ATTRIBUTES, clusterName: INOVELLI_CLUSTER_NAME}], supportsLedEffects: true}),
             inovelliExtend.inovelliLight(),
+            inovelliExtend.inovelliDevice({
+                attrs: [{attributes: VZM30_ATTRIBUTES, clusterName: INOVELLI_CLUSTER_NAME}],
+                supportsLedEffects: true,
+                supportsButtonTaps: true,
+            }),
             inovelliExtend.addCustomClusterInovelli(),
             m.identify(),
             m.temperature(),
@@ -2474,14 +2460,17 @@ export const definitions: DefinitionWithExtend[] = [
         model: "VZM31-SN",
         vendor: "Inovelli",
         description: "2-in-1 switch + dimmer",
-        exposes: exposesListVZM31,
         extend: [
             m.deviceEndpoints({
                 endpoints: {"1": 1, "2": 2, "3": 3},
                 multiEndpointSkip: ["state", "power", "energy", "brightness"],
             }),
-            inovelliExtend.inovelliDevice({attrs: [{attributes: VZM31_ATTRIBUTES, clusterName: INOVELLI_CLUSTER_NAME}], supportsLedEffects: true}),
             inovelliExtend.inovelliLight(),
+            inovelliExtend.inovelliDevice({
+                attrs: [{attributes: VZM31_ATTRIBUTES, clusterName: INOVELLI_CLUSTER_NAME}],
+                supportsLedEffects: true,
+                supportsButtonTaps: true,
+            }),
             inovelliExtend.addCustomClusterInovelli(),
             m.identify(),
             m.electricityMeter({
@@ -2498,20 +2487,21 @@ export const definitions: DefinitionWithExtend[] = [
         model: "VZM32-SN",
         vendor: "Inovelli",
         description: "mmWave Zigbee Dimmer",
-        exposes: exposesListVZM32,
+        exposes: [exposeMMWaveControl()],
         extend: [
             m.deviceEndpoints({
                 endpoints: {"1": 1, "2": 2, "3": 3},
                 multiEndpointSkip: ["state", "voltage", "power", "current", "energy", "brightness", "illuminance", "occupancy"],
             }),
+            inovelliExtend.inovelliLight(),
             inovelliExtend.inovelliDevice({
                 attrs: [
                     {attributes: VZM32_ATTRIBUTES, clusterName: INOVELLI_CLUSTER_NAME},
                     {attributes: VZM32_MMWAVE_ATTRIBUTES, clusterName: INOVELLI_MMWAVE_CLUSTER_NAME},
                 ],
                 supportsLedEffects: true,
+                supportsButtonTaps: true,
             }),
-            inovelliExtend.inovelliLight(),
             inovelliExtend.addCustomClusterInovelli(),
             inovelliExtend.addCustomMMWaveClusterInovelli(),
             m.identify(),
@@ -2531,13 +2521,13 @@ export const definitions: DefinitionWithExtend[] = [
         model: "VZM35-SN",
         vendor: "Inovelli",
         description: "Fan controller",
-        exposes: exposesListVZM35,
         extend: [
+            inovelliExtend.inovelliFan({endpointId: 1}),
             inovelliExtend.inovelliDevice({
                 attrs: [{attributes: VZM35_ATTRIBUTES, clusterName: INOVELLI_CLUSTER_NAME}],
                 supportsLedEffects: true,
+                supportsButtonTaps: true,
             }),
-            inovelliExtend.inovelliFan({endpointId: 1}),
             inovelliExtend.addCustomClusterInovelli(),
             m.identify(),
         ],
@@ -2552,15 +2542,15 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: [
             tzLocal.vzm36_fan_on_off, // Need to use VZM36 specific converter
         ],
-        exposes: exposesListVZM36,
         extend: [
+            inovelliExtend.inovelliLight({splitValuesByEndpoint: true}),
+            inovelliExtend.inovelliFan({endpointId: 2, splitValuesByEndpoint: true}),
             inovelliExtend.inovelliDevice({
                 attrs: [{attributes: VZM36_ATTRIBUTES, clusterName: INOVELLI_CLUSTER_NAME}],
                 supportsLedEffects: false,
                 splitValuesByEndpoint: true,
+                supportsButtonTaps: false,
             }),
-            inovelliExtend.inovelliLight({splitValuesByEndpoint: true}),
-            inovelliExtend.inovelliFan({endpointId: 2, splitValuesByEndpoint: true}),
             inovelliExtend.addCustomClusterInovelli(),
             m.identify(),
         ],
