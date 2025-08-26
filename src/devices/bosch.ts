@@ -148,6 +148,14 @@ interface TwinguardAlarm {
     commandResponses: never;
 }
 
+interface BoschSeMetering {
+    attributes: never;
+    commands: {
+        resetEnergyReading: Record<string, never>;
+    };
+    commandResponses: never;
+}
+
 interface BoschSpecificBmct {
     attributes: {
         deviceMode: number;
@@ -449,6 +457,44 @@ const boschExtend = {
         ];
         return {
             fromZigbee,
+            isModernExtend: true,
+        };
+    },
+    seMeteringCluster: () =>
+        m.deviceAddCustomCluster("seMetering", {
+            ID: Zcl.Clusters.seMetering.ID,
+            attributes: {},
+            commands: {
+                resetEnergyReading: {
+                    ID: 0x80,
+                    parameters: [],
+                },
+            },
+            commandsResponse: {},
+        }),
+    resetEnergyReading: (): ModernExtend => {
+        const exposes: Expose[] = [
+            e
+                .enum("reset_energy_reading", ea.SET, ["reset"])
+                .withDescription("Triggers the reset of the energy reading to 0 kWh.")
+                .withCategory("config"),
+        ];
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ["reset_energy_reading"],
+                convertSet: async (entity, key, value, meta) => {
+                    await entity.command<"seMetering", "resetEnergyReading", BoschSeMetering>(
+                        "seMetering",
+                        "resetEnergyReading",
+                        {},
+                        manufacturerOptions,
+                    );
+                },
+            },
+        ];
+        return {
+            exposes,
+            toZigbee,
             isModernExtend: true,
         };
     },
@@ -2166,13 +2212,12 @@ export const definitions: DefinitionWithExtend[] = [
                     // Command being sent by the Bosch SHC when starting an
                     // automatic shutter calibration.
                     startAutomaticMotorCalibration: {ID: 0x00, parameters: []},
-                    // Command being sent by the Bosch SHC when resetting the
-                    // energy meter readings on light control mode.
-                    resetElectricityMeterReadings: {ID: 0x80, parameters: []},
                 },
                 commandsResponse: {},
             }),
             boschExtend.bmct(),
+            boschExtend.seMeteringCluster(),
+            boschExtend.resetEnergyReading(),
         ],
         ota: true,
         configure: async (device, coordinatorEndpoint) => {
