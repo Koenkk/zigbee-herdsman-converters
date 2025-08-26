@@ -983,12 +983,14 @@ const boschExtend = {
                         return;
                     }
 
-                    // The BMCT-SLZ asks the coordinator for their ZCL version.
-                    // Without any answer, the device will rejoin the network
-                    // every 10 minutes. This signifies an unnecessary strain
-                    // on the network. Additionally, the LED on the device will
-                    // blink during that operation. To avoid that, we mimic the
-                    // answer from the Bosch Smart Home Controller II.
+                    // During pairing, the BMCT-SLZ asks the coordinator for
+                    // their ZCL version. As Z2M doesn't know the ZCL version of
+                    // the device yet, the request is left unanswered. This
+                    // triggers the device to rejoin the network every 10 minutes,
+                    // which signifies an unnecessary strain on the network.
+                    // Additionally, the LED on the device will blink during that
+                    // operation. To avoid that, we mimic the answer from
+                    // the Bosch Smart Home Controller II.
                     if (msg.data.includes("zclVersion")) {
                         const payload: TPartialClusterAttributes<"genBasic"> = {
                             zclVersion: 1,
