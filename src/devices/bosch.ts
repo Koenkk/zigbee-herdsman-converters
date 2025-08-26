@@ -157,7 +157,7 @@ interface BoschSpecificBmct {
         calibrationClosingTime: number;
         calibrationButtonHoldTime: number;
         childLock: number;
-        autoOffEnabled: boolean;
+        autoOffEnabled: number;
         autoOffTime: number;
         calibrationMotorStartDelay: number;
         motorState: number;
@@ -1026,6 +1026,10 @@ const boschExtend = {
                             (key) => stateMotor[key as keyof typeof stateMotor] === msg.data.motorState,
                         );
                     }
+                    if (data.autoOffEnabled !== undefined) {
+                        const property = utils.postfixWithEndpointName("auto_off_enabled", msg, model, meta);
+                        result[property] = msg.data.autoOffEnabled === 1 ? "ON" : "OFF";
+                    }
                     if (data.autoOffTime !== undefined) {
                         const property = utils.postfixWithEndpointName("auto_off_time", msg, model, meta);
                         result[property] = msg.data.autoOffTime / 60;
@@ -1038,7 +1042,17 @@ const boschExtend = {
             tz.power_on_behavior,
             tz.cover_position_tilt,
             {
-                key: ["device_mode", "switch_type", "switch_mode", "child_lock", "state", "on_time", "off_wait_time", "auto_off_time"],
+                key: [
+                    "device_mode",
+                    "switch_type",
+                    "switch_mode",
+                    "child_lock",
+                    "state",
+                    "on_time",
+                    "off_wait_time",
+                    "auto_off_enabled",
+                    "auto_off_time",
+                ],
                 convertSet: async (entity, key, value, meta) => {
                     if (key === "state") {
                         if ("ID" in entity && entity.ID === 1) {
@@ -1073,8 +1087,12 @@ const boschExtend = {
                         await entity.write<"boschSpecific", BoschSpecificBmct>("boschSpecific", {childLock: index});
                         return {state: {child_lock: value}};
                     }
+                    if (key === "auto_off_enabled") {
+                        const index = utils.getFromLookup(value, stateOffOn);
+                        await entity.write<"boschSpecific", BoschSpecificBmct>("boschSpecific", {autoOffEnabled: index});
+                        return {state: {auto_off_enabled: value}};
+                    }
                     if (key === "auto_off_time" && typeof value === "number") {
-                        await entity.write<"boschSpecific", BoschSpecificBmct>("boschSpecific", {autoOffEnabled: value > 0});
                         await entity.write<"boschSpecific", BoschSpecificBmct>("boschSpecific", {autoOffTime: value * 60});
                         return {state: {auto_off_time: value}};
                     }
@@ -1099,6 +1117,9 @@ const boschExtend = {
                             break;
                         case "child_lock":
                             await entity.read<"boschSpecific", BoschSpecificBmct>("boschSpecific", ["childLock"]);
+                            break;
+                        case "auto_off_enabled":
+                            await entity.read<"boschSpecific", BoschSpecificBmct>("boschSpecific", ["autoOffEnabled"]);
                             break;
                         case "auto_off_time":
                             await entity.read<"boschSpecific", BoschSpecificBmct>("boschSpecific", ["autoOffTime"]);
@@ -2164,13 +2185,23 @@ export const definitions: DefinitionWithExtend[] = [
                 await reporting.bind(endpoint2, coordinatorEndpoint, ["genIdentify", "genOnOff", "boschSpecific"]);
                 await reporting.onOff(endpoint2);
                 await endpoint2.read<"genOnOff">("genOnOff", ["onOff", "startUpOnOff"]);
-                await endpoint2.read<"boschSpecific", BoschSpecificBmct>("boschSpecific", ["switchMode", "childLock", "autoOffTime"]);
+                await endpoint2.read<"boschSpecific", BoschSpecificBmct>("boschSpecific", [
+                    "switchMode",
+                    "childLock",
+                    "autoOffEnabled",
+                    "autoOffTime",
+                ]);
 
                 const endpoint3 = device.getEndpoint(3);
                 await reporting.bind(endpoint3, coordinatorEndpoint, ["genIdentify", "genOnOff", "boschSpecific"]);
                 await reporting.onOff(endpoint3);
                 await endpoint3.read<"genOnOff">("genOnOff", ["onOff", "startUpOnOff"]);
-                await endpoint3.read<"boschSpecific", BoschSpecificBmct>("boschSpecific", ["switchMode", "childLock", "autoOffTime"]);
+                await endpoint3.read<"boschSpecific", BoschSpecificBmct>("boschSpecific", [
+                    "switchMode",
+                    "childLock",
+                    "autoOffEnabled",
+                    "autoOffTime",
+                ]);
             };
 
             const shutterConfiguration = async () => {
@@ -2248,18 +2279,30 @@ export const definitions: DefinitionWithExtend[] = [
                 e
                     .enum("switch_mode", ea.ALL, Object.keys(stateSwitchMode))
                     .withEndpoint("left")
-                    .withDescription("Decouple the switch from the corresponding output to use it for other purposes."),
+                    .withDescription(
+                        "Decouple the switch from the corresponding output to use it for other purposes. Please keep in mind that not all options may work depending on your switch type.",
+                    ),
                 e
                     .enum("switch_mode", ea.ALL, Object.keys(stateSwitchMode))
                     .withEndpoint("right")
-                    .withDescription("Decouple the switch from the corresponding output to use it for other purposes."),
+                    .withDescription(
+                        "Decouple the switch from the corresponding output to use it for other purposes. Please keep in mind that not all options may work depending on your switch type.",
+                    ),
+                e
+                    .binary("auto_off_enabled", ea.ALL, "ON", "OFF")
+                    .withEndpoint("left")
+                    .withDescription("Enable/Disable the automatic turn-off feature"),
+                e
+                    .binary("auto_off_enabled", ea.ALL, "ON", "OFF")
+                    .withEndpoint("right")
+                    .withDescription("Enable/Disable the automatic turn-off feature"),
                 e
                     .numeric("auto_off_time", ea.ALL)
                     .withValueMin(0)
                     .withValueMax(720)
                     .withValueStep(1)
                     .withUnit("min")
-                    .withDescription("Always turn off the output after a specific amount of time. Set to 0 to disable the automatic turn-off.")
+                    .withDescription("Turn off the output after the specified amount of time. Only in action when the automatic turn-off is enabled.")
                     .withEndpoint("left"),
                 e
                     .numeric("auto_off_time", ea.ALL)
@@ -2267,7 +2310,7 @@ export const definitions: DefinitionWithExtend[] = [
                     .withValueMax(720)
                     .withValueStep(1)
                     .withUnit("min")
-                    .withDescription("Always turn off the output after a specific amount of time. Set to 0 to disable the automatic turn-off.")
+                    .withDescription("Turn off the output after the specified amount of time. Only in action when the automatic turn-off is enabled.")
                     .withEndpoint("right"),
                 e.binary("child_lock", ea.ALL, "ON", "OFF").withEndpoint("left").withDescription("Enable/Disable child lock"),
                 e.binary("child_lock", ea.ALL, "ON", "OFF").withEndpoint("right").withDescription("Enable/Disable child lock"),
@@ -2282,7 +2325,9 @@ export const definitions: DefinitionWithExtend[] = [
                         ea.ALL,
                         Object.keys(stateSwitchMode).filter((switchMode) => switchMode === "coupled" || switchMode === "only_long_press_decoupled"),
                     )
-                    .withDescription("Decouple the switch from the corresponding output to use it for other purposes."),
+                    .withDescription(
+                        "Decouple the switch from the corresponding output to use it for other purposes. Please keep in mind that not all options may work depending on your switch type.",
+                    ),
                 e
                     .numeric("calibration_closing_time", ea.ALL)
                     .withUnit("s")
