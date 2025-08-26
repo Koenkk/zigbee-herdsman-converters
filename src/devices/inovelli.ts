@@ -550,7 +550,7 @@ const LED_NOTIFICATION_TYPES: {[key: number]: string} = {
     5: "LED_6",
     6: "LED_7",
     16: "ALL_LEDS",
-    255: "CONFIG_BUTTON_DOUBLE_PRESS",
+    "-1": "CONFIG_BUTTON_DOUBLE_PRESS",
 };
 
 const INOVELLI = 0x122f;
@@ -2389,7 +2389,7 @@ const exposeMMWaveControl = () => {
 
 const exposeLedEffectComplete = () => {
     return e
-        .enum("notificationComplete", ea.STATE_GET, Object.values(LED_NOTIFICATION_TYPES))
+        .enum("notificationComplete", ea.STATE, Object.values(LED_NOTIFICATION_TYPES))
         .withDescription("Indication that a specific notification has completed.")
         .withCategory("diagnostic");
 };
