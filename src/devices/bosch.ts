@@ -976,30 +976,6 @@ const boschExtend = {
                 },
             },
             {
-                cluster: "genBasic",
-                type: "read",
-                convert: async (model, msg, publish, options, meta) => {
-                    if (utils.hasAlreadyProcessedMessage(msg, model)) {
-                        return;
-                    }
-
-                    // During pairing, the BMCT-SLZ asks the coordinator for
-                    // their ZCL version. As Z2M doesn't know the ZCL version of
-                    // the device yet, the request is left unanswered. This
-                    // triggers the device to rejoin the network every 10 minutes,
-                    // which signifies an unnecessary strain on the network.
-                    // Additionally, the LED on the device will blink during that
-                    // operation. To avoid that, we mimic the answer from
-                    // the Bosch Smart Home Controller II.
-                    if (msg.data.includes("zclVersion")) {
-                        const payload: TPartialClusterAttributes<"genBasic"> = {
-                            zclVersion: 1,
-                        };
-                        await msg.endpoint.readResponse(msg.cluster, msg.meta.zclTransactionSequenceNumber, payload);
-                    }
-                },
-            },
-            {
                 cluster: "boschSpecific",
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
@@ -2302,6 +2278,39 @@ export const definitions: DefinitionWithExtend[] = [
                 }
             }
             return [e.enum("device_mode", ea.ALL, Object.keys(stateDeviceMode)).withDescription("Device mode")];
+        },
+        onEvent: (event) => {
+            if (event.type !== "deviceInterview") {
+                return;
+            }
+
+            // During interview, the Bosch BMCT-SLZ is requesting
+            // the zclVersion attribute from the coordinator. As
+            // Z2M doesn't know the zclVersion of the device yet,
+            // the request is left unanswered. This makes the device
+            // believe it dropped out of network every 10 minutes which
+            // not only generates unnecessary network congestion, but
+            // makes the LED on the device blink during that sequence
+            // as well. To prevent that, we have to manually answer
+            // the zclVersion request at the earliest possible stage
+            // and mimic the answer from the Bosch SHC II.
+            event.data.device.customReadResponse = (frame, endpoint) => {
+                const isZclVersionRequest = frame.isCluster("genBasic") && frame.payload.find((i: {attrId: number}) => i.attrId === 0);
+
+                if (!isZclVersionRequest) {
+                    return false;
+                }
+
+                const payload: TPartialClusterAttributes<"genBasic"> = {
+                    zclVersion: 1,
+                };
+
+                endpoint.readResponse(frame.cluster.name, frame.header.transactionSequenceNumber, payload).catch((e) => {
+                    logger.warning(`Custom zclVersion response failed for '${event.data.device.ieeeAddr}': ${e}`, NS);
+                });
+
+                return true;
+            };
         },
     },
     {
