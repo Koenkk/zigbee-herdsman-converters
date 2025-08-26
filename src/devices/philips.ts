@@ -3177,7 +3177,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 454]}})],
     },
     {
-        zigbeeModel: ["5633030P6", "929003046501"],
+        zigbeeModel: ["5633030P6", "929003046501", "929003811201"],
         model: "5633030P6",
         vendor: "Philips",
         description: "Hue White ambiance Pillar spotlamp",
