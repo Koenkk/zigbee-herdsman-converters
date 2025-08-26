@@ -3,10 +3,12 @@ import type {TPartialClusterAttributes} from "zigbee-herdsman/dist/zspec/zcl/def
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as constants from "../lib/constants";
+import {repInterval} from "../lib/constants";
 import * as exposes from "../lib/exposes";
 import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
+import {payload} from "../lib/reporting";
 import * as globalStore from "../lib/store";
 import type {DefinitionWithExtend, Expose, Fz, KeyValue, ModernExtend, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
@@ -2131,27 +2133,50 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         ota: true,
         configure: async (device, coordinatorEndpoint) => {
+            const lightConfiguration = async () => {
+                const endpoint1 = device.getEndpoint(1);
+                await reporting.bind(endpoint1, coordinatorEndpoint, ["genIdentify"]);
+                await endpoint1.read<"boschSpecific", BoschSpecificBmct>("boschSpecific", ["switchType"]);
+
+                const endpoint2 = device.getEndpoint(2);
+                await reporting.bind(endpoint2, coordinatorEndpoint, ["genIdentify", "genOnOff", "boschSpecific"]);
+                await reporting.onOff(endpoint2);
+                await endpoint2.read<"genOnOff">("genOnOff", ["onOff", "startUpOnOff"]);
+                await endpoint2.read<"boschSpecific", BoschSpecificBmct>("boschSpecific", ["switchMode", "childLock", "autoOffTime"]);
+
+                const endpoint3 = device.getEndpoint(3);
+                await reporting.bind(endpoint3, coordinatorEndpoint, ["genIdentify", "genOnOff", "boschSpecific"]);
+                await reporting.onOff(endpoint3);
+                await endpoint3.read<"genOnOff">("genOnOff", ["onOff", "startUpOnOff"]);
+                await endpoint3.read<"boschSpecific", BoschSpecificBmct>("boschSpecific", ["switchMode", "childLock", "autoOffTime"]);
+            };
+
+            const shutterConfiguration = async () => {
+                const endpoint1 = device.getEndpoint(1);
+                await reporting.bind(endpoint1, coordinatorEndpoint, ["genIdentify", "closuresWindowCovering", "boschSpecific"]);
+                await reporting.currentPositionLiftPercentage(endpoint1);
+                await endpoint1.read<"closuresWindowCovering">("closuresWindowCovering", ["currentPositionLiftPercentage"]);
+
+                const payloadMotorState = payload<"boschSpecific", BoschSpecificBmct>("motorState", 0, repInterval.MAX, 0);
+                await endpoint1.configureReporting("boschSpecific", payloadMotorState);
+
+                await endpoint1.read<"boschSpecific", BoschSpecificBmct>("boschSpecific", [
+                    "switchType",
+                    "switchMode",
+                    "motorState",
+                    "calibrationOpeningTime",
+                    "calibrationClosingTime",
+                    "calibrationButtonHoldTime",
+                    "calibrationMotorStartDelay",
+                    "childLock",
+                ]);
+            };
+
             const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genIdentify", "closuresWindowCovering", "boschSpecific"]);
-            await reporting.currentPositionLiftPercentage(endpoint1);
-            await endpoint1.read<"boschSpecific", BoschSpecificBmct>("boschSpecific", [
-                "deviceMode",
-                "switchType",
-                "motorState",
-                "childLock",
-                "calibrationOpeningTime",
-                "calibrationClosingTime",
-                "calibrationButtonHoldTime",
-                "calibrationMotorStartDelay",
-            ]);
-            const endpoint2 = device.getEndpoint(2);
-            await endpoint2.read<"boschSpecific", BoschSpecificBmct>("boschSpecific", ["childLock"]);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genIdentify", "genOnOff"]);
-            await reporting.onOff(endpoint2);
-            const endpoint3 = device.getEndpoint(3);
-            await endpoint3.read<"boschSpecific", BoschSpecificBmct>("boschSpecific", ["childLock"]);
-            await reporting.bind(endpoint3, coordinatorEndpoint, ["genIdentify", "genOnOff"]);
-            await reporting.onOff(endpoint3);
+            await endpoint1.read<"boschSpecific", BoschSpecificBmct>("boschSpecific", ["deviceMode"]);
+
+            await lightConfiguration();
+            await shutterConfiguration();
         },
         exposes: (device, options) => {
             const stateDeviceMode: KeyValue = {
