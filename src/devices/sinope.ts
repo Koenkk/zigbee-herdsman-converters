@@ -27,7 +27,7 @@ const fzLocal = {
                 tamper: (zoneStatus & (1 << 2)) > 0,
             };
         },
-    } satisfies Fz.Converter<"ssIasZone">,
+    } satisfies Fz.Converter<"ssIasZone", undefined, ["commandStatusChangeNotification", "attributeReport", "readResponse"]>,
     thermostat: {
         cluster: "hvacThermostat",
         type: ["attributeReport", "readResponse"],
@@ -108,7 +108,7 @@ const fzLocal = {
             }
             return result;
         },
-    } satisfies Fz.Converter<"hvacThermostat">,
+    } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
     tank_level: {
         cluster: "genAnalogInput",
         type: ["attributeReport", "readResponse"],
@@ -139,7 +139,7 @@ const fzLocal = {
             }
             return result;
         },
-    } satisfies Fz.Converter<"genAnalogInput">,
+    } satisfies Fz.Converter<"genAnalogInput", undefined, ["attributeReport", "readResponse"]>,
     sinope: {
         cluster: "manuSpecificSinope",
         type: ["attributeReport", "readResponse"],
@@ -244,7 +244,7 @@ const fzLocal = {
             }
             return result;
         },
-    } satisfies Fz.Converter<"manuSpecificSinope">,
+    } satisfies Fz.Converter<"manuSpecificSinope", undefined, ["attributeReport", "readResponse"]>,
 };
 const tzLocal = {
     thermostat_occupancy: {

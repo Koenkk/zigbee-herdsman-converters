@@ -46,7 +46,7 @@ const pushokExtend = {
                     }
                     return {};
                 },
-            } satisfies Fz.Converter<"msTemperatureMeasurement">,
+            } satisfies Fz.Converter<"msTemperatureMeasurement", undefined, ["attributeReport", "readResponse"]>,
         ];
         const toZigbee: Tz.Converter[] = [];
         return {

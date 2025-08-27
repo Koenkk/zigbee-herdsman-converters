@@ -40,7 +40,7 @@ const fzLocal = {
             const temperature = Number.parseFloat(msg.data.measuredValue) / 100.0;
             return {temperature};
         },
-    } satisfies Fz.Converter<"msTemperatureMeasurement">,
+    } satisfies Fz.Converter<"msTemperatureMeasurement", undefined, ["attributeReport", "readResponse"]>,
     occupancy_level: {
         cluster: "msOccupancySensing",
         type: ["readResponse", "attributeReport"],
@@ -49,7 +49,7 @@ const fzLocal = {
                 return {occupancy_level: msg.data.sprutOccupancyLevel};
             }
         },
-    } satisfies Fz.Converter<"msOccupancySensing">,
+    } satisfies Fz.Converter<"msOccupancySensing", undefined, ["readResponse", "attributeReport"]>,
     voc: {
         cluster: "sprutVoc",
         type: ["readResponse", "attributeReport"],
@@ -58,7 +58,7 @@ const fzLocal = {
                 return {voc: msg.data.voc};
             }
         },
-    } satisfies Fz.Converter<"sprutVoc">,
+    } satisfies Fz.Converter<"sprutVoc", undefined, ["readResponse", "attributeReport"]>,
     noise: {
         cluster: "sprutNoise",
         type: ["readResponse", "attributeReport"],
@@ -67,7 +67,7 @@ const fzLocal = {
                 return {noise: msg.data.noise.toFixed(2)};
             }
         },
-    } satisfies Fz.Converter<"sprutNoise">,
+    } satisfies Fz.Converter<"sprutNoise", undefined, ["readResponse", "attributeReport"]>,
     noise_detected: {
         cluster: "sprutNoise",
         type: ["readResponse", "attributeReport"],
@@ -76,35 +76,35 @@ const fzLocal = {
                 return {noise_detected: msg.data.noiseDetected === 1};
             }
         },
-    } satisfies Fz.Converter<"sprutNoise">,
+    } satisfies Fz.Converter<"sprutNoise", undefined, ["readResponse", "attributeReport"]>,
     occupancy_timeout: {
         cluster: "msOccupancySensing",
         type: ["readResponse", "attributeReport"],
         convert: (model, msg, publish, options, meta) => {
             return {occupancy_timeout: msg.data.pirOToUDelay};
         },
-    } satisfies Fz.Converter<"msOccupancySensing">,
+    } satisfies Fz.Converter<"msOccupancySensing", undefined, ["readResponse", "attributeReport"]>,
     noise_timeout: {
         cluster: "sprutNoise",
         type: ["readResponse", "attributeReport"],
         convert: (model, msg, publish, options, meta) => {
             return {noise_timeout: msg.data.noiseAfterDetectDelay};
         },
-    } satisfies Fz.Converter<"sprutNoise">,
+    } satisfies Fz.Converter<"sprutNoise", undefined, ["readResponse", "attributeReport"]>,
     occupancy_sensitivity: {
         cluster: "msOccupancySensing",
         type: ["readResponse", "attributeReport"],
         convert: (model, msg, publish, options, meta) => {
             return {occupancy_sensitivity: msg.data.sprutOccupancySensitivity};
         },
-    } satisfies Fz.Converter<"msOccupancySensing">,
+    } satisfies Fz.Converter<"msOccupancySensing", undefined, ["readResponse", "attributeReport"]>,
     noise_detect_level: {
         cluster: "sprutNoise",
         type: ["readResponse", "attributeReport"],
         convert: (model, msg, publish, options, meta) => {
             return {noise_detect_level: msg.data.noiseDetectLevel};
         },
-    } satisfies Fz.Converter<"sprutNoise">,
+    } satisfies Fz.Converter<"sprutNoise", undefined, ["readResponse", "attributeReport"]>,
     co2_mh_z19b_config: {
         cluster: "msCO2",
         type: ["attributeReport", "readResponse"],
@@ -116,7 +116,7 @@ const fzLocal = {
                 return {co2_manual_calibration: switchActionValues[msg.data.sprutCO2Calibration]};
             }
         },
-    } satisfies Fz.Converter<"msCO2">,
+    } satisfies Fz.Converter<"msCO2", undefined, ["attributeReport", "readResponse"]>,
     th_heater: {
         cluster: "msRelativeHumidity",
         type: ["attributeReport", "readResponse"],
@@ -125,7 +125,7 @@ const fzLocal = {
                 return {th_heater: switchActionValues[msg.data.sprutHeater]};
             }
         },
-    } satisfies Fz.Converter<"msRelativeHumidity">,
+    } satisfies Fz.Converter<"msRelativeHumidity", undefined, ["attributeReport", "readResponse"]>,
 };
 
 const tzLocal = {

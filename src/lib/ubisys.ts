@@ -310,7 +310,7 @@ export const ubisysModernExtend = {
                         return {[propertyName]: msg.data.occupancy === 0};
                     }
                 },
-            } satisfies Fz.Converter<typeof clusterName>,
+            } satisfies Fz.Converter<typeof clusterName, undefined, ["attributeReport", "readResponse"]>,
         ];
 
         const toZigbee: Tz.Converter[] = [

@@ -49,7 +49,7 @@ export function sengledSwitchAction(): ModernExtend {
                 }
                 return {action: lookup[msg.data[5]]}; // Just output the data from the above lookup list
             },
-        } satisfies Fz.Converter<64528>,
+        } satisfies Fz.Converter<64528, undefined, ["raw"]>,
     ];
 
     return {exposes, fromZigbee, isModernExtend: true};

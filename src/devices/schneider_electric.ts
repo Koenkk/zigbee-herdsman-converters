@@ -1,4 +1,5 @@
 import {Zcl} from "zigbee-herdsman";
+import {GpdAttributeReport} from "zigbee-herdsman/dist/zspec/zcl/definition/tstype";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as constants from "../lib/constants";
@@ -442,8 +443,8 @@ const fzLocal = {
 
             switch (commandID) {
                 case 0xa1: {
-                    const attr = msg.data.commandFrame.attributes;
-                    const clusterID = msg.data.commandFrame.clusterID;
+                    const attr = (msg.data.commandFrame as GpdAttributeReport).attributes;
+                    const clusterID = (msg.data.commandFrame as GpdAttributeReport).clusterID;
 
                     switch (clusterID) {
                         case 2820: {
@@ -581,7 +582,7 @@ const fzLocal = {
 
             return ret;
         },
-    } satisfies Fz.Converter<"greenPower">,
+    } satisfies Fz.Converter<"greenPower", undefined, ["commandNotification", "commandCommissioningNotification"]>,
 };
 
 export const definitions: DefinitionWithExtend[] = [

@@ -46,7 +46,7 @@ const fzLocal = {
             const measuredValue = Number(buffer[7]) * 256 + Number(buffer[6]);
             return {illuminance: measuredValue === 0 ? 0 : Math.round(10 ** ((measuredValue - 1) / 10000))};
         },
-    } satisfies Fz.Converter<"msIlluminanceMeasurement">,
+    } satisfies Fz.Converter<"msIlluminanceMeasurement", undefined, "raw">,
     TS0225: {
         cluster: "manuSpecificTuya2",
         type: ["attributeReport"],
@@ -72,7 +72,7 @@ const fzLocal = {
             }
             return result;
         },
-    } satisfies Fz.Converter<"manuSpecificTuya2">,
+    } satisfies Fz.Converter<"manuSpecificTuya2", undefined, ["attributeReport"]>,
 };
 
 export const definitions: DefinitionWithExtend[] = [

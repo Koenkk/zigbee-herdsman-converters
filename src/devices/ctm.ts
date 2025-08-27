@@ -25,7 +25,7 @@ const fzLocal = {
 
             return result;
         },
-    } satisfies Fz.Converter<"genOnOff">,
+    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
     ctm_device_mode: {
         cluster: "genOnOff",
         type: ["attributeReport", "readResponse"],
@@ -39,7 +39,7 @@ const fzLocal = {
 
             return result;
         },
-    } satisfies Fz.Converter<"genOnOff">,
+    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
     ctm_device_enabled: {
         cluster: "genOnOff",
         type: ["attributeReport", "readResponse"],
@@ -52,7 +52,7 @@ const fzLocal = {
 
             return result;
         },
-    } satisfies Fz.Converter<"genOnOff">,
+    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
     ctm_child_lock: {
         cluster: "genOnOff",
         type: ["attributeReport", "readResponse"],
@@ -65,7 +65,7 @@ const fzLocal = {
 
             return result;
         },
-    } satisfies Fz.Converter<"genOnOff">,
+    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
     ctm_current_flag: {
         cluster: "genOnOff",
         type: ["attributeReport", "readResponse"],
@@ -78,7 +78,7 @@ const fzLocal = {
 
             return result;
         },
-    } satisfies Fz.Converter<"genOnOff">,
+    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
     ctm_relay_state: {
         cluster: "genOnOff",
         type: ["attributeReport", "readResponse"],
@@ -91,7 +91,7 @@ const fzLocal = {
 
             return result;
         },
-    } satisfies Fz.Converter<"genOnOff">,
+    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
     ctm_thermostat: {
         cluster: "hvacThermostat",
         type: ["attributeReport", "readResponse"],
@@ -166,7 +166,7 @@ const fzLocal = {
             }
             if (data[0x0409] !== undefined) {
                 // Floor temp
-                result.floor_temp = utils.precisionRound(data[0x0409], 2) / 100;
+                result.floor_temp = utils.precisionRound(data[0x0409] as number, 2) / 100;
             }
             if (data.elkoExternalTemp !== undefined) {
                 // External temp (floor)
@@ -263,7 +263,7 @@ const fzLocal = {
 
             return result;
         },
-    } satisfies Fz.Converter<"hvacThermostat">,
+    } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
     ctm_group_config: {
         cluster: "65191", // 0xFEA7 ctmGroupConfig
         type: ["attributeReport", "readResponse"],
@@ -276,7 +276,7 @@ const fzLocal = {
 
             return result;
         },
-    } satisfies Fz.Converter<"65191">,
+    } satisfies Fz.Converter<"65191", undefined, ["attributeReport", "readResponse"]>,
     ctm_sove_guard: {
         cluster: "65481", // 0xFFC9 ctmSoveGuard
         type: ["attributeReport", "readResponse"],
@@ -399,7 +399,7 @@ const fzLocal = {
 
             return result;
         },
-    } satisfies Fz.Converter<"65481">,
+    } satisfies Fz.Converter<"65481", undefined, ["attributeReport", "readResponse"]>,
     ctm_water_leak_alarm: {
         cluster: "ssIasZone",
         type: ["commandStatusChangeNotification", "attributeReport"],
@@ -411,7 +411,7 @@ const fzLocal = {
                 battery_low: (zoneStatus & (1 << 3)) > 0,
             };
         },
-    } satisfies Fz.Converter<"ssIasZone">,
+    } satisfies Fz.Converter<"ssIasZone", undefined, ["commandStatusChangeNotification", "attributeReport"]>,
 };
 
 const tzLocal = {

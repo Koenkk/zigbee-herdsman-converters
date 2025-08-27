@@ -28,7 +28,13 @@ const kmpcilOptions = {
     },
 };
 
-function handleKmpcilPresence(model: DefinitionWithExtend, msg: Fz.Message, publish: Publish, options: KeyValue, meta: Fz.Meta): KeyValue {
+function handleKmpcilPresence(
+    model: DefinitionWithExtend,
+    msg: Fz.Message<"genBinaryInput" | "genPowerCfg", undefined, ["attributeReport", "readResponse"]>,
+    publish: Publish,
+    options: KeyValue,
+    meta: Fz.Meta,
+): KeyValue {
     const useOptionsTimeoutBattery = options?.presence_timeout_battery != null;
     const timeoutBattery = useOptionsTimeoutBattery ? options.presence_timeout_battery : 420; // 100 seconds by default
 
@@ -60,7 +66,7 @@ const kmpcilConverters = {
             }
             return payload;
         },
-    } satisfies Fz.Converter<"genBinaryInput">,
+    } satisfies Fz.Converter<"genBinaryInput", undefined, ["attributeReport", "readResponse"]>,
     presence_power: {
         cluster: "genPowerCfg",
         type: ["attributeReport", "readResponse"],
@@ -76,7 +82,7 @@ const kmpcilConverters = {
             }
             return payload;
         },
-    } satisfies Fz.Converter<"genPowerCfg">,
+    } satisfies Fz.Converter<"genPowerCfg", undefined, ["attributeReport", "readResponse"]>,
 };
 
 export const definitions: DefinitionWithExtend[] = [

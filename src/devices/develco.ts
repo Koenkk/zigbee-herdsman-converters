@@ -43,7 +43,7 @@ const develco = {
                     msg.endpoint.saveClusterAttributeKeyValue("seMetering", {divisor: 1000, multiplier: 1});
                 }
             },
-        } satisfies Fz.Converter<"seMetering">,
+        } satisfies Fz.Converter<"seMetering", undefined, ["attributeReport"]>,
         // Some Develco devices report strange values sometimes
         // https://github.com/Koenkk/zigbee2mqtt/issues/13329
         electrical_measurement: {
@@ -53,7 +53,7 @@ const develco = {
                     return fz.electrical_measurement.convert(model, msg, publish, options, meta);
                 }
             },
-        } satisfies Fz.Converter<"haElectricalMeasurement">,
+        } satisfies Fz.Converter<"haElectricalMeasurement", undefined, ["attributeReport", "readResponse"]>,
         total_power: {
             cluster: "haElectricalMeasurement",
             type: ["attributeReport", "readResponse"],
@@ -67,15 +67,16 @@ const develco = {
                 }
                 return result;
             },
-        } satisfies Fz.Converter<"haElectricalMeasurement">,
+        } satisfies Fz.Converter<"haElectricalMeasurement", undefined, ["attributeReport", "readResponse"]>,
         metering: {
             ...fz.metering,
             convert: (model, msg, publish, options, meta) => {
+                // TODO: ??
                 if (msg.data.instantaneousDemand !== -0x800000 && msg.data.currentSummDelivered?.[1] !== 0) {
                     return fz.metering.convert(model, msg, publish, options, meta);
                 }
             },
-        } satisfies Fz.Converter<"seMetering">,
+        } satisfies Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]>,
         pulse_configuration: {
             cluster: "seMetering",
             type: ["attributeReport", "readResponse"],
@@ -87,7 +88,7 @@ const develco = {
 
                 return result;
             },
-        } satisfies Fz.Converter<"seMetering">,
+        } satisfies Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]>,
         interface_mode: {
             cluster: "seMetering",
             type: ["attributeReport", "readResponse"],
@@ -106,7 +107,7 @@ const develco = {
 
                 return result;
             },
-        } satisfies Fz.Converter<"seMetering">,
+        } satisfies Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]>,
         fault_status: {
             cluster: "genBinaryInput",
             type: ["attributeReport", "readResponse"],
@@ -121,7 +122,7 @@ const develco = {
                 }
                 return result;
             },
-        } satisfies Fz.Converter<"genBinaryInput">,
+        } satisfies Fz.Converter<"genBinaryInput", undefined, ["attributeReport", "readResponse"]>,
         led_control: {
             cluster: "genBasic",
             type: ["attributeReport", "readResponse"],
@@ -134,7 +135,7 @@ const develco = {
 
                 return state;
             },
-        } satisfies Fz.Converter<"genBasic">,
+        } satisfies Fz.Converter<"genBasic", DevelcoGenBasic, ["attributeReport", "readResponse"]>,
         ias_occupancy_timeout: {
             cluster: "ssIasZone",
             type: ["attributeReport", "readResponse"],
@@ -147,7 +148,7 @@ const develco = {
 
                 return state;
             },
-        } satisfies Fz.Converter<"ssIasZone">,
+        } satisfies Fz.Converter<"ssIasZone", undefined, ["attributeReport", "readResponse"]>,
         input: {
             cluster: "genBinaryInput",
             type: ["attributeReport", "readResponse"],
@@ -159,7 +160,7 @@ const develco = {
                 }
                 return result;
             },
-        } satisfies Fz.Converter<"genBinaryInput">,
+        } satisfies Fz.Converter<"genBinaryInput", undefined, ["attributeReport", "readResponse"]>,
     },
     tz: {
         pulse_configuration: {

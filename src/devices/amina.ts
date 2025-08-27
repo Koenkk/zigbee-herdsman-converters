@@ -76,7 +76,7 @@ const fzLocal = {
                 });
             }
         },
-    } satisfies Fz.Converter<"haElectricalMeasurement">,
+    } satisfies Fz.Converter<"haElectricalMeasurement", undefined, ["attributeReport"]>,
     ev_status: {
         cluster: "aminaControlCluster",
         type: ["attributeReport", "readResponse"],
@@ -114,7 +114,7 @@ const fzLocal = {
                 return result;
             }
         },
-    } satisfies Fz.Converter<"aminaControlCluster">,
+    } satisfies Fz.Converter<"aminaControlCluster", AminaControlCluster, ["attributeReport", "readResponse"]>,
     alarms: {
         cluster: "aminaControlCluster",
         type: ["attributeReport", "readResponse"],
@@ -132,7 +132,7 @@ const fzLocal = {
                 return result;
             }
         },
-    } satisfies Fz.Converter<"aminaControlCluster">,
+    } satisfies Fz.Converter<"aminaControlCluster", AminaControlCluster, ["attributeReport", "readResponse"]>,
 };
 
 const tzLocal = {

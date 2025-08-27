@@ -219,7 +219,7 @@ const orviboSwitchRewiring = (args: OrviboSwitchRewiringArgs): ModernExtend => {
                 }
                 return payload;
             },
-        } satisfies Fz.Converter<"genScenes">,
+        } satisfies Fz.Converter<"genScenes", undefined, "commandRecall">,
     ];
 
     const onEvent: OnEvent.Handler[] = [
@@ -291,7 +291,7 @@ const orviboSwitchPowerOnBehavior = (): ModernExtend => {
                 }
                 return result;
             },
-        } satisfies Fz.Converter<"manuSpecificOrvibo2">,
+        } satisfies Fz.Converter<"manuSpecificOrvibo2", Orvibo2, ["readResponse"]>,
     ];
     const toZigbee: Tz.Converter[] = [
         {

@@ -49,7 +49,7 @@ const fzLocal = {
             }
             return result;
         },
-    } satisfies Fz.Converter<"hvacThermostat">,
+    } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
 };
 
 const tzLocal = {

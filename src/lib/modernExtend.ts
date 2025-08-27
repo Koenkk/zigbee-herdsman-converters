@@ -335,7 +335,7 @@ export function linkQuality(args: LinkQualityArgs = {}): ModernExtend {
             convert: (model, msg, publish, options, meta) => {
                 return {linkquality: msg.linkquality};
             },
-        } satisfies Fz.Converter<"genBasic">,
+        } satisfies Fz.Converter<"genBasic", undefined, ["attributeReport", "readResponse"]>,
     ];
 
     const result: ModernExtend = {exposes, fromZigbee, isModernExtend: true};
@@ -438,7 +438,7 @@ export function battery(args: BatteryArgs = {}): ModernExtend {
 
                 return payload;
             },
-        } satisfies Fz.Converter<"genPowerCfg">,
+        } satisfies Fz.Converter<"genPowerCfg", undefined, ["attributeReport", "readResponse"]>,
     ];
 
     const toZigbee: Tz.Converter[] = [
@@ -646,7 +646,7 @@ export function commandsOnOff(args: CommandsOnOffArgs = {}): ModernExtend {
                 addActionGroup(payload, msg, model);
                 return payload;
             },
-        } satisfies Fz.Converter<"genOnOff">,
+        } satisfies Fz.Converter<"genOnOff", undefined, ["commandOn", "commandOff", "commandOffWithEffect", "commandToggle"]>,
     ];
 
     const result: ModernExtend = {exposes, fromZigbee, isModernExtend: true};
@@ -716,7 +716,7 @@ export function writeTimeDaily(args: {endpointId: number}): ModernExtend {
 }
 
 export function iasArmCommandDefaultResponse(): ModernExtend {
-    const converter: Fz.Converter<"ssIasAce"> = {
+    const converter: Fz.Converter<"ssIasAce", undefined, ["commandArm"]> = {
         cluster: "ssIasAce",
         type: ["commandArm"],
         convert: (model, msg, publish, options, meta) => {
@@ -732,7 +732,7 @@ export function iasArmCommandDefaultResponse(): ModernExtend {
 }
 
 export function iasGetPanelStatusResponse(): ModernExtend {
-    const converter: Fz.Converter<"ssIasAce"> = {
+    const converter: Fz.Converter<"ssIasAce", undefined, ["commandGetPanelStatus"]> = {
         cluster: "ssIasAce",
         type: ["commandGetPanelStatus"],
         convert: (model, msg, publish, options, meta) => {
@@ -744,6 +744,7 @@ export function iasGetPanelStatusResponse(): ModernExtend {
                     alarmstatus: 0x00,
                 };
                 msg.endpoint
+                    // TODO using wrong arg msg.meta
                     .commandResponse("ssIasAce", "getPanelStatusRsp", payload, {}, msg.data.meta.zclTransactionSequenceNumber)
                     .catch((error) => logger.error(`Failed to send panel status response '${msg.device.ieeeAddr}' (${error})`, NS));
             }
@@ -822,7 +823,7 @@ export function illuminance(args: Partial<NumericArgs<"msIlluminanceMeasurement"
                 return {illuminance_raw: msg.data.measuredValue};
             }
         },
-    } satisfies Fz.Converter<"msIlluminanceMeasurement">;
+    } satisfies Fz.Converter<"msIlluminanceMeasurement", undefined, ["attributeReport", "readResponse"]>;
     result.fromZigbee.push(fzIlluminanceRaw);
     const exposeIlluminanceRaw: DefinitionExposes = (device, options) => {
         return options?.illuminance_raw ? [e.illuminance_raw()] : [];
@@ -1174,12 +1175,8 @@ export function light(args: LightArgs = {}): ModernExtend {
 
     const lightExpose = exposeEndpoints(e.light().withBrightness(), endpointNames);
 
-    const fromZigbee: Fz.Converter<"genBasic" | "genOnOff" | "genLevelCtrl" | "lightingColorCtrl">[] = [
-        fz.on_off,
-        fz.brightness,
-        fz.ignore_basic_report,
-        fz.level_config,
-    ];
+    const fromZigbee: Fz.Converter<"genBasic" | "genOnOff" | "genLevelCtrl" | "lightingColorCtrl", undefined, ["attributeReport", "readResponse"]>[] =
+        [fz.on_off, fz.brightness, fz.ignore_basic_report, fz.level_config];
     const toZigbee: Tz.Converter[] = [
         endpointNames ? {...tz.light_onoff_brightness, endpoints: endpointNames} : tz.light_onoff_brightness,
         tz.ignore_transition,
@@ -1573,7 +1570,7 @@ export function commandsWindowCovering(args: CommandsWindowCoveringArgs = {}): M
                 addActionGroup(payload, msg, model);
                 return payload;
             },
-        } satisfies Fz.Converter<"closuresWindowCovering">,
+        } satisfies Fz.Converter<"closuresWindowCovering", undefined, ["commandUpOpen", "commandDownClose", "commandStop"]>,
     ];
 
     const result: ModernExtend = {exposes, fromZigbee, isModernExtend: true};
@@ -1766,7 +1763,7 @@ export function iasZoneAlarm(args: IasArgs): ModernExtend {
                     return payload;
                 }
             },
-        } satisfies Fz.Converter<"ssIasZone">,
+        } satisfies Fz.Converter<"ssIasZone", undefined, ["commandStatusChangeNotification", "attributeReport", "readResponse"]>,
     ];
 
     let configure: Configure[];
@@ -1858,7 +1855,8 @@ interface MeterArgs {
     extendedStatus?: boolean;
     configureReporting?: boolean;
     endpointNames?: string[];
-    fzMetering?: Fz.Converter<"seMetering">;
+    // biome-ignore lint/suspicious/noExplicitAny: generic
+    fzMetering?: Fz.Converter<"seMetering", any, any>;
     // applies only to electrical
     electricalMeasurementType?: "both" | "ac" | "dc";
     voltage?: false | (MultiplierDivisor & Partial<ReportingConfigWithoutAttribute>);
@@ -1867,7 +1865,8 @@ interface MeterArgs {
     producedEnergy?: false | true | (MultiplierDivisor & Partial<ReportingConfigWithoutAttribute>);
     acFrequency?: false | true | (MultiplierDivisor & Partial<ReportingConfigWithoutAttribute>);
     powerFactor?: boolean;
-    fzElectricalMeasurement?: Fz.Converter<"haElectricalMeasurement">;
+    // biome-ignore lint/suspicious/noExplicitAny: generic
+    fzElectricalMeasurement?: Fz.Converter<"haElectricalMeasurement", any, any>;
 }
 function genericMeter(args: MeterArgs = {}) {
     if (args.cluster !== "electrical") {
@@ -1904,7 +1903,7 @@ function genericMeter(args: MeterArgs = {}) {
     }
 
     let exposes: Numeric[] = [];
-    let fromZigbee: Fz.Converter<"seMetering" | "haElectricalMeasurement">[];
+    let fromZigbee: Fz.Converter<"seMetering" | "haElectricalMeasurement", undefined, ["attributeReport", "readResponse"]>[];
     let toZigbee: Tz.Converter[];
 
     const changeLookup: Record<MeterType, {power: number; energy: number}> = {
@@ -2404,14 +2403,14 @@ export function genericGreenPower(): ModernExtend {
                 if (commandID >= 0xe0) return; // Skip op commands
 
                 const gpdfCommandStr = GPDF_COMMANDS[commandID];
-                const payloadBuf = msg.data.commandFrame.raw as Buffer | undefined;
+                const payloadBuf = "raw" in msg.data.commandFrame ? msg.data.commandFrame.raw : undefined;
 
                 return {
                     action: gpdfCommandStr ?? `unknown_${commandID}`,
                     payload: payloadBuf?.length > 0 ? Array.from(payloadBuf) : [],
                 };
             },
-        } satisfies Fz.Converter<"greenPower">,
+        } satisfies Fz.Converter<"greenPower", undefined, ["commandNotification", "commandCommissioningNotification"]>,
     ];
 
     return {exposes, fromZigbee, isModernExtend: true};
@@ -2455,7 +2454,7 @@ export function commandsScenes(args: CommandsScenesArgs = {}) {
                 addActionGroup(payload, msg, model);
                 return payload;
             },
-        } satisfies Fz.Converter<"genScenes">,
+        } satisfies Fz.Converter<"genScenes", undefined, ["commandRecall", "commandStore", "commandAdd", "commandRemove", "commandRemoveAll"]>,
     ];
 
     const result: ModernExtend = {exposes: exposesArray, fromZigbee, isModernExtend: true};
@@ -2513,7 +2512,7 @@ export function enumLookup<Cl extends string | number, Custom extends TCustomClu
                 }
             },
             // biome-ignore lint/suspicious/noExplicitAny: generic
-        } satisfies Fz.Converter<any>,
+        } satisfies Fz.Converter<any, undefined, ["attributeReport", "readResponse"]>,
     ];
 
     const toZigbee: Tz.Converter[] = [
@@ -2646,7 +2645,7 @@ export function numeric<Cl extends string | number, Custom extends TCustomCluste
                 }
             },
             // biome-ignore lint/suspicious/noExplicitAny: generic
-        } satisfies Fz.Converter<any>,
+        } satisfies Fz.Converter<any, undefined, ["attributeReport", "readResponse"]>,
     ];
 
     const toZigbee: Tz.Converter[] = [
@@ -2728,7 +2727,7 @@ export function binary<Cl extends string | number, Custom extends TCustomCluster
                 }
             },
             // biome-ignore lint/suspicious/noExplicitAny: generic
-        } satisfies Fz.Converter<any>,
+        } satisfies Fz.Converter<any, undefined, ["attributeReport", "readResponse"]>,
     ];
 
     const toZigbee: Tz.Converter[] = [
@@ -2799,7 +2798,7 @@ export function text<Cl extends string | number, Custom extends TCustomCluster |
                 }
             },
             // biome-ignore lint/suspicious/noExplicitAny: generic
-        } satisfies Fz.Converter<any>,
+        } satisfies Fz.Converter<any, undefined, ["attributeReport", "readResponse"]>,
     ];
 
     const toZigbee: Tz.Converter[] = [
@@ -2838,7 +2837,10 @@ export function text<Cl extends string | number, Custom extends TCustomCluster |
     return {exposes: [expose], fromZigbee, toZigbee, configure, isModernExtend: true};
 }
 
-export type Parse = (msg: Fz.Message, attributeKey: string | number) => unknown;
+export type Parse<Cl extends string | number, Custom extends TCustomCluster | undefined = undefined> = (
+    msg: Fz.Message<Cl, Custom>,
+    attributeKey: string | number,
+) => unknown;
 export interface ActionEnumLookupArgs<
     Cl extends string | number,
     Custom extends TCustomCluster | undefined = undefined,
@@ -2849,7 +2851,7 @@ export interface ActionEnumLookupArgs<
     buttonLookup?: KeyValue;
     extraActions?: string[];
     commands?: Co extends undefined ? undefined : `command${Capitalize<Co>}`[];
-    parse?: Parse;
+    parse?: Parse<Cl, Custom>;
 }
 export function actionEnumLookup<
     Cl extends string | number,

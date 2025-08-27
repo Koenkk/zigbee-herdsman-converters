@@ -41,7 +41,7 @@ const fzLocal = {
                 return fz.temperature.convert(model, msg, publish, options, meta);
             }
         },
-    } satisfies Fz.Converter<"msTemperatureMeasurement">,
+    } satisfies Fz.Converter<"msTemperatureMeasurement", undefined, ["attributeReport", "readResponse"]>,
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     PC321_metering: {
         cluster: "seMetering",
@@ -140,7 +140,7 @@ const fzLocal = {
 
             return payload;
         },
-    } satisfies Fz.Converter<"seMetering">,
+    } satisfies Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]>,
 
     owonFds315: {
         cluster: "fallDetectionOwon",
@@ -175,7 +175,7 @@ const fzLocal = {
                 "leftFallDetectionRange",
                 "rightFallDetectionRange",
                 "frontFallDetectionRange",
-            ];
+            ] as const;
             const values = keys.map((k) => (data[k] !== undefined ? data[k] : null));
 
             if (!values.includes(null)) {
@@ -184,7 +184,7 @@ const fzLocal = {
 
             return result;
         },
-    } satisfies Fz.Converter<"fallDetectionOwon">,
+    } satisfies Fz.Converter<"fallDetectionOwon", OwonFallDetection, ["attributeReport", "readResponse"]>,
 };
 
 const tzLocal = {

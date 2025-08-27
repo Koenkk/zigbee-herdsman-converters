@@ -1,6 +1,13 @@
 import type {Models as ZHModels} from "zigbee-herdsman";
-import type {ClusterCommandKeys, ClusterCommandResponseKeys, ClusterOrRawAttributeKeys, TCustomCluster} from "zigbee-herdsman/dist/controller/tstype";
+import type {
+    ClusterCommandKeys,
+    ClusterCommandResponseKeys,
+    ClusterOrRawAttributeKeys,
+    TCustomCluster,
+    TCustomClusterPayload,
+} from "zigbee-herdsman/dist/controller/tstype";
 import type {Header as ZHZclHeader} from "zigbee-herdsman/dist/zspec/zcl";
+import type {TClusterAttributeKeys, TClusterPayload, TPartialClusterAttributes} from "zigbee-herdsman/dist/zspec/zcl/definition/clusters-types";
 import type {FrameControl} from "zigbee-herdsman/dist/zspec/zcl/definition/tstype";
 import type * as exposes from "./exposes";
 
@@ -271,7 +278,7 @@ type DefinitionConfig = {
 
 type DefinitionFeatures = {
     // biome-ignore lint/suspicious/noExplicitAny: generic
-    fromZigbee: Fz.Converter<any>[];
+    fromZigbee: Fz.Converter<any, any, any>[];
     toZigbee: Tz.Converter[];
     exposes: DefinitionExposes;
 };
@@ -285,6 +292,8 @@ export type DefinitionWithExtend = DefinitionMatcher &
 
 export type ExternalDefinitionWithExtend = DefinitionWithExtend & {externalConverterName: string};
 
+export type ElementOf<T> = T extends readonly (infer U)[] ? U : T;
+
 /** TFoundationRepetitive from ZSpec Zcl mapped to names used by ZHC (TODO: refactor names to match ZSpec Zcl directly / breaking ext. conv) */
 export type TFoundationRepetitiveMapped =
     | "read"
@@ -293,34 +302,85 @@ export type TFoundationRepetitiveMapped =
     | "attributeReport"; // "report"
 
 export namespace Fz {
-    // biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
-    export interface Message<P = any> {
-        data: P;
-        endpoint: Zh.Endpoint;
-        device: Zh.Device;
-        meta: {zclTransactionSequenceNumber?: number; manufacturerCode?: number; frameControl?: FrameControl; rawData: Buffer};
-        groupID: number;
-        type: string;
-        cluster: string | number;
-        linkquality: number;
-    }
-    export interface Meta {
-        state: KeyValue;
-        device: Zh.Device;
-        deviceExposesChanged: () => void;
-    }
     type ConverterType<Cl extends number | string, Custom extends TCustomCluster | undefined = undefined> =
         | "raw"
         | TFoundationRepetitiveMapped
         | ClusterOrRawAttributeKeys<Cl, Custom>[number]
         | `command${Capitalize<ClusterCommandKeys<Cl, Custom>[number] & string>}` // exclude `number` with `& string`
         | `command${Capitalize<ClusterCommandResponseKeys<Cl, Custom>[number] & string>}`; // exclude `number` with `& string`
-    // biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
-    export interface Converter<Cl extends number | string, Custom extends TCustomCluster | undefined = undefined, P = any> {
+
+    type ConverterTypeStringOrArray<Cl extends number | string, Custom extends TCustomCluster | undefined = undefined> =
+        | ConverterType<Cl, Custom>
+        | readonly ConverterType<Cl, Custom>[];
+
+    type MessageTypeDataMap<Cl extends string | number> = {
+        raw: Buffer;
+        read: (TClusterAttributeKeys<Cl>[number] | number)[];
+        readResponse: TPartialClusterAttributes<Cl>;
+        write: TPartialClusterAttributes<Cl>;
+        attributeReport: TPartialClusterAttributes<Cl>;
+    };
+    type MessageTypeCustomDataMap<Custom extends TCustomCluster> = {
+        raw: Buffer;
+        read: (keyof Custom["attributes"] | number)[];
+        readResponse: Partial<Custom["attributes"]>;
+        write: Partial<Custom["attributes"]>;
+        attributeReport: Partial<Custom["attributes"]>;
+    };
+
+    export interface Message<
+        Cl extends number | string,
+        Custom extends TCustomCluster | undefined = undefined,
+        Ty extends ConverterTypeStringOrArray<Cl, Custom> = ConverterTypeStringOrArray<Cl, Custom>,
+    > {
+        data: (ElementOf<Ty> extends infer Single
+            ? Custom extends undefined
+                ? Single extends keyof MessageTypeDataMap<Cl>
+                    ? MessageTypeDataMap<Cl>[Single]
+                    : Single extends string | number
+                      ? Single extends `command${infer Co}`
+                          ? TClusterPayload<Cl, Uncapitalize<Co>>
+                          : TClusterPayload<Cl, Single>
+                      : never
+                : Single extends keyof MessageTypeCustomDataMap<Custom>
+                  ? MessageTypeCustomDataMap<Custom>[Single]
+                  : Single extends string | number
+                    ? Single extends `command${infer Co}`
+                        ? TCustomClusterPayload<Custom, Uncapitalize<Co>>
+                        : TCustomClusterPayload<Custom, Single>
+                    : never
+            : never) &
+            Record<number, unknown> /* XXX: too many customs not to have this as fallback */;
+        endpoint: Zh.Endpoint;
+        device: Zh.Device;
+        meta: {zclTransactionSequenceNumber?: number; manufacturerCode?: number; frameControl?: FrameControl; rawData: Buffer};
+        groupID: number;
+        type: ElementOf<Ty>;
+        cluster: string | number;
+        linkquality: number;
+    }
+
+    export interface Meta {
+        state: KeyValue;
+        device: Zh.Device;
+        deviceExposesChanged: () => void;
+    }
+
+    export interface Converter<
+        Cl extends number | string,
+        Custom extends TCustomCluster | undefined = undefined,
+        Ty extends ConverterTypeStringOrArray<Cl, Custom> = ConverterTypeStringOrArray<Cl, Custom>,
+    > {
         cluster: Cl;
-        type: ConverterType<Cl, Custom> | ConverterType<Cl, Custom>[];
+        type: Ty;
         options?: Option[] | ((definition: Definition) => Option[]);
-        convert: (model: Definition, msg: Message<P>, publish: Publish, options: KeyValue, meta: Fz.Meta) => KeyValueAny | void | Promise<void>;
+        convert: (
+            model: Definition,
+            msg: Message<Cl, Custom, Ty>,
+            publish: Publish,
+            options: KeyValue,
+            meta: Fz.Meta,
+        ) => KeyValueAny | void | Promise<void>;
     }
 }
 
@@ -364,8 +424,15 @@ export namespace Tuya {
     export interface ValueConverterSingle {
         // biome-ignore lint/suspicious/noExplicitAny: value is validated on per-case basis
         to?: (value: any, meta?: Tz.Meta) => unknown;
-        // biome-ignore lint/suspicious/noExplicitAny: value is validated on per-case basis
-        from?: (value: any, meta?: Fz.Meta, options?: KeyValue, publish?: Publish, msg?: Fz.Message) => number | string | boolean | KeyValue | null;
+        from?: (
+            // biome-ignore lint/suspicious/noExplicitAny: value is validated on per-case basis
+            value: any,
+            meta?: Fz.Meta,
+            options?: KeyValue,
+            publish?: Publish,
+            // biome-ignore lint/suspicious/noExplicitAny: value is validated on per-case basis
+            msg?: Fz.Message<any>,
+        ) => number | string | boolean | KeyValue | null;
     }
     export interface MetaTuyaDataPointsMeta {
         skip?: (meta: Tz.Meta) => boolean;

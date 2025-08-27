@@ -38,7 +38,7 @@ const fzLocal = {
             }
             return fz.thermostat.convert(model, msg, publish, options, meta);
         },
-    } satisfies Fz.Converter<"hvacThermostat">,
+    } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
 };
 
 export const definitions: DefinitionWithExtend[] = [

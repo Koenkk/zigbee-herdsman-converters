@@ -11,6 +11,26 @@ import type {DefinitionWithExtend, Fz, Reporting, Tz, Zh} from "../lib/types";
 const e = exposes.presets;
 const ea = exposes.access;
 
+interface RadarSensorHeiman {
+    attributes: {
+        // biome-ignore lint/style/useNamingConvention: TODO
+        enable_indicator: number;
+        sensitivity: number;
+        // biome-ignore lint/style/useNamingConvention: TODO
+        enable_sub_region_isolation: number;
+        // biome-ignore lint/style/useNamingConvention: TODO
+        installation_method: number;
+        // biome-ignore lint/style/useNamingConvention: TODO
+        cell_mounted_table: Buffer;
+        // biome-ignore lint/style/useNamingConvention: TODO
+        wall_mounted_table: Buffer;
+        // biome-ignore lint/style/useNamingConvention: TODO
+        sub_region_isolation_table: Buffer;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
 const fzLocal = {
     occupancyRadarHeiman: {
         cluster: "msOccupancySensing",
@@ -30,7 +50,7 @@ const fzLocal = {
             }
             return result;
         },
-    } satisfies Fz.Converter<"msOccupancySensing">,
+    } satisfies Fz.Converter<"msOccupancySensing", undefined, ["attributeReport", "readResponse"]>,
     radarSensorHeiman: {
         cluster: "RadarSensorHeiman",
         type: ["attributeReport", "readResponse"],
@@ -100,7 +120,7 @@ const fzLocal = {
             }
             return result;
         },
-    } satisfies Fz.Converter<"RadarSensorHeiman">,
+    } satisfies Fz.Converter<"RadarSensorHeiman", RadarSensorHeiman, ["attributeReport", "readResponse"]>,
 };
 
 const tzLocal = {
@@ -1116,30 +1136,10 @@ export const definitions: DefinitionWithExtend[] = [
                 ),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
-            interface HeimanRadar {
-                attributes: {
-                    // biome-ignore lint/style/useNamingConvention: TODO
-                    enable_indicator: number;
-                    sensitivity: number;
-                    // biome-ignore lint/style/useNamingConvention: TODO
-                    enable_sub_region_isolation: number;
-                    // biome-ignore lint/style/useNamingConvention: TODO
-                    installation_method: number;
-                    // biome-ignore lint/style/useNamingConvention: TODO
-                    cell_mounted_table: Buffer;
-                    // biome-ignore lint/style/useNamingConvention: TODO
-                    wall_mounted_table: Buffer;
-                    // biome-ignore lint/style/useNamingConvention: TODO
-                    sub_region_isolation_table: Buffer;
-                };
-                commands: never;
-                commandResponses: never;
-            }
-
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["msOccupancySensing", "RadarSensorHeiman"]);
             await reporting.occupancy(endpoint);
-            await endpoint.read<"RadarSensorHeiman", HeimanRadar>("RadarSensorHeiman", [
+            await endpoint.read<"RadarSensorHeiman", RadarSensorHeiman>("RadarSensorHeiman", [
                 "cell_mounted_table",
                 "wall_mounted_table",
                 "sub_region_isolation_table",

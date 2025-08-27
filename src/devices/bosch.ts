@@ -116,6 +116,25 @@ interface TwinguardSmokeDetector {
     };
     commandResponses: never;
 }
+interface TwinguardMeasurements {
+    attributes: {
+        humidity: number;
+        unknown1: number;
+        unknown2: number;
+        airpurity: number;
+        temperature: number;
+        illuminance: number;
+        battery: number;
+        unknown3: number;
+        unknown4: number;
+        pressure: number;
+        unknown6: number;
+        unknown7: number;
+        unknown8: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
 interface TwinguardOptions {
     attributes: {
         unknown1: number;
@@ -344,7 +363,7 @@ const boschExtend = {
                     }
                     return result;
                 },
-            } satisfies Fz.Converter<"hvacThermostat">,
+            } satisfies Fz.Converter<"hvacThermostat", BoschHvacThermostat, ["attributeReport", "readResponse"]>,
         ];
         const toZigbee: Tz.Converter[] = [
             {
@@ -394,7 +413,7 @@ const boschExtend = {
                     }
                     return result;
                 },
-            } satisfies Fz.Converter<"hvacThermostat">,
+            } satisfies Fz.Converter<"hvacThermostat", BoschHvacThermostat, ["attributeReport", "readResponse"]>,
         ];
         const toZigbee: Tz.Converter[] = [
             {
@@ -430,6 +449,7 @@ const boschExtend = {
                 cluster: "genTime",
                 type: "read",
                 convert: async (model, msg, publish, options, meta) => {
+                    // TODO: includes not array
                     if (msg.data.includes("dstStart", "dstEnd", "dstShift")) {
                         const response = {
                             dstStart: {attribute: 0x0003, status: Zcl.Status.SUCCESS, value: 0x00},
@@ -439,7 +459,7 @@ const boschExtend = {
                         await msg.endpoint.readResponse(msg.cluster, msg.meta.zclTransactionSequenceNumber, response);
                     }
                 },
-            } satisfies Fz.Converter<"genTime">,
+            } satisfies Fz.Converter<"genTime", undefined, "read">,
         ];
         return {
             fromZigbee,
@@ -482,7 +502,7 @@ const boschExtend = {
                         return result;
                     }
                 },
-            } satisfies Fz.Converter<"ssIasZone">,
+            } satisfies Fz.Converter<"ssIasZone", undefined, ["commandStatusChangeNotification", "attributeReport", "readResponse"]>,
         ];
         return {
             exposes,
@@ -527,7 +547,7 @@ const boschExtend = {
                         };
                     }
                 },
-            } satisfies Fz.Converter<"ssIasZone">,
+            } satisfies Fz.Converter<"ssIasZone", undefined, ["commandStatusChangeNotification", "attributeReport", "readResponse"]>,
         ];
         const toZigbee: Tz.Converter[] = [
             {
@@ -696,7 +716,7 @@ const boschExtend = {
                     }
                     return result;
                 },
-            } satisfies Fz.Converter<"twinguardSmokeDetector">,
+            } satisfies Fz.Converter<"twinguardSmokeDetector", TwinguardSmokeDetector, ["attributeReport", "readResponse"]>,
             {
                 cluster: "twinguardMeasurements",
                 type: ["attributeReport", "readResponse"],
@@ -743,7 +763,7 @@ const boschExtend = {
                     }
                     return result;
                 },
-            } satisfies Fz.Converter<"twinguardMeasurements">,
+            } satisfies Fz.Converter<"twinguardMeasurements", TwinguardMeasurements, ["attributeReport", "readResponse"]>,
             {
                 cluster: "twinguardOptions",
                 type: ["attributeReport", "readResponse"],
@@ -754,7 +774,7 @@ const boschExtend = {
                     }
                     return result;
                 },
-            } satisfies Fz.Converter<"twinguardOptions">,
+            } satisfies Fz.Converter<"twinguardOptions", TwinguardOptions, ["attributeReport", "readResponse"]>,
             {
                 cluster: "twinguardSetup",
                 type: ["attributeReport", "readResponse"],
@@ -765,7 +785,7 @@ const boschExtend = {
                     }
                     return result;
                 },
-            } satisfies Fz.Converter<"twinguardSetup">,
+            } satisfies Fz.Converter<"twinguardSetup", TwinguardSetup, ["attributeReport", "readResponse"]>,
             {
                 cluster: "twinguardAlarm",
                 type: ["attributeReport", "readResponse"],
@@ -786,7 +806,7 @@ const boschExtend = {
                     }
                     return result;
                 },
-            } satisfies Fz.Converter<"twinguardAlarm">,
+            } satisfies Fz.Converter<"twinguardAlarm", TwinguardAlarm, ["attributeReport", "readResponse"]>,
             {
                 cluster: "genAlarms",
                 type: ["commandAlarm", "readResponse"],
@@ -804,7 +824,7 @@ const boschExtend = {
                     }
                     return result;
                 },
-            } satisfies Fz.Converter<"genAlarms">,
+            } satisfies Fz.Converter<"genAlarms", undefined, ["commandAlarm", "readResponse"]>,
         ];
         const toZigbee: Tz.Converter[] = [
             {
@@ -974,7 +994,7 @@ const boschExtend = {
                     }
                     return result;
                 },
-            } satisfies Fz.Converter<"boschSpecific">,
+            } satisfies Fz.Converter<"boschSpecific", BoschSpecificBmct, ["attributeReport", "readResponse"]>,
         ];
         const toZigbee: Tz.Converter[] = [
             tz.power_on_behavior,
@@ -1247,7 +1267,7 @@ const fzLocal = {
             }
             logger.error(`Received message with unknown command ID ${buttonId}. Data: 0x${msg.data.toString("hex")}`, NS);
         },
-    } satisfies Fz.Converter<"boschSpecific">,
+    } satisfies Fz.Converter<"boschSpecific", undefined, "raw">,
     bhius_config: {
         cluster: "boschSpecific",
         type: ["attributeReport", "readResponse"],
@@ -1260,7 +1280,7 @@ const fzLocal = {
             }
             return result;
         },
-    } satisfies Fz.Converter<"boschSpecific">,
+    } satisfies Fz.Converter<"boschSpecific", BoschSpecificBhius, ["attributeReport", "readResponse"]>,
 };
 
 export const definitions: DefinitionWithExtend[] = [

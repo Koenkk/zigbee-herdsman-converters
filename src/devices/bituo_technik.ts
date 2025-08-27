@@ -23,7 +23,7 @@ const bituo_fz = {
                     !lowerField.includes("powerfactor") // excluding "powerFactor" (case-sensitive, lowercase comparison）
                 ) {
                     if (msg.data[field] !== undefined) {
-                        msg.data[field] = msg.data[field] * divisor;
+                        msg.data[field] = (msg.data[field] as number) * divisor;
                     }
                 }
             }
@@ -46,7 +46,7 @@ const bituo_fz = {
             }
             return result;
         },
-    } satisfies Fz.Converter<"haElectricalMeasurement">,
+    } satisfies Fz.Converter<"haElectricalMeasurement", undefined, ["attributeReport", "readResponse"]>,
 };
 export const definitions: DefinitionWithExtend[] = [
     {

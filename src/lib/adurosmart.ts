@@ -24,7 +24,7 @@ const extend = {
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
                     if (Object.hasOwn(msg.data, attribute)) {
-                        const value = msg.data[attribute];
+                        const value = msg.data[attribute] as number;
                         return {
                             dimmer_load_control_mode: value_map[value] || "unknown",
                             dimmer_load_control_mode_numeric: value,
@@ -32,7 +32,7 @@ const extend = {
                     }
                     return undefined;
                 },
-            } satisfies Fz.Converter<"genBasic">,
+            } satisfies Fz.Converter<"genBasic", undefined, ["attributeReport", "readResponse"]>,
         ];
 
         const toZigbee: Tz.Converter[] = [
@@ -94,7 +94,7 @@ const extend = {
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
                     if (Object.hasOwn(msg.data, attribute)) {
-                        const value = msg.data[attribute];
+                        const value = msg.data[attribute] as number;
                         return {
                             dimmer_switch_mode: value_map[value] || "unknown",
                             dimmer_switch_mode_numeric: value,
@@ -102,7 +102,7 @@ const extend = {
                     }
                     return undefined;
                 },
-            } satisfies Fz.Converter<"genBasic">,
+            } satisfies Fz.Converter<"genBasic", undefined, ["attributeReport", "readResponse"]>,
         ];
 
         const toZigbee: Tz.Converter[] = [
@@ -162,7 +162,7 @@ const extend = {
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
                     if (Object.hasOwn(msg.data, attribute)) {
-                        const value = msg.data[attribute];
+                        const value = msg.data[attribute] as number;
                         return {
                             dimmer_invert_switch: value_map[value] || "unknown",
                             dimmer_invert_switch_numeric: value,
@@ -170,7 +170,7 @@ const extend = {
                     }
                     return undefined;
                 },
-            } satisfies Fz.Converter<"genBasic">,
+            } satisfies Fz.Converter<"genBasic", undefined, ["attributeReport", "readResponse"]>,
         ];
 
         const toZigbee: Tz.Converter[] = [
@@ -225,7 +225,7 @@ const extend = {
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
                     if (Object.hasOwn(msg.data, attribute)) {
-                        const value = msg.data[attribute];
+                        const value = msg.data[attribute] as number;
                         return {
                             dimmer_scene_activation: value_map[value] || "unknown",
                             dimmer_scene_activation_numeric: value,
@@ -233,7 +233,7 @@ const extend = {
                     }
                     return undefined;
                 },
-            } satisfies Fz.Converter<"genBasic">,
+            } satisfies Fz.Converter<"genBasic", undefined, ["attributeReport", "readResponse"]>,
         ];
 
         const toZigbee: Tz.Converter[] = [
@@ -298,7 +298,7 @@ const extend = {
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
                     if (Object.hasOwn(msg.data, attribute)) {
-                        const value = msg.data[attribute];
+                        const value = msg.data[attribute] as number;
                         return {
                             dimmer_s1_double_click_scene: value_map[value] || "unknown",
                             dimmer_s1_double_click_scene_numeric: value,
@@ -306,7 +306,7 @@ const extend = {
                     }
                     return undefined;
                 },
-            } satisfies Fz.Converter<"genBasic">,
+            } satisfies Fz.Converter<"genBasic", undefined, ["attributeReport", "readResponse"]>,
         ];
 
         const toZigbee: Tz.Converter[] = [
@@ -383,7 +383,7 @@ const extend = {
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
                     if (Object.hasOwn(msg.data, attribute)) {
-                        const value = msg.data[attribute];
+                        const value = msg.data[attribute] as number;
                         return {
                             dimmer_s2_double_click_scene: value_map[value] || "unknown",
                             dimmer_s2_double_click_scene_numeric: value,
@@ -391,7 +391,7 @@ const extend = {
                     }
                     return undefined;
                 },
-            } satisfies Fz.Converter<"genBasic">,
+            } satisfies Fz.Converter<"genBasic", undefined, ["attributeReport", "readResponse"]>,
         ];
 
         const toZigbee: Tz.Converter[] = [
@@ -457,7 +457,7 @@ const extend = {
                     }
                     return undefined;
                 },
-            } satisfies Fz.Converter<"genBasic">,
+            } satisfies Fz.Converter<"genBasic", undefined, ["attributeReport", "readResponse"]>,
         ];
 
         const toZigbee: Tz.Converter[] = [
@@ -517,7 +517,7 @@ const extend = {
                     }
                     return undefined;
                 },
-            } satisfies Fz.Converter<"genBasic">,
+            } satisfies Fz.Converter<"genBasic", undefined, ["attributeReport", "readResponse"]>,
         ];
 
         const toZigbee: Tz.Converter[] = [
@@ -577,7 +577,7 @@ const extend = {
                     }
                     return undefined;
                 },
-            } satisfies Fz.Converter<"genBasic">,
+            } satisfies Fz.Converter<"genBasic", undefined, ["attributeReport", "readResponse"]>,
         ];
 
         const toZigbee: Tz.Converter[] = [
@@ -637,7 +637,7 @@ const extend = {
                     }
                     return undefined;
                 },
-            } satisfies Fz.Converter<"genBasic">,
+            } satisfies Fz.Converter<"genBasic", undefined, ["attributeReport", "readResponse"]>,
         ];
 
         const toZigbee: Tz.Converter[] = [

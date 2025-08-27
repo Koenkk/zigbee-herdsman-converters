@@ -65,7 +65,7 @@ const extend = {
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
                     if (Object.hasOwn(msg.data, attribute)) {
-                        const value = msg.data[attribute];
+                        const value = msg.data[attribute] as number;
                         return {
                             external_switch_type: value_map[value] || "unknown",
                             external_switch_type_numeric: value,
@@ -73,7 +73,7 @@ const extend = {
                     }
                     return undefined;
                 },
-            } satisfies Fz.Converter<"genBasic">,
+            } satisfies Fz.Converter<"genBasic", undefined, ["attributeReport", "readResponse"]>,
         ];
 
         const toZigbee: Tz.Converter[] = [
@@ -141,7 +141,7 @@ const extend = {
                     }
                     return undefined;
                 },
-            } satisfies Fz.Converter<"genBasic">,
+            } satisfies Fz.Converter<"genBasic", undefined, ["attributeReport", "readResponse"]>,
         ];
 
         const toZigbee: Tz.Converter[] = [
@@ -252,7 +252,7 @@ const extend = {
 
                     return {action};
                 },
-            } satisfies Fz.Converter<0xff03>,
+            } satisfies Fz.Converter<0xff03, undefined, ["raw"]>,
         ];
 
         const exposes: Expose[] = [
@@ -331,7 +331,7 @@ const extend = {
 
                     return {action};
                 },
-            } satisfies Fz.Converter<0xff03>,
+            } satisfies Fz.Converter<0xff03, undefined, ["raw"]>,
         ];
 
         const exposes: Expose[] = [
@@ -393,7 +393,7 @@ const extend = {
                     }
                     return {action};
                 },
-            } satisfies Fz.Converter<typeof cluster>,
+            } satisfies Fz.Converter<typeof cluster, undefined, ["raw"]>,
         ];
 
         const exposes: Expose[] = [e.action(["short_press", "double_press", "hold", "hold_released"])];
@@ -433,7 +433,7 @@ const extend = {
                     const firstBit = indicatorLight & 0x01;
                     return {indicator_light: firstBit === 1 ? "on" : "off"};
                 },
-            } satisfies Fz.Converter<typeof cluster>,
+            } satisfies Fz.Converter<typeof cluster, undefined, ["attributeReport", "readResponse"]>,
         ];
 
         const toZigbee: Tz.Converter[] = [
@@ -489,7 +489,8 @@ const extend = {
                     const day = Object.entries(constants.thermostatDayOfWeek).find((d) => msg.data.dayofweek & (1 << +d[0]))[1];
 
                     const transitions = msg.data.transitions
-                        .map((t: {heatSetpoint: number; transitionTime: number}) => {
+                        // TODO heatSetpoint is optional, affects return
+                        .map((t: {heatSetpoint?: number; transitionTime: number}) => {
                             const hours = Math.floor(t.transitionTime / 60);
                             const minutes = t.transitionTime % 60;
                             return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}/${t.heatSetpoint / 100}`;
@@ -502,7 +503,7 @@ const extend = {
                         [`schedule_${day}`]: transitions,
                     };
                 },
-            } satisfies Fz.Converter<"hvacThermostat">,
+            } satisfies Fz.Converter<"hvacThermostat", undefined, ["commandGetWeeklyScheduleRsp"]>,
         ];
 
         const toZigbee: Tz.Converter[] = [
@@ -600,7 +601,7 @@ const extend = {
                     }
                     return {};
                 },
-            } satisfies Fz.Converter<"hvacUserInterfaceCfg">,
+            } satisfies Fz.Converter<"hvacUserInterfaceCfg", undefined, ["attributeReport", "readResponse"]>,
         ];
 
         const toZigbee: Tz.Converter[] = [
@@ -675,7 +676,7 @@ const extend = {
 
                     return result;
                 },
-            } satisfies Fz.Converter<"hvacThermostat">,
+            } satisfies Fz.Converter<"hvacThermostat", SunricherHvacThermostat, ["attributeReport", "readResponse"]>,
         ];
 
         const toZigbee: Tz.Converter[] = [
@@ -786,7 +787,7 @@ const extend = {
 
                     return result;
                 },
-            } satisfies Fz.Converter<"hvacThermostat">,
+            } satisfies Fz.Converter<"hvacThermostat", SunricherHvacThermostat, ["attributeReport", "readResponse"]>,
         ];
 
         const toZigbee: Tz.Converter[] = [
@@ -858,7 +859,7 @@ const extend = {
                     }
                     return {action};
                 },
-            } satisfies Fz.Converter<"sunricherRemote", SunricherRemote>,
+            } satisfies Fz.Converter<"sunricherRemote", SunricherRemote, ["commandPress"]>,
         ];
 
         const exposes: Expose[] = [e.action(["short_press", "double_press", "hold", "hold_released"])];

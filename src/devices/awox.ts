@@ -5,7 +5,8 @@ import type {DefinitionWithExtend, Fz} from "../lib/types";
 
 const e = exposes.presets;
 
-const awox_color_ctrl: Fz.Converter<"lightingColorCtrl"> = {
+// TODO: should split?
+const awox_color_ctrl: Fz.Converter<"lightingColorCtrl", undefined, ["raw", "commandEnhancedMoveHue", "commandStepColorTemp" /* TODO: unused? */]> = {
     cluster: "lightingColorCtrl",
     type: ["raw", "commandEnhancedMoveHue", "commandStepColorTemp" /* TODO: unused? */], // Limit types to messages we specifically handle
     convert: (model, msg, publish, options, meta) => {
@@ -13,6 +14,7 @@ const awox_color_ctrl: Fz.Converter<"lightingColorCtrl"> = {
         let action = null;
 
         if (msg.type === "raw") {
+            // TODO: using `msg.data.data`
             const colorByte = payload.data[4];
             switch (colorByte) {
                 case 0xd6:
@@ -37,13 +39,14 @@ const awox_color_ctrl: Fz.Converter<"lightingColorCtrl"> = {
         }
     },
 };
-const awox_level_ctrl: Fz.Converter<"genLevelCtrl"> = {
+const awox_level_ctrl: Fz.Converter<"genLevelCtrl", undefined, ["raw"]> = {
     cluster: "genLevelCtrl",
     type: ["raw"], // Limit types to messages we specifically handle
     convert: (model, msg, publish, options, meta) => {
         const payload = msg.data;
         let action = null;
 
+        // TODO: using `msg.data.data`
         if (msg.type === "raw" && payload.data && payload.data[1] === 0xdf) {
             action = "refresh"; // Unique "Refresh" button
         }

@@ -53,7 +53,7 @@ const fzLocal = {
                 return attributes;
             }
         },
-    } satisfies Fz.Converter<"closuresDoorLock">,
+    } satisfies Fz.Converter<"closuresDoorLock", undefined, ["attributeReport", "readResponse"]>,
 };
 
 export const definitions: DefinitionWithExtend[] = [

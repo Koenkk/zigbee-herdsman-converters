@@ -55,7 +55,7 @@ const tzSeMetering: Tz.Converter = {
     // },
 };
 
-const fzZiPulses: Fz.Converter<"seMetering"> = {
+const fzZiPulses: Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "seMetering",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
@@ -110,7 +110,7 @@ const fzLocal = {
                 /* 0x0A0E */ "reactivePowerPhC",
                 /* 0x0A0F */ "apparentPowerPhC",
                 /* 0x0A11 */ "averageRmsVoltageMeasPeriodPhC",
-            ];
+            ] as const;
 
             for (const at of elements) {
                 const at_snake = at
@@ -123,7 +123,7 @@ const fzLocal = {
             }
             return result;
         },
-    } satisfies Fz.Converter<"haElectricalMeasurement">,
+    } satisfies Fz.Converter<"haElectricalMeasurement", undefined, ["attributeReport", "readResponse"]>,
     lixee_private_fz: {
         cluster: "liXeePrivate", // 0xFF66
         type: ["attributeReport", "readResponse"],
@@ -169,7 +169,7 @@ const fzLocal = {
                 /* 0x0226 */ "daysNumberNextCalendar",
                 /* 0x0227 */ "daysProfileCurrentCalendar",
                 /* 0x0228 */ "daysProfileNextCalendar",
-            ];
+            ] as const;
             const kWhP = options?.kWh_precision ? options.kWh_precision : 0;
             utils.assertNumber(kWhP);
             for (const at of elements) {
@@ -361,7 +361,7 @@ const fzLocal = {
             }
             return result;
         },
-    } satisfies Fz.Converter<"liXeePrivate">,
+    } satisfies Fz.Converter<"liXeePrivate", undefined, ["attributeReport", "readResponse"]>,
     lixee_metering: {
         cluster: "seMetering", // 0x0702
         type: ["attributeReport", "readResponse"],
@@ -383,7 +383,7 @@ const fzLocal = {
                 /* 0x0112 */ "currentTier10SummDelivered",
                 /* 0x0307 */ "siteId",
                 /* 0x0308 */ "meterSerialNumber",
-            ];
+            ] as const;
             const kWhP = options?.kWh_precision ? options.kWh_precision : 0;
             for (const at of elements) {
                 const at_snake = at
@@ -430,7 +430,7 @@ const fzLocal = {
             }
             return result;
         },
-    } satisfies Fz.Converter<"seMetering">,
+    } satisfies Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]>,
 };
 
 // we are doing it with exclusion and not inclusion because the list is dynamic (based on zlinky mode),

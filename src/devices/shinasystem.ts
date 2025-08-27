@@ -34,7 +34,7 @@ const fzLocal = {
                 }
             }
         },
-    } satisfies Fz.Converter<"haElectricalMeasurement">,
+    } satisfies Fz.Converter<"haElectricalMeasurement", undefined, ["attributeReport"]>,
     DMS300_IN: {
         cluster: "msOccupancySensing",
         type: ["attributeReport", "readResponse"],
@@ -50,7 +50,7 @@ const fzLocal = {
                 occupancy_and: (occupancyAnd & 1) > 0,
             };
         },
-    } satisfies Fz.Converter<"msOccupancySensing">,
+    } satisfies Fz.Converter<"msOccupancySensing", undefined, ["attributeReport", "readResponse"]>,
     DMS300_OUT: {
         cluster: "ssIasZone",
         type: "commandStatusChangeNotification",
@@ -65,7 +65,7 @@ const fzLocal = {
                 occupancy_and: (occupancyAnd & 1) > 0,
             };
         },
-    } satisfies Fz.Converter<"ssIasZone">,
+    } satisfies Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification">,
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     GCM300Z_valve_status: {
         cluster: "genOnOff",
@@ -77,7 +77,7 @@ const fzLocal = {
                 return {gas_valve_state: msg.data.onOff === 1 ? "OPEN" : "CLOSE"};
             }
         },
-    } satisfies Fz.Converter<"genOnOff">,
+    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
     ct_direction: {
         cluster: "seMetering",
         type: ["readResponse"],
@@ -88,7 +88,7 @@ const fzLocal = {
                 return {ct_direction: utils.getFromLookup(value, lookup)};
             }
         },
-    } satisfies Fz.Converter<"seMetering">,
+    } satisfies Fz.Converter<"seMetering", undefined, ["readResponse"]>,
     ias_zone_sensitivity: {
         cluster: "ssIasZone",
         type: ["attributeReport", "readResponse"],
@@ -101,7 +101,7 @@ const fzLocal = {
                 };
             }
         },
-    } satisfies Fz.Converter<"ssIasZone">,
+    } satisfies Fz.Converter<"ssIasZone", undefined, ["attributeReport", "readResponse"]>,
     smoke_battery: {
         cluster: "genPowerCfg",
         type: ["attributeReport", "readResponse"],
@@ -110,7 +110,7 @@ const fzLocal = {
                 return {smoke_battery: utils.batteryVoltageToPercentage(msg.data.batteryVoltage * 100, {min: 2300, max: 3100})};
             }
         },
-    } satisfies Fz.Converter<"genPowerCfg">,
+    } satisfies Fz.Converter<"genPowerCfg", undefined, ["attributeReport", "readResponse"]>,
 };
 
 const tzLocal = {

@@ -149,7 +149,7 @@ export const develcoModernExtend = {
                         return {[propertyName]: airQuality};
                     }
                 },
-            } satisfies Fz.Converter<typeof clusterName>,
+            } satisfies Fz.Converter<typeof clusterName, undefined, ["attributeReport", "readResponse"]>,
         ];
 
         return {exposes: [expose], fromZigbee, isModernExtend: true};
@@ -174,12 +174,13 @@ export const develcoModernExtend = {
                 cluster: clusterName,
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
+                    // TODO: typo? msg.data.batteryVoltage?
                     if (msg.data[attributeName] !== undefined && msg.data[attributeName] < 255) {
                         const voltage = Number.parseInt(msg.data[attributeName], 10);
                         return {[propertyName]: voltage <= 25};
                     }
                 },
-            } satisfies Fz.Converter<typeof clusterName>,
+            } satisfies Fz.Converter<typeof clusterName, undefined, ["attributeReport", "readResponse"]>,
         ];
 
         return {exposes: [expose], fromZigbee, isModernExtend: true};

@@ -82,7 +82,7 @@ const fzLocal = {
             };
             return {action: utils.getFromLookup(commandID, lookup)};
         },
-    } satisfies Fz.Converter<"greenPower">,
+    } satisfies Fz.Converter<"greenPower", undefined, ["commandNotification", "commandCommissioningNotification"]>,
     ZG9095B: {
         cluster: "hvacThermostat",
         type: ["attributeReport", "readResponse"],
@@ -96,7 +96,7 @@ const fzLocal = {
 
             return result;
         },
-    } satisfies Fz.Converter<"hvacThermostat">,
+    } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
 };
 const tzLocal = {
     ZG9095B: {

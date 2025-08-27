@@ -35,7 +35,7 @@ const sdevices = {
                     };
                 }
             },
-        } satisfies Fz.Converter<"manuSpecificSDevices">,
+        } satisfies Fz.Converter<"manuSpecificSDevices", SberDevices, ["attributeReport", "readResponse"]>,
         led_indicator_settings: {
             cluster: "manuSpecificSDevices",
             type: ["attributeReport", "readResponse"],
@@ -69,7 +69,7 @@ const sdevices = {
                 }
                 return result;
             },
-        } satisfies Fz.Converter<"manuSpecificSDevices">,
+        } satisfies Fz.Converter<"manuSpecificSDevices", SberDevices, ["attributeReport", "readResponse"]>,
         multistate_input: {
             cluster: "genMultistateInput",
             type: ["attributeReport"],
@@ -79,7 +79,7 @@ const sdevices = {
                 const action = actionLookup[value];
                 return {action: utils.postfixWithEndpointName(action, msg, model, meta)};
             },
-        } satisfies Fz.Converter<"genMultistateInput">,
+        } satisfies Fz.Converter<"genMultistateInput", undefined, ["attributeReport"]>,
         decouple_relay: {
             cluster: "genOnOff",
             type: ["attributeReport", "readResponse"],
@@ -94,7 +94,7 @@ const sdevices = {
                 }
                 return state;
             },
-        } satisfies Fz.Converter<"genOnOff">,
+        } satisfies Fz.Converter<"genOnOff", SberGenOnOff, ["attributeReport", "readResponse"]>,
         allow_double_click: {
             cluster: "manuSpecificSDevices",
             type: ["attributeReport", "readResponse"],
@@ -105,7 +105,7 @@ const sdevices = {
                 }
                 return result;
             },
-        } satisfies Fz.Converter<"manuSpecificSDevices">,
+        } satisfies Fz.Converter<"manuSpecificSDevices", SberDevices, ["attributeReport", "readResponse"]>,
     },
     tz: {
         custom_on_off: {
@@ -344,7 +344,7 @@ const sdevicesExtend = {
                     }
                     return result;
                 },
-            } satisfies Fz.Converter<"manuSpecificSDevices">,
+            } satisfies Fz.Converter<"manuSpecificSDevices", SberDevices, ["attributeReport", "readResponse"]>,
         ];
         const toZigbee: Tz.Converter[] = [
             {
@@ -480,7 +480,7 @@ const sdevicesExtend = {
                     }
                     return payload;
                 },
-            } satisfies Fz.Converter<"manuSpecificSDevices">,
+            } satisfies Fz.Converter<"manuSpecificSDevices", undefined, ["attributeReport", "readResponse"]>,
         ];
         const toZigbee: Tz.Converter[] = [
             {

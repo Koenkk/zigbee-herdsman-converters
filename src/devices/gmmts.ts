@@ -1706,6 +1706,74 @@ const ticmeterDatas: TICMeterData[] = [
     },
 ];
 
+interface TicMeter {
+    attributes: {
+        contractType: string;
+        startEJP: number;
+        refreshRate: number;
+        tomorowColor: string;
+        powerOverrun: number;
+        powerOverrunA: number;
+        powerOverrunB: number;
+        powerOverrunC: number;
+        potentialPresence: number;
+        hcHours: string;
+        motdetat: string;
+        date: number;
+        index1Dist: number;
+        index2Dist: number;
+        index3Dist: number;
+        index4Dist: number;
+        powerMaxYesterday: number;
+        powerMaxYesterday1: number;
+        powerMaxYesterday2: number;
+        powerMaxYesterday3: number;
+        powerInjected: number;
+        powerMaxInjected: number;
+        powerMaxInjectedYesterday: number;
+        injectedLoadN: number;
+        // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+        injectedLoadN_1: number;
+        startEJP1: number;
+        stopEJP1: number;
+        startEJP2: number;
+        stopEJP2: number;
+        startEJP3: number;
+        stopEJP3: number;
+        shortMsg: string;
+        ultraShortMsg: string;
+        relays: string;
+        currentIndex: number;
+        currentTarif: string;
+        calendarSupplierDay: number;
+        nextSupplierCalendarDay: number;
+        calendarDay: string;
+        calendarDayPointe: string;
+        elecMode: number;
+        maxContractPower: number;
+        ticMode: number;
+        uptime: number;
+        ticVersion: string;
+        powerMaxTodayTime: number;
+        powerMaxToday1Time: number;
+        powerMaxToday2Time: number;
+        powerMaxToday3Time: number;
+        powerMaxYesterdayTime: number;
+        powerMaxYesterday1Time: number;
+        powerMaxYesterday2Time: number;
+        powerMaxYesterday3Time: number;
+        powerMaxInjectedTime: number;
+        powerMaxInjectedYesterdayTime: number;
+    };
+    commands: {
+        refreshRate: {refreshRate: number};
+        reboot: {seq: number};
+    };
+    commandResponses: {
+        refreshRate: {seq: number};
+    };
+}
+
 const ticmeterCustomCluster = {
     ID: 0xff42,
     attributes: {
@@ -1808,10 +1876,10 @@ function toSnakeCase(str: string) {
         .toLowerCase();
 }
 
-function ticmeterConverter(msg: Fz.Message) {
+function ticmeterConverter(msg: Fz.Message<"manuSpecificGmmts", TicMeter, ["attributeReport", "readResponse"]>) {
     const result: KeyValue = {};
-    const keys = Object.keys(msg.data);
-    keys.forEach((key) => {
+
+    for (const key of Object.keys(msg.data)) {
         const found = ticmeterDatas.find((x) => x.attr === key);
         if (found) {
             // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
@@ -1844,7 +1912,8 @@ function ticmeterConverter(msg: Fz.Message) {
         } else {
             logger.warning(`Key not found: ${key}`, "TICMeter");
         }
-    });
+    }
+
     return result;
 }
 
@@ -1873,28 +1942,28 @@ const fzLocal = {
                 globalStore.putValue(msg.device, "contract_type", contractType);
             }
         },
-    } satisfies Fz.Converter<typeof CLUSTER_TIC>,
+    } satisfies Fz.Converter<typeof CLUSTER_TIC, TicMeter, ["attributeReport", "readResponse"]>,
     ticmeter_ha_electrical_measurement: {
         cluster: "haElectricalMeasurement",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             return ticmeterConverter(msg);
         },
-    } satisfies Fz.Converter<"haElectricalMeasurement">,
+    } satisfies Fz.Converter<"haElectricalMeasurement", TicMeter, ["attributeReport", "readResponse"]>,
     ticmeter_cluster_fz: {
         cluster: CLUSTER_TIC,
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             return ticmeterConverter(msg);
         },
-    } satisfies Fz.Converter<typeof CLUSTER_TIC>,
+    } satisfies Fz.Converter<typeof CLUSTER_TIC, TicMeter, ["attributeReport", "readResponse"]>,
     ticmeter_metering: {
         cluster: "seMetering",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             return ticmeterConverter(msg);
         },
-    } satisfies Fz.Converter<"seMetering">,
+    } satisfies Fz.Converter<"seMetering", TicMeter, ["attributeReport", "readResponse"]>,
 };
 
 function genereateTzLocal() {

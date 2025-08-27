@@ -22,7 +22,7 @@ const fzLocal = {
                 battery_low: (zoneStatus & (1 << 3)) > 0,
             };
         },
-    } satisfies Fz.Converter<"ssIasZone">,
+    } satisfies Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification">,
 };
 
 const tzLocal = {

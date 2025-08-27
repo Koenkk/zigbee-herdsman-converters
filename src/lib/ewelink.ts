@@ -45,7 +45,7 @@ export const ewelinkFromZigbee = {
             }
             return result;
         },
-    } satisfies Fz.Converter<"closuresWindowCovering">,
+    } satisfies Fz.Converter<"closuresWindowCovering", undefined, ["attributeReport", "readResponse"]>,
 };
 
 // ======================= Custom Extend =================================
@@ -189,7 +189,7 @@ function privateMotorClbByPosition(clusterName: "customClusterEwelink", writeCom
                     }
                 }
             },
-        } satisfies Fz.Converter<typeof clusterName>,
+        } satisfies Fz.Converter<typeof clusterName, undefined, ["raw"]>,
     ];
 
     const toZigbee: Tz.Converter[] = [
@@ -352,7 +352,7 @@ function privateMotorMode(clusterName: "customClusterEwelink", writeCommand: "pr
                     }
                 }
             },
-        } satisfies Fz.Converter<typeof clusterName>,
+        } satisfies Fz.Converter<typeof clusterName, undefined, ["raw"]>,
     ];
 
     const toZigbee: Tz.Converter[] = [
@@ -556,7 +556,7 @@ function privateReportMotorInfo(clusterName: string): ModernExtend {
                     }
                 }
             },
-        } satisfies Fz.Converter<typeof clusterName>,
+        } satisfies Fz.Converter<typeof clusterName, undefined, ["raw"]>,
     ];
     return {exposes: [expose], fromZigbee, isModernExtend: true};
 }
@@ -620,7 +620,7 @@ function privateMotorSpeed(clusterName: "customClusterEwelink", writeCommand: "p
                     }
                 }
             },
-        } satisfies Fz.Converter<typeof clusterName>,
+        } satisfies Fz.Converter<typeof clusterName, undefined, ["raw"]>,
     ];
 
     const toZigbee: Tz.Converter[] = [
@@ -668,7 +668,7 @@ export const ewelinkModernExtend = {
                     const lookup: KeyValueAny = {commandToggle: "single", commandOn: "double", commandOff: "long"};
                     return {action: lookup[msg.type]};
                 },
-            } satisfies Fz.Converter<"genOnOff">,
+            } satisfies Fz.Converter<"genOnOff", undefined, ["commandOn", "commandOff", "commandToggle"]>,
         ];
 
         const configure: Configure[] = [setupConfigureForBinding("genOnOff", "output")];

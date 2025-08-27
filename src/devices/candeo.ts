@@ -69,7 +69,7 @@ const fzLocal = {
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             if (Object.hasOwn(msg.data, switchTypeAttribute)) {
-                const value = msg.data[switchTypeAttribute];
+                const value = msg.data[switchTypeAttribute] as number;
                 return {
                     external_switch_type: switchTypeValueMap[value] || "unknown",
                     external_switch_type_numeric: value,
@@ -77,7 +77,7 @@ const fzLocal = {
             }
             return undefined;
         },
-    } satisfies Fz.Converter<"genBasic">,
+    } satisfies Fz.Converter<"genBasic", undefined, ["attributeReport", "readResponse"]>,
     rotary_remote_control: {
         cluster: "candeoRotaryRemoteControl",
         type: ["commandRotaryRemoteControl"],
@@ -165,7 +165,7 @@ const fzLocal = {
             }
             return;
         },
-    } satisfies Fz.Converter<"candeoRotaryRemoteControl", CandeoRotaryRemoveControl>,
+    } satisfies Fz.Converter<"candeoRotaryRemoteControl", CandeoRotaryRemoveControl, ["commandRotaryRemoteControl"]>,
     rd1p_knob_rotation: {
         cluster: "genLevelCtrl",
         type: ["commandMoveWithOnOff", "commandStepWithOnOff", "commandStop"],
@@ -174,10 +174,13 @@ const fzLocal = {
             let knobAction = "unknown";
             if (msg.type in rd1pKnobActionsMap) {
                 knobAction = rd1pKnobActionsMap[msg.type];
-                if (msg.type === "commandMoveWithOnOff" || msg.type === "commandStepWithOnOff") {
-                    const direction = msg.type === "commandMoveWithOnOff" ? "movemode" : "stepmode";
-                    if (msg.data[direction] === 0 || msg.data[direction] === 1) {
-                        knobAction += msg.data[direction] === 1 ? "left" : "right";
+                if (msg.type === "commandMoveWithOnOff") {
+                    if (msg.data.movemode === 0 || msg.data.movemode === 1) {
+                        knobAction += msg.data.movemode === 1 ? "left" : "right";
+                    }
+                } else if (msg.type === "commandStepWithOnOff") {
+                    if (msg.data.stepmode === 0 || msg.data.stepmode === 1) {
+                        knobAction += msg.data.stepmode === 1 ? "left" : "right";
                     }
                 }
             }
@@ -185,7 +188,7 @@ const fzLocal = {
             utils.addActionGroup(payload, msg, model);
             return payload;
         },
-    } satisfies Fz.Converter<"genLevelCtrl">,
+    } satisfies Fz.Converter<"genLevelCtrl", undefined, ["commandMoveWithOnOff", "commandStepWithOnOff", "commandStop"]>,
     rd1p_knob_press: {
         cluster: "genOnOff",
         type: ["commandOn", "commandOff", "commandToggle", "raw"],
@@ -195,7 +198,7 @@ const fzLocal = {
             if (msg.type in rd1pKnobActionsMap) {
                 knobAction = rd1pKnobActionsMap[msg.type];
             } else if (msg.type === "raw") {
-                const command = msg.data[2];
+                const command = msg.data[2] as number;
                 if (command in rd1pKnobCommands) {
                     const knobCommand = rd1pKnobCommands[command];
                     knobAction = rd1pKnobActionsMap[knobCommand];
@@ -205,7 +208,7 @@ const fzLocal = {
             utils.addActionGroup(payload, msg, model);
             return payload;
         },
-    } satisfies Fz.Converter<"genOnOff">,
+    } satisfies Fz.Converter<"genOnOff", undefined, ["commandOn", "commandOff", "commandToggle", "raw"]>,
 };
 
 const tzLocal = {

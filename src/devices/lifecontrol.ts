@@ -18,7 +18,7 @@ function airQuality(): ModernExtend {
                 const voc = Number.parseFloat(msg.data.tolerance);
                 return {temperature, humidity, eco2, voc};
             },
-        } satisfies Fz.Converter<"msTemperatureMeasurement">,
+        } satisfies Fz.Converter<"msTemperatureMeasurement", undefined, ["attributeReport", "readResponse"]>,
     ];
 
     return {exposes, fromZigbee, isModernExtend: true};

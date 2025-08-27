@@ -2040,7 +2040,11 @@ const fzLocal = {
                 }
                 return msg.data;
             },
-        }) satisfies Fz.Converter<typeof cluster>,
+        }) satisfies Fz.Converter<
+            typeof cluster,
+            undefined,
+            ["raw", "readResponse", "commandQueryNextImageRequest" /** TODO: this really needed? */]
+        >,
     fan_mode: (endpointId: number) =>
         ({
             cluster: "genLevelCtrl",
@@ -2056,7 +2060,7 @@ const fzLocal = {
                 }
                 return msg.data;
             },
-        }) satisfies Fz.Converter<"genLevelCtrl">,
+        }) satisfies Fz.Converter<"genLevelCtrl", undefined, ["attributeReport", "readResponse"]>,
     fan_state: {
         cluster: "genOnOff",
         type: ["attributeReport", "readResponse"],
@@ -2066,7 +2070,7 @@ const fzLocal = {
             }
             return msg.data;
         },
-    } satisfies Fz.Converter<"genOnOff">,
+    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
     brightness: {
         cluster: "genLevelCtrl",
         type: ["attributeReport", "readResponse"],
@@ -2077,7 +2081,7 @@ const fzLocal = {
                 }
             }
         },
-    } satisfies Fz.Converter<"genLevelCtrl">,
+    } satisfies Fz.Converter<"genLevelCtrl", undefined, ["attributeReport", "readResponse"]>,
     /**
      * Decode breeze mode value:
      *
@@ -2096,6 +2100,7 @@ const fzLocal = {
             type: ["attributeReport", "readResponse"],
             convert: (model, msg, publish, options, meta) => {
                 if (msg.endpoint.ID === endpointId) {
+                    // TODO: typo?
                     if (msg.data.breeze_mode !== undefined) {
                         const bitmasks = [3, 60, 192, 3840, 12288, 245760, 786432, 15728640, 50331648, 1006632960];
                         const raw = msg.data.breeze_mode;
@@ -2128,7 +2133,7 @@ const fzLocal = {
                     }
                 }
             },
-        }) satisfies Fz.Converter<typeof INOVELLI_CLUSTER_NAME>,
+        }) satisfies Fz.Converter<typeof INOVELLI_CLUSTER_NAME, Inovelli, ["attributeReport", "readResponse"]>,
     vzm36_fan_light_state: {
         cluster: "genOnOff",
         type: ["attributeReport", "readResponse"],
@@ -2145,7 +2150,7 @@ const fzLocal = {
                 return msg.data;
             }
         },
-    } satisfies Fz.Converter<"genOnOff">,
+    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
     led_effect_complete: {
         cluster: INOVELLI_CLUSTER_NAME,
         type: ["commandLedEffectComplete"],
@@ -2155,7 +2160,7 @@ const fzLocal = {
             }
             return {notificationComplete: "Unknown"};
         },
-    } satisfies Fz.Converter<typeof INOVELLI_CLUSTER_NAME, Inovelli>,
+    } satisfies Fz.Converter<typeof INOVELLI_CLUSTER_NAME, Inovelli, ["commandLedEffectComplete"]>,
 };
 
 const exposeLedEffects = () => {

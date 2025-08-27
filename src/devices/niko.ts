@@ -77,7 +77,7 @@ const local = {
                 }
                 return state;
             },
-        } satisfies Fz.Converter<"manuSpecificNikoConfig">,
+        } satisfies Fz.Converter<"manuSpecificNikoConfig", NikoConfig, ["attributeReport", "readResponse"]>,
         switch_action: {
             cluster: "manuSpecificNikoState",
             type: ["attributeReport", "readResponse"],
@@ -123,7 +123,7 @@ const local = {
                     }
                 }
             },
-        } satisfies Fz.Converter<"manuSpecificNikoState">,
+        } satisfies Fz.Converter<"manuSpecificNikoState", NikoState, ["attributeReport", "readResponse"]>,
         switch_status_led: {
             cluster: "manuSpecificNikoConfig",
             type: ["attributeReport", "readResponse"],
@@ -152,7 +152,7 @@ const local = {
                 }
                 return state;
             },
-        } satisfies Fz.Converter<"manuSpecificNikoConfig">,
+        } satisfies Fz.Converter<"manuSpecificNikoConfig", NikoConfig, ["attributeReport", "readResponse"]>,
         outlet: {
             cluster: "manuSpecificNikoConfig",
             type: ["attributeReport", "readResponse"],
@@ -166,7 +166,7 @@ const local = {
                 }
                 return state;
             },
-        } satisfies Fz.Converter<"manuSpecificNikoConfig">,
+        } satisfies Fz.Converter<"manuSpecificNikoConfig", NikoConfig, ["attributeReport", "readResponse"]>,
     },
     tz: {
         switch_operation_mode: {

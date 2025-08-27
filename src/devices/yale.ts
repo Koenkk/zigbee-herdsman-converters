@@ -102,7 +102,7 @@ const fzLocal = {
             }
             return result;
         },
-    } satisfies Fz.Converter<"genAlarms">,
+    } satisfies Fz.Converter<"genAlarms", undefined, ["commandAlarm"]>,
     c4_assa_lock_attribute: {
         cluster: "manuSpecificUbisysDeviceSetup",
         type: ["readResponse"],
@@ -179,7 +179,7 @@ const fzLocal = {
             }
             return result;
         },
-    } satisfies Fz.Converter<"manuSpecificUbisysDeviceSetup">,
+    } satisfies Fz.Converter<"manuSpecificUbisysDeviceSetup", undefined, ["readResponse"]>,
     c4_lock_operation_event: {
         cluster: "genAlarms",
         type: ["commandAlarm"],
@@ -210,7 +210,7 @@ const fzLocal = {
             }
             return result;
         },
-    } satisfies Fz.Converter<"genAlarms">,
+    } satisfies Fz.Converter<"genAlarms", undefined, ["commandAlarm"]>,
 };
 
 const tzLocal = {

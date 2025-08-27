@@ -714,7 +714,7 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             return {action: `scene_${msg.endpoint.ID}`};
         },
-    } satisfies Fz.Converter<"genOnOff">,
+    } satisfies Fz.Converter<"genOnOff", undefined, ["commandTuyaAction"]>,
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     TS0222_humidity: {
         ...fz.humidity,
@@ -723,7 +723,7 @@ const fzLocal = {
             if (result) result.humidity *= 10;
             return result;
         },
-    } satisfies Fz.Converter<"msRelativeHumidity">,
+    } satisfies Fz.Converter<"msRelativeHumidity", undefined, ["attributeReport", "readResponse"]>,
     scene_recall: {
         cluster: "genScenes",
         type: "commandRecall",
@@ -735,7 +735,7 @@ const fzLocal = {
             addActionGroup(payload, msg, model);
             return payload;
         },
-    } satisfies Fz.Converter<"genScenes">,
+    } satisfies Fz.Converter<"genScenes", undefined, "commandRecall">,
     scenes_recall_scene_65029: {
         cluster: "65029",
         type: ["raw", "attributeReport"],
@@ -743,7 +743,7 @@ const fzLocal = {
             const id = meta.device.modelID === "005f0c3b" ? msg.data[0] : msg.data[msg.data.length - 1];
             return {action: `scene_${id}`};
         },
-    } satisfies Fz.Converter<"65029">,
+    } satisfies Fz.Converter<"65029", undefined, ["raw", "attributeReport"]>,
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     TS0201_battery: {
         cluster: "genPowerCfg",
@@ -759,7 +759,7 @@ const fzLocal = {
                 return;
             return fz.battery.convert(model, msg, publish, options, meta);
         },
-    } satisfies Fz.Converter<"genPowerCfg">,
+    } satisfies Fz.Converter<"genPowerCfg", undefined, ["attributeReport", "readResponse"]>,
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     TS0201_humidity: {
         ...fz.humidity,
@@ -769,7 +769,7 @@ const fzLocal = {
             }
             return fz.humidity.convert(model, msg, publish, options, meta);
         },
-    } satisfies Fz.Converter<"msRelativeHumidity">,
+    } satisfies Fz.Converter<"msRelativeHumidity", undefined, ["attributeReport", "readResponse"]>,
     humidity10: {
         cluster: "msRelativeHumidity",
         type: ["attributeReport", "readResponse"],
@@ -779,7 +779,7 @@ const fzLocal = {
                 return {humidity};
             }
         },
-    } satisfies Fz.Converter<"msRelativeHumidity">,
+    } satisfies Fz.Converter<"msRelativeHumidity", undefined, ["attributeReport", "readResponse"]>,
     temperature_unit: {
         cluster: "manuSpecificTuya2",
         type: ["attributeReport", "readResponse"],
@@ -793,7 +793,7 @@ const fzLocal = {
             }
             return result;
         },
-    } satisfies Fz.Converter<"manuSpecificTuya2">,
+    } satisfies Fz.Converter<"manuSpecificTuya2", undefined, ["attributeReport", "readResponse"]>,
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     TS011F_electrical_measurement: {
         ...fz.electrical_measurement,
@@ -844,7 +844,7 @@ const fzLocal = {
 
             return result;
         },
-    } satisfies Fz.Converter<"haElectricalMeasurement">,
+    } satisfies Fz.Converter<"haElectricalMeasurement", undefined, ["attributeReport", "readResponse"]>,
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     TS011F_threshold: {
         cluster: "manuSpecificTuya3",
@@ -889,7 +889,7 @@ const fzLocal = {
                 };
             }
         },
-    } satisfies Fz.Converter<"manuSpecificTuya3">,
+    } satisfies Fz.Converter<"manuSpecificTuya3", undefined, "raw">,
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     PJ1203A_sync_time_increase_seq: {
         cluster: "manuSpecificTuya",
@@ -898,7 +898,7 @@ const fzLocal = {
             const priv = storeLocal.getPrivatePJ1203A(meta.device);
             priv.last_seq += priv.seq_inc;
         },
-    } satisfies Fz.Converter<"manuSpecificTuya">,
+    } satisfies Fz.Converter<"manuSpecificTuya", undefined, ["commandMcuSyncTime"]>,
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     PJ1203A_strict_fz_datapoints: {
         ...tuya.fz.datapoints,
@@ -916,7 +916,11 @@ const fzLocal = {
             // And finally, process the datapoint using tuya.fz.datapoints
             return tuya.fz.datapoints.convert(model, msg, publish, options, meta);
         },
-    } satisfies Fz.Converter<"manuSpecificTuya">,
+    } satisfies Fz.Converter<
+        "manuSpecificTuya",
+        undefined,
+        ["commandDataResponse", "commandDataReport", "commandActiveStatusReport", "commandActiveStatusReportAlt"]
+    >,
 };
 
 export const definitions: DefinitionWithExtend[] = [
