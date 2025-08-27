@@ -312,6 +312,7 @@ import {definitions as tplink} from "./tplink";
 import {definitions as trust} from "./trust";
 import {definitions as tubeszb} from "./tubeszb";
 import {definitions as tuya} from "./tuya";
+import tuyaTs0601Tze284Gyzlwu5q from "./tuya_ts0601_tze284_gyzlwu5q";
 import {definitions as ubisys} from "./ubisys";
 import {definitions as uhome} from "./uhome";
 import {definitions as universalElectronicsInc} from "./universal_electronics_inc";
@@ -345,7 +346,6 @@ import {definitions as zemismart} from "./zemismart";
 import {definitions as zen} from "./zen";
 import {definitions as zigbeetlc} from "./zigbeetlc";
 import {definitions as zipato} from "./zipato";
-import tuya_ts0601_tze284_gyzlwu5q from './tuya_ts0601_tze284_gyzlwu5q';
 
 const definitions: DefinitionWithExtend[] = [
     ...acova,
@@ -694,7 +694,7 @@ const definitions: DefinitionWithExtend[] = [
     ...zipato,
     ...qa,
     ...engo,
-    ...tuya_ts0601_tze284_gyzlwu5q,
+    ...tuyaTs0601Tze284Gyzlwu5q,
 ];
 
 export default definitions;
