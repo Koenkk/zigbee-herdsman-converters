@@ -1069,4 +1069,12 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: [tz.on_off, tz.fan_speed],
         exposes: [e.fan().withState().withSpeed()],
     },
+    {
+        zigbeeModel: ['ZBColorLightBulb'],
+        model: 'ZBColorLightBulb',
+        vendor: 'Espressif',
+        description: 'DIY Zigbee light using M5NanoC6',
+        extend: [m.light({"color":{"modes":["xy","hs"]}})],
+        meta: {},
+    };
 ];
