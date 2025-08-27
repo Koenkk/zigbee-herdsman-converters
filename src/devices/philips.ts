@@ -2154,6 +2154,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
+        zigbeeModel: ["929003808801_01", "929003808801_02", "929003808801_03", "929003808801_04", "929003808801_05"],
+        model: "929003808801",
+        vendor: "Philips",
+        description: "Hue White & Color ambience Centris ceiling light (4 spots)",
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
+    },
+    {
         zigbeeModel: ["929003808901_01", "929003808901_02", "929003808901_03", "929003808901_04", "929003808901_05"],
         model: "929003808901",
         vendor: "Philips",
@@ -3199,7 +3206,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 454]}})],
     },
     {
-        zigbeeModel: ["5633030P6", "929003046501"],
+        zigbeeModel: ["5633030P6", "929003046501", "929003811201"],
         model: "5633030P6",
         vendor: "Philips",
         description: "Hue White ambiance Pillar spotlamp",
@@ -3966,11 +3973,19 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        zigbeeModel: ["929003055701"],
+        zigbeeModel: ["929003055701", "929004297402"],
         model: "929003055701",
         vendor: "Philips",
         description: "Hue White Ambiance Devote",
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
+        whiteLabel: [
+            {
+                model: "929004297402",
+                vendor: "Philips",
+                description: "Hue White Ambiance Devote",
+                fingerprint: [{modelID: "929004297402"}],
+            },
+        ],
     },
     {
         zigbeeModel: ["LLM011"],

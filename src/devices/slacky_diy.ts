@@ -56,6 +56,13 @@ const attrHumidityOnOff = 0xf006;
 const attrHumidityLow = 0xf007;
 const attrHumidityHigh = 0xf008;
 
+const attrCo2Calibration = 0xf008;
+const attrFeaturesSensors = 0xf009;
+const attrDisplayRotate = 0xf00a;
+const attrDisplayInversion = 0xf00b;
+
+const switchFeatures = ["nothing", "co2_forced_calibration", "co2_factory_reset", "bind_reset", ""];
+
 const fzLocal = {
     thermostat_custom_fw: {
         cluster: "hvacThermostat",
@@ -343,8 +350,8 @@ const tzLocal = {
     thermostat_schedule_mode: {
         key: ["schedule_mode"],
         convertSet: async (entity, key, value, meta) => {
-            utils.assertNumber(value);
-            const lookup = {Off: 0, "5+2": 1, "6+1": 2, "7": 3};
+            //utils.assertNumber(value);
+            const lookup = {off: 0, "5+2": 1, "6+1": 2, "7": 3};
             await entity.write("hvacThermostat", {[attrThermScheduleMode]: {value: utils.getFromLookup(value, lookup), type: 0x30}});
             return {state: {schedule_mode: value}};
         },
@@ -925,6 +932,98 @@ function waterPreset(): ModernExtend {
 
     return {toZigbee, exposes, isModernExtend: true};
 }
+
+const air_extend = {
+    led_brightness: (): ModernExtend => {
+        const exposes: Expose[] = [e.numeric("brightness", ea.ALL).withValueMin(0).withValueMax(255).withDescription("LED brightness")];
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ["brightness"],
+                convertSet: async (entity, key, value, meta) => {
+                    await entity.command(
+                        "genLevelCtrl",
+                        "moveToLevel",
+                        {level: value as number, transtime: 0},
+                        utils.getOptions(meta.mapped, entity),
+                    );
+                    return {state: {brightness: value}};
+                },
+                convertGet: async (entity, key, meta) => {
+                    await entity.read("genLevelCtrl", ["currentLevel"]);
+                },
+            },
+        ];
+
+        const fromZigbee: Fz.Converter[] = [
+            {
+                cluster: "genLevelCtrl",
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    const result: KeyValueAny = {};
+                    if (Object.hasOwn(msg.data, "currentLevel")) {
+                        const data = Number.parseInt(msg.data.currentLevel, 10);
+                        result.brightness = data;
+                    }
+                    return result;
+                },
+            },
+        ];
+
+        return {
+            exposes,
+            fromZigbee,
+            toZigbee,
+            isModernExtend: true,
+        };
+    },
+
+    features_sensors: (): ModernExtend => {
+        const exposes: Expose[] = [
+            e.composite("features_sensors", "features_sensors", ea.SET).withFeature(e.enum("features", ea.STATE_SET, switchFeatures)),
+        ];
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ["features_sensors"],
+                convertSet: async (entity, key, rawValue, meta) => {
+                    const endpoint = meta.device.getEndpoint(1);
+                    // biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
+                    const value = (rawValue as any).features;
+                    if (value != null) {
+                        const lookup = {
+                            nothing: 0,
+                            co2_forced_calibration: 1,
+                            co2_factory_reset: 2,
+                            bind_reset: 3,
+                        };
+
+                        const value_lookup = utils.getFromLookup(value, lookup);
+                        //logger.logger.info("value_lookup: " + value_lookup);
+                        if (value_lookup >= 1 && value_lookup <= 3) {
+                            await endpoint.write("hvacUserInterfaceCfg", {[attrFeaturesSensors]: {value: value_lookup, type: 0x30}});
+                            return {
+                                state: {[key]: value},
+                            };
+                        }
+                    }
+                },
+                convertGet: async (entity, key, meta) => {
+                    await entity.read("hvacUserInterfaceCfg", [attrFeaturesSensors]);
+                },
+            },
+        ];
+
+        const fromZigbee: Fz.Converter[] = [];
+
+        return {
+            exposes,
+            fromZigbee,
+            toZigbee,
+            isModernExtend: true,
+        };
+    },
+};
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -1912,6 +2011,170 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "genOnOffSwitchCfg",
                 attribute: "switchActions",
                 description: "Actions switch",
+            }),
+        ],
+        meta: {},
+        ota: true,
+    },
+    {
+        zigbeeModel: ["AirQ_Monitor_S01"],
+        model: "AirQ_Monitor_S01",
+        vendor: "Slacky-DIY",
+        description: "Air quality monitor",
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.read("genLevelCtrl", ["currentLevel"]);
+        },
+        extend: [
+            m.co2({reporting: {min: 10, max: 3600, change: 0.00001}}),
+            m.numeric({
+                name: "voc_index",
+                access: "STATE_GET",
+                cluster: "genAnalogInput",
+                attribute: "presentValue",
+                reporting: {min: 10, max: 3600, change: 30},
+                unit: "VOC Index points",
+                description: "VOC index",
+            }),
+            m.temperature(),
+            m.humidity(),
+            m.pressure(),
+            m.illuminance(),
+            m.enumLookup({
+                name: "display_rotate",
+                lookup: {horizontal: 0, vertical: 1},
+                cluster: "hvacUserInterfaceCfg",
+                attribute: {ID: attrDisplayRotate, type: 0x30},
+                reporting: {min: 0, max: 65000, change: 0},
+                description: "Display orientation (horizontal/vertical)",
+            }),
+            m.enumLookup({
+                name: "display_inversion",
+                lookup: {black_on_white: 0, white_on_black: 1},
+                cluster: "hvacUserInterfaceCfg",
+                attribute: {ID: attrDisplayInversion, type: 0x30},
+                reporting: {min: 0, max: 65000, change: 0},
+                description: "Display inversion (black on white/white on black)",
+            }),
+            m.enumLookup({
+                name: "temperature_display_mode",
+                lookup: {celsius: 0, fahrenheit: 1},
+                cluster: "hvacUserInterfaceCfg",
+                attribute: "tempDisplayMode",
+                reporting: {min: 0, max: 65000, change: 0},
+                description: "The units of the temperature displayed on the device screen",
+            }),
+            m.numeric({
+                name: "temperature_offset",
+                cluster: "msTemperatureMeasurement",
+                attribute: {ID: 0xf000, type: 0x29},
+                unit: "°C",
+                valueMin: -5,
+                valueMax: 5,
+                valueStep: 0.1,
+                scale: 100,
+                description: "Offset to add/subtract to the inside temperature",
+            }),
+            m.numeric({
+                name: "read_interval",
+                cluster: "msTemperatureMeasurement",
+                attribute: {ID: 0xf001, type: 0x21},
+                unit: "Sec",
+                valueMin: 5,
+                valueMax: 600,
+                valueStep: 1,
+                description: "Sensors reading period",
+            }),
+            m.binary({
+                name: "enabling_co2_control",
+                cluster: "msCO2",
+                attribute: {ID: 0xf002, type: 0x10},
+                description: "Enables/disables CO2 control",
+                valueOn: ["ON", 0x01],
+                valueOff: ["OFF", 0x00],
+            }),
+            m.numeric({
+                name: "low_co2",
+                cluster: "msCO2",
+                attribute: {ID: 0xf003, type: 0x21},
+                unit: "ppm",
+                valueMin: 400,
+                valueMax: 2000,
+                valueStep: 1,
+                description: "CO2 low turn-off limit",
+            }),
+            m.numeric({
+                name: "high_co2",
+                cluster: "msCO2",
+                attribute: {ID: 0xf004, type: 0x21},
+                unit: "ppm",
+                valueMin: 400,
+                valueMax: 2000,
+                valueStep: 1,
+                description: "CO2 high turn-on limit",
+            }),
+            m.binary({
+                name: "enabling_voc_control",
+                cluster: "genAnalogInput",
+                attribute: {ID: 0xf005, type: 0x10},
+                description: "Enables/disables VOC control",
+                valueOn: ["ON", 0x01],
+                valueOff: ["OFF", 0x00],
+            }),
+            m.numeric({
+                name: "low_voc",
+                cluster: "genAnalogInput",
+                attribute: {ID: 0xf006, type: 0x21},
+                unit: "VOC index points",
+                valueMin: 1,
+                valueMax: 500,
+                valueStep: 1,
+                description: "VOC low turn-off limit",
+            }),
+            m.numeric({
+                name: "high_voc",
+                cluster: "genAnalogInput",
+                attribute: {ID: 0xf007, type: 0x21},
+                unit: "VOC index points",
+                valueMin: 1,
+                valueMax: 500,
+                valueStep: 1,
+                description: "VOC high turn-on limit",
+            }),
+            m.enumLookup({
+                name: "switch_actions",
+                lookup: {off: 0, on: 1},
+                cluster: "genOnOffSwitchCfg",
+                attribute: "switchActions",
+                description: "Actions switch",
+            }),
+            air_extend.led_brightness(),
+            m.binary({
+                name: "enabling_sound",
+                cluster: "hvacUserInterfaceCfg",
+                attribute: {ID: 0xf00c, type: 0x10},
+                description: "Enables/disables sound",
+                valueOn: ["ON", 0x01],
+                valueOff: ["OFF", 0x00],
+            }),
+            m.numeric({
+                name: "frc_co2_correction",
+                access: "STATE_GET",
+                cluster: "msCO2",
+                attribute: {ID: attrCo2Calibration, type: 0x29},
+                reporting: {min: 0, max: 3600, change: 0},
+                unit: "ppm",
+                description: "FRC CO2 correction",
+            }),
+            air_extend.features_sensors(),
+            m.numeric({
+                name: "life_time",
+                access: "STATE_GET",
+                cluster: "genTime",
+                attribute: "time",
+                reporting: {min: 60, max: 3600, change: 0},
+                unit: "h",
+                description: "Life time of device",
             }),
         ],
         meta: {},
