@@ -22,7 +22,7 @@ export const ledvanceFz = {
             };
             return {[utils.postfixWithEndpointName("action", msg, model, meta)]: lookup[msg.type]};
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genLevelCtrl">,
 };
 
 export const ledvanceTz = {

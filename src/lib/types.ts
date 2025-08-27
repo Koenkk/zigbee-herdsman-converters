@@ -1,4 +1,5 @@
 import type {Models as ZHModels} from "zigbee-herdsman";
+import type {ClusterCommandKeys, ClusterCommandResponseKeys, ClusterOrRawAttributeKeys, TCustomCluster} from "zigbee-herdsman/dist/controller/tstype";
 import type {Header as ZHZclHeader} from "zigbee-herdsman/dist/zspec/zcl";
 import type {FrameControl} from "zigbee-herdsman/dist/zspec/zcl/definition/tstype";
 import type * as exposes from "./exposes";
@@ -269,7 +270,8 @@ type DefinitionConfig = {
 };
 
 type DefinitionFeatures = {
-    fromZigbee: Fz.Converter[];
+    // biome-ignore lint/suspicious/noExplicitAny: generic
+    fromZigbee: Fz.Converter<any>[];
     toZigbee: Tz.Converter[];
     exposes: DefinitionExposes;
 };
@@ -283,10 +285,17 @@ export type DefinitionWithExtend = DefinitionMatcher &
 
 export type ExternalDefinitionWithExtend = DefinitionWithExtend & {externalConverterName: string};
 
+/** TFoundationRepetitive from ZSpec Zcl mapped to names used by ZHC (TODO: refactor names to match ZSpec Zcl directly / breaking ext. conv) */
+export type TFoundationRepetitiveMapped =
+    | "read"
+    | "readResponse" // "readRsp"
+    | "write"
+    | "attributeReport"; // "report"
+
 export namespace Fz {
-    export interface Message {
-        // biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
-        data: any;
+    // biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
+    export interface Message<P = any> {
+        data: P;
         endpoint: Zh.Endpoint;
         device: Zh.Device;
         meta: {zclTransactionSequenceNumber?: number; manufacturerCode?: number; frameControl?: FrameControl; rawData: Buffer};
@@ -300,11 +309,18 @@ export namespace Fz {
         device: Zh.Device;
         deviceExposesChanged: () => void;
     }
-    export interface Converter {
-        cluster: string | number;
-        type: string[] | string;
+    type ConverterType<Cl extends number | string, Custom extends TCustomCluster | undefined = undefined> =
+        | "raw"
+        | TFoundationRepetitiveMapped
+        | ClusterOrRawAttributeKeys<Cl, Custom>[number]
+        | `command${Capitalize<ClusterCommandKeys<Cl, Custom>[number] & string>}` // exclude `number` with `& string`
+        | `command${Capitalize<ClusterCommandResponseKeys<Cl, Custom>[number] & string>}`; // exclude `number` with `& string`
+    // biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
+    export interface Converter<Cl extends number | string, Custom extends TCustomCluster | undefined = undefined, P = any> {
+        cluster: Cl;
+        type: ConverterType<Cl, Custom> | ConverterType<Cl, Custom>[];
         options?: Option[] | ((definition: Definition) => Option[]);
-        convert: (model: Definition, msg: Message, publish: Publish, options: KeyValue, meta: Fz.Meta) => KeyValueAny | void | Promise<void>;
+        convert: (model: Definition, msg: Message<P>, publish: Publish, options: KeyValue, meta: Fz.Meta) => KeyValueAny | void | Promise<void>;
     }
 }
 

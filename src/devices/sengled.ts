@@ -22,7 +22,7 @@ export function sengledLight(args?: m.LightArgs) {
 export function sengledSwitchAction(): ModernExtend {
     const exposes: Expose[] = [presets.action(["on", "up", "down", "off", "on_double", "on_long", "off_double", "off_long"])];
 
-    const fromZigbee: Fz.Converter[] = [
+    const fromZigbee = [
         {
             cluster: 64528,
             type: ["raw"],
@@ -49,7 +49,7 @@ export function sengledSwitchAction(): ModernExtend {
                 }
                 return {action: lookup[msg.data[5]]}; // Just output the data from the above lookup list
             },
-        },
+        } satisfies Fz.Converter<64528>,
     ];
 
     return {exposes, fromZigbee, isModernExtend: true};

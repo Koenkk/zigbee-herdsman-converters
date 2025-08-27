@@ -1,3 +1,4 @@
+import {Zcl} from "zigbee-herdsman";
 import * as fz from "../converters/fromZigbee";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
@@ -7,6 +8,19 @@ import * as utils from "../lib/utils";
 
 const e = exposes.presets;
 const ea = exposes.access;
+
+interface CandeoRotaryRemoveControl {
+    attributes: never;
+    commands: {
+        rotaryRemoteControl: {
+            field1: number;
+            field2: number;
+            field3: number;
+            field4: number;
+        };
+    };
+    commandResponses: never;
+}
 
 const manufacturerSpecificSwitchTypeClusterCode = 0x1224;
 const manufacturerSpecificRotaryRemoteControlClusterCode = 0xff03;
@@ -63,7 +77,7 @@ const fzLocal = {
             }
             return undefined;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genBasic">,
     rotary_remote_control: {
         cluster: "candeoRotaryRemoteControl",
         type: ["commandRotaryRemoteControl"],
@@ -151,7 +165,7 @@ const fzLocal = {
             }
             return;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"candeoRotaryRemoteControl", CandeoRotaryRemoveControl>,
     rd1p_knob_rotation: {
         cluster: "genLevelCtrl",
         type: ["commandMoveWithOnOff", "commandStepWithOnOff", "commandStop"],
@@ -171,7 +185,7 @@ const fzLocal = {
             utils.addActionGroup(payload, msg, model);
             return payload;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genLevelCtrl">,
     rd1p_knob_press: {
         cluster: "genOnOff",
         type: ["commandOn", "commandOff", "commandToggle", "raw"],
@@ -191,7 +205,7 @@ const fzLocal = {
             utils.addActionGroup(payload, msg, model);
             return payload;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genOnOff">,
 };
 
 const tzLocal = {
@@ -608,10 +622,10 @@ export const definitions: DefinitionWithExtend[] = [
                     rotaryRemoteControl: {
                         ID: 0x01,
                         parameters: [
-                            {name: "field1", type: 0x20},
-                            {name: "field2", type: 0x20},
-                            {name: "field3", type: 0x20},
-                            {name: "field4", type: 0x20},
+                            {name: "field1", type: Zcl.DataType.UINT8},
+                            {name: "field2", type: Zcl.DataType.UINT8},
+                            {name: "field3", type: Zcl.DataType.UINT8},
+                            {name: "field4", type: Zcl.DataType.UINT8},
                         ],
                     },
                 },

@@ -1760,7 +1760,7 @@ export const lumiModernExtend = {
             ...args,
         }),
     lumiOutageCountRestoreBindReporting: (): ModernExtend => {
-        const fromZigbee: Fz.Converter[] = [
+        const fromZigbee = [
             {
                 cluster: "manuSpecificLumi",
                 type: ["attributeReport", "readResponse"],
@@ -1823,7 +1823,7 @@ export const lumiModernExtend = {
                         }
                     }
                 },
-            },
+            } satisfies Fz.Converter<"manuSpecificLumi">,
         ];
 
         return {fromZigbee, isModernExtend: true};
@@ -1853,14 +1853,14 @@ export const lumiModernExtend = {
         }),
     lumiElectricityMeter: (): ModernExtend => {
         const exposes = [e.energy(), e.voltage(), e.current()];
-        const fromZigbee: Fz.Converter[] = [
+        const fromZigbee = [
             {
                 cluster: "manuSpecificLumi",
                 type: ["attributeReport", "readResponse"],
                 convert: async (model, msg, publish, options, meta) => {
                     return await numericAttributes2Payload(msg, meta, model, options, msg.data);
                 },
-            },
+            } satisfies Fz.Converter<"manuSpecificLumi">,
         ];
 
         return {exposes, fromZigbee, isModernExtend: true};
@@ -1934,7 +1934,7 @@ export const lumiModernExtend = {
             ...args,
         }),
     lumiPreventReset: (): ModernExtend => {
-        const converter: Fz.Converter = {
+        const converter: Fz.Converter<"genBasic"> = {
             cluster: "genBasic",
             type: ["attributeReport"],
             convert: (model, msg, publish, options, meta) => {
@@ -1973,7 +1973,7 @@ export const lumiModernExtend = {
             ...args,
         }),
     lumiSlider: (): ModernExtend => {
-        const fromZigbee: Fz.Converter[] = [
+        const fromZigbee = [
             {
                 cluster: "manuSpecificLumi",
                 type: ["attributeReport", "readResponse"],
@@ -1995,7 +1995,7 @@ export const lumiModernExtend = {
                         };
                     }
                 },
-            },
+            } satisfies Fz.Converter<"manuSpecificLumi">,
         ];
 
         const exposes: Expose[] = [
@@ -2050,7 +2050,7 @@ export const lumiModernExtend = {
     lumiVibration: (): ModernExtend => {
         const exposes: Expose[] = [e.action(["shake", "triple_strike", "movement"])];
 
-        const fromZigbee: Fz.Converter[] = [
+        const fromZigbee = [
             {
                 cluster: "ssIasZone",
                 type: ["attributeReport", "readResponse"],
@@ -2061,7 +2061,7 @@ export const lumiModernExtend = {
                         return {action: actionLookup[zoneStatus]};
                     }
                 },
-            },
+            } satisfies Fz.Converter<"ssIasZone">,
             {
                 cluster: "genMultistateInput",
                 type: ["attributeReport", "readResponse"],
@@ -2070,7 +2070,7 @@ export const lumiModernExtend = {
                         return {action: "triple_strike"};
                     }
                 },
-            },
+            } satisfies Fz.Converter<"genMultistateInput">,
             {
                 cluster: "manuSpecificLumi",
                 type: ["attributeReport", "readResponse"],
@@ -2079,7 +2079,7 @@ export const lumiModernExtend = {
                         return {action: "movement"};
                     }
                 },
-            },
+            } satisfies Fz.Converter<"manuSpecificLumi">,
         ];
 
         return {exposes, fromZigbee, isModernExtend: true};
@@ -2118,7 +2118,7 @@ export const lumiModernExtend = {
         args = {cluster: "manuSpecificLumi", deviceTemperatureAttribute: 3, powerOutageCountAttribute: 5, resetsWhenPairing: false, ...args};
         const exposes: Expose[] = [e.device_temperature(), e.power_outage_count(args.resetsWhenPairing)];
 
-        const fromZigbee: Fz.Converter[] = [
+        const fromZigbee = [
             {
                 cluster: args.cluster,
                 type: ["attributeReport", "readResponse"],
@@ -2136,7 +2136,7 @@ export const lumiModernExtend = {
                     }
                     return payload;
                 },
-            },
+            } satisfies Fz.Converter<typeof args.cluster>,
         ];
 
         return {exposes, fromZigbee, isModernExtend: true};
@@ -2160,7 +2160,7 @@ export const lumiModernExtend = {
             );
         }
 
-        const fromZigbee: Fz.Converter[] = [
+        const fromZigbee = [
             {
                 cluster: "manuSpecificLumi",
                 type: ["attributeReport", "readResponse"],
@@ -2179,7 +2179,7 @@ export const lumiModernExtend = {
                         };
                     }
                 },
-            },
+            } satisfies Fz.Converter<"manuSpecificLumi">,
         ];
 
         return {exposes, fromZigbee, isModernExtend: true};
@@ -2239,7 +2239,7 @@ export const lumiModernExtend = {
         };
         const exposes: Expose[] = [e.battery(), e.battery_voltage()];
 
-        const fromZigbee: Fz.Converter[] = [
+        const fromZigbee = [
             {
                 cluster: args.cluster,
                 type: ["attributeReport", "readResponse"],
@@ -2259,7 +2259,7 @@ export const lumiModernExtend = {
                     }
                     return payload;
                 },
-            },
+            } satisfies Fz.Converter<typeof args.cluster>,
         ];
 
         return {exposes, fromZigbee, isModernExtend: true};
@@ -2353,7 +2353,7 @@ export const lumiModernExtend = {
             ...args,
         }),
     lumiPreventLeave: (): ModernExtend => {
-        const converter: Fz.Converter = {
+        const converter: Fz.Converter<"manuSpecificLumi"> = {
             cluster: "manuSpecificLumi",
             type: ["attributeReport"],
             convert: (model, msg, publish, options, meta) => {
@@ -2587,12 +2587,12 @@ export const lumiModernExtend = {
                         });
                         return result;
                     },
-                } satisfies Fz.Converter,
+                } satisfies Fz.Converter<"manuSpecificLumi">,
             ],
         } satisfies ModernExtend;
     },
     lumiReadPositionOnReport: (type: "genAnalogOutput" | "genMultistateOutput" | "genBasic"): ModernExtend => {
-        let converter: Fz.Converter;
+        let converter: Fz.Converter<"genAnalogOutput" | "genMultistateOutput" | "genBasic">;
         if (type === "genAnalogOutput") {
             converter = {
                 cluster: "genAnalogOutput",
@@ -2604,7 +2604,7 @@ export const lumiModernExtend = {
                         .read("genAnalogOutput", ["presentValue"])
                         .catch((error) => logger.error(`Failed to read position '${msg.device.ieeeAddr}' (${error})`, NS));
                 },
-            };
+            } satisfies Fz.Converter<"genAnalogOutput">;
         } else if (type === "genMultistateOutput") {
             converter = {
                 cluster: "genMultistateOutput",
@@ -2619,7 +2619,7 @@ export const lumiModernExtend = {
                             .catch((error) => logger.error(`Failed to read position '${msg.device.ieeeAddr}' (${error})`, NS));
                     }
                 },
-            };
+            } satisfies Fz.Converter<"genMultistateOutput">;
         } else if (type === "genBasic") {
             converter = {
                 cluster: "genBasic",
@@ -2634,7 +2634,7 @@ export const lumiModernExtend = {
                             .catch((error) => logger.error(`Failed to read position '${msg.device.ieeeAddr}' (${error})`, NS));
                     }
                 },
-            };
+            } satisfies Fz.Converter<"genBasic">;
         }
         return {fromZigbee: [converter], isModernExtend: true};
     },
@@ -2665,7 +2665,7 @@ export const fromZigbee = {
         convert: async (model, msg, publish, options, meta) => {
             return await numericAttributes2Payload(msg, meta, model, options, msg.data);
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genBasic">,
     lumi_basic_raw: {
         cluster: "genBasic",
         type: ["raw"],
@@ -2677,21 +2677,21 @@ export const fromZigbee = {
             }
             return payload;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genBasic">,
     lumi_specific: {
         cluster: "manuSpecificLumi",
         type: ["attributeReport", "readResponse"],
         convert: async (model, msg, publish, options, meta) => {
             return await numericAttributes2Payload(msg, meta, model, options, msg.data);
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificLumi">,
     lumi_co2: {
         cluster: "msCO2",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             return {co2: Math.floor(msg.data.measuredValue)};
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"msCO2">,
     lumi_pm25: {
         cluster: "pm25Measurement",
         type: ["attributeReport", "readResponse"],
@@ -2700,21 +2700,21 @@ export const fromZigbee = {
                 return {pm25: msg.data.measuredValue};
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"pm25Measurement">,
     lumi_contact: {
         cluster: "genOnOff",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             return {contact: msg.data.onOff === 0};
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genOnOff">,
     lumi_power: {
         cluster: "genAnalogInput",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             return {power: msg.data.presentValue};
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genAnalogInput">,
     lumi_action: {
         cluster: "genOnOff",
         type: ["attributeReport"],
@@ -2761,7 +2761,7 @@ export const fromZigbee = {
 
             return {action: `${action}${button}`};
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genOnOff">,
     lumi_action_multistate: {
         cluster: "genMultistateInput",
         type: ["attributeReport", "readResponse"],
@@ -2913,7 +2913,7 @@ export const fromZigbee = {
                 return {action};
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genMultistateInput">,
     lumi_action_analog: {
         cluster: "genAnalogInput",
         type: ["attributeReport", "readResponse"],
@@ -2940,7 +2940,7 @@ export const fromZigbee = {
                 };
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genAnalogInput">,
     lumi_temperature: {
         cluster: "msTemperatureMeasurement",
         type: ["attributeReport", "readResponse"],
@@ -2953,7 +2953,7 @@ export const fromZigbee = {
                 return {temperature};
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"msTemperatureMeasurement">,
     lumi_pressure: {
         cluster: "msPressureMeasurement",
         type: ["attributeReport", "readResponse"],
@@ -2963,7 +2963,7 @@ export const fromZigbee = {
                 return result;
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"msPressureMeasurement">,
 
     // lumi class specific
     lumi_feeder: {
@@ -3059,7 +3059,7 @@ export const fromZigbee = {
             });
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificLumi">,
     lumi_trv: {
         cluster: "manuSpecificLumi",
         type: ["attributeReport", "readResponse"],
@@ -3152,7 +3152,7 @@ export const fromZigbee = {
             });
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificLumi">,
     lumi_presence_region_events: {
         cluster: "manuSpecificLumi",
         type: ["attributeReport", "readResponse"],
@@ -3198,7 +3198,7 @@ export const fromZigbee = {
 
             return payload;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificLumi">,
     lumi_lock_report: {
         cluster: "genBasic",
         type: ["attributeReport", "readResponse"],
@@ -3232,7 +3232,7 @@ export const fromZigbee = {
                 }
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genBasic">,
     lumi_occupancy_illuminance: {
         // This is for occupancy sensor that only send a message when motion detected,
         // but do not send a motion stop.
@@ -3275,7 +3275,7 @@ export const fromZigbee = {
                 return payload;
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificLumi">,
     lumi_curtain_position: {
         cluster: "genAnalogOutput",
         type: ["attributeReport", "readResponse"],
@@ -3292,7 +3292,7 @@ export const fromZigbee = {
             const closed = options.invert_cover ? position === 100 : position === 0;
             return {position, state: closed ? "CLOSE" : "OPEN"};
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genAnalogOutput">,
     lumi_curtain_position_tilt: {
         cluster: "closuresWindowCovering",
         type: ["attributeReport", "readResponse"],
@@ -3313,7 +3313,7 @@ export const fromZigbee = {
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"closuresWindowCovering">,
     lumi_operation_mode_basic: {
         cluster: "genBasic",
         type: ["attributeReport", "readResponse"],
@@ -3338,7 +3338,7 @@ export const fromZigbee = {
 
             return payload;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genBasic">,
     lumi_bulb_interval: {
         cluster: "genBasic",
         type: ["attributeReport", "readResponse"],
@@ -3352,7 +3352,7 @@ export const fromZigbee = {
                 };
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genBasic">,
     lumi_on_off: {
         cluster: "genOnOff",
         type: ["attributeReport", "readResponse"],
@@ -3363,7 +3363,7 @@ export const fromZigbee = {
                 return {[property]: msg.data.onOff === 1 ? "ON" : "OFF"};
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genOnOff">,
     lumi_curtain_status: {
         cluster: "genMultistateOutput",
         type: ["attributeReport"],
@@ -3388,7 +3388,7 @@ export const fromZigbee = {
                 };
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genMultistateOutput">,
     lumi_curtain_options: {
         cluster: "manuSpecificLumi",
         type: ["attributeReport", "readResponse"],
@@ -3403,7 +3403,7 @@ export const fromZigbee = {
                 return {limits_calibration: msg.data.curtainCalibrated === 1 ? "calibrated" : "recalibrate"};
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificLumi">,
     lumi_vibration_analog: {
         cluster: "closuresDoorLock",
         type: ["attributeReport", "readResponse"],
@@ -3486,7 +3486,7 @@ export const fromZigbee = {
 
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"closuresDoorLock">,
     lumi_illuminance: {
         cluster: "msIlluminanceMeasurement",
         type: ["attributeReport", "readResponse"],
@@ -3501,7 +3501,7 @@ export const fromZigbee = {
             }
             return payload;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"msIlluminanceMeasurement">,
     lumi_occupancy: {
         // This is for occupancy sensor that only send a message when motion detected,
         // but do not send a motion stop.
@@ -3537,7 +3537,7 @@ export const fromZigbee = {
             noOccupancySince(msg.endpoint, options, publish, "start");
             return payload;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"msOccupancySensing">,
     lumi_smoke: {
         cluster: "ssIasZone",
         type: "commandStatusChangeNotification",
@@ -3547,7 +3547,7 @@ export const fromZigbee = {
             if (result) result.test = (zoneStatus & (1 << 1)) > 0;
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"ssIasZone">,
     lumi_gas_density: {
         cluster: "genBasic",
         type: ["attributeReport", "readResponse"],
@@ -3560,7 +3560,7 @@ export const fromZigbee = {
                 }
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genBasic">,
     lumi_gas_sensitivity: {
         cluster: "ssIasZone",
         type: ["attributeReport", "readResponse"],
@@ -3577,7 +3577,7 @@ export const fromZigbee = {
                 }
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"ssIasZone">,
     lumi_door_lock_low_battery: {
         cluster: "genPowerCfg",
         type: ["attributeReport", "readResponse"],
@@ -3586,7 +3586,7 @@ export const fromZigbee = {
                 return {battery_low: msg.data.batteryAlarmMask === 1};
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genPowerCfg">,
     lumi_door_lock_report: {
         cluster: "closuresDoorLock",
         type: ["attributeReport", "readResponse"],
@@ -3758,7 +3758,7 @@ export const fromZigbee = {
 
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"closuresDoorLock">,
     lumi_action_on: {
         cluster: "genOnOff",
         type: "commandOn",
@@ -3766,7 +3766,7 @@ export const fromZigbee = {
             if (hasAlreadyProcessedMessage(msg, model)) return;
             return {action: "button_2_single"};
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genOnOff">,
     lumi_action_off: {
         cluster: "genOnOff",
         type: "commandOff",
@@ -3774,7 +3774,7 @@ export const fromZigbee = {
             if (hasAlreadyProcessedMessage(msg, model)) return;
             return {action: "button_1_single"};
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genOnOff">,
     lumi_action_step: {
         cluster: "genLevelCtrl",
         type: "commandStep",
@@ -3783,7 +3783,7 @@ export const fromZigbee = {
             const button = msg.data.stepmode === 0 ? "4" : "3";
             return {action: `button_${button}_single`};
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genLevelCtrl">,
     lumi_action_stop: {
         cluster: "genLevelCtrl",
         type: "commandStop",
@@ -3796,7 +3796,7 @@ export const fromZigbee = {
                 return payload;
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genLevelCtrl">,
     lumi_action_move: {
         cluster: "genLevelCtrl",
         type: "commandMove",
@@ -3806,7 +3806,7 @@ export const fromZigbee = {
             globalStore.putValue(msg.endpoint, "button", {button, start: Date.now()});
             return {action: `button_${button}_hold`};
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genLevelCtrl">,
     lumi_action_step_color_temp: {
         cluster: "lightingColorCtrl",
         type: "commandStepColorTemp",
@@ -3823,7 +3823,7 @@ export const fromZigbee = {
             }
             return {action: `button_${action}`};
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"lightingColorCtrl">,
     lumi_action_move_color_temp: {
         cluster: "lightingColorCtrl",
         type: "commandMoveColorTemp",
@@ -3842,7 +3842,7 @@ export const fromZigbee = {
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"lightingColorCtrl">,
 
     // lumi device specific
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
@@ -3905,7 +3905,7 @@ export const fromZigbee = {
                 publish({action: payload});
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genOnOff">,
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     lumi_smart_panel_ZNCJMB14LM: {
         cluster: "manuSpecificLumi",
@@ -3978,7 +3978,7 @@ export const fromZigbee = {
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificLumi">,
 };
 
 export const toZigbee = {

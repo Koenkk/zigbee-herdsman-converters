@@ -88,7 +88,7 @@ const fzLocal = {
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"ssIasWd">,
     ts0219genBasic: {
         cluster: "genBasic",
         type: ["attributeReport", "readResponse"],
@@ -99,7 +99,7 @@ const fzLocal = {
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genBasic">,
     ts0219ssIasZone: {
         cluster: "ssIasZone",
         type: ["attributeReport", "readResponse"],
@@ -110,7 +110,7 @@ const fzLocal = {
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"ssIasZone">,
 };
 
 export const definitions: DefinitionWithExtend[] = [

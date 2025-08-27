@@ -221,7 +221,7 @@ const fzLocal = {
                 [`bind_command_${channel}`]: utils.getKey(bindCommandList, bindCommand),
             };
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genOnOffSwitchCfg">,
     zigusb_analog_input: {
         cluster: "genAnalogInput",
         type: ["attributeReport", "readResponse"],
@@ -278,7 +278,7 @@ const fzLocal = {
             }
             return payload;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genAnalogInput">,
     zigusb_on_off_invert: {
         cluster: "genOnOff",
         type: ["attributeReport", "readResponse"],
@@ -291,7 +291,7 @@ const fzLocal = {
                 return payload;
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genOnOff">,
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     ZigDC_ina3221: {
         cluster: "genAnalogInput",
@@ -321,7 +321,7 @@ const fzLocal = {
             }
             return payload;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genAnalogInput">,
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     ZigDC_uptime: {
         cluster: "genAnalogInput",
@@ -336,7 +336,7 @@ const fzLocal = {
 
             return payload;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genAnalogInput">,
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     ZigDC_input_config: {
         cluster: "genOnOffSwitchCfg",
@@ -351,7 +351,7 @@ const fzLocal = {
                 [`bind_command_${channel}`]: utils.getKey(bindCommandList, bindCommand),
             };
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genOnOffSwitchCfg">,
 };
 
 function zigusbBtnConfigExposes(epName: string) {

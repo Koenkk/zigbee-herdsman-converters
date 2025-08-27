@@ -48,7 +48,7 @@ const fzLocal = {
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"hvacThermostat">,
     namron_thermostat2: {
         cluster: "hvacThermostat",
         type: ["attributeReport", "readResponse"],
@@ -62,7 +62,7 @@ const fzLocal = {
             if (msg.data.runningMode !== undefined) msg.data.runningState = runningModeStateMap[msg.data.runningMode];
             return fz.thermostat.convert(model, msg, publish, options, meta); // as KeyValue;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"hvacThermostat">,
 };
 
 const tzLocal = {

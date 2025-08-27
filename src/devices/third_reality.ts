@@ -20,7 +20,7 @@ const fzLocal = {
             if (msg.data.zAxis) payload.z_axis = msg.data.zAxis;
             return payload;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"3rVirationSpecialcluster">,
     thirdreality_private_motion_sensor: {
         cluster: "r3Specialcluster",
         type: "attributeReport",
@@ -28,7 +28,7 @@ const fzLocal = {
             const zoneStatus = msg.data[2];
             return {occupancy: (zoneStatus & 1) > 0};
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"r3Specialcluster">,
 };
 
 export const definitions: DefinitionWithExtend[] = [

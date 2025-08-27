@@ -1201,7 +1201,7 @@ const fromZigbee = {
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificTuya">,
     watering_timer: {
         cluster: "manuSpecificTuya",
         type: ["commandDataReport"],
@@ -1250,7 +1250,7 @@ const fromZigbee = {
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificTuya">,
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     ZM35HQ_battery: {
         cluster: "manuSpecificTuya",
@@ -1263,9 +1263,10 @@ const fromZigbee = {
 
             logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, "zhc:legacy:fz:zm35hq");
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificTuya">,
     ZMRM02: {
         cluster: "manuSpecificTuya",
+        // TODO: wrong names?
         type: ["commandGetData", "commandSetDataResponse", "commandDataResponse"],
         convert: (model, msg, publish, options, meta) => {
             const dpValue = firstDpValue(msg, meta, "ZMRM02");
@@ -1278,7 +1279,7 @@ const fromZigbee = {
             const action = lookup[actionValue];
             return {action: `button_${button}_${action}`};
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificTuya">,
     SA12IZL: {
         cluster: "manuSpecificTuya",
         type: ["commandDataResponse", "commandDataReport"],
@@ -1308,7 +1309,7 @@ const fromZigbee = {
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificTuya">,
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     R7049_status: {
         cluster: "manuSpecificTuya",
@@ -1353,7 +1354,7 @@ const fromZigbee = {
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificTuya">,
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     woox_R7060: {
         cluster: "manuSpecificTuya",
@@ -1372,7 +1373,7 @@ const fromZigbee = {
                     logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, "zhc:legacy:fz:woox_r7060");
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificTuya">,
 
     woox_thermostat: {
         cluster: "manuSpecificTuya",
@@ -1472,7 +1473,7 @@ const fromZigbee = {
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificTuya">,
 
     hpsz: {
         cluster: "manuSpecificTuya",
@@ -1500,7 +1501,7 @@ const fromZigbee = {
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificTuya">,
     zb_sm_cover: {
         cluster: "manuSpecificTuya",
         type: ["commandDataReport", "commandDataResponse"],
@@ -1580,7 +1581,7 @@ const fromZigbee = {
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificTuya">,
     x5h_thermostat: {
         cluster: "manuSpecificTuya",
         type: ["commandDataResponse", "commandDataReport"],
@@ -1688,7 +1689,7 @@ const fromZigbee = {
                 }
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificTuya">,
     zs_thermostat: {
         cluster: "manuSpecificTuya",
         type: ["commandDataResponse", "commandDataReport"],
@@ -1792,7 +1793,7 @@ const fromZigbee = {
                     logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, "zhc:legacy:fz:zs_thermostat");
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificTuya">,
     giexWaterValve: {
         cluster: "manuSpecificTuya",
         type: ["commandDataResponse", "commandDataReport"],
@@ -1830,7 +1831,7 @@ const fromZigbee = {
                 }
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificTuya">,
     tuya_alecto_smoke: {
         cluster: "manuSpecificTuya",
         type: ["commandDataResponse", "commandDataReport"],
@@ -1864,7 +1865,7 @@ const fromZigbee = {
                     logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(msg.data)}`, "zhc:legacy:fz:tuya_alecto_smoke");
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificTuya">,
     blitzwolf_occupancy_with_timeout: {
         cluster: "manuSpecificTuya",
         type: "commandDataResponse",
@@ -1873,7 +1874,7 @@ const fromZigbee = {
             msg.data.occupancy = dpValue.dp === dataPoints.occupancy ? 1 : 0;
             return occupancy_with_timeout.convert(model, msg, publish, options, meta) as KeyValueAny;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificTuya">,
     moes_thermostat: {
         cluster: "manuSpecificTuya",
         type: ["commandDataResponse", "commandDataReport"],
@@ -2008,7 +2009,7 @@ const fromZigbee = {
                     logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, "zhc:legacy:fz:moes_bht_022");
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificTuya">,
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     moesS_thermostat: {
         cluster: "manuSpecificTuya",
@@ -2076,7 +2077,7 @@ const fromZigbee = {
                     logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, "zhc:legacy:fz:moes_s_thermostat");
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificTuya">,
     tuya_air_quality: {
         cluster: "manuSpecificTuya",
         type: ["commandDataReport", "commandDataResponse"],
@@ -2122,7 +2123,7 @@ const fromZigbee = {
                     logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, "zhc:legacy:fz:tuya_air_quality");
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificTuya">,
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     tuya_CO: {
         cluster: "manuSpecificTuya",
@@ -2140,7 +2141,7 @@ const fromZigbee = {
                     logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, "zhc:legacy:fz:tuya_co");
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificTuya">,
     connecte_thermostat: {
         cluster: "manuSpecificTuya",
         type: ["commandDataResponse", "commandDataReport"],
@@ -2189,7 +2190,7 @@ const fromZigbee = {
                     logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, "zhc:legacy:fz:connecte_thermostat");
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificTuya">,
     saswell_thermostat: {
         cluster: "manuSpecificTuya",
         type: ["commandDataResponse", "commandDataReport"],
@@ -2310,7 +2311,7 @@ const fromZigbee = {
                     logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, "zhc:legacy:fz:saswell_thermostat");
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificTuya">,
     evanell_thermostat: {
         cluster: "manuSpecificTuya",
         type: ["commandDataResponse", "commandDataReport"],
@@ -2353,7 +2354,7 @@ const fromZigbee = {
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificTuya">,
     etop_thermostat: {
         cluster: "manuSpecificTuya",
         type: ["commandDataResponse", "commandDataReport"],
@@ -2401,7 +2402,7 @@ const fromZigbee = {
                     logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, "zhc:legacy:fz:etop_thermostat");
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificTuya">,
     tuya_thermostat: {
         cluster: "manuSpecificTuya",
         type: ["commandDataResponse", "commandDataReport"],
@@ -2506,7 +2507,7 @@ const fromZigbee = {
                     logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, "zhc:legacy:fz:tuya_thermostat");
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificTuya">,
     tuya_dimmer: {
         cluster: "manuSpecificTuya",
         type: ["commandDataResponse", "commandDataReport"],
@@ -2549,7 +2550,7 @@ const fromZigbee = {
                 }
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificTuya">,
     tuya_motion_sensor: {
         cluster: "manuSpecificTuya",
         type: ["commandDataResponse"],
@@ -2600,9 +2601,10 @@ const fromZigbee = {
 
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificTuya">,
     tuya_smart_vibration_sensor: {
         cluster: "manuSpecificTuya",
+        // TODO: wrong name?
         type: ["commandGetData", "commandDataResponse", "raw"],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValueAny = {};
@@ -2627,7 +2629,7 @@ const fromZigbee = {
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificTuya">,
     matsee_garage_door_opener: {
         cluster: "manuSpecificTuya",
         type: ["commandDataReport", "raw"],
@@ -2654,7 +2656,7 @@ const fromZigbee = {
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificTuya">,
     moes_thermostat_tv: {
         cluster: "manuSpecificTuya",
         type: ["commandDataResponse", "commandDataReport", "raw"],
@@ -2742,7 +2744,7 @@ const fromZigbee = {
 
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificTuya">,
     hoch_din: {
         cluster: "manuSpecificTuya",
         type: ["commandDataResponse", "commandDataReport"],
@@ -2857,7 +2859,7 @@ const fromZigbee = {
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificTuya">,
     tuya_light_wz5: {
         cluster: "manuSpecificTuya",
         type: ["commandDataResponse", "commandDataReport"],
@@ -2890,7 +2892,7 @@ const fromZigbee = {
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificTuya">,
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     ZMAM02_cover: {
         cluster: "manuSpecificTuya",
@@ -2976,7 +2978,7 @@ const fromZigbee = {
                     logger.debug(`Unrecognized DP #${dp} ${JSON.stringify(dpValue)}`, "zhc:legacy:fz:zmam02_cover");
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificTuya">,
     tm081: {
         cluster: "manuSpecificTuya",
         type: ["commandDataReport"],
@@ -2989,9 +2991,10 @@ const fromZigbee = {
 
             logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, "zhc:legacy:fz:tm081");
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificTuya">,
     tuya_remote: {
         cluster: "manuSpecificTuya",
+        // TODO: wrong name?
         type: ["commandGetData", "commandDataResponse"],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValueAny = {};
@@ -3008,7 +3011,7 @@ const fromZigbee = {
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificTuya">,
     tuya_smart_human_presense_sensor: {
         cluster: "manuSpecificTuya",
         type: ["commandDataResponse", "commandDataReport"],
@@ -3054,7 +3057,7 @@ const fromZigbee = {
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificTuya">,
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     ZG204ZL_lms: {
         cluster: "manuSpecificTuya",
@@ -3088,7 +3091,7 @@ const fromZigbee = {
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificTuya">,
     moes_cover: {
         cluster: "manuSpecificTuya",
         type: ["commandDataResponse", "commandDataReport"],
@@ -3125,7 +3128,7 @@ const fromZigbee = {
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificTuya">,
     tuya_temperature_humidity_sensor: {
         cluster: "manuSpecificTuya",
         type: ["commandDataReport", "commandDataResponse"],
@@ -3150,7 +3153,7 @@ const fromZigbee = {
                     logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, "zhc:legacy:fz:tuya_temperature_humidity_sensor");
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificTuya">,
     nous_lcd_temperature_humidity_sensor: {
         cluster: "manuSpecificTuya",
         type: ["commandDataResponse", "commandDataReport"],
@@ -3214,7 +3217,7 @@ const fromZigbee = {
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificTuya">,
     tuya_illuminance_temperature_humidity_sensor: {
         cluster: "manuSpecificTuya",
         type: ["commandDataReport", "commandDataResponse"],
@@ -3238,7 +3241,7 @@ const fromZigbee = {
                     );
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificTuya">,
     tuya_illuminance_sensor: {
         cluster: "manuSpecificTuya",
         type: ["commandDataReport", "commandDataResponse"],
@@ -3263,7 +3266,7 @@ const fromZigbee = {
                 }
             };
         })(),
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificTuya">,
     hy_thermostat: {
         cluster: "manuSpecificTuya",
         type: ["commandDataReport", "commandDataResponse"],
@@ -3360,7 +3363,7 @@ const fromZigbee = {
                     logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, "zhc:legacy:fz:hy_thermostat");
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificTuya">,
     neo_nas_pd07: {
         cluster: "manuSpecificTuya",
         type: ["commandDataReport", "commandDataResponse"],
@@ -3404,7 +3407,7 @@ const fromZigbee = {
                     logger.debug(`Unrecognized DP #${dp}: ${JSON.stringify(dpValue)}`, "zhc:legacy:fz:neo_nas_pd07");
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificTuya">,
     neo_t_h_alarm: {
         cluster: "manuSpecificTuya",
         type: ["commandDataReport", "commandDataResponse"],
@@ -3452,7 +3455,7 @@ const fromZigbee = {
                     logger.debug(`Unrecognized DP #${dp}: ${JSON.stringify(dpValue)}`, "zhc:legacy:fz:neo_t_h_alarm");
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificTuya">,
     neo_alarm: {
         cluster: "manuSpecificTuya",
         type: ["commandDataReport", "commandDataResponse"],
@@ -3477,7 +3480,7 @@ const fromZigbee = {
                     logger.debug(`Unrecognized DP #${dp}: ${JSON.stringify(msg.data)}`, "zhc:legacy:fz:neo_alarm");
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificTuya">,
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     ZB006X_settings: {
         cluster: "manuSpecificTuya",
@@ -3516,7 +3519,7 @@ const fromZigbee = {
                     logger.debug(`Unrecognized DP|Value [${dp}|${value}][${JSON.stringify(dpValue)}]`, "zhc:legacy:fz:zb006x_settings");
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificTuya">,
     tuya_cover: {
         cluster: "manuSpecificTuya",
         type: ["commandDataReport", "commandDataResponse"],
@@ -3580,7 +3583,7 @@ const fromZigbee = {
 
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificTuya">,
     moes_switch: {
         cluster: "manuSpecificTuya",
         type: ["commandDataResponse", "commandDataReport"],
@@ -3605,7 +3608,7 @@ const fromZigbee = {
                     break;
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificTuya">,
     tuya_water_leak: {
         cluster: "manuSpecificTuya",
         type: "commandDataReport",
@@ -3615,7 +3618,7 @@ const fromZigbee = {
                 return {water_leak: getDataValue(dpValue)};
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificTuya">,
     wls100z_water_leak: {
         cluster: "manuSpecificTuya",
         type: ["commandDataResponse", "commandDataReport"],
@@ -3636,7 +3639,7 @@ const fromZigbee = {
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificTuya">,
     silvercrest_smart_led_string: {
         cluster: "manuSpecificTuya",
         type: ["commandDataResponse", "commandDataReport"],
@@ -3689,7 +3692,7 @@ const fromZigbee = {
 
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificTuya">,
     frankever_valve: {
         cluster: "manuSpecificTuya",
         type: ["commandDataResponse", "commandDataReport", "commandActiveStatusReport"],
@@ -3712,7 +3715,7 @@ const fromZigbee = {
                 }
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificTuya">,
     tuya_woox_smoke: {
         cluster: "manuSpecificTuya",
         type: ["commandDataResponse"],
@@ -3731,7 +3734,7 @@ const fromZigbee = {
                     logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, "zhc:legacy:fz:tuya_smoke");
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificTuya">,
     tuya_switch: {
         cluster: "manuSpecificTuya",
         type: ["commandDataReport", "commandDataResponse", "commandActiveStatusReport"],
@@ -3752,7 +3755,7 @@ const fromZigbee = {
             }
             return null;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificTuya">,
     tuya_dinrail_switch: {
         cluster: "manuSpecificTuya",
         type: ["commandDataReport", "commandDataResponse", "commandActiveStatusReport"],
@@ -3779,7 +3782,7 @@ const fromZigbee = {
 
             return null;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificTuya">,
     ZVG1: {
         cluster: "manuSpecificTuya",
         type: "commandDataResponse",
@@ -3859,7 +3862,7 @@ const fromZigbee = {
                 }
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificTuya">,
     ZB003X: {
         cluster: "manuSpecificTuya",
         type: ["commandActiveStatusReport"],
@@ -3895,7 +3898,7 @@ const fromZigbee = {
                     logger.debug(`Unrecognized DP #${dp}: ${JSON.stringify(dpValue)}`, "zhc:legacy:fz:zb003x");
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificTuya">,
     tuya_thermostat_weekly_schedule_2: {
         cluster: "manuSpecificTuya",
         type: ["commandDataResponse", "commandDataReport"],
@@ -3947,7 +3950,7 @@ const fromZigbee = {
                 };
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificTuya">,
     tuya_data_point_dump: {
         cluster: "manuSpecificTuya",
         type: ["commandDataResponse", "commandDataReport", "commandActiveStatusReport", "commandActiveStatusReportAlt"],
@@ -3977,7 +3980,7 @@ const fromZigbee = {
                 if (err) throw err;
             });
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificTuya">,
     javis_microwave_sensor: {
         cluster: "manuSpecificTuya",
         type: ["commandDataReport", "commandDataResponse"],
@@ -4045,7 +4048,7 @@ const fromZigbee = {
                     logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, "zhc:legacy:fz:javis_microwave_sensor");
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificTuya">,
     SLUXZB: {
         cluster: "manuSpecificTuya",
         type: ["commandDataResponse", "commandDataReport"],
@@ -4065,7 +4068,7 @@ const fromZigbee = {
                     logger.debug(`Unrecognized DP #${dp} with data ${JSON.stringify(dpValue)}`, "zhc:legacy:fz:s_lux_zb");
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificTuya">,
 };
 
 const toZigbee1 = {

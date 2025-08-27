@@ -1,5 +1,5 @@
 import type {Endpoint, Group} from "zigbee-herdsman/dist/controller/model";
-import type {SunricherHvacThermostat} from "../devices/sunricher";
+import type {SunricherHvacThermostat, SunricherRemote} from "../devices/sunricher";
 import * as constants from "./constants";
 import {repInterval} from "./constants";
 import * as exposes from "./exposes";
@@ -59,7 +59,7 @@ const extend = {
             three_way: 2,
         };
 
-        const fromZigbee: Fz.Converter[] = [
+        const fromZigbee = [
             {
                 cluster: "genBasic",
                 type: ["attributeReport", "readResponse"],
@@ -73,7 +73,7 @@ const extend = {
                     }
                     return undefined;
                 },
-            } satisfies Fz.Converter,
+            } satisfies Fz.Converter<"genBasic">,
         ];
 
         const toZigbee: Tz.Converter[] = [
@@ -127,7 +127,7 @@ const extend = {
         const attribute = 0x7809;
         const data_type = 0x20;
 
-        const fromZigbee: Fz.Converter[] = [
+        const fromZigbee = [
             {
                 cluster: "genBasic",
                 type: ["attributeReport", "readResponse"],
@@ -141,7 +141,7 @@ const extend = {
                     }
                     return undefined;
                 },
-            },
+            } satisfies Fz.Converter<"genBasic">,
         ];
 
         const toZigbee: Tz.Converter[] = [
@@ -199,7 +199,7 @@ const extend = {
     SRZG9002KR12Pro: (): ModernExtend => {
         const cluster = 0xff03;
 
-        const fromZigbee: Fz.Converter[] = [
+        const fromZigbee = [
             {
                 cluster: 0xff03,
                 type: ["raw"],
@@ -252,7 +252,7 @@ const extend = {
 
                     return {action};
                 },
-            },
+            } satisfies Fz.Converter<0xff03>,
         ];
 
         const exposes: Expose[] = [
@@ -277,7 +277,7 @@ const extend = {
     SRZG2836D5Pro: (): ModernExtend => {
         const cluster = 0xff03;
 
-        const fromZigbee: Fz.Converter[] = [
+        const fromZigbee = [
             {
                 cluster: 0xff03,
                 type: ["raw"],
@@ -331,7 +331,7 @@ const extend = {
 
                     return {action};
                 },
-            },
+            } satisfies Fz.Converter<0xff03>,
         ];
 
         const exposes: Expose[] = [
@@ -356,7 +356,7 @@ const extend = {
     SRZG9002K16Pro: (): ModernExtend => {
         const cluster = 0xff03;
 
-        const fromZigbee: Fz.Converter[] = [
+        const fromZigbee = [
             {
                 cluster,
                 type: ["raw"],
@@ -393,7 +393,7 @@ const extend = {
                     }
                     return {action};
                 },
-            },
+            } satisfies Fz.Converter<typeof cluster>,
         ];
 
         const exposes: Expose[] = [e.action(["short_press", "double_press", "hold", "hold_released"])];
@@ -423,7 +423,7 @@ const extend = {
             e.enum("indicator_light", ea.ALL, ["on", "off"]).withDescription("Enable/disable the LED indicator").withCategory("config"),
         ];
 
-        const fromZigbee: Fz.Converter[] = [
+        const fromZigbee = [
             {
                 cluster,
                 type: ["attributeReport", "readResponse"],
@@ -433,7 +433,7 @@ const extend = {
                     const firstBit = indicatorLight & 0x01;
                     return {indicator_light: firstBit === 1 ? "on" : "off"};
                 },
-            } satisfies Fz.Converter,
+            } satisfies Fz.Converter<typeof cluster>,
         ];
 
         const toZigbee: Tz.Converter[] = [
@@ -481,7 +481,7 @@ const extend = {
                 .withCategory("config"),
         );
 
-        const fromZigbee: Fz.Converter[] = [
+        const fromZigbee = [
             {
                 cluster: "hvacThermostat",
                 type: ["commandGetWeeklyScheduleRsp"],
@@ -502,7 +502,7 @@ const extend = {
                         [`schedule_${day}`]: transitions,
                     };
                 },
-            },
+            } satisfies Fz.Converter<"hvacThermostat">,
         ];
 
         const toZigbee: Tz.Converter[] = [
@@ -588,7 +588,7 @@ const extend = {
     thermostatChildLock: (): ModernExtend => {
         const exposes = [e.binary("child_lock", ea.ALL, "LOCK", "UNLOCK").withDescription("Enables/disables physical input on the device")];
 
-        const fromZigbee: Fz.Converter[] = [
+        const fromZigbee = [
             {
                 cluster: "hvacUserInterfaceCfg",
                 type: ["attributeReport", "readResponse"],
@@ -600,7 +600,7 @@ const extend = {
                     }
                     return {};
                 },
-            },
+            } satisfies Fz.Converter<"hvacUserInterfaceCfg">,
         ];
 
         const toZigbee: Tz.Converter[] = [
@@ -644,7 +644,7 @@ const extend = {
 
         const awayOrBoostModeLookup = {0: "normal", 1: "away", 2: "forced"};
 
-        const fromZigbee: Fz.Converter[] = [
+        const fromZigbee = [
             {
                 cluster: "hvacThermostat",
                 type: ["attributeReport", "readResponse"],
@@ -675,7 +675,7 @@ const extend = {
 
                     return result;
                 },
-            },
+            } satisfies Fz.Converter<"hvacThermostat">,
         ];
 
         const toZigbee: Tz.Converter[] = [
@@ -757,7 +757,7 @@ const extend = {
             return result;
         };
 
-        const fromZigbee: Fz.Converter[] = [
+        const fromZigbee = [
             {
                 cluster: "hvacThermostat",
                 type: ["attributeReport", "readResponse"],
@@ -786,7 +786,7 @@ const extend = {
 
                     return result;
                 },
-            },
+            } satisfies Fz.Converter<"hvacThermostat">,
         ];
 
         const toZigbee: Tz.Converter[] = [
@@ -830,7 +830,7 @@ const extend = {
     },
 
     SRZG2856Pro: (): ModernExtend => {
-        const fromZigbee: Fz.Converter[] = [
+        const fromZigbee = [
             {
                 cluster: "sunricherRemote",
                 type: ["commandPress"],
@@ -858,7 +858,7 @@ const extend = {
                     }
                     return {action};
                 },
-            },
+            } satisfies Fz.Converter<"sunricherRemote", SunricherRemote>,
         ];
 
         const exposes: Expose[] = [e.action(["short_press", "double_press", "hold", "hold_released"])];

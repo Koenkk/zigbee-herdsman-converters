@@ -7,7 +7,7 @@ const e = exposes.presets;
 function airQuality(): ModernExtend {
     const exposes: Expose[] = [e.temperature(), e.humidity(), e.voc().withUnit("ppb"), e.eco2()];
 
-    const fromZigbee: Fz.Converter[] = [
+    const fromZigbee = [
         {
             cluster: "msTemperatureMeasurement",
             type: ["attributeReport", "readResponse"],
@@ -18,7 +18,7 @@ function airQuality(): ModernExtend {
                 const voc = Number.parseFloat(msg.data.tolerance);
                 return {temperature, humidity, eco2, voc};
             },
-        },
+        } satisfies Fz.Converter<"msTemperatureMeasurement">,
     ];
 
     return {exposes, fromZigbee, isModernExtend: true};

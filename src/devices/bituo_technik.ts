@@ -29,7 +29,7 @@ const bituo_fz = {
             }
             return fz.electrical_measurement.convert(model, msg, publish, options, meta);
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"haElectricalMeasurement">,
     total_power: {
         cluster: "haElectricalMeasurement",
         type: ["attributeReport", "readResponse"],
@@ -46,7 +46,7 @@ const bituo_fz = {
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"haElectricalMeasurement">,
 };
 export const definitions: DefinitionWithExtend[] = [
     {

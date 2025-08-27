@@ -581,7 +581,7 @@ const fzLocal = {
 
             return ret;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"greenPower">,
 };
 
 export const definitions: DefinitionWithExtend[] = [

@@ -27,16 +27,16 @@ function timeHHMM(args: m.TextArgs<"genTime">): ModernExtend {
     const access = ea[args.access ?? "ALL"];
     const mExtend = m.text(args);
 
-    const fromZigbee: Fz.Converter[] = [
+    const fromZigbee = [
         {
-            cluster: cluster.toString(),
+            cluster: "genTime",
             type: ["attributeReport", "readResponse"],
             convert: (model, msg, publish, options, meta) => {
                 if (attributeKey in msg.data && (!endpointName || getEndpointName(msg, model, meta) === endpointName)) {
                     return {[name]: time_to_str_min(msg.data[attributeKey])};
                 }
             },
-        },
+        } satisfies Fz.Converter<"genTime">,
     ];
 
     const toZigbee: Tz.Converter[] = [
@@ -112,9 +112,9 @@ function energy(args: m.NumericArgs<"seMetering">): ModernExtend {
     const access = ea[args.access ?? "ALL"];
     const mExtend = m.numeric(args);
 
-    const fromZigbee: Fz.Converter[] = [
+    const fromZigbee = [
         {
-            cluster: cluster.toString(),
+            cluster: "seMetering",
             type: ["attributeReport", "readResponse"],
             convert: (model, msg, publish, options, meta) => {
                 if (attributeKey in msg.data) {
@@ -130,7 +130,7 @@ function energy(args: m.NumericArgs<"seMetering">): ModernExtend {
                     return {[name]: value};
                 }
             },
-        },
+        } satisfies Fz.Converter<"seMetering">,
     ];
 
     const toZigbee: Tz.Converter[] = [

@@ -33,7 +33,7 @@ const bitron = {
 
                 return result;
             },
-        } satisfies Fz.Converter,
+        } satisfies Fz.Converter<"hvacThermostat">,
     },
     tz: {
         thermostat_hysteresis: {

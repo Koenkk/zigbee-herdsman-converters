@@ -329,7 +329,7 @@ const boschExtend = {
                 .withDescription('Trigger the valve adaptation process. Only possible when adaptation status is "ready_to_calibrate" or "error".')
                 .withCategory("config"),
         ];
-        const fromZigbee: Fz.Converter[] = [
+        const fromZigbee = [
             {
                 cluster: "hvacThermostat",
                 type: ["attributeReport", "readResponse"],
@@ -344,7 +344,7 @@ const boschExtend = {
                     }
                     return result;
                 },
-            },
+            } satisfies Fz.Converter<"hvacThermostat">,
         ];
         const toZigbee: Tz.Converter[] = [
             {
@@ -381,7 +381,7 @@ const boschExtend = {
         };
     },
     heatingDemand: (): ModernExtend => {
-        const fromZigbee: Fz.Converter[] = [
+        const fromZigbee = [
             {
                 cluster: "hvacThermostat",
                 type: ["attributeReport", "readResponse"],
@@ -394,7 +394,7 @@ const boschExtend = {
                     }
                     return result;
                 },
-            },
+            } satisfies Fz.Converter<"hvacThermostat">,
         ];
         const toZigbee: Tz.Converter[] = [
             {
@@ -425,7 +425,7 @@ const boschExtend = {
         };
     },
     ignoreDst: (): ModernExtend => {
-        const fromZigbee: Fz.Converter[] = [
+        const fromZigbee = [
             {
                 cluster: "genTime",
                 type: "read",
@@ -439,7 +439,7 @@ const boschExtend = {
                         await msg.endpoint.readResponse(msg.cluster, msg.meta.zclTransactionSequenceNumber, response);
                     }
                 },
-            },
+            } satisfies Fz.Converter<"genTime">,
         ];
         return {
             fromZigbee,
@@ -457,7 +457,7 @@ const boschExtend = {
         if (hasVibrationSensor) {
             exposes.push(e.binary("vibration", ea.STATE, true, false).withDescription("Indicates whether the device detected vibration"));
         }
-        const fromZigbee: Fz.Converter[] = [
+        const fromZigbee = [
             {
                 cluster: "ssIasZone",
                 type: ["commandStatusChangeNotification", "attributeReport", "readResponse"],
@@ -482,7 +482,7 @@ const boschExtend = {
                         return result;
                     }
                 },
-            },
+            } satisfies Fz.Converter<"ssIasZone">,
         ];
         return {
             exposes,
@@ -508,7 +508,7 @@ const boschExtend = {
             e.binary("alarm_smoke", ea.ALL, true, false).withDescription("Toggle the smoke alarm siren").withCategory("config"),
             e.binary("alarm_burglar", ea.ALL, true, false).withDescription("Toggle the burglar alarm siren").withCategory("config"),
         ];
-        const fromZigbee: Fz.Converter[] = [
+        const fromZigbee = [
             {
                 cluster: "ssIasZone",
                 type: ["commandStatusChangeNotification", "attributeReport", "readResponse"],
@@ -527,7 +527,7 @@ const boschExtend = {
                         };
                     }
                 },
-            },
+            } satisfies Fz.Converter<"ssIasZone">,
         ];
         const toZigbee: Tz.Converter[] = [
             {
@@ -685,7 +685,7 @@ const boschExtend = {
             e.binary("pre_alarm", ea.ALL, "ON", "OFF").withDescription("Enable/disable pre-alarm").withCategory("config"),
             e.binary("heartbeat", ea.ALL, "ON", "OFF").withDescription("Enable/disable heartbeat (blue LED)").withCategory("config"),
         ];
-        const fromZigbee: Fz.Converter[] = [
+        const fromZigbee = [
             {
                 cluster: "twinguardSmokeDetector",
                 type: ["attributeReport", "readResponse"],
@@ -696,7 +696,7 @@ const boschExtend = {
                     }
                     return result;
                 },
-            },
+            } satisfies Fz.Converter<"twinguardSmokeDetector">,
             {
                 cluster: "twinguardMeasurements",
                 type: ["attributeReport", "readResponse"],
@@ -743,7 +743,7 @@ const boschExtend = {
                     }
                     return result;
                 },
-            },
+            } satisfies Fz.Converter<"twinguardMeasurements">,
             {
                 cluster: "twinguardOptions",
                 type: ["attributeReport", "readResponse"],
@@ -754,7 +754,7 @@ const boschExtend = {
                     }
                     return result;
                 },
-            },
+            } satisfies Fz.Converter<"twinguardOptions">,
             {
                 cluster: "twinguardSetup",
                 type: ["attributeReport", "readResponse"],
@@ -765,7 +765,7 @@ const boschExtend = {
                     }
                     return result;
                 },
-            },
+            } satisfies Fz.Converter<"twinguardSetup">,
             {
                 cluster: "twinguardAlarm",
                 type: ["attributeReport", "readResponse"],
@@ -786,7 +786,7 @@ const boschExtend = {
                     }
                     return result;
                 },
-            },
+            } satisfies Fz.Converter<"twinguardAlarm">,
             {
                 cluster: "genAlarms",
                 type: ["commandAlarm", "readResponse"],
@@ -804,7 +804,7 @@ const boschExtend = {
                     }
                     return result;
                 },
-            },
+            } satisfies Fz.Converter<"genAlarms">,
         ];
         const toZigbee: Tz.Converter[] = [
             {
@@ -926,7 +926,7 @@ const boschExtend = {
             OFF: 0x00,
             ON: 0x01,
         };
-        const fromZigbee: Fz.Converter[] = [
+        const fromZigbee = [
             fz.on_off,
             fz.power_on_behavior,
             fz.cover_position_tilt,
@@ -974,7 +974,7 @@ const boschExtend = {
                     }
                     return result;
                 },
-            },
+            } satisfies Fz.Converter<"boschSpecific">,
         ];
         const toZigbee: Tz.Converter[] = [
             tz.power_on_behavior,
@@ -1247,7 +1247,7 @@ const fzLocal = {
             }
             logger.error(`Received message with unknown command ID ${buttonId}. Data: 0x${msg.data.toString("hex")}`, NS);
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"boschSpecific">,
     bhius_config: {
         cluster: "boschSpecific",
         type: ["attributeReport", "readResponse"],
@@ -1260,7 +1260,7 @@ const fzLocal = {
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"boschSpecific">,
 };
 
 export const definitions: DefinitionWithExtend[] = [

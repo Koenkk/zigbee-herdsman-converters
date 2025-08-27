@@ -26,7 +26,7 @@ const fzLocal = {
                 };
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"lightingColorCtrl">,
 };
 
 export const definitions: DefinitionWithExtend[] = [

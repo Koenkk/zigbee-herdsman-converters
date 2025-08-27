@@ -34,7 +34,7 @@ const fzLocal = {
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"hvacThermostat">,
     thermostat_ui: {
         cluster: "hvacUserInterfaceCfg",
         type: ["attributeReport", "readResponse"],
@@ -54,7 +54,7 @@ const fzLocal = {
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"hvacUserInterfaceCfg">,
 };
 
 const tzLocal = {

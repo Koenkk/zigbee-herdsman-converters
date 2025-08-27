@@ -91,7 +91,7 @@ const fzLocal = {
                 return {last_boot: boot_date_time};
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genTime">,
     wifi: {
         cluster: "genBasic",
         type: ["readResponse"],
@@ -103,7 +103,7 @@ const fzLocal = {
                 return {ip_address: data.locationDesc.trim(), wifi: wifi};
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genBasic">,
 };
 
 export const definitions: DefinitionWithExtend[] = [

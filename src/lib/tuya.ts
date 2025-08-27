@@ -1689,7 +1689,7 @@ const tuyaFz = {
                 return {[property]: utils.mapNumberRange(msg.data["61440"], 0, 1000, 0, 255)};
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genLevelCtrl">,
     power_on_behavior_1: {
         cluster: "genOnOff",
         type: ["attributeReport", "readResponse"],
@@ -1700,7 +1700,7 @@ const tuyaFz = {
                 return {[property]: lookup[msg.data.moesStartUpOnOff]};
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genOnOff">,
     power_on_behavior_2: {
         cluster: "manuSpecificTuya3",
         type: ["attributeReport", "readResponse"],
@@ -1712,7 +1712,7 @@ const tuyaFz = {
                 return {[property]: lookup[msg.data[attribute]]};
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificTuya3">,
     power_outage_memory: {
         cluster: "genOnOff",
         type: ["attributeReport", "readResponse"],
@@ -1723,7 +1723,7 @@ const tuyaFz = {
                 return {[property]: lookup[msg.data.moesStartUpOnOff]};
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genOnOff">,
     switch_type: {
         cluster: "manuSpecificTuya3",
         type: ["attributeReport", "readResponse"],
@@ -1734,7 +1734,7 @@ const tuyaFz = {
                 return {switch_type: lookup[msg.data.switchType]};
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificTuya3">,
     switch_type_curtain: {
         cluster: "manuSpecificTuya3",
         type: ["attributeReport", "readResponse"],
@@ -1745,7 +1745,7 @@ const tuyaFz = {
                 return {switch_type_curtain: lookup[msg.data.switchType]};
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificTuya3">,
     backlight_mode_low_medium_high: {
         cluster: "genOnOff",
         type: ["attributeReport", "readResponse"],
@@ -1756,7 +1756,7 @@ const tuyaFz = {
                 return {backlight_mode: backlightLookup[value]};
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genOnOff">,
     backlight_mode_off_normal_inverted: {
         cluster: "genOnOff",
         type: ["attributeReport", "readResponse"],
@@ -1765,7 +1765,7 @@ const tuyaFz = {
                 return {backlight_mode: utils.getFromLookup(msg.data.tuyaBacklightMode, {0: "off", 1: "normal", 2: "inverted"})};
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genOnOff">,
     backlight_mode_off_on: {
         cluster: "genOnOff",
         type: ["attributeReport", "readResponse"],
@@ -1774,7 +1774,7 @@ const tuyaFz = {
                 return {backlight_mode: utils.getFromLookup(msg.data.tuyaBacklightSwitch, {0: "OFF", 1: "ON"})};
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genOnOff">,
     indicator_mode: {
         cluster: "genOnOff",
         type: ["attributeReport", "readResponse"],
@@ -1783,7 +1783,7 @@ const tuyaFz = {
                 return {indicator_mode: utils.getFromLookup(msg.data.tuyaBacklightMode, {0: "off", 1: "off/on", 2: "on/off", 3: "on"})};
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genOnOff">,
     indicator_mode_none_relay_pos: {
         cluster: "genOnOff",
         type: ["attributeReport", "readResponse"],
@@ -1792,7 +1792,7 @@ const tuyaFz = {
                 return {indicator_mode: utils.getFromLookup(msg.data.tuyaBacklightMode, {0: "none", 1: "relay", 2: "pos"})};
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genOnOff">,
     child_lock: {
         cluster: "genOnOff",
         type: ["attributeReport", "readResponse"],
@@ -1802,7 +1802,7 @@ const tuyaFz = {
                 return {child_lock: value ? "LOCK" : "UNLOCK"};
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genOnOff">,
     min_brightness_attribute: {
         cluster: "genLevelCtrl",
         type: ["attributeReport", "readResponse"],
@@ -1813,7 +1813,7 @@ const tuyaFz = {
                 return {[property]: value};
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genLevelCtrl">,
     datapoints: {
         cluster: "manuSpecificTuya",
         type: ["commandDataResponse", "commandDataReport", "commandActiveStatusReport", "commandActiveStatusReportAlt"],
@@ -1838,7 +1838,7 @@ const tuyaFz = {
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificTuya">,
     on_off_action: {
         cluster: "genOnOff",
         type: "commandTuyaAction",
@@ -1851,7 +1851,7 @@ const tuyaFz = {
                 msg.device.endpoints.length === 1 || ["TS0041A", "TS0041"].includes(msg.device.modelID) ? "" : `${buttonMapping[msg.endpoint.ID]}_`;
             return {action: `${button}${clickMapping[msg.data.value]}`};
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genOnOff">,
     on_off_countdown: {
         // While a countdown is in progress, the device will report onTime at all multiples of 60.
         // More reportings can be configured for 'onTime` but they will happen independently of
@@ -1867,7 +1867,7 @@ const tuyaFz = {
                 return payload;
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genOnOff">,
     inchingSwitch: {
         cluster: "manuSpecificTuya4",
         type: ["attributeReport", "readResponse"],
@@ -1879,7 +1879,7 @@ const tuyaFz = {
                 return payload;
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificTuya4">,
 };
 export {tuyaFz as fz};
 
@@ -1892,9 +1892,9 @@ export function getHandlersForDP(
     skip?: (meta: Tz.Meta) => boolean,
     endpoint?: string,
     useGlobalSequence?: boolean,
-): [Fz.Converter[], Tz.Converter[]] {
+): [Fz.Converter<"manuSpecificTuya">[], Tz.Converter[]] {
     const keyName = endpoint ? `${name}_${endpoint}` : name;
-    const fromZigbee: Fz.Converter[] = [
+    const fromZigbee = [
         {
             cluster: "manuSpecificTuya",
             type: ["commandDataResponse", "commandDataReport", "commandActiveStatusReport", "commandActiveStatusReportAlt"],
@@ -1904,7 +1904,7 @@ export function getHandlersForDP(
                     return {[keyName]: converter.from(getDataValue(dpValue))};
                 }
             },
-        },
+        } satisfies Fz.Converter<"manuSpecificTuya">,
     ];
 
     const toZigbee: Tz.Converter[] = readOnly
@@ -2065,7 +2065,7 @@ const tuyaModernExtend = {
                     .withDescription("Temperature lower than value"),
             );
 
-        const handlers: [Fz.Converter[], Tz.Converter[]] = getHandlersForDP("auto_settings", 0x77, dataTypes.string, {
+        const handlers = getHandlersForDP("auto_settings", 0x77, dataTypes.string, {
             from: (value: string) => {
                 const buffer = Buffer.from(value, "hex");
                 if (buffer.length > 0) {
@@ -2124,7 +2124,7 @@ const tuyaModernExtend = {
             respondToMcuVersionResponse = true,
         } = args;
 
-        const fzConverter: Fz.Converter = {
+        const fzConverter: Fz.Converter<"manuSpecificTuya"> = {
             type: [
                 "commandMcuSyncTime",
                 "commandMcuVersionResponse",
@@ -2237,7 +2237,7 @@ const tuyaModernExtend = {
         }
         if (endpoint) exp = exp.withEndpoint(endpoint);
 
-        const handlers: [Fz.Converter[], Tz.Converter[]] = getHandlersForDP(
+        const handlers: [Fz.Converter<"manuSpecificTuya">[], Tz.Converter[]] = getHandlersForDP(
             name,
             dp,
             type,
@@ -2262,7 +2262,7 @@ const tuyaModernExtend = {
         }
         if (endpoint) exp = exp.withEndpoint(endpoint);
 
-        const handlers: [Fz.Converter[], Tz.Converter[]] = getHandlersForDP(
+        const handlers = getHandlersForDP(
             name,
             dp,
             type,
@@ -2303,14 +2303,15 @@ const tuyaModernExtend = {
             }
         }
 
-        const handlers: [Fz.Converter[], Tz.Converter[]] = getHandlersForDP(name, dp, type, converter, readOnly, skip, endpoint);
+        const handlers = getHandlersForDP(name, dp, type, converter, readOnly, skip, endpoint);
 
         return {exposes: [exp], fromZigbee: handlers[0], toZigbee: handlers[1], isModernExtend: true};
     },
     dpLight(args: TuyaDPLightArgs): ModernExtend {
         const {state, brightness, min, max, colorTemp, endpoint} = args;
         let exp = e.light_brightness().setAccess("state", ea.STATE_SET).setAccess("brightness", ea.STATE_SET);
-        let fromZigbee: Fz.Converter[] = [];
+        // biome-ignore lint/suspicious/noExplicitAny: too messy...
+        let fromZigbee: Fz.Converter<any>[] = [];
         let toZigbee: Tz.Converter[] = [];
         let ext: ModernExtend;
         if (min) {
@@ -2524,7 +2525,7 @@ const tuyaModernExtend = {
             backlightModeOffNormalInverted?: boolean;
             backlightModeOffOn?: boolean;
             electricalMeasurements?: boolean;
-            electricalMeasurementsFzConverter?: Fz.Converter;
+            electricalMeasurementsFzConverter?: Fz.Converter<"haElectricalMeasurement">;
             childLock?: boolean;
             switchMode?: boolean;
             onOffCountdown?: boolean;
@@ -2534,7 +2535,8 @@ const tuyaModernExtend = {
         const exposes: (Expose | DefinitionExposesFunction)[] = args.endpoints
             ? args.endpoints.map((ee) => e.switch().withEndpoint(ee))
             : [e.switch()];
-        const fromZigbee: Fz.Converter[] = [fz.on_off, fz.ignore_basic_report];
+        // biome-ignore lint/suspicious/noExplicitAny: too messy
+        const fromZigbee: Fz.Converter<any>[] = [fz.on_off, fz.ignore_basic_report];
         const toZigbee: Tz.Converter[] = [];
         if (args.onOffCountdown) {
             fromZigbee.push(tuyaFz.on_off_countdown);
@@ -2658,7 +2660,8 @@ const tuyaModernExtend = {
     },
     combineActions(actions: ModernExtend[]): ModernExtend {
         let newValues: (string | number)[] = [];
-        let newFromZigbee: Fz.Converter[] = [];
+        // biome-ignore lint/suspicious/noExplicitAny: too messy
+        let newFromZigbee: Fz.Converter<any>[] = [];
         let description: string;
         // collect action values and handlers
         for (const actionME of actions) {
@@ -2705,7 +2708,7 @@ const tuyaModernExtend = {
         // For new devices use tuyaOnOffAction instead
         const actions = args.actions.flatMap((a) => (args.endpointNames ? args.endpointNames.map((e) => `${e}_${a}`) : [a]));
         const exposes: Expose[] = [e.action(actions)];
-        const fromZigbee: Fz.Converter[] = [tuyaFz.on_off_action];
+        const fromZigbee = [tuyaFz.on_off_action];
         return {exposes, fromZigbee, isModernExtend: true};
     },
     dpChildLock(args?: Partial<TuyaDPBinaryArgs>): ModernExtend {

@@ -41,7 +41,7 @@ const fzLocal = {
                 return fz.temperature.convert(model, msg, publish, options, meta);
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"msTemperatureMeasurement">,
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     PC321_metering: {
         cluster: "seMetering",
@@ -140,7 +140,7 @@ const fzLocal = {
 
             return payload;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"seMetering">,
 
     owonFds315: {
         cluster: "fallDetectionOwon",
@@ -184,7 +184,7 @@ const fzLocal = {
 
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"fallDetectionOwon">,
 };
 
 const tzLocal = {

@@ -119,7 +119,7 @@ const fzLocal = {
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"hvacThermostat">,
     thermostat_schedule: {
         cluster: "hvacThermostat",
         type: ["commandSetWeeklySchedule"],
@@ -133,7 +133,7 @@ const fzLocal = {
             const daysOfWeek = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
             return Object.fromEntries(daysOfWeekNums.map((d) => [`schedule_${daysOfWeek[d]}`, schedule]));
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"hvacThermostat">,
     fancontrol_control: {
         cluster: "hvacFanCtrl",
         type: ["attributeReport", "readResponse"],
@@ -144,7 +144,7 @@ const fzLocal = {
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"hvacFanCtrl">,
     display_brightness: {
         cluster: "genLevelCtrl",
         type: ["attributeReport", "readResponse"],
@@ -157,7 +157,7 @@ const fzLocal = {
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genLevelCtrl">,
 };
 
 const tzLocal = {
@@ -668,7 +668,7 @@ const electricityMeterExtend = {
                 },
             },
         ];
-        const fromZigbee: Fz.Converter[] = [
+        const fromZigbee = [
             {
                 cluster: "seMetering",
                 type: ["attributeReport", "readResponse"],
@@ -681,7 +681,7 @@ const electricityMeterExtend = {
                     }
                     return result;
                 },
-            },
+            } satisfies Fz.Converter<"seMetering">,
             {
                 cluster: "seMetering",
                 type: ["attributeReport", "readResponse"],
@@ -694,7 +694,7 @@ const electricityMeterExtend = {
                     }
                     return result;
                 },
-            },
+            } satisfies Fz.Converter<"seMetering">,
             {
                 cluster: "seMetering",
                 type: ["attributeReport", "readResponse"],
@@ -714,7 +714,7 @@ const electricityMeterExtend = {
                     }
                     return result;
                 },
-            },
+            } satisfies Fz.Converter<"seMetering">,
             {
                 cluster: "seMetering",
                 type: ["attributeReport", "readResponse"],
@@ -734,7 +734,7 @@ const electricityMeterExtend = {
                     }
                     return result;
                 },
-            },
+            } satisfies Fz.Converter<"seMetering">,
             {
                 cluster: "seMetering",
                 type: ["attributeReport", "readResponse"],
@@ -754,7 +754,7 @@ const electricityMeterExtend = {
                     }
                     return result;
                 },
-            },
+            } satisfies Fz.Converter<"seMetering">,
             {
                 cluster: "seMetering",
                 type: ["attributeReport", "readResponse"],
@@ -774,7 +774,7 @@ const electricityMeterExtend = {
                     }
                     return result;
                 },
-            },
+            } satisfies Fz.Converter<"seMetering">,
             {
                 cluster: "seMetering",
                 type: ["attributeReport", "readResponse"],
@@ -786,7 +786,7 @@ const electricityMeterExtend = {
                     }
                     return result;
                 },
-            },
+            } satisfies Fz.Converter<"seMetering">,
             {
                 cluster: "seMetering",
                 type: ["attributeReport", "readResponse"],
@@ -798,7 +798,7 @@ const electricityMeterExtend = {
                     }
                     return result;
                 },
-            },
+            } satisfies Fz.Converter<"seMetering">,
             {
                 cluster: "seMetering",
                 type: ["attributeReport", "readResponse"],
@@ -810,7 +810,7 @@ const electricityMeterExtend = {
                     }
                     return result;
                 },
-            },
+            } satisfies Fz.Converter<"seMetering">,
             {
                 cluster: "seMetering",
                 type: ["attributeReport", "readResponse"],
@@ -826,7 +826,7 @@ const electricityMeterExtend = {
                     }
                     return result;
                 },
-            },
+            } satisfies Fz.Converter<"seMetering">,
             {
                 cluster: "seMetering",
                 type: ["attributeReport", "readResponse"],
@@ -838,7 +838,7 @@ const electricityMeterExtend = {
                     }
                     return result;
                 },
-            },
+            } satisfies Fz.Converter<"seMetering">,
             {
                 cluster: "seMetering",
                 type: ["readResponse"],
@@ -850,7 +850,7 @@ const electricityMeterExtend = {
                     }
                     return result;
                 },
-            },
+            } satisfies Fz.Converter<"seMetering">,
         ];
         return {
             exposes,

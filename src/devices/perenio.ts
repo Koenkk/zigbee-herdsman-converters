@@ -42,7 +42,7 @@ const fzPerenio = {
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"haDiagnostic">,
     switch_type: {
         cluster: "genMultistateValue",
         type: ["attributeReport", "readResponse"],
@@ -61,7 +61,7 @@ const fzPerenio = {
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genMultistateValue">,
     smart_plug: {
         cluster: "perenioSpecific",
         type: ["attributeReport", "readResponse"],
@@ -126,7 +126,7 @@ const fzPerenio = {
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"perenioSpecific">,
 };
 
 const tzPerenio = {

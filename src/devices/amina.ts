@@ -76,7 +76,7 @@ const fzLocal = {
                 });
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"haElectricalMeasurement">,
     ev_status: {
         cluster: "aminaControlCluster",
         type: ["attributeReport", "readResponse"],
@@ -114,7 +114,7 @@ const fzLocal = {
                 return result;
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"aminaControlCluster">,
     alarms: {
         cluster: "aminaControlCluster",
         type: ["attributeReport", "readResponse"],
@@ -132,7 +132,7 @@ const fzLocal = {
                 return result;
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"aminaControlCluster">,
 };
 
 const tzLocal = {

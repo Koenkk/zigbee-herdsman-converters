@@ -65,7 +65,7 @@ const fzLocal = {
             if (msg.data["4919"]) result.transmit_power = msg.data["4919"];
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genBasic">,
     humidity2: {
         cluster: "msRelativeHumidity",
         type: ["attributeReport", "readResponse"],
@@ -83,7 +83,7 @@ const fzLocal = {
                 return {[property]: humidity};
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"msRelativeHumidity">,
     illuminance2: {
         cluster: "msIlluminanceMeasurement",
         type: ["attributeReport", "readResponse"],
@@ -96,7 +96,7 @@ const fzLocal = {
             const property1 = multiEndpoint ? postfixWithEndpointName("illuminance", msg, model, meta) : "illuminance";
             return {[property1]: illuminanceLux};
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"msIlluminanceMeasurement">,
     pressure2: {
         cluster: "msPressureMeasurement",
         type: ["attributeReport", "readResponse"],
@@ -114,7 +114,7 @@ const fzLocal = {
             const property = multiEndpoint ? postfixWithEndpointName("pressure", msg, model, meta) : "pressure";
             return {[property]: pressure};
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"msPressureMeasurement">,
     multi_zig_sw_battery: {
         cluster: "genPowerCfg",
         type: ["attributeReport", "readResponse"],
@@ -123,7 +123,7 @@ const fzLocal = {
             const battery = (voltage - 2200) / 8;
             return {battery: battery > 100 ? 100 : battery, voltage: voltage};
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genPowerCfg">,
     multi_zig_sw_switch_buttons: {
         cluster: "genMultistateInput",
         type: ["attributeReport", "readResponse"],
@@ -134,7 +134,7 @@ const fzLocal = {
             const action = actionLookup[value];
             return {action: `${button}_${action}`};
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genMultistateInput">,
     multi_zig_sw_switch_config: {
         cluster: "genOnOffSwitchCfg",
         type: ["readResponse", "attributeReport"],
@@ -143,7 +143,7 @@ const fzLocal = {
             const {switchType} = msg.data;
             return {[`switch_type_${channel}`]: getKey(switchTypesList, switchType)};
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genOnOffSwitchCfg">,
 };
 
 function ptvoGetMetaOption(device: Zh.Device | DummyDevice, key: string, defaultValue: unknown) {

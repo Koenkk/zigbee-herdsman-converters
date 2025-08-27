@@ -145,7 +145,7 @@ export function ikeaBattery(): ModernExtend {
             .withCategory("diagnostic"),
     ];
 
-    const fromZigbee: Fz.Converter[] = [
+    const fromZigbee = [
         {
             cluster: "genPowerCfg",
             type: ["attributeReport", "readResponse"],
@@ -179,7 +179,7 @@ export function ikeaBattery(): ModernExtend {
 
                 return payload;
             },
-        },
+        } satisfies Fz.Converter<"genPowerCfg">,
     ];
 
     const toZigbee: Tz.Converter[] = [
@@ -268,7 +268,7 @@ export function ikeaAirPurifier(): ModernExtend {
             .withCategory("diagnostic"),
     ];
 
-    const fromZigbee: Fz.Converter[] = [
+    const fromZigbee = [
         {
             cluster: "manuSpecificIkeaAirPurifier",
             type: ["attributeReport", "readResponse"],
@@ -354,7 +354,7 @@ export function ikeaAirPurifier(): ModernExtend {
 
                 return state;
             },
-        },
+        } satisfies Fz.Converter<"manuSpecificIkeaAirPurifier">,
     ];
 
     const toZigbee: Tz.Converter[] = [
@@ -536,7 +536,7 @@ export function tradfriOccupancy(): ModernExtend {
             .withCategory("diagnostic"),
     ];
 
-    const fromZigbee: Fz.Converter[] = [
+    const fromZigbee = [
         {
             cluster: "genOnOff",
             type: "commandOnWithTimedOff",
@@ -566,7 +566,7 @@ export function tradfriOccupancy(): ModernExtend {
 
                 return {occupancy: true, illuminance_above_threshold: onlyWhenOnFlag};
             },
-        },
+        } satisfies Fz.Converter<"genOnOff">,
     ];
 
     return {exposes, fromZigbee, isModernExtend: true};
@@ -578,7 +578,7 @@ export function tradfriRequestedBrightness(): ModernExtend {
         presets.numeric("requested_brightness_percent", access.STATE).withValueMin(30).withValueMax(100).withCategory("diagnostic"),
     ];
 
-    const fromZigbee: Fz.Converter[] = [
+    const fromZigbee = [
         {
             // Possible values are 76 (30%) or 254 (100%)
             cluster: "genLevelCtrl",
@@ -589,7 +589,7 @@ export function tradfriRequestedBrightness(): ModernExtend {
                     requested_brightness_percent: mapNumberRange(msg.data.level, 0, 254, 0, 100),
                 };
             },
-        },
+        } satisfies Fz.Converter<"genLevelCtrl">,
     ];
 
     return {exposes, fromZigbee, isModernExtend: true};
@@ -598,7 +598,7 @@ export function tradfriRequestedBrightness(): ModernExtend {
 export function tradfriCommandsOnOff(): ModernExtend {
     const exposes: Expose[] = [presets.action(["toggle"])];
 
-    const fromZigbee: Fz.Converter[] = [
+    const fromZigbee = [
         {
             cluster: "genOnOff",
             type: "commandToggle",
@@ -606,7 +606,7 @@ export function tradfriCommandsOnOff(): ModernExtend {
                 if (hasAlreadyProcessedMessage(msg, model)) return;
                 return {action: postfixWithEndpointName("toggle", msg, model, meta)};
             },
-        },
+        } satisfies Fz.Converter<"genOnOff">,
     ];
 
     return {exposes, fromZigbee, isModernExtend: true};
@@ -625,7 +625,7 @@ export function tradfriCommandsLevelCtrl(): ModernExtend {
 
     const exposes: Expose[] = [presets.action(Object.values(actionLookup))];
 
-    const fromZigbee: Fz.Converter[] = [
+    const fromZigbee = [
         {
             cluster: "genLevelCtrl",
             type: [
@@ -641,7 +641,7 @@ export function tradfriCommandsLevelCtrl(): ModernExtend {
                 if (hasAlreadyProcessedMessage(msg, model)) return;
                 return {action: actionLookup[msg.type]};
             },
-        },
+        } satisfies Fz.Converter<"genLevelCtrl">,
     ];
 
     return {exposes, fromZigbee, isModernExtend: true};
@@ -652,7 +652,7 @@ export function styrbarCommandOn(): ModernExtend {
     // https://github.com/Koenkk/zigbee2mqtt/issues/13335
     const exposes: Expose[] = [presets.action(["on"])];
 
-    const fromZigbee: Fz.Converter[] = [
+    const fromZigbee = [
         {
             cluster: "genOnOff",
             type: "commandOn",
@@ -663,7 +663,7 @@ export function styrbarCommandOn(): ModernExtend {
                     return {action: "on"};
                 }
             },
-        },
+        } satisfies Fz.Converter<"genOnOff">,
     ];
 
     return {exposes, fromZigbee, isModernExtend: true};
@@ -687,7 +687,7 @@ export function ikeaDotsClick(args: {actionLookup?: KeyValue; dotsPrefix?: boole
     );
     const exposes: Expose[] = [presets.action(actions)];
 
-    const fromZigbee: Fz.Converter[] = [
+    const fromZigbee = [
         {
             // For remotes with firmware 1.0.012 (20211214)
             cluster: 64639,
@@ -711,7 +711,7 @@ export function ikeaDotsClick(args: {actionLookup?: KeyValue; dotsPrefix?: boole
 
                 return {action: args.dotsPrefix ? `dots_${button}_${action}` : `${button}_${action}`};
             },
-        },
+        } satisfies Fz.Converter<64639>,
         {
             // For remotes with firmware 1.0.32 (20221219) an SOMRIG
             cluster: "tradfriButton",
@@ -721,7 +721,7 @@ export function ikeaDotsClick(args: {actionLookup?: KeyValue; dotsPrefix?: boole
                 const action = getFromLookup(msg.type, args.actionLookup);
                 return {action: args.dotsPrefix ? `dots_${button}_${action}` : `${button}_${action}`};
             },
-        },
+        } satisfies Fz.Converter<"tradfriButton">,
     ];
 
     const configure: Configure[] = [m.setupConfigureForBinding("tradfriButton", "output", args.endpointNames)];
@@ -735,7 +735,7 @@ export function ikeaArrowClick(args?: {styrbar?: boolean; bind?: boolean}): Mode
     const actions = ["arrow_left_click", "arrow_left_hold", "arrow_left_release", "arrow_right_click", "arrow_right_hold", "arrow_right_release"];
     const exposes: Expose[] = [presets.action(actions)];
 
-    const fromZigbee: Fz.Converter[] = [
+    const fromZigbee = [
         {
             cluster: "genScenes",
             type: "commandTradfriArrowSingle",
@@ -746,7 +746,7 @@ export function ikeaArrowClick(args?: {styrbar?: boolean; bind?: boolean}): Mode
                 const direction = msg.data.value === 257 ? "left" : "right";
                 return {action: `arrow_${direction}_click`};
             },
-        },
+        } satisfies Fz.Converter<"genScenes">,
         {
             cluster: "genScenes",
             type: "commandTradfriArrowHold",
@@ -756,7 +756,7 @@ export function ikeaArrowClick(args?: {styrbar?: boolean; bind?: boolean}): Mode
                 globalStore.putValue(msg.endpoint, "direction", direction);
                 return {action: `arrow_${direction}_hold`};
             },
-        },
+        } satisfies Fz.Converter<"genScenes">,
         {
             cluster: "genScenes",
             type: "commandTradfriArrowRelease",
@@ -770,7 +770,7 @@ export function ikeaArrowClick(args?: {styrbar?: boolean; bind?: boolean}): Mode
                     return result;
                 }
             },
-        },
+        } satisfies Fz.Converter<"genScenes">,
     ];
 
     const result: ModernExtend = {exposes, fromZigbee, isModernExtend: true};
@@ -784,7 +784,7 @@ export function ikeaMediaCommands(): ModernExtend {
     const actions = ["track_previous", "track_next", "volume_up", "volume_down", "volume_up_hold", "volume_down_hold"];
     const exposes: Expose[] = [presets.action(actions)];
 
-    const fromZigbee: Fz.Converter[] = [
+    const fromZigbee = [
         {
             cluster: "genLevelCtrl",
             type: "commandMoveWithOnOff",
@@ -793,7 +793,7 @@ export function ikeaMediaCommands(): ModernExtend {
                 const direction = msg.data.movemode === 1 ? "down" : "up";
                 return {action: `volume_${direction}`};
             },
-        },
+        } satisfies Fz.Converter<"genLevelCtrl">,
         {
             cluster: "genLevelCtrl",
             type: "commandMove",
@@ -802,7 +802,7 @@ export function ikeaMediaCommands(): ModernExtend {
                 const direction = msg.data.movemode === 1 ? "down_hold" : "up_hold";
                 return {action: `volume_${direction}`};
             },
-        },
+        } satisfies Fz.Converter<"genLevelCtrl">,
         {
             cluster: "genLevelCtrl",
             type: "commandStep",
@@ -811,7 +811,7 @@ export function ikeaMediaCommands(): ModernExtend {
                 const direction = msg.data.stepmode === 1 ? "previous" : "next";
                 return {action: `track_${direction}`};
             },
-        },
+        } satisfies Fz.Converter<"genLevelCtrl">,
     ];
 
     const configure: Configure[] = [m.setupConfigureForBinding("genLevelCtrl", "output")];

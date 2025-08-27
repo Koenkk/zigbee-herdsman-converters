@@ -34,7 +34,7 @@ const fzLocal = {
                 }
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"haElectricalMeasurement">,
     DMS300_IN: {
         cluster: "msOccupancySensing",
         type: ["attributeReport", "readResponse"],
@@ -50,7 +50,7 @@ const fzLocal = {
                 occupancy_and: (occupancyAnd & 1) > 0,
             };
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"msOccupancySensing">,
     DMS300_OUT: {
         cluster: "ssIasZone",
         type: "commandStatusChangeNotification",
@@ -65,7 +65,7 @@ const fzLocal = {
                 occupancy_and: (occupancyAnd & 1) > 0,
             };
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"ssIasZone">,
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     GCM300Z_valve_status: {
         cluster: "genOnOff",
@@ -77,7 +77,7 @@ const fzLocal = {
                 return {gas_valve_state: msg.data.onOff === 1 ? "OPEN" : "CLOSE"};
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genOnOff">,
     ct_direction: {
         cluster: "seMetering",
         type: ["readResponse"],
@@ -88,7 +88,7 @@ const fzLocal = {
                 return {ct_direction: utils.getFromLookup(value, lookup)};
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"seMetering">,
     ias_zone_sensitivity: {
         cluster: "ssIasZone",
         type: ["attributeReport", "readResponse"],
@@ -101,7 +101,7 @@ const fzLocal = {
                 };
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"ssIasZone">,
     smoke_battery: {
         cluster: "genPowerCfg",
         type: ["attributeReport", "readResponse"],
@@ -110,7 +110,7 @@ const fzLocal = {
                 return {smoke_battery: utils.batteryVoltageToPercentage(msg.data.batteryVoltage * 100, {min: 2300, max: 3100})};
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genPowerCfg">,
 };
 
 const tzLocal = {

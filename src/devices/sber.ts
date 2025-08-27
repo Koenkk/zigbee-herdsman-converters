@@ -35,7 +35,7 @@ const sdevices = {
                     };
                 }
             },
-        } satisfies Fz.Converter,
+        } satisfies Fz.Converter<"manuSpecificSDevices">,
         led_indicator_settings: {
             cluster: "manuSpecificSDevices",
             type: ["attributeReport", "readResponse"],
@@ -69,7 +69,7 @@ const sdevices = {
                 }
                 return result;
             },
-        } satisfies Fz.Converter,
+        } satisfies Fz.Converter<"manuSpecificSDevices">,
         multistate_input: {
             cluster: "genMultistateInput",
             type: ["attributeReport"],
@@ -79,7 +79,7 @@ const sdevices = {
                 const action = actionLookup[value];
                 return {action: utils.postfixWithEndpointName(action, msg, model, meta)};
             },
-        } satisfies Fz.Converter,
+        } satisfies Fz.Converter<"genMultistateInput">,
         decouple_relay: {
             cluster: "genOnOff",
             type: ["attributeReport", "readResponse"],
@@ -94,7 +94,7 @@ const sdevices = {
                 }
                 return state;
             },
-        } satisfies Fz.Converter,
+        } satisfies Fz.Converter<"genOnOff">,
         allow_double_click: {
             cluster: "manuSpecificSDevices",
             type: ["attributeReport", "readResponse"],
@@ -105,7 +105,7 @@ const sdevices = {
                 }
                 return result;
             },
-        } satisfies Fz.Converter,
+        } satisfies Fz.Converter<"manuSpecificSDevices">,
     },
     tz: {
         custom_on_off: {
@@ -312,7 +312,7 @@ const sdevicesExtend = {
             ...args,
         }),
     ledIndicatorSettings: (): ModernExtend => {
-        const fromZigbee: Fz.Converter[] = [
+        const fromZigbee = [
             {
                 cluster: "manuSpecificSDevices",
                 type: ["attributeReport", "readResponse"],
@@ -344,7 +344,7 @@ const sdevicesExtend = {
                     }
                     return result;
                 },
-            },
+            } satisfies Fz.Converter<"manuSpecificSDevices">,
         ];
         const toZigbee: Tz.Converter[] = [
             {
@@ -460,7 +460,7 @@ const sdevicesExtend = {
     },
     electricityMeter: (): ModernExtend => {
         const exposes = [e.voltage().withAccess(ea.STATE_GET), e.current().withAccess(ea.STATE_GET), e.power().withAccess(ea.STATE_GET)];
-        const fromZigbee: Fz.Converter[] = [
+        const fromZigbee = [
             {
                 cluster: "manuSpecificSDevices",
                 type: ["attributeReport", "readResponse"],
@@ -480,7 +480,7 @@ const sdevicesExtend = {
                     }
                     return payload;
                 },
-            },
+            } satisfies Fz.Converter<"manuSpecificSDevices">,
         ];
         const toZigbee: Tz.Converter[] = [
             {

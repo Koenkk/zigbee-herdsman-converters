@@ -18,7 +18,7 @@ const extend = {
             trailing_edge_control: 1,
         };
 
-        const fromZigbee: Fz.Converter[] = [
+        const fromZigbee = [
             {
                 cluster: "genBasic",
                 type: ["attributeReport", "readResponse"],
@@ -32,7 +32,7 @@ const extend = {
                     }
                     return undefined;
                 },
-            } satisfies Fz.Converter,
+            } satisfies Fz.Converter<"genBasic">,
         ];
 
         const toZigbee: Tz.Converter[] = [
@@ -88,7 +88,7 @@ const extend = {
             roller_blind_switch: 2,
         };
 
-        const fromZigbee: Fz.Converter[] = [
+        const fromZigbee = [
             {
                 cluster: "genBasic",
                 type: ["attributeReport", "readResponse"],
@@ -102,7 +102,7 @@ const extend = {
                     }
                     return undefined;
                 },
-            } satisfies Fz.Converter,
+            } satisfies Fz.Converter<"genBasic">,
         ];
 
         const toZigbee: Tz.Converter[] = [
@@ -156,7 +156,7 @@ const extend = {
             enabled: 1,
         };
 
-        const fromZigbee: Fz.Converter[] = [
+        const fromZigbee = [
             {
                 cluster: "genBasic",
                 type: ["attributeReport", "readResponse"],
@@ -170,7 +170,7 @@ const extend = {
                     }
                     return undefined;
                 },
-            } satisfies Fz.Converter,
+            } satisfies Fz.Converter<"genBasic">,
         ];
 
         const toZigbee: Tz.Converter[] = [
@@ -219,7 +219,7 @@ const extend = {
             enabled: 1,
         };
 
-        const fromZigbee: Fz.Converter[] = [
+        const fromZigbee = [
             {
                 cluster: "genBasic",
                 type: ["attributeReport", "readResponse"],
@@ -233,7 +233,7 @@ const extend = {
                     }
                     return undefined;
                 },
-            } satisfies Fz.Converter,
+            } satisfies Fz.Converter<"genBasic">,
         ];
 
         const toZigbee: Tz.Converter[] = [
@@ -292,7 +292,7 @@ const extend = {
             dimming_to_darkest: 6,
         };
 
-        const fromZigbee: Fz.Converter[] = [
+        const fromZigbee = [
             {
                 cluster: "genBasic",
                 type: ["attributeReport", "readResponse"],
@@ -306,7 +306,7 @@ const extend = {
                     }
                     return undefined;
                 },
-            } satisfies Fz.Converter,
+            } satisfies Fz.Converter<"genBasic">,
         ];
 
         const toZigbee: Tz.Converter[] = [
@@ -377,7 +377,7 @@ const extend = {
             dimming_to_darkest: 6,
         };
 
-        const fromZigbee: Fz.Converter[] = [
+        const fromZigbee = [
             {
                 cluster: "genBasic",
                 type: ["attributeReport", "readResponse"],
@@ -391,7 +391,7 @@ const extend = {
                     }
                     return undefined;
                 },
-            } satisfies Fz.Converter,
+            } satisfies Fz.Converter<"genBasic">,
         ];
 
         const toZigbee: Tz.Converter[] = [
@@ -444,7 +444,7 @@ const extend = {
         const attribute = 0x7800;
         const data_type = 0x20;
 
-        const fromZigbee: Fz.Converter[] = [
+        const fromZigbee = [
             {
                 cluster: "genBasic",
                 type: ["attributeReport", "readResponse"],
@@ -457,7 +457,7 @@ const extend = {
                     }
                     return undefined;
                 },
-            } satisfies Fz.Converter,
+            } satisfies Fz.Converter<"genBasic">,
         ];
 
         const toZigbee: Tz.Converter[] = [
@@ -504,7 +504,7 @@ const extend = {
         const attribute = 0x7801;
         const data_type = 0x20;
 
-        const fromZigbee: Fz.Converter[] = [
+        const fromZigbee = [
             {
                 cluster: "genBasic",
                 type: ["attributeReport", "readResponse"],
@@ -517,7 +517,7 @@ const extend = {
                     }
                     return undefined;
                 },
-            } satisfies Fz.Converter,
+            } satisfies Fz.Converter<"genBasic">,
         ];
 
         const toZigbee: Tz.Converter[] = [
@@ -564,7 +564,7 @@ const extend = {
         const attribute = 0x7802;
         const data_type = 0x20;
 
-        const fromZigbee: Fz.Converter[] = [
+        const fromZigbee = [
             {
                 cluster: "genBasic",
                 type: ["attributeReport", "readResponse"],
@@ -577,7 +577,7 @@ const extend = {
                     }
                     return undefined;
                 },
-            } satisfies Fz.Converter,
+            } satisfies Fz.Converter<"genBasic">,
         ];
 
         const toZigbee: Tz.Converter[] = [
@@ -624,7 +624,7 @@ const extend = {
         const attribute = 0x7803;
         const data_type = 0x21;
 
-        const fromZigbee: Fz.Converter[] = [
+        const fromZigbee = [
             {
                 cluster: "genBasic",
                 type: ["attributeReport", "readResponse"],
@@ -637,7 +637,7 @@ const extend = {
                     }
                     return undefined;
                 },
-            } satisfies Fz.Converter,
+            } satisfies Fz.Converter<"genBasic">,
         ];
 
         const toZigbee: Tz.Converter[] = [

@@ -1873,28 +1873,28 @@ const fzLocal = {
                 globalStore.putValue(msg.device, "contract_type", contractType);
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<typeof CLUSTER_TIC>,
     ticmeter_ha_electrical_measurement: {
         cluster: "haElectricalMeasurement",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             return ticmeterConverter(msg);
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"haElectricalMeasurement">,
     ticmeter_cluster_fz: {
         cluster: CLUSTER_TIC,
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             return ticmeterConverter(msg);
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<typeof CLUSTER_TIC>,
     ticmeter_metering: {
         cluster: "seMetering",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             return ticmeterConverter(msg);
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"seMetering">,
 };
 
 function genereateTzLocal() {

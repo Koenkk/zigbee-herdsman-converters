@@ -48,7 +48,7 @@ export const fromZigbee = {
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"hvacThermostat">,
     namron_edge_thermostat_holiday_temp: {
         cluster: "hvacThermostat",
         type: ["attributeReport", "readResponse"],
@@ -65,7 +65,7 @@ export const fromZigbee = {
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"hvacThermostat">,
 };
 
 export const toZigbee = {

@@ -30,7 +30,7 @@ const fzLocal = {
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"msOccupancySensing">,
     radarSensorHeiman: {
         cluster: "RadarSensorHeiman",
         type: ["attributeReport", "readResponse"],
@@ -100,7 +100,7 @@ const fzLocal = {
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"RadarSensorHeiman">,
 };
 
 const tzLocal = {

@@ -118,7 +118,7 @@ export const develcoModernExtend = {
             .enum("air_quality", access, ["excellent", "good", "moderate", "poor", "unhealthy", "out_of_range", "unknown"])
             .withDescription("Measured air quality");
 
-        const fromZigbee: Fz.Converter[] = [
+        const fromZigbee = [
             {
                 cluster: clusterName,
                 type: ["attributeReport", "readResponse"],
@@ -149,7 +149,7 @@ export const develcoModernExtend = {
                         return {[propertyName]: airQuality};
                     }
                 },
-            },
+            } satisfies Fz.Converter<typeof clusterName>,
         ];
 
         return {exposes: [expose], fromZigbee, isModernExtend: true};
@@ -169,7 +169,7 @@ export const develcoModernExtend = {
 
         const expose = e.battery_low();
 
-        const fromZigbee: Fz.Converter[] = [
+        const fromZigbee = [
             {
                 cluster: clusterName,
                 type: ["attributeReport", "readResponse"],
@@ -179,7 +179,7 @@ export const develcoModernExtend = {
                         return {[propertyName]: voltage <= 25};
                     }
                 },
-            },
+            } satisfies Fz.Converter<typeof clusterName>,
         ];
 
         return {exposes: [expose], fromZigbee, isModernExtend: true};

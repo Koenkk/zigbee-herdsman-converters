@@ -55,7 +55,7 @@ const tzSeMetering: Tz.Converter = {
     // },
 };
 
-const fzZiPulses: Fz.Converter = {
+const fzZiPulses: Fz.Converter<"seMetering"> = {
     cluster: "seMetering",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
@@ -123,7 +123,7 @@ const fzLocal = {
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"haElectricalMeasurement">,
     lixee_private_fz: {
         cluster: "liXeePrivate", // 0xFF66
         type: ["attributeReport", "readResponse"],
@@ -361,7 +361,7 @@ const fzLocal = {
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"liXeePrivate">,
     lixee_metering: {
         cluster: "seMetering", // 0x0702
         type: ["attributeReport", "readResponse"],
@@ -430,7 +430,7 @@ const fzLocal = {
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"seMetering">,
 };
 
 // we are doing it with exclusion and not inclusion because the list is dynamic (based on zlinky mode),

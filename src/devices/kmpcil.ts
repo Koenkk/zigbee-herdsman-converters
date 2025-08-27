@@ -60,7 +60,7 @@ const kmpcilConverters = {
             }
             return payload;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genBinaryInput">,
     presence_power: {
         cluster: "genPowerCfg",
         type: ["attributeReport", "readResponse"],
@@ -76,7 +76,7 @@ const kmpcilConverters = {
             }
             return payload;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genPowerCfg">,
 };
 
 export const definitions: DefinitionWithExtend[] = [
