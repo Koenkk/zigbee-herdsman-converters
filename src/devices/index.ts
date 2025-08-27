@@ -345,6 +345,8 @@ import {definitions as zemismart} from "./zemismart";
 import {definitions as zen} from "./zen";
 import {definitions as zigbeetlc} from "./zigbeetlc";
 import {definitions as zipato} from "./zipato";
+import tuya_ts0601_tze284_gyzlwu5q from './tuya_ts0601_tze284_gyzlwu5q';
+
 
 const definitions: DefinitionWithExtend[] = [
     ...acova,
@@ -693,6 +695,7 @@ const definitions: DefinitionWithExtend[] = [
     ...zipato,
     ...qa,
     ...engo,
+    ...tuya_ts0601_tze284_gyzlwu5q,
 ];
 
 export default definitions;
