@@ -1,5 +1,26 @@
 # Changelog
 
+## [25.10.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.9.0...v25.10.0) (2025-08-27)
+
+
+### Features
+
+* **add:** 929003808801 ([#9853](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9853)) ([e1e7f12](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e1e7f12bf5210a9a363ee46451908f6c0f5207b7))
+* **add:** 929004297402 https://github.com/Koenkk/zigbee2mqtt/issues/28397 ([d238f93](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d238f93bb8934fc51fe43a895d0b6adc09c1423c))
+* **add:** AirQ_Monitor_S01 ([#9841](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9841)) ([ff8b222](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ff8b222636a76ee0ce98e1cc11bbcfeb601934d9))
+* **add:** FUT068ZR ([#9859](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9859)) ([56105e0](https://github.com/Koenkk/zigbee-herdsman-converters/commit/56105e0016f4e9e695998c91ba2161f8c2cbbf73))
+* Zemismart TB26-3: support more features ([#9849](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9849)) ([067a499](https://github.com/Koenkk/zigbee-herdsman-converters/commit/067a499849b2630fea779cbfa4584ccb55816a70))
+
+
+### Bug Fixes
+
+* Bosch `BMCT-SLZ`: various enhancements and fixes ([#9852](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9852)) ([2902e7c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2902e7ca4d9f422f35375501652e3ea79e854d74))
+* Correct vendor from GiEX to GIEX ([#9848](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9848)) ([d214855](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d21485546be6642d3a929c11f0b49bd17473bcb3))
+* Create custom modernExtend classes to use with Inovelli devices ([#9835](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9835)) ([e3e76ad](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e3e76ad2b628a4841b248ad163484c8dd8455354))
+* **detect:** Detect `929003811201` as Philips 5633030P6 ([#9851](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9851)) ([ba349f0](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ba349f0728767df85cbee1884a51f6dc6f250eb5))
+* Tuya `_TZ3000_okaz9tjs`: fix configure failing https://github.com/Koenkk/zigbee-herdsman-converters/issues/9786 ([1d9f8bb](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1d9f8bbc1309d91e71368b9ff71db19b50246bda))
+* Various code fixes ([#9854](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9854)) ([7ba943e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7ba943e6abaa9978c00d048dfeac80d3721fd4ae))
+
 ## [25.9.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.8.0...v25.9.0) (2025-08-25)
 
 
