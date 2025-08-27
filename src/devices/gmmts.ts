@@ -1882,30 +1882,31 @@ function ticmeterConverter(msg: Fz.Message<"manuSpecificGmmts", TicMeter, ["attr
     for (const key of Object.keys(msg.data)) {
         const found = ticmeterDatas.find((x) => x.attr === key);
         if (found) {
-            // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
-            let value;
+            let value: string | number | undefined;
             switch (found.type) {
                 case STRING:
-                    if (Buffer.isBuffer(msg.data[key])) {
-                        value = msg.data[key].toString();
+                    if (Buffer.isBuffer(msg.data[key as keyof typeof msg.data & string])) {
+                        value = msg.data[key as keyof typeof msg.data & string].toString();
                     } else {
-                        value = msg.data[key];
+                        value = msg.data[key as keyof typeof msg.data & string];
                     }
                     break;
                 case NUMBER:
                 case NUM_RW:
-                    value = msg.data[key];
+                    value = msg.data[key as keyof typeof msg.data & string];
                     break;
                 case ENUM:
-                    value = found.values[msg.data[key]];
+                    value = found.values[msg.data[key as keyof typeof msg.data & string] as number];
                     break;
                 case TIME:
-                    value = new Date(msg.data[key] * 1000).toLocaleString("fr-FR", {timeZone: "Europe/Paris"});
+                    value = new Date((msg.data[key as keyof typeof msg.data & string] as number) * 1000).toLocaleString("fr-FR", {
+                        timeZone: "Europe/Paris",
+                    });
                     break;
             }
 
             if (found.attr === "uptime") {
-                value = value / 1000; // convert ms to s
+                value = (value as number) / 1000; // convert ms to s
             }
 
             result[toSnakeCase(found.attr)] = value;

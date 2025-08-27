@@ -120,12 +120,12 @@ const fzLocal = {
             }
             if (msg.data.owonCurrentSum !== undefined || msg.data["12547"] !== undefined) {
                 // 0x3103 -> 12547
-                const data = msg.data.owonCurrentSum || msg.data["12547"] * factor;
+                const data = msg.data.owonCurrentSum || (msg.data["12547"] as number) * factor;
                 payload.current = data;
             }
             if (msg.data.owonReactiveEnergySum !== undefined || msg.data["16643"] !== undefined) {
                 // 0x4103 -> 16643
-                const value = msg.data.owonReactiveEnergySum || msg.data["16643"];
+                const value = msg.data.owonReactiveEnergySum || (msg.data["16643"] as number);
                 payload.reactive_energy = value * factor;
             }
             if (msg.data.owonL1PowerFactor !== undefined) {

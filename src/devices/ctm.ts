@@ -242,7 +242,7 @@ const fzLocal = {
             }
             if (data[0x0426] !== undefined) {
                 // External temperature
-                result.external_temp = utils.precisionRound(data[0x0426], 2) / 100;
+                result.external_temp = utils.precisionRound(data[0x0426] as number, 2) / 100;
             }
             if (data[0x0428] !== undefined) {
                 // External sensor source
@@ -250,7 +250,7 @@ const fzLocal = {
             }
             if (data[0x0429] !== undefined) {
                 // Current air temperature
-                result.air_temp = utils.precisionRound(data[0x0429], 2) / 100;
+                result.air_temp = utils.precisionRound(data[0x0429] as number, 2) / 100;
             }
             if (data[0x0424] !== undefined) {
                 // Floor Sensor Error
@@ -404,6 +404,7 @@ const fzLocal = {
         cluster: "ssIasZone",
         type: ["commandStatusChangeNotification", "attributeReport"],
         convert: (model, msg, publish, options, meta) => {
+            // TODO: `zoneStatus` or `zonestatus` depending on `type`
             const zoneStatus = msg.data.zonestatus;
             return {
                 active_water_leak: (zoneStatus & 1) > 0,

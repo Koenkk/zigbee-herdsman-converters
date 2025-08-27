@@ -22,14 +22,14 @@ const bituo_fz = {
                     lowerField.includes("power") && // Fields containing "power" are included
                     !lowerField.includes("powerfactor") // excluding "powerFactor" (case-sensitive, lowercase comparison）
                 ) {
-                    if (msg.data[field] !== undefined) {
-                        msg.data[field] = (msg.data[field] as number) * divisor;
+                    if (msg.data[field as keyof typeof msg.data & string] !== undefined) {
+                        msg.data[field as keyof typeof msg.data & string] = (msg.data[field as keyof typeof msg.data & string] as number) * divisor;
                     }
                 }
             }
             return fz.electrical_measurement.convert(model, msg, publish, options, meta);
         },
-    } satisfies Fz.Converter<"haElectricalMeasurement">,
+    } satisfies Fz.Converter<"haElectricalMeasurement", undefined, ["attributeReport", "readResponse"]>,
     total_power: {
         cluster: "haElectricalMeasurement",
         type: ["attributeReport", "readResponse"],

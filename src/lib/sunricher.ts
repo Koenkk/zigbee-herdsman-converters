@@ -134,7 +134,7 @@ const extend = {
                 convert: (model, msg, publish, options, meta) => {
                     if (Object.hasOwn(msg.data, attribute)) {
                         console.log("from ", msg.data[attribute]);
-                        const value = Math.round(msg.data[attribute] / 5.1);
+                        const value = Math.round((msg.data[attribute] as number) / 5.1);
                         return {
                             minimum_pwm: value,
                         };

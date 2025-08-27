@@ -1999,7 +1999,11 @@ const tzLocal = {
 };
 
 const fzLocal = {
-    inovelli: (attributes: {[s: string]: Attribute}, cluster: string, splitValuesByEndpoint = false) =>
+    inovelli: (
+        attributes: {[s: string]: Attribute},
+        cluster: typeof INOVELLI_CLUSTER_NAME | typeof INOVELLI_MMWAVE_CLUSTER_NAME,
+        splitValuesByEndpoint = false,
+    ) =>
         ({
             cluster: cluster,
             type: ["raw", "readResponse", "commandQueryNextImageRequest" /** TODO: this really needed? */],

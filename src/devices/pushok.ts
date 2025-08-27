@@ -40,7 +40,7 @@ const pushokExtend = {
                         let temperature = msg.data.measuredValue / 100.0;
 
                         if (msg.data[0xf001] !== undefined) {
-                            temperature += msg.data[0xf001] / 10.0;
+                            temperature += (msg.data[0xf001] as number) / 10.0;
                         }
                         return {temperature};
                     }

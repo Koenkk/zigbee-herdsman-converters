@@ -98,7 +98,7 @@ const ubisys = {
                     result.input_configurations = msg.data.inputConfigurations;
                 }
                 if (msg.data.inputActions != null) {
-                    result.input_actions = msg.data.inputActions.map((el: KeyValue) => Object.values(el));
+                    result.input_actions = (msg.data.inputActions as unknown[]).map((el) => Object.values(el));
                 }
                 return {configure_device_setup: result};
             },

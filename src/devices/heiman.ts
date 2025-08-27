@@ -68,7 +68,8 @@ const fzLocal = {
 
             for (const key of Object.keys(msg.data)) {
                 if (mapAttributes[key]) {
-                    const value = msg.data[key];
+                    const value = msg.data[key as keyof typeof msg.data & string];
+                    // TODO: number | Buffer?
                     if (value.length >= 5) {
                         try {
                             const buffer = Buffer.from(value, "binary");
