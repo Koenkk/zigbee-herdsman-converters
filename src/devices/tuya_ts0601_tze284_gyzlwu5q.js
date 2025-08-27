@@ -32,12 +32,12 @@ const definitions = [
                                 break;
                             case 9:
                                 if (dp.datatype === 4) {
-                                    publish({ test_button: "pressed" });
+                                    publish({test_button: "pressed"});
 
                                     if (meta.testButtonTimeouts[dp.dp]) clearTimeout(meta.testButtonTimeouts[dp.dp]);
 
                                     meta.testButtonTimeouts[dp.dp] = setTimeout(() => {
-                                        publish({ test_button: "idle" });
+                                        publish({test_button: "idle"});
                                         delete meta.testButtonTimeouts[dp.dp];
                                     }, 500);
                                 }
@@ -60,13 +60,19 @@ const definitions = [
         toZigbee: [],
         exposes: [
             exposes.binary("smoke", exposes.access.STATE, true, false).withDescription("Smoke detected"),
-            exposes.numeric("temperature", exposes.access.STATE).withUnit("°C").withDescription("Measured temperature").withValueMin(-40).withValueMax(80).withValueStep(0.1),
+            exposes
+                .numeric("temperature", exposes.access.STATE)
+                .withUnit("°C")
+                .withDescription("Measured temperature")
+                .withValueMin(-40)
+                .withValueMax(80)
+                .withValueStep(0.1),
             exposes.numeric("humidity", exposes.access.STATE).withUnit("%").withDescription("Measured humidity").withValueMin(0).withValueMax(100),
             exposes.enum("test_button", exposes.access.STATE, ["idle", "pressed"]).withDescription("Test button status"),
             exposes.binary("battery_low", exposes.access.STATE).withDescription("Battery low indicator from DP14"),
             exposes.binary("battery_full", exposes.access.STATE).withDescription("Battery full indicator from DP14"),
         ],
-        meta: { multiEndpoint: false },
+        meta: {multiEndpoint: false},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             try {
