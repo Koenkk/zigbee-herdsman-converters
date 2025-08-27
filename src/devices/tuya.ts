@@ -4473,6 +4473,8 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZ3000_uilitwsy",
             "_TZ3000_66fekqhh",
             "_TZ3000_eqsair32",
+            "_TZ3000_fawk5xjv",
+            "_TZ3000_ok0ggpk7",
         ]),
         model: "TS0003_switch_3_gang_with_backlight",
         vendor: "Tuya",
