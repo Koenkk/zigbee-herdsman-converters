@@ -347,7 +347,6 @@ import {definitions as zigbeetlc} from "./zigbeetlc";
 import {definitions as zipato} from "./zipato";
 import tuya_ts0601_tze284_gyzlwu5q from './tuya_ts0601_tze284_gyzlwu5q';
 
-
 const definitions: DefinitionWithExtend[] = [
     ...acova,
     ...acuityBrandsLighting,
