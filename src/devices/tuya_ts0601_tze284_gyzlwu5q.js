@@ -1,6 +1,5 @@
 const exposes = require('zigbee-herdsman-converters/lib/exposes');
 const fz = require('zigbee-herdsman-converters/converters/fromZigbee');
-const tz = require('zigbee-herdsman-converters/converters/toZigbee');
 
 module.exports = [
     {
