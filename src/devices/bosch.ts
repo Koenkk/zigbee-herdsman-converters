@@ -10,7 +10,7 @@ import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import {payload} from "../lib/reporting";
 import * as globalStore from "../lib/store";
-import type {DefinitionWithExtend, Expose, Fz, KeyValue, ModernExtend, Tz} from "../lib/types";
+import type {DefinitionWithExtend, Expose, Fz, KeyValue, ModernExtend, Tz, Zh} from "../lib/types";
 import * as utils from "../lib/utils";
 
 const e = exposes.presets;
@@ -1041,9 +1041,15 @@ const boschExtend = {
                         }
                     }
                     if (data.switchType !== undefined) {
+                        const switchType = msg.data.switchType;
                         result.switch_type = Object.keys(stateSwitchType).find(
-                            (key) => stateSwitchType[key as keyof typeof stateSwitchType] === msg.data.switchType,
+                            (key) => stateSwitchType[key as keyof typeof stateSwitchType] === switchType,
                         );
+
+                        if (switchType !== meta.device.meta.switchType) {
+                            meta.device.meta.switchType = switchType;
+                            meta.deviceExposesChanged();
+                        }
                     }
                     if (data.switchMode !== undefined) {
                         const property = utils.postfixWithEndpointName("switch_mode", msg, model, meta);
@@ -1119,8 +1125,28 @@ const boschExtend = {
                         return {state: {device_mode: value}};
                     }
                     if (key === "switch_type") {
-                        const index = utils.getFromLookup(value, stateSwitchType);
-                        await entity.write<"boschSpecific", BoschSpecificBmct>("boschSpecific", {switchType: index});
+                        const applyDefaultForSwitchModeAndChildLock = async (endpoint: Zh.Endpoint | Zh.Group) => {
+                            const switchModeDefault = utils.getFromLookup("coupled", stateSwitchMode);
+                            const childLockDefault = utils.getFromLookup("OFF", stateOffOn);
+
+                            await endpoint.write<"boschSpecific", BoschSpecificBmct>("boschSpecific", {
+                                switchMode: switchModeDefault,
+                                childLock: childLockDefault,
+                            });
+                            await endpoint.read<"boschSpecific", BoschSpecificBmct>("boschSpecific", ["switchMode", "childLock"]);
+                        };
+
+                        const switchType = utils.getFromLookup(value, stateSwitchType);
+                        await entity.write<"boschSpecific", BoschSpecificBmct>("boschSpecific", {switchType: switchType});
+                        await entity.read<"boschSpecific", BoschSpecificBmct>("boschSpecific", ["switchType"]);
+                        await applyDefaultForSwitchModeAndChildLock(entity);
+
+                        const leftEndpoint = meta.device.getEndpoint(2);
+                        await applyDefaultForSwitchModeAndChildLock(leftEndpoint);
+
+                        const rightEndpoint = meta.device.getEndpoint(3);
+                        await applyDefaultForSwitchModeAndChildLock(rightEndpoint);
+
                         return {state: {switch_type: value}};
                     }
                     if (key === "switch_mode") {
@@ -2305,118 +2331,167 @@ export const definitions: DefinitionWithExtend[] = [
                 only_short_press_decoupled: 0x02,
                 only_long_press_decoupled: 0x03,
             };
-            const commonExposes = [
-                e.enum("switch_type", ea.ALL, Object.keys(stateSwitchType)).withDescription("Module controlled by a rocker switch or a button"),
-                e.action([
-                    "press_released_left",
-                    "press_released_right",
-                    "hold_left",
-                    "hold_right",
-                    "hold_released_left",
-                    "hold_released_right",
-                    "opened_left",
-                    "opened_right",
-                    "closed_left",
-                    "closed_right",
-                ]),
-                e.action_duration(),
-            ];
-            const lightExposes = [
-                e.switch().withEndpoint("left"),
-                e.switch().withEndpoint("right"),
-                e.power_on_behavior().withEndpoint("left"),
-                e.power_on_behavior().withEndpoint("right"),
-                e
-                    .enum("switch_mode", ea.ALL, Object.keys(stateSwitchMode))
-                    .withEndpoint("left")
-                    .withDescription(
-                        "Decouple the switch from the corresponding output to use it for other purposes. Please keep in mind that not all options may work depending on your switch type.",
-                    ),
-                e
-                    .enum("switch_mode", ea.ALL, Object.keys(stateSwitchMode))
-                    .withEndpoint("right")
-                    .withDescription(
-                        "Decouple the switch from the corresponding output to use it for other purposes. Please keep in mind that not all options may work depending on your switch type.",
-                    ),
-                e
-                    .binary("auto_off_enabled", ea.ALL, "ON", "OFF")
-                    .withEndpoint("left")
-                    .withDescription("Enable/Disable the automatic turn-off feature"),
-                e
-                    .binary("auto_off_enabled", ea.ALL, "ON", "OFF")
-                    .withEndpoint("right")
-                    .withDescription("Enable/Disable the automatic turn-off feature"),
-                e
-                    .numeric("auto_off_time", ea.ALL)
-                    .withValueMin(0)
-                    .withValueMax(720)
-                    .withValueStep(1)
-                    .withUnit("min")
-                    .withDescription("Turn off the output after the specified amount of time. Only in action when the automatic turn-off is enabled.")
-                    .withEndpoint("left"),
-                e
-                    .numeric("auto_off_time", ea.ALL)
-                    .withValueMin(0)
-                    .withValueMax(720)
-                    .withValueStep(1)
-                    .withUnit("min")
-                    .withDescription("Turn off the output after the specified amount of time. Only in action when the automatic turn-off is enabled.")
-                    .withEndpoint("right"),
-                e.binary("child_lock", ea.ALL, "ON", "OFF").withEndpoint("left").withDescription("Enable/Disable child lock"),
-                e.binary("child_lock", ea.ALL, "ON", "OFF").withEndpoint("right").withDescription("Enable/Disable child lock"),
-            ];
-            const coverExposes = [
-                e.cover_position(),
-                e.enum("motor_state", ea.STATE, Object.keys(stateMotor)).withDescription("Current shutter motor state"),
-                e.binary("child_lock", ea.ALL, "ON", "OFF").withDescription("Enable/Disable child lock"),
-                e
-                    .enum(
-                        "switch_mode",
-                        ea.ALL,
-                        Object.keys(stateSwitchMode).filter((switchMode) => switchMode === "coupled" || switchMode === "only_long_press_decoupled"),
-                    )
-                    .withDescription(
-                        "Decouple the switch from the corresponding output to use it for other purposes. Please keep in mind that not all options may work depending on your switch type.",
-                    ),
-                e
-                    .numeric("calibration_closing_time", ea.ALL)
-                    .withUnit("s")
-                    .withDescription("Calibrate shutter closing time")
-                    .withValueMin(1)
-                    .withValueMax(90)
-                    .withValueStep(0.1),
-                e
-                    .numeric("calibration_opening_time", ea.ALL)
-                    .withUnit("s")
-                    .withDescription("Calibrate shutter opening time")
-                    .withValueMin(1)
-                    .withValueMax(90)
-                    .withValueStep(0.1),
-                e
-                    .numeric("calibration_button_hold_time", ea.ALL)
-                    .withUnit("s")
-                    .withDescription("Time to hold for long press")
-                    .withValueMin(0.1)
-                    .withValueMax(2)
-                    .withValueStep(0.1),
-                e
-                    .numeric("calibration_motor_start_delay", ea.ALL)
-                    .withUnit("s")
-                    .withDescription("Delay between command and motor start")
-                    .withValueMin(0)
-                    .withValueMax(20)
-                    .withValueStep(0.1),
-            ];
+            const commonExposes = (switchType: string) => {
+                const exposeList = [];
+
+                exposeList.push(
+                    e.enum("switch_type", ea.ALL, Object.keys(stateSwitchType)).withDescription("Module controlled by a rocker switch or a button"),
+                );
+
+                if (switchType !== "none") {
+                    let supportedActionTypes: string[];
+
+                    switch (switchType) {
+                        case "button":
+                        case "button_key_change":
+                            supportedActionTypes = [
+                                "press_released_left",
+                                "press_released_right",
+                                "hold_left",
+                                "hold_right",
+                                "hold_released_left",
+                                "hold_released_right",
+                            ];
+                            break;
+                        case "rocker_switch":
+                        case "rocker_switch_key_change":
+                            supportedActionTypes = ["opened_left", "opened_right", "closed_left", "closed_right"];
+                            break;
+                    }
+
+                    exposeList.push(e.action(supportedActionTypes), e.action_duration());
+                }
+
+                return exposeList;
+            };
+            const lightExposes = (endpoint: string, switchType: string) => {
+                const exposeList = [];
+
+                exposeList.push(
+                    e.switch().withEndpoint(endpoint),
+                    e.power_on_behavior().withEndpoint(endpoint),
+                    e
+                        .binary("auto_off_enabled", ea.ALL, "ON", "OFF")
+                        .withEndpoint(endpoint)
+                        .withDescription("Enable/Disable the automatic turn-off feature"),
+                    e
+                        .numeric("auto_off_time", ea.ALL)
+                        .withValueMin(0)
+                        .withValueMax(720)
+                        .withValueStep(1)
+                        .withUnit("min")
+                        .withDescription(
+                            "Turn off the output after the specified amount of time. Only in action when the automatic turn-off is enabled.",
+                        )
+                        .withEndpoint(endpoint),
+                );
+
+                if (switchType !== "none") {
+                    let supportedSwitchModes: string[];
+
+                    switch (switchType) {
+                        case "button":
+                        case "button_key_change":
+                            supportedSwitchModes = Object.keys(stateSwitchMode);
+                            break;
+                        case "rocker_switch":
+                        case "rocker_switch_key_change":
+                            supportedSwitchModes = Object.keys(stateSwitchMode).filter(
+                                (switchMode) => switchMode === "coupled" || switchMode === "decoupled",
+                            );
+                            break;
+                    }
+
+                    exposeList.push(
+                        e
+                            .enum("switch_mode", ea.ALL, supportedSwitchModes)
+                            .withEndpoint(endpoint)
+                            .withDescription(
+                                "Decouple the switch from the corresponding output to use it for other purposes. Please keep in mind that the available options depend on the used switch type.",
+                            ),
+                        e.binary("child_lock", ea.ALL, "ON", "OFF").withEndpoint(endpoint).withDescription("Enable/Disable child lock"),
+                    );
+                }
+
+                return exposeList;
+            };
+            const coverExposes = (switchType: string) => {
+                const exposeList = [];
+
+                exposeList.push(
+                    e.cover_position(),
+                    e.enum("motor_state", ea.STATE, Object.keys(stateMotor)).withDescription("Current shutter motor state"),
+                    e
+                        .numeric("calibration_closing_time", ea.ALL)
+                        .withUnit("s")
+                        .withDescription("Calibrate shutter closing time")
+                        .withValueMin(1)
+                        .withValueMax(90)
+                        .withValueStep(0.1),
+                    e
+                        .numeric("calibration_opening_time", ea.ALL)
+                        .withUnit("s")
+                        .withDescription("Calibrate shutter opening time")
+                        .withValueMin(1)
+                        .withValueMax(90)
+                        .withValueStep(0.1),
+                    e
+                        .numeric("calibration_button_hold_time", ea.ALL)
+                        .withUnit("s")
+                        .withDescription("Time to hold for long press")
+                        .withValueMin(0.1)
+                        .withValueMax(2)
+                        .withValueStep(0.1),
+                    e
+                        .numeric("calibration_motor_start_delay", ea.ALL)
+                        .withUnit("s")
+                        .withDescription("Delay between command and motor start")
+                        .withValueMin(0)
+                        .withValueMax(20)
+                        .withValueStep(0.1),
+                );
+
+                if (switchType !== "none") {
+                    let supportedSwitchModes: string[];
+
+                    switch (switchType) {
+                        case "button":
+                        case "button_key_change":
+                            supportedSwitchModes = Object.keys(stateSwitchMode).filter(
+                                (switchMode) => switchMode === "coupled" || switchMode === "only_long_press_decoupled",
+                            );
+                            break;
+                        case "rocker_switch":
+                        case "rocker_switch_key_change":
+                            supportedSwitchModes = Object.keys(stateSwitchMode).filter((switchMode) => switchMode === "coupled");
+                            break;
+                    }
+
+                    exposeList.push(
+                        e
+                            .enum("switch_mode", ea.ALL, supportedSwitchModes)
+                            .withDescription(
+                                "Decouple the switch from the corresponding output to use it for other purposes. Please keep in mind that the available options depend on the used switch type.",
+                            ),
+                        e.binary("child_lock", ea.ALL, "ON", "OFF").withDescription("Enable/Disable child lock"),
+                    );
+                }
+
+                return exposeList;
+            };
 
             if (!utils.isDummyDevice(device)) {
                 const deviceModeKey = device.getEndpoint(1).getClusterAttributeValue("boschSpecific", "deviceMode");
                 const deviceMode = Object.keys(stateDeviceMode).find((key) => stateDeviceMode[key] === deviceModeKey);
 
+                const switchTypeKey = device.getEndpoint(1).getClusterAttributeValue("boschSpecific", "switchType");
+                const switchType = Object.keys(stateSwitchType).find((key) => stateSwitchType[key] === switchTypeKey);
+
                 if (deviceMode === "light") {
-                    return [...commonExposes, ...lightExposes];
+                    return [...commonExposes(switchType), ...lightExposes("left", switchType), ...lightExposes("right", switchType)];
                 }
                 if (deviceMode === "shutter") {
-                    return [...commonExposes, ...coverExposes];
+                    return [...commonExposes(switchType), ...coverExposes(switchType)];
                 }
             }
             return [e.enum("device_mode", ea.ALL, Object.keys(stateDeviceMode)).withDescription("Device mode")];
