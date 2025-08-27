@@ -1,7 +1,12 @@
 import assert from "node:assert";
 import {Zcl} from "zigbee-herdsman";
-import type {ClusterOrRawAttributeKeys, PartialClusterOrRawWriteAttributes, TCustomCluster} from "zigbee-herdsman/dist/controller/tstype";
-import type {TClusterPayload, TPartialClusterAttributes} from "zigbee-herdsman/dist/zspec/zcl/definition/clusters-types";
+import type {
+    ClusterOrRawAttributeKeys,
+    PartialClusterOrRawWriteAttributes,
+    TCustomCluster,
+    TCustomClusterPayload,
+} from "zigbee-herdsman/dist/controller/tstype";
+import type {TClusterAttributeKeys, TClusterPayload, TPartialClusterAttributes} from "zigbee-herdsman/dist/zspec/zcl/definition/clusters-types";
 import type {ClusterDefinition} from "zigbee-herdsman/dist/zspec/zcl/definition/tstype";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
@@ -19,6 +24,7 @@ import type {
     DefinitionExposes,
     DefinitionExposesFunction,
     DefinitionMeta,
+    ElementOf,
     Expose,
     Fz,
     KeyValue,
@@ -2467,14 +2473,18 @@ export function commandsScenes(args: CommandsScenesArgs = {}) {
 export interface ClusterWithAttribute<
     Cl extends string | number,
     Custom extends TCustomCluster | undefined = undefined,
-    Co extends string | number | undefined = undefined,
+    Co extends string | undefined = undefined,
 > {
     cluster: Cl;
     // `& string` prevents `number[]`
     attribute: Co extends undefined
         ? // biome-ignore lint/style/useNamingConvention: API
           (ClusterOrRawAttributeKeys<Cl, Custom> & string)[number] | {ID: number; type: number}
-        : keyof TClusterPayload<Cl, Co> & string;
+        : Custom extends TCustomCluster
+          ? TCustomClusterPayload<Custom, Co> extends never
+              ? keyof TClusterPayload<Cl, Co>
+              : keyof TClusterPayload<Cl, Co> | keyof TCustomClusterPayload<Custom, Co>
+          : keyof TClusterPayload<Cl, Co>;
 }
 
 export interface EnumLookupArgs<Cl extends string | number, Custom extends TCustomCluster | undefined = undefined>
@@ -2837,28 +2847,37 @@ export function text<Cl extends string | number, Custom extends TCustomCluster |
     return {exposes: [expose], fromZigbee, toZigbee, configure, isModernExtend: true};
 }
 
-export type Parse<Cl extends string | number, Custom extends TCustomCluster | undefined = undefined> = (
-    msg: Fz.Message<Cl, Custom>,
-    attributeKey: string | number,
-) => unknown;
 export interface ActionEnumLookupArgs<
     Cl extends string | number,
     Custom extends TCustomCluster | undefined = undefined,
-    Co extends string | undefined = undefined,
-> extends ClusterWithAttribute<Cl, Custom, Co> {
+    Cos extends Fz.ConverterTypeCmd<Cl, Custom>[] | undefined = undefined,
+> extends ClusterWithAttribute<
+        Cl,
+        Custom,
+        ElementOf<Cos> extends infer Single ? (Single extends `command${infer Co}` ? Uncapitalize<Co> : undefined) : undefined
+    > {
     actionLookup: KeyValue;
     endpointNames?: string[];
     buttonLookup?: KeyValue;
     extraActions?: string[];
-    commands?: Co extends undefined ? undefined : `command${Capitalize<Co>}`[];
-    parse?: Parse<Cl, Custom>;
+    commands?: Cos;
+    parse?: (
+        msg: Fz.Message<Cl, Custom, Cos extends undefined ? ["attributeReport", "readResponse"] : Cos>,
+        attributeKey:
+            | ClusterWithAttribute<
+                  Cl,
+                  Custom,
+                  ElementOf<Cos> extends infer Single ? (Single extends `command${infer Co}` ? Uncapitalize<Co> : undefined) : undefined
+              >["attribute"]
+            | number,
+    ) => unknown;
 }
 export function actionEnumLookup<
     Cl extends string | number,
     Custom extends TCustomCluster | undefined = undefined,
-    Co extends string | undefined = undefined,
->(args: ActionEnumLookupArgs<Cl, Custom, Co>): ModernExtend {
-    const {actionLookup: lookup, attribute, cluster, buttonLookup} = args;
+    Cos extends Fz.ConverterTypeCmd<Cl, Custom>[] | undefined = undefined,
+>(args: ActionEnumLookupArgs<Cl, Custom, Cos>): ModernExtend {
+    const {actionLookup: lookup, attribute, cluster, buttonLookup, commands} = args;
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
     const parse = args.parse;
 
@@ -2869,12 +2888,13 @@ export function actionEnumLookup<
 
     const fromZigbee = [
         {
-            cluster: cluster.toString(),
-            type: args.commands || ["attributeReport", "readResponse"],
+            cluster: cluster.toString() as Cl,
+            // XXX: typing is rather annoying here, asserted for now...
+            type: (commands || (["attributeReport", "readResponse"] as const)) as Cos extends undefined ? ["attributeReport", "readResponse"] : Cos,
             convert: (model, msg, publish, options, meta) => {
                 if (attributeKey in msg.data) {
-                    let value = parse ? parse(msg, attributeKey) : msg.data[attributeKey];
-                    value = getFromLookupByValue(value, lookup);
+                    const msgValue = parse ? parse(msg, attributeKey) : msg.data[attributeKey as keyof typeof msg.data];
+                    let value = getFromLookupByValue(msgValue, lookup);
                     // endpointNames is used when action endpoint names don't overlap with other endpoint names
                     if (args.endpointNames) value = postfixWithEndpointName(value, msg, model, meta);
                     // buttonLookup is used when action endpoint names overlap with other endpoint names
@@ -2885,8 +2905,7 @@ export function actionEnumLookup<
                     return {[expose.property]: value};
                 }
             },
-            // biome-ignore lint/suspicious/noExplicitAny: generic
-        } satisfies Fz.Converter<any>,
+        } satisfies Fz.Converter<Cl, Custom, Cos extends undefined ? ["attributeReport", "readResponse"] : Cos>,
     ];
 
     return {exposes: [expose], fromZigbee, isModernExtend: true};

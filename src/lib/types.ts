@@ -302,12 +302,15 @@ export type TFoundationRepetitiveMapped =
     | "attributeReport"; // "report"
 
 export namespace Fz {
+    export type ConverterTypeCmd<Cl extends number | string, Custom extends TCustomCluster | undefined = undefined> =
+        | `command${Capitalize<ClusterCommandKeys<Cl, Custom>[number] & string>}` // exclude `number` with `& string`
+        | `command${Capitalize<ClusterCommandResponseKeys<Cl, Custom>[number] & string>}`; // exclude `number` with `& string`
+
     type ConverterType<Cl extends number | string, Custom extends TCustomCluster | undefined = undefined> =
         | "raw"
         | TFoundationRepetitiveMapped
         | ClusterOrRawAttributeKeys<Cl, Custom>[number]
-        | `command${Capitalize<ClusterCommandKeys<Cl, Custom>[number] & string>}` // exclude `number` with `& string`
-        | `command${Capitalize<ClusterCommandResponseKeys<Cl, Custom>[number] & string>}`; // exclude `number` with `& string`
+        | ConverterTypeCmd<Cl, Custom>;
 
     type ConverterTypeStringOrArray<Cl extends number | string, Custom extends TCustomCluster | undefined = undefined> =
         | ConverterType<Cl, Custom>

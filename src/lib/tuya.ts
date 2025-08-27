@@ -2719,7 +2719,7 @@ const tuyaModernExtend = {
         return {configure: [configureMagicPacket], isModernExtend: true};
     },
     tuyaOnOffAction(args?: Partial<modernExtend.ActionEnumLookupArgs<"genOnOff">>): ModernExtend {
-        return modernExtend.actionEnumLookup<"genOnOff", undefined, "tuyaAction">({
+        return modernExtend.actionEnumLookup<"genOnOff", undefined, ["commandTuyaAction"]>({
             actionLookup: {0: "single", 1: "double", 2: "hold"},
             cluster: "genOnOff",
             commands: ["commandTuyaAction"],
