@@ -18504,4 +18504,60 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
+    {
+		fingerprint: tuya.fingerprint("TS0601", ["_TZE204_ytryxh0a", "_TZE200_ytryxh0a"]),
+		model: 'KZTETHEAU',
+		vendor: 'Xanlite',
+		description: 'Tête thermostatique connectée / Radiator valve with thermostat',
+		fromZigbee: [tuya.fz.datapoints],
+		toZigbee: [tuya.tz.datapoints],
+		onEvent: tuya.onEventSetTime, // Add this if you are getting no converter for 'commandMcuSyncTime'
+		configure: tuya.configureMagicPacket,
+		exposes: [
+            e
+                .climate()
+                .withPreset(['auto', 'manual', 'holiday',])
+				.withLocalTemperature(ea.STATE)
+				.withSetpoint('current_heating_setpoint', 5, 30, 0.5, ea.STATE_SET)
+                .withLocalTemperatureCalibration(-9, 9, 0.1, ea.STATE_SET),
+            e.comfort_temperature().withValueMin(5).withValueMax(30),
+            e.eco_temperature().withValueMin(5).withValueMax(30),
+            e.holiday_temperature().withValueMin(0).withValueMax(30),
+      	    e.window_detection(),
+			e.open_window_temperature().withValueMin(5).withValueMax(25),
+			e.binary('boost_heating', ea.STATE_SET, 'ON', 'OFF'),
+             ...tuya.exposes.scheduleAllDays(ea.STATE, 'HH:MM/C'),
+			e.child_lock(),
+			e.battery().withUnit('%'),
+	    tuya.exposes.errorStatus(),
+		],
+		meta: {
+			tuyaDatapoints: [
+				[2, 'preset', tuya.valueConverterBasic.lookup({ auto: tuya.enum(0), manual: tuya.enum(1), holiday: tuya.enum(2), confort: tuya.enum(3) }), ],
+				[16, 'current_heating_setpoint', tuya.valueConverter.divideBy2],
+				[34, 'battery', tuya.valueConverter.batteryVoltToPercent],
+				[30, 'child_lock', tuya.valueConverter.lockUnlock],
+				[24, 'local_temperature', tuya.valueConverter.divideBy10],
+				[45, 'error_status', tuya.valueConverter.raw], 
+				[101, 'comfort_temperature', tuya.valueConverter.divideBy2],
+				[102, 'eco_temperature', tuya.valueConverter.divideBy2],
+				[103, 'holiday_start_stop', tuya.valueConverter.thermostatHolidayStartStop],
+				[104, 'local_temperature_calibration', tuya.valueConverter.localTempCalibration1],
+				[105, 'holiday_temperature', tuya.valueConverter.divideBy2],
+				[106, 'boost_heating', tuya.valueConverter.onOff],
+				[107, 'window_detection', tuya.valueConverter.onOff],
+				[109, 'schedule_monday', tuya.valueConverter.thermostatScheduleDayMultiDP2],
+				[110, 'schedule_tuesday', tuya.valueConverter.thermostatScheduleDayMultiDP2],
+				[111, 'schedule_wednesday', tuya.valueConverter.thermostatScheduleDayMultiDP2],
+				[112, 'schedule_thursday', tuya.valueConverter.thermostatScheduleDayMultiDP2],
+				[113, 'schedule_friday', tuya.valueConverter.thermostatScheduleDayMultiDP2],
+				[114, 'schedule_saturday', tuya.valueConverter.thermostatScheduleDayMultiDP2],
+				[115, 'schedule_sunday', tuya.valueConverter.thermostatScheduleDayMultiDP2],
+				[116, 'open_window_temperature', tuya.valueConverter.divideBy2],
+				[117, 'open_window_time', tuya.valueConverter.raw],
+				[118, 'boost_time', tuya.valueConverter.countdown],                
+			],
+		},
+   
+	},
 ];
