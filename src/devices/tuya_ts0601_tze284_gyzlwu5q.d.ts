@@ -1,2 +1,4 @@
-declare const definitions: any[];
+import { Definition } from '../lib/types';
+
+declare const definitions: Definition[];
 export default definitions;
