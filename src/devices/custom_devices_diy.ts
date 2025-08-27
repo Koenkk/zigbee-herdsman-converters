@@ -537,18 +537,19 @@ export const definitions: DefinitionWithExtend[] = [
         },
         meta: {multiEndpoint: true, tuyaThermostatPreset: legacy.fz /* for subclassed custom converters */},
         endpoint: (device) => {
-            // biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
-            const endpointList: any = [];
+            const endpointList: Record<string, number> = {};
+            let count = 0;
             const deviceConfig = ptvoGetMetaOption(device, "device_config", "");
             if (device?.endpoints) {
                 for (const endpoint of device.endpoints) {
                     const epId = endpoint.ID;
                     const epName = `l${epId}`;
                     endpointList[epName] = epId;
+                    count++;
                 }
             }
             if (deviceConfig === "") {
-                if (endpointList.length === 0) {
+                if (count === 0) {
                     // fallback code
                     for (let epId = 1; epId <= 8; epId++) {
                         const epName = `l${epId}`;
