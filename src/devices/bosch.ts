@@ -2076,7 +2076,17 @@ export const definitions: DefinitionWithExtend[] = [
         model: "BSP-FZ2",
         vendor: "Bosch",
         description: "Plug compact EU",
-        extend: [m.onOff(), m.electricityMeter({voltage: false, current: false}), boschExtend.seMeteringCluster(), boschExtend.resetEnergyReading()],
+        extend: [
+            m.onOff(),
+            m.electricityMeter({
+                voltage: false,
+                current: false,
+                power: {change: 1},
+                energy: {change: 1},
+            }),
+            boschExtend.seMeteringCluster(),
+            boschExtend.resetEnergyReading(),
+        ],
         ota: true,
         whiteLabel: [
             {vendor: "Bosch", model: "BSP-EZ2", description: "Plug compact FR", fingerprint: [{modelID: "RBSH-SP-ZB-FR"}]},
