@@ -6805,7 +6805,11 @@ export const definitions: DefinitionWithExtend[] = [
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "haElectricalMeasurement", "seMetering"]);
-            await reporting.rmsVoltage(endpoint, {change: 5});
+
+            if (!["_TZ3000_okaz9tjs"].includes(device.manufacturerName)) {
+                await reporting.rmsVoltage(endpoint, {change: 5});
+            }
+
             await reporting.rmsCurrent(endpoint, {change: 50});
 
             if (!["_TZ3000_0zfrhq4i", "_TZ3000_okaz9tjs", "_TZ3000_typdpbpg", "_TZ3000_ww6drja5"].includes(device.manufacturerName)) {
