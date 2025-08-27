@@ -31,12 +31,12 @@ module.exports = [
                                 break;
                             case 9: // Test button
                                 if (dp.datatype === 4) {
-                                    publish({ test_button: "pressed" });
+                                    publish({test_button: "pressed"});
 
                                     if (meta.testButtonTimeouts[dp.dp]) clearTimeout(meta.testButtonTimeouts[dp.dp]);
 
                                     meta.testButtonTimeouts[dp.dp] = setTimeout(() => {
-                                        publish({ test_button: "idle" });
+                                        publish({test_button: "idle"});
                                         delete meta.testButtonTimeouts[dp.dp];
                                     }, 500); // halve seconde
                                 }
@@ -54,28 +54,25 @@ module.exports = [
                     });
 
                     return result;
-                }
-            }
+                },
+            },
         ],
         toZigbee: [],
         exposes: [
             exposes.binary("smoke", exposes.access.STATE, true, false).withDescription("Smoke detected"),
-            exposes.numeric("temperature", exposes.access.STATE)
+            exposes
+                .numeric("temperature", exposes.access.STATE)
                 .withUnit("°C")
                 .withDescription("Measured temperature")
                 .withValueMin(-40)
                 .withValueMax(80)
                 .withValueStep(0.1),
-            exposes.numeric("humidity", exposes.access.STATE)
-                .withUnit("%")
-                .withDescription("Measured humidity")
-                .withValueMin(0)
-                .withValueMax(100),
+            exposes.numeric("humidity", exposes.access.STATE).withUnit("%").withDescription("Measured humidity").withValueMin(0).withValueMax(100),
             exposes.enum("test_button", exposes.access.STATE, ["idle", "pressed"]).withDescription("Test button status"),
             exposes.binary("battery_low", exposes.access.STATE).withDescription("Battery low indicator from DP14"),
-            exposes.binary("battery_full", exposes.access.STATE).withDescription("Battery full indicator from DP14 (nog niet getest)")
+            exposes.binary("battery_full", exposes.access.STATE).withDescription("Battery full indicator from DP14 (nog niet getest)"),
         ],
-        meta: { multiEndpoint: false },
+        meta: {multiEndpoint: false},
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             try {
@@ -83,6 +80,6 @@ module.exports = [
             } catch {
                 console.log("Battery percentage not available");
             }
-        }
-    }
+        },
+    },
 ];
