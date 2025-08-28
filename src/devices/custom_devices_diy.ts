@@ -1071,7 +1071,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["ZBColorLightBulb"],
-        model: "M5NanoC6",
+        model: "m5NanoC6",
         vendor: "Custom devices (DiY)",
         description: "DIY Zigbee light using M5NanoC6",
         extend: [m.light({color: {modes: ["xy", "hs"]}})],
