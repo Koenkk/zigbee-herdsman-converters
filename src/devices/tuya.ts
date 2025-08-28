@@ -18508,11 +18508,8 @@ export const definitions: DefinitionWithExtend[] = [
 		fingerprint: tuya.fingerprint("TS0601", ["_TZE204_ytryxh0a", "_TZE200_ytryxh0a"]),
 		model: 'KZTETHEAU',
 		vendor: 'Xanlite',
-		description: 'Tête thermostatique connectée / Radiator valve with thermostat',
-		fromZigbee: [tuya.fz.datapoints],
-		toZigbee: [tuya.tz.datapoints],
-		onEvent: tuya.onEventSetTime, // Add this if you are getting no converter for 'commandMcuSyncTime'
-		configure: tuya.configureMagicPacket,
+		description: 'Radiator valve with thermostat',
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
 		exposes: [
             e
                 .climate()
