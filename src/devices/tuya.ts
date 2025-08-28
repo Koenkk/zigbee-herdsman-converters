@@ -17962,7 +17962,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["ZG-102ZM"],
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_wzk0x7fq"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_wzk0x7fq", "_TZE200_jfw0a4aa"]),
         model: "ZG-102ZM",
         vendor: "HOBEIAN",
         description: "Vibration sensor",
@@ -18403,7 +18403,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["ZG-204ZH"],
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_vuqzj1ej"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_vuqzj1ej", "_TZE200_hdih4foa"]),
         model: "ZG-204ZH",
         vendor: "HOBEIAN",
         description: "PIR 24Ghz human presence sensor",
