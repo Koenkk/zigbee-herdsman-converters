@@ -540,7 +540,7 @@ const inovelliExtend = {
     inovelliMMWave: () => {
         return {
             fromZigbee: [],
-            toZigbee: [tzLocal.inovelli_mmwave_control_commands, tzLocal.inovelli_mmwave_set_interference_area],
+            toZigbee: [tzLocal.inovelli_mmwave_control_commands],
             exposes: [exposeMMWaveControl()],
             configure: [],
             isModernExtend: true,
