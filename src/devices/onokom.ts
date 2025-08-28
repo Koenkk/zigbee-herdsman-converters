@@ -68,7 +68,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "mode",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4703, type: Zcl.DataType.ENUM8},
-                lookup: { 
+                lookup: {
                     heat: 1,
                     cool: 2,
                     auto: 3,
@@ -151,12 +151,12 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "genOnOff",
                 attribute: {ID: 0x4700, type: Zcl.DataType.ENUM8},
                 lookup: {
-                    "normal_mode": 0,
-                    "disabled_if_no_errors": 1,
-                    "disabled_untill_reboot": 2,
-                    "always_disabled": 3,
-                    "green_untill_reboot": 8,
-                    "red_untill_reboot": 9
+                    normal_mode: 0,
+                    disabled_if_no_errors: 1,
+                    disabled_untill_reboot: 2,
+                    always_disabled: 3,
+                    green_untill_reboot: 8,
+                    red_untill_reboot: 9,
                 },
                 description: "Status LED",
                 zigbeeCommandOptions: {manufacturerCode},
@@ -218,8 +218,8 @@ export const definitions: DefinitionWithExtend[] = [
             m.numeric({
                 name: "indoor_heat_exchanger_temperature",
                 cluster: "hvacThermostat",
-                attribute: {ID: 0x4740, type: Zcl.DataType.UINT16},                
-                access: "STATE",                
+                attribute: {ID: 0x4740, type: Zcl.DataType.UINT16},
+                access: "STATE",
                 valueMin: 0,
                 valueMax: 100,
                 valueStep: 1,
@@ -339,7 +339,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "mode",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4703, type: Zcl.DataType.ENUM8},
-                lookup: { 
+                lookup: {
                     heat: 1,
                     cool: 2,
                     auto: 3,
@@ -422,12 +422,12 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "genOnOff",
                 attribute: {ID: 0x4700, type: Zcl.DataType.ENUM8},
                 lookup: {
-                    "normal_mode": 0,
-                    "disabled_if_no_errors": 1,
-                    "disabled_untill_reboot": 2,
-                    "always_disabled": 3,
-                    "green_untill_reboot": 8,
-                    "red_untill_reboot": 9
+                    normal_mode: 0,
+                    disabled_if_no_errors: 1,
+                    disabled_untill_reboot: 2,
+                    always_disabled: 3,
+                    green_untill_reboot: 8,
+                    red_untill_reboot: 9,
                 },
                 description: "Status LED",
                 zigbeeCommandOptions: {manufacturerCode},
@@ -569,7 +569,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "mode",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4703, type: Zcl.DataType.ENUM8},
-                lookup: { 
+                lookup: {
                     heat: 1,
                     cool: 2,
                     auto: 3,
@@ -652,12 +652,12 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "genOnOff",
                 attribute: {ID: 0x4700, type: Zcl.DataType.ENUM8},
                 lookup: {
-                    "normal_mode": 0,
-                    "disabled_if_no_errors": 1,
-                    "disabled_untill_reboot": 2,
-                    "always_disabled": 3,
-                    "green_untill_reboot": 8,
-                    "red_untill_reboot": 9
+                    normal_mode: 0,
+                    disabled_if_no_errors: 1,
+                    disabled_untill_reboot: 2,
+                    always_disabled: 3,
+                    green_untill_reboot: 8,
+                    red_untill_reboot: 9,
                 },
                 description: "Status LED",
                 zigbeeCommandOptions: {manufacturerCode},
@@ -796,7 +796,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "mode",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4703, type: Zcl.DataType.ENUM8},
-                lookup: { 
+                lookup: {
                     heat: 1,
                     cool: 2,
                     auto: 3,
@@ -879,12 +879,12 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "genOnOff",
                 attribute: {ID: 0x4700, type: Zcl.DataType.ENUM8},
                 lookup: {
-                    "normal_mode": 0,
-                    "disabled_if_no_errors": 1,
-                    "disabled_untill_reboot": 2,
-                    "always_disabled": 3,
-                    "green_untill_reboot": 8,
-                    "red_untill_reboot": 9
+                    normal_mode: 0,
+                    disabled_if_no_errors: 1,
+                    disabled_untill_reboot: 2,
+                    always_disabled: 3,
+                    green_untill_reboot: 8,
+                    red_untill_reboot: 9,
                 },
                 description: "Status LED",
                 zigbeeCommandOptions: {manufacturerCode},
@@ -946,8 +946,8 @@ export const definitions: DefinitionWithExtend[] = [
             m.numeric({
                 name: "indoor_heat_exchanger_temperature",
                 cluster: "hvacThermostat",
-                attribute: {ID: 0x4740, type: Zcl.DataType.UINT16},                
-                access: "STATE",                
+                attribute: {ID: 0x4740, type: Zcl.DataType.UINT16},
+                access: "STATE",
                 valueMin: 0,
                 valueMax: 100,
                 valueStep: 1,
@@ -1026,7 +1026,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "mode",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4703, type: Zcl.DataType.ENUM8},
-                lookup: { 
+                lookup: {
                     heat: 1,
                     cool: 2,
                     auto: 3,
@@ -1109,12 +1109,12 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "genOnOff",
                 attribute: {ID: 0x4700, type: Zcl.DataType.ENUM8},
                 lookup: {
-                    "normal_mode": 0,
-                    "disabled_if_no_errors": 1,
-                    "disabled_untill_reboot": 2,
-                    "always_disabled": 3,
-                    "green_untill_reboot": 8,
-                    "red_untill_reboot": 9
+                    normal_mode: 0,
+                    disabled_if_no_errors: 1,
+                    disabled_untill_reboot: 2,
+                    always_disabled: 3,
+                    green_untill_reboot: 8,
+                    red_untill_reboot: 9,
                 },
                 description: "Status LED",
                 zigbeeCommandOptions: {manufacturerCode},
@@ -1253,7 +1253,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "mode",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4703, type: Zcl.DataType.ENUM8},
-                lookup: { 
+                lookup: {
                     heat: 1,
                     cool: 2,
                     auto: 3,
@@ -1336,12 +1336,12 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "genOnOff",
                 attribute: {ID: 0x4700, type: Zcl.DataType.ENUM8},
                 lookup: {
-                    "normal_mode": 0,
-                    "disabled_if_no_errors": 1,
-                    "disabled_untill_reboot": 2,
-                    "always_disabled": 3,
-                    "green_untill_reboot": 8,
-                    "red_untill_reboot": 9
+                    normal_mode: 0,
+                    disabled_if_no_errors: 1,
+                    disabled_untill_reboot: 2,
+                    always_disabled: 3,
+                    green_untill_reboot: 8,
+                    red_untill_reboot: 9,
                 },
                 description: "Status LED",
                 zigbeeCommandOptions: {manufacturerCode},
@@ -1385,13 +1385,13 @@ export const definitions: DefinitionWithExtend[] = [
             m.enumLookup({
                 name: "smart_sleep_mode",
                 cluster: "hvacThermostat",
-                attribute: {ID: 0x4736, type: Zcl.DataType.ENUM8},                
+                attribute: {ID: 0x4736, type: Zcl.DataType.ENUM8},
                 lookup: {
-                    "disabled": 0,
-                    "ordinary": 1,
-                    "for_old": 2,
-                    "for_young": 3,
-                    "for_kids": 4,
+                    disabled: 0,
+                    ordinary: 1,
+                    for_old: 2,
+                    for_young: 3,
+                    for_kids: 4,
                 },
                 description: "Smart sleep mode",
                 zigbeeCommandOptions: {manufacturerCode},
@@ -1408,11 +1408,11 @@ export const definitions: DefinitionWithExtend[] = [
             m.enumLookup({
                 name: "smart_eye",
                 cluster: "hvacThermostat",
-                attribute: {ID: 0x4735, type: Zcl.DataType.ENUM8},                
+                attribute: {ID: 0x4735, type: Zcl.DataType.ENUM8},
                 lookup: {
-                    "disabled": 0,
-                    "to_person": 1,
-                    "from_person": 2
+                    disabled: 0,
+                    to_person: 1,
+                    from_person: 2,
                 },
                 description: "Smart eye",
                 zigbeeCommandOptions: {manufacturerCode},
@@ -1460,8 +1460,8 @@ export const definitions: DefinitionWithExtend[] = [
             m.numeric({
                 name: "indoor_heat_exchanger_temperature",
                 cluster: "hvacThermostat",
-                attribute: {ID: 0x4740, type: Zcl.DataType.UINT16},                
-                access: "STATE",                
+                attribute: {ID: 0x4740, type: Zcl.DataType.UINT16},
+                access: "STATE",
                 valueMin: 0,
                 valueMax: 100,
                 valueStep: 1,
@@ -1472,8 +1472,8 @@ export const definitions: DefinitionWithExtend[] = [
             m.numeric({
                 name: "outdoor_heat_exchanger_temperature",
                 cluster: "hvacThermostat",
-                attribute: {ID: 0x4741, type: Zcl.DataType.UINT16},                
-                access: "STATE",                
+                attribute: {ID: 0x4741, type: Zcl.DataType.UINT16},
+                access: "STATE",
                 valueMin: 0,
                 valueMax: 100,
                 valueStep: 1,
@@ -1552,7 +1552,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "mode",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4703, type: Zcl.DataType.ENUM8},
-                lookup: { 
+                lookup: {
                     heat: 1,
                     cool: 2,
                     auto: 3,
@@ -1596,12 +1596,12 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "genOnOff",
                 attribute: {ID: 0x4700, type: Zcl.DataType.ENUM8},
                 lookup: {
-                    "normal_mode": 0,
-                    "disabled_if_no_errors": 1,
-                    "disabled_untill_reboot": 2,
-                    "always_disabled": 3,
-                    "green_untill_reboot": 8,
-                    "red_untill_reboot": 9
+                    normal_mode: 0,
+                    disabled_if_no_errors: 1,
+                    disabled_untill_reboot: 2,
+                    always_disabled: 3,
+                    green_untill_reboot: 8,
+                    red_untill_reboot: 9,
                 },
                 description: "Status LED",
                 zigbeeCommandOptions: {manufacturerCode},
@@ -1677,7 +1677,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "mode",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4703, type: Zcl.DataType.ENUM8},
-                lookup: { 
+                lookup: {
                     heat: 1,
                     cool: 2,
                     auto: 3,
@@ -1751,12 +1751,12 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "genOnOff",
                 attribute: {ID: 0x4700, type: Zcl.DataType.ENUM8},
                 lookup: {
-                    "normal_mode": 0,
-                    "disabled_if_no_errors": 1,
-                    "disabled_untill_reboot": 2,
-                    "always_disabled": 3,
-                    "green_untill_reboot": 8,
-                    "red_untill_reboot": 9
+                    normal_mode: 0,
+                    disabled_if_no_errors: 1,
+                    disabled_untill_reboot: 2,
+                    always_disabled: 3,
+                    green_untill_reboot: 8,
+                    red_untill_reboot: 9,
                 },
                 description: "Status LED",
                 zigbeeCommandOptions: {manufacturerCode},
@@ -1860,7 +1860,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "mode",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4703, type: Zcl.DataType.ENUM8},
-                lookup: { 
+                lookup: {
                     heat: 1,
                     cool: 2,
                     auto: 3,
@@ -1924,12 +1924,12 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "genOnOff",
                 attribute: {ID: 0x4700, type: Zcl.DataType.ENUM8},
                 lookup: {
-                    "normal_mode": 0,
-                    "disabled_if_no_errors": 1,
-                    "disabled_untill_reboot": 2,
-                    "always_disabled": 3,
-                    "green_untill_reboot": 8,
-                    "red_untill_reboot": 9
+                    normal_mode: 0,
+                    disabled_if_no_errors: 1,
+                    disabled_untill_reboot: 2,
+                    always_disabled: 3,
+                    green_untill_reboot: 8,
+                    red_untill_reboot: 9,
                 },
                 description: "Status LED",
                 zigbeeCommandOptions: {manufacturerCode},
@@ -1946,8 +1946,8 @@ export const definitions: DefinitionWithExtend[] = [
             m.numeric({
                 name: "indoor_heat_exchanger_temperature",
                 cluster: "hvacThermostat",
-                attribute: {ID: 0x4740, type: Zcl.DataType.UINT16},                
-                access: "STATE",                
+                attribute: {ID: 0x4740, type: Zcl.DataType.UINT16},
+                access: "STATE",
                 valueMin: 0,
                 valueMax: 100,
                 valueStep: 1,
@@ -1958,8 +1958,8 @@ export const definitions: DefinitionWithExtend[] = [
             m.numeric({
                 name: "outdoor_heat_exchanger_temperature",
                 cluster: "hvacThermostat",
-                attribute: {ID: 0x4741, type: Zcl.DataType.UINT16},                
-                access: "STATE",                
+                attribute: {ID: 0x4741, type: Zcl.DataType.UINT16},
+                access: "STATE",
                 valueMin: 0,
                 valueMax: 100,
                 valueStep: 1,
@@ -2038,7 +2038,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "mode",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4703, type: Zcl.DataType.ENUM8},
-                lookup: { 
+                lookup: {
                     heat: 1,
                     cool: 2,
                     auto: 3,
@@ -2112,12 +2112,12 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "genOnOff",
                 attribute: {ID: 0x4700, type: Zcl.DataType.ENUM8},
                 lookup: {
-                    "normal_mode": 0,
-                    "disabled_if_no_errors": 1,
-                    "disabled_untill_reboot": 2,
-                    "always_disabled": 3,
-                    "green_untill_reboot": 8,
-                    "red_untill_reboot": 9
+                    normal_mode: 0,
+                    disabled_if_no_errors: 1,
+                    disabled_untill_reboot: 2,
+                    always_disabled: 3,
+                    green_untill_reboot: 8,
+                    red_untill_reboot: 9,
                 },
                 description: "Status LED",
                 zigbeeCommandOptions: {manufacturerCode},
@@ -2202,7 +2202,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "mode",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4703, type: Zcl.DataType.ENUM8},
-                lookup: { 
+                lookup: {
                     heat: 1,
                     cool: 2,
                     auto: 3,
@@ -2285,12 +2285,12 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "genOnOff",
                 attribute: {ID: 0x4700, type: Zcl.DataType.ENUM8},
                 lookup: {
-                    "normal_mode": 0,
-                    "disabled_if_no_errors": 1,
-                    "disabled_untill_reboot": 2,
-                    "always_disabled": 3,
-                    "green_untill_reboot": 8,
-                    "red_untill_reboot": 9
+                    normal_mode: 0,
+                    disabled_if_no_errors: 1,
+                    disabled_untill_reboot: 2,
+                    always_disabled: 3,
+                    green_untill_reboot: 8,
+                    red_untill_reboot: 9,
                 },
                 description: "Status LED",
                 zigbeeCommandOptions: {manufacturerCode},
@@ -2408,8 +2408,8 @@ export const definitions: DefinitionWithExtend[] = [
             m.numeric({
                 name: "indoor_heat_exchanger_temperature",
                 cluster: "hvacThermostat",
-                attribute: {ID: 0x4740, type: Zcl.DataType.UINT16},                
-                access: "STATE",                
+                attribute: {ID: 0x4740, type: Zcl.DataType.UINT16},
+                access: "STATE",
                 valueMin: 0,
                 valueMax: 100,
                 valueStep: 1,
@@ -2420,8 +2420,8 @@ export const definitions: DefinitionWithExtend[] = [
             m.numeric({
                 name: "outdoor_heat_exchanger_temperature",
                 cluster: "hvacThermostat",
-                attribute: {ID: 0x4741, type: Zcl.DataType.UINT16},                
-                access: "STATE",                
+                attribute: {ID: 0x4741, type: Zcl.DataType.UINT16},
+                access: "STATE",
                 valueMin: 0,
                 valueMax: 100,
                 valueStep: 1,
@@ -2510,7 +2510,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "mode",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4703, type: Zcl.DataType.ENUM8},
-                lookup: { 
+                lookup: {
                     heat: 1,
                     cool: 2,
                     auto: 3,
@@ -2584,12 +2584,12 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "genOnOff",
                 attribute: {ID: 0x4700, type: Zcl.DataType.ENUM8},
                 lookup: {
-                    "normal_mode": 0,
-                    "disabled_if_no_errors": 1,
-                    "disabled_untill_reboot": 2,
-                    "always_disabled": 3,
-                    "green_untill_reboot": 8,
-                    "red_untill_reboot": 9
+                    normal_mode: 0,
+                    disabled_if_no_errors: 1,
+                    disabled_untill_reboot: 2,
+                    always_disabled: 3,
+                    green_untill_reboot: 8,
+                    red_untill_reboot: 9,
                 },
                 description: "Status LED",
                 zigbeeCommandOptions: {manufacturerCode},
@@ -2642,8 +2642,8 @@ export const definitions: DefinitionWithExtend[] = [
             m.numeric({
                 name: "indoor_heat_exchanger_temperature",
                 cluster: "hvacThermostat",
-                attribute: {ID: 0x4740, type: Zcl.DataType.UINT16},                
-                access: "STATE",                
+                attribute: {ID: 0x4740, type: Zcl.DataType.UINT16},
+                access: "STATE",
                 valueMin: 0,
                 valueMax: 100,
                 valueStep: 1,
