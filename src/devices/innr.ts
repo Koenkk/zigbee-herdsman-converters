@@ -673,6 +673,13 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
     },
     {
+        zigbeeModel: ["AE 287 C"],
+        model: "AE 287 C",
+        vendor: "Innr",
+        description: "E26 bulb 1100lm, RGBCW",
+        extend: [m.light({colorTemp: {range: [153, 556]}, color: {modes: ["xy", "hs"], enhancedHue: true}, turnsOffAtBrightness1: true})],
+    },
+    {
         zigbeeModel: ["SP 120"],
         model: "SP 120",
         vendor: "Innr",
