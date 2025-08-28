@@ -955,7 +955,7 @@ const air_extend = {
             },
         ];
 
-        const fromZigbee: Fz.Converter[] = [
+        const fromZigbee = [
             {
                 cluster: "genLevelCtrl",
                 type: ["attributeReport", "readResponse"],
@@ -967,7 +967,7 @@ const air_extend = {
                     }
                     return result;
                 },
-            },
+            } satisfies Fz.Converter<"genLevelCtrl", undefined, ["attributeReport", "readResponse"]>,
         ];
 
         return {
@@ -1014,11 +1014,9 @@ const air_extend = {
             },
         ];
 
-        const fromZigbee: Fz.Converter[] = [];
-
         return {
             exposes,
-            fromZigbee,
+            fromZigbee: [],
             toZigbee,
             isModernExtend: true,
         };

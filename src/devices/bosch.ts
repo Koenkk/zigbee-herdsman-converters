@@ -1043,7 +1043,7 @@ const boschExtend = {
                     const triggeredSide = command === 0x03 ? "left" : "right";
                     return {action: `${state}_${triggeredSide}`, action_duration: duration};
                 },
-            },
+            } satisfies Fz.Converter<"boschSpecific", BoschSpecificBmct, ["raw"]>,
             {
                 cluster: "boschSpecific",
                 type: ["attributeReport", "readResponse"],

@@ -395,7 +395,8 @@ const inovelliExtend = {
         supportsButtonTaps: boolean;
         splitValuesByEndpoint?: boolean;
     }) => {
-        const fromZigbee: Fz.Converter[] = [];
+        // biome-ignore lint/suspicious/noExplicitAny: generic
+        const fromZigbee: Fz.Converter<any, any, any>[] = [];
         const toZigbee: Tz.Converter[] = [];
         const exposes: Expose[] = [];
 
@@ -472,7 +473,8 @@ const inovelliExtend = {
         } as ModernExtend;
     },
     inovelliLight: ({splitValuesByEndpoint = false}: {splitValuesByEndpoint?: boolean} = {}) => {
-        const fromZigbee: Fz.Converter[] = [];
+        // biome-ignore lint/suspicious/noExplicitAny: generic
+        const fromZigbee: Fz.Converter<any, any, any>[] = [];
         const bindingList = ["genOnOff"];
 
         if (!splitValuesByEndpoint) {
@@ -505,7 +507,8 @@ const inovelliExtend = {
         } as ModernExtend;
     },
     inovelliFan: ({endpointId, splitValuesByEndpoint = false}: {endpointId: number; splitValuesByEndpoint?: boolean}) => {
-        const fromZigbee: Fz.Converter[] = [fzLocal.fan_mode(endpointId), fzLocal.breeze_mode(endpointId)];
+        // biome-ignore lint/suspicious/noExplicitAny: generic
+        const fromZigbee: Fz.Converter<any, any, any>[] = [fzLocal.fan_mode(endpointId), fzLocal.breeze_mode(endpointId)];
         const toZigbee: Tz.Converter[] = [tzLocal.fan_mode(endpointId), tzLocal.breezeMode(endpointId)];
         const exposes: Expose[] = [e.fan().withState("fan_state").withModes(Object.keys(FAN_MODES)), exposeBreezeMode()];
         const bindingList = ["genOnOff"];

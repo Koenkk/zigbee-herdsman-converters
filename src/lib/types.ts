@@ -346,11 +346,17 @@ export namespace Fz {
                           : TClusterPayload<Cl, Single>
                       : never
                 : Single extends keyof MessageTypeCustomDataMap<Custom>
-                  ? MessageTypeCustomDataMap<Custom>[Single]
+                  ? MessageTypeDataMap<Cl>[Single] extends never
+                      ? MessageTypeCustomDataMap<Custom>[Single]
+                      : MessageTypeDataMap<Cl>[Single] & MessageTypeCustomDataMap<Custom>[Single]
                   : Single extends string | number
                     ? Single extends `command${infer Co}`
-                        ? TCustomClusterPayload<Custom, Uncapitalize<Co>>
-                        : TCustomClusterPayload<Custom, Single>
+                        ? TClusterPayload<Cl, Uncapitalize<Co>> extends never
+                            ? TCustomClusterPayload<Custom, Uncapitalize<Co>>
+                            : TClusterPayload<Cl, Uncapitalize<Co>> & TCustomClusterPayload<Custom, Uncapitalize<Co>>
+                        : TClusterPayload<Cl, Single> extends never
+                          ? TCustomClusterPayload<Custom, Single>
+                          : TClusterPayload<Cl, Single> & TCustomClusterPayload<Custom, Single>
                     : never
             : never) &
             Record<number, unknown> /* XXX: too many customs not to have this as fallback */;
