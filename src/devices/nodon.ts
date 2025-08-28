@@ -228,6 +228,14 @@ const nodonModernExtend = {
 
 export const definitions: DefinitionWithExtend[] = [
     {
+        zigbeeModel: ["FPS-4-1-00"],
+        model: "FPS-4-1-00",
+        vendor: "NodOn",
+        description: "Electrical heating actuator",
+        extend: [m.onOff({powerOnBehavior: true}), m.electricityMeter({cluster: "metering"}), ...nodonPilotWire(true)],
+        ota: true,
+    },
+    {
         zigbeeModel: ["IRB-4-1-00"],
         model: "IRB-4-1-00",
         vendor: "NodOn",
@@ -292,7 +300,17 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SEM-4-1-00",
         vendor: "NodOn",
         description: "Energy monitoring sensor",
-        extend: [m.electricityMeter()],
+        extend: [
+            m.electricityMeter({
+                acFrequency: true,
+                powerFactor: true,
+                configureReporting: false,
+                voltage: {min: 30, max: 3600, change: 500},
+                current: {min: 5, max: 3600, change: 100},
+                power: {min: 5, max: 3600, change: 200},
+                energy: {min: 30, max: 3600, change: 50},
+            }),
+        ],
         ota: true,
     },
     {
