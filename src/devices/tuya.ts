@@ -774,7 +774,7 @@ const fzLocal = {
         cluster: "msRelativeHumidity",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
-            const humidity = Number.parseFloat(msg.data.measuredValue) / 10.0;
+            const humidity = msg.data.measuredValue / 10.0;
             if (humidity >= 0 && humidity <= 100) {
                 return {humidity};
             }

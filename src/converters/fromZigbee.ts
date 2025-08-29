@@ -468,7 +468,7 @@ export const temperature: Fz.Converter<"msTemperatureMeasurement", undefined, ["
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
         if (msg.data.measuredValue !== undefined) {
-            const temperature = Number.parseFloat(msg.data.measuredValue) / 100.0;
+            const temperature = msg.data.measuredValue / 100.0;
             const property = postfixWithEndpointName("temperature", msg, model, meta);
             return {[property]: temperature};
         }
@@ -479,7 +479,7 @@ export const device_temperature: Fz.Converter<"genDeviceTempCfg", undefined, ["a
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
         if (msg.data.currentTemperature !== undefined) {
-            const value = Number.parseInt(msg.data.currentTemperature, 10);
+            const value = msg.data.currentTemperature;
             return {device_temperature: value};
         }
     },
@@ -488,7 +488,7 @@ export const humidity: Fz.Converter<"msRelativeHumidity", undefined, ["attribute
     cluster: "msRelativeHumidity",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
-        const humidity = Number.parseFloat(msg.data.measuredValue) / 100.0;
+        const humidity = msg.data.measuredValue / 100.0;
         const property = postfixWithEndpointName("humidity", msg, model, meta);
 
         // https://github.com/Koenkk/zigbee2mqtt/issues/798
@@ -512,7 +512,7 @@ export const flow: Fz.Converter<"msFlowMeasurement", undefined, ["attributeRepor
     cluster: "msFlowMeasurement",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
-        const flow = Number.parseFloat(msg.data.measuredValue) / 10.0;
+        const flow = msg.data.measuredValue / 10.0;
         const property = postfixWithEndpointName("flow", msg, model, meta);
         if (msg.data.measuredValue !== undefined) {
             return {[property]: flow};
@@ -523,7 +523,7 @@ export const soil_moisture: Fz.Converter<"msSoilMoisture", undefined, ["attribut
     cluster: "msSoilMoisture",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
-        const soilMoisture = Number.parseFloat(msg.data.measuredValue) / 100.0;
+        const soilMoisture = msg.data.measuredValue / 100.0;
         return {soil_moisture: soilMoisture};
     },
 };
@@ -536,7 +536,7 @@ export const pressure: Fz.Converter<"msPressureMeasurement", undefined, ["attrib
             const scale = msg.endpoint.getClusterAttributeValue("msPressureMeasurement", "scale") as number;
             pressure = msg.data.scaledValue / 10 ** scale / 100.0; // convert to hPa
         } else {
-            pressure = Number.parseFloat(msg.data.measuredValue);
+            pressure = msg.data.measuredValue;
         }
         return {pressure};
     },
@@ -2298,7 +2298,7 @@ export const terncy_temperature: Fz.Converter<"msTemperatureMeasurement", undefi
     cluster: "msTemperatureMeasurement",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
-        const temperature = Number.parseFloat(msg.data.measuredValue) / 10.0;
+        const temperature = msg.data.measuredValue / 10.0;
         return {temperature: temperature};
     },
 };
@@ -2323,7 +2323,7 @@ export const tuya_cover_options_2: Fz.Converter<"closuresWindowCovering", undefi
     convert: (model, msg, publish, options, meta) => {
         const result: KeyValueAny = {};
         if (msg.data.moesCalibrationTime !== undefined) {
-            const value = Number.parseFloat(msg.data.moesCalibrationTime) / 100;
+            const value = msg.data.moesCalibrationTime / 100;
             result[postfixWithEndpointName("calibration_time", msg, model, meta)] = value;
         }
         if (msg.data.tuyaMotorReversal !== undefined) {
@@ -2355,7 +2355,7 @@ export const tuya_cover_options: Fz.Converter<"closuresWindowCovering", undefine
             result[postfixWithEndpointName("motor_reversal", msg, model, meta)] = reversalLookup[value];
         }
         if (msg.data.moesCalibrationTime !== undefined) {
-            const value = Number.parseFloat(msg.data.moesCalibrationTime) / 10.0;
+            const value = msg.data.moesCalibrationTime / 10.0;
             if (["_TZ3000_cet6ch1r", "_TZ3000_5iixzdo7"].includes(meta.device.manufacturerName)) {
                 const endpoint = msg.endpoint.ID;
                 const calibrationLookup: KeyValueAny = {1: "to_open", 2: "to_close"};
@@ -2949,7 +2949,7 @@ export const meazon_meter: Fz.Converter<"seMetering", undefined, ["attributeRepo
         }
 
         if (msg.data["8192"] !== undefined) {
-            result.line_frequency = precisionRound(Number.parseFloat(msg.data["8192"]) / 100.0, 2);
+            result.line_frequency = precisionRound(Number.parseFloat(msg.data["8192"] as string) / 100.0, 2);
             result.linefrequency = result.line_frequency; // deprecated
         }
 
@@ -3564,7 +3564,7 @@ export const _3310_humidity: Fz.Converter<"manuSpecificCentraliteHumidity", unde
     cluster: "manuSpecificCentraliteHumidity",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
-        const humidity = Number.parseFloat(msg.data.measuredValue) / 100.0;
+        const humidity = msg.data.measuredValue / 100.0;
         return {humidity};
     },
 };
@@ -3815,7 +3815,7 @@ export const keen_home_smart_vent_pressure: Fz.Converter<"msPressureMeasurement"
     cluster: "msPressureMeasurement",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
-        const pressure = msg.data.measuredValue !== undefined ? msg.data.measuredValue : Number.parseFloat(msg.data["32"]) / 1000.0;
+        const pressure = msg.data.measuredValue !== undefined ? msg.data.measuredValue : Number.parseFloat(msg.data["32"] as string) / 1000.0;
         return {pressure};
     },
 };
@@ -3848,7 +3848,7 @@ export const heiman_hcho: Fz.Converter<"msFormaldehyde", undefined, ["attributeR
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
         if (msg.data.measuredValue) {
-            return {hcho: Number.parseFloat(msg.data.measuredValue) / 1000.0};
+            return {hcho: msg.data.measuredValue / 1000.0};
         }
     },
 };
@@ -4712,7 +4712,7 @@ export const schneider_temperature: Fz.Converter<"msTemperatureMeasurement", und
     cluster: "msTemperatureMeasurement",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
-        const temperature = Number.parseFloat(msg.data.measuredValue) / 100.0;
+        const temperature = msg.data.measuredValue / 100.0;
         const property = postfixWithEndpointName("local_temperature", msg, model, meta);
         return {[property]: temperature};
     },
@@ -4744,7 +4744,7 @@ export const wiser_smart_setpoint_command_client: Fz.Converter<"hvacThermostat",
         attribute.occupiedHeatingSetpoint = msg.data.setpoint;
         msg.endpoint.saveClusterAttributeKeyValue("hvacThermostat", attribute);
 
-        result.occupied_heating_setpoint = Number.parseFloat(msg.data.setpoint) / 100.0;
+        result.occupied_heating_setpoint = msg.data.setpoint / 100.0;
 
         logger.debug(`received wiser setpoint command with value: '${msg.data.setpoint}'`, NS);
         return result;
@@ -4780,7 +4780,7 @@ export const sihas_people_cnt: Fz.Converter<"genAnalogInput", undefined, ["attri
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
         const lookup: KeyValueAny = {"0": "idle", "1": "in", "2": "out"};
-        const value = precisionRound(Number.parseFloat(msg.data.presentValue), 1);
+        const value = precisionRound(msg.data.presentValue, 1);
         const people = precisionRound(msg.data.presentValue, 0);
         let result = null;
         if (value <= 80) {
@@ -4925,7 +4925,7 @@ export const SNZB02_temperature: Fz.Converter<"msTemperatureMeasurement", undefi
     cluster: "msTemperatureMeasurement",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
-        const temperature = Number.parseFloat(msg.data.measuredValue) / 100.0;
+        const temperature = msg.data.measuredValue / 100.0;
 
         // https://github.com/Koenkk/zigbee2mqtt/issues/13640
         // SNZB-02 reports stranges values sometimes
@@ -4940,7 +4940,7 @@ export const SNZB02_humidity: Fz.Converter<"msRelativeHumidity", undefined, ["at
     cluster: "msRelativeHumidity",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
-        const humidity = Number.parseFloat(msg.data.measuredValue) / 100.0;
+        const humidity = msg.data.measuredValue / 100.0;
 
         // https://github.com/Koenkk/zigbee2mqtt/issues/13640
         // SNZB-02 reports stranges values sometimes

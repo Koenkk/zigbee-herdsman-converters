@@ -164,7 +164,7 @@ export const develcoModernExtend = {
          * Similar notes found in other 2x AA powered Develco devices like HMSZB-110 and MOSZB-140
          */
         const clusterName = "genPowerCfg";
-        const attributeName = "BatteryVoltage";
+        const attributeName = "batteryVoltage";
         const propertyName = "battery_low";
 
         const expose = e.battery_low();
@@ -174,9 +174,8 @@ export const develcoModernExtend = {
                 cluster: clusterName,
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
-                    // TODO: typo? msg.data.batteryVoltage?
                     if (msg.data[attributeName] !== undefined && msg.data[attributeName] < 255) {
-                        const voltage = Number.parseInt(msg.data[attributeName], 10);
+                        const voltage = msg.data[attributeName];
                         return {[propertyName]: voltage <= 25};
                     }
                 },

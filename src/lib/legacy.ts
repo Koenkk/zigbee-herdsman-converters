@@ -1266,7 +1266,7 @@ const fromZigbee = {
     } satisfies Fz.Converter<"manuSpecificTuya", undefined, ["commandDataReport"]>,
     ZMRM02: {
         cluster: "manuSpecificTuya",
-        type: ["commandGetData", "commandSetDataResponse", "commandDataResponse"],
+        type: ["commandDataResponse", "commandDataReport"],
         convert: (model, msg, publish, options, meta) => {
             const dpValue = firstDpValue(msg, meta, "ZMRM02");
             if (dpValue.dp === 10) {
@@ -1278,8 +1278,7 @@ const fromZigbee = {
             const action = lookup[actionValue];
             return {action: `button_${button}_${action}`};
         },
-        // TODO: wrong names?
-    } satisfies Fz.Converter<"manuSpecificTuya", undefined, ["commandGetData", "commandSetDataResponse", "commandDataResponse"]>,
+    } satisfies Fz.Converter<"manuSpecificTuya", undefined, ["commandDataResponse", "commandDataReport"]>,
     SA12IZL: {
         cluster: "manuSpecificTuya",
         type: ["commandDataResponse", "commandDataReport"],
@@ -1871,8 +1870,8 @@ const fromZigbee = {
         type: "commandDataResponse",
         convert: (model, msg, publish, options, meta) => {
             const dpValue = firstDpValue(msg, meta, "blitzwolf_occupancy_with_timeout");
-            msg.data.occupancy = dpValue.dp === dataPoints.occupancy ? 1 : 0;
-            return occupancy_with_timeout.convert(model, msg, publish, options, meta) as KeyValueAny;
+            const newMsg = {...msg, type: "attributeReport" as const, data: {occupancy: dpValue.dp === dataPoints.occupancy ? 1 : 0}};
+            return occupancy_with_timeout.convert(model, newMsg, publish, options, meta) as KeyValueAny;
         },
     } satisfies Fz.Converter<"manuSpecificTuya", undefined, "commandDataResponse">,
     moes_thermostat: {
@@ -2604,7 +2603,7 @@ const fromZigbee = {
     } satisfies Fz.Converter<"manuSpecificTuya", undefined, ["commandDataResponse"]>,
     tuya_smart_vibration_sensor: {
         cluster: "manuSpecificTuya",
-        type: ["commandGetData", "commandDataResponse", "raw"],
+        type: ["commandDataResponse", "commandDataReport"],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValueAny = {};
             for (const dpValue of msg.data.dpValues) {
@@ -2628,11 +2627,10 @@ const fromZigbee = {
             }
             return result;
         },
-        // TODO: wrong name?
-    } satisfies Fz.Converter<"manuSpecificTuya", undefined, ["commandGetData", "commandDataResponse", "raw"]>,
+    } satisfies Fz.Converter<"manuSpecificTuya", undefined, ["commandDataResponse", "commandDataReport"]>,
     matsee_garage_door_opener: {
         cluster: "manuSpecificTuya",
-        type: ["commandDataReport", "raw"],
+        type: ["commandDataResponse", "commandDataReport"],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValueAny = {};
             for (const dpValue of msg.data.dpValues) {
@@ -2656,7 +2654,7 @@ const fromZigbee = {
             }
             return result;
         },
-    } satisfies Fz.Converter<"manuSpecificTuya", undefined, ["commandDataReport", "raw"]>,
+    } satisfies Fz.Converter<"manuSpecificTuya", undefined, ["commandDataResponse", "commandDataReport"]>,
     moes_thermostat_tv: {
         cluster: "manuSpecificTuya",
         type: ["commandDataResponse", "commandDataReport", "raw"],
@@ -2994,7 +2992,7 @@ const fromZigbee = {
     } satisfies Fz.Converter<"manuSpecificTuya", undefined, ["commandDataReport"]>,
     tuya_remote: {
         cluster: "manuSpecificTuya",
-        type: ["commandGetData", "commandDataResponse"],
+        type: ["commandDataResponse", "commandDataReport"],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValueAny = {};
             const clickMapping: KeyValueAny = {0: "single", 1: "double", 2: "hold"};
@@ -3010,8 +3008,7 @@ const fromZigbee = {
             }
             return result;
         },
-        // TODO: wrong name?
-    } satisfies Fz.Converter<"manuSpecificTuya", undefined, ["commandGetData", "commandDataResponse"]>,
+    } satisfies Fz.Converter<"manuSpecificTuya", undefined, ["commandDataResponse", "commandDataReport"]>,
     tuya_smart_human_presense_sensor: {
         cluster: "manuSpecificTuya",
         type: ["commandDataResponse", "commandDataReport"],

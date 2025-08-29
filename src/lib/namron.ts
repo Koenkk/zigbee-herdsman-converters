@@ -58,10 +58,10 @@ export const fromZigbee = {
                 result.operating_mode = utils.getFromLookup(msg.data.programingOperMode, {0: "manual", 1: "program", 5: "eco"});
             }
             if (msg.data[0x8013] !== undefined) {
-                result.holiday_temp_set = Number.parseInt(msg.data[0x8013], 10) / 100;
+                result.holiday_temp_set = Number.parseInt(msg.data[0x8013] as string, 10) / 100;
             }
             if (msg.data[0x801b] !== undefined) {
-                result.holiday_temp_set_f = Number.parseInt(msg.data[0x801b], 10) / 100;
+                result.holiday_temp_set_f = Number.parseInt(msg.data[0x801b] as string, 10) / 100;
             }
             return result;
         },

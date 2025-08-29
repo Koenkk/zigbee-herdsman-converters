@@ -277,7 +277,7 @@ export function ikeaAirPurifier(): ModernExtend {
 
                 if (msg.data.particulateMatter25Measurement !== undefined) {
                     const pm25Property = postfixWithEndpointName("pm25", msg, model, meta);
-                    let pm25 = Number.parseFloat(msg.data.particulateMatter25Measurement);
+                    let pm25 = msg.data.particulateMatter25Measurement;
 
                     // Air Quality
                     // Scale based on EU AQI (https://www.eea.europa.eu/themes/air/air-quality-index)
@@ -311,12 +311,12 @@ export function ikeaAirPurifier(): ModernExtend {
 
                 if (msg.data.filterRunTime !== undefined) {
                     // Filter needs to be replaced after 6 months
-                    state.replace_filter = Number.parseInt(msg.data.filterRunTime, 10) >= 259200;
-                    state.filter_age = Number.parseInt(msg.data.filterRunTime, 10);
+                    state.replace_filter = msg.data.filterRunTime >= 259200;
+                    state.filter_age = msg.data.filterRunTime;
                 }
 
                 if (msg.data.deviceRunTime !== undefined) {
-                    state.device_age = Number.parseInt(msg.data.deviceRunTime, 10);
+                    state.device_age = msg.data.deviceRunTime;
                 }
 
                 if (msg.data.controlPanelLight !== undefined) {

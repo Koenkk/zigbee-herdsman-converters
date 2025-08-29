@@ -37,7 +37,7 @@ const fzLocal = {
         cluster: "msTemperatureMeasurement",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
-            const temperature = Number.parseFloat(msg.data.measuredValue) / 100.0;
+            const temperature = msg.data.measuredValue / 100.0;
             return {temperature};
         },
     } satisfies Fz.Converter<"msTemperatureMeasurement", undefined, ["attributeReport", "readResponse"]>,

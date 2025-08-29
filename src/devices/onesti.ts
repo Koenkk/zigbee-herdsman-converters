@@ -16,7 +16,7 @@ const fzLocal = {
             const attributes: KeyValue = {};
             // Handle attribute 257
             if (msg.data["257"] !== undefined) {
-                const buffer = Buffer.from(msg.data["257"] /* TODO as ? */);
+                const buffer = Buffer.from(msg.data["257"] as string);
                 let pincode = "";
                 for (const byte of buffer) {
                     pincode += byte.toString(16);

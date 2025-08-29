@@ -71,7 +71,7 @@ const fzLocal = {
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             // multi-endpoint version based on the stastard onverter 'fz.humidity'
-            let humidity = Number.parseFloat(msg.data.measuredValue) / 100.0;
+            let humidity = msg.data.measuredValue / 100.0;
             humidity = calibrateAndPrecisionRoundOptions(humidity, options, "humidity");
 
             // https://github.com/Koenkk/zigbee2mqtt/issues/798
@@ -107,7 +107,7 @@ const fzLocal = {
                 const scale = msg.endpoint.getClusterAttributeValue("msPressureMeasurement", "scale") as number;
                 pressure = msg.data.scaledValue / 10 ** scale / 100.0; // convert to hPa
             } else {
-                pressure = Number.parseFloat(msg.data.measuredValue);
+                pressure = msg.data.measuredValue;
             }
             pressure = calibrateAndPrecisionRoundOptions(pressure, options, "pressure");
             const multiEndpoint = model.meta?.multiEndpoint;

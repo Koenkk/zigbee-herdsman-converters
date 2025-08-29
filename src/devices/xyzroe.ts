@@ -212,7 +212,7 @@ const fzLocal = {
         type: ["readResponse", "attributeReport"],
         convert: (model, msg, publish, options, meta) => {
             const channel = utils.getKey(model.endpoint(msg.device), msg.endpoint.ID);
-            // TODO: wrong name? switchType?
+            // @ts-expect-error TODO: wrong name? switchType?
             const {buttonMode} = msg.data;
             const inputLink = msg.data[0x4001];
             const bindCommand = msg.data[0x4002];

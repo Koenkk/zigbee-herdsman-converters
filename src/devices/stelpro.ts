@@ -22,7 +22,7 @@ const fzLocal = {
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data["16393"] !== undefined) {
-                return {energy: Number.parseFloat(msg.data["16393"]) / 1000};
+                return {energy: Number.parseFloat(msg.data["16393"] as string) / 1000};
             }
         },
     } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
