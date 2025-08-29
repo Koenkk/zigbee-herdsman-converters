@@ -2863,13 +2863,11 @@ export const definitions: DefinitionWithExtend[] = [
         model: "CMA30651",
         vendor: "ClickSmart+",
         description: "13A Smart Switched Fused Connection Unit",
+        fromZigbee: [fz.on_off, fz.ignore_basic_report, tuya.fz.on_off_countdown],
+        toZigbee: [tz.on_off, tuya.tz.power_on_behavior_1, tuya.tz.on_off_countdown],
         extend: [
             tuya.modernExtend.tuyaOnOff({
-                backlightModeOffOn: false,
-                childLock: false,
-                powerOnBehavior2: false,
-                onOffCountdown: false,
-                indicatorMode: false,
+                onOffCountdown: true,
             }),
         ],
         configure: async (device, coordinatorEndpoint) => {
