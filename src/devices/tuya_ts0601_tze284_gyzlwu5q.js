@@ -1,47 +1,41 @@
-const {tuya, exposes, fz} = require("zigbee-herdsman-converters/lib/index");
+{
+    zigbeeModel: ['TS0601'],
+    fingerprint: tuya.fingerprint('TS0601', ['_TZE284_gyzlwu5q']),
+    model: 'TS0601_TZE284_gyzlwu5q',
+    vendor: 'Tuya',
+    description: 'Smoke detector with temperature, humidity sensor and test button',
 
-const definition = {
-    zigbeeModel: ["TS0601"],
-    fingerprint: tuya.fingerprint("TS0601", ["_TZE284_gyzlwu5q"]),
-    model: "TS0601_TZE284_gyzlwu5q",
-    vendor: "Tuya",
-    description: "Smoke detector with temperature, humidity sensor and test button",
-
-    extend: [tuya.modernExtend.tuyaBase({dp: true})],
+    extend: [tuya.modernExtend.tuyaBase({ dp: true })],
 
     exposes: [
-        exposes.binary("smoke", exposes.access.STATE, true, false).withDescription("Smoke detected"),
-        exposes
-            .numeric("temperature", exposes.access.STATE)
-            .withUnit("°C")
-            .withDescription("Measured temperature")
-            .withValueMin(-40)
-            .withValueMax(80)
-            .withValueStep(0.1),
-        exposes.numeric("humidity", exposes.access.STATE).withUnit("%").withDescription("Measured humidity").withValueMin(0).withValueMax(100),
-        exposes.enum("test_button", exposes.access.STATE, ["idle", "pressed"]).withDescription("Test button state"),
-        exposes.enum("battery_state", exposes.access.STATE, ["full", "low", "Nok"]).withDescription("Battery state"),
+        exposes.binary('smoke', exposes.access.STATE, true, false).withDescription('Smoke detected'),
+        exposes.numeric('temperature', exposes.access.STATE)
+            .withUnit('°C')
+            .withDescription('Measured temperature')
+            .withValueMin(-40).withValueMax(80).withValueStep(0.1),
+        exposes.numeric('humidity', exposes.access.STATE)
+            .withUnit('%')
+            .withDescription('Measured humidity')
+            .withValueMin(0).withValueMax(100),
+        exposes.enum('test_button', exposes.access.STATE, ['idle', 'pressed']).withDescription('Test button state'),
+        exposes.enum('battery_state', exposes.access.STATE, ['full', 'low', 'Nok']).withDescription('Battery state'),
     ],
 
     meta: {
         tuyaDatapoints: [
-            [1, "smoke", tuya.valueConverter.trueFalse0],
-            [23, "temperature", tuya.valueConverter.divideBy10],
-            [24, "humidity", tuya.valueConverter.raw],
-            [
-                14,
-                "battery_state",
-                (dpValue) => {
-                    switch (dpValue) {
-                        case 1:
-                            return "low";
-                        case 2:
-                            return "full";
-                        default:
-                            return "Nok";
-                    }
-                },
-            ],
+            [1, 'smoke', tuya.valueConverter.trueFalse0],
+            [23, 'temperature', tuya.valueConverter.divideBy10],
+            [24, 'humidity', tuya.valueConverter.raw],
+            [14, 'battery_state', (dpValue) => {
+                switch (dpValue) {
+                    case 1:
+                        return 'low';
+                    case 2:
+                        return 'full';
+                    default:
+                        return 'Nok';
+                }
+            }],
         ],
     },
 
@@ -53,37 +47,40 @@ const definition = {
     fromZigbee: [
         fz.ignore_basic_report,
         {
-            cluster: "manuSpecificTuya",
-            type: ["commandDataReport"],
+            cluster: 'manuSpecificTuya',
+            type: ['commandDataReport'],
             convert: (model, msg, publish, options, meta) => {
                 const dpValues = msg.data.dpValues;
-                const result = {};
+                meta.testButtonTimeouts = meta.testButtonTimeouts || {};
 
                 dpValues.forEach((dp) => {
-                    if (dp.dp === 9 && dp.datatype === 4) {
-                        result.test_button = "pressed";
-                        if (meta.testButtonTimeouts) clearTimeout(meta.testButtonTimeouts[dp.dp]);
-                        meta.testButtonTimeouts = meta.testButtonTimeouts || {};
-                        meta.testButtonTimeouts[dp.dp] = setTimeout(() => {
-                            publish({test_button: "idle"});
-                            delete meta.testButtonTimeouts[dp.dp];
-                        }, 500);
+                    switch (dp.dp) {
+                        case 9:
+                            if (dp.datatype === 4) {
+                                publish({ test_button: 'pressed' });
+                                if (meta.testButtonTimeouts[dp.dp]) clearTimeout(meta.testButtonTimeouts[dp.dp]);
+                                meta.testButtonTimeouts[dp.dp] = setTimeout(() => {
+                                    publish({ test_button: 'idle' });
+                                    delete meta.testButtonTimeouts[dp.dp];
+                                }, 500);
+                            }
+                            break;
+                        default:
+                            break;
                     }
                 });
-
-                return result;
+                
+                return null;
             },
         },
     ],
 
-    configure: async (device, coordinatorEndpoint) => {
+    configure: async (device, coordinatorEndpoint, logger) => {
         const endpoint = device.getEndpoint(1);
         try {
-            await endpoint.read("genPowerCfg", ["batteryPercentageRemaining"]);
+            await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
         } catch {
-            // Ignore if battery percentage not available
+            logger?.info('Battery percentage not available');
         }
     },
-};
-
-module.exports = definition;
+}
