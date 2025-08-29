@@ -2867,7 +2867,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.modernExtend.tuyaOnOff({
                 backlightModeOffOn: false,
                 childLock: false,
-                powerOnBehavior: true,
+                powerOnBehavior2: true,
                 onOffCountdown: false,
             }),
         ],
