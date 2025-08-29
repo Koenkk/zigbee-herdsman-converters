@@ -18,7 +18,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: [" Switch"],
         model: "SAGE206611",
-        vendor: "Echostar",
+        vendor: "EchoStar",
         description: "SAGE by Hughes single gang light switch",
         fromZigbee: [fz.command_on, fz.command_off],
         exposes: [e.action(["on", "off"])],

@@ -4,9 +4,6 @@ import type {DefinitionWithExtend} from "../lib/types";
 
 const e = exposes.presets;
 const ea = exposes.access;
-interface KeyValueStringEnum {
-    [s: string]: tuya.Enum;
-}
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -14,10 +11,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TR-M2Z",
         vendor: "MAZDA",
         description: "Thermostatic radiator valve",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime,
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
         exposes: [
             e.battery(),
             e.child_lock(),
@@ -111,7 +105,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [32, "schedule_friday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(5, 6)],
                 [33, "schedule_saturday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(6, 6)],
                 [34, "schedule_sunday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(7, 6)],
-                [47, "local_temperature_calibration", tuya.valueConverter.localTempCalibration1],
+                [47, "local_temperature_calibration", tuya.valueConverter.localTempCalibration2],
             ],
         },
     },

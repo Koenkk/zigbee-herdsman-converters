@@ -1,9 +1,8 @@
-import type {DefinitionWithExtend, Fz, KeyValue} from "src/lib/types";
-
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
 import * as reporting from "../lib/reporting";
+import type {DefinitionWithExtend, Fz, KeyValue} from "../lib/types";
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -103,7 +102,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        zigbeeModel: ["NimlyPRO", "NimlyCode", "NimlyTouch", "NimlyIn"],
+        zigbeeModel: ["NimlyPRO", "NimlyCode", "NimlyTouch", "NimlyIn", "NimlyPRO24", "NimlyShared"],
         model: "Nimly",
         vendor: "Onesti Products AS",
         description: "Zigbee module for Nimly Doorlock series",

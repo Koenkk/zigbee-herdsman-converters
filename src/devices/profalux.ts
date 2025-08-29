@@ -4,25 +4,29 @@ import * as exposes from "../lib/exposes";
 import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import * as globalStore from "../lib/store";
-import type {DefinitionWithExtend, KeyValue, OnEventData, OnEventType, Zh} from "../lib/types";
+import type {DefinitionWithExtend, ModernExtend} from "../lib/types";
+import {isDummyDevice} from "../lib/utils";
 
 const NS = "zhc:profalux";
 const e = exposes.presets;
 const ea = exposes.access;
 
-const DAY = 86400000;
-
-// Poll Battery voltage at most once a day
-// as the Profalux remotes do not report on battery
-async function onEventBatteryPoll(type: OnEventType, data: OnEventData, device: Zh.Device, options: KeyValue) {
-    if (type === "message" && Date.now() > globalStore.getValue(device, "battery_nextpoll", 0)) {
-        const endpoint = device.endpoints.find((e) => e.supportsInputCluster("genPowerCfg"));
-        logger.debug(`${device.ieeeAddr}: polling battery`, NS);
-        globalStore.putValue(device, "battery_nextpoll", Date.now() + DAY);
-        await endpoint.read("genPowerCfg", ["batteryVoltage"]);
-    }
-}
+const mLocal = {
+    pollBatteryVoltage: (): ModernExtend => {
+        // Poll Battery voltage at most once a day
+        // as the Profalux remotes do not report on battery
+        return m.poll({
+            key: "battery",
+            defaultIntervalSeconds: 60 * 60 * 24,
+            poll: (device) => {
+                const endpoint = device.endpoints.find((e) => e.supportsInputCluster("genPowerCfg"));
+                endpoint
+                    .read("genPowerCfg", ["batteryVoltage"], {sendPolicy: "queue"})
+                    .catch((error) => logger.debug(`Failed to poll battery voltage of '${device.ieeeAddr}' (${error})`, NS));
+            },
+        });
+    },
+};
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -64,16 +68,13 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
         options: [],
         exposes: (device, options) => {
-            const endpoint = device?.getEndpoint(2);
             // Motor can be configured using the associated remote:
             //  0: default hard cover         : 2xF Up + Down on the associated remote
             //  1: cover using tilt (aka BSO) : 2xF Stop + Up
             //  2: soft cover (aka store)     : 2xF Stop + Down
-
-            if ((device == null && options == null) || endpoint.getClusterAttributeValue("manuSpecificProfalux1", "motorCoverType") === 1) {
-                return [e.cover_position_tilt()];
-            }
-            return [e.cover_position()];
+            return isDummyDevice(device) || device?.getEndpoint(2).getClusterAttributeValue("manuSpecificProfalux1", "motorCoverType") === 1
+                ? [e.cover_position_tilt()]
+                : [e.cover_position()];
         },
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(2);
@@ -128,9 +129,9 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.battery({voltage: true, voltageToPercentage: {min: 2200, max: 3100}, percentageReporting: false}),
             m.forcePowerSource({powerSource: "Battery"}),
+            // Poll battery voltage as reporting doesn't work
+            mLocal.pollBatteryVoltage(),
         ],
-        // Poll battery voltage as reporting doesn't work
-        onEvent: onEventBatteryPoll,
     },
     {
         // Newer remotes. These expose a bunch of things but they are bound to
@@ -166,8 +167,8 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.battery({voltage: true, voltageToPercentage: {min: 2200, max: 3100}, percentageReporting: false}),
             m.forcePowerSource({powerSource: "Battery"}),
+            // Poll battery voltage as reporting doesn't work
+            mLocal.pollBatteryVoltage(),
         ],
-        // Poll battery voltage as reporting doesn't work
-        onEvent: onEventBatteryPoll,
     },
 ];

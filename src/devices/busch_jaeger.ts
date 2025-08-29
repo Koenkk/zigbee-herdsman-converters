@@ -43,7 +43,7 @@ export const definitions: DefinitionWithExtend[] = [
             // If endpoint 0x12 (18) is present this means the following two things:
             //  1. The device is connected to a relay or dimmer and needs to be exposed as a dimmable light
             //  2. The top rocker will not be usable (not emit any events) as it's hardwired to the relay/dimmer
-            if (!device || device.getEndpoint(0x12) != null) {
+            if (utils.isDummyDevice(device) || device.getEndpoint(0x12) != null) {
                 expose.push(e.light_brightness().withEndpoint("relay"));
             }
             // Not all devices support all actions (depends on number of rocker rows and if relay/dimmer is installed),
@@ -119,29 +119,28 @@ export const definitions: DefinitionWithExtend[] = [
             fz.command_stop,
             fz.command_recall,
         ],
-        options: [
-            e
-                .numeric("state_poll_interval", ea.SET)
-                .withValueMin(-1)
-                .withDescription(
-                    "This device does not support state reporting so it is polled instead. The default poll interval is 60 seconds, set to -1 to disable.",
-                ),
-        ],
         toZigbee: [tz.light_onoff_brightness, tz.light_brightness_step, tz.light_brightness_move],
-        onEvent: (type, data, device, options) => {
-            const switchEndpoint = device.getEndpoint(0x12);
-            if (switchEndpoint == null) {
-                return;
-            }
-            // This device doesn't support reporting.
-            // Therefore we read the on/off state every 60 seconds.
-            // This is the same way as the Hue bridge does it.
-            const poll = async () => {
-                await switchEndpoint.read("genOnOff", ["onOff"]);
-                await switchEndpoint.read("genLevelCtrl", ["currentLevel"]);
-            };
-
-            utils.onEventPoll(type, data, device, options, "state", 60, poll);
-        },
+        extend: [
+            // This device doesn't support reporting. Therefore we read the on/off state every 60 seconds.
+            // This is the same was as the Hue bridge does it.
+            m.poll({
+                key: "state",
+                option: e
+                    .numeric("state_poll_interval", ea.SET)
+                    .withValueMin(-1)
+                    .withDescription(
+                        "This device does not support state reporting so it is polled instead. The default poll interval is 60 seconds, set to -1 to disable.",
+                    ),
+                defaultIntervalSeconds: 60,
+                poll: async (device) => {
+                    const switchEndpoint = device.getEndpoint(0x12);
+                    if (switchEndpoint == null) {
+                        return;
+                    }
+                    await switchEndpoint.read("genOnOff", ["onOff"]);
+                    await switchEndpoint.read("genLevelCtrl", ["currentLevel"]);
+                },
+            }),
+        ],
     },
 ];

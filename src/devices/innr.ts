@@ -70,6 +70,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "FL 142 C",
         vendor: "Innr",
         description: "Color Flex LED strip 4m 2000lm",
+        ota: true,
         extend: [m.light({colorTemp: {range: [150, 500], startup: false}, color: {modes: ["xy", "hs"]}, powerOnBehavior: false})],
     },
     {
@@ -106,6 +107,13 @@ export const definitions: DefinitionWithExtend[] = [
                 turnsOffAtBrightness1: true,
             }),
         ],
+    },
+    {
+        zigbeeModel: ["RB 282 C"],
+        model: "RB 282 C",
+        vendor: "Innr",
+        description: "E27 bulb RGBW",
+        extend: [m.light({colorTemp: {range: [153, 556]}, color: {modes: ["xy", "hs"], enhancedHue: true}, turnsOffAtBrightness1: true})],
     },
     {
         zigbeeModel: ["BF 263"],
@@ -400,6 +408,14 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        zigbeeModel: ["RS 240"],
+        model: "RS 240",
+        vendor: "Innr",
+        description: "Smart spot white GU10 ",
+        extend: [m.light({turnsOffAtBrightness1: true})],
+        ota: true,
+    },
+    {
         zigbeeModel: ["RS 241 T"],
         model: "RS 241 T",
         vendor: "Innr",
@@ -657,6 +673,13 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
     },
     {
+        zigbeeModel: ["AE 287 C"],
+        model: "AE 287 C",
+        vendor: "Innr",
+        description: "E26 bulb 1100lm, RGBCW",
+        extend: [m.light({colorTemp: {range: [153, 556]}, color: {modes: ["xy", "hs"], enhancedHue: true}, turnsOffAtBrightness1: true})],
+    },
+    {
         zigbeeModel: ["SP 120"],
         model: "SP 120",
         vendor: "Innr",
@@ -758,6 +781,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "FL 122 C",
         vendor: "Innr",
         description: "Flex light colour LED strip 2m, 1440lm, RGBW",
+        ota: true,
         extend: [m.light({colorTemp: {range: [100, 350]}, color: {modes: ["xy", "hs"], applyRedFix: true}, turnsOffAtBrightness1: true})],
     },
     {
@@ -827,6 +851,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Innr",
         description: "Smart E27 filament LED globe light bulb",
         extend: [m.light({colorTemp: {range: [153, 556]}, turnsOffAtBrightness1: true})],
+        ota: true,
     },
     {
         zigbeeModel: ["RF 273 T"],
@@ -834,6 +859,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Innr",
         description: "Smart E27 filament LED light bulb",
         extend: [m.light({colorTemp: {range: [153, 556]}, turnsOffAtBrightness1: true})],
+        ota: true,
     },
     {
         zigbeeModel: ["RF 274 T"],

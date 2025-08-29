@@ -66,13 +66,7 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.command_arm, fz.command_panic],
         toZigbee: [],
         exposes: [e.action(["panic", "disarm", "arm_partial_zones", "arm_all_zones"])],
-        onEvent: async (type, data, device) => {
-            // Since arm command has a response zigbee-herdsman doesn't send a default response.
-            // This causes the remote to repeat the arm command, so send a default response here.
-            if (data.type === "commandArm" && data.cluster === "ssIasAce") {
-                await data.endpoint.defaultResponse(0, 0, 1281, data.meta.zclTransactionSequenceNumber);
-            }
-        },
+        extend: [m.iasArmCommandDefaultResponse()],
     },
     {
         zigbeeModel: ["ZBEK-1"],
@@ -220,6 +214,13 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZBEK-32",
         vendor: "ADEO",
         description: "ENKI Inspire Extraflat D12",
+        extend: [m.light({colorTemp: {range: [153, 370]}, color: true})],
+    },
+    {
+        zigbeeModel: ["ZBEK-33"],
+        model: "ZBEK-33",
+        vendor: "ADEO",
+        description: "ENKI Inspire Extraflat 2400Lumens",
         extend: [m.light({colorTemp: {range: [153, 370]}, color: true})],
     },
     {

@@ -1,11 +1,11 @@
 import {Buffer} from "node:buffer";
-
+import type {TPartialClusterAttributes} from "zigbee-herdsman/dist/zspec/zcl/definition/clusters-types";
 import * as fz from "../converters/fromZigbee";
 import {repInterval} from "../lib/constants";
 import * as exposes from "../lib/exposes";
 import {logger} from "../lib/logger";
+import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import * as globalStore from "../lib/store";
 import type {DefinitionWithExtend, Fz, KeyValue, Tz, Zh} from "../lib/types";
 import * as utils from "../lib/utils";
 
@@ -43,9 +43,10 @@ const tzSeMetering: Tz.Converter = {
             await entity.read("seMetering", [key]);
             return {state: {unitOfMeasure: value}};
         }
-        await entity.write("seMetering", {
-            [key]: value,
-        });
+        const payload: TPartialClusterAttributes<"seMetering"> = {
+            [key as "divisor" | "multiplier" | "unitOfMeasure"]: value,
+        };
+        await entity.write("seMetering", payload);
 
         return {state: {[key]: value}};
     },
@@ -1646,7 +1647,7 @@ function getCurrentConfig(device: Zh.Device, options: KeyValue) {
     // @ts-expect-error ignore
     function getConfig(targetOption, bitLinkyMode, valueTrue, valueFalse) {
         const valueDefault = valueFalse;
-        if (options && options[targetOption] !== undefined && options[targetOption] !== "auto") {
+        if (options && options[targetOption] != null && options[targetOption] !== "auto") {
             if (options[targetOption] === "true" || options[targetOption] === "false") {
                 return options[targetOption] === "true"; // special case for production
             }
@@ -1686,7 +1687,7 @@ function getCurrentConfig(device: Zh.Device, options: KeyValue) {
     // Filter even more, based on our current tarif
     let currentTarf = "";
 
-    if (options && options.tarif !== undefined && options.tarif !== "auto") {
+    if (options?.tarif != null && options.tarif !== "auto") {
         currentTarf = Object.entries(tarifsDef).find(([k, v]) => v.fname === options.tarif)[1].currentTarf;
     } else {
         try {
@@ -1744,7 +1745,7 @@ function getCurrentConfig(device: Zh.Device, options: KeyValue) {
     }
 
     // Filter exposed attributes with user whitelist
-    if (options && options.tic_command_whitelist !== undefined) {
+    if (options?.tic_command_whitelist != null) {
         // @ts-expect-error ignore
         const tic_commands_str = options.tic_command_whitelist.toUpperCase();
         if (tic_commands_str !== "ALL") {
@@ -1768,7 +1769,7 @@ export const definitions: DefinitionWithExtend[] = [
             // docs generation
             // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
             let exposes;
-            if (device == null && options == null) {
+            if (utils.isDummyDevice(device)) {
                 exposes = exposedData
                     .map((e) => e.exposes)
                     .filter(
@@ -1785,7 +1786,6 @@ export const definitions: DefinitionWithExtend[] = [
             return exposes;
         },
         options: [
-            exposes.options.measurement_poll_interval(),
             e
                 .enum("linky_mode", ea.SET, ["auto", linkyModeDef.legacy, linkyModeDef.standard])
                 .withDescription("Counter with TIC in mode standard or historique. May require restart (default: auto)"),
@@ -1805,7 +1805,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .numeric("measurement_poll_chunk", ea.SET)
                 .withValueMin(1)
                 .withDescription(
-                    "During the poll, request multiple exposes to the Zlinky at once for reducing Zigbee network overload. Too much request at once could exceed device limit. Requires Z2M restart. Default: 1",
+                    "During the poll, request multiple exposes to the Zlinky at once for reducing Zigbee network overload. Too much request at once could exceed device limit. Requires Z2M restart. Default: 4",
                 ),
             e
                 .text("tic_command_whitelist", ea.SET)
@@ -1833,13 +1833,18 @@ export const definitions: DefinitionWithExtend[] = [
                 (e) => !suscribeNew.some((r) => e.cluster.name === r.cluster && e.attribute.name === r.att),
             );
             // Unsuscribe reports that doesn't correspond with the current config
-            // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
             (
                 await Promise.allSettled(
                     unsuscribe.map((e) =>
                         endpoint.configureReporting(
                             e.cluster.name,
-                            reporting.payload(e.attribute.name, e.minimumReportInterval, 65535, e.reportableChange),
+                            reporting.payload(
+                                // @ts-expect-error dynamic, expected correct since already applied
+                                e.attribute.name,
+                                e.minimumReportInterval,
+                                65535,
+                                e.reportableChange,
+                            ),
                             {manufacturerCode: null},
                         ),
                     ),
@@ -1864,12 +1869,21 @@ export const definitions: DefinitionWithExtend[] = [
                     params = {...params, ...e.report};
                 }
                 configReportings.push(
-                    endpoint.configureReporting(e.cluster, reporting.payload(params.att, params.min, params.max, params.change), {
-                        manufacturerCode: null,
-                    }),
+                    endpoint.configureReporting(
+                        e.cluster,
+                        reporting.payload(
+                            // @ts-expect-error dynamic, expected correct since already applied
+                            params.att,
+                            params.min,
+                            params.max,
+                            params.change,
+                        ),
+                        {
+                            manufacturerCode: null,
+                        },
+                    ),
                 );
             }
-            // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
             (await Promise.allSettled(configReportings))
                 .filter((e) => e.status === "rejected")
                 .forEach((e) => {
@@ -1877,59 +1891,50 @@ export const definitions: DefinitionWithExtend[] = [
                 });
         },
         ota: {manufacturerName: "LiXee"}, // TODO: not sure if it's set properly in device
-        onEvent: async (type, data, device, options) => {
-            const endpoint = device.getEndpoint(1);
-            if (type === "start") {
-                endpoint.read("liXeePrivate", ["linkyMode", "currentTarif"], {manufacturerCode: null}).catch((e) => {
-                    // https://github.com/Koenkk/zigbee2mqtt/issues/11674
-                    logger.warning(`Failed to read zigbee attributes: ${e}`, NS);
-                });
-            } else if (type === "stop") {
-                clearInterval(globalStore.getValue(device, "interval"));
-                globalStore.clearValue(device, "interval");
-            } else if (!globalStore.hasValue(device, "interval")) {
-                const seconds = options?.measurement_poll_interval ? options.measurement_poll_interval : 600;
-                utils.assertNumber(seconds);
-                const measurement_poll_chunk = options?.measurement_poll_chunk ? options.measurement_poll_chunk : 4;
-                utils.assertNumber(measurement_poll_chunk);
+        extend: [
+            m.poll({
+                key: "interval",
+                defaultIntervalSeconds: 600,
+                option: exposes.options.measurement_poll_interval(),
+                poll: async (device, options) => {
+                    const endpoint = device.getEndpoint(1);
+                    const measurement_poll_chunk = options?.measurement_poll_chunk ? options.measurement_poll_chunk : 4;
+                    utils.assertNumber(measurement_poll_chunk);
+                    const currentExposes = getCurrentConfig(device, options).filter(
+                        (e) => !endpoint.configuredReportings.some((r) => r.cluster.name === e.cluster && r.attribute.name === e.att),
+                    );
 
-                const setTimer = () => {
-                    const timer = setTimeout(async () => {
-                        try {
-                            const currentExposes = getCurrentConfig(device, options).filter(
-                                (e) => !endpoint.configuredReportings.some((r) => r.cluster.name === e.cluster && r.attribute.name === e.att),
-                            );
-
-                            for (const key in clustersDef) {
-                                if (Object.hasOwnProperty.call(clustersDef, key)) {
-                                    // @ts-expect-error ignore
-                                    const cluster = clustersDef[key];
-                                    const targ = currentExposes.filter((e) => e.cluster === cluster).map((e) => e.att);
-                                    if (targ.length) {
-                                        // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
-                                        let i;
-                                        // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
-                                        let j;
-                                        // Split array by chunks
-                                        for (i = 0, j = targ.length; i < j; i += measurement_poll_chunk) {
-                                            await endpoint
-                                                .read(cluster, targ.slice(i, i + measurement_poll_chunk), {manufacturerCode: null})
-                                                .catch((e) => {
-                                                    // https://github.com/Koenkk/zigbee2mqtt/issues/11674
-                                                    logger.warning(`Failed to read zigbee attributes: ${e}`, NS);
-                                                });
-                                        }
-                                    }
+                    for (const key in clustersDef) {
+                        if (Object.hasOwn(clustersDef, key)) {
+                            // @ts-expect-error ignore
+                            const cluster = clustersDef[key];
+                            const targ = currentExposes.filter((e) => e.cluster === cluster).map((e) => e.att);
+                            if (targ.length) {
+                                let i: number;
+                                let j: number;
+                                // Split array by chunks
+                                for (i = 0, j = targ.length; i < j; i += measurement_poll_chunk) {
+                                    await endpoint.read(cluster, targ.slice(i, i + measurement_poll_chunk), {manufacturerCode: null}).catch((e) => {
+                                        // https://github.com/Koenkk/zigbee2mqtt/issues/11674
+                                        logger.warning(`Failed to read zigbee attributes: ${e}`, NS);
+                                    });
                                 }
                             }
-                        } catch {
-                            /* Do nothing*/
                         }
-                        setTimer();
-                    }, seconds * 1000);
-                    globalStore.putValue(device, "interval", timer);
-                };
-                setTimer();
+                    }
+                },
+            }),
+        ],
+
+        onEvent: (event) => {
+            if (event.type === "start") {
+                event.data.device
+                    .getEndpoint(1)
+                    .read("liXeePrivate", ["linkyMode", "currentTarif"], {manufacturerCode: null})
+                    .catch((e) => {
+                        // https://github.com/Koenkk/zigbee2mqtt/issues/11674
+                        logger.warning(`Failed to read zigbee attributes: ${e}`, NS);
+                    });
             }
         },
     },

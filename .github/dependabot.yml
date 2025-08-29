@@ -1,12 +1,19 @@
 version: 2
 updates:
-  - package-ecosystem: "npm"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-    groups:
-      minor-patch:
-        applies-to: version-updates
-        update-types:
-          - "minor"
-          - "patch"
+    - package-ecosystem: npm
+      versioning-strategy: increase
+      directory: /
+      schedule:
+          interval: weekly
+      groups:
+          minor-patch:
+              applies-to: version-updates
+              update-types:
+                  - minor
+                  - patch
+      commit-message:
+        prefix: fix(ignore)
+    - package-ecosystem: github-actions
+      directory: /
+      schedule:
+        interval: weekly

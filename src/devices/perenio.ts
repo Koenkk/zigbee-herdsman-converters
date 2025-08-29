@@ -134,14 +134,18 @@ const tzPerenio = {
         key: ["switch_type"],
         convertSet: async (entity, key, value, meta) => {
             utils.assertString(value, key);
-            const switchTypeLookup: KeyValue = {
+            const switchTypeLookup = {
                 momentary_state: 0x0001,
                 maintained_state: 0x0010,
                 maintained_toggle: 0x00cc,
                 momentary_release: 0x00cd,
                 momentary_press: 0x00dc,
             };
-            await entity.write("genMultistateValue", {presentValue: switchTypeLookup[value]}, utils.getOptions(meta.mapped, entity));
+            await entity.write(
+                "genMultistateValue",
+                {presentValue: utils.getFromLookup(value, switchTypeLookup)},
+                utils.getOptions(meta.mapped, entity),
+            );
             return {state: {switch_type: value}};
         },
         convertGet: async (entity, key, meta) => {
@@ -214,7 +218,7 @@ const tzPerenio = {
         key: ["state", "on_time", "off_wait_time"],
         convertSet: async (entity, key, value, meta) => {
             // @ts-expect-error ignore
-            const state = meta.message.state !== undefined ? meta.message.state.toLowerCase() : null;
+            const state = meta.message.state != null ? meta.message.state.toLowerCase() : null;
             utils.validateValue(state, ["toggle", "off", "on"]);
             const alarmVoltageMin = meta.state[`alarm_voltage_min${meta.endpoint_name ? `_${meta.endpoint_name}` : ""}`];
             const alarmVoltageMax = meta.state[`alarm_voltage_max${meta.endpoint_name ? `_${meta.endpoint_name}` : ""}`];
@@ -222,9 +226,9 @@ const tzPerenio = {
             if (alarmVoltageMin || alarmVoltageMax || alarmPowerMax) {
                 return {state: {state: "OFF"}};
             }
-            if (state === "on" && (meta.message.on_time !== undefined || meta.message.off_wait_time !== undefined)) {
-                const onTime = meta.message.on_time !== undefined ? meta.message.on_time : 0;
-                const offWaitTime = meta.message.off_wait_time !== undefined ? meta.message.off_wait_time : 0;
+            if (state === "on" && (meta.message.on_time != null || meta.message.off_wait_time != null)) {
+                const onTime = meta.message.on_time != null ? meta.message.on_time : 0;
+                const offWaitTime = meta.message.off_wait_time != null ? meta.message.off_wait_time : 0;
 
                 if (typeof onTime !== "number") {
                     throw Error("The on_time value must be a number!");
@@ -316,7 +320,7 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint10, coordinatorEndpoint, ["haDiagnostic"]);
             const payload = [
                 {
-                    attribute: "onOff",
+                    attribute: "onOff" as const,
                     minimumReportInterval: 0,
                     maximumReportInterval: 3600,
                     reportableChange: 0,
@@ -324,13 +328,13 @@ export const definitions: DefinitionWithExtend[] = [
             ];
             const payloadDiagnostic = [
                 {
-                    attribute: "lastMessageLqi",
+                    attribute: "lastMessageLqi" as const,
                     minimumReportInterval: 5,
                     maximumReportInterval: 60,
                     reportableChange: 0,
                 },
                 {
-                    attribute: "lastMessageRssi",
+                    attribute: "lastMessageRssi" as const,
                     minimumReportInterval: 5,
                     maximumReportInterval: 60,
                     reportableChange: 0,
@@ -369,7 +373,7 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "perenioSpecific"]);
             const payload = [
                 {
-                    attribute: "onOff",
+                    attribute: "onOff" as const,
                     minimumReportInterval: 1,
                     maximumReportInterval: 3600,
                     reportableChange: 0,

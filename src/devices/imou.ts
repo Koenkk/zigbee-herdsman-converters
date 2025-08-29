@@ -39,4 +39,11 @@ export const definitions: DefinitionWithExtend[] = [
             m.iasZoneAlarm({zoneType: "gas", zoneAttributes: ["alarm_1", "alarm_2", "tamper", "test"], alarmTimeout: true}),
         ],
     },
+    {
+        zigbeeModel: ["ZTM1-EN"],
+        model: "ZTM1-EN",
+        vendor: "IMOU",
+        description: "Temperature and humidity sensor",
+        extend: [m.battery(), m.temperature(), m.humidity()],
+    },
 ];

@@ -68,6 +68,7 @@ export const definitions: DefinitionWithExtend[] = [
             "SV02-410-MP-1.0",
             "SV02-410-MP-1.2",
             "SV02-412-MP-1.2",
+            "SV02-412-MP-1.0",
         ],
         model: "SV02",
         vendor: "Keen Home",
@@ -94,7 +95,7 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: [],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            const payload = [{attribute: "modelId", minimumReportInterval: 3600, maximumReportInterval: 14400, reportableChange: 1}];
+            const payload = [{attribute: "modelId" as const, minimumReportInterval: 3600, maximumReportInterval: 14400, reportableChange: 1}];
             await reporting.bind(endpoint, coordinatorEndpoint, ["genBasic"]);
             await endpoint.configureReporting("genBasic", payload);
             device.powerSource = "Mains (single phase)";
@@ -110,7 +111,7 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: [],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            const payload = [{attribute: "modelId", minimumReportInterval: 3600, maximumReportInterval: 14400, reportableChange: 1}];
+            const payload = [{attribute: "modelId" as const, minimumReportInterval: 3600, maximumReportInterval: 14400, reportableChange: 1}];
             await reporting.bind(endpoint, coordinatorEndpoint, ["genBasic"]);
             await endpoint.configureReporting("genBasic", payload);
             device.powerSource = "Mains (single phase)";

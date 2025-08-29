@@ -3,7 +3,7 @@ import * as m from "../lib/modernExtend";
 import type {DefinitionWithExtend, Fz, ModernExtend, Tz} from "../lib/types";
 
 const pushokExtend = {
-    valveStatus: (args?: Partial<m.EnumLookupArgs>) =>
+    valveStatus: (args?: Partial<m.EnumLookupArgs<"genMultistateInput">>) =>
         m.enumLookup({
             name: "status",
             lookup: {OFF: 0, ON: 1, MOVING: 2, STUCK: 3},
@@ -15,7 +15,7 @@ const pushokExtend = {
             reporting: null,
             ...args,
         }),
-    stallTime: (args?: Partial<m.NumericArgs>) =>
+    stallTime: (args?: Partial<m.NumericArgs<"genMultistateValue">>) =>
         m.numeric({
             name: "stall_time",
             cluster: "genMultistateValue",
@@ -111,9 +111,21 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "PushOk Hardware",
         description: "Soil moisture and temperature sensor",
         extend: [
-            m.humidity({reporting: null}),
+            m.humidity({reporting: null, description: "Measured soil moisture"}),
             m.temperature({reporting: null}),
             m.battery({percentage: true, voltage: true, lowStatus: false, percentageReporting: false}),
+            m.numeric({
+                name: "max_moisture",
+                cluster: "genMultistateValue",
+                attribute: "presentValue",
+                description: "Upper limit of soil moisture for this location",
+                unit: "%",
+                access: "ALL",
+                valueMin: 1,
+                valueMax: 100,
+                valueStep: 1,
+                reporting: null,
+            }),
         ],
         ota: true,
     },
@@ -288,6 +300,7 @@ export const definitions: DefinitionWithExtend[] = [
                 reporting: null,
             }),
             m.temperature({reporting: null}),
+            m.humidity({reporting: null, access: "STATE"}),
             m.battery({percentage: true, voltage: true, lowStatus: false, percentageReporting: false}),
         ],
         ota: true,

@@ -73,6 +73,70 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.power_apparent()],
     },
     {
+        zigbeeModel: ["SDM01W"],
+        model: "SDM01W-U01",
+        vendor: "BITUO TECHNIK",
+        description: "Smart energy monitor for 3P+N system",
+        fromZigbee: [bituo_fz.total_power],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["haElectricalMeasurement", "seMetering"]);
+        },
+        extend: [
+            m.identify(),
+            m.onOff({powerOnBehavior: false, description: "Toggle to 'On' to Zero the energy"}),
+            m.electricityMeter({
+                fzElectricalMeasurement: bituo_fz.electrical_measurement,
+                threePhase: true,
+                producedEnergy: true,
+                acFrequency: true,
+                powerFactor: true,
+                configureReporting: false,
+            }),
+        ],
+        meta: {},
+        exposes: [
+            e.power_reactive(),
+            e.power_reactive_phase_b(),
+            e.power_reactive_phase_c(),
+            e.power_apparent(),
+            e.power_apparent_phase_b(),
+            e.power_apparent_phase_c(),
+            e.power_factor_phase_b(),
+            e.power_factor_phase_c(),
+            e.numeric("total_power", ea.STATE).withUnit("W").withDescription("Total Active Power"),
+            e.numeric("total_power_reactive", ea.STATE).withUnit("VAR").withDescription("Total Reactive Power"),
+            e.numeric("total_power_apparent", ea.STATE).withUnit("VA").withDescription("Total Apparent Power"),
+        ],
+    },
+    {
+        zigbeeModel: ["SDM01B"],
+        model: "SDM01B-U01",
+        vendor: "BITUO TECHNIK",
+        description: "Smart energy monitor for 1P+N system",
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["haElectricalMeasurement", "seMetering"]);
+        },
+        extend: [
+            m.identify(),
+            m.onOff({powerOnBehavior: false, description: "Toggle to 'On' to Zero the energy"}),
+            m.electricityMeter({
+                fzElectricalMeasurement: bituo_fz.electrical_measurement,
+                producedEnergy: true,
+                acFrequency: true,
+                powerFactor: true,
+                configureReporting: false,
+            }),
+        ],
+        meta: {},
+        exposes: [e.power_apparent()],
+    },
+    {
         zigbeeModel: ["SDM02X"],
         model: "SDM02-U01",
         vendor: "BITUO TECHNIK",

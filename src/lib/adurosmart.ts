@@ -23,7 +23,7 @@ const extend = {
                 cluster: "genBasic",
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
-                    if (Object.prototype.hasOwnProperty.call(msg.data, attribute)) {
+                    if (Object.hasOwn(msg.data, attribute)) {
                         const value = msg.data[attribute];
                         return {
                             dimmer_load_control_mode: value_map[value] || "unknown",
@@ -93,7 +93,7 @@ const extend = {
                 cluster: "genBasic",
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
-                    if (Object.prototype.hasOwnProperty.call(msg.data, attribute)) {
+                    if (Object.hasOwn(msg.data, attribute)) {
                         const value = msg.data[attribute];
                         return {
                             dimmer_switch_mode: value_map[value] || "unknown",
@@ -161,7 +161,7 @@ const extend = {
                 cluster: "genBasic",
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
-                    if (Object.prototype.hasOwnProperty.call(msg.data, attribute)) {
+                    if (Object.hasOwn(msg.data, attribute)) {
                         const value = msg.data[attribute];
                         return {
                             dimmer_invert_switch: value_map[value] || "unknown",
@@ -224,7 +224,7 @@ const extend = {
                 cluster: "genBasic",
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
-                    if (Object.prototype.hasOwnProperty.call(msg.data, attribute)) {
+                    if (Object.hasOwn(msg.data, attribute)) {
                         const value = msg.data[attribute];
                         return {
                             dimmer_scene_activation: value_map[value] || "unknown",
@@ -297,7 +297,7 @@ const extend = {
                 cluster: "genBasic",
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
-                    if (Object.prototype.hasOwnProperty.call(msg.data, attribute)) {
+                    if (Object.hasOwn(msg.data, attribute)) {
                         const value = msg.data[attribute];
                         return {
                             dimmer_s1_double_click_scene: value_map[value] || "unknown",
@@ -382,7 +382,7 @@ const extend = {
                 cluster: "genBasic",
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
-                    if (Object.prototype.hasOwnProperty.call(msg.data, attribute)) {
+                    if (Object.hasOwn(msg.data, attribute)) {
                         const value = msg.data[attribute];
                         return {
                             dimmer_s2_double_click_scene: value_map[value] || "unknown",
@@ -449,7 +449,7 @@ const extend = {
                 cluster: "genBasic",
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
-                    if (Object.prototype.hasOwnProperty.call(msg.data, attribute)) {
+                    if (Object.hasOwn(msg.data, attribute)) {
                         const value = msg.data[attribute];
                         return {
                             dimmer_min_brightness_level_numeric: value,
@@ -509,7 +509,7 @@ const extend = {
                 cluster: "genBasic",
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
-                    if (Object.prototype.hasOwnProperty.call(msg.data, attribute)) {
+                    if (Object.hasOwn(msg.data, attribute)) {
                         const value = msg.data[attribute];
                         return {
                             dimmer_max_brightness_level_numeric: value,
@@ -569,7 +569,7 @@ const extend = {
                 cluster: "genBasic",
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
-                    if (Object.prototype.hasOwnProperty.call(msg.data, attribute)) {
+                    if (Object.hasOwn(msg.data, attribute)) {
                         const value = msg.data[attribute];
                         return {
                             dimmer_manual_dimming_step_size_numeric: value,
@@ -629,7 +629,7 @@ const extend = {
                 cluster: "genBasic",
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
-                    if (Object.prototype.hasOwnProperty.call(msg.data, attribute)) {
+                    if (Object.hasOwn(msg.data, attribute)) {
                         const value = msg.data[attribute];
                         return {
                             dimmer_manual_dimming_time_numeric: value,

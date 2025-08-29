@@ -117,6 +117,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"]}})],
     },
     {
+        zigbeeModel: ["AD-E1XCTW3001"],
+        model: "E1XCTW3001",
+        vendor: "AduroSmart",
+        description: "ERIA tunable-white candle bulb (E12)",
+        extend: [m.light({colorTemp: {range: [153, 500]}})],
+    },
+    {
         zigbeeModel: ["ONOFFRELAY"],
         model: "81898",
         vendor: "AduroSmart",
@@ -149,6 +156,13 @@ export const definitions: DefinitionWithExtend[] = [
             e.numeric("max_duration", ea.ALL).withUnit("s").withValueMin(0).withValueMax(600).withDescription("Duration of Siren"),
             e.binary("alarm", ea.SET, "ON", "OFF").withDescription("Manual start of siren"),
         ],
+    },
+    {
+        zigbeeModel: ["AD-CTW123001"],
+        model: "AD-CTW123001",
+        vendor: "AduroSmart",
+        description: "ERIA smart light bubl A19",
+        extend: [m.light({colorTemp: {range: [153, 500]}})],
     },
     {
         fingerprint: [{modelID: "ONOFF_METER_RELAY", manufacturerName: "AduroSmart ERIA"}],

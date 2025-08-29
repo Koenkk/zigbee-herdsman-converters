@@ -60,7 +60,6 @@ function getSortedList(source: {[key: string]: number}): string[] {
     });
 
     const result: string[] = [];
-    // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
     keysSorted.forEach((item) => {
         result.push(item[0]);
     });
@@ -80,17 +79,15 @@ const tzLocal = {
     zigusb_button_config: {
         key: ["button_mode", "link_to_output", "bind_command"],
         convertGet: async (entity, key, meta) => {
-            await entity.read("genOnOffSwitchCfg", ["buttonMode", 0x4001, 0x4002]);
+            await entity.read("genOnOffSwitchCfg", ["switchType", 0x4001, 0x4002]);
         },
         convertSet: async (entity, key, value, meta) => {
-            // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
-            let payload;
-            // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
-            let data;
+            let payload: Parameters<typeof entity.write<"genOnOffSwitchCfg">>[1];
+            let data: unknown;
             switch (key) {
                 case "button_mode":
                     data = utils.getFromLookup(value, buttonModesList);
-                    payload = {buttonMode: data};
+                    payload = {switchType: data as number};
                     break;
                 case "link_to_output":
                     data = utils.getFromLookup(value, inputLinkList);
@@ -110,9 +107,9 @@ const tzLocal = {
             const state = utils.isString(meta.message.state) ? meta.message.state.toLowerCase() : null;
             utils.validateValue(state, ["toggle", "off", "on"]);
 
-            if (state === "on" && (meta.message.on_time !== undefined || meta.message.off_wait_time !== undefined)) {
-                const onTime = meta.message.on_time !== undefined ? meta.message.on_time : 0;
-                const offWaitTime = meta.message.off_wait_time !== undefined ? meta.message.off_wait_time : 0;
+            if (state === "on" && (meta.message.on_time != null || meta.message.off_wait_time != null)) {
+                const onTime = meta.message.on_time != null ? meta.message.on_time : 0;
+                const offWaitTime = meta.message.off_wait_time != null ? meta.message.off_wait_time : 0;
 
                 if (typeof onTime !== "number") {
                     throw Error("The on_time value must be a number!");
@@ -165,7 +162,7 @@ const tzLocal = {
         convertSet: async (entity, key, value, meta) => {
             const epId = 2;
             const endpoint = meta.device.getEndpoint(epId);
-            const value2 = Number.parseInt(value.toString());
+            const value2 = Number.parseInt(value.toString(), 10);
             if (!Number.isNaN(value2) && value2 > 0) {
                 await endpoint.configureReporting("genOnOff", [
                     {

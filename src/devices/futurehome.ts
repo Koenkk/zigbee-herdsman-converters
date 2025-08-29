@@ -1,8 +1,7 @@
-import type {DefinitionWithExtend} from "src/lib/types";
-
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as tuya from "../lib/tuya";
+import type {DefinitionWithExtend} from "../lib/types";
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -13,11 +12,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0601_futurehome_thermostat",
         vendor: "Futurehome",
         description: "Thermostat",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
         whiteLabel: [tuya.whitelabel("Futurehome", "Co020", "Smart thermostat", ["_TZE200_e5hpkc6d"])],
-        onEvent: tuya.onEventSetTime,
-        configure: tuya.configureMagicPacket,
         exposes: [
             e
                 .climate()

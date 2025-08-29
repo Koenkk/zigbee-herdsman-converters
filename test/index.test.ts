@@ -1,14 +1,16 @@
+import assert from "node:assert";
 import fs from "node:fs";
 import path from "node:path";
+import {describe, expect, it, vi} from "vitest";
 import {
-    type Definition,
     addExternalDefinition,
+    type Definition,
     findByDevice,
     getConfigureKey,
     postProcessConvertedFromZigbeeMessage,
     removeExternalDefinitions,
 } from "../src/index";
-import {Composite, Enum, List, Numeric, access, presets} from "../src/lib/exposes";
+import {access, Composite, Enum, List, Numeric, presets} from "../src/lib/exposes";
 import {mockDevice} from "./utils";
 
 describe("ZHC", () => {
@@ -234,6 +236,7 @@ describe("ZHC", () => {
             {
                 modelID: "TS011F",
                 endpoints: [],
+                manufacturerName: "_TZ3000_cehuw1lw",
             },
             "Router",
             {
@@ -291,7 +294,7 @@ describe("ZHC", () => {
         );
         const definition = await findByDevice(device);
 
-        expect(definition.model).toStrictEqual("RADON TriTech ZB");
+        expect(definition.model).toStrictEqual("RADION TriTech ZB");
 
         assert(typeof definition.exposes === "function");
 
@@ -327,7 +330,7 @@ describe("ZHC", () => {
         const MOSZB140 = await findByDevice(device);
 
         if (typeof MOSZB140.exposes === "function") {
-            const exposes = MOSZB140.exposes(device, undefined);
+            const exposes = MOSZB140.exposes(device, {});
             expect(exposes.map((e) => e.name)).toStrictEqual([
                 "occupancy",
                 "tamper",
@@ -536,7 +539,8 @@ describe("ZHC", () => {
     });
 
     it("computes calibration/precision", async () => {
-        const ts0601Soil = await findByDevice(mockDevice({modelID: "TS0601", manufacturerName: "_TZE200_myd45weu", endpoints: []}));
+        const ts0601SoilDevice = mockDevice({modelID: "TS0601", manufacturerName: "_TZE200_myd45weu", endpoints: []});
+        const ts0601Soil = await findByDevice(ts0601SoilDevice);
         expect(ts0601Soil.options.map((t) => t.name)).toStrictEqual([
             "temperature_calibration",
             "temperature_precision",
@@ -545,18 +549,20 @@ describe("ZHC", () => {
         ]);
         const payload1 = {temperature: 1.193};
         const options1 = {temperature_calibration: 2.5, temperature_precision: 1};
-        postProcessConvertedFromZigbeeMessage(ts0601Soil, payload1, options1);
+        postProcessConvertedFromZigbeeMessage(ts0601Soil, payload1, options1, ts0601SoilDevice);
         expect(payload1).toStrictEqual({temperature: 3.7});
 
         // For multi endpoint property
-        const AUA1ZBDSS = await findByDevice(mockDevice({modelID: "DoubleSocket50AU", endpoints: []}));
+        const AUA1ZBDSSDevice = mockDevice({modelID: "DoubleSocket50AU", endpoints: []});
+        const AUA1ZBDSS = await findByDevice(AUA1ZBDSSDevice);
         expect(AUA1ZBDSS.options.map((t) => t.name)).toStrictEqual(["power_calibration", "power_precision", "transition", "state_action"]);
         const payload2 = {power_left: 5.31};
         const options2 = {power_calibration: 100, power_precision: 0}; // calibration for power is percentual
-        postProcessConvertedFromZigbeeMessage(AUA1ZBDSS, payload2, options2);
+        postProcessConvertedFromZigbeeMessage(AUA1ZBDSS, payload2, options2, AUA1ZBDSSDevice);
         expect(payload2).toStrictEqual({power_left: 11});
 
-        const ts011fPlug1 = await findByDevice(mockDevice({modelID: "TS011F", endpoints: []}));
+        const ts0111fPlug1Device = mockDevice({modelID: "TS011F", endpoints: []});
+        const ts011fPlug1 = await findByDevice(ts0111fPlug1Device);
         expect(ts011fPlug1.options.map((t) => t.name)).toStrictEqual([
             "power_calibration",
             "power_precision",
@@ -570,7 +576,7 @@ describe("ZHC", () => {
         ]);
         const payload3 = {current: 0.0585};
         const options3 = {current_calibration: -50};
-        postProcessConvertedFromZigbeeMessage(ts011fPlug1, payload3, options3);
+        postProcessConvertedFromZigbeeMessage(ts011fPlug1, payload3, options3, ts0111fPlug1Device);
         expect(payload3).toStrictEqual({current: 0.03});
     });
 

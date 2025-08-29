@@ -10,7 +10,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.light({colorTemp: {range: [153, 370]}, color: true})],
         endpoint: (device) => {
             // https://github.com/Koenkk/zigbee-herdsman-converters/issues/5463
-            const endpoint = device.endpoints.find((e) => e.inputClusters.includes(6)).ID;
+            const endpoint = device.endpoints.find((e) => e.inputClusters.includes(6))?.ID ?? 1;
             return {default: endpoint};
         },
     },

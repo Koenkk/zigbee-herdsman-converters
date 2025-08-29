@@ -1,3 +1,4 @@
+import {TextDecoder, TextEncoder} from "node:util";
 import {Zcl} from "zigbee-herdsman";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
@@ -24,6 +25,12 @@ const ea = exposes.access;
 const fzZosung = zosung.fzZosung;
 const tzZosung = zosung.tzZosung;
 const ez = zosung.presetsZosung;
+
+interface TuyaGenOnOff {
+    attributes: never;
+    commands: {tuyaCountdown: {data: Buffer}};
+    commandResponses: never;
+}
 
 const storeLocal = {
     getPrivatePJ1203A: (device: Zh.Device) => {
@@ -118,7 +125,7 @@ const storeLocal = {
                     // Only publish if the set is complete otherwise discard everything.
                     if (sign !== null && power !== null && current !== null && powerFactor !== null) {
                         const signedPowerKey = `signed_power_${channel}`;
-                        const signedPower = options[signedPowerKey] !== undefined ? options[signedPowerKey] : false;
+                        const signedPower = options[signedPowerKey] != null ? options[signedPowerKey] : false;
                         if (signedPower) {
                             result[`power_${channel}`] = sign * power;
                             result[`energy_flow_${channel}`] = "sign";
@@ -178,7 +185,7 @@ const convLocal = {
                 const result = {};
                 priv[`sign_${channel}`] = v === 1 ? -1 : +1;
                 const lateEnergyFlowKey = `late_energy_flow_${channel}`;
-                const lateEnergyFlow = options[lateEnergyFlowKey] !== undefined ? options[lateEnergyFlowKey] : false;
+                const lateEnergyFlow = options[lateEnergyFlowKey] != null ? options[lateEnergyFlowKey] : false;
                 if (lateEnergyFlow) {
                     priv.flush(result, channel, options);
                 }
@@ -225,7 +232,7 @@ const convLocal = {
                 const result = {};
                 priv[`power_factor_${channel}`] = v;
                 const lateEnergyFlowKey = `late_energy_flow_${channel}`;
-                const lateEnergyFlow = options[lateEnergyFlowKey] !== undefined ? options[lateEnergyFlowKey] : false;
+                const lateEnergyFlow = options[lateEnergyFlowKey] != null ? options[lateEnergyFlowKey] : false;
                 if (!lateEnergyFlow) {
                     priv.flush(result, channel, options);
                 }
@@ -242,6 +249,75 @@ const convLocal = {
             },
         };
     },
+
+    sceneCubeAction: () => {
+        const lookup = ["side_1", "side_2", "side_3", "side_4", "knock", "shake"];
+        const expose = e.action(lookup);
+        return [
+            tuya.modernExtend.dpEnumLookup({
+                dp: 0x01,
+                name: "action",
+                type: tuya.dataTypes.bool,
+                readOnly: true,
+                expose: expose,
+                lookup: {side_1: 0},
+            }),
+            tuya.modernExtend.dpEnumLookup({
+                dp: 0x02,
+                name: "action",
+                type: tuya.dataTypes.bool,
+                readOnly: true,
+                expose: expose,
+                lookup: {side_2: 0},
+            }),
+            tuya.modernExtend.dpEnumLookup({
+                dp: 0x03,
+                name: "action",
+                type: tuya.dataTypes.bool,
+                readOnly: true,
+                expose: expose,
+                lookup: {side_3: 0},
+            }),
+            tuya.modernExtend.dpEnumLookup({
+                dp: 0x04,
+                name: "action",
+                type: tuya.dataTypes.bool,
+                readOnly: true,
+                expose: expose,
+                lookup: {side_4: 0},
+            }),
+            tuya.modernExtend.dpEnumLookup({
+                dp: 0x05,
+                name: "action",
+                type: tuya.dataTypes.bool,
+                readOnly: true,
+                expose: expose,
+                lookup: {knock: 0},
+            }),
+            tuya.modernExtend.dpEnumLookup({
+                dp: 0x06,
+                name: "action",
+                type: tuya.dataTypes.bool,
+                readOnly: true,
+                expose: expose,
+                lookup: {shake: 0},
+            }),
+        ];
+    },
+    name: {
+        to: (v: string, meta: Tz.Meta) => {
+            const utf8bytes = new TextEncoder().encode(v);
+            return Array.from(utf8bytes, (utf8bytes) => utf8bytes.toString(16).padStart(4, "0")).join("");
+        },
+        from: (v: string, meta: Fz.Meta) => {
+            const bytes = [];
+            for (let i = 0; i < v.length; i += 4) {
+                bytes.push(Number.parseInt(v.slice(i, i + 4), 16));
+            }
+            const hexToBytes = Uint8Array.from(bytes);
+            return new TextDecoder("utf-8").decode(hexToBytes);
+        },
+    },
 };
 
 const tzLocal = {
@@ -251,7 +327,7 @@ const tzLocal = {
             utils.assertNumber(value);
             const data = Buffer.alloc(4);
             data.writeUInt32LE(value);
-            await entity.command("genOnOff", "tuyaCountdown", {data});
+            await entity.command<"genOnOff", "tuyaCountdown", TuyaGenOnOff>("genOnOff", "tuyaCountdown", {data});
         },
     } satisfies Tz.Converter,
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
@@ -295,7 +371,7 @@ const tzLocal = {
                 newState.color_mode = colorMode;
 
                 // To switch between white mode and color mode, we have to send a special command:
-                const rgbMode = colorMode === colorModeLookup[ColorMode.HS];
+                const rgbMode = colorMode === colorModeLookup[ColorMode.HS] ? 1 : 0;
                 await entity.command("lightingColorCtrl", "tuyaRgbMode", {
                     enable: rgbMode,
                 });
@@ -307,17 +383,25 @@ const tzLocal = {
 
             if (colorMode === colorModeLookup[ColorMode.ColorTemp]) {
                 if ("brightness" in meta.message) {
-                    const zclData = {level: Number(meta.message.brightness), transtime};
-                    await entity.command("genLevelCtrl", "moveToLevel", zclData, utils.getOptions(meta.mapped, entity));
+                    await entity.command(
+                        "genLevelCtrl",
+                        "moveToLevel",
+                        {level: Number(meta.message.brightness), transtime},
+                        utils.getOptions(meta.mapped, entity),
+                    );
                     newState.brightness = meta.message.brightness;
                 }
 
                 if ("color_temp" in meta.message) {
-                    const zclData = {
-                        colortemp: meta.message.color_temp,
-                        transtime: transtime,
-                    };
-                    await entity.command("lightingColorCtrl", "moveToColorTemp", zclData, utils.getOptions(meta.mapped, entity));
+                    await entity.command(
+                        "lightingColorCtrl",
+                        "moveToColorTemp",
+                        {
+                            colortemp: meta.message.color_temp as number,
+                            transtime: transtime,
+                        },
+                        utils.getOptions(meta.mapped, entity),
+                    );
                     newState.color_temp = meta.message.color_temp;
                 }
             } else if (colorMode === colorModeLookup[ColorMode.HS]) {
@@ -385,7 +469,8 @@ const tzLocal = {
             return {state: newState};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read("lightingColorCtrl", ["currentHue", "currentSaturation", "currentLevel", "tuyaRgbMode", "colorTemperature"]);
+            await entity.read("genLevelCtrl", ["currentLevel"]);
+            await entity.read("lightingColorCtrl", ["currentHue", "currentSaturation", "tuyaRgbMode", "colorTemperature"]);
         },
     } satisfies Tz.Converter,
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
@@ -401,9 +486,7 @@ const tzLocal = {
                 (color.isXY() && (color.xy.x === 0.323 || color.xy.y === 0.329));
 
             if (enableWhite) {
-                await entity.command("lightingColorCtrl", "tuyaRgbMode", {
-                    enable: false,
-                });
+                await entity.command("lightingColorCtrl", "tuyaRgbMode", {enable: 0});
                 const newState: KeyValue = {color_mode: "xy"};
                 if (color.isXY()) {
                     newState.color = color.xy;
@@ -425,7 +508,7 @@ const tzLocal = {
                 utils.assertString(value, "light");
                 await entity.command("genOnOff", value.toLowerCase() === "on" ? "on" : "off", {}, utils.getOptions(meta.mapped, entity));
             } else if (key === "duration") {
-                await entity.write("ssIasWd", {maxDuration: value}, utils.getOptions(meta.mapped, entity));
+                await entity.write("ssIasWd", {maxDuration: value as number}, utils.getOptions(meta.mapped, entity));
             } else if (key === "volume") {
                 const lookup: KeyValue = {mute: 0, low: 10, medium: 30, high: 50};
                 utils.assertString(value, "volume");
@@ -444,7 +527,7 @@ const tzLocal = {
             switch (key) {
                 case "temperature_unit": {
                     utils.assertString(value, "temperature_unit");
-                    await entity.write("manuSpecificTuya_2", {
+                    await entity.write("manuSpecificTuya2", {
                         "57355": {value: {celsius: 0, fahrenheit: 1}[value], type: 48},
                     });
                     break;
@@ -474,7 +557,7 @@ const tzLocal = {
                 case "temperature_threshold": {
                     const state = meta.state.temperature_breaker;
                     const buf = Buffer.from([5, utils.getFromLookup(state, onOffLookup), 0, utils.toNumber(value, "temperature_threshold")]);
-                    await entity.command("manuSpecificTuya_3", "setOptions2", {
+                    await entity.command("manuSpecificTuya3", "setOptions2", {
                         data: buf,
                     });
                     break;
@@ -483,7 +566,7 @@ const tzLocal = {
                     const threshold = meta.state.temperature_threshold;
                     const number = utils.toNumber(threshold, "temperature_threshold");
                     const buf = Buffer.from([5, utils.getFromLookup(value, onOffLookup), 0, number]);
-                    await entity.command("manuSpecificTuya_3", "setOptions2", {
+                    await entity.command("manuSpecificTuya3", "setOptions2", {
                         data: buf,
                     });
                     break;
@@ -491,7 +574,7 @@ const tzLocal = {
                 case "power_threshold": {
                     const state = meta.state.power_breaker;
                     const buf = Buffer.from([7, utils.getFromLookup(state, onOffLookup), 0, utils.toNumber(value, "power_breaker")]);
-                    await entity.command("manuSpecificTuya_3", "setOptions2", {
+                    await entity.command("manuSpecificTuya3", "setOptions2", {
                         data: buf,
                     });
                     break;
@@ -500,7 +583,7 @@ const tzLocal = {
                     const threshold = meta.state.power_threshold;
                     const number = utils.toNumber(threshold, "power_breaker");
                     const buf = Buffer.from([7, utils.getFromLookup(value, onOffLookup), 0, number]);
-                    await entity.command("manuSpecificTuya_3", "setOptions2", {
+                    await entity.command("manuSpecificTuya3", "setOptions2", {
                         data: buf,
                     });
                     break;
@@ -508,7 +591,7 @@ const tzLocal = {
                 case "over_current_threshold": {
                     const state = meta.state.over_current_breaker;
                     const buf = Buffer.from([1, utils.getFromLookup(state, onOffLookup), 0, utils.toNumber(value, "over_current_threshold")]);
-                    await entity.command("manuSpecificTuya_3", "setOptions3", {
+                    await entity.command("manuSpecificTuya3", "setOptions3", {
                         data: buf,
                     });
                     break;
@@ -517,7 +600,7 @@ const tzLocal = {
                     const threshold = meta.state.over_current_threshold;
                     const number = utils.toNumber(threshold, "over_current_threshold");
                     const buf = Buffer.from([1, utils.getFromLookup(value, onOffLookup), 0, number]);
-                    await entity.command("manuSpecificTuya_3", "setOptions3", {
+                    await entity.command("manuSpecificTuya3", "setOptions3", {
                         data: buf,
                     });
                     break;
@@ -528,7 +611,7 @@ const tzLocal = {
                     buf.writeUInt8(3, 0);
                     buf.writeUInt8(utils.getFromLookup(state, onOffLookup), 1);
                     buf.writeUInt16BE(utils.toNumber(value, "over_voltage_threshold"), 2);
-                    await entity.command("manuSpecificTuya_3", "setOptions3", {
+                    await entity.command("manuSpecificTuya3", "setOptions3", {
                         data: buf,
                     });
                     break;
@@ -537,7 +620,7 @@ const tzLocal = {
                     const threshold = meta.state.over_voltage_threshold;
                     const number = utils.toNumber(threshold, "over_voltage_threshold");
                     const buf = Buffer.from([3, utils.getFromLookup(value, onOffLookup), 0, number]);
-                    await entity.command("manuSpecificTuya_3", "setOptions3", {
+                    await entity.command("manuSpecificTuya3", "setOptions3", {
                         data: buf,
                     });
                     break;
@@ -545,7 +628,7 @@ const tzLocal = {
                 case "under_voltage_threshold": {
                     const state = meta.state.under_voltage_breaker;
                     const buf = Buffer.from([4, utils.getFromLookup(state, onOffLookup), 0, utils.toNumber(value, "under_voltage_threshold")]);
-                    await entity.command("manuSpecificTuya_3", "setOptions3", {
+                    await entity.command("manuSpecificTuya3", "setOptions3", {
                         data: buf,
                     });
                     break;
@@ -554,7 +637,7 @@ const tzLocal = {
                     const threshold = meta.state.under_voltage_threshold;
                     const number = utils.toNumber(threshold, "under_voltage_breaker");
                     const buf = Buffer.from([4, utils.getFromLookup(value, onOffLookup), 0, number]);
-                    await entity.command("manuSpecificTuya_3", "setOptions3", {
+                    await entity.command("manuSpecificTuya3", "setOptions3", {
                         data: buf,
                     });
                     break;
@@ -562,6 +645,63 @@ const tzLocal = {
                 default: // Unknown key
                     logger.warning(`Unhandled key ${key}`, NS);
             }
+        },
+    } satisfies Tz.Converter,
+    invert_cover_percent_fix: {
+        key: ["state", "position"],
+        convertSet: async (entity, key, value, meta) => {
+            const shouldInvert = key === "position" && meta.options.cover_position_percent_fix;
+            const newValue = shouldInvert ? 100 - Number(value) : value;
+            return await legacy.toZigbee.tuya_cover_control.convertSet(entity, key, newValue, meta);
+        },
+    } satisfies Tz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    TS0505B_1_transitionFixesOnOffBrightness: {
+        ...tz.light_onoff_brightness,
+        convertSet: async (entity, key, value, meta) => {
+            // This light has two issues:
+            // 1. If passing transition = 0, it will behave as if transition = 1s.
+            // 2. If turning off with a transition, and turning on during the transition, it will turn off
+            //    at the end of the first transition timer, despite order to turn on
+
+            // Workaround for issue 1: patch transition in input message
+            const transition = utils.getTransition(entity, "brightness", meta);
+            let transitionSeconds = transition.time / 10;
+            let newMeta = meta;
+            if (transitionSeconds === 0) {
+                const {message} = meta;
+                const wantedState = message.state != null ? (typeof message.state === "string" ? message.state.toLowerCase() : null) : undefined;
+                newMeta = {...meta}; // Clone meta to avoid modifying the original
+                if (wantedState === "off") {
+                    // Erase transition because that way we get actual instant turn off
+                    newMeta.message = {state: "OFF"};
+                } else {
+                    // Best we can do is set the transition to 0.1 seconds
+                    // That is the same thing as is done for TS0505B_2
+                    transitionSeconds = 0.1;
+                    newMeta.message = {...message, transition: transitionSeconds}; // Will get re-parsed by original light_onoff_brightness
+                }
+            }
+
+            const ret = await tz.light_onoff_brightness.convertSet(entity, key, value, newMeta);
+
+            // Workaround for issue 2:
+            // Get the current state of the light after transition time + 0.1s
+            // This won't fix the light's state, but at least it will make us aware that it's off,
+            // allowing user apps to turn it on again if needed.
+            // This could probably be improved by actually turning it on again if necessary.
+            if (transitionSeconds !== 0) {
+                setTimeout(
+                    () => {
+                        tz.on_off.convertGet(entity, "state", meta).catch((error) => {
+                            logger.warning(`Error getting state of TS0505B_1 after transition: ${error.message}`, NS);
+                        });
+                    },
+                    transitionSeconds * 1000 + 100,
+                );
+            }
+
+            return ret;
         },
     } satisfies Tz.Converter,
 };
@@ -641,7 +781,7 @@ const fzLocal = {
         },
     } satisfies Fz.Converter,
     temperature_unit: {
-        cluster: "manuSpecificTuya_2",
+        cluster: "manuSpecificTuya2",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
@@ -657,7 +797,7 @@ const fzLocal = {
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     TS011F_electrical_measurement: {
         ...fz.electrical_measurement,
-        convert: async (model, msg, publish, options, meta) => {
+        convert: (model, msg, publish, options, meta) => {
             const result = (fz.electrical_measurement.convert(model, msg, publish, options, meta) as KeyValueAny) ?? {};
             const lookup: KeyValueString = {
                 power: "activePower",
@@ -707,7 +847,7 @@ const fzLocal = {
     } satisfies Fz.Converter,
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     TS011F_threshold: {
-        cluster: "manuSpecificTuya_3",
+        cluster: "manuSpecificTuya3",
         type: "raw",
         convert: (model, msg, publish, options, meta) => {
             const splitToAttributes = (value: Buffer): KeyValueAny => {
@@ -811,7 +951,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
         ],
         configure: async (device, coordinatorEndpoint) => {
-            if (device?.manufacturerName === "_TZ3210_up3pngle") {
+            if (device.manufacturerName === "_TZ3210_up3pngle") {
                 // Required for this version
                 // https://github.com/Koenkk/zigbee-herdsman-converters/pull/8004
                 const endpoint = device.getEndpoint(1);
@@ -837,10 +977,17 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: [],
     },
     {
-        zigbeeModel: ["TS0203"],
+        fingerprint: tuya.fingerprint("TS0203", ["Zbeacon"]),
+        model: "ZC-W1",
+        vendor: "iHseno",
+        description: "Temperature & humidity sensor",
+        extend: [m.temperature(), m.humidity(), m.battery()],
+    },
+    {
+        zigbeeModel: ["TS0203", "ZG-102Z"],
         model: "TS0203",
         vendor: "Tuya",
-        description: "Door sensor",
+        description: "Door/window sensor",
         fromZigbee: [fz.ias_contact_alarm_1, fz.battery, fz.ignore_basic_report, fz.ias_contact_alarm_1_report],
         toZigbee: [],
         whiteLabel: [
@@ -848,6 +995,7 @@ export const definitions: DefinitionWithExtend[] = [
             {vendor: "Tuya", model: "iH-F001"},
             {vendor: "Tesla Smart", model: "TSL-SEN-DOOR"},
             {vendor: "Cleverio", model: "SS100"},
+            {vendor: "HOBEIAN", model: "ZG-102ZA", fingerprint: [{modelID: "ZG-102Z"}]},
             tuya.whitelabel("Niceboy", "ORBIS Windows & Door Sensor", "Door sensor", ["_TZ3000_qrldbmfn"]),
             tuya.whitelabel("Tuya", "ZD06", "Door window sensor", ["_TZ3000_rcuyhwe3"]),
             tuya.whitelabel("Tuya", "ZD08", "Door sensor", ["_TZ3000_7d8yme6f"]),
@@ -855,6 +1003,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Tuya", "19DZT", "Door sensor", ["_TZ3000_n2egfsli"]),
             tuya.whitelabel("Tuya", "DS04", "Door sensor", ["_TZ3000_yfekcy3n"]),
             tuya.whitelabel("Moes", "ZSS-JM-GWM-C-MS", "Smart door and window sensor", ["_TZ3000_decxrtwa"]),
+            tuya.whitelabel("Moes", "ZSS-S01-GWM-C-MS", "Door/window alarm sensor", ["_TZ3000_8yhypbo7"]),
             tuya.whitelabel("Moes", "ZSS-X-GWM-C", "Door/window magnetic sensor", ["_TZ3000_gntwytxo"]),
             tuya.whitelabel("Luminea", "ZX-5232", "Smart door and window sensor", ["_TZ3000_4ugnzsli"]),
             tuya.whitelabel("QA", "QASD1", "Door sensor", ["_TZ3000_udyjylt7"]),
@@ -912,14 +1061,70 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_vuwtqx0t", "_TZE200_vuwtqx0t"]),
+        model: "TS0601_water_valve",
+        vendor: "Tuya",
+        description: "Ultrasonic water meter valve",
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
+        exposes: [
+            // Main valve switch
+            e
+                .switch()
+                .setAccess("state", ea.STATE_SET),
+
+            // Water consumption sensor
+            e
+                .numeric("water_consumed", ea.STATE)
+                .withUnit("m³")
+                .withDescription("Total water consumption")
+                .withValueMin(0)
+                .withValueStep(0.001),
+
+            // Flow rate sensor
+            e
+                .numeric("flow_rate", ea.STATE)
+                .withUnit("m³/h")
+                .withDescription("Instantaneous water flow rate")
+                .withValueMin(0)
+                .withValueStep(0.001),
+
+            // Temperature sensor
+            e.temperature(),
+
+            // Voltage monitoring
+            e.voltage(),
+            // Auto clean mode toggle
+            e
+                .binary("auto_clean", ea.STATE_SET, true, false)
+                .withDescription("Auto clean mode"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "water_consumed", tuya.valueConverter.divideBy1000],
+                [13, "state", tuya.valueConverter.onOffNotStrict],
+                [14, "auto_clean", tuya.valueConverter.raw],
+                [21, "flow_rate", tuya.valueConverter.divideBy1000],
+                [22, "temperature", tuya.valueConverter.divideBy100],
+                [26, "voltage", tuya.valueConverter.divideBy100],
+            ],
+        },
+        // Optional: Add device-specific options
+        options: [
+            exposes.options.precision("water_consumed"),
+            exposes.options.calibration("water_consumed"),
+            exposes.options.precision("flow_rate"),
+            exposes.options.calibration("flow_rate"),
+            exposes.options.precision("temperature"),
+            exposes.options.calibration("temperature"),
+        ],
+    },
+    {
         fingerprint: tuya.fingerprint("TS0203", ["_TZ3210_jowhpxop"]),
         model: "TS0203_1",
         vendor: "Tuya",
         description: "Door sensor with scene switch",
-        fromZigbee: [tuya.fz.datapoints, fz.ias_contact_alarm_1, fz.battery, fz.ignore_basic_report, fz.ias_contact_alarm_1_report],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime,
-        configure: tuya.configureMagicPacket,
+        fromZigbee: [fz.ias_contact_alarm_1, fz.battery, fz.ignore_basic_report, fz.ias_contact_alarm_1_report],
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
         exposes: [e.action(["single", "double", "hold"]), e.contact(), e.battery_low(), e.tamper(), e.battery(), e.battery_voltage()],
         meta: {
             tuyaDatapoints: [[101, "action", tuya.valueConverterBasic.lookup({single: 0, double: 1, hold: 2})]],
@@ -929,12 +1134,9 @@ export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: tuya.fingerprint("TS0021", ["_TZ3210_3ulg9kpo"]),
         model: "LKWSZ211",
-        vendor: "Tuya",
+        vendor: "Linkoze",
         description: "Scene remote with 2 keys",
-        fromZigbee: [tuya.fz.datapoints, fz.ignore_basic_report],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime,
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
         exposes: [
             e.battery(),
             e.action(["button_1_single", "button_1_double", "button_1_hold", "button_2_single", "button_2_double", "button_2_hold"]),
@@ -962,7 +1164,6 @@ export const definitions: DefinitionWithExtend[] = [
                 [10, "battery", tuya.valueConverter.raw],
             ],
         },
-        whiteLabel: [tuya.whitelabel("Linkoze", "LKWSZ211", "Wireless switch (2-key)", ["_TZ3210_3ulg9kpo"])],
     },
     {
         fingerprint: tuya.fingerprint("TS0601", [
@@ -1076,6 +1277,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE200_9yapgbuv",
             "_TZE200_utkemkbs",
             "_TZE204_utkemkbs",
+            "_TZE284_utkemkbs",
             "_TZE204_9yapgbuv",
             "_TZE204_upagmta9",
             "_TZE200_cirvgep4",
@@ -1086,18 +1288,15 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE204_cirvgep4",
             "_TZE284_yjjdcqsq",
             "_TZE284_hdyjyqjm",
+            "_TZE284_d7lpruvi",
+            "_TZE284_upagmta9",
+            "_TZE204_1wnh8bqp",
+            "_TZE284_1wnh8bqp",
         ]),
         model: "TS0601_temperature_humidity_sensor_2",
         vendor: "Tuya",
         description: "Temperature and humidity sensor",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEvent({queryOnDeviceAnnounce: true}),
-        configure: async (device, coordinatorEndpoint) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint);
-            // Required to get the device to start reporting
-            await device.getEndpoint(1).command("manuSpecificTuya", "dataQuery", {});
-        },
+        extend: [tuya.modernExtend.tuyaBase({dp: true, queryOnDeviceAnnounce: true, queryOnConfigure: true})],
         exposes: [e.temperature(), e.humidity(), tuya.exposes.batteryState(), tuya.exposes.temperatureUnit()],
         meta: {
             tuyaDatapoints: [
@@ -1109,11 +1308,11 @@ export const definitions: DefinitionWithExtend[] = [
         },
         whiteLabel: [
             tuya.whitelabel("Tuya", "ZTH01", "Temperature and humidity sensor", ["_TZE200_yjjdcqsq", "_TZE204_yjjdcqsq", "_TZE284_yjjdcqsq"]),
-            tuya.whitelabel("Tuya", "SZTH02", "Temperature and humidity sensor", ["_TZE200_utkemkbs", "_TZE204_utkemkbs"]),
+            tuya.whitelabel("Tuya", "SZTH02", "Temperature and humidity sensor", ["_TZE200_utkemkbs", "_TZE204_utkemkbs", "_TZE284_utkemkbs"]),
             tuya.whitelabel("Tuya", "ZTH02", "Temperature and humidity sensor", ["_TZE200_9yapgbuv", "_TZE204_9yapgbuv"]),
-            tuya.whitelabel("Tuya", "ZTH05", "Temperature and humidity sensor", ["_TZE204_upagmta9", "_TZE200_upagmta9"]),
+            tuya.whitelabel("Tuya", "ZTH05", "Temperature and humidity sensor", ["_TZE204_upagmta9", "_TZE200_upagmta9", "_TZE284_upagmta9"]),
             tuya.whitelabel("Tuya", "ZTH08-E", "Temperature and humidity sensor", ["_TZE200_cirvgep4", "_TZE204_cirvgep4"]),
-            tuya.whitelabel("Tuya", "ZTH08", "Temperature and humidity sensor", ["_TZE204_d7lpruvi", "_TZE204_d7lpruvi", "_TZE284_hdyjyqjm"]),
+            tuya.whitelabel("Tuya", "ZTH08", "Temperature and humidity sensor", ["_TZE204_d7lpruvi", "_TZE284_d7lpruvi", "_TZE284_hdyjyqjm"]),
         ],
     },
     {
@@ -1121,14 +1320,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0601_temperature_humidity_sensor_3",
         vendor: "Tuya",
         description: "Temperature & humidity sensor",
-        fromZigbee: [tuya.fz.datapoints],
-        configure: async (device, coordinatorEndpoint) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint);
-            // Required to get the device to start reporting (-- Maybe needed? Copied this from another humidity sensor configuration)
-            await device.getEndpoint(1).command("manuSpecificTuya", "dataQuery", {});
-        },
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetLocalTime,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true, queryOnConfigure: true})],
         exposes: [e.temperature(), e.humidity(), e.battery(), tuya.exposes.temperatureUnit()],
         meta: {
             tuyaDatapoints: [
@@ -1145,14 +1337,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZTH05Z",
         vendor: "Tuya",
         description: "Temperature and humidity sensor",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEvent({queryOnDeviceAnnounce: true}),
-        configure: async (device, coordinatorEndpoint) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint);
-            // Required to get the device to start reporting
-            await device.getEndpoint(1).command("manuSpecificTuya", "dataQuery", {});
-        },
+        extend: [tuya.modernExtend.tuyaBase({dp: true, queryOnDeviceAnnounce: true, queryOnConfigure: true})],
         exposes: [
             e.temperature(),
             e.humidity(),
@@ -1242,9 +1427,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0601_contact_temperature_humidity_sensor",
         vendor: "Tuya",
         description: "Contact, temperature and humidity sensor",
-        fromZigbee: [tuya.fz.datapoints, tuya.fz.gateway_connection_status],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [e.contact(), e.temperature(), e.humidity(), e.battery()],
         meta: {
             tuyaDatapoints: [
@@ -1280,7 +1463,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Air quality sensor",
         fromZigbee: [legacy.fromZigbee.tuya_air_quality],
         toZigbee: [],
-        exposes: [e.temperature(), e.humidity(), e.co2(), e.voc().withUnit("ppm"), e.formaldehyd()],
+        exposes: [e.temperature(), e.humidity(), e.co2(), e.voc().withUnit("ppb"), e.formaldehyd().withUnit("µg/m³")],
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_rbbx5mfq"]),
@@ -1290,7 +1473,7 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
-        exposes: [e.illuminance().withUnit("lx"), e.temperature(), e.humidity()],
+        exposes: [e.illuminance(), e.temperature(), e.humidity()],
         meta: {
             tuyaDatapoints: [
                 [2, "illuminance", tuya.valueConverter.raw],
@@ -1451,6 +1634,20 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_hiith90n"]),
+        model: "R3 Smart Switch",
+        vendor: "Tuya",
+        description: "Circuit Breaker/Switch",
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [e.switch()],
+        meta: {
+            tuyaDatapoints: [[16, "state", tuya.valueConverter.onOff]],
+        },
+    },
+    {
+        zigbeeModel: ["ZG-301Z"],
         fingerprint: [
             ...tuya.fingerprint("TS0001", [
                 "_TZ3000_hktqahrq",
@@ -1467,6 +1664,7 @@ export const definitions: DefinitionWithExtend[] = [
                 "_TZ3000_qsp2pwtf",
                 "_TZ3000_kycczpw8",
                 "_TZ3000_46t1rvdu",
+                "_TZ3000_bhcpnvud",
             ]),
             ...tuya.fingerprint("TS000F", [
                 "_TZ3000_hktqahrq",
@@ -1481,7 +1679,11 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Tuya",
         whiteLabel: [
             {vendor: "Tuya", model: "iHSW02"},
-            {vendor: "Aubess", model: "TMZ02"},
+            {
+                vendor: "HOBEIAN",
+                model: "ZG-301Z",
+                fingerprint: [{modelID: "ZG-301Z"}],
+            },
             tuya.whitelabel("Tuya", "QS-zigbee-S08-16A-RF", "Wall switch module", ["_TZ3000_dlhhrhs8"]),
         ],
         description: "Wall switch module",
@@ -1543,6 +1745,7 @@ export const definitions: DefinitionWithExtend[] = [
                 "_TZ3000_h8ngtlxy",
                 "_TZ3000_w0ypwa1f",
                 "_TZ3000_wpueorev",
+                "_TZ3000_cmcjbqup",
             ]),
             ...tuya.fingerprint("TS0011", ["_TYZB01_rifa0wlb"]),
         ],
@@ -1626,12 +1829,9 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Aldi", "L122AA63H11A6.5W", "LIGHTWAY smart home LED-lamp - candle", ["_TZ3000_iivsrikg"]),
             tuya.whitelabel("Aldi", "C422AC11D41H140.0W", "MEGOS LED panel RGB+CCT 40W 3600lm 62 x 62 cm", ["_TZ3000_v1srfw9x"]),
             tuya.whitelabel("Aldi", "C422AC14D41H140.0W", "MEGOS LED panel RGB+CCT 40W 3600lm 30 x 120 cm", ["_TZ3000_gb5gaeca"]),
-            tuya.whitelabel("MiBoxer", "FUT066Z", "RGB+CCT LED Downlight", ["_TZ3210_zrvxvydd"]),
-            tuya.whitelabel("MiBoxer", "FUT039Z", "RGB+CCT LED controller", ["_TZ3210_jicmoite"]),
             tuya.whitelabel("Lidl", "14156506L", "Livarno Lux smart LED mood light", ["_TZ3210_r0xgkft5"]),
             tuya.whitelabel("Lidl", "HG08010", "Livarno Home outdoor spotlight", ["_TZ3210_umi6vbsz"]),
             tuya.whitelabel("Lidl", "HG08008", "Livarno Home LED ceiling light", ["_TZ3210_p9ao60da"]),
-            tuya.whitelabel("Tuya", "HG08007", "Livarno Home outdoor LED band", ["_TZ3210_zbabx9wh"]),
             tuya.whitelabel("Lidl", "14158704L", "Livarno Home LED floor lamp, RGBW", ["_TZ3210_z1vlyufu"]),
             tuya.whitelabel("Lidl", "14158804L", "Livarno Home LED desk lamp RGBW", ["_TZ3210_hxtfthp5"]),
             tuya.whitelabel("Lidl", "HG07834A/HG09155A/HG08131A", "Livarno Home GU10 spot RGB+CCT", ["_TZ3000_quqaeew6"]),
@@ -1639,7 +1839,6 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Lidl", "HG07834B", "Livarno Home E14 candle RGB+CCT", ["_TZ3000_wr6g6olr"]),
             tuya.whitelabel("Lidl", "HG08131C", "Livarno Home outdoor E27 bulb in set with flare", ["_TZ3000_q50zhdsc"]),
             tuya.whitelabel("Lidl", "HG07834C/HG09155C/HG08131C", "Livarno Home E27 bulb RGB+CCT", ["_TZ3000_qd7hej8u"]),
-            tuya.whitelabel("MiBoxer", "FUT037Z+", "RGB led controller", ["_TZB210_417ikxay", "_TZB210_wxazcmsh"]),
             tuya.whitelabel("Lidl", "HG08383B", "Livarno outdoor LED light chain", ["_TZ3000_bwlvyjwk"]),
             tuya.whitelabel("Lidl", "HG08383A", "Livarno outdoor LED light chain", ["_TZ3000_taspddvq"]),
             tuya.whitelabel("Garza Smart", "Garza-Standard-A60", "Standard A60 bulb", ["_TZ3210_sln7ah6r"]),
@@ -1648,13 +1847,18 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Lidl", "399629_2110", "Livarno Lux Ceiling Panel RGB+CCT", ["_TZ3210_c0s1xloa", "_TZ3210_x13bu7za"]),
             tuya.whitelabel("Nous", "P3Z", "Smart light bulb", ["_TZ3210_cieijuw1"]),
             tuya.whitelabel("Moes", "ZLD-RCW_1", "RGB+CCT Zigbee LED controller", ["_TZ3000_7hcgjxpc"]),
-            tuya.whitelabel("Moes", "ZB-TD5-RCW-GU10", "RGB+CCT 4.7W GU10 LED bulb", ["_TZ3210_rcggc0ys"]),
+            tuya.whitelabel("Moes", "ZB-TD5-RCW-GU10", "RGB+CCT 4.7W GU10 LED bulb", ["_TZ3210_rcggc0ys", "_TZ3210_ljoasixl"]),
             tuya.whitelabel("Moes", "ZB-TDA9-RCW-E27-MS", "RGB+CCT 9W E27 LED bulb", ["_TZ3210_wxa85bwk"]),
-            tuya.whitelabel("Moes", "ZB-LZD10-RCW", "10W RGB+CCT Smart Downlight", ["_TZ3210_s9lumfhn", "_TZ3210_jjqdqxfq"]),
+            tuya.whitelabel("Moes", "ZB-LZD10-RCW", "10W RGB+CCT Smart Downlight", ["_TZ3210_s9lumfhn", "_TZ3210_jjqdqxfq", "_TZ3210_dwzfzfjc"]),
             tuya.whitelabel("Moes", "ZB-TDC6-RCW-E14", "RGB+CCT 5W E14 LED bulb", ["_TZ3210_ifga63rg"]),
-            tuya.whitelabel("MiBoxer", "FUT106ZR", "GU10 RGB+CCT", ["_TZB210_rwy5hexp", "_TZB210_lnnkh3f9"]),
-            tuya.whitelabel("MiBoxer", "FUT103ZR", "GU10 RGB+CCT", ["_TZB210_6eed09b9"]),
             tuya.whitelabel("MiBoxer", "E3-ZR", "3 in 1 LED Controller", ["_TZB210_wy1pyu1q"]),
+            tuya.whitelabel("MiBoxer", "SZ5", "5 in 1 LED Controller", ["_TZB210_w9hcix2r"]),
+            tuya.whitelabel("MiBoxer", "FUT037Z+", "RGB led controller", ["_TZB210_417ikxay", "_TZB210_wxazcmsh"]),
+            tuya.whitelabel("MiBoxer", "FUT039Z", "RGB+CCT LED controller", ["_TZ3210_jicmoite", "_TZB210_rs0ufzwg"]),
+            tuya.whitelabel("MiBoxer", "FUT066Z", "RGB+CCT LED Downlight", ["_TZ3210_zrvxvydd"]),
+            tuya.whitelabel("MiBoxer", "FUT068ZR", "RGB+CCT LED Downlight", ["_TZB210_endmggws"]),
+            tuya.whitelabel("MiBoxer", "FUT103ZR", "GU10 RGB+CCT", ["_TZB210_6eed09b9"]),
+            tuya.whitelabel("MiBoxer", "FUT106ZR", "GU10 RGB+CCT", ["_TZB210_rwy5hexp", "_TZB210_lnnkh3f9"]),
             tuya.whitelabel("Tuya", "TS0505B_1_1", "Zigbee 3.0 18W led light bulb E27 RGBCW", [
                 "_TZ3210_jd3z4yig",
                 "_TZ3210_r5afgmkl",
@@ -1669,6 +1873,7 @@ export const definitions: DefinitionWithExtend[] = [
                 color: true,
             }),
         ],
+        toZigbee: [tzLocal.TS0505B_1_transitionFixesOnOffBrightness],
         configure: (device, coordinatorEndpoint) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue("lightingColorCtrl", {
                 colorCapabilities: 29,
@@ -1719,13 +1924,18 @@ export const definitions: DefinitionWithExtend[] = [
         model: "CK-BL702-AL-01_1",
         vendor: "eWeLink",
         description: "Zigbee 3.0 15W led light bulb E27 RGBCW",
-        toZigbee: [tz.on_off, tzLocal.led_control, tuya.tz.do_not_disturb],
-        fromZigbee: [fz.on_off, fz.tuya_led_controller, fz.brightness, fz.ignore_basic_report],
-        exposes: [e.light_brightness_colortemp_colorhs([50, 1000]).removeFeature("color_temp_startup"), tuya.exposes.doNotDisturb()],
+        toZigbee: [tuya.tz.do_not_disturb],
+        extend: [
+            m.light({
+                colorTemp: {range: [50, 500], startup: true},
+                effect: true,
+                powerOnBehavior: true,
+                color: {modes: ["xy", "hs"], enhancedHue: false, moveToLevelWithOnOffDisable: true},
+            }),
+        ],
+        exposes: [tuya.exposes.doNotDisturb()],
         configure: (device, coordinatorEndpoint) => {
-            device.getEndpoint(1).saveClusterAttributeKeyValue("lightingColorCtrl", {
-                colorCapabilities: 29,
-            });
+            device.getEndpoint(1).saveClusterAttributeKeyValue("lightingColorCtrl", {colorCapabilities: 29});
         },
     },
     {
@@ -1789,10 +1999,8 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Motion detector with illuminance",
         fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery, fz.ignore_basic_report, fz.ias_occupancy_alarm_1_report],
         toZigbee: [],
-        onEvent: tuya.onEventSetTime,
-        configure: tuya.configureMagicPacket,
+        extend: [m.illuminance(), tuya.modernExtend.tuyaBase({timeStart: "2000"})],
         exposes: [e.occupancy(), e.battery_low(), e.battery(), e.tamper()],
-        extend: [m.illuminance()],
     },
     {
         fingerprint: tuya.fingerprint("TS0202", ["_TZ3210_cwamkvua"]),
@@ -1897,6 +2105,7 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [tuya.whitelabel("Aubess", "40ZH-O", "Motion sensor", ["_TZ3040_msl6wxk9"])],
     },
     {
+        zigbeeModel: ["ZG-204Z"],
         fingerprint: tuya.fingerprint("TS0202", ["_TZ3000_mcxw5ehu", "_TZ3000_6ygjfyll", "_TZ3040_6ygjfyll", "_TZ3000_msl6wxk9"]),
         model: "IH012-RT01",
         vendor: "Tuya",
@@ -1924,7 +2133,14 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.batteryPercentageRemaining(endpoint);
             await reporting.batteryVoltage(endpoint);
         },
-        whiteLabel: [tuya.whitelabel("Tuya", "ZMS-102", "Motion sensor", ["_TZ3000_msl6wxk9"])],
+        whiteLabel: [
+            {
+                vendor: "HOBEIAN",
+                model: "ZG-204Z",
+                fingerprint: [{modelID: "ZG-204Z"}],
+            },
+            tuya.whitelabel("Tuya", "ZMS-102", "Motion sensor", ["_TZ3000_msl6wxk9"]),
+        ],
     },
     {
         fingerprint: tuya.fingerprint("TS0202", ["_TZ3000_o4mkahkc"]),
@@ -1951,38 +2167,48 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0207", [
-            "_TZ3000_m0vaazab",
-            "_TZ3000_ufttklsz",
-            "_TZ3000_nkkl7uzv",
-            "_TZ3000_misw04hq",
-            "_TZ3000_nlsszmzl",
-            "_TZ3000_gszjt2xx",
-            "_TZ3000_wlquqiiz",
-            "_TZ3000_5k5vh43t",
-            "_TZ3000_kxlmv9ag",
-            "_TZ3000_wmlc9p9z",
-            "_TZ3000_shopg9ss",
-            "_TZ3000_n0lphcok",
-        ]),
+        fingerprint: [
+            ...tuya.fingerprint("TS0207", [
+                "_TZ3000_m0vaazab",
+                "_TZ3000_ufttklsz",
+                "_TZ3000_nkkl7uzv",
+                "_TZ3000_misw04hq",
+                "_TZ3000_nlsszmzl",
+                "_TZ3000_gszjt2xx",
+                "_TZ3000_wlquqiiz",
+                "_TZ3000_5k5vh43t",
+                "_TZ3000_kxlmv9ag",
+                "_TZ3000_wmlc9p9z",
+                "_TZ3000_shopg9ss",
+                "_TZ3000_n0lphcok",
+            ]),
+            ...tuya.fingerprint("TS0001", ["_TZ3000_n0lphcok"]),
+        ],
         model: "TS0207_repeater",
         vendor: "Tuya",
         description: "Repeater",
         fromZigbee: [fz.linkquality_from_basic],
         toZigbee: [],
+        whiteLabel: [tuya.whitelabel("Tuya", "TS0001_repeater", "Zigbee signal repeater", ["_TZ3000_n0lphcok"])],
         exposes: [],
     },
     {
-        zigbeeModel: ["TS0207", "FNB54-WTS08ML1.0"],
+        zigbeeModel: ["TS0207", "FNB54-WTS08ML1.0", "ZG-222Z"],
         model: "TS0207_water_leak_detector",
         vendor: "Tuya",
         description: "Water leak detector",
         fromZigbee: [fz.ias_water_leak_alarm_1, fz.battery, fz.ignore_basic_report],
         whiteLabel: [
             {vendor: "CR Smart Home", model: "TS0207"},
+            {
+                vendor: "HOBEIAN",
+                model: "ZG-222Z",
+                fingerprint: [{modelID: "ZG-222Z"}],
+            },
             tuya.whitelabel("Meian", "SW02", "Water leak sensor", ["_TZ3000_kyb656no"]),
             tuya.whitelabel("Aubess", "IH-K665", "Water leak sensor", ["_TZ3000_kstbkt6a"]),
-            tuya.whitelabel("HOBEIAN", "ZG-222ZA", "Water leak sensor", ["_TZ3000_k4ej3ww2"]),
+            tuya.whitelabel("HOBEIAN", "ZG-222ZA", "Water leak sensor", ["_TZ3000_k4ej3ww2", "_TZ3000_abaplimj"]),
+            tuya.whitelabel("Tuya", "_TZ3000_mqiev3jk", "Solar powered rain sensor", ["_TZ3000_mqiev3jk"]),
             tuya.whitelabel("Tuya", "TS0207_water_leak_detector_1", "Zigbee water flood sensor + 1m probe cable", [
                 "_TZ3000_ocjlo4ea",
                 "_TZ3000_upgcbody",
@@ -2016,7 +2242,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0207", ["_TZ3210_tgvtvdoc"]),
+        fingerprint: tuya.fingerprint("TS0207", ["_TZ3210_tgvtvdoc", "_TZ3210_p68kms0l"]),
         model: "RB-SRAIN01",
         vendor: "Tuya",
         description: "Solar rain sensor",
@@ -2076,7 +2302,16 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_myd45weu", "_TZE200_ga1maeof", "_TZE200_2se8efxh", "_TZE204_myd45weu", "_TZE284_myd45weu"]),
+        fingerprint: tuya.fingerprint("TS0601", [
+            "_TZE200_myd45weu",
+            "_TZE200_ga1maeof",
+            "_TZE200_2se8efxh",
+            "_TZE204_myd45weu",
+            "_TZE284_myd45weu",
+            "_TZE284_oitavov2",
+            "_TZE284_2se8efxh",
+            "_TZE200_9cqcpkgb",
+        ]),
         model: "TS0601_soil",
         vendor: "Tuya",
         description: "Soil sensor",
@@ -2095,7 +2330,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_g2e6cpnw", "_TZE284_sgabhwa6"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_g2e6cpnw", "_TZE284_sgabhwa6", "_TZE284_awepdiwi"]),
         model: "TS0601_soil_2",
         vendor: "Tuya",
         description: "Soil sensor",
@@ -2170,7 +2405,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_aao3yzhs", "_TZE284_nhgdf6qr", "_TZE284_ap9owrsa"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_aao3yzhs", "_TZE284_nhgdf6qr", "_TZE284_ap9owrsa", "_TZE284_33bwcga2"]),
         model: "TS0601_soil_3",
         vendor: "Tuya",
         description: "Soil sensor",
@@ -2215,6 +2450,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE200_0nauxa0p",
             "_TZE200_ykgar0ow",
             "_TZE200_0hb4rdnp",
+            "_TZE284_wckqztdq",
         ]),
         model: "TS0601_dimmer_1_gang_1",
         vendor: "Tuya",
@@ -2405,6 +2641,9 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.exposes.countdown().withEndpoint("l1"),
             tuya.exposes.countdown().withEndpoint("l2"),
             tuya.exposes.countdown().withEndpoint("l3"),
+            tuya.exposes.lightType().withEndpoint("l1"),
+            tuya.exposes.lightType().withEndpoint("l2"),
+            tuya.exposes.lightType().withEndpoint("l3"),
             e.power_on_behavior().withAccess(ea.STATE_SET),
             tuya.exposes.backlightModeOffNormalInverted().withAccess(ea.STATE_SET),
         ],
@@ -2414,19 +2653,22 @@ export const definitions: DefinitionWithExtend[] = [
                 [1, "state_l1", tuya.valueConverter.onOff, {skip: tuya.skip.stateOnAndBrightnessPresent}],
                 [2, "brightness_l1", tuya.valueConverter.scale0_254to0_1000],
                 [3, "min_brightness_l1", tuya.valueConverter.scale0_254to0_1000],
+                [4, "light_type_l1", tuya.valueConverter.lightType],
                 [5, "max_brightness_l1", tuya.valueConverter.scale0_254to0_1000],
                 [6, "countdown_l1", tuya.valueConverter.countdown],
                 [7, "state_l2", tuya.valueConverter.onOff, {skip: tuya.skip.stateOnAndBrightnessPresent}],
                 [8, "brightness_l2", tuya.valueConverter.scale0_254to0_1000],
                 [9, "min_brightness_l2", tuya.valueConverter.scale0_254to0_1000],
+                [10, "light_type_l2", tuya.valueConverter.lightType],
                 [11, "max_brightness_l2", tuya.valueConverter.scale0_254to0_1000],
                 [12, "countdown_l2", tuya.valueConverter.countdown],
+                [14, "power_on_behavior", tuya.valueConverter.powerOnBehaviorEnum],
                 [15, "state_l3", tuya.valueConverter.onOff, {skip: tuya.skip.stateOnAndBrightnessPresent}],
                 [16, "brightness_l3", tuya.valueConverter.scale0_254to0_1000],
                 [17, "min_brightness_l3", tuya.valueConverter.scale0_254to0_1000],
+                [18, "light_type_l3", tuya.valueConverter.lightType],
                 [19, "max_brightness_l3", tuya.valueConverter.scale0_254to0_1000],
                 [20, "countdown_l3", tuya.valueConverter.countdown],
-                [14, "power_on_behavior", tuya.valueConverter.powerOnBehaviorEnum],
                 [21, "backlight_mode", tuya.valueConverter.backlightModeOffNormalInverted],
             ],
         },
@@ -2561,71 +2803,6 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [{vendor: "Moes", model: "MS-105-M"}],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_5cuocqty", "_TZE204_nqqylykc", "_TZE204_2cyb66xl", "_TZE204_tgdnh7pw"]),
-        model: "ZDMS16-1",
-        vendor: "AVATTO",
-        description: "Zigbee 1 channel Dimmer",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
-        exposes: [
-            tuya.exposes.lightBrightnessWithMinMax(),
-            tuya.exposes.countdown(),
-            tuya.exposes.switchType(),
-            e.power_on_behavior().withAccess(ea.STATE_SET),
-        ],
-        meta: {
-            tuyaDatapoints: [
-                [1, "state", tuya.valueConverter.onOff, {skip: tuya.skip.stateOnAndBrightnessPresent}],
-                [2, "brightness", tuya.valueConverter.scale0_254to0_1000],
-                [3, "min_brightness", tuya.valueConverter.scale0_254to0_1000],
-                [4, "switch_type", tuya.valueConverter.switchType2],
-                [5, "max_brightness", tuya.valueConverter.scale0_254to0_1000],
-                [6, "countdown", tuya.valueConverter.countdown],
-                [14, "power_on_behavior", tuya.valueConverter.powerOnBehaviorEnum],
-            ],
-        },
-    },
-    {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_o9gyszw2", "_TZE204_jtbgusdc"]),
-        model: "ZDMS16-2",
-        vendor: "AVATTO",
-        description: "Zigbee 2 channels Dimmer",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
-        exposes: [
-            tuya.exposes.lightBrightnessWithMinMax().withEndpoint("l1"),
-            tuya.exposes.countdown().withEndpoint("l1"),
-            tuya.exposes.switchType().withEndpoint("l1"),
-            tuya.exposes.lightBrightnessWithMinMax().withEndpoint("l2"),
-            tuya.exposes.countdown().withEndpoint("l2"),
-            tuya.exposes.switchType().withEndpoint("l2"),
-            e.power_on_behavior().withAccess(ea.STATE_SET),
-        ],
-        meta: {
-            multiEndpoint: true,
-            tuyaDatapoints: [
-                [1, "state_l1", tuya.valueConverter.onOff, {skip: tuya.skip.stateOnAndBrightnessPresent}],
-                [2, "brightness_l1", tuya.valueConverter.scale0_254to0_1000],
-                [3, "min_brightness_l1", tuya.valueConverter.scale0_254to0_1000],
-                [4, "switch_type_l1", tuya.valueConverter.switchType2],
-                [5, "max_brightness_l1", tuya.valueConverter.scale0_254to0_1000],
-                [6, "countdown_l1", tuya.valueConverter.countdown],
-                [7, "state_l2", tuya.valueConverter.onOff, {skip: tuya.skip.stateOnAndBrightnessPresent}],
-                [8, "brightness_l2", tuya.valueConverter.scale0_254to0_1000],
-                [9, "min_brightness_l2", tuya.valueConverter.scale0_254to0_1000],
-                [10, "switch_type_l2", tuya.valueConverter.switchType2],
-                [11, "max_brightness_l2", tuya.valueConverter.scale0_254to0_1000],
-                [12, "countdown_l2", tuya.valueConverter.countdown],
-                [14, "power_on_behavior", tuya.valueConverter.powerOnBehaviorEnum],
-            ],
-        },
-        endpoint: (device) => {
-            return {l1: 1, l2: 1};
-        },
-    },
-    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_p0gzbqct"]),
         model: "TS0601_dimmer_knob",
         vendor: "Tuya",
@@ -2744,6 +2921,21 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [tuya.whitelabel("Lonsonho", "QS-Zigbee-D02-TRIAC-L", "1 gang smart dimmer switch module without neutral", ["_TZ3000_ktuoyvt5"])],
     },
     {
+        fingerprint: tuya.fingerprint("TS110F", ["_TZ3000_hexqj6ls"]),
+        model: "CSP052",
+        vendor: "ClickSmart+",
+        description: "2 gang smart dimmer switch module without neutral",
+        extend: [
+            m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
+            m.light({
+                powerOnBehavior: false,
+                endpointNames: ["l1", "l2"],
+                configureReporting: true,
+            }),
+        ],
+        meta: {multiEndpoint: true},
+    },
+    {
         fingerprint: [...tuya.fingerprint("isltm67\u0000", ["_TYST11_pisltm67"]), ...tuya.fingerprint("TS0601", ["_TZE200_pisltm67"])],
         model: "S-LUX-ZB",
         vendor: "Tuya",
@@ -2761,7 +2953,13 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS130F",
         vendor: "Tuya",
         description: "Curtain/blind switch",
-        fromZigbee: [fz.cover_position_tilt, tuya.fz.indicator_mode, fz.tuya_cover_options, tuya.fz.backlight_mode_off_on],
+        fromZigbee: [
+            fz.cover_position_tilt,
+            tuya.fz.indicator_mode,
+            fz.tuya_cover_options,
+            tuya.fz.backlight_mode_off_on,
+            tuya.fz.switch_type_curtain,
+        ],
         toZigbee: [
             tz.cover_state,
             tz.cover_position_tilt,
@@ -2769,15 +2967,20 @@ export const definitions: DefinitionWithExtend[] = [
             tz.tuya_cover_reversal,
             tuya.tz.backlight_indicator_mode_2,
             tuya.tz.backlight_indicator_mode_1,
+            tuya.tz.switch_type_curtain,
         ],
         meta: {coverInverted: true},
         whiteLabel: [
             tuya.whitelabel("Danor", "SK-Z802C-US", "Smart curtain/shutter switch", ["_TZ3000_8h7wgocw"]),
             {vendor: "LoraTap", model: "SC400"},
-            tuya.whitelabel("LoraTap", "SC500ZB", "Roller Shutter Blind Module", ["_TZ3000_e3vhyirx"]),
+            tuya.whitelabel("LoraTap", "SC500ZB", "Smart curtain/shutter switch", ["_TZ3000_e3vhyirx", "_TZ3000_femsaaua"]),
+            tuya.whitelabel("LoraTap", "SC500ZB-v4", "Smart curtain/shutter switch", ["_TZ3000_5iixzdo7"]),
             tuya.whitelabel("Nous", "B4Z", "Curtain switch", ["_TZ3000_yruungrl"]),
             tuya.whitelabel("Nous", "L12Z", "Smart ZigBee Curtain Module L12Z", ["_TZ3000_jwv3cwak"]),
             tuya.whitelabel("Zemismart", "ZN-LC1E", "Smart curtain/shutter switch", ["_TZ3000_74hsp7qy"]),
+            tuya.whitelabel("Girier", "TS130F_GIRIER", "Smart curtain switch", ["_TZ3210_dwytrmda"]),
+            tuya.whitelabel("Zemismart", "TS130F_ZEMISMART", "Smart curtain wall switch", ["_TZ3000_vw8pawxa"]),
+            tuya.whitelabel("QA", "QACZ1", "Smart curtain switch", ["_TZ3210_xbpt8ewc"]),
         ],
         exposes: (device) => {
             const exps: Expose[] = [
@@ -2785,39 +2988,47 @@ export const definitions: DefinitionWithExtend[] = [
                 e.enum("moving", ea.STATE, ["UP", "STOP", "DOWN"]),
                 e.binary("motor_reversal", ea.ALL, "ON", "OFF"),
             ];
-            if (device?.manufacturerName !== "_TZ3000_cet6ch1r") {
+            if (["_TZ3000_yruungrl", "_TZ3210_dwytrmda", "_TZ3210_xbpt8ewc", "_TZ3000_vw8pawxa"].includes(device.manufacturerName)) {
+                exps.push(e.binary("calibration", ea.ALL, "ON", "OFF"), e.numeric("calibration_time", ea.ALL).withUnit("s"));
+            } else if (["_TZ3000_cet6ch1r", "_TZ3000_5iixzdo7"].includes(device.manufacturerName)) {
                 exps.push(
-                    e.binary("calibration", ea.ALL, "ON", "OFF"),
-                    e.numeric("calibration_time", ea.STATE).withUnit("s").withDescription("Calibration time"),
+                    e.binary("calibration_to_open", ea.ALL, "ON", "OFF"),
+                    e.binary("calibration_to_close", ea.ALL, "ON", "OFF"),
+                    e.numeric("calibration_time_to_open", ea.ALL).withUnit("s"),
+                    e.numeric("calibration_time_to_close", ea.ALL).withUnit("s"),
                 );
             } else {
-                exps.push(
-                    e.binary("calibration_up", ea.ALL, "ON", "OFF"),
-                    e.numeric("calibration_time_up", ea.STATE).withUnit("s").withDescription("Calibration time up"),
-                    e.binary("calibration_down", ea.ALL, "ON", "OFF"),
-                    e.numeric("calibration_time_down", ea.STATE).withUnit("s").withDescription("Calibration time down"),
-                );
+                exps.push(e.binary("calibration", ea.ALL, "ON", "OFF"), e.numeric("calibration_time", ea.STATE).withUnit("s"));
             }
-            if (device?.manufacturerName !== "_TZ3210_xbpt8ewc" && device?.manufacturerName !== "_TZ3000_e3vhyirx") {
+            if (
+                !["_TZ3000_e3vhyirx", "_TZ3000_5iixzdo7", "_TZ3000_yruungrl", "_TZ3210_dwytrmda", "_TZ3210_xbpt8ewc"].includes(
+                    device.manufacturerName,
+                )
+            ) {
                 exps.push(tuya.exposes.indicatorMode(), tuya.exposes.backlightModeOffOn());
             }
-
+            if (["_TZ3000_5iixzdo7"].includes(device.manufacturerName)) {
+                exps.push(tuya.exposes.switchTypeCurtain());
+            } else if (["_TZ3000_yruungrl"].includes(device.manufacturerName)) {
+                exps.push(
+                    e.enum("switch_type_curtain", ea.ALL, ["flip-switch", "sync-switch", "button-switch"]).withDescription("External switch type"),
+                );
+            }
             return exps;
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS130F", ["_TZ3210_dwytrmda", "_TZ3000_1dd0d5yi"]),
+        fingerprint: tuya.fingerprint("TS130F", ["_TZ3000_1dd0d5yi"]),
         model: "MS-108ZR",
         vendor: "Moes",
         description: "Zigbee + RF curtain switch module",
-        whiteLabel: [tuya.whitelabel("Girier", "TS130F_GIRIER", "Smart curtain switch", ["_TZ3210_dwytrmda"])],
         ota: true,
         meta: {coverInverted: true},
         fromZigbee: [fz.tuya_cover_options, fz.cover_position_tilt],
         toZigbee: [tz.cover_state, tz.moes_cover_calibration, tz.cover_position_tilt, tz.tuya_cover_reversal],
         exposes: [
             e.cover_position(),
-            e.numeric("calibration_time", ea.ALL).withValueMin(0).withValueMax(100),
+            e.numeric("calibration_time", ea.ALL).withValueMin(0).withValueMax(500).withUnit("s"),
             e.enum("moving", ea.STATE, ["UP", "STOP", "DOWN"]),
             e.binary("motor_reversal", ea.ALL, "ON", "OFF"),
         ],
@@ -2868,11 +3079,14 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE200_aqnazj70",
             "_TZE200_di3tfv5b",
             "_TZE200_mexisfik",
+            "_TZE204_mexisfik",
             "_TZE204_6wi2mope",
+            "_TZE200_6wi2mope",
             "_TZE204_iik0pquw",
             "_TZE204_aagrxlbd",
             "_TZE204_f5efvtbv",
             "_TZE284_f5efvtbv",
+            "_TZE204_lbhh5o6z",
         ]),
         model: "TS0601_switch_4_gang_1",
         vendor: "Tuya",
@@ -2893,6 +3107,8 @@ export const definitions: DefinitionWithExtend[] = [
             {vendor: "Moes", model: "WS-EUB1-ZG"},
             {vendor: "AVATTO", model: "ZGB-WS-EU"},
             tuya.whitelabel("AVATTO", "WSMD-4", "4 gang switch", ["_TZE204_f5efvtbv", "_TZE284_f5efvtbv"]),
+            tuya.whitelabel("AVATTO", "ZWSMD-4", "4 gang switch", ["_TZE204_lbhh5o6z"]),
+            tuya.whitelabel("Tuya", "MG-ZG04W", "4 gang switch", ["_TZE204_mexisfik"]),
         ],
         meta: {
             multiEndpoint: true,
@@ -2944,6 +3160,10 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE200_emxxanvi",
             "_TZE204_g4au0afs",
             "_TZE204_w1wwxoja",
+            "_TZE204_lmgrbuwf",
+            "_TZE284_tdhnhhiy",
+            "_TZE204_wskr3up8",
+            "_TZE204_gxbdnfrh",
         ]),
         model: "TS0601_switch_6_gang",
         vendor: "Tuya",
@@ -2968,7 +3188,6 @@ export const definitions: DefinitionWithExtend[] = [
         endpoint: (device) => {
             return {l1: 1, l2: 1, l3: 1, l4: 1, l5: 1, l6: 1};
         },
-        whiteLabel: [tuya.whitelabel("Mercator Ikuü", "SSW06G", "6 Gang switch", ["_TZE200_wnp4d4va"])],
         meta: {
             multiEndpoint: true,
             tuyaDatapoints: [
@@ -2980,8 +3199,16 @@ export const definitions: DefinitionWithExtend[] = [
                 [6, "state_l6", tuya.valueConverter.onOff],
             ],
         },
+        whiteLabel: [
+            tuya.whitelabel("Mercator Ikuü", "SSW06G", "6 Gang switch", ["_TZE200_wnp4d4va"]),
+            tuya.whitelabel("Nova Digital", "NTZB-04-W-B", "4 gang switch with 2 gang socket 4x4", ["_TZE204_lmgrbuwf"]),
+            tuya.whitelabel("Nova Digital", "SYZB-6W", "6 gang switch 4x4", ["_TZE284_tdhnhhiy"]),
+            tuya.whitelabel("Nova Digital", "FZB-6", "6 gang switch 4x4", ["_TZE204_wskr3up8"]),
+            tuya.whitelabel("Nova Digital", "SA-6", "Safira smart switch - 6 gang", ["_TZE204_gxbdnfrh"]),
+        ],
     },
     {
+        zigbeeModel: ["ZG-302Z1"],
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_ojtqawav", "_TZE204_gbagoilo", "_TZE200_ojtqawav"]),
         model: "TS0601_switch_1_gang",
         vendor: "Tuya",
@@ -3000,7 +3227,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "MG-ZG01W",
         vendor: "Tuya",
         description: "1 gang switch with power meter",
-        exposes: [e.switch().withEndpoint("l1").setAccess("state", ea.STATE_SET), e.voltage(), e.current(), e.power()],
+        exposes: [tuya.exposes.switch(), e.voltage(), e.current(), e.power()],
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
@@ -3012,11 +3239,9 @@ export const definitions: DefinitionWithExtend[] = [
                 [23, "voltage", tuya.valueConverter.divideBy10],
             ],
         },
-        endpoint: (device) => {
-            return {l1: 1};
-        },
     },
     {
+        zigbeeModel: ["ZG-302Z2"],
         fingerprint: tuya.fingerprint("TS0601", [
             "_TZE200_nkjintbl",
             "_TZE200_ji1gn7rw",
@@ -3063,6 +3288,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        zigbeeModel: ["ZG-302Z3"],
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_kyfqmmyl", "_TZE200_2hf7x9n3", "_TZE204_atpwqgml", "_TZE200_bynnczcb", "_TZE200_atpwqgml"]),
         model: "TS0601_switch_3_gang",
         vendor: "Tuya",
@@ -3225,10 +3451,12 @@ export const definitions: DefinitionWithExtend[] = [
                 "_TZ3210_jtifm80b",
                 "_TZ3210_xwqng7ol",
                 "_TZB210_lmqquxus",
+                "_TZB210_ue01a0s2",
             ]),
             tuya.whitelabel("MiBoxer", "E2-ZR", "2 in 1 LED controller", ["_TZB210_ayx58ft5", "_TZB210_eiwanbeb"]),
             tuya.whitelabel("MiBoxer", "PZ2", "2 in 1 LED controller", ["_TZB210_0bkzabht"]),
             tuya.whitelabel("Lidl", "14156408L", "Livarno Lux smart LED ceiling light", ["_TZ3210_c2iwpxf1"]),
+            tuya.whitelabel("EcoDim", "ED-10032", "Zigbee LED filament lamp dimmable E27, bulb A60, Smokey 2000K-4000K", ["_TZ3210_09hzmirw"]),
         ],
         extend: [
             tuya.modernExtend.tuyaLight({
@@ -3304,11 +3532,12 @@ export const definitions: DefinitionWithExtend[] = [
             {vendor: "BlitzWolf", model: "BW-IS4"},
             tuya.whitelabel("Tuya", "TS0201_1", "Zigbee 3.0 temperature humidity sensor with display", ["_TZ3210_alxkwn0h"]),
             tuya.whitelabel("Tuya", "ZTH01/ZTH02", "Temperature and humidity sensor", ["_TZ3000_0s1izerx"]),
-            tuya.whitelabel("Tuya", "ZY-ZTH02", "Temperature and humidity sensor", ["_TZ3000_v1w2k9dd"]),
+            tuya.whitelabel("Tuya", "ZY-ZTH02", "Temperature and humidity sensor", ["_TZ3000_v1w2k9dd", "_TZ3000_rdhukkmi"]),
             tuya.whitelabel("SEDEA", "eTH730", "Temperature and humidity sensor", ["_TZ3000_lqmvrwa2"]),
             tuya.whitelabel("Moes", "ZSS-S01-TH", "Temperature and humidity sensor", ["_TZ3000_f2bw0b6k"]),
             tuya.whitelabel("Danfoss", "014G2480", "Temperature and humidity sensor", ["_TZ3000_mxzo5rhf"]),
             tuya.whitelabel("Tuya", "HS09", "Hanging temperature humidity sensor", ["_TZ3000_1twfmkcc"]),
+            tuya.whitelabel("Nedis", "ZBSC10WT", "Temperature and humidity sensor", ["_TZ3000_fie1dpkm"]),
         ],
     },
     {
@@ -3365,7 +3594,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.battery(), e.temperature(), e.humidity(), e.battery_voltage()],
     },
     {
-        fingerprint: tuya.fingerprint("TS011F", ["_TZ3000_3zofvcaa", "_TZ3000_pvlvoxvt"]),
+        fingerprint: tuya.fingerprint("TS011F", ["_TZ3000_3zofvcaa", "_TZ3000_pvlvoxvt", "_TZ3000_lqb7lcq9", "_TZ3210_urjf5u18"]),
         model: "TS011F_2_gang_2_usb_wall",
         vendor: "Tuya",
         description: "2 gang 2 usb wall outlet",
@@ -3388,6 +3617,10 @@ export const definitions: DefinitionWithExtend[] = [
                 await reporting.onOff(endpoint);
             }
         },
+        whiteLabel: [
+            tuya.whitelabel("Nova Digital", "NTS2-W-B", "2 gang 2 usb wall outlet 4x2", ["_TZ3000_lqb7lcq9"]),
+            tuya.whitelabel("AVATTO", "ZWOT12", "2 gang 2 usb wall outlet 4x2", ["_TZ3210_urjf5u18"]),
+        ],
     },
     {
         fingerprint: tuya.fingerprint("TS011F", ["_TZ3000_bep7ccew", "_TZ3000_gazjngjl"]),
@@ -3501,12 +3734,14 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [
             {vendor: "Lonsonho", model: "TS0044"},
             {vendor: "Haozee", model: "ESW-OZAA-EU"},
-            {vendor: "LoraTap", model: "SS6400ZB"},
             {vendor: "Moes", model: "ZT-SY-EU-G-4S-WH-MS"},
             {vendor: "Nedis", model: "ZBWS40WT"},
             tuya.whitelabel("Moes", "ZT-SR-EU4", "Star Ring 4 Gang Scene Switch", ["_TZ3000_a4xycprs"]),
             tuya.whitelabel("Tuya", "TS0044_1", "Zigbee 4 button remote - 12 scene", ["_TZ3000_dziaict4", "_TZ3000_mh9px7cq", "_TZ3000_j61x9rxn"]),
             tuya.whitelabel("Tuya", "TM-YKQ004", "Zigbee 4 button remote - 12 scene", ["_TZ3000_u3nv1jwk"]),
+            tuya.whitelabel("HOBEIAN", "ZG-101ZS", "Star Ring 4 Gang Scene Switch", ["_TZ3000_bgtzm4ny"]),
+            tuya.whitelabel("Moes", "XH-SY-04Z", "4 button portable remote control", ["_TZ3000_zgyzgdua"]),
+            tuya.whitelabel("LoraTap", "SS6400ZB", "4 button portable remote control", ["_TZ3000_ee8nrt2l"]),
         ],
         fromZigbee: [tuya.fz.on_off_action, fz.battery],
         exposes: [
@@ -3678,10 +3913,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "BAC-003",
         vendor: "Tuya",
         description: "FCU thermostat temperature controller",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetLocalTime,
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true})],
         options: [
             e
                 .enum("control_sequence_of_operation", ea.SET, ["cooling_only", "cooling_and_heating_4-pipes"])
@@ -3757,7 +3989,6 @@ export const definitions: DefinitionWithExtend[] = [
                                 return v === true ? "ON" : "OFF";
                             }
 
-                            // biome-ignore lint/performance/noDelete: ignored using `--suppress`
                             delete meta.state.state;
                         },
                     },
@@ -3818,8 +4049,8 @@ export const definitions: DefinitionWithExtend[] = [
 
                                 if (matches.length === 4) {
                                     return matches.reduce((arr, m) => {
-                                        arr.push(Number.parseInt(m.groups.h));
-                                        arr.push(Number.parseInt(m.groups.m));
+                                        arr.push(Number.parseInt(m.groups.h, 10));
+                                        arr.push(Number.parseInt(m.groups.m, 10));
                                         arr.push(Number.parseFloat(m.groups.t) * 2);
                                         return arr;
                                     }, []);
@@ -3845,6 +4076,8 @@ export const definitions: DefinitionWithExtend[] = [
                                         // Setpoint
                                         case 2:
                                             return `${a}/${v / 2}`;
+                                        default:
+                                            throw new Error(`Unexpected index ${i} in schedule data`);
                                     }
                                 }, "");
                             };
@@ -3877,12 +4110,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Tuya",
         description: "Water leak sensor",
         fromZigbee: [fz.ignore_basic_report, fz.ignore_tuya_raw, legacy.fromZigbee.wls100z_water_leak],
-        toZigbee: [],
-        onEvent: tuya.onEventSetTime,
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genBasic"]);
-        },
+        extend: [tuya.modernExtend.tuyaBase({timeStart: "2000", bindBasicOnConfigure: true})],
         exposes: [e.battery(), e.water_leak()],
     },
     {
@@ -3900,6 +4128,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZ3000_hzlsaltw",
             "_TZ3000_jsfzkftc",
             "_TZ3000_0ghwhypc",
+            "_TZ3000_1adss9de",
         ]),
         model: "TS0001_power",
         description: "Switch with power monitoring",
@@ -3914,9 +4143,9 @@ export const definitions: DefinitionWithExtend[] = [
             https://github.com/Koenkk/zigbee2mqtt/issues/27090
             INVALID_DATA_TYPE error for _TZ3000_xkap8wtb, appVersion:162 softwareBuildID: 0122052017
             */
-            if ("_TZ3000_xkap8wtb" === device.manufacturerName && 162 === device.applicationVersion) {
+            if ("_TZ3000_xkap8wtb" === device.manufacturerName && [162, 100].includes(device.applicationVersion)) {
                 logger.warning(
-                    "Detected TS0001 _TZ3000_xkap8wtb switch appVersion:162. Skip reporting for haElectricalMeasurement and seMeteringreporting",
+                    "Detected TS0001 _TZ3000_xkap8wtb switch with appVersion 100 or 162. Skip reporting for haElectricalMeasurement and seMeteringreporting in favor of polling.",
                     NS,
                 );
                 await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff"]);
@@ -3949,14 +4178,19 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [
             tuya.whitelabel("Nous", "B2Z", "1 gang switch with power monitoring", ["_TZ3000_qlai3277"]),
             tuya.whitelabel("Colorock", "CR-MNZ1", "1 gang switch 30A with power monitoring", ["_TZ3000_tgddllx4"]),
-            tuya.whitelabel("Nous", "L6Z", "Switch with power monitoring", ["_TZ3000_qaabwu5c"]),
+            tuya.whitelabel("Nous", "L6Z", "Switch with power monitoring", ["_TZ3000_qaabwu5c", "_TZ3000_1adss9de"]),
             tuya.whitelabel("Tuya", "XSH01A", "1 gang switch", ["_TZ3000_x3ewpzyr"]),
         ],
-        onEvent: async (type, data, device, options) => {
-            if (["_TZ3000_x3ewpzyr"].includes(device.manufacturerName)) {
-                await tuya.onEventMeasurementPoll(type, data, device, options, true, true);
-            }
-        },
+        extend: [
+            tuya.modernExtend.electricityMeasurementPoll({
+                electricalMeasurement: (device) =>
+                    device.manufacturerName === "_TZ3000_x3ewpzyr" ||
+                    (device.manufacturerName === "_TZ3000_xkap8wtb" && [162, 100].includes(device.applicationVersion)),
+                metering: (device) =>
+                    device.manufacturerName === "_TZ3000_x3ewpzyr" ||
+                    (device.manufacturerName === "_TZ3000_xkap8wtb" && [162, 100].includes(device.applicationVersion)),
+            }),
+        ],
     },
     {
         fingerprint: tuya.fingerprint("TS0002", ["_TZ3000_aaifmpuq", "_TZ3000_irrmjcgi", "_TZ3000_huvxrx4i"]),
@@ -4044,6 +4278,8 @@ export const definitions: DefinitionWithExtend[] = [
             {vendor: "Bandi", model: "BDS03G1"},
             tuya.whitelabel("Nous", "B1Z", "1 gang switch", ["_TZ3000_ctftgjwb"]),
             tuya.whitelabel("Tuya", "XMSJ", "Zigbee USB power switch", ["_TZ3000_8n7lqbm0"]),
+            tuya.whitelabel("Tuya", "ZG-001", "Smart home relay module", ["_TZ3000_g8n1n7lg"]),
+            tuya.whitelabel("Nova Digital", "SA-1", "Safira smart light switch - 1 gang", ["_TZ3000_udl7uyd2"]),
         ],
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
@@ -4107,6 +4343,8 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZ3000_qaa59zqd",
             "_TZ3000_lmlsduws",
             "_TZ3000_lugaswf8",
+            "_TZ3000_nuenzetq",
+            "_TZ3000_ruldv5dt",
             "_TZ3000_fbjdkph9",
         ]),
         model: "TS0002_basic",
@@ -4117,8 +4355,9 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Moes", "ZM-104B-M", "2 gang switch", ["_TZ3000_qaa59zqd"]),
             tuya.whitelabel("pcblab.io", "RR620ZB", "2 gang Zigbee switch module", ["_TZ3000_4xfqlgqo"]),
             tuya.whitelabel("Nous", "L13Z", "2 gang switch", ["_TZ3000_ruxexjfz", "_TZ3000_hojntt34"]),
-            tuya.whitelabel("Tuya", "ZG-2002-RF", "Three mode Zigbee Switch", ["_TZ3000_lugaswf8"]),
+            tuya.whitelabel("Tuya", "ZG-2002-RF", "Three mode Zigbee Switch", ["_TZ3000_lugaswf8", "_TZ3000_nuenzetq", "_TZ3000_ruldv5dt"]),
             tuya.whitelabel("Mercator Ikuü", "SSW02", "2 gang switch", ["_TZ3000_fbjdkph9"]),
+            tuya.whitelabel("Aubess", "TMZ02", "2 gang switch", ["_TZ3000_lmlsduws"]),
         ],
         extend: [
             tuya.modernExtend.tuyaOnOff({
@@ -4214,12 +4453,31 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
 
+    {
+        fingerprint: tuya.fingerprint("TS0002", ["_TZ3000_h1ipgkwn"]),
+        model: "_TZ3000_h1ipgkwn",
+        description: "2 channel USB switch",
+        vendor: "Tuya",
+        extend: [m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}), m.onOff({powerOnBehavior: true, endpointNames: ["l1", "l2"]})],
+    },
+
     ////////////////////////
     // TS0003 DEFINITIONS //
     ////////////////////////
 
     {
-        fingerprint: tuya.fingerprint("TS0003", ["_TZ3000_rhkfbfcv", "_TZ3000_empogkya", "_TZ3000_lubfc1t5", "_TZ3000_lsunm46z", "_TZ3000_v4l4b0lp"]),
+        fingerprint: tuya.fingerprint("TS0003", [
+            "_TZ3000_rhkfbfcv",
+            "_TZ3000_empogkya",
+            "_TZ3000_lubfc1t5",
+            "_TZ3000_lsunm46z",
+            "_TZ3000_v4l4b0lp",
+            "_TZ3000_uilitwsy",
+            "_TZ3000_66fekqhh",
+            "_TZ3000_eqsair32",
+            "_TZ3000_fawk5xjv",
+            "_TZ3000_ok0ggpk7",
+        ]),
         model: "TS0003_switch_3_gang_with_backlight",
         vendor: "Tuya",
         description: "3-Gang switch with backlight",
@@ -4243,8 +4501,10 @@ export const definitions: DefinitionWithExtend[] = [
         },
         whiteLabel: [
             tuya.whitelabel("Lonsonho", "X703A", "3 Gang switch with backlight", ["_TZ3000_rhkfbfcv"]),
-            tuya.whitelabel("Zemismart", "ZM-L03E-Z", "3 gang switch with neutral", ["_TZ3000_empogkya", "_TZ3000_lsunm46z"]),
+            tuya.whitelabel("Zemismart", "ZM-L03E-Z", "3 gang switch with neutral", ["_TZ3000_empogkya", "_TZ3000_lsunm46z", "_TZ3000_uilitwsy"]),
+            tuya.whitelabel("AVATTO", "ZWOT16-W2", "2 gang switch and 1 socket", ["_TZ3000_66fekqhh"]),
             tuya.whitelabel("Tuya", "M10Z", "2 gang switch with 20A power socket", ["_TZ3000_lubfc1t5"]),
+            tuya.whitelabel("Zemismart", "TB26-3", "3 gang switch", ["_TZ3000_eqsair32"]),
         ],
     },
     {
@@ -4262,7 +4522,6 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [
             {vendor: "BSEED", model: "TS0003", description: "Zigbee switch"},
             tuya.whitelabel("Tuya", "TS0003_1", "3 gang switch", ["_TZ3000_ouwfc1qj"]),
-            tuya.whitelabel("Zemismart", "TB26-3", "3 gang switch", ["_TZ3000_eqsair32"]),
         ],
         meta: {disableDefaultResponse: true},
         configure: async (device, coordinatorEndpoint) => {
@@ -4298,7 +4557,12 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TW-03",
         vendor: "Tuya",
         description: "3-Gang switch",
-        extend: [tuya.modernExtend.tuyaOnOff({powerOnBehavior2: true, endpoints: ["l1", "l2", "l3"]})],
+        extend: [
+            tuya.modernExtend.tuyaOnOff({
+                powerOnBehavior2: true,
+                endpoints: ["l1", "l2", "l3"],
+            }),
+        ],
         endpoint: (device) => {
             return {l1: 1, l2: 2, l3: 3};
         },
@@ -4339,7 +4603,14 @@ export const definitions: DefinitionWithExtend[] = [
         model: "_TZ3000_mw1pqqqt",
         description: "3 channel USB switch",
         vendor: "Tuya",
-        extend: [tuya.modernExtend.tuyaOnOff({switchType: false, indicatorMode: false, onOffCountdown: true, endpoints: ["l1", "l2", "l3"]})],
+        extend: [
+            tuya.modernExtend.tuyaOnOff({
+                switchType: false,
+                indicatorMode: false,
+                onOffCountdown: true,
+                endpoints: ["l1", "l2", "l3"],
+            }),
+        ],
         endpoint: (device) => {
             return {l1: 1, l2: 2, l3: 3};
         },
@@ -4369,7 +4640,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0004", ["_TZ3000_ltt60asa", "_TZ3000_mmkbptmx"]),
+        fingerprint: tuya.fingerprint("TS0004", ["_TZ3000_ltt60asa", "_TZ3000_mmkbptmx", "_TZ3000_liygxtcq"]),
         model: "TS0004_switch_module",
         vendor: "Tuya",
         description: "4 gang switch module",
@@ -4450,14 +4721,15 @@ export const definitions: DefinitionWithExtend[] = [
                 "_TZE200_gaj531w3",
                 "_TZE200_yia0p3tr",
                 "_TZE200_rsj5pu8y",
-                "_TZE204_xu4a5rhj",
                 "_TZE204_nladmfvf",
                 "_TZE200_2odrmqwq",
                 "_TZE204_lh3arisb",
                 "_TZE284_udank5zs",
+                "_TZE284_b7kbnl6q",
                 "_TZE200_7shyddj3",
                 "_TZE204_a2jcoyuk",
                 "_TZE204_zuq5xxib",
+                "_TZE200_ba69l9ol",
             ]),
             ...tuya.fingerprint("zo2pocs\u0000", ["_TYST11_fzo2pocs"]),
             ...tuya.fingerprint("dank5zs\u0000", ["_TYST11_udank5zs"]),
@@ -4509,6 +4781,22 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_xu4a5rhj"]),
+        model: "M3TYW-2.0-13",
+        vendor: "Tuya",
+        description: "Longsam M3 curtain motor",
+        fromZigbee: [legacy.fromZigbee.tuya_cover, fz.ignore_basic_report],
+        toZigbee: [tzLocal.invert_cover_percent_fix, legacy.toZigbee.tuya_cover_options],
+        exposes: [
+            e.cover_position().setAccess("position", ea.STATE_SET),
+            e
+                .composite("options", "options", ea.STATE_SET)
+                .withFeature(e.numeric("motor_speed", ea.STATE_SET).withValueMin(0).withValueMax(255).withDescription("Motor speed"))
+                .withFeature(e.binary("reverse_direction", ea.STATE_SET, true, false).withDescription("Reverse the motor direction")),
+        ],
+        options: [exposes.options.cover_position_percent_fix()],
+    },
+    {
         fingerprint: [...tuya.fingerprint("TS0601", ["_TZE200_eegnwoyw"]), ...tuya.fingerprint("TS0105", ["_TZE600_ogyg1y6b"])],
         model: "TS0601_cover_2",
         vendor: "Tuya",
@@ -4522,7 +4810,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.cover_position().setAccess("position", ea.STATE_SET)],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_cpbo62rn", "_TZE200_libht6ua"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_cpbo62rn", "_TZE200_libht6ua", "_TZE284_libht6ua"]),
         model: "TS0601_cover_6",
         vendor: "Tuya",
         description: "Cover motor",
@@ -4532,6 +4820,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.text("work_state", ea.STATE),
             e.cover_position().setAccess("position", ea.STATE_SET),
             e.battery(),
+            e.illuminance().withUnit("%"),
             e.enum("opening_mode", ea.STATE_SET, ["tilt", "lift"]).withDescription("Opening mode"),
             e.enum("motor_direction", ea.STATE_SET, ["left", "right"]).withDescription("Motor side"),
             e.enum("set_upper_limit", ea.STATE_SET, ["start", "stop"]).withDescription("Learning"),
@@ -4585,6 +4874,7 @@ export const definitions: DefinitionWithExtend[] = [
                         stop: tuya.enum(0),
                     }),
                 ],
+                [104, "illuminance", tuya.valueConverter.raw],
                 [107, "factory_reset", tuya.valueConverter.setLimit],
             ],
         },
@@ -4594,10 +4884,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0601_cover_7",
         vendor: "Tuya",
         description: "Cover motor",
-        onEvent: tuya.onEvent(),
-        configure: tuya.configureMagicPacket,
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [e.cover_position().setAccess("position", ea.STATE_SET), e.battery()],
         meta: {
             tuyaDatapoints: [
@@ -4668,14 +4955,19 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Tuya",
         description: "Window opener",
         options: [exposes.options.invert_cover()],
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime,
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
         exposes: [e.cover_position().setAccess("position", ea.STATE_SET)],
         meta: {
             tuyaDatapoints: [
-                [2, "state", tuya.valueConverterBasic.lookup({OPEN: tuya.enum(0), STOP: tuya.enum(1), CLOSE: tuya.enum(2)})],
+                [
+                    2,
+                    "state",
+                    tuya.valueConverterBasic.lookup({
+                        OPEN: tuya.enum(0),
+                        STOP: tuya.enum(1),
+                        CLOSE: tuya.enum(2),
+                    }),
+                ],
                 [7, "position", tuya.valueConverter.coverPosition],
                 [8, "position", tuya.valueConverter.coverPosition],
             ],
@@ -4686,10 +4978,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0601_cover_9",
         vendor: "Tuya",
         description: "Cover motor",
-        onEvent: tuya.onEvent(),
-        configure: tuya.configureMagicPacket,
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [e.cover_position().setAccess("position", ea.STATE_SET), e.battery()],
         meta: {
             tuyaDatapoints: [
@@ -4717,14 +5006,32 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_clm4gdw4", "_TZE200_2vfxweng"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_debczeci", "_TZE284_1lvln0x6"]),
+        model: "iHsenso_TS0601_human_presence",
+        vendor: "iHseno",
+        description: "Human presence sensor",
+        extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true})],
+        exposes: [
+            e.presence().withDescription("Human presence detected"),
+            e.battery().withDescription("Battery percentage"),
+            e.enum("pir_sensitivity", ea.STATE_SET, ["low", "middle", "high"]).withDescription("PIR sensor sensitivity"),
+            e.enum("pir_time", ea.STATE_SET, ["15s", "30s", "60s"]).withDescription("PIR delay time in seconds"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "presence", tuya.valueConverter.trueFalse0],
+                [4, "battery", tuya.valueConverter.raw],
+                [9, "pir_sensitivity", tuya.valueConverterBasic.lookup({low: 0, middle: 1, high: 2})],
+                [10, "pir_time", tuya.valueConverterBasic.lookup({"15s": 0, "30s": 1, "60s": 2})],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_clm4gdw4", "_TZE200_2vfxweng", "_TZE200_gnw1rril", "_TZE204_ycke4deo", "_TZE284_koxaopnk"]),
         model: "TS0601_cover_10",
         vendor: "Tuya",
         description: "Cover motor",
-        onEvent: tuya.onEvent(),
-        configure: tuya.configureMagicPacket,
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.cover_position().setAccess("position", ea.STATE_SET),
             e.enum("motor_direction", ea.STATE_SET, ["normal", "reversed"]).withDescription("Set the motor direction"),
@@ -4745,16 +5052,83 @@ export const definitions: DefinitionWithExtend[] = [
                 [5, "motor_direction", tuya.valueConverterBasic.lookup({normal: false, reversed: true})],
             ],
         },
+        whiteLabel: [
+            tuya.whitelabel("Nova Digital", "ZC-GM42", "Roller blind motor", ["_TZE204_ycke4deo"]),
+            tuya.whitelabel("Moes", "ZC-LS02", "Roller blind motor", ["_TZE284_koxaopnk"]),
+        ],
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_ax8a8ahx"]),
+        model: "ZM79E-DT",
+        vendor: "Tervix",
+        description: "Pro Line Zigbee curtain motor",
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.text("work_state", ea.STATE),
+            e.cover_position().setAccess("position", ea.STATE_SET),
+            e.enum("opening_mode", ea.STATE_SET, ["tilt", "lift"]).withDescription("Opening mode"),
+            e.enum("motor_direction", ea.STATE_SET, ["left", "right"]).withDescription("Motor side"),
+            e.enum("set_upper_limit", ea.STATE_SET, ["start", "stop"]).withDescription("Learning"),
+            e.enum("factory_reset", ea.STATE_SET, ["SET"]).withDescription("Remove limits"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [
+                    1,
+                    "state",
+                    tuya.valueConverterBasic.lookup({
+                        CLOSE: tuya.enum(2),
+                        STOP: tuya.enum(1),
+                        OPEN: tuya.enum(0),
+                    }),
+                ],
+                [2, "position", tuya.valueConverter.coverPositionInverted],
+                [3, "position", tuya.valueConverter.coverPositionInverted],
+                [
+                    4,
+                    "opening_mode",
+                    tuya.valueConverterBasic.lookup({
+                        tilt: tuya.enum(0),
+                        lift: tuya.enum(1),
+                    }),
+                ],
+                [
+                    7,
+                    "work_state",
+                    tuya.valueConverterBasic.lookup({
+                        standby: tuya.enum(0),
+                        success: tuya.enum(1),
+                        learning: tuya.enum(2),
+                    }),
+                ],
+                [
+                    101,
+                    "motor_direction",
+                    tuya.valueConverterBasic.lookup({
+                        left: tuya.enum(0),
+                        right: tuya.enum(1),
+                    }),
+                ],
+                [
+                    102,
+                    "set_upper_limit",
+                    tuya.valueConverterBasic.lookup({
+                        start: tuya.enum(1),
+                        stop: tuya.enum(0),
+                    }),
+                ],
+                [107, "factory_reset", tuya.valueConverter.setLimit],
+            ],
+        },
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_2rvvqjoa"]),
         model: "BX82-TYZ1",
         vendor: "Manhot",
         description: "Cover motor",
-        onEvent: tuya.onEvent(),
-        configure: tuya.configureMagicPacket,
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.cover_position().setAccess("position", ea.STATE_SET),
             e.enum("motor_direction", ea.STATE_SET, ["normal", "reversed"]).withDescription("Set the motor direction"),
@@ -4784,6 +5158,55 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_2gi1hy8s"]),
+        model: "MB60L-ZG-ZT-TY",
+        vendor: "Manhot",
+        description: "Smart blinds motor",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.battery(),
+            e.cover_position().setAccess("position", ea.STATE_SET),
+            e.enum("set_limits", ea.STATE_SET, ["up", "down", "reset"]),
+            e.enum("motor_direction", ea.STATE_SET, ["normal", "reversed"]).withDescription("Motor Steering"),
+            e.binary("tilt_mode", ea.STATE_SET, "ON", "OFF").withDescription("Step movement"),
+            e.binary("child_lock", ea.STATE_SET, "ON", "OFF").withDescription("Child Lock"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [
+                    1,
+                    "state",
+                    tuya.valueConverterBasic.lookup({
+                        OPEN: tuya.enum(0),
+                        STOP: tuya.enum(1),
+                        CLOSE: tuya.enum(2),
+                    }),
+                ],
+                [9, "position", tuya.valueConverter.coverPositionInverted],
+                [
+                    11,
+                    "motor_direction",
+                    tuya.valueConverterBasic.lookup({
+                        normal: tuya.enum(0),
+                        reversed: tuya.enum(1),
+                    }),
+                ],
+                [13, "battery", tuya.valueConverter.raw],
+                [
+                    16,
+                    "set_limits",
+                    tuya.valueConverterBasic.lookup({
+                        up: tuya.enum(0),
+                        down: tuya.enum(1),
+                        reset: tuya.enum(2),
+                    }),
+                ],
+                [101, "child_lock", tuya.valueConverter.onOff],
+                [103, "tilt_mode", tuya.valueConverter.onOff],
+            ],
+        },
+    },
+    {
         zigbeeModel: ["kud7u2l"],
         fingerprint: tuya.fingerprint("TS0601", [
             "_TZE200_ckud7u2l",
@@ -4800,10 +5223,10 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE200_8whxpsiw",
             "_TZE200_xby0s3ta",
             "_TZE200_7fqkphoq",
-            "_TZE200_rufdtfyv",
+            "_TZE200_rufdtfyv" /* model: '07732L', vendor: 'Immax' */,
             "_TZE200_lpwgshtl",
-            "_TZE200_rk1wojce",
-            "_TZE200_rndg81sf",
+            "_TZE200_rk1wojce" /* model: 'P5630S', vendor: 'Emos' */,
+            "_TZE200_rndg81sf" /* model: 'HY368', vendor: 'THALEOS' */,
             "_TZE200_qjp4ynvi",
         ]),
         model: "TS0601_thermostat",
@@ -4818,13 +5241,14 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Immax", "07732L", "Radiator valve with thermostat", ["_TZE200_rufdtfyv"]),
             {vendor: "Evolveo", model: "Heat M30"},
             tuya.whitelabel("Emos", "P5630S", "Radiator valve with thermostat", ["_TZE200_rk1wojce"]),
+            tuya.whitelabel("THALEOS", "HY368", "Radiator valve with thermostat", ["_TZE200_rndg81sf"]),
         ],
         meta: {
             tuyaThermostatPreset: legacy.thermostatPresets,
             tuyaThermostatSystemMode: legacy.thermostatSystemModes3,
         },
         ota: true,
-        onEvent: tuya.onEventSetLocalTime,
+        extend: [tuya.modernExtend.tuyaBase({forceTimeUpdates: true})],
         fromZigbee: [legacy.fromZigbee.tuya_thermostat, fz.ignore_basic_report, fz.ignore_tuya_set_time],
         toZigbee: [
             legacy.toZigbee.tuya_thermostat_child_lock,
@@ -4893,10 +5317,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "BAB-1413_Pro",
         vendor: "Tuya",
         description: "Thermostat radiator valve",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime,
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
         ota: true,
         exposes: [
             e.battery(),
@@ -5015,10 +5436,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "PO-THCO-EAU",
         vendor: "Powernity",
         description: "Thermostat radiator valve",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime,
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
         exposes: [
             e.battery().withUnit("%"),
             e.child_lock(),
@@ -5102,11 +5520,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0601_cover_3",
         vendor: "Tuya",
         description: "Cover motor",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
         options: [exposes.options.invert_cover()],
-        configure: tuya.configureMagicPacket,
         exposes: [
             e.battery(),
             e.cover_position().setAccess("position", ea.STATE_SET),
@@ -5245,12 +5660,10 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Moes", "ZTRV-ZX-TV01-MS", "Thermostat radiator valve", ["_TZE200_7yoranx2"]),
             tuya.whitelabel("Moes", "TV01-ZB", "Thermostat radiator valve", ["_TZE200_e9ba97vf"]),
             tuya.whitelabel("AlecoAir", "HA-08_THERMO", "Thermostat radiator valve", ["_TZE200_wsbfwodu"]),
+            tuya.whitelabel("GIEX", "TV06", "Thermostat radiator valve", ["_TZE200_py4cm3he"]),
         ],
         ota: true,
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetLocalTime,
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true})],
         exposes: [
             e.battery_low(),
             e.child_lock(),
@@ -5371,10 +5784,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Tuya",
         description: "Thermostat radiator valve",
         whiteLabel: [{vendor: "S366", model: "Cloud Even"}],
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetLocalTime,
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true})],
         meta: {
             tuyaDatapoints: [
                 [1, "system_mode", tuya.valueConverterBasic.lookup({heat: true, off: false})],
@@ -5427,7 +5837,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE200_6rdj8dzm" /* model: 'ME167', vendor: 'AVATTO' */,
             "_TZE200_9xfjixap" /* model: 'ME167', vendor: 'AVATTO' */,
             "_TZE200_jkfbph7l" /* model: 'ME167', vendor: 'AVATTO' */,
-            "_TZE200_p3dbf6qs" /* model: 'ME168', vendor: 'AVATTO' */,
+            "_TZE200_p3dbf6qs" /* model: 'ME167', vendor: 'AVATTO' */,
             "_TZE200_rxntag7i" /* model: 'ME168', vendor: 'AVATTO' */,
             "_TZE200_yqgbrdyo",
             "_TZE284_p3dbf6qs",
@@ -5436,14 +5846,16 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE284_ogx8u5z6",
             "_TZE200_hvaxb2tc" /* model: 'TRV06', vendor: 'AVATTO' */,
             "_TZE284_o3x45p96" /* model: 'TRV06', vendor: 'AVATTO' */,
-            "_TZE284_c6wv4xyo" /* model: 'AVATTO_TRV06', vendor: 'AVATTO_TRV06' */,
-            "_TZE204_o3x45p96" /* model: 'AVATTO_TRV06', vendor: 'AVATTO_TRV06' */,
+            "_TZE284_c6wv4xyo" /* model: 'AVATTO_TRV06', vendor: 'AVATTO' */,
+            "_TZE204_o3x45p96" /* model: 'AVATTO_TRV06', vendor: 'AVATTO' */,
+            "_TZE200_ow09xlxm" /* model: 'TRV06-AT', vendor: 'THALEOS' */,
+            "_TZE284_rv6iuyxb" /* model: 'TRV06-AT', vendor: 'THALEOS' */,
+            "_TZE200_rv6iuyxb" /* model: 'TRV06-AT', vendor: 'THALEOS' */,
+            "_TZE200_suxywabt" /* model: 'TRV06-AT', vendor: 'THALEOS' */,
         ]),
         model: "TS0601_thermostat_3",
         vendor: "Tuya",
         description: "Thermostatic radiator valve",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
         whiteLabel: [
             tuya.whitelabel("AVATTO", "ME167", "Thermostatic radiator valve", [
                 "_TZE200_p3dbf6qs",
@@ -5456,9 +5868,14 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("AVATTO", "TRV06_1", "Thermostatic radiator valve", ["_TZE200_hvaxb2tc", "_TZE284_o3x45p96"]),
             tuya.whitelabel("EARU", "TRV06", "Smart thermostat module", ["_TZE200_yqgbrdyo", "_TZE200_rxq4iti9"]),
             tuya.whitelabel("AVATTO", "AVATTO_TRV06", "Thermostatic radiator valve", ["_TZE284_c6wv4xyo", "_TZE204_o3x45p96"]),
+            tuya.whitelabel("THALEOS", "TRV06-AT", "Thermostatic radiator valve", [
+                "_TZE200_ow09xlxm",
+                "_TZE284_rv6iuyxb",
+                "_TZE200_rv6iuyxb",
+                "_TZE200_suxywabt",
+            ]),
         ],
-        onEvent: tuya.onEventSetTime,
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
         exposes: [
             e.child_lock(),
             e.battery_low(),
@@ -5529,10 +5946,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0601_thermostat_4",
         vendor: "Tuya",
         description: "Thermostatic radiator valve",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetLocalTime,
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true})],
         exposes: [
             e.child_lock(),
             e.battery(),
@@ -5626,7 +6040,7 @@ export const definitions: DefinitionWithExtend[] = [
             legacy.toZigbee.tuya_thermostat_current_heating_setpoint,
             legacy.toZigbee.tuya_thermostat_weekly_schedule,
         ],
-        onEvent: tuya.onEventSetTime,
+        extend: [tuya.modernExtend.tuyaBase({timeStart: "2000"})],
         meta: {
             thermostat: {
                 weeklyScheduleMaxTransitions: 4,
@@ -5663,7 +6077,7 @@ export const definitions: DefinitionWithExtend[] = [
             legacy.toZigbee.tuya_thermostat_current_heating_setpoint,
             legacy.toZigbee.tuya_thermostat_weekly_schedule,
         ],
-        onEvent: tuya.onEventSetTime,
+        extend: [tuya.modernExtend.tuyaBase({timeStart: "2000"})],
         meta: {
             timeout: 20000, // TRV wakes up every 10sec
             thermostat: {
@@ -5693,10 +6107,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("id3", "GTZ06", "Thermostatic radiator valve", ["_TZE200_z1tyspqw"]),
             tuya.whitelabel("AVATTO", "TRV07", "Thermostatic radiator valve", ["_TZE200_bvrlmajk"]),
         ],
-        onEvent: tuya.onEventSetLocalTime,
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true})],
         exposes: [
             e.battery(),
             e.child_lock(),
@@ -5721,11 +6132,30 @@ export const definitions: DefinitionWithExtend[] = [
                 )
                 .withSystemMode(["auto", "heat", "off"], ea.STATE)
                 .withRunningState(["idle", "heat"], ea.STATE),
+            e.enum("screen_orientation", ea.STATE_SET, ["up", "down"]).withDescription("How do you look at the display (up and down supported only)"),
+            e
+                .enum("display_brightness", ea.STATE_SET, ["high", "middle", "low"])
+                .withDescription("How strong the LED diplay is light up (high is default)"),
+
+            e
+                .enum("mode", ea.STATE_SET, ["comfort", "eco"])
+                .withDescription(
+                    "Hysteresis - comfort > switches off/on exactly at reached " +
+                        "temperature with valve smooth from 0 to 100%, eco > 0.5 degrees above or below, valve either 0 or 100%",
+                ),
+            e
+                .numeric("switch_deviation_eco", ea.STATE_SET)
+                .withValueMin(0.5)
+                .withValueMax(5.0)
+                .withValueStep(0.1)
+                .withUnit("°C")
+                .withDescription("Switch deviation (energy-saving mode only)"),
             ...tuya.exposes.scheduleAllDays(ea.STATE_SET, "HH:MM/C HH:MM/C HH:MM/C HH:MM/C"),
             e
                 .binary("boost_heating", ea.STATE_SET, "ON", "OFF")
                 .withDescription(
-                    'Boost Heating: press and hold "+" for 3 seconds, ' +
+                    "Boost Heating: press and hold " +
+                        " for 3 seconds, " +
                         "the device will enter the boost heating mode, and the ▷╵◁ will flash. The countdown will be displayed in the APP",
                 ),
             e.numeric("boost_time", ea.STATE_SET).withUnit("min").withDescription("Countdown in minutes").withValueMin(0).withValueMax(1000),
@@ -5756,6 +6186,10 @@ export const definitions: DefinitionWithExtend[] = [
                 [23, "schedule_sunday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(7)],
                 [101, "local_temperature_calibration", tuya.valueConverter.localTempCalibration1],
                 [102, "position", tuya.valueConverter.divideBy10],
+                [116, "screen_orientation", tuya.valueConverterBasic.lookup({up: tuya.enum(0), down: tuya.enum(2)})],
+                [152, "display_brightness", tuya.valueConverterBasic.lookup({high: tuya.enum(0), middle: tuya.enum(1), low: tuya.enum(2)})],
+                [153, "mode", tuya.valueConverterBasic.lookup({comfort: tuya.enum(0), eco: tuya.enum(1)})],
+                [154, "switch_deviation_eco", tuya.valueConverter.divideBy10],
             ],
         },
     },
@@ -5764,11 +6198,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TRV601",
         vendor: "Tuya",
         whiteLabel: [tuya.whitelabel("Sber", "SBDV-00185", "Thermostatic radiator valve", ["_TZE204_cvcu2p6e"])],
-        description: "Thermostatic radiator valve.",
-        onEvent: tuya.onEventSetLocalTime,
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        description: "Thermostatic radiator valve",
+        extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true})],
         exposes: [
             e.battery(),
             e.child_lock(),
@@ -5794,12 +6225,24 @@ export const definitions: DefinitionWithExtend[] = [
                 .withSystemMode(["auto", "heat", "off"], ea.STATE)
                 .withRunningState(["idle", "heat"], ea.STATE),
             ...tuya.exposes.scheduleAllDays(ea.STATE_SET, "HH:MM/C HH:MM/C HH:MM/C HH:MM/C"),
+            e.enum("screen_orientation", ea.STATE_SET, ["up", "down"]).withDescription("How do you look at the display (up and down supported only)"),
+            e
+                .enum("display_brightness", ea.STATE_SET, ["high", "middle", "low"])
+                .withDescription("How strong the LED diplay is light up (high is default)"),
+
             e
                 .enum("mode", ea.STATE_SET, ["comfort", "eco"])
                 .withDescription(
                     "Hysteresis - comfort > switches off/on exactly at reached " +
                         "temperature with valve smooth from 0 to 100%, eco > 0.5 degrees above or below, valve either 0 or 100%",
                 ),
+            e
+                .numeric("switch_deviation_eco", ea.STATE_SET)
+                .withValueMin(0.5)
+                .withValueMax(5.0)
+                .withValueStep(0.1)
+                .withUnit("°C")
+                .withDescription("Switch deviation (energy-saving mode only)"),
         ],
         meta: {
             tuyaDatapoints: [
@@ -5825,14 +6268,10 @@ export const definitions: DefinitionWithExtend[] = [
                 [23, "schedule_sunday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(7)],
                 [101, "local_temperature_calibration", tuya.valueConverter.localTempCalibration1],
                 [108, "position", tuya.valueConverter.divideBy10],
-                [
-                    114,
-                    "mode",
-                    tuya.valueConverterBasic.lookup({
-                        comfort: tuya.enum(0),
-                        eco: tuya.enum(1),
-                    }),
-                ],
+                [111, "display_brightness", tuya.valueConverterBasic.lookup({high: tuya.enum(0), middle: tuya.enum(1), low: tuya.enum(2)})],
+                [113, "screen_orientation", tuya.valueConverterBasic.lookup({up: tuya.enum(0), down: tuya.enum(2)})],
+                [114, "mode", tuya.valueConverterBasic.lookup({comfort: tuya.enum(0), eco: tuya.enum(1)})],
+                [115, "switch_deviation_eco", tuya.valueConverter.divideBy10],
             ],
         },
     },
@@ -5842,10 +6281,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Tuya",
         description: "Thermostatic radiator valve.",
         whiteLabel: [tuya.whitelabel("Moes", "TRV801", "Thermostatic radiator valve", ["_TZE204_9mjy74mp", "_TZE200_9mjy74mp"])],
-        onEvent: tuya.onEventSetLocalTime,
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true})],
         exposes: [
             e.battery(),
             e.child_lock(),
@@ -6083,10 +6519,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZHT-002",
         vendor: "Moes",
         description: "ZHT series thermostat",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime,
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
         exposes: [
             e.binary("state", ea.STATE_SET, "ON", "OFF").withDescription("Turn the thermostat ON/OFF"),
             e.child_lock(),
@@ -6123,7 +6556,14 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {
             tuyaDatapoints: [
                 [1, "state", tuya.valueConverter.onOff],
-                [2, "system_mode", tuya.valueConverterBasic.lookup({auto: tuya.enum(0), manual: tuya.enum(1)})],
+                [
+                    2,
+                    "system_mode",
+                    tuya.valueConverterBasic.lookup({
+                        auto: tuya.enum(0),
+                        manual: tuya.enum(1),
+                    }),
+                ],
                 [16, "local_temperature", tuya.valueConverter.divideBy10],
                 [18, "min_temperature", tuya.valueConverter.raw],
                 [19, "local_temperature_calibration", tuya.valueConverter.localTemperatureCalibration],
@@ -6179,10 +6619,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TRV603-WZ",
         vendor: "Tuya",
         description: "Thermostatic radiator valve.",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetLocalTime,
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true})],
         exposes: [
             e.battery(),
             e.child_lock(),
@@ -6308,7 +6745,6 @@ export const definitions: DefinitionWithExtend[] = [
             }
             await endpoint.read("genOnOff", ["onOff", "moesStartUpOnOff", "tuyaBacklightMode"]);
         },
-        options: [exposes.options.measurement_poll_interval()],
         // This device doesn't support reporting correctly.
         // https://github.com/Koenkk/zigbee-herdsman-converters/pull/1270
         exposes: [
@@ -6320,7 +6756,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.enum("power_outage_memory", ea.ALL, ["on", "off", "restore"]).withDescription("Recover state after power outage"),
             e.enum("indicator_mode", ea.ALL, ["off", "off/on", "on/off"]).withDescription("LED indicator mode"),
         ],
-        onEvent: (type, data, device, options) => tuya.onEventMeasurementPoll(type, data, device, options, true, false),
+        extend: [tuya.modernExtend.electricityMeasurementPoll()],
     },
     {
         fingerprint: tuya.fingerprint("TS0111", ["_TYZB01_ymcdbl3u"]),
@@ -6347,14 +6783,18 @@ export const definitions: DefinitionWithExtend[] = [
             {vendor: "MODEMIX", model: "MOD048"},
             {vendor: "Coswall", model: "CS-AJ-DE2U-ZG-11"},
             {vendor: "Aubess", model: "TS011F_plug_1"},
+            tuya.whitelabel("BSEED", "FK86ZEUSK1W", "Wall-mounted electrical socket", ["_TZ3000_4ux0ondb", "_TZ3000_b28wrpvx"]),
             tuya.whitelabel("Nous", "A1Z", "Smart plug (with power monitoring)", ["_TZ3000_2putqrmw", "_TZ3000_ksw8qtmt"]),
-            tuya.whitelabel("Moes", "MOES_plug", "Smart plug (with power monitoring)", ["_TZ3000_yujkchbz"]),
+            tuya.whitelabel("Moes", "Moes_plug", "Smart plug (with power monitoring)", ["_TZ3000_yujkchbz"]),
             tuya.whitelabel("Moes", "ZK-EU", "Smart wallsocket (with power monitoring)", ["_TZ3000_ss98ec5d"]),
             tuya.whitelabel("Elivco", "LSPA9", "Smart plug (with power monitoring)", ["_TZ3000_okaz9tjs"]),
             tuya.whitelabel("PSMART", "T440", "Smart wallsocket (with power monitoring)", ["_TZ3000_y4ona9me"]),
             tuya.whitelabel("Nous", "A6Z", "Outdoor smart socket", ["_TZ3000_266azbg3"]),
             tuya.whitelabel("Nedis", "ZBPO130FWT", "Outdoor smart plug (with power monitoring)", ["_TZ3000_3ias4w4o"]),
             tuya.whitelabel("Nous", "A9Z", "Smart ZigBee Socket", ["_TZ3210_ddigca5n"]),
+            tuya.whitelabel("Girier", "JR-ZPM01", "Smart Plug", ["_TZ3000_ww6drja5"]),
+            tuya.whitelabel("Nous", "A7Z", "Smart ZigBee Socket", ["_TZ3210_rwmitwj4"]),
+            tuya.whitelabel("Zbeacon", "TS011F_plug_1_1", "Smart plug (with power monitoring)", ["Zbeacon"]),
         ],
         ota: true,
         extend: [
@@ -6371,10 +6811,14 @@ export const definitions: DefinitionWithExtend[] = [
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "haElectricalMeasurement", "seMetering"]);
-            await reporting.rmsVoltage(endpoint, {change: 5});
+
+            if (!["_TZ3000_okaz9tjs"].includes(device.manufacturerName)) {
+                await reporting.rmsVoltage(endpoint, {change: 5});
+            }
+
             await reporting.rmsCurrent(endpoint, {change: 50});
 
-            if (!["_TZ3000_0zfrhq4i", "_TZ3000_okaz9tjs", "_TZ3000_typdpbpg"].includes(device.manufacturerName)) {
+            if (!["_TZ3000_0zfrhq4i", "_TZ3000_okaz9tjs", "_TZ3000_typdpbpg", "_TZ3000_ww6drja5", "Zbeacon"].includes(device.manufacturerName)) {
                 // Gives INVALID_DATA_TYPE error for _TZ3000_0zfrhq4i (as well as a few others in issue 20028)
                 // https://github.com/Koenkk/zigbee2mqtt/discussions/19680#discussioncomment-7667035
                 await reporting.activePower(endpoint, {change: 10});
@@ -6401,6 +6845,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZ3000_bfn1w0mm",
             "_TZ3000_nzkqcvvs",
             "_TZ3000_rtcrrvia",
+            "_TZ3000_ysiog9xi",
         ]),
         model: "TS011F_plug_2",
         description: "Smart plug (without power monitoring)",
@@ -6425,7 +6870,7 @@ export const definitions: DefinitionWithExtend[] = [
             {modelID: "TS011F", applicationVersion: 68, priority: -1},
             {modelID: "TS011F", applicationVersion: 65, priority: -1},
             {modelID: "TS011F", applicationVersion: 64, priority: -1},
-            {modelID: "TS011F", softwareBuildID: "1.0.5\u0000", priority: -1},
+            {modelID: "TS011F", softwareBuildID: "1.0.5\u0000", manufacturerName: "_TZ3000_cehuw1lw", priority: -1},
         ],
         model: "TS011F_plug_3",
         description: "Smart plug (with power monitoring by polling)",
@@ -6445,6 +6890,9 @@ export const definitions: DefinitionWithExtend[] = [
                 indicatorMode: true,
                 childLock: true,
             }),
+            tuya.modernExtend.electricityMeasurementPoll({
+                metering: (device) => [100, 160].includes(device.applicationVersion) || ["1.0.5\u0000"].includes(device.softwareBuildID), // polling for energy
+            }),
         ],
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
@@ -6460,16 +6908,6 @@ export const definitions: DefinitionWithExtend[] = [
             utils.attachOutputCluster(device, "genOta");
             device.save();
         },
-        options: [exposes.options.measurement_poll_interval()],
-        onEvent: (type, data, device, options) =>
-            tuya.onEventMeasurementPoll(
-                type,
-                data,
-                device,
-                options,
-                true, // polling for voltage, current and power
-                [100, 160].includes(device.applicationVersion) || ["1.0.5\u0000"].includes(device.softwareBuildID), // polling for energy
-            ),
     },
     {
         fingerprint: tuya.fingerprint("TS011F", ["_TZ3000_in5s3wn1", "_TZ3000_wbloefbf"]),
@@ -6556,14 +6994,34 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_ai4rqhky"]),
+        model: "HS2SA-1",
+        vendor: "Heiman",
+        description: "Photoelectric Smoke Alarm",
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
+        exposes: [
+            e.smoke(),
+            e.battery(),
+            tuya.exposes.batteryState(),
+            e.binary("silence", ea.STATE_SET, "ON", "OFF"),
+            e.enum("self_test", ea.STATE, ["checking", "check_success", "check_failure"]),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "smoke", tuya.valueConverter.trueFalse0],
+                [9, "self_test", tuya.valueConverterBasic.lookup({checking: 0, check_success: 1, check_failure: 2})],
+                [14, "battery_state", tuya.valueConverter.batteryState],
+                [15, "battery", tuya.valueConverter.raw],
+                [16, "silence", tuya.valueConverter.onOff],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_m9skfctm", "_TZE200_rccxox8p", "_TZE284_rccxox8p"]),
         model: "PA-44Z",
         vendor: "Tuya",
         description: "Photoelectric smoke detector",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime,
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
         exposes: [
             e.smoke(),
             e.battery(),
@@ -6654,14 +7112,50 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_e2bedvo9", "_TZE200_dnz6yvl2"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_o9ofysmo", "_TZE284_xc3vwx5a"]),
+        model: "ZS-301Z",
+        vendor: "Arteco",
+        description: "Soil moisture sensor",
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
+        exposes: [
+            e.enum("battery_state", ea.STATE, ["low", "middle", "high"]).withDescription("low: 1-25%, middle: 26-50%, high: 51-100%"),
+            e.temperature(),
+            e.soil_moisture(),
+            e.humidity(),
+            e.illuminance(),
+            e
+                .numeric("humidity_calibration", ea.STATE_SET)
+                .withUnit("%")
+                .withDescription("Adjust humidity")
+                .withValueMin(-30)
+                .withValueMax(30)
+                .withValueStep(1),
+            e
+                .numeric("report_interval", ea.STATE_SET)
+                .withUnit("s")
+                .withDescription("Report interval")
+                .withValueMin(30)
+                .withValueMax(1200)
+                .withValueStep(30),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [3, "soil_moisture", tuya.valueConverter.raw],
+                [5, "temperature", tuya.valueConverter.divideBy10],
+                [14, "battery_state", tuya.valueConverterBasic.lookup({low: tuya.enum(0), middle: tuya.enum(1), high: tuya.enum(2)})],
+                [101, "humidity", tuya.valueConverter.raw],
+                [102, "illuminance", tuya.valueConverter.raw],
+                [103, "humidity_calibration", tuya.valueConverter.raw],
+                [104, "report_interval", tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_e2bedvo9", "_TZE200_dnz6yvl2", "_TZE284_6ycgarab", "_TZE284_e2bedvo9"]),
         model: "ZSS-QY-SSD-A-EN",
         vendor: "Tuya",
         description: "Smart smoke alarm",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime,
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
         exposes: [
             e.smoke(),
             tuya.exposes.faultAlarm(),
@@ -6698,16 +7192,14 @@ export const definitions: DefinitionWithExtend[] = [
             e.binary("alarm", ea.STATE_SET, true, false).withDescription("Enable the alarm"),
             e.binary("silence_siren", ea.STATE_SET, true, false).withDescription("Silence the siren"),
         ],
-        onEvent: tuya.onEventSetTime,
+        extend: [tuya.modernExtend.tuyaBase({timeStart: "2000"})],
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_cjbofhxw", "_TZE284_cjbofhxw"]),
         model: "PJ-MGW1203",
         vendor: "Tuya",
         description: "Clamp meter",
-        fromZigbee: [tuya.fz.datapoints, tuya.fz.gateway_connection_status],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [e.current(), e.power(), e.voltage(), e.energy()],
         meta: {
             tuyaDatapoints: [
@@ -7385,17 +7877,6 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0011", ["_TZ3000_hbxsdd6k"]),
-        model: "LZWSM16-1",
-        description: "1 gang switch module - (without neutral)",
-        vendor: "AVATTO",
-        extend: [tuya.modernExtend.tuyaOnOff({switchType: true, onOffCountdown: true}), m.forcePowerSource({powerSource: "Mains (single phase)"})],
-        configure: async (device, coordinatorEndpoint) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint);
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
-        },
-    },
-    {
         fingerprint: tuya.fingerprint("TS0012", ["_TZ3000_jl7qyupf", "_TZ3000_nPGIPl5D", "_TZ3000_kpatq5pq", "_TZ3000_ljhbw1c9", "_TZ3000_4zf0crgo"]),
         model: "TS0012_switch_module",
         vendor: "Tuya",
@@ -7585,6 +8066,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Tuya", "DS-111", "Smart light switch - 4 gang with neutral wire", ["_TZ3000_mdj7kra9"]),
             tuya.whitelabel("MHCOZY", "TYWB 4ch-RF", "4 channel relay", ["_TZ3000_u3oupgdy", "_TZ3000_imaccztn"]),
             tuya.whitelabel("AVATTO", "TS0004_1", "Smart light switch - 4 gang with neutral wire", ["_TZ3000_nivavasg", "_TZ3000_gexniqbq"]),
+            tuya.whitelabel("Nova Digital", "SA-4", "Safira smart light switch - 4 gang", ["_TZ3000_iymfxdis"]),
         ],
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint) => {
@@ -7596,7 +8078,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0726", ["_TZ3002_1s0vfmtv"]),
+        fingerprint: tuya.fingerprint("TS0726", ["_TZ3002_1s0vfmtv", "_TZ3002_zjuvw9zf", "_TZ3002_gdwja9a7"]),
         model: "TS0726_2_gang",
         vendor: "Tuya",
         description: "2 gang switch with neutral wire",
@@ -7666,7 +8148,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0726", ["_TZ3002_aewsvjcu"]),
+        fingerprint: tuya.fingerprint("TS0726", ["_TZ3002_aewsvjcu", "_TZ3002_phu8ygaw"]),
         model: "TS0726_multi_4_gang",
         vendor: "Tuya",
         description: "Multi 4 gang switch with backlight",
@@ -7716,7 +8198,44 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0726", ["_TZ3000_wsspgtcd", "_TZ3000_s678wazd"]),
+        fingerprint: tuya.fingerprint("TS0726", ["_TZ3002_jn2x20tg"]),
+        model: "TS0726_1_gang",
+        vendor: "Tuya",
+        description: "1 gang switch with neutral wire",
+        fromZigbee: [fz.on_off, tuya.fz.power_on_behavior_2, fz.ignore_basic_report, fzLocal.TS0726_action],
+        toZigbee: [tz.on_off, tuya.tz.power_on_behavior_2, tzLocal.TS0726_switch_mode],
+        exposes: [e.switch(), e.power_on_behavior(), e.enum("switch_mode", ea.STATE_SET, ["switch", "scene"]), e.action(["scene_1"])],
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0726", ["_TZ3002_iedhxgyi"]),
+        model: "TS0726_3_gang",
+        vendor: "Tuya",
+        description: "3 gang switch with neutral wire",
+        fromZigbee: [fz.on_off, tuya.fz.power_on_behavior_2, fz.ignore_basic_report, fzLocal.TS0726_action],
+        toZigbee: [tz.on_off, tuya.tz.power_on_behavior_2, tzLocal.TS0726_switch_mode],
+        exposes: [
+            ...[1, 2, 3].map((ep) => e.switch().withEndpoint(`l${ep}`)),
+            ...[1, 2, 3].map((ep) => e.power_on_behavior().withEndpoint(`l${ep}`)),
+            ...[1, 2, 3].map((ep) => e.enum("switch_mode", ea.STATE_SET, ["switch", "scene"]).withEndpoint(`l${ep}`)),
+            e.action(["scene_1", "scene_2", "scene_3"]),
+        ],
+        endpoint: (device) => {
+            return {l1: 1, l2: 2, l3: 3};
+        },
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+            for (const ep of [1, 2, 3]) {
+                await reporting.bind(device.getEndpoint(ep), coordinatorEndpoint, ["genOnOff"]);
+            }
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0726", ["_TZ3000_wsspgtcd", "_TZ3000_s678wazd", "_TZ3002_pzao9ls1"]),
         model: "TS0726_4_gang",
         vendor: "Tuya",
         description: "4 gang switch with neutral wire",
@@ -7914,7 +8433,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Wall-mount thermostat",
         fromZigbee: [legacy.fromZigbee.hy_thermostat, fz.ignore_basic_report],
         toZigbee: [legacy.toZigbee.hy_thermostat],
-        onEvent: tuya.onEventSetTime,
+        extend: [tuya.modernExtend.tuyaBase({timeStart: "2000"})],
         exposes: [
             e
                 .climate()
@@ -7929,10 +8448,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZWT07",
         vendor: "Tuya",
         description: "Wall-mount thermostat",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEvent({timeStart: "1970"}),
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e
                 .climate()
@@ -8021,20 +8537,21 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueStep(1)
                 .withPreset("default", 60, "Default value"),
         ],
-        onEvent: tuya.onEventSetTime,
+        extend: [tuya.modernExtend.tuyaBase({timeStart: "2000"})],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_viy9ihs7", "_TZE204_lzriup1j", "_TZE204_xnbkhhdr", "_TZE284_xnbkhhdr", "_TZE204_oh8y8pv8"]),
+        fingerprint: tuya.fingerprint("TS0601", [
+            "_TZE200_viy9ihs7",
+            "_TZE204_lzriup1j",
+            "_TZE204_xnbkhhdr",
+            "_TZE284_xnbkhhdr",
+            "_TZE204_oh8y8pv8",
+            "_TZE204_gops3slb",
+        ]),
         model: "ZWT198/ZWT100-BH",
         vendor: "Tuya",
         description: "Wall thermostat",
-        onEvent: tuya.onEvent({
-            timeStart: "1970",
-            respondToMcuVersionResponse: false,
-        }),
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, respondToMcuVersionResponse: false})],
         exposes: [
             e.binary("factory_reset", ea.STATE_SET, "ON", "OFF").withDescription("Full factory reset, use with caution!"),
             e.child_lock(),
@@ -8096,7 +8613,8 @@ export const definitions: DefinitionWithExtend[] = [
                     "preset",
                     tuya.valueConverterBasic.lookup((_, device) => {
                         // https://github.com/Koenkk/zigbee2mqtt/issues/21353#issuecomment-1938328429
-                        if (device.manufacturerName === "_TZE204_lzriup1j") {
+                        // https://github.com/Koenkk/zigbee2mqtt/issues/28035
+                        if (device.manufacturerName === "_TZE204_lzriup1j" || device.manufacturerName === "_TZE204_gops3slb") {
                             return {
                                 auto: tuya.enum(1),
                                 manual: tuya.enum(0),
@@ -8181,14 +8699,11 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_mwomyz5n", "_TZE204_cvub6xbb"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_mwomyz5n", "_TZE204_cvub6xbb", "_TZE284_cvub6xbb"]),
         model: "TGM50-ZB",
         vendor: "Tuya",
         description: "Beok wall thermostat",
-        onEvent: tuya.onEvent({timeStart: "1970"}),
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.child_lock(),
             e.temperature_sensor_select(["internal", "external", "both"]),
@@ -8316,11 +8831,22 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.illuminance()],
     },
     {
+        fingerprint: tuya.fingerprint("TS0222", ["_TZ3000_j6adk9id"]),
+        model: "TS0222_solar_light",
+        vendor: "Tuya",
+        description: "Solar light sensor",
+        configure: tuya.configureMagicPacket,
+        extend: [m.illuminance(), m.battery()],
+    },
+    {
         zigbeeModel: ["TS0210"],
         model: "TS0210",
         vendor: "Tuya",
         description: "Vibration sensor",
-        whiteLabel: [tuya.whitelabel("Niceboy", "ORBIS Vibration Sensor", "Vibration sensor", ["_TYZB01_821siati"])],
+        whiteLabel: [
+            tuya.whitelabel("Niceboy", "ORBIS Vibration Sensor", "Vibration sensor", ["_TYZB01_821siati"]),
+            tuya.whitelabel("iHseno", "_TZ3000_lzdjjfss", "Vibration sensor", ["_TZ3000_lzdjjfss"]),
+        ],
         fromZigbee: [fz.battery, fz.ias_vibration_alarm_1_with_timeout],
         toZigbee: [tz.TS0210_sensitivity],
         exposes: [
@@ -8454,16 +8980,16 @@ export const definitions: DefinitionWithExtend[] = [
             e.enum("power_outage_memory", ea.ALL, ["on", "off", "restore"]).withDescription("Recover state after power outage"),
             e.enum("indicator_mode", ea.STATE_SET, ["off", "on_off", "off_on"]).withDescription("Relay LED indicator mode"),
         ],
-        options: [exposes.options.measurement_poll_interval()],
-        onEvent: (type, data, device, options) => tuya.onEventMeasurementPoll(type, data, device, options, true, false),
+        extend: [tuya.modernExtend.electricityMeasurementPoll()],
     },
     {
-        fingerprint: tuya.fingerprint("TS011F", ["_TZ3000_7issjl2q"]),
+        fingerprint: [...tuya.fingerprint("TS011F", ["_TZ3000_7issjl2q"]), ...tuya.fingerprint("TS0011", ["_TZ3000_gzvniqjb"])],
         model: "ATMS1601Z",
         description: "Din smart relay (without power monitoring)",
         vendor: "Tuya",
         fromZigbee: [fz.on_off, fz.ignore_basic_report, tuya.fz.power_outage_memory, fz.tuya_relay_din_led_indicator],
         toZigbee: [tz.on_off, tuya.tz.power_on_behavior_1, tz.tuya_relay_din_led_indicator],
+        whiteLabel: [tuya.whitelabel("Tongou", "TO-Q-SY1-ZT", "Din smart relay (without power monitoring)", ["_TZ3000_gzvniqjb"])],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff"]);
@@ -8476,11 +9002,14 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_nklqjk62", "_TZE200_nklqjk62"]),
-        model: "PJ-ZGD01",
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_nklqjk62", "_TZE204_nklqjk62", "_TZE204_jktmrpoj"]),
+        model: "TS0601_garage_door_opener",
         vendor: "Tuya",
         description: "Garage door opener",
-        whiteLabel: [{vendor: "MatSee Plus", model: "PJ-ZGD01"}],
+        whiteLabel: [
+            tuya.whitelabel("MatSee Plus", "PJ-ZGD01", "Garage door opener", ["_TZE204_nklqjk62"]),
+            tuya.whitelabel("Moes", "ZM-102-M", "Garage door opener", ["_TZE204_jktmrpoj"]),
+        ],
         extend: [
             tuyaMagicPacket(),
             dpBinary({
@@ -8539,7 +9068,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_wfxuhoea"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_wfxuhoea", "_TZE204_wfxuhoea"]),
         model: "GDC311ZBQ1",
         vendor: "Tuya",
         description: "LoraTap garage door opener with wireless sensor",
@@ -8559,7 +9088,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint("TS0603", ["_TZE608_c75zqghm", "_TZE608_fmemczv1"]),
+        fingerprint: tuya.fingerprint("TS0603", ["_TZE608_c75zqghm", "_TZE608_fmemczv1", "_TZE608_xkr8gep3", "_TZE608_lapuuoke"]),
         model: "TS0603",
         vendor: "Tuya",
         meta: {
@@ -8600,7 +9129,7 @@ export const definitions: DefinitionWithExtend[] = [
                 "genPowerCfg",
                 "msTemperatureMeasurement",
                 "msRelativeHumidity",
-                "manuSpecificTuya_2",
+                "manuSpecificTuya2",
             ]);
         },
         exposes: [
@@ -8817,10 +9346,9 @@ export const definitions: DefinitionWithExtend[] = [
             fz.tuya_operation_mode,
         ],
         toZigbee: [tz.tuya_operation_mode],
-        onEvent: tuya.onEventSetLocalTime,
+        extend: [tuya.modernExtend.tuyaBase({forceTimeUpdates: true})],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await endpoint.read("genBasic", [0x0004, 0x000, 0x0001, 0x0005, 0x0007, 0xfffe]);
             await endpoint.write("genOnOff", {tuyaOperationMode: 1});
             await endpoint.read("genOnOff", ["tuyaOperationMode"]);
             try {
@@ -8868,6 +9396,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
+        zigbeeModel: ["ZG-101ZD"],
         fingerprint: tuya.fingerprint("TS004F", [
             "_TZ3000_4fjiwweb",
             "_TZ3000_uri7ongn",
@@ -8875,6 +9404,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZ3000_qja6nq5z",
             "_TZ3000_402vrq2i",
             "_TZ3000_abrsvsou",
+            "_TZ3000_gwkzibhs",
         ]),
         model: "ERS-10TZBVK-AA",
         vendor: "Tuya",
@@ -8889,7 +9419,10 @@ export const definitions: DefinitionWithExtend[] = [
             fz.tuya_operation_mode,
             fz.battery,
         ],
-        whiteLabel: [tuya.whitelabel("Tuya", "ZG-101Z_D", "Smart knob", ["_TZ3000_402vrq2i"])],
+        whiteLabel: [
+            tuya.whitelabel("Tuya", "ZG-101Z_D_1", "Smart knob", ["_TZ3000_402vrq2i"]),
+            tuya.whitelabel("HOBEIAN", "ZG-101ZD", "Smart knob", ["_TZ3000_gwkzibhs"]),
+        ],
         toZigbee: [tz.tuya_operation_mode],
         exposes: [
             e.action([
@@ -8934,7 +9467,21 @@ export const definitions: DefinitionWithExtend[] = [
     {
         // Only the ones with applicationVersion 145 should be detected as this, e.g. applicationVersion 66 should be detected as ERS-10TZBVK-AA.
         // https://github.com/Koenkk/zigbee2mqtt/issues/25053
-        fingerprint: [{modelID: "TS004F", manufacturerName: "_TZ3000_abrsvsou", applicationVersion: 145, priority: 1}],
+        fingerprint: [
+            {
+                modelID: "TS004F",
+                manufacturerName: "_TZ3000_abrsvsou",
+                applicationVersion: 145,
+                priority: 1,
+            },
+            // https://github.com/Koenkk/zigbee2mqtt/issues/28149
+            {
+                modelID: "TS004F",
+                manufacturerName: "_TZ3000_gwkzibhs",
+                applicationVersion: 147,
+                priority: 1,
+            },
+        ],
         model: "ZG-101Z/D",
         vendor: "Tuya",
         description: "Smart knob",
@@ -9107,6 +9654,19 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.exposes.switch().withEndpoint("l2"),
             tuya.exposes.switch().withEndpoint("l3"),
             tuya.exposes.switch().withEndpoint("l4"),
+            e.text("name", ea.STATE_SET).withEndpoint("l1").withDescription("Name for Switch 1"),
+            e.text("name", ea.STATE_SET).withEndpoint("l2").withDescription("Name for Switch 2"),
+            e.text("name", ea.STATE_SET).withEndpoint("l3").withDescription("Name for Switch 3"),
+            e.text("name", ea.STATE_SET).withEndpoint("l4").withDescription("Name for Switch 4"),
+            e.text("scene_name", ea.STATE_SET).withEndpoint("l1").withDescription("Name for Scene 1"),
+            e.text("scene_name", ea.STATE_SET).withEndpoint("l2").withDescription("Name for Scene 2"),
+            e.text("scene_name", ea.STATE_SET).withEndpoint("l3").withDescription("Name for Scene 3"),
+            e.text("scene_name", ea.STATE_SET).withEndpoint("l4").withDescription("Name for Scene 4"),
+            exposes.enum("mode", ea.STATE_SET, ["switch_1", "scene_1", "smart_light_1"]).withEndpoint("l1").withDescription("Switch1 mode"),
+            exposes.enum("mode", ea.STATE_SET, ["switch_1", "scene_1", "smart_light_1"]).withEndpoint("l2").withDescription("Switch2 mode"),
+            exposes.enum("mode", ea.STATE_SET, ["switch_1", "scene_1", "smart_light_1"]).withEndpoint("l3").withDescription("Switch3 mode"),
+            exposes.enum("mode", ea.STATE_SET, ["switch_1", "scene_1", "smart_light_1"]).withEndpoint("l4").withDescription("Switch4 mode"),
+            e.action(["scene_1", "scene_2", "scene_3", "scene_4"]),
         ],
         meta: {
             tuyaDatapoints: [
@@ -9114,6 +9674,22 @@ export const definitions: DefinitionWithExtend[] = [
                 [25, "state_l2", tuya.valueConverter.onOff],
                 [26, "state_l3", tuya.valueConverter.onOff],
                 [27, "state_l4", tuya.valueConverter.onOff],
+                [103, "name_l1", convLocal.name],
+                [104, "name_l2", convLocal.name],
+                [105, "name_l3", convLocal.name],
+                [106, "name_l4", convLocal.name],
+                [107, "scene_name_l1", convLocal.name],
+                [108, "scene_name_l2", convLocal.name],
+                [109, "scene_name_l3", convLocal.name],
+                [110, "scene_name_l4", convLocal.name],
+                [18, "mode_l1", tuya.valueConverterBasic.lookup({switch_1: tuya.enum(0), scene_1: tuya.enum(1), smart_light_1: tuya.enum(2)})],
+                [19, "mode_l2", tuya.valueConverterBasic.lookup({switch_1: tuya.enum(0), scene_1: tuya.enum(1), smart_light_1: tuya.enum(2)})],
+                [20, "mode_l3", tuya.valueConverterBasic.lookup({switch_1: tuya.enum(0), scene_1: tuya.enum(1), smart_light_1: tuya.enum(2)})],
+                [21, "mode_l4", tuya.valueConverterBasic.lookup({switch_1: tuya.enum(0), scene_1: tuya.enum(1), smart_light_1: tuya.enum(2)})],
+                [1, "action", tuya.valueConverter.static("scene_1")],
+                [2, "action", tuya.valueConverter.static("scene_2")],
+                [3, "action", tuya.valueConverter.static("scene_3")],
+                [4, "action", tuya.valueConverter.static("scene_4")],
             ],
         },
     },
@@ -9122,10 +9698,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "Y1_IN",
         vendor: "Tuya",
         description: "Smart human presence sensor 24G",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime,
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
         exposes: [
             e.presence(),
             e.illuminance(),
@@ -9267,10 +9840,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "WZ-M100",
         vendor: "Wenzhi",
         description: "Human presence sensor",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime,
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
         exposes: [
             e.illuminance(),
             e.presence(),
@@ -9333,7 +9903,12 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0225", ["_TZE200_hl0ss9oa"]),
+        zigbeeModel: ["ZG-205ZL"],
+        fingerprint: [
+            {modelID: "TS0225", manufacturerName: "_TZE200_hl0ss9oa"},
+            {modelID: "CK-BL702-MWS-01(7016)", manufacturerName: "ZGAF-205L"},
+            {modelID: "TS0225", manufacturerName: "_TZE200_y4mdop0b"},
+        ],
         model: "ZG-205ZL",
         vendor: "Tuya",
         description: "24Ghz/5.8GHz human presence sensor",
@@ -9409,6 +9984,8 @@ export const definitions: DefinitionWithExtend[] = [
                         large: tuya.enum(1),
                         small: tuya.enum(2),
                         static: tuya.enum(3),
+                        far: tuya.enum(4),
+                        near: tuya.enum(5),
                     }),
                 ],
                 [12, "fading_time", tuya.valueConverter.raw],
@@ -9450,11 +10027,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Temperature & humidity sensor with clock",
         fromZigbee: [legacy.fromZigbee.nous_lcd_temperature_humidity_sensor, fz.ignore_tuya_set_time],
         toZigbee: [legacy.toZigbee.nous_lcd_temperature_humidity_sensor],
-        onEvent: tuya.onEventSetLocalTime,
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genBasic"]);
-        },
+        extend: [tuya.modernExtend.tuyaBase({forceTimeUpdates: true, bindBasicOnConfigure: true})],
         exposes: [
             e.temperature(),
             e.humidity(),
@@ -9482,7 +10055,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Tubular motor",
         fromZigbee: [legacy.fromZigbee.zb_sm_cover, fz.ignore_basic_report],
         toZigbee: [legacy.toZigbee.zb_sm_cover],
-        onEvent: tuya.onEventSetTime,
+        extend: [tuya.modernExtend.tuyaBase({timeStart: "2000"})],
         exposes: [
             e.cover_position().setAccess("position", ea.STATE_SET),
             e.enum("goto_positon", ea.SET, ["25", "50", "75", "FAVORITE"]),
@@ -9532,7 +10105,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Temperature & humidity sensor with LCD",
         fromZigbee: [fz.temperature, fzLocal.humidity10, fzLocal.temperature_unit, fz.battery, fz.ignore_tuya_set_time],
         toZigbee: [tzLocal.temperature_unit],
-        onEvent: tuya.onEventSetLocalTime,
+        extend: [tuya.modernExtend.tuyaBase({forceTimeUpdates: true})],
         exposes: [
             e.temperature(),
             e.humidity(),
@@ -9554,7 +10127,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Human presence sensor Zigbee",
         fromZigbee: [legacy.fromZigbee.hpsz],
         toZigbee: [legacy.toZigbee.hpsz],
-        onEvent: tuya.onEventSetLocalTime,
+        extend: [tuya.modernExtend.tuyaBase({forceTimeUpdates: true})],
         exposes: [
             e.presence(),
             e.numeric("duration_of_attendance", ea.STATE).withUnit("min").withDescription("Shows the presence duration in minutes"),
@@ -9563,7 +10136,17 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_qoy0ekbd", "_TZE200_znbl8dj5", "_TZE200_a8sdabtg", "_TZE200_dikkika5", "_TZE200_vs0skpuc"]),
+        zigbeeModel: ["ZG-227Z", "ZG-227ZL"],
+        fingerprint: tuya.fingerprint("TS0601", [
+            "_TZE200_qoy0ekbd",
+            "_TZE200_znbl8dj5",
+            "_TZE200_a8sdabtg",
+            "_TZE200_dikkika5",
+            "_TZE200_vs0skpuc",
+            "_TZE200_3xfjp0ag",
+            "_TZE200_ehhrv2e3",
+            "_TZE200_lhqtjwax",
+        ]),
         model: "ZG-227ZL",
         vendor: "Tuya",
         description: "Temperature & humidity LCD sensor",
@@ -9579,9 +10162,8 @@ export const definitions: DefinitionWithExtend[] = [
             e.battery(),
         ],
         whiteLabel: [
-            tuya.whitelabel("Tuya", "ZG-227Z", "Temperature and humidity sensor", ["_TZE200_a8sdabtg"]),
+            tuya.whitelabel("HOBEIAN", "ZG-227Z", "Temperature and humidity sensor", ["_TZE200_a8sdabtg", "_TZE200_vs0skpuc", "_TZE200_ehhrv2e3"]),
             tuya.whitelabel("KOJIMA", "KOJIMA-THS-ZG-LCD", "Temperature and humidity sensor", ["_TZE200_dikkika5"]),
-            tuya.whitelabel("HOBEIAN", "ZG-227Z", "Temperature and humidity sensor", ["_TZE200_vs0skpuc"]),
         ],
         meta: {
             tuyaDatapoints: [
@@ -9751,13 +10333,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "RSH-HS06",
         vendor: "Tuya",
         description: "Temperature and humidity sensor",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEvent({queryOnDeviceAnnounce: true}),
-        configure: async (device, coordinatorEndpoint) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint);
-            await device.getEndpoint(1).command("manuSpecificTuya", "dataQuery", {});
-        },
+        extend: [tuya.modernExtend.tuyaBase({dp: true, queryOnDeviceAnnounce: true, queryOnConfigure: true})],
         exposes: [
             e.temperature(),
             e.humidity(),
@@ -9794,7 +10370,8 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_pay2byax", "_TZE200_ijey4q29"]),
+        zigbeeModel: ["ZG-102ZL"],
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_pay2byax", "_TZE200_ijey4q29", "_TZE200_ykglasuj", "_TZE200_kf2hbko4"]),
         model: "ZG-102ZL",
         vendor: "Tuya",
         description: "Luminance door sensor",
@@ -9823,16 +10400,26 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [...tuya.fingerprint("TS0601", ["_TZE200_f1pvdgoh", "_TZE200_me6wtiqs"]), ...tuya.fingerprint("\u0000B", ["_TZE200_f1pvdgoh"])],
+        fingerprint: [
+            ...tuya.fingerprint("TS0601", ["_TZE200_f1pvdgoh", "_TZE200_me6wtiqs", "_TZE200_ghynnvos"]),
+            ...tuya.fingerprint("\u0000B", ["_TZE200_f1pvdgoh"]),
+        ],
         model: "TS0601_pir",
         vendor: "Tuya",
         description: "Haozee PIR sensor",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEvent(),
-        configure: tuya.configureMagicPacket,
-        exposes: [e.occupancy(), e.illuminance(), e.battery()],
-        whiteLabel: [tuya.whitelabel("Immax", "07527L", "NEO Smart PIR sensor 2v1 Zigbee 3.0", ["_TZE200_me6wtiqs"])],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: (device, options) => {
+            const exposes: Expose[] = [e.occupancy(), e.illuminance()];
+            // https://github.com/Koenkk/zigbee2mqtt.io/pull/4018
+            if (device.manufacturerName !== "_TZE200_ghynnvos") {
+                exposes.push(e.battery());
+            }
+            return exposes;
+        },
+        whiteLabel: [
+            tuya.whitelabel("Immax", "07527L", "NEO Smart PIR sensor 2v1 Zigbee 3.0", ["_TZE200_me6wtiqs"]),
+            tuya.whitelabel("Conecto", "COZIGPMS", "PIR Motion Sensor", ["_TZE200_ghynnvos"]),
+        ],
         meta: {
             tuyaDatapoints: [
                 [1, "occupancy", tuya.valueConverter.trueFalse0],
@@ -9842,7 +10429,8 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [...tuya.fingerprint("TS0601", ["_TZE200_8isdky6j"]), ...tuya.fingerprint("TS0225", ["_TZE200_p6fuhvez"])],
+        zigbeeModel: ["ZG-225Z"],
+        fingerprint: [...tuya.fingerprint("TS0601", ["_TZE200_8isdky6j"]), ...tuya.fingerprint("TS0225", ["_TZE200_p6fuhvez", "_TZE200_aj0oxo1i"])],
         model: "ZG-225Z",
         vendor: "Tuya",
         description: "Gas sensor",
@@ -9880,7 +10468,18 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_3towulqd", "_TZE200_1ibpyhdc", "_TZE200_bh3n6gk8", "_TZE200_ttcovulf", "_TZE200_gjldowol"]),
+        zigbeeModel: ["ZG-204ZL"],
+        fingerprint: tuya.fingerprint("TS0601", [
+            "_TZE200_3towulqd",
+            "_TZE200_1ibpyhdc",
+            "_TZE200_bh3n6gk8",
+            "_TZE200_ttcovulf",
+            "_TZE200_gjldowol",
+            "_TZE200_s6hzw8g2",
+            "_TZE200_jxyhl4eq",
+            "_TZE200_qxyh4r7g",
+            "_TZE200_na5qlzow",
+        ]),
         model: "ZG-204ZL",
         vendor: "Tuya",
         description: "Luminance motion sensor",
@@ -9928,12 +10527,17 @@ export const definitions: DefinitionWithExtend[] = [
                     }),
                 ],
                 [12, "illuminance", tuya.valueConverter.raw],
+                [101, "illuminance", tuya.valueConverter.raw], // For _TZE200_s6hzw8g2
                 [102, "illuminance_interval", tuya.valueConverter.raw],
             ],
         },
+        whiteLabel: [tuya.whitelabel("Nedis", "ZBSM20WT", "Nedis motion sensor", ["_TZE200_s6hzw8g2"])],
     },
     {
-        fingerprint: tuya.fingerprint("TS0225", ["_TZE200_2aaelwxk"]),
+        fingerprint: [
+            ...tuya.fingerprint("TS0225", ["_TZE200_2aaelwxk", "_TZE200_crq3r3la"]),
+            ...tuya.fingerprint("CK-BL702-MWS-01(7016)", ["HOBEIAN", "_TZE200_crq3r3la"]),
+        ],
         model: "ZG-205Z/A",
         vendor: "Tuya",
         description: "5.8Ghz/24Ghz Human presence sensor",
@@ -9941,6 +10545,8 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: [tuya.tz.datapoints],
         exposes: [
             e.presence(),
+            e.enum("motion_state", ea.STATE, ["none", "small", "medium", "large", "far", "near"]).withDescription("State of the motion"),
+            e.numeric("target_distance", ea.STATE).withDescription("Distance to target").withUnit("m"),
             e.illuminance().withUnit("lx"),
             e
                 .numeric("large_motion_detection_sensitivity", ea.STATE_SET)
@@ -9956,7 +10562,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueStep(0.01)
                 .withUnit("m")
                 .withDescription("Motion detection distance"),
-            e.enum("motion_state", ea.STATE, ["none", "small", "medium", "large", "huge", "gigantic"]).withDescription("State of the motion"),
+
             e
                 .numeric("fading_time", ea.STATE_SET)
                 .withValueMin(0)
@@ -9993,6 +10599,13 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueStep(1)
                 .withUnit("x")
                 .withDescription("Small detection sensitivity"),
+            e
+                .numeric("minimum_range", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(6)
+                .withValueStep(0.01)
+                .withUnit("m")
+                .withDescription("Minimum range"),
         ],
         meta: {
             tuyaDatapoints: [
@@ -10007,8 +10620,8 @@ export const definitions: DefinitionWithExtend[] = [
                         large: tuya.enum(1),
                         medium: tuya.enum(2),
                         small: tuya.enum(3),
-                        huge: tuya.enum(4),
-                        gigantic: tuya.enum(5),
+                        far: tuya.enum(4),
+                        near: tuya.enum(5),
                     }),
                 ],
                 [102, "fading_time", tuya.valueConverter.raw],
@@ -10018,6 +10631,8 @@ export const definitions: DefinitionWithExtend[] = [
                 [107, "indicator", tuya.valueConverter.onOff],
                 [108, "small_detection_distance", tuya.valueConverter.divideBy100],
                 [109, "small_detection_sensitivity", tuya.valueConverter.raw],
+                [122, "target_distance", tuya.valueConverter.divideBy100],
+                [123, "minimum_range", tuya.valueConverter.divideBy100],
                 // Not exposed DPs/untested
                 // [103, 'motion_false_detection', tuya.valueConverter.raw],
                 // [113, 'breathe_false_detection', tuya.valueConverter.raw],
@@ -10038,7 +10653,8 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_2aaelwxk", "_TZE200_kb5noeto"]),
+        zigbeeModel: ["ZG-204ZM"],
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_2aaelwxk", "_TZE200_kb5noeto", "_TZE200_tyffvoij"]),
         model: "ZG-204ZM",
         vendor: "Tuya",
         description: "PIR 24Ghz human presence sensor",
@@ -10082,6 +10698,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withUnit("x")
                 .withDescription("Motion detection sensitivity (Firmware version>=0122052017)"),
         ],
+
         meta: {
             tuyaDatapoints: [
                 [1, "presence", tuya.valueConverter.trueFalse1],
@@ -10119,7 +10736,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS110E_1gang_1",
         vendor: "Tuya",
         description: "1 channel dimmer",
-        extend: [m.light({powerOnBehavior: false, configureReporting: true})],
+        extend: [m.light({powerOnBehavior: false, configureReporting: true, effect: false}), tuya.modernExtend.tuyaMagicPacket()],
         fromZigbee: [tuya.fz.power_on_behavior_1, fz.TS110E_switch_type, fz.TS110E, fz.on_off],
         toZigbee: [tz.TS110E_light_onoff_brightness, tuya.tz.power_on_behavior_1, tz.TS110E_options],
         exposes: [e.power_on_behavior(), tuya.exposes.switchType(), e.min_brightness(), e.max_brightness()],
@@ -10139,7 +10756,7 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: [tz.TS110E_onoff_brightness, tz.TS110E_options, tuya.tz.power_on_behavior_1, tz.light_brightness_move, tzLocal.ts110eCountdown],
         exposes: (device, options) => {
             // https://github.com/Koenkk/zigbee2mqtt/issues/26791#issuecomment-2765734859
-            const countdownValueStep = device?.manufacturerName === "_TZ3210_ngqk6jia" ? 30 : 1;
+            const countdownValueStep = device.manufacturerName === "_TZ3210_ngqk6jia" ? 30 : 1;
             return [
                 e.light_brightness().withMinBrightness().withMaxBrightness(),
                 tuya.exposes.lightType().withAccess(ea.ALL),
@@ -10210,19 +10827,18 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint("TS110E", ["_TZ3210_pagajpog", "_TZ3210_4ubylghk", "_TZ3210_vfwhhldz", "_TZ3210_3mpwqzuu"]),
+        fingerprint: tuya.fingerprint("TS110E", ["_TZ3210_pagajpog", "_TZ3210_4ubylghk", "_TZ3210_vfwhhldz", "_TZ3210_3mpwqzuu", "_TZ3210_mt5xjoy6"]),
         model: "TS110E_2gang_2",
         vendor: "Tuya",
         description: "2 channel dimmer",
+        whiteLabel: [tuya.whitelabel("Nedis", "ZBWD20RD", "SmartLife Triac Dimmer", ["_TZ3210_mt5xjoy6"])],
         fromZigbee: [fz.TS110E, fz.TS110E_light_type, tuya.fz.power_on_behavior_1, fz.on_off],
         toZigbee: [tz.TS110E_onoff_brightness, tz.TS110E_options, tuya.tz.power_on_behavior_1, tz.light_brightness_move],
         meta: {multiEndpoint: true},
         exposes: [
+            e.power_on_behavior(),
             e.light_brightness().withMinBrightness().withMaxBrightness().withEndpoint("l1"),
             e.light_brightness().withMinBrightness().withMaxBrightness().withEndpoint("l2"),
-            e.power_on_behavior().withEndpoint("l1"),
-            e.power_on_behavior().withEndpoint("l2"),
-            tuya.exposes.lightType().withAccess(ea.ALL),
             tuya.exposes.switchType().withEndpoint("l1"),
             tuya.exposes.switchType().withEndpoint("l2"),
         ],
@@ -10332,10 +10948,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0049",
         vendor: "Tuya",
         description: "Water valve",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetLocalTime,
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true})],
         exposes: [
             tuya.exposes.errorStatus(),
             tuya.exposes.switch(),
@@ -10357,10 +10970,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0601_water_switch",
         vendor: "Tuya",
         description: "Dual water valve",
-        fromZigbee: [tuya.fz.datapoints, fz.battery],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime,
-        configure: tuya.configureMagicPacket,
+        fromZigbee: [fz.battery],
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
         exposes: [
             e.enum("valve_status", ea.STATE, ["manual", "auto", "idle"]).withDescription("Valve 1 status (manual, auto, idle)").withEndpoint("l1"),
             e.enum("valve_status", ea.STATE, ["manual", "auto", "idle"]).withDescription("Valve 2 status (manual, auto, idle)").withEndpoint("l2"),
@@ -10383,10 +10994,8 @@ export const definitions: DefinitionWithExtend[] = [
             e.numeric("valve_duration", ea.STATE).withUnit("s").withDescription("Valve 1 irrigation last duration in seconds").withEndpoint("l1"),
             e.numeric("valve_duration", ea.STATE).withUnit("s").withDescription("Valve 2 irrigation last duration in seconds").withEndpoint("l2"),
             e.battery(),
-            e.battery_voltage(),
         ],
         meta: {
-            tuyaSendCommand: "sendData",
             tuyaDatapoints: [
                 [1, "state_l1", tuya.valueConverter.onOff], // Valve 1 on/off
                 [2, "state_l2", tuya.valueConverter.onOff], // Valve 2 on/off
@@ -10396,6 +11005,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [26, "valve_duration_l2", tuya.valueConverter.raw], // Valve 2 duration
                 [104, "valve_status_l1", tuya.valueConverterBasic.lookup({manual: 0, auto: 1, idle: 2})], // Valve 1 status
                 [105, "valve_status_l2", tuya.valueConverterBasic.lookup({manual: 0, auto: 1, idle: 2})], // Valve 2 status
+                [59, "battery", tuya.valueConverter.raw],
             ],
             multiEndpoint: true, // Enable multi-endpoint support
         },
@@ -10568,6 +11178,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZ3000_zrm3oxsh",
             "_TZ3000_303avxxt",
             "_TZ3000_zjchz7pd",
+            "_TZ3000_zv6x8bt2",
         ]),
         model: "TS011F_with_threshold",
         description: "Din rail switch with power monitoring and threshold settings",
@@ -10586,7 +11197,7 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: [tzLocal.TS011F_threshold],
         exposes: (device, options) => {
             const exposes: Expose[] = [];
-            if (!["_TZ3000_303avxxt", "_TZ3000_zjchz7pd"].includes(device?.manufacturerName)) {
+            if (!["_TZ3000_303avxxt", "_TZ3000_zjchz7pd"].includes(device.manufacturerName)) {
                 exposes.push(
                     e.temperature(),
                     e
@@ -10662,6 +11273,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("UNSH", "SMKG-1KNL-EU-Z", "Smart circuit Breaker", ["_TZ3000_qystbcjg"]),
             tuya.whitelabel("Tomzn", "TOB9Z-VAP", "Smart circuit breaker", ["_TZ3000_303avxxt"]),
             tuya.whitelabel("Immax", "07573L", "Smart circuit breaker", ["_TZ3000_zjchz7pd"]),
+            tuya.whitelabel("Moes", "A5", "Smart circuit breaker", ["_TZ3000_zv6x8bt2"]),
         ],
     },
     {
@@ -10866,6 +11478,7 @@ export const definitions: DefinitionWithExtend[] = [
                 ),
         ],
     },
+
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_jhkttplm"]),
         model: "TS0601_cover_with_1_switch",
@@ -10983,6 +11596,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SPM01",
         vendor: "Tuya",
         description: "Smart energy monitor for 1P+N system",
+        ota: true,
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
@@ -11073,7 +11687,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.ac_frequency(),
             e
                 .numeric("data_report_duration", ea.SET)
-                .withValueMin(5)
+                .withValueMin(30)
                 .withValueMax(3600)
                 .withDescription(
                     "WARNING: You must update device firmware to V3.1.3 before changing this setting! Use Tuya gateway/app to update firmware. Data report duration set (Threshold value range 5~3600 seconds)",
@@ -11091,7 +11705,7 @@ export const definitions: DefinitionWithExtend[] = [
                     "data_report_duration",
                     {
                         to: (v: number) => {
-                            const value = Math.max(5, Math.min(3600, Math.round(v)));
+                            const value = Math.max(30, Math.min(3600, Math.round(v)));
                             const byte1 = (value >> 8) & 0xff;
                             const byte2 = value & 0xff;
                             return [
@@ -11291,7 +11905,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.ac_frequency(),
             e
                 .numeric("data_report_duration", ea.SET)
-                .withValueMin(5)
+                .withValueMin(30)
                 .withValueMax(3600)
                 .withDescription(
                     "WARNING: You must update device firmware to V3.2.2 before changing this setting! Use Tuya gateway/app to update firmware. Data report duration set (Threshold value range 5~3600 seconds)",
@@ -11305,7 +11919,7 @@ export const definitions: DefinitionWithExtend[] = [
                     "data_report_duration",
                     {
                         to: (v: number) => {
-                            const value = Math.max(5, Math.min(3600, Math.round(v)));
+                            const value = Math.max(30, Math.min(3600, Math.round(v)));
                             const byte1 = (value >> 8) & 0xff;
                             const byte2 = value & 0xff;
                             return [
@@ -11372,10 +11986,59 @@ export const definitions: DefinitionWithExtend[] = [
             e.power_factor().withUnit("%").withDescription("Total power factor"),
             e.power(),
             e.ac_frequency(),
+            e.numeric("data_report_duration", ea.SET).withValueMin(30).withValueMax(3600),
         ],
         meta: {
             tuyaDatapoints: [
                 [1, "energy", tuya.valueConverter.divideBy100],
+                [
+                    18,
+                    "data_report_duration",
+                    {
+                        to: (v: number) => {
+                            const value = Math.max(30, Math.min(3600, Math.round(v)));
+                            const byte1 = (value >> 8) & 0xff;
+                            const byte2 = value & 0xff;
+                            return [
+                                // Other settings of the device
+                                0x01,
+                                0x01,
+                                0x00,
+                                0x3c,
+                                0x02,
+                                0x00,
+                                0x00,
+                                0x0a,
+                                0x03,
+                                0x01,
+                                0x00,
+                                0xfd,
+                                0x04,
+                                0x00,
+                                0x00,
+                                0xb4,
+                                0x05,
+                                0x01,
+                                0x00,
+                                0x00,
+                                0x07,
+                                0x01,
+                                0x00,
+                                0x00,
+                                0x08,
+                                0x01,
+                                // Report duration
+                                byte1,
+                                byte2,
+                                // Only modify the report duration
+                                0x09,
+                                0x00,
+                                0x00,
+                                0x00,
+                            ];
+                        },
+                    },
+                ],
                 [23, "produced_energy", tuya.valueConverter.divideBy100],
                 [29, "power", tuya.valueConverter.raw],
                 [32, "ac_frequency", tuya.valueConverter.divideBy100],
@@ -11428,7 +12091,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .numeric("update_frequency", ea.STATE_SET)
                 .withUnit("s")
                 .withDescription("Update frequency")
-                .withValueMin(5)
+                .withValueMin(30)
                 .withValueMax(3600)
                 .withPreset("default", 10, "Default value"),
         ],
@@ -11559,7 +12222,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .numeric("update_frequency", ea.STATE_SET)
                 .withUnit("s")
                 .withDescription("Update frequency")
-                .withValueMin(5)
+                .withValueMin(30)
                 .withValueMax(3600)
                 .withPreset("default", 10, "Default value"),
         ],
@@ -11622,7 +12285,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .numeric("update_frequency", ea.STATE_SET)
                 .withUnit("s")
                 .withDescription("Update frequency")
-                .withValueMin(5)
+                .withValueMin(30)
                 .withValueMax(3600)
                 .withPreset("default", 10, "Default value"),
         ],
@@ -11654,10 +12317,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0601_bidirectional_energy meter",
         vendor: "Tuya",
         description: "Bidirectional energy meter with 150A Current Clamp",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime,
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
         exposes: [
             e.energy(),
             e.produced_energy(),
@@ -11676,7 +12336,15 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_vmcgja59", "_TZE204_dvosyycn", "_TZE200_wktrysab", "_TZE204_wktrysab"]),
+        fingerprint: tuya.fingerprint("TS0601", [
+            "_TZE200_vmcgja59",
+            "_TZE204_dvosyycn",
+            "_TZE284_dvosyycn",
+            "_TZE200_wktrysab",
+            "_TZE204_wktrysab",
+            "_TZE204_nvxorhcj",
+            "_TZE204_tdhnhhiy",
+        ]),
         model: "TS0601_switch_8",
         vendor: "Tuya",
         description: "ZYXH 8 gang switch",
@@ -11709,6 +12377,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [0x66, "state_l8", tuya.valueConverter.onOff],
             ],
         },
+        whiteLabel: [tuya.whitelabel("Nova Digital", "ZTS-8W-B", "8 Gang Switch", ["_TZE204_nvxorhcj"])],
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_adlblwab"]),
@@ -11805,7 +12474,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_dqolcpcp"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_dqolcpcp", "_TZE284_dqolcpcp"]),
         model: "TS0601_switch_12",
         vendor: "Tuya",
         description: "ZXYH 12 gang switch",
@@ -11847,7 +12516,6 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
-
     // TS011F
     {
         fingerprint: tuya.fingerprint("TS011F", ["_TZ3000_8fdayfch", "_TZ3000_1hwjutgo", "_TZ3000_lnggrqqi", "_TZ3000_tvuarksa"]),
@@ -11875,6 +12543,7 @@ export const definitions: DefinitionWithExtend[] = [
                 childLock: true,
                 endpoints: ["l1", "l2"],
             }),
+            tuya.modernExtend.electricityMeasurementPoll(),
         ],
         endpoint: (device) => {
             return {l1: 1, l2: 2};
@@ -11896,8 +12565,6 @@ export const definitions: DefinitionWithExtend[] = [
             });
             device.save();
         },
-        options: [exposes.options.measurement_poll_interval()],
-        onEvent: (type, data, device, options) => tuya.onEventMeasurementPoll(type, data, device, options, true, false),
         whiteLabel: [tuya.whitelabel("Nous", "A4Z", "2 gang outdoor plug", ["_TZ3000_rqbjepe8", "_TZ3000_uwkja6z1"])],
     },
     {
@@ -12040,9 +12707,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZS-TYG3-SM-61Z",
         vendor: "Tuya",
         description: "Smart switch (4 gang + 2 scene) with backlight and neutral wire",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
         exposes: [
             tuya.exposes.switch().withDescription("All Switches"),
             tuya.exposes.switch().withEndpoint("l1"),
@@ -12060,7 +12725,6 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.exposes.countdown().withEndpoint("l6"),
             e.power_on_behavior().withAccess(ea.STATE_SET),
         ],
-        onEvent: tuya.onEventSetTime,
         endpoint: (device) => {
             return {
                 l1: 1,
@@ -12099,9 +12763,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZS-TYG3-SM-21Z",
         vendor: "Tuya",
         description: "2 gang smart switch with backlight and neutral wire",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
         exposes: [
             tuya.exposes.switch().withDescription("All Switches"),
             tuya.exposes.switch().withEndpoint("l1"),
@@ -12111,7 +12773,6 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.exposes.countdown().withEndpoint("l2"),
             e.power_on_behavior().withAccess(ea.STATE_SET),
         ],
-        onEvent: tuya.onEventSetTime,
         endpoint: (device) => {
             return {l1: 1, l2: 1, state: 1, backlight: 1};
         },
@@ -12133,9 +12794,6 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZS-TYG3-SM-31Z",
         vendor: "Tuya",
         description: "3 gang smart switch with backlight and neutral wire",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
         exposes: [
             tuya.exposes.switch().withDescription("All Switches"),
             tuya.exposes.switch().withEndpoint("l1"),
@@ -12147,7 +12805,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.exposes.countdown().withEndpoint("l3"),
             e.power_on_behavior(["off", "on", "previous"]).withAccess(ea.STATE_SET),
         ],
-        onEvent: tuya.onEventSetTime,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
         endpoint: (device) => {
             return {l1: 1, l2: 1, l3: 1, state: 1, backlight: 1};
         },
@@ -12171,9 +12829,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZS-TYG3-SM-41Z",
         vendor: "Tuya",
         description: "4 gang smart switch with backlight and neutral wire",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
         exposes: [
             tuya.exposes.switch().withDescription("All Switches"),
             tuya.exposes.switch().withEndpoint("l1"),
@@ -12187,7 +12843,6 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.exposes.countdown().withEndpoint("l4"),
             e.power_on_behavior(["off", "on", "previous"]).withAccess(ea.STATE_SET),
         ],
-        onEvent: tuya.onEventSetTime,
         endpoint: (device) => {
             return {l1: 1, l2: 1, l3: 1, l4: 1, state: 1, backlight: 1};
         },
@@ -12372,6 +13027,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Ltech", "TY-75-24-G2Z2", "150W 24V Zigbee CV tunable white LED driver", ["_TZE200_io0zdqh1"]),
             tuya.whitelabel("Lifud", "LF-AAZ012-0400-42", "Zigbee dimmable LED driver 4-40W 220-240Vac", ["_TZE200_drs6j6m5"]),
             tuya.whitelabel("Lifud", "LF-GAZ150A6250-24", "Lifud Zigbee LED Driver CCT 150W 24V", ["_TZE200_ywe90lt0"]),
+            tuya.whitelabel("Lifud", "LF-GAZ150B6250-24", "Lifud Zigbee LED Driver 150W 24V", ["_TZE204_drs6j6m5"]),
         ],
     },
     {
@@ -12648,10 +13304,10 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_ya4ft0w4", "_TZE200_ya4ft0w4", "_TZE204_gkfbdvyx"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_ya4ft0w4", "_TZE200_ya4ft0w4", "_TZE204_gkfbdvyx", "_TZE200_gkfbdvyx"]),
         model: "ZY-M100-24GV3",
         vendor: "Tuya",
-        description: "24G MmWave radar human presence motion sensor（added distance switch）",
+        description: "24G MmWave radar human presence motion sensor (added distance switch)",
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
@@ -12677,7 +13333,7 @@ export const definitions: DefinitionWithExtend[] = [
                     .withUnit("s")
                     .withDescription("Fade time"),
             ];
-            if (!device || device.manufacturerName === "_TZE204_gkfbdvyx") {
+            if (!device || device.manufacturerName === "_TZE204_gkfbdvyx" || device.manufacturerName === "_TZE200_gkfbdvyx") {
                 exps.push(
                     e
                         .numeric("detection_distance_min", ea.STATE_SET)
@@ -13027,8 +13683,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Bidirectional energy meter with 80A current clamp",
         fromZigbee: [fzLocal.PJ1203A_strict_fz_datapoints, fzLocal.PJ1203A_sync_time_increase_seq],
         toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime,
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({timeStart: "2000"})],
         options: [
             e
                 .binary("late_energy_flow_a", ea.SET, true, false)
@@ -13071,9 +13726,9 @@ export const definitions: DefinitionWithExtend[] = [
             // were received. They can be several seconds in the past if
             // the publication was delayed because of the late_energy_flow options.
             e
-                .numeric("timestamp_a", ea.STATE)
+                .text("timestamp_a", ea.STATE)
                 .withDescription("Timestamp at power measure (phase a)"),
-            e.numeric("timestamp_b", ea.STATE).withDescription("Timestamp at power measure (phase b)"),
+            e.text("timestamp_b", ea.STATE).withDescription("Timestamp at power measure (phase b)"),
         ],
         meta: {
             multiEndpointSkip: ["power_factor", "power_factor_phase_b", "power_factor_phase_c", "energy"],
@@ -13102,10 +13757,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "PC311-Z-TY",
         vendor: "Tuya",
         description: "Bidirectional energy meter with 80A current clamp",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime,
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
         exposes: [
             e.ac_frequency(),
             e.voltage(),
@@ -13151,10 +13803,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TYBAC-006",
         vendor: "Tuya",
         description: "Wall-mount thermostat for 2-pipe fan-coil unit",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetLocalTime,
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true})],
         options: [
             e
                 .enum("control_sequence_of_operation", ea.SET, ["cooling_only", "cooling_and_heating_4-pipes"])
@@ -13222,7 +13871,6 @@ export const definitions: DefinitionWithExtend[] = [
                                 return v === true ? "ON" : "OFF";
                             }
 
-                            // biome-ignore lint/performance/noDelete: ignored using `--suppress`
                             delete meta.state.state;
                         },
                     },
@@ -13292,10 +13940,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "rtsc11r",
         vendor: "Tuya",
         description: "5.8G human presence sensor with relay",
-        configure: tuya.configureMagicPacket,
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
         exposes: [
             e.presence(),
             e.illuminance().withUnit("lx"),
@@ -13413,14 +14058,27 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Tuya",
         description: "Smart WiFi Zigbee chlorine meter",
         whiteLabel: [tuya.whitelabel("Tuya", "YK-S03", "Smart pH and Chlorine Tester for Swimming Pool", ["_TZE200_d9mzkhoq"])],
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
         // Don't query too often. Values are not always updated. https://github.com/Koenkk/zigbee2mqtt/issues/18704
-        onEvent: tuya.onEvent({
-            queryOnDeviceAnnounce: true,
-            queryIntervalSeconds: 5 * 60,
-        }),
-        configure: tuya.configureMagicPacket,
+        extend: [
+            tuya.modernExtend.tuyaBase({
+                dp: true,
+                queryOnDeviceAnnounce: true,
+                // https://github.com/Koenkk/zigbee2mqtt/issues/23946#issuecomment-2941182834
+                queryIntervalSeconds: 10 * 60,
+            }),
+            m.poll({
+                key: "backlight",
+                defaultIntervalSeconds: 30 * 60,
+                poll: async (device) => {
+                    // Set backlight ever 30 mins, otherwise device stops updating.
+                    // https://github.com/Koenkk/zigbee2mqtt/issues/23946#issuecomment-3176121660
+                    const ep = device.getEndpoint(1);
+                    await tuya.sendDataPointValue(ep, 105, 0, "dataRequest", 1);
+                    await utils.sleep(2000);
+                    await tuya.sendDataPointValue(ep, 105, 0, "dataRequest", 0);
+                },
+            }),
+        ],
         exposes: [
             e.numeric("tds", ea.STATE).withUnit("ppm").withDescription("Total Dissolved Solids"),
             e.temperature(),
@@ -13487,11 +14145,8 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription("Free Chlorine minimal value")
                 .withValueMin(0)
                 .withValueMax(15),
-            e
-                .numeric("salinity", ea.STATE)
-                .withUnit("ppm")
-                .withDescription("Salt value"),
-            // e.numeric('backlightvalue', ea.STATE).withUnit('gg').withDescription('Backlight Value'),
+            e.numeric("salinity", ea.STATE).withUnit("ppm").withDescription("Salt value"),
+            e.numeric("backlightvalue", ea.STATE_SET).withUnit("gg").withDescription("Backlight Value").withValueMin(0).withValueMax(1),
         ],
         meta: {
             // All datapoints go in here
@@ -13499,19 +14154,30 @@ export const definitions: DefinitionWithExtend[] = [
                 [1, "tds", tuya.valueConverter.raw],
                 [2, "temperature", tuya.valueConverter.divideBy10],
                 [7, "battery", tuya.valueConverter.raw],
-                [10, "ph", tuya.valueConverter.divideBy100],
+                [
+                    10,
+                    "ph",
+                    {
+                        from: (v) => {
+                            if (v > 99) {
+                                return v / 100;
+                            }
+                            return v / 10;
+                        },
+                    },
+                ],
                 [11, "ec", tuya.valueConverter.raw],
                 [101, "orp", tuya.valueConverter.raw],
-                [102, "free_chlorine", tuya.valueConverter.divideBy10],
-                // [105, 'backlightvalue', tuya.valueConverter.raw],
+                [102, "free_chlorine", tuya.valueConverter.raw],
+                [105, "backlightvalue", tuya.valueConverter.raw],
                 [106, "ph_max", tuya.valueConverter.divideBy10],
                 [107, "ph_min", tuya.valueConverter.divideBy10],
                 [108, "ec_max", tuya.valueConverter.raw],
                 [109, "ec_min", tuya.valueConverter.raw],
                 [110, "orp_max", tuya.valueConverter.raw],
                 [111, "orp_min", tuya.valueConverter.raw],
-                [112, "free_chlorine_max", tuya.valueConverter.divideBy10],
-                [113, "free_chlorine_min", tuya.valueConverter.divideBy10],
+                [112, "free_chlorine_max", tuya.valueConverter.raw],
+                [113, "free_chlorine_min", tuya.valueConverter.raw],
                 [117, "salinity", tuya.valueConverter.raw],
             ],
         },
@@ -13521,10 +14187,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SP02-ZB001",
         vendor: "iAlarm",
         description: "Infrared motion sensor",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime,
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
         exposes: [e.tamper(), e.battery(), e.occupancy()],
         meta: {
             tuyaDatapoints: [
@@ -13556,10 +14219,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "DCR-RQJ",
         vendor: "Tuya",
         description: "Carbon monoxide sensor gas leak detector",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime,
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
         exposes: [e.gas(), tuya.exposes.gasValue().withUnit("LEL %"), e.carbon_monoxide(), e.co()],
         meta: {
             tuyaDatapoints: [
@@ -13571,7 +14231,8 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_nojsjtj2"]),
+        zigbeeModel: ["ZG-101Z"],
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_nojsjtj2", "_TZE200_vrcfo4i0"]),
         model: "ZG-101Z",
         vendor: "Loginovo",
         description: "SOS button",
@@ -13588,10 +14249,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SZR07U",
         vendor: "Tuya",
         description: "24GHz millimeter wave radar",
-        configure: tuya.configureMagicPacket,
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
         exposes: [
             e.presence(),
             e
@@ -13663,7 +14321,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.modernExtend.tuyaMagicPacket(),
             m.battery({voltage: true}),
             tuya.modernExtend.combineActions([
-                m.actionEnumLookup({
+                m.actionEnumLookup<"genOnOff", undefined, "tuyaAction">({
                     actionLookup: {scene_1: 1, scene_2: 2, scene_3: 3, scene_4: 4},
                     cluster: "genOnOff",
                     commands: ["commandTuyaAction"],
@@ -13678,17 +14336,12 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_kobbcyum", "_TZE284_kobbcyum", "_TZE284_hecsejsb"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_kobbcyum", "_TZE284_kobbcyum", "_TZE284_hecsejsb", "_TZE284_432zhuwe"]),
         model: "TOWSMR1",
         vendor: "Tongou",
         description: "Single-phase multifunction RCBO (DIN Module)",
-        fromZigbee: [tuya.fz.datapoints, tuya.fz.gateway_connection_status],
-        toZigbee: [tuya.tz.datapoints],
-        configure: async (device, coordinatorEndpoint) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint);
-            // Required to get the device to start reporting
-            await device.getEndpoint(1).command("manuSpecificTuya", "dataQuery", {});
-        },
+        extend: [tuya.modernExtend.tuyaBase({dp: true, queryOnConfigure: true, queryIntervalSeconds: 10, respondToMcuVersionResponse: false})],
+        whiteLabel: [tuya.whitelabel("Tongou", "TOSA1", "Single-phase multifunction RCBO (DIN Module)", ["_TZE284_432zhuwe"])],
         exposes: [
             tuya.exposes.switch(),
             e.temperature(),
@@ -13773,6 +14426,24 @@ export const definitions: DefinitionWithExtend[] = [
                     "When the circuit breaker trips due to voltage protection, it will automatically close when the circuit voltage returns to normal",
                 ),
             e.binary("restore_default", ea.STATE_SET, "ON", "OFF").withDescription("Turn ON to restore default settings"),
+            e
+                .binary("overcurrent_recloser", ea.STATE_SET, "ON", "OFF")
+                .withLabel("Overcurrent Recloser")
+                .withDescription(
+                    "When the circuit breaker trips due to overcurrent protection, it will automatically close when the circuit voltage returns to normal",
+                ),
+            e
+                .binary("leakage_recloser", ea.STATE_SET, "ON", "OFF")
+                .withLabel("Leakage Recloser")
+                .withDescription(
+                    "When the circuit breaker trips due to leakage protection, it will automatically close when the circuit voltage returns to normal",
+                ),
+            e
+                .binary("overpower_recloser", ea.STATE_SET, "ON", "OFF")
+                .withLabel("Overpower Recloser")
+                .withDescription(
+                    "When the circuit breaker trips due to overpower protection, it will automatically close when the circuit voltage returns to normal",
+                ),
         ],
         meta: {
             tuyaDatapoints: [
@@ -13872,26 +14543,20 @@ export const definitions: DefinitionWithExtend[] = [
                 [118, "temperature_threshold", tuya.valueConverter.divideBy10],
                 [119, "over_power_threshold", tuya.valueConverter.raw],
                 [131, "temperature", tuya.valueConverter.divideBy10],
+                // The ones below might only work for _TZE284_432zhuwe
+                // https://github.com/Koenkk/zigbee-herdsman-converters/pull/9747
+                [143, "overcurrent_recloser", tuya.valueConverter.onOff],
+                [144, "leakage_recloser", tuya.valueConverter.onOff],
+                [145, "overpower_recloser", tuya.valueConverter.onOff],
             ],
         },
-        onEvent: tuya.onEvent({
-            respondToMcuVersionResponse: false,
-            queryIntervalSeconds: 10,
-        }),
     },
     {
         fingerprint: [{modelID: "TS0601", manufacturerName: "_TZE284_6ocnqlhn"}],
         model: "TO-Q-SYS-JZT",
         vendor: "Tongou",
         description: "Din rail smart meter",
-        fromZigbee: [tuya.fz.datapoints, tuya.fz.gateway_connection_status],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEvent({respondToMcuVersionResponse: false, queryIntervalSeconds: 10}),
-        configure: async (device, coordinatorEndpoint) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint);
-            // Required to get the device to start reporting
-            await device.getEndpoint(1).command("manuSpecificTuya", "dataQuery", {});
-        },
+        extend: [tuya.modernExtend.tuyaBase({dp: true, queryOnConfigure: true, queryIntervalSeconds: 10, respondToMcuVersionResponse: false})],
         exposes: [
             tuya.exposes.switch(),
             e.power(),
@@ -14073,9 +14738,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "EA4161C-BI",
         vendor: "Tuya",
         description: "Single-phase multifunction energy meter (DIN Module)",
-        fromZigbee: [tuya.fz.datapoints, tuya.fz.gateway_connection_status],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [e.current(), e.power(), e.voltage(), e.energy(), e.text("meter_id", ea.STATE).withDescription("Meter ID (ID of device)")],
         meta: {
             tuyaDatapoints: [
@@ -14114,14 +14777,12 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.temperature(), m.humidity(), m.identify({isSleepy: true}), m.battery({voltage: true})],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_pl31aqf5"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_pl31aqf5", "_TZE200_xpvamyfz", "_TZE284_xpvamyfz"]),
         model: "ZR360CDB",
         vendor: "Zorro Alert",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
         description: "Multifunctional CO2 detector",
-        onEvent: tuya.onEventSetTime,
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
+        whiteLabel: [tuya.whitelabel("Nous", "E10", "Multifunctional CO2 detector", ["_TZE200_xpvamyfz", "_TZE284_xpvamyfz"])],
         exposes: [
             e.humidity(),
             e.temperature(),
@@ -14176,14 +14837,11 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_edl8pz1k", "_TZE204_edl8pz1k"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_edl8pz1k", "_TZE204_edl8pz1k", "_TZE204_6a4vxfnv"]),
         model: "TS0601_floor_thermostat",
         vendor: "Tuya",
         description: "Zigbee thermostat for electric floors",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime, // Add this if you are getting no converter for 'commandMcuSyncTime'
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
         exposes: [
             e
                 .climate()
@@ -14233,10 +14891,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TE-1Z",
         vendor: "Tuya",
         description: "Floor heating thermostat",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime,
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
         exposes: [
             // e.binary('system_mode', ea.STATE_SET, 'ON', 'OFF')
             // .withDescription('Turn system on or standby mode'),
@@ -14350,10 +15005,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "PRO-900Z",
         vendor: "ElectSmart",
         description: "Thermostat for electric floor",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime,
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
         exposes: [
             e.binary("child_lock", ea.STATE_SET, "ON", "OFF").withLabel("Child lock"),
             e.binary("eco_mode", ea.STATE_SET, "OFF", "ON").withLabel("ECO mode").withDescription("Default: Off"),
@@ -14508,17 +15160,15 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_dsagrkvg"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_dsagrkvg", "_TZE284_zm8zpwas"]),
         model: "ZPV-01",
         vendor: "Novato",
         description: "Battery powered smart valve",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime,
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
         exposes: [
             e.switch().setAccess("state", ea.STATE_SET),
-            e.enum("valve_state", ea.STATE, ["close", "unknown", "open"]).withDescription("State of the valve"),
+            e.enum("valve_state", ea.STATE, ["Closed", "Unknown", "Open"]).withDescription("Valve Status"),
+            e.battery(),
         ],
         meta: {
             tuyaDatapoints: [
@@ -14532,6 +15182,7 @@ export const definitions: DefinitionWithExtend[] = [
                         closed: tuya.enum(2),
                     }),
                 ],
+                [101, "battery", tuya.valueConverter.raw],
             ],
         },
     },
@@ -14672,19 +15323,13 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_q22avxbv", "_TZE204_mrffaamu", "_TZE204_tzreobvu", "_TZE284_mrffaamu"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_q22avxbv", "_TZE204_mrffaamu", "_TZE204_tzreobvu", "_TZE284_mrffaamu", "TZE284_tzreobvu"]),
         model: "TOQCB2-80",
         vendor: "Tongou",
         description: "Smart circuit breaker",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
         // Important: respondToMcuVersionResponse should be false otherwise there is an avalanche of commandMcuVersionResponse messages every second.
         // queryIntervalSeconds: is doing a pooling to update the device's parameters, now defined to update data every 3 minutes.
-        onEvent: tuya.onEvent({
-            respondToMcuVersionResponse: false,
-            queryIntervalSeconds: 3 * 60,
-        }),
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, queryIntervalSeconds: 3 * 60, respondToMcuVersionResponse: false})],
         exposes: [
             tuya.exposes.switch(),
             e.energy(),
@@ -14863,10 +15508,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZY-M100-S_3",
         vendor: "Tuya",
         description: "Human presence detector",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime,
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
         exposes: [
             e.presence(),
             e.illuminance(),
@@ -14905,9 +15547,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZG-205Z",
         vendor: "Tuya",
         description: "5.8 GHz human presence sensor",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
         exposes: [
             e.presence(),
             e
@@ -14987,18 +15627,10 @@ export const definitions: DefinitionWithExtend[] = [
                     null,
                     {
                         from: (v: number) => {
-                            const lookup = {
-                                none: tuya.enum(0),
-                                presence: tuya.enum(1),
-                                peaceful: tuya.enum(2),
-                                small_movement: tuya.enum(3),
-                                large_movement: tuya.enum(4),
-                            };
-                            const presenceState = Object.entries(lookup).find((i) => i[1].valueOf() === v)[0];
-                            return {
-                                presence: presenceState !== "none",
-                                presence_state: presenceState,
-                            };
+                            if (v > 99) {
+                                return v / 10;
+                            }
+                            return v / 100;
                         },
                     },
                 ],
@@ -15073,7 +15705,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_zqq3cipq"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_zqq3cipq", "_TZE284_zqq3cipq"]),
         model: "PN16",
         vendor: "ZSVIOT",
         description: "16-way controller",
@@ -15180,7 +15812,8 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_iba1ckek", "_TZE200_hggxgsjj"]),
+        zigbeeModel: ["ZG-103Z"],
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_iba1ckek", "_TZE200_hggxgsjj", "_TZE200_yjryxpot", "_TZE200_afycb3cg"]),
         model: "ZG-103Z",
         vendor: "Tuya",
         description: "Vibration sensor",
@@ -15217,7 +15850,15 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_kccdzaeo", "_TZE200_s7rsrtbg", "_TZE200_tmszbtzq"]),
+        zigbeeModel: ["ZG-302ZM"],
+        fingerprint: tuya.fingerprint("TS0601", [
+            "_TZE200_kccdzaeo",
+            "_TZE200_s7rsrtbg",
+            "_TZE200_tmszbtzq",
+            "_TZE200_bfmfhxra",
+            "_TZE200_ahpcyzth",
+            "_TZE200_kijxnb8q",
+        ]),
         model: "ZG-302ZM",
         vendor: "HOBEIAN",
         description: "Motion sensing switch",
@@ -15342,7 +15983,7 @@ export const definitions: DefinitionWithExtend[] = [
                         alarm: tuya.enum(1),
                     }),
                 ],
-                [101, "temperature", tuya.valueConverter.divideBy10],
+                [103, "temperature", tuya.valueConverter.divideBy10],
                 [109, "humidity", tuya.valueConverter.raw],
                 [107, "soil_moisture", tuya.valueConverter.raw],
                 [108, "battery", tuya.valueConverter.raw],
@@ -15513,7 +16154,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_ex3rcdha"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_ex3rcdha", "_TZE204_lbbg34rj"]),
         model: "ZY_HPS01",
         vendor: "Tuya",
         description: "mmWave radar 5.8GHz",
@@ -15521,6 +16162,7 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
         extend: [],
+        whiteLabel: [tuya.whitelabel("Nova Digital", "ZTS-MM", "mmWave radar 5.8GHz", ["_TZE204_lbbg34rj"])],
         exposes: [
             e.illuminance().withUnit("lx"),
             e.occupancy(),
@@ -15732,10 +16374,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0601_GTZ10",
         vendor: "Tuya",
         description: "Thermostat radiator valve",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetLocalTime,
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true})],
         ota: true,
         exposes: [
             e.battery(),
@@ -15908,10 +16547,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ME201WZ",
         vendor: "Tuya",
         description: "Water level sensor",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetLocalTime,
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true})],
         exposes: [
             e.numeric("liquid_level_percent", ea.STATE).withUnit("%").withDescription("Liquid level ratio"),
             e.numeric("liquid_depth", ea.STATE).withUnit("m").withDescription("Liquid Depth"),
@@ -15970,10 +16606,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TLC2206",
         vendor: "Tuya",
         description: "Water level sensor",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetLocalTime,
-        configure: tuya.configureMagicPacket,
+        extend: [m.forcePowerSource({powerSource: "Mains (single phase)"}), tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true})],
         exposes: [
             e.numeric("liquid_level_percent", ea.STATE).withUnit("%").withDescription("Liquid level ratio"),
             e.numeric("liquid_depth", ea.STATE).withUnit("cm").withDescription("Liquid depth"),
@@ -15998,7 +16631,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription("Height from sensor to tank bottom")
                 .withValueMin(10)
                 .withValueMax(4000)
-                .withValueStep(1),
+                .withValueStep(5),
             e
                 .numeric("liquid_depth_max", ea.STATE_SET)
                 .withUnit("mm")
@@ -16009,7 +16642,15 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         meta: {
             tuyaDatapoints: [
-                [1, "liquid_state", tuya.valueConverterBasic.lookup({low: tuya.enum(1), normal: tuya.enum(0), high: tuya.enum(2)})],
+                [
+                    1,
+                    "liquid_state",
+                    tuya.valueConverterBasic.lookup({
+                        low: tuya.enum(1),
+                        normal: tuya.enum(0),
+                        high: tuya.enum(2),
+                    }),
+                ],
                 [2, "liquid_depth", tuya.valueConverter.raw], // mm
                 [22, "liquid_level_percent", tuya.valueConverter.raw],
                 [7, "max_set", tuya.valueConverter.raw],
@@ -16024,10 +16665,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "HHST001",
         vendor: "HeatHUB",
         description: "Fan coil thermostat",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime,
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
         exposes: [
             e.binary("state", ea.STATE_SET, "ON", "OFF").withDescription("Turn the thermostat ON/OFF"),
             e
@@ -16817,10 +17455,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "AE-940K",
         vendor: "ACMELEC",
         description: "Compatible with Daikin vrv system",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime,
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
         exposes: [
             e.binary("state", ea.STATE_SET, "ON", "OFF").withDescription("Turn the thermostat ON/OFF"),
             e
@@ -16864,10 +17499,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "AE-669K",
         vendor: "ACMELEC",
         description: "Compatible with Mitsubishi Electric vrf system",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime,
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
         exposes: [
             e.binary("state", ea.STATE_SET, "ON", "OFF").withDescription("Turn the thermostat ON/OFF"),
             e
@@ -17014,10 +17646,51 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0726", ["_TZ3000_ezqbvrqz", "_TZ3002_ymv5vytn"]),
+        fingerprint: tuya.fingerprint("TS0001", ["_TZ3000_qvmiyxuk"]),
+        model: "TS0001_1_gang_switch",
+        vendor: "Tuya",
+        description: "1 gang switch with backlight",
+        fromZigbee: [fz.ignore_basic_report],
+        extend: [
+            tuya.modernExtend.tuyaOnOff({
+                powerOnBehavior2: true,
+                backlightModeOffOn: true,
+                onOffCountdown: true,
+            }),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0726", ["_TZ3000_5kxl9esg"]),
+        model: "TS0726_1_gang_scene_switch",
+        vendor: "Tuya",
+        description: "1 gang switch with scene and backlight",
+        fromZigbee: [fz.ignore_basic_report, fzLocal.TS0726_action],
+        exposes: [e.action(["scene_1"])],
+        extend: [
+            tuya.modernExtend.tuyaOnOff({
+                switchMode: true,
+                powerOnBehavior2: true,
+                backlightModeOffOn: true,
+                indicatorModeNoneRelayPos: true,
+                onOffCountdown: true,
+            }),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0726", ["_TZ3000_ezqbvrqz", "_TZ3002_ymv5vytn", "_TZ3002_6ahhkwyh"]),
         model: "TS0726_2_gang_scene_switch",
         vendor: "Tuya",
         description: "2 gang switch with scene and backlight",
+        fromZigbee: [fz.ignore_basic_report, fzLocal.TS0726_action],
+        exposes: [e.action(["scene_1", "scene_2"])],
         extend: [
             tuya.modernExtend.tuyaOnOff({
                 switchMode: true,
@@ -17040,10 +17713,12 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0726", ["_TZ3000_noru9tix", "_TZ3002_rbnycsav"]),
+        fingerprint: tuya.fingerprint("TS0726", ["_TZ3000_noru9tix", "_TZ3002_rbnycsav", "_TZ3002_kq3kqwjt"]),
         model: "TS0726_3_gang_scene_switch",
         vendor: "Tuya",
         description: "3 gang switch with scene and backlight",
+        fromZigbee: [fz.ignore_basic_report, fzLocal.TS0726_action],
+        exposes: [e.action(["scene_1", "scene_2", "scene_3"])],
         extend: [
             tuya.modernExtend.tuyaOnOff({
                 switchMode: true,
@@ -17066,10 +17741,12 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0726", ["_TZ3000_rsylfthg"]),
+        fingerprint: tuya.fingerprint("TS0726", ["_TZ3000_rsylfthg", "_TZ3002_umdkr64x"]),
         model: "TS0726_4_gang_scene_switch",
         vendor: "Tuya",
         description: "4 gang switch with scene and backlight",
+        fromZigbee: [fz.ignore_basic_report, fzLocal.TS0726_action],
+        exposes: [e.action(["scene_1", "scene_2", "scene_3", "scene_4"])],
         extend: [
             tuya.modernExtend.tuyaOnOff({
                 switchMode: true,
@@ -17096,10 +17773,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "HY-SZLUMPIR",
         vendor: "Homcloud",
         description: "PIR sensor",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEvent(),
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [e.occupancy(), e.illuminance(), e.battery()],
         meta: {
             tuyaDatapoints: [
@@ -17114,10 +17788,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "XZ-AKT101",
         vendor: "Tuya",
         description: "Intelligent air conditioning wall switch",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime,
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
         ota: true,
         exposes: [
             e.binary("air_switch", ea.STATE_SET, true, false),
@@ -17253,6 +17924,594 @@ export const definitions: DefinitionWithExtend[] = [
                         restore: 2,
                     }),
                 ],
+            ],
+        },
+    },
+    {
+        zigbeeModel: ["5rta89nj"],
+        fingerprint: [{modelID: "TS0601", manufacturerName: "_TZ3210_emqmwtym"}],
+        model: "EPJ-ZB",
+        vendor: "Nova Digital",
+        description: "Smart sliding window pusher",
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
+        exposes: [
+            e.battery(),
+            e.cover_position(),
+            e.binary("charge_state", ea.STATE, "true", "false"),
+            e.enum("manual_mode", ea.STATE_SET, ["Enable", "Disable"]),
+            e.enum("fault", ea.STATE, ["Normal", "None", "Fault"]).withDescription("Motor Fault"),
+            e.numeric("countdown", ea.STATE_SET).withValueMin(10).withValueMax(90).withUnit("s").withDescription("Motor timeout"),
+            e.enum("motor_direction", ea.STATE_SET, ["Left Side", "Right Side"]).withDescription("Pusher install side"),
+            e.enum("mode", ea.STATE_SET, ["Enable", "Disable"]).withDescription("Slow stop mode"),
+            e.enum("fixed_window_sash", ea.STATE_SET, ["Up", "Down"]).withDescription("Button position"),
+            e.enum("window_detection", ea.STATE, ["Opened", "Closed", "Pending"]).withDescription("Window detection status"),
+        ],
+        meta: {
+            tuyaSendCommand: "sendData",
+            tuyaDatapoints: [
+                [4, "battery", tuya.valueConverter.raw],
+                [102, "state", tuya.valueConverterBasic.lookup({OPEN: 0, CLOSE: 1, STOP: 2})],
+                [104, "position", tuya.valueConverter.coverPosition],
+                [105, "charge_state", tuya.valueConverter.trueFalse1],
+                [106, "manual_mode", tuya.valueConverterBasic.lookup({Enable: 0, Disable: 1})],
+                [107, "fault", tuya.valueConverterBasic.lookup({Normal: 0, None: 1, Fault: 2})],
+                [108, "countdown", tuya.valueConverter.raw],
+                [109, "motor_direction", tuya.valueConverterBasic.lookup({"Left Side": 1, "Right Side": 0})],
+                [110, "mode", tuya.valueConverterBasic.lookup({Enable: 1, Disable: 0})],
+                [112, "fixed_window_sash", tuya.valueConverterBasic.lookup({Up: 1, Down: 0})],
+                [114, "window_detection", tuya.valueConverterBasic.lookup({Opened: 0, Closed: 1, Pending: 2})],
+            ],
+        },
+    },
+    {
+        zigbeeModel: ["ZG-102ZM"],
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_wzk0x7fq", "_TZE200_jfw0a4aa"]),
+        model: "ZG-102ZM",
+        vendor: "HOBEIAN",
+        description: "Vibration sensor",
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.vibration(),
+            e.contact(),
+            e.battery(),
+            e
+                .numeric("sensitivity", ea.STATE_SET)
+                .withValueMin(1)
+                .withValueMax(50)
+                .withValueStep(1)
+                .withUnit("x")
+                .withDescription("The larger the value, the more sensitive it is (refresh and update only while active)"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "vibration", tuya.valueConverter.trueFalse1],
+                [101, "contact", tuya.valueConverter.inverse],
+                [4, "battery", tuya.valueConverter.raw],
+                [6, "sensitivity", tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
+        zigbeeModel: ["ZG-204ZV"],
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_uli8wasj", "_TZE200_grgol3xp", "_TZE200_rhgsbacq", "_TZE200_y8jijhba"]),
+        model: "ZG-204ZV",
+        vendor: "HOBEIAN",
+        description: "Millimeter wave motion detection",
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        exposes: [
+            e.presence(),
+            e.illuminance(),
+            e.temperature(),
+            e.humidity(),
+            tuya.exposes.temperatureUnit(),
+            tuya.exposes.temperatureCalibration(),
+            tuya.exposes.humidityCalibration(),
+            e.battery(),
+            e
+                .numeric("fading_time", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(28800)
+                .withValueStep(1)
+                .withUnit("s")
+                .withDescription("Motion keep time"),
+            e.binary("indicator", ea.STATE_SET, "ON", "OFF").withDescription("LED indicator mode"),
+            e
+                .numeric("illuminance_interval", ea.STATE_SET)
+                .withValueMin(1)
+                .withValueMax(720)
+                .withValueStep(1)
+                .withUnit("minutes")
+                .withDescription("Light sensing sampling(refresh and update only while active)"),
+            e
+                .numeric("motion_detection_sensitivity", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(19)
+                .withValueStep(1)
+                .withUnit("x")
+                .withDescription("The larger the value, the more sensitive it is (refresh and update only while active)"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "presence", tuya.valueConverter.trueFalse1],
+                [106, "illuminance", tuya.valueConverter.raw],
+                [102, "fading_time", tuya.valueConverter.raw],
+                [2, "motion_detection_sensitivity", tuya.valueConverter.raw],
+                [108, "indicator", tuya.valueConverter.onOff],
+                [110, "battery", tuya.valueConverter.raw],
+                [111, "temperature", tuya.valueConverter.divideBy10],
+                [101, "humidity", tuya.valueConverter.raw],
+                [109, "temperature_unit", tuya.valueConverter.temperatureUnit],
+                [105, "temperature_calibration", tuya.valueConverter.divideBy10],
+                [104, "humidity_calibration", tuya.valueConverter.raw],
+                [107, "illuminance_interval", tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
+        zigbeeModel: ["ZG-223Z"],
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_jsaqgakf", "_TZE200_u6x1zyv2"]),
+        model: "ZG-223Z",
+        vendor: "HOBEIAN",
+        description: "Rainwater detection sensor",
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.enum("rainwater", ea.STATE, ["none", "raining"]).withDescription("Sensor rainwater status"),
+            e.illuminance(),
+            e
+                .numeric("sensitivity", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(9)
+                .withValueStep(1)
+                .withUnit("x")
+                .withDescription("The larger the value, the more sensitive it is (refresh and update only while active)"),
+            e
+                .numeric("illuminance_sampling", ea.STATE_SET)
+                .withValueMin(1)
+                .withValueMax(480)
+                .withValueStep(1)
+                .withUnit("minutes")
+                .withDescription("Brightness acquisition interval (refresh and update only while active)"),
+            e.battery(),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [
+                    1,
+                    "rainwater",
+                    tuya.valueConverterBasic.lookup({
+                        none: tuya.enum(0),
+                        raining: tuya.enum(1),
+                    }),
+                ],
+                [102, "illuminance", tuya.valueConverter.raw],
+                [104, "battery", tuya.valueConverter.raw],
+                [2, "sensitivity", tuya.valueConverter.raw],
+                [101, "illuminance_sampling", tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_no6qtgtl"]),
+        model: "RD24G01",
+        vendor: "Tuya",
+        description: "24GHz human presence sensor",
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
+        exposes: [
+            exposes
+                .enum("presence_state", exposes.access.STATE, ["none", "motion", "stationary"])
+                .withDescription("Presence state: none, motion, or stationary"),
+            exposes.numeric("target_distance_closest", exposes.access.STATE).withUnit("m").withDescription("Closest target distance"),
+            exposes
+                .numeric("near_detection", exposes.access.STATE_SET)
+                .withUnit("m")
+                .withDescription("Minimum detection range")
+                .withValueMin(0.1)
+                .withValueMax(6),
+            exposes
+                .numeric("far_detection", exposes.access.STATE_SET)
+                .withUnit("m")
+                .withDescription("Maximum detection range")
+                .withValueMin(0.1)
+                .withValueMax(6),
+            exposes
+                .numeric("static_sensitivity", exposes.access.STATE_SET)
+                .withDescription("Static presence sensitivity")
+                .withValueMin(0)
+                .withValueMax(10),
+            exposes.numeric("motion_sensitivity", exposes.access.STATE_SET).withDescription("Motion sensitivity").withValueMin(0).withValueMax(10),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [
+                    1,
+                    "presence_state",
+                    tuya.valueConverterBasic.lookup({
+                        none: 0,
+                        motion: 1,
+                        stationary: 2,
+                    }),
+                ],
+                [3, "near_detection", tuya.valueConverter.divideBy100],
+                [4, "far_detection", tuya.valueConverter.divideBy100],
+                [9, "target_distance_closest", tuya.valueConverter.divideBy100],
+                [101, "static_sensitivity", tuya.valueConverter.raw],
+                [102, "motion_sensitivity", tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_gubdgai2", "_TZE200_vdiuwbkq"]),
+        model: "M515EGBZTN",
+        vendor: "Quoya",
+        description: "Zigbee roller blind",
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
+        options: [exposes.options.invert_cover()],
+        exposes: [
+            e.cover_position().setAccess("position", ea.STATE_SET),
+            e.enum("motor_direction", ea.STATE_SET, ["forward", "back"]).withDescription("Motor direction"),
+            e.enum("border", ea.STATE_SET, ["up", "down", "up_delete", "down_delete", "remove_top_bottom"]).withDescription("Limit setting"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [
+                    1,
+                    "state",
+                    tuya.valueConverterBasic.lookup({
+                        OPEN: tuya.enum(0),
+                        STOP: tuya.enum(1),
+                        CLOSE: tuya.enum(2),
+                    }),
+                ],
+                [2, "position", tuya.valueConverter.coverPositionInverted],
+                [
+                    5,
+                    "motor_direction",
+                    tuya.valueConverterBasic.lookup({
+                        forward: tuya.enum(0),
+                        back: tuya.enum(1),
+                    }),
+                ],
+                [
+                    16,
+                    "border",
+                    tuya.valueConverterBasic.lookup({
+                        up: tuya.enum(0),
+                        down: tuya.enum(1),
+                        up_delete: tuya.enum(2),
+                        down_delete: tuya.enum(3),
+                        remove_top_bottom: tuya.enum(4),
+                    }),
+                ],
+            ],
+        },
+    },
+    {
+        zigbeeModel: ["ZG-303Z"],
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_npj9bug3", "_TZE200_wrmhp6b3"]),
+        model: "CS-201Z",
+        vendor: "COOLO",
+        description: "Soil moisture sensor",
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.dry(),
+            e.temperature(),
+            e.humidity(),
+            e.soil_moisture(),
+            tuya.exposes.temperatureUnit(),
+            tuya.exposes.temperatureCalibration(),
+            tuya.exposes.humidityCalibration(),
+            tuya.exposes.soilCalibration(),
+            tuya.exposes.temperatureSampling(),
+            tuya.exposes.soilSampling(),
+            tuya.exposes.soilWarning(),
+            e.battery(),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [106, "dry", tuya.valueConverter.raw],
+                [5, "temperature", tuya.valueConverter.divideBy10],
+                [109, "humidity", tuya.valueConverter.raw],
+                [3, "soil_moisture", tuya.valueConverter.raw],
+                [15, "battery", tuya.valueConverter.raw],
+                [9, "temperature_unit", tuya.valueConverter.temperatureUnit],
+                [104, "temperature_calibration", tuya.valueConverter.divideBy10],
+                [105, "humidity_calibration", tuya.valueConverter.raw],
+                [102, "soil_calibration", tuya.valueConverter.raw],
+                [111, "temperature_sampling", tuya.valueConverter.raw],
+                [112, "soil_sampling", tuya.valueConverter.raw],
+                [110, "soil_warning", tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0001", ["_TZE21C_dohbhb5k"]),
+        model: "TYONOFFTS",
+        vendor: "Scimagic",
+        description: "Smart switch with temperature sensor",
+        extend: [
+            tuya.modernExtend.tuyaMagicPacket(),
+            tuya.modernExtend.dpOnOff({
+                dp: 0x02,
+            }),
+            tuya.modernExtend.dpTemperature({dp: 0x1b}),
+            tuya.modernExtend.dpNumeric({
+                dp: 0x1e,
+                name: "temperature_calibration",
+                type: tuya.dataTypes.number,
+                valueMin: -10,
+                valueMax: 10,
+                valueStep: 0.5,
+                unit: "°C",
+                scale: 2,
+                description: "Temperature calibration",
+            }),
+            tuya.modernExtend.dpNumeric({
+                dp: 0x1d,
+                name: "temperature_range",
+                type: tuya.dataTypes.number,
+                valueMin: 1,
+                valueMax: 10,
+                valueStep: 0.1,
+                unit: "°C",
+                scale: 10,
+                description: "Keep the temperature in a range",
+            }),
+            tuya.modernExtend.dpBinary({
+                name: "auto_work",
+                dp: 0x09,
+                type: tuya.dataTypes.bool,
+                valueOn: ["ON", true],
+                valueOff: ["OFF", false],
+                description: "Auto work mode",
+            }),
+            tuya.modernExtend.dpNumeric({
+                dp: 0x16,
+                name: "temperature_target",
+                type: tuya.dataTypes.number,
+                valueMin: -100,
+                valueMax: 100,
+                valueStep: 0.5,
+                unit: "°C",
+                scale: 10,
+                description: "Temperature target",
+            }),
+            tuya.modernExtend.dpEnumLookup({
+                dp: 0x08,
+                name: "mode",
+                type: tuya.dataTypes.enum,
+                lookup: {Heating: 0, Cooling: 2},
+                description: "Work mode",
+            }),
+            tuya.modernExtend.dpBinary({
+                name: "delay",
+                dp: 0x38,
+                type: tuya.dataTypes.bool,
+                valueOn: ["ON", 1],
+                valueOff: ["OFF", 0],
+                description: "Switch delay time mode",
+            }),
+            tuya.modernExtend.dpNumeric({
+                dp: 0x37,
+                name: "delay_time",
+                type: tuya.dataTypes.number,
+                valueMin: 0,
+                valueMax: 10,
+                valueStep: 1,
+                unit: "minute",
+                scale: 1,
+                description: "Switch delay time",
+            }),
+        ],
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_5ys44kzo"]),
+        model: "TYSCENECUBE",
+        vendor: "iHseno",
+        description: "Scene cube",
+        extend: [
+            tuya.modernExtend.tuyaMagicPacket(),
+            ...convLocal.sceneCubeAction(),
+            tuya.modernExtend.dpBattery({
+                dp: 0x0a,
+            }),
+        ],
+    },
+    {
+        zigbeeModel: ["ZG-305Z"],
+        fingerprint: tuya.fingerprint("TS011F", ["_TZ3000_rul9yxcc"]),
+        model: "SM-PW801EZ",
+        vendor: "Coswall",
+        description: "2 gang switch with USB",
+        ota: true,
+        extend: [
+            tuya.modernExtend.tuyaOnOff({
+                childLock: true,
+                endpoints: ["l1", "l2"],
+            }),
+        ],
+        endpoint: (device) => {
+            return {l1: 1, l2: 2};
+        },
+        meta: {
+            multiEndpoint: true,
+            multiEndpointSkip: ["power_on_behavior"],
+        },
+        configure: tuya.configureMagicPacket,
+
+        whiteLabel: [{vendor: "HOBEIAN", model: "ZG-305Z", fingerprint: [{modelID: "ZG-305Z"}]}],
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_tgeqdjgk"]),
+        model: "TS0601_knob_dimmer_switch",
+        vendor: "Tuya",
+        description: "Dimmer knob with two lights",
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        exposes: [
+            e.switch().withEndpoint("l1"),
+            e.switch().withEndpoint("l2"),
+            e.light_brightness_colortemp([154, 370]),
+            e.enum("adjustment_mode", ea.STATE_SET, ["brightness", "color_temp"]).withDescription("Adjustment mode"),
+        ],
+        meta: {
+            multiEndpoint: true,
+            tuyaDatapoints: [
+                [102, "state", tuya.valueConverter.onOff],
+                [103, "brightness", tuya.valueConverterBasic.scale(0, 254, 0, 1000)],
+                [105, "adjustment_mode", tuya.valueConverterBasic.lookup({brightness: tuya.enum(0), color_temp: tuya.enum(1)})],
+                [107, "color_temp", tuya.valueConverterBasic.scale(154, 370, 0, 1000)],
+                [121, "state_l1", tuya.valueConverter.onOff],
+                [122, "state_l2", tuya.valueConverter.onOff],
+            ],
+        },
+        configure: tuya.configureMagicPacket,
+        endpoint: (device) => ({
+            default: 1,
+            l1: 1,
+            l2: 1,
+        }),
+    },
+    {
+        fingerprint: [{modelID: "TS0601", manufacturerName: "_TZE200_khah2lkr"}],
+        model: "HY607W-3A",
+        vendor: "Tuya",
+        description: "Thermostat for gas boiler",
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.climate().withLocalTemperature(ea.STATE).withSetpoint("occupied_heating_setpoint", 5, 35, 0.5, ea.STATE_SET),
+            e
+                .enum("mode_state", ea.STATE_SET, ["auto", "manual", "temp_override"])
+                .withDescription("Thermostat mode: manual, auto, or temp_override"),
+            e.binary("state", ea.STATE_SET, "ON", "OFF").withDescription("ON/OFF thermostat"),
+            e.enum("running_state", ea.STATE, ["idle", "heat"]).withDescription("State of heating"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [16, "local_temperature", tuya.valueConverter.divideBy10],
+                [50, "occupied_heating_setpoint", tuya.valueConverter.divideBy10],
+                [125, "state", tuya.valueConverter.onOff],
+                [128, "mode_state", tuya.valueConverterBasic.lookup({manual: 0, auto: 1, temp_override: 2})],
+                [102, "running_state", {from: (v) => (v === true ? "heat" : "idle")}],
+            ],
+        },
+    },
+    {
+        zigbeeModel: ["ZG-204ZH"],
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_vuqzj1ej", "_TZE200_hdih4foa"]),
+        model: "ZG-204ZH",
+        vendor: "HOBEIAN",
+        description: "PIR 24Ghz human presence sensor",
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        exposes: [
+            e.presence(),
+            e.illuminance(),
+            e.temperature(),
+            e.humidity(),
+            tuya.exposes.temperatureUnit(),
+            tuya.exposes.temperatureCalibration(),
+            tuya.exposes.humidityCalibration(),
+            e.battery(),
+            e
+                .numeric("fading_time", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(28800)
+                .withValueStep(1)
+                .withUnit("s")
+                .withDescription("Motion keep time"),
+            e.binary("indicator", ea.STATE_SET, "ON", "OFF").withDescription("LED indicator mode"),
+            e
+                .numeric("illuminance_interval", ea.STATE_SET)
+                .withValueMin(1)
+                .withValueMax(720)
+                .withValueStep(1)
+                .withUnit("minutes")
+                .withDescription("Light sensing sampling(refresh and update only while active)"),
+            e
+                .numeric("static_detection_distance", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(5)
+                .withValueStep(0.01)
+                .withUnit("m")
+                .withDescription("Static detection distance"),
+            e
+                .numeric("static_detection_sensitivity", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(10)
+                .withValueStep(1)
+                .withUnit("x")
+                .withDescription("Static detection sensitivity"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "presence", tuya.valueConverter.trueFalse1],
+                [106, "illuminance", tuya.valueConverter.raw],
+                [102, "fading_time", tuya.valueConverter.raw],
+                [2, "static_detection_sensitivity", tuya.valueConverter.raw],
+                [4, "static_detection_distance", tuya.valueConverter.divideBy100],
+                [108, "indicator", tuya.valueConverter.onOff],
+                [110, "battery", tuya.valueConverter.raw],
+                [111, "temperature", tuya.valueConverter.divideBy10],
+                [101, "humidity", tuya.valueConverter.raw],
+                [109, "temperature_unit", tuya.valueConverter.temperatureUnit],
+                [105, "temperature_calibration", tuya.valueConverter.divideBy10],
+                [104, "humidity_calibration", tuya.valueConverter.raw],
+                [107, "illuminance_interval", tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_z5jz7wpo"]),
+        model: "_TZE284_z5jz7wpo",
+        vendor: "Tuya",
+        description: "Ceiling fan control module",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.fan().withState().withSpeed(),
+            e.power_on_behavior(["off", "on", "restore"]).withAccess(ea.STATE_SET),
+            exposes
+                .numeric("countdown_hours", ea.STATE_SET)
+                .withUnit("h")
+                .withValueMin(0.25)
+                .withValueMax(12)
+                .withValueStep(0.25)
+                .withDescription("Fan ON time in hours (15 min increments)"),
+            e.enum("light_mode", ea.STATE_SET, ["none", "relay", "pos"]),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "state", tuya.valueConverter.onOff],
+                [
+                    2,
+                    "countdown_hours",
+                    {
+                        from: (seconds) => +(seconds / 3600).toFixed(2), // device → HA (hours with 2 decimal places)
+                        to: (hours) => Math.min(43200, Math.round(hours * 3600)), // HA → device (seconds)
+                    },
+                ],
+                [
+                    3,
+                    "speed",
+                    {
+                        from: (value) => (value + 1) * 51, // device → HA %
+                        to: (value) => {
+                            // Snap HA % to nearest step: 20%, 40%, 60%, 80%, 100%
+                            const snappedStep = Math.max(0, Math.min(4, Math.round(value / 51) - 1));
+                            return tuya.enum(snappedStep);
+                        },
+                    },
+                ],
+                [11, "power_on_behavior", tuya.valueConverterBasic.lookup({off: tuya.enum(0), on: tuya.enum(1), restore: tuya.enum(2)})],
+                [12, "light_mode", tuya.valueConverterBasic.lookup({none: tuya.enum(0), relay: tuya.enum(1), pos: tuya.enum(2)})],
             ],
         },
     },

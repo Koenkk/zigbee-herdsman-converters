@@ -4,6 +4,17 @@ import {presets} from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import type {DefinitionWithExtend, Expose, Fz, KeyValueAny, ModernExtend} from "../lib/types";
 
+interface SengledMotionSensor {
+    attributes: {
+        triggerCondition: number;
+        enableAutoOnOff: number;
+        motionStatus: number;
+        offDelay: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
 export function sengledLight(args?: m.LightArgs) {
     return m.light({effect: false, powerOnBehavior: false, ...args});
 }
@@ -152,6 +163,13 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Element plus (A19)",
         extend: [sengledLight({colorTemp: {range: [154, 500]}}), m.electricityMeter({cluster: "metering"})],
         ota: true,
+    },
+    {
+        zigbeeModel: ["E1M-G7H"],
+        model: "E1M-G7H",
+        vendor: "Sengled",
+        description: "Motion sensor",
+        extend: [m.battery(), m.iasZoneAlarm({zoneType: "occupancy", zoneAttributes: ["alarm_1", "tamper", "battery_low"]})],
     },
     {
         zigbeeModel: ["Z01-A60EAE27"],
@@ -309,7 +327,7 @@ export const definitions: DefinitionWithExtend[] = [
                 commands: {},
                 commandsResponse: {},
             }),
-            m.enumLookup({
+            m.enumLookup<"manuSpecificSengledMotionSensor", SengledMotionSensor>({
                 name: "trigger_condition",
                 lookup: {dark: 0, weak_light: 1},
                 cluster: "manuSpecificSengledMotionSensor",
@@ -318,7 +336,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode: 0x1160},
                 access: "STATE_SET",
             }),
-            m.binary({
+            m.binary<"manuSpecificSengledMotionSensor", SengledMotionSensor>({
                 name: "enable_auto_on_off",
                 cluster: "manuSpecificSengledMotionSensor",
                 attribute: "enableAutoOnOff",
@@ -328,7 +346,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode: 0x1160},
                 access: "STATE_SET",
             }),
-            m.binary({
+            m.binary<"manuSpecificSengledMotionSensor", SengledMotionSensor>({
                 name: "motion_status",
                 cluster: "manuSpecificSengledMotionSensor",
                 attribute: "motionStatus",
@@ -339,7 +357,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode: 0x1160},
                 access: "STATE_GET",
             }),
-            m.numeric({
+            m.numeric<"manuSpecificSengledMotionSensor", SengledMotionSensor>({
                 name: "off_delay",
                 cluster: "manuSpecificSengledMotionSensor",
                 attribute: "offDelay",

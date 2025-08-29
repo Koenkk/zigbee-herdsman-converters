@@ -7,6 +7,6 @@ export const definitions: DefinitionWithExtend[] = [
         model: "70012",
         vendor: "SuperLED",
         description: "SÄVY NUPPI, Zigbee LED-dimmer, triac, 5-200W",
-        extend: [m.light({powerOnBehavior: false})],
+        extend: [m.light({powerOnBehavior: false, effect: false})],
     },
 ];

@@ -1,4 +1,4 @@
-const m = require("zigbee-herdsman-converters/lib/modernExtend");
+import * as m from "../lib/modernExtend";
 import type {DefinitionWithExtend} from "../lib/types";
 
 export const definitions: DefinitionWithExtend[] = [
