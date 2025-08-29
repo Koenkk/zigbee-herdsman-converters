@@ -11,14 +11,14 @@ const definition = {
 
     exposes: [
         exposes.binary("smoke", exposes.access.STATE, true, false).withDescription("Smoke detected"),
-        exposes.numeric("temperature", exposes.access.STATE)
+        exposes
+            .numeric("temperature", exposes.access.STATE)
             .withUnit("°C")
             .withDescription("Measured temperature")
-            .withValueMin(-40).withValueMax(80).withValueStep(0.1),
-        exposes.numeric("humidity", exposes.access.STATE)
-            .withUnit("%")
-            .withDescription("Measured humidity")
-            .withValueMin(0).withValueMax(100),
+            .withValueMin(-40)
+            .withValueMax(80)
+            .withValueStep(0.1),
+        exposes.numeric("humidity", exposes.access.STATE).withUnit("%").withDescription("Measured humidity").withValueMin(0).withValueMax(100),
         exposes.enum("test_button", exposes.access.STATE, ["idle", "pressed"]).withDescription("Test button state"),
         exposes.enum("battery_state", exposes.access.STATE, ["full", "low", "Nok"]).withDescription("Battery state"),
     ],
@@ -28,16 +28,20 @@ const definition = {
             [1, "smoke", tuya.valueConverter.trueFalse0],
             [23, "temperature", tuya.valueConverter.divideBy10],
             [24, "humidity", tuya.valueConverter.raw],
-            [14, "battery_state", (dpValue) => {
-                switch (dpValue) {
-                    case 1:
-                        return "low";
-                    case 2:
-                        return "full";
-                    default:
-                        return "Nok";
-                }
-            }],
+            [
+                14,
+                "battery_state",
+                (dpValue) => {
+                    switch (dpValue) {
+                        case 1:
+                            return "low";
+                        case 2:
+                            return "full";
+                        default:
+                            return "Nok";
+                    }
+                },
+            ],
         ],
     },
 
@@ -61,7 +65,7 @@ const definition = {
                         if (meta.testButtonTimeouts) clearTimeout(meta.testButtonTimeouts[dp.dp]);
                         meta.testButtonTimeouts = meta.testButtonTimeouts || {};
                         meta.testButtonTimeouts[dp.dp] = setTimeout(() => {
-                            publish({ test_button: "idle" });
+                            publish({test_button: "idle"});
                             delete meta.testButtonTimeouts[dp.dp];
                         }, 500);
                     }
