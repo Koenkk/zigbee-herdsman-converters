@@ -537,6 +537,15 @@ const inovelliExtend = {
             isModernExtend: true,
         } as ModernExtend;
     },
+    inovelliMMWave: () => {
+        return {
+            fromZigbee: [],
+            toZigbee: [tzLocal.inovelli_mmwave_control_commands],
+            exposes: [exposeMMWaveControl()],
+            configure: [],
+            isModernExtend: true,
+        } as ModernExtend;
+    },
 };
 
 const FAN_MODES: {[key: string]: number} = {off: 0, low: 2, smart: 4, medium: 86, high: 170, on: 255};
@@ -1632,7 +1641,7 @@ const VZM32_MMWAVE_ATTRIBUTES: {[s: string]: Attribute} = {
         min: 0,
         max: 600,
         readOnly: false,
-        description: "Defines the detection area in front of the switch)",
+        description: "Defines the detection area in front of the switch",
     },
     mmWaveDepthMax: {
         ID: 106,
@@ -1640,7 +1649,7 @@ const VZM32_MMWAVE_ATTRIBUTES: {[s: string]: Attribute} = {
         min: 0,
         max: 600,
         readOnly: false,
-        description: "Defines the detection area in front of the switch)",
+        description: "Defines the detection area in front of the switch",
     },
 };
 
@@ -2487,7 +2496,6 @@ export const definitions: DefinitionWithExtend[] = [
         model: "VZM32-SN",
         vendor: "Inovelli",
         description: "mmWave Zigbee Dimmer",
-        exposes: [exposeMMWaveControl()],
         extend: [
             m.deviceEndpoints({
                 endpoints: {"1": 1, "2": 2, "3": 3},
@@ -2502,6 +2510,7 @@ export const definitions: DefinitionWithExtend[] = [
                 supportsLedEffects: true,
                 supportsButtonTaps: true,
             }),
+            inovelliExtend.inovelliMMWave(),
             inovelliExtend.addCustomClusterInovelli(),
             inovelliExtend.addCustomMMWaveClusterInovelli(),
             m.identify(),
@@ -2514,7 +2523,6 @@ export const definitions: DefinitionWithExtend[] = [
             m.illuminance(),
             m.occupancy(),
         ],
-        toZigbee: [tzLocal.inovelli_mmwave_control_commands],
         ota: true,
     },
     {

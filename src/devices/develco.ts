@@ -49,7 +49,7 @@ const develco = {
         electrical_measurement: {
             ...fz.electrical_measurement,
             convert: (model, msg, publish, options, meta) => {
-                if (msg.data.rmsVoltage !== 0xffff && msg.data.rmsCurrent !== 0xffff && msg.data.activePower !== -0x8000) {
+                if (!Number.isNaN(msg.data.rmsVoltage) && !Number.isNaN(msg.data.rmsCurrent) && !Number.isNaN(msg.data.activePower)) {
                     return fz.electrical_measurement.convert(model, msg, publish, options, meta);
                 }
             },
@@ -59,10 +59,10 @@ const develco = {
             type: ["attributeReport", "readResponse"],
             convert: (model, msg, publish, options, meta) => {
                 const result: KeyValue = {};
-                if (msg.data.totalActivePower !== undefined && msg.data.totalActivePower !== -0x80000000) {
+                if (msg.data.totalActivePower !== undefined && !Number.isNaN(msg.data.totalActivePower)) {
                     result[utils.postfixWithEndpointName("power", msg, model, meta)] = msg.data.totalActivePower;
                 }
-                if (msg.data.totalReactivePower !== undefined && msg.data.totalReactivePower !== -0x80000000) {
+                if (msg.data.totalReactivePower !== undefined && !Number.isNaN(msg.data.totalReactivePower)) {
                     result[utils.postfixWithEndpointName("power_reactive", msg, model, meta)] = msg.data.totalReactivePower;
                 }
                 return result;
@@ -71,7 +71,7 @@ const develco = {
         metering: {
             ...fz.metering,
             convert: (model, msg, publish, options, meta) => {
-                if (msg.data.instantaneousDemand !== -0x800000 && msg.data.currentSummDelivered?.[1] !== 0) {
+                if (!Number.isNaN(msg.data.instantaneousDemand) && msg.data.currentSummDelivered?.[1] !== 0) {
                     return fz.metering.convert(model, msg, publish, options, meta);
                 }
             },
