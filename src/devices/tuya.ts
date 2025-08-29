@@ -19,7 +19,6 @@ import * as zosung from "../lib/zosung";
 const NS = "zhc:tuya";
 const {tuyaLight, tuyaBase, tuyaMagicPacket, dpBinary, dpNumeric, dpEnumLookup} = tuya.modernExtend;
 
-const exposes = require("zigbee-herdsman-converters/lib/exposes");
 const e = exposes.presets;
 const ea = exposes.access;
 
