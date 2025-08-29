@@ -2450,6 +2450,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE200_0nauxa0p",
             "_TZE200_ykgar0ow",
             "_TZE200_0hb4rdnp",
+            "_TZE284_wckqztdq",
         ]),
         model: "TS0601_dimmer_1_gang_1",
         vendor: "Tuya",
