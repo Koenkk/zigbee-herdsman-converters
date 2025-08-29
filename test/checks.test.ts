@@ -1,3 +1,5 @@
+import assert from "node:assert";
+import {beforeAll, describe, it} from "vitest";
 import baseDefinitions from "../src/devices/index";
 import {type Definition, type Expose, prepareDefinition} from "../src/index";
 import {access, Numeric} from "../src/lib/exposes";

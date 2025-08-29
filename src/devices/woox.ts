@@ -17,10 +17,9 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Smart garden irrigation control",
         fromZigbee: [fz.on_off, fz.ignore_tuya_set_time, fz.ignore_basic_report, legacy.fromZigbee.woox_R7060],
         toZigbee: [tz.on_off],
-        onEvent: tuya.onEventSetTime,
+        extend: [tuya.modernExtend.tuyaBase({timeStart: "2000"})],
         exposes: [e.switch(), e.battery()],
         meta: {disableDefaultResponse: true},
-        configure: tuya.configureMagicPacket,
     },
     {
         fingerprint: tuya.fingerprint("TS0505A", ["_TZ3000_keabpigv"]),
@@ -31,7 +30,7 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {applyRedFix: true},
     },
     {
-        fingerprint: tuya.fingerprint("TS0201", ["_TZ3000_rusu2vzb"]),
+        fingerprint: tuya.fingerprint("TS0201", ["_TZ3000_rusu2vzb", "_TZ3000_amqudjr0"]),
         model: "R7048",
         vendor: "Woox",
         description: "Smart humidity & temperature sensor",
@@ -119,7 +118,7 @@ export const definitions: DefinitionWithExtend[] = [
             legacy.toZigbee.woox_saturday_schedule,
             legacy.toZigbee.woox_sunday_schedule,
         ],
-        onEvent: tuya.onEventSetTime,
+        extend: [tuya.modernExtend.tuyaBase({timeStart: "2000"})],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genBasic"]);

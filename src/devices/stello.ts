@@ -1,6 +1,7 @@
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
+import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import type {DefinitionWithExtend, Fz} from "../lib/types";
 
@@ -69,5 +70,12 @@ export const definitions: DefinitionWithExtend[] = [
             device.powerSource = "Mains (single phase)";
             device.save();
         },
+    },
+    {
+        zigbeeModel: ["STLO-23"],
+        model: "STLO-23",
+        vendor: "Stello",
+        description: "Hilo water heater controller",
+        extend: [m.onOff({powerOnBehavior: false}), m.electricityMeter({cluster: "metering"})],
     },
 ];

@@ -1,5 +1,5 @@
 import {Zcl} from "zigbee-herdsman";
-
+import type {ClusterOrRawAttributeKeys, ClusterOrRawAttributes, TCustomCluster} from "zigbee-herdsman/dist/controller/tstype";
 import type {Light, Numeric} from "./exposes";
 import {logger} from "./logger";
 import * as globalStore from "./store";
@@ -13,8 +13,6 @@ import type {
     Fz,
     KeyValue,
     KeyValueAny,
-    OnEventData,
-    OnEventType,
     Publish,
     Tz,
     Zh,
@@ -24,41 +22,6 @@ const NS = "zhc:utils";
 
 export function flatten<Type>(arr: Type[][]): Type[] {
     return [].concat(...arr);
-}
-
-export function onEventPoll(
-    type: OnEventType,
-    data: OnEventData,
-    device: Zh.Device,
-    options: KeyValue,
-    key: string,
-    defaultIntervalSeconds: number,
-    poll: () => Promise<void>,
-) {
-    if (type === "stop") {
-        clearTimeout(globalStore.getValue(device, key));
-        globalStore.clearValue(device, key);
-    } else if (!globalStore.hasValue(device, key)) {
-        const optionsKey = `${key}_poll_interval`;
-        const seconds = toNumber(options[optionsKey] || defaultIntervalSeconds, optionsKey);
-        if (seconds <= 0) {
-            logger.debug(`Not polling '${key}' for '${device.ieeeAddr}' since poll interval is <= 0 (got ${seconds})`, NS);
-        } else {
-            logger.debug(`Polling '${key}' for '${device.ieeeAddr}' at an interval of ${seconds}`, NS);
-            const setTimer = () => {
-                const timer = setTimeout(async () => {
-                    try {
-                        await poll();
-                    } catch {
-                        /* Do nothing*/
-                    }
-                    setTimer();
-                }, seconds * 1000);
-                globalStore.putValue(device, key, timer);
-            };
-            setTimer();
-        }
-    }
 }
 
 export function precisionRound(number: number, precision: number): number {
@@ -165,7 +128,8 @@ export function calibrateAndPrecisionRoundOptionsIsPercentual(type: string) {
 export function calibrateAndPrecisionRoundOptions(number: number, options: KeyValue, type: string) {
     // Calibrate
     const calibrateKey = `${type}_calibration`;
-    let calibrationOffset = toNumber(options?.[calibrateKey] != null ? options[calibrateKey] : 0, calibrateKey);
+    const calibrateValue = options?.[calibrateKey];
+    let calibrationOffset = toNumber(calibrateValue != null && calibrateValue !== "" ? calibrateValue : 0, calibrateKey);
     if (calibrateAndPrecisionRoundOptionsIsPercentual(type)) {
         // linear calibration because measured value is zero based
         // +/- percent
@@ -176,8 +140,9 @@ export function calibrateAndPrecisionRoundOptions(number: number, options: KeyVa
 
     // Precision round
     const precisionKey = `${type}_precision`;
+    const precisionValue = options?.[precisionKey];
     const defaultValue = calibrateAndPrecisionRoundOptionsDefaultPrecision[type] || 0;
-    const precision = toNumber(options?.[precisionKey] != null ? options[precisionKey] : defaultValue, precisionKey);
+    const precision = toNumber(precisionValue != null && precisionValue !== "" ? precisionValue : defaultValue, precisionKey);
     return precisionRound(number, precision);
 }
 
@@ -241,14 +206,24 @@ export function enforceEndpoint(entity: Zh.Endpoint, key: string, meta: Tz.Meta)
     return entity;
 }
 
-export function getKey<T>(object: {[s: string]: T} | {[s: number]: T}, value: T, fallback?: T, convertTo?: (v: unknown) => T) {
+type RecordStringOrNumber<T> = Record<string, T> | Record<number, T>;
+
+export function getKey<T>(object: RecordStringOrNumber<T>, value: T): string | undefined;
+export function getKey<T, F>(object: RecordStringOrNumber<T>, value: T, fallback: F): string | F;
+export function getKey<T, R>(object: RecordStringOrNumber<T>, value: T, fallback: undefined, convertTo: (v: string | number) => R): R | undefined;
+export function getKey<T, R, F>(object: RecordStringOrNumber<T>, value: T, fallback: F, convertTo: (v: string | number) => R): R | F;
+export function getKey<T, R, F>(
+    object: RecordStringOrNumber<T>,
+    value: T,
+    fallback?: F,
+    convertTo?: (v: string | number) => R,
+): R | F | string | undefined {
     for (const key in object) {
-        // @ts-expect-error ignore
+        // @ts-expect-error too generic
         if (object[key] === value) {
             return convertTo ? convertTo(key) : key;
         }
     }
-
     return fallback;
 }
 
@@ -517,18 +492,30 @@ export function getObjectProperty(object: KeyValue, key: string, defaultValue: u
     return object && object[key] !== undefined ? object[key] : defaultValue;
 }
 
-export function validateValue(value: unknown, allowed: unknown[]) {
+export function validateValue<T>(value: T, allowed: readonly T[]): asserts value is (typeof allowed)[number] {
     if (!allowed.includes(value)) {
         throw new Error(`'${value}' not allowed, choose between: ${allowed}`);
     }
 }
 
-export async function getClusterAttributeValue<T>(endpoint: Zh.Endpoint, cluster: string, attribute: string, fallback: T = undefined): Promise<T> {
+export async function getClusterAttributeValue<
+    Cl extends string,
+    Attr extends ClusterOrRawAttributeKeys<Cl, Custom>[number],
+    Custom extends TCustomCluster | undefined = undefined,
+>(
+    endpoint: Zh.Endpoint,
+    cluster: Cl,
+    attribute: Attr,
+    fallback: ClusterOrRawAttributes<Cl, Custom>[Attr] = undefined,
+): Promise<ClusterOrRawAttributes<Cl, Custom>[Attr]> {
     try {
         if (endpoint.getClusterAttributeValue(cluster, attribute) == null) {
-            await endpoint.read(cluster, [attribute], {sendPolicy: "immediate", disableRecovery: true});
+            await endpoint.read<Cl, Custom>(cluster, [attribute] as ClusterOrRawAttributeKeys<Cl, Custom>, {
+                sendPolicy: "immediate",
+                disableRecovery: true,
+            });
         }
-        return endpoint.getClusterAttributeValue(cluster, attribute) as T;
+        return endpoint.getClusterAttributeValue(cluster, attribute) as ClusterOrRawAttributes<Cl, Custom>[Attr];
     } catch (error) {
         if (fallback !== undefined) return fallback;
         throw error;
@@ -544,7 +531,9 @@ export function normalizeCelsiusVersionOfFahrenheit(value: number) {
 export function noOccupancySince(endpoint: Zh.Endpoint, options: KeyValueAny, publish: Publish, action: "start" | "stop") {
     if (options?.no_occupancy_since) {
         if (action === "start") {
-            globalStore.getValue(endpoint, "no_occupancy_since_timers", []).forEach((t: ReturnType<typeof setInterval>) => clearTimeout(t));
+            globalStore.getValue(endpoint, "no_occupancy_since_timers", []).forEach((t: ReturnType<typeof setInterval>) => {
+                clearTimeout(t);
+            });
             globalStore.putValue(endpoint, "no_occupancy_since_timers", []);
 
             options.no_occupancy_since.forEach((since: number) => {
@@ -554,7 +543,9 @@ export function noOccupancySince(endpoint: Zh.Endpoint, options: KeyValueAny, pu
                 globalStore.getValue(endpoint, "no_occupancy_since_timers").push(timer);
             });
         } else if (action === "stop") {
-            globalStore.getValue(endpoint, "no_occupancy_since_timers", []).forEach((t: ReturnType<typeof setInterval>) => clearTimeout(t));
+            globalStore.getValue(endpoint, "no_occupancy_since_timers", []).forEach((t: ReturnType<typeof setInterval>) => {
+                clearTimeout(t);
+            });
             globalStore.putValue(endpoint, "no_occupancy_since_timers", []);
         }
     }
@@ -665,9 +656,9 @@ export function getFromLookup<V>(value: unknown, lookup: {[s: number | string]: 
 }
 
 export function getFromLookupByValue(value: unknown, lookup: {[s: string]: unknown}, defaultValue: string = undefined): string {
-    for (const entry of Object.entries(lookup)) {
-        if (entry[1] === value) {
-            return entry[0];
+    for (const [key, val] of Object.entries(lookup)) {
+        if (val === value) {
+            return key;
         }
     }
     if (defaultValue === undefined) {

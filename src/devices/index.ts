@@ -120,6 +120,7 @@ import {definitions as hej} from "./hej";
 import {definitions as hfh} from "./hfh";
 import {definitions as hilux} from "./hilux";
 import {definitions as hive} from "./hive";
+import {definitions as homeseer} from "./homeseer";
 import {definitions as hommyn} from "./hommyn";
 import {definitions as honyar} from "./honyar";
 import {definitions as hornbach} from "./hornbach";
@@ -216,6 +217,7 @@ import {definitions as nue3a} from "./nue_3a";
 import {definitions as nyce} from "./nyce";
 import {definitions as onenuo} from "./onenuo";
 import {definitions as onesti} from "./onesti";
+import {definitions as onokom} from "./onokom";
 import {definitions as openlumi} from "./openlumi";
 import {definitions as orvibo} from "./orvibo";
 import {definitions as orztech} from "./orztech";
@@ -269,6 +271,7 @@ import {definitions as siglis} from "./siglis";
 import {definitions as sikom} from "./sikom";
 import {definitions as siliconLabs} from "./silicon_labs";
 import {definitions as simon} from "./simon";
+import {definitions as simplaHome} from "./simpla_home";
 import {definitions as sinope} from "./sinope";
 import {definitions as siterwell} from "./siterwell";
 import {definitions as skydance} from "./skydance";
@@ -464,6 +467,7 @@ const definitions: DefinitionWithExtend[] = [
     ...hfh,
     ...hilux,
     ...hive,
+    ...homeseer,
     ...hommyn,
     ...honyar,
     ...hornbach,
@@ -559,6 +563,7 @@ const definitions: DefinitionWithExtend[] = [
     ...nyce,
     ...onenuo,
     ...onesti,
+    ...onokom,
     ...openlumi,
     ...orvibo,
     ...orztech,
@@ -612,6 +617,7 @@ const definitions: DefinitionWithExtend[] = [
     ...siliconLabs,
     ...sikom,
     ...simon,
+    ...simplaHome,
     ...sinope,
     ...siterwell,
     ...skydance,

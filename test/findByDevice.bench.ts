@@ -1,5 +1,4 @@
-import {bench} from "vitest";
-
+import {bench, describe} from "vitest";
 import {findByDevice} from "../src/index";
 import {mockDevice} from "./utils";
 

@@ -3,7 +3,6 @@ import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import * as globalStore from "../lib/store";
 import type {DefinitionWithExtend} from "../lib/types";
 
 const e = exposes.presets;
@@ -35,22 +34,7 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, clusters);
             await reporting.batteryVoltage(endpoint);
         },
-        onEvent: async (type, data, device) => {
-            if (
-                type === "message" &&
-                data.type === "commandGetPanelStatus" &&
-                data.cluster === "ssIasAce" &&
-                globalStore.hasValue(device.getEndpoint(1), "panelStatus")
-            ) {
-                const payload = {
-                    panelstatus: globalStore.getValue(device.getEndpoint(1), "panelStatus"),
-                    secondsremain: 0x00,
-                    audiblenotif: 0x00,
-                    alarmstatus: 0x00,
-                };
-                await device.getEndpoint(1).commandResponse("ssIasAce", "getPanelStatusRsp", payload, {}, data.meta.zclTransactionSequenceNumber);
-            }
-        },
+        extend: [m.iasGetPanelStatusResponse()],
     },
     {
         zigbeeModel: ["ZBT-RGBWSwitch-D0801"],
@@ -207,13 +191,7 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.command_arm, fz.command_panic],
         toZigbee: [],
         exposes: [e.action(["panic", "disarm", "arm_partial_zones", "arm_all_zones"])],
-        onEvent: async (type, data, device) => {
-            // Since arm command has a response zigbee-herdsman doesn't send a default response.
-            // This causes the remote to repeat the arm command, so send a default response here.
-            if (data.type === "commandArm" && data.cluster === "ssIasAce") {
-                await data.endpoint.defaultResponse(0, 0, 1281, data.meta.zclTransactionSequenceNumber);
-            }
-        },
+        extend: [m.iasArmCommandDefaultResponse()],
     },
     {
         zigbeeModel: ["A001082"],

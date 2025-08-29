@@ -1,5 +1,4 @@
 import {Zcl} from "zigbee-herdsman";
-
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as constants from "../lib/constants";
@@ -314,14 +313,13 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Heiman",
         fromZigbee: [fz.on_off, fz.electrical_measurement],
         toZigbee: [tz.on_off],
-        options: [exposes.options.measurement_poll_interval()],
+        extend: [tuya.modernExtend.electricityMeasurementPoll()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "haElectricalMeasurement"]);
             await reporting.onOff(endpoint);
             await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
         },
-        onEvent: (type, data, device, settings) => tuya.onEventMeasurementPoll(type, data, device, settings),
         exposes: [e.switch(), e.power(), e.current(), e.voltage()],
     },
     {
@@ -353,6 +351,20 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["SmokeSensor-N", "SmokeSensor-EM"],
         model: "HS3SA/HS1SA",
+        vendor: "Heiman",
+        description: "Smoke detector",
+        fromZigbee: [fz.ias_smoke_alarm_1, fz.battery],
+        toZigbee: [],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg"]);
+            await reporting.batteryPercentageRemaining(endpoint);
+        },
+        exposes: [e.smoke(), e.battery_low(), e.battery(), e.test()],
+    },
+    {
+        zigbeeModel: ["HS2SA-EF-3.0"],
+        model: "HS2SA-EF-3.0",
         vendor: "Heiman",
         description: "Smoke detector",
         fromZigbee: [fz.ias_smoke_alarm_1, fz.battery],
@@ -483,13 +495,7 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.batteryPercentageRemaining(endpoint);
             await endpoint.read("genPowerCfg", ["batteryPercentageRemaining"]);
         },
-        onEvent: async (type, data, device) => {
-            // Since arm command has a response zigbee-herdsman doesn't send a default response.
-            // This causes the remote to repeat the arm command, so send a default response here.
-            if (data.type === "commandArm" && data.cluster === "ssIasAce") {
-                await data.endpoint.defaultResponse(0, 0, 1281, data.meta.zclTransactionSequenceNumber);
-            }
-        },
+        extend: [m.iasArmCommandDefaultResponse()],
     },
     {
         fingerprint: [{modelID: "RC-EM", manufacturerName: "HEIMAN"}],
@@ -761,27 +767,45 @@ export const definitions: DefinitionWithExtend[] = [
             const heiman = {
                 configureReporting: {
                     pm25MeasuredValue: async (endpoint: Zh.Endpoint, overrides?: Reporting.Override) => {
-                        const payload = reporting.payload("measuredValue", 0, constants.repInterval.HOUR, 1, overrides);
+                        const payload = reporting.payload<"pm25Measurement">("measuredValue", 0, constants.repInterval.HOUR, 1, overrides);
                         await endpoint.configureReporting("pm25Measurement", payload);
                     },
                     formAldehydeMeasuredValue: async (endpoint: Zh.Endpoint, overrides?: Reporting.Override) => {
-                        const payload = reporting.payload("measuredValue", 0, constants.repInterval.HOUR, 1, overrides);
+                        const payload = reporting.payload<"msFormaldehyde">("measuredValue", 0, constants.repInterval.HOUR, 1, overrides);
                         await endpoint.configureReporting("msFormaldehyde", payload);
                     },
                     batteryState: async (endpoint: Zh.Endpoint, overrides?: Reporting.Override) => {
-                        const payload = reporting.payload("batteryState", 0, constants.repInterval.HOUR, 1, overrides);
+                        const payload = reporting.payload<"heimanSpecificAirQuality">("batteryState", 0, constants.repInterval.HOUR, 1, overrides);
                         await endpoint.configureReporting("heimanSpecificAirQuality", payload);
                     },
                     pm10measuredValue: async (endpoint: Zh.Endpoint, overrides?: Reporting.Override) => {
-                        const payload = reporting.payload("pm10measuredValue", 0, constants.repInterval.HOUR, 1, overrides);
+                        const payload = reporting.payload<"heimanSpecificAirQuality">(
+                            "pm10measuredValue",
+                            0,
+                            constants.repInterval.HOUR,
+                            1,
+                            overrides,
+                        );
                         await endpoint.configureReporting("heimanSpecificAirQuality", payload);
                     },
                     tvocMeasuredValue: async (endpoint: Zh.Endpoint, overrides?: Reporting.Override) => {
-                        const payload = reporting.payload("tvocMeasuredValue", 0, constants.repInterval.HOUR, 1, overrides);
+                        const payload = reporting.payload<"heimanSpecificAirQuality">(
+                            "tvocMeasuredValue",
+                            0,
+                            constants.repInterval.HOUR,
+                            1,
+                            overrides,
+                        );
                         await endpoint.configureReporting("heimanSpecificAirQuality", payload);
                     },
                     aqiMeasuredValue: async (endpoint: Zh.Endpoint, overrides?: Reporting.Override) => {
-                        const payload = reporting.payload("aqiMeasuredValue", 0, constants.repInterval.HOUR, 1, overrides);
+                        const payload = reporting.payload<"heimanSpecificAirQuality">(
+                            "aqiMeasuredValue",
+                            0,
+                            constants.repInterval.HOUR,
+                            1,
+                            overrides,
+                        );
                         await endpoint.configureReporting("heimanSpecificAirQuality", payload);
                     },
                 },
@@ -914,6 +938,14 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Heiman",
         description: "LED 9W CCT E27",
         extend: [m.light({colorTemp: {range: [153, 370]}})],
+    },
+    {
+        zigbeeModel: ["ColorLight"],
+        model: "HS1RGB",
+        vendor: "Heiman",
+        description: "Bulb E26/E27, RGB+WW 2700K, globe, opal, 400lm",
+        extend: [m.light({colorTemp: {range: [275, 295]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ["CurtainMo-EF-3.0", "CurtainMo-EF"],
@@ -1084,10 +1116,34 @@ export const definitions: DefinitionWithExtend[] = [
                 ),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
+            interface HeimanRadar {
+                attributes: {
+                    // biome-ignore lint/style/useNamingConvention: TODO
+                    enable_indicator: number;
+                    sensitivity: number;
+                    // biome-ignore lint/style/useNamingConvention: TODO
+                    enable_sub_region_isolation: number;
+                    // biome-ignore lint/style/useNamingConvention: TODO
+                    installation_method: number;
+                    // biome-ignore lint/style/useNamingConvention: TODO
+                    cell_mounted_table: Buffer;
+                    // biome-ignore lint/style/useNamingConvention: TODO
+                    wall_mounted_table: Buffer;
+                    // biome-ignore lint/style/useNamingConvention: TODO
+                    sub_region_isolation_table: Buffer;
+                };
+                commands: never;
+                commandResponses: never;
+            }
+
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["msOccupancySensing", "RadarSensorHeiman"]);
             await reporting.occupancy(endpoint);
-            await endpoint.read("RadarSensorHeiman", ["cell_mounted_table", "wall_mounted_table", "sub_region_isolation_table"]);
+            await endpoint.read<"RadarSensorHeiman", HeimanRadar>("RadarSensorHeiman", [
+                "cell_mounted_table",
+                "wall_mounted_table",
+                "sub_region_isolation_table",
+            ]);
         },
         endpoint: (device) => ({default: 1}),
     },

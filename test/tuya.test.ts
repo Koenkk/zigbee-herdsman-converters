@@ -1,6 +1,7 @@
-import type {Fz} from "src/lib/types";
+import {describe, expect, it} from "vitest";
 import {findByDevice, type Tz} from "../src/index";
 import * as tuya from "../src/lib/tuya";
+import type {Fz} from "../src/lib/types";
 import {mockDevice} from "./utils";
 
 describe("lib/tuya", () => {
@@ -34,7 +35,7 @@ describe("lib/tuya", () => {
                 1,
                 "manuSpecificTuya",
                 "sendData",
-                {seq: 1, dpValues: [{data: [0], datatype: 4, dp: 101}]},
+                {seq: 1, dpValues: [{data: Buffer.from([0]), datatype: 4, dp: 101}]},
                 {disableDefaultResponse: true},
             );
             expect(device.endpoints[0].command).toHaveBeenNthCalledWith(

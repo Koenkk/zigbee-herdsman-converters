@@ -56,6 +56,13 @@ const attrHumidityOnOff = 0xf006;
 const attrHumidityLow = 0xf007;
 const attrHumidityHigh = 0xf008;
 
+const attrCo2Calibration = 0xf008;
+const attrFeaturesSensors = 0xf009;
+const attrDisplayRotate = 0xf00a;
+const attrDisplayInversion = 0xf00b;
+
+const switchFeatures = ["nothing", "co2_forced_calibration", "co2_factory_reset", "bind_reset", ""];
+
 const fzLocal = {
     thermostat_custom_fw: {
         cluster: "hvacThermostat",
@@ -72,28 +79,28 @@ const fzLocal = {
                     data = Number.parseFloat(msg.data.minSetpointDeadBand) / 10;
                     result.histeresis_temperature = data;
                 } else {
-                    data = Number.parseInt(msg.data.minSetpointDeadBand);
+                    data = Number.parseInt(msg.data.minSetpointDeadBand, 10);
                     result.deadzone_temperature = data;
                 }
                 //logger.info(`DeadBand: ${data}`, NS);
             }
             if (msg.data[attrThermFrostProtect] !== undefined) {
-                const data = Number.parseInt(msg.data[attrThermFrostProtect]) / 100;
+                const data = Number.parseInt(msg.data[attrThermFrostProtect], 10) / 100;
                 result.frost_protect = data;
             }
             if (msg.data[attrThermHeatProtect] !== undefined) {
-                const data = Number.parseInt(msg.data[attrThermHeatProtect]) / 100;
+                const data = Number.parseInt(msg.data[attrThermHeatProtect], 10) / 100;
                 result.heat_protect = data;
             }
             if (msg.data[attrThermEcoMode] !== undefined) {
                 result.eco_mode = msg.data[attrThermEcoMode] === 1 ? "On" : "Off";
             }
             if (msg.data[attrThermEcoModeCoolTemperature] !== undefined) {
-                const data = Number.parseInt(msg.data[attrThermEcoModeCoolTemperature]) / 100;
+                const data = Number.parseInt(msg.data[attrThermEcoModeCoolTemperature], 10) / 100;
                 result.eco_mode_cool_temperature = data;
             }
             if (msg.data[attrThermEcoModeHeatTemperature] !== undefined) {
-                const data = Number.parseInt(msg.data[attrThermEcoModeHeatTemperature]) / 100;
+                const data = Number.parseInt(msg.data[attrThermEcoModeHeatTemperature], 10) / 100;
                 result.eco_mode_heat_temperature = data;
             }
             if (msg.data[attrThermFrostProtectOnOff] !== undefined) {
@@ -114,7 +121,7 @@ const fzLocal = {
                 result.schedule_mode = utils.getFromLookup(msg.data[attrThermScheduleMode], lookup);
             }
             if (msg.data[attrThermExtTemperatureCalibration] !== undefined) {
-                const data = Number.parseInt(msg.data[attrThermExtTemperatureCalibration]) / 10;
+                const data = Number.parseInt(msg.data[attrThermExtTemperatureCalibration], 10) / 10;
                 result.external_temperature_calibration = data;
             }
             return result;
@@ -165,7 +172,7 @@ const tzLocal = {
         key: ["brightness", "brightness_day", "brightness_night"],
         options: [exposes.options.transition()],
         convertSet: async (entity, key, value, meta) => {
-            await entity.command("genLevelCtrl", "moveToLevel", {level: value, transtime: 0}, utils.getOptions(meta.mapped, entity));
+            await entity.command("genLevelCtrl", "moveToLevel", {level: value as number, transtime: 0}, utils.getOptions(meta.mapped, entity));
             return {state: {brightness: value}};
         },
         convertGet: async (entity, key, meta) => {
@@ -343,8 +350,8 @@ const tzLocal = {
     thermostat_schedule_mode: {
         key: ["schedule_mode"],
         convertSet: async (entity, key, value, meta) => {
-            utils.assertNumber(value);
-            const lookup = {Off: 0, "5+2": 1, "6+1": 2, "7": 3};
+            //utils.assertNumber(value);
+            const lookup = {off: 0, "5+2": 1, "6+1": 2, "7": 3};
             await entity.write("hvacThermostat", {[attrThermScheduleMode]: {value: utils.getFromLookup(value, lookup), type: 0x30}});
             return {state: {schedule_mode: value}};
         },
@@ -471,7 +478,9 @@ async function configureCommon(device: Zh.Device, coordinatorEndpoint: Zh.Endpoi
     await reporting.thermostatSystemMode(endpoint1, {min: 0, max: 3600, change: 0});
     await reporting.thermostatTemperatureCalibration(endpoint1, {min: 0, max: 3600, change: 0});
     await reporting.thermostatKeypadLockMode(endpoint1, {min: 0, max: 3600, change: 0});
-    const payload_oper_mode = [{attribute: "programingOperMode", minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0}];
+    const payload_oper_mode = [
+        {attribute: "programingOperMode" as const, minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0},
+    ];
     await endpoint1.configureReporting("hvacThermostat", payload_oper_mode);
     const payload_sensor_used = [
         {attribute: {ID: attrThermSensorUser, type: 0x30}, minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0},
@@ -673,7 +682,7 @@ const electricityMeterExtend = {
                 convert: (model, msg, publish, options, meta) => {
                     const result: KeyValueAny = {};
                     if (msg.data.divisor !== undefined) {
-                        const energyDivisor = Number.parseInt(msg.data.divisor);
+                        const energyDivisor = Number.parseInt(msg.data.divisor, 10);
                         globalStore.putValue(meta.device, "energyDivisor", energyDivisor);
                         result.e_divisor = energyDivisor;
                     }
@@ -686,7 +695,7 @@ const electricityMeterExtend = {
                 convert: (model, msg, publish, options, meta) => {
                     const result: KeyValueAny = {};
                     if (msg.data.multiplier !== undefined) {
-                        const energyMultiplier = Number.parseInt(msg.data.multiplier);
+                        const energyMultiplier = Number.parseInt(msg.data.multiplier, 10);
                         globalStore.putValue(meta.device, "energyMultiplier", energyMultiplier);
                         result.e_multiplier = energyMultiplier;
                     }
@@ -708,7 +717,7 @@ const electricityMeterExtend = {
                             energyMultiplier = 1;
                         }
                         const data = msg.data.currentTier1SummDelivered;
-                        result.energy_tier_1 = (Number.parseInt(data) / energyDivisor) * energyMultiplier;
+                        result.energy_tier_1 = (Number.parseInt(data, 10) / energyDivisor) * energyMultiplier;
                     }
                     return result;
                 },
@@ -728,7 +737,7 @@ const electricityMeterExtend = {
                             energyMultiplier = 1;
                         }
                         const data = msg.data.currentTier2SummDelivered;
-                        result.energy_tier_2 = (Number.parseInt(data) / energyDivisor) * energyMultiplier;
+                        result.energy_tier_2 = (Number.parseInt(data, 10) / energyDivisor) * energyMultiplier;
                     }
                     return result;
                 },
@@ -748,7 +757,7 @@ const electricityMeterExtend = {
                             energyMultiplier = 1;
                         }
                         const data = msg.data.currentTier3SummDelivered;
-                        result.energy_tier_3 = (Number.parseInt(data) / energyDivisor) * energyMultiplier;
+                        result.energy_tier_3 = (Number.parseInt(data, 10) / energyDivisor) * energyMultiplier;
                     }
                     return result;
                 },
@@ -768,7 +777,7 @@ const electricityMeterExtend = {
                             energyMultiplier = 1;
                         }
                         const data = msg.data.currentTier4SummDelivered;
-                        result.energy_tier_4 = (Number.parseInt(data) / energyDivisor) * energyMultiplier;
+                        result.energy_tier_4 = (Number.parseInt(data, 10) / energyDivisor) * energyMultiplier;
                     }
                     return result;
                 },
@@ -816,7 +825,7 @@ const electricityMeterExtend = {
                     const result: KeyValueAny = {};
                     if (msg.data.status !== undefined) {
                         const data = msg.data.status;
-                        const value = Number.parseInt(data);
+                        const value = Number.parseInt(data, 10);
                         return {
                             battery_low: (value & (1 << 1)) > 0,
                             tamper: (value & (1 << 2)) > 0,
@@ -831,7 +840,7 @@ const electricityMeterExtend = {
                 convert: (model, msg, publish, options, meta) => {
                     const result: KeyValueAny = {};
                     if (msg.data.remainingBattLife !== undefined) {
-                        const data = Number.parseInt(msg.data.remainingBattLife);
+                        const data = Number.parseInt(msg.data.remainingBattLife, 10);
                         result.battery_life = data;
                     }
                     return result;
@@ -843,7 +852,7 @@ const electricityMeterExtend = {
                 convert: (model, msg, publish, options, meta) => {
                     const result: KeyValueAny = {};
                     if (msg.data[attrElCityMeterMeasurementPreset] !== undefined) {
-                        const data = Number.parseInt(msg.data[attrElCityMeterMeasurementPreset]);
+                        const data = Number.parseInt(msg.data[attrElCityMeterMeasurementPreset], 10);
                         result.device_measurement_preset = data;
                     }
                     return result;
@@ -906,15 +915,15 @@ function waterPreset(): ModernExtend {
                     step_water: (value as any).step_water_preset,
                 };
                 if (values.hot_water != null && values.hot_water >= 0) {
-                    const hot_water_preset = Number.parseInt(values.hot_water);
+                    const hot_water_preset = Number.parseInt(values.hot_water, 10);
                     await endpoint.write("seMetering", {61440: {value: hot_water_preset, type: 0x23}});
                 }
                 if (values.cold_water != null && values.cold_water >= 0) {
-                    const cold_water_preset = Number.parseInt(values.cold_water);
+                    const cold_water_preset = Number.parseInt(values.cold_water, 10);
                     await endpoint.write("seMetering", {61441: {value: cold_water_preset, type: 0x23}});
                 }
                 if (values.step_water != null && values.step_water >= 0) {
-                    const step_water_preset = Number.parseInt(values.step_water);
+                    const step_water_preset = Number.parseInt(values.step_water, 10);
                     await endpoint.write("seMetering", {61442: {value: step_water_preset, type: 0x21}});
                 }
             },
@@ -923,6 +932,98 @@ function waterPreset(): ModernExtend {
 
     return {toZigbee, exposes, isModernExtend: true};
 }
+
+const air_extend = {
+    led_brightness: (): ModernExtend => {
+        const exposes: Expose[] = [e.numeric("brightness", ea.ALL).withValueMin(0).withValueMax(255).withDescription("LED brightness")];
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ["brightness"],
+                convertSet: async (entity, key, value, meta) => {
+                    await entity.command(
+                        "genLevelCtrl",
+                        "moveToLevel",
+                        {level: value as number, transtime: 0},
+                        utils.getOptions(meta.mapped, entity),
+                    );
+                    return {state: {brightness: value}};
+                },
+                convertGet: async (entity, key, meta) => {
+                    await entity.read("genLevelCtrl", ["currentLevel"]);
+                },
+            },
+        ];
+
+        const fromZigbee: Fz.Converter[] = [
+            {
+                cluster: "genLevelCtrl",
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    const result: KeyValueAny = {};
+                    if (Object.hasOwn(msg.data, "currentLevel")) {
+                        const data = Number.parseInt(msg.data.currentLevel, 10);
+                        result.brightness = data;
+                    }
+                    return result;
+                },
+            },
+        ];
+
+        return {
+            exposes,
+            fromZigbee,
+            toZigbee,
+            isModernExtend: true,
+        };
+    },
+
+    features_sensors: (): ModernExtend => {
+        const exposes: Expose[] = [
+            e.composite("features_sensors", "features_sensors", ea.SET).withFeature(e.enum("features", ea.STATE_SET, switchFeatures)),
+        ];
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ["features_sensors"],
+                convertSet: async (entity, key, rawValue, meta) => {
+                    const endpoint = meta.device.getEndpoint(1);
+                    // biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
+                    const value = (rawValue as any).features;
+                    if (value != null) {
+                        const lookup = {
+                            nothing: 0,
+                            co2_forced_calibration: 1,
+                            co2_factory_reset: 2,
+                            bind_reset: 3,
+                        };
+
+                        const value_lookup = utils.getFromLookup(value, lookup);
+                        //logger.logger.info("value_lookup: " + value_lookup);
+                        if (value_lookup >= 1 && value_lookup <= 3) {
+                            await endpoint.write("hvacUserInterfaceCfg", {[attrFeaturesSensors]: {value: value_lookup, type: 0x30}});
+                            return {
+                                state: {[key]: value},
+                            };
+                        }
+                    }
+                },
+                convertGet: async (entity, key, meta) => {
+                    await entity.read("hvacUserInterfaceCfg", [attrFeaturesSensors]);
+                },
+            },
+        ];
+
+        const fromZigbee: Fz.Converter[] = [];
+
+        return {
+            exposes,
+            fromZigbee,
+            toZigbee,
+            isModernExtend: true,
+        };
+    },
+};
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -1139,7 +1240,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.enumLookup({
                 name: "device_model_preset",
                 lookup: {
-                    "No Device": 0,
+                    no_device: 0,
                     "KASKAD-1-MT (MIRTEK)": 1,
                     "KASKAD-11-C1": 2,
                     "MERCURY-206": 3,
@@ -1147,6 +1248,89 @@ export const definitions: DefinitionWithExtend[] = [
                     "ENERGOMERA-CE208BY": 5,
                     "NEVA-MT124": 6,
                     "NARTIS-100": 7,
+                },
+                cluster: "seMetering",
+                attribute: {ID: attrElCityMeterModelPreset, type: 0x30},
+                description: "Device Model",
+            }),
+        ],
+        ota: true,
+    },
+    {
+        zigbeeModel: ["ElectricityMeterABC_DIY"],
+        model: "ElectricityMeter-ABC-DIY",
+        vendor: "Slacky-DIY",
+        description: "Three phase Electricity Meter via optical port",
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            await endpoint1.read("seMetering", ["remainingBattLife", "status", attrElCityMeterMeasurementPreset]);
+            await endpoint1.read("seMetering", ["divisor"]);
+            await endpoint1.read("seMetering", ["multiplier"]);
+            await endpoint1.read("seMetering", ["currentTier1SummDelivered"]);
+            await endpoint1.read("seMetering", ["currentTier2SummDelivered"]);
+            await endpoint1.read("seMetering", ["currentTier3SummDelivered"]);
+            await endpoint1.read("seMetering", ["currentTier4SummDelivered"]);
+            await endpoint1.read("seMetering", ["currentSummDelivered"]);
+            await endpoint1.read("seMetering", ["meterSerialNumber"]);
+            await endpoint1.read("seMetering", [attrElCityMeterMeasurementPreset]);
+            await endpoint1.read("seMetering", [attrElCityMeterModelName]);
+            //            await endpoint1.read("haElectricalMeasurement", ["acVoltageDivisor"]);
+            //            await endpoint1.read("haElectricalMeasurement", ["acVoltageMultiplier"]);
+            //            await endpoint1.read("haElectricalMeasurement", ["rmsVoltage"]);
+            //            await endpoint1.read("haElectricalMeasurement", ["acCurrentDivisor"]);
+            //            await endpoint1.read("haElectricalMeasurement", ["acCurrentMultiplier"]);
+            //            await endpoint1.read("haElectricalMeasurement", ["instantaneousLineCurrent"]);
+            //            await endpoint1.read("haElectricalMeasurement", ["acPowerDivisor"]);
+            //            await endpoint1.read("haElectricalMeasurement", ["acPowerMultiplier"]);
+            //            await endpoint1.read("haElectricalMeasurement", ["apparentPower"]);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ["seMetering", "haElectricalMeasurement", "genDeviceTempCfg"]);
+            const payload_tier1 = [{attribute: {ID: 0x0100, type: 0x25}, minimumReportInterval: 0, maximumReportInterval: 300, reportableChange: 0}];
+            await endpoint1.configureReporting("seMetering", payload_tier1);
+            const payload_tier2 = [{attribute: {ID: 0x0102, type: 0x25}, minimumReportInterval: 0, maximumReportInterval: 300, reportableChange: 0}];
+            await endpoint1.configureReporting("seMetering", payload_tier2);
+            const payload_tier3 = [{attribute: {ID: 0x0104, type: 0x25}, minimumReportInterval: 0, maximumReportInterval: 300, reportableChange: 0}];
+            await endpoint1.configureReporting("seMetering", payload_tier3);
+            const payload_tier4 = [{attribute: {ID: 0x0106, type: 0x25}, minimumReportInterval: 0, maximumReportInterval: 300, reportableChange: 0}];
+            await endpoint1.configureReporting("seMetering", payload_tier4);
+            await reporting.currentSummDelivered(endpoint1, {min: 0, max: 300, change: 0});
+            const payload_status = [{attribute: {ID: 0x0200, type: 0x18}, minimumReportInterval: 0, maximumReportInterval: 300, reportableChange: 0}];
+            await endpoint1.configureReporting("seMetering", payload_status);
+            const payload_battery_life = [
+                {attribute: {ID: 0x0201, type: 0x20}, minimumReportInterval: 0, maximumReportInterval: 300, reportableChange: 0},
+            ];
+            await endpoint1.configureReporting("seMetering", payload_battery_life);
+            const payload_serial_number = [
+                {attribute: {ID: 0x0308, type: 0x41}, minimumReportInterval: 0, maximumReportInterval: 300, reportableChange: 0},
+            ];
+            await endpoint1.configureReporting("seMetering", payload_serial_number);
+            const payload_date_release = [
+                {attribute: {ID: attrElCityMeterDateRelease, type: 0x41}, minimumReportInterval: 0, maximumReportInterval: 300, reportableChange: 0},
+            ];
+            await endpoint1.configureReporting("seMetering", payload_date_release);
+            const payload_model_name = [
+                {attribute: {ID: attrElCityMeterModelName, type: 0x41}, minimumReportInterval: 0, maximumReportInterval: 300, reportableChange: 0},
+            ];
+            await endpoint1.configureReporting("seMetering", payload_model_name);
+            //            await reporting.rmsVoltage(endpoint1, {min: 0, max: 300, change: 0});
+            //            const payload_current = [
+            //                {attribute: {ID: 0x0501, type: 0x21}, minimumReportInterval: 0, maximumReportInterval: 300, reportableChange: 0},
+            //            ];
+            //            await endpoint1.configureReporting("haElectricalMeasurement", payload_current);
+            //            await reporting.apparentPower(endpoint1, {min: 0, max: 300, change: 0});
+            const payload_temperature = [
+                {attribute: {ID: 0x0000, type: 0x29}, minimumReportInterval: 0, maximumReportInterval: 300, reportableChange: 0},
+            ];
+            await endpoint1.configureReporting("genDeviceTempCfg", payload_temperature);
+        },
+        extend: [
+            m.deviceTemperature(),
+            m.electricityMeter({threePhase: true}),
+            electricityMeterExtend.elMeter(),
+            m.enumLookup({
+                name: "device_model_preset",
+                lookup: {
+                    no_device: 0,
+                    "NARTIS-I300": 1,
                 },
                 cluster: "seMetering",
                 attribute: {ID: attrElCityMeterModelPreset, type: 0x30},
@@ -1808,7 +1992,7 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
     },
     {
-        zigbeeModel: ["ZG-222ZA-z-SlD"],
+        zigbeeModel: ["ZG-222ZA-z-SlD", "ZG-222Z-z-SlD", "SNZB-05-z-SlD"],
         model: "ZG-222ZA-z-SlD",
         vendor: "Slacky-DIY",
         description: "Tuya water leak sensor with custom firmware",
@@ -1823,10 +2007,174 @@ export const definitions: DefinitionWithExtend[] = [
             m.commandsOnOff(),
             m.enumLookup({
                 name: "switch_actions",
-                lookup: {off: 0, on: 1, toggle: 2},
+                lookup: {off: 0, on: 1},
                 cluster: "genOnOffSwitchCfg",
                 attribute: "switchActions",
                 description: "Actions switch",
+            }),
+        ],
+        meta: {},
+        ota: true,
+    },
+    {
+        zigbeeModel: ["AirQ_Monitor_S01"],
+        model: "AirQ_Monitor_S01",
+        vendor: "Slacky-DIY",
+        description: "Air quality monitor",
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.read("genLevelCtrl", ["currentLevel"]);
+        },
+        extend: [
+            m.co2({reporting: {min: 10, max: 3600, change: 0.00001}}),
+            m.numeric({
+                name: "voc_index",
+                access: "STATE_GET",
+                cluster: "genAnalogInput",
+                attribute: "presentValue",
+                reporting: {min: 10, max: 3600, change: 30},
+                unit: "VOC Index points",
+                description: "VOC index",
+            }),
+            m.temperature(),
+            m.humidity(),
+            m.pressure(),
+            m.illuminance(),
+            m.enumLookup({
+                name: "display_rotate",
+                lookup: {horizontal: 0, vertical: 1},
+                cluster: "hvacUserInterfaceCfg",
+                attribute: {ID: attrDisplayRotate, type: 0x30},
+                reporting: {min: 0, max: 65000, change: 0},
+                description: "Display orientation (horizontal/vertical)",
+            }),
+            m.enumLookup({
+                name: "display_inversion",
+                lookup: {black_on_white: 0, white_on_black: 1},
+                cluster: "hvacUserInterfaceCfg",
+                attribute: {ID: attrDisplayInversion, type: 0x30},
+                reporting: {min: 0, max: 65000, change: 0},
+                description: "Display inversion (black on white/white on black)",
+            }),
+            m.enumLookup({
+                name: "temperature_display_mode",
+                lookup: {celsius: 0, fahrenheit: 1},
+                cluster: "hvacUserInterfaceCfg",
+                attribute: "tempDisplayMode",
+                reporting: {min: 0, max: 65000, change: 0},
+                description: "The units of the temperature displayed on the device screen",
+            }),
+            m.numeric({
+                name: "temperature_offset",
+                cluster: "msTemperatureMeasurement",
+                attribute: {ID: 0xf000, type: 0x29},
+                unit: "°C",
+                valueMin: -5,
+                valueMax: 5,
+                valueStep: 0.1,
+                scale: 100,
+                description: "Offset to add/subtract to the inside temperature",
+            }),
+            m.numeric({
+                name: "read_interval",
+                cluster: "msTemperatureMeasurement",
+                attribute: {ID: 0xf001, type: 0x21},
+                unit: "Sec",
+                valueMin: 5,
+                valueMax: 600,
+                valueStep: 1,
+                description: "Sensors reading period",
+            }),
+            m.binary({
+                name: "enabling_co2_control",
+                cluster: "msCO2",
+                attribute: {ID: 0xf002, type: 0x10},
+                description: "Enables/disables CO2 control",
+                valueOn: ["ON", 0x01],
+                valueOff: ["OFF", 0x00],
+            }),
+            m.numeric({
+                name: "low_co2",
+                cluster: "msCO2",
+                attribute: {ID: 0xf003, type: 0x21},
+                unit: "ppm",
+                valueMin: 400,
+                valueMax: 2000,
+                valueStep: 1,
+                description: "CO2 low turn-off limit",
+            }),
+            m.numeric({
+                name: "high_co2",
+                cluster: "msCO2",
+                attribute: {ID: 0xf004, type: 0x21},
+                unit: "ppm",
+                valueMin: 400,
+                valueMax: 2000,
+                valueStep: 1,
+                description: "CO2 high turn-on limit",
+            }),
+            m.binary({
+                name: "enabling_voc_control",
+                cluster: "genAnalogInput",
+                attribute: {ID: 0xf005, type: 0x10},
+                description: "Enables/disables VOC control",
+                valueOn: ["ON", 0x01],
+                valueOff: ["OFF", 0x00],
+            }),
+            m.numeric({
+                name: "low_voc",
+                cluster: "genAnalogInput",
+                attribute: {ID: 0xf006, type: 0x21},
+                unit: "VOC index points",
+                valueMin: 1,
+                valueMax: 500,
+                valueStep: 1,
+                description: "VOC low turn-off limit",
+            }),
+            m.numeric({
+                name: "high_voc",
+                cluster: "genAnalogInput",
+                attribute: {ID: 0xf007, type: 0x21},
+                unit: "VOC index points",
+                valueMin: 1,
+                valueMax: 500,
+                valueStep: 1,
+                description: "VOC high turn-on limit",
+            }),
+            m.enumLookup({
+                name: "switch_actions",
+                lookup: {off: 0, on: 1},
+                cluster: "genOnOffSwitchCfg",
+                attribute: "switchActions",
+                description: "Actions switch",
+            }),
+            air_extend.led_brightness(),
+            m.binary({
+                name: "enabling_sound",
+                cluster: "hvacUserInterfaceCfg",
+                attribute: {ID: 0xf00c, type: 0x10},
+                description: "Enables/disables sound",
+                valueOn: ["ON", 0x01],
+                valueOff: ["OFF", 0x00],
+            }),
+            m.numeric({
+                name: "frc_co2_correction",
+                access: "STATE_GET",
+                cluster: "msCO2",
+                attribute: {ID: attrCo2Calibration, type: 0x29},
+                reporting: {min: 0, max: 3600, change: 0},
+                unit: "ppm",
+                description: "FRC CO2 correction",
+            }),
+            air_extend.features_sensors(),
+            m.numeric({
+                name: "life_time",
+                access: "STATE_GET",
+                cluster: "genTime",
+                attribute: "time",
+                reporting: {min: 60, max: 3600, change: 0},
+                unit: "h",
+                description: "Life time of device",
             }),
         ],
         meta: {},

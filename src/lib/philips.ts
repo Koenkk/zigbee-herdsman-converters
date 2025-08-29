@@ -1,5 +1,4 @@
 import {Zcl} from "zigbee-herdsman";
-
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as reporting from "../lib/reporting";
@@ -52,7 +51,22 @@ export const knownEffects = {
     "0a80": "sparkle",
     "0b80": "opal",
     "0c80": "glisten",
+    "0d80": "underwater",
+    "0e80": "cosmos",
+    "0f80": "sunbeam",
+    "1080": "enchant",
 };
+
+interface PhilipsContact {
+    attributes: {
+        contact: number;
+        contactLastChange: number;
+        tamper: number;
+        tamperLastChange: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
 
 const philipsModernExtend = {
     addCustomClusterManuSpecificPhilipsContact: () =>
@@ -226,19 +240,20 @@ const philipsModernExtend = {
             {
                 key: ["contact", "tamper", "contact_last_changed", "tamper_last_changed"],
                 convertGet: async (entity, key, meta) => {
-                    const attrib: string = (() => {
-                        switch (key) {
-                            case "contact_last_changed":
-                                return "contactLastChange";
-                            case "tamper_last_changed":
-                                return "tamperLastChange";
-                            default:
-                                return key;
-                        }
-                    })();
+                    let attrib = key as "contact" | "tamper" | "contactLastChange" | "tamperLastChange";
+
+                    switch (key) {
+                        case "contact_last_changed":
+                            attrib = "contactLastChange";
+                            break;
+                        case "tamper_last_changed":
+                            attrib = "tamperLastChange";
+                            break;
+                    }
+
                     const ep = modernExtend.determineEndpoint(entity, meta, "manuSpecificPhilipsContact");
                     try {
-                        await ep.read("manuSpecificPhilipsContact", [attrib]);
+                        await ep.read<"manuSpecificPhilipsContact", PhilipsContact>("manuSpecificPhilipsContact", [attrib]);
                     } catch (e) {
                         logger.debug(`Reading ${attrib} failed: ${e}, device probably doesn't support it`, "zhc:setupattribute");
                     }
@@ -249,12 +264,12 @@ const philipsModernExtend = {
             // NOTE: trigger report after 4 hours incase the network was offline when a contact was triggered
             //       contactLastChange and tamperLastChange seem come with every report of contact, so we do
             //       not configure reporting
-            modernExtend.setupConfigureForReporting("manuSpecificPhilipsContact", "contact", {
+            modernExtend.setupConfigureForReporting<"manuSpecificPhilipsContact", PhilipsContact>("manuSpecificPhilipsContact", "contact", {
                 config: {min: 0, max: "4_HOURS", change: 1},
                 access: ea.STATE_GET,
                 singleEndpoint: true,
             }),
-            modernExtend.setupConfigureForReporting("manuSpecificPhilipsContact", "tamper", {
+            modernExtend.setupConfigureForReporting<"manuSpecificPhilipsContact", PhilipsContact>("manuSpecificPhilipsContact", "tamper", {
                 config: {min: 0, max: "4_HOURS", change: 1},
                 access: ea.STATE_GET,
                 singleEndpoint: true,
@@ -517,6 +532,10 @@ export const hueEffects = {
     sparkle: "2100010a",
     opal: "2100010b",
     glisten: "2100010c",
+    underwater: "2100010e",
+    cosmos: "2100010f",
+    sunbeam: "21000110",
+    enchant: "21000111",
     stop_hue_effect: "200000",
 };
 
@@ -529,7 +548,7 @@ const philipsFz = {
             if (utils.hasAlreadyProcessedMessage(msg, model)) return;
             const buttonLookup: KeyValue = {1: "button_1", 2: "button_2", 3: "button_3", 4: "button_4", 20: "dial"};
             const button = buttonLookup[msg.data.button];
-            const direction = msg.data.unknown2 < 127 ? "right" : "left";
+            const direction = msg.data.unknown3 < 127 ? "right" : "left";
             const time = msg.data.time;
             const payload: KeyValue = {};
 

@@ -18,7 +18,7 @@ const tzLocal = {
             const state = value.toLowerCase();
             utils.validateValue(state, ["toggle", "off", "on"]);
             const endpoint = meta.device.getEndpoint(3);
-            await endpoint.command("genOnOff", state, {});
+            await endpoint.command("genOnOff", state as "toggle" | "off" | "on", {});
             return {state: {backlight_led: state.toUpperCase()}};
         },
     } satisfies Tz.Converter,
@@ -26,7 +26,7 @@ const tzLocal = {
         key: ["brightness"],
         options: [exposes.options.transition()],
         convertSet: async (entity, key, value, meta) => {
-            await entity.command("genLevelCtrl", "moveToLevel", {level: value, transtime: 0}, utils.getOptions(meta.mapped, entity));
+            await entity.command("genLevelCtrl", "moveToLevel", {level: value as number, transtime: 0}, utils.getOptions(meta.mapped, entity));
             return {state: {brightness: value}};
         },
         convertGet: async (entity, key, meta) => {
@@ -62,11 +62,11 @@ const batteryRotaryDimmer = (...endpointsIds: number[]) => ({
             await disableBatteryRotaryDimmerReporting(endpoint);
         }
     }) satisfies Configure,
-    onEvent: (async (type, data, device) => {
+    onEvent: (async (event) => {
         // The rotary dimmer devices appear to lose the configured reportings when they
         // re-announce themselves which they do roughly every 6 hours.
-        if (type === "deviceAnnounce") {
-            for (const endpoint of device.endpoints) {
+        if (event.type === "deviceAnnounce") {
+            for (const endpoint of event.data.device.endpoints) {
                 // First disable the default reportings (for the dimmer endpoints only)
                 if ([1, 2].includes(endpoint.ID)) {
                     await disableBatteryRotaryDimmerReporting(endpoint);
@@ -75,6 +75,7 @@ const batteryRotaryDimmer = (...endpointsIds: number[]) => ({
                 for (const c of endpoint.configuredReportings) {
                     await endpoint.configureReporting(c.cluster.name, [
                         {
+                            // @ts-expect-error dynamic, assumed correct since already applied
                             attribute: c.attribute.name,
                             minimumReportInterval: c.minimumReportInterval,
                             maximumReportInterval: c.maximumReportInterval,
@@ -84,7 +85,7 @@ const batteryRotaryDimmer = (...endpointsIds: number[]) => ({
                 }
             }
         }
-    }) satisfies OnEvent,
+    }) satisfies OnEvent.Handler,
 });
 
 export const definitions: DefinitionWithExtend[] = [
