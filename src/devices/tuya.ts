@@ -2867,8 +2867,9 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.modernExtend.tuyaOnOff({
                 backlightModeOffOn: false,
                 childLock: false,
-                powerOnBehavior2: true,
+                powerOnBehavior2: false,
                 onOffCountdown: false,
+                indicatorMode: true, 
             }),
         ],
         configure: async (device, coordinatorEndpoint) => {
