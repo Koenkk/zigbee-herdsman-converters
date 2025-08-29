@@ -18515,12 +18515,10 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [
-            {modelID: 'TS0601', manufacturerName: '_TZE284_pglpvdar'},
-        ],
-        model: 'TO-Q-SA1',
-        vendor: 'Tongou (Tuya)',
-        description: 'Zigbee energy meter (transformer clamp, Tuya)',
+        fingerprint: [{modelID: "TS0601", manufacturerName: "_TZE284_pglpvdar"}],
+        model: "TO-Q-SA1",
+        vendor: "Tongou (Tuya)",
+        description: "Zigbee energy meter (transformer clamp, Tuya)",
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         exposes: [
@@ -18597,13 +18595,13 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {
             multiEndpointSkip: ["test1", "test5"],
             tuyaDatapoints: [
-                [1, 'energy', tuya.valueConverter.divideBy100], // Total forward energy
-                [6,  null,      tuya.valueConverter.phaseVariant2], // Phase A
-                [13, 'test1',   tuya.valueConverter.raw], // Remaining electricity
-                [32, 'ac_frequency', tuya.valueConverter.divideBy100], // Grid supply frequency
-                [50, 'power_factor', tuya.valueConverter.raw], // Overall power factor
+                [1, "energy", tuya.valueConverter.divideBy100], // Total forward energy
+                [6, null, tuya.valueConverter.phaseVariant2], // Phase A
+                [13, "test1", tuya.valueConverter.raw], // Remaining electricity
+                [32, "ac_frequency", tuya.valueConverter.divideBy100], // Grid supply frequency
+                [50, "power_factor", tuya.valueConverter.raw], // Overall power factor
                 [
-                  102,
+                    102,
                     "over_voltage_setting",
                     tuya.valueConverterBasic.lookup({
                         Ignore: tuya.enum(0),
