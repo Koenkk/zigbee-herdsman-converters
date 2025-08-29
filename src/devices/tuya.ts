@@ -2869,7 +2869,7 @@ export const definitions: DefinitionWithExtend[] = [
                 childLock: false,
                 powerOnBehavior2: false,
                 onOffCountdown: false,
-                indicatorMode: true, 
+                indicatorMode: false, 
             }),
         ],
         configure: async (device, coordinatorEndpoint) => {
