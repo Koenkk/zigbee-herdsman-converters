@@ -1325,51 +1325,14 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Sunricher",
         description: "Zigbee 2 channels switch",
         whiteLabel: [{vendor: "LED-Trading", model: "UP-SA-9127D", description: "2 channels AC switch"}],
-        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.power_on_behavior, fz.ignore_genOta],
-        toZigbee: [tz.on_off, tz.power_on_behavior],
-        exposes: [
-            e.switch().withEndpoint("l1"),
-            e.switch().withEndpoint("l2"),
-            e.power(),
-            e.current(),
-            e.voltage(),
-            e.energy(),
-            e.power_on_behavior(["off", "on", "previous"]),
+        extend: [
+            m.deviceEndpoints({endpoints: {l1: 1, l2: 2}, multiEndpointSkip: ["power", "energy", "current", "voltage"]}),
+            m.onOff({endpointNames: ["l1", "l2"]}),
+            m.electricityMeter(),
+            m.identify(),
+            m.commandsOnOff({endpointNames: ["l1", "l2"]}),
         ],
-        endpoint: (device) => {
-            return {l1: 1, l2: 2};
-        },
-        meta: {
-            multiEndpoint: true,
-            multiEndpointSkip: ["power", "energy", "voltage", "current"],
-        },
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint1 = device.getEndpoint(1);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genOnOff"]);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genOnOff"]);
-            await reporting.onOff(endpoint1);
-            await reporting.onOff(endpoint2);
-            if (device && device.softwareBuildID >= "2.9.2_r3") {
-                // newer firmware version power reports are on endpoint 11
-                const endpoint11 = device.getEndpoint(11);
-                await reporting.bind(endpoint11, coordinatorEndpoint, ["haElectricalMeasurement", "seMetering"]);
-                await reporting.readEletricalMeasurementMultiplierDivisors(endpoint11);
-                await reporting.activePower(endpoint11);
-                await reporting.rmsCurrent(endpoint11, {min: 10, change: 10});
-                await reporting.rmsVoltage(endpoint11, {min: 10});
-                await reporting.readMeteringMultiplierDivisor(endpoint11);
-            } else if (device && device.softwareBuildID <= "2.5.3_r2") {
-                // older firmware version power reports are on endpoint 1
-                await reporting.bind(endpoint1, coordinatorEndpoint, ["haElectricalMeasurement", "seMetering"]);
-                await reporting.readEletricalMeasurementMultiplierDivisors(endpoint1);
-                await reporting.activePower(endpoint1);
-                await reporting.rmsCurrent(endpoint1, {min: 10, change: 10});
-                await reporting.rmsVoltage(endpoint1, {min: 10});
-                await reporting.readMeteringMultiplierDivisor(endpoint1);
-                await reporting.currentSummDelivered(endpoint1);
-            }
-        },
+        meta: {multiEndpoint: true},
     },
     {
         zigbeeModel: ["HK-ZD-CCT-A"],
