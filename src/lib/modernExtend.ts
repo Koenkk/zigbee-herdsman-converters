@@ -749,9 +749,9 @@ export function iasGetPanelStatusResponse(): ModernExtend {
                     audiblenotif: 0x00,
                     alarmstatus: 0x00,
                 };
+                assertNumber(msg.meta.zclTransactionSequenceNumber);
                 msg.endpoint
-                    // TODO using wrong arg msg.meta
-                    .commandResponse("ssIasAce", "getPanelStatusRsp", payload, {}, msg.data.meta.zclTransactionSequenceNumber)
+                    .commandResponse("ssIasAce", "getPanelStatusRsp", payload, {}, msg.meta.zclTransactionSequenceNumber)
                     .catch((error) => logger.error(`Failed to send panel status response '${msg.device.ieeeAddr}' (${error})`, NS));
             }
         },
@@ -1701,7 +1701,7 @@ export function iasZoneAlarm(args: IasArgs): ModernExtend {
                     }
                 }
                 const isChange = msg.type === "commandStatusChangeNotification";
-                const zoneStatus = isChange ? msg.data.zonestatus : msg.data.zoneStatus;
+                const zoneStatus = "zonestatus" in msg.data ? msg.data.zonestatus : msg.data.zoneStatus;
                 if (zoneStatus !== undefined) {
                     let payload = {};
                     if (args.zoneAttributes.includes("tamper")) {
@@ -2452,6 +2452,7 @@ export function commandsScenes(args: CommandsScenesArgs = {}) {
                 if (hasAlreadyProcessedMessage(msg, model)) return;
                 let trailing = "";
                 if (msg.type === "commandRecall" || msg.type === "commandStore") {
+                    assert("sceneid" in msg.data);
                     trailing = `_${msg.data.sceneid}`;
                 }
                 const payload = {

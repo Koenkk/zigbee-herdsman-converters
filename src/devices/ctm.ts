@@ -404,8 +404,7 @@ const fzLocal = {
         cluster: "ssIasZone",
         type: ["commandStatusChangeNotification", "attributeReport"],
         convert: (model, msg, publish, options, meta) => {
-            // TODO: `zoneStatus` or `zonestatus` depending on `type`
-            const zoneStatus = msg.data.zonestatus;
+            const zoneStatus = "zonestatus" in msg.data ? msg.data.zonestatus : msg.data.zoneStatus;
             return {
                 active_water_leak: (zoneStatus & 1) > 0,
                 water_leak: (zoneStatus & (1 << 1)) > 0,

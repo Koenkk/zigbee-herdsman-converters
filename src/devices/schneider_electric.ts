@@ -449,93 +449,93 @@ const fzLocal = {
                     switch (clusterID) {
                         case 2820: {
                             // haElectricalMeasurement
-                            const acCurrentDivisor = attr.acCurrentDivisor;
-                            const acVoltageDivisor = attr.acVoltageDivisor;
-                            const acFrequencyDivisor = attr.acFrequencyDivisor;
-                            const powerDivisor = attr.powerDivisor;
+                            const acCurrentDivisor = attr.acCurrentDivisor as number;
+                            const acVoltageDivisor = attr.acVoltageDivisor as number;
+                            const acFrequencyDivisor = attr.acFrequencyDivisor as number;
+                            const powerDivisor = attr.powerDivisor as number;
 
                             if (attr.rmsVoltage !== undefined) {
-                                ret.voltage_phase_a = attr.rmsVoltage / acVoltageDivisor;
+                                ret.voltage_phase_a = (attr.rmsVoltage as number) / acVoltageDivisor;
                             }
 
                             if (attr.rmsVoltagePhB !== undefined) {
-                                ret.voltage_phase_b = attr.rmsVoltagePhB / acVoltageDivisor;
+                                ret.voltage_phase_b = (attr.rmsVoltagePhB as number) / acVoltageDivisor;
                             }
 
                             if (attr.rmsVoltagePhC !== undefined) {
-                                ret.voltage_phase_c = attr.rmsVoltagePhC / acVoltageDivisor;
+                                ret.voltage_phase_c = (attr.rmsVoltagePhC as number) / acVoltageDivisor;
                             }
 
                             if (attr["19200"] !== undefined) {
-                                ret.voltage_phase_ab = attr["19200"] / acVoltageDivisor;
+                                ret.voltage_phase_ab = (attr["19200"] as number) / acVoltageDivisor;
                             }
 
                             if (attr["19456"] !== undefined) {
-                                ret.voltage_phase_bc = attr["19456"] / acVoltageDivisor;
+                                ret.voltage_phase_bc = (attr["19456"] as number) / acVoltageDivisor;
                             }
 
                             if (attr["19712"] !== undefined) {
-                                ret.voltage_phase_ca = attr["19712"] / acVoltageDivisor;
+                                ret.voltage_phase_ca = (attr["19712"] as number) / acVoltageDivisor;
                             }
 
                             if (attr.rmsCurrent !== undefined) {
-                                ret.current_phase_a = attr.rmsCurrent / acCurrentDivisor;
+                                ret.current_phase_a = (attr.rmsCurrent as number) / acCurrentDivisor;
                             }
 
                             if (attr.rmsCurrentPhB !== undefined) {
-                                ret.current_phase_b = attr.rmsCurrentPhB / acCurrentDivisor;
+                                ret.current_phase_b = (attr.rmsCurrentPhB as number) / acCurrentDivisor;
                             }
 
                             if (attr.rmsCurrentPhC !== undefined) {
-                                ret.current_phase_c = attr.rmsCurrentPhC / acCurrentDivisor;
+                                ret.current_phase_c = (attr.rmsCurrentPhC as number) / acCurrentDivisor;
                             }
 
                             if (attr.totalActivePower !== undefined) {
-                                ret.power = (attr.totalActivePower * 1000) / powerDivisor;
+                                ret.power = ((attr.totalActivePower as number) * 1000) / powerDivisor;
                             }
 
                             if (attr.totalApparentPower !== undefined) {
-                                ret.power_apparent = (attr.totalApparentPower * 1000) / powerDivisor;
+                                ret.power_apparent = ((attr.totalApparentPower as number) * 1000) / powerDivisor;
                             }
 
                             if (attr.acFrequency !== undefined) {
-                                ret.ac_frequency = attr.acFrequency / acFrequencyDivisor;
+                                ret.ac_frequency = (attr.acFrequency as number) / acFrequencyDivisor;
                             }
 
                             if (attr.activePower !== undefined) {
-                                ret.power_phase_a = (attr.activePower * 1000) / powerDivisor;
+                                ret.power_phase_a = ((attr.activePower as number) * 1000) / powerDivisor;
                             }
 
                             if (attr.activePowerPhB !== undefined) {
-                                ret.power_phase_b = (attr.activePowerPhB * 1000) / powerDivisor;
+                                ret.power_phase_b = ((attr.activePowerPhB as number) * 1000) / powerDivisor;
                             }
 
                             if (attr.activePowerPhC !== undefined) {
-                                ret.power_phase_c = (attr.activePowerPhC * 1000) / powerDivisor;
+                                ret.power_phase_c = ((attr.activePowerPhC as number) * 1000) / powerDivisor;
                             }
                             break;
                         }
                         case 1794: {
                             // seMetering
-                            const divisor = attr.divisor;
+                            const divisor = attr.divisor as number;
 
                             if (attr.currentSummDelivered !== undefined) {
-                                const val = attr.currentSummDelivered;
+                                const val = attr.currentSummDelivered as number;
                                 ret.energy = val / divisor;
                             }
 
                             if (attr["16652"] !== undefined) {
-                                const val = attr["16652"];
+                                const val = attr["16652"] as number;
                                 ret.energy_phase_a = val / divisor;
                             }
 
                             if (attr["16908"] !== undefined) {
-                                const val = attr["16908"];
+                                const val = attr["16908"] as number;
                                 ret.energy_phase_b = val / divisor;
                             }
 
                             if (attr["17164"] !== undefined) {
-                                const val = attr["17164"];
+                                const val = attr["17164"] as number;
                                 ret.energy_phase_c = val / divisor;
                             }
 

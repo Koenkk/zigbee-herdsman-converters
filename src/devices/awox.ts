@@ -14,8 +14,7 @@ const awox_color_ctrl: Fz.Converter<"lightingColorCtrl", undefined, ["raw", "com
         let action = null;
 
         if (msg.type === "raw") {
-            // TODO: using `msg.data.data`
-            const colorByte = payload.data[4];
+            const colorByte = payload[4];
             switch (colorByte) {
                 case 0xd6:
                     action = "color_blue";
@@ -46,8 +45,7 @@ const awox_level_ctrl: Fz.Converter<"genLevelCtrl", undefined, ["raw"]> = {
         const payload = msg.data;
         let action = null;
 
-        // TODO: using `msg.data.data`
-        if (msg.type === "raw" && payload.data && payload.data[1] === 0xdf) {
+        if (msg.type === "raw" && payload[1] === 0xdf) {
             action = "refresh"; // Unique "Refresh" button
         }
         // DEVELOPER NOTE: Handling for genOnOff, genLevelCtrl (step/move), and genScenes is removed

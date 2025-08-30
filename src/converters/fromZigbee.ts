@@ -1,3 +1,4 @@
+import assert from "node:assert";
 import * as libColor from "../lib/color";
 import * as constants from "../lib/constants";
 import * as exposes from "../lib/exposes";
@@ -398,10 +399,6 @@ export const lock_user_status_response: Fz.Converter<"closuresDoorLock", undefin
         const userId = data.userid.toString();
         const result: KeyValueAny = {users: {}};
         result.users[userId] = {status: status};
-        // TODO: wrong command type used?
-        if (options?.expose_pin && data.pincodevalue) {
-            result.users[userId].pin_code = data.pincodevalue;
-        }
         return result;
     },
 };
@@ -979,8 +976,7 @@ export const ias_no_alarm: Fz.Converter<"ssIasZone", undefined, ["attributeRepor
     cluster: "ssIasZone",
     type: ["attributeReport", "commandStatusChangeNotification"],
     convert: (model, msg, publish, options, meta) => {
-        // TODO: bit confusing for the type
-        const zoneStatus = msg.data.zoneStatus ?? msg.data.zonestatus;
+        const zoneStatus = "zonestatus" in msg.data ? msg.data.zonestatus : msg.data.zoneStatus;
         if (zoneStatus !== undefined) {
             return {
                 tamper: (zoneStatus & (1 << 2)) > 0,
@@ -1101,9 +1097,7 @@ export const ias_smoke_alarm_1: Fz.Converter<"ssIasZone", undefined, ["commandSt
     cluster: "ssIasZone",
     type: ["commandStatusChangeNotification", "attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
-        // TODO: bit confusing for the type, this narrows properly though:
-        // const zoneStatus = "zonestatus" in msg.data ? msg.data.zonestatus : msg.data.zoneStatus;
-        const zoneStatus = msg.type === "commandStatusChangeNotification" ? msg.data.zonestatus : msg.data.zoneStatus;
+        const zoneStatus = "zonestatus" in msg.data ? msg.data.zonestatus : msg.data.zoneStatus;
         return {
             smoke: (zoneStatus & 1) > 0,
             tamper: (zoneStatus & (1 << 2)) > 0,
@@ -1163,17 +1157,16 @@ export const ias_carbon_monoxide_alarm_1_gas_alarm_2: Fz.Converter<"ssIasZone", 
     cluster: "ssIasZone",
     type: "commandStatusChangeNotification",
     convert: (model, msg, publish, options, meta) => {
-        // TODO: typo
-        const {zoneStatus} = msg.data;
+        const {zonestatus} = msg.data;
         return {
-            carbon_monoxide: (zoneStatus & 1) > 0,
-            gas: (zoneStatus & (1 << 1)) > 0,
-            tamper: (zoneStatus & (1 << 2)) > 0,
-            battery_low: (zoneStatus & (1 << 3)) > 0,
-            trouble: (zoneStatus & (1 << 6)) > 0,
-            ac_connected: !((zoneStatus & (1 << 7)) > 0),
-            test: (zoneStatus & (1 << 8)) > 0,
-            battery_defect: (zoneStatus & (1 << 9)) > 0,
+            carbon_monoxide: (zonestatus & 1) > 0,
+            gas: (zonestatus & (1 << 1)) > 0,
+            tamper: (zonestatus & (1 << 2)) > 0,
+            battery_low: (zonestatus & (1 << 3)) > 0,
+            trouble: (zonestatus & (1 << 6)) > 0,
+            ac_connected: !((zonestatus & (1 << 7)) > 0),
+            test: (zonestatus & (1 << 8)) > 0,
+            battery_defect: (zonestatus & (1 << 9)) > 0,
         };
     },
 };
@@ -1201,9 +1194,9 @@ export const ias_occupancy_alarm_1: Fz.Converter<"ssIasZone", undefined, "comman
         };
     },
 };
-export const ias_occupancy_alarm_1_report: Fz.Converter<"ssIasZone", undefined, "attributeReport"> = {
+export const ias_occupancy_alarm_1_report: Fz.Converter<"ssIasZone", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "ssIasZone",
-    type: "attributeReport",
+    type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
         const zoneStatus = msg.data.zoneStatus;
         if (zoneStatus !== undefined) {
@@ -2188,17 +2181,16 @@ export const wiser_device_info: Fz.Converter<"wiserDeviceInfo", undefined, "attr
             // TODO What is ALG
             const alg = data.slice(1);
             result.ALG = alg.join(",");
-            // TODO: should parseInt?
-            result.occupied_heating_setpoint = alg[2] / 10;
-            result.local_temperature = alg[3] / 10;
+            result.occupied_heating_setpoint = Number.parseInt(alg[2], 10) / 10;
+            result.local_temperature = Number.parseInt(alg[3], 10) / 10;
             result.pi_heating_demand = Number.parseInt(alg[9], 10);
         } else if (data[0] === "ADC") {
             // TODO What is ADC
             const adc = data.slice(1);
             result.ADC = adc.join(",");
             // TODO: should parseInt?
-            result.occupied_heating_setpoint = adc[5] / 100;
-            result.local_temperature = adc[3] / 10;
+            result.occupied_heating_setpoint = Number.parseInt(adc[5], 10) / 100;
+            result.local_temperature = Number.parseInt(adc[3], 10) / 10;
         } else if (data[0] === "UI") {
             if (data[1] === "BoostUp") {
                 result.boost = "Up";
@@ -2271,7 +2263,7 @@ export const ZigUP: Fz.Converter<"genOnOff", undefined, ["attributeReport", "rea
         let ds18b20Value = null;
         if (msg.data["41368"]) {
             ds18b20Id = (msg.data["41368"] as string).split(":")[0];
-            ds18b20Value = precisionRound((msg.data["41368"] as string).split(":")[1], 2);
+            ds18b20Value = precisionRound(Number.parseFloat((msg.data["41368"] as string).split(":")[1]), 2);
         }
 
         return {
@@ -2743,22 +2735,20 @@ export const ptvo_switch_uart: Fz.Converter<"genMultistateValue", undefined, ["a
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
         let data = msg.data.stateText;
-        if (typeof data === "object") {
+        if (Array.isArray(data)) {
             let bHex = false;
-            // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
-            let code;
-            // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
-            let index;
-            // TODO: ??
+            let code: number;
+            let index: number;
             for (index = 0; index < data.length; index += 1) {
-                code = data[index];
+                code = data[index] as number;
                 if (code < 32 || code > 127) {
                     bHex = true;
                     break;
                 }
             }
             if (!bHex) {
-                data = data.toString("latin1");
+                // @ts-expect-error ignore typing
+                data = data.toString();
             } else {
                 data = [...data];
             }
@@ -2886,6 +2876,7 @@ export const heiman_ir_remote: Fz.Converter<
         // TODO: split converter for each cmd?
         switch (msg.type) {
             case "commandStudyKeyRsp":
+                assert("keyCode" in msg.data);
                 return {
                     action: "learn",
                     action_result: msg.data.result === 1 ? "success" : "error",
@@ -2893,6 +2884,7 @@ export const heiman_ir_remote: Fz.Converter<
                     action_id: msg.data.result === 1 ? msg.data.id : undefined,
                 };
             case "commandCreateIdRsp":
+                assert("modelType" in msg.data);
                 return {
                     action: "create",
                     action_result: msg.data.id === 0xff ? "error" : "success",
@@ -2900,6 +2892,7 @@ export const heiman_ir_remote: Fz.Converter<
                     action_id: msg.data.id !== 0xff ? msg.data.id : undefined,
                 };
             case "commandGetIdAndKeyCodeListRsp": {
+                assert("packetNumber" in msg.data);
                 // See cluster.js with data format description
                 if (msg.data.packetNumber === 1) {
                     // start to collect and merge list
@@ -3043,10 +3036,6 @@ export const danfoss_thermostat: Fz.Converter<"hvacThermostat", undefined, ["att
         if (msg.data.danfossRadiatorCovered !== undefined) {
             result[postfixWithEndpointName("radiator_covered", msg, model, meta)] = msg.data.danfossRadiatorCovered === 1;
         }
-        // TODO: is in hvacUserInterfaceCfg
-        if (msg.data.danfossViewingDirection !== undefined) {
-            result[postfixWithEndpointName("viewing_direction", msg, model, meta)] = msg.data.danfossViewingDirection === 1;
-        }
         if (msg.data.danfossAlgorithmScaleFactor !== undefined) {
             result[postfixWithEndpointName("algorithm_scale_factor", msg, model, meta)] = msg.data.danfossAlgorithmScaleFactor;
         }
@@ -3103,6 +3092,17 @@ export const danfoss_thermostat: Fz.Converter<"hvacThermostat", undefined, ["att
                 result[postfixWithEndpointName("output_status", msg, model, meta)] = "inactive";
                 result[postfixWithEndpointName("running_state", msg, model, meta)] = "idle";
             }
+        }
+        return result;
+    },
+};
+export const danfoss_hvac_ui: Fz.Converter<"hvacUserInterfaceCfg", undefined, ["attributeReport", "readResponse"]> = {
+    cluster: "hvacUserInterfaceCfg",
+    type: ["attributeReport", "readResponse"],
+    convert: (model, msg, publish, options, meta) => {
+        const result: KeyValueAny = {};
+        if (msg.data.danfossViewingDirection !== undefined) {
+            result[postfixWithEndpointName("viewing_direction", msg, model, meta)] = msg.data.danfossViewingDirection === 1;
         }
         return result;
     },
@@ -3191,12 +3191,11 @@ export const danfoss_icon_regulator: Fz.Converter<"haDiagnostic", undefined, ["a
                     ? constants.danfossSystemStatusCode[msg.data.danfossSystemStatusCode]
                     : msg.data.danfossSystemStatusCode;
         }
-        // TODO: typo
-        if (msg.data.danfossHeatsupplyRequest !== undefined) {
+        if (msg.data.danfossHeatSupplyRequest !== undefined) {
             result[postfixWithEndpointName("heat_supply_request", msg, model, meta)] =
-                constants.danfossHeatsupplyRequest[msg.data.danfossHeatsupplyRequest] !== undefined
-                    ? constants.danfossHeatsupplyRequest[msg.data.danfossHeatsupplyRequest]
-                    : msg.data.danfossHeatsupplyRequest;
+                constants.danfossHeatsupplyRequest[msg.data.danfossHeatSupplyRequest] !== undefined
+                    ? constants.danfossHeatsupplyRequest[msg.data.danfossHeatSupplyRequest]
+                    : msg.data.danfossHeatSupplyRequest;
         }
         if (msg.data.danfossSystemStatusWater !== undefined) {
             result[postfixWithEndpointName("system_status_water", msg, model, meta)] =
@@ -3529,7 +3528,7 @@ export const _8840100H_water_leak_alarm: Fz.Converter<"haApplianceEventsAlerts",
     convert: (model, msg, publish, options, meta) => {
         const alertStatus = msg.data.aalert;
         return {
-            // TODO: wrong type assumed
+            // @ts-expect-error TODO: wrong type assumed
             water_leak: (alertStatus & (1 << 12)) > 0,
         };
     },
@@ -4335,8 +4334,8 @@ export const CCTSwitch_D0001_levelctrl: Fz.Converter<
     type: ["commandMoveToLevel", "commandMoveToLevelWithOnOff", "commandMove", "commandStop"],
     convert: (model, msg, publish, options, meta) => {
         const payload: KeyValueAny = {};
-        // TODO: split converter for each type?
         if (msg.type === "commandMove") {
+            assert("movemode" in msg.data);
             const direction = msg.data.movemode === 1 ? "down" : "up";
             payload.action = `brightness_${direction}_hold`;
             globalStore.putValue(msg.endpoint, "direction", direction);
@@ -4360,10 +4359,11 @@ export const CCTSwitch_D0001_levelctrl: Fz.Converter<
             let clk = "brightness";
             let cmd = null;
 
+            assert("level" in msg.data);
             payload.action_brightness = msg.data.level;
-            payload.action_transition = Number.parseFloat(msg.data.transtime) / 10.0;
+            payload.action_transition = msg.data.transtime / 10.0;
             payload.brightness = msg.data.level;
-            payload.transition = Number.parseFloat(msg.data.transtime) / 10.0;
+            payload.transition = msg.data.transtime / 10.0;
 
             if (msg.type === "commandMoveToLevel") {
                 // pressing the brightness button increments/decrements from 13-254.
@@ -4396,6 +4396,7 @@ export const CCTSwitch_D0001_lighting: Fz.Converter<"lightingColorCtrl", undefin
     convert: (model, msg, publish, options, meta) => {
         const payload: KeyValueAny = {};
         if (msg.type === "commandMoveColorTemp") {
+            assert("movemode" in msg.data);
             const clk = "colortemp";
             payload.rate = msg.data.rate;
             payload.action_rate = msg.data.rate;
@@ -4426,10 +4427,11 @@ export const CCTSwitch_D0001_lighting: Fz.Converter<"lightingColorCtrl", undefin
 
             const seq = msg.meta.zclTransactionSequenceNumber;
             let clk = "colortemp";
+            assert("colortemp" in msg.data);
             payload.color_temp = msg.data.colortemp;
-            payload.transition = Number.parseFloat(msg.data.transtime) / 10.0;
+            payload.transition = msg.data.transtime / 10.0;
             payload.action_color_temp = msg.data.colortemp;
-            payload.action_transition = Number.parseFloat(msg.data.transtime) / 10.0;
+            payload.action_transition = msg.data.transtime / 10.0;
 
             // because the remote sends two commands for button4, we need to look at the previous command and
             // see if it was the recognized start command for button4 - if so, ignore this second command,
@@ -4733,8 +4735,7 @@ export const wiser_smart_thermostat_client: Fz.Converter<"hvacThermostat", undef
 };
 export const wiser_smart_setpoint_command_client: Fz.Converter<"hvacThermostat", undefined, ["commandWiserSmartSetSetpoint"]> = {
     cluster: "hvacThermostat",
-    // TODO: "command"!?
-    type: ["command", "commandWiserSmartSetSetpoint"],
+    type: ["commandWiserSmartSetSetpoint"],
     convert: (model, msg, publish, options, meta) => {
         const attribute: KeyValueAny = {};
         const result: KeyValueAny = {};
@@ -5218,7 +5219,8 @@ export const command_on_presence: Fz.Converter<"genOnOff", undefined, "commandOn
     cluster: "genOnOff",
     type: "commandOn",
     convert: (model, msg, publish, options, meta) => {
-        const payload1 = checkin_presence.convert(model, msg, publish, options, meta);
+        const newMsg = {...msg, type: "commandCheckin" as const, data: {}};
+        const payload1 = checkin_presence.convert(model, newMsg, publish, options, meta);
         const payload2 = command_on.convert(model, msg, publish, options, meta);
         return {...payload1, ...payload2};
     },
@@ -5228,8 +5230,8 @@ export const ias_ace_occupancy_with_timeout: Fz.Converter<"ssIasAce", undefined,
     type: "commandGetPanelStatus",
     options: [exposes.options.occupancy_timeout()],
     convert: (model, msg, publish, options, meta) => {
-        msg.data.occupancy = 1;
-        return occupancy_with_timeout.convert(model, msg, publish, options, meta);
+        const newMsg = {...msg, type: "attributeReport" as const, data: {occupancy: 1}};
+        return occupancy_with_timeout.convert(model, newMsg, publish, options, meta);
     },
 };
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
@@ -5386,8 +5388,8 @@ export const terncy_raw: Fz.Converter<"manuSpecificClusterAduroSmart", undefined
             value = msg.data[7];
             const sidelookup: KeyValueAny = {5: "right", 7: "right", 40: "left", 56: "left"};
             if (sidelookup[value]) {
-                msg.data.occupancy = 1;
-                const payload = occupancy_with_timeout.convert(model, msg, publish, options, meta) as KeyValueAny;
+                const newMsg = {...msg, type: "attributeReport" as const, data: {occupancy: 1}};
+                const payload = occupancy_with_timeout.convert(model, newMsg, publish, options, meta) as KeyValueAny;
                 if (payload) {
                     payload.action_side = sidelookup[value];
                     payload.side = sidelookup[value]; /* legacy: remove this line (replaced by action_side) */

@@ -179,12 +179,15 @@ const fzLocal = {
                     .toLowerCase();
                 let val = msg.data[at];
                 if (val != null) {
+                    // @ts-expect-error unknown typing
                     if (val.type !== undefined && val.type === "Buffer") {
+                        // @ts-expect-error unknown typing
                         val = Buffer.from(val.data);
                     }
                     if (Buffer.isBuffer(val)) {
                         val = val.toString(); // Convert buffer to string
                     }
+                    // @ts-expect-error unknown typing
                     if (typeof val === "string" || val instanceof String) {
                         val = val.replace(/\0/g, ""); // Remove all null chars when str
                         val = val.replace(/\s+/g, " ").trim(); // Remove extra and leading spaces
@@ -194,7 +197,7 @@ const fzLocal = {
                         case "activeEnergyOutD02":
                         case "activeEnergyOutD03":
                         case "activeEnergyOutD04":
-                            val = utils.precisionRound(val / 1000, kWhP); // from Wh to kWh
+                            val = utils.precisionRound(Number.parseInt(val as string, 10) / 1000, kWhP); // from Wh to kWh
                             break;
                         case "relais": {
                             // relais is a decimal value representing the bits
@@ -211,7 +214,7 @@ const fzLocal = {
                             // relais8 Unassigned
                             const relais_breakout: KeyValue = {};
                             for (let i = 0; i < 8; i++) {
-                                relais_breakout[at_snake + (i + 1)] = (val & (1 << i)) >>> i;
+                                relais_breakout[at_snake + (i + 1)] = (Number.parseInt(val as string, 10) & (1 << i)) >>> i;
                             }
                             result[`${at_snake}_breakout`] = relais_breakout;
                             break;

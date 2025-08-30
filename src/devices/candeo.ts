@@ -1,3 +1,4 @@
+import assert from "node:assert";
 import {Zcl} from "zigbee-herdsman";
 import * as fz from "../converters/fromZigbee";
 import * as exposes from "../lib/exposes";
@@ -175,10 +176,12 @@ const fzLocal = {
             if (msg.type in rd1pKnobActionsMap) {
                 knobAction = rd1pKnobActionsMap[msg.type];
                 if (msg.type === "commandMoveWithOnOff") {
+                    assert("movemode" in msg.data);
                     if (msg.data.movemode === 0 || msg.data.movemode === 1) {
                         knobAction += msg.data.movemode === 1 ? "left" : "right";
                     }
                 } else if (msg.type === "commandStepWithOnOff") {
+                    assert("stepmode" in msg.data);
                     if (msg.data.stepmode === 0 || msg.data.stepmode === 1) {
                         knobAction += msg.data.stepmode === 1 ? "left" : "right";
                     }

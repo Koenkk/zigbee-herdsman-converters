@@ -2162,7 +2162,7 @@ const fzLocal = {
     ) =>
         ({
             cluster: cluster,
-            type: ["raw", "readResponse", "commandQueryNextImageRequest" /** TODO: this really needed? */],
+            type: ["raw", "readResponse"],
             convert: (model, msg, publish, options, meta) => {
                 if (msg.type === "raw" && msg.endpoint.ID === 2 && msg.data[4] === 0x00) {
                     // Scene Event
@@ -2191,20 +2191,18 @@ const fzLocal = {
                             return {
                                 // biome-ignore lint/performance/noAccumulatingSpread: ignored using `--suppress`
                                 ...p,
-                                [key]: Object.keys(attributes[key].values).find((k) => attributes[key].values[k] === msg.data[c]),
+                                [key]: Object.keys(attributes[key].values).find(
+                                    (k) => attributes[key].values[k] === msg.data[Number.parseInt(c, 10)],
+                                ),
                             };
                         }
                         // biome-ignore lint/performance/noAccumulatingSpread: ignored using `--suppress`
-                        return {...p, [key]: msg.data[c]};
+                        return {...p, [key]: msg.data[Number.parseInt(c, 10)]};
                     }, {});
                 }
                 return msg.data;
             },
-        }) satisfies Fz.Converter<
-            typeof cluster,
-            undefined,
-            ["raw", "readResponse", "commandQueryNextImageRequest" /** TODO: this really needed? */]
-        >,
+        }) satisfies Fz.Converter<typeof cluster, undefined, ["raw", "readResponse"]>,
     fan_mode: (endpointId: number) =>
         ({
             cluster: "genLevelCtrl",
@@ -2261,9 +2259,9 @@ const fzLocal = {
             convert: (model, msg, publish, options, meta) => {
                 if (msg.endpoint.ID === endpointId) {
                     // TODO: typo?
-                    if (msg.data.breeze_mode !== undefined) {
+                    if (msg.data.breezeMode !== undefined) {
                         const bitmasks = [3, 60, 192, 3840, 12288, 245760, 786432, 15728640, 50331648, 1006632960];
-                        const raw = msg.data.breeze_mode;
+                        const raw = msg.data.breezeMode;
                         const s1 = BREEZE_MODES[raw & bitmasks[0]];
                         const s2 = BREEZE_MODES[(raw & bitmasks[2]) / 64];
                         const s3 = BREEZE_MODES[(raw & bitmasks[4]) / 4096];

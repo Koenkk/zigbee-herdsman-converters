@@ -463,8 +463,7 @@ const boschExtend = {
                 cluster: "genTime",
                 type: "read",
                 convert: async (model, msg, publish, options, meta) => {
-                    // TODO: includes not array
-                    if (msg.data.includes("dstStart", "dstEnd", "dstShift")) {
+                    if ("dstStart" in msg.data && "dstEnd" in msg.data && "dstShift" in msg.data) {
                         const response = {
                             dstStart: {attribute: 0x0003, status: Zcl.Status.SUCCESS, value: 0x00},
                             dstEnd: {attribute: 0x0004, status: Zcl.Status.SUCCESS, value: 0x00},
@@ -534,8 +533,8 @@ const boschExtend = {
                 cluster: "ssIasZone",
                 type: ["commandStatusChangeNotification", "attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
-                    if (msg.data.zoneStatus !== undefined || msg.data.zonestatus !== undefined) {
-                        const zoneStatus = msg.type === "commandStatusChangeNotification" ? msg.data.zonestatus : msg.data.zoneStatus;
+                    const zoneStatus = "zonestatus" in msg.data ? msg.data.zonestatus : msg.data.zoneStatus;
+                    if (zoneStatus !== undefined) {
                         const lookup: KeyValue = {0: "none", 1: "single", 2: "long"};
                         const result: KeyValue = {
                             contact: !((zoneStatus & 1) > 0),
@@ -585,8 +584,8 @@ const boschExtend = {
                 cluster: "ssIasZone",
                 type: ["commandStatusChangeNotification", "attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
-                    if (msg.data.zoneStatus !== undefined || msg.data.zonestatus !== undefined) {
-                        const zoneStatus = msg.type === "commandStatusChangeNotification" ? msg.data.zonestatus : msg.data.zoneStatus;
+                    const zoneStatus = "zonestatus" in msg.data ? msg.data.zonestatus : msg.data.zoneStatus;
+                    if (zoneStatus !== undefined) {
                         return {
                             smoke: (zoneStatus & 1) > 0,
                             alarm_smoke: (zoneStatus & (1 << 1)) > 0,
@@ -870,11 +869,18 @@ const boschExtend = {
                         20: "clear",
                         22: "silenced",
                     };
-                    result.siren_state = lookup[msg.data.alarmcode];
-                    if (msg.data.alarmcode === 0x10 || msg.data.alarmcode === 0x11) {
-                        await msg.endpoint.commandResponse("genAlarms", "alarm", {alarmcode: msg.data.alarmcode, clusterid: 0xe000}, {direction: 1});
+                    if ("alarmcode" in msg.data) {
+                        result.siren_state = lookup[msg.data.alarmcode];
+                        if (msg.data.alarmcode === 0x10 || msg.data.alarmcode === 0x11) {
+                            await msg.endpoint.commandResponse(
+                                "genAlarms",
+                                "alarm",
+                                {alarmcode: msg.data.alarmcode, clusterid: 0xe000},
+                                {direction: 1},
+                            );
+                        }
+                        return result;
                     }
-                    return result;
                 },
             } satisfies Fz.Converter<"genAlarms", undefined, ["commandAlarm", "readResponse"]>,
         ];
@@ -1416,6 +1422,7 @@ const fzLocal = {
             const result: {[key: number | string]: string} = {};
             for (const id of Object.values(buttonMap)) {
                 if (msg.data[id] !== undefined) {
+                    // @ts-expect-error ignore typing
                     result[Object.keys(buttonMap).find((key) => buttonMap[key] === id)] = msg.data[id].toString("hex");
                 }
             }

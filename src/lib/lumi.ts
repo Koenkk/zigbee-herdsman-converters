@@ -2951,7 +2951,7 @@ export const fromZigbee = {
         cluster: "msTemperatureMeasurement",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
-            const temperature = Number.parseFloat(msg.data.measuredValue) / 100.0;
+            const temperature = msg.data.measuredValue / 100.0;
 
             // https://github.com/Koenkk/zigbee2mqtt/issues/798
             // Sometimes the sensor publishes non-realistic vales.
@@ -3499,8 +3499,8 @@ export const fromZigbee = {
         convert: (model, msg, publish, options, meta) => {
             // also trigger movement, because there is no illuminance without movement
             // https://github.com/Koenkk/zigbee-herdsman-converters/issues/1925
-            msg.data.occupancy = 1;
-            const payload = fz.occupancy_with_timeout.convert(model, msg, publish, options, meta) as KeyValueAny;
+            const newMsg = {...msg, type: "attributeReport" as const, data: {occupancy: 1}};
+            const payload = fz.occupancy_with_timeout.convert(model, newMsg, publish, options, meta) as KeyValueAny;
             if (payload) {
                 const illuminance = msg.data.measuredValue;
                 payload.illuminance = illuminance;
