@@ -18599,10 +18599,9 @@ export const definitions: DefinitionWithExtend[] = [
             const endpoint = device.getEndpoint(1);
             try {
                 await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
-            } catch (error) {
+            } catch (_error) {
                 if (logger) logger.info('Battery percentage not available');
             }
         },
-    },
-
+    }
 
