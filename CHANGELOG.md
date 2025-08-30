@@ -1,5 +1,23 @@
 # Changelog
 
+## [25.12.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.11.0...v25.12.0) (2025-08-30)
+
+
+### Features
+
+* **add:** SR-ZG9041A-2R, SR-ZG9081A ([#9886](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9886)) ([1b9bf28](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1b9bf28befc25e0510a9b5b98aae6b33779d9aa0))
+* **add:** TS011F_plug_1_1 ([#9879](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9879)) ([d221074](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d221074408102266212a80b9f5931af997998aaf))
+* **add:** WT-100-BH ([#9885](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9885)) ([f2a4c28](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f2a4c286ffede552c8c71a83b827000fc43677ba))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZE200_d7lpruvi` as Tuya TS0601_temperature_humidity_sensor_2 https://github.com/Koenkk/zigbee2mqtt/discussions/28416 ([a8ecbdd](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a8ecbdd342db9dc67325da6694b45f3705b89c0b))
+* **detect:** Detect `_TZE200_vuwtqx0t` as Tuya TS0601_water_valve ([#9876](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9876)) ([832bdd3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/832bdd39e913b46bb4fcc6bae6a50beeb3a755a8))
+* **detect:** Detect `_TZE284_wckqztdq` as Tuya TS0601_dimmer_1_gang_1 ([#9878](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9878)) ([aed032c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/aed032c6efd864ab468eefac1c34c9bbdb92fd03))
+* **ignore:** Fix various Develco NaN checks ([#9875](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9875)) ([2cce0ff](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2cce0ff9ffc48d8eb8e807fb62660e4422fde90e))
+* Sunricher SR-ZG9101SAC-HP-SWITCH-2CH: fix configure failing ([#9877](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9877)) ([58f80cf](https://github.com/Koenkk/zigbee-herdsman-converters/commit/58f80cf95339d46c838aa6473656c960a8eba005))
+
 ## [25.11.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.10.0...v25.11.0) (2025-08-28)
 
 
