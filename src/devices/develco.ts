@@ -71,7 +71,7 @@ const develco = {
         metering: {
             ...fz.metering,
             convert: (model, msg, publish, options, meta) => {
-                if (!Number.isNaN(msg.data.instantaneousDemand) && msg.data.currentSummDelivered?.[1] !== 0) {
+                if (!Number.isNaN(msg.data.instantaneousDemand) && msg.data.currentSummDelivered !== 0) {
                     return fz.metering.convert(model, msg, publish, options, meta);
                 }
             },
