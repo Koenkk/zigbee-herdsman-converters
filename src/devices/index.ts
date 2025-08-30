@@ -312,6 +312,7 @@ import {definitions as tplink} from "./tplink";
 import {definitions as trust} from "./trust";
 import {definitions as tubeszb} from "./tubeszb";
 import {definitions as tuya} from "./tuya";
+import tuyaTs0601Tze284Gyzlwu5q from "./tuya_ts0601_tze284_gyzlwu5q";
 import {definitions as ubisys} from "./ubisys";
 import {definitions as uhome} from "./uhome";
 import {definitions as universalElectronicsInc} from "./universal_electronics_inc";
@@ -693,6 +694,7 @@ const definitions: DefinitionWithExtend[] = [
     ...zipato,
     ...qa,
     ...engo,
+    ...tuyaTs0601Tze284Gyzlwu5q,
 ];
 
 export default definitions;
