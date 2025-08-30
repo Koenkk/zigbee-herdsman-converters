@@ -8552,7 +8552,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Tuya",
         description: "Wall thermostat",
         extend: [tuya.modernExtend.tuyaBase({dp: true, respondToMcuVersionResponse: false})],
-        whitelabel: [tuya.whitelabel("AVATTO", "WT-100-BH", "Wall thermostat",["_TZE204_gops3slb","_TZE284_gops3slb"])]
+        whitelabel: [tuya.whitelabel("AVATTO", "WT-100-BH", "Wall thermostat",["_TZE204_gops3slb","_TZE284_gops3slb"])],
         exposes: [
             e.binary("factory_reset", ea.STATE_SET, "ON", "OFF").withDescription("Full factory reset, use with caution!"),
             e.child_lock(),
