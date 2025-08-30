@@ -18603,5 +18603,5 @@ export const definitions: DefinitionWithExtend[] = [
                 if (logger) logger.info('Battery percentage not available');
             }
         },
-    }
-
+    },
+]
