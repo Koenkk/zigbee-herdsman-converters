@@ -18515,10 +18515,10 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: "TS0601", manufacturerName: "_TZE284_pglpvdar"}],
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_pglpvdar"]),
         model: "TO-Q-SA1",
-        vendor: "Tongou (Tuya)",
-        description: "Zigbee energy meter (transformer clamp, Tuya)",
+        vendor: "Tongou",
+        description: "Zigbee energy meter (transformer clamp)",
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         exposes: [
@@ -18593,7 +18593,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMax(26000),
         ],
         meta: {
-            multiEndpointSkip: ["test1", "test5"],
+            multiEndpointSkip: ["test1", "forward_electricity"],
             tuyaDatapoints: [
                 [1, "energy", tuya.valueConverter.divideBy100], // Total forward energy
                 [6, null, tuya.valueConverter.phaseVariant2], // Phase A
@@ -18674,7 +18674,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [116, "under_voltage_threshold", tuya.valueConverter.raw],
                 [118, "temperature_threshold", tuya.valueConverter.divideBy10],
                 [119, "over_power_threshold", tuya.valueConverter.raw],
-                [125, "test5", tuya.valueConverter.raw], // Forward electricity
+                [125, "forward_electricity", tuya.valueConverter.raw],
                 [131, "temperature", tuya.valueConverter.divideBy10],
             ],
         },
