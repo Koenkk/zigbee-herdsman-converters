@@ -18542,52 +18542,61 @@ export const definitions: DefinitionWithExtend[] = [
             [1, 'smoke', tuya.valueConverter.trueFalse0],
             [23, 'temperature', tuya.valueConverter.divideBy10],
             [24, 'humidity', tuya.valueConverter.raw],
-            [14, 'battery_state', (dpValue) => {
-                switch (dpValue) {
-                    case 1:
-                        return 'low';
-                    case 2:
-                        return 'full';
-                    default:
-                        return 'Nok';
-                }
-            }],
+            // DP9 and DP14 handled separately in fromZigbee
         ],
     },
-
-    // NOTE: DP9 (Test button) requires a custom fromZigbee converter because its state is transient.
-    // This is different from other DPs (like temperature or humidity) which simply report their current value.
-    // To accurately represent the physical behavior of a button press, its state must change to 'idle'
-    // after a short timeout. This stateful logic is not possible with the declarative
-    // tuyaDatapoints approach, which only maps a single incoming value.
+        
+    // DP9 (Test button) is transient: set 'pressed' on trigger, revert to 'idle' after timeout.
+    // DP14 (Battery state) needs mapping from numeric → 'full'/'low'/'Nok'.
+    // Both require custom fromZigbee logic.
     fromZigbee: [
         fz.ignore_basic_report,
         {
             cluster: 'manuSpecificTuya',
             type: ['commandDataReport'],
             convert: (model, msg, publish, options, meta) => {
-                const dp = tuya.findTuyaDatapoint(msg.data.dpValues, 9);
-                if (dp) {
-                    publish({ test_button: 'pressed' });
-                    if (meta.testButtonTimeouts) clearTimeout(meta.testButtonTimeouts[dp.dp]);
-                    meta.testButtonTimeouts = meta.testButtonTimeouts || {};
-                    meta.testButtonTimeouts[dp.dp] = setTimeout(() => {
-                        publish({ test_button: 'idle' });
-                        delete meta.testButtonTimeouts[dp.dp];
-                    }, 500);
-                }
+                const dpValues = msg.data.dpValues;
+                meta.testButtonTimeouts = meta.testButtonTimeouts || {};
+
+                dpValues.forEach((dp) => {
+                    switch (dp.dp) {
+                        case 9: // Test button
+                            if (dp.datatype === 4) {
+                                publish({ test_button: 'pressed' });
+                                if (meta.testButtonTimeouts[dp.dp]) clearTimeout(meta.testButtonTimeouts[dp.dp]);
+                                meta.testButtonTimeouts[dp.dp] = setTimeout(() => {
+                                    publish({ test_button: 'idle' });
+                                    delete meta.testButtonTimeouts[dp.dp];
+                                }, 500);
+                            }
+                            break;
+                        case 14: // Battery state
+                            let num = dp.data;
+                            if (Buffer.isBuffer(num)) num = num[0];
+                            let state = 'Nok';
+                            if (num === 1) state = 'low';
+                            else if (num === 2) state = 'full';
+                            publish({ battery_state: state });
+                            break;
+                        default:
+                            break; // other DP's handled by tuyaBase
+                    }
+                });
+
+                return null;
             },
         },
     ],
+
+    toZigbee: [],
 
     configure: async (device, coordinatorEndpoint, logger) => {
         const endpoint = device.getEndpoint(1);
         try {
             await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
         } catch (error) {
-            // Dit is de juiste manier om te controleren in JS
             if (logger) logger.info('Battery percentage not available');
         }
     },
-},
-];
+}
+
