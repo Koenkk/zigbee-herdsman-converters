@@ -1332,7 +1332,6 @@ export const definitions: DefinitionWithExtend[] = [
             m.identify(),
             m.commandsOnOff({endpointNames: ["l1", "l2"]}),
         ],
-        meta: {multiEndpoint: true},
     },
     {
         zigbeeModel: ["HK-ZD-CCT-A"],
