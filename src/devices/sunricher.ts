@@ -162,6 +162,71 @@ async function syncTimeWithTimeZone(endpoint: Zh.Endpoint) {
 
 export const definitions: DefinitionWithExtend[] = [
     {
+        zigbeeModel: ["ZG9041A-2R"],
+        model: "SR-ZG9041A-2R",
+        vendor: "Sunricher",
+        description: "Zigbee 2ch smart relay",
+        extend: [
+            m.identify(),
+            m.commandsScenes({endpointNames: ["1", "2"]}),
+            m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3}}),
+            m.onOff({powerOnBehavior: false, endpointNames: ["1", "2"], configureReporting: true}),
+            m.electricityMeter({endpointNames: ["3"]}),
+        ],
+        meta: {multiEndpoint: true},
+    },
+    {
+        zigbeeModel: ["ZG9098A-WinOnly"],
+        model: "SR-ZG9081A",
+        vendor: "Sunricher",
+        description: "Zigbee curtain control module",
+        extend: [
+            m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3}}),
+            m.windowCovering({
+                controls: ["lift", "tilt"],
+                coverInverted: true,
+                configureReporting: true,
+                endpointNames: ["1"],
+            }),
+            m.electricityMeter({endpointNames: ["3"]}),
+            m.enumLookup({
+                name: "dev_mode",
+                cluster: "genBasic",
+                attribute: {ID: 0x0001, type: 0x30},
+                lookup: {
+                    curtain: 0,
+                    light: 1,
+                },
+                description: "Set device type (curtain or light)",
+                entityCategory: "config",
+                access: "ALL",
+                zigbeeCommandOptions: {manufacturerCode: 0x1224},
+            }),
+            m.enumLookup({
+                name: "curtain_type",
+                cluster: "closuresWindowCovering",
+                attribute: {ID: 0x1000, type: Zcl.DataType.ENUM8},
+                lookup: {
+                    normal: 0,
+                    venetian_blind: 1,
+                },
+                description: "Configure curtain type",
+                access: "ALL",
+                entityCategory: "config",
+                zigbeeCommandOptions: {manufacturerCode: sunricherManufacturerCode},
+            }),
+            sunricher.extend.motorControl(),
+            m.identify(),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["closuresWindowCovering"]);
+            await reporting.currentPositionLiftPercentage(endpoint);
+            await reporting.currentPositionTiltPercentage(endpoint);
+        },
+        meta: {multiEndpoint: true},
+    },
+    {
         zigbeeModel: ["ZG9100B-5A"],
         model: "SR-ZG9041A-R",
         vendor: "Sunricher",
