@@ -2734,7 +2734,7 @@ export const ptvo_switch_uart: Fz.Converter<"genMultistateValue", undefined, ["a
     cluster: "genMultistateValue",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
-        let data = msg.data.stateText;
+        let data: unknown[] | string = msg.data.stateText as unknown[]; // ZclArray is only for write
         if (Array.isArray(data)) {
             let bHex = false;
             let code: number;
@@ -2747,7 +2747,6 @@ export const ptvo_switch_uart: Fz.Converter<"genMultistateValue", undefined, ["a
                 }
             }
             if (!bHex) {
-                // @ts-expect-error ignore typing
                 data = data.toString();
             } else {
                 data = [...data];

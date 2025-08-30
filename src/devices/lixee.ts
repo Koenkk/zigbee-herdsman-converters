@@ -179,16 +179,14 @@ const fzLocal = {
                     .toLowerCase();
                 let val = msg.data[at];
                 if (val != null) {
-                    // @ts-expect-error unknown typing
-                    if (val.type !== undefined && val.type === "Buffer") {
-                        // @ts-expect-error unknown typing
-                        val = Buffer.from(val.data);
+                    // TODO: this is not possible??
+                    if (utils.isObject(val) && "type" in val && "data" in val && val.type === "Buffer") {
+                        val = Buffer.from(val.data as number[]);
                     }
                     if (Buffer.isBuffer(val)) {
                         val = val.toString(); // Convert buffer to string
                     }
-                    // @ts-expect-error unknown typing
-                    if (typeof val === "string" || val instanceof String) {
+                    if (typeof val === "string") {
                         val = val.replace(/\0/g, ""); // Remove all null chars when str
                         val = val.replace(/\s+/g, " ").trim(); // Remove extra and leading spaces
                     }

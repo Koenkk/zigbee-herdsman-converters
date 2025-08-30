@@ -347,7 +347,9 @@ export namespace Fz {
                       : never
                 : Single extends keyof MessageTypeCustomDataMap<Custom>
                   ? MessageTypeDataMap<Cl>[Single] extends never
-                      ? MessageTypeCustomDataMap<Custom>[Single]
+                      ? MessageTypeCustomDataMap<Custom>[Single] extends never
+                          ? Record<number, unknown>
+                          : MessageTypeCustomDataMap<Custom>[Single]
                       : MessageTypeDataMap<Cl>[Single] & MessageTypeCustomDataMap<Custom>[Single]
                   : Single extends string | number
                     ? Single extends `command${infer Co}`

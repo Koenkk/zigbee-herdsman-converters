@@ -1448,8 +1448,8 @@ const fzLocal = {
             const result: {[key: number | string]: string} = {};
             for (const id of Object.values(buttonMap)) {
                 if (msg.data[id] !== undefined) {
-                    // @ts-expect-error ignore typing
-                    result[Object.keys(buttonMap).find((key) => buttonMap[key] === id)] = msg.data[id].toString("hex");
+                    // TODO: type is assumed "Buffer" since using `toString("hex")`
+                    result[Object.keys(buttonMap).find((key) => buttonMap[key] === id)] = (msg.data[id] as Buffer).toString("hex");
                 }
             }
             return result;
