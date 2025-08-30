@@ -18518,74 +18518,80 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        zigbeeModel: ['TS0601'],
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE284_gyzlwu5q']),
-        model: 'TS0601_TZE284_gyzlwu5q',
-        vendor: 'Tuya',
-        description: 'Smoke detector with temperature, humidity sensor and test button',
-        extend: [tuya.modernExtend.tuyaBase({ dp: true })],
+        zigbeeModel: ["TS0601"],
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_gyzlwu5q"]),
+        model: "TS0601_TZE284_gyzlwu5q",
+        vendor: "Tuya",
+        description: "Smoke detector with temperature, humidity sensor and test button",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
-            exposes.binary('smoke', exposes.access.STATE, true, false)
-                .withDescription('Smoke detected'),
-            exposes.numeric('temperature', exposes.access.STATE)
-                .withUnit('°C')
-                .withDescription('Measured temperature')
-                .withValueMin(-40).withValueMax(80).withValueStep(0.1),
-            exposes.numeric('humidity', exposes.access.STATE)
-                .withUnit('%')
-                .withDescription('Measured humidity')
-                .withValueMin(0).withValueMax(100),
-            exposes.enum('test_button', exposes.access.STATE, ['idle', 'pressed'])
-                .withDescription('Test button state'),
-            exposes.enum('battery_state', exposes.access.STATE, ['full', 'low', 'Nok'])
-                .withDescription('Battery state'),
+            exposes.binary("smoke", exposes.access.STATE, true, false).withDescription("Smoke detected"),
+            exposes
+                .numeric("temperature", exposes.access.STATE)
+                .withUnit("°C")
+                .withDescription("Measured temperature")
+                .withValueMin(-40)
+                .withValueMax(80)
+                .withValueStep(0.1),
+            exposes.numeric("humidity", exposes.access.STATE).withUnit("%").withDescription("Measured humidity").withValueMin(0).withValueMax(100),
+            exposes.enum("test_button", exposes.access.STATE, ["idle", "pressed"]).withDescription("Test button state"),
+            exposes.enum("battery_state", exposes.access.STATE, ["full", "low", "Nok"]).withDescription("Battery state"),
         ],
         meta: {
             tuyaDatapoints: [
-                [1, 'smoke', tuya.valueConverter.trueFalse0],
-                [23, 'temperature', tuya.valueConverter.divideBy10],
-                [24, 'humidity', tuya.valueConverter.raw],
-                [14, 'battery_state', (value) => {
-                    switch (value) {
-                        case 1: return 'low';
-                        case 2: return 'full';
-                        default: return 'Nok';
-                    }
-                }],
+                [1, "smoke", tuya.valueConverter.trueFalse0],
+                [23, "temperature", tuya.valueConverter.divideBy10],
+                [24, "humidity", tuya.valueConverter.raw],
+                [
+                    14,
+                    "battery_state",
+                    (value) => {
+                        switch (value) {
+                            case 1:
+                                return "low";
+                            case 2:
+                                return "full";
+                            default:
+                                return "Nok";
+                        }
+                    },
+                ],
             ],
         },
-        // DP9 (Test button) is transient: set 'pressed' on trigger, revert to 'idle' after timeout. 
-        // DP14 (Battery state) needs mapping from numeric → 'full'/'low'/'Nok'. 
+        // DP9 (Test button) is transient: set 'pressed' on trigger, revert to 'idle' after timeout.
+        // DP14 (Battery state) needs mapping from numeric → 'full'/'low'/'Nok'.
         // Both require custom fromZigbee logic.
         fromZigbee: [
             fz.ignore_basic_report,
             {
-                cluster: 'manuSpecificTuya',
-                type: ['commandDataReport'],
+                cluster: "manuSpecificTuya",
+                type: ["commandDataReport"],
                 convert: (model, msg, publish, options, meta) => {
                     meta.testButtonTimeouts = meta.testButtonTimeouts || {};
                     msg.data.dpValues.forEach((dp) => {
                         switch (dp.dp) {
                             case 9: // Test button
                                 if (dp.datatype === 4) {
-                                    publish({ test_button: 'pressed' });
+                                    publish({test_button: "pressed"});
                                     if (meta.testButtonTimeouts[dp.dp]) {
                                         clearTimeout(meta.testButtonTimeouts[dp.dp]);
                                     }
                                     meta.testButtonTimeouts[dp.dp] = setTimeout(() => {
-                                        publish({ test_button: 'idle' });
+                                        publish({test_button: "idle"});
                                         delete meta.testButtonTimeouts[dp.dp];
                                     }, 500);
                                 }
                                 break;
-                            case 14: // Battery state
+                            case 14: {
+                                // Battery state
                                 let num = dp.data;
                                 if (Buffer.isBuffer(num)) num = num[0];
-                                let state = 'Nok';
-                                if (num === 1) state = 'low';
-                                else if (num === 2) state = 'full';
-                                publish({ battery_state: state });
+                                let state = "Nok";
+                                if (num === 1) state = "low";
+                                else if (num === 2) state = "full";
+                                publish({battery_state: state});
                                 break;
+                            }
                             default:
                                 break; // other DPs are handled by tuyaBase
                         }
@@ -18598,10 +18604,10 @@ export const definitions: DefinitionWithExtend[] = [
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             try {
-                await endpoint.read('genPowerCfg', ['batteryPercentageRemaining']);
+                await endpoint.read("genPowerCfg", ["batteryPercentageRemaining"]);
             } catch (_error) {
-                if (logger) logger.info('Battery percentage not available');
+                if (logger) logger.info("Battery percentage not available");
             }
         },
     },
-]
+];
