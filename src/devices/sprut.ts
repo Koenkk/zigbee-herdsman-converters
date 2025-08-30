@@ -1,6 +1,28 @@
+import {Zcl} from "zigbee-herdsman";
+import * as exp from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import type {DefinitionWithExtend} from "../lib/types";
+import type {DefinitionWithExtend, ModernExtend, Tz} from "../lib/types";
+
+const manufacturerId = 26214;
+
+function sendCommand(args: {name: string; cluster: string | number; command: string | number; description: string}): ModernExtend {
+    const {name, cluster, command, description} = args;
+    const exposes = [exp.enum(name, exp.access.SET, ["SEND"]).withDescription(description)];
+
+    const toZigbee: Tz.Converter[] = [
+        {
+            key: [name],
+            convertSet: async (entity, key, value, meta) => {
+                // @ts-expect-error ignore
+                const payload = value.payload != null ? value.payload : {};
+                await entity.command(cluster, command, payload, {manufacturerCode: manufacturerId});
+            },
+        },
+    ];
+
+    return {exposes, toZigbee, isModernExtend: true};
+}
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -167,5 +189,111 @@ export const definitions: DefinitionWithExtend[] = [
                 }
             }
         },
+    },
+    {
+        zigbeeModel: ["Drivent"],
+        model: "Drivent",
+        vendor: "Sprut.device",
+        description: "Drivent window drive",
+        ota: true,
+        extend: [
+            m.deviceAddCustomCluster("closuresWindowCovering", {
+                ID: 258,
+                attributes: {},
+                commands: {
+                    resetLimit: {ID: 0x0000, parameters: []},
+                    openLimit: {ID: 0x0001, parameters: []},
+                    closeLimit: {ID: 0x0002, parameters: []},
+                    resetBlock: {ID: 0x0003, parameters: []},
+                },
+                commandsResponse: {},
+            }),
+            m.windowCovering({controls: ["lift"]}),
+            m.enumLookup({
+                name: "drive_state",
+                cluster: "closuresWindowCovering",
+                attribute: {ID: 0x6609, type: Zcl.DataType.UINT8},
+                lookup: {closing: 0, opening: 1, stopped: 2},
+                description: "Drive state",
+                zigbeeCommandOptions: {manufacturerCode: manufacturerId},
+                access: "STATE_GET",
+            }),
+            m.binary({
+                name: "blocked_jam",
+                valueOn: ["ON", true],
+                valueOff: ["OFF", false],
+                cluster: "closuresWindowCovering",
+                attribute: {ID: 0x660a, type: Zcl.DataType.BOOLEAN},
+                description: "Blocked after 5 jam",
+                zigbeeCommandOptions: {manufacturerCode: manufacturerId},
+                access: "STATE_GET",
+            }),
+            m.binary({
+                name: "blocked_many",
+                valueOn: ["ON", true],
+                valueOff: ["OFF", false],
+                cluster: "closuresWindowCovering",
+                attribute: {ID: 0x660b, type: Zcl.DataType.BOOLEAN},
+                description: "Blocked after 45 attempts",
+                zigbeeCommandOptions: {manufacturerCode: manufacturerId},
+                access: "STATE_GET",
+            }),
+            sendCommand({
+                name: "reset_block",
+                cluster: "closuresWindowCovering",
+                command: 0x0003,
+                description: "Reset block",
+            }),
+            m.numeric({
+                name: "speed",
+                cluster: "closuresWindowCovering",
+                attribute: {ID: 0x6606, type: Zcl.DataType.UINT8},
+                valueMin: 0,
+                valueMax: 100,
+                valueStep: 25,
+                unit: "%",
+                description: "Speed",
+                zigbeeCommandOptions: {manufacturerCode: manufacturerId},
+                access: "ALL",
+            }),
+            sendCommand({
+                name: "open_limit",
+                cluster: "closuresWindowCovering",
+                command: 0x0001,
+                description: "Set open limit",
+            }),
+            sendCommand({
+                name: "close_limit",
+                cluster: "closuresWindowCovering",
+                command: 0x0002,
+                description: "Set close limit",
+            }),
+            sendCommand({
+                name: "reset_limit",
+                cluster: "closuresWindowCovering",
+                command: 0x0000,
+                description: "Reset limits",
+            }),
+            m.binary({
+                name: "calibrate",
+                valueOn: ["ON", true],
+                valueOff: ["OFF", false],
+                cluster: "closuresWindowCovering",
+                attribute: {ID: 0x6605, type: Zcl.DataType.BOOLEAN},
+                description: "Calibration",
+                zigbeeCommandOptions: {manufacturerCode: manufacturerId},
+                access: "ALL",
+            }),
+            m.binary({
+                name: "wifi",
+                valueOn: ["ON", true],
+                valueOff: ["OFF", false],
+                cluster: 0x6600,
+                attribute: {ID: 0x6600, type: Zcl.DataType.BOOLEAN},
+                description: "Enable Wifi AP",
+                zigbeeCommandOptions: {manufacturerCode: manufacturerId},
+                access: "ALL",
+            }),
+        ],
     },
 ];

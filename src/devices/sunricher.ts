@@ -175,6 +175,71 @@ async function syncTimeWithTimeZone(endpoint: Zh.Endpoint) {
 
 export const definitions: DefinitionWithExtend[] = [
     {
+        zigbeeModel: ["ZG9041A-2R"],
+        model: "SR-ZG9041A-2R",
+        vendor: "Sunricher",
+        description: "Zigbee 2ch smart relay",
+        extend: [
+            m.identify(),
+            m.commandsScenes({endpointNames: ["1", "2"]}),
+            m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3}}),
+            m.onOff({powerOnBehavior: false, endpointNames: ["1", "2"], configureReporting: true}),
+            m.electricityMeter({endpointNames: ["3"]}),
+        ],
+        meta: {multiEndpoint: true},
+    },
+    {
+        zigbeeModel: ["ZG9098A-WinOnly"],
+        model: "SR-ZG9081A",
+        vendor: "Sunricher",
+        description: "Zigbee curtain control module",
+        extend: [
+            m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3}}),
+            m.windowCovering({
+                controls: ["lift", "tilt"],
+                coverInverted: true,
+                configureReporting: true,
+                endpointNames: ["1"],
+            }),
+            m.electricityMeter({endpointNames: ["3"]}),
+            m.enumLookup({
+                name: "dev_mode",
+                cluster: "genBasic",
+                attribute: {ID: 0x0001, type: 0x30},
+                lookup: {
+                    curtain: 0,
+                    light: 1,
+                },
+                description: "Set device type (curtain or light)",
+                entityCategory: "config",
+                access: "ALL",
+                zigbeeCommandOptions: {manufacturerCode: 0x1224},
+            }),
+            m.enumLookup({
+                name: "curtain_type",
+                cluster: "closuresWindowCovering",
+                attribute: {ID: 0x1000, type: Zcl.DataType.ENUM8},
+                lookup: {
+                    normal: 0,
+                    venetian_blind: 1,
+                },
+                description: "Configure curtain type",
+                access: "ALL",
+                entityCategory: "config",
+                zigbeeCommandOptions: {manufacturerCode: sunricherManufacturerCode},
+            }),
+            sunricher.extend.motorControl(),
+            m.identify(),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["closuresWindowCovering"]);
+            await reporting.currentPositionLiftPercentage(endpoint);
+            await reporting.currentPositionTiltPercentage(endpoint);
+        },
+        meta: {multiEndpoint: true},
+    },
+    {
         zigbeeModel: ["ZG9100B-5A"],
         model: "SR-ZG9041A-R",
         vendor: "Sunricher",
@@ -1338,38 +1403,13 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Sunricher",
         description: "Zigbee 2 channels switch",
         whiteLabel: [{vendor: "LED-Trading", model: "UP-SA-9127D", description: "2 channels AC switch"}],
-        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.power_on_behavior, fz.ignore_genOta],
-        toZigbee: [tz.on_off, tz.power_on_behavior],
-        exposes: [
-            e.switch().withEndpoint("l1"),
-            e.switch().withEndpoint("l2"),
-            e.power(),
-            e.current(),
-            e.voltage(),
-            e.energy(),
-            e.power_on_behavior(["off", "on", "previous"]),
+        extend: [
+            m.deviceEndpoints({endpoints: {l1: 1, l2: 2}, multiEndpointSkip: ["power", "energy", "current", "voltage"]}),
+            m.onOff({endpointNames: ["l1", "l2"]}),
+            m.electricityMeter(),
+            m.identify(),
+            m.commandsOnOff({endpointNames: ["l1", "l2"]}),
         ],
-        endpoint: (device) => {
-            return {l1: 1, l2: 2};
-        },
-        meta: {
-            multiEndpoint: true,
-            multiEndpointSkip: ["power", "energy", "voltage", "current"],
-        },
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint1 = device.getEndpoint(1);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genOnOff", "haElectricalMeasurement", "seMetering"]);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genOnOff"]);
-            await reporting.onOff(endpoint1);
-            await reporting.onOff(endpoint2);
-            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint1);
-            await reporting.activePower(endpoint1);
-            await reporting.rmsCurrent(endpoint1, {min: 10, change: 10});
-            await reporting.rmsVoltage(endpoint1, {min: 10});
-            await reporting.readMeteringMultiplierDivisor(endpoint1);
-            await reporting.currentSummDelivered(endpoint1);
-        },
     },
     {
         zigbeeModel: ["HK-ZD-CCT-A"],

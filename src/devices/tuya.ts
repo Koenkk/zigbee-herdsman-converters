@@ -1065,7 +1065,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_vuwtqx0t"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_vuwtqx0t", "_TZE200_vuwtqx0t"]),
         model: "TS0601_water_valve",
         vendor: "Tuya",
         description: "Ultrasonic water meter valve",
@@ -1291,6 +1291,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE204_jygvp6fk",
             "_TZE204_cirvgep4",
             "_TZE284_yjjdcqsq",
+            "_TZE200_d7lpruvi",
             "_TZE284_hdyjyqjm",
             "_TZE284_d7lpruvi",
             "_TZE284_upagmta9",
@@ -2454,6 +2455,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE200_0nauxa0p",
             "_TZE200_ykgar0ow",
             "_TZE200_0hb4rdnp",
+            "_TZE284_wckqztdq",
         ]),
         model: "TS0601_dimmer_1_gang_1",
         vendor: "Tuya",
@@ -4477,6 +4479,8 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZ3000_uilitwsy",
             "_TZ3000_66fekqhh",
             "_TZ3000_eqsair32",
+            "_TZ3000_fawk5xjv",
+            "_TZ3000_ok0ggpk7",
         ]),
         model: "TS0003_switch_3_gang_with_backlight",
         vendor: "Tuya",
@@ -5006,8 +5010,8 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_debczeci"]),
-        model: "_TZE284_debczeci",
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_debczeci", "_TZE284_1lvln0x6"]),
+        model: "iHsenso_TS0601_human_presence",
         vendor: "iHseno",
         description: "Human presence sensor",
         extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true})],
@@ -6794,6 +6798,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Nous", "A9Z", "Smart ZigBee Socket", ["_TZ3210_ddigca5n"]),
             tuya.whitelabel("Girier", "JR-ZPM01", "Smart Plug", ["_TZ3000_ww6drja5"]),
             tuya.whitelabel("Nous", "A7Z", "Smart ZigBee Socket", ["_TZ3210_rwmitwj4"]),
+            tuya.whitelabel("Zbeacon", "TS011F_plug_1_1", "Smart plug (with power monitoring)", ["Zbeacon"]),
         ],
         ota: true,
         extend: [
@@ -6817,7 +6822,7 @@ export const definitions: DefinitionWithExtend[] = [
 
             await reporting.rmsCurrent(endpoint, {change: 50});
 
-            if (!["_TZ3000_0zfrhq4i", "_TZ3000_okaz9tjs", "_TZ3000_typdpbpg", "_TZ3000_ww6drja5"].includes(device.manufacturerName)) {
+            if (!["_TZ3000_0zfrhq4i", "_TZ3000_okaz9tjs", "_TZ3000_typdpbpg", "_TZ3000_ww6drja5", "Zbeacon"].includes(device.manufacturerName)) {
                 // Gives INVALID_DATA_TYPE error for _TZ3000_0zfrhq4i (as well as a few others in issue 20028)
                 // https://github.com/Koenkk/zigbee2mqtt/discussions/19680#discussioncomment-7667035
                 await reporting.activePower(endpoint, {change: 10});
@@ -8546,11 +8551,13 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE284_xnbkhhdr",
             "_TZE204_oh8y8pv8",
             "_TZE204_gops3slb",
+            "_TZE284_gops3slb",
         ]),
         model: "ZWT198/ZWT100-BH",
         vendor: "Tuya",
         description: "Wall thermostat",
         extend: [tuya.modernExtend.tuyaBase({dp: true, respondToMcuVersionResponse: false})],
+        whiteLabel: [tuya.whitelabel("AVATTO", "WT-100-BH", "Wall thermostat", ["_TZE204_gops3slb", "_TZE284_gops3slb"])],
         exposes: [
             e.binary("factory_reset", ea.STATE_SET, "ON", "OFF").withDescription("Full factory reset, use with caution!"),
             e.child_lock(),
@@ -17964,7 +17971,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["ZG-102ZM"],
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_wzk0x7fq"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_wzk0x7fq", "_TZE200_jfw0a4aa"]),
         model: "ZG-102ZM",
         vendor: "HOBEIAN",
         description: "Vibration sensor",
@@ -18405,7 +18412,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["ZG-204ZH"],
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_vuqzj1ej"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_vuqzj1ej", "_TZE200_hdih4foa"]),
         model: "ZG-204ZH",
         vendor: "HOBEIAN",
         description: "PIR 24Ghz human presence sensor",
