@@ -18523,9 +18523,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: 'TS0601_TZE284_gyzlwu5q',
         vendor: 'Tuya',
         description: 'Smoke detector with temperature, humidity sensor and test button',
-    
         extend: [tuya.modernExtend.tuyaBase({ dp: true })],
-    
         exposes: [
             exposes.binary('smoke', exposes.access.STATE, true, false)
                 .withDescription('Smoke detected'),
@@ -18542,18 +18540,22 @@ export const definitions: DefinitionWithExtend[] = [
             exposes.enum('battery_state', exposes.access.STATE, ['full', 'low', 'Nok'])
                 .withDescription('Battery state'),
         ],
-    
         meta: {
             tuyaDatapoints: [
                 [1, 'smoke', tuya.valueConverter.trueFalse0],
                 [23, 'temperature', tuya.valueConverter.divideBy10],
                 [24, 'humidity', tuya.valueConverter.raw],
-                // DP9 and DP14 are handled separately in fromZigbee
+                [14, 'battery_state', (value) => {
+                    switch (value) {
+                        case 1: return 'low';
+                        case 2: return 'full';
+                        default: return 'Nok';
+                    }
+                }],
             ],
         },
-    
-        // DP9 (Test button) is transient: set 'pressed' on trigger, revert to 'idle' after timeout.
-        // DP14 (Battery state) needs mapping from numeric → 'full'/'low'/'Nok'.
+        // DP9 (Test button) is transient: set 'pressed' on trigger, revert to 'idle' after timeout. 
+        // DP14 (Battery state) needs mapping from numeric → 'full'/'low'/'Nok'. 
         // Both require custom fromZigbee logic.
         fromZigbee: [
             fz.ignore_basic_report,
@@ -18592,9 +18594,7 @@ export const definitions: DefinitionWithExtend[] = [
                 },
             },
         ],
-    
         toZigbee: [],
-    
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             try {
@@ -18603,6 +18603,6 @@ export const definitions: DefinitionWithExtend[] = [
                 if (logger) logger.info('Battery percentage not available');
             }
         },
-    }
+    },
 
 
