@@ -44,6 +44,19 @@ interface SunricherSensor {
     commandResponses: never;
 }
 
+export interface SunricherRemote {
+    attributes: never;
+    commands: {
+        press: {
+            messageType: number;
+            button2: number;
+            button1: number;
+            pressType: number;
+        };
+    };
+    commandResponses: never;
+}
+
 const fzLocal = {
     SRZGP2801K45C: {
         cluster: "greenPower",
@@ -69,7 +82,7 @@ const fzLocal = {
             };
             return {action: utils.getFromLookup(commandID, lookup)};
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"greenPower", undefined, ["commandNotification", "commandCommissioningNotification"]>,
     ZG9095B: {
         cluster: "hvacThermostat",
         type: ["attributeReport", "readResponse"],
@@ -83,7 +96,7 @@ const fzLocal = {
 
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
 };
 const tzLocal = {
     ZG9095B: {

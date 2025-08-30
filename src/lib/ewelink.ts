@@ -45,7 +45,7 @@ export const ewelinkFromZigbee = {
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"closuresWindowCovering", undefined, ["attributeReport", "readResponse"]>,
 };
 
 // ======================= Custom Extend =================================
@@ -120,7 +120,7 @@ function privateMotorClbByPosition(clusterName: "customClusterEwelink", writeCom
 
     exposes.push(e.text("motor_clb_position_result", ea.STATE).withDescription("Motor Calibration Result"));
 
-    const fromZigbee: Fz.Converter[] = [
+    const fromZigbee = [
         {
             cluster: clusterName,
             type: ["raw"],
@@ -189,7 +189,7 @@ function privateMotorClbByPosition(clusterName: "customClusterEwelink", writeCom
                     }
                 }
             },
-        },
+        } satisfies Fz.Converter<typeof clusterName, undefined, ["raw"]>,
     ];
 
     const toZigbee: Tz.Converter[] = [
@@ -306,7 +306,7 @@ function privateMotorMode(clusterName: "customClusterEwelink", writeCommand: "pr
         },
     };
     const expose = e.enum("motor_mode", ea.STATE_SET, mode).withDescription("Motor Mode");
-    const fromZigbee: Fz.Converter[] = [
+    const fromZigbee = [
         {
             cluster: clusterName,
             type: ["raw"],
@@ -352,7 +352,7 @@ function privateMotorMode(clusterName: "customClusterEwelink", writeCommand: "pr
                     }
                 }
             },
-        },
+        } satisfies Fz.Converter<typeof clusterName, undefined, ["raw"]>,
     ];
 
     const toZigbee: Tz.Converter[] = [
@@ -486,7 +486,7 @@ function privateReportMotorInfo(clusterName: string): ModernExtend {
     };
 
     const expose = e.text("motor_info", ea.STATE).withDescription("Motor Updated Info");
-    const fromZigbee: Fz.Converter[] = [
+    const fromZigbee = [
         {
             cluster: clusterName,
             type: ["raw"],
@@ -556,7 +556,7 @@ function privateReportMotorInfo(clusterName: string): ModernExtend {
                     }
                 }
             },
-        },
+        } satisfies Fz.Converter<typeof clusterName, undefined, ["raw"]>,
     ];
     return {exposes: [expose], fromZigbee, isModernExtend: true};
 }
@@ -592,7 +592,7 @@ function privateMotorSpeed(clusterName: "customClusterEwelink", writeCommand: "p
     exposes.push(e.numeric("motor_speed", ea.STATE_SET).withDescription("Set the motor speed").withValueMin(minSpeed).withValueMax(maxSpeed));
     exposes.push(e.numeric("supported_max_motor_speed", ea.STATE).withDescription("Supported max motor speed"));
 
-    const fromZigbee: Fz.Converter[] = [
+    const fromZigbee = [
         {
             cluster: clusterName,
             type: ["raw"],
@@ -620,7 +620,7 @@ function privateMotorSpeed(clusterName: "customClusterEwelink", writeCommand: "p
                     }
                 }
             },
-        },
+        } satisfies Fz.Converter<typeof clusterName, undefined, ["raw"]>,
     ];
 
     const toZigbee: Tz.Converter[] = [
@@ -660,7 +660,7 @@ export const ewelinkModernExtend = {
     ewelinkAction: (): ModernExtend => {
         const exposes: Expose[] = [presets.action(["single", "double", "long"])];
 
-        const fromZigbee: Fz.Converter[] = [
+        const fromZigbee = [
             {
                 cluster: "genOnOff",
                 type: ["commandOn", "commandOff", "commandToggle"],
@@ -668,7 +668,7 @@ export const ewelinkModernExtend = {
                     const lookup: KeyValueAny = {commandToggle: "single", commandOn: "double", commandOff: "long"};
                     return {action: lookup[msg.type]};
                 },
-            },
+            } satisfies Fz.Converter<"genOnOff", undefined, ["commandOn", "commandOff", "commandToggle"]>,
         ];
 
         const configure: Configure[] = [setupConfigureForBinding("genOnOff", "output")];
@@ -688,7 +688,7 @@ export const ewelinkModernExtend = {
     ewelinkMotorReverse: (): ModernExtend => {
         const exposes = [e.enum("motor_direction", ea.STATE_SET, ["forward", "reverse"]).withDescription("Set the motor direction")];
         const toZigbee: Tz.Converter[] = [ewelinkToZigbee.motor_direction];
-        const fromZigbee: Fz.Converter[] = [ewelinkFromZigbee.motor_direction];
+        const fromZigbee = [ewelinkFromZigbee.motor_direction];
 
         return {
             exposes,

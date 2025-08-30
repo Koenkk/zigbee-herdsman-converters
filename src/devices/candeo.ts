@@ -1,3 +1,5 @@
+import assert from "node:assert";
+import {Zcl} from "zigbee-herdsman";
 import * as fz from "../converters/fromZigbee";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
@@ -7,6 +9,19 @@ import * as utils from "../lib/utils";
 
 const e = exposes.presets;
 const ea = exposes.access;
+
+interface CandeoRotaryRemoveControl {
+    attributes: never;
+    commands: {
+        rotaryRemoteControl: {
+            field1: number;
+            field2: number;
+            field3: number;
+            field4: number;
+        };
+    };
+    commandResponses: never;
+}
 
 const manufacturerSpecificSwitchTypeClusterCode = 0x1224;
 const manufacturerSpecificRotaryRemoteControlClusterCode = 0xff03;
@@ -55,7 +70,7 @@ const fzLocal = {
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             if (Object.hasOwn(msg.data, switchTypeAttribute)) {
-                const value = msg.data[switchTypeAttribute];
+                const value = msg.data[switchTypeAttribute] as number;
                 return {
                     external_switch_type: switchTypeValueMap[value] || "unknown",
                     external_switch_type_numeric: value,
@@ -63,7 +78,7 @@ const fzLocal = {
             }
             return undefined;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genBasic", undefined, ["attributeReport", "readResponse"]>,
     rotary_remote_control: {
         cluster: "candeoRotaryRemoteControl",
         type: ["commandRotaryRemoteControl"],
@@ -151,7 +166,7 @@ const fzLocal = {
             }
             return;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"candeoRotaryRemoteControl", CandeoRotaryRemoveControl, ["commandRotaryRemoteControl"]>,
     rd1p_knob_rotation: {
         cluster: "genLevelCtrl",
         type: ["commandMoveWithOnOff", "commandStepWithOnOff", "commandStop"],
@@ -160,10 +175,15 @@ const fzLocal = {
             let knobAction = "unknown";
             if (msg.type in rd1pKnobActionsMap) {
                 knobAction = rd1pKnobActionsMap[msg.type];
-                if (msg.type === "commandMoveWithOnOff" || msg.type === "commandStepWithOnOff") {
-                    const direction = msg.type === "commandMoveWithOnOff" ? "movemode" : "stepmode";
-                    if (msg.data[direction] === 0 || msg.data[direction] === 1) {
-                        knobAction += msg.data[direction] === 1 ? "left" : "right";
+                if (msg.type === "commandMoveWithOnOff") {
+                    assert("movemode" in msg.data);
+                    if (msg.data.movemode === 0 || msg.data.movemode === 1) {
+                        knobAction += msg.data.movemode === 1 ? "left" : "right";
+                    }
+                } else if (msg.type === "commandStepWithOnOff") {
+                    assert("stepmode" in msg.data);
+                    if (msg.data.stepmode === 0 || msg.data.stepmode === 1) {
+                        knobAction += msg.data.stepmode === 1 ? "left" : "right";
                     }
                 }
             }
@@ -171,7 +191,7 @@ const fzLocal = {
             utils.addActionGroup(payload, msg, model);
             return payload;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genLevelCtrl", undefined, ["commandMoveWithOnOff", "commandStepWithOnOff", "commandStop"]>,
     rd1p_knob_press: {
         cluster: "genOnOff",
         type: ["commandOn", "commandOff", "commandToggle", "raw"],
@@ -181,7 +201,7 @@ const fzLocal = {
             if (msg.type in rd1pKnobActionsMap) {
                 knobAction = rd1pKnobActionsMap[msg.type];
             } else if (msg.type === "raw") {
-                const command = msg.data[2];
+                const command = msg.data[2] as number;
                 if (command in rd1pKnobCommands) {
                     const knobCommand = rd1pKnobCommands[command];
                     knobAction = rd1pKnobActionsMap[knobCommand];
@@ -191,7 +211,7 @@ const fzLocal = {
             utils.addActionGroup(payload, msg, model);
             return payload;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genOnOff", undefined, ["commandOn", "commandOff", "commandToggle", "raw"]>,
 };
 
 const tzLocal = {
@@ -608,10 +628,10 @@ export const definitions: DefinitionWithExtend[] = [
                     rotaryRemoteControl: {
                         ID: 0x01,
                         parameters: [
-                            {name: "field1", type: 0x20},
-                            {name: "field2", type: 0x20},
-                            {name: "field3", type: 0x20},
-                            {name: "field4", type: 0x20},
+                            {name: "field1", type: Zcl.DataType.UINT8},
+                            {name: "field2", type: Zcl.DataType.UINT8},
+                            {name: "field3", type: Zcl.DataType.UINT8},
+                            {name: "field4", type: Zcl.DataType.UINT8},
                         ],
                     },
                 },

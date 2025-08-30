@@ -195,7 +195,7 @@ const philipsModernExtend = {
                 .withDescription("Time (in seconds) since when contact was last changed."),
             new eNumeric("tamper_last_changed", ea.STATE_GET).withUnit("s").withDescription("Time (in seconds) since when tamper was last changed."),
         ];
-        const fromZigbee: Fz.Converter[] = [
+        const fromZigbee = [
             {
                 cluster: "manuSpecificPhilipsContact",
                 type: ["attributeReport", "readResponse"],
@@ -223,7 +223,7 @@ const philipsModernExtend = {
 
                     return payload;
                 },
-            },
+            } satisfies Fz.Converter<"manuSpecificPhilipsContact", PhilipsContact, ["attributeReport", "readResponse"]>,
             // NOTE: kept for compatibility as there is no auto-reconfigure for modernExtend
             //       this should not fire once reconfigured.
             {
@@ -234,7 +234,7 @@ const philipsModernExtend = {
                         return {contact: msg.type === "commandOff"};
                     }
                 },
-            },
+            } satisfies Fz.Converter<"genOnOff", undefined, ["commandOff", "commandOn"]>,
         ];
         const toZigbee: Tz.Converter[] = [
             {
@@ -587,7 +587,7 @@ const philipsFz = {
             }
             return payload;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificPhilips", undefined, "commandHueNotification">,
     gradient: {
         cluster: "manuSpecificPhilips2",
         type: ["attributeReport", "readResponse"],
@@ -601,7 +601,7 @@ const philipsFz = {
             }
             return {};
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificPhilips2", undefined, ["attributeReport", "readResponse"]>,
 };
 export {philipsFz as fz};
 

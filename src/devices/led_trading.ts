@@ -28,7 +28,7 @@ const fzLocal = {
             };
             return {action: utils.getFromLookup(commandID, lookup)};
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"greenPower", undefined, ["commandNotification", "commandCommissioningNotification"]>,
 };
 
 export const definitions: DefinitionWithExtend[] = [

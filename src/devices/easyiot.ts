@@ -20,7 +20,7 @@ const fzLocal = {
             logger.debug(`"easyiot_ir_recv_command" received command ${hexString}`, NS);
             return {last_received_command: hexString};
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"tunneling", undefined, ["commandTransferDataResp"]>,
 
     easyiot_tts_recv_status: {
         cluster: "tunneling",
@@ -31,7 +31,7 @@ const fzLocal = {
             logger.debug(`"easyiot_tts_recv_status" received status ${hexString}`, NS);
             return {last_received_status: hexString};
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"tunneling", undefined, ["commandTransferDataResp"]>,
 
     easyiot_sp1000_recv_status: {
         cluster: "tunneling",
@@ -45,7 +45,7 @@ const fzLocal = {
                 return {last_received_status: result};
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"tunneling", undefined, ["commandTransferDataResp"]>,
 
     easyiot_action: {
         cluster: "genOnOff",
@@ -66,7 +66,7 @@ const fzLocal = {
             const button = buttonMapping ? `${buttonMapping[msg.endpoint.ID]}_` : "";
             return {action: `${button}${lookup[msg.type]}`};
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genOnOff", undefined, ["commandOn", "commandOff", "commandToggle"]>,
 };
 
 const tzLocal = {

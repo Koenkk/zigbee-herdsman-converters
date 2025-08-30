@@ -3,7 +3,7 @@ import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import type {Configure, DefinitionWithExtend, Fz, OnEvent, Tz, Zh} from "../lib/types";
+import type {Configure, DefinitionWithExtend, OnEvent, Tz, Zh} from "../lib/types";
 import * as utils from "../lib/utils";
 
 const e = exposes.presets;
@@ -44,7 +44,7 @@ const disableBatteryRotaryDimmerReporting = async (endpoint: Zh.Endpoint) => {
 };
 
 const batteryRotaryDimmer = (...endpointsIds: number[]) => ({
-    fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_step, fz.command_step_color_temperature] satisfies Fz.Converter[],
+    fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_step, fz.command_step_color_temperature],
     toZigbee: [] as Tz.Converter[], // TODO: Needs documented reasoning for asserting this as a type it isn't
     exposes: [
         e.battery(),

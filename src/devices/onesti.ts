@@ -16,7 +16,7 @@ const fzLocal = {
             const attributes: KeyValue = {};
             // Handle attribute 257
             if (msg.data["257"] !== undefined) {
-                const buffer = Buffer.from(msg.data["257"]);
+                const buffer = Buffer.from(msg.data["257"] as string);
                 let pincode = "";
                 for (const byte of buffer) {
                     pincode += byte.toString(16);
@@ -26,7 +26,7 @@ const fzLocal = {
 
             // Handle attribute 256
             if (msg.data["256"] !== undefined) {
-                const hex = msg.data["256"].toString(16).padStart(8, "0");
+                const hex = (msg.data["256"] as number).toString(16).padStart(8, "0");
                 const firstOctet = String(hex.substring(0, 2));
                 const lookup: {[key: string]: string} = {
                     "00": "zigbee",
@@ -53,7 +53,7 @@ const fzLocal = {
                 return attributes;
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"closuresDoorLock", undefined, ["attributeReport", "readResponse"]>,
 };
 
 export const definitions: DefinitionWithExtend[] = [

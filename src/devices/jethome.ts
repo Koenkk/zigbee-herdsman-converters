@@ -38,7 +38,7 @@ const jetHome = {
                 const action = utils.getFromLookup(value, actionLookup);
                 return {action: utils.postfixWithEndpointName(action, msg, model, meta)};
             },
-        } satisfies Fz.Converter,
+        } satisfies Fz.Converter<"genMultistateInput", undefined, ["attributeReport", "readResponse"]>,
     },
 };
 

@@ -78,7 +78,7 @@ const ubisys = {
                     };
                 }
             },
-        } satisfies Fz.Converter,
+        } satisfies Fz.Converter<"manuSpecificUbisysDimmerSetup", UbisysDimmerSetup, ["attributeReport", "readResponse"]>,
         // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
         dimmer_setup_genLevelCtrl: {
             cluster: "genLevelCtrl",
@@ -88,7 +88,7 @@ const ubisys = {
                     return {minimum_on_level: msg.data.ubisysMinimumOnLevel};
                 }
             },
-        } satisfies Fz.Converter,
+        } satisfies Fz.Converter<"genLevelCtrl", UbisysGenLevelCtrl, ["attributeReport", "readResponse"]>,
         configure_device_setup: {
             cluster: "manuSpecificUbisysDeviceSetup",
             type: ["attributeReport", "readResponse"],
@@ -98,11 +98,11 @@ const ubisys = {
                     result.input_configurations = msg.data.inputConfigurations;
                 }
                 if (msg.data.inputActions != null) {
-                    result.input_actions = msg.data.inputActions.map((el: KeyValue) => Object.values(el));
+                    result.input_actions = (msg.data.inputActions as unknown[]).map((el) => Object.values(el));
                 }
                 return {configure_device_setup: result};
             },
-        } satisfies Fz.Converter,
+        } satisfies Fz.Converter<"manuSpecificUbisysDeviceSetup", UbisysDeviceSetup, ["attributeReport", "readResponse"]>,
     },
     tz: {
         configure_j1: {

@@ -20,7 +20,7 @@ const fzLocal = {
                 return {[property]: currentLevel > 0 ? "ON" : "OFF"};
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genLevelCtrl", undefined, ["attributeReport", "readResponse"]>,
 };
 
 export const definitions: DefinitionWithExtend[] = [

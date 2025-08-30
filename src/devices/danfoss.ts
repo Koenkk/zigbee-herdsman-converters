@@ -39,6 +39,7 @@ export const definitions: DefinitionWithExtend[] = [
             fz.thermostat_weekly_schedule,
             fz.hvac_user_interface,
             fz.danfoss_thermostat,
+            fz.danfoss_hvac_ui,
             fz.danfoss_thermostat_setpoint_scheduled,
         ],
         toZigbee: [
@@ -375,6 +376,7 @@ export const definitions: DefinitionWithExtend[] = [
             fz.danfoss_icon_battery,
             fz.thermostat,
             fz.danfoss_thermostat,
+            fz.danfoss_hvac_ui,
             fz.danfoss_icon_regulator,
             fz.danfoss_icon_floor_sensor,
             fz.temperature,
@@ -632,6 +634,7 @@ export const definitions: DefinitionWithExtend[] = [
             fz.danfoss_icon_battery,
             fz.thermostat,
             fz.danfoss_thermostat,
+            fz.danfoss_hvac_ui,
             fz.danfoss_icon_floor_sensor,
             fz.danfoss_icon_hvac_user_interface,
             fz.temperature,

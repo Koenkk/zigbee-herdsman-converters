@@ -55,7 +55,7 @@ const tzSeMetering: Tz.Converter = {
     // },
 };
 
-const fzZiPulses: Fz.Converter = {
+const fzZiPulses: Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "seMetering",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
@@ -110,7 +110,7 @@ const fzLocal = {
                 /* 0x0A0E */ "reactivePowerPhC",
                 /* 0x0A0F */ "apparentPowerPhC",
                 /* 0x0A11 */ "averageRmsVoltageMeasPeriodPhC",
-            ];
+            ] as const;
 
             for (const at of elements) {
                 const at_snake = at
@@ -123,7 +123,7 @@ const fzLocal = {
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"haElectricalMeasurement", undefined, ["attributeReport", "readResponse"]>,
     lixee_private_fz: {
         cluster: "liXeePrivate", // 0xFF66
         type: ["attributeReport", "readResponse"],
@@ -169,7 +169,7 @@ const fzLocal = {
                 /* 0x0226 */ "daysNumberNextCalendar",
                 /* 0x0227 */ "daysProfileCurrentCalendar",
                 /* 0x0228 */ "daysProfileNextCalendar",
-            ];
+            ] as const;
             const kWhP = options?.kWh_precision ? options.kWh_precision : 0;
             utils.assertNumber(kWhP);
             for (const at of elements) {
@@ -179,13 +179,14 @@ const fzLocal = {
                     .toLowerCase();
                 let val = msg.data[at];
                 if (val != null) {
-                    if (val.type !== undefined && val.type === "Buffer") {
-                        val = Buffer.from(val.data);
+                    // TODO: this is not possible??
+                    if (utils.isObject(val) && "type" in val && "data" in val && val.type === "Buffer") {
+                        val = Buffer.from(val.data as number[]);
                     }
                     if (Buffer.isBuffer(val)) {
                         val = val.toString(); // Convert buffer to string
                     }
-                    if (typeof val === "string" || val instanceof String) {
+                    if (typeof val === "string") {
                         val = val.replace(/\0/g, ""); // Remove all null chars when str
                         val = val.replace(/\s+/g, " ").trim(); // Remove extra and leading spaces
                     }
@@ -194,7 +195,7 @@ const fzLocal = {
                         case "activeEnergyOutD02":
                         case "activeEnergyOutD03":
                         case "activeEnergyOutD04":
-                            val = utils.precisionRound(val / 1000, kWhP); // from Wh to kWh
+                            val = utils.precisionRound(Number.parseInt(val as string, 10) / 1000, kWhP); // from Wh to kWh
                             break;
                         case "relais": {
                             // relais is a decimal value representing the bits
@@ -211,7 +212,7 @@ const fzLocal = {
                             // relais8 Unassigned
                             const relais_breakout: KeyValue = {};
                             for (let i = 0; i < 8; i++) {
-                                relais_breakout[at_snake + (i + 1)] = (val & (1 << i)) >>> i;
+                                relais_breakout[at_snake + (i + 1)] = (Number.parseInt(val as string, 10) & (1 << i)) >>> i;
                             }
                             result[`${at_snake}_breakout`] = relais_breakout;
                             break;
@@ -361,7 +362,7 @@ const fzLocal = {
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"liXeePrivate", undefined, ["attributeReport", "readResponse"]>,
     lixee_metering: {
         cluster: "seMetering", // 0x0702
         type: ["attributeReport", "readResponse"],
@@ -383,7 +384,7 @@ const fzLocal = {
                 /* 0x0112 */ "currentTier10SummDelivered",
                 /* 0x0307 */ "siteId",
                 /* 0x0308 */ "meterSerialNumber",
-            ];
+            ] as const;
             const kWhP = options?.kWh_precision ? options.kWh_precision : 0;
             for (const at of elements) {
                 const at_snake = at
@@ -430,7 +431,7 @@ const fzLocal = {
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]>,
 };
 
 // we are doing it with exclusion and not inclusion because the list is dynamic (based on zlinky mode),

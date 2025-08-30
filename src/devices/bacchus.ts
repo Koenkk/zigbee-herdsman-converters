@@ -27,16 +27,16 @@ function timeHHMM(args: m.TextArgs<"genTime">): ModernExtend {
     const access = ea[args.access ?? "ALL"];
     const mExtend = m.text(args);
 
-    const fromZigbee: Fz.Converter[] = [
+    const fromZigbee = [
         {
-            cluster: cluster.toString(),
+            cluster: "genTime",
             type: ["attributeReport", "readResponse"],
             convert: (model, msg, publish, options, meta) => {
                 if (attributeKey in msg.data && (!endpointName || getEndpointName(msg, model, meta) === endpointName)) {
-                    return {[name]: time_to_str_min(msg.data[attributeKey])};
+                    return {[name]: time_to_str_min(msg.data[attributeKey] as number)};
                 }
             },
-        },
+        } satisfies Fz.Converter<"genTime", undefined, ["attributeReport", "readResponse"]>,
     ];
 
     const toZigbee: Tz.Converter[] = [
@@ -112,13 +112,13 @@ function energy(args: m.NumericArgs<"seMetering">): ModernExtend {
     const access = ea[args.access ?? "ALL"];
     const mExtend = m.numeric(args);
 
-    const fromZigbee: Fz.Converter[] = [
+    const fromZigbee = [
         {
-            cluster: cluster.toString(),
+            cluster: "seMetering",
             type: ["attributeReport", "readResponse"],
             convert: (model, msg, publish, options, meta) => {
                 if (attributeKey in msg.data) {
-                    let value = msg.data[attributeKey] & 0xffffffff;
+                    let value = (msg.data[attributeKey] as number) & 0xffffffff;
                     assertNumber(value);
 
                     if (scale !== undefined) {
@@ -130,7 +130,7 @@ function energy(args: m.NumericArgs<"seMetering">): ModernExtend {
                     return {[name]: value};
                 }
             },
-        },
+        } satisfies Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]>,
     ];
 
     const toZigbee: Tz.Converter[] = [

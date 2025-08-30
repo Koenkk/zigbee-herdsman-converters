@@ -19,7 +19,7 @@ const fzLocal = {
                 key_4: msg.data["41364"] === 1 ? "ON" : "OFF",
             };
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
 };
 
 export const definitions: DefinitionWithExtend[] = [
