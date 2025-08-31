@@ -3733,9 +3733,11 @@ export const legrand_greenpower: Fz.Converter = {
             23: "press_4", // ZLGP15
             34: "press_once",
             32: "press_twice", // ZLGP17, ZLGP18
+            51: "up_hold", // ZLGP17, ZLGP18
             52: "stop",
             53: "up",
             54: "down", // 600087l
+            55: "down_hold", // ZLGP17, ZLGP18
         };
         if (lookup[commandID] === undefined) {
             logger.error(`Legrand GreenPower: missing command '${commandID}'`, NS);
