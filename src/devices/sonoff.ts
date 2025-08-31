@@ -1730,6 +1730,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["SNZB-05P"],
         model: "SNZB-05P",
         vendor: "SONOFF",
+        ota: true,
         description: "Zigbee water sensor",
         extend: [m.battery(), m.iasZoneAlarm({zoneType: "water_leak", zoneAttributes: ["alarm_1", "battery_low"]})],
     },

@@ -2174,6 +2174,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         toZigbee: [
             tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_occupied_cooling_setpoint,
             tz.thermostat_system_mode,
             tz.thermostat_local_temperature,
             tz.thermostat_control_sequence_of_operation,
@@ -2190,6 +2191,7 @@ export const definitions: DefinitionWithExtend[] = [
             e
                 .climate()
                 .withSetpoint("occupied_heating_setpoint", 4, 30, 0.5)
+                .withSetpoint("occupied_cooling_setpoint", 4, 30, 0.5)
                 .withLocalTemperature()
                 .withSystemMode(["off", "heat", "cool"])
                 .withPiHeatingDemand(),
@@ -2203,6 +2205,7 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint1, coordinatorEndpoint, ["hvacThermostat"]);
             await reporting.thermostatPIHeatingDemand(endpoint1);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint1);
+            await reporting.thermostatOccupiedCoolingSetpoint(endpoint1);
             await reporting.temperature(endpoint2);
             await endpoint1.read("hvacUserInterfaceCfg", ["keypadLockout", "tempDisplayMode"]);
             await reporting.bind(endpoint4, coordinatorEndpoint, ["msOccupancySensing"]);
@@ -2211,11 +2214,11 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.poll({
                 key: "measurement",
-                option: exposes.options.measurement_poll_interval().withDescription("Polling interval of the occupied heating setpoint"),
+                option: exposes.options.measurement_poll_interval().withDescription("Polling interval of the occupied heating/cooling setpoint"),
                 defaultIntervalSeconds: 20,
                 poll: async (device) => {
                     const endpoint = device.getEndpoint(1);
-                    await endpoint.read("hvacThermostat", ["occupiedHeatingSetpoint"]);
+                    await endpoint.read("hvacThermostat", ["occupiedHeatingSetpoint", "occupiedCoolingSetpoint"]);
                 },
             }),
         ],
