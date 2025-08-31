@@ -14107,8 +14107,8 @@ export const definitions: DefinitionWithExtend[] = [
                         "be between 6.5-8ph and ORP should be between 487-840mv, and the chlorine value will be displayed normally. Chlorine will not " +
                         "be displayed if either value is out of range",
                 ),
-            e.numeric("ph_max", ea.STATE_SET).withUnit("pH").withDescription("pH maximal value").withValueMin(0).withValueMax(20),
-            e.numeric("ph_min", ea.STATE_SET).withUnit("pH").withDescription("pH minimal value").withValueMin(0).withValueMax(20),
+            e.numeric("ph_max", ea.STATE_SET).withUnit("pH").withDescription("pH maximal value").withValueMin(0).withValueMax(140),
+            e.numeric("ph_min", ea.STATE_SET).withUnit("pH").withDescription("pH minimal value").withValueMin(0).withValueMax(140),
             e
                 .numeric("ec_max", ea.STATE_SET)
                 .withUnit("µS/cm")
@@ -14120,31 +14120,31 @@ export const definitions: DefinitionWithExtend[] = [
                 .withUnit("µS/cm")
                 .withDescription("Electrical Conductivity minimal value")
                 .withValueMin(0)
-                .withValueMax(100),
+                .withValueMax(20000),
             e
                 .numeric("orp_max", ea.STATE_SET)
                 .withUnit("mV")
                 .withDescription("Oxidation Reduction Potential maximal value")
                 .withValueMin(0)
-                .withValueMax(1000),
+                .withValueMax(1200),
             e
                 .numeric("orp_min", ea.STATE_SET)
                 .withUnit("mV")
                 .withDescription("Oxidation Reduction Potential minimal value")
                 .withValueMin(0)
-                .withValueMax(1000),
+                .withValueMax(1200),
             e
                 .numeric("free_chlorine_max", ea.STATE_SET)
                 .withUnit("mg/L")
                 .withDescription("Free Chlorine maximal value")
                 .withValueMin(0)
-                .withValueMax(15),
+                .withValueMax(40),
             e
                 .numeric("free_chlorine_min", ea.STATE_SET)
                 .withUnit("mg/L")
                 .withDescription("Free Chlorine minimal value")
                 .withValueMin(0)
-                .withValueMax(15),
+                .withValueMax(40),
             e.numeric("salinity", ea.STATE).withUnit("ppm").withDescription("Salt value"),
             e.numeric("backlightvalue", ea.STATE_SET).withUnit("gg").withDescription("Backlight Value").withValueMin(0).withValueMax(1),
         ],
@@ -14168,10 +14168,10 @@ export const definitions: DefinitionWithExtend[] = [
                 ],
                 [11, "ec", tuya.valueConverter.raw],
                 [101, "orp", tuya.valueConverter.raw],
-                [102, "free_chlorine", tuya.valueConverter.raw],
+                [102, "free_chlorine", tuya.valueConverter.divideBy10],
                 [105, "backlightvalue", tuya.valueConverter.raw],
-                [106, "ph_max", tuya.valueConverter.divideBy10],
-                [107, "ph_min", tuya.valueConverter.divideBy10],
+                [106, "ph_max", tuya.valueConverter.raw],
+                [107, "ph_min", tuya.valueConverter.raw],
                 [108, "ec_max", tuya.valueConverter.raw],
                 [109, "ec_min", tuya.valueConverter.raw],
                 [110, "orp_max", tuya.valueConverter.raw],
