@@ -2177,6 +2177,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Bosch",
         description: "Relay, potential free",
         extend: [m.onOff({powerOnBehavior: false})],
+        ota: true,
     },
     {
         zigbeeModel: ["RBSH-MMS-ZB-EU"],
