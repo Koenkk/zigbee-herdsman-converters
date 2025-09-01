@@ -18685,12 +18685,9 @@ export const definitions: DefinitionWithExtend[] = [
         model: "_TZE204_q9xty0ad",
         vendor: "Tuya",
         description: "Ayvolt Blinds",
-        extend: [],
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         options: [exposes.options.invert_cover()],
         exposes: [e.cover_position(), e.enum("motor_direction", ea.STATE_SET, ["normal", "reversed"]).withDescription("Motor direction")],
-        configure: tuya.configureMagicPacket,
         meta: {
             tuyaDatapoints: [
                 [
