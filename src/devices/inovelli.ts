@@ -545,11 +545,18 @@ const inovelliExtend = {
         } as ModernExtend;
     },
     inovelliMMWave: () => {
+        const configure: Configure[] = [
+            async (device, coordinatorEndpoint, definition) => {
+                const endpoint = device.getEndpoint(1);
+                await reporting.bind(endpoint, coordinatorEndpoint, [INOVELLI_MMWAVE_CLUSTER_NAME]);
+            },
+        ];
+
         return {
-            fromZigbee: [],
+            fromZigbee: [fzLocal.anyone_in_reporting_area],
             toZigbee: [tzLocal.inovelli_mmwave_control_commands],
-            exposes: [exposeMMWaveControl()],
-            configure: [],
+            exposes: [exposeMMWaveControl(), exposeMMWaveAreas()],
+            configure: configure,
             isModernExtend: true,
         } as ModernExtend;
     },
@@ -2369,6 +2376,14 @@ const fzLocal = {
             return {notificationComplete: "Unknown"};
         },
     } satisfies Fz.Converter<typeof INOVELLI_CLUSTER_NAME, Inovelli, ["commandLedEffectComplete"]>,
+    anyone_in_reporting_area: {
+        cluster: INOVELLI_MMWAVE_CLUSTER_NAME,
+        type: ["commandAnyoneInReportingArea"],
+        convert: (model, msg, publish, options, meta) => {
+            const data = msg.data as {area1?: boolean; area2?: boolean; area3?: boolean; area4?: boolean};
+            return {mmwave_areas: data};
+        },
+    } satisfies Fz.Converter,
 };
 
 const exposeLedEffects = () => {
@@ -2456,6 +2471,16 @@ const exposeLedEffectComplete = () => {
 
 const exposeEnergyReset = () => {
     return e.enum("energy_reset", ea.SET, ["reset"]).withDescription("Reset energy meter").withCategory("config");
+};
+
+const exposeMMWaveAreas = () => {
+    return e
+        .composite("anyone_in_reporting_area", "mmwave_areas", ea.STATE)
+        .withFeature(e.binary("area1", ea.STATE, true, false).withDescription("Area 1"))
+        .withFeature(e.binary("area2", ea.STATE, true, false).withDescription("Area 2"))
+        .withFeature(e.binary("area3", ea.STATE, true, false).withDescription("Area 3"))
+        .withFeature(e.binary("area4", ea.STATE, true, false).withDescription("Area 4"))
+        .withCategory("diagnostic");
 };
 
 const BUTTON_TAP_SEQUENCES = [
@@ -2573,9 +2598,6 @@ export const definitions: DefinitionWithExtend[] = [
             inovelliExtend.inovelliEnergyReset(),
             m.identify(),
             m.electricityMeter({
-                // Current and voltage were removed in version 0.8 of the firmware and expected to be restored in the future
-                current: false,
-                voltage: false,
                 energy: {divisor: 1000},
             }),
             m.illuminance(),
