@@ -3743,11 +3743,15 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {battery: {voltageToPercentage: {min: 2850, max: 3000}}},
         extend: [m.quirkCheckinInterval("1_HOUR")],
         exposes: [
-            e.battery(), e.battery_voltage(),
+            e.battery(),
+            e.battery_voltage(),
             e.action(["single", "double", "hold"]),
-            e.enum("click_mode", ea.ALL, ["fast", "multi"])
-                .withDescription("Click mode, fast: only supports single click which will be send immediately after clicking." +
-                    "multi: supports more events like double and hold")
+            e
+                .enum("click_mode", ea.ALL, ["fast", "multi"])
+                .withDescription(
+                    "Click mode, fast: only supports single click which will be send immediately after clicking." +
+                        "multi: supports more events like double and hold",
+                ),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
@@ -3757,7 +3761,7 @@ export const definitions: DefinitionWithExtend[] = [
             // if value is 1 - there will be single clicks, 2 - multiple.
             await endpoint1.write("manuSpecificLumi", {293: {value: 0x02, type: 0x20}}, {manufacturerCode: lumi.manufacturerCode});
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genOnOff", "genPowerCfg"]);
-        }
+        },
     },
     {
         zigbeeModel: ["lumi.remote.acn009"],
