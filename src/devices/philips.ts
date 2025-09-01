@@ -12,6 +12,13 @@ const e = exposes.presets;
 const ea = exposes.access;
 
 export const definitions: DefinitionWithExtend[] = [
+{
+        zigbeeModel: ['929003810901_03'],
+        model: '929003810901_03',
+        vendor: 'Signify Netherlands B.V.',
+        description: 'Automatically generated definition',
+        extend: [philips.m.light({"colorTemp":{"range":[153,454]}})],
+    };
     {
         zigbeeModel: ["929003809401"],
         model: "929003809401",
