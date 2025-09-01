@@ -145,6 +145,15 @@ interface InovelliMmWave {
         mmWaveControl: {
             controlID: number;
         };
+        setInterferenceArea: {
+            areaId: number;
+            xMin: number;
+            xMax: number;
+            yMin: number;
+            yMax: number;
+            zMin: number;
+            zMax: number;
+        };
     };
     commandResponses: {
         anyoneInReportingArea: {
@@ -376,6 +385,18 @@ const inovelliExtend = {
                     ID: 0,
                     parameters: [{name: "controlID", type: Zcl.DataType.UINT8, max: 0xff}],
                 },
+                setInterferenceArea: {
+                    ID: 1,
+                    parameters: [
+                        {name: "areaID", type: Zcl.DataType.UINT8},
+                        {name: "xMin", type: Zcl.DataType.INT16},
+                        {name: "xMax", type: Zcl.DataType.INT16},
+                        {name: "yMin", type: Zcl.DataType.INT16},
+                        {name: "yMax", type: Zcl.DataType.INT16},
+                        {name: "zMin", type: Zcl.DataType.INT16},
+                        {name: "zMax", type: Zcl.DataType.INT16},
+                    ],
+                },
             },
             commandsResponse: {
                 anyoneInReportingArea: {
@@ -554,8 +575,8 @@ const inovelliExtend = {
 
         return {
             fromZigbee: [fzLocal.anyone_in_reporting_area],
-            toZigbee: [tzLocal.inovelli_mmwave_control_commands],
-            exposes: [exposeMMWaveControl(), exposeMMWaveAreas()],
+            toZigbee: [tzLocal.inovelli_mmwave_control_commands, tzLocal.inovelli_mmwave_set_interference_area],
+            exposes: [exposeMMWaveControl(), exposeSetInterferenceArea(), exposeMMWaveAreas()],
             configure: configure,
             isModernExtend: true,
         } as ModernExtend;
@@ -2011,6 +2032,29 @@ const tzLocal = {
             return {state: {[key]: values}};
         },
     } satisfies Tz.Converter,
+    inovelli_mmwave_set_interference_area: {
+        key: ["mwwave_set_interference_area"],
+        convertSet: async (entity, key, values, meta) => {
+            utils.assertObject(values);
+
+            await entity.command<typeof INOVELLI_MMWAVE_CLUSTER_NAME, "setInterferenceArea", InovelliMmWave>(
+                INOVELLI_MMWAVE_CLUSTER_NAME,
+                "setInterferenceArea",
+                {
+                    // areaID is zero indexed
+                    areaId: values.area_id - 1,
+                    xMin: values.width_min,
+                    xMax: values.width_max,
+                    yMin: values.height_min,
+                    yMax: values.height_max,
+                    zMin: values.depth_min,
+                    zMax: values.depth_max,
+                },
+                {disableResponse: true, disableDefaultResponse: true},
+            );
+            return {state: {[key]: values}};
+        },
+    } satisfies Tz.Converter,
     /*
      * Inovelli devices have a default transition property that the device should
      * fallback to if a transition is not specified by passing 0xffff
@@ -2462,6 +2506,60 @@ const exposeMMWaveControl = () => {
         .withCategory("config");
 };
 
+const exposeSetInterferenceArea = () => {
+    return e
+        .composite("Set Interference Area", "set_interference_area", ea.STATE_SET)
+        .withFeature(e.enum("area_id", ea.STATE_SET, [1, 2, 3, 4]).withDescription("Interference area to adjust"))
+        .withFeature(
+            e
+                .numeric("width_min", ea.STATE_SET)
+                .withValueMin(-600)
+                .withValueMax(600)
+                .withDescription(
+                    "Defines the detection area (negative values are left of the switch facing away from the wall, positive values are right)",
+                ),
+        )
+        .withFeature(
+            e
+                .numeric("width_max", ea.STATE_SET)
+                .withValueMin(-600)
+                .withValueMax(600)
+                .withDescription(
+                    "Defines the detection area (negative values are left of the switch facing away from the wall, positive values are right)",
+                ),
+        )
+        .withFeature(
+            e
+                .numeric("height_min", ea.STATE_SET)
+                .withValueMin(-600)
+                .withValueMax(600)
+                .withDescription("Defines the detection area (negative values are below the switch, positive values are above)"),
+        )
+        .withFeature(
+            e
+                .numeric("height_max", ea.STATE_SET)
+                .withValueMin(-600)
+                .withValueMax(600)
+                .withDescription("Defines the detection area (negative values are below the switch, positive values are above)"),
+        )
+        .withFeature(
+            e
+                .numeric("depth_min", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(600)
+                .withDescription("Defines the detection area in front of the switch"),
+        )
+        .withFeature(
+            e
+                .numeric("depth_max", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(600)
+                .withDescription("Defines the detection area in front of the switch"),
+        )
+        .withCategory("config")
+        .withDescription("Defines an area to be excluded by the mmWave sensor. The switch supports 4 separate exclusion areas");
+};
+
 const exposeLedEffectComplete = () => {
     return e
         .enum("notificationComplete", ea.STATE, Object.values(LED_NOTIFICATION_TYPES))
@@ -2476,10 +2574,10 @@ const exposeEnergyReset = () => {
 const exposeMMWaveAreas = () => {
     return e
         .composite("anyone_in_reporting_area", "mmwave_areas", ea.STATE)
-        .withFeature(e.binary("area1", ea.STATE, true, false).withDescription("Area 1"))
-        .withFeature(e.binary("area2", ea.STATE, true, false).withDescription("Area 2"))
-        .withFeature(e.binary("area3", ea.STATE, true, false).withDescription("Area 3"))
-        .withFeature(e.binary("area4", ea.STATE, true, false).withDescription("Area 4"))
+        .withFeature(e.binary("area1", ea.STATE, "true", "false").withDescription("Area 1"))
+        .withFeature(e.binary("area2", ea.STATE, "true", "false").withDescription("Area 2"))
+        .withFeature(e.binary("area3", ea.STATE, "true", "false").withDescription("Area 3"))
+        .withFeature(e.binary("area4", ea.STATE, "true", "false").withDescription("Area 4"))
         .withCategory("diagnostic");
 };
 
