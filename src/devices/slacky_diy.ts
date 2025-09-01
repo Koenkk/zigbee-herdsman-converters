@@ -121,7 +121,7 @@ const fzLocal = {
                 result.sound = msg.data[attrThermSound] === 1 ? "On" : "Off";
             }
             if (msg.data[attrThermInversion] !== undefined) {
-                result.inversion = msg.data[attrThermInversion] === 1 ? "On" : "Off";
+                result.relay_type = msg.data[attrThermInversion] === 1 ? "NO" : "NC";
             }
             if (msg.data[attrThermModeKeyLock] !== undefined) {
                 result.mode_child_lock = msg.data[attrThermModeKeyLock] === 1 ? "all" : "partial";
@@ -347,11 +347,11 @@ const tzLocal = {
         },
     } satisfies Tz.Converter,
     thermostat_inversion: {
-        key: ["inversion"],
+        key: ["relay_type"],
         convertSet: async (entity, key, value, meta) => {
-            const inversion = Number(value === "On");
-            await entity.write("hvacThermostat", {[attrThermInversion]: {value: inversion, type: 0x10}});
-            return {readAfterWriteTime: 250, state: {inversion: value}};
+            const relay_type = Number(value === "NO");
+            await entity.write("hvacThermostat", {[attrThermInversion]: {value: relay_type, type: 0x10}});
+            return {readAfterWriteTime: 250, state: {relay_type: value}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read("hvacThermostat", [attrThermInversion]);
@@ -480,7 +480,9 @@ async function configureCommon(device: Zh.Device, coordinatorEndpoint: Zh.Endpoi
     await endpoint1.read("hvacThermostat", [attrThermLevel]);
     await endpoint1.read("hvacThermostat", [attrThermInversion]);
     await endpoint1.read("hvacThermostat", [attrThermExtTemperatureCalibration]);
-    await endpoint1.read("hvacThermostat", [attrThermModeKeyLock]);
+    if (definition.model === model_r09) {
+        await endpoint1.read("hvacThermostat", [attrThermModeKeyLock]);
+    }
     await endpoint1.read("hvacFanCtrl", ["fanMode"]);
     await endpoint1.read("hvacFanCtrl", [attrFanCtrlControl]);
     await reporting.bind(endpoint1, coordinatorEndpoint, ["hvacThermostat", "hvacUserInterfaceCfg", "hvacFanCtrl"]);
@@ -584,6 +586,12 @@ async function configureCommon(device: Zh.Device, coordinatorEndpoint: Zh.Endpoi
             {attribute: {ID: attrThermScheduleMode, type: 0x30}, minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0},
         ];
         await endpoint1.configureReporting("hvacThermostat", payload_schedule_mode);
+    }
+    if (definition.model === model_r09) {
+        const payload_inversion = [
+            {attribute: {ID: attrThermInversion, type: 0x10}, minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0},
+        ];
+        await endpoint1.configureReporting("hvacThermostat", payload_inversion);
     }
     if (definition.model === model_r08 || definition.model === model_r09) {
         const payload_eco_mode = [
@@ -1717,7 +1725,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [
             e.binary("child_lock", ea.ALL, "LOCK", "UNLOCK").withDescription("Enables/disables physical input on the device"),
             e.binary("sound", ea.ALL, "On", "Off").withDescription("Sound On/Off"),
-            e.binary("inversion", ea.ALL, "On", "Off").withDescription("Inversion of the output"),
+            e.binary("relay_type", ea.ALL, "NC", "NO").withDescription("Relay type NC/NO"),
             e.enum("brightness_level", ea.ALL, ["Off", "Low", "Medium", "High"]).withDescription("Screen brightness"),
             e.programming_operation_mode(["setpoint", "schedule"]).withDescription("Setpoint or Schedule mode"),
             e.enum("sensor", ea.ALL, switchSensorUsed).withDescription("Select temperature sensor to use"),
@@ -1897,6 +1905,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [
             e.binary("child_lock", ea.ALL, "LOCK", "UNLOCK").withDescription("Enables/disables physical input on the device"),
             e.binary("mode_child_lock", ea.ALL, "partial", "all").withDescription("Child lock mode - all/partial"),
+            e.binary("relay_type", ea.ALL, "NC", "NO").withDescription("Relay type NC/NO"),
             e.programming_operation_mode(["setpoint", "schedule"]).withDescription("Setpoint or Schedule mode"),
             e.enum("sensor", ea.ALL, switchSensorUsed).withDescription("Select temperature sensor to use"),
             e
@@ -1967,6 +1976,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.text("schedule_friday", ea.STATE).withDescription("Friday's schedule"),
             e.text("schedule_saturday", ea.STATE).withDescription("Saturday's schedule"),
             e.text("schedule_sunday", ea.STATE).withDescription("Sunday's schedule"),
+            e.enum("settings_reset", ea.SET, ["Default"]).withDescription("Default settings"),
         ],
         meta: {},
         ota: true,
