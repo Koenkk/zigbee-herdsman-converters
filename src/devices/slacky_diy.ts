@@ -7,20 +7,25 @@ import * as globalStore from "../lib/store";
 import type {Definition, DefinitionWithExtend, Expose, Fz, KeyValue, KeyValueAny, ModernExtend, Tz, Zh} from "../lib/types";
 import * as utils from "../lib/utils";
 
+//import {logger} from "../lib/logger";
+
 const e = exposes.presets;
 const ea = exposes.access;
+
+//const NS = "zhc:slacky_diy";
 
 const ppmReporting = {min: 10, max: 300, change: 0.000001};
 const batteryReporting = {min: 3600, max: 0, change: 0};
 const temperatureReporting = {min: 10, max: 3600, change: 10};
 const humidityReporting = {min: 10, max: 3600, change: 10};
 
-const model_r01 = "Tuya_Thermostat_r01";
-const model_r03 = "Tuya_Thermostat_r03";
-const model_r04 = "Tuya_Thermostat_r04";
-const model_r06 = "Tuya_Thermostat_r06";
-const model_r07 = "Tuya_Thermostat_r07";
-const model_r08 = "Tuya_Thermostat_r08";
+const model_r01 = "THERM_SLACKY_DIY_R01";
+const model_r03 = "THERM_SLACKY_DIY_R03";
+const model_r04 = "THERM_SLACKY_DIY_R04";
+const model_r06 = "THERM_SLACKY_DIY_R06";
+const model_r07 = "THERM_SLACKY_DIY_R07";
+const model_r08 = "THERM_SLACKY_DIY_R08";
+const model_r09 = "THERM_SLACKY_DIY_R09";
 
 const attrThermSensorUser = 0xf000;
 const attrThermFrostProtect = 0xf001;
@@ -35,6 +40,7 @@ const attrThermLevel = 0xf009;
 const attrThermInversion = 0xf00a;
 const attrThermEcoModeCoolTemperature = 0xf00b;
 const attrThermExtTemperatureCalibration = 0xf00c;
+const attrThermModeKeyLock = 0xf00d;
 const attrFanCtrlControl = 0xf000;
 
 const switchSensorUsed = ["Inner (IN)", "All (AL)", "Outer (OU)"];
@@ -74,10 +80,11 @@ const fzLocal = {
                 result.sensor = utils.getFromLookup(msg.data[attrThermSensorUser], lookup);
             }
             if (msg.data.minSetpointDeadBand !== undefined) {
+                //logger.info(`Model: ${model.model}`, NS);
                 let data: number;
-                if (model.model === model_r06) {
+                if (model.model === model_r06 || model.model === model_r09) {
                     data = Number.parseFloat(msg.data.minSetpointDeadBand) / 10;
-                    result.histeresis_temperature = data;
+                    result.hysteresis_temperature = data;
                 } else {
                     data = Number.parseInt(msg.data.minSetpointDeadBand, 10);
                     result.deadzone_temperature = data;
@@ -114,7 +121,10 @@ const fzLocal = {
                 result.sound = msg.data[attrThermSound] === 1 ? "On" : "Off";
             }
             if (msg.data[attrThermInversion] !== undefined) {
-                result.inversion = msg.data[attrThermInversion] === 1 ? "On" : "Off";
+                result.relay_type = msg.data[attrThermInversion] === 1 ? "NO" : "NC";
+            }
+            if (msg.data[attrThermModeKeyLock] !== undefined) {
+                result.mode_child_lock = msg.data[attrThermModeKeyLock] === 1 ? "all" : "partial";
             }
             if (msg.data[attrThermScheduleMode] !== undefined) {
                 const lookup = {0: "Off", 1: "5+2", 2: "6+1", 3: "7"};
@@ -207,12 +217,12 @@ const tzLocal = {
         },
     } satisfies Tz.Converter,
     thermostat_deadzone_10: {
-        key: ["histeresis_temperature"],
+        key: ["hysteresis_temperature"],
         convertSet: async (entity, key, value, meta) => {
             utils.assertNumber(value);
             const minSetpointDeadBand = Number(value) * 10;
             await entity.write("hvacThermostat", {minSetpointDeadBand});
-            return {readAfterWriteTime: 250, state: {histeresis_temperature: value}};
+            return {readAfterWriteTime: 250, state: {hysteresis_temperature: value}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read("hvacThermostat", ["minSetpointDeadBand"]);
@@ -337,14 +347,25 @@ const tzLocal = {
         },
     } satisfies Tz.Converter,
     thermostat_inversion: {
-        key: ["inversion"],
+        key: ["relay_type"],
         convertSet: async (entity, key, value, meta) => {
-            const inversion = Number(value === "On");
-            await entity.write("hvacThermostat", {[attrThermInversion]: {value: inversion, type: 0x10}});
-            return {readAfterWriteTime: 250, state: {inversion: value}};
+            const relay_type = Number(value === "NO");
+            await entity.write("hvacThermostat", {[attrThermInversion]: {value: relay_type, type: 0x10}});
+            return {readAfterWriteTime: 250, state: {relay_type: value}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read("hvacThermostat", [attrThermInversion]);
+        },
+    } satisfies Tz.Converter,
+    thermostat_mode_child_lock: {
+        key: ["mode_child_lock"],
+        convertSet: async (entity, key, value, meta) => {
+            const mode_child_lock = Number(value === "all");
+            await entity.write("hvacThermostat", {[attrThermModeKeyLock]: {value: mode_child_lock, type: 0x10}});
+            return {readAfterWriteTime: 250, state: {mode_child_lock: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read("hvacThermostat", [attrThermModeKeyLock]);
         },
     } satisfies Tz.Converter,
     thermostat_schedule_mode: {
@@ -424,11 +445,12 @@ const localToZigbeeThermostat = [
     tzLocal.thermostat_schedule_mode,
     tzLocal.thermostat_settings_reset,
     tzLocal.thermostat_ext_temperature_calibration,
+    tzLocal.thermostat_mode_child_lock,
     tzLocal.fancontrol_control,
 ];
 
 async function configureCommon(device: Zh.Device, coordinatorEndpoint: Zh.Endpoint, definition: Definition) {
-    //logger.info(definition.model);
+    //logger.info(definition.model, NS);
     const endpoint1 = device.getEndpoint(1);
     const endpoint2 = device.getEndpoint(2);
     await endpoint1.read("hvacUserInterfaceCfg", ["keypadLockout"]);
@@ -458,16 +480,19 @@ async function configureCommon(device: Zh.Device, coordinatorEndpoint: Zh.Endpoi
     await endpoint1.read("hvacThermostat", [attrThermLevel]);
     await endpoint1.read("hvacThermostat", [attrThermInversion]);
     await endpoint1.read("hvacThermostat", [attrThermExtTemperatureCalibration]);
+    if (definition.model === model_r09) {
+        await endpoint1.read("hvacThermostat", [attrThermModeKeyLock]);
+    }
     await endpoint1.read("hvacFanCtrl", ["fanMode"]);
     await endpoint1.read("hvacFanCtrl", [attrFanCtrlControl]);
     await reporting.bind(endpoint1, coordinatorEndpoint, ["hvacThermostat", "hvacUserInterfaceCfg", "hvacFanCtrl"]);
-    if (definition.model === model_r03 || definition.model === model_r04) {
+    if (definition.model === model_r03 || definition.model === model_r04 || definition.model === model_r09) {
         await reporting.bind(endpoint1, coordinatorEndpoint, ["genLevelCtrl"]);
         const payloadCurrentLevel = [
             {attribute: {ID: 0x0000, type: 0x20}, minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0},
         ];
         await endpoint1.configureReporting("genLevelCtrl", payloadCurrentLevel);
-        if (definition.model === model_r03) {
+        if (definition.model === model_r03 || definition.model === model_r09) {
             await reporting.bind(endpoint2, coordinatorEndpoint, ["genLevelCtrl"]);
             await endpoint2.configureReporting("genLevelCtrl", payloadCurrentLevel);
         }
@@ -562,7 +587,13 @@ async function configureCommon(device: Zh.Device, coordinatorEndpoint: Zh.Endpoi
         ];
         await endpoint1.configureReporting("hvacThermostat", payload_schedule_mode);
     }
-    if (definition.model === model_r08) {
+    if (definition.model === model_r09) {
+        const payload_inversion = [
+            {attribute: {ID: attrThermInversion, type: 0x10}, minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0},
+        ];
+        await endpoint1.configureReporting("hvacThermostat", payload_inversion);
+    }
+    if (definition.model === model_r08 || definition.model === model_r09) {
         const payload_eco_mode = [
             {attribute: {ID: attrThermEcoMode, type: 0x30}, minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0},
         ];
@@ -1694,12 +1725,12 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [
             e.binary("child_lock", ea.ALL, "LOCK", "UNLOCK").withDescription("Enables/disables physical input on the device"),
             e.binary("sound", ea.ALL, "On", "Off").withDescription("Sound On/Off"),
-            e.binary("inversion", ea.ALL, "On", "Off").withDescription("Inversion of the output"),
+            e.binary("relay_type", ea.ALL, "NC", "NO").withDescription("Relay type NC/NO"),
             e.enum("brightness_level", ea.ALL, ["Off", "Low", "Medium", "High"]).withDescription("Screen brightness"),
             e.programming_operation_mode(["setpoint", "schedule"]).withDescription("Setpoint or Schedule mode"),
             e.enum("sensor", ea.ALL, switchSensorUsed).withDescription("Select temperature sensor to use"),
             e
-                .numeric("histeresis_temperature", ea.ALL)
+                .numeric("hysteresis_temperature", ea.ALL)
                 .withDescription("The delta between local_temperature and current_heating_setpoint to trigger activity")
                 .withUnit("°C")
                 .withValueMin(0.5)
@@ -1855,6 +1886,97 @@ export const definitions: DefinitionWithExtend[] = [
             e.text("schedule_monday", ea.STATE).withDescription("Schedule for the working week"),
             e.text("schedule_saturday", ea.STATE).withDescription("Saturday's schedule"),
             e.text("schedule_sunday", ea.STATE).withDescription("Sunday's schedule"),
+        ],
+        meta: {},
+        ota: true,
+    },
+    {
+        zigbeeModel: ["Tuya_Thermostat_r09"],
+        model: "THERM_SLACKY_DIY_R09",
+        vendor: "Slacky-DIY",
+        description: "Tuya Thermostat for Floor Heating with custom Firmware",
+        endpoint: (device) => {
+            return {day: 1, night: 2};
+        },
+        fromZigbee: localFromZigbeeThermostat,
+        toZigbee: localToZigbeeThermostat,
+        configure: configureCommon,
+        // Should be empty, unless device can be controlled (e.g. lights, switches).
+        exposes: [
+            e.binary("child_lock", ea.ALL, "LOCK", "UNLOCK").withDescription("Enables/disables physical input on the device"),
+            e.binary("mode_child_lock", ea.ALL, "partial", "all").withDescription("Child lock mode - all/partial"),
+            e.binary("relay_type", ea.ALL, "NC", "NO").withDescription("Relay type NC/NO"),
+            e.programming_operation_mode(["setpoint", "schedule"]).withDescription("Setpoint or Schedule mode"),
+            e.enum("sensor", ea.ALL, switchSensorUsed).withDescription("Select temperature sensor to use"),
+            e
+                .numeric("hysteresis_temperature", ea.ALL)
+                .withDescription("The delta between local_temperature and current_heating_setpoint to trigger activity")
+                .withUnit("°C")
+                .withValueMin(1)
+                .withValueMax(5)
+                .withValueStep(0.5),
+            e
+                .numeric("min_heat_setpoint_limit", ea.ALL)
+                .withUnit("°C")
+                .withDescription("Minimum Heating set point limit")
+                .withValueMin(5)
+                .withValueMax(15)
+                .withValueStep(1),
+            e
+                .numeric("max_heat_setpoint_limit", ea.ALL)
+                .withDescription("Maximum Heating set point limit")
+                .withUnit("°C")
+                .withValueMin(15)
+                .withValueMax(45)
+                .withValueStep(1),
+            e
+                .numeric("frost_protect", ea.ALL)
+                .withUnit("°C")
+                .withDescription("Protection against minimum freezing temperature")
+                .withValueMin(0)
+                .withValueMax(10)
+                .withValueStep(1),
+            e
+                .numeric("heat_protect", ea.ALL)
+                .withUnit("°C")
+                .withDescription("Protection against maximum heating temperature")
+                .withValueMin(25)
+                .withValueMax(70)
+                .withValueStep(1),
+            e.numeric("brightness", ea.ALL).withValueMin(0).withValueMax(8).withDescription("Screen brightness 06:00 - 22:00").withEndpoint("day"),
+            e.numeric("brightness", ea.ALL).withValueMin(0).withValueMax(8).withDescription("Screen brightness 22:00 - 06:00").withEndpoint("night"),
+            e.binary("eco_mode", ea.ALL, "On", "Off").withDescription("On/Off Sleep Mode"),
+            e
+                .numeric("eco_mode_heat_temperature", ea.ALL)
+                .withUnit("°C")
+                .withDescription("Set heat temperature in eco mode")
+                .withValueMin(5)
+                .withValueMax(45)
+                .withValueStep(1),
+            e
+                .numeric("external_temperature_calibration", ea.ALL)
+                .withDescription("External temperature calibration")
+                .withUnit("°C")
+                .withValueMin(-9)
+                .withValueMax(9)
+                .withValueStep(1),
+            e.numeric("outdoor_temperature", ea.STATE_GET).withUnit("°C").withDescription("Current temperature measured from the floor outer sensor"),
+            e
+                .climate()
+                .withLocalTemperature()
+                .withSetpoint("occupied_heating_setpoint", 5, 45, 0.5)
+                .withLocalTemperatureCalibration(-9, 9, 1)
+                .withSystemMode(["off", "heat"])
+                .withRunningState(["idle", "heat"], ea.STATE)
+                .withWeeklySchedule(["heat"], ea.ALL),
+            e.text("schedule_monday", ea.STATE).withDescription("Monday's schedule"),
+            e.text("schedule_tuesday", ea.STATE).withDescription("Tuesday's schedule"),
+            e.text("schedule_wednesday", ea.STATE).withDescription("Wednesday's schedule"),
+            e.text("schedule_thursday", ea.STATE).withDescription("Thursday's schedule"),
+            e.text("schedule_friday", ea.STATE).withDescription("Friday's schedule"),
+            e.text("schedule_saturday", ea.STATE).withDescription("Saturday's schedule"),
+            e.text("schedule_sunday", ea.STATE).withDescription("Sunday's schedule"),
+            e.enum("settings_reset", ea.SET, ["Default"]).withDescription("Default settings"),
         ],
         meta: {},
         ota: true,
