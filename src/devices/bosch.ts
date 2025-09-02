@@ -10,7 +10,7 @@ import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import {payload} from "../lib/reporting";
 import * as globalStore from "../lib/store";
-import type {DefinitionWithExtend, Expose, Fz, KeyValue, ModernExtend, Tz, Zh} from "../lib/types";
+import type {DefinitionWithExtend, Expose, Fz, KeyValue, ModernExtend, OnEvent, Tz, Zh} from "../lib/types";
 import * as utils from "../lib/utils";
 
 const e = exposes.presets;
@@ -460,6 +460,38 @@ const boschExtend = {
             isModernExtend: true,
         };
     },
+    handleZclVersionReadRequest: (): ModernExtend => {
+        const onEvent: OnEvent.Handler[] = [
+            (event) => {
+                if (event.type !== "deviceAnnounce") {
+                    return;
+                }
+
+                event.data.device.customReadResponse = (frame, endpoint) => {
+                    const isZclVersionRequest = frame.isCluster("genBasic") && frame.payload.find((i: {attrId: number}) => i.attrId === 0);
+
+                    if (!isZclVersionRequest) {
+                        return false;
+                    }
+
+                    const payload: TPartialClusterAttributes<"genBasic"> = {
+                        zclVersion: 1,
+                    };
+
+                    endpoint.readResponse(frame.cluster.name, frame.header.transactionSequenceNumber, payload).catch((e) => {
+                        logger.warning(`Custom zclVersion response failed for '${event.data.device.ieeeAddr}': ${e}`, NS);
+                    });
+
+                    return true;
+                };
+            },
+        ];
+        return {
+            onEvent,
+            isModernExtend: true,
+        };
+    },
+
     seMeteringCluster: () =>
         m.deviceAddCustomCluster("seMetering", {
             ID: Zcl.Clusters.seMetering.ID,
@@ -2176,7 +2208,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "BMCT-RZ",
         vendor: "Bosch",
         description: "Relay, potential free",
-        extend: [m.onOff({powerOnBehavior: false})],
+        extend: [boschExtend.handleZclVersionReadRequest(), m.onOff({powerOnBehavior: false})],
         ota: true,
     },
     {
@@ -2257,6 +2289,7 @@ export const definitions: DefinitionWithExtend[] = [
                 },
                 commandsResponse: {},
             }),
+            boschExtend.handleZclVersionReadRequest(),
             boschExtend.bmct(),
             boschExtend.seMeteringCluster(),
             boschExtend.resetEnergyReading(),
@@ -2506,39 +2539,6 @@ export const definitions: DefinitionWithExtend[] = [
                 }
             }
             return [e.enum("device_mode", ea.ALL, Object.keys(stateDeviceMode)).withDescription("Device mode")];
-        },
-        onEvent: (event) => {
-            if (event.type !== "deviceInterview") {
-                return;
-            }
-
-            // During interview, the Bosch BMCT-SLZ is requesting
-            // the zclVersion attribute from the coordinator. As
-            // Z2M doesn't know the zclVersion of the device yet,
-            // the request is left unanswered. This makes the device
-            // believe it dropped out of network every 10 minutes which
-            // not only generates unnecessary network congestion, but
-            // makes the LED on the device blink during that sequence
-            // as well. To prevent that, we have to manually answer
-            // the zclVersion request at the earliest possible stage
-            // and mimic the answer from the Bosch SHC II.
-            event.data.device.customReadResponse = (frame, endpoint) => {
-                const isZclVersionRequest = frame.isCluster("genBasic") && frame.payload.find((i: {attrId: number}) => i.attrId === 0);
-
-                if (!isZclVersionRequest) {
-                    return false;
-                }
-
-                const payload: TPartialClusterAttributes<"genBasic"> = {
-                    zclVersion: 1,
-                };
-
-                endpoint.readResponse(frame.cluster.name, frame.header.transactionSequenceNumber, payload).catch((e) => {
-                    logger.warning(`Custom zclVersion response failed for '${event.data.device.ieeeAddr}': ${e}`, NS);
-                });
-
-                return true;
-            };
         },
     },
     {
