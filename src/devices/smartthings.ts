@@ -4,9 +4,12 @@ import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as constants from "../lib/constants";
 import * as exposes from "../lib/exposes";
+import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import type {DefinitionWithExtend} from "../lib/types";
+
+const NS = "zhc:smartthings";
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -90,13 +93,13 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ["msTemperatureMeasurement", "genPowerCfg", "manuSpecificSamsungAccelerometer"]);
             await reporting.temperature(endpoint);
             await reporting.batteryVoltage(endpoint);
-            const payloadA = reporting.payload("acceleration", 10, constants.repInterval.MINUTE, 1);
+            const payloadA = reporting.payload<"manuSpecificSamsungAccelerometer">("acceleration", 10, constants.repInterval.MINUTE, 1);
             await endpoint.configureReporting("manuSpecificSamsungAccelerometer", payloadA, options);
-            const payloadX = reporting.payload("x_axis", 10, constants.repInterval.MINUTE, 1);
+            const payloadX = reporting.payload<"manuSpecificSamsungAccelerometer">("x_axis", 10, constants.repInterval.MINUTE, 1);
             await endpoint.configureReporting("manuSpecificSamsungAccelerometer", payloadX, options);
-            const payloadY = reporting.payload("y_axis", 10, constants.repInterval.MINUTE, 1);
+            const payloadY = reporting.payload<"manuSpecificSamsungAccelerometer">("y_axis", 10, constants.repInterval.MINUTE, 1);
             await endpoint.configureReporting("manuSpecificSamsungAccelerometer", payloadY, options);
-            const payloadZ = reporting.payload("z_axis", 10, constants.repInterval.MINUTE, 1);
+            const payloadZ = reporting.payload<"manuSpecificSamsungAccelerometer">("z_axis", 10, constants.repInterval.MINUTE, 1);
             await endpoint.configureReporting("manuSpecificSamsungAccelerometer", payloadZ, options);
             // Has Unknown power source, force it.
             device.powerSource = "Battery";
@@ -278,13 +281,13 @@ export const definitions: DefinitionWithExtend[] = [
             await endpoint.write("manuSpecificSamsungAccelerometer", {2: {value: 0x0276, type: 0x21}}, options);
             await reporting.temperature(endpoint);
             await reporting.batteryVoltage(endpoint);
-            const payloadA = reporting.payload("acceleration", 10, constants.repInterval.MINUTE, 1);
+            const payloadA = reporting.payload<"manuSpecificSamsungAccelerometer">("acceleration", 10, constants.repInterval.MINUTE, 1);
             await endpoint.configureReporting("manuSpecificSamsungAccelerometer", payloadA, options);
-            const payloadX = reporting.payload("x_axis", 10, constants.repInterval.MINUTE, 1);
+            const payloadX = reporting.payload<"manuSpecificSamsungAccelerometer">("x_axis", 10, constants.repInterval.MINUTE, 1);
             await endpoint.configureReporting("manuSpecificSamsungAccelerometer", payloadX, options);
-            const payloadY = reporting.payload("y_axis", 10, constants.repInterval.MINUTE, 1);
+            const payloadY = reporting.payload<"manuSpecificSamsungAccelerometer">("y_axis", 10, constants.repInterval.MINUTE, 1);
             await endpoint.configureReporting("manuSpecificSamsungAccelerometer", payloadY, options);
-            const payloadZ = reporting.payload("z_axis", 10, constants.repInterval.MINUTE, 1);
+            const payloadZ = reporting.payload<"manuSpecificSamsungAccelerometer">("z_axis", 10, constants.repInterval.MINUTE, 1);
             await endpoint.configureReporting("manuSpecificSamsungAccelerometer", payloadZ, options);
             // Has Unknown power source, force it.
             device.powerSource = "Battery";
@@ -305,16 +308,24 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ["msTemperatureMeasurement", "genPowerCfg", "manuSpecificSamsungAccelerometer"]);
             await endpoint.write("manuSpecificSamsungAccelerometer", {0: {value: 0x14, type: 0x20}}, options);
             await endpoint.write("genPollCtrl", {checkinInterval: 14400});
-            await endpoint.write("genPollCtrl", {longPollInterval: 3600});
+            try {
+                await endpoint.write("genPollCtrl", {longPollInterval: 3600});
+            } catch (error) {
+                if ((error as Error).message.includes("READ_ONLY")) {
+                    logger.debug("Writing `longPollInterval` failed, ignoring...", NS);
+                } else {
+                    throw e;
+                }
+            }
             await reporting.temperature(endpoint);
             await reporting.batteryPercentageRemaining(endpoint);
-            const payloadA = reporting.payload("acceleration", 10, constants.repInterval.MINUTE, 1);
+            const payloadA = reporting.payload<"manuSpecificSamsungAccelerometer">("acceleration", 10, constants.repInterval.MINUTE, 1);
             await endpoint.configureReporting("manuSpecificSamsungAccelerometer", payloadA, options);
-            const payloadX = reporting.payload("x_axis", 10, constants.repInterval.MINUTE, 1);
+            const payloadX = reporting.payload<"manuSpecificSamsungAccelerometer">("x_axis", 10, constants.repInterval.MINUTE, 1);
             await endpoint.configureReporting("manuSpecificSamsungAccelerometer", payloadX, options);
-            const payloadY = reporting.payload("y_axis", 10, constants.repInterval.MINUTE, 1);
+            const payloadY = reporting.payload<"manuSpecificSamsungAccelerometer">("y_axis", 10, constants.repInterval.MINUTE, 1);
             await endpoint.configureReporting("manuSpecificSamsungAccelerometer", payloadY, options);
-            const payloadZ = reporting.payload("z_axis", 10, constants.repInterval.MINUTE, 1);
+            const payloadZ = reporting.payload<"manuSpecificSamsungAccelerometer">("z_axis", 10, constants.repInterval.MINUTE, 1);
             await endpoint.configureReporting("manuSpecificSamsungAccelerometer", payloadZ, options);
         },
         exposes: [e.temperature(), e.contact(), e.battery_low(), e.tamper(), e.battery(), e.moving(), e.x_axis(), e.y_axis(), e.z_axis()],
@@ -336,7 +347,7 @@ export const definitions: DefinitionWithExtend[] = [
 
             const payload = [
                 {
-                    attribute: "measuredValue",
+                    attribute: "measuredValue" as const,
                     minimumReportInterval: 10,
                     maximumReportInterval: constants.repInterval.HOUR,
                     reportableChange: 10,

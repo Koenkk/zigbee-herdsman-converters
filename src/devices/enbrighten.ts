@@ -64,9 +64,7 @@ export const definitions: DefinitionWithExtend[] = [
                 configureReporting: true,
                 effect: false,
                 powerOnBehavior: false,
-                levelConfig: {
-                    disabledFeatures: ["on_off_transition_time", "on_transition_time", "off_transition_time", "current_level_startup"],
-                },
+                levelConfig: {features: ["on_level", "execute_if_off"]},
             }),
             m.commandsOnOff({commands: ["on", "off"], bind: true}),
             m.commandsLevelCtrl({
@@ -106,9 +104,7 @@ export const definitions: DefinitionWithExtend[] = [
                 configureReporting: true,
                 effect: false,
                 powerOnBehavior: false,
-                levelConfig: {
-                    disabledFeatures: ["on_off_transition_time", "on_transition_time", "off_transition_time", "current_level_startup"],
-                },
+                levelConfig: {features: ["on_level", "execute_if_off"]},
             }),
             m.electricityMeter({cluster: "metering"}),
             m.commandsOnOff({commands: ["on", "off"], bind: true}),

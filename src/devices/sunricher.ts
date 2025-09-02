@@ -1,5 +1,4 @@
 import {Zcl} from "zigbee-herdsman";
-
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as constants from "../lib/constants";
@@ -9,7 +8,6 @@ import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import {payload} from "../lib/reporting";
-import * as globalStore from "../lib/store";
 import * as sunricher from "../lib/sunricher";
 import type {DefinitionWithExtend, Fz, KeyValue, Tz, Zh} from "../lib/types";
 import * as utils from "../lib/utils";
@@ -19,6 +17,32 @@ const e = exposes.presets;
 const ea = exposes.access;
 
 const sunricherManufacturerCode = 0x1224;
+
+export interface SunricherHvacThermostat {
+    attributes: {
+        screenTimeout: number;
+        antiFreezingTemp: number;
+        temperatureDisplayMode: number;
+        windowOpenCheck: number;
+        hysteresis: number;
+        windowOpenFlag: number;
+        forcedHeatingTime: number;
+        errorCode: number;
+        awayOrBoostMode: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+interface SunricherSensor {
+    attributes: {
+        indicatorLight: number;
+        detectionArea: number;
+        illuminanceThreshold: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
 
 const fzLocal = {
     SRZGP2801K45C: {
@@ -70,7 +94,6 @@ const tzLocal = {
             },
 
             convertSet: async (entity, _key, value, _meta) => {
-                const newValue = value;
                 await entity.write("hvacThermostat", {
                     minSetpointDeadBand: Math.round(Number(value) * 10),
                 });
@@ -80,7 +103,6 @@ const tzLocal = {
         temperature_display: {
             key: ["temperature_display"],
             convertSet: async (entity, _key, value, _meta) => {
-                const newValue = value;
                 const lookup = {room: 0, set: 1, floor: 2};
                 const payload = {4104: {value: utils.getFromLookup(value, lookup), type: Zcl.DataType.ENUM8}};
                 await entity.write("hvacThermostat", payload, {manufacturerCode: 0x1224});
@@ -119,7 +141,7 @@ const tzLocal = {
 
 async function syncTime(endpoint: Zh.Endpoint) {
     try {
-        const time = Math.round((new Date().getTime() - constants.OneJanuary2000) / 1000 + new Date().getTimezoneOffset() * -1 * 60);
+        const time = Math.round((Date.now() - constants.OneJanuary2000) / 1000 + new Date().getTimezoneOffset() * -1 * 60);
         const values = {time: time};
         await endpoint.write("genTime", values);
     } catch {
@@ -130,7 +152,7 @@ async function syncTime(endpoint: Zh.Endpoint) {
 
 async function syncTimeWithTimeZone(endpoint: Zh.Endpoint) {
     try {
-        const time = Math.round((new Date().getTime() - constants.OneJanuary2000) / 1000);
+        const time = Math.round((Date.now() - constants.OneJanuary2000) / 1000);
         const timeZone = new Date().getTimezoneOffset() * -1 * 60;
         await endpoint.write("genTime", {time, timeZone});
     } catch {
@@ -140,15 +162,427 @@ async function syncTimeWithTimeZone(endpoint: Zh.Endpoint) {
 
 export const definitions: DefinitionWithExtend[] = [
     {
+        zigbeeModel: ["ZG9041A-2R"],
+        model: "SR-ZG9041A-2R",
+        vendor: "Sunricher",
+        description: "Zigbee 2ch smart relay",
+        extend: [
+            m.identify(),
+            m.commandsScenes({endpointNames: ["1", "2"]}),
+            m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3}}),
+            m.onOff({powerOnBehavior: false, endpointNames: ["1", "2"], configureReporting: true}),
+            m.electricityMeter({endpointNames: ["3"]}),
+        ],
+        meta: {multiEndpoint: true},
+    },
+    {
+        zigbeeModel: ["ZG9098A-WinOnly"],
+        model: "SR-ZG9081A",
+        vendor: "Sunricher",
+        description: "Zigbee curtain control module",
+        extend: [
+            m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3}}),
+            m.windowCovering({
+                controls: ["lift", "tilt"],
+                coverInverted: true,
+                configureReporting: true,
+                endpointNames: ["1"],
+            }),
+            m.electricityMeter({endpointNames: ["3"]}),
+            m.enumLookup({
+                name: "dev_mode",
+                cluster: "genBasic",
+                attribute: {ID: 0x0001, type: 0x30},
+                lookup: {
+                    curtain: 0,
+                    light: 1,
+                },
+                description: "Set device type (curtain or light)",
+                entityCategory: "config",
+                access: "ALL",
+                zigbeeCommandOptions: {manufacturerCode: 0x1224},
+            }),
+            m.enumLookup({
+                name: "curtain_type",
+                cluster: "closuresWindowCovering",
+                attribute: {ID: 0x1000, type: Zcl.DataType.ENUM8},
+                lookup: {
+                    normal: 0,
+                    venetian_blind: 1,
+                },
+                description: "Configure curtain type",
+                access: "ALL",
+                entityCategory: "config",
+                zigbeeCommandOptions: {manufacturerCode: sunricherManufacturerCode},
+            }),
+            sunricher.extend.motorControl(),
+            m.identify(),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["closuresWindowCovering"]);
+            await reporting.currentPositionLiftPercentage(endpoint);
+            await reporting.currentPositionTiltPercentage(endpoint);
+        },
+        meta: {multiEndpoint: true},
+    },
+    {
+        zigbeeModel: ["ZG9100B-5A"],
+        model: "SR-ZG9041A-R",
+        vendor: "Sunricher",
+        description: "Zigbee smart relay module",
+        extend: [m.onOff({powerOnBehavior: false}), m.electricityMeter(), sunricher.extend.externalSwitchType()],
+    },
+    {
+        zigbeeModel: ["ZG2819S-DIM"],
+        model: "SR-ZG2819S-DIM",
+        vendor: "Sunricher",
+        description: "Zigbee dim remote",
+        extend: [
+            m.identify(),
+            m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3, "4": 4}}),
+            m.battery(),
+            m.commandsOnOff({endpointNames: ["1", "2", "3", "4"]}),
+            m.commandsLevelCtrl({endpointNames: ["1", "2", "3", "4"]}),
+            m.commandsColorCtrl({endpointNames: ["1", "2", "3", "4"]}),
+            m.commandsScenes({endpointNames: ["1", "2", "3", "4"]}),
+        ],
+        meta: {multiEndpoint: true},
+    },
+    {
+        zigbeeModel: ["HK-ZRC-K5&RS-TL-G"],
+        model: "SR-ZG2836D5-G4",
+        vendor: "Sunricher",
+        description: "Zigbee smart remote",
+        extend: [
+            m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3, "4": 4}}),
+            m.battery(),
+            m.commandsOnOff({endpointNames: ["1", "2", "3", "4"]}),
+            m.commandsLevelCtrl({endpointNames: ["1", "2", "3", "4"]}),
+            m.commandsColorCtrl({endpointNames: ["1", "2", "3", "4"]}),
+            m.commandsScenes({endpointNames: ["1", "2", "3", "4"]}),
+        ],
+        meta: {multiEndpoint: true},
+    },
+    {
+        zigbeeModel: ["HK-DIM-MW2"],
+        model: "SR-ZG9032A-MW",
+        vendor: "Sunricher",
+        description: "Zigbee compatible fixture with integrated occupancy sensor",
+        extend: [
+            m.identify(),
+            m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3}}),
+            m.light({configureReporting: true, endpointNames: ["1"]}),
+            m.occupancy({endpointNames: ["2"]}),
+            m.illuminance({endpointNames: ["3"]}),
+            m.commandsScenes({endpointNames: ["1"]}),
+            m.commandsOnOff(),
+            m.commandsLevelCtrl(),
+            m.numeric({
+                name: "network_join_search_count",
+                cluster: "genBasic",
+                attribute: {ID: 0x9000, type: 0x20},
+                valueMin: 1,
+                valueMax: 255,
+                description:
+                    "How many times will the device search and join a Zigbee network, searching every 15 seconds. Default: 2 (1~255, 255 means always searching)",
+                entityCategory: "config",
+                access: "ALL",
+            }),
+            m.numeric({
+                name: "light_pwm_frequency",
+                cluster: "genBasic",
+                attribute: {ID: 0x9001, type: 0x21},
+                valueMin: 0,
+                valueMax: 65535,
+                description:
+                    "Light PWM Frequency. Works after reset power of the device. DO NOT set the PWM frequency too high which will affect the dimming resolution. Default: 3300",
+                entityCategory: "config",
+                access: "ALL",
+            }),
+            m.enumLookup({
+                name: "dimming_brightness_curve",
+                cluster: "genBasic",
+                attribute: {ID: 0x8806, type: 0x20},
+                lookup: {
+                    linear: 0x00,
+                    gamma_1_5: 0x0f,
+                    gamma_1_8: 0x12,
+                },
+                description: "Dimming brightness curve. Options: linear, gamma 1.5, gamma 1.8. Default: linear.",
+                entityCategory: "config",
+                access: "ALL",
+            }),
+            m.enumLookup({
+                name: "start_up_on_off",
+                cluster: "genOnOff",
+                attribute: {ID: 0x4003, type: 0x30},
+                lookup: {
+                    off: 0x00,
+                    on: 0x01,
+                    last_state: 0xff,
+                },
+                description: "Device power-on state. Options: off, on, restore previous state. Default: restore previous state.",
+                entityCategory: "config",
+                access: "ALL",
+            }),
+            m.numeric({
+                name: "motion_sensor_lux_threshold",
+                cluster: "genBasic",
+                attribute: {ID: 0x8903, type: 0x21},
+                valueMin: 0,
+                valueMax: 65535,
+                description:
+                    "Daylight sensor lux threshold. When the measured lux is below this value, the light is allowed to turn on. Set to minimum value to disable this function. Default: disabled.",
+                entityCategory: "config",
+                access: "ALL",
+            }),
+            m.enumLookup({
+                name: "motion_sensor_operation_mode",
+                cluster: "genBasic",
+                attribute: {ID: 0x8904, type: 0x20},
+                lookup: {
+                    auto: 0x00,
+                    manual: 0x01,
+                },
+                description:
+                    "Motion sensor operation mode. Options: auto (PWM output on motion), manual (PWM controlled by gateway or switch). Default: auto.",
+                entityCategory: "config",
+                access: "ALL",
+            }),
+            m.numeric({
+                name: "motion_sensor_sensitivity",
+                cluster: "genBasic",
+                attribute: {ID: 0x8905, type: 0x20},
+                valueMin: 0,
+                valueMax: 15,
+                description: "Motion sensor sensitivity. 0 is highest sensitivity, 15 is lowest. Default: 1.",
+                entityCategory: "config",
+                access: "ALL",
+            }),
+            m.enumLookup({
+                name: "motion_sensor_microwave_detection",
+                cluster: "genBasic",
+                attribute: {ID: 0x8906, type: 0x20},
+                lookup: {
+                    disabled: 0x00,
+                    enabled: 0x01,
+                },
+                description: "Enable or disable microwave detection. Options: enabled, disabled. Default: enabled.",
+                entityCategory: "config",
+                access: "ALL",
+            }),
+            m.enumLookup({
+                name: "touchlink_onoff_broadcast",
+                cluster: "genBasic",
+                attribute: {ID: 0x8907, type: 0x20},
+                lookup: {
+                    do_not_send: 0,
+                    send: 1,
+                },
+                description: "Send ON/OFF command to touchlink or binding devices. Options: send, do not send. Default: send.",
+                entityCategory: "config",
+                access: "ALL",
+            }),
+            m.enumLookup({
+                name: "brightness_module_enable",
+                cluster: "genBasic",
+                attribute: {ID: 0x890c, type: 0x20},
+                lookup: {
+                    disabled: 0,
+                    enabled: 1,
+                },
+                description: "Enable or disable the brightness module. Options: enabled, disabled. Default: enabled.",
+                entityCategory: "config",
+                access: "ALL",
+            }),
+            m.numeric({
+                name: "light_on_time",
+                cluster: "genBasic",
+                attribute: {ID: 0x8902, type: 0x21},
+                valueMin: 0,
+                valueMax: 65535,
+                unit: "s",
+                description:
+                    "Light on time (first delay). When motion is detected and then the area is vacated, this is the time the light stays on. Unit: seconds. Default: 60 seconds.",
+                entityCategory: "config",
+                access: "ALL",
+            }),
+            m.numeric({
+                name: "pwm_brightness_value",
+                cluster: "genBasic",
+                attribute: {ID: 0x8908, type: 0x21},
+                valueMin: 0,
+                valueMax: 1000,
+                unit: "lux",
+                description: "Brightness value for PWM output when motion is detected. 0 disables this function. Default: disabled.",
+                entityCategory: "config",
+                access: "ALL",
+            }),
+            m.numeric({
+                name: "pwm_output_percentage",
+                cluster: "genBasic",
+                attribute: {ID: 0x8909, type: 0x20},
+                valueMin: 0,
+                valueMax: 254,
+                unit: "%",
+                description: "PWM output percentage when motion is detected. Range: 0-100%. Default: 100%.",
+                entityCategory: "config",
+                access: "ALL",
+            }),
+            m.numeric({
+                name: "light_status_after_first_delay",
+                cluster: "genBasic",
+                attribute: {ID: 0x890a, type: 0x20},
+                valueMin: 0,
+                valueMax: 254,
+                unit: "%",
+                description: "Light status after the first delay expires, during the second delay. Range: 0-100%. Default: 0% (off).",
+                entityCategory: "config",
+                access: "ALL",
+            }),
+            m.numeric({
+                name: "second_delay_time",
+                cluster: "genBasic",
+                attribute: {ID: 0x8901, type: 0x21},
+                valueMin: 0,
+                valueMax: 65535,
+                unit: "s",
+                description: "Duration of the second delay after the first delay expires. Unit: seconds. Default: 60 seconds.",
+                entityCategory: "config",
+                access: "ALL",
+            }),
+            m.numeric({
+                name: "light_status_after_second_delay",
+                cluster: "genBasic",
+                attribute: {ID: 0x890b, type: 0x20},
+                valueMin: 0,
+                valueMax: 254,
+                unit: "%",
+                description: "Light status after the second delay expires. Range: 0-100%. Default: 0% (off).",
+                entityCategory: "config",
+                access: "ALL",
+            }),
+            m.numeric({
+                name: "linearity_error_ratio_lux",
+                cluster: "genBasic",
+                attribute: {ID: 0x890d, type: 0x21},
+                valueMin: 100,
+                valueMax: 10000,
+                description:
+                    "Linearity error ratio coefficient for LUX measurement. 1000 means 1000‰ (default). Increasing this value magnifies the LUX measurement linearly, decreasing minifies it. For example, 1001 means 1.001x, 500 means 0.5x.",
+                entityCategory: "config",
+                access: "ALL",
+            }),
+            m.numeric({
+                name: "fixed_deviation_lux",
+                cluster: "genBasic",
+                attribute: {ID: 0x890e, type: 0x29},
+                valueMin: -100,
+                valueMax: 100,
+                description:
+                    "Fixed deviation of LUX measurement. Signed 2-byte integer. Positive value increases, negative value decreases the measured LUX. For example, 100 means +100 LUX, -100 means -100 LUX.",
+                entityCategory: "config",
+                access: "ALL",
+            }),
+        ],
+        meta: {multiEndpoint: true},
+    },
+    {
+        zigbeeModel: ["ZG9098A-LightWin", "ZG9098A-Win"],
+        model: "SR-ZG9098A-Win",
+        vendor: "Sunricher",
+        description: "Zigbee curtain control module",
+        extend: [
+            sunricher.extend.configureReadModelID(),
+            m.commandsScenes({endpointNames: ["1", "2"]}),
+            m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3}}),
+            m.windowCovering({
+                controls: ["lift", "tilt"],
+                coverInverted: true,
+                configureReporting: true,
+                endpointNames: ["1"],
+            }),
+            m.electricityMeter({endpointNames: ["3"]}),
+            m.enumLookup({
+                name: "dev_mode",
+                cluster: "genBasic",
+                attribute: {ID: 0x0001, type: 0x30},
+                lookup: {
+                    curtain: 0,
+                    light: 1,
+                },
+                description: "Set device type (curtain or light)",
+                entityCategory: "config",
+                access: "ALL",
+                zigbeeCommandOptions: {manufacturerCode: 0x1224},
+            }),
+            m.enumLookup({
+                name: "curtain_type",
+                cluster: "closuresWindowCovering",
+                attribute: {ID: 0x1000, type: Zcl.DataType.ENUM8},
+                lookup: {
+                    normal: 0,
+                    venetian_blind: 1,
+                },
+                description: "Configure curtain type",
+                access: "ALL",
+                entityCategory: "config",
+                zigbeeCommandOptions: {manufacturerCode: sunricherManufacturerCode},
+            }),
+            sunricher.extend.motorControl(),
+            m.identify(),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["closuresWindowCovering"]);
+            await reporting.currentPositionLiftPercentage(endpoint);
+            await reporting.currentPositionTiltPercentage(endpoint);
+        },
+        meta: {multiEndpoint: true},
+    },
+    {
+        zigbeeModel: ["ZG9098A-Light", "ZG9098A-WinLight"],
+        model: "SR-ZG9098A-Light",
+        vendor: "Sunricher",
+        description: "Zigbee 2ch smart relay",
+        extend: [
+            sunricher.extend.configureReadModelID(),
+            m.identify(),
+            m.commandsScenes({endpointNames: ["1", "2"]}),
+            m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3}}),
+            m.onOff({powerOnBehavior: false, endpointNames: ["1", "2"], configureReporting: true}),
+            m.electricityMeter({endpointNames: ["3"]}),
+            m.enumLookup({
+                name: "dev_mode",
+                cluster: "genBasic",
+                attribute: {ID: 0x0001, type: 0x30},
+                lookup: {
+                    curtain: 0,
+                    light: 1,
+                },
+                description: "Set device type (curtain/light)",
+                entityCategory: "config",
+                access: "ALL",
+                zigbeeCommandOptions: {manufacturerCode: 0x1224},
+            }),
+        ],
+        meta: {multiEndpoint: true},
+    },
+    {
         zigbeeModel: ["ZG2833K8_EU05"],
         model: "SR-ZG9001K8-DIM",
         vendor: "Sunricher",
         description: "Zigbee 8 button wall switch",
         extend: [
-            m.commandsOnOff(),
+            m.commandsOnOff({
+                endpointNames: ["1", "2", "3", "4"],
+            }),
             m.battery(),
-            m.commandsScenes(),
-            m.commandsLevelCtrl({commands: ["brightness_move_up", "brightness_move_down", "brightness_stop"]}),
+            m.commandsLevelCtrl({
+                commands: ["brightness_move_up", "brightness_move_down", "brightness_stop"],
+                endpointNames: ["1", "2", "3", "4"],
+            }),
         ],
         whiteLabel: [{vendor: "Sunricher", model: "SR-ZG9001NK8-DIM"}],
         meta: {multiEndpoint: true},
@@ -241,7 +675,7 @@ export const definitions: DefinitionWithExtend[] = [
             sunricher.extend.thermostatCurrentHeatingSetpoint(),
             m.battery(),
             m.identify(),
-            m.numeric({
+            m.numeric<"hvacThermostat", SunricherHvacThermostat>({
                 name: "screen_timeout",
                 cluster: "hvacThermostat",
                 attribute: "screenTimeout",
@@ -252,7 +686,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "ALL",
                 entityCategory: "config",
             }),
-            m.numeric({
+            m.numeric<"hvacThermostat", SunricherHvacThermostat>({
                 name: "anti_freezing_temp",
                 cluster: "hvacThermostat",
                 attribute: "antiFreezingTemp",
@@ -263,7 +697,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "ALL",
                 entityCategory: "config",
             }),
-            m.enumLookup({
+            m.enumLookup<"hvacThermostat", SunricherHvacThermostat>({
                 name: "temperature_display_mode",
                 cluster: "hvacThermostat",
                 attribute: "temperatureDisplayMode",
@@ -274,7 +708,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Temperature Display Mode. 1: displays set temp, 2: displays room temp (default)",
                 access: "ALL",
             }),
-            m.numeric({
+            m.numeric<"hvacThermostat", SunricherHvacThermostat>({
                 name: "window_open_check",
                 cluster: "hvacThermostat",
                 attribute: "windowOpenCheck",
@@ -285,7 +719,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "ALL",
                 entityCategory: "config",
             }),
-            m.numeric({
+            m.numeric<"hvacThermostat", SunricherHvacThermostat>({
                 name: "hysteresis",
                 cluster: "hvacThermostat",
                 attribute: "hysteresis",
@@ -298,7 +732,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "ALL",
                 entityCategory: "config",
             }),
-            m.binary({
+            m.binary<"hvacThermostat", SunricherHvacThermostat>({
                 name: "window_open_flag",
                 cluster: "hvacThermostat",
                 attribute: "windowOpenFlag",
@@ -307,7 +741,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueOff: ["not_opened", 0],
                 access: "STATE_GET",
             }),
-            m.numeric({
+            m.numeric<"hvacThermostat", SunricherHvacThermostat>({
                 name: "forced_heating_time",
                 cluster: "hvacThermostat",
                 attribute: "forcedHeatingTime",
@@ -318,7 +752,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "ALL",
                 entityCategory: "config",
             }),
-            m.enumLookup({
+            m.enumLookup<"hvacThermostat", SunricherHvacThermostat>({
                 name: "error_code",
                 cluster: "hvacThermostat",
                 attribute: "errorCode",
@@ -388,7 +822,10 @@ export const definitions: DefinitionWithExtend[] = [
                         reporting.thermostatUnoccupiedHeatingSetpoint(endpoint),
                         reporting.thermostatRunningState(endpoint),
                         reporting.batteryPercentageRemaining(endpoint),
-                        endpoint.configureReporting("hvacUserInterfaceCfg", payload("tempDisplayMode", 10, repInterval.MINUTE, null)),
+                        endpoint.configureReporting(
+                            "hvacUserInterfaceCfg",
+                            payload<"hvacUserInterfaceCfg">("tempDisplayMode", 10, repInterval.MINUTE, null),
+                        ),
                     ];
 
                     await Promise.all(configPromises);
@@ -401,16 +838,21 @@ export const definitions: DefinitionWithExtend[] = [
                         "hysteresis",
                         "windowOpenFlag",
                         "forcedHeatingTime",
-                    ];
+                    ] as const;
 
                     await Promise.all(
-                        customAttributes.map((attr) => endpoint.configureReporting("hvacThermostat", payload(attr, 10, repInterval.MINUTE, null))),
+                        customAttributes.map((attr) =>
+                            endpoint.configureReporting<"hvacThermostat", SunricherHvacThermostat>(
+                                "hvacThermostat",
+                                payload<"hvacThermostat", SunricherHvacThermostat>(attr, 10, repInterval.MINUTE, null),
+                            ),
+                        ),
                     );
 
                     const readPromises = [
                         endpoint.read("hvacUserInterfaceCfg", ["tempDisplayMode"]),
                         endpoint.read("hvacThermostat", ["localTemp", "runningState"]),
-                        endpoint.read("hvacThermostat", [
+                        endpoint.read<"hvacThermostat", SunricherHvacThermostat>("hvacThermostat", [
                             "screenTimeout",
                             "antiFreezingTemp",
                             "temperatureDisplayMode",
@@ -467,15 +909,15 @@ export const definitions: DefinitionWithExtend[] = [
                 ID: 0xfc8b,
                 manufacturerCode: 0x120b,
                 attributes: {
-                    indicatorLight: {ID: 0xf001, type: 0x20},
-                    detectionArea: {ID: 0xf002, type: 0x20},
-                    illuminanceThreshold: {ID: 0xf004, type: 0x20},
+                    indicatorLight: {ID: 0xf001, type: Zcl.DataType.UINT8},
+                    detectionArea: {ID: 0xf002, type: Zcl.DataType.UINT8},
+                    illuminanceThreshold: {ID: 0xf004, type: Zcl.DataType.UINT8},
                 },
                 commands: {},
                 commandsResponse: {},
             }),
             sunricher.extend.indicatorLight(),
-            m.numeric({
+            m.numeric<"sunricherSensor", SunricherSensor>({
                 name: "detection_area",
                 cluster: "sunricherSensor",
                 attribute: "detectionArea",
@@ -487,7 +929,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "ALL",
                 entityCategory: "config",
             }),
-            m.numeric({
+            m.numeric<"sunricherSensor", SunricherSensor>({
                 name: "illuminance_threshold",
                 cluster: "sunricherSensor",
                 attribute: "illuminanceThreshold",
@@ -815,22 +1257,24 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "ALL",
             }),
             m.numeric({
-                name: "linear_error_ratio_coefficient_of_lux_measurement",
+                name: "linearity_error_ratio_lux",
                 cluster: "genBasic",
                 attribute: {ID: 0x890d, type: 0x21},
                 valueMin: 100,
                 valueMax: 10000,
-                description: "Linear error ratio coefficient of LUX measurement (100‰-10000‰, default: 1000‰)",
+                description:
+                    "Linearity error ratio coefficient for LUX measurement. 1000 means 1000‰ (default). Increasing this value magnifies the LUX measurement linearly, decreasing minifies it. For example, 1001 means 1.001x, 500 means 0.5x.",
                 entityCategory: "config",
                 access: "ALL",
             }),
             m.numeric({
-                name: "fixed_deviation_of_lux_measurement",
+                name: "fixed_deviation_lux",
                 cluster: "genBasic",
                 attribute: {ID: 0x890e, type: 0x29},
                 valueMin: -100,
                 valueMax: 100,
-                description: "Fixed deviation of LUX measurement (-100~100, default: 0)",
+                description:
+                    "Fixed deviation of LUX measurement. Signed 2-byte integer. Positive value increases, negative value decreases the measured LUX. For example, 100 means +100 LUX, -100 means -100 LUX.",
                 entityCategory: "config",
                 access: "ALL",
             }),
@@ -942,48 +1386,17 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["ON/OFF(2CH)"],
-        model: "UP-SA-9127D",
-        vendor: "Sunricher",
-        description: "LED-Trading 2 channel AC switch",
-        extend: [m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}), m.onOff({endpointNames: ["l1", "l2"]})],
-    },
-    {
-        fingerprint: [{modelID: "ON/OFF(2CH)", softwareBuildID: "2.9.2_r54"}],
         model: "SR-ZG9101SAC-HP-SWITCH-2CH",
         vendor: "Sunricher",
-        description: "Zigbee 2 channel switch",
-        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.power_on_behavior, fz.ignore_genOta],
-        toZigbee: [tz.on_off, tz.power_on_behavior],
-        exposes: [
-            e.switch().withEndpoint("l1"),
-            e.switch().withEndpoint("l2"),
-            e.power(),
-            e.current(),
-            e.voltage(),
-            e.energy(),
-            e.power_on_behavior(["off", "on", "previous"]),
+        description: "Zigbee 2 channels switch",
+        whiteLabel: [{vendor: "LED-Trading", model: "UP-SA-9127D", description: "2 channels AC switch"}],
+        extend: [
+            m.deviceEndpoints({endpoints: {l1: 1, l2: 2}, multiEndpointSkip: ["power", "energy", "current", "voltage"]}),
+            m.onOff({endpointNames: ["l1", "l2"]}),
+            m.electricityMeter(),
+            m.identify(),
+            m.commandsOnOff({endpointNames: ["l1", "l2"]}),
         ],
-        endpoint: (device) => {
-            return {l1: 1, l2: 2};
-        },
-        meta: {
-            multiEndpoint: true,
-            multiEndpointSkip: ["power", "energy", "voltage", "current"],
-        },
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint1 = device.getEndpoint(1);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genOnOff", "haElectricalMeasurement", "seMetering"]);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genOnOff"]);
-            await reporting.onOff(endpoint1);
-            await reporting.onOff(endpoint2);
-            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint1);
-            await reporting.activePower(endpoint1);
-            await reporting.rmsCurrent(endpoint1, {min: 10, change: 10});
-            await reporting.rmsVoltage(endpoint1, {min: 10});
-            await reporting.readMeteringMultiplierDivisor(endpoint1);
-            await reporting.currentSummDelivered(endpoint1);
-        },
     },
     {
         zigbeeModel: ["HK-ZD-CCT-A"],
@@ -1482,18 +1895,8 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMax(60)
                 .withDescription("Room temperature alarm threshold, between 20 and 60 in °C.  0 means disabled.  Default: 45."),
         ],
-        onEvent: (type, data, device, options) => {
-            if (type === "stop") {
-                clearInterval(globalStore.getValue(device, "time"));
-                globalStore.clearValue(device, "time");
-            } else if (!globalStore.hasValue(device, "time")) {
-                const endpoint = device.getEndpoint(1);
-                const hours24 = 1000 * 60 * 60 * 24;
-                // Device does not ask for the time with binding, therefore we write the time every 24 hours
-                const interval = setInterval(async () => await syncTime(endpoint), hours24);
-                globalStore.putValue(device, "time", interval);
-            }
-        },
+        // Device does not ask for the time with binding, therefore we write the time every 24 hours
+        extend: [m.writeTimeDaily({endpointId: 1})],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const binds = [
@@ -1821,18 +2224,8 @@ export const definitions: DefinitionWithExtend[] = [
                     "This parameter refers to the minimum difference between cooling and heating temperatures. between 1 and 1.5 in 0.1 °C  Default: 1 °C. The hysteresis used by this device = MinSetpointDeadBand /2",
                 ),
         ],
-        onEvent: async (type, _data, device, _options) => {
-            if (type === "stop") {
-                await clearInterval(globalStore.getValue(device, "time"));
-                await globalStore.clearValue(device, "time");
-            } else if (!globalStore.hasValue(device, "time")) {
-                const endpoint = await device.getEndpoint(1);
-                const hours24 = 1000 * 60 * 60 * 24;
-                // Device does not ask for the time with binding, therefore we write the time every 24 hours
-                const interval = await setInterval(async () => await syncTime(endpoint), hours24);
-                await globalStore.putValue(device, "time", interval);
-            }
-        },
+        // Device does not ask for the time with binding, therefore we write the time every 24 hours
+        extend: [m.writeTimeDaily({endpointId: 1})],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const binds = ["genBasic", "genIdentify", "hvacThermostat", "seMetering", "genTime", "hvacUserInterfaceCfg"];

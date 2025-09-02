@@ -181,11 +181,11 @@ export class ColorRGB {
      * @returns hex hex encoded RGB color
      */
     toHEX(): string {
-        return `#${Number.parseInt((this.red * 255).toFixed(0))
+        return `#${Number.parseInt((this.red * 255).toFixed(0), 10)
             .toString(16)
-            .padStart(2, "0")}${Number.parseInt((this.green * 255).toFixed(0))
+            .padStart(2, "0")}${Number.parseInt((this.green * 255).toFixed(0), 10)
             .toString(16)
-            .padStart(2, "0")}${Number.parseInt((this.blue * 255).toFixed(0))
+            .padStart(2, "0")}${Number.parseInt((this.blue * 255).toFixed(0), 10)
             .toString(16)
             .padStart(2, "0")}`;
     }
@@ -215,11 +215,11 @@ export class ColorXY {
      * @param xy - object with properties x and y
      * @returns new ColorXY object
      */
-    static fromObject(xy: {x: number; y: number}): ColorXY {
+    static fromObject(xy: {x: number | string; y: number | string}): ColorXY {
         if (xy.x === undefined || xy.y === undefined) {
             throw new Error('One or more required properties missing. Required properties: "x", "y"');
         }
-        return new ColorXY(xy.x, xy.y);
+        return new ColorXY(Number(xy.x), Number(xy.y));
     }
 
     /**
@@ -592,7 +592,7 @@ export class Color {
             return new Color(null, rgb, null);
         }
         if (value.rgb != null) {
-            const [r, g, b] = value.rgb.split(",").map((i: string) => Number.parseInt(i));
+            const [r, g, b] = value.rgb.split(",").map((i: string) => Number.parseInt(i, 10));
             const rgb = new ColorRGB(r / 255, g / 255, b / 255);
             return new Color(null, rgb, null);
         }
@@ -609,7 +609,7 @@ export class Color {
             return new Color(hsv, null, null);
         }
         if (value.hsl != null) {
-            const [h, s, l] = value.hsl.split(",").map((i: string) => Number.parseInt(i));
+            const [h, s, l] = value.hsl.split(",").map((i: string) => Number.parseInt(i, 10));
             const hsv = ColorHSV.fromHSL({hue: h, saturation: s, lightness: l});
             return new Color(hsv, null, null);
         }
@@ -618,7 +618,7 @@ export class Color {
             return new Color(hsv, null, null);
         }
         if (value.hsb != null) {
-            const [h, s, b] = value.hsb.split(",").map((i: string) => Number.parseInt(i));
+            const [h, s, b] = value.hsb.split(",").map((i: string) => Number.parseInt(i, 10));
             const hsv = new ColorHSV(h, s, b);
             return new Color(hsv, null, null);
         }
@@ -627,7 +627,7 @@ export class Color {
             return new Color(hsv, null, null);
         }
         if (value.hsv != null) {
-            const [h, s, v] = value.hsv.split(",").map((i: string) => Number.parseInt(i));
+            const [h, s, v] = value.hsv.split(",").map((i: string) => Number.parseInt(i, 10));
             const hsv = new ColorHSV(h, s, v);
             return new Color(hsv, null, null);
         }

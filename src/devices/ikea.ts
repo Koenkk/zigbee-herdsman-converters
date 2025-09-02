@@ -438,7 +438,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({colorTemp: true}), m.identify()],
     },
     {
-        zigbeeModel: ["JETSTROM 6060", "JETSTROM 6060 JP"],
+        zigbeeModel: ["JETSTROM 6060", "JETSTROM 6060 JP", "JETSTROM 6060 NA"],
         model: "L2207",
         vendor: "IKEA",
         description: "JETSTROM ceiling light panel, white spectrum, 60x60 cm",
@@ -852,7 +852,7 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
     },
     {
-        zigbeeModel: ["RODRET Dimmer"],
+        zigbeeModel: ["RODRET Dimmer", "RODRET wireless dimmer"],
         model: "E2201",
         vendor: "IKEA",
         description: "RODRET wireless dimmer/power switch",

@@ -1,5 +1,4 @@
 import {Zcl} from "zigbee-herdsman";
-
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as constants from "../lib/constants";
@@ -12,6 +11,35 @@ import {postfixWithEndpointName} from "../lib/utils";
 
 const e = exposes.presets;
 const ea = exposes.access;
+
+interface SchneiderOccupancyConfig {
+    attributes: {
+        ambienceLightThreshold: number;
+        occupancyActions: number;
+        unoccupiedLevelDflt: number;
+        unoccupiedLevel: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+interface SchneiderVisaConfig {
+    attributes: {
+        indicatorLuminanceLevel: number;
+        indicatorColor: number;
+        indicatorMode: number;
+        motorTypeChannel1: number;
+        motorTypeChannel2: number;
+        curtainStatusChannel1: number;
+        curtainStatusChannel2: number;
+        key1EventNotification: number;
+        key2EventNotification: number;
+        key3EventNotification: number;
+        key4EventNotification: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
 
 function indicatorMode(endpoint?: string) {
     let description = "Set Indicator Mode.";
@@ -131,7 +159,7 @@ const schneiderElectricExtend = {
             commandsResponse: {},
         }),
     visaConfigIndicatorLuminanceLevel: (): ModernExtend => {
-        return m.enumLookup({
+        return m.enumLookup<"visaConfiguration", SchneiderVisaConfig>({
             name: "indicator_luminance_level",
             lookup: {
                 "100": 0,
@@ -147,7 +175,7 @@ const schneiderElectricExtend = {
         });
     },
     visaConfigIndicatorColor: (): ModernExtend => {
-        return m.enumLookup({
+        return m.enumLookup<"visaConfiguration", SchneiderVisaConfig>({
             name: "indicator_color",
             lookup: {
                 white: 0,
@@ -159,7 +187,7 @@ const schneiderElectricExtend = {
         });
     },
     visaIndicatorMode: ([reverseWithLoad, consistentWithLoad, alwaysOff, alwaysOn]: number[]): ModernExtend => {
-        return m.enumLookup({
+        return m.enumLookup<"visaConfiguration", SchneiderVisaConfig>({
             name: "indicator_mode",
             lookup: {
                 reverse_with_load: reverseWithLoad,
@@ -173,10 +201,11 @@ const schneiderElectricExtend = {
         });
     },
     visaConfigMotorType: (channel?: number): ModernExtend => {
-        const attribute = `motorTypeChannel${channel || ""}`;
+        // TODO: was defaulting `motorTypeChannel` which is not part of the custom cluster
+        const attribute = `motorTypeChannel${channel as 1 | 2}` as const;
         const description = `Set motor type for channel ${channel || ""}`;
 
-        return m.enumLookup({
+        return m.enumLookup<"visaConfiguration", SchneiderVisaConfig>({
             name: `motor_type${channel ? `_${channel}` : ""}`,
             lookup: {
                 ac_motor: 0,
@@ -188,10 +217,11 @@ const schneiderElectricExtend = {
         });
     },
     visaConfigCurtainStatus: (channel?: number): ModernExtend => {
-        const attribute = `curtainStatusChannel${channel || ""}`;
+        // TODO: was defaulting `motorTypeChannel` which is not part of the custom cluster
+        const attribute = `curtainStatusChannel${channel as 1 | 2}` as const;
         const description = `Set curtain status for channel ${channel}`;
 
-        return m.enumLookup({
+        return m.enumLookup<"visaConfiguration", SchneiderVisaConfig>({
             access: "STATE",
             name: `curtain_status${channel ? `_${channel}` : ""}`,
             lookup: {
@@ -353,7 +383,7 @@ const schneiderElectricExtend = {
             return Math.round(10000 * Math.log10(value) + 1);
         };
 
-        const luxThresholdExtend = m.numeric({
+        const luxThresholdExtend = m.numeric<"occupancyConfiguration", SchneiderOccupancyConfig>({
             name: "ambience_light_threshold",
             cluster: "occupancyConfiguration",
             attribute: "ambienceLightThreshold",
@@ -368,7 +398,9 @@ const schneiderElectricExtend = {
         extend.fromZigbee.push(...luxThresholdExtend.fromZigbee);
         extend.toZigbee.push(...luxThresholdExtend.toZigbee);
         extend.exposes.push(...luxThresholdExtend.exposes);
-        extend.configure.push(m.setupConfigureForReading("occupancyConfiguration", ["ambienceLightThreshold"]));
+        extend.configure.push(
+            m.setupConfigureForReading<"occupancyConfiguration", SchneiderOccupancyConfig>("occupancyConfiguration", ["ambienceLightThreshold"]),
+        );
 
         return extend;
     },
@@ -525,22 +557,26 @@ const fzLocal = {
                 // Send Schneider specific ACK to make PowerTag happy
                 // @ts-expect-error ignore
                 const networkParameters = await msg.device.constructor.adapter.getNetworkParameters();
-                const payload = {
-                    options: 0b000,
-                    tempMaster: msg.data.gppNwkAddr,
-                    tempMasterTx: networkParameters.channel - 11,
-                    srcID: msg.data.srcID,
-                    gpdCmd: 0xfe,
-                    gpdPayload: {
-                        commandID: 0xfe,
-                        buffer: Buffer.alloc(1), // I hope it's zero initialised
-                    },
-                };
 
-                await msg.endpoint.commandResponse("greenPower", "response", payload, {
-                    srcEndpoint: 242,
-                    disableDefaultResponse: true,
-                });
+                await msg.endpoint.commandResponse(
+                    "greenPower",
+                    "response",
+                    {
+                        options: 0b000,
+                        tempMaster: msg.data.gppNwkAddr,
+                        tempMasterTx: networkParameters.channel - 11,
+                        srcID: msg.data.srcID,
+                        gpdCmd: 0xfe,
+                        gpdPayload: {
+                            commandID: 0xfe,
+                            buffer: Buffer.alloc(1),
+                        },
+                    },
+                    {
+                        srcEndpoint: 242,
+                        disableDefaultResponse: true,
+                    },
+                );
             }
 
             return ret;
@@ -751,9 +787,7 @@ export const definitions: DefinitionWithExtend[] = [
                 powerOnBehavior: false,
                 color: false,
                 configureReporting: true,
-                levelConfig: {
-                    disabledFeatures: ["on_transition_time", "off_transition_time", "on_off_transition_time", "execute_if_off"],
-                },
+                levelConfig: {features: ["on_level", "current_level_startup"]},
             }),
             m.lightingBallast(),
             schneiderElectricExtend.dimmingMode(),
@@ -823,6 +857,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Push button dimmer",
         fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.lighting_ballast_configuration],
         toZigbee: [tz.light_onoff_brightness, tz.level_config, tz.ballast_config],
+        extend: [indicatorMode("smart"), m.identify()],
         exposes: [
             e.light_brightness().withLevelConfig(),
             e
@@ -835,12 +870,18 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMin(1)
                 .withValueMax(254)
                 .withDescription("Specifies the maximum light output of the ballast"),
+            e
+                .enum("dimmer_mode", ea.ALL, ["auto", "rl_led"])
+                .withDescription("Sets dimming mode to autodetect or fixed RL_LED mode (max load is reduced in RL_LED)"),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(3);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "genLevelCtrl", "lightingBallastCfg"]);
             await reporting.onOff(endpoint);
             await reporting.brightness(endpoint);
+        },
+        endpoint: (device) => {
+            return {smart: 21};
         },
     },
     {
@@ -1012,7 +1053,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "S520530W",
         vendor: "Schneider Electric",
         description: "Odace connectable relay switch 10A",
-        extend: [m.onOff({powerOnBehavior: false})],
+        extend: [m.onOff({powerOnBehavior: false}), m.commandsOnOff()],
     },
     {
         zigbeeModel: ["U202SRY2KWZB"],
@@ -1155,7 +1196,6 @@ export const definitions: DefinitionWithExtend[] = [
         },
         exposes: [e.switch().withEndpoint("l1"), e.switch().withEndpoint("l2"), e.action(["on_s*", "off_s*"])],
         configure: (device, coordinatorEndpoint) => {
-            // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
             device.endpoints.forEach(async (ep) => {
                 if (ep.outputClusters.includes(6) || ep.ID <= 2) {
                     await reporting.bind(ep, coordinatorEndpoint, ["genOnOff"]);
@@ -1199,7 +1239,6 @@ export const definitions: DefinitionWithExtend[] = [
             const endpoint = device.getEndpoint(3);
             await reporting.bind(endpoint, coordinatorEndpoint, ["lightingBallastCfg"]);
             // Configure the four front switches
-            // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
             device.endpoints.forEach(async (ep) => {
                 if (21 <= ep.ID && ep.ID <= 22) {
                     await reporting.bind(ep, coordinatorEndpoint, ["genOnOff", "genLevelCtrl"]);
@@ -1208,12 +1247,11 @@ export const definitions: DefinitionWithExtend[] = [
                 }
             });
         },
-        onEvent: (type, data, device) => {
+        onEvent: (event) => {
             // Record the factory default bindings for easy removal/change after deviceInterview
-            if (type === "deviceInterview") {
-                const dimmer = device.getEndpoint(3);
-                // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
-                device.endpoints.forEach((ep) => {
+            if (event.type === "deviceInterview") {
+                const dimmer = event.data.device.getEndpoint(3);
+                event.data.device.endpoints.forEach((ep) => {
                     if (21 <= ep.ID && ep.ID <= 22) {
                         ep.addBinding("genOnOff", dimmer);
                         ep.addBinding("genLevelCtrl", dimmer);
@@ -1920,22 +1958,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Schneider Electric",
         description: "Wiser AvatarOn 1G dimmer switch",
         extend: [
-            m.light({
-                effect: false,
-                color: false,
-                powerOnBehavior: false,
-                levelConfig: {
-                    disabledFeatures: [
-                        "on_off_transition_time",
-                        "on_transition_time",
-                        "off_transition_time",
-                        "execute_if_off",
-                        "on_level",
-                        "current_level_startup",
-                    ],
-                },
-                configureReporting: true,
-            }),
+            m.light({effect: false, color: false, powerOnBehavior: false, configureReporting: true}),
             schneiderElectricExtend.addVisaConfigurationCluster(Zcl.DataType.UINT8),
             schneiderElectricExtend.visaConfigIndicatorLuminanceLevel(),
             schneiderElectricExtend.visaConfigIndicatorColor(),
@@ -1954,16 +1977,6 @@ export const definitions: DefinitionWithExtend[] = [
                 effect: false,
                 color: false,
                 powerOnBehavior: false,
-                levelConfig: {
-                    disabledFeatures: [
-                        "on_off_transition_time",
-                        "on_transition_time",
-                        "off_transition_time",
-                        "execute_if_off",
-                        "on_level",
-                        "current_level_startup",
-                    ],
-                },
                 configureReporting: true,
             }),
             schneiderElectricExtend.addVisaConfigurationCluster(Zcl.DataType.ENUM8),
@@ -2094,9 +2107,7 @@ export const definitions: DefinitionWithExtend[] = [
                 powerOnBehavior: false,
                 color: false,
                 configureReporting: true,
-                levelConfig: {
-                    disabledFeatures: ["on_transition_time", "off_transition_time", "on_off_transition_time", "execute_if_off"],
-                },
+                levelConfig: {features: ["on_level", "current_level_startup"]},
             }),
             m.lightingBallast(),
             m.illuminance(),
@@ -2129,7 +2140,7 @@ export const definitions: DefinitionWithExtend[] = [
                 color: false,
                 configureReporting: true,
                 levelConfig: {
-                    disabledFeatures: ["on_off_transition_time", "on_transition_time", "off_transition_time", "execute_if_off"],
+                    features: ["on_level", "current_level_startup"],
                 },
             }),
             m.lightingBallast(),
@@ -2163,6 +2174,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         toZigbee: [
             tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_occupied_cooling_setpoint,
             tz.thermostat_system_mode,
             tz.thermostat_local_temperature,
             tz.thermostat_control_sequence_of_operation,
@@ -2179,6 +2191,7 @@ export const definitions: DefinitionWithExtend[] = [
             e
                 .climate()
                 .withSetpoint("occupied_heating_setpoint", 4, 30, 0.5)
+                .withSetpoint("occupied_cooling_setpoint", 4, 30, 0.5)
                 .withLocalTemperature()
                 .withSystemMode(["off", "heat", "cool"])
                 .withPiHeatingDemand(),
@@ -2192,18 +2205,22 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint1, coordinatorEndpoint, ["hvacThermostat"]);
             await reporting.thermostatPIHeatingDemand(endpoint1);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint1);
+            await reporting.thermostatOccupiedCoolingSetpoint(endpoint1);
             await reporting.temperature(endpoint2);
             await endpoint1.read("hvacUserInterfaceCfg", ["keypadLockout", "tempDisplayMode"]);
             await reporting.bind(endpoint4, coordinatorEndpoint, ["msOccupancySensing"]);
             await reporting.thermostatOccupancy(endpoint4);
         },
-        options: [exposes.options.measurement_poll_interval()],
-        onEvent: (type, data, device, options) => {
-            const endpoint = device.getEndpoint(1);
-            const poll = async () => {
-                await endpoint.read("hvacThermostat", ["occupiedHeatingSetpoint"]);
-            };
-            utils.onEventPoll(type, data, device, options, "measurement", 20, poll);
-        },
+        extend: [
+            m.poll({
+                key: "measurement",
+                option: exposes.options.measurement_poll_interval().withDescription("Polling interval of the occupied heating/cooling setpoint"),
+                defaultIntervalSeconds: 20,
+                poll: async (device) => {
+                    const endpoint = device.getEndpoint(1);
+                    await endpoint.read("hvacThermostat", ["occupiedHeatingSetpoint", "occupiedCoolingSetpoint"]);
+                },
+            }),
+        ],
     },
 ];

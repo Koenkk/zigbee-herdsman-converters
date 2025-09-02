@@ -99,13 +99,13 @@ export const definitions: DefinitionWithExtend[] = [
                 // Legacy PM2 firmwares
                 const payload = [
                     {
-                        attribute: "batteryPercentageRemaining",
+                        attribute: "batteryPercentageRemaining" as const,
                         minimumReportInterval: 0,
                         maximumReportInterval: 3600,
                         reportableChange: 0,
                     },
                     {
-                        attribute: "batteryVoltage",
+                        attribute: "batteryVoltage" as const,
                         minimumReportInterval: 0,
                         maximumReportInterval: 3600,
                         reportableChange: 0,
@@ -113,7 +113,6 @@ export const definitions: DefinitionWithExtend[] = [
                 ];
                 await endpoint.configureReporting("genPowerCfg", payload);
             }
-            // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
             device.endpoints.forEach(async (ep) => {
                 if (ep.outputClusters.includes(18)) {
                     await reporting.bind(ep, coordinatorEndpoint, ["genMultistateInput"]);
@@ -170,13 +169,13 @@ export const definitions: DefinitionWithExtend[] = [
                 // Legacy PM2 firmwares
                 const payload = [
                     {
-                        attribute: "batteryPercentageRemaining",
+                        attribute: "batteryPercentageRemaining" as const,
                         minimumReportInterval: 0,
                         maximumReportInterval: 3600,
                         reportableChange: 0,
                     },
                     {
-                        attribute: "batteryVoltage",
+                        attribute: "batteryVoltage" as const,
                         minimumReportInterval: 0,
                         maximumReportInterval: 3600,
                         reportableChange: 0,
@@ -184,7 +183,6 @@ export const definitions: DefinitionWithExtend[] = [
                 ];
                 await endpoint.configureReporting("genPowerCfg", payload);
             }
-            // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
             device.endpoints.forEach(async (ep) => {
                 if (ep.outputClusters.includes(18)) {
                     await reporting.bind(ep, coordinatorEndpoint, ["genMultistateInput"]);
@@ -314,7 +312,7 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: [tz.diyruz_airsense_config],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            const clusters = ["msTemperatureMeasurement", "msRelativeHumidity", "msPressureMeasurement", "msCO2"];
+            const clusters = ["msTemperatureMeasurement", "msRelativeHumidity", "msPressureMeasurement", "msCO2"] as const;
             await reporting.bind(endpoint, coordinatorEndpoint, clusters);
             for (const cluster of clusters) {
                 await endpoint.configureReporting(cluster, [
@@ -348,8 +346,8 @@ export const definitions: DefinitionWithExtend[] = [
             const firstEndpoint = device.getEndpoint(1);
             await reporting.bind(firstEndpoint, coordinatorEndpoint, ["closuresDoorLock", "genPowerCfg"]);
             const payload1 = [
-                {attribute: "batteryPercentageRemaining", minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0},
-                {attribute: "batteryVoltage", minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0},
+                {attribute: "batteryPercentageRemaining" as const, minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0},
+                {attribute: "batteryVoltage" as const, minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0},
             ];
             await firstEndpoint.configureReporting("genPowerCfg", payload1);
             const payload2 = [{attribute: {ID: 0x0050, type: 0x30}, minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0}];

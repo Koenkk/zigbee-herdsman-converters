@@ -6,7 +6,8 @@ import * as exposes from "../lib/exposes";
 import * as legacy from "../lib/legacy";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import type {DefinitionWithExtend, Expose, Fz, KeyValue, KeyValueAny, Tz, Zh} from "../lib/types";
+import type {DefinitionWithExtend, DummyDevice, Expose, Fz, KeyValue, KeyValueAny, Tz, Zh} from "../lib/types";
+import * as utils from "../lib/utils";
 import {calibrateAndPrecisionRoundOptions, getFromLookup, getKey, isEndpoint, postfixWithEndpointName} from "../lib/utils";
 
 const e = exposes.presets;
@@ -145,8 +146,8 @@ const fzLocal = {
     } satisfies Fz.Converter,
 };
 
-function ptvoGetMetaOption(device: Zh.Device, key: string, defaultValue: unknown) {
-    if (device != null) {
+function ptvoGetMetaOption(device: Zh.Device | DummyDevice, key: string, defaultValue: unknown) {
+    if (!utils.isDummyDevice(device)) {
         const value = device.meta[key];
         if (value === undefined) {
             return defaultValue;
@@ -238,12 +239,12 @@ export const definitions: DefinitionWithExtend[] = [
             {modelID: "SkyConnect", manufacturerName: "NabuCasa", applicationVersion: 200},
             {modelID: "SLZB-06M", manufacturerName: "SMLIGHT", applicationVersion: 200},
             {modelID: "SLZB-06MG24", manufacturerName: "SMLIGHT", applicationVersion: 200},
+            {modelID: "SLZB-06MG26", manufacturerName: "SMLIGHT", applicationVersion: 200},
             {modelID: "SLZB-07", manufacturerName: "SMLIGHT", applicationVersion: 200},
             {modelID: "SLZB-07MG24", manufacturerName: "SMLIGHT", applicationVersion: 200},
             {modelID: "DONGLE-E", manufacturerName: "SONOFF", applicationVersion: 200},
             {modelID: "MGM240P", manufacturerName: "SparkFun", applicationVersion: 200},
             {modelID: "MGM24", manufacturerName: "TubesZB", applicationVersion: 200},
-            {modelID: "MGM24PB", manufacturerName: "TubesZB", applicationVersion: 200},
         ],
         model: "Silabs series 2 router",
         vendor: "Silabs",
@@ -282,7 +283,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(8);
-            const payload = [{attribute: "zclVersion", minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0}];
+            const payload = [{attribute: "zclVersion" as const, minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0}];
             await reporting.bind(endpoint, coordinatorEndpoint, ["genBasic"]);
             await endpoint.configureReporting("genBasic", payload);
         },
@@ -340,8 +341,8 @@ export const definitions: DefinitionWithExtend[] = [
             const expose: Expose[] = [];
             const exposeDeviceOptions: KeyValue = {};
             const deviceConfig = ptvoGetMetaOption(device, "device_config", "");
-            if (deviceConfig === "") {
-                if (device?.endpoints) {
+            if (deviceConfig === "" || utils.isDummyDevice(device)) {
+                if (!utils.isDummyDevice(device)) {
                     for (const endpoint of device.endpoints) {
                         const exposeEpOptions: KeyValue = {};
                         ptvoAddStandardExposes(endpoint, expose, exposeEpOptions, exposeDeviceOptions);
@@ -409,7 +410,7 @@ export const definitions: DefinitionWithExtend[] = [
                     } else if (valueId === "#") {
                         // GPIO state (contact, gas, noise, occupancy, presence, smoke, sos, tamper, vibration, water leak)
                         exposeEpOptions.exposed_onoff = true;
-                        let exposeObj = undefined;
+                        let exposeObj: Expose;
                         switch (valueDescription) {
                             case "g":
                                 exposeObj = e.gas();
@@ -443,8 +444,8 @@ export const definitions: DefinitionWithExtend[] = [
                         }
                         expose.push(exposeObj.withProperty("state").withEndpoint(epName));
                     } else if (valueConfigItems.length > 0) {
-                        let valueName = undefined; // name in Z2M
-                        let valueNumIndex = undefined;
+                        let valueName: string; // name in Z2M
+                        let valueNumIndex: string;
                         const idxPos = valueId.search(/(\d+)$/);
                         if (valueId.startsWith("mcpm") || valueId.startsWith("ncpm")) {
                             const num = Number.parseInt(valueId.substr(4, 1), 16);
@@ -536,18 +537,19 @@ export const definitions: DefinitionWithExtend[] = [
         },
         meta: {multiEndpoint: true, tuyaThermostatPreset: legacy.fz /* for subclassed custom converters */},
         endpoint: (device) => {
-            // biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
-            const endpointList: any = [];
+            const endpointList: Record<string, number> = {};
+            let count = 0;
             const deviceConfig = ptvoGetMetaOption(device, "device_config", "");
             if (device?.endpoints) {
                 for (const endpoint of device.endpoints) {
                     const epId = endpoint.ID;
                     const epName = `l${epId}`;
                     endpointList[epName] = epId;
+                    count++;
                 }
             }
             if (deviceConfig === "") {
-                if (endpointList.length === 0) {
+                if (count === 0) {
                     // fallback code
                     for (let epId = 1; epId <= 8; epId++) {
                         const epName = `l${epId}`;
@@ -577,10 +579,9 @@ export const definitions: DefinitionWithExtend[] = [
                 const controlEp = device.getEndpoint(1);
                 if (controlEp != null) {
                     try {
-                        let deviceConfig = await controlEp.read("genBasic", [32768]);
+                        const deviceConfig = await controlEp.read("genBasic", [32768]);
                         if (deviceConfig) {
-                            deviceConfig = deviceConfig["32768"];
-                            ptvoSetMetaOption(device, "device_config", deviceConfig);
+                            ptvoSetMetaOption(device, "device_config", deviceConfig[32768]);
                             device.save();
                         }
                     } catch {
@@ -1067,5 +1068,12 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.on_off, fz.fan_speed],
         toZigbee: [tz.on_off, tz.fan_speed],
         exposes: [e.fan().withState().withSpeed()],
+    },
+    {
+        zigbeeModel: ["ZBColorLightBulb"],
+        model: "m5NanoC6",
+        vendor: "Custom devices (DiY)",
+        description: "DIY Zigbee light using M5NanoC6",
+        extend: [m.light({color: {modes: ["xy", "hs"]}})],
     },
 ];

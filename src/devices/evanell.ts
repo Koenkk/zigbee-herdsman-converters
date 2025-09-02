@@ -1,6 +1,5 @@
 import * as exposes from "../lib/exposes";
 import * as legacy from "../lib/legacy";
-import * as reporting from "../lib/reporting";
 import * as tuya from "../lib/tuya";
 import type {DefinitionWithExtend} from "../lib/types";
 
@@ -19,11 +18,7 @@ export const definitions: DefinitionWithExtend[] = [
             legacy.tz.evanell_thermostat_system_mode,
             legacy.tz.evanell_thermostat_child_lock,
         ],
-        onEvent: tuya.onEventSetTime,
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genBasic"]);
-        },
+        extend: [tuya.modernExtend.tuyaBase({timeStart: "2000", bindBasicOnConfigure: true})],
         exposes: [
             e.child_lock(),
             e.battery(),

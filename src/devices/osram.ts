@@ -407,8 +407,9 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.command_toggle, fz.command_move, fz.command_stop],
         exposes: [e.action(["toggle", "brightness_move_up", "brightness_move_down", "brightness_stop"])],
         extend: [ledvanceLight({configureReporting: true, ota: true})],
-        onEvent: (type, data, device) => {
-            if (type === "deviceInterview") {
+        onEvent: (event) => {
+            if (event.type === "deviceInterview") {
+                const {device} = event.data;
                 device.getEndpoint(25).addBinding("genOnOff", device.getEndpoint(10));
                 device.getEndpoint(25).addBinding("genLevelCtrl", device.getEndpoint(10));
             }
@@ -438,8 +439,9 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         fromZigbee: [fz.command_toggle, fz.command_move, fz.command_stop],
         exposes: [e.action(["toggle_s1", "brightness_move_up_s1", "brightness_move_down_s1", "brightness_stop_s1"])],
-        onEvent: (type, data, device) => {
-            if (type === "deviceInterview") {
+        onEvent: (event) => {
+            if (event.type === "deviceInterview") {
+                const {device} = event.data;
                 device.getEndpoint(25).addBinding("genOnOff", device.getEndpoint(10));
                 device.getEndpoint(25).addBinding("genLevelCtrl", device.getEndpoint(10));
             }

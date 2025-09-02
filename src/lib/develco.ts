@@ -1,10 +1,30 @@
 import {Zcl} from "zigbee-herdsman";
-
 import {presets as e, access as ea} from "./exposes";
-import {type NumericArgs, deviceAddCustomCluster, deviceTemperature, numeric, temperature} from "./modernExtend";
+import {deviceAddCustomCluster, deviceTemperature, type NumericArgs, numeric, temperature} from "./modernExtend";
 import type {Configure, Fz, ModernExtend} from "./types";
 
 const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.DEVELCO};
+
+export interface DevelcoGenBasic {
+    attributes: {
+        develcoPrimarySwVersion: Buffer;
+        develcoPrimaryHwVersion: Buffer;
+        develcoLedControl: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+export interface DevelcoAirQuality {
+    attributes: {
+        measuredValue: number;
+        minMeasuredValue: number;
+        maxMeasuredValue: number;
+        resolution: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
 
 export const develcoModernExtend = {
     addCustomClusterManuSpecificDevelcoGenBasic: () =>
@@ -41,14 +61,18 @@ export const develcoModernExtend = {
                 for (const ep of device.endpoints) {
                     if (ep.supportsInputCluster("genBasic")) {
                         try {
-                            const data = await ep.read("genBasic", ["develcoPrimarySwVersion", "develcoPrimaryHwVersion"], manufacturerOptions);
+                            const data = await ep.read<"genBasic", DevelcoGenBasic>(
+                                "genBasic",
+                                ["develcoPrimarySwVersion", "develcoPrimaryHwVersion"],
+                                manufacturerOptions,
+                            );
 
                             if (data.develcoPrimarySwVersion !== undefined) {
                                 device.softwareBuildID = data.develcoPrimarySwVersion.join(".");
                             }
 
                             if (data.develcoPrimaryHwVersion !== undefined) {
-                                device.hardwareVersion = data.develcoPrimaryHwVersion.join(".");
+                                device.hardwareVersion = Number.parseInt(data.develcoPrimaryHwVersion.join(""), 10);
                             }
 
                             device.save();
@@ -62,8 +86,8 @@ export const develcoModernExtend = {
         ];
         return {configure, isModernExtend: true};
     },
-    voc: (args?: Partial<NumericArgs>) =>
-        numeric({
+    voc: (args?: Partial<NumericArgs<"manuSpecificDevelcoAirQuality", DevelcoAirQuality>>) =>
+        numeric<"manuSpecificDevelcoAirQuality", DevelcoAirQuality>({
             name: "voc",
             cluster: "manuSpecificDevelcoAirQuality",
             attribute: "measuredValue",
@@ -151,7 +175,7 @@ export const develcoModernExtend = {
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
                     if (msg.data[attributeName] !== undefined && msg.data[attributeName] < 255) {
-                        const voltage = Number.parseInt(msg.data[attributeName]);
+                        const voltage = Number.parseInt(msg.data[attributeName], 10);
                         return {[propertyName]: voltage <= 25};
                     }
                 },
@@ -160,18 +184,16 @@ export const develcoModernExtend = {
 
         return {exposes: [expose], fromZigbee, isModernExtend: true};
     },
-    temperature: (args?: Partial<NumericArgs>) =>
+    temperature: (args?: Partial<NumericArgs<"msTemperatureMeasurement">>) =>
         temperature({
-            valueIgnore: [0xffff, -0x8000],
             ...args,
         }),
-    deviceTemperature: (args?: Partial<NumericArgs>) =>
+    deviceTemperature: (args?: Partial<NumericArgs<"genDeviceTempCfg">>) =>
         deviceTemperature({
             reporting: {min: "5_MINUTES", max: "1_HOUR", change: 2}, // Device temperature reports with 2 degree change
-            valueIgnore: [0xffff, -0x8000],
             ...args,
         }),
-    currentSummation: (args?: Partial<NumericArgs>) =>
+    currentSummation: (args?: Partial<NumericArgs<"seMetering">>) =>
         numeric({
             name: "current_summation",
             cluster: "seMetering",
@@ -182,7 +204,7 @@ export const develcoModernExtend = {
             valueMax: 268435455,
             ...args,
         }),
-    pulseConfiguration: (args?: Partial<NumericArgs>) =>
+    pulseConfiguration: (args?: Partial<NumericArgs<"seMetering">>) =>
         numeric({
             name: "pulse_configuration",
             cluster: "seMetering",

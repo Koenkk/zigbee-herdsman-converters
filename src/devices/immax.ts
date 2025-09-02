@@ -6,8 +6,7 @@ import * as legacy from "../lib/legacy";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as tuya from "../lib/tuya";
-import type {DefinitionWithExtend} from "../lib/types";
-import type {Fz, KeyValueAny, Tz} from "../lib/types";
+import type {DefinitionWithExtend, Fz, KeyValueAny, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
 
 const e = exposes.presets;
@@ -17,7 +16,7 @@ const tzLocal = {
     ts0219_duration: {
         key: ["duration"],
         convertSet: async (entity, key, value, meta) => {
-            await entity.write("ssIasWd", {maxDuration: value});
+            await entity.write("ssIasWd", {maxDuration: value as number});
         },
         convertGet: async (entity, key, meta) => {
             await entity.read("ssIasWd", ["maxDuration"]);
@@ -254,7 +253,7 @@ export const definitions: DefinitionWithExtend[] = [
             legacy.tz.tuya_thermostat_current_heating_setpoint,
             legacy.tz.tuya_thermostat_weekly_schedule,
         ],
-        onEvent: tuya.onEventSetTime,
+        extend: [tuya.modernExtend.tuyaBase({timeStart: "2000"})],
         meta: {
             timeout: 20000, // TRV wakes up every 10sec
             thermostat: {

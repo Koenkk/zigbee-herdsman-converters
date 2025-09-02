@@ -102,7 +102,11 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Zigbee 3.0 remote control",
         meta: {battery: {dontDividePercentage: true}},
         fromZigbee: [fz.command_recall, fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.battery],
-        exposes: [e.battery(), e.action(["recall_*", "on", "off", "brightness_stop", "brightness_move_up", "brightness_move_down"])],
+        exposes: [
+            e.battery(),
+            e.action(["recall_*", "on", "off", "brightness_stop", "brightness_move_up", "brightness_move_down"]),
+            e.action_group(),
+        ],
         toZigbee: [],
     },
     {

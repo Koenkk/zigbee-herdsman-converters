@@ -1,16 +1,17 @@
-import type {Models as ZHModels} from "zigbee-herdsman";
-
 import {Buffer} from "node:buffer";
-
+import type {Models as ZHModels} from "zigbee-herdsman";
 import {Zcl} from "zigbee-herdsman";
-
 import * as fz from "../converters/fromZigbee";
 import {repInterval} from "../lib/constants";
 import * as exposes from "../lib/exposes";
 import {logger} from "../lib/logger";
+import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as globalStore from "../lib/store";
 import type {DefinitionWithExtend, Expose, Fz, KeyValue, Tz, Zh} from "../lib/types";
+import * as utils from "../lib/utils";
+
+const NS = "zhc:gmmts";
 
 const ea = exposes.access;
 const e = exposes.presets;
@@ -112,7 +113,6 @@ const ticmeterOptionsFRTr: Translations = {
 };
 
 const ticmeterOptions = [
-    e.numeric("refresh_rate", ea.SET).withValueMin(60).withDescription(ticmeterOptionsFRTr[0].descEN).withValueMin(60).withValueMax(3600),
     e.enum("tic_mode", ea.SET, modeTICEnum).withDescription(ticmeterOptionsFRTr[1].descEN),
     e.enum("contract_type", ea.SET, modeContractEnum).withDescription(ticmeterOptionsFRTr[2].descEN),
     e.enum("linky_elec", ea.SET, modeElecEnum).withDescription(ticmeterOptionsFRTr[3].descEN),
@@ -1811,7 +1811,6 @@ function toSnakeCase(str: string) {
 function ticmeterConverter(msg: Fz.Message) {
     const result: KeyValue = {};
     const keys = Object.keys(msg.data);
-    // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
     keys.forEach((key) => {
         const found = ticmeterDatas.find((x) => x.attr === key);
         if (found) {
@@ -1850,6 +1849,31 @@ function ticmeterConverter(msg: Fz.Message) {
 }
 
 const fzLocal = {
+    save_tic_elec_contract: {
+        cluster: CLUSTER_TIC,
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.ticMode !== undefined) {
+                const ticMode = modeTICEnum[msg.data.ticMode];
+                globalStore.putValue(msg.device, "tic_mode", ticMode);
+                // settings.changeEntityOptions(device, { tic_mode: ticMode });
+            }
+            if (msg.data.elecMode !== undefined) {
+                const elecMode = modeElecEnum[msg.data.elecMode];
+                globalStore.putValue(msg.device, "elec_mode", elecMode);
+            }
+            if (msg.data.contractType !== undefined) {
+                // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
+                let contractType;
+                if (Buffer.isBuffer(msg.data.contractType)) {
+                    contractType = msg.data.contractType.toString();
+                } else {
+                    contractType = msg.data.contractType;
+                }
+                globalStore.putValue(msg.device, "contract_type", contractType);
+            }
+        },
+    } satisfies Fz.Converter,
     ticmeter_ha_electrical_measurement: {
         cluster: "haElectricalMeasurement",
         type: ["attributeReport", "readResponse"],
@@ -1857,7 +1881,6 @@ const fzLocal = {
             return ticmeterConverter(msg);
         },
     } satisfies Fz.Converter,
-
     ticmeter_cluster_fz: {
         cluster: CLUSTER_TIC,
         type: ["attributeReport", "readResponse"],
@@ -1865,7 +1888,6 @@ const fzLocal = {
             return ticmeterConverter(msg);
         },
     } satisfies Fz.Converter,
-
     ticmeter_metering: {
         cluster: "seMetering",
         type: ["attributeReport", "readResponse"],
@@ -1882,7 +1904,11 @@ function genereateTzLocal() {
         const tz: Tz.Converter = {
             key: [key],
             convertGet: async (entity, key, meta) => {
-                await entity.read(item.clust, [item.attr]);
+                await entity.read(
+                    item.clust,
+                    // @ts-expect-error too dynamic to type
+                    [item.attr],
+                );
             },
         } satisfies Tz.Converter;
         if (item.type === NUM_RW) {
@@ -1890,7 +1916,12 @@ function genereateTzLocal() {
                 if (Number(value) < 0 || Number(value) > 65535) {
                     throw new Error("Value must be between 0 and 65535");
                 }
-                await entity.write(item.clust, {[item.attr]: value}, {manufacturerCode: null});
+                await entity.write(
+                    item.clust,
+                    // @ts-expect-error too dynamic to type
+                    {[item.attr]: value},
+                    {manufacturerCode: null},
+                );
             };
         }
         tzLocal.push(tz);
@@ -1931,7 +1962,6 @@ async function poll(endpoint: Zh.Endpoint, device: ZHModels.Device) {
 
     toRead = toRead.sort((a, b) => a.clust.localeCompare(b.clust));
     const groupedByCluster: {[key: string]: TICMeterData[]} = {};
-    // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
     toRead.forEach((item) => {
         if (!groupedByCluster[item.clust]) {
             groupedByCluster[item.clust] = [];
@@ -1950,7 +1980,11 @@ async function poll(endpoint: Zh.Endpoint, device: ZHModels.Device) {
     for (const item of splited) {
         for (const attr of item.attributes) {
             await endpoint
-                .read(item.cluster, attr)
+                .read(
+                    item.cluster,
+                    // @ts-expect-error too dynamic to type
+                    attr,
+                )
                 .catch((e) => {
                     if (e.message.includes(`Cannot read properties of undefined (reading 'manufacturerID')`)) {
                         // if we remove the device, we stop the polling
@@ -1982,7 +2016,13 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TICMeter",
         vendor: "GammaTroniques",
         description: "TICMeter pour Linky",
-        fromZigbee: [fz.meter_identification, fzLocal.ticmeter_cluster_fz, fzLocal.ticmeter_ha_electrical_measurement, fzLocal.ticmeter_metering],
+        fromZigbee: [
+            fz.meter_identification,
+            fzLocal.ticmeter_cluster_fz,
+            fzLocal.ticmeter_ha_electrical_measurement,
+            fzLocal.ticmeter_metering,
+            fzLocal.save_tic_elec_contract,
+        ],
         toZigbee: tzLocal,
         exposes: (device, options) => {
             let endpoint: Zh.Endpoint;
@@ -1994,7 +2034,7 @@ export const definitions: DefinitionWithExtend[] = [
             let currentProducer = "";
             let translation = "";
 
-            if (device == null) {
+            if (utils.isDummyDevice(device)) {
                 return exposes;
             }
 
@@ -2099,7 +2139,6 @@ export const definitions: DefinitionWithExtend[] = [
             globalStore.putValue(device, "producer", currentProducer);
             globalStore.putValue(device, "translation", translation);
 
-            // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
             ticmeterDatas.forEach((item) => {
                 let contractOK = false;
                 let elecOK = false;
@@ -2230,11 +2269,16 @@ export const definitions: DefinitionWithExtend[] = [
 
             logger.debug(`Configure wanted ${wanted.length}`, "TICMeter");
 
-            // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
             endpoint.configuredReportings.forEach(async (r) => {
                 await endpoint.configureReporting(
                     r.cluster.name,
-                    reporting.payload(r.attribute.name, r.minimumReportInterval, 65535, r.reportableChange),
+                    reporting.payload(
+                        // @ts-expect-error dynamic, expected correct since already applied
+                        r.attribute.name,
+                        r.minimumReportInterval,
+                        65535,
+                        r.reportableChange,
+                    ),
                     {manufacturerCode: null},
                 );
             });
@@ -2249,7 +2293,17 @@ export const definitions: DefinitionWithExtend[] = [
 
                 logger.debug(`Configure ${item.name} ${item.clust} ${item.attr} ${conf.min} ${conf.max} ${conf.change}`, "TICMeter");
                 reportingConfig.push(
-                    endpoint.configureReporting(item.clust, reporting.payload(item.attr, conf.min, conf.max, conf.change), {manufacturerCode: null}),
+                    endpoint.configureReporting(
+                        item.clust,
+                        reporting.payload(
+                            // @ts-expect-error too dynamic to type
+                            item.attr,
+                            conf.min,
+                            conf.max,
+                            conf.change,
+                        ),
+                        {manufacturerCode: null},
+                    ),
                 );
             }
 
@@ -2268,74 +2322,17 @@ export const definitions: DefinitionWithExtend[] = [
             );
         },
         options: ticmeterOptions,
-        onEvent: async (type, data, device, options) => {
-            const endpoint = device.getEndpoint(1);
-            if (!device.customClusters[CLUSTER_TIC]) {
-                device.addCustomCluster(CLUSTER_TIC, ticmeterCustomCluster);
-            }
-
-            const intervalDefined = globalStore.hasValue(device, "interval");
-            if (data.data) {
-                if (data.data.ticMode !== undefined) {
-                    const ticMode = modeTICEnum[data.data.ticMode];
-                    globalStore.putValue(device, "tic_mode", ticMode);
-                    // settings.changeEntityOptions(device, { tic_mode: ticMode });
-                }
-                if (data.data.elecMode !== undefined) {
-                    const elecMode = modeElecEnum[data.data.elecMode];
-                    globalStore.putValue(device, "elec_mode", elecMode);
-                }
-                if (data.data.contractType !== undefined) {
-                    // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
-                    let contractType;
-                    if (Buffer.isBuffer(data.data.contractType)) {
-                        contractType = data.data.contractType.toString();
-                    } else {
-                        contractType = data.data.contractType;
-                    }
-                    globalStore.putValue(device, "contract_type", contractType);
-                }
-            }
-
-            if (type === "stop") {
-                clearInterval(globalStore.getValue(device, "interval"));
-                globalStore.clearValue(device, "interval");
-            } else if (!intervalDefined) {
-                // periodic scan for non-reportable attributes
-                const seconds: number = options?.refresh_rate ? Number(options.refresh_rate) : DEFAULT_POLL_INTERVAL;
-                const interval = setInterval(async () => {
-                    try {
-                        await poll(endpoint, device);
-                    } catch {
-                        /* Do nothing*/
-                    }
-                }, seconds * 1000);
-                globalStore.putValue(device, "interval", interval);
-                globalStore.putValue(device, "refresh_rate", seconds);
-                try {
-                    await poll(endpoint, device);
-                } catch {
-                    // Do nothing
-                }
-            } else {
-                if (intervalDefined) {
-                    const seconds: number = options?.refresh_rate ? Number(options.refresh_rate) : DEFAULT_POLL_INTERVAL;
-                    const definedSeconds = globalStore.getValue(device, "refresh_rate");
-                    if (seconds !== definedSeconds) {
-                        clearInterval(globalStore.getValue(device, "interval"));
-                        const interval = setInterval(async () => {
-                            try {
-                                await poll(endpoint, device);
-                            } catch {
-                                /* Do nothing*/
-                            }
-                        }, seconds * 1000);
-                        globalStore.putValue(device, "interval", interval);
-                        globalStore.putValue(device, "refresh_rate", seconds);
-                    }
-                }
-            }
-        },
+        extend: [
+            m.deviceAddCustomCluster(CLUSTER_TIC, ticmeterCustomCluster),
+            m.poll({
+                key: "interval",
+                option: e.numeric("refresh_rate", ea.SET).withDescription(ticmeterOptionsFRTr[0].descEN).withValueMin(60).withValueMax(3600),
+                optionKey: "refresh_rate",
+                defaultIntervalSeconds: DEFAULT_POLL_INTERVAL,
+                poll: (device) =>
+                    poll(device.getEndpoint(1), device).catch((error) => logger.error(`Failed to poll '${device.ieeeAddr}' (${error})`, NS)),
+            }),
+        ],
         ota: {manufacturerName: "GammaTroniques"}, // TODO: not sure if it's set properly in device
     },
 ];

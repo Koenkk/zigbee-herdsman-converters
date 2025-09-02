@@ -841,7 +841,7 @@ export async function update(
     const waiters: Waiters = {};
     let lastBlockResponseTime = 0;
     let lastBlockTimeout: NodeJS.Timeout;
-    let lastUpdate: number | undefined = undefined;
+    let lastUpdate: number | undefined;
     const startTime = Date.now();
 
     const sendImageBlockResponse = async (
