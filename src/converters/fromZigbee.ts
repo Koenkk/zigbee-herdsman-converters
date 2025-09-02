@@ -3520,18 +3520,16 @@ export const enocean_ptm216z: Fz.Converter<"greenPower", undefined, ["commandNot
         }
     },
 };
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const _8840100H_water_leak_alarm: Fz.Converter<"haApplianceEventsAlerts", undefined, "commandAlertsNotification"> = {
-    cluster: "haApplianceEventsAlerts",
-    type: "commandAlertsNotification",
-    convert: (model, msg, publish, options, meta) => {
-        const alertStatus = msg.data.aalert;
-        return {
-            // @ts-expect-error TODO: wrong type assumed
-            water_leak: (alertStatus & (1 << 12)) > 0,
-        };
-    },
-};
+// export const _8840100H_water_leak_alarm: Fz.Converter = {
+//     cluster: "haApplianceEventsAlerts",
+//     type: "commandAlertsNotification",
+//     convert: (model, msg, publish, options, meta) => {
+//         const alertStatus = msg.data.aalert;
+//         return {
+//             water_leak: (alertStatus & (1 << 12)) > 0,
+//         };
+//     },
+// };
 export const diyruz_freepad_clicks: Fz.Converter<"genMultistateInput", undefined, ["readResponse", "attributeReport"]> = {
     cluster: "genMultistateInput",
     type: ["readResponse", "attributeReport"],
@@ -3747,9 +3745,11 @@ export const legrand_greenpower: Fz.Converter<"greenPower", undefined, ["command
             23: "press_4", // ZLGP15
             34: "press_once",
             32: "press_twice", // ZLGP17, ZLGP18
+            51: "down_hold", // ZLGP17, ZLGP18
             52: "stop",
             53: "up",
             54: "down", // 600087l
+            55: "up_hold", // ZLGP17, ZLGP18
         };
         if (lookup[commandID] === undefined) {
             logger.error(`Legrand GreenPower: missing command '${commandID}'`, NS);

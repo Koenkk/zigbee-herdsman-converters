@@ -981,7 +981,13 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: [],
     },
     {
-        fingerprint: tuya.fingerprint("TS0203", ["Zbeacon"]),
+        fingerprint: [
+            {
+                manufacturerName: "Zbeacon",
+                modelID: "TS0203",
+                endpoints: [{ID: 1, profileID: 260, deviceID: 770, inputClusters: [0, 3, 1, 32, 1026, 1029], outputClusters: [25]}],
+            },
+        ],
         model: "ZC-W1",
         vendor: "iHseno",
         description: "Temperature & humidity sensor",
@@ -2410,7 +2416,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_aao3yzhs", "_TZE284_nhgdf6qr", "_TZE284_ap9owrsa", "_TZE284_33bwcga2"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_aao3yzhs", "_TZE284_nhgdf6qr", "_TZE284_ap9owrsa", "_TZE284_33bwcga2", "_TZE284_wckqztdq"]),
         model: "TS0601_soil_3",
         vendor: "Tuya",
         description: "Soil sensor",
@@ -2455,7 +2461,6 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE200_0nauxa0p",
             "_TZE200_ykgar0ow",
             "_TZE200_0hb4rdnp",
-            "_TZE284_wckqztdq",
         ]),
         model: "TS0601_dimmer_1_gang_1",
         vendor: "Tuya",
@@ -2870,9 +2875,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "13A Smart Switched Fused Connection Unit",
         extend: [
             tuya.modernExtend.tuyaOnOff({
-                backlightModeLowMediumHigh: true,
-                childLock: true,
-                powerOnBehavior2: true,
+                onOffCountdown: true,
             }),
         ],
         configure: async (device, coordinatorEndpoint) => {
@@ -4725,6 +4728,7 @@ export const definitions: DefinitionWithExtend[] = [
                 "_TZE200_gaj531w3",
                 "_TZE200_yia0p3tr",
                 "_TZE200_rsj5pu8y",
+                "_TZE200_yrugsphv",
                 "_TZE204_nladmfvf",
                 "_TZE200_2odrmqwq",
                 "_TZE204_lh3arisb",
@@ -5222,6 +5226,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE200_2atgpdho",
             "_TZE200_cpmgn2cf",
             "_TZE200_znlqjmih",
+            "_TZE284_znlqjmih",
             "_TZE200_8thwkzxl",
             "_TZE200_4eeyebrt",
             "_TZE200_8whxpsiw",
@@ -6201,7 +6206,10 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_rtrmfadk", "_TZE204_cvcu2p6e"]),
         model: "TRV601",
         vendor: "Tuya",
-        whiteLabel: [tuya.whitelabel("Sber", "SBDV-00185", "Thermostatic radiator valve", ["_TZE204_cvcu2p6e"])],
+        whiteLabel: [
+            tuya.whitelabel("Sber", "SBDV-00185", "Thermostatic radiator valve", ["_TZE204_cvcu2p6e"]),
+            tuya.whitelabel("Moes", "TRV801_1", "Thermostatic radiator valve", ["_TZE204_rtrmfadk"]),
+        ],
         description: "Thermostatic radiator valve",
         extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true})],
         exposes: [
@@ -6787,7 +6795,8 @@ export const definitions: DefinitionWithExtend[] = [
             {vendor: "MODEMIX", model: "MOD048"},
             {vendor: "Coswall", model: "CS-AJ-DE2U-ZG-11"},
             {vendor: "Aubess", model: "TS011F_plug_1"},
-            tuya.whitelabel("BSEED", "FK86ZEUSK1W", "Wall-mounted electrical socket", ["_TZ3000_4ux0ondb", "_TZ3000_b28wrpvx"]),
+            tuya.whitelabel("BSEED", "FK86ZEUSK1W", "Wall-mounted electrical socket", ["_TZ3000_4ux0ondb", "_TZ3000_b28wrpvx", "_TZ3000_2uollq9d"]),
+            tuya.whitelabel("BSEED", "GL86ZEUSKM1PDAC1W", "Wall-mounted electrical EU socket with power monitoring", ["_TZ3210_5ct6e7ye"]),
             tuya.whitelabel("Nous", "A1Z", "Smart plug (with power monitoring)", ["_TZ3000_2putqrmw", "_TZ3000_ksw8qtmt"]),
             tuya.whitelabel("Moes", "Moes_plug", "Smart plug (with power monitoring)", ["_TZ3000_yujkchbz"]),
             tuya.whitelabel("Moes", "ZK-EU", "Smart wallsocket (with power monitoring)", ["_TZ3000_ss98ec5d"]),
@@ -11696,7 +11705,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMin(30)
                 .withValueMax(3600)
                 .withDescription(
-                    "WARNING: You must update device firmware to V3.1.3 before changing this setting! Use Tuya gateway/app to update firmware. Data report duration set (Threshold value range 5~3600 seconds)",
+                    "WARNING: You must update device firmware to V3.1.3 before changing this setting! Use Tuya gateway/app to update firmware. Data report duration set (Threshold value range 30~3600 seconds)",
                 ),
         ],
         meta: {
@@ -11914,7 +11923,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMin(30)
                 .withValueMax(3600)
                 .withDescription(
-                    "WARNING: You must update device firmware to V3.2.2 before changing this setting! Use Tuya gateway/app to update firmware. Data report duration set (Threshold value range 5~3600 seconds)",
+                    "WARNING: You must update device firmware to V3.2.2 before changing this setting! Use Tuya gateway/app to update firmware. Data report duration set (Threshold value range 30~3600 seconds)",
                 ),
         ],
         meta: {
@@ -14113,8 +14122,8 @@ export const definitions: DefinitionWithExtend[] = [
                         "be between 6.5-8ph and ORP should be between 487-840mv, and the chlorine value will be displayed normally. Chlorine will not " +
                         "be displayed if either value is out of range",
                 ),
-            e.numeric("ph_max", ea.STATE_SET).withUnit("pH").withDescription("pH maximal value").withValueMin(0).withValueMax(20),
-            e.numeric("ph_min", ea.STATE_SET).withUnit("pH").withDescription("pH minimal value").withValueMin(0).withValueMax(20),
+            e.numeric("ph_max", ea.STATE_SET).withUnit("pH").withDescription("pH maximal value").withValueMin(0).withValueMax(140),
+            e.numeric("ph_min", ea.STATE_SET).withUnit("pH").withDescription("pH minimal value").withValueMin(0).withValueMax(140),
             e
                 .numeric("ec_max", ea.STATE_SET)
                 .withUnit("µS/cm")
@@ -14126,31 +14135,31 @@ export const definitions: DefinitionWithExtend[] = [
                 .withUnit("µS/cm")
                 .withDescription("Electrical Conductivity minimal value")
                 .withValueMin(0)
-                .withValueMax(100),
+                .withValueMax(20000),
             e
                 .numeric("orp_max", ea.STATE_SET)
                 .withUnit("mV")
                 .withDescription("Oxidation Reduction Potential maximal value")
                 .withValueMin(0)
-                .withValueMax(1000),
+                .withValueMax(1200),
             e
                 .numeric("orp_min", ea.STATE_SET)
                 .withUnit("mV")
                 .withDescription("Oxidation Reduction Potential minimal value")
                 .withValueMin(0)
-                .withValueMax(1000),
+                .withValueMax(1200),
             e
                 .numeric("free_chlorine_max", ea.STATE_SET)
                 .withUnit("mg/L")
                 .withDescription("Free Chlorine maximal value")
                 .withValueMin(0)
-                .withValueMax(15),
+                .withValueMax(40),
             e
                 .numeric("free_chlorine_min", ea.STATE_SET)
                 .withUnit("mg/L")
                 .withDescription("Free Chlorine minimal value")
                 .withValueMin(0)
-                .withValueMax(15),
+                .withValueMax(40),
             e.numeric("salinity", ea.STATE).withUnit("ppm").withDescription("Salt value"),
             e.numeric("backlightvalue", ea.STATE_SET).withUnit("gg").withDescription("Backlight Value").withValueMin(0).withValueMax(1),
         ],
@@ -14174,10 +14183,10 @@ export const definitions: DefinitionWithExtend[] = [
                 ],
                 [11, "ec", tuya.valueConverter.raw],
                 [101, "orp", tuya.valueConverter.raw],
-                [102, "free_chlorine", tuya.valueConverter.raw],
+                [102, "free_chlorine", tuya.valueConverter.divideBy10],
                 [105, "backlightvalue", tuya.valueConverter.raw],
-                [106, "ph_max", tuya.valueConverter.divideBy10],
-                [107, "ph_min", tuya.valueConverter.divideBy10],
+                [106, "ph_max", tuya.valueConverter.raw],
+                [107, "ph_min", tuya.valueConverter.raw],
                 [108, "ec_max", tuya.valueConverter.raw],
                 [109, "ec_min", tuya.valueConverter.raw],
                 [110, "orp_max", tuya.valueConverter.raw],
@@ -18518,6 +18527,213 @@ export const definitions: DefinitionWithExtend[] = [
                 ],
                 [11, "power_on_behavior", tuya.valueConverterBasic.lookup({off: tuya.enum(0), on: tuya.enum(1), restore: tuya.enum(2)})],
                 [12, "light_mode", tuya.valueConverterBasic.lookup({none: tuya.enum(0), relay: tuya.enum(1), pos: tuya.enum(2)})],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_pglpvdar"]),
+        model: "TO-Q-SA1",
+        vendor: "Tongou",
+        description: "Zigbee energy meter (transformer clamp)",
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        exposes: [
+            e.energy(),
+            e.voltage(),
+            e.current(),
+            e.power(),
+            e.ac_frequency(),
+            e.power_factor().withUnit("%"),
+            e.numeric("temperature", ea.STATE).withUnit("°C").withDescription("Current temperature"),
+            e
+                .enum("event", ea.STATE, [
+                    "normal",
+                    "over_current_trip",
+                    "over_power_trip",
+                    "high_temp_trip",
+                    "over_voltage_trip",
+                    "under_voltage_trip",
+                    "over_current_alarm",
+                    "over_power_alarm",
+                    "high_temp_alarm",
+                    "over_voltage_alarm",
+                    "under_voltage_alarm",
+                    "remote_on",
+                    "remote_off",
+                    "manual_on",
+                    "manual_off",
+                    "leakage_trip",
+                    "leakage_alarm",
+                    "restore_default",
+                    "automatic_closing",
+                    "electricity_shortage",
+                    "electricity_shortage_alarm",
+                    "timing_switch_On",
+                    "timing_switch_off",
+                ])
+                .withDescription("Last event of the device"),
+            e.enum("over_current_setting", ea.STATE_SET, ["Ignore", "Alarm"]).withDescription("Over current setting"),
+            e
+                .numeric("over_current_threshold", ea.STATE_SET)
+                .withUnit("A")
+                .withDescription("Setup the value on the device")
+                .withValueMin(1)
+                .withValueMax(50),
+            e.enum("over_voltage_setting", ea.STATE_SET, ["Ignore", "Alarm"]).withDescription("Over voltage setting"),
+            e
+                .numeric("over_voltage_threshold", ea.STATE_SET)
+                .withUnit("V")
+                .withDescription("Setup value on the device")
+                .withValueMin(240)
+                .withValueMax(295),
+            e.enum("under_voltage_setting", ea.STATE_SET, ["Ignore", "Alarm"]).withDescription("Under voltage setting"),
+            e
+                .numeric("under_voltage_threshold", ea.STATE_SET)
+                .withUnit("V")
+                .withDescription("Setup value on the device")
+                .withValueMin(90)
+                .withValueMax(220),
+            e.enum("temperature_setting", ea.STATE_SET, ["Ignore", "Alarm"]).withDescription("Temperature setting"),
+            e
+                .numeric("temperature_threshold", ea.STATE_SET)
+                .withUnit("°C")
+                .withDescription("Setup value on the device")
+                .withValueMin(-25)
+                .withValueMax(80),
+            e.enum("over_power_setting", ea.STATE_SET, ["Ignore", "Alarm"]).withDescription("Over power setting"),
+            e
+                .numeric("over_power_threshold", ea.STATE_SET)
+                .withUnit("W")
+                .withDescription("Setup value on the device")
+                .withValueMin(1000)
+                .withValueMax(26000),
+        ],
+        meta: {
+            multiEndpointSkip: ["test1", "forward_electricity"],
+            tuyaDatapoints: [
+                [1, "energy", tuya.valueConverter.divideBy100], // Total forward energy
+                [6, null, tuya.valueConverter.phaseVariant2], // Phase A
+                [13, "test1", tuya.valueConverter.raw], // Remaining electricity
+                [32, "ac_frequency", tuya.valueConverter.divideBy100], // Grid supply frequency
+                [50, "power_factor", tuya.valueConverter.raw], // Overall power factor
+                [
+                    102,
+                    "over_voltage_setting",
+                    tuya.valueConverterBasic.lookup({
+                        Ignore: tuya.enum(0),
+                        Alarm: tuya.enum(1),
+                    }),
+                ],
+                [
+                    103,
+                    "under_voltage_setting",
+                    tuya.valueConverterBasic.lookup({
+                        Ignore: tuya.enum(0),
+                        Alarm: tuya.enum(1),
+                    }),
+                ],
+                [
+                    104,
+                    "over_current_setting",
+                    tuya.valueConverterBasic.lookup({
+                        Ignore: tuya.enum(0),
+                        Alarm: tuya.enum(1),
+                    }),
+                ],
+                [
+                    105,
+                    "over_power_setting",
+                    tuya.valueConverterBasic.lookup({
+                        Ignore: tuya.enum(0),
+                        Alarm: tuya.enum(1),
+                    }),
+                ],
+                [
+                    107,
+                    "temperature_setting",
+                    tuya.valueConverterBasic.lookup({
+                        Ignore: tuya.enum(0),
+                        Alarm: tuya.enum(1),
+                    }),
+                ],
+                [
+                    110,
+                    "event",
+                    tuya.valueConverterBasic.lookup({
+                        normal: 0,
+                        over_current_trip: 1,
+                        over_power_trip: 2,
+                        high_temp_trip: 3,
+                        over_voltage_trip: 4,
+                        under_voltage_trip: 5,
+                        over_current_alarm: 6,
+                        over_power_alarm: 7,
+                        high_temp_alarm: 8,
+                        over_voltage_alarm: 9,
+                        under_voltage_alarm: 10,
+                        remote_on: 11,
+                        remote_off: 12,
+                        manual_on: 13,
+                        manual_off: 14,
+                        leakage_trip: 15,
+                        leakage_alarm: 16,
+                        restore_default: 17,
+                        automatic_closing: 18,
+                        electricity_shortage: 19,
+                        electricity_shortage_alarm: 20,
+                        timing_switch_on: 21,
+                        timing_switch_off: 22,
+                    }),
+                ],
+                [114, "over_current_threshold", tuya.valueConverter.raw],
+                [115, "over_voltage_threshold", tuya.valueConverter.raw],
+                [116, "under_voltage_threshold", tuya.valueConverter.raw],
+                [118, "temperature_threshold", tuya.valueConverter.divideBy10],
+                [119, "over_power_threshold", tuya.valueConverter.raw],
+                [125, "forward_electricity", tuya.valueConverter.raw],
+                [131, "temperature", tuya.valueConverter.divideBy10],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_q9xty0ad"]),
+        model: "_TZE204_q9xty0ad",
+        vendor: "Tuya",
+        description: "Ayvolt Blinds",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        options: [exposes.options.invert_cover()],
+        exposes: [e.cover_position(), e.enum("motor_direction", ea.STATE_SET, ["normal", "reversed"]).withDescription("Motor direction")],
+        meta: {
+            tuyaDatapoints: [
+                [
+                    1,
+                    "state",
+                    tuya.valueConverterBasic.lookup((options) =>
+                        options.invert_cover
+                            ? {OPEN: tuya.enum(2), STOP: tuya.enum(1), CLOSE: tuya.enum(0)}
+                            : {OPEN: tuya.enum(0), STOP: tuya.enum(1), CLOSE: tuya.enum(2)},
+                    ),
+                ],
+                [
+                    3,
+                    "work_state",
+                    tuya.valueConverterBasic.lookup((options) =>
+                        options.invert_cover ? {opening: tuya.enum(1), closing: tuya.enum(0)} : {opening: tuya.enum(0), closing: tuya.enum(1)},
+                    ),
+                ],
+                [
+                    8,
+                    null,
+                    {
+                        from: (v, meta, options, publish) => {
+                            return {
+                                position: tuya.valueConverter.coverPosition.from(v, meta, options, publish),
+                            };
+                        },
+                    },
+                ],
+                [9, "position", tuya.valueConverter.coverPosition],
+                [11, "motor_direction", tuya.valueConverter.tubularMotorDirection],
             ],
         },
     },
