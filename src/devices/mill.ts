@@ -8,7 +8,7 @@ const e = exposes.presets;
 export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["Panel gen4"],
-        model: "Smart WiFi Gen. 4",
+        model: "Mill-gen-4",
         vendor: "Mill",
         description: "WiFi heating panel gen4",
         fromZigbee: [fz.thermostat, fz.identify],
