@@ -15642,10 +15642,18 @@ export const definitions: DefinitionWithExtend[] = [
                     null,
                     {
                         from: (v: number) => {
-                            if (v > 99) {
-                                return v / 10;
-                            }
-                            return v / 100;
+                            const lookup = {
+                                none: tuya.enum(0),
+                                presence: tuya.enum(1),
+                                peaceful: tuya.enum(2),
+                                small_movement: tuya.enum(3),
+                                large_movement: tuya.enum(4),
+                            };
+                            const presenceState = Object.entries(lookup).find((i) => i[1].valueOf() === v)[0];
+                            return {
+                                presence: presenceState !== "none",
+                                presence_state: presenceState,
+                            };
                         },
                     },
                 ],
