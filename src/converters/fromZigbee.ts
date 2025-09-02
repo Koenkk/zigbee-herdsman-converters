@@ -3507,17 +3507,16 @@ export const enocean_ptm216z: Fz.Converter = {
         }
     },
 };
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const _8840100H_water_leak_alarm: Fz.Converter = {
-    cluster: "haApplianceEventsAlerts",
-    type: "commandAlertsNotification",
-    convert: (model, msg, publish, options, meta) => {
-        const alertStatus = msg.data.aalert;
-        return {
-            water_leak: (alertStatus & (1 << 12)) > 0,
-        };
-    },
-};
+// export const _8840100H_water_leak_alarm: Fz.Converter = {
+//     cluster: "haApplianceEventsAlerts",
+//     type: "commandAlertsNotification",
+//     convert: (model, msg, publish, options, meta) => {
+//         const alertStatus = msg.data.aalert;
+//         return {
+//             water_leak: (alertStatus & (1 << 12)) > 0,
+//         };
+//     },
+// };
 export const diyruz_freepad_clicks: Fz.Converter = {
     cluster: "genMultistateInput",
     type: ["readResponse", "attributeReport"],
