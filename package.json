@@ -43,7 +43,7 @@
         "buffer-crc32": "^1.0.0",
         "iconv-lite": "^0.7.0",
         "semver": "^7.7.1",
-        "zigbee-herdsman": "^6.0.2"
+        "zigbee-herdsman": "^6.1.0"
     },
     "exports": {
         ".": "./dist/index.js",
