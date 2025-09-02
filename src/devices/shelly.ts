@@ -1,4 +1,4 @@
-import {ZSpec, Zcl} from "zigbee-herdsman";
+import {Zcl, ZSpec} from "zigbee-herdsman";
 import * as m from "../lib/modernExtend";
 import type {DefinitionWithExtend, ModernExtend} from "../lib/types";
 import {assertString} from "../lib/utils";
