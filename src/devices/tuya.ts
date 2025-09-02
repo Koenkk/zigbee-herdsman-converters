@@ -2406,7 +2406,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_aao3yzhs", "_TZE284_nhgdf6qr", "_TZE284_ap9owrsa", "_TZE284_33bwcga2"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_aao3yzhs", "_TZE284_nhgdf6qr", "_TZE284_ap9owrsa", "_TZE284_33bwcga2","_TZE284_wckqztdq"]),
         model: "TS0601_soil_3",
         vendor: "Tuya",
         description: "Soil sensor",
@@ -2451,7 +2451,6 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE200_0nauxa0p",
             "_TZE200_ykgar0ow",
             "_TZE200_0hb4rdnp",
-            "_TZE284_wckqztdq",
         ]),
         model: "TS0601_dimmer_1_gang_1",
         vendor: "Tuya",
