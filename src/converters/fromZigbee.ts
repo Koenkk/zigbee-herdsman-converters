@@ -1,3 +1,4 @@
+import assert from "node:assert";
 import * as libColor from "../lib/color";
 import * as constants from "../lib/constants";
 import * as exposes from "../lib/exposes";
@@ -23,7 +24,7 @@ const e = exposes.presets;
 const ea = exposes.access;
 
 // #region Generic/recommended converters
-export const fan: Fz.Converter = {
+export const fan: Fz.Converter<"hvacFanCtrl", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "hvacFanCtrl",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
@@ -33,7 +34,7 @@ export const fan: Fz.Converter = {
         }
     },
 };
-export const fan_speed: Fz.Converter = {
+export const fan_speed: Fz.Converter<"genLevelCtrl", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "genLevelCtrl",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
@@ -43,7 +44,7 @@ export const fan_speed: Fz.Converter = {
         }
     },
 };
-export const thermostat: Fz.Converter = {
+export const thermostat: Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "hvacThermostat",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
@@ -199,7 +200,7 @@ export const thermostat: Fz.Converter = {
         return result;
     },
 };
-export const thermostat_weekly_schedule: Fz.Converter = {
+export const thermostat_weekly_schedule: Fz.Converter<"hvacThermostat", undefined, ["commandGetWeeklyScheduleRsp"]> = {
     cluster: "hvacThermostat",
     type: ["commandGetWeeklyScheduleRsp"],
     convert: (model, msg, publish, options, meta) => {
@@ -225,7 +226,7 @@ export const thermostat_weekly_schedule: Fz.Converter = {
         return {[postfixWithEndpointName("weekly_schedule", msg, model, meta)]: {days, transitions}};
     },
 };
-export const hvac_user_interface: Fz.Converter = {
+export const hvac_user_interface: Fz.Converter<"hvacUserInterfaceCfg", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "hvacUserInterfaceCfg",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
@@ -245,7 +246,7 @@ export const hvac_user_interface: Fz.Converter = {
         return result;
     },
 };
-export const lock_operation_event: Fz.Converter = {
+export const lock_operation_event: Fz.Converter<"closuresDoorLock", undefined, "commandOperationEventNotification"> = {
     cluster: "closuresDoorLock",
     type: "commandOperationEventNotification",
     convert: (model, msg, publish, options, meta) => {
@@ -276,7 +277,7 @@ export const lock_operation_event: Fz.Converter = {
         };
     },
 };
-export const lock_programming_event: Fz.Converter = {
+export const lock_programming_event: Fz.Converter<"closuresDoorLock", undefined, "commandProgrammingEventNotification"> = {
     cluster: "closuresDoorLock",
     type: "commandProgrammingEventNotification",
     convert: (model, msg, publish, options, meta) => {
@@ -297,7 +298,7 @@ export const lock_programming_event: Fz.Converter = {
         };
     },
 };
-export const lock_programming_event_read_pincode: Fz.Converter = {
+export const lock_programming_event_read_pincode: Fz.Converter<"closuresDoorLock", undefined, "commandProgrammingEventNotification"> = {
     cluster: "closuresDoorLock",
     type: "commandProgrammingEventNotification",
     convert: (model, msg, publish, options, meta) => {
@@ -311,7 +312,7 @@ export const lock_programming_event_read_pincode: Fz.Converter = {
         }
     },
 };
-export const lock: Fz.Converter = {
+export const lock: Fz.Converter<"closuresDoorLock", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "closuresDoorLock",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
@@ -344,7 +345,7 @@ export const lock: Fz.Converter = {
         return result;
     },
 };
-export const lock_set_pin_code_response: Fz.Converter = {
+export const lock_set_pin_code_response: Fz.Converter<"closuresDoorLock", undefined, ["commandSetPinCodeRsp", "commandClearPinCodeRsp"]> = {
     cluster: "closuresDoorLock",
     type: ["commandSetPinCodeRsp", "commandClearPinCodeRsp"],
     convert: (model, msg, publish, options, meta) => {
@@ -362,7 +363,7 @@ export const lock_set_pin_code_response: Fz.Converter = {
         }
     },
 };
-export const lock_pin_code_response: Fz.Converter = {
+export const lock_pin_code_response: Fz.Converter<"closuresDoorLock", undefined, ["commandGetPinCodeRsp"]> = {
     cluster: "closuresDoorLock",
     type: ["commandGetPinCodeRsp"],
     options: [exposes.options.expose_pin()],
@@ -383,7 +384,7 @@ export const lock_pin_code_response: Fz.Converter = {
         return result;
     },
 };
-export const lock_user_status_response: Fz.Converter = {
+export const lock_user_status_response: Fz.Converter<"closuresDoorLock", undefined, ["commandGetUserStatusRsp"]> = {
     cluster: "closuresDoorLock",
     type: ["commandGetUserStatusRsp"],
     options: [exposes.options.expose_pin()],
@@ -398,20 +399,17 @@ export const lock_user_status_response: Fz.Converter = {
         const userId = data.userid.toString();
         const result: KeyValueAny = {users: {}};
         result.users[userId] = {status: status};
-        if (options?.expose_pin && data.pincodevalue) {
-            result.users[userId].pin_code = data.pincodevalue;
-        }
         return result;
     },
 };
-export const linkquality_from_basic: Fz.Converter = {
+export const linkquality_from_basic: Fz.Converter<"genBasic", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "genBasic",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
         return {linkquality: msg.linkquality};
     },
 };
-export const battery: Fz.Converter = {
+export const battery: Fz.Converter<"genPowerCfg", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "genPowerCfg",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
@@ -462,32 +460,32 @@ export const battery: Fz.Converter = {
         return payload;
     },
 };
-export const temperature: Fz.Converter = {
+export const temperature: Fz.Converter<"msTemperatureMeasurement", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "msTemperatureMeasurement",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
         if (msg.data.measuredValue !== undefined) {
-            const temperature = Number.parseFloat(msg.data.measuredValue) / 100.0;
+            const temperature = msg.data.measuredValue / 100.0;
             const property = postfixWithEndpointName("temperature", msg, model, meta);
             return {[property]: temperature};
         }
     },
 };
-export const device_temperature: Fz.Converter = {
+export const device_temperature: Fz.Converter<"genDeviceTempCfg", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "genDeviceTempCfg",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
         if (msg.data.currentTemperature !== undefined) {
-            const value = Number.parseInt(msg.data.currentTemperature, 10);
+            const value = msg.data.currentTemperature;
             return {device_temperature: value};
         }
     },
 };
-export const humidity: Fz.Converter = {
+export const humidity: Fz.Converter<"msRelativeHumidity", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "msRelativeHumidity",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
-        const humidity = Number.parseFloat(msg.data.measuredValue) / 100.0;
+        const humidity = msg.data.measuredValue / 100.0;
         const property = postfixWithEndpointName("humidity", msg, model, meta);
 
         // https://github.com/Koenkk/zigbee2mqtt/issues/798
@@ -498,7 +496,7 @@ export const humidity: Fz.Converter = {
         }
     },
 };
-export const pm25: Fz.Converter = {
+export const pm25: Fz.Converter<"pm25Measurement", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "pm25Measurement",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
@@ -507,26 +505,26 @@ export const pm25: Fz.Converter = {
         }
     },
 };
-export const flow: Fz.Converter = {
+export const flow: Fz.Converter<"msFlowMeasurement", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "msFlowMeasurement",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
-        const flow = Number.parseFloat(msg.data.measuredValue) / 10.0;
+        const flow = msg.data.measuredValue / 10.0;
         const property = postfixWithEndpointName("flow", msg, model, meta);
         if (msg.data.measuredValue !== undefined) {
             return {[property]: flow};
         }
     },
 };
-export const soil_moisture: Fz.Converter = {
+export const soil_moisture: Fz.Converter<"msSoilMoisture", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "msSoilMoisture",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
-        const soilMoisture = Number.parseFloat(msg.data.measuredValue) / 100.0;
+        const soilMoisture = msg.data.measuredValue / 100.0;
         return {soil_moisture: soilMoisture};
     },
 };
-export const pressure: Fz.Converter = {
+export const pressure: Fz.Converter<"msPressureMeasurement", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "msPressureMeasurement",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
@@ -535,19 +533,19 @@ export const pressure: Fz.Converter = {
             const scale = msg.endpoint.getClusterAttributeValue("msPressureMeasurement", "scale") as number;
             pressure = msg.data.scaledValue / 10 ** scale / 100.0; // convert to hPa
         } else {
-            pressure = Number.parseFloat(msg.data.measuredValue);
+            pressure = msg.data.measuredValue;
         }
         return {pressure};
     },
 };
-export const co2: Fz.Converter = {
+export const co2: Fz.Converter<"msCO2", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "msCO2",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
         return {co2: Math.floor(msg.data.measuredValue * 1000000)};
     },
 };
-export const occupancy: Fz.Converter = {
+export const occupancy: Fz.Converter<"msOccupancySensing", undefined, ["attributeReport", "readResponse"]> = {
     // This is for occupancy sensor that send motion start AND stop messages
     cluster: "msOccupancySensing",
     type: ["attributeReport", "readResponse"],
@@ -560,7 +558,7 @@ export const occupancy: Fz.Converter = {
         }
     },
 };
-export const occupancy_with_timeout: Fz.Converter = {
+export const occupancy_with_timeout: Fz.Converter<"msOccupancySensing", undefined, ["attributeReport", "readResponse"]> = {
     // This is for occupancy sensor that only send a message when motion detected,
     // but do not send a motion stop.
     // Therefore we need to publish the no_motion detected by ourselves.
@@ -594,7 +592,7 @@ export const occupancy_with_timeout: Fz.Converter = {
         return payload;
     },
 };
-export const occupancy_timeout: Fz.Converter = {
+export const occupancy_timeout: Fz.Converter<"msOccupancySensing", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "msOccupancySensing",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
@@ -603,7 +601,7 @@ export const occupancy_timeout: Fz.Converter = {
         }
     },
 };
-export const brightness: Fz.Converter = {
+export const brightness: Fz.Converter<"genLevelCtrl", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "genLevelCtrl",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
@@ -613,7 +611,7 @@ export const brightness: Fz.Converter = {
         }
     },
 };
-export const level_config: Fz.Converter = {
+export const level_config: Fz.Converter<"genLevelCtrl", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "genLevelCtrl",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
@@ -680,7 +678,7 @@ export const level_config: Fz.Converter = {
         }
     },
 };
-export const color_colortemp: Fz.Converter = {
+export const color_colortemp: Fz.Converter<"lightingColorCtrl", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "lightingColorCtrl",
     type: ["attributeReport", "readResponse"],
     options: [exposes.options.color_sync()],
@@ -751,12 +749,12 @@ export const color_colortemp: Fz.Converter = {
         return Object.assign(result, libColor.syncColorState(result, meta.state, msg.endpoint, options, epPostfix));
     },
 };
-export const meter_identification: Fz.Converter = {
+export const meter_identification: Fz.Converter<"haMeterIdentification", undefined, ["readResponse"]> = {
     cluster: "haMeterIdentification",
     type: ["readResponse"],
     convert: (model, msg, publish, options, meta) => {
         const result: KeyValueAny = {};
-        const elements = [/* 0x000A*/ "softwareRevision", /* 0x000D*/ "availablePower", /* 0x000E*/ "powerThreshold"];
+        const elements = [/* 0x000A*/ "softwareRevision", /* 0x000D*/ "availablePower", /* 0x000E*/ "powerThreshold"] as const;
         for (const at of elements) {
             const atSnake = at
                 .split(/(?=[A-Z])/)
@@ -769,7 +767,7 @@ export const meter_identification: Fz.Converter = {
         return result;
     },
 };
-export const metering: Fz.Converter = {
+export const metering: Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]> = {
     /**
      * When using this converter also add the following to the configure method of the device:
      * await readMeteringPowerConverterAttributes(endpoint);
@@ -806,7 +804,7 @@ export const metering: Fz.Converter = {
         return payload;
     },
 };
-export const electrical_measurement: Fz.Converter = {
+export const electrical_measurement: Fz.Converter<"haElectricalMeasurement", undefined, ["attributeReport", "readResponse"]> = {
     /**
      * When using this converter also add the following to the configure method of the device:
      * await readEletricalMeasurementConverterAttributes(endpoint);
@@ -823,26 +821,26 @@ export const electrical_measurement: Fz.Converter = {
         };
 
         const lookup = [
-            {key: "activePower", name: "power", factor: "acPower"},
-            {key: "activePowerPhB", name: "power_phase_b", factor: "acPower"},
-            {key: "activePowerPhC", name: "power_phase_c", factor: "acPower"},
-            {key: "apparentPower", name: "power_apparent", factor: "acPower"},
-            {key: "apparentPowerPhB", name: "power_apparent_phase_b", factor: "acPower"},
-            {key: "apparentPowerPhC", name: "power_apparent_phase_c", factor: "acPower"},
-            {key: "reactivePower", name: "power_reactive", factor: "acPower"},
-            {key: "reactivePowerPhB", name: "power_reactive_phase_b", factor: "acPower"},
-            {key: "reactivePowerPhC", name: "power_reactive_phase_c", factor: "acPower"},
-            {key: "rmsCurrent", name: "current", factor: "acCurrent"},
-            {key: "rmsCurrentPhB", name: "current_phase_b", factor: "acCurrent"},
-            {key: "rmsCurrentPhC", name: "current_phase_c", factor: "acCurrent"},
-            {key: "neutralCurrent", name: "current_neutral", factor: "acCurrent"},
-            {key: "rmsVoltage", name: "voltage", factor: "acVoltage"},
-            {key: "rmsVoltagePhB", name: "voltage_phase_b", factor: "acVoltage"},
-            {key: "rmsVoltagePhC", name: "voltage_phase_c", factor: "acVoltage"},
-            {key: "acFrequency", name: "ac_frequency", factor: "acFrequency"},
-            {key: "dcPower", name: "power", factor: "dcPower"},
-            {key: "dcCurrent", name: "current", factor: "dcCurrent"},
-            {key: "dcVoltage", name: "voltage", factor: "dcVoltage"},
+            {key: "activePower" as const, name: "power", factor: "acPower"},
+            {key: "activePowerPhB" as const, name: "power_phase_b", factor: "acPower"},
+            {key: "activePowerPhC" as const, name: "power_phase_c", factor: "acPower"},
+            {key: "apparentPower" as const, name: "power_apparent", factor: "acPower"},
+            {key: "apparentPowerPhB" as const, name: "power_apparent_phase_b", factor: "acPower"},
+            {key: "apparentPowerPhC" as const, name: "power_apparent_phase_c", factor: "acPower"},
+            {key: "reactivePower" as const, name: "power_reactive", factor: "acPower"},
+            {key: "reactivePowerPhB" as const, name: "power_reactive_phase_b", factor: "acPower"},
+            {key: "reactivePowerPhC" as const, name: "power_reactive_phase_c", factor: "acPower"},
+            {key: "rmsCurrent" as const, name: "current", factor: "acCurrent"},
+            {key: "rmsCurrentPhB" as const, name: "current_phase_b", factor: "acCurrent"},
+            {key: "rmsCurrentPhC" as const, name: "current_phase_c", factor: "acCurrent"},
+            {key: "neutralCurrent" as const, name: "current_neutral", factor: "acCurrent"},
+            {key: "rmsVoltage" as const, name: "voltage", factor: "acVoltage"},
+            {key: "rmsVoltagePhB" as const, name: "voltage_phase_b", factor: "acVoltage"},
+            {key: "rmsVoltagePhC" as const, name: "voltage_phase_c", factor: "acVoltage"},
+            {key: "acFrequency" as const, name: "ac_frequency", factor: "acFrequency"},
+            {key: "dcPower" as const, name: "power", factor: "dcPower"},
+            {key: "dcCurrent" as const, name: "current", factor: "dcCurrent"},
+            {key: "dcVoltage" as const, name: "voltage", factor: "dcVoltage"},
         ];
 
         const payload: KeyValueAny = {};
@@ -869,7 +867,7 @@ export const electrical_measurement: Fz.Converter = {
         return payload;
     },
 };
-export const gas_metering: Fz.Converter = {
+export const gas_metering: Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "seMetering",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
@@ -906,7 +904,7 @@ export const gas_metering: Fz.Converter = {
         return payload;
     },
 };
-export const on_off: Fz.Converter = {
+export const on_off: Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "genOnOff",
     type: ["attributeReport", "readResponse"],
     options: [exposes.options.state_action()],
@@ -923,7 +921,7 @@ export const on_off: Fz.Converter = {
         }
     },
 };
-export const on_off_force_multiendpoint: Fz.Converter = {
+export const on_off_force_multiendpoint: Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "genOnOff",
     type: ["attributeReport", "readResponse"],
     options: [exposes.options.state_action()],
@@ -943,7 +941,7 @@ export const on_off_force_multiendpoint: Fz.Converter = {
         }
     },
 };
-export const on_off_skip_duplicate_transaction: Fz.Converter = {
+export const on_off_skip_duplicate_transaction: Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "genOnOff",
     type: ["attributeReport", "readResponse"],
     options: [exposes.options.state_action()],
@@ -963,7 +961,7 @@ export const on_off_skip_duplicate_transaction: Fz.Converter = {
         }
     },
 };
-export const power_on_behavior: Fz.Converter = {
+export const power_on_behavior: Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "genOnOff",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
@@ -974,11 +972,11 @@ export const power_on_behavior: Fz.Converter = {
         }
     },
 };
-export const ias_no_alarm: Fz.Converter = {
+export const ias_no_alarm: Fz.Converter<"ssIasZone", undefined, ["attributeReport", "commandStatusChangeNotification"]> = {
     cluster: "ssIasZone",
     type: ["attributeReport", "commandStatusChangeNotification"],
     convert: (model, msg, publish, options, meta) => {
-        const zoneStatus = msg.data.zoneStatus ?? msg.data.zonestatus;
+        const zoneStatus = "zonestatus" in msg.data ? msg.data.zonestatus : msg.data.zoneStatus;
         if (zoneStatus !== undefined) {
             return {
                 tamper: (zoneStatus & (1 << 2)) > 0,
@@ -987,7 +985,7 @@ export const ias_no_alarm: Fz.Converter = {
         }
     },
 };
-export const ias_siren: Fz.Converter = {
+export const ias_siren: Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification"> = {
     cluster: "ssIasZone",
     type: "commandStatusChangeNotification",
     convert: (model, msg, publish, options, meta) => {
@@ -1003,7 +1001,7 @@ export const ias_siren: Fz.Converter = {
         };
     },
 };
-export const ias_water_leak_alarm_1: Fz.Converter = {
+export const ias_water_leak_alarm_1: Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification"> = {
     cluster: "ssIasZone",
     type: "commandStatusChangeNotification",
     convert: (model, msg, publish, options, meta) => {
@@ -1015,7 +1013,7 @@ export const ias_water_leak_alarm_1: Fz.Converter = {
         };
     },
 };
-export const ias_water_leak_alarm_1_report: Fz.Converter = {
+export const ias_water_leak_alarm_1_report: Fz.Converter<"ssIasZone", undefined, "attributeReport"> = {
     cluster: "ssIasZone",
     type: "attributeReport",
     convert: (model, msg, publish, options, meta) => {
@@ -1029,7 +1027,7 @@ export const ias_water_leak_alarm_1_report: Fz.Converter = {
         }
     },
 };
-export const ias_vibration_alarm_1: Fz.Converter = {
+export const ias_vibration_alarm_1: Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification"> = {
     cluster: "ssIasZone",
     type: "commandStatusChangeNotification",
     convert: (model, msg, publish, options, meta) => {
@@ -1041,7 +1039,7 @@ export const ias_vibration_alarm_1: Fz.Converter = {
         };
     },
 };
-export const ias_vibration_alarm_1_with_timeout: Fz.Converter = {
+export const ias_vibration_alarm_1_with_timeout: Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification"> = {
     cluster: "ssIasZone",
     type: "commandStatusChangeNotification",
     options: [exposes.options.vibration_timeout()],
@@ -1071,7 +1069,7 @@ export const ias_vibration_alarm_1_with_timeout: Fz.Converter = {
         };
     },
 };
-export const ias_gas_alarm_1: Fz.Converter = {
+export const ias_gas_alarm_1: Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification"> = {
     cluster: "ssIasZone",
     type: "commandStatusChangeNotification",
     convert: (model, msg, publish, options, meta) => {
@@ -1083,7 +1081,7 @@ export const ias_gas_alarm_1: Fz.Converter = {
         };
     },
 };
-export const ias_gas_alarm_2: Fz.Converter = {
+export const ias_gas_alarm_2: Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification"> = {
     cluster: "ssIasZone",
     type: "commandStatusChangeNotification",
     convert: (model, msg, publish, options, meta) => {
@@ -1095,11 +1093,11 @@ export const ias_gas_alarm_2: Fz.Converter = {
         };
     },
 };
-export const ias_smoke_alarm_1: Fz.Converter = {
+export const ias_smoke_alarm_1: Fz.Converter<"ssIasZone", undefined, ["commandStatusChangeNotification", "attributeReport", "readResponse"]> = {
     cluster: "ssIasZone",
     type: ["commandStatusChangeNotification", "attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
-        const zoneStatus = msg.type === "commandStatusChangeNotification" ? msg.data.zonestatus : msg.data.zoneStatus;
+        const zoneStatus = "zonestatus" in msg.data ? msg.data.zonestatus : msg.data.zoneStatus;
         return {
             smoke: (zoneStatus & 1) > 0,
             tamper: (zoneStatus & (1 << 2)) > 0,
@@ -1113,7 +1111,7 @@ export const ias_smoke_alarm_1: Fz.Converter = {
         };
     },
 };
-export const ias_contact_alarm_1: Fz.Converter = {
+export const ias_contact_alarm_1: Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification"> = {
     cluster: "ssIasZone",
     type: "commandStatusChangeNotification",
     convert: (model, msg, publish, options, meta) => {
@@ -1129,7 +1127,7 @@ export const ias_contact_alarm_1: Fz.Converter = {
         };
     },
 };
-export const ias_contact_alarm_1_report: Fz.Converter = {
+export const ias_contact_alarm_1_report: Fz.Converter<"ssIasZone", undefined, "attributeReport"> = {
     cluster: "ssIasZone",
     type: "attributeReport",
     convert: (model, msg, publish, options, meta) => {
@@ -1143,7 +1141,7 @@ export const ias_contact_alarm_1_report: Fz.Converter = {
         }
     },
 };
-export const ias_carbon_monoxide_alarm_1: Fz.Converter = {
+export const ias_carbon_monoxide_alarm_1: Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification"> = {
     cluster: "ssIasZone",
     type: "commandStatusChangeNotification",
     convert: (model, msg, publish, options, meta) => {
@@ -1155,24 +1153,24 @@ export const ias_carbon_monoxide_alarm_1: Fz.Converter = {
         };
     },
 };
-export const ias_carbon_monoxide_alarm_1_gas_alarm_2: Fz.Converter = {
+export const ias_carbon_monoxide_alarm_1_gas_alarm_2: Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification"> = {
     cluster: "ssIasZone",
     type: "commandStatusChangeNotification",
     convert: (model, msg, publish, options, meta) => {
-        const {zoneStatus} = msg.data;
+        const {zonestatus} = msg.data;
         return {
-            carbon_monoxide: (zoneStatus & 1) > 0,
-            gas: (zoneStatus & (1 << 1)) > 0,
-            tamper: (zoneStatus & (1 << 2)) > 0,
-            battery_low: (zoneStatus & (1 << 3)) > 0,
-            trouble: (zoneStatus & (1 << 6)) > 0,
-            ac_connected: !((zoneStatus & (1 << 7)) > 0),
-            test: (zoneStatus & (1 << 8)) > 0,
-            battery_defect: (zoneStatus & (1 << 9)) > 0,
+            carbon_monoxide: (zonestatus & 1) > 0,
+            gas: (zonestatus & (1 << 1)) > 0,
+            tamper: (zonestatus & (1 << 2)) > 0,
+            battery_low: (zonestatus & (1 << 3)) > 0,
+            trouble: (zonestatus & (1 << 6)) > 0,
+            ac_connected: !((zonestatus & (1 << 7)) > 0),
+            test: (zonestatus & (1 << 8)) > 0,
+            battery_defect: (zonestatus & (1 << 9)) > 0,
         };
     },
 };
-export const ias_sos_alarm_2: Fz.Converter = {
+export const ias_sos_alarm_2: Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification"> = {
     cluster: "ssIasZone",
     type: "commandStatusChangeNotification",
     convert: (model, msg, publish, options, meta) => {
@@ -1184,7 +1182,7 @@ export const ias_sos_alarm_2: Fz.Converter = {
         };
     },
 };
-export const ias_occupancy_alarm_1: Fz.Converter = {
+export const ias_occupancy_alarm_1: Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification"> = {
     cluster: "ssIasZone",
     type: "commandStatusChangeNotification",
     convert: (model, msg, publish, options, meta) => {
@@ -1196,9 +1194,9 @@ export const ias_occupancy_alarm_1: Fz.Converter = {
         };
     },
 };
-export const ias_occupancy_alarm_1_report: Fz.Converter = {
+export const ias_occupancy_alarm_1_report: Fz.Converter<"ssIasZone", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "ssIasZone",
-    type: "attributeReport",
+    type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
         const zoneStatus = msg.data.zoneStatus;
         if (zoneStatus !== undefined) {
@@ -1210,7 +1208,7 @@ export const ias_occupancy_alarm_1_report: Fz.Converter = {
         }
     },
 };
-export const ias_occupancy_alarm_2: Fz.Converter = {
+export const ias_occupancy_alarm_2: Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification"> = {
     cluster: "ssIasZone",
     type: "commandStatusChangeNotification",
     convert: (model, msg, publish, options, meta) => {
@@ -1222,7 +1220,7 @@ export const ias_occupancy_alarm_2: Fz.Converter = {
         };
     },
 };
-export const ias_alarm_only_alarm_1: Fz.Converter = {
+export const ias_alarm_only_alarm_1: Fz.Converter<"ssIasZone", undefined, "attributeReport"> = {
     cluster: "ssIasZone",
     type: "attributeReport",
     convert: (model, msg, publish, options, meta) => {
@@ -1232,7 +1230,7 @@ export const ias_alarm_only_alarm_1: Fz.Converter = {
         };
     },
 };
-export const ias_occupancy_only_alarm_2: Fz.Converter = {
+export const ias_occupancy_only_alarm_2: Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification"> = {
     cluster: "ssIasZone",
     type: "commandStatusChangeNotification",
     convert: (model, msg, publish, options, meta) => {
@@ -1242,7 +1240,7 @@ export const ias_occupancy_only_alarm_2: Fz.Converter = {
         };
     },
 };
-export const ias_occupancy_alarm_1_with_timeout: Fz.Converter = {
+export const ias_occupancy_alarm_1_with_timeout: Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification"> = {
     cluster: "ssIasZone",
     type: "commandStatusChangeNotification",
     options: [exposes.options.occupancy_timeout()],
@@ -1264,7 +1262,7 @@ export const ias_occupancy_alarm_1_with_timeout: Fz.Converter = {
         };
     },
 };
-export const command_store: Fz.Converter = {
+export const command_store: Fz.Converter<"genScenes", undefined, "commandStore"> = {
     cluster: "genScenes",
     type: "commandStore",
     convert: (model, msg, publish, options, meta) => {
@@ -1274,7 +1272,7 @@ export const command_store: Fz.Converter = {
         return payload;
     },
 };
-export const command_recall: Fz.Converter = {
+export const command_recall: Fz.Converter<"genScenes", undefined, "commandRecall"> = {
     cluster: "genScenes",
     type: "commandRecall",
     convert: (model, msg, publish, options, meta) => {
@@ -1284,7 +1282,7 @@ export const command_recall: Fz.Converter = {
         return payload;
     },
 };
-export const command_panic: Fz.Converter = {
+export const command_panic: Fz.Converter<"ssIasAce", undefined, "commandPanic"> = {
     cluster: "ssIasAce",
     type: "commandPanic",
     convert: (model, msg, publish, options, meta) => {
@@ -1294,7 +1292,7 @@ export const command_panic: Fz.Converter = {
         return payload;
     },
 };
-export const command_arm: Fz.Converter = {
+export const command_arm: Fz.Converter<"ssIasAce", undefined, "commandArm"> = {
     cluster: "ssIasAce",
     type: "commandArm",
     convert: (model, msg, publish, options, meta) => {
@@ -1308,7 +1306,7 @@ export const command_arm: Fz.Converter = {
         return payload;
     },
 };
-export const command_cover_stop: Fz.Converter = {
+export const command_cover_stop: Fz.Converter<"closuresWindowCovering", undefined, "commandStop"> = {
     cluster: "closuresWindowCovering",
     type: "commandStop",
     convert: (model, msg, publish, options, meta) => {
@@ -1318,7 +1316,7 @@ export const command_cover_stop: Fz.Converter = {
         return payload;
     },
 };
-export const command_cover_open: Fz.Converter = {
+export const command_cover_open: Fz.Converter<"closuresWindowCovering", undefined, "commandUpOpen"> = {
     cluster: "closuresWindowCovering",
     type: "commandUpOpen",
     convert: (model, msg, publish, options, meta) => {
@@ -1328,7 +1326,7 @@ export const command_cover_open: Fz.Converter = {
         return payload;
     },
 };
-export const command_cover_close: Fz.Converter = {
+export const command_cover_close: Fz.Converter<"closuresWindowCovering", undefined, "commandDownClose"> = {
     cluster: "closuresWindowCovering",
     type: "commandDownClose",
     convert: (model, msg, publish, options, meta) => {
@@ -1338,7 +1336,7 @@ export const command_cover_close: Fz.Converter = {
         return payload;
     },
 };
-export const command_on: Fz.Converter = {
+export const command_on: Fz.Converter<"genOnOff", undefined, "commandOn"> = {
     cluster: "genOnOff",
     type: "commandOn",
     convert: (model, msg, publish, options, meta) => {
@@ -1348,7 +1346,7 @@ export const command_on: Fz.Converter = {
         return payload;
     },
 };
-export const command_off: Fz.Converter = {
+export const command_off: Fz.Converter<"genOnOff", undefined, "commandOff"> = {
     cluster: "genOnOff",
     type: "commandOff",
     convert: (model, msg, publish, options, meta) => {
@@ -1358,7 +1356,7 @@ export const command_off: Fz.Converter = {
         return payload;
     },
 };
-export const command_off_with_effect: Fz.Converter = {
+export const command_off_with_effect: Fz.Converter<"genOnOff", undefined, "commandOffWithEffect"> = {
     cluster: "genOnOff",
     type: "commandOffWithEffect",
     convert: (model, msg, publish, options, meta) => {
@@ -1368,7 +1366,7 @@ export const command_off_with_effect: Fz.Converter = {
         return payload;
     },
 };
-export const command_toggle: Fz.Converter = {
+export const command_toggle: Fz.Converter<"genOnOff", undefined, "commandToggle"> = {
     cluster: "genOnOff",
     type: "commandToggle",
     convert: (model, msg, publish, options, meta) => {
@@ -1378,7 +1376,7 @@ export const command_toggle: Fz.Converter = {
         return payload;
     },
 };
-export const command_move_to_level: Fz.Converter = {
+export const command_move_to_level: Fz.Converter<"genLevelCtrl", undefined, ["commandMoveToLevel", "commandMoveToLevelWithOnOff"]> = {
     cluster: "genLevelCtrl",
     type: ["commandMoveToLevel", "commandMoveToLevelWithOnOff"],
     options: [exposes.options.simulated_brightness()],
@@ -1403,7 +1401,7 @@ export const command_move_to_level: Fz.Converter = {
         return payload;
     },
 };
-export const command_move: Fz.Converter = {
+export const command_move: Fz.Converter<"genLevelCtrl", undefined, ["commandMove", "commandMoveWithOnOff"]> = {
     cluster: "genLevelCtrl",
     type: ["commandMove", "commandMoveWithOnOff"],
     options: [exposes.options.simulated_brightness()],
@@ -1439,7 +1437,7 @@ export const command_move: Fz.Converter = {
         return payload;
     },
 };
-export const command_step: Fz.Converter = {
+export const command_step: Fz.Converter<"genLevelCtrl", undefined, ["commandStep", "commandStepWithOnOff"]> = {
     cluster: "genLevelCtrl",
     type: ["commandStep", "commandStepWithOnOff"],
     options: [exposes.options.simulated_brightness()],
@@ -1468,7 +1466,7 @@ export const command_step: Fz.Converter = {
         return payload;
     },
 };
-export const command_stop: Fz.Converter = {
+export const command_stop: Fz.Converter<"genLevelCtrl", undefined, ["commandStop", "commandStopWithOnOff"]> = {
     cluster: "genLevelCtrl",
     type: ["commandStop", "commandStopWithOnOff"],
     options: [exposes.options.simulated_brightness()],
@@ -1484,7 +1482,7 @@ export const command_stop: Fz.Converter = {
         return payload;
     },
 };
-export const command_move_color_temperature: Fz.Converter = {
+export const command_move_color_temperature: Fz.Converter<"lightingColorCtrl", undefined, ["commandMoveColorTemp"]> = {
     cluster: "lightingColorCtrl",
     type: ["commandMoveColorTemp"],
     convert: (model, msg, publish, options, meta) => {
@@ -1496,7 +1494,7 @@ export const command_move_color_temperature: Fz.Converter = {
         return payload;
     },
 };
-export const command_step_color_temperature: Fz.Converter = {
+export const command_step_color_temperature: Fz.Converter<"lightingColorCtrl", undefined, "commandStepColorTemp"> = {
     cluster: "lightingColorCtrl",
     type: "commandStepColorTemp",
     convert: (model, msg, publish, options, meta) => {
@@ -1515,7 +1513,7 @@ export const command_step_color_temperature: Fz.Converter = {
         return payload;
     },
 };
-export const command_enhanced_move_to_hue_and_saturation: Fz.Converter = {
+export const command_enhanced_move_to_hue_and_saturation: Fz.Converter<"lightingColorCtrl", undefined, "commandEnhancedMoveToHueAndSaturation"> = {
     cluster: "lightingColorCtrl",
     type: "commandEnhancedMoveToHueAndSaturation",
     convert: (model, msg, publish, options, meta) => {
@@ -1532,7 +1530,7 @@ export const command_enhanced_move_to_hue_and_saturation: Fz.Converter = {
         return payload;
     },
 };
-export const command_move_to_hue_and_saturation: Fz.Converter = {
+export const command_move_to_hue_and_saturation: Fz.Converter<"lightingColorCtrl", undefined, "commandMoveToHueAndSaturation"> = {
     cluster: "lightingColorCtrl",
     type: "commandMoveToHueAndSaturation",
     convert: (model, msg, publish, options, meta) => {
@@ -1548,7 +1546,7 @@ export const command_move_to_hue_and_saturation: Fz.Converter = {
         return payload;
     },
 };
-export const command_step_hue: Fz.Converter = {
+export const command_step_hue: Fz.Converter<"lightingColorCtrl", undefined, ["commandStepHue"]> = {
     cluster: "lightingColorCtrl",
     type: ["commandStepHue"],
     convert: (model, msg, publish, options, meta) => {
@@ -1563,7 +1561,7 @@ export const command_step_hue: Fz.Converter = {
         return payload;
     },
 };
-export const command_step_saturation: Fz.Converter = {
+export const command_step_saturation: Fz.Converter<"lightingColorCtrl", undefined, ["commandStepSaturation"]> = {
     cluster: "lightingColorCtrl",
     type: ["commandStepSaturation"],
     convert: (model, msg, publish, options, meta) => {
@@ -1578,7 +1576,7 @@ export const command_step_saturation: Fz.Converter = {
         return payload;
     },
 };
-export const command_color_loop_set: Fz.Converter = {
+export const command_color_loop_set: Fz.Converter<"lightingColorCtrl", undefined, "commandColorLoopSet"> = {
     cluster: "lightingColorCtrl",
     type: "commandColorLoopSet",
     convert: (model, msg, publish, options, meta) => {
@@ -1608,7 +1606,7 @@ export const command_color_loop_set: Fz.Converter = {
         return payload;
     },
 };
-export const command_move_to_color_temp: Fz.Converter = {
+export const command_move_to_color_temp: Fz.Converter<"lightingColorCtrl", undefined, "commandMoveToColorTemp"> = {
     cluster: "lightingColorCtrl",
     type: "commandMoveToColorTemp",
     convert: (model, msg, publish, options, meta) => {
@@ -1622,7 +1620,7 @@ export const command_move_to_color_temp: Fz.Converter = {
         return payload;
     },
 };
-export const command_move_to_color: Fz.Converter = {
+export const command_move_to_color: Fz.Converter<"lightingColorCtrl", undefined, "commandMoveToColor"> = {
     cluster: "lightingColorCtrl",
     type: "commandMoveToColor",
     convert: (model, msg, publish, options, meta) => {
@@ -1639,7 +1637,7 @@ export const command_move_to_color: Fz.Converter = {
         return payload;
     },
 };
-export const command_move_hue: Fz.Converter = {
+export const command_move_hue: Fz.Converter<"lightingColorCtrl", undefined, "commandMoveHue"> = {
     cluster: "lightingColorCtrl",
     type: "commandMoveHue",
     convert: (model, msg, publish, options, meta) => {
@@ -1651,7 +1649,7 @@ export const command_move_hue: Fz.Converter = {
         return payload;
     },
 };
-export const command_move_to_saturation: Fz.Converter = {
+export const command_move_to_saturation: Fz.Converter<"lightingColorCtrl", undefined, "commandMoveToSaturation"> = {
     cluster: "lightingColorCtrl",
     type: "commandMoveToSaturation",
     convert: (model, msg, publish, options, meta) => {
@@ -1665,7 +1663,7 @@ export const command_move_to_saturation: Fz.Converter = {
         return payload;
     },
 };
-export const command_move_to_hue: Fz.Converter = {
+export const command_move_to_hue: Fz.Converter<"lightingColorCtrl", undefined, "commandMoveToHue"> = {
     cluster: "lightingColorCtrl",
     type: "commandMoveToHue",
     convert: (model, msg, publish, options, meta) => {
@@ -1680,7 +1678,7 @@ export const command_move_to_hue: Fz.Converter = {
         return payload;
     },
 };
-export const command_emergency: Fz.Converter = {
+export const command_emergency: Fz.Converter<"ssIasAce", undefined, "commandEmergency"> = {
     cluster: "ssIasAce",
     type: "commandEmergency",
     convert: (model, msg, publish, options, meta) => {
@@ -1690,7 +1688,7 @@ export const command_emergency: Fz.Converter = {
         return payload;
     },
 };
-export const command_on_state: Fz.Converter = {
+export const command_on_state: Fz.Converter<"genOnOff", undefined, "commandOn"> = {
     cluster: "genOnOff",
     type: "commandOn",
     convert: (model, msg, publish, options, meta) => {
@@ -1699,7 +1697,7 @@ export const command_on_state: Fz.Converter = {
         return {[property]: "ON"};
     },
 };
-export const command_off_state: Fz.Converter = {
+export const command_off_state: Fz.Converter<"genOnOff", undefined, "commandOff"> = {
     cluster: "genOnOff",
     type: "commandOff",
     convert: (model, msg, publish, options, meta) => {
@@ -1708,14 +1706,14 @@ export const command_off_state: Fz.Converter = {
         return {[property]: "OFF"};
     },
 };
-export const identify: Fz.Converter = {
+export const identify: Fz.Converter<"genIdentify", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "genIdentify",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
         return {action: postfixWithEndpointName("identify", msg, model, meta)};
     },
 };
-export const cover_position_tilt: Fz.Converter = {
+export const cover_position_tilt: Fz.Converter<"closuresWindowCovering", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "closuresWindowCovering",
     type: ["attributeReport", "readResponse"],
     options: [exposes.options.invert_cover()],
@@ -1765,7 +1763,7 @@ export const cover_position_tilt: Fz.Converter = {
         return result;
     },
 };
-export const cover_position_via_brightness: Fz.Converter = {
+export const cover_position_via_brightness: Fz.Converter<"genLevelCtrl", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "genLevelCtrl",
     type: ["attributeReport", "readResponse"],
     options: [exposes.options.invert_cover()],
@@ -1777,7 +1775,7 @@ export const cover_position_via_brightness: Fz.Converter = {
         return {state: state, position: position};
     },
 };
-export const cover_state_via_onoff: Fz.Converter = {
+export const cover_state_via_onoff: Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "genOnOff",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
@@ -1786,7 +1784,7 @@ export const cover_state_via_onoff: Fz.Converter = {
         }
     },
 };
-export const curtain_position_analog_output: Fz.Converter = {
+export const curtain_position_analog_output: Fz.Converter<"genAnalogOutput", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "genAnalogOutput",
     type: ["attributeReport", "readResponse"],
     options: [exposes.options.invert_cover()],
@@ -1796,7 +1794,7 @@ export const curtain_position_analog_output: Fz.Converter = {
         return {position};
     },
 };
-export const lighting_ballast_configuration: Fz.Converter = {
+export const lighting_ballast_configuration: Fz.Converter<"lightingBallastCfg", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "lightingBallastCfg",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
@@ -1849,7 +1847,7 @@ export const lighting_ballast_configuration: Fz.Converter = {
         return result;
     },
 };
-export const checkin_presence: Fz.Converter = {
+export const checkin_presence: Fz.Converter<"genPollCtrl", undefined, ["commandCheckin"]> = {
     cluster: "genPollCtrl",
     type: ["commandCheckin"],
     options: [exposes.options.presence_timeout()],
@@ -1866,7 +1864,7 @@ export const checkin_presence: Fz.Converter = {
         return {presence: true};
     },
 };
-export const ias_enroll: Fz.Converter = {
+export const ias_enroll: Fz.Converter<"ssIasZone", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "ssIasZone",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
@@ -1880,7 +1878,7 @@ export const ias_enroll: Fz.Converter = {
         };
     },
 };
-export const ias_wd: Fz.Converter = {
+export const ias_wd: Fz.Converter<"ssIasWd", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "ssIasWd",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
@@ -1889,7 +1887,7 @@ export const ias_wd: Fz.Converter = {
         return result;
     },
 };
-export const power_source: Fz.Converter = {
+export const power_source: Fz.Converter<"genBasic", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "genBasic",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
@@ -1920,7 +1918,7 @@ export const power_source: Fz.Converter = {
 // #endregion
 
 // #region Non-generic converters
-export const namron_thermostat: Fz.Converter = {
+export const namron_thermostat: Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "hvacThermostat",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
@@ -1929,31 +1927,31 @@ export const namron_thermostat: Fz.Converter = {
         if (data[0x1000] !== undefined) {
             // Display brightness
             const lookup: KeyValueAny = {0: "low", 1: "mid", 2: "high"};
-            result.lcd_brightness = lookup[data[0x1000]];
+            result.lcd_brightness = lookup[data[0x1000] as number];
         }
         if (data[0x1001] !== undefined) {
             // Button vibration level
             const lookup: KeyValueAny = {0: "off", 1: "low", 2: "high"};
-            result.button_vibration_level = lookup[data[0x1001]];
+            result.button_vibration_level = lookup[data[0x1001] as number];
         }
         if (data[0x1002] !== undefined) {
             // Floor sensor type
             const lookup: KeyValueAny = {1: "10k", 2: "15k", 3: "50k", 4: "100k", 5: "12k"};
-            result.floor_sensor_type = lookup[data[0x1002]];
+            result.floor_sensor_type = lookup[data[0x1002] as number];
         }
         if (data[0x1003] !== undefined) {
             // Sensor
             const lookup: KeyValueAny = {0: "air", 1: "floor", 2: "both"};
-            result.sensor = lookup[data[0x1003]];
+            result.sensor = lookup[data[0x1003] as number];
         }
         if (data[0x1004] !== undefined) {
             // PowerUpStatus
             const lookup: KeyValueAny = {0: "default", 1: "last_status"};
-            result.powerup_status = lookup[data[0x1004]];
+            result.powerup_status = lookup[data[0x1004] as number];
         }
         if (data[0x1005] !== undefined) {
             // FloorSensorCalibration
-            result.floor_sensor_calibration = precisionRound(data[0x1005], 2) / 10;
+            result.floor_sensor_calibration = precisionRound(data[0x1005] as number, 2) / 10;
         }
         if (data[0x1006] !== undefined) {
             // DryTime
@@ -1962,20 +1960,20 @@ export const namron_thermostat: Fz.Converter = {
         if (data[0x1007] !== undefined) {
             // ModeAfterDry
             const lookup: KeyValueAny = {0: "off", 1: "manual", 2: "auto", 3: "away"};
-            result.mode_after_dry = lookup[data[0x1007]];
+            result.mode_after_dry = lookup[data[0x1007] as number];
         }
         if (data[0x1008] !== undefined) {
             // TemperatureDisplay
             const lookup: KeyValueAny = {0: "room", 1: "floor"};
-            result.temperature_display = lookup[data[0x1008]];
+            result.temperature_display = lookup[data[0x1008] as number];
         }
         if (data[0x1009] !== undefined) {
             // WindowOpenCheck
-            result.window_open_check = data[0x1009] / 2;
+            result.window_open_check = (data[0x1009] as number) / 2;
         }
         if (data[0x100a] !== undefined) {
             // Hysterersis
-            result.hysterersis = precisionRound(data[0x100a], 2) / 10;
+            result.hysterersis = precisionRound(data[0x100a] as number, 2) / 10;
         }
         if (data[0x100b] !== undefined) {
             // DisplayAutoOffEnable
@@ -1993,7 +1991,7 @@ export const namron_thermostat: Fz.Converter = {
         return result;
     },
 };
-export const namron_hvac_user_interface: Fz.Converter = {
+export const namron_hvac_user_interface: Fz.Converter<"hvacUserInterfaceCfg", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "hvacUserInterfaceCfg",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
@@ -2005,7 +2003,7 @@ export const namron_hvac_user_interface: Fz.Converter = {
         return result;
     },
 };
-export const elko_thermostat: Fz.Converter = {
+export const elko_thermostat: Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "hvacThermostat",
     type: ["attributeReport", "readResponse"],
     options: [exposes.options.local_temperature_based_on_sensor()],
@@ -2085,7 +2083,7 @@ export const elko_thermostat: Fz.Converter = {
         return result;
     },
 };
-export const ias_smoke_alarm_1_develco: Fz.Converter = {
+export const ias_smoke_alarm_1_develco: Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification"> = {
     cluster: "ssIasZone",
     type: "commandStatusChangeNotification",
     convert: (model, msg, publish, options, meta) => {
@@ -2099,7 +2097,7 @@ export const ias_smoke_alarm_1_develco: Fz.Converter = {
         };
     },
 };
-export const ts0201_temperature_humidity_alarm: Fz.Converter = {
+export const ts0201_temperature_humidity_alarm: Fz.Converter<"manuSpecificTuya2", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "manuSpecificTuya2",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
@@ -2127,7 +2125,7 @@ export const ts0201_temperature_humidity_alarm: Fz.Converter = {
         return result;
     },
 };
-export const tuya_led_controller: Fz.Converter = {
+export const tuya_led_controller: Fz.Converter<"lightingColorCtrl", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "lightingColorCtrl",
     type: ["attributeReport", "readResponse"],
     options: [exposes.options.color_sync()],
@@ -2173,7 +2171,7 @@ export const tuya_led_controller: Fz.Converter = {
         return Object.assign(result, libColor.syncColorState(result, meta.state, msg.endpoint, options, epPostfix));
     },
 };
-export const wiser_device_info: Fz.Converter = {
+export const wiser_device_info: Fz.Converter<"wiserDeviceInfo", undefined, "attributeReport"> = {
     cluster: "wiserDeviceInfo",
     type: "attributeReport",
     convert: (model, msg, publish, options, meta) => {
@@ -2183,15 +2181,16 @@ export const wiser_device_info: Fz.Converter = {
             // TODO What is ALG
             const alg = data.slice(1);
             result.ALG = alg.join(",");
-            result.occupied_heating_setpoint = alg[2] / 10;
-            result.local_temperature = alg[3] / 10;
+            result.occupied_heating_setpoint = Number.parseInt(alg[2], 10) / 10;
+            result.local_temperature = Number.parseInt(alg[3], 10) / 10;
             result.pi_heating_demand = Number.parseInt(alg[9], 10);
         } else if (data[0] === "ADC") {
             // TODO What is ADC
             const adc = data.slice(1);
             result.ADC = adc.join(",");
-            result.occupied_heating_setpoint = adc[5] / 100;
-            result.local_temperature = adc[3] / 10;
+            // TODO: should parseInt?
+            result.occupied_heating_setpoint = Number.parseInt(adc[5], 10) / 100;
+            result.local_temperature = Number.parseInt(adc[3], 10) / 10;
         } else if (data[0] === "UI") {
             if (data[1] === "BoostUp") {
                 result.boost = "Up";
@@ -2207,7 +2206,7 @@ export const wiser_device_info: Fz.Converter = {
         return result;
     },
 };
-export const tuya_doorbell_button: Fz.Converter = {
+export const tuya_doorbell_button: Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification"> = {
     cluster: "ssIasZone",
     type: "commandStatusChangeNotification",
     convert: (model, msg, publish, options, meta) => {
@@ -2221,7 +2220,7 @@ export const tuya_doorbell_button: Fz.Converter = {
         };
     },
 };
-export const terncy_knob: Fz.Converter = {
+export const terncy_knob: Fz.Converter<"manuSpecificClusterAduroSmart", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "manuSpecificClusterAduroSmart",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
@@ -2232,7 +2231,7 @@ export const terncy_knob: Fz.Converter = {
         }
     },
 };
-export const DTB190502A1: Fz.Converter = {
+export const DTB190502A1: Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "genOnOff",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
@@ -2244,13 +2243,13 @@ export const DTB190502A1: Fz.Converter = {
         };
         const lookupLED: KeyValueAny = {"0": "OFF", "1": "ON"};
         return {
-            cpu_temperature: precisionRound(msg.data["41361"], 2),
-            key_state: lookupKEY[msg.data["41362"]],
-            led_state: lookupLED[msg.data["41363"]],
+            cpu_temperature: precisionRound(msg.data["41361"] as number, 2),
+            key_state: lookupKEY[msg.data["41362"] as number],
+            led_state: lookupLED[msg.data["41363"] as number],
         };
     },
 };
-export const ZigUP: Fz.Converter = {
+export const ZigUP: Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "genOnOff",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
@@ -2263,46 +2262,46 @@ export const ZigUP: Fz.Converter = {
         let ds18b20Id = null;
         let ds18b20Value = null;
         if (msg.data["41368"]) {
-            ds18b20Id = msg.data["41368"].split(":")[0];
-            ds18b20Value = precisionRound(msg.data["41368"].split(":")[1], 2);
+            ds18b20Id = (msg.data["41368"] as string).split(":")[0];
+            ds18b20Value = precisionRound(Number.parseFloat((msg.data["41368"] as string).split(":")[1]), 2);
         }
 
         return {
             state: msg.data.onOff === 1 ? "ON" : "OFF",
-            cpu_temperature: precisionRound(msg.data["41361"], 2),
-            external_temperature: precisionRound(msg.data["41362"], 1),
-            external_humidity: precisionRound(msg.data["41363"], 1),
+            cpu_temperature: precisionRound(msg.data["41361"] as number, 2),
+            external_temperature: precisionRound(msg.data["41362"] as number, 1),
+            external_humidity: precisionRound(msg.data["41363"] as number, 1),
             s0_counts: msg.data["41364"],
-            adc_volt: precisionRound(msg.data["41365"], 3),
+            adc_volt: precisionRound(msg.data["41365"] as number, 3),
             dig_input: msg.data["41366"],
-            reason: lookup[msg.data["41367"]],
+            reason: lookup[msg.data["41367"] as number],
             [`${ds18b20Id}`]: ds18b20Value,
         };
     },
 };
-export const terncy_contact: Fz.Converter = {
+export const terncy_contact: Fz.Converter<"genBinaryInput", undefined, "attributeReport"> = {
     cluster: "genBinaryInput",
     type: "attributeReport",
     convert: (model, msg, publish, options, meta) => {
         return {contact: msg.data.presentValue === 0};
     },
 };
-export const terncy_temperature: Fz.Converter = {
+export const terncy_temperature: Fz.Converter<"msTemperatureMeasurement", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "msTemperatureMeasurement",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
-        const temperature = Number.parseFloat(msg.data.measuredValue) / 10.0;
+        const temperature = msg.data.measuredValue / 10.0;
         return {temperature: temperature};
     },
 };
-export const ts0216_siren: Fz.Converter = {
+export const ts0216_siren: Fz.Converter<"ssIasWd", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "ssIasWd",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
         const result: KeyValueAny = {};
         if (msg.data.maxDuration !== undefined) result.duration = msg.data.maxDuration;
         if (msg.data["2"] !== undefined) {
-            result.volume = mapNumberRange(msg.data["2"], 100, 10, 0, 100);
+            result.volume = mapNumberRange(msg.data["2"] as number, 100, 10, 0, 100);
         }
         if (msg.data["61440"] !== undefined) {
             result.alarm = msg.data["61440"] !== 0;
@@ -2310,13 +2309,13 @@ export const ts0216_siren: Fz.Converter = {
         return result;
     },
 };
-export const tuya_cover_options_2: Fz.Converter = {
+export const tuya_cover_options_2: Fz.Converter<"closuresWindowCovering", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "closuresWindowCovering",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
         const result: KeyValueAny = {};
         if (msg.data.moesCalibrationTime !== undefined) {
-            const value = Number.parseFloat(msg.data.moesCalibrationTime) / 100;
+            const value = msg.data.moesCalibrationTime / 100;
             result[postfixWithEndpointName("calibration_time", msg, model, meta)] = value;
         }
         if (msg.data.tuyaMotorReversal !== undefined) {
@@ -2327,7 +2326,7 @@ export const tuya_cover_options_2: Fz.Converter = {
         return result;
     },
 };
-export const tuya_cover_options: Fz.Converter = {
+export const tuya_cover_options: Fz.Converter<"closuresWindowCovering", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "closuresWindowCovering",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
@@ -2348,7 +2347,7 @@ export const tuya_cover_options: Fz.Converter = {
             result[postfixWithEndpointName("motor_reversal", msg, model, meta)] = reversalLookup[value];
         }
         if (msg.data.moesCalibrationTime !== undefined) {
-            const value = Number.parseFloat(msg.data.moesCalibrationTime) / 10.0;
+            const value = msg.data.moesCalibrationTime / 10.0;
             if (["_TZ3000_cet6ch1r", "_TZ3000_5iixzdo7"].includes(meta.device.manufacturerName)) {
                 const endpoint = msg.endpoint.ID;
                 const calibrationLookup: KeyValueAny = {1: "to_open", 2: "to_close"};
@@ -2361,7 +2360,7 @@ export const tuya_cover_options: Fz.Converter = {
     },
 };
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const WSZ01_on_off_action: Fz.Converter = {
+export const WSZ01_on_off_action: Fz.Converter<65029, undefined, "raw"> = {
     cluster: 65029,
     type: "raw",
     convert: (model, msg, publish, options, meta) => {
@@ -2369,7 +2368,7 @@ export const WSZ01_on_off_action: Fz.Converter = {
         return {action: `${clickMapping[msg.data[6]]}`};
     },
 };
-export const tuya_switch_scene: Fz.Converter = {
+export const tuya_switch_scene: Fz.Converter<"genOnOff", undefined, "commandTuyaAction"> = {
     cluster: "genOnOff",
     type: "commandTuyaAction",
     convert: (model, msg, publish, options, meta) => {
@@ -2380,7 +2379,7 @@ export const tuya_switch_scene: Fz.Converter = {
         return {action: "switch_scene", action_scene: msg.data.value};
     },
 };
-export const livolo_switch_state: Fz.Converter = {
+export const livolo_switch_state: Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "genOnOff",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
@@ -2391,7 +2390,7 @@ export const livolo_switch_state: Fz.Converter = {
         };
     },
 };
-export const livolo_socket_state: Fz.Converter = {
+export const livolo_socket_state: Fz.Converter<"genPowerCfg", undefined, ["raw"]> = {
     cluster: "genPowerCfg",
     type: ["raw"],
     convert: (model, msg, publish, options, meta) => {
@@ -2402,7 +2401,7 @@ export const livolo_socket_state: Fz.Converter = {
         }
     },
 };
-export const livolo_new_switch_state: Fz.Converter = {
+export const livolo_new_switch_state: Fz.Converter<"genPowerCfg", undefined, ["raw"]> = {
     cluster: "genPowerCfg",
     type: ["raw"],
     convert: (model, msg, publish, options, meta) => {
@@ -2413,7 +2412,7 @@ export const livolo_new_switch_state: Fz.Converter = {
         }
     },
 };
-export const livolo_new_switch_state_2gang: Fz.Converter = {
+export const livolo_new_switch_state_2gang: Fz.Converter<"genPowerCfg", undefined, ["raw"]> = {
     cluster: "genPowerCfg",
     type: ["raw"],
     convert: (model, msg, publish, options, meta) => {
@@ -2429,7 +2428,7 @@ export const livolo_new_switch_state_2gang: Fz.Converter = {
         }
     },
 };
-export const livolo_new_switch_state_4gang: Fz.Converter = {
+export const livolo_new_switch_state_4gang: Fz.Converter<"genPowerCfg", undefined, ["raw"]> = {
     cluster: "genPowerCfg",
     type: ["raw"],
     convert: (model, msg, publish, options, meta) => {
@@ -2456,7 +2455,7 @@ export const livolo_new_switch_state_4gang: Fz.Converter = {
         }
     },
 };
-export const livolo_curtain_switch_state: Fz.Converter = {
+export const livolo_curtain_switch_state: Fz.Converter<"genPowerCfg", undefined, ["raw"]> = {
     cluster: "genPowerCfg",
     type: ["raw"],
     convert: (model, msg, publish, options, meta) => {
@@ -2472,7 +2471,7 @@ export const livolo_curtain_switch_state: Fz.Converter = {
         }
     },
 };
-export const livolo_dimmer_state: Fz.Converter = {
+export const livolo_dimmer_state: Fz.Converter<"genPowerCfg", undefined, ["raw"]> = {
     cluster: "genPowerCfg",
     type: ["raw"],
     convert: (model, msg, publish, options, meta) => {
@@ -2498,7 +2497,7 @@ export const livolo_dimmer_state: Fz.Converter = {
         }
     },
 };
-export const livolo_cover_state: Fz.Converter = {
+export const livolo_cover_state: Fz.Converter<"genPowerCfg", undefined, ["raw"]> = {
     cluster: "genPowerCfg",
     type: ["raw"],
     convert: (model, msg, publish, options, meta) => {
@@ -2544,7 +2543,7 @@ export const livolo_cover_state: Fz.Converter = {
         }
     },
 };
-export const livolo_hygrometer_state: Fz.Converter = {
+export const livolo_hygrometer_state: Fz.Converter<"genPowerCfg", undefined, ["raw"]> = {
     cluster: "genPowerCfg",
     type: ["raw"],
     convert: (model, msg, publish, options, meta) => {
@@ -2561,7 +2560,7 @@ export const livolo_hygrometer_state: Fz.Converter = {
         }
     },
 };
-export const livolo_illuminance_state: Fz.Converter = {
+export const livolo_illuminance_state: Fz.Converter<"genPowerCfg", undefined, ["raw"]> = {
     cluster: "genPowerCfg",
     type: ["raw"],
     convert: (model, msg, publish, options, meta) => {
@@ -2580,7 +2579,7 @@ export const livolo_illuminance_state: Fz.Converter = {
         }
     },
 };
-export const livolo_pir_state: Fz.Converter = {
+export const livolo_pir_state: Fz.Converter<"genPowerCfg", undefined, ["raw"]> = {
     cluster: "genPowerCfg",
     type: ["raw"],
     convert: (model, msg, publish, options, meta) => {
@@ -2595,7 +2594,7 @@ export const livolo_pir_state: Fz.Converter = {
         }
     },
 };
-export const easycode_action: Fz.Converter = {
+export const easycode_action: Fz.Converter<"closuresDoorLock", undefined, "raw"> = {
     cluster: "closuresDoorLock",
     type: "raw",
     convert: (model, msg, publish, options, meta) => {
@@ -2612,7 +2611,7 @@ export const easycode_action: Fz.Converter = {
         return {action: lookup[msg.data[3]]};
     },
 };
-export const easycodetouch_action: Fz.Converter = {
+export const easycodetouch_action: Fz.Converter<"closuresDoorLock", undefined, "raw"> = {
     cluster: "closuresDoorLock",
     type: "raw",
     convert: (model, msg, publish, options, meta) => {
@@ -2623,7 +2622,7 @@ export const easycodetouch_action: Fz.Converter = {
         logger.warning(`Unknown lock status with source ${msg.data[3]} and event code ${msg.data[4]}`, NS);
     },
 };
-export const livolo_switch_state_raw: Fz.Converter = {
+export const livolo_switch_state_raw: Fz.Converter<"genPowerCfg", undefined, ["raw"]> = {
     cluster: "genPowerCfg",
     type: ["raw"],
     convert: (model, msg, publish, options, meta) => {
@@ -2731,26 +2730,24 @@ export const livolo_switch_state_raw: Fz.Converter = {
         }
     },
 };
-export const ptvo_switch_uart: Fz.Converter = {
+export const ptvo_switch_uart: Fz.Converter<"genMultistateValue", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "genMultistateValue",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
-        let data = msg.data.stateText;
-        if (typeof data === "object") {
+        let data: unknown[] | string = msg.data.stateText as unknown[]; // ZclArray is only for write
+        if (Array.isArray(data)) {
             let bHex = false;
-            // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
-            let code;
-            // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
-            let index;
+            let code: number;
+            let index: number;
             for (index = 0; index < data.length; index += 1) {
-                code = data[index];
+                code = data[index] as number;
                 if (code < 32 || code > 127) {
                     bHex = true;
                     break;
                 }
             }
             if (!bHex) {
-                data = data.toString("latin1");
+                data = data.toString();
             } else {
                 data = [...data];
             }
@@ -2758,7 +2755,7 @@ export const ptvo_switch_uart: Fz.Converter = {
         return {action: data};
     },
 };
-export const ptvo_switch_analog_input: Fz.Converter = {
+export const ptvo_switch_analog_input: Fz.Converter<"genAnalogInput", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "genAnalogInput",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
@@ -2829,7 +2826,7 @@ export const ptvo_switch_analog_input: Fz.Converter = {
         return payload;
     },
 };
-export const keypad20states: Fz.Converter = {
+export const keypad20states: Fz.Converter<"genOnOff", undefined, ["readResponse", "attributeReport"]> = {
     cluster: "genOnOff",
     type: ["readResponse", "attributeReport"],
     convert: (model, msg, publish, options, meta) => {
@@ -2840,7 +2837,7 @@ export const keypad20states: Fz.Converter = {
         }
     },
 };
-export const keypad20_battery: Fz.Converter = {
+export const keypad20_battery: Fz.Converter<"genPowerCfg", undefined, ["readResponse", "attributeReport"]> = {
     cluster: "genPowerCfg",
     type: ["readResponse", "attributeReport"],
     convert: (model, msg, publish, options, meta) => {
@@ -2852,7 +2849,7 @@ export const keypad20_battery: Fz.Converter = {
         };
     },
 };
-export const plaid_battery: Fz.Converter = {
+export const plaid_battery: Fz.Converter<"genPowerCfg", undefined, ["readResponse", "attributeReport"]> = {
     cluster: "genPowerCfg",
     type: ["readResponse", "attributeReport"],
     convert: (model, msg, publish, options, meta) => {
@@ -2867,12 +2864,18 @@ export const plaid_battery: Fz.Converter = {
         return payload;
     },
 };
-export const heiman_ir_remote: Fz.Converter = {
+export const heiman_ir_remote: Fz.Converter<
+    "heimanSpecificInfraRedRemote",
+    undefined,
+    ["commandStudyKeyRsp", "commandCreateIdRsp", "commandGetIdAndKeyCodeListRsp"]
+> = {
     cluster: "heimanSpecificInfraRedRemote",
     type: ["commandStudyKeyRsp", "commandCreateIdRsp", "commandGetIdAndKeyCodeListRsp"],
     convert: (model, msg, publish, options, meta) => {
+        // TODO: split converter for each cmd?
         switch (msg.type) {
             case "commandStudyKeyRsp":
+                assert("keyCode" in msg.data);
                 return {
                     action: "learn",
                     action_result: msg.data.result === 1 ? "success" : "error",
@@ -2880,6 +2883,7 @@ export const heiman_ir_remote: Fz.Converter = {
                     action_id: msg.data.result === 1 ? msg.data.id : undefined,
                 };
             case "commandCreateIdRsp":
+                assert("modelType" in msg.data);
                 return {
                     action: "create",
                     action_result: msg.data.id === 0xff ? "error" : "success",
@@ -2887,6 +2891,7 @@ export const heiman_ir_remote: Fz.Converter = {
                     action_id: msg.data.id !== 0xff ? msg.data.id : undefined,
                 };
             case "commandGetIdAndKeyCodeListRsp": {
+                assert("packetNumber" in msg.data);
                 // See cluster.js with data format description
                 if (msg.data.packetNumber === 1) {
                     // start to collect and merge list
@@ -2920,7 +2925,7 @@ export const heiman_ir_remote: Fz.Converter = {
         }
     },
 };
-export const meazon_meter: Fz.Converter = {
+export const meazon_meter: Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "seMetering",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
@@ -2936,60 +2941,60 @@ export const meazon_meter: Fz.Converter = {
         }
 
         if (msg.data["8192"] !== undefined) {
-            result.line_frequency = precisionRound(Number.parseFloat(msg.data["8192"]) / 100.0, 2);
+            result.line_frequency = precisionRound(Number.parseFloat(msg.data["8192"] as string) / 100.0, 2);
             result.linefrequency = result.line_frequency; // deprecated
         }
 
         if (msg.data["8193"] !== undefined) {
-            result.power = precisionRound(msg.data["8193"], 2);
+            result.power = precisionRound(msg.data["8193"] as number, 2);
         }
 
         if (msg.data["8196"] !== undefined) {
-            result.voltage = precisionRound(msg.data["8196"], 2);
+            result.voltage = precisionRound(msg.data["8196"] as number, 2);
         }
 
         if (msg.data["8213"] !== undefined) {
-            result.voltage = precisionRound(msg.data["8213"], 2);
+            result.voltage = precisionRound(msg.data["8213"] as number, 2);
         }
 
         if (msg.data["8199"] !== undefined) {
-            result.current = precisionRound(msg.data["8199"], 2);
+            result.current = precisionRound(msg.data["8199"] as number, 2);
         }
 
         if (msg.data["8216"] !== undefined) {
-            result.current = precisionRound(msg.data["8216"], 2);
+            result.current = precisionRound(msg.data["8216"] as number, 2);
         }
 
         if (msg.data["8202"] !== undefined) {
-            result.reactive_power = precisionRound(msg.data["8202"], 2);
+            result.reactive_power = precisionRound(msg.data["8202"] as number, 2);
             result.reactivepower = result.reactive_power; // deprecated
         }
 
         if (msg.data["12288"] !== undefined) {
-            result.energy_consumed = precisionRound(msg.data["12288"], 2); // deprecated
+            result.energy_consumed = precisionRound(msg.data["12288"] as number, 2); // deprecated
             result.energyconsumed = result.energy_consumed; // deprecated
             result.energy = result.energy_consumed;
         }
 
         if (msg.data["12291"] !== undefined) {
-            result.energy_produced = precisionRound(msg.data["12291"], 2);
+            result.energy_produced = precisionRound(msg.data["12291"] as number, 2);
             result.energyproduced = result.energy_produced; // deprecated
         }
 
         if (msg.data["12294"] !== undefined) {
-            result.reactive_summation = precisionRound(msg.data["12294"], 2);
+            result.reactive_summation = precisionRound(msg.data["12294"] as number, 2);
             result.reactivesummation = result.reactive_summation; // deprecated
         }
 
         if (msg.data["16408"] !== undefined) {
-            result.measure_serial = precisionRound(msg.data["16408"], 2);
+            result.measure_serial = precisionRound(msg.data["16408"] as number, 2);
             result.measureserial = result.measure_serial; // deprecated
         }
 
         return result;
     },
 };
-export const danfoss_thermostat: Fz.Converter = {
+export const danfoss_thermostat: Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "hvacThermostat",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
@@ -3029,9 +3034,6 @@ export const danfoss_thermostat: Fz.Converter = {
         }
         if (msg.data.danfossRadiatorCovered !== undefined) {
             result[postfixWithEndpointName("radiator_covered", msg, model, meta)] = msg.data.danfossRadiatorCovered === 1;
-        }
-        if (msg.data.danfossViewingDirection !== undefined) {
-            result[postfixWithEndpointName("viewing_direction", msg, model, meta)] = msg.data.danfossViewingDirection === 1;
         }
         if (msg.data.danfossAlgorithmScaleFactor !== undefined) {
             result[postfixWithEndpointName("algorithm_scale_factor", msg, model, meta)] = msg.data.danfossAlgorithmScaleFactor;
@@ -3093,7 +3095,18 @@ export const danfoss_thermostat: Fz.Converter = {
         return result;
     },
 };
-export const danfoss_thermostat_setpoint_scheduled: Fz.Converter = {
+export const danfoss_hvac_ui: Fz.Converter<"hvacUserInterfaceCfg", undefined, ["attributeReport", "readResponse"]> = {
+    cluster: "hvacUserInterfaceCfg",
+    type: ["attributeReport", "readResponse"],
+    convert: (model, msg, publish, options, meta) => {
+        const result: KeyValueAny = {};
+        if (msg.data.danfossViewingDirection !== undefined) {
+            result[postfixWithEndpointName("viewing_direction", msg, model, meta)] = msg.data.danfossViewingDirection === 1;
+        }
+        return result;
+    },
+};
+export const danfoss_thermostat_setpoint_scheduled: Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "hvacThermostat",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
@@ -3105,7 +3118,7 @@ export const danfoss_thermostat_setpoint_scheduled: Fz.Converter = {
         return result;
     },
 };
-export const danfoss_icon_floor_sensor: Fz.Converter = {
+export const danfoss_icon_floor_sensor: Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "hvacThermostat",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
@@ -3149,7 +3162,7 @@ export const danfoss_icon_floor_sensor: Fz.Converter = {
         return result;
     },
 };
-export const danfoss_icon_battery: Fz.Converter = {
+export const danfoss_icon_battery: Fz.Converter<"genPowerCfg", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "genPowerCfg",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
@@ -3166,7 +3179,7 @@ export const danfoss_icon_battery: Fz.Converter = {
         return result;
     },
 };
-export const danfoss_icon_regulator: Fz.Converter = {
+export const danfoss_icon_regulator: Fz.Converter<"haDiagnostic", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "haDiagnostic",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
@@ -3177,11 +3190,11 @@ export const danfoss_icon_regulator: Fz.Converter = {
                     ? constants.danfossSystemStatusCode[msg.data.danfossSystemStatusCode]
                     : msg.data.danfossSystemStatusCode;
         }
-        if (msg.data.danfossHeatsupplyRequest !== undefined) {
+        if (msg.data.danfossHeatSupplyRequest !== undefined) {
             result[postfixWithEndpointName("heat_supply_request", msg, model, meta)] =
-                constants.danfossHeatsupplyRequest[msg.data.danfossHeatsupplyRequest] !== undefined
-                    ? constants.danfossHeatsupplyRequest[msg.data.danfossHeatsupplyRequest]
-                    : msg.data.danfossHeatsupplyRequest;
+                constants.danfossHeatsupplyRequest[msg.data.danfossHeatSupplyRequest] !== undefined
+                    ? constants.danfossHeatsupplyRequest[msg.data.danfossHeatSupplyRequest]
+                    : msg.data.danfossHeatSupplyRequest;
         }
         if (msg.data.danfossSystemStatusWater !== undefined) {
             result[postfixWithEndpointName("system_status_water", msg, model, meta)] =
@@ -3210,7 +3223,7 @@ export const danfoss_icon_regulator: Fz.Converter = {
         return result;
     },
 };
-export const danfoss_icon_hvac_user_interface: Fz.Converter = {
+export const danfoss_icon_hvac_user_interface: Fz.Converter<"hvacUserInterfaceCfg", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "hvacUserInterfaceCfg",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
@@ -3230,7 +3243,7 @@ export const danfoss_icon_hvac_user_interface: Fz.Converter = {
         return result;
     },
 };
-export const orvibo_raw_1: Fz.Converter = {
+export const orvibo_raw_1: Fz.Converter<23, undefined, "raw"> = {
     cluster: 23,
     type: "raw",
     convert: (model, msg, publish, options, meta) => {
@@ -3266,7 +3279,7 @@ export const orvibo_raw_1: Fz.Converter = {
         }
     },
 };
-export const orvibo_raw_2: Fz.Converter = {
+export const orvibo_raw_2: Fz.Converter<23, undefined, "raw"> = {
     cluster: 23,
     type: "raw",
     convert: (model, msg, publish, options, meta) => {
@@ -3292,7 +3305,7 @@ export const orvibo_raw_2: Fz.Converter = {
         }
     },
 };
-export const tint_scene: Fz.Converter = {
+export const tint_scene: Fz.Converter<"genBasic", undefined, "write"> = {
     cluster: "genBasic",
     type: "write",
     convert: (model, msg, publish, options, meta) => {
@@ -3301,7 +3314,7 @@ export const tint_scene: Fz.Converter = {
         return payload;
     },
 };
-export const tint404011_move_to_color_temp: Fz.Converter = {
+export const tint404011_move_to_color_temp: Fz.Converter<"lightingColorCtrl", undefined, "commandMoveToColorTemp"> = {
     cluster: "lightingColorCtrl",
     type: "commandMoveToColorTemp",
     convert: (model, msg, publish, options, meta) => {
@@ -3335,7 +3348,7 @@ export const tint404011_move_to_color_temp: Fz.Converter = {
         return payload;
     },
 };
-export const restorable_brightness: Fz.Converter = {
+export const restorable_brightness: Fz.Converter<"genLevelCtrl", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "genLevelCtrl",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
@@ -3348,7 +3361,7 @@ export const restorable_brightness: Fz.Converter = {
         }
     },
 };
-export const ewelink_action: Fz.Converter = {
+export const ewelink_action: Fz.Converter<"genOnOff", undefined, ["commandOn", "commandOff", "commandToggle"]> = {
     cluster: "genOnOff",
     type: ["commandOn", "commandOff", "commandToggle"],
     convert: (model, msg, publish, options, meta) => {
@@ -3356,21 +3369,21 @@ export const ewelink_action: Fz.Converter = {
         return {action: lookup[msg.type]};
     },
 };
-export const diyruz_contact: Fz.Converter = {
+export const diyruz_contact: Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "genOnOff",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
         return {contact: msg.data.onOff !== 0};
     },
 };
-export const diyruz_rspm: Fz.Converter = {
+export const diyruz_rspm: Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "genOnOff",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
-        const power = precisionRound(msg.data["41364"], 2);
+        const power = precisionRound(msg.data["41364"] as number, 2);
         return {
             state: msg.data.onOff === 1 ? "ON" : "OFF",
-            cpu_temperature: precisionRound(msg.data["41361"], 2),
+            cpu_temperature: precisionRound(msg.data["41361"] as number, 2),
             power: power,
             current: precisionRound(power / 230, 2),
             action: msg.data["41367"] === 1 ? "hold" : "release",
@@ -3378,14 +3391,14 @@ export const diyruz_rspm: Fz.Converter = {
     },
 };
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const K4003C_binary_input: Fz.Converter = {
+export const K4003C_binary_input: Fz.Converter<"genBinaryInput", undefined, "attributeReport"> = {
     cluster: "genBinaryInput",
     type: "attributeReport",
     convert: (model, msg, publish, options, meta) => {
         return {action: msg.data.presentValue === 1 ? "off" : "on"};
     },
 };
-export const enocean_ptm215z: Fz.Converter = {
+export const enocean_ptm215z: Fz.Converter<"greenPower", undefined, ["commandNotification", "commandCommissioningNotification"]> = {
     cluster: "greenPower",
     type: ["commandNotification", "commandCommissioningNotification"],
     convert: (model, msg, publish, options, meta) => {
@@ -3417,7 +3430,7 @@ export const enocean_ptm215z: Fz.Converter = {
         return {action};
     },
 };
-export const enocean_ptm215ze: Fz.Converter = {
+export const enocean_ptm215ze: Fz.Converter<"greenPower", undefined, ["commandNotification", "commandCommissioningNotification"]> = {
     cluster: "greenPower",
     type: ["commandNotification", "commandCommissioningNotification"],
     convert: (model, msg, publish, options, meta) => {
@@ -3466,7 +3479,7 @@ export const enocean_ptm215ze: Fz.Converter = {
         }
     },
 };
-export const enocean_ptm216z: Fz.Converter = {
+export const enocean_ptm216z: Fz.Converter<"greenPower", undefined, ["commandNotification", "commandCommissioningNotification"]> = {
     cluster: "greenPower",
     type: ["commandNotification", "commandCommissioningNotification"],
     convert: (model, msg, publish, options, meta) => {
@@ -3499,7 +3512,7 @@ export const enocean_ptm216z: Fz.Converter = {
             "104_": "short_press_2_of_2",
         };
 
-        const ID = `${commandID}_${msg.data.commandFrame.raw?.slice(0, 1).join("_") ?? ""}`;
+        const ID = `${commandID}_${("raw" in msg.data.commandFrame && msg.data.commandFrame.raw?.slice(0, 1).join("_")) ?? ""}`;
         if (lookup[ID] === undefined) {
             logger.error(`PTM 216Z: missing command '${ID}'`, NS);
         } else {
@@ -3517,7 +3530,7 @@ export const enocean_ptm216z: Fz.Converter = {
 //         };
 //     },
 // };
-export const diyruz_freepad_clicks: Fz.Converter = {
+export const diyruz_freepad_clicks: Fz.Converter<"genMultistateInput", undefined, ["readResponse", "attributeReport"]> = {
     cluster: "genMultistateInput",
     type: ["readResponse", "attributeReport"],
     convert: (model, msg, publish, options, meta) => {
@@ -3528,14 +3541,14 @@ export const diyruz_freepad_clicks: Fz.Converter = {
         return {action: `${button}_${action}`};
     },
 };
-export const kmpcil_res005_occupancy: Fz.Converter = {
+export const kmpcil_res005_occupancy: Fz.Converter<"genBinaryInput", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "genBinaryInput",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
         return {occupancy: msg.data.presentValue === 1};
     },
 };
-export const kmpcil_res005_on_off: Fz.Converter = {
+export const kmpcil_res005_on_off: Fz.Converter<"genBinaryOutput", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "genBinaryOutput",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
@@ -3543,15 +3556,15 @@ export const kmpcil_res005_on_off: Fz.Converter = {
     },
 };
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const _3310_humidity: Fz.Converter = {
+export const _3310_humidity: Fz.Converter<"manuSpecificCentraliteHumidity", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "manuSpecificCentraliteHumidity",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
-        const humidity = Number.parseFloat(msg.data.measuredValue) / 100.0;
+        const humidity = msg.data.measuredValue / 100.0;
         return {humidity};
     },
 };
-export const smartthings_acceleration: Fz.Converter = {
+export const smartthings_acceleration: Fz.Converter<"manuSpecificSamsungAccelerometer", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "manuSpecificSamsungAccelerometer",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
@@ -3573,7 +3586,7 @@ export const smartthings_acceleration: Fz.Converter = {
         return payload;
     },
 };
-export const byun_smoke_false: Fz.Converter = {
+export const byun_smoke_false: Fz.Converter<"pHMeasurement", undefined, ["attributeReport"]> = {
     cluster: "pHMeasurement",
     type: ["attributeReport"],
     convert: (model, msg, publish, options, meta) => {
@@ -3582,7 +3595,7 @@ export const byun_smoke_false: Fz.Converter = {
         }
     },
 };
-export const byun_smoke_true: Fz.Converter = {
+export const byun_smoke_true: Fz.Converter<"ssIasZone", undefined, ["commandStatusChangeNotification"]> = {
     cluster: "ssIasZone",
     type: ["commandStatusChangeNotification"],
     convert: (model, msg, publish, options, meta) => {
@@ -3591,7 +3604,7 @@ export const byun_smoke_true: Fz.Converter = {
         }
     },
 };
-export const byun_gas_false: Fz.Converter = {
+export const byun_gas_false: Fz.Converter<1034, undefined, ["raw"]> = {
     cluster: 1034,
     type: ["raw"],
     convert: (model, msg, publish, options, meta) => {
@@ -3600,7 +3613,7 @@ export const byun_gas_false: Fz.Converter = {
         }
     },
 };
-export const byun_gas_true: Fz.Converter = {
+export const byun_gas_true: Fz.Converter<"ssIasZone", undefined, ["commandStatusChangeNotification"]> = {
     cluster: "ssIasZone",
     type: ["commandStatusChangeNotification"],
     convert: (model, msg, publish, options, meta) => {
@@ -3609,7 +3622,7 @@ export const byun_gas_true: Fz.Converter = {
         }
     },
 };
-export const hue_smart_button_event: Fz.Converter = {
+export const hue_smart_button_event: Fz.Converter<"manuSpecificPhilips", undefined, "commandHueNotification"> = {
     cluster: "manuSpecificPhilips",
     type: "commandHueNotification",
     convert: (model, msg, publish, options, meta) => {
@@ -3618,14 +3631,14 @@ export const hue_smart_button_event: Fz.Converter = {
         return {action: lookup[msg.data.type]};
     },
 };
-export const legrand_binary_input_moving: Fz.Converter = {
+export const legrand_binary_input_moving: Fz.Converter<"genBinaryInput", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "genBinaryInput",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
         return {action: msg.data.presentValue ? "moving" : "stopped"};
     },
 };
-export const legrand_binary_input_on_off: Fz.Converter = {
+export const legrand_binary_input_on_off: Fz.Converter<"genBinaryInput", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "genBinaryInput",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
@@ -3635,7 +3648,7 @@ export const legrand_binary_input_on_off: Fz.Converter = {
     },
 };
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const bticino_4027C_binary_input_moving: Fz.Converter = {
+export const bticino_4027C_binary_input_moving: Fz.Converter<"genBinaryInput", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "genBinaryInput",
     type: ["attributeReport", "readResponse"],
     options: [exposes.options.no_position_support()],
@@ -3645,7 +3658,7 @@ export const bticino_4027C_binary_input_moving: Fz.Converter = {
             : {action: msg.data.presentValue ? "stopped" : "moving"};
     },
 };
-export const legrand_scenes: Fz.Converter = {
+export const legrand_scenes: Fz.Converter<"genScenes", undefined, "commandRecall"> = {
     cluster: "genScenes",
     type: "commandRecall",
     convert: (model, msg, publish, options, meta) => {
@@ -3653,7 +3666,7 @@ export const legrand_scenes: Fz.Converter = {
         return {action: lookup[msg.data.groupid] ? lookup[msg.data.groupid] : "default"};
     },
 };
-export const legrand_master_switch_center: Fz.Converter = {
+export const legrand_master_switch_center: Fz.Converter<"manuSpecificLegrandDevices", undefined, "raw"> = {
     cluster: "manuSpecificLegrandDevices",
     type: "raw",
     convert: (model, msg, publish, options, meta) => {
@@ -3671,7 +3684,7 @@ export const legrand_master_switch_center: Fz.Converter = {
         }
     },
 };
-export const legrand_pilot_wire_mode: Fz.Converter = {
+export const legrand_pilot_wire_mode: Fz.Converter<"manuSpecificLegrandDevices2", undefined, ["readResponse"]> = {
     cluster: "manuSpecificLegrandDevices2",
     type: ["readResponse"],
     convert: (model, msg, publish, options, meta) => {
@@ -3691,7 +3704,7 @@ export const legrand_pilot_wire_mode: Fz.Converter = {
         return payload;
     },
 };
-export const legrand_power_alarm: Fz.Converter = {
+export const legrand_power_alarm: Fz.Converter<"haElectricalMeasurement", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "haElectricalMeasurement",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
@@ -3714,7 +3727,7 @@ export const legrand_power_alarm: Fz.Converter = {
         return payload;
     },
 };
-export const legrand_greenpower: Fz.Converter = {
+export const legrand_greenpower: Fz.Converter<"greenPower", undefined, ["commandNotification", "commandCommissioningNotification"]> = {
     cluster: "greenPower",
     type: ["commandNotification", "commandCommissioningNotification"],
     convert: (model, msg, publish, options, meta) => {
@@ -3746,7 +3759,7 @@ export const legrand_greenpower: Fz.Converter = {
     },
 };
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const W2_module_carbon_monoxide: Fz.Converter = {
+export const W2_module_carbon_monoxide: Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification"> = {
     cluster: "ssIasZone",
     type: "commandStatusChangeNotification",
     convert: (model, msg, publish, options, meta) => {
@@ -3756,7 +3769,7 @@ export const W2_module_carbon_monoxide: Fz.Converter = {
         };
     },
 };
-export const command_status_change_notification_action: Fz.Converter = {
+export const command_status_change_notification_action: Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification"> = {
     cluster: "ssIasZone",
     type: "commandStatusChangeNotification",
     convert: (model, msg, publish, options, meta) => {
@@ -3764,7 +3777,7 @@ export const command_status_change_notification_action: Fz.Converter = {
         return {action: lookup[msg.data.zonestatus]};
     },
 };
-export const ptvo_multistate_action: Fz.Converter = {
+export const ptvo_multistate_action: Fz.Converter<"genMultistateInput", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "genMultistateInput",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
@@ -3774,7 +3787,7 @@ export const ptvo_multistate_action: Fz.Converter = {
         return {action: postfixWithEndpointName(action, msg, model, meta)};
     },
 };
-export const konke_action: Fz.Converter = {
+export const konke_action: Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "genOnOff",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
@@ -3783,7 +3796,7 @@ export const konke_action: Fz.Converter = {
         return lookup[value] ? {action: lookup[value]} : null;
     },
 };
-export const qlwz_letv8key_switch: Fz.Converter = {
+export const qlwz_letv8key_switch: Fz.Converter<"genMultistateInput", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "genMultistateInput",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
@@ -3796,16 +3809,16 @@ export const qlwz_letv8key_switch: Fz.Converter = {
         }
     },
 };
-export const keen_home_smart_vent_pressure: Fz.Converter = {
+export const keen_home_smart_vent_pressure: Fz.Converter<"msPressureMeasurement", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "msPressureMeasurement",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
-        const pressure = msg.data.measuredValue !== undefined ? msg.data.measuredValue : Number.parseFloat(msg.data["32"]) / 1000.0;
+        const pressure = msg.data.measuredValue !== undefined ? msg.data.measuredValue : Number.parseFloat(msg.data["32"] as string) / 1000.0;
         return {pressure};
     },
 };
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const U02I007C01_contact: Fz.Converter = {
+export const U02I007C01_contact: Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification"> = {
     cluster: "ssIasZone",
     type: "commandStatusChangeNotification",
     convert: (model, msg, publish, options, meta) => {
@@ -3817,7 +3830,7 @@ export const U02I007C01_contact: Fz.Converter = {
     },
 };
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const U02I007C01_water_leak: Fz.Converter = {
+export const U02I007C01_water_leak: Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification"> = {
     cluster: "ssIasZone",
     type: "commandStatusChangeNotification",
     convert: (model, msg, publish, options, meta) => {
@@ -3828,16 +3841,16 @@ export const U02I007C01_water_leak: Fz.Converter = {
         };
     },
 };
-export const heiman_hcho: Fz.Converter = {
+export const heiman_hcho: Fz.Converter<"msFormaldehyde", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "msFormaldehyde",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
         if (msg.data.measuredValue) {
-            return {hcho: Number.parseFloat(msg.data.measuredValue) / 1000.0};
+            return {hcho: msg.data.measuredValue / 1000.0};
         }
     },
 };
-export const heiman_air_quality: Fz.Converter = {
+export const heiman_air_quality: Fz.Converter<"heimanSpecificAirQuality", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "heimanSpecificAirQuality",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
@@ -3856,14 +3869,14 @@ export const heiman_air_quality: Fz.Converter = {
         return result;
     },
 };
-export const scenes_recall_scene_65024: Fz.Converter = {
+export const scenes_recall_scene_65024: Fz.Converter<65024, undefined, ["raw"]> = {
     cluster: 65024,
     type: ["raw"],
     convert: (model, msg, publish, options, meta) => {
         return {action: `scene_${msg.data[msg.data.length - 2] - 9}`};
     },
 };
-export const adeo_button_65024: Fz.Converter = {
+export const adeo_button_65024: Fz.Converter<65024, undefined, ["raw"]> = {
     cluster: 65024,
     type: ["raw"],
     convert: (model, msg, publish, options, meta) => {
@@ -3871,7 +3884,7 @@ export const adeo_button_65024: Fz.Converter = {
         return {action: `${clickMapping[msg.data[6]]}`};
     },
 };
-export const color_stop_raw: Fz.Converter = {
+export const color_stop_raw: Fz.Converter<"lightingColorCtrl", undefined, ["raw"]> = {
     cluster: "lightingColorCtrl",
     type: ["raw"],
     convert: (model, msg, publish, options, meta) => {
@@ -3880,7 +3893,7 @@ export const color_stop_raw: Fz.Converter = {
         return payload;
     },
 };
-export const almond_click: Fz.Converter = {
+export const almond_click: Fz.Converter<"ssIasAce", undefined, ["commandArm"]> = {
     cluster: "ssIasAce",
     type: ["commandArm"],
     convert: (model, msg, publish, options, meta) => {
@@ -3904,7 +3917,7 @@ export const almond_click: Fz.Converter = {
     },
 };
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const SAGE206612_state: Fz.Converter = {
+export const SAGE206612_state: Fz.Converter<"genOnOff", undefined, ["commandOn", "commandOff"]> = {
     cluster: "genOnOff",
     type: ["commandOn", "commandOff"],
     convert: (model, msg, publish, options, meta) => {
@@ -3928,7 +3941,7 @@ export const SAGE206612_state: Fz.Converter = {
     },
 };
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const ZMCSW032D_cover_position: Fz.Converter = {
+export const ZMCSW032D_cover_position: Fz.Converter<"closuresWindowCovering", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "closuresWindowCovering",
     type: ["attributeReport", "readResponse"],
     options: [
@@ -4008,7 +4021,7 @@ export const ZMCSW032D_cover_position: Fz.Converter = {
     },
 };
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const PGC410EU_presence: Fz.Converter = {
+export const PGC410EU_presence: Fz.Converter<"manuSpecificSmartThingsArrivalSensor", undefined, "commandArrivalSensorNotify"> = {
     cluster: "manuSpecificSmartThingsArrivalSensor",
     type: "commandArrivalSensorNotify",
     options: [exposes.options.presence_timeout()],
@@ -4026,7 +4039,7 @@ export const PGC410EU_presence: Fz.Converter = {
     },
 };
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const STS_PRS_251_presence: Fz.Converter = {
+export const STS_PRS_251_presence: Fz.Converter<"genBinaryInput", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "genBinaryInput",
     type: ["attributeReport", "readResponse"],
     options: [exposes.options.presence_timeout()],
@@ -4043,7 +4056,11 @@ export const STS_PRS_251_presence: Fz.Converter = {
         return {presence: true};
     },
 };
-export const heiman_scenes: Fz.Converter = {
+export const heiman_scenes: Fz.Converter<
+    "heimanSpecificScenes",
+    undefined,
+    ["commandAtHome", "commandGoOut", "commandCinema", "commandRepast", "commandSleep"]
+> = {
     cluster: "heimanSpecificScenes",
     type: ["commandAtHome", "commandGoOut", "commandCinema", "commandRepast", "commandSleep"],
     convert: (model, msg, publish, options, meta) => {
@@ -4057,7 +4074,7 @@ export const heiman_scenes: Fz.Converter = {
         if (lookup[msg.type] !== undefined) return {action: lookup[msg.type]};
     },
 };
-export const javis_lock_report: Fz.Converter = {
+export const javis_lock_report: Fz.Converter<"genBasic", undefined, "attributeReport"> = {
     cluster: "genBasic",
     type: "attributeReport",
     convert: (model, msg, publish, options, meta) => {
@@ -4080,7 +4097,7 @@ export const javis_lock_report: Fz.Converter = {
             return a;
         };
 
-        const data = utf8FromStr(msg.data["16896"]);
+        const data = utf8FromStr(msg.data["16896"] as string);
 
         clearTimeout(globalStore.getValue(msg.endpoint, "timer"));
         const timer = setTimeout(() => publish({action: "lock", state: "LOCK"}), 2 * 1000);
@@ -4094,7 +4111,7 @@ export const javis_lock_report: Fz.Converter = {
         };
     },
 };
-export const diyruz_freepad_config: Fz.Converter = {
+export const diyruz_freepad_config: Fz.Converter<"genOnOffSwitchCfg", undefined, ["readResponse"]> = {
     cluster: "genOnOffSwitchCfg",
     type: ["readResponse"],
     convert: (model, msg, publish, options, meta) => {
@@ -4108,7 +4125,7 @@ export const diyruz_freepad_config: Fz.Converter = {
         };
     },
 };
-export const diyruz_geiger: Fz.Converter = {
+export const diyruz_geiger: Fz.Converter<"msIlluminanceMeasurement", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "msIlluminanceMeasurement",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
@@ -4118,16 +4135,16 @@ export const diyruz_geiger: Fz.Converter = {
         };
     },
 };
-export const diyruz_geiger_config: Fz.Converter = {
+export const diyruz_geiger_config: Fz.Converter<"msIlluminanceLevelSensing", undefined, "readResponse"> = {
     cluster: "msIlluminanceLevelSensing",
     type: "readResponse",
     convert: (model, msg, publish, options, meta) => {
         const result: KeyValueAny = {};
         if (msg.data[0xf001] !== undefined) {
-            result.led_feedback = ["OFF", "ON"][msg.data[0xf001]];
+            result.led_feedback = ["OFF", "ON"][msg.data[0xf001] as number];
         }
         if (msg.data[0xf002] !== undefined) {
-            result.buzzer_feedback = ["OFF", "ON"][msg.data[0xf002]];
+            result.buzzer_feedback = ["OFF", "ON"][msg.data[0xf002] as number];
         }
         if (msg.data[0xf000] !== undefined) {
             result.sensitivity = msg.data[0xf000];
@@ -4136,7 +4153,7 @@ export const diyruz_geiger_config: Fz.Converter = {
             result.sensors_count = msg.data[0xf003];
         }
         if (msg.data[0xf004] !== undefined) {
-            result.sensors_type = ["СБМ-20/СТС-5/BOI-33", "СБМ-19/СТС-6", "Others"][msg.data[0xf004]];
+            result.sensors_type = ["СБМ-20/СТС-5/BOI-33", "СБМ-19/СТС-6", "Others"][msg.data[0xf004] as number];
         }
         if (msg.data[0xf005] !== undefined) {
             result.alert_threshold = msg.data[0xf005];
@@ -4144,16 +4161,16 @@ export const diyruz_geiger_config: Fz.Converter = {
         return result;
     },
 };
-export const diyruz_airsense_config_co2: Fz.Converter = {
+export const diyruz_airsense_config_co2: Fz.Converter<"msCO2", undefined, "readResponse"> = {
     cluster: "msCO2",
     type: "readResponse",
     convert: (model, msg, publish, options, meta) => {
         const result: KeyValueAny = {};
         if (msg.data[0x0203] !== undefined) {
-            result.led_feedback = ["OFF", "ON"][msg.data[0x0203]];
+            result.led_feedback = ["OFF", "ON"][msg.data[0x0203] as number];
         }
         if (msg.data[0x0202] !== undefined) {
-            result.enable_abc = ["OFF", "ON"][msg.data[0x0202]];
+            result.enable_abc = ["OFF", "ON"][msg.data[0x0202] as number];
         }
         if (msg.data[0x0204] !== undefined) {
             result.threshold1 = msg.data[0x0204];
@@ -4164,7 +4181,7 @@ export const diyruz_airsense_config_co2: Fz.Converter = {
         return result;
     },
 };
-export const diyruz_airsense_config_temp: Fz.Converter = {
+export const diyruz_airsense_config_temp: Fz.Converter<"msTemperatureMeasurement", undefined, "readResponse"> = {
     cluster: "msTemperatureMeasurement",
     type: "readResponse",
     convert: (model, msg, publish, options, meta) => {
@@ -4175,7 +4192,7 @@ export const diyruz_airsense_config_temp: Fz.Converter = {
         return result;
     },
 };
-export const diyruz_airsense_config_pres: Fz.Converter = {
+export const diyruz_airsense_config_pres: Fz.Converter<"msPressureMeasurement", undefined, "readResponse"> = {
     cluster: "msPressureMeasurement",
     type: "readResponse",
     convert: (model, msg, publish, options, meta) => {
@@ -4186,7 +4203,7 @@ export const diyruz_airsense_config_pres: Fz.Converter = {
         return result;
     },
 };
-export const diyruz_airsense_config_hum: Fz.Converter = {
+export const diyruz_airsense_config_hum: Fz.Converter<"msRelativeHumidity", undefined, "readResponse"> = {
     cluster: "msRelativeHumidity",
     type: "readResponse",
     convert: (model, msg, publish, options, meta) => {
@@ -4197,19 +4214,19 @@ export const diyruz_airsense_config_hum: Fz.Converter = {
         return result;
     },
 };
-export const diyruz_zintercom_config: Fz.Converter = {
+export const diyruz_zintercom_config: Fz.Converter<"closuresDoorLock", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "closuresDoorLock",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
         const result: KeyValueAny = {};
         if (msg.data[0x0050] !== undefined) {
-            result.state = ["idle", "ring", "talk", "open", "drop"][msg.data[0x0050]];
+            result.state = ["idle", "ring", "talk", "open", "drop"][msg.data[0x0050] as number];
         }
         if (msg.data[0x0051] !== undefined) {
-            result.mode = ["never", "once", "always", "drop"][msg.data[0x0051]];
+            result.mode = ["never", "once", "always", "drop"][msg.data[0x0051] as number];
         }
         if (msg.data[0x0052] !== undefined) {
-            result.sound = ["OFF", "ON"][msg.data[0x0052]];
+            result.sound = ["OFF", "ON"][msg.data[0x0052] as number];
         }
         if (msg.data[0x0053] !== undefined) {
             result.time_ring = msg.data[0x0053];
@@ -4230,7 +4247,7 @@ export const diyruz_zintercom_config: Fz.Converter = {
     },
 };
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const CC2530ROUTER_led: Fz.Converter = {
+export const CC2530ROUTER_led: Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "genOnOff",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
@@ -4238,7 +4255,7 @@ export const CC2530ROUTER_led: Fz.Converter = {
     },
 };
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const CC2530ROUTER_meta: Fz.Converter = {
+export const CC2530ROUTER_meta: Fz.Converter<"genBinaryValue", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "genBinaryValue",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
@@ -4251,7 +4268,7 @@ export const CC2530ROUTER_meta: Fz.Converter = {
     },
 };
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const KAMI_contact: Fz.Converter = {
+export const KAMI_contact: Fz.Converter<"ssIasZone", undefined, ["raw"]> = {
     cluster: "ssIasZone",
     type: ["raw"],
     convert: (model, msg, publish, options, meta) => {
@@ -4259,7 +4276,7 @@ export const KAMI_contact: Fz.Converter = {
     },
 };
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const KAMI_occupancy: Fz.Converter = {
+export const KAMI_occupancy: Fz.Converter<"msOccupancySensing", undefined, ["raw"]> = {
     cluster: "msOccupancySensing",
     type: ["raw"],
     convert: (model, msg, publish, options, meta) => {
@@ -4269,7 +4286,7 @@ export const KAMI_occupancy: Fz.Converter = {
     },
 };
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const DNCKAT_S00X_buttons: Fz.Converter = {
+export const DNCKAT_S00X_buttons: Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "genOnOff",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
@@ -4277,17 +4294,17 @@ export const DNCKAT_S00X_buttons: Fz.Converter = {
         return {action: postfixWithEndpointName(action, msg, model, meta)};
     },
 };
-export const hue_motion_sensitivity: Fz.Converter = {
+export const hue_motion_sensitivity: Fz.Converter<"msOccupancySensing", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "msOccupancySensing",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
         if (msg.data["48"] !== undefined) {
             const lookup: KeyValueAny = ["low", "medium", "high", "very_high", "max"];
-            return {motion_sensitivity: lookup[msg.data["48"]]};
+            return {motion_sensitivity: lookup[msg.data["48"] as number]};
         }
     },
 };
-export const hue_motion_led_indication: Fz.Converter = {
+export const hue_motion_led_indication: Fz.Converter<"genBasic", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "genBasic",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
@@ -4296,38 +4313,40 @@ export const hue_motion_led_indication: Fz.Converter = {
         }
     },
 };
-export const hue_wall_switch_device_mode: Fz.Converter = {
+export const hue_wall_switch_device_mode: Fz.Converter<"genBasic", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "genBasic",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
         if (msg.data["52"] !== undefined) {
             const values = ["single_rocker", "single_push_button", "dual_rocker", "dual_push_button"];
-            return {device_mode: values[msg.data["52"]]};
+            return {device_mode: values[msg.data["52"] as number]};
         }
     },
 };
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const CCTSwitch_D0001_levelctrl: Fz.Converter = {
+export const CCTSwitch_D0001_levelctrl: Fz.Converter<
+    "genLevelCtrl",
+    undefined,
+    ["commandMoveToLevel", "commandMoveToLevelWithOnOff", "commandMove", "commandStop"]
+> = {
     cluster: "genLevelCtrl",
     type: ["commandMoveToLevel", "commandMoveToLevelWithOnOff", "commandMove", "commandStop"],
     convert: (model, msg, publish, options, meta) => {
         const payload: KeyValueAny = {};
-        if (msg.type === "commandMove" || msg.type === "commandStop") {
-            const action = "brightness";
-            if (msg.type === "commandStop") {
-                const direction = globalStore.getValue(msg.endpoint, "direction");
-                const duration = Date.now() - globalStore.getValue(msg.endpoint, "start");
-                payload.action = `${action}_${direction}_release`;
-                payload.duration = duration;
-                payload.action_duration = duration;
-            } else {
-                const direction = msg.data.movemode === 1 ? "down" : "up";
-                payload.action = `${action}_${direction}_hold`;
-                globalStore.putValue(msg.endpoint, "direction", direction);
-                globalStore.putValue(msg.endpoint, "start", Date.now());
-                payload.rate = msg.data.rate;
-                payload.action_rate = msg.data.rate;
-            }
+        if (msg.type === "commandMove") {
+            assert("movemode" in msg.data);
+            const direction = msg.data.movemode === 1 ? "down" : "up";
+            payload.action = `brightness_${direction}_hold`;
+            globalStore.putValue(msg.endpoint, "direction", direction);
+            globalStore.putValue(msg.endpoint, "start", Date.now());
+            payload.rate = msg.data.rate;
+            payload.action_rate = msg.data.rate;
+        } else if (msg.type === "commandStop") {
+            const direction = globalStore.getValue(msg.endpoint, "direction");
+            const duration = Date.now() - globalStore.getValue(msg.endpoint, "start");
+            payload.action = `brightness_${direction}_release`;
+            payload.duration = duration;
+            payload.action_duration = duration;
         } else {
             // wrap the messages from button2 and button4 into a single function
             // button2 always sends "commandMoveToLevel"
@@ -4339,10 +4358,11 @@ export const CCTSwitch_D0001_levelctrl: Fz.Converter = {
             let clk = "brightness";
             let cmd = null;
 
+            assert("level" in msg.data);
             payload.action_brightness = msg.data.level;
-            payload.action_transition = Number.parseFloat(msg.data.transtime) / 10.0;
+            payload.action_transition = msg.data.transtime / 10.0;
             payload.brightness = msg.data.level;
-            payload.transition = Number.parseFloat(msg.data.transtime) / 10.0;
+            payload.transition = msg.data.transtime / 10.0;
 
             if (msg.type === "commandMoveToLevel") {
                 // pressing the brightness button increments/decrements from 13-254.
@@ -4369,12 +4389,13 @@ export const CCTSwitch_D0001_levelctrl: Fz.Converter = {
     },
 };
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const CCTSwitch_D0001_lighting: Fz.Converter = {
+export const CCTSwitch_D0001_lighting: Fz.Converter<"lightingColorCtrl", undefined, ["commandMoveToColorTemp", "commandMoveColorTemp"]> = {
     cluster: "lightingColorCtrl",
     type: ["commandMoveToColorTemp", "commandMoveColorTemp"],
     convert: (model, msg, publish, options, meta) => {
         const payload: KeyValueAny = {};
         if (msg.type === "commandMoveColorTemp") {
+            assert("movemode" in msg.data);
             const clk = "colortemp";
             payload.rate = msg.data.rate;
             payload.action_rate = msg.data.rate;
@@ -4405,10 +4426,11 @@ export const CCTSwitch_D0001_lighting: Fz.Converter = {
 
             const seq = msg.meta.zclTransactionSequenceNumber;
             let clk = "colortemp";
+            assert("colortemp" in msg.data);
             payload.color_temp = msg.data.colortemp;
-            payload.transition = Number.parseFloat(msg.data.transtime) / 10.0;
+            payload.transition = msg.data.transtime / 10.0;
             payload.action_color_temp = msg.data.colortemp;
-            payload.action_transition = Number.parseFloat(msg.data.transtime) / 10.0;
+            payload.action_transition = msg.data.transtime / 10.0;
 
             // because the remote sends two commands for button4, we need to look at the previous command and
             // see if it was the recognized start command for button4 - if so, ignore this second command,
@@ -4441,7 +4463,7 @@ export const CCTSwitch_D0001_lighting: Fz.Converter = {
         return payload;
     },
 };
-export const hue_wall_switch: Fz.Converter = {
+export const hue_wall_switch: Fz.Converter<"manuSpecificPhilips", undefined, "commandHueNotification"> = {
     cluster: "manuSpecificPhilips",
     type: "commandHueNotification",
     convert: (model, msg, publish, options, meta) => {
@@ -4453,7 +4475,7 @@ export const hue_wall_switch: Fz.Converter = {
         return {action: `${button}_${type}`};
     },
 };
-export const hue_dimmer_switch: Fz.Converter = {
+export const hue_dimmer_switch: Fz.Converter<"manuSpecificPhilips", undefined, "commandHueNotification"> = {
     cluster: "manuSpecificPhilips",
     type: "commandHueNotification",
     options: [exposes.options.simulated_brightness()],
@@ -4485,7 +4507,7 @@ export const hue_dimmer_switch: Fz.Converter = {
         return payload;
     },
 };
-export const hue_tap: Fz.Converter = {
+export const hue_tap: Fz.Converter<"greenPower", undefined, ["commandNotification", "commandCommissioningNotification"]> = {
     cluster: "greenPower",
     type: ["commandNotification", "commandCommissioningNotification"],
     convert: (model, msg, publish, options, meta) => {
@@ -4511,7 +4533,7 @@ export const hue_tap: Fz.Converter = {
         }
     },
 };
-export const hue_twilight: Fz.Converter = {
+export const hue_twilight: Fz.Converter<"manuSpecificPhilips", undefined, "commandHueNotification"> = {
     cluster: "manuSpecificPhilips",
     type: "commandHueNotification",
     convert: (model, msg, publish, options, meta) => {
@@ -4530,7 +4552,7 @@ export const hue_twilight: Fz.Converter = {
         return payload;
     },
 };
-export const tuya_relay_din_led_indicator: Fz.Converter = {
+export const tuya_relay_din_led_indicator: Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "genOnOff",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
@@ -4538,7 +4560,7 @@ export const tuya_relay_din_led_indicator: Fz.Converter = {
 
         if (msg.data[property] !== undefined) {
             const dict: KeyValueNumberString = {0: "off", 1: "on_off", 2: "off_on"};
-            const value = msg.data[property];
+            const value = msg.data[property] as number;
 
             if (dict[value] !== undefined) {
                 return {[postfixWithEndpointName("indicator_mode", msg, model, meta)]: dict[value]};
@@ -4546,7 +4568,7 @@ export const tuya_relay_din_led_indicator: Fz.Converter = {
         }
     },
 };
-export const ias_keypad: Fz.Converter = {
+export const ias_keypad: Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification"> = {
     cluster: "ssIasZone",
     type: "commandStatusChangeNotification",
     convert: (model, msg, publish, options, meta) => {
@@ -4558,7 +4580,7 @@ export const ias_keypad: Fz.Converter = {
         };
     },
 };
-export const itcmdr_clicks: Fz.Converter = {
+export const itcmdr_clicks: Fz.Converter<"genMultistateInput", undefined, ["readResponse", "attributeReport"]> = {
     cluster: "genMultistateInput",
     type: ["readResponse", "attributeReport"],
     convert: (model, msg, publish, options, meta) => {
@@ -4569,25 +4591,25 @@ export const itcmdr_clicks: Fz.Converter = {
     },
 };
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const ZB003X_attr: Fz.Converter = {
+export const ZB003X_attr: Fz.Converter<"ssIasZone", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "ssIasZone",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
         const data = msg.data;
-        const senslookup: KeyValueAny = {"0": "low", "1": "medium", "2": "high"};
-        const keeptimelookup: KeyValueAny = {"0": 0, "1": 30, "2": 60, "3": 120, "4": 240, "5": 480};
+        const senslookup: Record<number, string> = {0: "low", 1: "medium", 2: "high"};
+        const keeptimelookup: Record<number, number> = {0: 0, 1: 30, 2: 60, 3: 120, 4: 240, 5: 480};
         if (data && data.currentZoneSensitivityLevel !== undefined) {
             const value = data.currentZoneSensitivityLevel;
             return {sensitivity: senslookup[value]};
         }
         if (data && data["61441"] !== undefined) {
-            const value = data["61441"];
+            const value = data["61441"] as number;
             return {keep_time: keeptimelookup[value]};
         }
     },
 };
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const ZB003X_occupancy: Fz.Converter = {
+export const ZB003X_occupancy: Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification"> = {
     cluster: "ssIasZone",
     type: "commandStatusChangeNotification",
     convert: (model, msg, publish, options, meta) => {
@@ -4595,7 +4617,7 @@ export const ZB003X_occupancy: Fz.Converter = {
         return {occupancy: (zoneStatus & 1) > 0, tamper: (zoneStatus & 4) > 0};
     },
 };
-export const idlock: Fz.Converter = {
+export const idlock: Fz.Converter<"closuresDoorLock", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "closuresDoorLock",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
@@ -4607,18 +4629,18 @@ export const idlock: Fz.Converter = {
             result.rfid_enable = msg.data[0x4001] === 1;
         }
         if (0x4003 in msg.data) {
-            const lookup: KeyValueAny = {
+            const lookup: Record<number, string> = {
                 0: "deactivated",
                 1: "random_pin_1x_use",
                 5: "random_pin_1x_use",
                 6: "random_pin_24_hours",
                 9: "random_pin_24_hours",
             };
-            result.service_mode = lookup[msg.data[0x4003]];
+            result.service_mode = lookup[msg.data[0x4003] as number];
         }
         if (0x4004 in msg.data) {
-            const lookup: KeyValueAny = {0: "auto_off_away_off", 1: "auto_on_away_off", 2: "auto_off_away_on", 3: "auto_on_away_on"};
-            result.lock_mode = lookup[msg.data[0x4004]];
+            const lookup: Record<number, string> = {0: "auto_off_away_off", 1: "auto_on_away_off", 2: "auto_off_away_on", 3: "auto_on_away_on"};
+            result.lock_mode = lookup[msg.data[0x4004] as number];
         }
         if (0x4005 in msg.data) {
             result.relock_enabled = msg.data[0x4005] === 1;
@@ -4626,7 +4648,7 @@ export const idlock: Fz.Converter = {
         return result;
     },
 };
-export const idlock_fw: Fz.Converter = {
+export const idlock_fw: Fz.Converter<"genBasic", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "genBasic",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
@@ -4637,7 +4659,7 @@ export const idlock_fw: Fz.Converter = {
         return result;
     },
 };
-export const schneider_pilot_mode: Fz.Converter = {
+export const schneider_pilot_mode: Fz.Converter<"schneiderSpecificPilotMode", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "schneiderSpecificPilotMode",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
@@ -4649,7 +4671,7 @@ export const schneider_pilot_mode: Fz.Converter = {
         return result;
     },
 };
-export const schneider_ui_action: Fz.Converter = {
+export const schneider_ui_action: Fz.Converter<"wiserDeviceInfo", undefined, "attributeReport"> = {
     cluster: "wiserDeviceInfo",
     type: "attributeReport",
     convert: (model, msg, publish, options, meta) => {
@@ -4687,16 +4709,16 @@ export const schneider_ui_action: Fz.Converter = {
         }
     },
 };
-export const schneider_temperature: Fz.Converter = {
+export const schneider_temperature: Fz.Converter<"msTemperatureMeasurement", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "msTemperatureMeasurement",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
-        const temperature = Number.parseFloat(msg.data.measuredValue) / 100.0;
+        const temperature = msg.data.measuredValue / 100.0;
         const property = postfixWithEndpointName("local_temperature", msg, model, meta);
         return {[property]: temperature};
     },
 };
-export const wiser_smart_thermostat_client: Fz.Converter = {
+export const wiser_smart_thermostat_client: Fz.Converter<"hvacThermostat", undefined, "read"> = {
     cluster: "hvacThermostat",
     type: "read",
     convert: async (model, msg, publish, options, meta: KeyValueAny) => {
@@ -4710,9 +4732,9 @@ export const wiser_smart_thermostat_client: Fz.Converter = {
         }
     },
 };
-export const wiser_smart_setpoint_command_client: Fz.Converter = {
+export const wiser_smart_setpoint_command_client: Fz.Converter<"hvacThermostat", undefined, ["commandWiserSmartSetSetpoint"]> = {
     cluster: "hvacThermostat",
-    type: ["command", "commandWiserSmartSetSetpoint"],
+    type: ["commandWiserSmartSetSetpoint"],
     convert: (model, msg, publish, options, meta) => {
         const attribute: KeyValueAny = {};
         const result: KeyValueAny = {};
@@ -4722,13 +4744,13 @@ export const wiser_smart_setpoint_command_client: Fz.Converter = {
         attribute.occupiedHeatingSetpoint = msg.data.setpoint;
         msg.endpoint.saveClusterAttributeKeyValue("hvacThermostat", attribute);
 
-        result.occupied_heating_setpoint = Number.parseFloat(msg.data.setpoint) / 100.0;
+        result.occupied_heating_setpoint = msg.data.setpoint / 100.0;
 
         logger.debug(`received wiser setpoint command with value: '${msg.data.setpoint}'`, NS);
         return result;
     },
 };
-export const rc_110_level_to_scene: Fz.Converter = {
+export const rc_110_level_to_scene: Fz.Converter<"genLevelCtrl", undefined, ["commandMoveToLevel", "commandMoveToLevelWithOnOff"]> = {
     cluster: "genLevelCtrl",
     type: ["commandMoveToLevel", "commandMoveToLevelWithOnOff"],
     convert: (model, msg, publish, options, meta) => {
@@ -4736,7 +4758,7 @@ export const rc_110_level_to_scene: Fz.Converter = {
         return {action: `scene_${scenes[msg.data.level]}`};
     },
 };
-export const heiman_doorbell_button: Fz.Converter = {
+export const heiman_doorbell_button: Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification"> = {
     cluster: "ssIasZone",
     type: "commandStatusChangeNotification",
     convert: (model, msg, publish, options, meta) => {
@@ -4753,12 +4775,12 @@ export const heiman_doorbell_button: Fz.Converter = {
         };
     },
 };
-export const sihas_people_cnt: Fz.Converter = {
+export const sihas_people_cnt: Fz.Converter<"genAnalogInput", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "genAnalogInput",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
         const lookup: KeyValueAny = {"0": "idle", "1": "in", "2": "out"};
-        const value = precisionRound(Number.parseFloat(msg.data.presentValue), 1);
+        const value = precisionRound(msg.data.presentValue, 1);
         const people = precisionRound(msg.data.presentValue, 0);
         let result = null;
         if (value <= 80) {
@@ -4767,7 +4789,7 @@ export const sihas_people_cnt: Fz.Converter = {
         }
     },
 };
-export const sihas_action: Fz.Converter = {
+export const sihas_action: Fz.Converter<"genOnOff", undefined, ["commandOn", "commandOff", "commandToggle"]> = {
     cluster: "genOnOff",
     type: ["commandOn", "commandOff", "commandToggle"],
     convert: (model, msg, publish, options, meta) => {
@@ -4794,7 +4816,7 @@ export const sihas_action: Fz.Converter = {
         return {action: `${button}${lookup[msg.type]}`};
     },
 };
-export const tuya_operation_mode: Fz.Converter = {
+export const tuya_operation_mode: Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "genOnOff",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
@@ -4806,7 +4828,7 @@ export const tuya_operation_mode: Fz.Converter = {
     },
 };
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const sunricher_switch2801K2: Fz.Converter = {
+export const sunricher_switch2801K2: Fz.Converter<"greenPower", undefined, ["commandNotification", "commandCommissioningNotification"]> = {
     cluster: "greenPower",
     type: ["commandNotification", "commandCommissioningNotification"],
     convert: (model, msg, publish, options, meta) => {
@@ -4822,7 +4844,7 @@ export const sunricher_switch2801K2: Fz.Converter = {
     },
 };
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const sunricher_switch2801K4: Fz.Converter = {
+export const sunricher_switch2801K4: Fz.Converter<"greenPower", undefined, ["commandNotification", "commandCommissioningNotification"]> = {
     cluster: "greenPower",
     type: ["commandNotification", "commandCommissioningNotification"],
     convert: (model, msg, publish, options, meta) => {
@@ -4845,7 +4867,7 @@ export const sunricher_switch2801K4: Fz.Converter = {
         }
     },
 };
-export const command_stop_move_raw: Fz.Converter = {
+export const command_stop_move_raw: Fz.Converter<"lightingColorCtrl", undefined, "raw"> = {
     cluster: "lightingColorCtrl",
     type: "raw",
     convert: (model, msg, publish, options, meta) => {
@@ -4859,7 +4881,7 @@ export const command_stop_move_raw: Fz.Converter = {
         return payload;
     },
 };
-export const tuya_multi_action: Fz.Converter = {
+export const tuya_multi_action: Fz.Converter<"genOnOff", undefined, ["commandTuyaAction", "commandTuyaAction2"]> = {
     cluster: "genOnOff",
     type: ["commandTuyaAction", "commandTuyaAction2"],
     convert: (model, msg, publish, options, meta) => {
@@ -4878,7 +4900,7 @@ export const tuya_multi_action: Fz.Converter = {
         return {action};
     },
 };
-export const led_on_motion: Fz.Converter = {
+export const led_on_motion: Fz.Converter<"ssIasZone", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "ssIasZone",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
@@ -4889,7 +4911,7 @@ export const led_on_motion: Fz.Converter = {
         return result;
     },
 };
-export const hw_version: Fz.Converter = {
+export const hw_version: Fz.Converter<"genBasic", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "genBasic",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
@@ -4899,11 +4921,11 @@ export const hw_version: Fz.Converter = {
     },
 };
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const SNZB02_temperature: Fz.Converter = {
+export const SNZB02_temperature: Fz.Converter<"msTemperatureMeasurement", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "msTemperatureMeasurement",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
-        const temperature = Number.parseFloat(msg.data.measuredValue) / 100.0;
+        const temperature = msg.data.measuredValue / 100.0;
 
         // https://github.com/Koenkk/zigbee2mqtt/issues/13640
         // SNZB-02 reports stranges values sometimes
@@ -4914,11 +4936,11 @@ export const SNZB02_temperature: Fz.Converter = {
     },
 };
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const SNZB02_humidity: Fz.Converter = {
+export const SNZB02_humidity: Fz.Converter<"msRelativeHumidity", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "msRelativeHumidity",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
-        const humidity = Number.parseFloat(msg.data.measuredValue) / 100.0;
+        const humidity = msg.data.measuredValue / 100.0;
 
         // https://github.com/Koenkk/zigbee2mqtt/issues/13640
         // SNZB-02 reports stranges values sometimes
@@ -4927,7 +4949,7 @@ export const SNZB02_humidity: Fz.Converter = {
         }
     },
 };
-export const awox_colors: Fz.Converter = {
+export const awox_colors: Fz.Converter<"lightingColorCtrl", undefined, ["raw"]> = {
     cluster: "lightingColorCtrl",
     type: ["raw"],
     convert: (model, msg, publish, options, meta) => {
@@ -4950,7 +4972,7 @@ export const awox_colors: Fz.Converter = {
     },
 };
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const awox_refreshColored: Fz.Converter = {
+export const awox_refreshColored: Fz.Converter<"lightingColorCtrl", undefined, ["commandMoveHue"]> = {
     cluster: "lightingColorCtrl",
     type: ["commandMoveHue"],
     convert: (model, msg, publish, options, meta) => {
@@ -4959,7 +4981,7 @@ export const awox_refreshColored: Fz.Converter = {
         }
     },
 };
-export const awox_refresh: Fz.Converter = {
+export const awox_refresh: Fz.Converter<"genLevelCtrl", undefined, ["raw"]> = {
     cluster: "genLevelCtrl",
     type: ["raw"],
     convert: (model, msg, publish, options, meta) => {
@@ -4977,184 +4999,184 @@ export const awox_refresh: Fz.Converter = {
 // #endregion
 
 // #region Ignore converters (these message dont need parsing).
-export const ignore_onoff_report: Fz.Converter = {
+export const ignore_onoff_report: Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "genOnOff",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {},
 };
-export const ignore_basic_report: Fz.Converter = {
+export const ignore_basic_report: Fz.Converter<"genBasic", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "genBasic",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {},
 };
-export const ignore_illuminance_report: Fz.Converter = {
+export const ignore_illuminance_report: Fz.Converter<"msIlluminanceMeasurement", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "msIlluminanceMeasurement",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {},
 };
-export const ignore_occupancy_report: Fz.Converter = {
+export const ignore_occupancy_report: Fz.Converter<"msOccupancySensing", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "msOccupancySensing",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {},
 };
-export const ignore_temperature_report: Fz.Converter = {
+export const ignore_temperature_report: Fz.Converter<"msTemperatureMeasurement", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "msTemperatureMeasurement",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {},
 };
-export const ignore_humidity_report: Fz.Converter = {
+export const ignore_humidity_report: Fz.Converter<"msRelativeHumidity", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "msRelativeHumidity",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {},
 };
-export const ignore_pressure_report: Fz.Converter = {
+export const ignore_pressure_report: Fz.Converter<"msPressureMeasurement", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "msPressureMeasurement",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {},
 };
-export const ignore_analog_report: Fz.Converter = {
+export const ignore_analog_report: Fz.Converter<"genAnalogInput", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "genAnalogInput",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {},
 };
-export const ignore_multistate_report: Fz.Converter = {
+export const ignore_multistate_report: Fz.Converter<"genMultistateInput", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "genMultistateInput",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {},
 };
-export const ignore_power_report: Fz.Converter = {
+export const ignore_power_report: Fz.Converter<"genPowerCfg", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "genPowerCfg",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {},
 };
-export const ignore_light_brightness_report: Fz.Converter = {
+export const ignore_light_brightness_report: Fz.Converter<"genLevelCtrl", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "genLevelCtrl",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {},
 };
-export const ignore_light_color_colortemp_report: Fz.Converter = {
+export const ignore_light_color_colortemp_report: Fz.Converter<"lightingColorCtrl", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "lightingColorCtrl",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {},
 };
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const ignore_closuresWindowCovering_report: Fz.Converter = {
+export const ignore_closuresWindowCovering_report: Fz.Converter<"closuresWindowCovering", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "closuresWindowCovering",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {},
 };
-export const ignore_thermostat_report: Fz.Converter = {
+export const ignore_thermostat_report: Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "hvacThermostat",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {},
 };
-export const ignore_iaszone_attreport: Fz.Converter = {
+export const ignore_iaszone_attreport: Fz.Converter<"ssIasZone", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "ssIasZone",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {},
 };
-export const ignore_iaszone_statuschange: Fz.Converter = {
+export const ignore_iaszone_statuschange: Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification"> = {
     cluster: "ssIasZone",
     type: "commandStatusChangeNotification",
     convert: (model, msg, publish, options, meta) => {},
 };
-export const ignore_iaszone_report: Fz.Converter = {
+export const ignore_iaszone_report: Fz.Converter<"ssIasZone", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "ssIasZone",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {},
 };
-export const ignore_iasace_commandgetpanelstatus: Fz.Converter = {
+export const ignore_iasace_commandgetpanelstatus: Fz.Converter<"ssIasAce", undefined, ["commandGetPanelStatus"]> = {
     cluster: "ssIasAce",
     type: ["commandGetPanelStatus"],
     convert: (model, msg, publish, options, meta) => {},
 };
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const ignore_genIdentify: Fz.Converter = {
+export const ignore_genIdentify: Fz.Converter<"genIdentify", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "genIdentify",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {},
 };
-export const ignore_command_on: Fz.Converter = {
+export const ignore_command_on: Fz.Converter<"genOnOff", undefined, "commandOn"> = {
     cluster: "genOnOff",
     type: "commandOn",
     convert: (model, msg, publish, options, meta) => {},
 };
-export const ignore_command_off: Fz.Converter = {
+export const ignore_command_off: Fz.Converter<"genOnOff", undefined, "commandOff"> = {
     cluster: "genOnOff",
     type: "commandOff",
     convert: (model, msg, publish, options, meta) => {},
 };
-export const ignore_command_off_with_effect: Fz.Converter = {
+export const ignore_command_off_with_effect: Fz.Converter<"genOnOff", undefined, "commandOffWithEffect"> = {
     cluster: "genOnOff",
     type: "commandOffWithEffect",
     convert: (model, msg, publish, options, meta) => {},
 };
-export const ignore_command_step: Fz.Converter = {
+export const ignore_command_step: Fz.Converter<"genLevelCtrl", undefined, "commandStep"> = {
     cluster: "genLevelCtrl",
     type: "commandStep",
     convert: (model, msg, publish, options, meta) => {},
 };
-export const ignore_command_stop: Fz.Converter = {
+export const ignore_command_stop: Fz.Converter<"genLevelCtrl", undefined, "commandStop"> = {
     cluster: "genLevelCtrl",
     type: "commandStop",
     convert: (model, msg, publish, options, meta) => {},
 };
-export const ignore_poll_ctrl: Fz.Converter = {
+export const ignore_poll_ctrl: Fz.Converter<"genPollCtrl", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "genPollCtrl",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {},
 };
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const ignore_genLevelCtrl_report: Fz.Converter = {
+export const ignore_genLevelCtrl_report: Fz.Converter<"genLevelCtrl", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "genLevelCtrl",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {},
 };
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const ignore_genOta: Fz.Converter = {
+export const ignore_genOta: Fz.Converter<"genOta", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "genOta",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {},
 };
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const ignore_haDiagnostic: Fz.Converter = {
+export const ignore_haDiagnostic: Fz.Converter<"haDiagnostic", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "haDiagnostic",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {},
 };
-export const ignore_zclversion_read: Fz.Converter = {
+export const ignore_zclversion_read: Fz.Converter<"genBasic", undefined, "read"> = {
     cluster: "genBasic",
     type: "read",
     convert: (model, msg, publish, options, meta) => {},
 };
-export const ignore_time_read: Fz.Converter = {
+export const ignore_time_read: Fz.Converter<"genTime", undefined, "read"> = {
     cluster: "genTime",
     type: "read",
     convert: (model, msg, publish, options, meta) => {},
 };
-export const ignore_tuya_set_time: Fz.Converter = {
+export const ignore_tuya_set_time: Fz.Converter<"manuSpecificTuya", undefined, ["commandMcuSyncTime"]> = {
     cluster: "manuSpecificTuya",
     type: ["commandMcuSyncTime"],
     convert: (model, msg, publish, options, meta) => {},
 };
-export const ignore_tuya_raw: Fz.Converter = {
+export const ignore_tuya_raw: Fz.Converter<"manuSpecificTuya", undefined, ["raw"]> = {
     cluster: "manuSpecificTuya",
     type: ["raw"],
     convert: (model, msg, publish, options, meta) => {},
 };
-export const ignore_metering: Fz.Converter = {
+export const ignore_metering: Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "seMetering",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {},
 };
-export const ignore_electrical_measurement: Fz.Converter = {
+export const ignore_electrical_measurement: Fz.Converter<"haElectricalMeasurement", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "haElectricalMeasurement",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {},
 };
 // #endregion
 
-export const command_arm_with_transaction: Fz.Converter = {
+export const command_arm_with_transaction: Fz.Converter<"ssIasAce", undefined, "commandArm"> = {
     cluster: "ssIasAce",
     type: "commandArm",
     convert: (model, msg, publish, options, meta) => {
@@ -5164,7 +5186,7 @@ export const command_arm_with_transaction: Fz.Converter = {
         return payload;
     },
 };
-export const metering_datek: Fz.Converter = {
+export const metering_datek: Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "seMetering",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
@@ -5178,7 +5200,7 @@ export const metering_datek: Fz.Converter = {
     },
 };
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const EKO09738_metering: Fz.Converter = {
+export const EKO09738_metering: Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]> = {
     /**
      * Elko EKO09738 and EKO09716 reports power in mW, scale to W
      */
@@ -5192,26 +5214,27 @@ export const EKO09738_metering: Fz.Converter = {
         return result;
     },
 };
-export const command_on_presence: Fz.Converter = {
+export const command_on_presence: Fz.Converter<"genOnOff", undefined, "commandOn"> = {
     cluster: "genOnOff",
     type: "commandOn",
     convert: (model, msg, publish, options, meta) => {
-        const payload1 = checkin_presence.convert(model, msg, publish, options, meta);
+        const newMsg = {...msg, type: "commandCheckin" as const, data: {}};
+        const payload1 = checkin_presence.convert(model, newMsg, publish, options, meta);
         const payload2 = command_on.convert(model, msg, publish, options, meta);
         return {...payload1, ...payload2};
     },
 };
-export const ias_ace_occupancy_with_timeout: Fz.Converter = {
+export const ias_ace_occupancy_with_timeout: Fz.Converter<"ssIasAce", undefined, "commandGetPanelStatus"> = {
     cluster: "ssIasAce",
     type: "commandGetPanelStatus",
     options: [exposes.options.occupancy_timeout()],
     convert: (model, msg, publish, options, meta) => {
-        msg.data.occupancy = 1;
-        return occupancy_with_timeout.convert(model, msg, publish, options, meta);
+        const newMsg = {...msg, type: "attributeReport" as const, data: {occupancy: 1}};
+        return occupancy_with_timeout.convert(model, newMsg, publish, options, meta);
     },
 };
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const SP600_power: Fz.Converter = {
+export const SP600_power: Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "seMetering",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
@@ -5234,7 +5257,7 @@ export const SP600_power: Fz.Converter = {
         return metering.convert(model, msg, publish, options, meta);
     },
 };
-export const stelpro_thermostat: Fz.Converter = {
+export const stelpro_thermostat: Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "hvacThermostat",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
@@ -5249,7 +5272,7 @@ export const stelpro_thermostat: Fz.Converter = {
         return result;
     },
 };
-export const viessmann_thermostat: Fz.Converter = {
+export const viessmann_thermostat: Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "hvacThermostat",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
@@ -5286,7 +5309,7 @@ export const viessmann_thermostat: Fz.Converter = {
         return result;
     },
 };
-export const eurotronic_thermostat: Fz.Converter = {
+export const eurotronic_thermostat: Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "hvacThermostat",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
@@ -5330,7 +5353,7 @@ export const eurotronic_thermostat: Fz.Converter = {
         return result;
     },
 };
-export const terncy_raw: Fz.Converter = {
+export const terncy_raw: Fz.Converter<"manuSpecificClusterAduroSmart", undefined, "raw"> = {
     cluster: "manuSpecificClusterAduroSmart",
     type: "raw",
     convert: (model, msg, publish, options, meta) => {
@@ -5364,8 +5387,8 @@ export const terncy_raw: Fz.Converter = {
             value = msg.data[7];
             const sidelookup: KeyValueAny = {5: "right", 7: "right", 40: "left", 56: "left"};
             if (sidelookup[value]) {
-                msg.data.occupancy = 1;
-                const payload = occupancy_with_timeout.convert(model, msg, publish, options, meta) as KeyValueAny;
+                const newMsg = {...msg, type: "attributeReport" as const, data: {occupancy: 1}};
+                const payload = occupancy_with_timeout.convert(model, newMsg, publish, options, meta) as KeyValueAny;
                 if (payload) {
                     payload.action_side = sidelookup[value];
                     payload.side = sidelookup[value]; /* legacy: remove this line (replaced by action_side) */
@@ -5377,7 +5400,7 @@ export const terncy_raw: Fz.Converter = {
     },
 };
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const ZM35HQ_attr: Fz.Converter = {
+export const ZM35HQ_attr: Fz.Converter<"ssIasZone", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "ssIasZone",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
@@ -5388,29 +5411,29 @@ export const ZM35HQ_attr: Fz.Converter = {
             result = {...result1};
         }
         if (data && data.currentZoneSensitivityLevel !== undefined) {
-            const senslookup: KeyValueAny = {"0": "low", "1": "medium", "2": "high"};
+            const senslookup: Record<number, string> = {0: "low", 1: "medium", 2: "high"};
             result.sensitivity = senslookup[data.currentZoneSensitivityLevel];
         }
         if (data && data["61441"] !== undefined) {
-            const keeptimelookup: KeyValueAny = {"0": 30, "1": 60, "2": 120};
-            result.keep_time = keeptimelookup[data["61441"]];
+            const keeptimelookup: Record<number, number> = {0: 30, 1: 60, 2: 120};
+            result.keep_time = keeptimelookup[data["61441"] as number];
         }
         return result;
     },
 };
-export const schneider_lighting_ballast_configuration: Fz.Converter = {
+export const schneider_lighting_ballast_configuration: Fz.Converter<"lightingBallastCfg", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "lightingBallastCfg",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
         const result = lighting_ballast_configuration.convert(model, msg, publish, options, meta) as KeyValueAny;
-        const lookup: KeyValueAny = {1: "RC", 2: "RL"};
+        const lookup: Record<number, string> = {1: "RC", 2: "RL"};
         if (result && msg.data[0xe000] !== undefined) {
-            result.dimmer_mode = lookup[msg.data[0xe000]];
+            result.dimmer_mode = lookup[msg.data[0xe000] as number];
         }
         return result;
     },
 };
-export const wiser_lighting_ballast_configuration: Fz.Converter = {
+export const wiser_lighting_ballast_configuration: Fz.Converter<"lightingBallastCfg", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "lightingBallastCfg",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
@@ -5421,7 +5444,7 @@ export const wiser_lighting_ballast_configuration: Fz.Converter = {
         return result;
     },
 };
-export const wiser_smart_thermostat: Fz.Converter = {
+export const wiser_smart_thermostat: Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "hvacThermostat",
     type: ["attributeReport", "readResponse"],
     convert: async (model, msg, publish, options, meta) => {
@@ -5430,18 +5453,25 @@ export const wiser_smart_thermostat: Fz.Converter = {
         if (result) {
             if (msg.data[0xe010] !== undefined) {
                 // wiserSmartZoneMode
-                const lookup: KeyValueAny = {1: "manual", 2: "schedule", 3: "energy_saver", 6: "holiday"};
-                result.zone_mode = lookup[msg.data[0xe010]];
+                const lookup: Record<number, string> = {1: "manual", 2: "schedule", 3: "energy_saver", 6: "holiday"};
+                result.zone_mode = lookup[msg.data[0xe010] as number];
             }
             if (msg.data[0xe011] !== undefined) {
                 // wiserSmartHactConfig
-                const lookup: KeyValueAny = {0: "unconfigured", 128: "setpoint_switch", 130: "setpoint_fip", 131: "fip_fip"};
-                result.hact_config = lookup[msg.data[0xe011]];
+                const lookup: Record<number, string> = {0: "unconfigured", 128: "setpoint_switch", 130: "setpoint_fip", 131: "fip_fip"};
+                result.hact_config = lookup[msg.data[0xe011] as number];
             }
             if (msg.data[0xe020] !== undefined) {
                 // wiserSmartCurrentFilPiloteMode
-                const lookup: KeyValueAny = {0: "comfort", 1: "comfort_-1", 2: "comfort_-2", 3: "energy_saving", 4: "frost_protection", 5: "off"};
-                result.fip_setting = lookup[msg.data[0xe020]];
+                const lookup: Record<number, string> = {
+                    0: "comfort",
+                    1: "comfort_-1",
+                    2: "comfort_-2",
+                    3: "energy_saving",
+                    4: "frost_protection",
+                    5: "off",
+                };
+                result.fip_setting = lookup[msg.data[0xe020] as number];
             }
             if (msg.data[0xe030] !== undefined) {
                 // wiserSmartValvePosition
@@ -5449,8 +5479,15 @@ export const wiser_smart_thermostat: Fz.Converter = {
             }
             if (msg.data[0xe031] !== undefined) {
                 // wiserSmartValveCalibrationStatus
-                const lookup: KeyValueAny = {0: "ongoing", 1: "successful", 2: "uncalibrated", 3: "failed_e1", 4: "failed_e2", 5: "failed_e3"};
-                result.valve_calibration_status = lookup[msg.data[0xe031]];
+                const lookup: Record<number, string> = {
+                    0: "ongoing",
+                    1: "successful",
+                    2: "uncalibrated",
+                    3: "failed_e1",
+                    4: "failed_e2",
+                    5: "failed_e3",
+                };
+                result.valve_calibration_status = lookup[msg.data[0xe031] as number];
             }
             // Radiator thermostats command changes from UI, but report value periodically for sync,
             // force an update of the value if it doesn't match the current existing value
@@ -5485,47 +5522,47 @@ export const wiser_smart_thermostat: Fz.Converter = {
         }
     },
 };
-export const TS110E: Fz.Converter = {
+export const TS110E: Fz.Converter<"genLevelCtrl", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "genLevelCtrl",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
         const result: KeyValue = {};
         if (msg.data["64515"] !== undefined) {
-            result.min_brightness = utils.mapNumberRange(msg.data["64515"], 0, 1000, 1, 255);
+            result.min_brightness = utils.mapNumberRange(msg.data["64515"] as number, 0, 1000, 1, 255);
         }
         if (msg.data["64516"] !== undefined) {
-            result.max_brightness = utils.mapNumberRange(msg.data["64516"], 0, 1000, 1, 255);
+            result.max_brightness = utils.mapNumberRange(msg.data["64516"] as number, 0, 1000, 1, 255);
         }
         if (msg.data["61440"] !== undefined) {
             const propertyName = utils.postfixWithEndpointName("brightness", msg, model, meta);
-            result[propertyName] = utils.mapNumberRange(msg.data["61440"], 0, 1000, 0, 255);
+            result[propertyName] = utils.mapNumberRange(msg.data["61440"] as number, 0, 1000, 0, 255);
         }
         return result;
     },
 };
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const TS110E_light_type: Fz.Converter = {
+export const TS110E_light_type: Fz.Converter<"genLevelCtrl", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "genLevelCtrl",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
         const result: KeyValue = {};
         if (msg.data["64514"] !== undefined) {
-            const lookup: KeyValue = {0: "led", 1: "incandescent", 2: "halogen"};
-            result.light_type = lookup[msg.data["64514"]];
+            const lookup: Record<number, string> = {0: "led", 1: "incandescent", 2: "halogen"};
+            result.light_type = lookup[msg.data["64514"] as number];
         }
         return result;
     },
 };
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const TS110E_switch_type: Fz.Converter = {
+export const TS110E_switch_type: Fz.Converter<"genLevelCtrl", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "genLevelCtrl",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
         const result: KeyValue = {};
         if (msg.data["64514"] !== undefined) {
-            const lookup: KeyValue = {0: "momentary", 1: "toggle", 2: "state"};
+            const lookup: Record<number, string> = {0: "momentary", 1: "toggle", 2: "state"};
             const propertyName = utils.postfixWithEndpointName("switch_type", msg, model, meta);
-            result[propertyName] = lookup[msg.data["64514"]];
+            result[propertyName] = lookup[msg.data["64514"] as number];
         }
         return result;
     },

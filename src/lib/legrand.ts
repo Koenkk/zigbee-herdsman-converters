@@ -191,7 +191,7 @@ export const fzLegrand = {
                     return {calibration_mode: calMode};
                 }
             },
-        } satisfies Fz.Converter;
+        } satisfies Fz.Converter<"closuresWindowCovering", undefined, ["attributeReport", "readResponse"]>;
     },
     cluster_fc01: {
         cluster: "manuSpecificLegrandDevices",
@@ -217,7 +217,7 @@ export const fzLegrand = {
             if (msg.data["2"] !== undefined) payload.led_if_on = msg.data["2"] === 0x00 ? "OFF" : "ON";
             return payload;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificLegrandDevices", undefined, ["readResponse"]>,
     stop_poll_on_checkin: {
         cluster: "genPollCtrl",
         type: ["commandCheckin"],
@@ -228,7 +228,7 @@ export const fzLegrand = {
                 .command("genPollCtrl", "fastPollStop", {}, legrandOptions)
                 .catch((error) => logger.debug(`Failed to stop poll on '${msg.device.ieeeAddr}' (${error})`, NS));
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genPollCtrl", undefined, ["commandCheckin"]>,
     command_cover: {
         cluster: "closuresWindowCovering",
         type: ["attributeReport", "readResponse"],
@@ -260,12 +260,12 @@ export const fzLegrand = {
             }
             return payload;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"closuresWindowCovering", undefined, ["attributeReport", "readResponse"]>,
     identify: {
         cluster: "genIdentify",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             return {};
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genIdentify", undefined, ["attributeReport", "readResponse"]>,
 };

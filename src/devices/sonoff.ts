@@ -95,7 +95,7 @@ const fzLocal = {
                 result.light_indicator_level = msg.data.currentLevel;
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genLevelCtrl", undefined, ["attributeReport", "readResponse"]>,
 };
 
 const tzLocal = {
@@ -205,7 +205,6 @@ const sonoffExtend = {
 
         if (entityCategory) exposes = exposes.withCategory(entityCategory);
 
-        const fromZigbee: Fz.Converter[] = [];
         const toZigbee: Tz.Converter[] = [
             {
                 key: ["inching_control_set"],
@@ -255,7 +254,7 @@ const sonoffExtend = {
         ];
         return {
             exposes: [exposes],
-            fromZigbee,
+            fromZigbee: [],
             toZigbee,
             isModernExtend: true,
         };
@@ -278,7 +277,7 @@ const sonoffExtend = {
             .withFeature(e.text("friday", ea.STATE_SET))
             .withFeature(e.text("saturday", ea.STATE_SET));
 
-        const fromZigbee: Fz.Converter[] = [
+        const fromZigbee = [
             {
                 cluster: "hvacThermostat",
                 type: ["commandGetWeeklyScheduleRsp"],
@@ -286,7 +285,8 @@ const sonoffExtend = {
                     const day = Object.entries(constants.thermostatDayOfWeek).find((d) => msg.data.dayofweek & (1 << +d[0]))[1];
 
                     const transitions = msg.data.transitions
-                        .map((t: {heatSetpoint: number; transitionTime: number}) => {
+                        // TODO: heatSetpoint is optional, that possibly affects the return
+                        .map((t: {heatSetpoint?: number; transitionTime: number}) => {
                             const totalMinutes = t.transitionTime;
                             const hours = totalMinutes / 60;
                             const rHours = Math.floor(hours);
@@ -307,7 +307,7 @@ const sonoffExtend = {
                         },
                     };
                 },
-            },
+            } satisfies Fz.Converter<"hvacThermostat", undefined, ["commandGetWeeklyScheduleRsp"]>,
         ];
 
         const toZigbee: Tz.Converter[] = [
@@ -415,7 +415,7 @@ const sonoffExtend = {
                     .withValueMin(0)
                     .withValueMax(86400),
             );
-        const fromZigbee: Fz.Converter[] = [
+        const fromZigbee = [
             {
                 cluster: "customClusterEwelink",
                 type: ["attributeReport", "readResponse"],
@@ -449,7 +449,7 @@ const sonoffExtend = {
                         };
                     }
                 },
-            },
+            } satisfies Fz.Converter<"customClusterEwelink", undefined, ["attributeReport", "readResponse"]>,
         ];
         const toZigbee: Tz.Converter[] = [
             {
@@ -527,7 +527,7 @@ const sonoffExtend = {
                     .withValueMin(0)
                     .withValueMax(86400),
             );
-        const fromZigbee: Fz.Converter[] = [
+        const fromZigbee = [
             {
                 cluster: "customClusterEwelink",
                 type: ["attributeReport", "readResponse"],
@@ -561,7 +561,7 @@ const sonoffExtend = {
                         };
                     }
                 },
-            },
+            } satisfies Fz.Converter<"customClusterEwelink", undefined, ["attributeReport", "readResponse"]>,
         ];
         const toZigbee: Tz.Converter[] = [
             {
@@ -623,7 +623,7 @@ const sonoffExtend = {
             );
         if (entityCategory) exposes = exposes.withCategory(entityCategory);
 
-        const fromZigbee: Fz.Converter[] = [
+        const fromZigbee = [
             {
                 cluster: clusterName,
                 type: ["attributeReport", "readResponse"],
@@ -642,7 +642,7 @@ const sonoffExtend = {
                         return {external_trigger_mode: switchType};
                     }
                 },
-            },
+            } satisfies Fz.Converter<typeof clusterName, SonoffEwelink, ["attributeReport", "readResponse"]>,
         ];
         const toZigbee: Tz.Converter[] = [
             {
@@ -701,7 +701,7 @@ const sonoffExtend = {
                 .withFeature(e.binary("detach_relay_outlet3", ea.SET, "ENABLE", "DISABLE").withDescription("Enable/disable detach relay."));
         }
 
-        const fromZigbee: Fz.Converter[] = [
+        const fromZigbee = [
             {
                 cluster: clusterName,
                 type: ["attributeReport", "readResponse"],
@@ -728,7 +728,7 @@ const sonoffExtend = {
                         return {detach_relay_mode: datachRelayStatus};
                     }
                 },
-            },
+            } satisfies Fz.Converter<typeof clusterName, SonoffEwelink, ["attributeReport", "readResponse"]>,
         ];
         const toZigbee: Tz.Converter[] = [
             {
@@ -850,7 +850,7 @@ const sonoffExtend = {
                     .withValueMax(currentMaxLimit)
                     .withValueStep(0.1),
             );
-        const fromZigbee: Fz.Converter[] = [
+        const fromZigbee = [
             {
                 cluster: "customClusterEwelink",
                 type: ["attributeReport", "readResponse"],
@@ -971,7 +971,7 @@ const sonoffExtend = {
                         };
                     }
                 },
-            },
+            } satisfies Fz.Converter<"customClusterEwelink", undefined, ["attributeReport", "readResponse"]>,
         ];
         const toZigbee: Tz.Converter[] = [
             {
