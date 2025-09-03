@@ -2108,17 +2108,19 @@ const tuyaModernExtend = {
             isModernExtend: true,
         };
     },
-    tuyaBase(args?: {
-        dp?: true;
-        queryOnDeviceAnnounce?: true;
-        queryOnConfigure?: true;
-        bindBasicOnConfigure?: true;
-        queryIntervalSeconds?: number;
-        respondToMcuVersionResponse?: false;
-        mcuVersionRequestOnConfigure?: true;
-        forceTimeUpdates?: true;
-        timeStart?: "2000";
-    }): ModernExtend {
+    tuyaBase(
+        args: {
+            dp?: true;
+            queryOnDeviceAnnounce?: true;
+            queryOnConfigure?: true;
+            bindBasicOnConfigure?: true;
+            queryIntervalSeconds?: number;
+            respondToMcuVersionResponse?: false;
+            mcuVersionRequestOnConfigure?: true;
+            forceTimeUpdates?: true;
+            timeStart?: "2000";
+        } = {},
+    ): ModernExtend {
         const {
             dp = false,
             queryOnDeviceAnnounce = false,
