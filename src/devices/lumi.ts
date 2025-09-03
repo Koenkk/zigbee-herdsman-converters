@@ -4438,6 +4438,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [lumiLight({colorTemp: true, color: true, colorTempRange: [111, 500], powerOutageMemory: "light"}), lumiZigbeeOTA()],
     },
     {
+        zigbeeModel: ["lumi.light.agl004"],
+        model: "T2_E27_CCT",
+        vendor: "Aqara",
+        description: "E27 led bulb",
+        extend: [lumiLight({colorTemp: true, colorTempRange: [111, 500], powerOutageMemory: "light"}), lumiZigbeeOTA()],
+    },
+    {
         zigbeeModel: ["lumi.switch.agl010"],
         model: "WS-K08E",
         vendor: "Aqara",
