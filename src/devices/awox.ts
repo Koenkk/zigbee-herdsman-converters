@@ -150,6 +150,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
+        zigbeeModel: ["ESMLzm_c5_GU10"],
         fingerprint: [
             {
                 type: "Router",
