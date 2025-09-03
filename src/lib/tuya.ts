@@ -2116,6 +2116,7 @@ const tuyaModernExtend = {
             bindBasicOnConfigure?: true;
             queryIntervalSeconds?: number;
             respondToMcuVersionResponse?: false;
+            respondToMcuTimeSync?: false;
             mcuVersionRequestOnConfigure?: true;
             forceTimeUpdates?: true;
             timeStart?: "2000";
@@ -2133,6 +2134,7 @@ const tuyaModernExtend = {
             forceTimeUpdates = false,
             timeStart = "1970",
             respondToMcuVersionResponse = true,
+            respondToMcuTimeSync = true,
         } = args;
 
         const fzConverter: Fz.Converter<
@@ -2165,7 +2167,7 @@ const tuyaModernExtend = {
                     forceTimeUpdate = nextLocalTimeUpdate == null || nextLocalTimeUpdate < Date.now();
                 }
 
-                if (msg.type === "commandMcuSyncTime" || forceTimeUpdate) {
+                if ((msg.type === "commandMcuSyncTime" || forceTimeUpdate) && respondToMcuTimeSync) {
                     globalStore.putValue(msg.device, "nextLocalTimeUpdate", Date.now() + 3600 * 1000);
                     const offset = timeStart === "2000" ? constants.OneJanuary2000 : 0;
                     const utcTime = Math.round((Date.now() - offset) / 1000);
