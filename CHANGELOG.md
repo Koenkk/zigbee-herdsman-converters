@@ -1,5 +1,26 @@
 # Changelog
 
+## [25.16.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.15.0...v25.16.0) (2025-09-03)
+
+
+### Features
+
+* Add FZ typing ([#9867](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9867)) ([dfa4261](https://github.com/Koenkk/zigbee-herdsman-converters/commit/dfa42613418d768186bce23faa1955972ee043c0))
+* **add:** NFZB-03 https://github.com/Koenkk/zigbee2mqtt/issues/28366 ([9ac08a7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9ac08a7e56f763d5856ed93579446ae6eacf9b1e))
+* **add:** T2_E27_CCT https://github.com/Koenkk/zigbee2mqtt/issues/26182 ([b332368](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b3323689c8cdc49f61637ac45b46507fb353a79f))
+* **add:** ZG-227Z-z https://github.com/Koenkk/zigbee-herdsman-converters/issues/9918 ([97ede20](https://github.com/Koenkk/zigbee-herdsman-converters/commit/97ede20d7b43d18505d6d3700cded22e77a07da8))
+
+
+### Bug Fixes
+
+* **detect:** Detect `ESMLzm_c5_GU10` as AwoX 33943/33944/33946 https://github.com/Koenkk/zigbee2mqtt/issues/28472 ([3710caf](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3710caf123a601256d984110e36924cb478ae61a))
+* IKEA E1524/E1810: fix configure failing https://github.com/Koenkk/zigbee2mqtt/issues/28161 ([7b4a8e6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7b4a8e6c6a46d6c4ffc21be4ad068d79ffafd315))
+* Nous E5: fix battery reporting https://github.com/Koenkk/zigbee2mqtt/issues/27817 ([d8c5d78](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d8c5d786c1694f03d6255d7feb2baf138b03e4b7))
+* Shelly S4SW-002P16EU-SWITCH: fix endpoints ([#9905](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9905)) ([2dbf351](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2dbf3510775ccea6c69d8b7d6ee3ff83ac55ec5d))
+* Tuya PJ-1203A: fix mcuSyncTime error https://github.com/Koenkk/zigbee2mqtt/issues/28455 ([492f157](https://github.com/Koenkk/zigbee-herdsman-converters/commit/492f1576677596b5cd99ea3e64f58a3d788a4370))
+* Tuya ZG-205Z: fix presence https://github.com/Koenkk/zigbee2mqtt/issues/28464 ([efb33e8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/efb33e8891348f3afa04596a4560056bc72d0346))
+* Waxman 8840100H: remove support as water leak is not detect properly ([#9915](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9915)) ([9fa8cd9](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9fa8cd9b4b766b7adca8b63e8ee0453a1e4200fa))
+
 ## [25.15.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.14.0...v25.15.0) (2025-09-02)
 
 
