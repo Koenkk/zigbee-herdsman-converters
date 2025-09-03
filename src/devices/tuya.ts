@@ -18762,4 +18762,11 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
+    {
+        fingerprint: [{ modelID: 'TS0222', manufacturerName: '_TZ3000_7kscdesh' }],
+        model: 'TS0222_7kscdesh', 
+        vendor: 'Tuya',
+        description: 'Tuya Zigbee light sensor (TS0222, _TZ3000_7kscdesh)',
+        extend: [m.illuminance(), m.battery()],
+    },
 ];
