@@ -109,6 +109,13 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
+        zigbeeModel: ["RB 282 C"],
+        model: "RB 282 C",
+        vendor: "Innr",
+        description: "E27 bulb RGBW",
+        extend: [m.light({colorTemp: {range: [153, 556]}, color: {modes: ["xy", "hs"], enhancedHue: true}, turnsOffAtBrightness1: true})],
+    },
+    {
         zigbeeModel: ["BF 263"],
         model: "BF 263",
         vendor: "Innr",
@@ -401,6 +408,14 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        zigbeeModel: ["RS 240"],
+        model: "RS 240",
+        vendor: "Innr",
+        description: "Smart spot white GU10 ",
+        extend: [m.light({turnsOffAtBrightness1: true})],
+        ota: true,
+    },
+    {
         zigbeeModel: ["RS 241 T"],
         model: "RS 241 T",
         vendor: "Innr",
@@ -656,6 +671,13 @@ export const definitions: DefinitionWithExtend[] = [
         description: "E26 bulb RGBW",
         extend: [m.light({colorTemp: {range: [153, 555]}, color: {modes: ["xy", "hs"], applyRedFix: true}, turnsOffAtBrightness1: true})],
         ota: true,
+    },
+    {
+        zigbeeModel: ["AE 287 C"],
+        model: "AE 287 C",
+        vendor: "Innr",
+        description: "E26 bulb 1100lm, RGBCW",
+        extend: [m.light({colorTemp: {range: [153, 556]}, color: {modes: ["xy", "hs"], enhancedHue: true}, turnsOffAtBrightness1: true})],
     },
     {
         zigbeeModel: ["SP 120"],

@@ -1,6 +1,7 @@
 import * as fz from "../converters/fromZigbee";
 import * as exposes from "../lib/exposes";
 import * as legacy from "../lib/legacy";
+import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as tuya from "../lib/tuya";
 import type {DefinitionWithExtend} from "../lib/types";
@@ -14,9 +15,9 @@ export const definitions: DefinitionWithExtend[] = [
         model: "E5",
         vendor: "Nous",
         description: "Temperature & humidity",
-        fromZigbee: [fz.temperature, fz.humidity, fz.battery],
-        toZigbee: [],
-        exposes: [e.temperature(), e.humidity(), e.battery()],
+        fromZigbee: [fz.temperature, fz.humidity],
+        exposes: [e.temperature(), e.humidity()],
+        extend: [m.battery()],
     },
     {
         fingerprint: tuya.fingerprint("TS0601", [
@@ -35,7 +36,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Temperature and humidity sensor with clock",
         fromZigbee: [legacy.fz.nous_lcd_temperature_humidity_sensor, fz.ignore_tuya_set_time],
         toZigbee: [legacy.tz.nous_lcd_temperature_humidity_sensor],
-        onEvent: tuya.onEventSetLocalTime,
+        extend: [tuya.modernExtend.tuyaBase({forceTimeUpdates: true})],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genBasic"]);
@@ -88,11 +89,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Temperature & humidity LCD sensor",
         fromZigbee: [legacy.fz.nous_lcd_temperature_humidity_sensor, fz.ignore_tuya_set_time],
         toZigbee: [legacy.tz.nous_lcd_temperature_humidity_sensor],
-        onEvent: tuya.onEventSetLocalTime,
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genBasic"]);
-        },
+        extend: [tuya.modernExtend.tuyaBase({forceTimeUpdates: true, bindBasicOnConfigure: true})],
         exposes: [
             e.temperature(),
             e.humidity(),

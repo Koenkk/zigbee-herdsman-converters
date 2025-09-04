@@ -15,9 +15,6 @@ import type {
     KeyValueAny,
     KeyValueNumberString,
     ModernExtend,
-    OnEvent,
-    OnEventData,
-    OnEventType,
     Publish,
     Range,
     Tuya,
@@ -35,6 +32,22 @@ const ea = exposes.access;
 
 interface KeyValueStringEnum {
     [s: string]: Enum;
+}
+
+interface Tuya4 {
+    attributes: {
+        // biome-ignore lint/style/useNamingConvention: TODO
+        random_timing: string;
+        // biome-ignore lint/style/useNamingConvention: TODO
+        cycle_timing: string;
+        inching: string;
+    };
+    commands: {
+        setRandomTiming: {payload: Buffer};
+        setCycleTiming: {payload: Buffer};
+        setInchingSwitch: {payload: Buffer};
+    };
+    commandResponses: never;
 }
 
 export const dataTypes = {
@@ -61,74 +74,6 @@ function convertStringToHexArray(value: string) {
         asciiKeys.push(value[i].charCodeAt(0));
     }
     return asciiKeys;
-}
-
-interface OnEventArgs {
-    queryOnDeviceAnnounce?: boolean;
-    timeStart?: "1970" | "2000";
-    respondToMcuVersionResponse?: boolean;
-    queryIntervalSeconds?: number;
-}
-
-export function onEvent(args?: OnEventArgs): OnEvent {
-    return async (type, data, device, settings, state) => {
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
-        args = {queryOnDeviceAnnounce: false, timeStart: "1970", respondToMcuVersionResponse: true, ...args};
-
-        const endpoint = device.endpoints[0];
-
-        if (type === "message" && data.cluster === "manuSpecificTuya") {
-            if (args.respondToMcuVersionResponse && data.type === "commandMcuVersionResponse") {
-                await endpoint.command("manuSpecificTuya", "mcuVersionRequest", {seq: 0x0002});
-            } else if (data.type === "commandMcuGatewayConnectionStatus") {
-                // "payload" can have the following values:
-                // 0x00: The gateway is not connected to the internet.
-                // 0x01: The gateway is connected to the internet.
-                // 0x02: The request timed out after three seconds.
-                const payload = {payloadSize: 1, payload: 1};
-                await endpoint.command("manuSpecificTuya", "mcuGatewayConnectionStatus", payload, {});
-            }
-        }
-
-        if (data.type === "commandMcuSyncTime" && data.cluster === "manuSpecificTuya") {
-            try {
-                const offset = args.timeStart === "2000" ? constants.OneJanuary2000 : 0;
-                const utcTime = Math.round((Date.now() - offset) / 1000);
-                const localTime = utcTime - new Date().getTimezoneOffset() * 60;
-                const payload = {
-                    payloadSize: 8,
-                    payload: [...convertDecimalValueTo4ByteHexArray(utcTime), ...convertDecimalValueTo4ByteHexArray(localTime)],
-                };
-                await endpoint.command("manuSpecificTuya", "mcuSyncTime", payload, {});
-            } catch {
-                /* handle error to prevent crash */
-            }
-        }
-
-        // Some devices require a dataQuery on deviceAnnounce, otherwise they don't report any data
-        if (args.queryOnDeviceAnnounce && type === "deviceAnnounce") {
-            await endpoint.command("manuSpecificTuya", "dataQuery", {});
-        }
-        if (args.queryIntervalSeconds) {
-            if (type === "stop") {
-                clearTimeout(globalStore.getValue(device, "query_interval"));
-                globalStore.clearValue(device, "query_interval");
-            } else if (!globalStore.hasValue(device, "query_interval")) {
-                const setTimer = () => {
-                    const timer = setTimeout(async () => {
-                        try {
-                            await endpoint.command("manuSpecificTuya", "dataQuery", {});
-                        } catch {
-                            /* Do nothing*/
-                        }
-                        setTimer();
-                    }, args.queryIntervalSeconds * 1000);
-                    globalStore.putValue(device, "query_interval", timer);
-                };
-                setTimer();
-            }
-        }
-    };
 }
 
 function getDataValue(dpValue: Tuya.DpValue) {
@@ -169,82 +114,6 @@ function convertDecimalValueTo2ByteHexArray(value: number) {
     return [chunk1, chunk2].map((hexVal) => Number.parseInt(hexVal, 16));
 }
 
-export function onEventMeasurementPoll(
-    type: OnEventType,
-    data: OnEventData,
-    device: Zh.Device,
-    options: KeyValue,
-    electricalMeasurement = true,
-    metering = false,
-) {
-    const endpoint = device.getEndpoint(1);
-    const poll = async () => {
-        if (electricalMeasurement) {
-            await endpoint.read("haElectricalMeasurement", ["rmsVoltage", "rmsCurrent", "activePower"]);
-        }
-        if (metering) {
-            await endpoint.read("seMetering", ["currentSummDelivered"]);
-        }
-    };
-
-    utils.onEventPoll(type, data, device, options, "measurement", 60, poll);
-}
-
-export async function onEventSetTime(type: OnEventType, data: OnEventData, device: Zh.Device) {
-    // FIXME: Need to join onEventSetTime/onEventSetLocalTime to one command
-
-    if (data.type === "commandMcuSyncTime" && data.cluster === "manuSpecificTuya") {
-        try {
-            const utcTime = Math.round((Date.now() - constants.OneJanuary2000) / 1000);
-            const localTime = utcTime - new Date().getTimezoneOffset() * 60;
-            const endpoint = device.getEndpoint(1);
-
-            const payload = {
-                payloadSize: 8,
-                payload: [...convertDecimalValueTo4ByteHexArray(utcTime), ...convertDecimalValueTo4ByteHexArray(localTime)],
-            };
-            await endpoint.command("manuSpecificTuya", "mcuSyncTime", payload, {});
-        } catch {
-            // endpoint.command can throw an error which needs to
-            // be caught or the zigbee-herdsman may crash
-            // Debug message is handled in the zigbee-herdsman
-        }
-    }
-}
-
-// set UTC and Local Time as total number of seconds from 00: 00: 00 on January 01, 1970
-// force to update every device time every hour due to very poor clock
-export async function onEventSetLocalTime(type: OnEventType, data: OnEventData, device: Zh.Device) {
-    // FIXME: What actually nextLocalTimeUpdate/forceTimeUpdate do?
-    //  I did not find any timers or something else where it was used.
-    //  Actually, there are two ways to set time on Tuya MCU devices:
-    //  1. Respond to the `commandMcuSyncTime` event
-    //  2. Just send `mcuSyncTime` anytime (by 1-hour timer or something else)
-
-    const nextLocalTimeUpdate = globalStore.getValue(device, "nextLocalTimeUpdate");
-    const forceTimeUpdate = nextLocalTimeUpdate == null || nextLocalTimeUpdate < Date.now();
-
-    if ((data.type === "commandMcuSyncTime" && data.cluster === "manuSpecificTuya") || forceTimeUpdate) {
-        globalStore.putValue(device, "nextLocalTimeUpdate", Date.now() + 3600 * 1000);
-
-        try {
-            const utcTime = Math.round(Date.now() / 1000);
-            const localTime = utcTime - new Date().getTimezoneOffset() * 60;
-            const endpoint = device.getEndpoint(1);
-
-            const payload = {
-                payloadSize: 8,
-                payload: [...convertDecimalValueTo4ByteHexArray(utcTime), ...convertDecimalValueTo4ByteHexArray(localTime)],
-            };
-            await endpoint.command("manuSpecificTuya", "mcuSyncTime", payload, {});
-        } catch {
-            // endpoint.command can throw an error which needs to
-            // be caught or the zigbee-herdsman may crash
-            // Debug message is handled in the zigbee-herdsman
-        }
-    }
-}
-
 // Return `seq` - transaction ID for handling concrete response
 async function sendDataPoints(entity: Zh.Endpoint | Zh.Group, dpValues: Tuya.DpValue[], cmd = "dataRequest", seq?: number) {
     if (seq === undefined) {
@@ -253,32 +122,32 @@ async function sendDataPoints(entity: Zh.Endpoint | Zh.Group, dpValues: Tuya.DpV
         globalStore.putValue(entity, "sequence", (seq + 1) % 0xffff);
     }
 
-    await entity.command("manuSpecificTuya", cmd, {seq, dpValues}, {disableDefaultResponse: true});
+    await entity.command("manuSpecificTuya", cmd as "dataRequest", {seq, dpValues}, {disableDefaultResponse: true});
     return seq;
 }
 
 function dpValueFromNumberValue(dp: number, value: number) {
-    return {dp, datatype: dataTypes.number, data: convertDecimalValueTo4ByteHexArray(value)};
+    return {dp, datatype: dataTypes.number, data: Buffer.from(convertDecimalValueTo4ByteHexArray(value))};
 }
 
 function dpValueFromBool(dp: number, value: boolean) {
-    return {dp, datatype: dataTypes.bool, data: [value ? 1 : 0]};
+    return {dp, datatype: dataTypes.bool, data: Buffer.from([value ? 1 : 0])};
 }
 
 function dpValueFromEnum(dp: number, value: number) {
-    return {dp, datatype: dataTypes.enum, data: [value]};
+    return {dp, datatype: dataTypes.enum, data: Buffer.from([value])};
 }
 
 export function dpValueFromString(dp: number, string: string) {
-    return {dp, datatype: dataTypes.string, data: convertStringToHexArray(string)};
+    return {dp, datatype: dataTypes.string, data: Buffer.from(convertStringToHexArray(string))};
 }
 
-function dpValueFromRaw(dp: number, rawBuffer: number[]) {
+function dpValueFromRaw(dp: number, rawBuffer: Buffer) {
     return {dp, datatype: dataTypes.raw, data: rawBuffer};
 }
 
 function dpValueFromBitmap(dp: number, bitmapBuffer: number) {
-    return {dp, datatype: dataTypes.bitmap, data: [bitmapBuffer]};
+    return {dp, datatype: dataTypes.bitmap, data: Buffer.from([bitmapBuffer])};
 }
 
 export async function sendDataPointValue(entity: Zh.Group | Zh.Endpoint, dp: number, value: number, cmd?: string, seq?: number) {
@@ -293,7 +162,7 @@ export async function sendDataPointEnum(entity: Zh.Group | Zh.Endpoint, dp: numb
     return await sendDataPoints(entity, [dpValueFromEnum(dp, value)], cmd, seq);
 }
 
-export async function sendDataPointRaw(entity: Zh.Group | Zh.Endpoint, dp: number, value: number[], cmd?: string, seq?: number) {
+export async function sendDataPointRaw(entity: Zh.Group | Zh.Endpoint, dp: number, value: Buffer, cmd?: string, seq?: number) {
     return await sendDataPoints(entity, [dpValueFromRaw(dp, value)], cmd, seq);
 }
 
@@ -498,6 +367,19 @@ export const configureMagicPacket = async (device: Zh.Device, coordinatorEndpoin
             throw e;
         }
     }
+};
+
+export const configureQuery = async (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint) => {
+    // Required to get the device to start reporting
+    await device.getEndpoint(1).command("manuSpecificTuya", "dataQuery", {});
+};
+
+export const configureMcuVersionRequest = async (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint) => {
+    await device.getEndpoint(1).command("manuSpecificTuya", "mcuVersionRequest", {seq: 0x0002});
+};
+
+export const configureBindBasic = async (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint) => {
+    await device.getEndpoint(1).bind("genBasic", coordinatorEndpoint);
 };
 
 export const fingerprint = (modelID: string, manufacturerNames: string[]) => {
@@ -730,7 +612,7 @@ export const valueConverter = {
                     0,
                     utils.toNumber(threshold, "overload_threshold"),
                 ]);
-                await sendDataPointRaw(entity, 17, Array.from(buf), sendCommand, 1);
+                await sendDataPointRaw(entity, 17, buf, sendCommand, 1);
             } else if (meta.message.overload_threshold) {
                 const state = meta.state.overload_breaker;
                 const buf = Buffer.from([
@@ -739,35 +621,35 @@ export const valueConverter = {
                     0,
                     utils.toNumber(meta.message.overload_threshold, "overload_threshold"),
                 ]);
-                await sendDataPointRaw(entity, 17, Array.from(buf), sendCommand, 1);
+                await sendDataPointRaw(entity, 17, buf, sendCommand, 1);
             } else if (meta.message.leakage_threshold) {
                 const state = meta.state.leakage_breaker;
                 const buf = Buffer.alloc(8);
                 buf.writeUInt8(4, 4);
                 buf.writeUInt8(utils.getFromLookup(state, onOffLookup), 5);
                 buf.writeUInt16BE(utils.toNumber(meta.message.leakage_threshold, "leakage_threshold"), 6);
-                await sendDataPointRaw(entity, 17, Array.from(buf), sendCommand, 1);
+                await sendDataPointRaw(entity, 17, buf, sendCommand, 1);
             } else if (meta.message.leakage_breaker) {
                 const threshold = meta.state.leakage_threshold;
                 const buf = Buffer.alloc(8);
                 buf.writeUInt8(4, 4);
                 buf.writeUInt8(utils.getFromLookup(meta.message.leakage_breaker, onOffLookup), 5);
                 buf.writeUInt16BE(utils.toNumber(threshold, "leakage_threshold"), 6);
-                await sendDataPointRaw(entity, 17, Array.from(buf), sendCommand, 1);
+                await sendDataPointRaw(entity, 17, buf, sendCommand, 1);
             } else if (meta.message.high_temperature_threshold) {
                 const state = meta.state.high_temperature_breaker;
                 const buf = Buffer.alloc(12);
                 buf.writeUInt8(5, 8);
                 buf.writeUInt8(utils.getFromLookup(state, onOffLookup), 9);
                 buf.writeUInt16BE(utils.toNumber(meta.message.high_temperature_threshold, "high_temperature_threshold"), 10);
-                await sendDataPointRaw(entity, 17, Array.from(buf), sendCommand, 1);
+                await sendDataPointRaw(entity, 17, buf, sendCommand, 1);
             } else if (meta.message.high_temperature_breaker) {
                 const threshold = meta.state.high_temperature_threshold;
                 const buf = Buffer.alloc(12);
                 buf.writeUInt8(5, 8);
                 buf.writeUInt8(utils.getFromLookup(meta.message.high_temperature_breaker, onOffLookup), 9);
                 buf.writeUInt16BE(utils.toNumber(threshold, "high_temperature_threshold"), 10);
-                await sendDataPointRaw(entity, 17, Array.from(buf), sendCommand, 1);
+                await sendDataPointRaw(entity, 17, buf, sendCommand, 1);
             }
         },
         from: (v: string) => {
@@ -805,7 +687,7 @@ export const valueConverter = {
                     0,
                     utils.toNumber(meta.message.over_current_threshold, "over_current_threshold"),
                 ]);
-                await sendDataPointRaw(entity, 18, Array.from(buf), sendCommand, 1);
+                await sendDataPointRaw(entity, 18, buf, sendCommand, 1);
             } else if (meta.message.over_current_breaker) {
                 const threshold = meta.state.over_current_threshold;
                 const buf = Buffer.from([
@@ -814,49 +696,49 @@ export const valueConverter = {
                     0,
                     utils.toNumber(threshold, "over_current_threshold"),
                 ]);
-                await sendDataPointRaw(entity, 18, Array.from(buf), sendCommand, 1);
+                await sendDataPointRaw(entity, 18, buf, sendCommand, 1);
             } else if (meta.message.over_voltage_threshold) {
                 const state = meta.state.over_voltage_breaker;
                 const buf = Buffer.alloc(8);
                 buf.writeUInt8(3, 4);
                 buf.writeUInt8(utils.getFromLookup(state, onOffLookup), 5);
                 buf.writeUInt16BE(utils.toNumber(meta.message.over_voltage_threshold, "over_voltage_threshold"), 6);
-                await sendDataPointRaw(entity, 18, Array.from(buf), sendCommand, 1);
+                await sendDataPointRaw(entity, 18, buf, sendCommand, 1);
             } else if (meta.message.over_voltage_breaker) {
                 const threshold = meta.state.over_voltage_threshold;
                 const buf = Buffer.alloc(8);
                 buf.writeUInt8(3, 4);
                 buf.writeUInt8(utils.getFromLookup(meta.message.over_voltage_breaker, onOffLookup), 5);
                 buf.writeUInt16BE(utils.toNumber(threshold, "over_voltage_threshold"), 6);
-                await sendDataPointRaw(entity, 18, Array.from(buf), sendCommand, 1);
+                await sendDataPointRaw(entity, 18, buf, sendCommand, 1);
             } else if (meta.message.under_voltage_threshold) {
                 const state = meta.state.under_voltage_breaker;
                 const buf = Buffer.alloc(12);
                 buf.writeUInt8(4, 8);
                 buf.writeUInt8(utils.getFromLookup(state, onOffLookup), 9);
                 buf.writeUInt16BE(utils.toNumber(meta.message.under_voltage_threshold, "under_voltage_threshold"), 10);
-                await sendDataPointRaw(entity, 18, Array.from(buf), sendCommand, 1);
+                await sendDataPointRaw(entity, 18, buf, sendCommand, 1);
             } else if (meta.message.under_voltage_breaker) {
                 const threshold = meta.state.under_voltage_threshold;
                 const buf = Buffer.alloc(12);
                 buf.writeUInt8(4, 8);
                 buf.writeUInt8(utils.getFromLookup(meta.message.under_voltage_breaker, onOffLookup), 9);
                 buf.writeUInt16BE(utils.toNumber(threshold, "under_voltage_threshold"), 10);
-                await sendDataPointRaw(entity, 18, Array.from(buf), sendCommand, 1);
+                await sendDataPointRaw(entity, 18, buf, sendCommand, 1);
             } else if (meta.message.insufficient_balance_threshold) {
                 const state = meta.state.insufficient_balance_breaker;
                 const buf = Buffer.alloc(16);
                 buf.writeUInt8(8, 12);
                 buf.writeUInt8(utils.getFromLookup(state, onOffLookup), 13);
                 buf.writeUInt16BE(utils.toNumber(meta.message.insufficient_balance_threshold, "insufficient_balance_threshold"), 14);
-                await sendDataPointRaw(entity, 18, Array.from(buf), sendCommand, 1);
+                await sendDataPointRaw(entity, 18, buf, sendCommand, 1);
             } else if (meta.message.insufficient_balance_breaker) {
                 const threshold = meta.state.insufficient_balance_threshold;
                 const buf = Buffer.alloc(16);
                 buf.writeUInt8(8, 12);
                 buf.writeUInt8(utils.getFromLookup(meta.message.insufficient_balance_breaker, onOffLookup), 13);
                 buf.writeUInt16BE(utils.toNumber(threshold, "insufficient_balance_threshold"), 14);
-                await sendDataPointRaw(entity, 18, Array.from(buf), sendCommand, 1);
+                await sendDataPointRaw(entity, 18, buf, sendCommand, 1);
             }
         },
         from: (v: string) => {
@@ -1016,8 +898,8 @@ export const valueConverter = {
             for (const period of schedule) {
                 const timeTemp = period.split("/");
                 const hm = timeTemp[0].split(":", 2);
-                const h = Number.parseInt(hm[0]);
-                const m = Number.parseInt(hm[1]);
+                const h = Number.parseInt(hm[0], 10);
+                const m = Number.parseInt(hm[1], 10);
                 const temp = Number.parseFloat(timeTemp[1]);
                 if (h < 0 || h > 24 || m < 0 || m >= 60 || m % 10 !== 0 || temp < 5 || temp > 30 || temp % 0.5 !== 0) {
                     throw new Error(`Invalid hour, minute or temperature of: ${period}`);
@@ -1051,7 +933,7 @@ export const valueConverter = {
                 for (let index = 1; index < transitionCount * 4 - 1; index = index + 4) {
                     schedule.push(
                         // @ts-expect-error
-                        `${String(Number.parseInt(v[index + 0])).padStart(2, "0")}:${String(Number.parseInt(v[index + 1])).padStart(2, "0")}/${(Number.parseFloat((v[index + 2] << 8) + v[index + 3]) / 10.0).toFixed(1)}`,
+                        `${String(Number.parseInt(v[index + 0], 10)).padStart(2, "0")}:${String(Number.parseInt(v[index + 1], 10)).padStart(2, "0")}/${(Number.parseFloat((v[index + 2] << 8) + v[index + 3]) / 10.0).toFixed(1)}`,
                     );
                 }
                 return schedule.join(" ");
@@ -1068,8 +950,8 @@ export const valueConverter = {
                         throw new Error(`Invalid schedule: wrong transition format: ${transition}`);
                     }
                     const hourMin = timeTemp[0].split(":");
-                    const hour = Number.parseInt(hourMin[0]);
-                    const min = Number.parseInt(hourMin[1]);
+                    const hour = Number.parseInt(hourMin[0], 10);
+                    const min = Number.parseInt(hourMin[1], 10);
                     const temperature = Math.floor(Number.parseFloat(timeTemp[1]) * 10);
                     if (hour < 0 || hour > 24 || min < 0 || min > 60 || temperature < 50 || temperature > 350) {
                         throw new Error(`Invalid hour, minute or temperature of: ${transition}`);
@@ -1095,8 +977,8 @@ export const valueConverter = {
         from: (v: string) => {
             const schedule = [];
             for (let index = 1; index < 24; index = index + 4) {
-                const firstByte = (Number.parseInt(v[index + 0]) - 192) << 8;
-                const secondByte = Number.parseInt(v[index + 1]);
+                const firstByte = (Number.parseInt(v[index + 0], 10) - 192) << 8;
+                const secondByte = Number.parseInt(v[index + 1], 10);
 
                 const minutesSinceMidnight = firstByte | secondByte;
 
@@ -1121,8 +1003,8 @@ export const valueConverter = {
                     throw new Error(`Invalid schedule: wrong transition format: ${transition}`);
                 }
                 const hourMin = timeTemp[0].split(":");
-                const hour = Number.parseInt(hourMin[0]);
-                const min = Number.parseInt(hourMin[1]);
+                const hour = Number.parseInt(hourMin[0], 10);
+                const min = Number.parseInt(hourMin[1], 10);
                 const temperature = Math.floor(Number.parseFloat(timeTemp[1]) * 10);
                 if (hour < 0 || hour > 24 || min < 0 || min > 60 || temperature < 50 || temperature > 300) {
                     throw new Error(`Invalid hour, minute or temperature of: ${transition}`);
@@ -1229,8 +1111,8 @@ export const valueConverter = {
                         throw new Error(`Invalid schedule: wrong transition format: ${items[i]}`);
                     }
                     const hourMinute = timeTemperature[0].split(":", 2);
-                    const hour = Number.parseInt(hourMinute[0]);
-                    const minute = Number.parseInt(hourMinute[1]);
+                    const hour = Number.parseInt(hourMinute[0], 10);
+                    const minute = Number.parseInt(hourMinute[1], 10);
                     const temperature = Number.parseFloat(timeTemperature[1]);
 
                     if (
@@ -1260,7 +1142,7 @@ export const valueConverter = {
 
             const entity = meta.device.endpoints[0];
             const sendCommand = utils.getMetaValue(entity, meta.mapped, "tuyaSendCommand", undefined, "dataRequest");
-            await sendDataPointRaw(entity, dpId, payload, sendCommand, 1);
+            await sendDataPointRaw(entity, dpId, Buffer.from(payload), sendCommand, 1);
         },
     },
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
@@ -1282,8 +1164,8 @@ export const valueConverter = {
                     payload.push(modeMapping[item]);
                 } else {
                     const time = item.split(":");
-                    const hours = Number.parseInt(time[0]);
-                    const minutes = Math.floor(Number.parseInt(time[1]) / 5);
+                    const hours = Number.parseInt(time[0], 10);
+                    const minutes = Math.floor(Number.parseInt(time[1], 10) / 5);
                     const total = hours * 12 + minutes;
                     if (total > 0) payload.push(total);
                 }
@@ -1340,18 +1222,18 @@ export const valueConverter = {
 
             const {startYear, startMonth, startDay, startHours, startMinutes, endYear, endMonth, endDay, endHours, endMin, mode} = regexResult.groups;
             const startDate = new Date(
-                Number.parseInt(startYear),
-                Number.parseInt(startMonth) - 1,
-                Number.parseInt(startDay),
-                Number.parseInt(startHours),
-                Number.parseInt(startMinutes),
+                Number.parseInt(startYear, 10),
+                Number.parseInt(startMonth, 10) - 1,
+                Number.parseInt(startDay, 10),
+                Number.parseInt(startHours, 10),
+                Number.parseInt(startMinutes, 10),
             );
             const endDate = new Date(
-                Number.parseInt(endYear),
-                Number.parseInt(endMonth) - 1,
-                Number.parseInt(endDay),
-                Number.parseInt(endHours),
-                Number.parseInt(startMinutes),
+                Number.parseInt(endYear, 10),
+                Number.parseInt(endMonth, 10) - 1,
+                Number.parseInt(endDay, 10),
+                Number.parseInt(endHours, 10),
+                Number.parseInt(startMinutes, 10),
             );
             const diffHours = Math.abs(startDate.getTime() - endDate.getTime()) / 36e5;
             const modeMapping: Record<string, number> = {
@@ -1369,11 +1251,11 @@ export const valueConverter = {
             if (startDate.getTime() > endDate.getTime()) throw new Error("You cannot set a negative interval.");
 
             payload.push(
-                Number.parseInt(startYear.slice(2)),
-                Number.parseInt(startMonth),
-                Number.parseInt(startDay),
-                Number.parseInt(startHours),
-                Number.parseInt(startMinutes),
+                Number.parseInt(startYear.slice(2), 10),
+                Number.parseInt(startMonth, 10),
+                Number.parseInt(startDay, 10),
+                Number.parseInt(startHours, 10),
+                Number.parseInt(startMinutes, 10),
                 modeMapping[mode],
                 0,
                 diffHours,
@@ -1398,11 +1280,11 @@ export const valueConverter = {
                 0: "comfort",
             };
             const endDate = new Date(
-                Number.parseInt(startYear),
-                Number.parseInt(startMonth) - 1,
-                Number.parseInt(startDay),
-                Number.parseInt(startHours),
-                Number.parseInt(startMinutes),
+                Number.parseInt(startYear, 10),
+                Number.parseInt(startMonth, 10) - 1,
+                Number.parseInt(startDay, 10),
+                Number.parseInt(startHours, 10),
+                Number.parseInt(startMinutes, 10),
             );
             endDate.setHours(endDate.getHours() + diffHours);
             const endYear = endDate.getFullYear().toString();
@@ -1472,7 +1354,7 @@ export const valueConverter = {
                     // Second endpoint onwards base number is determined by 2 powered by endpoint number less 1
                     state += 2 ** (i - 1);
                 }
-                const secs: number = Number.parseInt(value[`inching_time_${i}`]);
+                const secs: number = Number.parseInt(value[`inching_time_${i}`], 10);
                 const byte1 = secs >> 8; // Equivalent to Math.truc(secs / 256)
                 const byte2 = secs % 256;
                 const ascii = String.fromCharCode(state, byte1, byte2);
@@ -1554,33 +1436,33 @@ const tuyaTz = {
         key: ["power_on_behavior"],
         convertSet: async (entity, key, value, meta) => {
             const powerOnBehavior = utils.getFromLookup(value, {off: 0, on: 1, previous: 2});
-            await entity.write("manuSpecificTuya_3", {powerOnBehavior});
+            await entity.write("manuSpecificTuya3", {powerOnBehavior});
             return {state: {[key]: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read("manuSpecificTuya_3", ["powerOnBehavior"]);
+            await entity.read("manuSpecificTuya3", ["powerOnBehavior"]);
         },
     } satisfies Tz.Converter,
     switch_type: {
         key: ["switch_type"],
         convertSet: async (entity, key, value, meta) => {
             const switchType = utils.getFromLookup(value, {toggle: 0, state: 1, momentary: 2});
-            await entity.write("manuSpecificTuya_3", {switchType}, {disableDefaultResponse: true});
+            await entity.write("manuSpecificTuya3", {switchType}, {disableDefaultResponse: true});
             return {state: {[key]: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read("manuSpecificTuya_3", ["switchType"]);
+            await entity.read("manuSpecificTuya3", ["switchType"]);
         },
     } satisfies Tz.Converter,
     switch_type_curtain: {
         key: ["switch_type_curtain"],
         convertSet: async (entity, key, value, meta) => {
             const switchType = utils.getFromLookup(value, {"flip-switch": 0, "sync-switch": 1, "button-switch": 2, "button2-switch": 3});
-            await entity.write("manuSpecificTuya_3", {switchType}, {disableDefaultResponse: true});
+            await entity.write("manuSpecificTuya3", {switchType}, {disableDefaultResponse: true});
             return {state: {[key]: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read("manuSpecificTuya_3", ["switchType"]);
+            await entity.read("manuSpecificTuya3", ["switchType"]);
         },
     } satisfies Tz.Converter,
     backlight_indicator_mode_1: {
@@ -1614,10 +1496,13 @@ const tuyaTz = {
         key: ["backlight_mode", "indicator_mode"],
         convertSet: async (entity, key, value, meta) => {
             const lookup = key === "backlight_mode" ? {off: 0, on: 1} : {none: 0, relay: 1, pos: 2};
-            const attribute = key === "backlight_mode" ? "tuyaBacklightSwitch" : "tuyaBacklightMode";
             const result = utils.getFromLookup(value, lookup);
 
-            await entity.write("genOnOff", {[attribute]: result});
+            if (key === "backlight_mode") {
+                await entity.write("genOnOff", {tuyaBacklightSwitch: result});
+            } else {
+                await entity.write("genOnOff", {tuyaBacklightMode: result});
+            }
             return {state: {[key]: value}};
         },
         convertGet: async (entity, key, meta) => {
@@ -1696,7 +1581,7 @@ const tuyaTz = {
                 } else if (typeof convertedValue === "string") {
                     await sendDataPointStringBuffer(entity, dpId, convertedValue, sendCommand, 1);
                 } else if (Array.isArray(convertedValue)) {
-                    await sendDataPointRaw(entity, dpId, convertedValue, sendCommand, 1);
+                    await sendDataPointRaw(entity, dpId, Buffer.from(convertedValue), sendCommand, 1);
                 } else if (convertedValue instanceof Enum) {
                     await sendDataPointEnum(entity, dpId, convertedValue.valueOf(), sendCommand, 1);
                 } else if (convertedValue instanceof Bitmap) {
@@ -1729,12 +1614,11 @@ const tuyaTz = {
         convertSet: async (entity, key, value, meta) => {
             const state =
                 meta.message.state != null ? (utils.isString(meta.message.state) ? meta.message.state.toLowerCase() : undefined) : undefined;
-            const countdown = meta.message.countdown != null ? meta.message.countdown : undefined;
+            const countdown = meta.message.countdown != null ? (meta.message.countdown as number) : undefined;
             const result: KeyValue = {};
             if (countdown !== undefined) {
                 // OnTime is a 16bit register and so might very well work up to 0xFFFF seconds but
                 // the Tuya documentation says that the maximum is 43200 (so 12 hours).
-                // @ts-expect-error ignore
                 if (!Number.isInteger(countdown) || countdown < 0 || countdown > 12 * 3600) {
                     throw new Error("countdown must be an integer between 1 and 43200 (12 hours) or 0 to cancel");
                 }
@@ -1742,7 +1626,7 @@ const tuyaTz = {
             // The order of the commands matters because 'on/off/toggle' cancels 'onWithTimedOff'.
             if (state !== undefined) {
                 utils.validateValue(state, ["toggle", "off", "on"]);
-                await entity.command("genOnOff", state, {}, utils.getOptions(meta.mapped, entity));
+                await entity.command("genOnOff", state as "toggle" | "off" | "on", {}, utils.getOptions(meta.mapped, entity));
                 if (state === "toggle") {
                     const currentState = meta.state[`state${meta.endpoint_name ? `_${meta.endpoint_name}` : ""}`];
                     if (currentState) {
@@ -1757,8 +1641,12 @@ const tuyaTz = {
             if (countdown !== undefined) {
                 // offwaittime is probably not used but according to the Tuya documentation, it should
                 // be set to the same value than ontime.
-                const payload = {ctrlbits: 0, ontime: countdown, offwaittime: countdown};
-                await entity.command("genOnOff", "onWithTimedOff", payload, utils.getOptions(meta.mapped, entity));
+                await entity.command(
+                    "genOnOff",
+                    "onWithTimedOff",
+                    {ctrlbits: 0, ontime: countdown, offwaittime: countdown},
+                    utils.getOptions(meta.mapped, entity),
+                );
                 if (result.state !== undefined) {
                     result.countdown = countdown;
                 }
@@ -1776,10 +1664,14 @@ const tuyaTz = {
     inchingSwitch: {
         key: ["inching_control_set"],
         convertSet: async (entity, key, value, meta) => {
-            const inching = valueConverter.inchingSwitch.to(value);
-            const payload = {payload: inching};
             const endpoint = meta.device.getEndpoint(1);
-            await endpoint.command("manuSpecificTuya_4", "setInchingSwitch", payload, utils.getOptions(meta.mapped, endpoint));
+            await endpoint.command<"manuSpecificTuya4", "setInchingSwitch", Tuya4>(
+                "manuSpecificTuya4",
+                "setInchingSwitch",
+                // TODO: correct? seems it would take the `!(values instanceof Buffer)` codepath of ZH before
+                {payload: Buffer.from(valueConverter.inchingSwitch.to(value))},
+                utils.getOptions(meta.mapped, endpoint),
+            );
 
             return {state: {inching_control_set: value}};
         },
@@ -1794,22 +1686,10 @@ const tuyaFz = {
         convert: (model, msg, publish, options, meta) => {
             if (msg.data["61440"] !== undefined) {
                 const property = utils.postfixWithEndpointName("brightness", msg, model, meta);
-                return {[property]: utils.mapNumberRange(msg.data["61440"], 0, 1000, 0, 255)};
+                return {[property]: utils.mapNumberRange(msg.data["61440"] as number, 0, 1000, 0, 255)};
             }
         },
-    } satisfies Fz.Converter,
-    gateway_connection_status: {
-        cluster: "manuSpecificTuya",
-        type: ["commandMcuGatewayConnectionStatus"],
-        convert: async (model, msg, publish, options, meta) => {
-            // "payload" can have the following values:
-            // 0x00: The gateway is not connected to the internet.
-            // 0x01: The gateway is connected to the internet.
-            // 0x02: The request timed out after three seconds.
-            const payload = {payloadSize: 1, payload: 1};
-            await msg.endpoint.command("manuSpecificTuya", "mcuGatewayConnectionStatus", payload, {});
-        },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genLevelCtrl", undefined, ["attributeReport", "readResponse"]>,
     power_on_behavior_1: {
         cluster: "genOnOff",
         type: ["attributeReport", "readResponse"],
@@ -1820,9 +1700,9 @@ const tuyaFz = {
                 return {[property]: lookup[msg.data.moesStartUpOnOff]};
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
     power_on_behavior_2: {
-        cluster: "manuSpecificTuya_3",
+        cluster: "manuSpecificTuya3",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             const attribute = "powerOnBehavior";
@@ -1832,7 +1712,7 @@ const tuyaFz = {
                 return {[property]: lookup[msg.data[attribute]]};
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificTuya3", undefined, ["attributeReport", "readResponse"]>,
     power_outage_memory: {
         cluster: "genOnOff",
         type: ["attributeReport", "readResponse"],
@@ -1843,9 +1723,9 @@ const tuyaFz = {
                 return {[property]: lookup[msg.data.moesStartUpOnOff]};
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
     switch_type: {
-        cluster: "manuSpecificTuya_3",
+        cluster: "manuSpecificTuya3",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.switchType !== undefined) {
@@ -1854,9 +1734,9 @@ const tuyaFz = {
                 return {switch_type: lookup[msg.data.switchType]};
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificTuya3", undefined, ["attributeReport", "readResponse"]>,
     switch_type_curtain: {
-        cluster: "manuSpecificTuya_3",
+        cluster: "manuSpecificTuya3",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.switchType !== undefined) {
@@ -1865,7 +1745,7 @@ const tuyaFz = {
                 return {switch_type_curtain: lookup[msg.data.switchType]};
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificTuya3", undefined, ["attributeReport", "readResponse"]>,
     backlight_mode_low_medium_high: {
         cluster: "genOnOff",
         type: ["attributeReport", "readResponse"],
@@ -1876,7 +1756,7 @@ const tuyaFz = {
                 return {backlight_mode: backlightLookup[value]};
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
     backlight_mode_off_normal_inverted: {
         cluster: "genOnOff",
         type: ["attributeReport", "readResponse"],
@@ -1885,7 +1765,7 @@ const tuyaFz = {
                 return {backlight_mode: utils.getFromLookup(msg.data.tuyaBacklightMode, {0: "off", 1: "normal", 2: "inverted"})};
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
     backlight_mode_off_on: {
         cluster: "genOnOff",
         type: ["attributeReport", "readResponse"],
@@ -1894,7 +1774,7 @@ const tuyaFz = {
                 return {backlight_mode: utils.getFromLookup(msg.data.tuyaBacklightSwitch, {0: "OFF", 1: "ON"})};
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
     indicator_mode: {
         cluster: "genOnOff",
         type: ["attributeReport", "readResponse"],
@@ -1903,7 +1783,7 @@ const tuyaFz = {
                 return {indicator_mode: utils.getFromLookup(msg.data.tuyaBacklightMode, {0: "off", 1: "off/on", 2: "on/off", 3: "on"})};
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
     indicator_mode_none_relay_pos: {
         cluster: "genOnOff",
         type: ["attributeReport", "readResponse"],
@@ -1912,7 +1792,7 @@ const tuyaFz = {
                 return {indicator_mode: utils.getFromLookup(msg.data.tuyaBacklightMode, {0: "none", 1: "relay", 2: "pos"})};
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
     child_lock: {
         cluster: "genOnOff",
         type: ["attributeReport", "readResponse"],
@@ -1922,18 +1802,18 @@ const tuyaFz = {
                 return {child_lock: value ? "LOCK" : "UNLOCK"};
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
     min_brightness_attribute: {
         cluster: "genLevelCtrl",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data[0xfc00] !== undefined) {
                 const property = utils.postfixWithEndpointName("min_brightness", msg, model, meta);
-                const value = Number.parseInt(msg.data[0xfc00].toString(16).slice(0, 2), 16);
+                const value = Number.parseInt((msg.data[0xfc00] as number).toString(16).slice(0, 2), 16);
                 return {[property]: value};
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genLevelCtrl", undefined, ["attributeReport", "readResponse"]>,
     datapoints: {
         cluster: "manuSpecificTuya",
         type: ["commandDataResponse", "commandDataReport", "commandActiveStatusReport", "commandActiveStatusReportAlt"],
@@ -1958,12 +1838,16 @@ const tuyaFz = {
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<
+        "manuSpecificTuya",
+        undefined,
+        ["commandDataResponse", "commandDataReport", "commandActiveStatusReport", "commandActiveStatusReportAlt"]
+    >,
     on_off_action: {
         cluster: "genOnOff",
         type: "commandTuyaAction",
         convert: (model, msg, publish, options, meta) => {
-            if (utils.hasAlreadyProcessedMessage(msg, model, msg.data[0])) return;
+            if (utils.hasAlreadyProcessedMessage(msg, model, msg.data[0] as number | undefined)) return;
             const clickMapping: KeyValueNumberString = {0: "single", 1: "double", 2: "hold"};
             const buttonMapping: KeyValueNumberString = {1: "1", 2: "2", 3: "3", 4: "4", 5: "5", 6: "6", 7: "7", 8: "8"};
             // TS004F has single endpoint, TS0041A/TS0041 can have multiple but have just one button
@@ -1971,7 +1855,7 @@ const tuyaFz = {
                 msg.device.endpoints.length === 1 || ["TS0041A", "TS0041"].includes(msg.device.modelID) ? "" : `${buttonMapping[msg.endpoint.ID]}_`;
             return {action: `${button}${clickMapping[msg.data.value]}`};
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genOnOff", undefined, "commandTuyaAction">,
     on_off_countdown: {
         // While a countdown is in progress, the device will report onTime at all multiples of 60.
         // More reportings can be configured for 'onTime` but they will happen independently of
@@ -1987,9 +1871,9 @@ const tuyaFz = {
                 return payload;
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
     inchingSwitch: {
-        cluster: "manuSpecificTuya_4",
+        cluster: "manuSpecificTuya4",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.inching !== undefined) {
@@ -1999,7 +1883,7 @@ const tuyaFz = {
                 return payload;
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificTuya4", Tuya4, ["attributeReport", "readResponse"]>,
 };
 export {tuyaFz as fz};
 
@@ -2012,9 +1896,10 @@ export function getHandlersForDP(
     skip?: (meta: Tz.Meta) => boolean,
     endpoint?: string,
     useGlobalSequence?: boolean,
-): [Fz.Converter[], Tz.Converter[]] {
+    // biome-ignore lint/suspicious/noExplicitAny: generic
+): [Fz.Converter<"manuSpecificTuya", undefined, any>[], Tz.Converter[]] {
     const keyName = endpoint ? `${name}_${endpoint}` : name;
-    const fromZigbee: Fz.Converter[] = [
+    const fromZigbee = [
         {
             cluster: "manuSpecificTuya",
             type: ["commandDataResponse", "commandDataReport", "commandActiveStatusReport", "commandActiveStatusReportAlt"],
@@ -2024,7 +1909,11 @@ export function getHandlersForDP(
                     return {[keyName]: converter.from(getDataValue(dpValue))};
                 }
             },
-        },
+        } satisfies Fz.Converter<
+            "manuSpecificTuya",
+            undefined,
+            ["commandDataResponse", "commandDataReport", "commandActiveStatusReport", "commandActiveStatusReportAlt"]
+        >,
     ];
 
     const toZigbee: Tz.Converter[] = readOnly
@@ -2060,7 +1949,7 @@ export function getHandlersForDP(
                           } else if (type === dataTypes.string) {
                               await sendDataPointStringBuffer(entity, dp, convertedValue as string, sendCommand, seq);
                           } else if (type === dataTypes.raw) {
-                              await sendDataPointRaw(entity, dp, convertedValue as number[], sendCommand, seq);
+                              await sendDataPointRaw(entity, dp, Buffer.from(convertedValue as number[]), sendCommand, seq);
                           } else if (type === dataTypes.enum) {
                               await sendDataPointEnum(entity, dp, convertedValue as number, sendCommand, seq);
                           } else if (type === dataTypes.bitmap) {
@@ -2130,6 +2019,35 @@ export interface TuyaDPLightArgs {
 }
 
 const tuyaModernExtend = {
+    electricityMeasurementPoll(
+        args: {
+            electricalMeasurement?: false | ((device: Zh.Device) => boolean);
+            metering?: true | ((device: Zh.Device) => boolean);
+            optionDescription?: string;
+        } = {},
+    ): ModernExtend {
+        const {electricalMeasurement = true, metering = false, optionDescription = undefined} = args;
+
+        let option = exposes.options.measurement_poll_interval();
+        if (optionDescription !== undefined) {
+            option = option.withDescription(optionDescription);
+        }
+
+        return modernExtend.poll({
+            key: "measurement",
+            option,
+            defaultIntervalSeconds: 60,
+            poll: async (device) => {
+                const endpoint = device.getEndpoint(1);
+                if (typeof electricalMeasurement === "boolean" ? electricalMeasurement : electricalMeasurement(device)) {
+                    await endpoint.read("haElectricalMeasurement", ["rmsVoltage", "rmsCurrent", "activePower"]);
+                }
+                if (typeof metering === "boolean" ? metering : metering(device)) {
+                    await endpoint.read("seMetering", ["currentSummDelivered"]);
+                }
+            },
+        });
+    },
     dpTHZBSettings(): ModernExtend {
         const exp = e
             .composite("auto_settings", "auto_settings", ea.STATE_SET)
@@ -2156,7 +2074,7 @@ const tuyaModernExtend = {
                     .withDescription("Temperature lower than value"),
             );
 
-        const handlers: [Fz.Converter[], Tz.Converter[]] = getHandlersForDP("auto_settings", 0x77, dataTypes.string, {
+        const handlers = getHandlersForDP("auto_settings", 0x77, dataTypes.string, {
             from: (value: string) => {
                 const buffer = Buffer.from(value, "hex");
                 if (buffer.length > 0) {
@@ -2190,17 +2108,148 @@ const tuyaModernExtend = {
             isModernExtend: true,
         };
     },
-    tuyaBase(args?: {onEvent?: OnEventArgs; dp: true}): ModernExtend {
-        const result: ModernExtend = {
-            configure: [configureMagicPacket],
-            onEvent: [onEvent(args.onEvent)],
-            isModernExtend: true,
+    tuyaBase(
+        args: {
+            dp?: true;
+            queryOnDeviceAnnounce?: true;
+            queryOnConfigure?: true;
+            bindBasicOnConfigure?: true;
+            queryIntervalSeconds?: number;
+            respondToMcuVersionResponse?: false;
+            respondToMcuTimeSync?: false;
+            mcuVersionRequestOnConfigure?: true;
+            forceTimeUpdates?: true;
+            timeStart?: "2000";
+        } = {},
+    ): ModernExtend {
+        const {
+            dp = false,
+            queryOnDeviceAnnounce = false,
+            queryOnConfigure = false,
+            bindBasicOnConfigure = false,
+            queryIntervalSeconds = undefined,
+            mcuVersionRequestOnConfigure = false,
+            // Allow force updating for device with a very bad clock
+            // Every hour when a message is received the time will be updated.
+            forceTimeUpdates = false,
+            timeStart = "1970",
+            respondToMcuVersionResponse = true,
+            respondToMcuTimeSync = true,
+        } = args;
+
+        const fzConverter: Fz.Converter<
+            "manuSpecificTuya",
+            undefined,
+            [
+                "commandMcuSyncTime",
+                "commandMcuVersionResponse",
+                "commandMcuGatewayConnectionStatus",
+                "commandDataResponse",
+                "commandDataReport",
+                "commandActiveStatusReport",
+                "commandActiveStatusReportAlt",
+            ]
+        > = {
+            type: [
+                "commandMcuSyncTime",
+                "commandMcuVersionResponse",
+                "commandMcuGatewayConnectionStatus",
+                "commandDataResponse",
+                "commandDataReport",
+                "commandActiveStatusReport",
+                "commandActiveStatusReportAlt",
+            ],
+            cluster: "manuSpecificTuya",
+            convert: (model, msg, publish, options, meta) => {
+                let forceTimeUpdate = false;
+                if (forceTimeUpdates) {
+                    const nextLocalTimeUpdate = globalStore.getValue(msg.device, "nextLocalTimeUpdate");
+                    forceTimeUpdate = nextLocalTimeUpdate == null || nextLocalTimeUpdate < Date.now();
+                }
+
+                if ((msg.type === "commandMcuSyncTime" || forceTimeUpdate) && respondToMcuTimeSync) {
+                    globalStore.putValue(msg.device, "nextLocalTimeUpdate", Date.now() + 3600 * 1000);
+                    const offset = timeStart === "2000" ? constants.OneJanuary2000 : 0;
+                    const utcTime = Math.round((Date.now() - offset) / 1000);
+                    const localTime = utcTime - new Date().getTimezoneOffset() * 60;
+                    const payload = {
+                        payloadSize: 8,
+                        payload: [...convertDecimalValueTo4ByteHexArray(utcTime), ...convertDecimalValueTo4ByteHexArray(localTime)],
+                    };
+                    msg.endpoint
+                        .command("manuSpecificTuya", "mcuSyncTime", payload, {})
+                        .catch((error) => logger.error(`Failed to sync time with '${msg.device.ieeeAddr}' (${error})`, NS));
+                } else if (respondToMcuVersionResponse && msg.type === "commandMcuVersionResponse") {
+                    msg.endpoint
+                        .command("manuSpecificTuya", "mcuVersionRequest", {seq: 0x0002})
+                        .catch((error) => logger.error(`Failed respond to version response '${msg.device.ieeeAddr}' (${error})`, NS));
+                } else if (msg.type === "commandMcuGatewayConnectionStatus") {
+                    // "payload" can have the following values:
+                    // 0x00: The gateway is not connected to the internet.
+                    // 0x01: The gateway is connected to the internet.
+                    // 0x02: The request timed out after three seconds.
+                    msg.endpoint
+                        .command("manuSpecificTuya", "mcuGatewayConnectionStatus", {payloadSize: 1, payload: 1}, {})
+                        .catch((error) => logger.error(`Failed respond to gateway connection status '${msg.device.ieeeAddr}' (${error})`, NS));
+                }
+            },
         };
 
-        if (args?.dp) {
-            result.fromZigbee = [tuyaFz.datapoints];
-            result.toZigbee = [tuyaTz.datapoints];
+        const result: ModernExtend = {
+            configure: [configureMagicPacket],
+            isModernExtend: true,
+            fromZigbee: [fzConverter],
+            toZigbee: [],
+        };
+
+        if (queryOnConfigure) {
+            result.configure.push(configureQuery);
         }
+
+        if (mcuVersionRequestOnConfigure) {
+            result.configure.push(configureMcuVersionRequest);
+        }
+
+        if (bindBasicOnConfigure) {
+            result.configure.push(configureBindBasic);
+        }
+
+        if (queryOnDeviceAnnounce || queryIntervalSeconds !== undefined) {
+            result.onEvent = [
+                (event) => {
+                    // Some devices require a dataQuery on deviceAnnounce, otherwise they don't report any data
+                    if (queryOnDeviceAnnounce && event.type === "deviceAnnounce") {
+                        event.data.device.endpoints[0]
+                            .command("manuSpecificTuya", "dataQuery", {})
+                            .catch((error) => logger.error(`Failed to query '${event.data.device.ieeeAddr}' on device announce (${error})`, NS));
+                    }
+
+                    if (queryIntervalSeconds !== undefined) {
+                        if (event.type === "stop") {
+                            clearTimeout(globalStore.getValue(event.data.ieeeAddr, "query_interval"));
+                            globalStore.clearValue(event.data.ieeeAddr, "query_interval");
+                        } else if (event.type === "start") {
+                            const setTimer = () => {
+                                const timer = setTimeout(() => {
+                                    event.data.device.endpoints[0]
+                                        .command("manuSpecificTuya", "dataQuery", {})
+                                        .catch((error) => logger.error(`Failed to query '${event.data.device.ieeeAddr}' on interval (${error})`, NS));
+                                    setTimer();
+                                }, queryIntervalSeconds * 1000);
+                                globalStore.putValue(event.data.device.ieeeAddr, "query_interval", timer);
+                            };
+                            setTimer();
+                        }
+                    }
+                },
+            ];
+        }
+
+        if (dp) {
+            result.fromZigbee.push(tuyaFz.datapoints);
+            result.toZigbee.push(tuyaTz.datapoints);
+        }
+
         return result;
     },
     dpEnumLookup(args: Partial<TuyaDPEnumLookupArgs>): ModernExtend {
@@ -2213,7 +2262,7 @@ const tuyaModernExtend = {
         }
         if (endpoint) exp = exp.withEndpoint(endpoint);
 
-        const handlers: [Fz.Converter[], Tz.Converter[]] = getHandlersForDP(
+        const handlers = getHandlersForDP(
             name,
             dp,
             type,
@@ -2238,7 +2287,7 @@ const tuyaModernExtend = {
         }
         if (endpoint) exp = exp.withEndpoint(endpoint);
 
-        const handlers: [Fz.Converter[], Tz.Converter[]] = getHandlersForDP(
+        const handlers = getHandlersForDP(
             name,
             dp,
             type,
@@ -2279,14 +2328,15 @@ const tuyaModernExtend = {
             }
         }
 
-        const handlers: [Fz.Converter[], Tz.Converter[]] = getHandlersForDP(name, dp, type, converter, readOnly, skip, endpoint);
+        const handlers = getHandlersForDP(name, dp, type, converter, readOnly, skip, endpoint);
 
         return {exposes: [exp], fromZigbee: handlers[0], toZigbee: handlers[1], isModernExtend: true};
     },
     dpLight(args: TuyaDPLightArgs): ModernExtend {
         const {state, brightness, min, max, colorTemp, endpoint} = args;
         let exp = e.light_brightness().setAccess("state", ea.STATE_SET).setAccess("brightness", ea.STATE_SET);
-        let fromZigbee: Fz.Converter[] = [];
+        // biome-ignore lint/suspicious/noExplicitAny: too messy...
+        let fromZigbee: Fz.Converter<any>[] = [];
         let toZigbee: Tz.Converter[] = [];
         let ext: ModernExtend;
         if (min) {
@@ -2483,7 +2533,7 @@ const tuyaModernExtend = {
             result.exposes.push(tuyaExposes.colorPowerOnBehavior());
         }
 
-        result.configure = [configureSetPowerSourceWhenUnknown("Mains (single phase)")];
+        result.configure.push(configureSetPowerSourceWhenUnknown("Mains (single phase)"));
 
         return result;
     },
@@ -2500,7 +2550,8 @@ const tuyaModernExtend = {
             backlightModeOffNormalInverted?: boolean;
             backlightModeOffOn?: boolean;
             electricalMeasurements?: boolean;
-            electricalMeasurementsFzConverter?: Fz.Converter;
+            // biome-ignore lint/suspicious/noExplicitAny: generic
+            electricalMeasurementsFzConverter?: Fz.Converter<"haElectricalMeasurement", undefined, any>;
             childLock?: boolean;
             switchMode?: boolean;
             onOffCountdown?: boolean;
@@ -2510,7 +2561,8 @@ const tuyaModernExtend = {
         const exposes: (Expose | DefinitionExposesFunction)[] = args.endpoints
             ? args.endpoints.map((ee) => e.switch().withEndpoint(ee))
             : [e.switch()];
-        const fromZigbee: Fz.Converter[] = [fz.on_off, fz.ignore_basic_report];
+        // biome-ignore lint/suspicious/noExplicitAny: generic
+        const fromZigbee: Fz.Converter<any, any, any>[] = [fz.on_off, fz.ignore_basic_report];
         const toZigbee: Tz.Converter[] = [];
         if (args.onOffCountdown) {
             fromZigbee.push(tuyaFz.on_off_countdown);
@@ -2634,7 +2686,8 @@ const tuyaModernExtend = {
     },
     combineActions(actions: ModernExtend[]): ModernExtend {
         let newValues: (string | number)[] = [];
-        let newFromZigbee: Fz.Converter[] = [];
+        // biome-ignore lint/suspicious/noExplicitAny: too messy
+        let newFromZigbee: Fz.Converter<any>[] = [];
         let description: string;
         // collect action values and handlers
         for (const actionME of actions) {
@@ -2649,11 +2702,11 @@ const tuyaModernExtend = {
 
         return {exposes: [exp], fromZigbee: newFromZigbee, isModernExtend: true};
     },
-    tuyaSwitchMode: (args?: Partial<modernExtend.EnumLookupArgs>) =>
+    tuyaSwitchMode: (args?: Partial<modernExtend.EnumLookupArgs<"manuSpecificTuya3">>) =>
         modernExtend.enumLookup({
             name: "switch_mode",
             lookup: {switch: 0, scene: 1},
-            cluster: "manuSpecificTuya_3",
+            cluster: "manuSpecificTuya3",
             attribute: "switchMode",
             description: "Work mode for switch",
             entityCategory: "config",
@@ -2669,8 +2722,8 @@ const tuyaModernExtend = {
     tuyaMagicPacket(): ModernExtend {
         return {configure: [configureMagicPacket], isModernExtend: true};
     },
-    tuyaOnOffAction(args?: Partial<modernExtend.ActionEnumLookupArgs>): ModernExtend {
-        return modernExtend.actionEnumLookup({
+    tuyaOnOffAction(args?: Partial<modernExtend.ActionEnumLookupArgs<"genOnOff">>): ModernExtend {
+        return modernExtend.actionEnumLookup<"genOnOff", undefined, ["commandTuyaAction"]>({
             actionLookup: {0: "single", 1: "double", 2: "hold"},
             cluster: "genOnOff",
             commands: ["commandTuyaAction"],
@@ -2681,7 +2734,7 @@ const tuyaModernExtend = {
         // For new devices use tuyaOnOffAction instead
         const actions = args.actions.flatMap((a) => (args.endpointNames ? args.endpointNames.map((e) => `${e}_${a}`) : [a]));
         const exposes: Expose[] = [e.action(actions)];
-        const fromZigbee: Fz.Converter[] = [tuyaFz.on_off_action];
+        const fromZigbee = [tuyaFz.on_off_action];
         return {exposes, fromZigbee, isModernExtend: true};
     },
     dpChildLock(args?: Partial<TuyaDPBinaryArgs>): ModernExtend {
@@ -2699,7 +2752,7 @@ export {tuyaModernExtend as modernExtend};
 
 const tuyaClusters = {
     addTuyaCommonPrivateCluster: (): ModernExtend =>
-        modernExtend.deviceAddCustomCluster("manuSpecificTuya_4", {
+        modernExtend.deviceAddCustomCluster("manuSpecificTuya4", {
             ID: 0xe000,
             attributes: {
                 random_timing: {ID: 0xd001, type: Zcl.DataType.CHAR_STR},

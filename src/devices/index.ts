@@ -120,6 +120,7 @@ import {definitions as hej} from "./hej";
 import {definitions as hfh} from "./hfh";
 import {definitions as hilux} from "./hilux";
 import {definitions as hive} from "./hive";
+import {definitions as homeseer} from "./homeseer";
 import {definitions as hommyn} from "./hommyn";
 import {definitions as honyar} from "./honyar";
 import {definitions as hornbach} from "./hornbach";
@@ -138,6 +139,7 @@ import {definitions as imou} from "./imou";
 import {definitions as innr} from "./innr";
 import {definitions as inovelli} from "./inovelli";
 import {definitions as insta} from "./insta";
+import {definitions as intuis} from "./intuis";
 import {definitions as iolloi} from "./iolloi";
 import {definitions as iotperfect} from "./iotperfect";
 import {definitions as iris} from "./iris";
@@ -192,6 +194,7 @@ import {definitions as meazon} from "./meazon";
 import {definitions as mercator} from "./mercator";
 import {definitions as miboxer} from "./miboxer";
 import {definitions as micromatic} from "./micromatic";
+import {definitions as mill} from "./mill";
 import {definitions as mindy} from "./mindy";
 import {definitions as modular} from "./modular";
 import {definitions as moes} from "./moes";
@@ -215,6 +218,7 @@ import {definitions as nue3a} from "./nue_3a";
 import {definitions as nyce} from "./nyce";
 import {definitions as onenuo} from "./onenuo";
 import {definitions as onesti} from "./onesti";
+import {definitions as onokom} from "./onokom";
 import {definitions as openlumi} from "./openlumi";
 import {definitions as orvibo} from "./orvibo";
 import {definitions as orztech} from "./orztech";
@@ -268,6 +272,7 @@ import {definitions as siglis} from "./siglis";
 import {definitions as sikom} from "./sikom";
 import {definitions as siliconLabs} from "./silicon_labs";
 import {definitions as simon} from "./simon";
+import {definitions as simplaHome} from "./simpla_home";
 import {definitions as sinope} from "./sinope";
 import {definitions as siterwell} from "./siterwell";
 import {definitions as skydance} from "./skydance";
@@ -463,6 +468,7 @@ const definitions: DefinitionWithExtend[] = [
     ...hfh,
     ...hilux,
     ...hive,
+    ...homeseer,
     ...hommyn,
     ...honyar,
     ...hornbach,
@@ -480,6 +486,7 @@ const definitions: DefinitionWithExtend[] = [
     ...innr,
     ...inovelli,
     ...insta,
+    ...intuis,
     ...iolloi,
     ...iotperfect,
     ...iris,
@@ -534,6 +541,7 @@ const definitions: DefinitionWithExtend[] = [
     ...mercator,
     ...miboxer,
     ...micromatic,
+    ...mill,
     ...mindy,
     ...modular,
     ...moes,
@@ -557,6 +565,7 @@ const definitions: DefinitionWithExtend[] = [
     ...nyce,
     ...onenuo,
     ...onesti,
+    ...onokom,
     ...openlumi,
     ...orvibo,
     ...orztech,
@@ -610,6 +619,7 @@ const definitions: DefinitionWithExtend[] = [
     ...siliconLabs,
     ...sikom,
     ...simon,
+    ...simplaHome,
     ...sinope,
     ...siterwell,
     ...skydance,

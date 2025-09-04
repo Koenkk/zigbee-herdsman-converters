@@ -6,6 +6,13 @@ import type {DefinitionWithExtend} from "../lib/types";
 
 export const definitions: DefinitionWithExtend[] = [
     {
+        zigbeeModel: ["WISZB-131"],
+        model: "WISZB-131",
+        vendor: "Frient",
+        description: "Temperature and contact sensor",
+        extend: [m.battery(), m.iasZoneAlarm({zoneType: "contact", zoneAttributes: ["alarm_1", "battery_low"]}), m.temperature()],
+    },
+    {
         zigbeeModel: ["EMIZB-141"],
         model: "EMIZB-141",
         vendor: "Frient",
@@ -26,6 +33,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Frient",
         description: "Smart Cable - Power switch with power measurement",
         extend: [m.onOff({configureReporting: false}), m.electricityMeter()],
+        ota: true,
         endpoint: () => {
             return {default: 2};
         },
@@ -36,5 +44,6 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Frient",
         description: "HAN P1 power-meter sensor",
         extend: [m.electricityMeter({threePhase: true})],
+        ota: true,
     },
 ];

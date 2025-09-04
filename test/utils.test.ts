@@ -1,7 +1,6 @@
+import {beforeEach, describe, expect, it} from "vitest";
 import type {Device} from "zigbee-herdsman/dist/controller/model";
-
 import type {Tz} from "../src/lib/types";
-
 import {batteryVoltageToPercentage, getFromLookup, getTransition, mapNumberRange, toNumber} from "../src/lib/utils";
 import {mockDevice} from "./utils";
 

@@ -117,6 +117,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"]}})],
     },
     {
+        zigbeeModel: ["AD-E1XCTW3001"],
+        model: "E1XCTW3001",
+        vendor: "AduroSmart",
+        description: "ERIA tunable-white candle bulb (E12)",
+        extend: [m.light({colorTemp: {range: [153, 500]}})],
+    },
+    {
         zigbeeModel: ["ONOFFRELAY"],
         model: "81898",
         vendor: "AduroSmart",

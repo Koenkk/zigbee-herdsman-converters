@@ -1,5 +1,4 @@
 import {Zcl} from "zigbee-herdsman";
-
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
@@ -10,6 +9,29 @@ import type {DefinitionWithExtend, Fz, KeyValue, Tz} from "../lib/types";
 const e = exposes.presets;
 const ea = exposes.access;
 
+interface OwonFallDetection {
+    attributes: {
+        status: number;
+        // biome-ignore lint/style/useNamingConvention: TODO
+        breathing_rate: number;
+        // biome-ignore lint/style/useNamingConvention: TODO
+        location_x: number;
+        // biome-ignore lint/style/useNamingConvention: TODO
+        location_y: number;
+        bedUpperLeftX: number;
+        bedUpperLeftY: number;
+        bedLowerRightX: number;
+        bedLowerRightY: number;
+        doorCenterX: number;
+        doorCenterY: number;
+        leftFallDetectionRange: number;
+        rightFallDetectionRange: number;
+        frontFallDetectionRange: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
 const fzLocal = {
     temperature: {
         ...fz.temperature,
@@ -19,7 +41,7 @@ const fzLocal = {
                 return fz.temperature.convert(model, msg, publish, options, meta);
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"msTemperatureMeasurement", undefined, ["attributeReport", "readResponse"]>,
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     PC321_metering: {
         cluster: "seMetering",
@@ -98,12 +120,12 @@ const fzLocal = {
             }
             if (msg.data.owonCurrentSum !== undefined || msg.data["12547"] !== undefined) {
                 // 0x3103 -> 12547
-                const data = msg.data.owonCurrentSum || msg.data["12547"] * factor;
+                const data = msg.data.owonCurrentSum || (msg.data["12547"] as number) * factor;
                 payload.current = data;
             }
             if (msg.data.owonReactiveEnergySum !== undefined || msg.data["16643"] !== undefined) {
                 // 0x4103 -> 16643
-                const value = msg.data.owonReactiveEnergySum || msg.data["16643"];
+                const value = msg.data.owonReactiveEnergySum || (msg.data["16643"] as number);
                 payload.reactive_energy = value * factor;
             }
             if (msg.data.owonL1PowerFactor !== undefined) {
@@ -118,7 +140,7 @@ const fzLocal = {
 
             return payload;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]>,
 
     owonFds315: {
         cluster: "fallDetectionOwon",
@@ -153,7 +175,7 @@ const fzLocal = {
                 "leftFallDetectionRange",
                 "rightFallDetectionRange",
                 "frontFallDetectionRange",
-            ];
+            ] as const;
             const values = keys.map((k) => (data[k] !== undefined ? data[k] : null));
 
             if (!values.includes(null)) {
@@ -162,7 +184,7 @@ const fzLocal = {
 
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"fallDetectionOwon", OwonFallDetection, ["attributeReport", "readResponse"]>,
 };
 
 const tzLocal = {
@@ -199,22 +221,25 @@ const tzLocal = {
                 payload[id] = {value: val, type};
             });
 
-            await entity.write("fallDetectionOwon", payload, {manufacturerCode: 0x113c});
+            await entity.write<"fallDetectionOwon", OwonFallDetection>("fallDetectionOwon", payload, {manufacturerCode: 0x113c});
             return {state: {fall_detection_settings: value}};
         },
         convertGet: async (entity, key, meta) => {
-            const attrs = [
-                "bedUpperLeftX",
-                "bedUpperLeftY",
-                "bedLowerRightX",
-                "bedLowerRightY",
-                "doorCenterX",
-                "doorCenterY",
-                "leftFallDetectionRange",
-                "rightFallDetectionRange",
-                "frontFallDetectionRange",
-            ];
-            await entity.read("fallDetectionOwon", attrs, {manufacturerCode: 0x113c});
+            await entity.read<"fallDetectionOwon", OwonFallDetection>(
+                "fallDetectionOwon",
+                [
+                    "bedUpperLeftX",
+                    "bedUpperLeftY",
+                    "bedLowerRightX",
+                    "bedLowerRightY",
+                    "doorCenterX",
+                    "doorCenterY",
+                    "leftFallDetectionRange",
+                    "rightFallDetectionRange",
+                    "frontFallDetectionRange",
+                ],
+                {manufacturerCode: 0x113c},
+            );
         },
     } satisfies Tz.Converter,
 };
@@ -332,7 +357,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Temperature sensor",
         fromZigbee: [fzLocal.temperature, fz.battery],
         toZigbee: [],
-        exposes: [e.battery(), e.temperature()],
+        exposes: [e.battery(), e.battery_voltage(), e.temperature()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(3) || device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["msTemperatureMeasurement", "genPowerCfg"]);
