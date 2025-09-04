@@ -15,7 +15,7 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             // Map null to 255
             // https://github.com/Koenkk/zigbee2mqtt/issues/28450
-            const newMsg = {...msg, data: {...msg.data, level: msg.data.level ?? 255}};
+            const newMsg = {...msg, data: {...msg.data, level: Number.isNaN(msg.data.level) ? 255 : msg.data.level}};
             return fz.command_move_to_level.convert(model, newMsg, publish, options, meta);
         },
     } satisfies Fz.Converter<"genLevelCtrl", undefined, ["commandMoveToLevel", "commandMoveToLevelWithOnOff"]>,
