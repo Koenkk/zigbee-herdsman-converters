@@ -4344,6 +4344,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZ3000_nuenzetq",
             "_TZ3000_ruldv5dt",
             "_TZ3000_fbjdkph9",
+            "_TZ3000_zbfya6h0",
         ]),
         model: "TS0002_basic",
         vendor: "Tuya",
@@ -4356,32 +4357,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Tuya", "ZG-2002-RF", "Three mode Zigbee Switch", ["_TZ3000_lugaswf8", "_TZ3000_nuenzetq", "_TZ3000_ruldv5dt"]),
             tuya.whitelabel("Mercator Ikuü", "SSW02", "2 gang switch", ["_TZ3000_fbjdkph9"]),
             tuya.whitelabel("Aubess", "TMZ02", "2 gang switch", ["_TZ3000_lmlsduws"]),
-        ],
-        extend: [
-            tuya.modernExtend.tuyaOnOff({
-                switchType: true,
-                endpoints: ["l1", "l2"],
-            }),
-        ],
-        endpoint: (device) => {
-            return {l1: 1, l2: 2};
-        },
-        meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint);
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
-            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ["genOnOff"]);
-        },
-    },
-    {
-        fingerprint: tuya.fingerprint("TS0002", [
-            "_TZ3000_zbfya6h0",
-        ]),
-        model: "TS0002_basic_2",
-        vendor: "Tuya",
-        description: "2 gang switch module",
-        whiteLabel: [
-            {vendor: "RSH", model: "SB02-Zigbee"}
+            tuya.whitelabel("RSH", "TS0002_basic_2", "2 gang switch", ["_TZ3000_zbfya6h0"]),
         ],
         extend: [
             tuya.modernExtend.tuyaOnOff({
