@@ -1,5 +1,14 @@
 # Changelog
 
+## [25.17.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.17.0...v25.17.1) (2025-09-05)
+
+
+### Bug Fixes
+
+* **ignore:** improve f4358597b61d1a1994bc749b2c037cdd367d31c4 ([c74fdf2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c74fdf2bff2990054b40c35db04c3269da1b7b3e))
+* Third Reality: add `allowBind` to `3rPlugSpecialcluster`  ([#9925](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9925)) ([55c56b6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/55c56b6fe589231d4be08dc5081c0a88f2023958))
+* Tuya PJ-1203A: fix `mcuVersionRequest` error https://github.com/Koenkk/zigbee2mqtt/issues/28455 ([9dd4a8a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9dd4a8a97811d4d2fcc669ab53b951c2af6c4b3a))
+
 ## [25.17.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.16.0...v25.17.0) (2025-09-04)
 
 
