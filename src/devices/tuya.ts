@@ -13740,7 +13740,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Bidirectional energy meter with 80A current clamp",
         fromZigbee: [fzLocal.PJ1203A_strict_fz_datapoints, fzLocal.PJ1203A_sync_time_increase_seq],
         toZigbee: [tuya.tz.datapoints],
-        extend: [tuya.modernExtend.tuyaBase({timeStart: "2000", respondToMcuTimeSync: false})],
+        extend: [tuya.modernExtend.tuyaBase({timeStart: "2000", respondToMcuTimeSync: false, respondToMcuVersionResponse: false})],
         options: [
             e
                 .binary("late_energy_flow_a", ea.SET, true, false)
