@@ -4199,4 +4199,11 @@ export const definitions: DefinitionWithExtend[] = [
             }),
         ],
     },
+    {
+        zigbeeModel: ['929003808401_01', '929003808401_02', '929003808401_03'],
+        model: '929003808401',
+        vendor: 'Philips',
+        description: 'Hue White & Color ambience Centris ceiling light (2 spots)',
+        extend: [philips.m.light({"colorTemp":{"range":[153,500]},"color":{"modes":["xy","hs"],"enhancedHue":true}})],
+    }
 ];
