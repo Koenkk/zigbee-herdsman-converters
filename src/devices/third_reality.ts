@@ -491,13 +491,14 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.onOff(),
             m.electricityMeter({acFrequency: true, powerFactor: true}),
-            m.deviceAddCustomCluster("3rDualPlugSpecialcluster", {
+            m.deviceAddCustomCluster("3rPlugSpecialcluster", {
                 ID: 0xff03,
                 manufacturerCode: 0x1407,
                 attributes: {
                     resetSummationDelivered: {ID: 0x0000, type: Zcl.DataType.UINT8},
                     onToOffDelay: {ID: 0x0001, type: Zcl.DataType.UINT16},
                     offToOnDelay: {ID: 0x0002, type: Zcl.DataType.UINT16},
+                    allowBind: {ID: 0x0020, type: Zcl.DataType.UINT8},
                 },
                 commands: {},
                 commandsResponse: {},
