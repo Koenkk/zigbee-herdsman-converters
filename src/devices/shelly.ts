@@ -3,6 +3,24 @@ import * as m from "../lib/modernExtend";
 import type {DefinitionWithExtend, ModernExtend} from "../lib/types";
 import {assertString} from "../lib/utils";
 
+interface ShellyWiFi {
+    attributes: {
+        status: number;
+        ip: number;
+        action: number;
+        dhcp: number;
+        enable: number;
+        ssid: number;
+        password: number;
+        staticIP: number;
+        netMask: number;
+        gateway: number;
+        nameServer: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
 const shellyModernExtend = {
     shellyCustomClusters(): ModernExtend[] {
         return [
@@ -36,7 +54,7 @@ const shellyModernExtend = {
                 commands: {},
                 commandsResponse: {},
             }),
-            m.text({
+            m.text<"shellyWiFiSetupCluster", ShellyWiFi>({
                 cluster: "shellyWiFiSetupCluster",
                 access: "STATE_GET",
                 description: "Wifi Status",
@@ -47,7 +65,7 @@ const shellyModernExtend = {
                     profileId: ZSpec.CUSTOM_SHELLY_PROFILE_ID,
                 },
             }),
-            m.text({
+            m.text<"shellyWiFiSetupCluster", ShellyWiFi>({
                 cluster: "shellyWiFiSetupCluster",
                 access: "STATE_GET",
                 description: "IP of the device",
@@ -58,7 +76,7 @@ const shellyModernExtend = {
                     profileId: ZSpec.CUSTOM_SHELLY_PROFILE_ID,
                 },
             }),
-            m.enumLookup({
+            m.enumLookup<"shellyWiFiSetupCluster", ShellyWiFi>({
                 cluster: "shellyWiFiSetupCluster",
                 access: "SET",
                 description:
@@ -74,7 +92,7 @@ const shellyModernExtend = {
                     profileId: ZSpec.CUSTOM_SHELLY_PROFILE_ID,
                 },
             }),
-            m.binary({
+            m.binary<"shellyWiFiSetupCluster", ShellyWiFi>({
                 cluster: "shellyWiFiSetupCluster",
                 access: "STATE_GET",
                 description: "DHCP",
@@ -87,7 +105,7 @@ const shellyModernExtend = {
                     profileId: ZSpec.CUSTOM_SHELLY_PROFILE_ID,
                 },
             }),
-            m.binary({
+            m.binary<"shellyWiFiSetupCluster", ShellyWiFi>({
                 cluster: "shellyWiFiSetupCluster",
                 access: "ALL",
                 description: "Enable/Disable Wifi",
@@ -100,7 +118,7 @@ const shellyModernExtend = {
                     profileId: ZSpec.CUSTOM_SHELLY_PROFILE_ID,
                 },
             }),
-            m.text({
+            m.text<"shellyWiFiSetupCluster", ShellyWiFi>({
                 cluster: "shellyWiFiSetupCluster",
                 access: "ALL",
                 description: "SSID",
@@ -114,7 +132,7 @@ const shellyModernExtend = {
                     profileId: ZSpec.CUSTOM_SHELLY_PROFILE_ID,
                 },
             }),
-            m.text({
+            m.text<"shellyWiFiSetupCluster", ShellyWiFi>({
                 cluster: "shellyWiFiSetupCluster",
                 access: "SET",
                 description: "Wifi Password",
@@ -128,7 +146,7 @@ const shellyModernExtend = {
                     profileId: ZSpec.CUSTOM_SHELLY_PROFILE_ID,
                 },
             }),
-            m.text({
+            m.text<"shellyWiFiSetupCluster", ShellyWiFi>({
                 cluster: "shellyWiFiSetupCluster",
                 access: "ALL",
                 description: "StaticIP",
@@ -142,7 +160,7 @@ const shellyModernExtend = {
                     profileId: ZSpec.CUSTOM_SHELLY_PROFILE_ID,
                 },
             }),
-            m.text({
+            m.text<"shellyWiFiSetupCluster", ShellyWiFi>({
                 cluster: "shellyWiFiSetupCluster",
                 access: "ALL",
                 description: "NetMask",
@@ -156,7 +174,7 @@ const shellyModernExtend = {
                     profileId: ZSpec.CUSTOM_SHELLY_PROFILE_ID,
                 },
             }),
-            m.text({
+            m.text<"shellyWiFiSetupCluster", ShellyWiFi>({
                 cluster: "shellyWiFiSetupCluster",
                 access: "ALL",
                 description: "Gateway",
@@ -170,7 +188,7 @@ const shellyModernExtend = {
                     profileId: ZSpec.CUSTOM_SHELLY_PROFILE_ID,
                 },
             }),
-            m.text({
+            m.text<"shellyWiFiSetupCluster", ShellyWiFi>({
                 cluster: "shellyWiFiSetupCluster",
                 access: "ALL",
                 description: "NameServer",
