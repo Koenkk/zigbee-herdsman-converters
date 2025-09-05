@@ -4353,6 +4353,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZ3000_nuenzetq",
             "_TZ3000_ruldv5dt",
             "_TZ3000_fbjdkph9",
+            "_TZ3000_zbfya6h0",
         ]),
         model: "TS0002_basic",
         vendor: "Tuya",
@@ -4365,6 +4366,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Tuya", "ZG-2002-RF", "Three mode Zigbee Switch", ["_TZ3000_lugaswf8", "_TZ3000_nuenzetq", "_TZ3000_ruldv5dt"]),
             tuya.whitelabel("Mercator Ikuü", "SSW02", "2 gang switch", ["_TZ3000_fbjdkph9"]),
             tuya.whitelabel("Aubess", "TMZ02", "2 gang switch", ["_TZ3000_lmlsduws"]),
+            tuya.whitelabel("RSH", "TS0002_basic_2", "2 gang switch", ["_TZ3000_zbfya6h0"]),
         ],
         extend: [
             tuya.modernExtend.tuyaOnOff({
@@ -4577,6 +4579,29 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [tuya.whitelabel("AVATTO", "ZWSM16-3-Zigbee", "3 gang switch module", ["_TZ3000_hbic3ka3"])],
     },
     {
+        fingerprint: tuya.fingerprint("TS0003", ["_TZ3000_pf7swkqp"]),
+        model: "TS0003_switch_module_3",
+        vendor: "Tuya",
+        description: "3 gang switch module",
+        extend: [
+            tuya.modernExtend.tuyaOnOff({
+                switchType: true,
+                endpoints: ["l1", "l2", "l3"],
+            }),
+        ],
+        endpoint: (device) => {
+            return {l1: 1, l2: 2, l3: 3};
+        },
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
+            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ["genOnOff"]);
+            await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ["genOnOff"]);
+        },
+        whiteLabel: [tuya.whitelabel("RSH", "SB03-Zigbee", "3 gang switch module", ["_TZ3000_pf7swkqp"])],
+    },
+    {
         fingerprint: tuya.fingerprint("TS0003", ["_TZ3000_ju82pu2b"]),
         model: "TW-03",
         vendor: "Tuya",
@@ -4668,7 +4693,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0004_switch_module",
         vendor: "Tuya",
         description: "4 gang switch module",
-        whiteLabel: [{vendor: "OXT", model: "SWTZ27"}],
+        whiteLabel: [{vendor: "OXT", model: "SWTZ27"}, tuya.whitelabel("RSH", "SB04-Zigbee", "4 gang switch", ["_TZ3000_liygxtcq"])],
         extend: [
             tuya.modernExtend.tuyaOnOff({
                 switchType: true,

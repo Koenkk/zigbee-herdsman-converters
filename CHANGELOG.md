@@ -1,5 +1,22 @@
 # Changelog
 
+## [25.17.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.16.0...v25.17.0) (2025-09-04)
+
+
+### Features
+
+* **add:** feat(add): TS0002_basic_2, SB04-Zigbee, SB03-Zigbee ([#9908](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9908)) ([0a1aac8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0a1aac8cdcbe433ddcff7fd355e5e43e6c02d5b2))
+
+
+### Bug Fixes
+
+* Eurotronic SPZB0001: fix configure failing https://github.com/Koenkk/zigbee2mqtt/issues/28495 ([15ab797](https://github.com/Koenkk/zigbee-herdsman-converters/commit/15ab797185edb6aa95d50cbaa3ca71f848b5c50f))
+* fz typing strict false/true ([f435859](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f4358597b61d1a1994bc749b2c037cdd367d31c4))
+* Hive SLR1B: fix temperature_setpoint_hold_duration description https://github.com/Koenkk/zigbee2mqtt/issues/28465 ([fe9352e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/fe9352eb51fe4b22c1a9c89a8db694c0d9ec5088))
+* **ignore:** fix 8ffda9a90cfad9ddcf7d38d54216844d895fd937 ([0dadcb2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0dadcb23982d4e31186dfca060d8515595d0a73b))
+* Lutron LZL4BWHL01 and Z3-1BRL: fix `action_level` `null` https://github.com/Koenkk/zigbee2mqtt/issues/28450 ([8ffda9a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8ffda9a90cfad9ddcf7d38d54216844d895fd937))
+* Third Reality: extend `3rPlugGen2SpecialCluster` with `allowBind` ([#9920](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9920)) ([5584f8a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5584f8ac87eb366f6fdad8efaad0d5795e995912))
+
 ## [25.16.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.15.0...v25.16.0) (2025-09-03)
 
 

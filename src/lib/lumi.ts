@@ -3548,7 +3548,8 @@ export const fromZigbee = {
         cluster: "ssIasZone",
         type: "commandStatusChangeNotification",
         convert: (model, msg, publish, options, meta) => {
-            const result = fz.ias_smoke_alarm_1.convert(model, msg, publish, options, meta) as KeyValueAny;
+            const newMsg = {...msg, type: "commandStatusChangeNotification" as const, data: {zonestatus: msg.data.zonestatus}};
+            const result = fz.ias_smoke_alarm_1.convert(model, newMsg, publish, options, meta) as KeyValueAny;
             const zoneStatus = msg.data.zonestatus;
             if (result) result.test = (zoneStatus & (1 << 1)) > 0;
             return result;
