@@ -704,19 +704,6 @@ const tzLocal = {
             return ret;
         },
     } satisfies Tz.Converter,
-    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-    TS020C_illuminance: {
-        key: ["illuminance"],
-        convertSet: async (entity, key, value, meta) => {
-            utils.assertNumber(value, "illuminance");
-
-            await entity.write("manuSpecificTuya_2", {
-                57345: {value, type: 0x21},
-            });
-
-            return {state: {illuminance: value}};
-        },
-    } satisfies Tz.Converter,
 };
 
 const fzLocal = {
@@ -967,8 +954,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS020C",
         vendor: "Tuya",
         description: "PIR sensor",
-        fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery, tuya.fz.datapoints, fzLocal.TS020C_illuminance],
-        toZigbee: [tuya.tz.datapoints, tzLocal.TS020C_illuminance],
+        fromZigbee: [tuya.fz.datapoints, fzLocal.TS020C_illuminance],
+        toZigbee: [tuya.tz.datapoints],
         extend: [tuya.modernExtend.tuyaBase({dp: true, queryOnDeviceAnnounce: true, queryOnConfigure: true})],
         exposes: [
             e.occupancy(),
@@ -994,7 +981,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuyaDatapoints: [
                 [1, "occupancy", tuya.valueConverter.trueFalse0],
                 [4, "battery", tuya.valueConverter.raw],
-                [12, "illuminance", tuya.valueConverter.raw], // doesn't work, hence {fzLocal,tzlocal}.TS020C_illuminance
+                [12, "illuminance", tuya.valueConverter.raw], // doesn't work, hence fzLocal.TS020C_illuminance
                 [
                     101,
                     "sensitivity",
