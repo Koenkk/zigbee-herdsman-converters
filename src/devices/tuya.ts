@@ -5033,6 +5033,10 @@ export const definitions: DefinitionWithExtend[] = [
             e.cover_position().setAccess("position", ea.STATE_SET),
             e.enum("reverse_direction", ea.STATE_SET, ["forward", "back"]).withDescription("Reverse the motor direction"),
             e.binary("motor_fault", ea.STATE, true, false).withDescription("Motor Fault"),
+			e.enum('upper_stroke_limit', ea.STATE_SET, ['SET', 'RESET']).withDescription('Set or Reset the upper stroke limit').withCategory('config'),
+			e.enum('middle_stroke_limit', ea.STATE_SET, ['SET', 'RESET']).withDescription('Set or Reset the middle stroke limit').withCategory('config'),
+			e.enum('lower_stroke_limit', ea.STATE_SET, ['SET', 'RESET']).withDescription('Set or Reset the lower stroke limit').withCategory('config'),
+			e.enum('motor_working_mode', ea.STATE_SET, ['continuous', 'intermittently']).withDescription('Motor operating mode').withCategory('config'),
         ],
         meta: {
             tuyaDatapoints: [
@@ -5056,6 +5060,10 @@ export const definitions: DefinitionWithExtend[] = [
                     }),
                 ],
                 [12, "motor_fault", tuya.valueConverter.trueFalse1],
+				[103, 'upper_stroke_limit', tuya.valueConverterBasic.lookup({SET: true, RESET: false})],
+				[104, 'middle_stroke_limit', tuya.valueConverterBasic.lookup({SET: true, RESET: false})],
+				[105, 'lower_stroke_limit', tuya.valueConverterBasic.lookup({SET: true, RESET: false})],
+				[106, 'motor_working_mode', tuya.valueConverterBasic.lookup({continuous: tuya.enum(0), intermittently: tuya.enum(1)})]
             ],
         },
         whiteLabel: [
