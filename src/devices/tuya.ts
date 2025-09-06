@@ -921,16 +921,13 @@ const fzLocal = {
         undefined,
         ["commandDataResponse", "commandDataReport", "commandActiveStatusReport", "commandActiveStatusReportAlt"]
     >,
-    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-    TS020C_illuminance: {
+    ts020cIlluminance: {
         cluster: "manuSpecificTuya_2",
         type: ["attributeReport"],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
-            if (["_TZ3040_wc6kfjtc"].includes(meta.device.manufacturerName)) {
-                if ("57345" in msg.data) {
-                    result.illuminance = msg.data["57345"];
-                }
+            if ("57345" in msg.data) {
+                result.illuminance = msg.data["57345"];
             }
             return result;
         },
@@ -949,20 +946,16 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.gas(), e.tamper()],
     },
     {
-        fingerprint: tuya.fingerprint("TS020C", ["_TZ3040_wc6kfjtc"]),
         zigbeeModel: ["TS020C"],
         model: "TS020C",
         vendor: "Tuya",
         description: "PIR sensor",
-        fromZigbee: [tuya.fz.datapoints, fzLocal.TS020C_illuminance],
-        toZigbee: [tuya.tz.datapoints],
+        fromZigbee: [fzLocal.ts020cIlluminance],
         extend: [tuya.modernExtend.tuyaBase({dp: true, queryOnDeviceAnnounce: true, queryOnConfigure: true})],
         exposes: [
             e.occupancy(),
             e.battery(),
-            e.battery_low(),
-            e.tamper(),
-            e.illuminance().withUnit("lux"),
+            e.illuminance(),
             e
                 .enum("sensitivity", ea.STATE_SET, ["low", "medium", "high"])
                 .withDescription("PIR sensor sensitivity (refresh and update only while active)"),
