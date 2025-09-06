@@ -1193,6 +1193,64 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
+        fingerprint: [
+            {
+                modelID: 'TS0601',
+                manufacturerName: '_TZE284_zpvusbtv',
+            },
+        ],
+        model: 'ZN2S-RS02E',
+        vendor: 'Tuya',
+        description: 'Two gang switch with colored backlight modes',
+        //icon: 'device_icons/TS0601_6G6S.jpeg',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEventSetTime, // Add this if you are getting no converter for 'commandMcuSyncTime'
+        configure: tuya.configureMagicPacket,
+        exposes: [
+                e.switch().withDescription('All switches').withProperty('state'),
+                e.switch().withEndpoint('l1').withProperty('state_l1'),
+                e.switch().withEndpoint('l2').withProperty('state_l2'),
+                e.binary('backlight_mode', ea.STATE_SET, 'ON', 'OFF').withDescription('Backlight mode'),
+                e.binary('indicator_mode', ea.STATE_SET, 'ON', 'OFF').withDescription('Indicator mode'),
+                e.power_on_behavior().withAccess(ea.STATE_SET),
+                e.binary('child_lock', ea.STATE_SET, 'ON', 'OFF').withDescription('Child lock'),
+                e.enum('on_color', ea.STATE_SET, ['red','blue','green','white','yellow','magenta','cyan','warmwhite','warmyellow'])
+                    .withDescription('ON color'),
+                e.enum('off_color', ea.STATE_SET, ['red','blue','green','white','yellow','magenta','cyan','warmwhite','warmyellow'])
+                    .withDescription('OFF color'),
+                e.numeric('countdown_l1', ea.STATE_SET).withUnit('s').withDescription('Countdown for l1').withValueMin(0).withValueMax(86400),
+                e.numeric('countdown_l2', ea.STATE_SET).withUnit('s').withDescription('Countdown for l2').withValueMin(0).withValueMax(86400),
+            ],
+        meta: {
+            // All datapoints go in here
+            tuyaDatapoints: [
+                [13, 'state', tuya.valueConverter.onOff],
+                [1,  'state_l1', tuya.valueConverter.onOff],
+                [2,  'state_l2', tuya.valueConverter.onOff],
+                [7,  'countdown_l1', tuya.valueConverter.countdown],
+                [8,  'countdown_l2', tuya.valueConverter.countdown],
+                [14, 'power_on_behavior', tuya.valueConverter.powerOnBehaviorEnum],
+                [15, 'indicator_mode', tuya.valueConverter.onOff],
+                [16, 'backlight_mode', tuya.valueConverter.onOff],
+                [101, 'child_lock', tuya.valueConverter.onOff],
+                [103, 'on_color', tuya.valueConverterBasic.lookup({
+                    red: tuya.enum(0), blue: tuya.enum(1), green: tuya.enum(2), white: tuya.enum(3),
+                    yellow: tuya.enum(4), magenta: tuya.enum(5), cyan: tuya.enum(6),
+                    warmwhite: tuya.enum(7), warmyellow: tuya.enum(8),
+                })],
+                [104, 'off_color', tuya.valueConverterBasic.lookup({
+                    red: tuya.enum(0), blue: tuya.enum(1), green: tuya.enum(2), white: tuya.enum(3),
+                    yellow: tuya.enum(4), magenta: tuya.enum(5), cyan: tuya.enum(6),
+                    warmwhite: tuya.enum(7), warmyellow: tuya.enum(8),
+                })],
+            ],
+        },
+        extend: [
+            // A preferred new way of extending functionality.
+        ],
+    },
+    {
         fingerprint: tuya.fingerprint("TS0203", ["_TZ3210_jowhpxop"]),
         model: "TS0203_1",
         vendor: "Tuya",
