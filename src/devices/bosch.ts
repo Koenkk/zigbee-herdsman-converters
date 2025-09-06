@@ -210,35 +210,6 @@ const boschBmctDzSettings = {
     hasDualSwitchInputs: false,
 };
 
-const _slzLookups = {
-    deviceModes: {
-        light: 0x04,
-        shutter: 0x01,
-        disabled: 0x00,
-    },
-    switchTypes: {
-        button: 0x01,
-        button_key_change: 0x02,
-        rocker_switch: 0x03,
-        rocker_switch_key_change: 0x04,
-        none: 0x00,
-    },
-    switchModes: {
-        coupled: 0x00,
-        decoupled: 0x01,
-        only_short_press_decoupled: 0x02,
-        only_long_press_decoupled: 0x03,
-    },
-    hasDualSwitchInputs: true,
-    motorStates: {
-        stopped: 0x00,
-        opening: 0x01,
-        closing: 0x02,
-        unknownOne: 0x03,
-        unknownTwo: 0x04,
-    },
-};
-
 const boschExtend = {
     seMeteringCluster: () =>
         m.deviceAddCustomCluster("seMetering", {
