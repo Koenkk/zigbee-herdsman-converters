@@ -921,6 +921,17 @@ const fzLocal = {
         undefined,
         ["commandDataResponse", "commandDataReport", "commandActiveStatusReport", "commandActiveStatusReportAlt"]
     >,
+    ts020cIlluminance: {
+        cluster: "manuSpecificTuya_2",
+        type: ["attributeReport"],
+        convert: (model, msg, publish, options, meta) => {
+            const result: KeyValue = {};
+            if ("57345" in msg.data) {
+                result.illuminance = msg.data["57345"];
+            }
+            return result;
+        },
+    } satisfies Fz.Converter<"manuSpecificTuya_2", undefined, ["attributeReport"]>,
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -933,6 +944,59 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.ias_gas_alarm_1, fz.ignore_basic_report],
         toZigbee: [],
         exposes: [e.gas(), e.tamper()],
+    },
+    {
+        zigbeeModel: ["TS020C"],
+        model: "TS020C",
+        vendor: "Tuya",
+        description: "PIR sensor",
+        fromZigbee: [fzLocal.ts020cIlluminance],
+        extend: [tuya.modernExtend.tuyaBase({dp: true, queryOnDeviceAnnounce: true, queryOnConfigure: true})],
+        exposes: [
+            e.occupancy(),
+            e.battery(),
+            e.illuminance(),
+            e
+                .enum("sensitivity", ea.STATE_SET, ["low", "medium", "high"])
+                .withDescription("PIR sensor sensitivity (refresh and update only while active)"),
+            e
+                .enum("hold_time", ea.STATE_SET, ["10", "30", "60", "120"])
+                .withDescription("PIR keep time in seconds (refresh and update only while active)"),
+            e
+                .numeric("light_interval", ea.STATE_SET)
+                .withValueMin(1)
+                .withValueMax(720)
+                .withValueStep(1)
+                .withUnit("minutes")
+                .withDescription("Brightness acquisition interval (refresh and update only while active)"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "occupancy", tuya.valueConverter.trueFalse0],
+                [4, "battery", tuya.valueConverter.raw],
+                [12, "illuminance", tuya.valueConverter.raw], // doesn't work, hence fzLocal.TS020C_illuminance
+                [
+                    101,
+                    "sensitivity",
+                    tuya.valueConverterBasic.lookup({
+                        low: tuya.enum(0),
+                        medium: tuya.enum(1),
+                        high: tuya.enum(2),
+                    }),
+                ],
+                [
+                    102,
+                    "hold_time",
+                    tuya.valueConverterBasic.lookup({
+                        "10": tuya.enum(0),
+                        "30": tuya.enum(1),
+                        "60": tuya.enum(2),
+                        "120": tuya.enum(3),
+                    }),
+                ],
+                [103, "light_interval", tuya.valueConverter.raw],
+            ],
+        },
     },
     {
         zigbeeModel: ["TS0205"],
