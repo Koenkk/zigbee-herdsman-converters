@@ -3301,8 +3301,8 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [
             tuya.exposes.switch(),
             tuya.exposes.countdown(),
-            e.voltage(), 
-            e.current(), 
+            e.voltage(),
+            e.current(),
             e.power(),
             e.power_on_behavior().withAccess(ea.STATE_SET),
             tuya.exposes.backlightModeOffOn().withAccess(ea.STATE_SET),
@@ -3312,7 +3312,7 @@ export const definitions: DefinitionWithExtend[] = [
         configure: tuya.configureMagicPacket,
         meta: {
             tuyaDatapoints: [
-                [1, "state", tuya.valueConverter.onOff],    
+                [1, "state", tuya.valueConverter.onOff],
                 [7, "countdown", tuya.valueConverter.countdown],
                 [14, "power_on_behavior", tuya.valueConverter.powerOnBehavior],
                 [16, "backlight_mode", tuya.valueConverter.onOff],
