@@ -211,44 +211,6 @@ const boschBmctDzSettings = {
 };
 
 const boschExtend = {
-    seMeteringCluster: () =>
-        m.deviceAddCustomCluster("seMetering", {
-            ID: Zcl.Clusters.seMetering.ID,
-            attributes: {},
-            commands: {
-                resetEnergyReading: {
-                    ID: 0x80,
-                    parameters: [],
-                },
-            },
-            commandsResponse: {},
-        }),
-    resetEnergyReading: (): ModernExtend => {
-        const exposes: Expose[] = [
-            e
-                .enum("reset_energy_reading", ea.SET, ["reset"])
-                .withDescription("Triggers the reset of the energy reading to 0 kWh.")
-                .withCategory("config"),
-        ];
-        const toZigbee: Tz.Converter[] = [
-            {
-                key: ["reset_energy_reading"],
-                convertSet: async (entity, key, value, meta) => {
-                    await entity.command<"seMetering", "resetEnergyReading", BoschSeMetering>(
-                        "seMetering",
-                        "resetEnergyReading",
-                        {},
-                        manufacturerOptions,
-                    );
-                },
-            },
-        ];
-        return {
-            exposes,
-            toZigbee,
-            isModernExtend: true,
-        };
-    },
     hvacThermostatCluster: () =>
         m.deviceAddCustomCluster("hvacThermostat", {
             ID: Zcl.Clusters.hvacThermostat.ID,
@@ -511,6 +473,44 @@ const boschExtend = {
         ];
         return {
             fromZigbee,
+            isModernExtend: true,
+        };
+    },
+    seMeteringCluster: () =>
+        m.deviceAddCustomCluster("seMetering", {
+            ID: Zcl.Clusters.seMetering.ID,
+            attributes: {},
+            commands: {
+                resetEnergyReading: {
+                    ID: 0x80,
+                    parameters: [],
+                },
+            },
+            commandsResponse: {},
+        }),
+    resetEnergyReading: (): ModernExtend => {
+        const exposes: Expose[] = [
+            e
+                .enum("reset_energy_reading", ea.SET, ["reset"])
+                .withDescription("Triggers the reset of the energy reading to 0 kWh.")
+                .withCategory("config"),
+        ];
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ["reset_energy_reading"],
+                convertSet: async (entity, key, value, meta) => {
+                    await entity.command<"seMetering", "resetEnergyReading", BoschSeMetering>(
+                        "seMetering",
+                        "resetEnergyReading",
+                        {},
+                        manufacturerOptions,
+                    );
+                },
+            },
+        ];
+        return {
+            exposes,
+            toZigbee,
             isModernExtend: true,
         };
     },
