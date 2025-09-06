@@ -58,7 +58,7 @@ const shellyModernExtend = {
                 cluster: "shellyWiFiSetupCluster",
                 access: "STATE_GET",
                 description: "Wifi Status",
-                name: "Wifi_Status",
+                name: "wifi_status",
                 attribute: "status",
                 entityCategory: "diagnostic",
                 zigbeeCommandOptions: {
@@ -69,7 +69,7 @@ const shellyModernExtend = {
                 cluster: "shellyWiFiSetupCluster",
                 access: "STATE_GET",
                 description: "IP of the device",
-                name: "IP",
+                name: "ip",
                 attribute: "ip",
                 entityCategory: "diagnostic",
                 zigbeeCommandOptions: {
@@ -81,7 +81,7 @@ const shellyModernExtend = {
                 access: "SET",
                 description:
                     "Action to perform. Reset resets all attributes to current device configuration, Apply applies the current configuration to the device",
-                name: "Action",
+                name: "actions",
                 attribute: "action",
                 entityCategory: "config",
                 lookup: {
@@ -96,7 +96,7 @@ const shellyModernExtend = {
                 cluster: "shellyWiFiSetupCluster",
                 access: "STATE_GET",
                 description: "DHCP",
-                name: "DHCP",
+                name: "dhcp",
                 attribute: "dhcp",
                 entityCategory: "diagnostic",
                 valueOn: [true, 1],
@@ -109,7 +109,7 @@ const shellyModernExtend = {
                 cluster: "shellyWiFiSetupCluster",
                 access: "ALL",
                 description: "Enable/Disable Wifi",
-                name: "Enable",
+                name: "enable",
                 attribute: "enable",
                 entityCategory: "config",
                 valueOn: [true, 1],
@@ -122,7 +122,7 @@ const shellyModernExtend = {
                 cluster: "shellyWiFiSetupCluster",
                 access: "ALL",
                 description: "SSID",
-                name: "SSID",
+                name: "ssid",
                 attribute: "ssid",
                 entityCategory: "config",
                 validate(value: unknown) {
@@ -136,7 +136,7 @@ const shellyModernExtend = {
                 cluster: "shellyWiFiSetupCluster",
                 access: "SET",
                 description: "Wifi Password",
-                name: "Password",
+                name: "password",
                 attribute: "password",
                 entityCategory: "config",
                 validate(value: unknown) {
@@ -150,7 +150,7 @@ const shellyModernExtend = {
                 cluster: "shellyWiFiSetupCluster",
                 access: "ALL",
                 description: "StaticIP",
-                name: "StaticIP",
+                name: "static_ip",
                 attribute: "staticIP",
                 entityCategory: "config",
                 validate(value: unknown) {
@@ -164,7 +164,7 @@ const shellyModernExtend = {
                 cluster: "shellyWiFiSetupCluster",
                 access: "ALL",
                 description: "NetMask",
-                name: "NetMask",
+                name: "net_mask",
                 attribute: "netMask",
                 entityCategory: "config",
                 validate(value: unknown) {
@@ -178,7 +178,7 @@ const shellyModernExtend = {
                 cluster: "shellyWiFiSetupCluster",
                 access: "ALL",
                 description: "Gateway",
-                name: "Gateway",
+                name: "gateway",
                 attribute: "gateway",
                 entityCategory: "config",
                 validate(value: unknown) {
@@ -192,7 +192,7 @@ const shellyModernExtend = {
                 cluster: "shellyWiFiSetupCluster",
                 access: "ALL",
                 description: "NameServer",
-                name: "NameServer",
+                name: "name_server",
                 attribute: "nameServer",
                 entityCategory: "config",
                 validate(value: unknown) {
