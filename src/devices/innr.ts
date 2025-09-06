@@ -753,7 +753,14 @@ export const definitions: DefinitionWithExtend[] = [
         model: "OFL 142 C",
         vendor: "Innr",
         description: "Outdoor flex light colour LED strip 4m, 1440lm, RGBW",
-        extend: [m.light({colorTemp: {range: [100, 350]}, color: {modes: ["xy", "hs"], applyRedFix: true}, turnsOffAtBrightness1: true})],
+        extend: [
+            m.light({
+                colorTemp: {range: [100, 350]},
+                color: {modes: ["xy", "hs"], applyRedFix: true},
+                turnsOffAtBrightness1: true,
+                powerOnBehavior: false,
+            }),
+        ],
     },
     {
         zigbeeModel: ["RB 255 C"],
