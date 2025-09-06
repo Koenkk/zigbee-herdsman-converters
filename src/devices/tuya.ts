@@ -704,6 +704,19 @@ const tzLocal = {
             return ret;
         },
     } satisfies Tz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    TS020C_illuminance: {
+        key: ["illuminance"],
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertNumber(value, "illuminance");
+
+            await entity.write("manuSpecificTuya_2", {
+                57345: {value, type: 0x21},
+            });
+
+            return {state: {illuminance: value}};
+        },
+    } satisfies Tz.Converter,
 };
 
 const fzLocal = {
@@ -921,6 +934,20 @@ const fzLocal = {
         undefined,
         ["commandDataResponse", "commandDataReport", "commandActiveStatusReport", "commandActiveStatusReportAlt"]
     >,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    TS020C_illuminance: {
+        cluster: "manuSpecificTuya_2",
+        type: ["attributeReport"],
+        convert: (model, msg, publish, options, meta) => {
+            const result: KeyValue = {};
+            if (["_TZ3040_wc6kfjtc"].includes(meta.device.manufacturerName)) {
+                if ("57345" in msg.data) {
+                    result.illuminance = msg.data["57345"];
+                }
+            }
+            return result;
+        },
+    } satisfies Fz.Converter<"manuSpecificTuya_2", undefined, ["attributeReport"]>,
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -933,6 +960,63 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.ias_gas_alarm_1, fz.ignore_basic_report],
         toZigbee: [],
         exposes: [e.gas(), e.tamper()],
+    },
+    {
+        fingerprint: tuya.fingerprint("TS020C", ["_TZ3040_wc6kfjtc"]),
+        zigbeeModel: ["TS020C"],
+        model: "TS020C",
+        vendor: "Tuya",
+        description: "PIR sensor",
+        fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery, tuya.fz.datapoints, fzLocal.TS020C_illuminance],
+        toZigbee: [tuya.tz.datapoints, tzLocal.TS020C_illuminance],
+        extend: [tuya.modernExtend.tuyaBase({dp: true, queryOnDeviceAnnounce: true, queryOnConfigure: true})],
+        exposes: [
+            e.occupancy(),
+            e.battery(),
+            e.battery_low(),
+            e.tamper(),
+            e.illuminance().withUnit("lux"),
+            e
+                .enum("sensitivity", ea.STATE_SET, ["low", "medium", "high"])
+                .withDescription("PIR sensor sensitivity (refresh and update only while active)"),
+            e
+                .enum("hold_time", ea.STATE_SET, ["10", "30", "60", "120"])
+                .withDescription("PIR keep time in seconds (refresh and update only while active)"),
+            e
+                .numeric("light_interval", ea.STATE_SET)
+                .withValueMin(1)
+                .withValueMax(720)
+                .withValueStep(1)
+                .withUnit("minutes")
+                .withDescription("Brightness acquisition interval (refresh and update only while active)"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "occupancy", tuya.valueConverter.trueFalse0],
+                [4, "battery", tuya.valueConverter.raw],
+                [12, "illuminance", tuya.valueConverter.raw], // doesn't work, hence {fzLocal,tzlocal}.TS020C_illuminance
+                [
+                    101,
+                    "sensitivity",
+                    tuya.valueConverterBasic.lookup({
+                        low: tuya.enum(0),
+                        medium: tuya.enum(1),
+                        high: tuya.enum(2),
+                    }),
+                ],
+                [
+                    102,
+                    "hold_time",
+                    tuya.valueConverterBasic.lookup({
+                        "10": tuya.enum(0),
+                        "30": tuya.enum(1),
+                        "60": tuya.enum(2),
+                        "120": tuya.enum(3),
+                    }),
+                ],
+                [103, "light_interval", tuya.valueConverter.raw],
+            ],
+        },
     },
     {
         zigbeeModel: ["TS0205"],
