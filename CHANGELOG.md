@@ -1,5 +1,23 @@
 # Changelog
 
+## [25.18.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.17.1...v25.18.0) (2025-09-06)
+
+
+### Features
+
+* **add:** 929003808401 ([#9929](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9929)) ([69e744a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/69e744a320fbd0dcabf43e6bc78abc4c2fb1d9e1))
+* **add:** RCL 232 C ([#9931](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9931)) ([14a6d4e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/14a6d4ebf76839eeb05398c9808a5cec40008799))
+* **add:** TS020C ([#9934](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9934)) ([460fbf3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/460fbf3920eb1f436ee7282def8f0a29572a9f71))
+* **add:** ZB414 ([#9930](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9930)) ([6f5eb36](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6f5eb367da523bff11e9e85f8595dc582f2e880c))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3290_nba3knpsarkawgnt` as Moes UFO-R11 https://github.com/Koenkk/zigbee-herdsman-converters/issues/9933 ([88b7b7e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/88b7b7ec6cc11e37626481e7f940093495d62a51))
+* **detect:** Detect `_TZE284_e4pf6l87` as Zemismart ZMS-206EU-3 https://github.com/Koenkk/zigbee2mqtt/issues/27305 ([00b6d91](https://github.com/Koenkk/zigbee-herdsman-converters/commit/00b6d91a67e8d577ef3316131d9e0a942d89edd7))
+* Innr OFL 142 C: disable unsupported power on behaviour https://github.com/Koenkk/zigbee2mqtt/issues/27922 ([3dda420](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3dda420cfa2831268c37cda863da9618c0bb3db2))
+* Tuya: fix `mcuSyncTime` error for various devices https://github.com/Koenkk/zigbee2mqtt/issues/28486 ([5bbbb23](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5bbbb234e224bc991409d1542d65ea45987db738))
+
 ## [25.17.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.17.0...v25.17.1) (2025-09-05)
 
 
