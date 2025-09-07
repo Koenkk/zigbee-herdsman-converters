@@ -1902,7 +1902,6 @@ export const definitions: DefinitionWithExtend[] = [
                 commands: {},
                 commandsResponse: {},
             }),
-            m.identify(),
             m.light({
                 configureReporting: true,
                 levelConfig: {features: ["on_level", "current_level_startup"]},
@@ -1930,7 +1929,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["RBSH-MMR-ZB-EU"],
         model: "BMCT-RZ",
         vendor: "Bosch",
-        description: "Relay, potential free",
+        description: "Relay (potential free)",
         extend: [
             boschBmctExtend.handleZclVersionReadRequest(),
             m.deviceAddCustomCluster("boschSpecific", {
@@ -1948,7 +1947,6 @@ export const definitions: DefinitionWithExtend[] = [
                 commands: {},
                 commandsResponse: {},
             }),
-            m.identify(),
             boschBmctExtend.rzDeviceModes(),
             m.onOff({powerOnBehavior: false}),
             boschBmctExtend.switchType({
