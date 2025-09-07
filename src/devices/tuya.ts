@@ -10200,6 +10200,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZ3290_jxvzqatwgsaqzx1u",
             "_TZ3290_lypnqvlem5eq1ree",
             "_TZ3290_uc8lwbi2",
+            "_TZ3290_nba3knpsarkawgnt",
         ]),
         model: "ZS06",
         vendor: "Tuya",

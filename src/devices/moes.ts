@@ -1169,7 +1169,6 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZ3290_ot6ewjvmejq5ekhl",
             "_TZ3290_xjpbcxn92aaxvmlz",
             "_TZ3290_gnl5a6a5xvql7c2a",
-            "_TZ3290_nba3knpsarkawgnt",
         ]),
         model: "UFO-R11",
         vendor: "Moes",
