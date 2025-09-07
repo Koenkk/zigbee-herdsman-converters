@@ -744,7 +744,9 @@ export const definitions: DefinitionWithExtend[] = [
             m.identify({isSleepy: true}),
             tradfriCommandsOnOff(),
             tradfriCommandsLevelCtrl(),
-            ikeaArrowClick(),
+            // No genScenes cluster
+            // https://github.com/Koenkk/zigbee2mqtt/issues/28161
+            ikeaArrowClick({bind: false}),
             ikeaBattery(),
         ],
         ota: true,

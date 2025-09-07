@@ -66,11 +66,9 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Shelly",
         description: "2PM Gen4 (Switch mode)",
         extend: [
+            m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
             m.onOff({powerOnBehavior: false, endpointNames: ["l1", "l2"]}),
             m.electricityMeter({producedEnergy: true, acFrequency: true, endpointNames: ["l1", "l2"]}),
         ],
-        endpoint: (device) => {
-            return {l1: 1, l2: 2};
-        },
     },
 ];
