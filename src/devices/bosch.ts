@@ -1263,6 +1263,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.quirkCheckinInterval(0),
         ],
+        ota: true,
     },
     {
         zigbeeModel: ["RBSH-WS-ZB-EU"],
@@ -1311,6 +1312,7 @@ export const definitions: DefinitionWithExtend[] = [
             await endpoint.read("ssIasZone", ["zoneStatus"]);
             await endpoint.read<"boschSpecific", BoschSpecificBwa1>("boschSpecific", ["alarmOnMotion"], manufacturerOptions);
         },
+        ota: true,
     },
     {
         zigbeeModel: ["RBSH-SD-ZB-EU"],
@@ -1880,6 +1882,7 @@ export const definitions: DefinitionWithExtend[] = [
             await endpoint.read("genPowerCfg", ["batteryPercentageRemaining"]);
             await endpoint.read("ssIasZone", ["zoneStatus"]);
         },
+        ota: true,
     },
     {
         zigbeeModel: ["RBSH-SWDV-ZB"],
