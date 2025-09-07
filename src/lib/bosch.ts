@@ -95,7 +95,7 @@ export const boschBmctExtend = {
             return [switchModeExpose];
         };
 
-        const fromZigbee: Fz.Converter[] = [
+        const fromZigbee = [
             {
                 cluster: "boschSpecific",
                 type: ["attributeReport", "readResponse"],
@@ -110,7 +110,7 @@ export const boschBmctExtend = {
 
                     return result;
                 },
-            },
+            } satisfies Fz.Converter<"boschSpecific", BoschBmctCluster, ["attributeReport", "readResponse"]>,
         ];
         const toZigbee: Tz.Converter[] = [
             {
@@ -190,7 +190,7 @@ export const boschBmctExtend = {
             return [autoOffEnabledExpose, autoOffTimeExpose];
         };
 
-        const fromZigbee: Fz.Converter[] = [
+        const fromZigbee = [
             {
                 cluster: "boschSpecific",
                 type: ["attributeReport", "readResponse"],
@@ -210,7 +210,7 @@ export const boschBmctExtend = {
 
                     return result;
                 },
-            },
+            } satisfies Fz.Converter<"boschSpecific", BoschBmctCluster, ["attributeReport", "readResponse"]>,
         ];
         const toZigbee: Tz.Converter[] = [
             {
@@ -284,7 +284,7 @@ export const boschBmctExtend = {
             return [childLockExpose];
         };
 
-        const fromZigbee: Fz.Converter[] = [
+        const fromZigbee = [
             {
                 cluster: "boschSpecific",
                 type: ["attributeReport", "readResponse"],
@@ -299,7 +299,7 @@ export const boschBmctExtend = {
 
                     return result;
                 },
-            },
+            } satisfies Fz.Converter<"boschSpecific", BoschBmctCluster, ["attributeReport", "readResponse"]>,
         ];
         const toZigbee: Tz.Converter[] = [
             {
@@ -382,7 +382,7 @@ export const boschBmctExtend = {
             return [minimumBrightnessExpose, maximumBrightnessExpose];
         };
 
-        const fromZigbee: Fz.Converter[] = [
+        const fromZigbee = [
             {
                 cluster: "boschSpecific",
                 type: ["attributeReport", "readResponse"],
@@ -400,7 +400,7 @@ export const boschBmctExtend = {
 
                     return result;
                 },
-            },
+            } satisfies Fz.Converter<"boschSpecific", BoschBmctCluster, ["attributeReport", "readResponse"]>,
         ];
         const toZigbee: Tz.Converter[] = [
             {
@@ -555,7 +555,7 @@ export const boschBmctExtend = {
             return [pulseLengthExpose];
         };
 
-        const fromZigbee: Fz.Converter[] = [
+        const fromZigbee = [
             {
                 cluster: "boschSpecific",
                 type: ["attributeReport", "readResponse"],
@@ -587,7 +587,7 @@ export const boschBmctExtend = {
 
                     return result;
                 },
-            },
+            } satisfies Fz.Converter<"boschSpecific", BoschBmctCluster, ["attributeReport", "readResponse"]>,
         ];
         const toZigbee: Tz.Converter[] = [
             {
@@ -655,7 +655,7 @@ export const boschBmctExtend = {
             return [switchTypeExpose];
         };
 
-        const fromZigbee: Fz.Converter[] = [
+        const fromZigbee = [
             {
                 cluster: "boschSpecific",
                 type: ["attributeReport", "readResponse"],
@@ -675,7 +675,7 @@ export const boschBmctExtend = {
 
                     return result;
                 },
-            },
+            } satisfies Fz.Converter<"boschSpecific", BoschBmctCluster, ["attributeReport", "readResponse"]>,
         ];
         const toZigbee: Tz.Converter[] = [
             {
@@ -800,7 +800,7 @@ export const boschBmctExtend = {
             return exposeList;
         };
 
-        const fromZigbee: Fz.Converter[] = [
+        const fromZigbee = [
             {
                 cluster: "boschSpecific",
                 type: ["raw"],
@@ -841,7 +841,7 @@ export const boschBmctExtend = {
 
                     return {action: action, action_duration: duration};
                 },
-            },
+            } satisfies Fz.Converter<"boschSpecific", BoschBmctCluster, ["raw"]>,
         ];
 
         return {
@@ -880,7 +880,7 @@ export const boschBmctExtend = {
             OFF: 0x00,
             ON: 0x01,
         };
-        const fromZigbee: Fz.Converter[] = [
+        const fromZigbee = [
             fz.on_off_force_multiendpoint,
             fz.power_on_behavior,
             fz.cover_position_tilt,
@@ -948,7 +948,7 @@ export const boschBmctExtend = {
                     }
                     return result;
                 },
-            },
+            } satisfies Fz.Converter<"boschSpecific", BoschBmctCluster, ["attributeReport", "readResponse"]>,
         ];
         const toZigbee: Tz.Converter[] = [
             tz.power_on_behavior,
