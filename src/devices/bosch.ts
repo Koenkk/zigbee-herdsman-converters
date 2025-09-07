@@ -343,7 +343,6 @@ const boschExtend = {
             valueMax: 10,
             zigbeeCommandOptions: manufacturerOptions,
         }),
-
     valveAdaptProcess: (): ModernExtend => {
         const adaptationStatus: KeyValue = {
             none: 0x00,
