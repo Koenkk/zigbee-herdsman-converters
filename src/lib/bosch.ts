@@ -47,7 +47,7 @@ export interface BoschBmctCluster {
         dimmerType: number;
         /** ID: 24 | Type: UINT16 | Only used by BMCT-RZ */
         pulseLength: number;
-        /** ID: 25 | Type: UINT8 | Only used by BMCT-DZ*/
+        /** ID: 25 | Type: UINT8 | Only used by BMCT-DZ */
         minimumBrightness: number;
         /** ID: 26 | Type: UINT8 | Only used by BMCT-DZ */
         maximumBrightness: number;
