@@ -23,6 +23,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.battery(), m.windowCovering({controls: ["lift"]})],
     },
     {
+        zigbeeModel: ["Sonesse2 28 WF Li-Ion Roller"],
+        model: "Sonesse2 28 WF Li-Ion Roller",
+        vendor: "1245943",
+        description: "Sonesse2 28 WF Li-Ion roller shades",
+        extend: [m.battery(), m.windowCovering({controls: ["lift"]})],
+    },
+    {
         zigbeeModel: ["Sonesse Ultra 30 WF Li-Ion Rolle"],
         model: "SOMFY-1241752",
         vendor: "SOMFY",
