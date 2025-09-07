@@ -370,13 +370,16 @@ export const boschBmctExtend = {
             },
             entityCategory: "config",
         }),
-    dimmerType: (args: {dimmerTypeLookup: KeyValue}) =>
+    dimmerType: () =>
         m.enumLookup<"boschSpecific", BoschBmctCluster>({
             name: "dimmer_type",
             cluster: "boschSpecific",
             attribute: "dimmerType",
             description: "Select the appropriate dimmer type for your lamps. Make sure that you are only using dimmable lamps.",
-            lookup: args.dimmerTypeLookup,
+            lookup: {
+                leading_edge_phase_cut: 0x00,
+                trailing_edge_phase_cut: 0x01,
+            },
             entityCategory: "config",
         }),
     brightnessRange: (): ModernExtend => {
@@ -480,11 +483,8 @@ export const boschBmctExtend = {
             isModernExtend: true,
         };
     },
-    rzDeviceModes: (): ModernExtend => {
-        const deviceModesLookup: KeyValue = {
-            switch: 0x00,
-            pulsed: 0x01,
-        };
+    rzDeviceModes: (args: {deviceModesLookup: KeyValue}): ModernExtend => {
+        const {deviceModesLookup} = args;
 
         const expose: DefinitionExposesFunction = (device: Zh.Device | DummyDevice, options: KeyValue) => {
             if (utils.isDummyDevice(device)) {

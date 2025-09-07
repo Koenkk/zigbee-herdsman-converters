@@ -214,10 +214,6 @@ const boschBmctRzSettings = {
 };
 
 const boschBmctDzSettings = {
-    dimmerTypes: {
-        leading_edge_phase_cut: 0x00,
-        trailing_edge_phase_cut: 0x01,
-    },
     switchTypes: {
         button: 0x05,
         none: 0x00,
@@ -1947,7 +1943,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             boschBmctExtend.childLock(),
             boschBmctExtend.brightnessRange(),
-            boschBmctExtend.dimmerType({dimmerTypeLookup: boschBmctDzSettings.dimmerTypes}),
+            boschBmctExtend.dimmerType(),
         ],
         ota: true,
     },
@@ -1973,7 +1969,9 @@ export const definitions: DefinitionWithExtend[] = [
                 commands: {},
                 commandsResponse: {},
             }),
-            boschBmctExtend.rzDeviceModes(),
+            boschBmctExtend.rzDeviceModes({
+                deviceModesLookup: boschBmctRzSettings.deviceModes,
+            }),
             m.onOff({powerOnBehavior: false}),
             boschBmctExtend.switchType({
                 switchTypeLookup: boschBmctRzSettings.switchTypes,
