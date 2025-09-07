@@ -1933,7 +1933,7 @@ export const definitions: DefinitionWithExtend[] = [
             boschBmctExtend.switchType({
                 switchTypeLookup: boschBmctDzSettings.switchTypes,
             }),
-            boschBmctExtend.reportSwitchActions({
+            boschBmctExtend.reportSwitchAction({
                 switchTypeLookup: boschBmctDzSettings.switchTypes,
                 hasDualSwitchInputs: boschBmctDzSettings.hasDualSwitchInputs,
             }),
@@ -1976,7 +1976,7 @@ export const definitions: DefinitionWithExtend[] = [
             boschBmctExtend.switchType({
                 switchTypeLookup: boschBmctRzSettings.switchTypes,
             }),
-            boschBmctExtend.reportSwitchActions({
+            boschBmctExtend.reportSwitchAction({
                 switchTypeLookup: boschBmctRzSettings.switchTypes,
                 hasDualSwitchInputs: boschBmctRzSettings.hasDualSwitchInputs,
             }),

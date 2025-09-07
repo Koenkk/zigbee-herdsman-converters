@@ -779,7 +779,7 @@ export const boschBmctExtend = {
         };
     },
 
-    reportSwitchActions: (args: {switchTypeLookup: KeyValue; hasDualSwitchInputs: boolean}): ModernExtend => {
+    reportSwitchAction: (args: {switchTypeLookup: KeyValue; hasDualSwitchInputs: boolean}): ModernExtend => {
         const {switchTypeLookup, hasDualSwitchInputs} = args;
 
         const expose: DefinitionExposesFunction = (device, options) => {
