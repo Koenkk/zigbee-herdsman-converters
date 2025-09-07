@@ -15,27 +15,49 @@ const NS = "zhc:bosch";
 
 export interface BoschBmctCluster {
     attributes: {
+        /** ID: 0 | Type: ENUM8 | Only used by BMCT-SLZ */
         deviceMode: number;
+        /** ID: 1 | Type: ENUM8 */
         switchType: number;
+        /** ID: 2 | Type: UINT32 | Only used by BMCT-SLZ */
         calibrationOpeningTime: number;
+        /** ID: 3 | Type: UINT32 | Only used by BMCT-SLZ */
         calibrationClosingTime: number;
+        /** ID: 4 | Type: BITMAP8 | Used by all BMCT devices, but function is unknown */
         unknownAttributeOne: number;
+        /** ID: 5 | Type: UINT8 | Only used by BMCT-SLZ */
         calibrationButtonHoldTime: number;
+        /** ID: 6 | Type: BOOLEAN | Only used by BMCT-RZ and BMCT-SLZ */
         autoOffEnabled: number;
+        /** ID: 7 | Type: UINT16 | Only used by BMCT-RZ and BMCT-SLZ */
         autoOffTime: number;
+        /** ID: 8 | Type: BOOLEAN */
         childLock: number;
+        /** ID: 10 | Type: UINT32 | Only used by BMCT-SLZ */
         slatRotationDurationOne: number;
+        /** ID: 11 | Type: UINT32 | Only used by BMCT-SLZ */
         slatRotationDurationTwo: number;
+        /** ID: 13 | Type: ENUM8 | Only used by BMCT-SLZ */
         motorState: number;
+        /** ID: 15 | Type: UINT8 | Only used by BMCT-SLZ */
         calibrationMotorStartDelay: number;
+        /** ID: 21 | Type: UINT8 | Only used by BMCT-SLZ */
         calibrationMotorEndPosition: number;
+        /** ID: 22 | Type: ENUM8 | Only used by BMCT-DZ */
         dimmerType: number;
+        /** ID: 24 | Type: UINT16 | Only used by BMCT-RZ */
         pulseLength: number;
+        /** ID: 25 | Type: UINT8 | Only used by BMCT-DZ*/
         minimumBrightness: number;
+        /** ID: 26 | Type: UINT8 | Only used by BMCT-DZ */
         maximumBrightness: number;
+        /** ID: 31 | Type: BOOLEAN on BMCZ-DZ and BMCT-RZ | Type: UINT8 on BMCT-SLZ */
         switchMode: number;
+        /** ID: 33 | Type: UINT16 | Only used by BMCT-SLZ */
         calibrationNewMotorStartDelay: number;
+        /** ID: 34 | Type: ENUM8 | Only used by BMCT-RZ */
         actuatorType: number;
+        /** ID: 42 | Type: BOOLEAN | Only used by BMCT-SLZ */
         unknownAttributeTwo: number;
     };
     commands: never;
