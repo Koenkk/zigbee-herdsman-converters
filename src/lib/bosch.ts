@@ -379,7 +379,7 @@ export const boschBmctExtend = {
             lookup: args.dimmerTypeLookup,
             entityCategory: "config",
         }),
-    brightnessLimits: (): ModernExtend => {
+    brightnessRange: (): ModernExtend => {
         const expose: DefinitionExposesFunction = (device: Zh.Device | DummyDevice, options: KeyValue) => {
             if (utils.isDummyDevice(device)) {
                 return [];

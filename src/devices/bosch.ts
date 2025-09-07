@@ -1946,7 +1946,7 @@ export const definitions: DefinitionWithExtend[] = [
                 switchTypeLookup: boschBmctDzSettings.switchTypes,
             }),
             boschBmctExtend.childLock(),
-            boschBmctExtend.brightnessLimits(),
+            boschBmctExtend.brightnessRange(),
             boschBmctExtend.dimmerType({dimmerTypeLookup: boschBmctDzSettings.dimmerTypes}),
         ],
         ota: true,
