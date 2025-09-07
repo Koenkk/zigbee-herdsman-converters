@@ -1,7 +1,7 @@
 import {Zcl, ZSpec} from "zigbee-herdsman";
-import type {TPartialClusterAttributes} from "zigbee-herdsman/dist/zspec/zcl/definition/clusters-types";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
+import {type BoschBmctCluster, boschBmctExtend} from "../lib/bosch";
 import * as constants from "../lib/constants";
 import {repInterval} from "../lib/constants";
 import * as exposes from "../lib/exposes";
@@ -10,7 +10,7 @@ import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import {payload} from "../lib/reporting";
 import * as globalStore from "../lib/store";
-import type {DefinitionWithExtend, Expose, Fz, KeyValue, ModernExtend, Tz, Zh} from "../lib/types";
+import type {DefinitionWithExtend, Expose, Fz, KeyValue, ModernExtend, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
 
 const e = exposes.presets;
@@ -175,24 +175,6 @@ interface BoschSeMetering {
     commandResponses: never;
 }
 
-interface BoschSpecificBmct {
-    attributes: {
-        deviceMode: number;
-        switchType: number;
-        switchMode: number;
-        calibrationOpeningTime: number;
-        calibrationClosingTime: number;
-        calibrationButtonHoldTime: number;
-        childLock: number;
-        autoOffEnabled: number;
-        autoOffTime: number;
-        calibrationMotorStartDelay: number;
-        motorState: number;
-    };
-    commands: never;
-    commandResponses: never;
-}
-
 interface BoschSpecificBwa1 {
     attributes: {alarmOnMotion: number};
     commands: never;
@@ -213,6 +195,35 @@ interface BoschSmokeAlarmSiren {
     commands: {boschSmokeAlarmSiren: {data: number}};
     commandResponses: never;
 }
+
+const boschBmctRzSettings = {
+    deviceModes: {
+        switch: 0x00,
+        pulsed: 0x01,
+    },
+    switchTypes: {
+        button: 0x05,
+        rocker_switch: 0x07,
+        none: 0x00,
+    },
+    switchModes: {
+        coupled: 0x00,
+        decoupled: 0x01,
+    },
+    hasDualSwitchInputs: false,
+};
+
+const boschBmctDzSettings = {
+    switchTypes: {
+        button: 0x05,
+        none: 0x00,
+    },
+    switchModes: {
+        coupled: 0x00,
+        decoupled: 0x01,
+    },
+    hasDualSwitchInputs: false,
+};
 
 const boschExtend = {
     hvacThermostatCluster: () =>
@@ -978,304 +989,6 @@ const boschExtend = {
         ];
         return {
             exposes,
-            fromZigbee,
-            toZigbee,
-            isModernExtend: true,
-        };
-    },
-    bmct: (): ModernExtend => {
-        const stateDeviceMode = {
-            light: 0x04,
-            shutter: 0x01,
-            disabled: 0x00,
-        };
-        const stateMotor = {
-            stopped: 0x00,
-            opening: 0x01,
-            closing: 0x02,
-            unknownOne: 0x03,
-            unknownTwo: 0x04,
-        };
-        const stateSwitchType = {
-            button: 0x01,
-            button_key_change: 0x02,
-            rocker_switch: 0x03,
-            rocker_switch_key_change: 0x04,
-            none: 0x00,
-        };
-        const stateSwitchMode = {
-            coupled: 0x00,
-            decoupled: 0x01,
-            only_short_press_decoupled: 0x02,
-            only_long_press_decoupled: 0x03,
-        };
-        const stateOffOn = {
-            OFF: 0x00,
-            ON: 0x01,
-        };
-        const fromZigbee = [
-            fz.on_off_force_multiendpoint,
-            fz.power_on_behavior,
-            fz.cover_position_tilt,
-            {
-                cluster: "boschSpecific",
-                type: ["raw"],
-                convert: (model, msg, publish, options, meta) => {
-                    const command = msg.data[4];
-
-                    if (command !== 0x03 && command !== 0x04) {
-                        return;
-                    }
-
-                    let state: string;
-                    const status = msg.data[5];
-                    const duration = msg.data[6] / 10;
-
-                    switch (status) {
-                        case 0:
-                            state = "press_released";
-                            break;
-                        case 1:
-                            state = duration !== 0 ? "hold" : "hold_released";
-                            break;
-                        case 2:
-                            state = "closed";
-                            break;
-                        case 3:
-                            state = "opened";
-                            break;
-                    }
-
-                    const triggeredSide = command === 0x03 ? "left" : "right";
-                    return {action: `${state}_${triggeredSide}`, action_duration: duration};
-                },
-            } satisfies Fz.Converter<"boschSpecific", BoschSpecificBmct, ["raw"]>,
-            {
-                cluster: "boschSpecific",
-                type: ["attributeReport", "readResponse"],
-                convert: (model, msg, publish, options, meta) => {
-                    const result: KeyValue = {};
-                    const data = msg.data;
-                    if (data.deviceMode !== undefined) {
-                        result.device_mode = Object.keys(stateDeviceMode).find(
-                            (key) => stateDeviceMode[key as keyof typeof stateDeviceMode] === msg.data.deviceMode,
-                        );
-                        const deviceMode = msg.data.deviceMode;
-                        if (deviceMode !== meta.device.meta.deviceMode) {
-                            meta.device.meta.deviceMode = deviceMode;
-                            meta.deviceExposesChanged();
-                        }
-                    }
-                    if (data.switchType !== undefined) {
-                        const switchType = msg.data.switchType;
-                        result.switch_type = Object.keys(stateSwitchType).find(
-                            (key) => stateSwitchType[key as keyof typeof stateSwitchType] === switchType,
-                        );
-
-                        if (switchType !== meta.device.meta.switchType) {
-                            meta.device.meta.switchType = switchType;
-                            meta.deviceExposesChanged();
-                        }
-                    }
-                    if (data.switchMode !== undefined) {
-                        const property = utils.postfixWithEndpointName("switch_mode", msg, model, meta);
-                        result[property] = Object.keys(stateSwitchMode).find(
-                            (key) => stateSwitchMode[key as keyof typeof stateSwitchMode] === msg.data.switchMode,
-                        );
-                    }
-                    if (data.calibrationOpeningTime !== undefined) {
-                        result.calibration_opening_time = msg.data.calibrationOpeningTime / 10;
-                    }
-                    if (data.calibrationClosingTime !== undefined) {
-                        result.calibration_closing_time = msg.data.calibrationClosingTime / 10;
-                    }
-                    if (data.calibrationButtonHoldTime !== undefined) {
-                        result.calibration_button_hold_time = msg.data.calibrationButtonHoldTime / 10;
-                    }
-                    if (data.calibrationMotorStartDelay !== undefined) {
-                        result.calibration_motor_start_delay = msg.data.calibrationMotorStartDelay / 10;
-                    }
-                    if (data.childLock !== undefined) {
-                        const property = utils.postfixWithEndpointName("child_lock", msg, model, meta);
-                        result[property] = msg.data.childLock === 1 ? "ON" : "OFF";
-                    }
-                    if (data.motorState !== undefined) {
-                        result.motor_state = Object.keys(stateMotor).find(
-                            (key) => stateMotor[key as keyof typeof stateMotor] === msg.data.motorState,
-                        );
-                    }
-                    if (data.autoOffEnabled !== undefined) {
-                        const property = utils.postfixWithEndpointName("auto_off_enabled", msg, model, meta);
-                        result[property] = msg.data.autoOffEnabled === 1 ? "ON" : "OFF";
-                    }
-                    if (data.autoOffTime !== undefined) {
-                        const property = utils.postfixWithEndpointName("auto_off_time", msg, model, meta);
-                        result[property] = msg.data.autoOffTime / 60;
-                    }
-                    return result;
-                },
-            } satisfies Fz.Converter<"boschSpecific", BoschSpecificBmct, ["attributeReport", "readResponse"]>,
-        ];
-        const toZigbee: Tz.Converter[] = [
-            tz.power_on_behavior,
-            tz.cover_position_tilt,
-            {
-                key: [
-                    "device_mode",
-                    "switch_type",
-                    "switch_mode",
-                    "child_lock",
-                    "state",
-                    "on_time",
-                    "off_wait_time",
-                    "auto_off_enabled",
-                    "auto_off_time",
-                ],
-                convertSet: async (entity, key, value, meta) => {
-                    if (key === "state") {
-                        if ("ID" in entity && entity.ID === 1) {
-                            await tz.cover_state.convertSet(entity, key, value, meta);
-                        } else {
-                            await tz.on_off.convertSet(entity, key, value, meta);
-                        }
-                    }
-                    if (key === "on_time" || key === "on_wait_time") {
-                        if ("ID" in entity && entity.ID !== 1) {
-                            await tz.on_off.convertSet(entity, key, value, meta);
-                        }
-                    }
-                    if (key === "device_mode") {
-                        const index = utils.getFromLookup(value, stateDeviceMode);
-                        await entity.write<"boschSpecific", BoschSpecificBmct>("boschSpecific", {deviceMode: index});
-                        await entity.read<"boschSpecific", BoschSpecificBmct>("boschSpecific", ["deviceMode"]);
-                        return {state: {device_mode: value}};
-                    }
-                    if (key === "switch_type") {
-                        const applyDefaultForSwitchModeAndChildLock = async (endpoint: Zh.Endpoint | Zh.Group) => {
-                            const switchModeDefault = utils.getFromLookup("coupled", stateSwitchMode);
-                            const childLockDefault = utils.getFromLookup("OFF", stateOffOn);
-
-                            await endpoint.write<"boschSpecific", BoschSpecificBmct>("boschSpecific", {
-                                switchMode: switchModeDefault,
-                                childLock: childLockDefault,
-                            });
-                            await endpoint.read<"boschSpecific", BoschSpecificBmct>("boschSpecific", ["switchMode", "childLock"]);
-                        };
-
-                        const switchType = utils.getFromLookup(value, stateSwitchType);
-                        await entity.write<"boschSpecific", BoschSpecificBmct>("boschSpecific", {switchType: switchType});
-                        await entity.read<"boschSpecific", BoschSpecificBmct>("boschSpecific", ["switchType"]);
-                        await applyDefaultForSwitchModeAndChildLock(entity);
-
-                        const leftEndpoint = meta.device.getEndpoint(2);
-                        await applyDefaultForSwitchModeAndChildLock(leftEndpoint);
-
-                        const rightEndpoint = meta.device.getEndpoint(3);
-                        await applyDefaultForSwitchModeAndChildLock(rightEndpoint);
-
-                        return {state: {switch_type: value}};
-                    }
-                    if (key === "switch_mode") {
-                        const index = utils.getFromLookup(value, stateSwitchMode);
-                        await entity.write<"boschSpecific", BoschSpecificBmct>("boschSpecific", {switchMode: index});
-                        return {state: {switch_mode: value}};
-                    }
-                    if (key === "child_lock") {
-                        const index = utils.getFromLookup(value, stateOffOn);
-                        await entity.write<"boschSpecific", BoschSpecificBmct>("boschSpecific", {childLock: index});
-                        return {state: {child_lock: value}};
-                    }
-                    if (key === "auto_off_enabled") {
-                        const index = utils.getFromLookup(value, stateOffOn);
-                        await entity.write<"boschSpecific", BoschSpecificBmct>("boschSpecific", {autoOffEnabled: index});
-                        return {state: {auto_off_enabled: value}};
-                    }
-                    if (key === "auto_off_time" && typeof value === "number") {
-                        await entity.write<"boschSpecific", BoschSpecificBmct>("boschSpecific", {autoOffTime: value * 60});
-                        return {state: {auto_off_time: value}};
-                    }
-                },
-                convertGet: async (entity, key, meta) => {
-                    switch (key) {
-                        case "state":
-                        case "on_time":
-                        case "off_wait_time":
-                            if ("ID" in entity && entity.ID !== 1) {
-                                await entity.read("genOnOff", ["onOff"]);
-                            }
-                            break;
-                        case "device_mode":
-                            await entity.read<"boschSpecific", BoschSpecificBmct>("boschSpecific", ["deviceMode"]);
-                            break;
-                        case "switch_type":
-                            await entity.read<"boschSpecific", BoschSpecificBmct>("boschSpecific", ["switchType"]);
-                            break;
-                        case "switch_mode":
-                            await entity.read<"boschSpecific", BoschSpecificBmct>("boschSpecific", ["switchMode"]);
-                            break;
-                        case "child_lock":
-                            await entity.read<"boschSpecific", BoschSpecificBmct>("boschSpecific", ["childLock"]);
-                            break;
-                        case "auto_off_enabled":
-                            await entity.read<"boschSpecific", BoschSpecificBmct>("boschSpecific", ["autoOffEnabled"]);
-                            break;
-                        case "auto_off_time":
-                            await entity.read<"boschSpecific", BoschSpecificBmct>("boschSpecific", ["autoOffTime"]);
-                            break;
-                        default:
-                            throw new Error(`Unhandled key boschExtend.bmct.toZigbee.convertGet ${key}`);
-                    }
-                },
-            },
-            {
-                key: ["calibration_closing_time", "calibration_opening_time", "calibration_button_hold_time", "calibration_motor_start_delay"],
-                convertSet: async (entity, key, value, meta) => {
-                    if (key === "calibration_opening_time") {
-                        const number = utils.toNumber(value, "calibration_opening_time");
-                        const index = number * 10;
-                        await entity.write<"boschSpecific", BoschSpecificBmct>("boschSpecific", {calibrationOpeningTime: index});
-                        return {state: {calibration_opening_time: number}};
-                    }
-                    if (key === "calibration_closing_time") {
-                        const number = utils.toNumber(value, "calibration_closing_time");
-                        const index = number * 10;
-                        await entity.write<"boschSpecific", BoschSpecificBmct>("boschSpecific", {calibrationClosingTime: index});
-                        return {state: {calibration_closing_time: number}};
-                    }
-                    if (key === "calibration_button_hold_time") {
-                        const number = utils.toNumber(value, "calibration_button_hold_time");
-                        const index = number * 10;
-                        await entity.write<"boschSpecific", BoschSpecificBmct>("boschSpecific", {calibrationButtonHoldTime: index});
-                        return {state: {calibration_button_hold_time: number}};
-                    }
-                    if (key === "calibration_motor_start_delay") {
-                        const number = utils.toNumber(value, "calibration_motor_start_delay");
-                        const index = number * 10;
-                        await entity.write<"boschSpecific", BoschSpecificBmct>("boschSpecific", {calibrationMotorStartDelay: index});
-                        return {state: {calibration_motor_start_delay: number}};
-                    }
-                },
-                convertGet: async (entity, key, meta) => {
-                    switch (key) {
-                        case "calibration_opening_time":
-                            await entity.read<"boschSpecific", BoschSpecificBmct>("boschSpecific", ["calibrationOpeningTime"]);
-                            break;
-                        case "calibration_closing_time":
-                            await entity.read<"boschSpecific", BoschSpecificBmct>("boschSpecific", ["calibrationClosingTime"]);
-                            break;
-                        case "calibration_button_hold_time":
-                            await entity.read<"boschSpecific", BoschSpecificBmct>("boschSpecific", ["calibrationButtonHoldTime"]);
-                            break;
-                        case "calibration_motor_start_delay":
-                            await entity.read<"boschSpecific", BoschSpecificBmct>("boschSpecific", ["calibrationMotorStartDelay"]);
-                            break;
-                        default:
-                            throw new Error(`Unhandled key boschExtend.bmct.toZigbee.convertGet ${key}`);
-                    }
-                },
-            },
-        ];
-        return {
             fromZigbee,
             toZigbee,
             isModernExtend: true,
@@ -2195,15 +1908,91 @@ export const definitions: DefinitionWithExtend[] = [
         model: "BMCT-DZ",
         vendor: "Bosch",
         description: "Phase-cut dimmer",
-        extend: [m.identify(), m.light({configureReporting: true, effect: false})],
+        extend: [
+            boschBmctExtend.handleZclVersionReadRequest(),
+            m.deviceAddCustomCluster("boschSpecific", {
+                ID: 0xfca0,
+                manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
+                attributes: {
+                    switchType: {ID: 0x0001, type: Zcl.DataType.ENUM8},
+                    childLock: {ID: 0x0008, type: Zcl.DataType.BOOLEAN},
+                    dimmerType: {ID: 0x0022, type: Zcl.DataType.ENUM8},
+                    minimumBrightness: {ID: 0x0025, type: Zcl.DataType.UINT8},
+                    maximumBrightness: {ID: 0x0026, type: Zcl.DataType.UINT8},
+                    switchMode: {ID: 0x0031, type: Zcl.DataType.BOOLEAN},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            m.light({
+                configureReporting: true,
+                levelConfig: {features: ["on_level", "current_level_startup"]},
+                powerOnBehavior: true,
+                effect: false,
+            }),
+            boschBmctExtend.switchType({
+                switchTypeLookup: boschBmctDzSettings.switchTypes,
+            }),
+            boschBmctExtend.reportSwitchAction({
+                switchTypeLookup: boschBmctDzSettings.switchTypes,
+                hasDualSwitchInputs: boschBmctDzSettings.hasDualSwitchInputs,
+            }),
+            boschBmctExtend.switchMode({
+                switchModeLookup: boschBmctDzSettings.switchModes,
+                switchTypeLookup: boschBmctDzSettings.switchTypes,
+            }),
+            boschBmctExtend.childLock(),
+            boschBmctExtend.brightnessRange(),
+            boschBmctExtend.dimmerType(),
+        ],
         ota: true,
     },
     {
         zigbeeModel: ["RBSH-MMR-ZB-EU"],
         model: "BMCT-RZ",
         vendor: "Bosch",
-        description: "Relay, potential free",
-        extend: [m.onOff({powerOnBehavior: false})],
+        description: "Relay (potential free)",
+        extend: [
+            boschBmctExtend.handleZclVersionReadRequest(),
+            m.deviceAddCustomCluster("boschSpecific", {
+                ID: 0xfca0,
+                manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
+                attributes: {
+                    switchType: {ID: 0x0001, type: Zcl.DataType.ENUM8},
+                    autoOffEnabled: {ID: 0x0006, type: Zcl.DataType.BOOLEAN},
+                    autoOffTime: {ID: 0x0007, type: Zcl.DataType.UINT16},
+                    childLock: {ID: 0x0008, type: Zcl.DataType.BOOLEAN},
+                    pulseLength: {ID: 0x0024, type: Zcl.DataType.UINT16},
+                    switchMode: {ID: 0x0031, type: Zcl.DataType.BOOLEAN},
+                    actuatorType: {ID: 0x0034, type: Zcl.DataType.ENUM8},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            boschBmctExtend.rzDeviceModes({
+                deviceModesLookup: boschBmctRzSettings.deviceModes,
+            }),
+            m.onOff({powerOnBehavior: false}),
+            boschBmctExtend.switchType({
+                switchTypeLookup: boschBmctRzSettings.switchTypes,
+            }),
+            boschBmctExtend.reportSwitchAction({
+                switchTypeLookup: boschBmctRzSettings.switchTypes,
+                hasDualSwitchInputs: boschBmctRzSettings.hasDualSwitchInputs,
+            }),
+            boschBmctExtend.switchMode({
+                switchModeLookup: boschBmctRzSettings.switchModes,
+                switchTypeLookup: boschBmctRzSettings.switchTypes,
+            }),
+            boschBmctExtend.childLock(),
+            boschBmctExtend.autoOff(),
+            boschBmctExtend.pulseLength({
+                updateDeviceMode: true,
+                deviceModesLookup: boschBmctRzSettings.deviceModes,
+            }),
+            boschBmctExtend.actuatorType(),
+        ],
+        ota: true,
     },
     {
         zigbeeModel: ["RBSH-MMS-ZB-EU"],
@@ -2283,7 +2072,8 @@ export const definitions: DefinitionWithExtend[] = [
                 },
                 commandsResponse: {},
             }),
-            boschExtend.bmct(),
+            boschBmctExtend.handleZclVersionReadRequest(),
+            boschBmctExtend.slzExtends(),
             boschExtend.seMeteringCluster(),
             boschExtend.resetEnergyReading(),
         ],
@@ -2292,13 +2082,13 @@ export const definitions: DefinitionWithExtend[] = [
             const lightConfiguration = async () => {
                 const endpoint1 = device.getEndpoint(1);
                 await reporting.bind(endpoint1, coordinatorEndpoint, ["genIdentify"]);
-                await endpoint1.read<"boschSpecific", BoschSpecificBmct>("boschSpecific", ["switchType"]);
+                await endpoint1.read<"boschSpecific", BoschBmctCluster>("boschSpecific", ["switchType"]);
 
                 const endpoint2 = device.getEndpoint(2);
                 await reporting.bind(endpoint2, coordinatorEndpoint, ["genIdentify", "genOnOff", "boschSpecific"]);
                 await reporting.onOff(endpoint2);
                 await endpoint2.read<"genOnOff">("genOnOff", ["onOff", "startUpOnOff"]);
-                await endpoint2.read<"boschSpecific", BoschSpecificBmct>("boschSpecific", [
+                await endpoint2.read<"boschSpecific", BoschBmctCluster>("boschSpecific", [
                     "switchMode",
                     "childLock",
                     "autoOffEnabled",
@@ -2309,7 +2099,7 @@ export const definitions: DefinitionWithExtend[] = [
                 await reporting.bind(endpoint3, coordinatorEndpoint, ["genIdentify", "genOnOff", "boschSpecific"]);
                 await reporting.onOff(endpoint3);
                 await endpoint3.read<"genOnOff">("genOnOff", ["onOff", "startUpOnOff"]);
-                await endpoint3.read<"boschSpecific", BoschSpecificBmct>("boschSpecific", [
+                await endpoint3.read<"boschSpecific", BoschBmctCluster>("boschSpecific", [
                     "switchMode",
                     "childLock",
                     "autoOffEnabled",
@@ -2323,10 +2113,10 @@ export const definitions: DefinitionWithExtend[] = [
                 await reporting.currentPositionLiftPercentage(endpoint1);
                 await endpoint1.read<"closuresWindowCovering">("closuresWindowCovering", ["currentPositionLiftPercentage"]);
 
-                const payloadMotorState = payload<"boschSpecific", BoschSpecificBmct>("motorState", 0, repInterval.MAX, 0);
+                const payloadMotorState = payload<"boschSpecific", BoschBmctCluster>("motorState", 0, repInterval.MAX, 0);
                 await endpoint1.configureReporting("boschSpecific", payloadMotorState);
 
-                await endpoint1.read<"boschSpecific", BoschSpecificBmct>("boschSpecific", [
+                await endpoint1.read<"boschSpecific", BoschBmctCluster>("boschSpecific", [
                     "switchType",
                     "switchMode",
                     "motorState",
@@ -2339,7 +2129,7 @@ export const definitions: DefinitionWithExtend[] = [
             };
 
             const endpoint1 = device.getEndpoint(1);
-            await endpoint1.read<"boschSpecific", BoschSpecificBmct>("boschSpecific", ["deviceMode"]);
+            await endpoint1.read<"boschSpecific", BoschBmctCluster>("boschSpecific", ["deviceMode"]);
 
             await lightConfiguration();
             await shutterConfiguration();
@@ -2532,39 +2322,6 @@ export const definitions: DefinitionWithExtend[] = [
                 }
             }
             return [e.enum("device_mode", ea.ALL, Object.keys(stateDeviceMode)).withDescription("Device mode")];
-        },
-        onEvent: (event) => {
-            if (event.type !== "deviceInterview") {
-                return;
-            }
-
-            // During interview, the Bosch BMCT-SLZ is requesting
-            // the zclVersion attribute from the coordinator. As
-            // Z2M doesn't know the zclVersion of the device yet,
-            // the request is left unanswered. This makes the device
-            // believe it dropped out of network every 10 minutes which
-            // not only generates unnecessary network congestion, but
-            // makes the LED on the device blink during that sequence
-            // as well. To prevent that, we have to manually answer
-            // the zclVersion request at the earliest possible stage
-            // and mimic the answer from the Bosch SHC II.
-            event.data.device.customReadResponse = (frame, endpoint) => {
-                const isZclVersionRequest = frame.isCluster("genBasic") && frame.payload.find((i: {attrId: number}) => i.attrId === 0);
-
-                if (!isZclVersionRequest) {
-                    return false;
-                }
-
-                const payload: TPartialClusterAttributes<"genBasic"> = {
-                    zclVersion: 1,
-                };
-
-                endpoint.readResponse(frame.cluster.name, frame.header.transactionSequenceNumber, payload).catch((e) => {
-                    logger.warning(`Custom zclVersion response failed for '${event.data.device.ieeeAddr}': ${e}`, NS);
-                });
-
-                return true;
-            };
         },
     },
     {
