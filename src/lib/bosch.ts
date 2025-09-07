@@ -51,7 +51,7 @@ export interface BoschBmctCluster {
         minimumBrightness: number;
         /** ID: 26 | Type: UINT8 | Only used by BMCT-DZ */
         maximumBrightness: number;
-        /** ID: 31 | Type: BOOLEAN on BMCZ-DZ and BMCT-RZ, UINT8 on BMCT-SLZ */
+        /** ID: 31 | Type: BOOLEAN on BMCT-DZ and BMCT-RZ, UINT8 on BMCT-SLZ */
         switchMode: number;
         /** ID: 33 | Type: UINT16 | Only used by BMCT-SLZ */
         calibrationNewMotorStartDelay: number;
