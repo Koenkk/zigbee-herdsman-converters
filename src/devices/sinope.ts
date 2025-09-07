@@ -21,13 +21,13 @@ const fzLocal = {
         cluster: "ssIasZone",
         type: ["commandStatusChangeNotification", "attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
-            const zoneStatus = msg.data.zoneStatus;
+            const zoneStatus = "zonestatus" in msg.data ? msg.data.zonestatus : msg.data.zoneStatus;
             return {
                 water_leak: (zoneStatus & 1) > 0,
                 tamper: (zoneStatus & (1 << 2)) > 0,
             };
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"ssIasZone", undefined, ["commandStatusChangeNotification", "attributeReport", "readResponse"]>,
     thermostat: {
         cluster: "hvacThermostat",
         type: ["attributeReport", "readResponse"],
@@ -108,7 +108,7 @@ const fzLocal = {
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
     tank_level: {
         cluster: "genAnalogInput",
         type: ["attributeReport", "readResponse"],
@@ -139,7 +139,7 @@ const fzLocal = {
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genAnalogInput", undefined, ["attributeReport", "readResponse"]>,
     sinope: {
         cluster: "manuSpecificSinope",
         type: ["attributeReport", "readResponse"],
@@ -244,14 +244,14 @@ const fzLocal = {
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificSinope", undefined, ["attributeReport", "readResponse"]>,
 };
 const tzLocal = {
     thermostat_occupancy: {
         key: ["thermostat_occupancy"],
         convertSet: async (entity, key, value, meta) => {
             const sinopeOccupancy = {0: "unoccupied", 1: "occupied"};
-            const SinopeOccupancy = utils.getKey(sinopeOccupancy, value, value, Number);
+            const SinopeOccupancy = utils.getKey(sinopeOccupancy, value, value as number, Number);
             await entity.write("hvacThermostat", {SinopeOccupancy}, manuSinope);
             return {state: {thermostat_occupancy: value}};
         },
@@ -263,7 +263,7 @@ const tzLocal = {
         key: ["backlight_auto_dim"],
         convertSet: async (entity, key, value, meta) => {
             const sinopeBacklightParam = {0: "on_demand", 1: "sensing", 2: "off"};
-            const SinopeBacklight = utils.getKey(sinopeBacklightParam, value, value, Number);
+            const SinopeBacklight = utils.getKey(sinopeBacklightParam, value, value as number, Number);
             await entity.write("hvacThermostat", {SinopeBacklight}, manuSinope);
             return {state: {backlight_auto_dim: value}};
         },
@@ -358,7 +358,7 @@ const tzLocal = {
                 const currentTimeToDisplay = Math.round(thermostatTimeSec - thermostatTimezoneOffsetSec - 946684800);
                 await entity.write("manuSpecificSinope", {currentTimeToDisplay}, manuSinope);
             } else if (value !== "") {
-                await entity.write("manuSpecificSinope", {currentTimeToDisplay: value}, manuSinope);
+                await entity.write("manuSpecificSinope", {currentTimeToDisplay: value as number}, manuSinope);
             }
         },
     } satisfies Tz.Converter,
@@ -461,7 +461,7 @@ const tzLocal = {
         // TH1400ZB and SW2500ZB
         key: ["connected_load"],
         convertSet: async (entity, key, value, meta) => {
-            await entity.write("manuSpecificSinope", {connectedLoad: value});
+            await entity.write("manuSpecificSinope", {connectedLoad: value as number});
             return {state: {connected_load: value}};
         },
         convertGet: async (entity, key, meta) => {
@@ -472,7 +472,7 @@ const tzLocal = {
         // TH1400ZB specific
         key: ["aux_connected_load"],
         convertSet: async (entity, key, value, meta) => {
-            await entity.write("manuSpecificSinope", {auxConnectedLoad: value});
+            await entity.write("manuSpecificSinope", {auxConnectedLoad: value as number});
             return {state: {aux_connected_load: value}};
         },
         convertGet: async (entity, key, meta) => {
@@ -591,7 +591,7 @@ const tzLocal = {
         // RM3500ZB specific
         key: ["low_water_temp_protection"],
         convertSet: async (entity, key, value, meta) => {
-            await entity.write("manuSpecificSinope", {drConfigWaterTempMin: value});
+            await entity.write("manuSpecificSinope", {drConfigWaterTempMin: value as number});
             return {state: {low_water_temp_protection: value}};
         },
         convertGet: async (entity, key, meta) => {
@@ -1446,7 +1446,7 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
             const payload = [
                 {
-                    attribute: "actionReport",
+                    attribute: "actionReport" as const,
                     minimumReportInterval: 0,
                     maximumReportInterval: 0,
                     reportableChange: 0,
@@ -1749,7 +1749,7 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.batteryAlarmState(endpoint);
             await reporting.temperature(endpoint);
 
-            const payload = reporting.payload("presentValue", 10, constants.repInterval.HOUR, 1);
+            const payload = reporting.payload<"genAnalogInput">("presentValue", 10, constants.repInterval.HOUR, 1);
             await endpoint.configureReporting("genAnalogInput", payload);
             await endpoint.read("genAnalogInput", ["presentValue"]);
         },

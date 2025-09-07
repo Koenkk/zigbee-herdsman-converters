@@ -5,12 +5,17 @@ import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as constants from "../lib/constants";
 import * as exposes from "../lib/exposes";
-//import * as legacy from '../lib/legacy';
 import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import type {DefinitionWithExtend, Fz, KeyValue, KeyValueAny, OnEventData, OnEventType, Tz, Zh} from "../lib/types";
-import {ubisysModernExtend} from "../lib/ubisys";
+import type {DefinitionWithExtend, Fz, KeyValue, KeyValueAny, Tz, Zh} from "../lib/types";
+import {
+    type UbisysClosuresWindowCovering,
+    type UbisysDeviceSetup,
+    type UbisysDimmerSetup,
+    type UbisysGenLevelCtrl,
+    ubisysModernExtend,
+} from "../lib/ubisys";
 import * as utils from "../lib/utils";
 
 const NS = "zhc:ubisys";
@@ -26,15 +31,6 @@ const manufacturerOptions = {
     ubisys: {manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
     // @ts-expect-error ignore
     ubisysNull: {manufacturerCode: null},
-};
-
-const ubisysPollCurrentSummDelivered = (type: OnEventType, data: OnEventData, device: Zh.Device, endpointId: number, options: KeyValue) => {
-    const endpoint = device.getEndpoint(endpointId);
-    const poll = async () => {
-        await endpoint.read("seMetering", ["currentSummDelivered"]);
-    };
-
-    utils.onEventPoll(type, data, device, options, "measurement", 60, poll);
 };
 
 const ubisys = {
@@ -82,7 +78,7 @@ const ubisys = {
                     };
                 }
             },
-        } satisfies Fz.Converter,
+        } satisfies Fz.Converter<"manuSpecificUbisysDimmerSetup", UbisysDimmerSetup, ["attributeReport", "readResponse"]>,
         // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
         dimmer_setup_genLevelCtrl: {
             cluster: "genLevelCtrl",
@@ -92,7 +88,7 @@ const ubisys = {
                     return {minimum_on_level: msg.data.ubisysMinimumOnLevel};
                 }
             },
-        } satisfies Fz.Converter,
+        } satisfies Fz.Converter<"genLevelCtrl", UbisysGenLevelCtrl, ["attributeReport", "readResponse"]>,
         configure_device_setup: {
             cluster: "manuSpecificUbisysDeviceSetup",
             type: ["attributeReport", "readResponse"],
@@ -102,11 +98,11 @@ const ubisys = {
                     result.input_configurations = msg.data.inputConfigurations;
                 }
                 if (msg.data.inputActions != null) {
-                    result.input_actions = msg.data.inputActions.map((el: KeyValue) => Object.values(el));
+                    result.input_actions = (msg.data.inputActions as unknown[]).map((el) => Object.values(el));
                 }
                 return {configure_device_setup: result};
             },
-        } satisfies Fz.Converter,
+        } satisfies Fz.Converter<"manuSpecificUbisysDeviceSetup", UbisysDeviceSetup, ["attributeReport", "readResponse"]>,
     },
     tz: {
         configure_j1: {
@@ -123,7 +119,6 @@ const ubisys = {
                     do {
                         await sleepSeconds(2);
                         const response = await entity.read("closuresWindowCovering", ["operationalStatus"]);
-                        // @ts-expect-error ignore
                         operationalStatus = response.operationalStatus;
                     } while (operationalStatus !== 0);
                     await sleepSeconds(2);
@@ -145,8 +140,7 @@ const ubisys = {
                         if (converterFunc) {
                             attrValue = converterFunc(attrValue);
                         }
-                        const attributes: KeyValue = {};
-                        attributes[attr] = attrValue;
+                        const attributes = {[attr]: attrValue};
                         await entity.write("closuresWindowCovering", attributes, manufacturerOptions.ubisys);
                         if (delaySecondsAfter) {
                             await sleepSeconds(delaySecondsAfter);
@@ -156,7 +150,6 @@ const ubisys = {
                 const stepsPerSecond = value.steps_per_second || 50;
                 const hasCalibrate = value.calibrate != null;
                 // cancel any running calibration
-                // @ts-expect-error ignore
                 let mode = (await entity.read("closuresWindowCovering", ["windowCoveringMode"])).windowCoveringMode;
                 const modeCalibrationBitMask = 0x02;
                 if (mode & modeCalibrationBitMask) {
@@ -178,7 +171,7 @@ const ubisys = {
                     await waitUntilStopped();
                     log("  Settings some attributes...");
                     // reset attributes
-                    await entity.write(
+                    await entity.write<"closuresWindowCovering", UbisysClosuresWindowCovering>(
                         "closuresWindowCovering",
                         {
                             installedOpenLimitLiftCm: 0,
@@ -276,7 +269,7 @@ const ubisys = {
                     ]),
                 );
                 log(
-                    await entity.read(
+                    await entity.read<"closuresWindowCovering", UbisysClosuresWindowCovering>(
                         "closuresWindowCovering",
                         [
                             "ubisysTurnaroundGuardTime",
@@ -313,7 +306,7 @@ const ubisys = {
                     const phaseControl = value.toLowerCase();
                     const phaseControlValues = {automatic: 0, forward: 1, reverse: 2};
                     utils.validateValue(phaseControl, Object.keys(phaseControlValues));
-                    await entity.write(
+                    await entity.write<"manuSpecificUbisysDimmerSetup", UbisysDimmerSetup>(
                         "manuSpecificUbisysDimmerSetup",
                         {mode: utils.getFromLookup(phaseControl, phaseControlValues)},
                         manufacturerOptions.ubisysNull,
@@ -322,9 +315,21 @@ const ubisys = {
                 await ubisys.tz.dimmer_setup.convertGet(entity, key, meta);
             },
             convertGet: async (entity, key, meta) => {
-                await entity.read("manuSpecificUbisysDimmerSetup", ["capabilities"], manufacturerOptions.ubisysNull);
-                await entity.read("manuSpecificUbisysDimmerSetup", ["status"], manufacturerOptions.ubisysNull);
-                await entity.read("manuSpecificUbisysDimmerSetup", ["mode"], manufacturerOptions.ubisysNull);
+                await entity.read<"manuSpecificUbisysDimmerSetup", UbisysDimmerSetup>(
+                    "manuSpecificUbisysDimmerSetup",
+                    ["capabilities"],
+                    manufacturerOptions.ubisysNull,
+                );
+                await entity.read<"manuSpecificUbisysDimmerSetup", UbisysDimmerSetup>(
+                    "manuSpecificUbisysDimmerSetup",
+                    ["status"],
+                    manufacturerOptions.ubisysNull,
+                );
+                await entity.read<"manuSpecificUbisysDimmerSetup", UbisysDimmerSetup>(
+                    "manuSpecificUbisysDimmerSetup",
+                    ["mode"],
+                    manufacturerOptions.ubisysNull,
+                );
             },
         } satisfies Tz.Converter,
         // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
@@ -332,12 +337,16 @@ const ubisys = {
             key: ["minimum_on_level"],
             convertSet: async (entity, key, value, meta) => {
                 if (key === "minimum_on_level") {
-                    await entity.write("genLevelCtrl", {ubisysMinimumOnLevel: value}, manufacturerOptions.ubisys);
+                    await entity.write<"genLevelCtrl", UbisysGenLevelCtrl>(
+                        "genLevelCtrl",
+                        {ubisysMinimumOnLevel: value as number},
+                        manufacturerOptions.ubisys,
+                    );
                 }
                 await ubisys.tz.dimmer_setup_genLevelCtrl.convertGet(entity, key, meta);
             },
             convertGet: async (entity, key, meta) => {
-                await entity.read("genLevelCtrl", ["ubisysMinimumOnLevel"], manufacturerOptions.ubisys);
+                await entity.read<"genLevelCtrl", UbisysGenLevelCtrl>("genLevelCtrl", ["ubisysMinimumOnLevel"], manufacturerOptions.ubisys);
             },
         } satisfies Tz.Converter,
         configure_device_setup: {
@@ -378,9 +387,9 @@ const ubisys = {
                             manufacturerOptions.ubisysNull,
                         );
                     } else {
-                        await devMgmtEp.write(
+                        await devMgmtEp.write<"manuSpecificUbisysDeviceSetup", UbisysDeviceSetup>(
                             "manuSpecificUbisysDeviceSetup",
-                            {[attributeInputConfigurations.name]: {elementType: Zcl.DataType.DATA8, elements: value.input_configurations}},
+                            {inputConfigurations: {elementType: Zcl.DataType.DATA8, elements: value.input_configurations}},
                             manufacturerOptions.ubisysNull,
                         );
                     }
@@ -405,9 +414,9 @@ const ubisys = {
                             manufacturerOptions.ubisysNull,
                         );
                     } else {
-                        await devMgmtEp.write(
+                        await devMgmtEp.write<"manuSpecificUbisysDeviceSetup", UbisysDeviceSetup>(
                             "manuSpecificUbisysDeviceSetup",
-                            {[attributeInputActions.name]: {elementType: Zcl.DataType.OCTET_STR, elements: value.input_actions}},
+                            {inputActions: {elementType: Zcl.DataType.OCTET_STR, elements: value.input_actions}},
                             manufacturerOptions.ubisysNull,
                         );
                     }
@@ -600,9 +609,9 @@ const ubisys = {
                             manufacturerOptions.ubisysNull,
                         );
                     } else {
-                        await devMgmtEp.write(
+                        await devMgmtEp.write<"manuSpecificUbisysDeviceSetup", UbisysDeviceSetup>(
                             "manuSpecificUbisysDeviceSetup",
-                            {[attributeInputActions.name]: {elementType: Zcl.DataType.OCTET_STR, elements: resultingInputActions}},
+                            {inputActions: {elementType: Zcl.DataType.OCTET_STR, elements: resultingInputActions}},
                             manufacturerOptions.ubisysNull,
                         );
                     }
@@ -614,8 +623,16 @@ const ubisys = {
 
             convertGet: async (entity, key, meta) => {
                 const devMgmtEp = meta.device.getEndpoint(232);
-                await devMgmtEp.read("manuSpecificUbisysDeviceSetup", ["inputConfigurations"], manufacturerOptions.ubisysNull);
-                await devMgmtEp.read("manuSpecificUbisysDeviceSetup", ["inputActions"], manufacturerOptions.ubisysNull);
+                await devMgmtEp.read<"manuSpecificUbisysDeviceSetup", UbisysDeviceSetup>(
+                    "manuSpecificUbisysDeviceSetup",
+                    ["inputConfigurations"],
+                    manufacturerOptions.ubisysNull,
+                );
+                await devMgmtEp.read<"manuSpecificUbisysDeviceSetup", UbisysDeviceSetup>(
+                    "manuSpecificUbisysDeviceSetup",
+                    ["inputActions"],
+                    manufacturerOptions.ubisysNull,
+                );
             },
         } satisfies Tz.Converter,
     },
@@ -632,7 +649,6 @@ export const definitions: DefinitionWithExtend[] = [
         endpoint: (device) => {
             return {l1: 1, s1: 2};
         },
-        options: [exposes.options.measurement_poll_interval()],
         extend: [
             // NOTE: identify is supported but no visual indicator so omitted here
             m.onOff({powerOnBehavior: true}),
@@ -640,6 +656,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.commandsOnOff({endpointNames: ["2"]}),
             m.commandsLevelCtrl({endpointNames: ["2"]}),
             m.commandsColorCtrl({endpointNames: ["2"]}),
+            ubisysModernExtend.pollCurrentSummDelivered(3),
             ubisysModernExtend.addCustomClusterManuSpecificUbisysDeviceSetup(),
         ],
         configure: async (device, coordinatorEndpoint) => {
@@ -648,7 +665,7 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.instantaneousDemand(endpoint);
         },
-        onEvent: async (type, data, device, settings) => {
+        onEvent: (event) => {
             /*
              * As per technical doc page 18 section 7.3.4
              * https://www.ubisys.de/wp-content/uploads/ubisys-s1-technical-reference.pdf
@@ -659,12 +676,10 @@ export const definitions: DefinitionWithExtend[] = [
              *
              * We use addBinding to 'record' this default binding.
              */
-            if (type === "deviceInterview") {
-                const ep1 = device.getEndpoint(1);
-                const ep2 = device.getEndpoint(2);
+            if (event.type === "deviceInterview") {
+                const ep1 = event.data.device.getEndpoint(1);
+                const ep2 = event.data.device.getEndpoint(2);
                 ep2.addBinding("genOnOff", ep1);
-            } else {
-                await ubisysPollCurrentSummDelivered(type, data, device, 3, settings);
             }
         },
         ota: true,
@@ -679,7 +694,6 @@ export const definitions: DefinitionWithExtend[] = [
         endpoint: (device) => {
             return {l1: 1, s1: 2, s2: 3};
         },
-        options: [exposes.options.measurement_poll_interval()],
         extend: [
             m.identify(),
             m.onOff({powerOnBehavior: true}),
@@ -687,6 +701,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.commandsOnOff({endpointNames: ["2", "3"]}),
             m.commandsLevelCtrl({endpointNames: ["2", "3"]}),
             m.commandsColorCtrl({endpointNames: ["2", "3"]}),
+            ubisysModernExtend.pollCurrentSummDelivered((device) => (device.hardwareVersion < 16 ? 4 : 1)),
             ubisysModernExtend.addCustomClusterManuSpecificUbisysDeviceSetup(),
         ],
         configure: async (device, coordinatorEndpoint) => {
@@ -697,7 +712,7 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.instantaneousDemand(endpoint);
         },
-        onEvent: async (type, data, device, settings) => {
+        onEvent: (event) => {
             /*
              * As per technical doc page 18 section 7.3.4
              * https://www.ubisys.de/wp-content/uploads/ubisys-s1-technical-reference.pdf
@@ -708,12 +723,10 @@ export const definitions: DefinitionWithExtend[] = [
              *
              * We use addBinding to 'record' this default binding.
              */
-            if (type === "deviceInterview") {
-                const ep1 = device.getEndpoint(1);
-                const ep2 = device.getEndpoint(2);
+            if (event.type === "deviceInterview") {
+                const ep1 = event.data.device.getEndpoint(1);
+                const ep2 = event.data.device.getEndpoint(2);
                 ep2.addBinding("genOnOff", ep1);
-            } else {
-                await ubisysPollCurrentSummDelivered(type, data, device, device.hardwareVersion < 16 ? 4 : 1, settings);
             }
         },
         ota: true,
@@ -764,15 +777,14 @@ export const definitions: DefinitionWithExtend[] = [
             return {l1: 1, l2: 2, s1: 3, s2: 4};
         },
         meta: {multiEndpoint: true, multiEndpointSkip: ["power", "energy"]},
-        options: [exposes.options.measurement_poll_interval()],
-        extend: [ubisysModernExtend.addCustomClusterManuSpecificUbisysDeviceSetup()],
+        extend: [ubisysModernExtend.addCustomClusterManuSpecificUbisysDeviceSetup(), ubisysModernExtend.pollCurrentSummDelivered(5)],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(5);
             await reporting.bind(endpoint, coordinatorEndpoint, ["seMetering"]);
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.instantaneousDemand(endpoint);
         },
-        onEvent: async (type, data, device, settings) => {
+        onEvent: (event) => {
             /*
              * As per technical doc page 20 section 7.4.4 and
              *                      page 22 section 7.5.4
@@ -788,15 +800,13 @@ export const definitions: DefinitionWithExtend[] = [
              *
              * We use addBinding to 'record' this default binding.
              */
-            if (type === "deviceInterview") {
-                const ep1 = device.getEndpoint(1);
-                const ep2 = device.getEndpoint(2);
-                const ep3 = device.getEndpoint(3);
-                const ep4 = device.getEndpoint(4);
+            if (event.type === "deviceInterview") {
+                const ep1 = event.data.device.getEndpoint(1);
+                const ep2 = event.data.device.getEndpoint(2);
+                const ep3 = event.data.device.getEndpoint(3);
+                const ep4 = event.data.device.getEndpoint(4);
                 ep3.addBinding("genOnOff", ep1);
                 ep4.addBinding("genOnOff", ep2);
-            } else {
-                await ubisysPollCurrentSummDelivered(type, data, device, 5, settings);
             }
         },
         ota: true,
@@ -944,6 +954,7 @@ export const definitions: DefinitionWithExtend[] = [
             ubisysModernExtend.addCustomClusterManuSpecificUbisysDeviceSetup(),
             ubisysModernExtend.addCustomClusterManuSpecificUbisysDimmerSetup(),
             ubisysModernExtend.addCustomClusterGenLevelCtrl(),
+            ubisysModernExtend.pollCurrentSummDelivered(4),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(4);
@@ -952,24 +963,21 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.instantaneousDemand(endpoint);
         },
         meta: {multiEndpoint: true, multiEndpointSkip: ["state", "brightness", "power", "energy"]},
-        options: [exposes.options.measurement_poll_interval()],
         endpoint: (device) => {
             return {default: 1, s1: 2, s2: 3};
         },
-        onEvent: async (type, data, device, settings) => {
+        onEvent: (event) => {
             /*
              * As per technical doc page 23 section 7.3.4, 7.3.5
              * https://www.ubisys.de/wp-content/uploads/ubisys-d1-technical-reference.pdf
              *
              * We use addBinding to 'record' this default binding.
              */
-            if (type === "deviceInterview") {
-                const ep1 = device.getEndpoint(1);
-                const ep2 = device.getEndpoint(2);
+            if (event.type === "deviceInterview") {
+                const ep1 = event.data.device.getEndpoint(1);
+                const ep2 = event.data.device.getEndpoint(2);
                 ep2.addBinding("genOnOff", ep1);
                 ep2.addBinding("genLevelCtrl", ep1);
-            } else {
-                await ubisysPollCurrentSummDelivered(type, data, device, 4, settings);
             }
         },
         ota: true,
@@ -1015,7 +1023,11 @@ export const definitions: DefinitionWithExtend[] = [
             }
             return [coverExpose, e.power().withAccess(ea.STATE_GET), e.energy().withAccess(ea.STATE_GET)];
         },
-        extend: [ubisysModernExtend.addCustomClusterManuSpecificUbisysDeviceSetup(), ubisysModernExtend.addCustomClusterClosuresWindowCovering()],
+        extend: [
+            ubisysModernExtend.addCustomClusterManuSpecificUbisysDeviceSetup(),
+            ubisysModernExtend.addCustomClusterClosuresWindowCovering(),
+            ubisysModernExtend.pollCurrentSummDelivered(3),
+        ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
             const endpoint3 = device.getEndpoint(3);
@@ -1025,20 +1037,17 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint1, coordinatorEndpoint, ["closuresWindowCovering"]);
             await reporting.currentPositionLiftPercentage(endpoint1);
         },
-        options: [exposes.options.measurement_poll_interval()],
-        onEvent: async (type, data, device, settings) => {
+        onEvent: (event) => {
             /*
              * As per technical doc page 21 section 7.3.4
              * https://www.ubisys.de/wp-content/uploads/ubisys-j1-technical-reference.pdf
              *
              * We use addBinding to 'record' this default binding.
              */
-            if (type === "deviceInterview") {
-                const ep1 = device.getEndpoint(1);
-                const ep2 = device.getEndpoint(2);
+            if (event.type === "deviceInterview") {
+                const ep1 = event.data.device.getEndpoint(1);
+                const ep2 = event.data.device.getEndpoint(2);
                 ep2.addBinding("closuresWindowCovering", ep1);
-            } else {
-                await ubisysPollCurrentSummDelivered(type, data, device, 3, settings);
             }
         },
         ota: true,

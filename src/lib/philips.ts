@@ -1,5 +1,4 @@
 import {Zcl} from "zigbee-herdsman";
-
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as reporting from "../lib/reporting";
@@ -57,6 +56,17 @@ export const knownEffects = {
     "0f80": "sunbeam",
     "1080": "enchant",
 };
+
+interface PhilipsContact {
+    attributes: {
+        contact: number;
+        contactLastChange: number;
+        tamper: number;
+        tamperLastChange: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
 
 const philipsModernExtend = {
     addCustomClusterManuSpecificPhilipsContact: () =>
@@ -185,7 +195,7 @@ const philipsModernExtend = {
                 .withDescription("Time (in seconds) since when contact was last changed."),
             new eNumeric("tamper_last_changed", ea.STATE_GET).withUnit("s").withDescription("Time (in seconds) since when tamper was last changed."),
         ];
-        const fromZigbee: Fz.Converter[] = [
+        const fromZigbee = [
             {
                 cluster: "manuSpecificPhilipsContact",
                 type: ["attributeReport", "readResponse"],
@@ -213,7 +223,7 @@ const philipsModernExtend = {
 
                     return payload;
                 },
-            },
+            } satisfies Fz.Converter<"manuSpecificPhilipsContact", PhilipsContact, ["attributeReport", "readResponse"]>,
             // NOTE: kept for compatibility as there is no auto-reconfigure for modernExtend
             //       this should not fire once reconfigured.
             {
@@ -224,25 +234,26 @@ const philipsModernExtend = {
                         return {contact: msg.type === "commandOff"};
                     }
                 },
-            },
+            } satisfies Fz.Converter<"genOnOff", undefined, ["commandOff", "commandOn"]>,
         ];
         const toZigbee: Tz.Converter[] = [
             {
                 key: ["contact", "tamper", "contact_last_changed", "tamper_last_changed"],
                 convertGet: async (entity, key, meta) => {
-                    const attrib: string = (() => {
-                        switch (key) {
-                            case "contact_last_changed":
-                                return "contactLastChange";
-                            case "tamper_last_changed":
-                                return "tamperLastChange";
-                            default:
-                                return key;
-                        }
-                    })();
+                    let attrib = key as "contact" | "tamper" | "contactLastChange" | "tamperLastChange";
+
+                    switch (key) {
+                        case "contact_last_changed":
+                            attrib = "contactLastChange";
+                            break;
+                        case "tamper_last_changed":
+                            attrib = "tamperLastChange";
+                            break;
+                    }
+
                     const ep = modernExtend.determineEndpoint(entity, meta, "manuSpecificPhilipsContact");
                     try {
-                        await ep.read("manuSpecificPhilipsContact", [attrib]);
+                        await ep.read<"manuSpecificPhilipsContact", PhilipsContact>("manuSpecificPhilipsContact", [attrib]);
                     } catch (e) {
                         logger.debug(`Reading ${attrib} failed: ${e}, device probably doesn't support it`, "zhc:setupattribute");
                     }
@@ -253,12 +264,12 @@ const philipsModernExtend = {
             // NOTE: trigger report after 4 hours incase the network was offline when a contact was triggered
             //       contactLastChange and tamperLastChange seem come with every report of contact, so we do
             //       not configure reporting
-            modernExtend.setupConfigureForReporting("manuSpecificPhilipsContact", "contact", {
+            modernExtend.setupConfigureForReporting<"manuSpecificPhilipsContact", PhilipsContact>("manuSpecificPhilipsContact", "contact", {
                 config: {min: 0, max: "4_HOURS", change: 1},
                 access: ea.STATE_GET,
                 singleEndpoint: true,
             }),
-            modernExtend.setupConfigureForReporting("manuSpecificPhilipsContact", "tamper", {
+            modernExtend.setupConfigureForReporting<"manuSpecificPhilipsContact", PhilipsContact>("manuSpecificPhilipsContact", "tamper", {
                 config: {min: 0, max: "4_HOURS", change: 1},
                 access: ea.STATE_GET,
                 singleEndpoint: true,
@@ -537,7 +548,7 @@ const philipsFz = {
             if (utils.hasAlreadyProcessedMessage(msg, model)) return;
             const buttonLookup: KeyValue = {1: "button_1", 2: "button_2", 3: "button_3", 4: "button_4", 20: "dial"};
             const button = buttonLookup[msg.data.button];
-            const direction = msg.data.unknown2 < 127 ? "right" : "left";
+            const direction = msg.data.unknown3 < 127 ? "right" : "left";
             const time = msg.data.time;
             const payload: KeyValue = {};
 
@@ -576,7 +587,7 @@ const philipsFz = {
             }
             return payload;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificPhilips", undefined, "commandHueNotification">,
     gradient: {
         cluster: "manuSpecificPhilips2",
         type: ["attributeReport", "readResponse"],
@@ -590,7 +601,7 @@ const philipsFz = {
             }
             return {};
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificPhilips2", undefined, ["attributeReport", "readResponse"]>,
 };
 export {philipsFz as fz};
 

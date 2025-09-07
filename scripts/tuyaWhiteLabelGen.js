@@ -16,5 +16,7 @@ for (const def of file) {
 
 for (const [key, values] of Object.entries(models)) {
     console.log(`\n\n// ${key}`);
-    values.forEach((v) => console.log(v));
+    values.forEach((v) => {
+        console.log(v);
+    });
 }

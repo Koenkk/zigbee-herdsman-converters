@@ -20,7 +20,7 @@ const fzLocal = {
             };
             return {action: utils.getFromLookup(msg.data.sceneid, payload)};
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genScenes", undefined, "commandRecall">,
 };
 
 export const definitions: DefinitionWithExtend[] = [

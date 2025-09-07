@@ -438,7 +438,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({colorTemp: true}), m.identify()],
     },
     {
-        zigbeeModel: ["JETSTROM 6060", "JETSTROM 6060 JP"],
+        zigbeeModel: ["JETSTROM 6060", "JETSTROM 6060 JP", "JETSTROM 6060 NA"],
         model: "L2207",
         vendor: "IKEA",
         description: "JETSTROM ceiling light panel, white spectrum, 60x60 cm",
@@ -744,7 +744,9 @@ export const definitions: DefinitionWithExtend[] = [
             m.identify({isSleepy: true}),
             tradfriCommandsOnOff(),
             tradfriCommandsLevelCtrl(),
-            ikeaArrowClick(),
+            // No genScenes cluster
+            // https://github.com/Koenkk/zigbee2mqtt/issues/28161
+            ikeaArrowClick({bind: false}),
             ikeaBattery(),
         ],
         ota: true,
