@@ -24,8 +24,8 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["Sonesse2 28 WF Li-Ion Roller"],
-        model: "Sonesse2 28 WF Li-Ion Roller",
-        vendor: "1245943",
+        model: "1245943",
+        vendor: "SOMFY",
         description: "Sonesse2 28 WF Li-Ion roller shades",
         extend: [m.battery(), m.windowCovering({controls: ["lift"]})],
     },
