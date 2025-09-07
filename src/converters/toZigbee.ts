@@ -1162,6 +1162,7 @@ export const light_onoff_brightness: Tz.Converter = {
         const moveToLevelWithOnOffDisable = utils.getMetaValue(entity, meta.mapped, "moveToLevelWithOnOffDisable", "allEqual", false);
         let state = message.state !== undefined ? (typeof message.state === "string" ? message.state.toLowerCase() : null) : undefined;
         let brightness: number;
+
         if (message.brightness != null) {
             brightness = Number(message.brightness);
         } else if (message.brightness_percent != null) {
@@ -1195,6 +1196,7 @@ export const light_onoff_brightness: Tz.Converter = {
 
         let publishBrightness = brightness !== undefined;
         const targetState = state === "toggle" ? (meta.state.state === "ON" ? "off" : "on") : state;
+
         if (targetState === "off") {
             // Simulate 'Off' with transition via 'MoveToLevelWithOnOff', otherwise just use 'Off'.
             // TODO: if this is a group where some members don't support Level Control, turning them off
@@ -1276,6 +1278,13 @@ export const light_onoff_brightness: Tz.Converter = {
             globalStore.putValue(entity, "brightness", brightness);
             globalStore.clearValue(entity, "turnedOffWithTransition");
         }
+
+        if (moveToLevelWithOnOffDisable && typeof meta.state.state === "string" && meta.state.state.toLowerCase() !== targetState) {
+            // When "moveToLevelWithOnOff" command is disabled due to poor implementation on some devices, we need to explicitly
+            // turn on or off the device before we can set it's level.
+            await on_off.convertSet(entity, "state", state, meta);
+        }
+
         await entity.command(
             "genLevelCtrl",
             state === null || moveToLevelWithOnOffDisable ? "moveToLevel" : "moveToLevelWithOnOff",
