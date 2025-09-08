@@ -18889,14 +18889,13 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: "TS011F", manufacturerName: "_TZ3000_qiutut5y"}],
+        fingerprint: tuya.fingerprint("TS011F", ["_TZ3000_qiutut5y"]),
         model: "TS011F_quad_power1",
         vendor: "Tuya",
-        description: "Modify By Han",
+        description: "TS110F with 4 gangs",
         extend: [
             m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3, "4": 4}}),
             m.onOff({powerOnBehavior: false, endpointNames: ["1", "2", "3", "4"]}),
         ],
-        meta: {multiEndpoint: true},
     },
 ];
