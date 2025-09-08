@@ -18912,7 +18912,7 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: tuya.fingerprint("TS011F", ["_TZ3000_qiutut5y"]),
         model: "TS011F_quad_power1",
         vendor: "Tuya",
-        description: "TS110F with 4 gangs",
+        description: "Switch with 4 gangs",
         extend: [
             m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3, "4": 4}}),
             m.onOff({powerOnBehavior: false, endpointNames: ["1", "2", "3", "4"]}),
