@@ -2,18 +2,36 @@ import {Zcl} from "zigbee-herdsman";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
+import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as tuya from "../lib/tuya";
-import type {DefinitionWithExtend, Fz, KeyValue, KeyValueAny, ModernExtend, Tz} from "../lib/types";
+import type {DefinitionWithExtend, Fz, KeyValue, KeyValueAny, ModernExtend, Tz, Zh} from "../lib/types";
 import * as utils from "../lib/utils";
 
 const e = exposes.presets;
 const ea = exposes.access;
 
+const NS = "zhc:sdevices";
 const {tuyaMagicPacket, tuyaOnOffActionLegacy} = tuya.modernExtend;
 const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD};
 const defaultResponseOptions = {disableDefaultResponse: false};
+
+function checkMetaOption(device: Zh.Device, key: string) {
+    if (device != null) {
+        const enabled = device.meta[key];
+        if (enabled === undefined) {
+            return false;
+        }
+        return !!enabled;
+    }
+    return false;
+}
+function setMetaOption(device: Zh.Device, key: string, enabled: boolean) {
+    if (device != null && key != null) {
+        device.meta[key] = enabled;
+    }
+}
 
 const sdevices = {
     fz: {
@@ -24,9 +42,9 @@ const sdevices = {
                 if (msg.data.emergencyShutoffState !== undefined) {
                     const stateBitmap = msg.data.emergencyShutoffState;
                     const emergencyOvervoltage = stateBitmap & 0x01;
-                    const emergencyUndervoltage = (stateBitmap & 0x02) >>> 1;
-                    const emergencyOvercurrent = (stateBitmap & 0x04) >>> 2;
-                    const emergencyOverheat = (stateBitmap & 0x08) >>> 3;
+                    const emergencyUndervoltage = (stateBitmap & 0x02) >> 1;
+                    const emergencyOvercurrent = (stateBitmap & 0x04) >> 2;
+                    const emergencyOverheat = (stateBitmap & 0x08) >> 3;
                     return {
                         emergency_overvoltage: !!emergencyOvervoltage,
                         emergency_undervoltage: !!emergencyUndervoltage,
@@ -106,11 +124,74 @@ const sdevices = {
                 return result;
             },
         } satisfies Fz.Converter<"manuSpecificSDevices", SberDevices, ["attributeReport", "readResponse"]>,
+        cover_position_tilt: {
+            cluster: "closuresWindowCovering",
+            type: ["attributeReport", "readResponse"],
+            options: [exposes.options.invert_cover()],
+            convert: (model, msg, publish, options, meta) => {
+                const result: KeyValueAny = {};
+                // Zigbee officially expects 'open' to be 0 and 'closed' to be 100 whereas
+                // HomeAssistant etc. work the other way round.
+                // For zigbee-herdsman-converters: open = 100, close = 0
+                const metaInvert = model.meta?.coverInverted;
+                const invert = metaInvert ? !options.invert_cover : options.invert_cover;
+                if (msg.data.currentPositionLiftPercentage !== undefined && msg.data.currentPositionLiftPercentage <= 100) {
+                    const value = msg.data.currentPositionLiftPercentage;
+                    result[utils.postfixWithEndpointName("position", msg, model, meta)] = invert ? value : 100 - value;
+                    result[utils.postfixWithEndpointName("current_state", msg, model, meta)] = metaInvert
+                        ? value === 0
+                            ? "CLOSE"
+                            : "OPEN"
+                        : value === 100
+                          ? "CLOSE"
+                          : "OPEN";
+                }
+                if (msg.data.windowCoveringMode !== undefined) {
+                    result[utils.postfixWithEndpointName("cover_mode", msg, model, meta)] = {
+                        reversed_cover: (msg.data.windowCoveringMode & (1 << 0)) > 0,
+                    };
+                }
+                return result;
+            },
+        } satisfies Fz.Converter<"closuresWindowCovering", undefined, ["attributeReport", "readResponse"]>,
+        closures: {
+            cluster: "closuresWindowCovering",
+            type: ["attributeReport", "readResponse"],
+            convert: (model, msg, publish, options, meta) => {
+                const result: KeyValueAny = {};
+                if (msg.data.sdevicesCalibrationTime !== undefined) {
+                    result[utils.postfixWithEndpointName("calibration_time", msg, model, meta)] = msg.data.sdevicesCalibrationTime * 0.1;
+                }
+                if (msg.data.sdevicesButtonsMode !== undefined) {
+                    result[utils.postfixWithEndpointName("buttons_mode", msg, model, meta)] = msg.data.sdevicesButtonsMode ? "inverted" : "normal";
+                }
+                if (msg.data.sdevicesMotorTimeout !== undefined) {
+                    result[utils.postfixWithEndpointName("motor_timeout", msg, model, meta)] = msg.data.sdevicesMotorTimeout;
+                }
+                return result;
+            },
+        } satisfies Fz.Converter<"closuresWindowCovering", SberClosures, ["attributeReport", "readResponse"]>,
     },
     tz: {
         custom_on_off: {
-            ...tz.on_off,
             key: ["state"],
+            convertSet: async (entity, key, value, meta) => {
+                const state = utils.isString(meta.message.state) ? meta.message.state.toLowerCase() : null;
+                utils.validateValue(state, ["toggle", "off", "on"]);
+                await entity.command("genOnOff", state as "toggle" | "off" | "on", {}, utils.getOptions(meta.mapped, entity));
+                if (state === "toggle") {
+                    const currentState = meta.state[`state${meta.endpoint_name ? `_${meta.endpoint_name}` : ""}`];
+                    return currentState ? {state: {state: currentState === "OFF" ? "ON" : "OFF"}} : {};
+                }
+                return {state: {state: state.toUpperCase()}};
+            },
+            convertGet: async (entity, key, meta) => {
+                // Allow reading only if endpoint is explicitly stated.
+                // Workaround to prevent reading from non-existing genOnOff cluster at EP3 during availability check.
+                if (meta.endpoint_name) {
+                    await entity.read("genOnOff", ["onOff"]);
+                }
+            },
         } satisfies Tz.Converter,
         led_indicator_on_settings: {
             key: ["led_indicator_on_enable", "led_indicator_on_h", "led_indicator_on_s", "led_indicator_on_b"],
@@ -180,7 +261,16 @@ const sdevices = {
         } satisfies Tz.Converter,
         identify: {
             key: ["identify"],
-            options: tz.identify.options,
+            options: [
+                e
+                    .numeric("identify_timeout", ea.SET)
+                    .withDescription(
+                        "Sets the duration of the identification procedure in seconds (i.e., how long the device would flash)." +
+                            "The value ranges from 1 to 60 seconds (default: 30).",
+                    )
+                    .withValueMin(1)
+                    .withValueMax(60),
+            ],
             convertSet: async (entity, key, value, meta) => {
                 const identifyTimeout = (meta.options.identify_timeout as number) ?? 30;
                 await entity.command("genIdentify", "identify", {identifytime: identifyTimeout}, utils.getOptions(meta.mapped, entity));
@@ -225,6 +315,97 @@ const sdevices = {
                 await m
                     .determineEndpoint(entity, meta, "manuSpecificSDevices")
                     .read<"manuSpecificSDevices", SberDevices>("manuSpecificSDevices", ["buttonEnableMultiClick"], defaultResponseOptions);
+            },
+        } satisfies Tz.Converter,
+        cover_mode: {
+            key: ["cover_mode"],
+            convertSet: async (entity, key, value, meta) => {
+                utils.assertObject(value, key);
+                const old_value = meta.state.cover_mode_cover as number;
+                const combined_value = Object.assign(old_value, value);
+                const windowCoveringMode = old_value | ((combined_value.reversed_cover ? 1 : 0) << 0);
+                await entity.write("closuresWindowCovering", {windowCoveringMode}, utils.getOptions(meta.mapped, entity));
+                return {state: {cover_mode: combined_value}};
+            },
+            convertGet: async (entity, key, meta) => {
+                await entity.read("closuresWindowCovering", ["windowCoveringMode"]);
+            },
+        } satisfies Tz.Converter,
+        cover_state: {
+            key: ["current_state"],
+            convertSet: async (entity, key, value, meta) => {
+                const lookup = {
+                    open: "upOpen" as const,
+                    close: "downClose" as const,
+                    stop: "stop" as const,
+                    on: "upOpen" as const,
+                    off: "downClose" as const,
+                };
+                utils.assertString(value, key);
+                // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
+                value = value.toLowerCase();
+                await entity.command("closuresWindowCovering", utils.getFromLookup(value, lookup), {}, utils.getOptions(meta.mapped, entity));
+            },
+        } satisfies Tz.Converter,
+        closures_custom: {
+            key: ["calibration_time", "buttons_mode", "motor_timeout"],
+            convertSet: async (entity, key, value, meta) => {
+                if (key === "calibration_time") {
+                    utils.assertNumber(value);
+                    const calibration = value * 10;
+                    await entity.write<"closuresWindowCovering", SberClosures>(
+                        "closuresWindowCovering",
+                        {sdevicesCalibrationTime: calibration},
+                        manufacturerOptions,
+                    );
+                    return {state: {calibration_time: value}};
+                }
+                if (key === "buttons_mode") {
+                    utils.assertString(value, key);
+                    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
+                    value = value.toLowerCase();
+                    const lookup = {normal: 0, inverted: 1};
+                    await entity.write<"closuresWindowCovering", SberClosures>(
+                        "closuresWindowCovering",
+                        {sdevicesButtonsMode: utils.getFromLookup(value, lookup)},
+                        manufacturerOptions,
+                    );
+                    return {state: {buttons_mode: value}};
+                }
+                if (key === "motor_timeout") {
+                    utils.assertNumber(value);
+                    await entity.write<"closuresWindowCovering", SberClosures>(
+                        "closuresWindowCovering",
+                        {sdevicesMotorTimeout: value},
+                        manufacturerOptions,
+                    );
+                    return {state: {motor_timeout: value}};
+                }
+            },
+            convertGet: async (entity, key, meta) => {
+                switch (key) {
+                    case "calibration_time":
+                        await entity.read<"closuresWindowCovering", SberClosures>(
+                            "closuresWindowCovering",
+                            ["sdevicesCalibrationTime"],
+                            manufacturerOptions,
+                        );
+                        break;
+                    case "buttons_mode":
+                        await entity.read<"closuresWindowCovering", SberClosures>(
+                            "closuresWindowCovering",
+                            ["sdevicesButtonsMode"],
+                            manufacturerOptions,
+                        );
+                        break;
+                    case "motor_timeout":
+                        await entity.read<"closuresWindowCovering", SberClosures>(
+                            "closuresWindowCovering",
+                            ["sdevicesMotorTimeout"],
+                            manufacturerOptions,
+                        );
+                        break;
+                }
             },
         } satisfies Tz.Converter,
     },
@@ -290,8 +471,56 @@ interface SberGenOnOff {
     commandResponses: never;
 }
 
+interface SberDiagnostics {
+    attributes: {
+        sdevicesUptimeS: number;
+        sdevicesButton1Clicks: number;
+        sdevicesButton2Clicks: number;
+        sdevicesButton3Clicks: number;
+        sdevicesRelay1Switches: number;
+        sdevicesRelay2Switches: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+interface SberClosures {
+    attributes: {
+        sdevicesCalibrationTime: number;
+        sdevicesButtonsMode: number;
+        sdevicesMotorTimeout: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
 const sdevicesExtend = {
     sdevicesCustomCluster: () => m.deviceAddCustomCluster("manuSpecificSDevices", sdevicesCustomClusterDefinition),
+    haDiagnosticCluster: () =>
+        m.deviceAddCustomCluster("haDiagnostic", {
+            ID: Zcl.Clusters.haDiagnostic.ID,
+            attributes: {
+                sdevicesUptimeS: {ID: 0x1001, type: Zcl.DataType.UINT32, manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD},
+                sdevicesButton1Clicks: {ID: 0x1002, type: Zcl.DataType.UINT32, manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD},
+                sdevicesButton2Clicks: {ID: 0x1003, type: Zcl.DataType.UINT32, manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD},
+                sdevicesButton3Clicks: {ID: 0x1004, type: Zcl.DataType.UINT32, manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD},
+                sdevicesRelay1Switches: {ID: 0x1005, type: Zcl.DataType.UINT32, manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD},
+                sdevicesRelay2Switches: {ID: 0x1006, type: Zcl.DataType.UINT32, manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD},
+            },
+            commands: {},
+            commandsResponse: {},
+        }),
+    closuresWindowCoveringCluster: () =>
+        m.deviceAddCustomCluster("closuresWindowCovering", {
+            ID: Zcl.Clusters.closuresWindowCovering.ID,
+            attributes: {
+                sdevicesCalibrationTime: {ID: 0x1001, type: Zcl.DataType.UINT16, manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD},
+                sdevicesButtonsMode: {ID: 0x1002, type: Zcl.DataType.ENUM8, manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD},
+                sdevicesMotorTimeout: {ID: 0x1003, type: Zcl.DataType.UINT16, manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD},
+            },
+            commands: {},
+            commandsResponse: {},
+        }),
     genOnOffCluster: () =>
         m.deviceAddCustomCluster("genOnOff", {
             ID: Zcl.Clusters.genOnOff.ID,
@@ -301,6 +530,31 @@ const sdevicesExtend = {
             commands: {},
             commandsResponse: {},
         }),
+    deviceInfo: (): ModernExtend => {
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ["serial_number"],
+                convertGet: async (entity, key, meta) => {
+                    await entity.read("genBasic", ["serialNumber"]);
+                },
+            },
+        ];
+        const fromZigbee = [
+            {
+                cluster: "genBasic",
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    const result: KeyValue = {};
+                    if (msg.data.serialNumber !== undefined) {
+                        result.serial_number = msg.data.serialNumber.toString();
+                    }
+                    return result;
+                },
+            } satisfies Fz.Converter<"genBasic", undefined, ["attributeReport", "readResponse"]>,
+        ];
+        const exposes = [e.text("serial_number", ea.STATE_GET).withLabel("Serial Number").withCategory("diagnostic")];
+        return {exposes, fromZigbee, toZigbee, isModernExtend: true};
+    },
     onOffRelayDecouple: (args?: Partial<m.EnumLookupArgs<"genOnOff", SberGenOnOff>>) =>
         m.enumLookup<"genOnOff", SberGenOnOff>({
             name: "relay_mode",
@@ -581,6 +835,65 @@ const sdevicesExtend = {
             unit: "°C",
             zigbeeCommandOptions: manufacturerOptions,
         }),
+    deviceCustomDiagnostic: (buttonsCount: number, relaysCount: number): ModernExtend => {
+        const extend = m.numeric({
+            name: "resets_count",
+            cluster: "haDiagnostic",
+            attribute: "numberOfResets",
+            description: "(telemetry) Number of resets",
+            entityCategory: "diagnostic",
+            access: "STATE_GET",
+        });
+        // Custom diagnostics attributes should not be configured automatically
+        extend.configure = [];
+        const uptime = m.numeric<"haDiagnostic", SberDiagnostics>({
+            name: "uptime",
+            cluster: "haDiagnostic",
+            attribute: "sdevicesUptimeS",
+            description: "(telemetry) Device uptime, in seconds",
+            entityCategory: "diagnostic",
+            unit: "s",
+            access: "STATE_GET",
+            zigbeeCommandOptions: manufacturerOptions,
+        });
+        extend.fromZigbee.push(...uptime.fromZigbee);
+        extend.toZigbee.push(...uptime.toZigbee);
+        extend.exposes.push(...uptime.exposes);
+        for (let i = 1; i <= Math.min(buttonsCount, 3); i++) {
+            type SDevicesButtonClicks = "sdevicesButton1Clicks" | "sdevicesButton2Clicks" | "sdevicesButton3Clicks";
+            const attrNames = ["sdevicesButton1Clicks", "sdevicesButton2Clicks", "sdevicesButton3Clicks"];
+            const buttonClicks = m.numeric<"haDiagnostic", SberDiagnostics>({
+                name: `button_clicks_count_${i}`,
+                cluster: "haDiagnostic",
+                attribute: attrNames[i - 1] as SDevicesButtonClicks,
+                description: `(telemetry) Total clicks count of button ${i}`,
+                entityCategory: "diagnostic",
+                access: "STATE_GET",
+                zigbeeCommandOptions: manufacturerOptions,
+            });
+            extend.fromZigbee.push(...buttonClicks.fromZigbee);
+            extend.toZigbee.push(...buttonClicks.toZigbee);
+            extend.exposes.push(...buttonClicks.exposes);
+        }
+        for (let i = 1; i <= Math.min(relaysCount, 2); i++) {
+            type SDevicesRelaySwitches = "sdevicesRelay1Switches" | "sdevicesRelay2Switches";
+            const attrNames = ["sdevicesRelay1Switches", "sdevicesRelay2Switches"];
+            const relayToggles = m.numeric<"haDiagnostic", SberDiagnostics>({
+                name: `relay_switches_count_${i}`,
+                cluster: "haDiagnostic",
+                attribute: attrNames[i - 1] as SDevicesRelaySwitches,
+                description: `(telemetry) Total toggle count of relay ${i}`,
+                entityCategory: "diagnostic",
+                access: "STATE_GET",
+                zigbeeCommandOptions: manufacturerOptions,
+                reporting: false,
+            });
+            extend.fromZigbee.push(...relayToggles.fromZigbee);
+            extend.toZigbee.push(...relayToggles.toZigbee);
+            extend.exposes.push(...relayToggles.exposes);
+        }
+        return extend;
+    },
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -645,11 +958,11 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SBDV-00196",
         vendor: "Sber",
         description: "Smart Wall Switch (with neutral, single button)",
-        fromZigbee: [fz.on_off, fz.power_on_behavior],
-        toZigbee: [sdevices.tz.custom_on_off, tz.power_on_behavior],
-        exposes: [e.switch(), e.power_on_behavior(["off", "on", "toggle", "previous"])],
+        fromZigbee: [],
+        toZigbee: [],
         extend: [
             sdevicesExtend.sdevicesCustomCluster(),
+            sdevicesExtend.haDiagnosticCluster(),
             sdevicesExtend.genOnOffCluster(),
             m.binary<"manuSpecificSDevices", SberDevices>({
                 name: "allow_double_click",
@@ -662,6 +975,10 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             sdevicesExtend.ledIndicatorSettings(),
             m.identify(),
+            m.onOff({
+                powerOnBehavior: true,
+                configureReporting: false,
+            }),
             sdevicesExtend.onOffRelayDecouple({
                 name: "relay_mode",
                 description: "Decoupled mode for button",
@@ -671,6 +988,9 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: "presentValue",
                 actionLookup: {hold: 0, single: 1, double: 2},
             }),
+            sdevicesExtend.childLock(),
+            sdevicesExtend.deviceInfo(),
+            sdevicesExtend.deviceCustomDiagnostic(2, 1),
         ],
         ota: true,
         configure: async (device, coordinatorEndpoint) => {
@@ -689,6 +1009,15 @@ export const definitions: DefinitionWithExtend[] = [
                     "ledIndicatorOffB",
                 ]);
             await device.getEndpoint(1).read<"manuSpecificSDevices", SberDevices>("manuSpecificSDevices", ["buttonEnableMultiClick"]);
+            try {
+                await device.getEndpoint(1).read<"manuSpecificSDevices", SberDevices>("manuSpecificSDevices", ["childLock"]);
+            } catch (error) {
+                if ((error as Error).message.includes("UNSUPPORTED_ATTRIBUTE")) {
+                    // ignore: attribute is not supported in early versions
+                } else {
+                    logger.warning(`Configure failed: ${error}`, NS);
+                }
+            }
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff", "genMultistateInput"]);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["haDiagnostic"]);
         },
@@ -701,22 +1030,97 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [
             fz.on_off,
             fz.power_on_behavior,
+            sdevices.fz.cover_position_tilt,
             sdevices.fz.multistate_input,
             sdevices.fz.led_indicator_settings,
             sdevices.fz.decouple_relay,
             sdevices.fz.allow_double_click,
+            sdevices.fz.closures,
         ],
         toZigbee: [
             sdevices.tz.custom_on_off,
             tz.power_on_behavior,
+            tz.cover_position_tilt,
+            sdevices.tz.cover_state,
+            sdevices.tz.cover_mode,
             sdevices.tz.identify,
             sdevices.tz.led_indicator_on_settings,
             sdevices.tz.led_indicator_off_settings,
             sdevices.tz.decouple_relay,
             sdevices.tz.allow_double_click,
+            sdevices.tz.closures_custom,
         ],
         exposes: (device, options) => {
             const switchExposes = [];
+            if (!utils.isDummyDevice(device)) {
+                const coversEpName = "cover";
+                const coversExposes = [
+                    e.enum("State", ea.STATE_SET, ["OPEN", "CLOSE", "STOP"]).withProperty("current_state").withEndpoint(coversEpName),
+                    e
+                        .numeric("position", ea.ALL)
+                        .withValueMin(0)
+                        .withValueMax(100)
+                        .withDescription("Position of this cover, 100 is fully open if 'Invert cover' option is false (default)")
+                        .withUnit("%")
+                        .withEndpoint(coversEpName),
+                    e
+                        .composite("cover_mode", "cover_mode", ea.ALL)
+                        .withFeature(e.binary("reversed", ea.ALL, true, false).withDescription("Reversal of the motor rotating direction"))
+                        .withEndpoint(coversEpName),
+                    e
+                        .numeric("calibration_time", ea.ALL)
+                        .withValueMin(0)
+                        .withValueMax(3600)
+                        .withValueStep(0.1)
+                        .withDescription("Calibration time")
+                        .withUnit("s")
+                        .withEndpoint(coversEpName),
+                    e
+                        .numeric("motor_timeout", ea.ALL)
+                        .withValueMin(0)
+                        .withValueMax(3600)
+                        .withDescription("Timeout for continuous motor action")
+                        .withUnit("s")
+                        .withEndpoint(coversEpName),
+                    e.enum("Buttons mode", ea.ALL, ["normal", "inverted"]).withProperty("buttons_mode").withEndpoint(coversEpName),
+                    e
+                        .enum("identify", ea.SET, ["identify"])
+                        .withLabel("Identify")
+                        .withDescription("Initiate device identification")
+                        .withCategory("config")
+                        .withEndpoint(coversEpName),
+                    e
+                        .binary("led_indicator_off_enable", ea.ALL, "ON", "OFF")
+                        .withLabel("LED indication")
+                        .withDescription("Is LED indicator enabled")
+                        .withEndpoint(coversEpName),
+                    e
+                        .numeric("led_indicator_off_h", ea.ALL)
+                        .withUnit("°")
+                        .withValueMin(0)
+                        .withValueMax(359)
+                        .withLabel("Hue")
+                        .withDescription("Hue of LED indicator")
+                        .withEndpoint(coversEpName),
+                    e
+                        .numeric("led_indicator_off_s", ea.ALL)
+                        .withValueMin(0)
+                        .withValueMax(0xfe)
+                        .withLabel("Saturation")
+                        .withDescription("Saturation of LED indicator")
+                        .withEndpoint(coversEpName),
+                    e
+                        .numeric("led_indicator_off_b", ea.ALL)
+                        .withValueMin(1)
+                        .withValueMax(0xfe)
+                        .withLabel("Brightness")
+                        .withDescription("Brightness of LED indicator")
+                        .withEndpoint(coversEpName),
+                ];
+                if (checkMetaOption(device, "window_covering_enabled")) {
+                    return [...coversExposes];
+                }
+            }
             const endpointsCount = 2;
             switchExposes.push(
                 e.action(["hold_switch_1", "hold_switch_2", "single_switch_1", "single_switch_2", "double_switch_1", "double_switch_2"]),
@@ -824,58 +1228,120 @@ export const definitions: DefinitionWithExtend[] = [
             return [...switchExposes];
         },
         extend: [
+            m.deviceEndpoints({endpoints: {switch_1: 1, switch_2: 2, cover: 3}}),
             sdevicesExtend.sdevicesCustomCluster(),
+            sdevicesExtend.haDiagnosticCluster(),
             sdevicesExtend.genOnOffCluster(),
-            m.deviceEndpoints({endpoints: {switch_1: 1, switch_2: 2}}),
+            sdevicesExtend.closuresWindowCoveringCluster(),
+            sdevicesExtend.childLock(),
+            sdevicesExtend.deviceInfo(),
+            sdevicesExtend.deviceCustomDiagnostic(3, 2),
         ],
         ota: true,
         configure: async (device, coordinatorEndpoint) => {
             if (!device.customClusters.manuSpecificSDevices) {
                 device.addCustomCluster("manuSpecificSDevices", sdevicesCustomClusterDefinition);
             }
-            await device.getEndpoint(1).read("genBasic", ["serialNumber"]);
-            await device.getEndpoint(1).read("genOnOff", ["onOff", "startUpOnOff"]);
-            await device.getEndpoint(2).read("genOnOff", ["onOff", "startUpOnOff"]);
-            await device.getEndpoint(1).read<"genOnOff", SberGenOnOff>("genOnOff", ["sdevicesRelayDecouple"], manufacturerOptions);
-            await device.getEndpoint(2).read<"genOnOff", SberGenOnOff>("genOnOff", ["sdevicesRelayDecouple"], manufacturerOptions);
-            await device
-                .getEndpoint(1)
-                .read<"manuSpecificSDevices", SberDevices>(
-                    "manuSpecificSDevices",
-                    [
-                        "buttonEnableMultiClick",
-                        "ledIndicatorOnEnable",
-                        "ledIndicatorOnH",
-                        "ledIndicatorOnS",
-                        "ledIndicatorOnB",
-                        "ledIndicatorOffEnable",
-                        "ledIndicatorOffH",
-                        "ledIndicatorOffS",
-                        "ledIndicatorOffB",
-                    ],
-                    manufacturerOptions,
-                );
-            await device
-                .getEndpoint(2)
-                .read<"manuSpecificSDevices", SberDevices>(
-                    "manuSpecificSDevices",
-                    [
-                        "buttonEnableMultiClick",
-                        "ledIndicatorOnEnable",
-                        "ledIndicatorOnH",
-                        "ledIndicatorOnS",
-                        "ledIndicatorOnB",
-                        "ledIndicatorOffEnable",
-                        "ledIndicatorOffH",
-                        "ledIndicatorOffS",
-                        "ledIndicatorOffB",
-                    ],
-                    manufacturerOptions,
-                );
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff", "genMultistateInput"]);
-            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ["genOnOff", "genMultistateInput"]);
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["manuSpecificSDevices"]);
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["haDiagnostic"]);
+            const coveringEp = device.getEndpoint(3);
+            if (coveringEp != null) {
+                try {
+                    const deviceCoverMode = await device.getEndpoint(3).read("genBasic", ["deviceEnabled"]);
+                    setMetaOption(device, "window_covering_enabled", deviceCoverMode.deviceEnabled !== 0);
+                } catch (e) {
+                    if ((e as Error).message.includes("UNSUPPORTED_ATTRIBUTE")) {
+                        setMetaOption(device, "window_covering_enabled", false);
+                    } else {
+                        throw e;
+                    }
+                }
+            } else {
+                setMetaOption(device, "window_covering_enabled", false);
+            }
+            if (checkMetaOption(device, "window_covering_enabled")) {
+                /* Device is in Window Covering mode */
+                await device.getEndpoint(3).read("genBasic", ["serialNumber"]);
+                await device.getEndpoint(3).read("closuresWindowCovering", ["currentPositionLiftPercentage", "windowCoveringMode"]);
+                await device
+                    .getEndpoint(3)
+                    .read<"closuresWindowCovering", SberClosures>(
+                        "closuresWindowCovering",
+                        ["sdevicesCalibrationTime", "sdevicesButtonsMode", "sdevicesMotorTimeout"],
+                        manufacturerOptions,
+                    );
+                await device
+                    .getEndpoint(3)
+                    .read<"manuSpecificSDevices", SberDevices>(
+                        "manuSpecificSDevices",
+                        ["ledIndicatorOffEnable", "ledIndicatorOffH", "ledIndicatorOffS", "ledIndicatorOffB"],
+                        manufacturerOptions,
+                    );
+                await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ["closuresWindowCovering"]);
+                await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ["manuSpecificSDevices"]);
+                await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ["haDiagnostic"]);
+                try {
+                    await device.getEndpoint(3).read<"manuSpecificSDevices", SberDevices>("manuSpecificSDevices", ["childLock"]);
+                } catch (error) {
+                    if ((error as Error).message.includes("UNSUPPORTED_ATTRIBUTE")) {
+                        // ignore: attribute is not supported in early versions
+                    } else {
+                        logger.warning(`Configure failed: ${error}`, NS);
+                    }
+                }
+            } else {
+                /* Device is in 2-button Switch mode */
+                await device.getEndpoint(1).read("genBasic", ["serialNumber"]);
+                await device.getEndpoint(1).read("genOnOff", ["onOff", "startUpOnOff"]);
+                await device.getEndpoint(2).read("genOnOff", ["onOff", "startUpOnOff"]);
+                await device.getEndpoint(1).read<"genOnOff", SberGenOnOff>("genOnOff", ["sdevicesRelayDecouple"], manufacturerOptions);
+                await device.getEndpoint(2).read<"genOnOff", SberGenOnOff>("genOnOff", ["sdevicesRelayDecouple"], manufacturerOptions);
+                await device
+                    .getEndpoint(1)
+                    .read<"manuSpecificSDevices", SberDevices>(
+                        "manuSpecificSDevices",
+                        [
+                            "buttonEnableMultiClick",
+                            "ledIndicatorOnEnable",
+                            "ledIndicatorOnH",
+                            "ledIndicatorOnS",
+                            "ledIndicatorOnB",
+                            "ledIndicatorOffEnable",
+                            "ledIndicatorOffH",
+                            "ledIndicatorOffS",
+                            "ledIndicatorOffB",
+                        ],
+                        manufacturerOptions,
+                    );
+                await device
+                    .getEndpoint(2)
+                    .read<"manuSpecificSDevices", SberDevices>(
+                        "manuSpecificSDevices",
+                        [
+                            "buttonEnableMultiClick",
+                            "ledIndicatorOnEnable",
+                            "ledIndicatorOnH",
+                            "ledIndicatorOnS",
+                            "ledIndicatorOnB",
+                            "ledIndicatorOffEnable",
+                            "ledIndicatorOffH",
+                            "ledIndicatorOffS",
+                            "ledIndicatorOffB",
+                        ],
+                        manufacturerOptions,
+                    );
+                await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff", "genMultistateInput"]);
+                await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ["genOnOff", "genMultistateInput"]);
+                await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["manuSpecificSDevices"]);
+                await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["haDiagnostic"]);
+                try {
+                    await device.getEndpoint(1).read<"manuSpecificSDevices", SberDevices>("manuSpecificSDevices", ["childLock"]);
+                } catch (error) {
+                    if ((error as Error).message.includes("UNSUPPORTED_ATTRIBUTE")) {
+                        // ignore: attribute is not supported in early versions
+                    } else {
+                        logger.warning(`Configure failed: ${error}`, NS);
+                    }
+                }
+            }
             device.save();
         },
     },
@@ -884,11 +1350,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SBDV-00202",
         vendor: "Sber",
         description: "Smart Wall Socket",
-        toZigbee: [sdevices.tz.custom_on_off, tz.power_on_behavior],
-        fromZigbee: [fz.on_off, fz.power_on_behavior, sdevices.fz.emergency_shutoff_state],
+        fromZigbee: [sdevices.fz.emergency_shutoff_state],
         exposes: [
-            e.switch(),
-            e.power_on_behavior(["off", "on", "toggle", "previous"]),
             e.binary("emergency_overvoltage", ea.STATE, true, false).withDescription("Overvoltage alarm is triggered").withCategory("diagnostic"),
             e.binary("emergency_undervoltage", ea.STATE, true, false).withDescription("Undervoltage alarm is triggered").withCategory("diagnostic"),
             e.binary("emergency_overcurrent", ea.STATE, true, false).withDescription("Overcurrent alarm is triggered").withCategory("diagnostic"),
@@ -896,8 +1359,13 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         extend: [
             sdevicesExtend.sdevicesCustomCluster(),
+            sdevicesExtend.haDiagnosticCluster(),
             m.identify(),
             sdevicesExtend.deviceTemperature(),
+            m.onOff({
+                powerOnBehavior: true,
+                configureReporting: false,
+            }),
             sdevicesExtend.childLock(),
             sdevicesExtend.electricityMeter(),
             sdevicesExtend.ledIndicatorSettings(),
@@ -906,6 +1374,8 @@ export const definitions: DefinitionWithExtend[] = [
             sdevicesExtend.lowerVoltageThreshold(),
             sdevicesExtend.upperCurrentThreshold(),
             sdevicesExtend.temperatureThreshold(),
+            sdevicesExtend.deviceInfo(),
+            sdevicesExtend.deviceCustomDiagnostic(1, 1),
         ],
         ota: true,
         configure: async (device, coordinatorEndpoint) => {
