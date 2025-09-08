@@ -6906,7 +6906,6 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Tuya",
         whiteLabel: [
             {vendor: "LELLKI", model: "TS011F_plug"},
-            {vendor: "Neo", model: "NAS-WR01B"},
             {vendor: "BlitzWolf", model: "BW-SHP15"},
             {vendor: "BlitzWolf", model: "BW-SHP13"},
             {vendor: "MatSee Plus", model: "PJ-ZSW01"},
@@ -7016,7 +7015,6 @@ export const definitions: DefinitionWithExtend[] = [
             {vendor: "VIKEFON", model: "TS011F"},
             {vendor: "BlitzWolf", model: "BW-SHP15"},
             {vendor: "AVATTO", model: "MIUCOT10Z"},
-            {vendor: "Neo", model: "NAS-WR01B"},
             {vendor: "Neo", model: "PLUG-001SPB2"},
         ],
         ota: true,
