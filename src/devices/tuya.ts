@@ -1216,6 +1216,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.numeric("countdown_l2", ea.STATE_SET).withUnit("s").withDescription("Countdown for l2").withValueMin(0).withValueMax(86400),
         ],
         meta: {
+            multiEndpoint: true,
             tuyaDatapoints: [
                 [13, "state", tuya.valueConverter.onOff],
                 [1, "state_l1", tuya.valueConverter.onOff],
