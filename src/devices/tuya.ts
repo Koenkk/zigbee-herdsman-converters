@@ -4818,6 +4818,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZ3000_veu2v775",
             "_TZ3000_prits6g4",
             "_TZ3000_afgzktgb",
+            "_TZ3000_pgq7ormg",
         ]),
         model: "TS0001_switch_module",
         vendor: "Tuya",
@@ -4826,6 +4827,7 @@ export const definitions: DefinitionWithExtend[] = [
             {vendor: "OXT", model: "SWTZ21"},
             {vendor: "Moes", model: "ZM-104-M"},
             tuya.whitelabel("AVATTO", "ZWSM16-1-Zigbee", "1 gang switch module", ["_TZ3000_4rbqgcuv"]),
+            tuya.whitelabel("iHseno", "_TZ3000_pgq7ormg", "1 gang switch module", ["_TZ3000_pgq7ormg"]),
         ],
         extend: [tuya.modernExtend.tuyaOnOff({switchType: true, onOffCountdown: true})],
         configure: async (device, coordinatorEndpoint) => {
