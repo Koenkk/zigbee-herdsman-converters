@@ -450,4 +450,11 @@ export const definitions: DefinitionWithExtend[] = [
         description: "ENKI LEXMAN wireless smart door window sensor",
         extend: [m.battery(), m.iasZoneAlarm({zoneType: "contact", zoneAttributes: ["alarm_1", "tamper", "battery_low"]})],
     },
+    {
+        zigbeeModel: ['ZB-WaterSensor-D0001'],
+        model: 'ZB-WaterSensor-D0001',
+        vendor: 'ADEO',
+        description: 'ENKI LEXMAN water leak sensor',
+        extend: [m.battery(), m.iasZoneAlarm({"zoneType":"generic","zoneAttributes":["alarm_1","alarm_2","tamper","battery_low"]})],
+        },
 ];
