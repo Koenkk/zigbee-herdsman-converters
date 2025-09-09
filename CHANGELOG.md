@@ -1,5 +1,19 @@
 # Changelog
 
+## [25.21.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.20.0...v25.21.0) (2025-09-09)
+
+
+### Features
+
+* **add:** _TZE284_6kijc7nd ([#9965](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9965)) ([eec025a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/eec025a4c07496304d95e55b561ab633510b72f6))
+* **add:** AD-RGBWH3001 ([#9966](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9966)) ([037d6a7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/037d6a77ffe8793c5113c6239d12fedef31fd6a9))
+* Niko: enable OTA for various devices ([#9969](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9969)) ([ae45482](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ae454820494e9e42b96c5dec960936fa87c2a889))
+
+
+### Bug Fixes
+
+* **detect:** Detect `C-ZB-LC20v2-CCT` as C-ZB-LC20-CCT and `C-ZB-LC20v2-Dim` as `C-ZB-LC20-Dim` ([#9964](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9964)) ([a22a846](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a22a84620c3aaa05d90edfb6b46ba6513f0de64d))
+
 ## [25.20.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.19.0...v25.20.0) (2025-09-08)
 
 
