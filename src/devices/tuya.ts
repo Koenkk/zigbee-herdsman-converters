@@ -8732,6 +8732,86 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_6kijc7nd"]),
+        model: "Tervix Pro Line Zigbee Thermostat",
+        vendor: "Tervix",
+        description: "Tervix Zigbee Thermostat",
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        exposes: [
+            // Core thermostat controls
+            e
+                .climate()
+                .withSetpoint("current_heating_setpoint", 5, 35, 0.5, ea.STATE_SET) // DP 16
+                .withLocalTemperature(ea.STATE) // DP 24
+                .withSystemMode(["auto", "heat", "off"], ea.STATE_SET) // DP 2
+                .withRunningState(["idle", "heat"], ea.STATE), // DP 3
+
+            // Basic settings
+            e
+                .binary("state", ea.STATE_SET, "ON", "OFF")
+                .withDescription("Controls whether the thermostat is on or off."), // DP 1
+            e
+                .binary("child_lock", ea.STATE_SET, "ON", "OFF")
+                .withDescription("Locks the thermostat display to prevent accidental changes."), // DP 40
+            e
+                .numeric("relative_humidity", ea.STATE)
+                .withUnit("%")
+                .withDescription("Relative humidity reported by the thermostat."), // DP 34
+
+            // Protection features
+            e
+                .binary("frost_protection", ea.STATE_SET, "ON", "OFF")
+                .withDescription("Enables frost protection against freezing temperatures."), // DP 10
+            e
+                .numeric("hysteresis", ea.STATE_SET)
+                .withUnit("°C")
+                .withValueMin(0.1)
+                .withValueMax(5)
+                .withValueStep(0.1)
+                .withDescription("Hysteresis for heating/cooling cycle control."), // DP 106
+
+            // Calibration
+            e
+                .numeric("temperature_calibration", ea.STATE_SET)
+                .withUnit("°C")
+                .withValueMin(-5)
+                .withValueMax(5)
+                .withDescription("Offset correction for temperature calibration."), // DP 101
+
+            // Weekly schedule programming
+            e
+                .text("week_schedule", ea.STATE_SET)
+                .withDescription("Weekly schedule programming as a JSON string (6 periods per day)."), // DP 48
+            e
+                .binary("weekly_schedule_enabled", ea.STATE_SET, "ON", "OFF")
+                .withDescription("Enable or disable weekly scheduling functions."), // DP 108
+
+            // Secondary heating
+            e
+                .numeric("secondary_heating_setpoint", ea.STATE_SET)
+                .withUnit("°C")
+                .withValueMin(5)
+                .withValueMax(35)
+                .withDescription("Secondary heating setpoint, e.g., for floor sensor."),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "state", tuya.valueConverter.onOff], // DP 1: Toggle On/Off
+                [2, "system_mode", tuya.valueConverterBasic.lookup({auto: 0, heat: 1, off: 2})], // DP 2: System Mode
+                [3, "running_state", tuya.valueConverterBasic.lookup({idle: 0, heat: 1})], // DP 3: Running State
+                [10, "frost_protection", tuya.valueConverter.onOff], // DP 10: Frost protection
+                [16, "current_heating_setpoint", tuya.valueConverter.divideBy10], // DP 16: Heating Setpoint
+                [24, "local_temperature", tuya.valueConverter.divideBy10], // DP 24: Local Temperature
+                [34, "relative_humidity", tuya.valueConverter.raw], // DP 34: Relative Humidity (%)
+                [40, "child_lock", tuya.valueConverter.onOff], // DP 40: Display Lock
+                [48, "week_schedule", tuya.valueConverter.raw], // DP 48: Weekly Schedule Programming
+                [106, "hysteresis", tuya.valueConverter.divideBy10], // DP 106: Hysteresis
+                [101, "temperature_calibration", tuya.valueConverter.raw], // DP 101: Temperature Calibration
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_2ekuz3dz"]),
         model: "X5H-GB-B",
         vendor: "Tuya",
