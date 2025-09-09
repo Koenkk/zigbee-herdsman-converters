@@ -6,7 +6,7 @@ import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as tuya from "../lib/tuya";
-import type {DefinitionWithExtend, Fz, KeyValue, KeyValueAny, ModernExtend, Tz, Zh} from "../lib/types";
+import type {DefinitionWithExtend, Fz, KeyValue, KeyValueAny, ModernExtend, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
 
 const e = exposes.presets;
@@ -16,22 +16,6 @@ const NS = "zhc:sdevices";
 const {tuyaMagicPacket, tuyaOnOffActionLegacy} = tuya.modernExtend;
 const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD};
 const defaultResponseOptions = {disableDefaultResponse: false};
-
-function checkMetaOption(device: Zh.Device, key: string) {
-    if (device != null) {
-        const enabled = device.meta[key];
-        if (enabled === undefined) {
-            return false;
-        }
-        return !!enabled;
-    }
-    return false;
-}
-function setMetaOption(device: Zh.Device, key: string, enabled: boolean) {
-    if (device != null && key != null) {
-        device.meta[key] = enabled;
-    }
-}
 
 const sdevices = {
     fz: {
@@ -1117,7 +1101,7 @@ export const definitions: DefinitionWithExtend[] = [
                         .withDescription("Brightness of LED indicator")
                         .withEndpoint(coversEpName),
                 ];
-                if (checkMetaOption(device, "window_covering_enabled")) {
+                if (device.meta.window_covering_enabled) {
                     return [...coversExposes];
                 }
             }
@@ -1246,18 +1230,18 @@ export const definitions: DefinitionWithExtend[] = [
             if (coveringEp != null) {
                 try {
                     const deviceCoverMode = await device.getEndpoint(3).read("genBasic", ["deviceEnabled"]);
-                    setMetaOption(device, "window_covering_enabled", deviceCoverMode.deviceEnabled !== 0);
+                    device.meta.window_covering_enabled = !!deviceCoverMode.deviceEnabled;
                 } catch (e) {
                     if ((e as Error).message.includes("UNSUPPORTED_ATTRIBUTE")) {
-                        setMetaOption(device, "window_covering_enabled", false);
+                        device.meta.window_covering_enabled = false;
                     } else {
                         throw e;
                     }
                 }
             } else {
-                setMetaOption(device, "window_covering_enabled", false);
+                device.meta.window_covering_enabled = false;
             }
-            if (checkMetaOption(device, "window_covering_enabled")) {
+            if (device.meta.window_covering_enabled) {
                 /* Device is in Window Covering mode */
                 await device.getEndpoint(3).read("genBasic", ["serialNumber"]);
                 await device.getEndpoint(3).read("closuresWindowCovering", ["currentPositionLiftPercentage", "windowCoveringMode"]);
