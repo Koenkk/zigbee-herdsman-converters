@@ -1231,15 +1231,18 @@ export const definitions: DefinitionWithExtend[] = [
                 try {
                     const deviceCoverMode = await device.getEndpoint(3).read("genBasic", ["deviceEnabled"]);
                     device.meta.window_covering_enabled = !!deviceCoverMode.deviceEnabled;
+                    device.save();
                 } catch (e) {
                     if ((e as Error).message.includes("UNSUPPORTED_ATTRIBUTE")) {
                         device.meta.window_covering_enabled = false;
+                        device.save();
                     } else {
                         throw e;
                     }
                 }
             } else {
                 device.meta.window_covering_enabled = false;
+                device.save();
             }
             if (device.meta.window_covering_enabled) {
                 /* Device is in Window Covering mode */
