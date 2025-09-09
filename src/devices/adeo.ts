@@ -455,6 +455,6 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZB-WaterSensor-D0001",
         vendor: "ADEO",
         description: "ENKI LEXMAN water leak sensor",
-        extend: [m.battery(), m.iasZoneAlarm({zoneType: "generic", zoneAttributes: ["alarm_1", "alarm_2", "tamper", "battery_low"]})],
+        extend: [m.battery(), m.iasZoneAlarm({zoneType: "water_leak", zoneAttributes: ["alarm_1", "alarm_2", "tamper", "battery_low"]})],
     },
 ];
