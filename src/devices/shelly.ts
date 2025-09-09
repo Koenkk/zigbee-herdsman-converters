@@ -21,6 +21,18 @@ interface ShellyWiFi {
     commandResponses: never;
 }
 
+const validationFunctions = {
+    assertStringNotEmpty(value: unknown): void {
+        assertString(value);
+
+        if (value.length === 0) {
+            throw new Error("Empty string, ignoring.");
+        }
+    },
+
+    // SSID/IP/netMask/nameServer validation functions? Are they really needed?
+};
+
 const shellyModernExtend = {
     shellyCustomClusters(): ModernExtend[] {
         return [
@@ -126,7 +138,7 @@ const shellyModernExtend = {
                 attribute: "ssid",
                 entityCategory: "config",
                 validate(value: unknown) {
-                    assertString(value);
+                    validationFunctions.assertStringNotEmpty(value);
                 },
                 zigbeeCommandOptions: {
                     profileId: ZSpec.CUSTOM_SHELLY_PROFILE_ID,
@@ -140,7 +152,7 @@ const shellyModernExtend = {
                 attribute: "password",
                 entityCategory: "config",
                 validate(value: unknown) {
-                    assertString(value);
+                    validationFunctions.assertStringNotEmpty(value);
                 },
                 zigbeeCommandOptions: {
                     profileId: ZSpec.CUSTOM_SHELLY_PROFILE_ID,
@@ -154,7 +166,7 @@ const shellyModernExtend = {
                 attribute: "staticIP",
                 entityCategory: "config",
                 validate(value: unknown) {
-                    assertString(value);
+                    validationFunctions.assertStringNotEmpty(value);
                 },
                 zigbeeCommandOptions: {
                     profileId: ZSpec.CUSTOM_SHELLY_PROFILE_ID,
@@ -168,7 +180,7 @@ const shellyModernExtend = {
                 attribute: "netMask",
                 entityCategory: "config",
                 validate(value: unknown) {
-                    assertString(value);
+                    validationFunctions.assertStringNotEmpty(value);
                 },
                 zigbeeCommandOptions: {
                     profileId: ZSpec.CUSTOM_SHELLY_PROFILE_ID,
@@ -182,7 +194,7 @@ const shellyModernExtend = {
                 attribute: "gateway",
                 entityCategory: "config",
                 validate(value: unknown) {
-                    assertString(value);
+                    validationFunctions.assertStringNotEmpty(value);
                 },
                 zigbeeCommandOptions: {
                     profileId: ZSpec.CUSTOM_SHELLY_PROFILE_ID,
@@ -196,7 +208,7 @@ const shellyModernExtend = {
                 attribute: "nameServer",
                 entityCategory: "config",
                 validate(value: unknown) {
-                    assertString(value);
+                    validationFunctions.assertStringNotEmpty(value);
                 },
                 zigbeeCommandOptions: {
                     profileId: ZSpec.CUSTOM_SHELLY_PROFILE_ID,
