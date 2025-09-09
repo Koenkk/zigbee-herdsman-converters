@@ -8704,9 +8704,9 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_6kijc7nd"]),
-        model: "Tervix Pro Line Zigbee Thermostat",
+        model: "_TZE284_6kijc7nd",
         vendor: "Tervix",
-        description: "Tervix Zigbee Thermostat",
+        description: "Tervix Zigbee thermostat",
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         exposes: [
