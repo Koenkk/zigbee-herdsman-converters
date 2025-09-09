@@ -120,16 +120,11 @@ export const definitions: DefinitionWithExtend[] = [
             fz.command_cover_stop,
             fz.battery,
             fz.legrand_binary_input_moving,
+            fzLegrand.stop_poll_on_checkin,
         ],
         toZigbee: [],
         exposes: [e.battery(), e.action(["identify", "open", "close", "stop", "moving", "stopped"])],
-        onEvent: async (type, data, device, options, state) => {
-            await readInitialBatteryState(type, data, device, options, state);
-            if (data.type === "commandCheckin" && data.cluster === "genPollCtrl") {
-                const endpoint = device.getEndpoint(1);
-                await endpoint.command("genPollCtrl", "fastPollStop", {}, legrandOptions);
-            }
-        },
+        onEvent: readInitialBatteryState,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg", "genBinaryInput", "closuresWindowCovering", "genIdentify"]);
@@ -163,10 +158,10 @@ export const definitions: DefinitionWithExtend[] = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genBinaryInput", "closuresWindowCovering", "genIdentify"]);
-            let p = reporting.payload("currentPositionLiftPercentage", 1, 120, 1);
+            let p = reporting.payload<"closuresWindowCovering">("currentPositionLiftPercentage", 1, 120, 1);
             await endpoint.configureReporting("closuresWindowCovering", p, legrandOptions);
 
-            p = reporting.payload("currentPositionTiltPercentage", 1, 120, 1);
+            p = reporting.payload<"closuresWindowCovering">("currentPositionTiltPercentage", 1, 120, 1);
             await endpoint.configureReporting("closuresWindowCovering", p, legrandOptions);
         },
     },
@@ -234,10 +229,10 @@ export const definitions: DefinitionWithExtend[] = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genBinaryInput", "closuresWindowCovering", "genIdentify"]);
-            let p = reporting.payload("currentPositionLiftPercentage", 1, 120, 1);
+            let p = reporting.payload<"closuresWindowCovering">("currentPositionLiftPercentage", 1, 120, 1);
             await endpoint.configureReporting("closuresWindowCovering", p, legrandOptions);
 
-            p = reporting.payload("currentPositionTiltPercentage", 1, 120, 1);
+            p = reporting.payload<"closuresWindowCovering">("currentPositionTiltPercentage", 1, 120, 1);
             await endpoint.configureReporting("closuresWindowCovering", p, legrandOptions);
         },
     },
@@ -310,20 +305,7 @@ export const definitions: DefinitionWithExtend[] = [
             eLegrand.ledInDark(),
             eLegrand.ledIfOn(),
         ],
-        extend: [
-            m.light({
-                configureReporting: true,
-                levelConfig: {
-                    disabledFeatures: [
-                        "on_off_transition_time",
-                        "on_transition_time",
-                        "off_transition_time",
-                        "execute_if_off",
-                        "current_level_startup",
-                    ],
-                },
-            }),
-        ],
+        extend: [m.light({configureReporting: true, levelConfig: {features: ["on_level"]}})],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genIdentify", "genBinaryInput", "lightingBallastCfg"]);
@@ -409,20 +391,88 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [{vendor: "BTicino", model: "LN4570CWI"}],
         ota: true,
         meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
-        fromZigbee: [fz.legrand_scenes, fz.legrand_master_switch_center, fz.ignore_poll_ctrl, fz.battery],
+        fromZigbee: [fz.legrand_scenes, fz.legrand_master_switch_center, fz.ignore_poll_ctrl, fz.battery, fzLegrand.stop_poll_on_checkin],
         toZigbee: [],
         exposes: [e.battery(), e.action(["enter", "leave", "sleep", "wakeup", "center"])],
-        onEvent: async (type, data, device, options, state) => {
-            await readInitialBatteryState(type, data, device, options, state);
-            if (data.type === "commandCheckin" && data.cluster === "genPollCtrl") {
-                // TODO current solution is a work around, it would be cleaner to answer to the request
-                const endpoint = device.getEndpoint(1);
-                await endpoint.command("genPollCtrl", "fastPollStop", {}, legrandOptions);
+        onEvent: readInitialBatteryState,
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genIdentify", "genPowerCfg"]);
+        },
+    },
+    {
+        zigbeeModel: [
+            " 3 Phases power consumption module\u0000\u0000",
+            " 3P power consumption module\u0000\u0000\u0000",
+            " DIN 3Ph power consumption module",
+            "3ph Smart shedder module",
+        ],
+        model: "412175",
+        vendor: "Legrand",
+        description: "DIN 3 Phases power consumption module",
+        whiteLabel: [{vendor: "BTicino", description: "Connected DIN meter for three-phase", model: "F40T125A"}],
+        ota: true,
+        fromZigbee: [
+            fz.identify,
+            fz.metering,
+            fz.electrical_measurement,
+            fz.ignore_basic_report,
+            fz.ignore_genOta,
+            fz.legrand_power_alarm,
+            fzLegrand.cluster_fc01,
+        ],
+        toZigbee: [tzLegrand.led_mode, tz.electrical_measurement_power, tz.legrand_power_alarm, tzLegrand.identify],
+        exposes: [
+            e.power().withAccess(ea.STATE_GET),
+            e.power_phase_b().withAccess(ea.STATE_GET),
+            e.power_phase_c().withAccess(ea.STATE_GET),
+            e.power_apparent(),
+            e.power_apparent_phase_b().withAccess(ea.STATE_GET),
+            e.power_apparent_phase_c().withAccess(ea.STATE_GET),
+            e.binary("power_alarm_active", ea.STATE, true, false),
+            e.binary("power_alarm", ea.ALL, true, false).withDescription("Enable/disable the power alarm"),
+        ],
+        onEvent: async (event) => {
+            /**
+             * The DIN power consumption module loses the configure reporting
+             * after device restart/powerloss.
+             *
+             * We reconfigure the reporting at deviceAnnounce.
+             */
+            if (event.type === "deviceAnnounce") {
+                for (const endpoint of event.data.device.endpoints) {
+                    for (const c of endpoint.configuredReportings) {
+                        await endpoint.configureReporting(c.cluster.name, [
+                            {
+                                // @ts-expect-error dynamic, expected correct since already applied
+                                attribute: c.attribute.name,
+                                minimumReportInterval: c.minimumReportInterval,
+                                maximumReportInterval: c.maximumReportInterval,
+                                reportableChange: c.reportableChange,
+                            },
+                        ]);
+                    }
+                }
             }
         },
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genIdentify", "genPowerCfg"]);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["haElectricalMeasurement", "genIdentify"]);
+            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
+            await reporting.activePower(endpoint);
+            // Read configuration values that are not sent periodically as well as current power (activePower).
+            await endpoint.read("haElectricalMeasurement", ["activePower"]);
+            try {
+                await reporting.apparentPower(endpoint);
+                await endpoint.read("haElectricalMeasurement", ["apparentPowerPhB"]);
+                await endpoint.read("haElectricalMeasurement", ["apparentPowerPhC"]);
+                await endpoint.read("haElectricalMeasurement", ["activePowerPhB"]);
+                await endpoint.read("haElectricalMeasurement", ["activePowerPhC"]);
+            } catch {
+                // Some version/firmware don't seem to support this.
+            }
+            // Read configuration values that are not sent periodically.
+            await endpoint.read("haElectricalMeasurement", [0xf000, 0xf001, 0xf002]);
         },
     },
     {
@@ -451,18 +501,19 @@ export const definitions: DefinitionWithExtend[] = [
             e.binary("power_alarm_active", ea.STATE, true, false),
             e.binary("power_alarm", ea.ALL, true, false).withDescription("Enable/disable the power alarm"),
         ],
-        onEvent: async (type, data, device, options, state) => {
+        onEvent: async (event) => {
             /**
              * The DIN power consumption module loses the configure reporting
              * after device restart/powerloss.
              *
              * We reconfigure the reporting at deviceAnnounce.
              */
-            if (type === "deviceAnnounce") {
-                for (const endpoint of device.endpoints) {
+            if (event.type === "deviceAnnounce") {
+                for (const endpoint of event.data.device.endpoints) {
                     for (const c of endpoint.configuredReportings) {
                         await endpoint.configureReporting(c.cluster.name, [
                             {
+                                // @ts-expect-error dynamic, expected correct since already applied
                                 attribute: c.attribute.name,
                                 minimumReportInterval: c.minimumReportInterval,
                                 maximumReportInterval: c.maximumReportInterval,
@@ -695,6 +746,35 @@ export const definitions: DefinitionWithExtend[] = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genIdentify", "genOnOff"]);
+            await reporting.onOff(endpoint);
+        },
+    },
+    {
+        fingerprint: [
+            {
+                modelID: " Dimmer switch with neutral\u0000\u0000\u0000\u0000",
+                manufacturerName:
+                    " Legrand\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
+            },
+        ],
+        model: "067797",
+        vendor: "Legrand",
+        description: "Dimmer switch with neutral",
+        ota: true,
+        fromZigbee: [fz.identify, fz.lighting_ballast_configuration, fzLegrand.cluster_fc01],
+        toZigbee: [tz.on_off, tzLegrand.led_mode, tz.legrand_device_mode, tzLegrand.identify, tz.ballast_config],
+        exposes: [
+            e.numeric("ballast_minimum_level", ea.ALL).withValueMin(1).withValueMax(254).withDescription("Specifies the minimum brightness value"),
+            e.numeric("ballast_maximum_level", ea.ALL).withValueMin(1).withValueMax(254).withDescription("Specifies the maximum brightness value"),
+            e.binary("device_mode", ea.ALL, "dimmer_on", "dimmer_off").withDescription("Allow the device to change brightness"),
+            eLegrand.identify(),
+            eLegrand.ledInDark(),
+            eLegrand.ledIfOn(),
+        ],
+        extend: [m.light({configureReporting: true})],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genBinaryInput", "genOnOff", "lightingBallastCfg"]);
             await reporting.onOff(endpoint);
         },
     },

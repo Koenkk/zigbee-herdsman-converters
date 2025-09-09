@@ -284,8 +284,9 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "ROBB",
         description: "ZigBee knob smart dimmer",
         fromZigbee: [fz.command_on, fz.command_off, fz.command_move_to_level, fz.command_move_to_color_temp, fz.battery, fz.command_move_to_color],
-        exposes: [e.battery(), e.action(["on", "off", "brightness_move_to_level", "color_temperature_move", "color_move"])],
+        exposes: [e.battery(), e.action(["on_1", "off_1", "brightness_move_to_level_1", "color_temperature_move_1", "color_move_1"])],
         toZigbee: [],
+        // DEPRECATED BREAKING CHANGE: remove multiEndpoint: true here and drop `_1` postfix from actions
         meta: {multiEndpoint: true, battery: {dontDividePercentage: true}},
         whiteLabel: [{vendor: "Sunricher", model: "SR-ZG2835"}],
     },
@@ -349,7 +350,7 @@ export const definitions: DefinitionWithExtend[] = [
             fz.command_stop,
             fz.command_move,
             fz.command_color_loop_set,
-            fz.command_ehanced_move_to_hue_and_saturation,
+            fz.command_enhanced_move_to_hue_and_saturation,
         ],
         toZigbee: [],
         exposes: [
@@ -380,7 +381,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "2-gang in-wall switch",
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.power_on_behavior],
         toZigbee: [tz.on_off, tz.power_on_behavior, tz.electrical_measurement_power],
-        exposes: [e.switch().withEndpoint("l1"), e.switch().withEndpoint("l2"), e.energy()],
+        exposes: [e.switch().withEndpoint("l1"), e.switch().withEndpoint("l2"), e.energy(), e.power_on_behavior()],
         endpoint: (device) => {
             return {l1: 1, l2: 2};
         },
@@ -398,6 +399,14 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.readMeteringMultiplierDivisor(endpoint1);
             await reporting.currentSummDelivered(endpoint1, {min: 60, change: 1});
         },
+    },
+    {
+        zigbeeModel: ["ROB_200-026-1"],
+        model: "ROB_200-026-1",
+        vendor: "ROBB smarrt",
+        description: "2-gang in-wall switch with metering",
+        extend: [m.deviceEndpoints({endpoints: {"1": 1, "2": 2}}), m.onOff({powerOnBehavior: true, endpointNames: ["1", "2"]}), m.electricityMeter()],
+        meta: {multiEndpoint: true},
     },
     {
         zigbeeModel: ["ROB_200-035-0"],

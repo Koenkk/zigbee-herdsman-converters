@@ -1,11 +1,20 @@
+import assert from "node:assert";
 import {Zcl} from "zigbee-herdsman";
+import type {
+    ClusterOrRawAttributeKeys,
+    PartialClusterOrRawWriteAttributes,
+    TCustomCluster,
+    TCustomClusterPayload,
+} from "zigbee-herdsman/dist/controller/tstype";
+import type {TClusterPayload, TPartialClusterAttributes} from "zigbee-herdsman/dist/zspec/zcl/definition/clusters-types";
 import type {ClusterDefinition} from "zigbee-herdsman/dist/zspec/zcl/definition/tstype";
-
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
+import * as constants from "../lib/constants";
 import {logger} from "../lib/logger";
 import * as globalStore from "../lib/store";
-import {type Cover, Numeric, presets as e, access as ea, options as opt} from "./exposes";
+import type * as exposes from "./exposes";
+import {type Cover, presets as e, access as ea, Numeric, options as opt} from "./exposes";
 import {configure as lightConfigure} from "./light";
 import type {
     Access,
@@ -15,6 +24,7 @@ import type {
     DefinitionExposes,
     DefinitionExposesFunction,
     DefinitionMeta,
+    ElementOf,
     Expose,
     Fz,
     KeyValue,
@@ -47,6 +57,7 @@ import {
     postfixWithEndpointName,
     precisionRound,
     splitArrayIntoChunks,
+    toNumber,
 } from "./utils";
 
 function getEndpointsWithCluster(device: Zh.Device, cluster: string | number, type: "input" | "output") {
@@ -62,6 +73,8 @@ function getEndpointsWithCluster(device: Zh.Device, cluster: string | number, ty
     }
     return endpoints;
 }
+
+const NS = "zhc:modernextend";
 
 const IAS_EXPOSE_LOOKUP = {
     occupancy: e.binary("occupancy", ea.STATE, true, false).withDescription("Indicates whether the device detected occupancy"),
@@ -122,10 +135,18 @@ export const TIME_LOOKUP = {
 };
 
 type ReportingConfigTime = number | keyof typeof TIME_LOOKUP;
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-type ReportingConfigAttribute = string | number | {ID: number; type: number};
-type ReportingConfig = {min: ReportingConfigTime; max: ReportingConfigTime; change: number; attribute: ReportingConfigAttribute};
-export type ReportingConfigWithoutAttribute = Omit<ReportingConfig, "attribute">;
+type ReportingConfigAttribute<Cl extends string | number, Custom extends TCustomCluster | undefined = undefined> =
+    | ClusterOrRawAttributeKeys<Cl, Custom>[number]
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    | {ID: number; type: number};
+export type ReportingConfigWithoutAttribute = {
+    min: ReportingConfigTime;
+    max: ReportingConfigTime;
+    change: number;
+};
+type ReportingConfig<Cl extends string | number, Custom extends TCustomCluster | undefined = undefined> = ReportingConfigWithoutAttribute & {
+    attribute: ReportingConfigAttribute<Cl, Custom>;
+};
 
 function convertReportingConfigTime(time: ReportingConfigTime): number {
     if (isString(time)) {
@@ -135,11 +156,11 @@ function convertReportingConfigTime(time: ReportingConfigTime): number {
     return time;
 }
 
-export async function setupAttributes(
+export async function setupAttributes<Cl extends string | number, Custom extends TCustomCluster | undefined = undefined>(
     entity: Zh.Device | Zh.Endpoint,
     coordinatorEndpoint: Zh.Endpoint,
-    cluster: string | number,
-    config: ReportingConfig[],
+    cluster: Cl,
+    config: ReportingConfig<Cl, Custom>[],
     configureReporting = true,
     read = true,
 ) {
@@ -157,7 +178,7 @@ export async function setupAttributes(
         if (configureReporting) {
             await endpoint.bind(cluster, coordinatorEndpoint);
             for (const chunk of chunks) {
-                await endpoint.configureReporting(
+                await endpoint.configureReporting<Cl, Custom>(
                     cluster,
                     chunk.map((a) => ({
                         minimumReportInterval: convertReportingConfigTime(a.min),
@@ -174,8 +195,9 @@ export async function setupAttributes(
                 try {
                     // Don't fail configuration if reading this attribute fails
                     // https://github.com/Koenkk/zigbee-herdsman-converters/pull/7074
-                    await endpoint.read(
+                    await endpoint.read<Cl, Custom>(
                         cluster,
+                        // @ts-expect-error too dynamic to properly type
                         chunk.map((a) => (isString(a) ? a : isObject(a.attribute) ? a.attribute.ID : a.attribute)),
                     );
                 } catch (e) {
@@ -186,27 +208,39 @@ export async function setupAttributes(
     }
 }
 
-export function setupConfigureForReporting(
-    cluster: string | number,
-    attribute: ReportingConfigAttribute,
-    config?: false | ReportingConfigWithoutAttribute,
-    access?: Access,
-    endpointNames?: string[],
+export function setupConfigureForReporting<Cl extends string | number, Custom extends TCustomCluster | undefined = undefined>(
+    cluster: Cl,
+    attribute: ReportingConfigAttribute<Cl, Custom>,
+    args: {
+        config?: false | ReportingConfigWithoutAttribute;
+        access?: Access;
+        // `endpointNames` and `singleEndpoint` cannot be used together.
+        endpointNames?: string[];
+        // only setup for the first endpoint supporting the `cluster`.
+        singleEndpoint?: boolean;
+    },
 ) {
+    const {config = false, access = undefined, endpointNames = undefined, singleEndpoint = false} = args;
     const configureReporting = !!config;
     const read = !!(access & ea.GET);
     if (configureReporting || read) {
         const configure: Configure = async (device, coordinatorEndpoint, definition) => {
             const reportConfig = config ? {...config, attribute: attribute} : {attribute, min: -1, max: -1, change: -1};
-            let entities: (Zh.Device | Zh.Endpoint)[] = [device];
+            let endpoints: Zh.Endpoint[];
             if (endpointNames) {
+                assert(!singleEndpoint, "`endpointNames` cannot be used together with `singleEndpoint`");
                 const definitionEndpoints = definition.endpoint(device);
                 const endpointIds = endpointNames.map((e) => definitionEndpoints[e]);
-                entities = device.endpoints.filter((e) => endpointIds.includes(e.ID));
+                endpoints = device.endpoints.filter((e) => endpointIds.includes(e.ID));
+            } else {
+                endpoints = getEndpointsWithCluster(device, cluster, "input");
+                if (singleEndpoint) {
+                    endpoints = [endpoints[0]];
+                }
             }
 
-            for (const entity of entities) {
-                await setupAttributes(entity, coordinatorEndpoint, cluster, [reportConfig], configureReporting, read);
+            for (const endpoint of endpoints) {
+                await setupAttributes<Cl, Custom>(endpoint, coordinatorEndpoint, cluster, [reportConfig], configureReporting, read);
             }
         };
         return configure;
@@ -233,19 +267,23 @@ export function setupConfigureForBinding(cluster: string | number, clusterType: 
     return configure;
 }
 
-export function setupConfigureForReading(cluster: string | number, attributes: (string | number)[], endpointNames?: string[]) {
+export function setupConfigureForReading<Cl extends string | number, Custom extends TCustomCluster | undefined = undefined>(
+    cluster: Cl,
+    attributes: ClusterOrRawAttributeKeys<Cl, Custom>,
+    endpointNames?: string[],
+) {
     const configure: Configure = async (device, coordinatorEndpoint, definition) => {
         if (endpointNames) {
             const definitionEndpoints = definition.endpoint(device);
             const endpointIds = endpointNames.map((e) => definitionEndpoints[e]);
             const endpoints = device.endpoints.filter((e) => endpointIds.includes(e.ID));
             for (const endpoint of endpoints) {
-                await endpoint.read(cluster, attributes);
+                await endpoint.read<Cl, Custom>(cluster, attributes);
             }
         } else {
             const endpoints = getEndpointsWithCluster(device, cluster, "input");
             for (const endpoint of endpoints) {
-                await endpoint.read(cluster, attributes);
+                await endpoint.read<Cl, Custom>(cluster, attributes);
             }
         }
     };
@@ -286,32 +324,30 @@ export function forcePowerSource(args: {powerSource: "Mains (single phase)" | "B
 
 export interface LinkQualityArgs {
     reporting?: boolean;
-    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-    attribute?: string | {ID: number; type: number};
+    attribute?: ClusterOrRawAttributeKeys<"genBasic">[number];
     reportingConfig?: ReportingConfigWithoutAttribute;
 }
-export function linkQuality(args?: LinkQualityArgs): ModernExtend {
-    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
-    args = {reporting: false, attribute: "zclVersion", reportingConfig: {min: "1_HOUR", max: "4_HOURS", change: 0}, ...args};
+export function linkQuality(args: LinkQualityArgs = {}): ModernExtend {
+    const {reporting = false, attribute = "zclVersion", reportingConfig = {min: "1_HOUR", max: "4_HOURS", change: 0}} = args;
 
     // Exposes is empty because the application (e.g. Z2M) adds a linkquality sensor
     // for every device already.
     const exposes: Expose[] = [];
 
-    const fromZigbee: Fz.Converter[] = [
+    const fromZigbee = [
         {
             cluster: "genBasic",
             type: ["attributeReport", "readResponse"],
             convert: (model, msg, publish, options, meta) => {
                 return {linkquality: msg.linkquality};
             },
-        },
+        } satisfies Fz.Converter<"genBasic", undefined, ["attributeReport", "readResponse"]>,
     ];
 
     const result: ModernExtend = {exposes, fromZigbee, isModernExtend: true};
 
-    if (args.reporting) {
-        result.configure = [setupConfigureForReporting("genBasic", args.attribute, args.reportingConfig, ea.GET)];
+    if (reporting) {
+        result.configure = [setupConfigureForReporting("genBasic", attribute, {config: reportingConfig, access: ea.GET})];
     }
 
     return result;
@@ -329,23 +365,22 @@ export interface BatteryArgs {
     voltageReporting?: boolean;
     lowStatusReportingConfig?: ReportingConfigWithoutAttribute;
 }
-export function battery(args?: BatteryArgs): ModernExtend {
-    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
-    args = {
-        percentage: true,
-        voltage: false,
-        lowStatus: false,
-        percentageReporting: true,
-        voltageReporting: false,
-        dontDividePercentage: false,
-        percentageReportingConfig: {min: "1_HOUR", max: "MAX", change: 10},
-        voltageReportingConfig: {min: "1_HOUR", max: "MAX", change: 10},
-        ...args,
-    };
-
+export function battery(args: BatteryArgs = {}): ModernExtend {
+    const {
+        percentage = true,
+        voltage = false,
+        lowStatus = false,
+        percentageReporting = true,
+        voltageReporting = false,
+        dontDividePercentage = false,
+        percentageReportingConfig = {min: "1_HOUR", max: "MAX", change: 10},
+        voltageReportingConfig = {min: "1_HOUR", max: "MAX", change: 10},
+        lowStatusReportingConfig = undefined,
+        voltageToPercentage = undefined,
+    } = args;
     const exposes: Expose[] = [];
 
-    if (args.percentage) {
+    if (percentage) {
         exposes.push(
             e
                 .numeric("battery", ea.STATE_GET)
@@ -356,16 +391,16 @@ export function battery(args?: BatteryArgs): ModernExtend {
                 .withCategory("diagnostic"),
         );
     }
-    if (args.voltage) {
+    if (voltage) {
         exposes.push(
             e.numeric("voltage", ea.STATE_GET).withUnit("mV").withDescription("Reported battery voltage in millivolts").withCategory("diagnostic"),
         );
     }
-    if (args.lowStatus) {
+    if (lowStatus) {
         exposes.push(e.binary("battery_low", ea.STATE, true, false).withDescription("Empty battery indicator").withCategory("diagnostic"));
     }
 
-    const fromZigbee: Fz.Converter[] = [
+    const fromZigbee = [
         {
             cluster: "genPowerCfg",
             type: ["attributeReport", "readResponse"],
@@ -374,18 +409,17 @@ export function battery(args?: BatteryArgs): ModernExtend {
                 if (msg.data.batteryPercentageRemaining !== undefined && msg.data.batteryPercentageRemaining < 255) {
                     // Some devices do not comply to the ZCL and report a
                     // batteryPercentageRemaining of 100 when the battery is full (should be 200).
-                    const dontDividePercentage = args.dontDividePercentage;
                     let percentage = msg.data.batteryPercentageRemaining;
                     percentage = dontDividePercentage ? percentage : percentage / 2;
-                    if (args.percentage) payload.battery = precisionRound(percentage, 2);
+                    if (percentage) payload.battery = precisionRound(percentage, 2);
                 }
 
                 if (msg.data.batteryVoltage !== undefined && msg.data.batteryVoltage < 255) {
                     // Deprecated: voltage is = mV now but should be V
-                    if (args.voltage) payload.voltage = msg.data.batteryVoltage * 100;
+                    if (voltage) payload.voltage = msg.data.batteryVoltage * 100;
 
-                    if (args.voltageToPercentage) {
-                        payload.battery = batteryVoltageToPercentage(payload.voltage, args.voltageToPercentage);
+                    if (voltageToPercentage) {
+                        payload.battery = batteryVoltageToPercentage(payload.voltage, voltageToPercentage);
                     }
                 }
 
@@ -405,12 +439,12 @@ export function battery(args?: BatteryArgs): ModernExtend {
                             msg.data.batteryAlarmState & (1 << 21) ||
                             msg.data.batteryAlarmState & (1 << 22) ||
                             msg.data.batteryAlarmState & (1 << 23)) > 0;
-                    if (args.lowStatus) payload.battery_low = battery1Low || battery2Low || battery3Low;
+                    if (lowStatus) payload.battery_low = battery1Low || battery2Low || battery3Low;
                 }
 
                 return payload;
             },
-        },
+        } satisfies Fz.Converter<"genPowerCfg", undefined, ["attributeReport", "readResponse"]>,
     ];
 
     const toZigbee: Tz.Converter[] = [
@@ -436,33 +470,49 @@ export function battery(args?: BatteryArgs): ModernExtend {
 
     const result: ModernExtend = {exposes, fromZigbee, toZigbee, configure: [], isModernExtend: true};
 
-    if (args.percentageReporting || args.voltageReporting) {
-        if (args.percentageReporting) {
+    if (percentageReporting || voltageReporting) {
+        if (percentageReporting) {
             result.configure.push(
-                setupConfigureForReporting("genPowerCfg", "batteryPercentageRemaining", args.percentageReportingConfig, ea.STATE_GET),
+                setupConfigureForReporting("genPowerCfg", "batteryPercentageRemaining", {
+                    config: percentageReportingConfig,
+                    access: ea.STATE_GET,
+                    singleEndpoint: true,
+                }),
             );
         }
-        if (args.voltageReporting) {
-            result.configure.push(setupConfigureForReporting("genPowerCfg", "batteryVoltage", args.voltageReportingConfig, ea.STATE_GET));
+        if (voltageReporting) {
+            result.configure.push(
+                setupConfigureForReporting("genPowerCfg", "batteryVoltage", {
+                    config: voltageReportingConfig,
+                    access: ea.STATE_GET,
+                    singleEndpoint: true,
+                }),
+            );
         }
         result.configure.push(configureSetPowerSourceWhenUnknown("Battery"));
     }
 
-    if (args.voltageToPercentage || args.dontDividePercentage) {
+    if (voltageToPercentage || dontDividePercentage) {
         const meta: DefinitionMeta = {battery: {}};
-        if (args.voltageToPercentage) meta.battery.voltageToPercentage = args.voltageToPercentage;
-        if (args.dontDividePercentage) meta.battery.dontDividePercentage = args.dontDividePercentage;
+        if (voltageToPercentage) meta.battery.voltageToPercentage = voltageToPercentage;
+        if (dontDividePercentage) meta.battery.dontDividePercentage = dontDividePercentage;
         result.meta = meta;
     }
 
-    if (args.lowStatusReportingConfig) {
-        result.configure.push(setupConfigureForReporting("genPowerCfg", "batteryAlarmState", args.lowStatusReportingConfig, ea.STATE_GET));
+    if (lowStatusReportingConfig) {
+        result.configure.push(
+            setupConfigureForReporting("genPowerCfg", "batteryAlarmState", {
+                config: lowStatusReportingConfig,
+                access: ea.STATE_GET,
+                singleEndpoint: true,
+            }),
+        );
     }
 
     return result;
 }
 
-export function deviceTemperature(args?: Partial<NumericArgs>) {
+export function deviceTemperature(args: Partial<NumericArgs<"genDeviceTempCfg">> = {}) {
     return numeric({
         name: "device_temperature",
         cluster: "genDeviceTempCfg",
@@ -476,9 +526,8 @@ export function deviceTemperature(args?: Partial<NumericArgs>) {
     });
 }
 
-export function identify(args?: {isSleepy: boolean}): ModernExtend {
-    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
-    args = {isSleepy: false, ...args};
+export function identify(args: {isSleepy: boolean} = {isSleepy: false}): ModernExtend {
+    const {isSleepy} = args;
     const normal: Expose = e.enum("identify", ea.SET, ["identify"]).withDescription("Initiate device identification").withCategory("config");
     const sleepy: Expose = e
         .enum("identify", ea.SET, ["identify"])
@@ -488,7 +537,7 @@ export function identify(args?: {isSleepy: boolean}): ModernExtend {
         )
         .withCategory("config");
 
-    const exposes: Expose[] = args.isSleepy ? [sleepy] : [normal];
+    const exposes: Expose[] = isSleepy ? [sleepy] : [normal];
 
     const identifyTimeout = e
         .numeric("identify_timeout", ea.SET)
@@ -504,7 +553,7 @@ export function identify(args?: {isSleepy: boolean}): ModernExtend {
             key: ["identify"],
             options: [identifyTimeout],
             convertSet: async (entity, key, value, meta) => {
-                const identifyTimeout = meta.options.identify_timeout ?? 3;
+                const identifyTimeout = (meta.options.identify_timeout as number) ?? 3;
                 await entity.command("genIdentify", "identify", {identifytime: identifyTimeout}, getOptions(meta.mapped, entity));
             },
         },
@@ -521,30 +570,34 @@ export interface OnOffArgs {
     configureReporting?: boolean;
     description?: string;
 }
-export function onOff(args?: OnOffArgs): ModernExtend {
-    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
-    args = {powerOnBehavior: true, skipDuplicateTransaction: false, configureReporting: true, ...args};
+export function onOff(args: OnOffArgs = {}): ModernExtend {
+    const {
+        powerOnBehavior = true,
+        skipDuplicateTransaction = false,
+        configureReporting = true,
+        endpointNames = undefined,
+        description = undefined,
+        ota = false,
+    } = args;
 
-    const exposes: Expose[] = args.description
-        ? exposeEndpoints(e.switch(args.description), args.endpointNames)
-        : exposeEndpoints(e.switch(), args.endpointNames);
+    const exposes: Expose[] = description ? exposeEndpoints(e.switch(description), endpointNames) : exposeEndpoints(e.switch(), endpointNames);
 
-    const fromZigbee: Fz.Converter[] = [args.skipDuplicateTransaction ? fz.on_off_skip_duplicate_transaction : fz.on_off];
-    const toZigbee: Tz.Converter[] = [args?.endpointNames ? {...tz.on_off, endpoints: args?.endpointNames} : tz.on_off];
+    const fromZigbee = [skipDuplicateTransaction ? fz.on_off_skip_duplicate_transaction : fz.on_off];
+    const toZigbee: Tz.Converter[] = [endpointNames ? {...tz.on_off, endpoints: endpointNames} : tz.on_off];
 
-    if (args.powerOnBehavior) {
-        exposes.push(...exposeEndpoints(e.power_on_behavior(["off", "on", "toggle", "previous"]), args.endpointNames));
+    if (powerOnBehavior) {
+        exposes.push(...exposeEndpoints(e.power_on_behavior(["off", "on", "toggle", "previous"]), endpointNames));
         fromZigbee.push(fz.power_on_behavior);
         toZigbee.push(tz.power_on_behavior);
     }
 
     const result: ModernExtend = {exposes, fromZigbee, toZigbee, isModernExtend: true};
-    if (args.ota) result.ota = args.ota;
-    if (args.configureReporting) {
+    if (ota) result.ota = ota;
+    if (configureReporting) {
         result.configure = [
             async (device, coordinatorEndpoint) => {
                 await setupAttributes(device, coordinatorEndpoint, "genOnOff", [{attribute: "onOff", min: "MIN", max: "MAX", change: 1}]);
-                if (args.powerOnBehavior) {
+                if (powerOnBehavior) {
                     try {
                         // Don't fail configure if reading this attribute fails, some devices don't support it.
                         await setupAttributes(
@@ -574,12 +627,11 @@ export interface CommandsOnOffArgs {
     bind?: boolean;
     endpointNames?: string[];
 }
-export function commandsOnOff(args?: CommandsOnOffArgs): ModernExtend {
-    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
-    args = {commands: ["on", "off", "toggle"], bind: true, ...args};
-    let actions: string[] = args.commands;
-    if (args.endpointNames) {
-        actions = args.commands.flatMap((c) => args.endpointNames.map((e) => `${c}_${e}`));
+export function commandsOnOff(args: CommandsOnOffArgs = {}): ModernExtend {
+    const {commands = ["on", "off", "toggle"], bind = true, endpointNames = undefined} = args;
+    let actions: string[] = commands;
+    if (endpointNames) {
+        actions = commands.flatMap((c) => endpointNames.map((e) => `${c}_${e}`));
     }
     const exposes: Expose[] = [e.enum("action", ea.STATE, actions).withDescription("Triggered action (e.g. a button click)")];
 
@@ -590,7 +642,7 @@ export function commandsOnOff(args?: CommandsOnOffArgs): ModernExtend {
         commandToggle: "toggle",
     };
 
-    const fromZigbee: Fz.Converter[] = [
+    const fromZigbee = [
         {
             cluster: "genOnOff",
             type: ["commandOn", "commandOff", "commandOffWithEffect", "commandToggle"],
@@ -600,14 +652,112 @@ export function commandsOnOff(args?: CommandsOnOffArgs): ModernExtend {
                 addActionGroup(payload, msg, model);
                 return payload;
             },
-        },
+        } satisfies Fz.Converter<"genOnOff", undefined, ["commandOn", "commandOff", "commandOffWithEffect", "commandToggle"]>,
     ];
 
     const result: ModernExtend = {exposes, fromZigbee, isModernExtend: true};
 
-    if (args.bind) result.configure = [setupConfigureForBinding("genOnOff", "output", args.endpointNames)];
+    if (bind) result.configure = [setupConfigureForBinding("genOnOff", "output", endpointNames)];
 
     return result;
+}
+
+export function poll(args: {
+    key: string;
+    defaultIntervalSeconds: number;
+    poll: (device: Zh.Device, options: KeyValue) => void;
+    option?: exposes.Numeric;
+    optionKey?: string;
+}): ModernExtend {
+    const optionKey = args.optionKey ?? `${args.key}_poll_interval`;
+    const onEvent: OnEvent.Handler[] = [
+        (event) => {
+            if (event.type === "start" || (event.type === "deviceOptionsChanged" && event.data.from[optionKey] !== event.data.to[optionKey])) {
+                let seconds = args.defaultIntervalSeconds;
+                if (args.option) {
+                    seconds = toNumber(event.data.options[optionKey] ?? args.defaultIntervalSeconds, optionKey);
+                }
+
+                clearTimeout(globalStore.getValue(event.data.device.ieeeAddr, args.key));
+
+                if (seconds <= 0) {
+                    logger.debug(`Not polling '${args.key}' for '${event.data.device.ieeeAddr}' since poll interval is <= 0 (got ${seconds})`, NS);
+                } else {
+                    logger.debug(`Polling '${args.key}' for '${event.data.device.ieeeAddr}' at an interval of ${seconds}`, NS);
+                    const setTimer = () => {
+                        const timer = setTimeout(async () => {
+                            try {
+                                await args.poll(event.data.device, event.data.options);
+                            } catch (error) {
+                                logger.debug(`Poll of '${event.data.device.ieeeAddr}' failed (${error})`, NS);
+                            }
+                            setTimer();
+                        }, seconds * 1000);
+                        globalStore.putValue(event.data.device.ieeeAddr, args.key, timer);
+                    };
+                    setTimer();
+                }
+            } else if (event.type === "stop") {
+                clearTimeout(globalStore.getValue(event.data.ieeeAddr, args.key));
+                globalStore.clearValue(event.data.ieeeAddr, args.key);
+            }
+        },
+    ];
+
+    return {onEvent, options: args.option ? [args.option] : [], isModernExtend: true};
+}
+
+export function writeTimeDaily(args: {endpointId: number}): ModernExtend {
+    return poll({
+        key: "time",
+        defaultIntervalSeconds: 60 * 60 * 24,
+        poll: (device) => {
+            const time = Math.round((Date.now() - constants.OneJanuary2000) / 1000 + new Date().getTimezoneOffset() * -1 * 60);
+            device
+                .getEndpoint(args.endpointId)
+                .write("genTime", {time: time}, {sendPolicy: "queue"})
+                .catch((error) => logger.error(`Failed to write time to '${device.ieeeAddr}' (${error})`, NS));
+        },
+    });
+}
+
+export function iasArmCommandDefaultResponse(): ModernExtend {
+    const converter: Fz.Converter<"ssIasAce", undefined, ["commandArm"]> = {
+        cluster: "ssIasAce",
+        type: ["commandArm"],
+        convert: (model, msg, publish, options, meta) => {
+            // Since arm command has a response zigbee-herdsman doesn't send a default response.
+            // This causes the remote to repeat the arm command, so send a default response here.
+            msg.endpoint
+                .defaultResponse(0, 0, 1281, msg.meta.zclTransactionSequenceNumber)
+                .catch((error) => logger.error(`Failed to send default response to '${msg.device.ieeeAddr}' (${error})`, NS));
+        },
+    };
+
+    return {fromZigbee: [converter], isModernExtend: true};
+}
+
+export function iasGetPanelStatusResponse(): ModernExtend {
+    const converter: Fz.Converter<"ssIasAce", undefined, ["commandGetPanelStatus"]> = {
+        cluster: "ssIasAce",
+        type: ["commandGetPanelStatus"],
+        convert: (model, msg, publish, options, meta) => {
+            if (globalStore.hasValue(msg.endpoint, "panelStatus")) {
+                const payload = {
+                    panelstatus: globalStore.getValue(msg.endpoint, "panelStatus"),
+                    secondsremain: 0x00,
+                    audiblenotif: 0x00,
+                    alarmstatus: 0x00,
+                };
+                assertNumber(msg.meta.zclTransactionSequenceNumber);
+                msg.endpoint
+                    .commandResponse("ssIasAce", "getPanelStatusRsp", payload, {}, msg.meta.zclTransactionSequenceNumber)
+                    .catch((error) => logger.error(`Failed to send panel status response '${msg.device.ieeeAddr}' (${error})`, NS));
+            }
+        },
+    };
+
+    return {fromZigbee: [converter], isModernExtend: true};
 }
 
 export function customTimeResponse(start: "1970_UTC" | "2000_LOCAL"): ModernExtend {
@@ -616,23 +766,23 @@ export function customTimeResponse(start: "1970_UTC" | "2000_LOCAL"): ModernExte
     // 1970_UTC: number of seconds since the Unix Epoch (1st Jan 1970 00:00:00 UTC)
     // 2000_LOCAL: seconds since 1 January in the local time zone.
     // Disable the responses of zigbee-herdsman and respond here instead.
-    const onEvent: OnEvent[] = [
-        async (type, data, device, options, state: KeyValue) => {
-            if (!device.customReadResponse) {
-                device.customReadResponse = (frame, endpoint) => {
+    const onEvent: OnEvent.Handler[] = [
+        (event) => {
+            if (event.type === "start" && !event.data.device.customReadResponse) {
+                event.data.device.customReadResponse = (frame, endpoint) => {
                     if (frame.isCluster("genTime")) {
-                        const payload: KeyValue = {};
+                        const payload: TPartialClusterAttributes<"genTime"> = {};
                         if (start === "1970_UTC") {
-                            const time = Math.round(new Date().getTime() / 1000);
+                            const time = Math.round(Date.now() / 1000);
                             payload.time = time;
                             payload.localTime = time - new Date().getTimezoneOffset() * 60;
                         } else if (start === "2000_LOCAL") {
                             const oneJanuary2000 = new Date("January 01, 2000 00:00:00 UTC+00:00").getTime();
-                            const secondsUTC = Math.round((new Date().getTime() - oneJanuary2000) / 1000);
+                            const secondsUTC = Math.round((Date.now() - oneJanuary2000) / 1000);
                             payload.time = secondsUTC - new Date().getTimezoneOffset() * 60;
                         }
                         endpoint.readResponse("genTime", frame.header.transactionSequenceNumber, payload).catch((e) => {
-                            logger.warning(`Custom time response failed for '${device.ieeeAddr}': ${e}`, "zhc:customtimeresponse");
+                            logger.warning(`Custom time response failed for '${event.data.device.ieeeAddr}': ${e}`, "zhc:customtimeresponse");
                         });
                         return true;
                     }
@@ -649,7 +799,7 @@ export function customTimeResponse(start: "1970_UTC" | "2000_LOCAL"): ModernExte
 
 // #region Measurement and Sensing
 
-export function illuminance(args?: Partial<NumericArgs>): ModernExtend {
+export function illuminance(args: Partial<NumericArgs<"msIlluminanceMeasurement">> = {}): ModernExtend {
     const luxScale: ScaleFunction = (value: number, type: "from" | "to") => {
         let result = value;
         if (type === "from") {
@@ -679,7 +829,7 @@ export function illuminance(args?: Partial<NumericArgs>): ModernExtend {
                 return {illuminance_raw: msg.data.measuredValue};
             }
         },
-    } satisfies Fz.Converter;
+    } satisfies Fz.Converter<"msIlluminanceMeasurement", undefined, ["attributeReport", "readResponse"]>;
     result.fromZigbee.push(fzIlluminanceRaw);
     const exposeIlluminanceRaw: DefinitionExposes = (device, options) => {
         return options?.illuminance_raw ? [e.illuminance_raw()] : [];
@@ -689,7 +839,7 @@ export function illuminance(args?: Partial<NumericArgs>): ModernExtend {
     return result;
 }
 
-export function temperature(args?: Partial<NumericArgs>) {
+export function temperature(args: Partial<NumericArgs<"msTemperatureMeasurement">> = {}) {
     return numeric({
         name: "temperature",
         cluster: "msTemperatureMeasurement",
@@ -703,7 +853,7 @@ export function temperature(args?: Partial<NumericArgs>) {
     });
 }
 
-export function pressure(args?: Partial<NumericArgs>): ModernExtend {
+export function pressure(args: Partial<NumericArgs<"msPressureMeasurement">> = {}): ModernExtend {
     return numeric({
         name: "pressure",
         cluster: "msPressureMeasurement",
@@ -717,7 +867,7 @@ export function pressure(args?: Partial<NumericArgs>): ModernExtend {
     });
 }
 
-export function flow(args?: Partial<NumericArgs>) {
+export function flow(args: Partial<NumericArgs<"msFlowMeasurement">> = {}) {
     return numeric({
         name: "flow",
         cluster: "msFlowMeasurement",
@@ -731,7 +881,7 @@ export function flow(args?: Partial<NumericArgs>) {
     });
 }
 
-export function humidity(args?: Partial<NumericArgs>) {
+export function humidity(args: Partial<NumericArgs<"msRelativeHumidity">> = {}) {
     return numeric({
         name: "humidity",
         cluster: "msRelativeHumidity",
@@ -745,7 +895,7 @@ export function humidity(args?: Partial<NumericArgs>) {
     });
 }
 
-export function soilMoisture(args?: Partial<NumericArgs>) {
+export function soilMoisture(args: Partial<NumericArgs<"msSoilMoisture">> = {}) {
     return numeric({
         name: "soil_moisture",
         cluster: "msSoilMoisture",
@@ -767,22 +917,28 @@ export interface OccupancyArgs {
     reportingConfig?: ReportingConfigWithoutAttribute;
     endpointNames?: string[];
 }
-export function occupancy(args?: OccupancyArgs): ModernExtend {
-    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
-    args = {reporting: true, reportingConfig: {min: "MIN", max: "1_HOUR", change: 0}, ...args};
+export function occupancy(args: OccupancyArgs = {}): ModernExtend {
+    const {
+        reporting = true,
+        reportingConfig = {min: "MIN", max: "1_HOUR", change: 0},
+        pirConfig = undefined,
+        ultrasonicConfig = undefined,
+        contactConfig = undefined,
+        endpointNames = undefined,
+    } = args;
 
     const templateExposes: Expose[] = [e.occupancy().withAccess(ea.STATE_GET)];
-    const exposes: (Expose | DefinitionExposesFunction)[] = args.endpointNames
-        ? templateExposes.flatMap((exp) => args.endpointNames.map((ep) => exp.withEndpoint(ep)))
+    const exposes: (Expose | DefinitionExposesFunction)[] = endpointNames
+        ? templateExposes.flatMap((exp) => endpointNames.map((ep) => exp.withEndpoint(ep)))
         : templateExposes;
 
-    const fromZigbee: Fz.Converter[] = [
+    const fromZigbee: Fz.Converter<"msOccupancySensing">[] = [
         {
             cluster: "msOccupancySensing",
             type: ["attributeReport", "readResponse"],
             options: [opt.no_occupancy_since_false()],
             convert: (model, msg, publish, options, meta) => {
-                if ("occupancy" in msg.data && (!args.endpointNames || args.endpointNames.includes(getEndpointName(msg, model, meta).toString()))) {
+                if ("occupancy" in msg.data && (!endpointNames || endpointNames.includes(getEndpointName(msg, model, meta).toString()))) {
                     const propertyName = postfixWithEndpointName("occupancy", msg, model, meta);
                     const payload = {[propertyName]: (msg.data.occupancy & 1) > 0};
                     noOccupancySince(msg.endpoint, options, publish, payload[propertyName] ? "stop" : "start");
@@ -804,17 +960,17 @@ export function occupancy(args?: OccupancyArgs): ModernExtend {
     const settingsExtends: ModernExtend[] = [];
 
     const settingsTemplate = {
-        cluster: "msOccupancySensing",
+        cluster: "msOccupancySensing" as const,
         description: "",
-        endpointNames: args.endpointNames,
+        endpointNames: endpointNames,
         access: "ALL" as "STATE" | "STATE_GET" | "ALL",
         entityCategory: "config" as "config" | "diagnostic",
     };
 
-    const attributesForReading: string[] = [];
+    const attributesForReading: ClusterOrRawAttributeKeys<typeof settingsTemplate.cluster> = [];
 
-    if (args.pirConfig) {
-        if (args.pirConfig.includes("otu_delay")) {
+    if (pirConfig) {
+        if (pirConfig.includes("otu_delay")) {
             settingsExtends.push(
                 numeric({
                     name: "occupancy_timeout",
@@ -828,7 +984,7 @@ export function occupancy(args?: OccupancyArgs): ModernExtend {
             );
             attributesForReading.push("pirOToUDelay");
         }
-        if (args.pirConfig.includes("uto_delay")) {
+        if (pirConfig.includes("uto_delay")) {
             settingsExtends.push(
                 numeric({
                     name: "pir_uto_delay",
@@ -840,7 +996,7 @@ export function occupancy(args?: OccupancyArgs): ModernExtend {
             );
             attributesForReading.push("pirUToODelay");
         }
-        if (args.pirConfig.includes("uto_threshold")) {
+        if (pirConfig.includes("uto_threshold")) {
             settingsExtends.push(
                 numeric({
                     name: "pir_uto_threshold",
@@ -854,8 +1010,8 @@ export function occupancy(args?: OccupancyArgs): ModernExtend {
         }
     }
 
-    if (args.ultrasonicConfig) {
-        if (args.pirConfig.includes("otu_delay")) {
+    if (ultrasonicConfig) {
+        if (pirConfig.includes("otu_delay")) {
             settingsExtends.push(
                 numeric({
                     name: "ultrasonic_otu_delay",
@@ -867,7 +1023,7 @@ export function occupancy(args?: OccupancyArgs): ModernExtend {
             );
             attributesForReading.push("ultrasonicOToUDelay");
         }
-        if (args.pirConfig.includes("uto_delay")) {
+        if (pirConfig.includes("uto_delay")) {
             settingsExtends.push(
                 numeric({
                     name: "ultrasonic_uto_delay",
@@ -879,7 +1035,7 @@ export function occupancy(args?: OccupancyArgs): ModernExtend {
             );
             attributesForReading.push("ultrasonicUToODelay");
         }
-        if (args.pirConfig.includes("uto_threshold")) {
+        if (pirConfig.includes("uto_threshold")) {
             settingsExtends.push(
                 numeric({
                     name: "ultrasonic_uto_threshold",
@@ -893,8 +1049,8 @@ export function occupancy(args?: OccupancyArgs): ModernExtend {
         }
     }
 
-    if (args.contactConfig) {
-        if (args.pirConfig.includes("otu_delay")) {
+    if (contactConfig) {
+        if (pirConfig.includes("otu_delay")) {
             settingsExtends.push(
                 numeric({
                     name: "contact_otu_delay",
@@ -906,7 +1062,7 @@ export function occupancy(args?: OccupancyArgs): ModernExtend {
             );
             attributesForReading.push("contactOToUDelay");
         }
-        if (args.pirConfig.includes("uto_delay")) {
+        if (pirConfig.includes("uto_delay")) {
             settingsExtends.push(
                 numeric({
                     name: "contact_uto_delay",
@@ -918,7 +1074,7 @@ export function occupancy(args?: OccupancyArgs): ModernExtend {
             );
             attributesForReading.push("contactUToODelay");
         }
-        if (args.pirConfig.includes("uto_threshold")) {
+        if (pirConfig.includes("uto_threshold")) {
             settingsExtends.push(
                 numeric({
                     name: "contact_uto_threshold",
@@ -938,16 +1094,22 @@ export function occupancy(args?: OccupancyArgs): ModernExtend {
 
     const configure: Configure[] = [];
 
-    if (attributesForReading.length > 0) configure.push(setupConfigureForReading("msOccupancySensing", attributesForReading, args.endpointNames));
+    if (attributesForReading.length > 0) configure.push(setupConfigureForReading("msOccupancySensing", attributesForReading, endpointNames));
 
-    if (args.reporting) {
-        configure.push(setupConfigureForReporting("msOccupancySensing", "occupancy", args.reportingConfig, ea.STATE_GET, args.endpointNames));
+    if (reporting) {
+        configure.push(
+            setupConfigureForReporting("msOccupancySensing", "occupancy", {
+                config: reportingConfig,
+                access: ea.STATE_GET,
+                endpointNames: endpointNames,
+            }),
+        );
     }
 
     return {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
 }
 
-export function co2(args?: Partial<NumericArgs>) {
+export function co2(args: Partial<NumericArgs<"msCO2">> = {}) {
     return numeric({
         name: "co2",
         cluster: "msCO2",
@@ -962,7 +1124,7 @@ export function co2(args?: Partial<NumericArgs>) {
     });
 }
 
-export function pm25(args?: Partial<NumericArgs>): ModernExtend {
+export function pm25(args: Partial<NumericArgs<"pm25Measurement">> = {}): ModernExtend {
     return numeric({
         name: "pm25",
         cluster: "pm25Measurement",
@@ -983,34 +1145,46 @@ export interface LightArgs {
     effect?: boolean;
     powerOnBehavior?: boolean;
     colorTemp?: {startup?: boolean; range: Range};
-    color?: boolean | {modes?: ("xy" | "hs")[]; applyRedFix?: boolean; enhancedHue?: boolean};
+    color?: boolean | {modes?: ("xy" | "hs")[]; applyRedFix?: boolean; enhancedHue?: boolean; moveToLevelWithOnOffDisable?: boolean};
     turnsOffAtBrightness1?: boolean;
     configureReporting?: boolean;
     endpointNames?: string[];
     ota?: ModernExtend["ota"];
-    levelConfig?: {disabledFeatures?: LevelConfigFeatures};
+    levelConfig?: {features?: LevelConfigFeatures};
     levelReportingConfig?: ReportingConfigWithoutAttribute;
 }
-export function light(args?: LightArgs): ModernExtend {
-    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
-    args = {effect: true, powerOnBehavior: true, configureReporting: false, ...args};
-    if (args.colorTemp) {
-        args.colorTemp = {startup: true, ...args.colorTemp};
+export function light(args: LightArgs = {}): ModernExtend {
+    const {
+        effect = true,
+        powerOnBehavior = true,
+        configureReporting = false,
+        ota = false,
+        color = undefined,
+        levelConfig = undefined,
+        turnsOffAtBrightness1 = false,
+        endpointNames = undefined,
+        levelReportingConfig = undefined,
+    } = args;
+    let {colorTemp = undefined} = args;
+    if (colorTemp) {
+        colorTemp = {startup: true, ...colorTemp};
     }
-    const argsColor = args.color
+    const argsColor = color
         ? {
               modes: ["xy"] satisfies ("xy" | "hs")[],
               applyRedFix: false,
               enhancedHue: true,
-              ...(isObject(args.color) ? args.color : {}),
+              moveToLevelWithOnOffDisable: false,
+              ...(isObject(color) ? color : {}),
           }
         : false;
 
-    const lightExpose = exposeEndpoints(e.light().withBrightness(), args.endpointNames);
+    const lightExpose = exposeEndpoints(e.light().withBrightness(), endpointNames);
 
-    const fromZigbee: Fz.Converter[] = [fz.on_off, fz.brightness, fz.ignore_basic_report, fz.level_config];
+    const fromZigbee: Fz.Converter<"genBasic" | "genOnOff" | "genLevelCtrl" | "lightingColorCtrl", undefined, ["attributeReport", "readResponse"]>[] =
+        [fz.on_off, fz.brightness, fz.ignore_basic_report, fz.level_config];
     const toZigbee: Tz.Converter[] = [
-        args?.endpointNames ? {...tz.light_onoff_brightness, endpoints: args?.endpointNames} : tz.light_onoff_brightness,
+        endpointNames ? {...tz.light_onoff_brightness, endpoints: endpointNames} : tz.light_onoff_brightness,
         tz.ignore_transition,
         tz.level_config,
         tz.ignore_rate,
@@ -1019,28 +1193,31 @@ export function light(args?: LightArgs): ModernExtend {
     ];
     const meta: DefinitionMeta = {};
 
-    if (args.colorTemp || argsColor) {
+    if (colorTemp || argsColor) {
         fromZigbee.push(fz.color_colortemp);
-        if (args.colorTemp && argsColor) toZigbee.push(tz.light_color_colortemp);
-        else if (args.colorTemp) toZigbee.push(tz.light_colortemp);
+        if (colorTemp && argsColor) toZigbee.push(tz.light_color_colortemp);
+        else if (colorTemp) toZigbee.push(tz.light_colortemp);
         else if (argsColor) toZigbee.push(tz.light_color);
         toZigbee.push(tz.light_color_mode, tz.light_color_options);
     }
 
-    if (args.colorTemp) {
-        // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
-        lightExpose.forEach((e) => e.withColorTemp(args.colorTemp.range));
+    if (colorTemp) {
+        lightExpose.forEach((e) => {
+            e.withColorTemp(colorTemp.range);
+        });
         toZigbee.push(tz.light_colortemp_move, tz.light_colortemp_step);
-        if (args.colorTemp.startup) {
+        if (colorTemp.startup) {
             toZigbee.push(tz.light_colortemp_startup);
-            // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
-            lightExpose.forEach((e) => e.withColorTempStartup(args.colorTemp.range));
+            lightExpose.forEach((e) => {
+                e.withColorTempStartup(colorTemp.range);
+            });
         }
     }
 
     if (argsColor) {
-        // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
-        lightExpose.forEach((e) => e.withColor(argsColor.modes));
+        lightExpose.forEach((e) => {
+            e.withColor(argsColor.modes);
+        });
         toZigbee.push(tz.light_hue_saturation_move, tz.light_hue_saturation_step);
         if (argsColor.modes.includes("hs")) {
             meta.supportsHueAndSaturation = true;
@@ -1051,52 +1228,56 @@ export function light(args?: LightArgs): ModernExtend {
         if (!argsColor.enhancedHue) {
             meta.supportsEnhancedHue = false;
         }
+        if (argsColor.moveToLevelWithOnOffDisable) {
+            meta.moveToLevelWithOnOffDisable = true;
+        }
     }
 
-    if (args.levelConfig) {
-        // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
-        lightExpose.forEach((e) => e.withLevelConfig(args.levelConfig.disabledFeatures ?? []));
+    if (levelConfig) {
+        lightExpose.forEach((e) => {
+            levelConfig.features ? e.withLevelConfig(levelConfig.features) : e.withLevelConfig();
+        });
         toZigbee.push(tz.level_config);
     }
 
     const exposes: Expose[] = lightExpose;
 
-    if (args.effect) {
+    if (effect) {
         const effects = e.effect();
-        if (args.color) {
+        if (color) {
             effects.values.push("colorloop", "stop_colorloop");
         }
 
-        exposes.push(...exposeEndpoints(effects, args.endpointNames));
+        exposes.push(...exposeEndpoints(effects, endpointNames));
         toZigbee.push(tz.effect);
     }
 
-    if (args.powerOnBehavior) {
-        exposes.push(...exposeEndpoints(e.power_on_behavior(["off", "on", "toggle", "previous"]), args.endpointNames));
+    if (powerOnBehavior) {
+        exposes.push(...exposeEndpoints(e.power_on_behavior(["off", "on", "toggle", "previous"]), endpointNames));
         fromZigbee.push(fz.power_on_behavior);
         toZigbee.push(tz.power_on_behavior);
     }
 
-    if (args.turnsOffAtBrightness1 !== undefined) {
-        meta.turnsOffAtBrightness1 = args.turnsOffAtBrightness1;
+    if (turnsOffAtBrightness1) {
+        meta.turnsOffAtBrightness1 = turnsOffAtBrightness1;
     }
 
     const configure: Configure[] = [
         async (device, coordinatorEndpoint, definition) => {
             await lightConfigure(device, coordinatorEndpoint, true);
 
-            if (args.configureReporting) {
+            if (configureReporting) {
                 await setupAttributes(device, coordinatorEndpoint, "genOnOff", [{attribute: "onOff", min: "MIN", max: "MAX", change: 1}]);
                 await setupAttributes(device, coordinatorEndpoint, "genLevelCtrl", [
-                    {attribute: "currentLevel", min: "5_SECONDS", max: "MAX", change: 1, ...(args.levelReportingConfig || {})},
+                    {attribute: "currentLevel", min: "5_SECONDS", max: "MAX", change: 1, ...(levelReportingConfig || {})},
                 ]);
-                if (args.colorTemp) {
+                if (colorTemp) {
                     await setupAttributes(device, coordinatorEndpoint, "lightingColorCtrl", [
                         {attribute: "colorTemperature", min: "10_SECONDS", max: "MAX", change: 1},
                     ]);
                 }
                 if (argsColor) {
-                    const attributes: ReportingConfig[] = [];
+                    const attributes: ReportingConfig<"lightingColorCtrl">[] = [];
                     if (argsColor.modes.includes("xy")) {
                         attributes.push(
                             {attribute: "currentX", min: "10_SECONDS", max: "MAX", change: 1},
@@ -1117,7 +1298,7 @@ export function light(args?: LightArgs): ModernExtend {
     ];
 
     const result: ModernExtend = {exposes, fromZigbee, toZigbee, configure, meta, isModernExtend: true};
-    if (args.ota) result.ota = args.ota;
+    if (ota) result.ota = ota;
     return result;
 }
 
@@ -1133,10 +1314,9 @@ export interface CommandsLevelCtrl {
     bind?: boolean;
     endpointNames?: string[];
 }
-export function commandsLevelCtrl(args?: CommandsLevelCtrl): ModernExtend {
-    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
-    args = {
-        commands: [
+export function commandsLevelCtrl(args: CommandsLevelCtrl = {}): ModernExtend {
+    const {
+        commands = [
             "brightness_move_to_level",
             "brightness_move_up",
             "brightness_move_down",
@@ -1144,22 +1324,22 @@ export function commandsLevelCtrl(args?: CommandsLevelCtrl): ModernExtend {
             "brightness_step_down",
             "brightness_stop",
         ],
-        bind: true,
-        ...args,
-    };
-    let actions: string[] = args.commands;
-    if (args.endpointNames) {
-        actions = args.commands.flatMap((c) => args.endpointNames.map((e) => `${c}_${e}`));
+        bind = true,
+        endpointNames = undefined,
+    } = args;
+    let actions: string[] = commands;
+    if (endpointNames) {
+        actions = commands.flatMap((c) => endpointNames.map((e) => `${c}_${e}`));
     }
     const exposes: Expose[] = [
         e.enum("action", ea.STATE, actions).withDescription("Triggered action (e.g. a button click)").withCategory("diagnostic"),
     ];
 
-    const fromZigbee: Fz.Converter[] = [fz.command_move_to_level, fz.command_move, fz.command_step, fz.command_stop];
+    const fromZigbee = [fz.command_move_to_level, fz.command_move, fz.command_step, fz.command_stop];
 
     const result: ModernExtend = {exposes, fromZigbee, isModernExtend: true};
 
-    if (args.bind) result.configure = [setupConfigureForBinding("genLevelCtrl", "output", args.endpointNames)];
+    if (bind) result.configure = [setupConfigureForBinding("genLevelCtrl", "output", endpointNames)];
 
     return result;
 }
@@ -1188,10 +1368,9 @@ export interface CommandsColorCtrl {
     bind?: boolean;
     endpointNames?: string[];
 }
-export function commandsColorCtrl(args?: CommandsColorCtrl): ModernExtend {
-    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
-    args = {
-        commands: [
+export function commandsColorCtrl(args: CommandsColorCtrl = {}): ModernExtend {
+    const {
+        commands = [
             "color_temperature_move_stop",
             "color_temperature_move_up",
             "color_temperature_move_down",
@@ -1211,21 +1390,21 @@ export function commandsColorCtrl(args?: CommandsColorCtrl): ModernExtend {
             "move_to_saturation",
             "move_to_hue",
         ],
-        bind: true,
-        ...args,
-    };
-    let actions: string[] = args.commands;
-    if (args.endpointNames) {
-        actions = args.commands.flatMap((c) => args.endpointNames.map((e) => `${c}_${e}`));
+        bind = true,
+        endpointNames = undefined,
+    } = args;
+    let actions: string[] = commands;
+    if (endpointNames) {
+        actions = commands.flatMap((c) => endpointNames.map((e) => `${c}_${e}`));
     }
     const exposes: Expose[] = [
         e.enum("action", ea.STATE, actions).withDescription("Triggered action (e.g. a button click)").withCategory("diagnostic"),
     ];
 
-    const fromZigbee: Fz.Converter[] = [
+    const fromZigbee = [
         fz.command_move_color_temperature,
         fz.command_step_color_temperature,
-        fz.command_ehanced_move_to_hue_and_saturation,
+        fz.command_enhanced_move_to_hue_and_saturation,
         fz.command_move_to_hue_and_saturation,
         fz.command_step_hue,
         fz.command_step_saturation,
@@ -1239,7 +1418,7 @@ export function commandsColorCtrl(args?: CommandsColorCtrl): ModernExtend {
 
     const result: ModernExtend = {exposes, fromZigbee, isModernExtend: true};
 
-    if (args.bind) result.configure = [setupConfigureForBinding("lightingColorCtrl", "output", args.endpointNames)];
+    if (bind) result.configure = [setupConfigureForBinding("lightingColorCtrl", "output", endpointNames)];
 
     return result;
 }
@@ -1276,19 +1455,13 @@ export function lightingBallast(): ModernExtend {
 export interface LockArgs {
     pinCodeCount: number;
     endpointNames?: string[];
+    readPinCodeOnProgrammingEvent?: boolean;
 }
-export function lock(args?: LockArgs): ModernExtend {
-    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
-    args = {...args};
+export function lock(args: LockArgs): ModernExtend {
+    const {endpointNames = undefined, pinCodeCount, readPinCodeOnProgrammingEvent = false} = args;
 
     const fromZigbee = [fz.lock, fz.lock_operation_event, fz.lock_programming_event, fz.lock_pin_code_response, fz.lock_user_status_response];
-    const toZigbee = [
-        {...tz.lock, endpoints: args?.endpointNames},
-        tz.pincode_lock,
-        tz.lock_userstatus,
-        tz.lock_auto_relock_time,
-        tz.lock_sound_volume,
-    ];
+    const toZigbee = [{...tz.lock, endpoints: endpointNames}, tz.pincode_lock, tz.lock_userstatus, tz.lock_auto_relock_time, tz.lock_sound_volume];
     const exposes = [
         e.lock(),
         e.pincode(),
@@ -1299,12 +1472,15 @@ export function lock(args?: LockArgs): ModernExtend {
         e.sound_volume(),
     ];
     const configure: Configure[] = [
-        setupConfigureForReporting("closuresDoorLock", "lockState", {min: "MIN", max: "1_HOUR", change: 0}, ea.STATE_GET),
+        setupConfigureForReporting("closuresDoorLock", "lockState", {config: {min: "MIN", max: "1_HOUR", change: 0}, access: ea.STATE_GET}),
     ];
-    const meta: DefinitionMeta = {pinCodeCount: args.pinCodeCount};
+    const meta: DefinitionMeta = {pinCodeCount: pinCodeCount};
     const result: ModernExtend = {fromZigbee, toZigbee, exposes, configure, meta, isModernExtend: true};
-    if (args.endpointNames) {
-        result.exposes = flatten(exposes.map((expose) => args.endpointNames.map((endpoint) => expose.clone().withEndpoint(endpoint))));
+    if (endpointNames) {
+        result.exposes = flatten(exposes.map((expose) => endpointNames.map((endpoint) => expose.clone().withEndpoint(endpoint))));
+    }
+    if (readPinCodeOnProgrammingEvent) {
+        fromZigbee.push(fz.lock_programming_event_read_pincode);
     }
     return result;
 }
@@ -1318,57 +1494,52 @@ export interface WindowCoveringArgs {
     endpointNames?: string[];
 }
 export function windowCovering(args: WindowCoveringArgs): ModernExtend {
-    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
-    args = {stateSource: "lift", configureReporting: true, ...args};
+    const {stateSource = "lift", configureReporting = true, controls, coverInverted = false, coverMode, endpointNames = undefined} = args;
     let coverExpose: Cover = e.cover();
-    if (args.controls.includes("lift")) coverExpose = coverExpose.withPosition();
-    if (args.controls.includes("tilt")) coverExpose = coverExpose.withTilt();
+    if (controls.includes("lift")) coverExpose = coverExpose.withPosition();
+    if (controls.includes("tilt")) coverExpose = coverExpose.withTilt();
     const exposes: Expose[] = [coverExpose];
 
-    const fromZigbee: Fz.Converter[] = [fz.cover_position_tilt];
-    const toZigbee: Tz.Converter[] = [{...tz.cover_state, endpoints: args?.endpointNames}, tz.cover_position_tilt];
+    const fromZigbee = [fz.cover_position_tilt];
+    const toZigbee: Tz.Converter[] = [{...tz.cover_state, endpoints: endpointNames}, tz.cover_position_tilt];
 
     const result: ModernExtend = {exposes, fromZigbee, toZigbee, isModernExtend: true};
 
-    if (args.configureReporting) {
+    if (configureReporting) {
         const configure: Configure[] = [];
-        if (args.controls.includes("lift")) {
+        if (controls.includes("lift")) {
             configure.push(
-                setupConfigureForReporting(
-                    "closuresWindowCovering",
-                    "currentPositionLiftPercentage",
-                    {min: "1_SECOND", max: "MAX", change: 1},
-                    ea.STATE_GET,
-                ),
+                setupConfigureForReporting("closuresWindowCovering", "currentPositionLiftPercentage", {
+                    config: {min: "1_SECOND", max: "MAX", change: 1},
+                    access: ea.STATE_GET,
+                }),
             );
         }
-        if (args.controls.includes("tilt")) {
+        if (controls.includes("tilt")) {
             configure.push(
-                setupConfigureForReporting(
-                    "closuresWindowCovering",
-                    "currentPositionTiltPercentage",
-                    {min: "1_SECOND", max: "MAX", change: 1},
-                    ea.STATE_GET,
-                ),
+                setupConfigureForReporting("closuresWindowCovering", "currentPositionTiltPercentage", {
+                    config: {min: "1_SECOND", max: "MAX", change: 1},
+                    access: ea.STATE_GET,
+                }),
             );
         }
         result.configure = configure;
     }
 
-    if (args.coverInverted || args.stateSource === "tilt") {
+    if (coverInverted || stateSource === "tilt") {
         const meta: DefinitionMeta = {};
-        if (args.coverInverted) meta.coverInverted = true;
-        if (args.stateSource === "tilt") meta.coverStateFromTilt = true;
+        if (coverInverted) meta.coverInverted = true;
+        if (stateSource === "tilt") meta.coverStateFromTilt = true;
         result.meta = meta;
     }
 
-    if (args.coverMode) {
+    if (coverMode) {
         result.toZigbee.push(tz.cover_mode);
         result.exposes.push(e.cover_mode());
     }
 
-    if (args.endpointNames) {
-        result.exposes = flatten(exposes.map((expose) => args.endpointNames.map((endpoint) => expose.clone().withEndpoint(endpoint))));
+    if (endpointNames) {
+        result.exposes = flatten(exposes.map((expose) => endpointNames.map((endpoint) => expose.clone().withEndpoint(endpoint))));
     }
 
     return result;
@@ -1379,12 +1550,11 @@ export interface CommandsWindowCoveringArgs {
     bind?: boolean;
     endpointNames?: string[];
 }
-export function commandsWindowCovering(args?: CommandsWindowCoveringArgs): ModernExtend {
-    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
-    args = {commands: ["open", "close", "stop"], bind: true, ...args};
-    let actions: string[] = args.commands;
-    if (args.endpointNames) {
-        actions = args.commands.flatMap((c) => args.endpointNames.map((e) => `${c}_${e}`));
+export function commandsWindowCovering(args: CommandsWindowCoveringArgs = {}): ModernExtend {
+    const {commands = ["open", "close", "stop"], bind = true, endpointNames = undefined} = args;
+    let actions: string[] = commands;
+    if (endpointNames) {
+        actions = commands.flatMap((c) => endpointNames.map((e) => `${c}_${e}`));
     }
     const exposes: Expose[] = [
         e.enum("action", ea.STATE, actions).withDescription("Triggered action (e.g. a button click)").withCategory("diagnostic"),
@@ -1396,7 +1566,7 @@ export function commandsWindowCovering(args?: CommandsWindowCoveringArgs): Moder
         commandStop: "stop",
     };
 
-    const fromZigbee: Fz.Converter[] = [
+    const fromZigbee = [
         {
             cluster: "closuresWindowCovering",
             type: ["commandUpOpen", "commandDownClose", "commandStop"],
@@ -1406,12 +1576,12 @@ export function commandsWindowCovering(args?: CommandsWindowCoveringArgs): Moder
                 addActionGroup(payload, msg, model);
                 return payload;
             },
-        },
+        } satisfies Fz.Converter<"closuresWindowCovering", undefined, ["commandUpOpen", "commandDownClose", "commandStop"]>,
     ];
 
     const result: ModernExtend = {exposes, fromZigbee, isModernExtend: true};
 
-    if (args.bind) result.configure = [setupConfigureForBinding("closuresWindowCovering", "output", args.endpointNames)];
+    if (bind) result.configure = [setupConfigureForBinding("closuresWindowCovering", "output", endpointNames)];
 
     return result;
 }
@@ -1469,7 +1639,7 @@ export function iasZoneAlarm(args: IasArgs): ModernExtend {
     let alarm2Name = "alarm_2";
 
     if (args.zoneType === "generic") {
-        args.zoneAttributes.map((attr) => {
+        args.zoneAttributes.forEach((attr) => {
             let expose = IAS_EXPOSE_LOOKUP[attr];
             if (args.description) {
                 expose = expose.clone().withDescription(args.description);
@@ -1495,13 +1665,13 @@ export function iasZoneAlarm(args: IasArgs): ModernExtend {
             alarm1Name = args.zoneType;
             alarm2Name = args.zoneType;
         }
-        args.zoneAttributes.map((attr) => {
+        args.zoneAttributes.forEach((attr) => {
             if (attr !== "alarm_1" && attr !== "alarm_2") exposes.push(IAS_EXPOSE_LOOKUP[attr]);
         });
     }
 
     if (args.manufacturerZoneAttributes)
-        args.manufacturerZoneAttributes.map((attr) => {
+        args.manufacturerZoneAttributes.forEach((attr) => {
             let expose = e.binary(attr.name, ea.STATE, attr.valueOn, attr.valueOff).withDescription(attr.description);
             if (attr.entityCategory) expose = expose.withCategory(attr.entityCategory);
             exposes.push(expose);
@@ -1509,7 +1679,7 @@ export function iasZoneAlarm(args: IasArgs): ModernExtend {
 
     const timeoutProperty = `${args.zoneType}_timeout`;
 
-    const fromZigbee: Fz.Converter[] = [
+    const fromZigbee = [
         {
             cluster: "ssIasZone",
             type: ["commandStatusChangeNotification", "attributeReport", "readResponse"],
@@ -1531,7 +1701,7 @@ export function iasZoneAlarm(args: IasArgs): ModernExtend {
                     }
                 }
                 const isChange = msg.type === "commandStatusChangeNotification";
-                const zoneStatus = isChange ? msg.data.zonestatus : msg.data.zoneStatus;
+                const zoneStatus = "zonestatus" in msg.data ? msg.data.zonestatus : msg.data.zoneStatus;
                 if (zoneStatus !== undefined) {
                     let payload = {};
                     if (args.zoneAttributes.includes("tamper")) {
@@ -1592,14 +1762,14 @@ export function iasZoneAlarm(args: IasArgs): ModernExtend {
                     }
 
                     if (args.manufacturerZoneAttributes)
-                        args.manufacturerZoneAttributes.map((attr) => {
+                        args.manufacturerZoneAttributes.forEach((attr) => {
                             payload = {[attr.name]: (zoneStatus & (1 << attr.bit)) > 0, ...payload};
                         });
 
                     return payload;
                 }
             },
-        },
+        } satisfies Fz.Converter<"ssIasZone", undefined, ["commandStatusChangeNotification", "attributeReport", "readResponse"]>,
     ];
 
     let configure: Configure[];
@@ -1617,7 +1787,8 @@ export function iasZoneAlarm(args: IasArgs): ModernExtend {
 export interface IasWarningArgs {
     reversePayload?: boolean;
 }
-export function iasWarning(args?: IasWarningArgs): ModernExtend {
+export function iasWarning(args: IasWarningArgs = {}): ModernExtend {
+    const {reversePayload = false} = args;
     const warningMode = {stop: 0, burglar: 1, fire: 2, emergency: 3, police_panic: 4, fire_panic: 5, emergency_panic: 6};
     // levels for siren, strobe and squawk are identical
     const level = {low: 0, medium: 1, high: 2, very_high: 3};
@@ -1654,7 +1825,7 @@ export function iasWarning(args?: IasWarningArgs): ModernExtend {
 
                 // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
                 let info;
-                if (args?.reversePayload) {
+                if (reversePayload) {
                     info = getFromLookup(values.mode, warningMode) + ((values.strobe ? 1 : 0) << 4) + (getFromLookup(values.level, level) << 6);
                 } else {
                     info = (getFromLookup(values.mode, warningMode) << 4) + ((values.strobe ? 1 : 0) << 2) + getFromLookup(values.level, level);
@@ -1690,7 +1861,8 @@ interface MeterArgs {
     extendedStatus?: boolean;
     configureReporting?: boolean;
     endpointNames?: string[];
-    fzMetering?: Fz.Converter;
+    // biome-ignore lint/suspicious/noExplicitAny: generic
+    fzMetering?: Fz.Converter<"seMetering", any, any>;
     // applies only to electrical
     electricalMeasurementType?: "both" | "ac" | "dc";
     voltage?: false | (MultiplierDivisor & Partial<ReportingConfigWithoutAttribute>);
@@ -1699,9 +1871,10 @@ interface MeterArgs {
     producedEnergy?: false | true | (MultiplierDivisor & Partial<ReportingConfigWithoutAttribute>);
     acFrequency?: false | true | (MultiplierDivisor & Partial<ReportingConfigWithoutAttribute>);
     powerFactor?: boolean;
-    fzElectricalMeasurement?: Fz.Converter;
+    // biome-ignore lint/suspicious/noExplicitAny: generic
+    fzElectricalMeasurement?: Fz.Converter<"haElectricalMeasurement", any, any>;
 }
-function genericMeter(args?: MeterArgs) {
+function genericMeter(args: MeterArgs = {}) {
     if (args.cluster !== "electrical") {
         const divisors = new Set([
             args.cluster === "metering" && isObject(args.power) ? args.power?.divisor : false,
@@ -1736,7 +1909,7 @@ function genericMeter(args?: MeterArgs) {
     }
 
     let exposes: Numeric[] = [];
-    let fromZigbee: Fz.Converter[];
+    let fromZigbee: Fz.Converter<"seMetering" | "haElectricalMeasurement", undefined, ["attributeReport", "readResponse"]>[];
     let toZigbee: Tz.Converter[];
 
     const changeLookup: Record<MeterType, {power: number; energy: number}> = {
@@ -1753,64 +1926,107 @@ function genericMeter(args?: MeterArgs) {
     const configureLookup = {
         haElectricalMeasurement: {
             // Report change with every 5W change
-            power: {attribute: "activePower", divisor: "acPowerDivisor", multiplier: "acPowerMultiplier", forced: args.power, change: 5},
-            power_phase_b: {attribute: "activePowerPhB", divisor: "acPowerDivisor", multiplier: "acPowerMultiplier", forced: args.power, change: 5},
-            power_phase_c: {attribute: "activePowerPhC", divisor: "acPowerDivisor", multiplier: "acPowerMultiplier", forced: args.power, change: 5},
+            power: {attribute: "activePower" as const, divisor: "acPowerDivisor", multiplier: "acPowerMultiplier", forced: args.power, change: 5},
+            power_phase_b: {
+                attribute: "activePowerPhB" as const,
+                divisor: "acPowerDivisor",
+                multiplier: "acPowerMultiplier",
+                forced: args.power,
+                change: 5,
+            },
+            power_phase_c: {
+                attribute: "activePowerPhC" as const,
+                divisor: "acPowerDivisor",
+                multiplier: "acPowerMultiplier",
+                forced: args.power,
+                change: 5,
+            },
             // Report change with every 0.05A change
-            current: {attribute: "rmsCurrent", divisor: "acCurrentDivisor", multiplier: "acCurrentMultiplier", forced: args.current, change: 0.05},
+            current: {
+                attribute: "rmsCurrent" as const,
+                divisor: "acCurrentDivisor",
+                multiplier: "acCurrentMultiplier",
+                forced: args.current,
+                change: 0.05,
+            },
             // Report change every 1 Hz
             ac_frequency: {
-                attribute: "acFrequency",
+                attribute: "acFrequency" as const,
                 divisor: "acFrequencyDivisor",
                 multiplier: "acFrequencyMultiplier",
                 forced: isObject(args.acFrequency) ? args.acFrequency : (false as const),
                 change: 1,
             },
             current_phase_b: {
-                attribute: "rmsCurrentPhB",
+                attribute: "rmsCurrentPhB" as const,
                 divisor: "acCurrentDivisor",
                 multiplier: "acCurrentMultiplier",
                 forced: args.current,
                 change: 0.05,
             },
             current_phase_c: {
-                attribute: "rmsCurrentPhC",
+                attribute: "rmsCurrentPhC" as const,
+                divisor: "acCurrentDivisor",
+                multiplier: "acCurrentMultiplier",
+                forced: args.current,
+                change: 0.05,
+            },
+            current_neutral: {
+                attribute: "neutralCurrent" as const,
                 divisor: "acCurrentDivisor",
                 multiplier: "acCurrentMultiplier",
                 forced: args.current,
                 change: 0.05,
             },
             power_factor: {
-                attribute: "powerFactor",
+                attribute: "powerFactor" as const,
                 change: 10,
             },
             // Report change with every 5V change
-            voltage: {attribute: "rmsVoltage", divisor: "acVoltageDivisor", multiplier: "acVoltageMultiplier", forced: args.voltage, change: 5},
+            voltage: {
+                attribute: "rmsVoltage" as const,
+                divisor: "acVoltageDivisor",
+                multiplier: "acVoltageMultiplier",
+                forced: args.voltage,
+                change: 5,
+            },
             voltage_phase_b: {
-                attribute: "rmsVoltagePhB",
+                attribute: "rmsVoltagePhB" as const,
                 divisor: "acVoltageDivisor",
                 multiplier: "acVoltageMultiplier",
                 forced: args.voltage,
                 change: 5,
             },
             voltage_phase_c: {
-                attribute: "rmsVoltagePhC",
+                attribute: "rmsVoltagePhC" as const,
                 divisor: "acVoltageDivisor",
                 multiplier: "acVoltageMultiplier",
                 forced: args.voltage,
                 change: 5,
             },
             // Report change with every 100mW change
-            dc_power: {attribute: "dcPower", divisor: "dcPowerDivisor", multiplier: "dcPowerMultiplier", forced: args.power, change: 100},
+            dc_power: {attribute: "dcPower" as const, divisor: "dcPowerDivisor", multiplier: "dcPowerMultiplier", forced: args.power, change: 100},
             // Report change with every 100mV change
-            dc_voltage: {attribute: "dcVoltage", divisor: "dcVoltageDivisor", multiplier: "dcVoltageMultiplier", forced: args.voltage, change: 100},
+            dc_voltage: {
+                attribute: "dcVoltage" as const,
+                divisor: "dcVoltageDivisor",
+                multiplier: "dcVoltageMultiplier",
+                forced: args.voltage,
+                change: 100,
+            },
             // Report change with every 100mA change
-            dc_current: {attribute: "dcCurrent", divisor: "dcCurrentDivisor", multiplier: "dcCurrentMultiplier", forced: args.current, change: 100},
+            dc_current: {
+                attribute: "dcCurrent" as const,
+                divisor: "dcCurrentDivisor",
+                multiplier: "dcCurrentMultiplier",
+                forced: args.current,
+                change: 100,
+            },
         },
         seMetering: {
             // Report change with every 5W change
             power: {
-                attribute: "instantaneousDemand",
+                attribute: "instantaneousDemand" as const,
                 divisor: "divisor",
                 multiplier: "multiplier",
                 forced: args.power,
@@ -1818,133 +2034,97 @@ function genericMeter(args?: MeterArgs) {
             },
             // Report change with every 0.1kWh change
             energy: {
-                attribute: "currentSummDelivered",
+                attribute: "currentSummDelivered" as const,
                 divisor: "divisor",
                 multiplier: "multiplier",
                 forced: args.energy,
                 change: changeLookup[args.type].energy,
             },
             produced_energy: {
-                attribute: "currentSummReceived",
+                attribute: "currentSummReceived" as const,
                 divisor: "divisor",
                 multiplier: "multiplier",
                 forced: isObject(args.producedEnergy) ? args.producedEnergy : (false as const),
                 change: 0.1,
             },
             status: {
-                attribute: "status",
+                attribute: "status" as const,
                 change: 1,
             },
             extended_status: {
-                attribute: "extendedStatus",
+                attribute: "extendedStatus" as const,
                 change: 1,
             },
         },
     };
 
     if (args.power === false) {
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.power;
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.seMetering.power;
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.power_phase_b;
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.power_phase_c;
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.dc_power;
     }
     if (args.voltage === false) {
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.voltage;
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.voltage_phase_b;
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.voltage_phase_c;
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.dc_voltage;
     }
     if (args.current === false) {
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.current;
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.current_phase_b;
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.current_phase_c;
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
+        delete configureLookup.haElectricalMeasurement.current_neutral;
         delete configureLookup.haElectricalMeasurement.dc_current;
     }
     if (args.energy === false) {
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.seMetering.energy;
     }
     if (args.producedEnergy === false) {
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.seMetering.produced_energy;
     }
     if (args.powerFactor === false) {
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.power_factor;
     }
     if (args.acFrequency === false) {
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.ac_frequency;
     }
     if (args.threePhase === false) {
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.power_phase_b;
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.power_phase_c;
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.current_phase_b;
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.current_phase_c;
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
+        delete configureLookup.haElectricalMeasurement.current_neutral;
         delete configureLookup.haElectricalMeasurement.voltage_phase_b;
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.voltage_phase_c;
     }
 
     if (args.electricalMeasurementType === "dc") {
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.power;
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.voltage;
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.current;
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.power_factor;
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.ac_frequency;
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.power_phase_b;
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.power_phase_c;
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.current_phase_b;
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.current_phase_c;
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
+        delete configureLookup.haElectricalMeasurement.current_neutral;
         delete configureLookup.haElectricalMeasurement.voltage_phase_b;
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.voltage_phase_c;
     }
 
     if (args.electricalMeasurementType === "ac") {
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.dc_power;
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.dc_voltage;
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement.dc_current;
     }
 
     if (args.status === false) {
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.seMetering.status;
     }
     if (args.extendedStatus === false) {
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.seMetering.extended_status;
     }
 
@@ -1968,10 +2148,8 @@ function genericMeter(args?: MeterArgs) {
             tz.powerfactor,
         ];
         if (useMeteringForPower) {
-            // biome-ignore lint/performance/noDelete: ignored using `--suppress`
             delete configureLookup.haElectricalMeasurement.power;
         } else {
-            // biome-ignore lint/performance/noDelete: ignored using `--suppress`
             delete configureLookup.seMetering.power;
         }
     } else if (args.cluster === "metering" && args.type === "electricity") {
@@ -1980,7 +2158,6 @@ function genericMeter(args?: MeterArgs) {
         if (args.producedEnergy !== false) exposes.push(e.produced_energy().withAccess(ea.STATE_GET));
         fromZigbee = [args.fzMetering ?? fz.metering];
         toZigbee = [tz.metering_power, tz.currentsummdelivered, tz.currentsummreceived];
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement;
     } else if (args.cluster === "metering" && args.type === "gas") {
         if (args.power !== false) exposes.push(e.numeric("power", ea.STATE_GET).withUnit("m³/h").withDescription("Instantaneous gas flow in m³/h"));
@@ -2003,7 +2180,6 @@ function genericMeter(args?: MeterArgs) {
             tz.metering_status,
             tz.metering_extended_status,
         ];
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.haElectricalMeasurement;
     } else if (args.cluster === "electrical") {
         if (args.power !== false) exposes.push(e.power().withAccess(ea.STATE_GET));
@@ -2013,7 +2189,6 @@ function genericMeter(args?: MeterArgs) {
         if (args.powerFactor !== false) exposes.push(e.power_factor().withAccess(ea.STATE_GET));
         fromZigbee = [args.fzElectricalMeasurement ?? fz.electrical_measurement];
         toZigbee = [tz.electrical_measurement_power, tz.acvoltage, tz.accurrent, tz.frequency, tz.powerfactor];
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete configureLookup.seMetering;
     }
 
@@ -2025,6 +2200,7 @@ function genericMeter(args?: MeterArgs) {
             e.voltage_phase_c().withAccess(ea.STATE_GET),
             e.current_phase_b().withAccess(ea.STATE_GET),
             e.current_phase_c().withAccess(ea.STATE_GET),
+            e.current_neutral().withAccess(ea.STATE_GET),
         );
         toZigbee.push(
             tz.electrical_measurement_power_phase_b,
@@ -2033,6 +2209,7 @@ function genericMeter(args?: MeterArgs) {
             tz.acvoltage_phase_c,
             tz.accurrent_phase_b,
             tz.accurrent_phase_c,
+            tz.accurrent_neutral,
         );
     }
 
@@ -2047,7 +2224,7 @@ function genericMeter(args?: MeterArgs) {
             async (device, coordinatorEndpoint) => {
                 for (const [cluster, properties] of Object.entries(configureLookup)) {
                     for (const endpoint of getEndpointsWithCluster(device, cluster, "input")) {
-                        const items: ReportingConfig[] = [];
+                        const items: ReportingConfig<typeof cluster>[] = [];
                         for (const property of Object.values(properties)) {
                             let change = property.change;
                             let min: ReportingConfigTime = "10_SECONDS";
@@ -2101,9 +2278,8 @@ function genericMeter(args?: MeterArgs) {
 export interface ElectricityMeterArgs extends MeterArgs {
     type?: "electricity";
 }
-export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
-    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
-    args = {
+export function electricityMeter(args: ElectricityMeterArgs = {}): ModernExtend {
+    return genericMeter({
         type: "electricity",
         cluster: "both",
         electricalMeasurementType: "ac",
@@ -2115,17 +2291,15 @@ export function electricityMeter(args?: ElectricityMeterArgs): ModernExtend {
         status: false,
         extendedStatus: false,
         ...args,
-    };
-    return genericMeter(args);
+    });
 }
 
 // Uses Metering to measure volume of gas consumed
 export interface GasMeterArgs extends MeterArgs {
     type?: "gas";
 }
-export function gasMeter(args?: GasMeterArgs): ModernExtend {
-    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
-    args = {
+export function gasMeter(args: GasMeterArgs = {}): ModernExtend {
+    return genericMeter({
         type: "gas",
         cluster: "metering",
         configureReporting: true,
@@ -2133,8 +2307,7 @@ export function gasMeter(args?: GasMeterArgs): ModernExtend {
         extendedStatus: true,
         producedEnergy: false,
         ...args,
-    };
-    return genericMeter(args);
+    });
 }
 // #endregion
 
@@ -2226,7 +2399,7 @@ export function genericGreenPower(): ModernExtend {
         e.action(Object.values(GPDF_COMMANDS)),
         e.list("payload", ea.STATE, e.numeric("payload", ea.STATE).withDescription("Byte")).withDescription("Payload of the command"),
     ];
-    const fromZigbee: Fz.Converter[] = [
+    const fromZigbee = [
         {
             cluster: "greenPower",
             type: ["commandNotification", "commandCommissioningNotification"],
@@ -2236,14 +2409,14 @@ export function genericGreenPower(): ModernExtend {
                 if (commandID >= 0xe0) return; // Skip op commands
 
                 const gpdfCommandStr = GPDF_COMMANDS[commandID];
-                const payloadBuf = msg.data.commandFrame.raw as Buffer | undefined;
+                const payloadBuf = "raw" in msg.data.commandFrame ? msg.data.commandFrame.raw : undefined;
 
                 return {
                     action: gpdfCommandStr ?? `unknown_${commandID}`,
                     payload: payloadBuf?.length > 0 ? Array.from(payloadBuf) : [],
                 };
             },
-        },
+        } satisfies Fz.Converter<"greenPower", undefined, ["commandNotification", "commandCommissioningNotification"]>,
     ];
 
     return {exposes, fromZigbee, isModernExtend: true};
@@ -2254,13 +2427,12 @@ export interface CommandsScenesArgs {
     bind?: boolean;
     endpointNames?: string[];
 }
-export function commandsScenes(args?: CommandsScenesArgs) {
-    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
-    args = {commands: ["recall", "store", "add", "remove", "remove_all"], bind: true, ...args};
+export function commandsScenes(args: CommandsScenesArgs = {}) {
+    const {commands = ["recall", "store", "add", "remove", "remove_all"], bind = true, endpointNames = undefined} = args;
     // biome-ignore lint/style/noNonNullAssertion: ignored using `--suppress`
-    let actions = args.commands!;
-    if (args.endpointNames) {
-        actions = args.commands.flatMap((c) => args.endpointNames.map((e) => `${c}_${e}`));
+    let actions = commands!;
+    if (endpointNames) {
+        actions = commands.flatMap((c) => endpointNames.map((e) => `${c}_${e}`));
     }
     const exposesArray = [e.enum("action", ea.STATE, actions).withDescription("Triggered scene action (e.g. recall a scene)")];
 
@@ -2272,7 +2444,7 @@ export function commandsScenes(args?: CommandsScenesArgs) {
         commandRemoveAll: "remove_all",
     };
 
-    const fromZigbee: Fz.Converter[] = [
+    const fromZigbee = [
         {
             cluster: "genScenes",
             type: ["commandRecall", "commandStore", "commandAdd", "commandRemove", "commandRemoveAll"],
@@ -2280,6 +2452,7 @@ export function commandsScenes(args?: CommandsScenesArgs) {
                 if (hasAlreadyProcessedMessage(msg, model)) return;
                 let trailing = "";
                 if (msg.type === "commandRecall" || msg.type === "commandStore") {
+                    assert("sceneid" in msg.data);
                     trailing = `_${msg.data.sceneid}`;
                 }
                 const payload = {
@@ -2288,22 +2461,37 @@ export function commandsScenes(args?: CommandsScenesArgs) {
                 addActionGroup(payload, msg, model);
                 return payload;
             },
-        },
+        } satisfies Fz.Converter<"genScenes", undefined, ["commandRecall", "commandStore", "commandAdd", "commandRemove", "commandRemoveAll"]>,
     ];
 
     const result: ModernExtend = {exposes: exposesArray, fromZigbee, isModernExtend: true};
 
-    if (args.bind) result.configure = [setupConfigureForBinding("genScenes", "output", args.endpointNames)];
+    if (bind) result.configure = [setupConfigureForBinding("genScenes", "output", endpointNames)];
 
     return result;
 }
 
-export interface EnumLookupArgs {
+export interface ClusterWithAttribute<
+    Cl extends string | number,
+    Custom extends TCustomCluster | undefined = undefined,
+    Co extends string | undefined = undefined,
+> {
+    cluster: Cl;
+    // `& string` prevents `number[]`
+    attribute: Co extends undefined
+        ? // biome-ignore lint/style/useNamingConvention: API
+          (ClusterOrRawAttributeKeys<Cl, Custom> & string)[number] | {ID: number; type: number}
+        : Custom extends TCustomCluster
+          ? TCustomClusterPayload<Custom, Co> extends never
+              ? keyof TClusterPayload<Cl, Co>
+              : keyof TClusterPayload<Cl, Co> | keyof TCustomClusterPayload<Custom, Co>
+          : keyof TClusterPayload<Cl, Co>;
+}
+
+export interface EnumLookupArgs<Cl extends string | number, Custom extends TCustomCluster | undefined = undefined>
+    extends ClusterWithAttribute<Cl, Custom> {
     name: string;
     lookup: KeyValue;
-    cluster: string | number;
-    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-    attribute: string | {ID: number; type: number};
     description: string;
     zigbeeCommandOptions?: {manufacturerCode?: number; disableDefaultResponse?: boolean};
     access?: "STATE" | "STATE_GET" | "STATE_SET" | "SET" | "ALL";
@@ -2312,7 +2500,9 @@ export interface EnumLookupArgs {
     entityCategory?: "config" | "diagnostic";
     label?: string;
 }
-export function enumLookup(args: EnumLookupArgs): ModernExtend {
+export function enumLookup<Cl extends string | number, Custom extends TCustomCluster | undefined = undefined>(
+    args: EnumLookupArgs<Cl, Custom>,
+): ModernExtend {
     const {name, lookup, cluster, attribute, description, zigbeeCommandOptions, endpointName, reporting, entityCategory, label} = args;
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
     const access = ea[args.access ?? "ALL"];
@@ -2322,7 +2512,7 @@ export function enumLookup(args: EnumLookupArgs): ModernExtend {
     if (entityCategory) expose = expose.withCategory(entityCategory);
     if (label !== undefined) expose = expose.withLabel(label);
 
-    const fromZigbee: Fz.Converter[] = [
+    const fromZigbee = [
         {
             cluster: cluster.toString(),
             type: ["attributeReport", "readResponse"],
@@ -2332,7 +2522,8 @@ export function enumLookup(args: EnumLookupArgs): ModernExtend {
                     if (msg.data[attributeKey] !== undefined) return {[expose.property]: getFromLookupByValue(msg.data[attributeKey], lookup)};
                 }
             },
-        },
+            // biome-ignore lint/suspicious/noExplicitAny: generic
+        } satisfies Fz.Converter<any, undefined, ["attributeReport", "readResponse"]>,
     ];
 
     const toZigbee: Tz.Converter[] = [
@@ -2345,20 +2536,30 @@ export function enumLookup(args: EnumLookupArgs): ModernExtend {
                           const payload = isString(attribute)
                               ? {[attribute]: payloadValue}
                               : {[attribute.ID]: {value: payloadValue, type: attribute.type}};
-                          await determineEndpoint(entity, meta, cluster).write(cluster, payload, zigbeeCommandOptions);
+                          await determineEndpoint(entity, meta, cluster).write(
+                              cluster,
+                              // XXX: too dynamic for typing
+                              payload as PartialClusterOrRawWriteAttributes<Cl>,
+                              zigbeeCommandOptions,
+                          );
                           return {state: {[key]: value}};
                       }
                     : undefined,
             convertGet:
                 access & ea.GET
                     ? async (entity, key, meta) => {
-                          await determineEndpoint(entity, meta, cluster).read(cluster, [attributeKey], zigbeeCommandOptions);
+                          await determineEndpoint(entity, meta, cluster).read(
+                              cluster,
+                              // XXX: too dynamic for typing
+                              [attributeKey] as ClusterOrRawAttributeKeys<Cl>,
+                              zigbeeCommandOptions,
+                          );
                       }
                     : undefined,
         },
     ];
 
-    const configure: Configure[] = [setupConfigureForReporting(cluster, attribute, reporting, access)];
+    const configure: Configure[] = [setupConfigureForReporting(cluster, attribute, {config: reporting, access})];
 
     return {exposes: [expose], fromZigbee, toZigbee, configure, isModernExtend: true};
 }
@@ -2366,11 +2567,9 @@ export function enumLookup(args: EnumLookupArgs): ModernExtend {
 // type provides a way to distinguish between fromZigbee and toZigbee value conversions if they are asymmetrical
 export type ScaleFunction = (value: number, type: "from" | "to") => number;
 
-export interface NumericArgs {
+export interface NumericArgs<Cl extends string | number, Custom extends TCustomCluster | undefined = undefined>
+    extends ClusterWithAttribute<Cl, Custom> {
     name: string;
-    cluster: string | number;
-    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-    attribute: string | {ID: number; type: number};
     description: string;
     zigbeeCommandOptions?: {manufacturerCode?: number; disableDefaultResponse?: boolean};
     access?: "STATE" | "STATE_GET" | "STATE_SET" | "SET" | "ALL";
@@ -2380,13 +2579,14 @@ export interface NumericArgs {
     valueMin?: number;
     valueMax?: number;
     valueStep?: number;
-    valueIgnore?: number[];
     scale?: number | ScaleFunction;
     label?: string;
     entityCategory?: "config" | "diagnostic";
     precision?: number;
 }
-export function numeric(args: NumericArgs): ModernExtend {
+export function numeric<Cl extends string | number, Custom extends TCustomCluster | undefined = undefined>(
+    args: NumericArgs<Cl, Custom>,
+): ModernExtend {
     const {
         name,
         cluster,
@@ -2398,7 +2598,6 @@ export function numeric(args: NumericArgs): ModernExtend {
         valueMin,
         valueMax,
         valueStep,
-        valueIgnore,
         scale,
         label,
         entityCategory,
@@ -2432,7 +2631,7 @@ export function numeric(args: NumericArgs): ModernExtend {
         }
     }
 
-    const fromZigbee: Fz.Converter[] = [
+    const fromZigbee = [
         {
             cluster: cluster.toString(),
             type: ["attributeReport", "readResponse"],
@@ -2446,8 +2645,6 @@ export function numeric(args: NumericArgs): ModernExtend {
                     let value = msg.data[attributeKey];
                     assertNumber(value);
 
-                    if (valueIgnore?.includes(value)) return;
-
                     if (scale !== undefined) {
                         value = typeof scale === "number" ? value / scale : scale(value, "from");
                     }
@@ -2458,7 +2655,8 @@ export function numeric(args: NumericArgs): ModernExtend {
                     return {[expose.property]: value};
                 }
             },
-        },
+            // biome-ignore lint/suspicious/noExplicitAny: generic
+        } satisfies Fz.Converter<any, undefined, ["attributeReport", "readResponse"]>,
     ];
 
     const toZigbee: Tz.Converter[] = [
@@ -2477,40 +2675,50 @@ export function numeric(args: NumericArgs): ModernExtend {
                           const payload = isString(attribute)
                               ? {[attribute]: payloadValue}
                               : {[attribute.ID]: {value: payloadValue, type: attribute.type}};
-                          await determineEndpoint(entity, meta, cluster).write(cluster, payload, zigbeeCommandOptions);
+                          await determineEndpoint(entity, meta, cluster).write(
+                              cluster,
+                              // XXX: too dynamic for typing
+                              payload as PartialClusterOrRawWriteAttributes<Cl>,
+                              zigbeeCommandOptions,
+                          );
                           return {state: {[key]: value}};
                       }
                     : undefined,
             convertGet:
                 access & ea.GET
                     ? async (entity, key, meta) => {
-                          await determineEndpoint(entity, meta, cluster).read(cluster, [attributeKey], zigbeeCommandOptions);
+                          await determineEndpoint(entity, meta, cluster).read(
+                              cluster,
+                              // XXX: too dynamic for typing
+                              [attributeKey] as ClusterOrRawAttributeKeys<Cl>,
+                              zigbeeCommandOptions,
+                          );
                       }
                     : undefined,
         },
     ];
 
-    const configure: Configure[] = [setupConfigureForReporting(cluster, attribute, reporting, access, endpoints)];
+    const configure: Configure[] = [setupConfigureForReporting(cluster, attribute, {config: reporting, access, endpointNames: endpoints})];
 
     return {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
 }
 
-export interface BinaryArgs {
+export interface BinaryArgs<Cl extends string | number, Custom extends TCustomCluster | undefined = undefined>
+    extends ClusterWithAttribute<Cl, Custom> {
     name: string;
     valueOn: [string | boolean, unknown];
     valueOff: [string | boolean, unknown];
-    cluster: string | number;
-    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-    attribute: string | {ID: number; type: number};
     description: string;
     zigbeeCommandOptions?: {manufacturerCode: number};
     endpointName?: string;
-    reporting?: false | ReportingConfig;
+    reporting?: false | ReportingConfig<Cl, Custom>;
     access?: "STATE" | "STATE_GET" | "STATE_SET" | "SET" | "ALL";
     label?: string;
     entityCategory?: "config" | "diagnostic";
 }
-export function binary(args: BinaryArgs): ModernExtend {
+export function binary<Cl extends string | number, Custom extends TCustomCluster | undefined = undefined>(
+    args: BinaryArgs<Cl, Custom>,
+): ModernExtend {
     const {name, valueOn, valueOff, cluster, attribute, description, zigbeeCommandOptions, endpointName, reporting, label, entityCategory} = args;
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
     const access = ea[args.access ?? "ALL"];
@@ -2520,7 +2728,7 @@ export function binary(args: BinaryArgs): ModernExtend {
     if (label) expose = expose.withLabel(label);
     if (entityCategory) expose = expose.withCategory(entityCategory);
 
-    const fromZigbee: Fz.Converter[] = [
+    const fromZigbee = [
         {
             cluster: cluster.toString(),
             type: ["attributeReport", "readResponse"],
@@ -2529,7 +2737,8 @@ export function binary(args: BinaryArgs): ModernExtend {
                     return {[expose.property]: msg.data[attributeKey] === valueOn[1] ? valueOn[0] : valueOff[0]};
                 }
             },
-        },
+            // biome-ignore lint/suspicious/noExplicitAny: generic
+        } satisfies Fz.Converter<any, undefined, ["attributeReport", "readResponse"]>,
     ];
 
     const toZigbee: Tz.Converter[] = [
@@ -2542,38 +2751,46 @@ export function binary(args: BinaryArgs): ModernExtend {
                           const payload = isString(attribute)
                               ? {[attribute]: payloadValue}
                               : {[attribute.ID]: {value: payloadValue, type: attribute.type}};
-                          await determineEndpoint(entity, meta, cluster).write(cluster, payload, zigbeeCommandOptions);
+                          await determineEndpoint(entity, meta, cluster).write(
+                              cluster,
+                              // XXX: too dynamic for typing
+                              payload as PartialClusterOrRawWriteAttributes<Cl>,
+                              zigbeeCommandOptions,
+                          );
                           return {state: {[key]: value}};
                       }
                     : undefined,
             convertGet:
                 access & ea.GET
                     ? async (entity, key, meta) => {
-                          await determineEndpoint(entity, meta, cluster).read(cluster, [attributeKey], zigbeeCommandOptions);
+                          await determineEndpoint(entity, meta, cluster).read(
+                              cluster,
+                              // XXX: too dynamic for typing
+                              [attributeKey] as ClusterOrRawAttributeKeys<Cl>,
+                              zigbeeCommandOptions,
+                          );
                       }
                     : undefined,
         },
     ];
 
-    const configure: Configure[] = [setupConfigureForReporting(cluster, attribute, reporting, access)];
+    const configure: Configure[] = [setupConfigureForReporting(cluster, attribute, {config: reporting, access})];
 
     return {exposes: [expose], fromZigbee, toZigbee, configure, isModernExtend: true};
 }
 
-export interface TextArgs {
+export interface TextArgs<Cl extends string | number, Custom extends TCustomCluster | undefined = undefined>
+    extends ClusterWithAttribute<Cl, Custom> {
     name: string;
-    cluster: string | number;
-    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-    attribute: string | {ID: number; type: number};
     description: string;
     zigbeeCommandOptions?: {manufacturerCode: number};
     endpointName?: string;
-    reporting?: ReportingConfig;
+    reporting?: ReportingConfig<Cl, Custom>;
     access?: "STATE" | "STATE_GET" | "STATE_SET" | "SET" | "ALL";
     entityCategory?: "config" | "diagnostic";
     validate?(value: unknown): void;
 }
-export function text(args: TextArgs): ModernExtend {
+export function text<Cl extends string | number, Custom extends TCustomCluster | undefined = undefined>(args: TextArgs<Cl, Custom>): ModernExtend {
     const {name, cluster, attribute, description, zigbeeCommandOptions, endpointName, reporting, entityCategory, validate} = args;
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
     const access = ea[args.access ?? "ALL"];
@@ -2582,7 +2799,7 @@ export function text(args: TextArgs): ModernExtend {
     if (endpointName) expose = expose.withEndpoint(endpointName);
     if (entityCategory) expose = expose.withCategory(entityCategory);
 
-    const fromZigbee: Fz.Converter[] = [
+    const fromZigbee = [
         {
             cluster: cluster.toString(),
             type: ["attributeReport", "readResponse"],
@@ -2591,7 +2808,8 @@ export function text(args: TextArgs): ModernExtend {
                     return {[expose.property]: msg.data[attributeKey]};
                 }
             },
-        },
+            // biome-ignore lint/suspicious/noExplicitAny: generic
+        } satisfies Fz.Converter<any, undefined, ["attributeReport", "readResponse"]>,
     ];
 
     const toZigbee: Tz.Converter[] = [
@@ -2602,40 +2820,66 @@ export function text(args: TextArgs): ModernExtend {
                     ? async (entity, key, value, meta) => {
                           void validate(value);
                           const payload = isString(attribute) ? {[attribute]: value} : {[attribute.ID]: {value, type: attribute.type}};
-                          await determineEndpoint(entity, meta, cluster).write(cluster, payload, zigbeeCommandOptions);
+                          await determineEndpoint(entity, meta, cluster).write(
+                              cluster,
+                              // XXX: too dynamic for typing
+                              payload as PartialClusterOrRawWriteAttributes<Cl>,
+                              zigbeeCommandOptions,
+                          );
                           return {state: {[key]: value}};
                       }
                     : undefined,
             convertGet:
                 access & ea.GET
                     ? async (entity, key, meta) => {
-                          await determineEndpoint(entity, meta, cluster).read(cluster, [attributeKey], zigbeeCommandOptions);
+                          await determineEndpoint(entity, meta, cluster).read(
+                              cluster,
+                              // XXX: too dynamic for typing
+                              [attributeKey] as ClusterOrRawAttributeKeys<Cl>,
+                              zigbeeCommandOptions,
+                          );
                       }
                     : undefined,
         },
     ];
 
-    const configure: Configure[] = [setupConfigureForReporting(cluster, attribute, reporting, access)];
+    const configure: Configure[] = [setupConfigureForReporting(cluster, attribute, {config: reporting, access})];
 
     return {exposes: [expose], fromZigbee, toZigbee, configure, isModernExtend: true};
 }
 
-export type Parse = (msg: Fz.Message, attributeKey: string | number) => unknown;
-export interface ActionEnumLookupArgs {
+export interface ActionEnumLookupArgs<
+    Cl extends string | number,
+    Custom extends TCustomCluster | undefined = undefined,
+    Cos extends Fz.ConverterTypeCmd<Cl, Custom>[] | undefined = undefined,
+> extends ClusterWithAttribute<
+        Cl,
+        Custom,
+        ElementOf<Cos> extends infer Single ? (Single extends `command${infer Co}` ? Uncapitalize<Co> : undefined) : undefined
+    > {
     actionLookup: KeyValue;
-    cluster: string | number;
-    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-    attribute: string | {ID: number; type: number};
     endpointNames?: string[];
     buttonLookup?: KeyValue;
     extraActions?: string[];
-    commands?: string[];
-    parse?: Parse;
+    commands?: Cos;
+    parse?: (
+        msg: Fz.Message<Cl, Custom, Cos extends undefined ? ["attributeReport", "readResponse"] : Cos>,
+        attributeKey:
+            | ClusterWithAttribute<
+                  Cl,
+                  Custom,
+                  ElementOf<Cos> extends infer Single ? (Single extends `command${infer Co}` ? Uncapitalize<Co> : undefined) : undefined
+              >["attribute"]
+            | number,
+    ) => unknown;
 }
-export function actionEnumLookup(args: ActionEnumLookupArgs): ModernExtend {
-    const {actionLookup: lookup, attribute, cluster, buttonLookup} = args;
+export function actionEnumLookup<
+    Cl extends string | number,
+    Custom extends TCustomCluster | undefined = undefined,
+    Cos extends Fz.ConverterTypeCmd<Cl, Custom>[] | undefined = undefined,
+>(args: ActionEnumLookupArgs<Cl, Custom, Cos>): ModernExtend {
+    const {actionLookup: lookup, attribute, cluster, buttonLookup, commands} = args;
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
-    const commands = args.commands || ["attributeReport", "readResponse"];
     const parse = args.parse;
 
     let actions = Object.keys(lookup).flatMap((a) => (args.endpointNames ? args.endpointNames.map((e) => `${a}_${e}`) : [a]));
@@ -2643,14 +2887,15 @@ export function actionEnumLookup(args: ActionEnumLookupArgs): ModernExtend {
     if (args.extraActions) actions = actions.concat(args.extraActions);
     const expose = e.enum("action", ea.STATE, actions).withDescription("Triggered action (e.g. a button click)").withCategory("diagnostic");
 
-    const fromZigbee: Fz.Converter[] = [
+    const fromZigbee = [
         {
-            cluster: cluster.toString(),
-            type: commands,
+            cluster: cluster.toString() as Cl,
+            // XXX: typing is rather annoying here, asserted for now...
+            type: (commands || (["attributeReport", "readResponse"] as const)) as Cos extends undefined ? ["attributeReport", "readResponse"] : Cos,
             convert: (model, msg, publish, options, meta) => {
                 if (attributeKey in msg.data) {
-                    let value = parse ? parse(msg, attributeKey) : msg.data[attributeKey];
-                    value = getFromLookupByValue(value, lookup);
+                    const msgValue = parse ? parse(msg, attributeKey) : msg.data[attributeKey as keyof typeof msg.data];
+                    let value = getFromLookupByValue(msgValue, lookup);
                     // endpointNames is used when action endpoint names don't overlap with other endpoint names
                     if (args.endpointNames) value = postfixWithEndpointName(value, msg, model, meta);
                     // buttonLookup is used when action endpoint names overlap with other endpoint names
@@ -2661,7 +2906,7 @@ export function actionEnumLookup(args: ActionEnumLookupArgs): ModernExtend {
                     return {[expose.property]: value};
                 }
             },
-        },
+        } satisfies Fz.Converter<Cl, Custom, Cos extends undefined ? ["attributeReport", "readResponse"] : Cos>,
     ];
 
     return {exposes: [expose], fromZigbee, isModernExtend: true};
@@ -2676,7 +2921,7 @@ export function quirkAddEndpointCluster(args: QuirkAddEndpointClusterArgs): Mode
     const {endpointID, inputClusters, outputClusters} = args;
 
     const configure: Configure[] = [
-        async (device, coordinatorEndpoint, definition) => {
+        (device, coordinatorEndpoint, definition) => {
             const endpoint = device.getEndpoint(endpointID);
 
             if (endpoint === undefined) {
@@ -2684,7 +2929,6 @@ export function quirkAddEndpointCluster(args: QuirkAddEndpointClusterArgs): Mode
                 return;
             }
 
-            // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
             inputClusters?.forEach((cluster: number | string) => {
                 const clusterID = isString(cluster) ? Zcl.Utils.getCluster(cluster, device.manufacturerID, device.customClusters).ID : cluster;
 
@@ -2694,7 +2938,6 @@ export function quirkAddEndpointCluster(args: QuirkAddEndpointClusterArgs): Mode
                 }
             });
 
-            // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
             outputClusters?.forEach((cluster: number | string) => {
                 const clusterID = isString(cluster) ? Zcl.Utils.getCluster(cluster, device.manufacturerID, device.customClusters).ID : cluster;
 
@@ -2723,13 +2966,14 @@ export function quirkCheckinInterval(timeout: number | keyof typeof TIME_LOOKUP)
 }
 
 export function reconfigureReportingsOnDeviceAnnounce(): ModernExtend {
-    const onEvent: OnEvent[] = [
-        async (type, data, device, options, state: KeyValue) => {
-            if (type === "deviceAnnounce") {
-                for (const endpoint of device.endpoints) {
+    const onEvent: OnEvent.Handler[] = [
+        async (event) => {
+            if (event.type === "deviceAnnounce") {
+                for (const endpoint of event.data.device.endpoints) {
                     for (const c of endpoint.configuredReportings) {
                         await endpoint.configureReporting(c.cluster.name, [
                             {
+                                // @ts-expect-error dynamic, expected valid since already applied
                                 attribute: c.attribute.name,
                                 minimumReportInterval: c.minimumReportInterval,
                                 maximumReportInterval: c.maximumReportInterval,
@@ -2746,9 +2990,11 @@ export function reconfigureReportingsOnDeviceAnnounce(): ModernExtend {
 }
 
 export function skipDefaultResponse(): ModernExtend {
-    const onEvent: OnEvent[] = [
-        (type, data, device, options, state: KeyValue) => {
-            device.skipDefaultResponse = true;
+    const onEvent: OnEvent.Handler[] = [
+        (event) => {
+            if (event.type === "start") {
+                event.data.device.skipDefaultResponse = true;
+            }
         },
     ];
 
@@ -2774,14 +3020,14 @@ export function deviceAddCustomCluster(clusterName: string, clusterDefinition: C
         }
     };
 
-    const onEvent: OnEvent[] = [async (type, data, device, options, state: KeyValue) => addCluster(device)];
+    const onEvent: OnEvent.Handler[] = [(event) => event.type === "start" && addCluster(event.data.device)];
     const configure: Configure[] = [async (device) => addCluster(device)];
 
     return {onEvent, configure, isModernExtend: true};
 }
 
 export function ignoreClusterReport(args: {cluster: string | number}): ModernExtend {
-    const fromZigbee: Fz.Converter[] = [
+    const fromZigbee: Fz.Converter<typeof args.cluster>[] = [
         {
             cluster: args.cluster.toString(),
             type: ["attributeReport", "readResponse"],

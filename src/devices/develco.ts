@@ -1,14 +1,12 @@
 import {Zcl} from "zigbee-herdsman";
-
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as constants from "../lib/constants";
-import {develcoModernExtend} from "../lib/develco";
+import {type DevelcoGenBasic, develcoModernExtend} from "../lib/develco";
 import * as exposes from "../lib/exposes";
 import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import * as globalStore from "../lib/store";
 import type {DefinitionWithExtend, Fz, KeyValue, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
 
@@ -35,38 +33,49 @@ const develcoLedControlMap = {
 // develco specific converters
 const develco = {
     fz: {
+        force_divisor_1000: {
+            cluster: "seMetering",
+            type: ["attributeReport"],
+            convert: (model, msg, publish, options, meta) => {
+                if (msg.data.divisor != null) {
+                    // Device sends wrong divisor (512) while it should be fixed to 1000
+                    // https://github.com/Koenkk/zigbee-herdsman-converters/issues/3066
+                    msg.endpoint.saveClusterAttributeKeyValue("seMetering", {divisor: 1000, multiplier: 1});
+                }
+            },
+        } satisfies Fz.Converter<"seMetering", undefined, ["attributeReport"]>,
         // Some Develco devices report strange values sometimes
         // https://github.com/Koenkk/zigbee2mqtt/issues/13329
         electrical_measurement: {
             ...fz.electrical_measurement,
             convert: (model, msg, publish, options, meta) => {
-                if (msg.data.rmsVoltage !== 0xffff && msg.data.rmsCurrent !== 0xffff && msg.data.activePower !== -0x8000) {
+                if (!Number.isNaN(msg.data.rmsVoltage) && !Number.isNaN(msg.data.rmsCurrent) && !Number.isNaN(msg.data.activePower)) {
                     return fz.electrical_measurement.convert(model, msg, publish, options, meta);
                 }
             },
-        } satisfies Fz.Converter,
+        } satisfies Fz.Converter<"haElectricalMeasurement", undefined, ["attributeReport", "readResponse"]>,
         total_power: {
             cluster: "haElectricalMeasurement",
             type: ["attributeReport", "readResponse"],
             convert: (model, msg, publish, options, meta) => {
                 const result: KeyValue = {};
-                if (msg.data.totalActivePower !== undefined && msg.data.totalActivePower !== -0x80000000) {
+                if (msg.data.totalActivePower !== undefined && !Number.isNaN(msg.data.totalActivePower)) {
                     result[utils.postfixWithEndpointName("power", msg, model, meta)] = msg.data.totalActivePower;
                 }
-                if (msg.data.totalReactivePower !== undefined && msg.data.totalReactivePower !== -0x80000000) {
+                if (msg.data.totalReactivePower !== undefined && !Number.isNaN(msg.data.totalReactivePower)) {
                     result[utils.postfixWithEndpointName("power_reactive", msg, model, meta)] = msg.data.totalReactivePower;
                 }
                 return result;
             },
-        } satisfies Fz.Converter,
+        } satisfies Fz.Converter<"haElectricalMeasurement", undefined, ["attributeReport", "readResponse"]>,
         metering: {
             ...fz.metering,
             convert: (model, msg, publish, options, meta) => {
-                if (msg.data.instantaneousDemand !== -0x800000 && msg.data.currentSummDelivered?.[1] !== 0) {
+                if (!Number.isNaN(msg.data.instantaneousDemand) && msg.data.currentSummDelivered !== 0) {
                     return fz.metering.convert(model, msg, publish, options, meta);
                 }
             },
-        } satisfies Fz.Converter,
+        } satisfies Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]>,
         pulse_configuration: {
             cluster: "seMetering",
             type: ["attributeReport", "readResponse"],
@@ -78,7 +87,7 @@ const develco = {
 
                 return result;
             },
-        } satisfies Fz.Converter,
+        } satisfies Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]>,
         interface_mode: {
             cluster: "seMetering",
             type: ["attributeReport", "readResponse"],
@@ -97,7 +106,7 @@ const develco = {
 
                 return result;
             },
-        } satisfies Fz.Converter,
+        } satisfies Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]>,
         fault_status: {
             cluster: "genBinaryInput",
             type: ["attributeReport", "readResponse"],
@@ -112,7 +121,7 @@ const develco = {
                 }
                 return result;
             },
-        } satisfies Fz.Converter,
+        } satisfies Fz.Converter<"genBinaryInput", undefined, ["attributeReport", "readResponse"]>,
         led_control: {
             cluster: "genBasic",
             type: ["attributeReport", "readResponse"],
@@ -125,7 +134,7 @@ const develco = {
 
                 return state;
             },
-        } satisfies Fz.Converter,
+        } satisfies Fz.Converter<"genBasic", DevelcoGenBasic, ["attributeReport", "readResponse"]>,
         ias_occupancy_timeout: {
             cluster: "ssIasZone",
             type: ["attributeReport", "readResponse"],
@@ -138,7 +147,7 @@ const develco = {
 
                 return state;
             },
-        } satisfies Fz.Converter,
+        } satisfies Fz.Converter<"ssIasZone", undefined, ["attributeReport", "readResponse"]>,
         input: {
             cluster: "genBinaryInput",
             type: ["attributeReport", "readResponse"],
@@ -150,13 +159,13 @@ const develco = {
                 }
                 return result;
             },
-        } satisfies Fz.Converter,
+        } satisfies Fz.Converter<"genBinaryInput", undefined, ["attributeReport", "readResponse"]>,
     },
     tz: {
         pulse_configuration: {
             key: ["pulse_configuration"],
             convertSet: async (entity, key, value, meta) => {
-                await entity.write("seMetering", {develcoPulseConfiguration: value}, manufacturerOptions);
+                await entity.write("seMetering", {develcoPulseConfiguration: value as number}, manufacturerOptions);
                 return {state: {pulse_configuration: value}};
             },
             convertGet: async (entity, key, meta) => {
@@ -177,19 +186,19 @@ const develco = {
         current_summation: {
             key: ["current_summation"],
             convertSet: async (entity, key, value, meta) => {
-                await entity.write("seMetering", {develcoCurrentSummation: value}, manufacturerOptions);
+                await entity.write("seMetering", {develcoCurrentSummation: value as number}, manufacturerOptions);
                 return {state: {current_summation: value}};
             },
         } satisfies Tz.Converter,
         led_control: {
             key: ["led_control"],
             convertSet: async (entity, key, value, meta) => {
-                const ledControl = utils.getKey(develcoLedControlMap, value, value, Number);
-                await entity.write("genBasic", {develcoLedControl: ledControl}, manufacturerOptions);
+                const ledControl = utils.getKey(develcoLedControlMap, value, value as number, Number);
+                await entity.write<"genBasic", DevelcoGenBasic>("genBasic", {develcoLedControl: ledControl}, manufacturerOptions);
                 return {state: {led_control: value}};
             },
             convertGet: async (entity, key, meta) => {
-                await entity.read("genBasic", ["develcoLedControl"], manufacturerOptions);
+                await entity.read<"genBasic", DevelcoGenBasic>("genBasic", ["develcoLedControl"], manufacturerOptions);
             },
         } satisfies Tz.Converter,
         ias_occupancy_timeout: {
@@ -229,7 +238,7 @@ export const definitions: DefinitionWithExtend[] = [
             develcoModernExtend.readGenBasicPrimaryVersions(),
             develcoModernExtend.deviceTemperature(),
             m.electricityMeter({acFrequency: true, fzMetering: develco.fz.metering, fzElectricalMeasurement: develco.fz.electrical_measurement}),
-            m.onOff(),
+            m.onOff({powerOnBehavior: false}),
         ],
         endpoint: (device) => {
             return {default: 2};
@@ -316,7 +325,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "EMIZB-132",
         vendor: "Develco",
         description: "Wattle AMS HAN power-meter sensor",
-        fromZigbee: [develco.fz.metering, develco.fz.electrical_measurement, develco.fz.total_power],
+        fromZigbee: [develco.fz.metering, develco.fz.electrical_measurement, develco.fz.total_power, develco.fz.force_divisor_1000],
         toZigbee: [tz.EMIZB_132_mode],
         ota: true,
         extend: [develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(), develcoModernExtend.readGenBasicPrimaryVersions()],
@@ -360,13 +369,6 @@ export const definitions: DefinitionWithExtend[] = [
             e.current_phase_c(),
             e.voltage_phase_c(),
         ],
-        onEvent: (type, data, device) => {
-            if (type === "message" && data.type === "attributeReport" && data.cluster === "seMetering" && data.data.divisor) {
-                // Device sends wrong divisor (512) while it should be fixed to 1000
-                // https://github.com/Koenkk/zigbee-herdsman-converters/issues/3066
-                data.endpoint.saveClusterAttributeKeyValue("seMetering", {divisor: 1000, multiplier: 1});
-            }
-        },
     },
     {
         zigbeeModel: ["SMSZB-120", "GWA1512_SmokeSensor"],
@@ -619,12 +621,12 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: (device, options) => {
             const dynExposes = [];
             dynExposes.push(e.occupancy());
-            if (Number(device?.softwareBuildID?.split(".")[0]) >= 3) {
+            if (utils.isDummyDevice(device) || Number(device.softwareBuildID?.split(".")[0]) >= 3) {
                 dynExposes.push(e.numeric("occupancy_timeout", ea.ALL).withUnit("s").withValueMin(5).withValueMax(65535));
             }
             dynExposes.push(e.tamper());
             dynExposes.push(e.battery_low());
-            if (Number(device?.softwareBuildID?.split(".")[0]) >= 4) {
+            if (utils.isDummyDevice(device) || Number(device?.softwareBuildID?.split(".")[0]) >= 4) {
                 dynExposes.push(
                     e.enum("led_control", ea.ALL, ["off", "fault_only", "motion_only", "both"]).withDescription("Control LED indicator usage."),
                 );
@@ -657,7 +659,7 @@ export const definitions: DefinitionWithExtend[] = [
                 await endpoint35.read("ssIasZone", ["develcoAlarmOffDelay"], manufacturerOptions);
             }
             if (Number(device?.softwareBuildID?.split(".")[0]) >= 4) {
-                await endpoint35.read("genBasic", ["develcoLedControl"], manufacturerOptions);
+                await endpoint35.read<"genBasic", DevelcoGenBasic>("genBasic", ["develcoLedControl"], manufacturerOptions);
             }
         },
     },
@@ -682,7 +684,7 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: [develco.tz.led_control, develco.tz.ias_occupancy_timeout],
         exposes: (device, options) => {
             const dynExposes = [];
-            if (Number(device?.softwareBuildID?.split(".")[0]) >= 2) {
+            if (utils.isDummyDevice(device) || Number(device?.softwareBuildID?.split(".")[0]) >= 2) {
                 dynExposes.push(e.numeric("occupancy_timeout", ea.ALL).withUnit("s").withValueMin(5).withValueMax(65535));
                 dynExposes.push(
                     e.enum("led_control", ea.ALL, ["off", "fault_only", "motion_only", "both"]).withDescription("Control LED indicator usage."),
@@ -713,7 +715,7 @@ export const definitions: DefinitionWithExtend[] = [
             if (device?.softwareBuildID && Number(device.softwareBuildID.split(".")[0]) >= 2) {
                 const endpoint35 = device.getEndpoint(35);
                 await endpoint35.read("ssIasZone", ["develcoAlarmOffDelay"], manufacturerOptions);
-                await endpoint35.read("genBasic", ["develcoLedControl"], manufacturerOptions);
+                await endpoint35.read<"genBasic", DevelcoGenBasic>("genBasic", ["develcoLedControl"], manufacturerOptions);
             }
         },
     },
@@ -854,7 +856,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        zigbeeModel: ["SIRZB-110", "SIRZB-111"],
+        zigbeeModel: ["SIRZB-110"],
         model: "SIRZB-110",
         vendor: "Develco",
         description: "Customizable siren",
@@ -885,7 +887,46 @@ export const definitions: DefinitionWithExtend[] = [
         endpoint: (device) => {
             return {default: 43};
         },
-        whiteLabel: [{model: "SIRZB-111", vendor: "Develco", description: "Customizable siren", fingerprint: [{modelID: "SIRZB-111"}]}],
+        exposes: [
+            e.battery_low(),
+            e.test(),
+            e.warning(),
+            e.squawk(),
+            e.numeric("max_duration", ea.ALL).withUnit("s").withValueMin(0).withValueMax(900).withDescription("Max duration of the siren"),
+            e.binary("alarm", ea.SET, "START", "OFF").withDescription("Manual start of the siren"),
+        ],
+    },
+    {
+        zigbeeModel: ["SIRZB-111"],
+        model: "SIRZB-111",
+        vendor: "Develco",
+        description: "Customizable siren",
+        fromZigbee: [fz.ias_enroll, fz.ias_wd, fz.ias_siren],
+        toZigbee: [tz.warning, tz.warning_simple, tz.ias_max_duration, tz.squawk],
+        extend: [
+            develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
+            develcoModernExtend.readGenBasicPrimaryVersions(),
+            m.battery({
+                voltageToPercentage: {min: 2500, max: 3000},
+                percentage: true,
+                voltage: true,
+                lowStatus: false,
+                voltageReporting: true,
+                percentageReporting: false,
+            }),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(43);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["ssIasZone", "ssIasWd", "genBasic"]);
+            await endpoint.read("ssIasZone", ["iasCieAddr", "zoneState", "zoneId"]);
+            await endpoint.read("ssIasWd", ["maxDuration"]);
+
+            const endpoint2 = device.getEndpoint(1);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ["genOnOff"]);
+        },
+        endpoint: (device) => {
+            return {default: 43};
+        },
         exposes: [
             e.battery_low(),
             e.test(),
@@ -929,6 +970,7 @@ export const definitions: DefinitionWithExtend[] = [
                 voltageReporting: true,
                 percentageReporting: false,
             }),
+            m.iasGetPanelStatusResponse(),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(44);
@@ -937,22 +979,6 @@ export const definitions: DefinitionWithExtend[] = [
         },
         endpoint: (device) => {
             return {default: 44};
-        },
-        onEvent: async (type, data, device) => {
-            if (
-                type === "message" &&
-                data.type === "commandGetPanelStatus" &&
-                data.cluster === "ssIasAce" &&
-                globalStore.hasValue(device.getEndpoint(44), "panelStatus")
-            ) {
-                const payload = {
-                    panelstatus: globalStore.getValue(device.getEndpoint(44), "panelStatus"),
-                    secondsremain: 0x00,
-                    audiblenotif: 0x00,
-                    alarmstatus: 0x00,
-                };
-                await data.endpoint.commandResponse("ssIasAce", "getPanelStatusRsp", payload, {}, data.meta.zclTransactionSequenceNumber);
-            }
         },
     },
     {

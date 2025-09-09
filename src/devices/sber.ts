@@ -1,5 +1,4 @@
 import {Zcl} from "zigbee-herdsman";
-
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
@@ -12,7 +11,6 @@ import * as utils from "../lib/utils";
 const e = exposes.presets;
 const ea = exposes.access;
 
-const NS = "zhc:sdevices";
 const {tuyaMagicPacket, tuyaOnOffActionLegacy} = tuya.modernExtend;
 const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD};
 const defaultResponseOptions = {disableDefaultResponse: false};
@@ -37,7 +35,7 @@ const sdevices = {
                     };
                 }
             },
-        } satisfies Fz.Converter,
+        } satisfies Fz.Converter<"manuSpecificSDevices", SberDevices, ["attributeReport", "readResponse"]>,
         led_indicator_settings: {
             cluster: "manuSpecificSDevices",
             type: ["attributeReport", "readResponse"],
@@ -71,7 +69,7 @@ const sdevices = {
                 }
                 return result;
             },
-        } satisfies Fz.Converter,
+        } satisfies Fz.Converter<"manuSpecificSDevices", SberDevices, ["attributeReport", "readResponse"]>,
         multistate_input: {
             cluster: "genMultistateInput",
             type: ["attributeReport"],
@@ -81,7 +79,7 @@ const sdevices = {
                 const action = actionLookup[value];
                 return {action: utils.postfixWithEndpointName(action, msg, model, meta)};
             },
-        } satisfies Fz.Converter,
+        } satisfies Fz.Converter<"genMultistateInput", undefined, ["attributeReport"]>,
         decouple_relay: {
             cluster: "genOnOff",
             type: ["attributeReport", "readResponse"],
@@ -96,7 +94,7 @@ const sdevices = {
                 }
                 return state;
             },
-        } satisfies Fz.Converter,
+        } satisfies Fz.Converter<"genOnOff", SberGenOnOff, ["attributeReport", "readResponse"]>,
         allow_double_click: {
             cluster: "manuSpecificSDevices",
             type: ["attributeReport", "readResponse"],
@@ -107,7 +105,7 @@ const sdevices = {
                 }
                 return result;
             },
-        } satisfies Fz.Converter,
+        } satisfies Fz.Converter<"manuSpecificSDevices", SberDevices, ["attributeReport", "readResponse"]>,
     },
     tz: {
         custom_on_off: {
@@ -140,7 +138,7 @@ const sdevices = {
             convertGet: async (entity, key, meta) => {
                 await m
                     .determineEndpoint(entity, meta, "manuSpecificSDevices")
-                    .read(
+                    .read<"manuSpecificSDevices", SberDevices>(
                         "manuSpecificSDevices",
                         ["ledIndicatorOnEnable", "ledIndicatorOnH", "ledIndicatorOnS", "ledIndicatorOnB"],
                         defaultResponseOptions,
@@ -173,7 +171,7 @@ const sdevices = {
             convertGet: async (entity, key, meta) => {
                 await m
                     .determineEndpoint(entity, meta, "manuSpecificSDevices")
-                    .read(
+                    .read<"manuSpecificSDevices", SberDevices>(
                         "manuSpecificSDevices",
                         ["ledIndicatorOffEnable", "ledIndicatorOffH", "ledIndicatorOffS", "ledIndicatorOffB"],
                         defaultResponseOptions,
@@ -184,7 +182,7 @@ const sdevices = {
             key: ["identify"],
             options: tz.identify.options,
             convertSet: async (entity, key, value, meta) => {
-                const identifyTimeout = meta.options.identify_timeout ?? 30;
+                const identifyTimeout = (meta.options.identify_timeout as number) ?? 30;
                 await entity.command("genIdentify", "identify", {identifytime: identifyTimeout}, utils.getOptions(meta.mapped, entity));
             },
         } satisfies Tz.Converter,
@@ -194,19 +192,22 @@ const sdevices = {
                 if (typeof value !== "string") {
                     return;
                 }
-                const relayDecoupleLookup: KeyValueAny = {control_relay: 0, decoupled: 1};
-                if (relayDecoupleLookup[value] === undefined) {
-                    throw new Error(`relay_mode was called with an invalid value (${value})`);
-                }
+                const relayDecoupleLookup = {control_relay: 0, decoupled: 1};
                 utils.assertEndpoint(entity);
-                await utils
-                    .enforceEndpoint(entity, key, meta)
-                    .write("genOnOff", {sdevicesRelayDecouple: relayDecoupleLookup[value]}, manufacturerOptions);
+                await utils.enforceEndpoint(entity, key, meta).write<"genOnOff", SberGenOnOff>(
+                    "genOnOff",
+                    {
+                        sdevicesRelayDecouple: utils.getFromLookup(value, relayDecoupleLookup),
+                    },
+                    manufacturerOptions,
+                );
                 return {state: {relay_mode: value.toLowerCase()}};
             },
             convertGet: async (entity, key, meta) => {
                 utils.assertEndpoint(entity);
-                await utils.enforceEndpoint(entity, key, meta).read("genOnOff", ["sdevicesRelayDecouple"], manufacturerOptions);
+                await utils
+                    .enforceEndpoint(entity, key, meta)
+                    .read<"genOnOff", SberGenOnOff>("genOnOff", ["sdevicesRelayDecouple"], manufacturerOptions);
             },
         } satisfies Tz.Converter,
         allow_double_click: {
@@ -223,7 +224,7 @@ const sdevices = {
             convertGet: async (entity, key, meta) => {
                 await m
                     .determineEndpoint(entity, meta, "manuSpecificSDevices")
-                    .read("manuSpecificSDevices", ["buttonEnableMultiClick"], defaultResponseOptions);
+                    .read<"manuSpecificSDevices", SberDevices>("manuSpecificSDevices", ["buttonEnableMultiClick"], defaultResponseOptions);
             },
         } satisfies Tz.Converter,
     },
@@ -257,6 +258,38 @@ const sdevicesCustomClusterDefinition = {
     commandsResponse: {},
 };
 
+interface SberDevices {
+    attributes: {
+        buttonEnableMultiClick: number;
+        childLock: number;
+        ledIndicatorOnEnable: number;
+        ledIndicatorOnH: number;
+        ledIndicatorOnS: number;
+        ledIndicatorOnB: number;
+        ledIndicatorOffEnable: number;
+        ledIndicatorOffH: number;
+        ledIndicatorOffS: number;
+        ledIndicatorOffB: number;
+        emergencyShutoffState: number;
+        emergencyShutoffRecovery: number;
+        upperVoltageThreshold: number;
+        lowerVoltageThreshold: number;
+        upperCurrentThreshold: number;
+        upperTempThreshold: number;
+        rmsVoltageMv: number;
+        rmsCurrentMa: number;
+        activePowerMw: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+interface SberGenOnOff {
+    attributes: {sdevicesRelayDecouple: number};
+    commands: never;
+    commandResponses: never;
+}
+
 const sdevicesExtend = {
     sdevicesCustomCluster: () => m.deviceAddCustomCluster("manuSpecificSDevices", sdevicesCustomClusterDefinition),
     genOnOffCluster: () =>
@@ -268,8 +301,8 @@ const sdevicesExtend = {
             commands: {},
             commandsResponse: {},
         }),
-    onOffRelayDecouple: (args?: Partial<m.EnumLookupArgs>) =>
-        m.enumLookup({
+    onOffRelayDecouple: (args?: Partial<m.EnumLookupArgs<"genOnOff", SberGenOnOff>>) =>
+        m.enumLookup<"genOnOff", SberGenOnOff>({
             name: "relay_mode",
             description: "Decoupled mode for button",
             cluster: "genOnOff",
@@ -279,7 +312,7 @@ const sdevicesExtend = {
             ...args,
         }),
     ledIndicatorSettings: (): ModernExtend => {
-        const fromZigbee: Fz.Converter[] = [
+        const fromZigbee = [
             {
                 cluster: "manuSpecificSDevices",
                 type: ["attributeReport", "readResponse"],
@@ -311,7 +344,7 @@ const sdevicesExtend = {
                     }
                     return result;
                 },
-            },
+            } satisfies Fz.Converter<"manuSpecificSDevices", SberDevices, ["attributeReport", "readResponse"]>,
         ];
         const toZigbee: Tz.Converter[] = [
             {
@@ -337,7 +370,7 @@ const sdevicesExtend = {
                     return {state: {[key]: value}};
                 },
                 convertGet: async (entity, key, meta) => {
-                    await entity.read(
+                    await entity.read<"manuSpecificSDevices", SberDevices>(
                         "manuSpecificSDevices",
                         ["ledIndicatorOnEnable", "ledIndicatorOnH", "ledIndicatorOnS", "ledIndicatorOnB"],
                         defaultResponseOptions,
@@ -367,7 +400,7 @@ const sdevicesExtend = {
                     return {state: {[key]: value}};
                 },
                 convertGet: async (entity, key, meta) => {
-                    await entity.read(
+                    await entity.read<"manuSpecificSDevices", SberDevices>(
                         "manuSpecificSDevices",
                         ["ledIndicatorOffEnable", "ledIndicatorOffH", "ledIndicatorOffS", "ledIndicatorOffB"],
                         defaultResponseOptions,
@@ -427,7 +460,7 @@ const sdevicesExtend = {
     },
     electricityMeter: (): ModernExtend => {
         const exposes = [e.voltage().withAccess(ea.STATE_GET), e.current().withAccess(ea.STATE_GET), e.power().withAccess(ea.STATE_GET)];
-        const fromZigbee: Fz.Converter[] = [
+        const fromZigbee = [
             {
                 cluster: "manuSpecificSDevices",
                 type: ["attributeReport", "readResponse"],
@@ -447,32 +480,32 @@ const sdevicesExtend = {
                     }
                     return payload;
                 },
-            },
+            } satisfies Fz.Converter<"manuSpecificSDevices", undefined, ["attributeReport", "readResponse"]>,
         ];
         const toZigbee: Tz.Converter[] = [
             {
                 key: ["voltage"],
                 convertGet: async (entity, key, meta) => {
-                    await entity.read("manuSpecificSDevices", ["rmsVoltageMv"]);
+                    await entity.read<"manuSpecificSDevices", SberDevices>("manuSpecificSDevices", ["rmsVoltageMv"]);
                 },
             },
             {
                 key: ["current"],
                 convertGet: async (entity, key, meta) => {
-                    await entity.read("manuSpecificSDevices", ["rmsCurrentMa"]);
+                    await entity.read<"manuSpecificSDevices", SberDevices>("manuSpecificSDevices", ["rmsCurrentMa"]);
                 },
             },
             {
                 key: ["power"],
                 convertGet: async (entity, key, meta) => {
-                    await entity.read("manuSpecificSDevices", ["activePowerMw"]);
+                    await entity.read<"manuSpecificSDevices", SberDevices>("manuSpecificSDevices", ["activePowerMw"]);
                 },
             },
         ];
         return {exposes, fromZigbee, toZigbee, isModernExtend: true};
     },
     childLock: () =>
-        m.binary({
+        m.binary<"manuSpecificSDevices", SberDevices>({
             name: "child_lock",
             cluster: "manuSpecificSDevices",
             attribute: "childLock",
@@ -492,7 +525,7 @@ const sdevicesExtend = {
             entityCategory: "diagnostic",
         }),
     emergencyShutoffRecovery: () =>
-        m.enumLookup({
+        m.enumLookup<"manuSpecificSDevices", SberDevices>({
             name: "emergency_shutoff_recovery",
             cluster: "manuSpecificSDevices",
             attribute: "emergencyShutoffRecovery",
@@ -501,7 +534,7 @@ const sdevicesExtend = {
             zigbeeCommandOptions: manufacturerOptions,
         }),
     upperVoltageThreshold: () =>
-        m.numeric({
+        m.numeric<"manuSpecificSDevices", SberDevices>({
             name: "upper_voltage_threshold",
             cluster: "manuSpecificSDevices",
             attribute: "upperVoltageThreshold",
@@ -513,7 +546,7 @@ const sdevicesExtend = {
             zigbeeCommandOptions: manufacturerOptions,
         }),
     lowerVoltageThreshold: () =>
-        m.numeric({
+        m.numeric<"manuSpecificSDevices", SberDevices>({
             name: "lower_voltage_threshold",
             cluster: "manuSpecificSDevices",
             attribute: "lowerVoltageThreshold",
@@ -525,7 +558,7 @@ const sdevicesExtend = {
             zigbeeCommandOptions: manufacturerOptions,
         }),
     upperCurrentThreshold: () =>
-        m.numeric({
+        m.numeric<"manuSpecificSDevices", SberDevices>({
             name: "upper_current_threshold",
             cluster: "manuSpecificSDevices",
             attribute: "upperCurrentThreshold",
@@ -537,7 +570,7 @@ const sdevicesExtend = {
             zigbeeCommandOptions: manufacturerOptions,
         }),
     temperatureThreshold: () =>
-        m.numeric({
+        m.numeric<"manuSpecificSDevices", SberDevices>({
             name: "temperature_threshold",
             cluster: "manuSpecificSDevices",
             attribute: "upperTempThreshold",
@@ -618,7 +651,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             sdevicesExtend.sdevicesCustomCluster(),
             sdevicesExtend.genOnOffCluster(),
-            m.binary({
+            m.binary<"manuSpecificSDevices", SberDevices>({
                 name: "allow_double_click",
                 cluster: "manuSpecificSDevices",
                 attribute: "buttonEnableMultiClick",
@@ -645,7 +678,7 @@ export const definitions: DefinitionWithExtend[] = [
             await device.getEndpoint(1).read("genBasic", ["serialNumber"]);
             await device
                 .getEndpoint(1)
-                .read("manuSpecificSDevices", [
+                .read<"manuSpecificSDevices", SberDevices>("manuSpecificSDevices", [
                     "ledIndicatorOnEnable",
                     "ledIndicatorOnH",
                     "ledIndicatorOnS",
@@ -655,7 +688,7 @@ export const definitions: DefinitionWithExtend[] = [
                     "ledIndicatorOffS",
                     "ledIndicatorOffB",
                 ]);
-            await device.getEndpoint(1).read("manuSpecificSDevices", ["buttonEnableMultiClick"]);
+            await device.getEndpoint(1).read<"manuSpecificSDevices", SberDevices>("manuSpecificSDevices", ["buttonEnableMultiClick"]);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff", "genMultistateInput"]);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["haDiagnostic"]);
         },
@@ -803,11 +836,11 @@ export const definitions: DefinitionWithExtend[] = [
             await device.getEndpoint(1).read("genBasic", ["serialNumber"]);
             await device.getEndpoint(1).read("genOnOff", ["onOff", "startUpOnOff"]);
             await device.getEndpoint(2).read("genOnOff", ["onOff", "startUpOnOff"]);
-            await device.getEndpoint(1).read("genOnOff", ["sdevicesRelayDecouple"], manufacturerOptions);
-            await device.getEndpoint(2).read("genOnOff", ["sdevicesRelayDecouple"], manufacturerOptions);
+            await device.getEndpoint(1).read<"genOnOff", SberGenOnOff>("genOnOff", ["sdevicesRelayDecouple"], manufacturerOptions);
+            await device.getEndpoint(2).read<"genOnOff", SberGenOnOff>("genOnOff", ["sdevicesRelayDecouple"], manufacturerOptions);
             await device
                 .getEndpoint(1)
-                .read(
+                .read<"manuSpecificSDevices", SberDevices>(
                     "manuSpecificSDevices",
                     [
                         "buttonEnableMultiClick",
@@ -824,7 +857,7 @@ export const definitions: DefinitionWithExtend[] = [
                 );
             await device
                 .getEndpoint(2)
-                .read(
+                .read<"manuSpecificSDevices", SberDevices>(
                     "manuSpecificSDevices",
                     [
                         "buttonEnableMultiClick",
@@ -879,8 +912,13 @@ export const definitions: DefinitionWithExtend[] = [
             const endpoint = device.getEndpoint(1);
             await endpoint.read("genBasic", ["serialNumber"]);
             await endpoint.read("genOnOff", ["onOff", "startUpOnOff"]);
-            await endpoint.read("manuSpecificSDevices", ["childLock", "rmsVoltageMv", "rmsCurrentMa", "activePowerMw"]);
-            await endpoint.read("manuSpecificSDevices", [
+            await endpoint.read<"manuSpecificSDevices", SberDevices>("manuSpecificSDevices", [
+                "childLock",
+                "rmsVoltageMv",
+                "rmsCurrentMa",
+                "activePowerMw",
+            ]);
+            await endpoint.read<"manuSpecificSDevices", SberDevices>("manuSpecificSDevices", [
                 "ledIndicatorOnEnable",
                 "ledIndicatorOnH",
                 "ledIndicatorOnS",
@@ -890,7 +928,7 @@ export const definitions: DefinitionWithExtend[] = [
                 "ledIndicatorOffS",
                 "ledIndicatorOffB",
             ]);
-            await endpoint.read("manuSpecificSDevices", [
+            await endpoint.read<"manuSpecificSDevices", SberDevices>("manuSpecificSDevices", [
                 "upperVoltageThreshold",
                 "lowerVoltageThreshold",
                 "upperCurrentThreshold",

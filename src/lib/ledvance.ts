@@ -22,7 +22,11 @@ export const ledvanceFz = {
             };
             return {[utils.postfixWithEndpointName("action", msg, model, meta)]: lookup[msg.type]};
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<
+        "genLevelCtrl",
+        undefined,
+        ["commandMoveWithOnOff", "commandStopWithOnOff", "commandMove", "commandStop", "commandMoveToLevelWithOnOff"]
+    >,
 };
 
 export const ledvanceTz = {
@@ -54,7 +58,7 @@ export const ledvanceTz = {
 
 export function ledvanceOnOff(args?: modernExtend.OnOffArgs) {
     // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
-    args = {ota: {suppressElementImageParseFailure: true}, ...args};
+    args = {ota: {suppressElementImageParseFailure: true}, configureReporting: true, ...args};
     return modernExtend.onOff(args);
 }
 

@@ -9,6 +9,27 @@ import type {DefinitionWithExtend, Fz, KeyValue} from "../lib/types";
 
 const e = exposes.presets;
 
+interface ThirdAcceleration {
+    attributes: {
+        coolDownTime: number;
+        xAxis: number;
+        yAxis: number;
+        zAxis: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+interface ThirdMotionSensor {
+    attributes: {
+        coldDownTime: number;
+        localRoutinTime: number;
+        luxThreshold: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
 const fzLocal = {
     thirdreality_acceleration: {
         cluster: "3rVirationSpecialcluster",
@@ -20,15 +41,15 @@ const fzLocal = {
             if (msg.data.zAxis) payload.z_axis = msg.data.zAxis;
             return payload;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"3rVirationSpecialcluster", ThirdAcceleration, ["attributeReport", "readResponse"]>,
     thirdreality_private_motion_sensor: {
         cluster: "r3Specialcluster",
         type: "attributeReport",
         convert: (model, msg, publish, options, meta) => {
-            const zoneStatus = msg.data[2];
+            const zoneStatus = msg.data[2] as number;
             return {occupancy: (zoneStatus & 1) > 0};
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"r3Specialcluster", ThirdMotionSensor, "attributeReport">,
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -200,7 +221,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Third Reality",
         description: "Garage door tilt sensor",
         extend: [
-            m.battery(),
+            m.battery({percentageReporting: false}),
             m.forcePowerSource({powerSource: "Battery"}),
             m.iasZoneAlarm({zoneType: "contact", zoneAttributes: ["alarm_1", "battery_low"]}),
             m.deviceAddCustomCluster("3rGarageDoorSpecialCluster", {
@@ -288,7 +309,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.windowCovering({controls: ["lift"]}),
             m.commandsWindowCovering({commands: ["open", "close", "stop"]}),
             m.deviceAddCustomCluster("3rSmartBlindGen2SpecialCluster", {
-                ID: 0xff00,
+                ID: 0xfff1,
                 manufacturerCode: 0x1233,
                 attributes: {
                     infrared_enable: {ID: 0x0000, type: 0x20},
@@ -310,6 +331,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.action(["single", "double", "hold", "release"])],
         extend: [
             m.battery(),
+            m.forcePowerSource({powerSource: "Battery"}),
             m.deviceAddCustomCluster("3rButtonSpecialCluster", {
                 ID: 0xff01,
                 manufacturerCode: 0x1233,
@@ -330,6 +352,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.temperature(),
             m.humidity(),
             m.battery(),
+            m.forcePowerSource({powerSource: "Battery"}),
             m.deviceAddCustomCluster("3rSpecialCluster", {
                 ID: 0xff01,
                 manufacturerCode: 0x1233,
@@ -352,6 +375,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.temperature(),
             m.humidity(),
+            m.soilMoisture(),
             m.battery(),
             m.deviceAddCustomCluster("3rSoilSpecialCluster", {
                 ID: 0xff01,
@@ -448,6 +472,7 @@ export const definitions: DefinitionWithExtend[] = [
                     resetSummationDelivered: {ID: 0x0000, type: Zcl.DataType.UINT8},
                     onToOffDelay: {ID: 0x0001, type: Zcl.DataType.UINT16},
                     offToOnDelay: {ID: 0x0002, type: Zcl.DataType.UINT16},
+                    allowBind: {ID: 0x0020, type: Zcl.DataType.UINT8},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -455,39 +480,54 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        zigbeeModel: ["3RSPE02065Z"],
-        model: "3RSPE02065Z",
-        vendor: "Third Reality",
-        description: "Zigbee / BLE smart plug e3 with power",
-        extend: [m.onOff(), m.electricityMeter({acFrequency: true, powerFactor: true})],
-        ota: true,
-    },
-    {
-        zigbeeModel: ["3RSPU01080Z"],
-        model: "3RSPU01080Z",
-        vendor: "Third Reality",
-        description: "Zigbee / BLE smart plug uk with power",
-        extend: [m.onOff(), m.electricityMeter({acFrequency: true, powerFactor: true})],
-        ota: true,
-    },
-    {
-        zigbeeModel: ["3RSP02064Z"],
+        zigbeeModel: ["3RSP02064Z", "3RSPE02065Z", "3RSPU01080Z"],
         model: "3RSP02064Z",
         vendor: "Third Reality",
-        description: "Zigbee / BLE smart plug gen3 with power",
-        extend: [m.onOff(), m.electricityMeter({acFrequency: true, powerFactor: true})],
+        description: "Smart Plug Gen3",
+        whiteLabel: [
+            {vendor: "Third Reality", model: "3RSPE02065Z", description: "Smart Plug E3", fingerprint: [{modelID: "3RSPE02065Z"}]},
+            {vendor: "Third Reality", model: "3RSPU01080Z", description: "Smart Plug UZ1", fingerprint: [{modelID: "3RSPU01080Z"}]},
+        ],
+        extend: [
+            m.onOff(),
+            m.electricityMeter({acFrequency: true, powerFactor: true}),
+            m.deviceAddCustomCluster("3rPlugSpecialcluster", {
+                ID: 0xff03,
+                manufacturerCode: 0x1407,
+                attributes: {
+                    resetSummationDelivered: {ID: 0x0000, type: Zcl.DataType.UINT8},
+                    onToOffDelay: {ID: 0x0001, type: Zcl.DataType.UINT16},
+                    offToOnDelay: {ID: 0x0002, type: Zcl.DataType.UINT16},
+                    allowBind: {ID: 0x0020, type: Zcl.DataType.UINT8},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+        ],
         ota: true,
     },
     {
-        zigbeeModel: ["3RDP01072Z"],
+        zigbeeModel: ["3RDP01072Z", "3RWP01073Z"],
         model: "3RDP01072Z",
         vendor: "Third Reality",
-        description: "Zigbee / BLE dual plug with power",
+        description: "Smart Dual Plug ZP1",
         ota: true,
+        whiteLabel: [{vendor: "Third Reality", model: "3RWP01073Z", description: "Smart Wall Plug ZW1", fingerprint: [{modelID: "3RWP01073Z"}]}],
         extend: [
             m.deviceEndpoints({endpoints: {left: 1, right: 2}}),
             m.onOff({endpointNames: ["left", "right"]}),
-            m.electricityMeter({acFrequency: true, powerFactor: true, endpointNames: ["left", "right"], energy: {divisor: 3600000}}),
+            m.electricityMeter({acFrequency: true, powerFactor: true, endpointNames: ["left", "right"], energy: {divisor: 1000}}),
+            m.deviceAddCustomCluster("3rDualPlugSpecialcluster", {
+                ID: 0xff03,
+                manufacturerCode: 0x1407,
+                attributes: {
+                    resetSummationDelivered: {ID: 0x0000, type: Zcl.DataType.UINT8},
+                    onToOffDelay: {ID: 0x0001, type: Zcl.DataType.UINT16},
+                    offToOnDelay: {ID: 0x0002, type: Zcl.DataType.UINT16},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
         ],
     },
     {
@@ -590,6 +630,7 @@ export const definitions: DefinitionWithExtend[] = [
                     resetSummationDelivered: {ID: 0x0000, type: Zcl.DataType.UINT8},
                     onToOffDelay: {ID: 0x0001, type: Zcl.DataType.UINT16},
                     offToOnDelay: {ID: 0x0002, type: Zcl.DataType.UINT16},
+                    allowBind: {ID: 0x0020, type: Zcl.DataType.UINT8},
                 },
                 commands: {},
                 commandsResponse: {},
