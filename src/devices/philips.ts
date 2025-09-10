@@ -4206,4 +4206,21 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Hue White & Color ambience Centris ceiling light (2 spots)",
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
+    {
+    zigbeeModel: ['LCA017'],
+    model: 'LCA017',
+    vendor: 'Signify Netherlands B.V.',
+    description: 'Hue Essential White and Color Ambiance A19',
+    extend: [philips.m.light({"colorTemp":{"range":[153,447]},"color":{"modes":["xy","hs"],"enhancedHue":true}})],
+    meta: {},
+    },
+    {
+    zigbeeModel: ['LCB003'],
+    model: 'LCB003',
+    vendor: 'Signify Netherlands B.V.',
+    description: 'Hue Essential White and Color Ambiance BR30',
+    extend: [philips.m.light({"colorTemp":{"range":[153,447]},"color":{"modes":["xy","hs"],"enhancedHue":true}})],
+    meta: {},
+    },
 ];
+
