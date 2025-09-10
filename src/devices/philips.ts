@@ -4208,7 +4208,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["LCA017"],
-        model: "LCA017",
+        model: "046677592530",
         vendor: "Philips",
         description: "Hue Essential White and Color Ambiance A19",
         extend: [philips.m.light({colorTemp: {range: [153, 447]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
@@ -4216,8 +4216,8 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["LCB003"],
-        model: "LCB003",
-        vendor: "Signify Netherlands B.V.",
+        model: "046677592622",
+        vendor: "Philips",
         description: "Hue Essential White and Color Ambiance BR30",
         extend: [philips.m.light({colorTemp: {range: [153, 447]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
         meta: {},
