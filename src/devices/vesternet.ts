@@ -12,6 +12,7 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: [
             {modelID: "HK-SL-DIM-A", softwareBuildID: "2.5.3_r52"},
             {modelID: "HK-SL-DIM-A", softwareBuildID: "2.9.2_r54"},
+            {modelID: "HK-SL-DIM-A", softwareBuildID: "2.9.2_r63"},
         ],
         model: "VES-ZB-DIM-004",
         vendor: "Vesternet",
@@ -69,6 +70,7 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: [
             {modelID: "ZGRC-KEY-013", softwareBuildID: "2.5.3_r20"},
             {modelID: "ZGRC-KEY-013", softwareBuildID: "2.7.6_r25"},
+            {modelID: "ZGRC-KEY-013", softwareBuildID: "2.7.6_r27"},
         ],
         model: "VES-ZB-REM-013",
         vendor: "Vesternet",
@@ -249,6 +251,7 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: [
             {modelID: "ZG2833K8_EU05", softwareBuildID: "2.5.3_r20"},
             {modelID: "ZG2833K8_EU05", softwareBuildID: "2.7.6_r25"},
+            {modelID: "ZG2833K8_EU05", softwareBuildID: "2.7.6_r27"},
         ],
         model: "VES-ZB-WAL-012",
         vendor: "Vesternet",
