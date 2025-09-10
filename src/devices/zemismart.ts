@@ -405,7 +405,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZMS-206US-1",
         vendor: "Zemismart",
         description: "Smart screen switch 1 gang",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "off"})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "off", respondToMcuVersionResponse: false})],
         exposes: [
             tuya.exposes.backlightModeOffOn().withAccess(ea.STATE_SET),
             e.switch(),
@@ -462,7 +462,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZMS-206EU-2",
         vendor: "Zemismart",
         description: "Smart screen switch 2 gang",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "off"})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "off", respondToMcuVersionResponse: false})],
         exposes: [
             tuya.exposes.backlightModeOffOn().withAccess(ea.STATE_SET),
             e.switch(),
@@ -546,7 +546,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZMS-206EU-3",
         vendor: "Zemismart",
         description: "Smart screen switch 3 gang",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "off"})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "off", respondToMcuVersionResponse: false})],
         exposes: [
             tuya.exposes.backlightModeOffOn().withAccess(ea.STATE_SET),
             e.switch(),
@@ -648,7 +648,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZMS-206US-4",
         vendor: "Zemismart",
         description: "Smart screen switch 4 gang US",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "off"})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "off", respondToMcuVersionResponse: false})],
         exposes: [
             tuya.exposes.backlightModeOffOn().withAccess(ea.STATE_SET),
             e.switch(),

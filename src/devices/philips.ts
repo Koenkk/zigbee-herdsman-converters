@@ -4213,4 +4213,20 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Hue White A60 E27 810lm",
         extend: [philips.m.light()],
     },
+    {
+        zigbeeModel: ["LCA017"],
+        model: "046677592530",
+        vendor: "Philips",
+        description: "Hue Essential White and Color Ambiance A19",
+        extend: [philips.m.light({colorTemp: {range: [153, 447]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+        meta: {},
+    },
+    {
+        zigbeeModel: ["LCB003"],
+        model: "046677592622",
+        vendor: "Philips",
+        description: "Hue Essential White and Color Ambiance BR30",
+        extend: [philips.m.light({colorTemp: {range: [153, 447]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+        meta: {},
+    },
 ];
