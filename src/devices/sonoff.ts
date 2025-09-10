@@ -428,23 +428,21 @@ const sonoffExtend = {
                         //logger.debug(`meta.rawData details:`, NS);
                         //logger.debug(`  - Hex: ${msg.meta.rawData.toString('hex')}`, NS);
                         const rawData = msg.meta.rawData;
-                        
+
                         /*eg：raw data: 082b0a0850420a0101000000ef00000064*/
                         /*zcl frame: 082b0a  attrid: 0850  data type :42   data payload:0a0101000000ef00000064*/
                         /*0a:data len 01:currentCount 01:totalNumber 00 00 00 ef:irrigationDurationBuffer 00 00 00 64:irrigationIntervalBuffer*/
-                        const dataStartIndex = 7;/*data payload start index*/
+                        const dataStartIndex = 7; /*data payload start index*/
 
                         //logger.debug(`rawData====> ${rawData[0+dataStartIndex]} ${rawData[1+dataStartIndex]} ${rawData[2+dataStartIndex]} ${rawData[3+dataStartIndex]} ${rawData[4+dataStartIndex]} ${rawData[5+dataStartIndex]} `, NS);
                         //logger.debug(`rawData====> ${rawData[6+dataStartIndex]} ${rawData[7+dataStartIndex]} ${rawData[8+dataStartIndex]} ${rawData[9+dataStartIndex]} `, NS);
 
+                        const currentCountBuffer = rawData.readUInt8(0 + dataStartIndex);
+                        const totalNumberBuffer = rawData.readUInt8(1 + dataStartIndex);
 
+                        const irrigationDurationBuffer = rawData.readUInt32BE(2 + dataStartIndex);
 
-                        const currentCountBuffer = rawData.readUInt8(0+dataStartIndex);
-                        const totalNumberBuffer = rawData.readUInt8(1+dataStartIndex);
-
-                        const irrigationDurationBuffer = rawData.readUInt32BE(2+dataStartIndex);
-
-                        const irrigationIntervalBuffer = rawData.readUInt32BE(6+dataStartIndex);
+                        const irrigationIntervalBuffer = rawData.readUInt32BE(6 + dataStartIndex);
 
                         //logger.debug(`currentCountBuffer ${currentCountBuffer}`, NS);
                         //logger.debug(`totalNumberOfTimesBuffer ${totalNumberBuffer}`, NS);
@@ -550,19 +548,19 @@ const sonoffExtend = {
                         // logger.debug(msg.data[attributeKey]);
                         const rawData = msg.meta.rawData;
 
-                         /*eg：raw data: 082b0a0850420a0101000000ef00000064*/
+                        /*eg：raw data: 082b0a0850420a0101000000ef00000064*/
                         /*zcl frame: 082b0a  attrid: 0850  data type :42   data payload:0a0101000000ef00000064*/
                         /*0a:data len 01:currentCount 01:totalNumber 00 00 00 ef:irrigationCapacityBuffer 00 00 00 64:irrigationIntervalBuffer*/
-                        const dataStartIndex = 7;/*data payload start index*/
+                        const dataStartIndex = 7; /*data payload start index*/
 
                         //logger.debug(`rawData====> ${rawData[0+dataStartIndex]} ${rawData[1+dataStartIndex]} ${rawData[2+dataStartIndex]} ${rawData[3+dataStartIndex]} ${rawData[4+dataStartIndex]} ${rawData[5+dataStartIndex]} `, NS);
                         //logger.debug(`rawData====> ${rawData[6+dataStartIndex]} ${rawData[7+dataStartIndex]} ${rawData[8+dataStartIndex]} ${rawData[9+dataStartIndex]} `, NS);
-                        const currentCountBuffer = rawData.readUInt8(0+dataStartIndex);
-                        const totalNumberBuffer = rawData.readUInt8(1+dataStartIndex);
+                        const currentCountBuffer = rawData.readUInt8(0 + dataStartIndex);
+                        const totalNumberBuffer = rawData.readUInt8(1 + dataStartIndex);
 
-                        const irrigationCapacityBuffer = rawData.readUInt32BE(2+dataStartIndex);
+                        const irrigationCapacityBuffer = rawData.readUInt32BE(2 + dataStartIndex);
 
-                        const irrigationIntervalBuffer = rawData.readUInt32BE(6+dataStartIndex);
+                        const irrigationIntervalBuffer = rawData.readUInt32BE(6 + dataStartIndex);
 
                         //logger.debug(`currentCountBuffer ${currentCountBuffer}`, NS);
                         //logger.debug(`totalNumberBuffer ${totalNumberBuffer}`, NS);
