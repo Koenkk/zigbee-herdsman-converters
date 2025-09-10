@@ -11,12 +11,48 @@ import * as utils from "../lib/utils";
 const e = exposes.presets;
 const ea = exposes.access;
 
+const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S};
+
 const setTime = async (device: Zh.Device) => {
     const endpoint = device.getEndpoint(1);
     const time = Math.round((Date.now() - constants.OneJanuary2000) / 1000);
     // Time-master + synchronised
     const values = {timeStatus: 1, time: time, timeZone: new Date().getTimezoneOffset() * -1 * 60};
     await endpoint.write("genTime", values);
+};
+
+interface DanfossHvacThermostatHaDiagnostic {
+    attributes: {
+        danfossSWStatusCode: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+const danfossExtend = {
+    haDiagnosticCluster: () =>
+        m.deviceAddCustomCluster("haDiagnostic", {
+            ID: Zcl.Clusters.haDiagnostic.ID,
+            attributes: {
+                danfossSWStatusCode: {
+                    ID: 0x4100,
+                    type: Zcl.DataType.BITMAP16,
+                    manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S,
+                },
+            },
+            commands: {},
+            commandsResponse: {},
+        }),
+
+    danfossSWStatusCode: () =>
+        m.enumLookup<"haDiagnostic", DanfossHvacThermostatHaDiagnostic>({
+            name: "sw status code",
+            cluster: "haDiagnostic",
+            attribute: "danfossSWStatusCode",
+            description: "sw status code",
+            lookup: {0: "idle", 1: "heating", 2: "idle", 3: "cooling"},
+            zigbeeCommandOptions: manufacturerOptions,
+        }),
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -674,6 +710,7 @@ export const definitions: DefinitionWithExtend[] = [
                     if (i < 16) {
                         const epName = `${i}`;
 
+                        features.push(danfossExtend.danfossSWStatusCode());
                         features.push(e.battery().withEndpoint(epName));
 
                         features.push(
