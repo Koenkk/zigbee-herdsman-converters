@@ -18727,19 +18727,48 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
         exposes: [
-            e.climate().withLocalTemperature(ea.STATE).withSetpoint("occupied_heating_setpoint", 5, 35, 0.5, ea.STATE_SET),
-            e
-                .enum("mode_state", ea.STATE_SET, ["auto", "manual", "temp_override"])
+            e.climate()
+                .withLocalTemperature(ea.STATE)
+                .withSetpoint("occupied_heating_setpoint", 5, 35, 0.5, ea.STATE_SET),
+            e.enum("mode_state", ea.STATE_SET, ["manual", "auto", "temp_override"])
                 .withDescription("Thermostat mode: manual, auto, or temp_override"),
-            e.binary("state", ea.STATE_SET, "ON", "OFF").withDescription("ON/OFF thermostat"),
-            e.enum("running_state", ea.STATE, ["idle", "heat"]).withDescription("State of heating"),
+            e.binary("state", ea.STATE_SET, "ON", "OFF")
+                .withDescription("ON/OFF thermostat"),
+            e.enum("running_state", ea.STATE, ["idle", "heat"])
+                .withDescription("State of heating"),
         ],
         meta: {
             tuyaDatapoints: [
                 [16, "local_temperature", tuya.valueConverter.divideBy10],
                 [50, "occupied_heating_setpoint", tuya.valueConverter.divideBy10],
                 [125, "state", tuya.valueConverter.onOff],
-                [128, "mode_state", tuya.valueConverterBasic.lookup({manual: 0, auto: 1, temp_override: 2})],
+                [128, "mode_state", {
+                    from: (v) => {
+                        function extractFirstNumericByte(v) {
+                            try {
+                                if (v === undefined || v === null) return undefined;
+                                if (Buffer.isBuffer(v)) return v.length > 0 ? v[0] : undefined;
+                                if (typeof v === "object" && Array.isArray(v.data)) return v.data.length > 0 ? v.data[0] : undefined;
+                                if (Array.isArray(v)) return v.length > 0 && typeof v[0] === "number" ? v[0] : undefined;
+                                if (typeof v === "number") return v;
+                                if (typeof v === "string" && v.length > 0) {
+                                    const n = parseInt(v, 10);
+                                    return Number.isNaN(n) ? undefined : n;
+                                }
+                            } catch (err) {}
+                            return undefined;
+                        }
+                        const b = extractFirstNumericByte(v);
+                        const lookup = {0: "manual", 1: "auto", 3: "temp_override"};
+                        return b !== undefined ? lookup[b] : undefined;
+                    },
+                    to: (v) => {
+                        if (typeof v !== "string") return undefined;
+                        const lookup = {manual: 0, auto: 1, temp_override: 3};
+                        const n = lookup[v];
+                        return n !== undefined ? [n] : undefined;
+                    },
+                }],
                 [102, "running_state", {from: (v) => (v === true ? "heat" : "idle")}],
             ],
         },
