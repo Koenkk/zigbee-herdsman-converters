@@ -4209,7 +4209,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["LCA017"],
         model: "LCA017",
-        vendor: "Signify Netherlands B.V.",
+        vendor: "Philips",
         description: "Hue Essential White and Color Ambiance A19",
         extend: [philips.m.light({colorTemp: {range: [153, 447]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
         meta: {},
