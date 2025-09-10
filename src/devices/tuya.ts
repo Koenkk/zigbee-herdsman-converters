@@ -18743,8 +18743,8 @@ export const definitions: DefinitionWithExtend[] = [
                 [50, "occupied_heating_setpoint", tuya.valueConverter.divideBy10],
                 [125, "state", tuya.valueConverter.onOff],
                 [128, "mode_state", {
-                    from: (v: any) => {
-                        function extractFirstNumericByte(v: any) {
+                    from: (v: Buffer | number | number[] | string | undefined | { data: number[] }) => {
+                        function extractFirstNumericByte(v: Buffer | number | number[] | string | undefined | { data: number[] }) {
                             try {
                                 if (v === undefined || v === null) return undefined;
                                 if (Buffer.isBuffer(v)) return v.length > 0 ? v[0] : undefined;
@@ -18769,7 +18769,7 @@ export const definitions: DefinitionWithExtend[] = [
                         return n !== undefined ? [n] : undefined;
                     },
                 }],
-                [102, "running_state", { from: (v: any) => (v === true ? "heat" : "idle") }],
+                [102, "running_state", { from: (v: unknown) => (v === true ? "heat" : "idle") }],
             ],
         },
     },
