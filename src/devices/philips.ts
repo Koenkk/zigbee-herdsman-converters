@@ -4206,4 +4206,11 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Hue White & Color ambience Centris ceiling light (2 spots)",
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
+    {
+        zigbeeModel: ["LWA032"],
+        model: "8720169363649",
+        vendor: "Philips",
+        description: "Hue White A60 E27 810lm",
+        extend: [philips.m.light()],
+    },
 ];
