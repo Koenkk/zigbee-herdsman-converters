@@ -922,7 +922,7 @@ const fzLocal = {
         ["commandDataResponse", "commandDataReport", "commandActiveStatusReport", "commandActiveStatusReportAlt"]
     >,
     ts020cIlluminance: {
-        cluster: "manuSpecificTuya_2",
+        cluster: "manuSpecificTuya2",
         type: ["attributeReport"],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
@@ -931,7 +931,7 @@ const fzLocal = {
             }
             return result;
         },
-    } satisfies Fz.Converter<"manuSpecificTuya_2", undefined, ["attributeReport"]>,
+    } satisfies Fz.Converter<"manuSpecificTuya2", undefined, ["attributeReport"]>,
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -950,8 +950,9 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS020C",
         vendor: "Tuya",
         description: "PIR sensor",
-        fromZigbee: [fzLocal.ts020cIlluminance],
+        fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery, fzLocal.ts020cIlluminance],
         extend: [tuya.modernExtend.tuyaBase({dp: true, queryOnDeviceAnnounce: true, queryOnConfigure: true})],
+        configure: tuya.configureMagicPacket,
         exposes: [
             e.occupancy(),
             e.battery(),
