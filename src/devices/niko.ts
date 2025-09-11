@@ -339,6 +339,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.binary("child_lock", ea.ALL, "LOCK", "UNLOCK").withDescription("Enables/disables physical input on the device"),
             e.binary("led_enable", ea.ALL, true, false).withDescription("Enable LED"),
         ],
+        ota: true,
     },
     {
         zigbeeModel: ["Smart plug Zigbee SE"],
@@ -403,6 +404,7 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.batteryVoltage(endpoint);
         },
         exposes: [e.occupancy(), e.battery_low(), e.battery()],
+        ota: true,
     },
     {
         zigbeeModel: ["Single connectable switch,10A"],
@@ -442,6 +444,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.enum("led_state", ea.ALL, ["ON", "OFF", "Blue", "Red", "Purple"]).withDescription("LED State"),
             e.enum("led_sync_mode", ea.ALL, ["Off", "On", "Inverted"]).withDescription("Sync LED with relay state"),
         ],
+        ota: true,
     },
     {
         zigbeeModel: ["Double connectable switch,10A"],
@@ -511,6 +514,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.enum("led_sync_mode", ea.ALL, ["Off", "On", "Inverted"]).withEndpoint("l1").withDescription("Sync LED with relay state"),
             e.enum("led_sync_mode", ea.ALL, ["Off", "On", "Inverted"]).withEndpoint("l2").withDescription("Sync LED with relay state"),
         ],
+        ota: true,
     },
     {
         zigbeeModel: ["Connectable dimmer,3-200W,2-wire"],
@@ -532,6 +536,7 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.brightness(endpoint);
             await endpoint.read<"manuSpecificNikoConfig", NikoConfig>("manuSpecificNikoConfig", ["outletLedState", "outletLedColor"]);
         },
+        ota: true,
     },
     {
         zigbeeModel: ["Connectable motor control,3A"],
@@ -547,6 +552,7 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.currentPositionLiftPercentage(endpoint);
         },
         exposes: [e.cover_position()],
+        ota: true,
     },
     {
         zigbeeModel: ["Battery switch, 1 button"],
@@ -561,6 +567,7 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.batteryPercentageRemaining(endpoint);
         },
         exposes: [e.action(["on", "off", "brightness_move_up", "brightness_move_down", "brightness_stop"]), e.battery()],
+        ota: true,
     },
     {
         zigbeeModel: ["Battery switch, 2 button"],
@@ -595,6 +602,7 @@ export const definitions: DefinitionWithExtend[] = [
             ]),
             e.battery(),
         ],
+        ota: true,
     },
     {
         zigbeeModel: ["Battery switch, 4 button"],
@@ -643,5 +651,6 @@ export const definitions: DefinitionWithExtend[] = [
             ]),
             e.battery(),
         ],
+        ota: true,
     },
 ];

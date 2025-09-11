@@ -493,7 +493,6 @@ const inovelliExtend = {
         return {
             fromZigbee,
             toZigbee: [
-                tz.on_off,
                 tzLocal.light_onoff_brightness_inovelli,
                 tz.power_on_behavior,
                 tz.ignore_transition,
@@ -1988,20 +1987,36 @@ const tzLocal = {
     light_onoff_brightness_inovelli: {
         ...tz.light_onoff_brightness,
         convertSet: async (entity, key, value, meta) => {
+            const {message} = meta;
             const transition = utils.getTransition(entity, "brightness", meta);
+            const state = utils.isString(message.state) ? message.state.toLowerCase() : null;
+
+            // If transition is not specified and command is on (with no brightness), off or toggle, use on_off converter
+            let brightness: number;
+            if (message.brightness != null) {
+                brightness = Number(message.brightness);
+            } else if (message.brightness_percent != null) {
+                brightness = utils.mapNumberRange(Number(message.brightness_percent), 0, 100, 0, 255);
+            }
+            if ((state === "toggle" || state === "off" || (brightness === undefined && state === "on")) && !transition.specified) {
+                const localMeta = {
+                    ...meta,
+                    converterOptions: {
+                        ctrlbits: 0,
+                        ontime: message.on_time != null ? Math.round((message.on_time as number) * 10) : 0xffff,
+                        offwaittime: message.off_wait_time != null ? Math.round((message.off_wait_time as number) * 10) : 0xffff,
+                    },
+                };
+                return await tz.on_off.convertSet(entity, key, value, localMeta);
+            }
+
             const localMeta = {
                 ...meta,
                 message: {
-                    ...meta.message,
+                    ...message,
                     transition: (!transition.specified ? 0xffff : transition.time) / 10,
                 },
-                converterOptions: {
-                    ctrlbits: 0,
-                    ontime: meta.message.on_time != null ? Math.round((meta.message.on_time as number) * 10) : 0xffff,
-                    offwaittime: meta.message.off_wait_time != null ? Math.round((meta.message.off_wait_time as number) * 10) : 0xffff,
-                },
             };
-
             return await tz.light_onoff_brightness.convertSet(entity, key, value, localMeta);
         },
     } satisfies Tz.Converter,
