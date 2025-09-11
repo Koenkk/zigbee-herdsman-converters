@@ -4219,7 +4219,6 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Philips",
         description: "Hue Essential White and Color Ambiance A19",
         extend: [philips.m.light({colorTemp: {range: [153, 447]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
-        meta: {},
     },
     {
         zigbeeModel: ["LCB003"],
@@ -4227,22 +4226,19 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Philips",
         description: "Hue Essential White and Color Ambiance BR30",
         extend: [philips.m.light({colorTemp: {range: [153, 447]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
-        meta: {},
     },
     {
         zigbeeModel: ["LCA016"],
         model: "8720169392182",
-        vendor: "Signify Netherlands B.V.",
+        vendor: "Philips",
         description: "Hue Essential White and Color Ambiance A60",
         extend: [philips.m.light({colorTemp: {range: [153, 447]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
-        meta: {},
     },
     {
         zigbeeModel: ["LCG008"],
         model: "8720169392540",
-        vendor: "Signify Netherlands B.V.",
+        vendor: "Philips",
         description: "Hue Essential White and Color Ambiance GU10",
         extend: [philips.m.light({colorTemp: {range: [153, 447]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
-        meta: {},
     },
 ];
