@@ -19072,4 +19072,44 @@ export const definitions: DefinitionWithExtend[] = [
             m.onOff({powerOnBehavior: false, endpointNames: ["1", "2", "3", "4"]}),
         ],
     },
+    
+    {
+        fingerprint: tuya.fingerprint("TS0601", ['_TZE284_r3szw0xr']),
+        model: 'TS0601_cover',
+        vendor: 'Tuya',
+        description: 'Cover motor',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.enum("control", ea.STATE_SET, ['stop', 'open', 'close']).withDescription('Control the motor'), // DP 1
+            e.numeric("time_total", ea.STATE).withUnit('s').withDescription('Total movement time'), // DP 2
+            e.enum("work_state", ea.STATE, ['opening', 'closing', 'stopped']).withDescription('Work state'), // DP 3
+            e.enum("dry_contact_switch_mode", ea.STATE_SET, ['mode1', 'mode2']).withDescription('Dry contact switch mode'), // DP 101
+            e.enum("ac_switch_mode", ea.STATE_SET, ['mode1', 'mode2']).withDescription('AC switch mode'), // DP 102
+            e.numeric("speed", ea.STATE_SET).withValueMin(0).withValueMax(100).withDescription('Motor speed'), // DP 103
+            e.numeric("percent_state", ea.STATE).withUnit('%').withDescription('Current percent position'), // DP 8
+            e.enum("dot_mode", ea.STATE_SET, ['single', 'multi']).withDescription('Dot mode'), // DP 104
+            e.numeric("percent_control", ea.STATE_SET).withUnit('%').withValueMin(0).withValueMax(100).withDescription('Set percent position'), // DP 9
+            e.enum("direction", ea.STATE_SET, ['normal', 'reversed']).withDescription('Motor direction'), // DP 11
+            e.enum("border", ea.STATE_SET, ['UP', 'Down', 'Delete']).withDescription('Border mode'), // DP 16
+        ],
+    
+        meta: {
+            tuyaDatapoints: [
+                [1, "control", tuya.valueConverterBasic.lookup({'stop': tuya.enum(1), 'open': tuya.enum(0), 'close': tuya.enum(2),})],
+                [2, "time_total", tuya.valueConverter.raw],
+                [3, "work_state", tuya.valueConverterBasic.lookup({'opening': tuya.enum(0), 'closing': tuya.enum(1), 'stopped': tuya.enum(2),})],
+                [101, "dry_contact_switch_mode", tuya.valueConverterBasic.lookup({'mode1': tuya.enum(0), 'mode2': tuya.enum(1),})],
+                [102, "ac_switch_mode", tuya.valueConverterBasic.lookup({'mode1': tuya.enum(0), 'mode2': tuya.enum(1),})],
+                [103, "speed", tuya.valueConverter.raw],
+                [8, "percent_state", tuya.valueConverter.raw],
+                [104, "dot_mode", tuya.valueConverterBasic.lookup({'single': tuya.enum(0), 'multi': tuya.enum(1),})],
+                [9, "percent_control", tuya.valueConverter.raw],
+                [11, "direction", tuya.valueConverterBasic.lookup({'normal': tuya.enum(0), 'reversed': tuya.enum(1),})],
+                [16, "border", tuya.valueConverterBasic.lookup({'Up': tuya.enum(0), 'Down': tuya.enum(1), 'Delete': tuya.enum(2)})],
+            ],
+        },
+    };
+
 ];
