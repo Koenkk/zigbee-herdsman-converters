@@ -1451,7 +1451,7 @@ export const boschBsirExtend = {
                 )
                 .withCategory("diagnostic"),
         ];
-        
+
         const fromZigbee = [
             {
                 cluster: "ssIasZone",
