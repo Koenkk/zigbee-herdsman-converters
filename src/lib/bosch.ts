@@ -1,9 +1,12 @@
+import {Zcl} from "zigbee-herdsman";
 import type {TPartialClusterAttributes} from "zigbee-herdsman/dist/zspec/zcl/definition/clusters-types";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
+import {repInterval} from "./constants";
 import {logger} from "./logger";
+import {payload} from "./reporting";
 import type {Configure, DefinitionExposesFunction, DummyDevice, Expose, Fz, KeyValue, ModernExtend, OnEvent, Tz, Zh} from "./types";
 import * as utils from "./utils";
 import {toNumber} from "./utils";
@@ -13,6 +16,9 @@ const ea = exposes.access;
 
 const NS = "zhc:bosch";
 
+export const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH};
+
+//region Bosch BMCT-DZ/-RZ/-SLZ devices
 export interface BoschBmctCluster {
     attributes: {
         /** ID: 0 | Type: ENUM8 | Only used by BMCT-SLZ */
@@ -1138,3 +1144,436 @@ export const boschBmctExtend = {
         };
     },
 };
+//endregion
+
+//region Bosch BSIR-EZ (Outdoor siren)
+export interface BoschBsirPowerCfgCluster {
+    attributes: {
+        /** ID: 40960 | Type: UINT16 */
+        solarPanelVoltage: number;
+        /** ID: 40961 | Type: UINT8 |
+         * This was 1 in most of the cases during testing.
+         * Only when the solar panel delivered high voltages
+         * did I record 2 and 3 for pretty short times.
+         * But was unable to find a clear linkage to the
+         * charging behavior. That's why I haven't exposed it yet. */
+        unknownAttribute: number;
+        /** ID: 40962 | Type: UINT8 */
+        primaryPowerSource: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+export interface BoschBsirIasZoneCluster {
+    attributes: {
+        /** ID: 40960 | Type: UINT8 */
+        currentPowerSource: number;
+    };
+    commands: {
+        /** ID: 243 */
+        acknowledgeStatusChange: {
+            /** Type: UINT8 */
+            data: number;
+        };
+    };
+    commandResponses: never;
+}
+
+export interface BoschBsirIasWdCluster {
+    attributes: {
+        /** ID: 40960 | Type: UINT8 */
+        sirenDuration: number;
+        /** ID: 40961 | Type: UINT8 */
+        alarmMode: number;
+        /** ID: 40962 | Type: UINT8 */
+        sirenVolume: number;
+        /** ID: 40963 | Type: UINT16 */
+        sirenDelay: number;
+        /** ID: 40964 | Type: UINT16 */
+        lightDelay: number;
+        /** ID: 40965 | Type: UINT8 */
+        lightDuration: number;
+        /** ID: 40966 | Type: UINT8 */
+        alarmState: number;
+    };
+    commands: {
+        /** ID: 243 */
+        alarmControl: {
+            /** Type: UINT16 */
+            data: number;
+        };
+    };
+    commandResponses: never;
+}
+
+export const boschBsirExtend = {
+    customPowerCfgCluster: () =>
+        m.deviceAddCustomCluster("genPowerCfg", {
+            ID: Zcl.Clusters.genPowerCfg.ID,
+            attributes: {
+                solarPanelVoltage: {ID: 0xa000, type: Zcl.DataType.UINT16, manufacturerCode: manufacturerOptions.manufacturerCode},
+                unknownAttribute: {ID: 0xa001, type: Zcl.DataType.UINT8, manufacturerCode: manufacturerOptions.manufacturerCode},
+                primaryPowerSource: {ID: 0xa002, type: Zcl.DataType.UINT8, manufacturerCode: manufacturerOptions.manufacturerCode},
+            },
+            commands: {},
+            commandsResponse: {},
+        }),
+    customIasZoneCluster: () =>
+        m.deviceAddCustomCluster("ssIasZone", {
+            ID: Zcl.Clusters.ssIasZone.ID,
+            attributes: {
+                currentPowerSource: {ID: 0xa001, type: Zcl.DataType.UINT8, manufacturerCode: manufacturerOptions.manufacturerCode},
+            },
+            commands: {
+                acknowledgeStatusChange: {
+                    ID: 0xf3,
+                    parameters: [{name: "data", type: Zcl.DataType.UINT8}],
+                },
+            },
+            commandsResponse: {},
+        }),
+    customIasWdCluster: () =>
+        m.deviceAddCustomCluster("ssIasWd", {
+            ID: Zcl.Clusters.ssIasWd.ID,
+            attributes: {
+                sirenDuration: {ID: 0xa000, type: Zcl.DataType.UINT8, manufacturerCode: manufacturerOptions.manufacturerCode},
+                alarmMode: {ID: 0xa001, type: Zcl.DataType.UINT8, manufacturerCode: manufacturerOptions.manufacturerCode},
+                sirenVolume: {ID: 0xa002, type: Zcl.DataType.UINT8, manufacturerCode: manufacturerOptions.manufacturerCode},
+                sirenDelay: {ID: 0xa003, type: Zcl.DataType.UINT16, manufacturerCode: manufacturerOptions.manufacturerCode},
+                lightDelay: {ID: 0xa004, type: Zcl.DataType.UINT16, manufacturerCode: manufacturerOptions.manufacturerCode},
+                lightDuration: {ID: 0xa005, type: Zcl.DataType.UINT8, manufacturerCode: manufacturerOptions.manufacturerCode},
+                alarmState: {ID: 0xa006, type: Zcl.DataType.UINT8, manufacturerCode: manufacturerOptions.manufacturerCode},
+            },
+            commands: {
+                alarmControl: {
+                    ID: 0xf0,
+                    parameters: [{name: "data", type: Zcl.DataType.UINT8}],
+                },
+            },
+            commandsResponse: {},
+        }),
+    alarmControl: (): ModernExtend => {
+        const exposes: Expose[] = [
+            e
+                .enum("trigger_alarm", ea.SET, ["trigger"])
+                .withLabel("Trigger alarm")
+                .withDescription("Trigger an alarm on the device")
+                .withCategory("config"),
+            e
+                .enum("stop_alarm", ea.SET, ["stop"])
+                .withLabel("Stop alarm")
+                .withDescription(
+                    "Stop an active alarm on the device. Please keep in mind that the alarm stops automatically after the configured duration for the light and siren is expired.",
+                )
+                .withCategory("config"),
+        ];
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ["trigger_alarm", "stop_alarm"],
+                convertSet: async (entity, key, value, meta) => {
+                    if (key === "trigger_alarm") {
+                        await entity.command<"ssIasWd", "alarmControl", BoschBsirIasWdCluster>(
+                            "ssIasWd",
+                            "alarmControl",
+                            {data: 0x07},
+                            manufacturerOptions,
+                        );
+                    }
+
+                    if (key === "stop_alarm") {
+                        await entity.command<"ssIasWd", "alarmControl", BoschBsirIasWdCluster>(
+                            "ssIasWd",
+                            "alarmControl",
+                            {data: 0x00},
+                            manufacturerOptions,
+                        );
+                    }
+                },
+            },
+        ];
+
+        const configure: Configure[] = [
+            async (device, coordinatorEndpoint, definition) => {
+                const endpoint = device.getEndpoint(1);
+                await endpoint.bind("ssIasWd", coordinatorEndpoint);
+            },
+        ];
+
+        return {
+            exposes,
+            toZigbee,
+            configure,
+            isModernExtend: true,
+        };
+    },
+    alarmState: () =>
+        m.enumLookup<"ssIasWd", BoschBsirIasWdCluster>({
+            name: "alarm_state",
+            cluster: "ssIasWd",
+            attribute: "alarmState",
+            description: "Current state of the siren and light. Please keep in mind that these activate after the specified delay time.",
+            lookup: {
+                siren_active: 0x09,
+                light_active: 0x0a,
+                siren_and_light_active: 0x0b,
+                no_alarm_active: 0x00,
+            },
+            access: "STATE_GET",
+            entityCategory: "diagnostic",
+        }),
+    battery: () =>
+        m.battery({
+            percentage: true,
+            percentageReportingConfig: {
+                min: "MIN",
+                max: "MAX",
+                change: 1,
+            },
+            lowStatus: true,
+            lowStatusReportingConfig: {
+                min: "MIN",
+                max: "MAX",
+                change: 0,
+            },
+        }),
+    lightDelay: () =>
+        m.numeric<"ssIasWd", BoschBsirIasWdCluster>({
+            name: "light_delay",
+            cluster: "ssIasWd",
+            attribute: "lightDelay",
+            description: "Delay of the light activation after an alarm is being triggered",
+            valueMin: 0,
+            valueMax: 180,
+            valueStep: 1,
+            unit: "sec",
+            entityCategory: "config",
+        }),
+    sirenDelay: () =>
+        m.numeric<"ssIasWd", BoschBsirIasWdCluster>({
+            name: "siren_delay",
+            cluster: "ssIasWd",
+            attribute: "sirenDelay",
+            description: "Delay of the siren activation after an alarm is being triggered",
+            valueMin: 0,
+            valueMax: 180,
+            valueStep: 1,
+            unit: "sec",
+            entityCategory: "config",
+        }),
+    sirenDuration: () =>
+        m.numeric<"ssIasWd", BoschBsirIasWdCluster>({
+            name: "siren_duration",
+            cluster: "ssIasWd",
+            attribute: "sirenDuration",
+            description: "Duration of the alarm siren",
+            valueMin: 1,
+            valueMax: 15,
+            valueStep: 1,
+            unit: "min",
+            entityCategory: "config",
+        }),
+    lightDuration: () =>
+        m.numeric<"ssIasWd", BoschBsirIasWdCluster>({
+            name: "light_duration",
+            cluster: "ssIasWd",
+            attribute: "lightDuration",
+            description: "Duration of the alarm light",
+            valueMin: 1,
+            valueMax: 15,
+            valueStep: 1,
+            unit: "min",
+            entityCategory: "config",
+        }),
+    sirenVolume: () =>
+        m.enumLookup<"ssIasWd", BoschBsirIasWdCluster>({
+            name: "siren_volume",
+            cluster: "ssIasWd",
+            attribute: "sirenVolume",
+            description: "Volume of the siren",
+            lookup: {
+                reduced: 0x01,
+                medium: 0x02,
+                loud: 0x03,
+            },
+            entityCategory: "config",
+        }),
+    alarmMode: () =>
+        m.enumLookup<"ssIasWd", BoschBsirIasWdCluster>({
+            name: "alarm_mode",
+            cluster: "ssIasWd",
+            attribute: "alarmMode",
+            description: "Select if you only want a visual warning, an acoustic warning or both",
+            lookup: {
+                only_light: 0x00,
+                only_siren: 0x01,
+                siren_and_light: 0x02,
+            },
+            entityCategory: "config",
+        }),
+    primaryPowerSource: () =>
+        m.enumLookup<"genPowerCfg", BoschBsirPowerCfgCluster>({
+            name: "primary_power_source",
+            cluster: "genPowerCfg",
+            attribute: "primaryPowerSource",
+            description: "Select which power source you want to use. Note: The battery is always being used as backup source.",
+            lookup: {
+                solar_panel: 0x00,
+                ac_power_supply: 0x01,
+                dc_power_supply: 0x02,
+            },
+            reporting: {min: "MIN", max: "MAX", change: 1},
+            entityCategory: "config",
+        }),
+    tamperAndPowerOutageState: (): ModernExtend => {
+        const powerOutageLookup = {
+            outage_detected: true,
+            power_ok: false,
+        };
+
+        const exposes: Expose[] = [
+            e
+                .binary("tamper", ea.STATE, true, false)
+                .withLabel("Tamper state")
+                .withDescription("Indicates whether the device is tampered")
+                .withCategory("diagnostic"),
+            e
+                .binary(
+                    "power_outage",
+                    ea.STATE,
+                    utils.getFromLookupByValue(true, powerOutageLookup),
+                    utils.getFromLookupByValue(false, powerOutageLookup),
+                )
+                .withLabel("Power outage state")
+                .withDescription(
+                    "Indicates the configured primary power source experiences a power outage. This only works when using ac or dc power.",
+                )
+                .withCategory("diagnostic"),
+        ];
+        const fromZigbee = [
+            {
+                cluster: "ssIasZone",
+                type: ["commandStatusChangeNotification", "attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    if (utils.hasAlreadyProcessedMessage(msg, model)) {
+                        return;
+                    }
+
+                    const isChange = msg.type === "commandStatusChangeNotification";
+                    const zoneStatus = "zonestatus" in msg.data ? msg.data.zonestatus : msg.data.zoneStatus;
+                    const tamperStatus = (zoneStatus & (1 << 2)) > 0;
+                    const alarmTwoStatus = (zoneStatus & (1 << 1)) > 0;
+
+                    if (tamperStatus && isChange) {
+                        meta.device
+                            .getEndpoint(1)
+                            .command<"ssIasZone", "acknowledgeStatusChange", BoschBsirIasZoneCluster>(
+                                "ssIasZone",
+                                "acknowledgeStatusChange",
+                                {data: 0x02},
+                                manufacturerOptions,
+                            )
+                            .catch((e) => {
+                                logger.warning(`Acknowledgement of tamper status on device '${meta.device.ieeeAddr}' failed: ${e}`, NS);
+                            });
+                    }
+
+                    if (alarmTwoStatus && isChange) {
+                        meta.device
+                            .getEndpoint(1)
+                            .command<"ssIasZone", "acknowledgeStatusChange", BoschBsirIasZoneCluster>(
+                                "ssIasZone",
+                                "acknowledgeStatusChange",
+                                {data: 0x04},
+                                manufacturerOptions,
+                            )
+                            .catch((e) => {
+                                logger.warning(`Acknowledgement of alarm 2 status on device '${meta.device.ieeeAddr}' failed: ${e}`, NS);
+                            });
+                    }
+
+                    return {
+                        tamper: tamperStatus,
+                        power_outage: utils.getFromLookupByValue(alarmTwoStatus, powerOutageLookup),
+                    };
+                },
+            } satisfies Fz.Converter<"ssIasZone", undefined, ["commandStatusChangeNotification", "attributeReport", "readResponse"]>,
+        ];
+
+        const configure: Configure[] = [
+            async (device, coordinatorEndpoint, definition) => {
+                const endpoint = device.getEndpoint(1);
+                await endpoint.read("ssIasZone", ["zoneStatus"]);
+            },
+        ];
+
+        return {
+            exposes,
+            fromZigbee,
+            configure,
+            isModernExtend: true,
+        };
+    },
+    currentPowerSource: () =>
+        m.enumLookup<"ssIasZone", BoschBsirIasZoneCluster>({
+            name: "current_power_source",
+            cluster: "ssIasZone",
+            attribute: "currentPowerSource",
+            description: "Currently used power source for device operation",
+            lookup: {
+                battery: 0x00,
+                solar_panel: 0x01,
+                ac_power: 0x02,
+                dc_power: 0x03,
+            },
+            reporting: {min: "MIN", max: "MAX", change: 1},
+            access: "STATE_GET",
+            entityCategory: "diagnostic",
+        }),
+    solarPanelVoltage: (): ModernExtend => {
+        const exposes: Expose[] = [
+            e
+                .numeric("solar_panel_voltage", ea.STATE)
+                .withDescription("Current voltage level received from the integrated solar panel")
+                .withUnit("volt")
+                .withCategory("diagnostic"),
+        ];
+
+        const fromZigbee = [
+            {
+                cluster: "genPowerCfg",
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    if (utils.hasAlreadyProcessedMessage(msg, model)) {
+                        return;
+                    }
+
+                    const data = msg.data;
+                    const containsSolarPanelVoltage = data.solarPanelVoltage !== undefined;
+
+                    if (containsSolarPanelVoltage) {
+                        const currentSolarPanelVoltage = data.solarPanelVoltage / 10;
+                        return {solar_panel_voltage: currentSolarPanelVoltage};
+                    }
+                },
+            } satisfies Fz.Converter<"genPowerCfg", BoschBsirPowerCfgCluster, ["attributeReport", "readResponse"]>,
+        ];
+
+        const configure: Configure[] = [
+            async (device, coordinatorEndpoint, definition) => {
+                const endpoint = device.getEndpoint(1);
+                const solarPanelVoltageReportingPayload = payload<"genPowerCfg", BoschBsirPowerCfgCluster>(
+                    "solarPanelVoltage",
+                    repInterval.MINUTES_5,
+                    repInterval.MAX,
+                    1,
+                );
+                await endpoint.configureReporting("genPowerCfg", solarPanelVoltageReportingPayload);
+            },
+        ];
+
+        return {exposes, fromZigbee, configure, isModernExtend: true};
+    },
+};
+//endregion
