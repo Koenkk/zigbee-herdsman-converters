@@ -200,6 +200,18 @@ function parseSubElement(buffer: Buffer, position: number): Ota.ImageElement {
     return {tagID, length, data};
 }
 
+
+function parseTelinkEncryptSubElement(buffer: Buffer, position: number): Ota.ImageElement {
+    const tagID = buffer.readUInt16LE(position);
+    const length = buffer.readUInt32LE(position + 2);
+    const tagInfo = buffer.readUInt32LE(position + 4);
+    const data = buffer.subarray(position + 8, position + 8 + length);
+
+    return {tagID, length, data};
+}
+
+
+
 export function parseImage(buffer: Buffer, suppressElementImageParseFailure = false): Ota.Image {
     const header: Ota.ImageHeader = {
         otaUpgradeFileIdentifier: buffer.subarray(0, 4),
@@ -213,6 +225,26 @@ export function parseImage(buffer: Buffer, suppressElementImageParseFailure = fa
         otaHeaderString: buffer.toString("utf8", 20, 52),
         totalImageSize: buffer.readUInt32LE(52),
     };
+    /* check if specialParser devices*/
+    const SPECIAL_PRODUCTS: [number, number, (buffer: Buffer, position: number) => any, number][] = [
+        [0x1286, 0x080D, parseTelinkEncryptSubElement, 8], // SNZB02L/WD
+        [0x1286, 0x000B, parseTelinkEncryptSubElement, 8], // S60ZB
+        // Add more special product configurations
+        // [0x1234, 0x5678, parseOtherSpecialSubElement, 8], // 
+    ];
+    let useSpecialParser = false;
+    let specialParser = null;
+    let elementOffset = 6; // default offest
+    
+    for (const [code, type, parser, offset] of SPECIAL_PRODUCTS) {
+        if (header.manufacturerCode === code && header.imageType === type) {
+            useSpecialParser = true;
+            specialParser = parser;
+            elementOffset = offset; 
+            logger.debug(`Detected special product [0x${code.toString(16)}, 0x${type.toString(16)}], using special parser`, NS);
+            break;
+        }
+    }
     let headerPos = 56;
     let didSuppressElementImageParseFailure = false;
 
@@ -245,9 +277,22 @@ export function parseImage(buffer: Buffer, suppressElementImageParseFailure = fa
 
     try {
         while (position < header.totalImageSize) {
-            const element = parseSubElement(buffer, position);
+
+            // Use the selected parser function
+            const element = useSpecialParser ? specialParser(buffer, position) : parseSubElement(buffer, position);
+
             elements.push(element);
-            position += element.data.length + 6;
+
+            // Update position with different offset based on product type
+            if (useSpecialParser) {
+                // For special products, use +8 offset
+                position += element.data.length + elementOffset;
+                logger.debug(`Next element position (special): ${position} (offset: 8)`, NS);
+            } else {
+                // For standard products, use original +6 offset
+                position += element.data.length + 6;
+                logger.debug(`Next element position (standard): ${position} (offset: 6)`, NS);
+            }
         }
     } catch (error) {
         if (!suppressElementImageParseFailure) {
