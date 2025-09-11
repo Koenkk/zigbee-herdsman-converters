@@ -1,6 +1,7 @@
 import {Zcl} from "zigbee-herdsman";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
+import * as constants from "../lib/constants";
 import * as exposes from "../lib/exposes";
 import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
@@ -35,6 +36,23 @@ const sdevices = {
                         emergency_undervoltage: !!emergencyUndervoltage,
                         emergency_overcurrent: !!emergencyOvercurrent,
                         emergency_overheat: !!emergencyOverheat,
+                    };
+                }
+            },
+        } satisfies Fz.Converter<"manuSpecificSDevices", SberDevices, ["attributeReport", "readResponse"]>,
+        emergency_shutoff_state_v2: {
+            cluster: "manuSpecificSDevices",
+            type: ["attributeReport", "readResponse"],
+            convert: (model, msg, publish, options, meta) => {
+                if (msg.data.emergencyShutoffState !== undefined) {
+                    const stateBitmap = msg.data.emergencyShutoffState;
+                    const emergencyOvercurrent = (stateBitmap & 0x04) >> 2;
+                    const emergencyOverheat = (stateBitmap & 0x08) >> 3;
+                    const emergencyNoLoad = (stateBitmap & 0x10) >> 4;
+                    return {
+                        emergency_overcurrent: !!emergencyOvercurrent,
+                        emergency_overheat: !!emergencyOverheat,
+                        emergency_no_load: !!emergencyNoLoad,
                     };
                 }
             },
@@ -156,6 +174,40 @@ const sdevices = {
                 return result;
             },
         } satisfies Fz.Converter<"closuresWindowCovering", SberClosures, ["attributeReport", "readResponse"]>,
+        sensor_error: {
+            cluster: "hvacThermostat",
+            type: ["attributeReport", "readResponse"],
+            convert: (model, msg, publish, options, meta) => {
+                if (msg.data.sdevicesSensorError !== undefined) {
+                    const stateBitmap = msg.data.sdevicesSensorError;
+                    const errorRemoteDisconnected = stateBitmap & 0x01;
+                    const errorLocalDisconnected = (stateBitmap & 0x02) >> 1;
+                    const errorShortCircuit = (stateBitmap & 0x04) >> 2;
+                    return {
+                        sensor_error_remote_disconnected: !!errorRemoteDisconnected,
+                        sensor_error_local_disconnected: !!errorLocalDisconnected,
+                        sensor_error_short_circuit: !!errorShortCircuit,
+                    };
+                }
+            },
+        } satisfies Fz.Converter<"hvacThermostat", SberThermostat, ["attributeReport", "readResponse"]>,
+        event_status: {
+            cluster: "hvacThermostat",
+            type: ["attributeReport", "readResponse"],
+            convert: (model, msg, publish, options, meta) => {
+                if (msg.data.sdevicesEventStatus !== undefined) {
+                    const stateBitmap = msg.data.sdevicesEventStatus;
+                    const statusInefficient = stateBitmap & 0x01;
+                    const statusAntifrost = (stateBitmap & 0x02) >> 1;
+                    const statusInvalidTime = (stateBitmap & 0x08) >> 3;
+                    return {
+                        status_heat_inefficient: !!statusInefficient,
+                        status_antifrost: !!statusAntifrost,
+                        status_invalid_time: !!statusInvalidTime,
+                    };
+                }
+            },
+        } satisfies Fz.Converter<"hvacThermostat", SberThermostat, ["attributeReport", "readResponse"]>,
     },
     tz: {
         custom_on_off: {
@@ -393,6 +445,18 @@ const sdevices = {
                 }
             },
         } satisfies Tz.Converter,
+        thermostat_abs_min_heat_setpoint_limit: {
+            key: ["abs_min_heat_setpoint_limit"],
+            convertGet: async (entity, key, meta) => {
+                await entity.read("hvacThermostat", ["absMinHeatSetpointLimit"]);
+            },
+        } satisfies Tz.Converter,
+        thermostat_abs_max_heat_setpoint_limit: {
+            key: ["abs_max_heat_setpoint_limit"],
+            convertGet: async (entity, key, meta) => {
+                await entity.read("hvacThermostat", ["absMaxHeatSetpointLimit"]);
+            },
+        } satisfies Tz.Converter,
     },
 };
 
@@ -419,6 +483,7 @@ const sdevicesCustomClusterDefinition = {
         rmsVoltageMv: {ID: 0x4001, type: Zcl.DataType.UINT32},
         rmsCurrentMa: {ID: 0x4002, type: Zcl.DataType.UINT32},
         activePowerMw: {ID: 0x4003, type: Zcl.DataType.INT32},
+        rtcStatus: {ID: 0x5001, type: Zcl.DataType.BITMAP16},
     },
     commands: {},
     commandsResponse: {},
@@ -445,6 +510,7 @@ interface SberDevices {
         rmsVoltageMv: number;
         rmsCurrentMa: number;
         activePowerMw: number;
+        rtcStatus: number;
     };
     commands: never;
     commandResponses: never;
@@ -479,6 +545,33 @@ interface SberClosures {
     commandResponses: never;
 }
 
+interface SberThermostat {
+    attributes: {
+        sdevicesRemoteTemperature: number;
+        sdevicesRemoteTemperatureCalibration: number;
+        sdevicesSensorMode: number;
+        sdevicesHeatingHysteresis: number;
+        sdevicesMinLocalTemperatureLimit: number;
+        sdevicesMaxLocalTemperatureLimit: number;
+        sdevicesOutputMode: number;
+        sdevicesLocalSensorType: number;
+        sdevicesSensorError: number;
+        sdevicesEventStatus: number;
+        sdevicesRemoteSensorTimeout: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+interface SberThermostatUserInterfaceCfg {
+    attributes: {
+        sdevicesBrightnessOperationsMode: number;
+        sdevicesBrightnessSteadyMode: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
 const sdevicesExtend = {
     sdevicesCustomCluster: () => m.deviceAddCustomCluster("manuSpecificSDevices", sdevicesCustomClusterDefinition),
     haDiagnosticCluster: () =>
@@ -502,6 +595,35 @@ const sdevicesExtend = {
                 sdevicesCalibrationTime: {ID: 0x1001, type: Zcl.DataType.UINT16, manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD},
                 sdevicesButtonsMode: {ID: 0x1002, type: Zcl.DataType.ENUM8, manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD},
                 sdevicesMotorTimeout: {ID: 0x1003, type: Zcl.DataType.UINT16, manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD},
+            },
+            commands: {},
+            commandsResponse: {},
+        }),
+    hvacThermostatCluster: () =>
+        m.deviceAddCustomCluster("hvacThermostat", {
+            ID: Zcl.Clusters.hvacThermostat.ID,
+            attributes: {
+                sdevicesRemoteTemperature: {ID: 0x4001, type: Zcl.DataType.INT16, manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD},
+                sdevicesRemoteTemperatureCalibration: {ID: 0x4002, type: Zcl.DataType.INT8, manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD},
+                sdevicesSensorMode: {ID: 0x4003, type: Zcl.DataType.ENUM8, manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD},
+                sdevicesHeatingHysteresis: {ID: 0x4019, type: Zcl.DataType.INT8, manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD},
+                sdevicesMinLocalTemperatureLimit: {ID: 0x40f0, type: Zcl.DataType.INT16, manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD},
+                sdevicesMaxLocalTemperatureLimit: {ID: 0x40f1, type: Zcl.DataType.INT16, manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD},
+                sdevicesOutputMode: {ID: 0x4100, type: Zcl.DataType.ENUM8, manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD},
+                sdevicesLocalSensorType: {ID: 0x4101, type: Zcl.DataType.ENUM8, manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD},
+                sdevicesSensorError: {ID: 0x4102, type: Zcl.DataType.BITMAP16, manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD},
+                sdevicesEventStatus: {ID: 0x4103, type: Zcl.DataType.BITMAP16, manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD},
+                sdevicesRemoteSensorTimeout: {ID: 0x4203, type: Zcl.DataType.UINT16, manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD},
+            },
+            commands: {},
+            commandsResponse: {},
+        }),
+    hvacUserInterfaceCfgCluster: () =>
+        m.deviceAddCustomCluster("hvacUserInterfaceCfg", {
+            ID: Zcl.Clusters.hvacUserInterfaceCfg.ID,
+            attributes: {
+                sdevicesBrightnessOperationsMode: {ID: 0x2001, type: Zcl.DataType.UINT16, manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD},
+                sdevicesBrightnessSteadyMode: {ID: 0x2002, type: Zcl.DataType.UINT16, manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD},
             },
             commands: {},
             commandsResponse: {},
@@ -742,6 +864,221 @@ const sdevicesExtend = {
             },
         ];
         return {exposes, fromZigbee, toZigbee, isModernExtend: true};
+    },
+    rtcStatus: (): ModernExtend => {
+        const exposes = [
+            e
+                .list(
+                    "rtc_status",
+                    ea.STATE_GET,
+                    e
+                        .composite("rtc_status_list", "rtc_status_list", ea.STATE_GET)
+                        .withFeature(e.binary("unavailable", ea.STATE_GET, true, false).withDescription("RTC hardware in unavailable"))
+                        .withFeature(e.binary("data_not_vaild", ea.STATE_GET, true, false).withDescription("RTC data is not valid")),
+                )
+                .withDescription("List of active RTC warnings"),
+        ];
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ["rtc_status"],
+                convertGet: async (entity, key, meta) => {
+                    await entity.read<"manuSpecificSDevices", SberDevices>("manuSpecificSDevices", ["rtcStatus"]);
+                },
+            },
+        ];
+        const fromZigbee = [
+            {
+                cluster: "manuSpecificSDevices",
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    if (msg.data.rtcStatus !== undefined) {
+                        const stateBitmap = msg.data.rtcStatus;
+                        const statusRtcUnavailable = stateBitmap & 0x01;
+                        const statusRtcDataNotValid = (stateBitmap & 0x02) >> 1;
+                        const rtc_status: KeyValueAny = {
+                            unavailable: !!statusRtcUnavailable,
+                            data_not_vaild: !!statusRtcDataNotValid,
+                        };
+                        return {rtc_status: rtc_status};
+                    }
+                },
+            } satisfies Fz.Converter<"manuSpecificSDevices", SberDevices, ["attributeReport", "readResponse"]>,
+        ];
+        return {exposes, fromZigbee, toZigbee, isModernExtend: true};
+    },
+    thermostatSensorType: () =>
+        m.enumLookup<"hvacThermostat", SberThermostat>({
+            name: "sensor_type",
+            description: "Resistance of NTC sensor, default is 10 kOhm",
+            cluster: "hvacThermostat",
+            attribute: "sdevicesLocalSensorType",
+            lookup: {
+                "4p7K": 0,
+                "6p8K": 1,
+                "10K": 2,
+                "12K": 3,
+                "15K": 4,
+                "33K": 5,
+                "47K": 6,
+            },
+            zigbeeCommandOptions: manufacturerOptions,
+        }),
+    thermostatWeeklySchedule: (): ModernExtend => {
+        type TransitionElement = {
+            transitionTime: number;
+            heatSetpoint: number;
+        };
+
+        type ScheduleElement = {
+            dayofweek: number;
+            numoftrans: number;
+            mode: number;
+            transitions: TransitionElement[];
+        };
+
+        const exposes = e
+            .composite("schedule", "weekly_schedule", ea.ALL)
+            .withDescription(
+                "The heating schedule to use when the operation mode is set to 'schedule'. " +
+                    "Up to 10 transitions can be defined per day, where a transition is expressed in the format 'HH:mm/temperature', each " +
+                    "separated by a space. The valid temperature range is 1-50°C.",
+            )
+            .withFeature(e.text("sunday", ea.STATE_SET))
+            .withFeature(e.text("monday", ea.STATE_SET))
+            .withFeature(e.text("tuesday", ea.STATE_SET))
+            .withFeature(e.text("wednesday", ea.STATE_SET))
+            .withFeature(e.text("thursday", ea.STATE_SET))
+            .withFeature(e.text("friday", ea.STATE_SET))
+            .withFeature(e.text("saturday", ea.STATE_SET));
+
+        const fromZigbee = [
+            {
+                cluster: "hvacThermostat",
+                type: ["commandGetWeeklyScheduleRsp"],
+                convert: (model, msg, publish, options, meta) => {
+                    const day = Object.entries(constants.thermostatDayOfWeek).find((d) => msg.data.dayofweek & (1 << +d[0]))[1];
+
+                    const transitions = msg.data.transitions
+                        .map((t: {heatSetpoint?: number; transitionTime: number}) => {
+                            const totalMinutes = t.transitionTime;
+                            const hours = totalMinutes / 60;
+                            const rHours = Math.floor(hours);
+                            const minutes = (hours - rHours) * 60;
+                            const rMinutes = Math.round(minutes);
+                            const strHours = rHours.toString().padStart(2, "0");
+                            const strMinutes = rMinutes.toString().padStart(2, "0");
+
+                            return `${strHours}:${strMinutes}/${t.heatSetpoint / 100}`;
+                        })
+                        .sort()
+                        .join(" ");
+
+                    return {
+                        weekly_schedule: {
+                            ...(meta.state.weekly_schedule as Record<string, string>[]),
+                            [day]: transitions,
+                        },
+                    };
+                },
+            } satisfies Fz.Converter<"hvacThermostat", undefined, ["commandGetWeeklyScheduleRsp"]>,
+        ];
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ["weekly_schedule"],
+                convertSet: async (entity, key, value, meta) => {
+                    // Transition format: HH:mm/temperature
+                    const transitionRegex = /^(0[0-9]|1[0-9]|2[0-3]):([0-5][0-9])\/(\d+(\.5)?)$/;
+
+                    utils.assertObject(value, key);
+
+                    const schedule: Array<ScheduleElement> = [];
+                    for (const dayOfWeekName of Object.keys(value)) {
+                        const dayKey = utils.getKey(constants.thermostatDayOfWeek, dayOfWeekName.toLowerCase(), null);
+
+                        if (dayKey === null) {
+                            throw new Error(`Invalid schedule: invalid day name, found: ${dayOfWeekName}`);
+                        }
+
+                        const dayOfWeekBit = Number(dayKey);
+
+                        const transitions = value[dayOfWeekName] === "" ? [] : value[dayOfWeekName].split(" ").sort();
+
+                        if (transitions.length > 10) {
+                            throw new Error("Invalid schedule: days must have no more than 10 transitions");
+                        }
+
+                        const payload: ScheduleElement = {
+                            dayofweek: 1 << Number(dayOfWeekBit),
+                            numoftrans: transitions.length,
+                            mode: 1 << 0, // heat only
+                            transitions: [],
+                        };
+
+                        for (const transition of transitions) {
+                            const matches = transition.match(transitionRegex);
+
+                            if (!matches) {
+                                throw new Error(
+                                    `Invalid schedule: transitions must be in format HH:mm/temperature (e.g. 12:00/25.5), found: ${transition}`,
+                                );
+                            }
+
+                            const hour = Number.parseInt(matches[1], 10);
+                            const mins = Number.parseInt(matches[2], 10);
+                            const temp = Number.parseFloat(matches[3]);
+
+                            if (temp < 1 || temp > 50) {
+                                throw new Error(`Invalid schedule: temperature value must be between 1-50 (inclusive), found: ${temp}`);
+                            }
+
+                            payload.transitions.push({
+                                transitionTime: hour * 60 + mins,
+                                heatSetpoint: Math.round(temp * 100),
+                            });
+                        }
+
+                        schedule.push(payload);
+                    }
+                    const reduced_schedule = schedule.reduce((a, b) => {
+                        const index = a.findIndex((x) => JSON.stringify(x.transitions) === JSON.stringify(b.transitions));
+                        if (index < 0) {
+                            a.push(b);
+                        } else {
+                            a[index].dayofweek = a[index].dayofweek | b.dayofweek;
+                        }
+                        return a;
+                    }, []);
+
+                    for (const payload of reduced_schedule) {
+                        await entity.command("hvacThermostat", "setWeeklySchedule", payload, utils.getOptions(meta.mapped, entity));
+                    }
+                    for (let dayOfWeekBit = 0; dayOfWeekBit < 7; dayOfWeekBit++) {
+                        const payload = {
+                            daystoreturn: 1 << dayOfWeekBit,
+                            modetoreturn: 1 << 0, // heat only
+                        };
+                        await entity.command("hvacThermostat", "getWeeklySchedule", payload, {disableDefaultResponse: true});
+                    }
+                },
+                convertGet: async (entity, key, meta) => {
+                    for (let dayOfWeekBit = 0; dayOfWeekBit < 7; dayOfWeekBit++) {
+                        const payload = {
+                            daystoreturn: 1 << dayOfWeekBit,
+                            modetoreturn: 1 << 0, // heat only
+                        };
+                        await entity.command("hvacThermostat", "getWeeklySchedule", payload, {disableDefaultResponse: true});
+                    }
+                },
+            },
+        ];
+
+        return {
+            exposes: [exposes],
+            fromZigbee,
+            toZigbee,
+            isModernExtend: true,
+        };
     },
     childLock: () =>
         m.binary<"manuSpecificSDevices", SberDevices>({
@@ -1393,6 +1730,275 @@ export const definitions: DefinitionWithExtend[] = [
                 "upperTempThreshold",
             ]);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "genDeviceTempCfg", "manuSpecificSDevices"]);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["haDiagnostic"]);
+        },
+    },
+    {
+        fingerprint: [{modelID: "SBDV-00205", manufacturerName: "SDevices"}],
+        model: "SBDV-00205",
+        vendor: "Sber",
+        description: "Smart Thermostat",
+        fromZigbee: [
+            sdevices.fz.emergency_shutoff_state_v2,
+            sdevices.fz.sensor_error,
+            sdevices.fz.event_status,
+            fz.temperature,
+            fz.thermostat,
+            fz.hvac_user_interface,
+        ],
+        toZigbee: [
+            tz.thermostat_local_temperature,
+            tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_local_temperature_calibration,
+            tz.thermostat_system_mode,
+            tz.thermostat_running_mode,
+            tz.thermostat_running_state,
+            tz.thermostat_keypad_lockout,
+            tz.thermostat_min_heat_setpoint_limit,
+            tz.thermostat_max_heat_setpoint_limit,
+            tz.thermostat_control_sequence_of_operation,
+            tz.thermostat_clear_weekly_schedule,
+            tz.thermostat_programming_operation_mode,
+            sdevices.tz.thermostat_abs_min_heat_setpoint_limit,
+            sdevices.tz.thermostat_abs_max_heat_setpoint_limit,
+        ],
+        exposes: [
+            e.binary("emergency_overcurrent", ea.STATE, true, false).withDescription("Overcurrent alarm is triggered").withCategory("diagnostic"),
+            e.binary("emergency_overheat", ea.STATE, true, false).withDescription("Overheat alarm is triggered").withCategory("diagnostic"),
+            e.binary("emergency_no_load", ea.STATE, true, false).withDescription("Load disconnection alarm is triggered").withCategory("diagnostic"),
+            e
+                .binary("sensor_error_remote_disconnected", ea.STATE, true, false)
+                .withDescription("Wireless sensor disconnected")
+                .withCategory("diagnostic"),
+            e
+                .binary("sensor_error_local_disconnected", ea.STATE, true, false)
+                .withDescription("Wired sensor disconnected")
+                .withCategory("diagnostic"),
+            e.binary("sensor_error_short_circuit", ea.STATE, true, false).withDescription("Wired sensor short circuit").withCategory("diagnostic"),
+            e.binary("status_heat_inefficient", ea.STATE, true, false).withDescription("Heating is inefficient").withCategory("diagnostic"),
+            e.binary("status_antifrost", ea.STATE, true, false).withDescription("Antifrost mode").withCategory("diagnostic"),
+            e
+                .binary("status_invalid_time", ea.STATE, true, false)
+                .withDescription("Time information is not valid, schedule is not functioning")
+                .withCategory("diagnostic"),
+            e.enum("keypad_lockout", ea.ALL, ["unlock", "lock1"]).withDescription("Enables/disables physical input on the device"),
+            e
+                .climate()
+                .withSetpoint("occupied_heating_setpoint", 1, 50, 0.5)
+                .withLocalTemperature(ea.STATE_GET, "Current temperature value used by thermostat")
+                .withSystemMode(["heat", "off", "sleep"])
+                .withLocalTemperatureCalibration()
+                .withControlSequenceOfOperation(["heating_only"], ea.ALL)
+                .withRunningMode(["off", "heat"])
+                .withRunningState(["idle", "heat"], ea.STATE_GET),
+            e.enum("clear_weekly_schedule", ea.SET, ["Clear"]),
+            e
+                .programming_operation_mode(["setpoint", "schedule"])
+                .withDescription(
+                    "Controls how programming affects the thermostat. Possible values: setpoint (only use specified setpoint), " +
+                        "schedule (follow programmed setpoint schedule)",
+                ),
+            e.numeric("abs_min_heat_setpoint_limit", ea.STATE_GET).withUnit("°C").withDescription("Absolute min temperature allowed on the device"),
+            e.numeric("abs_max_heat_setpoint_limit", ea.STATE_GET).withUnit("°C").withDescription("Absolute max temperature allowed on the device"),
+            e.min_heat_setpoint_limit(1, 35, 0.5),
+            e.max_heat_setpoint_limit(5, 50, 0.5),
+        ],
+        extend: [
+            sdevicesExtend.sdevicesCustomCluster(),
+            sdevicesExtend.haDiagnosticCluster(),
+            sdevicesExtend.hvacThermostatCluster(),
+            sdevicesExtend.hvacUserInterfaceCfgCluster(),
+            sdevicesExtend.thermostatWeeklySchedule(),
+            m.numeric<"hvacThermostat", SberThermostat>({
+                name: "min_local_temperature_limit",
+                cluster: "hvacThermostat",
+                attribute: "sdevicesMinLocalTemperatureLimit",
+                description: "Min Local Temperature Threshold",
+                valueMin: 1.0,
+                valueMax: 35.0,
+                valueStep: 0.01,
+                scale: 100,
+                unit: "°C",
+                zigbeeCommandOptions: manufacturerOptions,
+            }),
+            m.numeric<"hvacThermostat", SberThermostat>({
+                name: "max_local_temperature_limit",
+                cluster: "hvacThermostat",
+                attribute: "sdevicesMaxLocalTemperatureLimit",
+                description: "Max Local Temperature Threshold",
+                valueMin: 5.0,
+                valueMax: 50.0,
+                valueStep: 0.01,
+                scale: 100,
+                unit: "°C",
+                zigbeeCommandOptions: manufacturerOptions,
+            }),
+            m.numeric<"hvacThermostat", SberThermostat>({
+                name: "heating_hysteresis",
+                cluster: "hvacThermostat",
+                attribute: "sdevicesHeatingHysteresis",
+                description: "Heating hysteresis",
+                valueMin: 1.0,
+                valueMax: 10.0,
+                valueStep: 0.1,
+                scale: 10,
+                unit: "°C",
+                zigbeeCommandOptions: manufacturerOptions,
+            }),
+            sdevicesExtend.deviceTemperature(),
+            m.temperature({
+                label: "Sensor Temperature (Wired)",
+                description: "Temperature from wired NTC sensor",
+            }),
+            sdevicesExtend.electricityMeter(),
+            sdevicesExtend.upperCurrentThreshold(),
+            sdevicesExtend.temperatureThreshold(),
+            sdevicesExtend.thermostatSensorType(),
+            m.enumLookup<"hvacThermostat", SberThermostat>({
+                name: "sensor_mode",
+                description:
+                    "Sensor mode selects active temperature sensor: local (wired), remote (wireless), or combined logic which uses both sensors",
+                cluster: "hvacThermostat",
+                attribute: "sdevicesSensorMode",
+                lookup: {
+                    local: 0,
+                    remote: 1,
+                    both: 2,
+                },
+                zigbeeCommandOptions: manufacturerOptions,
+            }),
+            m.numeric<"hvacThermostat", SberThermostat>({
+                name: "remote_temperature",
+                cluster: "hvacThermostat",
+                attribute: "sdevicesRemoteTemperature",
+                description: "Remote Temperature",
+                valueMin: -273.15,
+                valueMax: 327.67,
+                valueStep: 0.01,
+                scale: 100,
+                unit: "°C",
+                zigbeeCommandOptions: manufacturerOptions,
+            }),
+            m.numeric<"hvacThermostat", SberThermostat>({
+                name: "remote_temperature_calibration",
+                cluster: "hvacThermostat",
+                attribute: "sdevicesRemoteTemperatureCalibration",
+                description: "Remote Temperature Calibration",
+                valueMin: -12.8,
+                valueMax: 12.7,
+                valueStep: 0.1,
+                scale: 10,
+                unit: "°C",
+                zigbeeCommandOptions: manufacturerOptions,
+            }),
+            m.numeric<"hvacThermostat", SberThermostat>({
+                name: "remote_sensor_timeout",
+                cluster: "hvacThermostat",
+                attribute: "sdevicesRemoteSensorTimeout",
+                valueMin: 1,
+                valueMax: 65535,
+                description: "Timeout of remote temperature sensor (in seconds)",
+                zigbeeCommandOptions: manufacturerOptions,
+            }),
+            m.enumLookup<"hvacThermostat", SberThermostat>({
+                name: "output_mode",
+                description: "Output mode: normal or inverted logic of relay",
+                cluster: "hvacThermostat",
+                attribute: "sdevicesOutputMode",
+                lookup: {
+                    normal: 0,
+                    inverted: 1,
+                },
+                zigbeeCommandOptions: manufacturerOptions,
+            }),
+            m.numeric<"hvacUserInterfaceCfg", SberThermostatUserInterfaceCfg>({
+                name: "brightness_operations_mode",
+                cluster: "hvacUserInterfaceCfg",
+                attribute: "sdevicesBrightnessOperationsMode",
+                valueMin: 0,
+                valueMax: 1000,
+                description: "Brightness (active mode)",
+                zigbeeCommandOptions: manufacturerOptions,
+            }),
+            m.numeric<"hvacUserInterfaceCfg", SberThermostatUserInterfaceCfg>({
+                name: "brightness_steady_mode",
+                cluster: "hvacUserInterfaceCfg",
+                attribute: "sdevicesBrightnessSteadyMode",
+                valueMin: 0,
+                valueMax: 1000,
+                description: "Brightness (steady mode)",
+                zigbeeCommandOptions: manufacturerOptions,
+            }),
+            m.identify(),
+            sdevicesExtend.rtcStatus(),
+            sdevicesExtend.deviceInfo(),
+            sdevicesExtend.deviceCustomDiagnostic(3, 1),
+        ],
+        ota: true,
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.read("genBasic", ["serialNumber"]);
+            await endpoint.read<"manuSpecificSDevices", SberDevices>("manuSpecificSDevices", [
+                "rmsVoltageMv",
+                "rmsCurrentMa",
+                "activePowerMw",
+                "emergencyShutoffState",
+                "upperCurrentThreshold",
+                "upperTempThreshold",
+            ]);
+            await endpoint.read("genDeviceTempCfg", ["currentTemperature"]);
+            await endpoint.read("msTemperatureMeasurement", ["measuredValue"]);
+            await endpoint.read("hvacThermostat", [
+                "occupiedHeatingSetpoint",
+                "localTemp",
+                "localTemperatureCalibration",
+                "absMinHeatSetpointLimit",
+                "absMaxHeatSetpointLimit",
+                "minHeatSetpointLimit",
+                "maxHeatSetpointLimit",
+                "ctrlSeqeOfOper",
+                "systemMode",
+                "runningMode",
+            ]);
+            await endpoint.read("hvacThermostat", ["startOfWeek", "numberOfWeeklyTrans", "numberOfDailyTrans", "programingOperMode", "runningState"]);
+            await endpoint.read<"hvacThermostat", SberThermostat>("hvacThermostat", [
+                "sdevicesRemoteTemperature",
+                "sdevicesRemoteTemperatureCalibration",
+                "sdevicesHeatingHysteresis",
+                "sdevicesMinLocalTemperatureLimit",
+                "sdevicesMaxLocalTemperatureLimit",
+                "sdevicesSensorError",
+                "sdevicesEventStatus",
+            ]);
+            await endpoint.read<"hvacThermostat", SberThermostat>("hvacThermostat", ["sdevicesRemoteSensorTimeout"]);
+            await endpoint.read("hvacUserInterfaceCfg", ["keypadLockout"]);
+            await endpoint.read<"hvacUserInterfaceCfg", SberThermostatUserInterfaceCfg>("hvacUserInterfaceCfg", [
+                "sdevicesBrightnessOperationsMode",
+                "sdevicesBrightnessSteadyMode",
+            ]);
+            try {
+                await endpoint.read<"manuSpecificSDevices", SberDevices>("manuSpecificSDevices", ["rtcStatus"]);
+            } catch (error) {
+                if ((error as Error).message.includes("UNSUPPORTED_ATTRIBUTE")) {
+                    // ignore: attribute is not supported in early versions of firmware
+                } else {
+                    logger.warning(`Configure failed: ${error}`, NS);
+                }
+            }
+            for (let dayOfWeekBit = 0; dayOfWeekBit < 7; dayOfWeekBit++) {
+                const payload = {
+                    daystoreturn: 1 << dayOfWeekBit,
+                    modetoreturn: 1 << 0, // heat only
+                };
+                await endpoint.command("hvacThermostat", "getWeeklySchedule", payload, {disableDefaultResponse: true});
+            }
+            await reporting.bind(endpoint, coordinatorEndpoint, [
+                "genDeviceTempCfg",
+                "msTemperatureMeasurement",
+                "hvacThermostat",
+                "hvacUserInterfaceCfg",
+                "manuSpecificSDevices",
+            ]);
             await reporting.bind(endpoint, coordinatorEndpoint, ["haDiagnostic"]);
         },
     },
