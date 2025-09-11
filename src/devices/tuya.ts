@@ -4836,10 +4836,9 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: tuya.fingerprint("TS0001", ["_TZ3000_pgq7ormg"]),
-        model: "TS0001_switch_module_3",
-        vendor: "Tuya",
+        model: "_TZ3000_pgq7ormg",
+        vendor: "iHseno",
         description: "1 gang switch module",
-        whiteLabel: [tuya.whitelabel("iHseno", "_TZ3000_pgq7ormg", "1 gang switch module", ["_TZ3000_pgq7ormg"])],
         extend: [tuya.modernExtend.tuyaOnOff({switchType: true, onOffCountdown: true, indicatorMode: true})],
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
