@@ -200,7 +200,19 @@ function parseSubElement(buffer: Buffer, position: number): Ota.ImageElement {
     return {tagID, length, data};
 }
 
-export function parseImage(buffer: Buffer, suppressElementImageParseFailure = false): Ota.Image {
+
+function parseTelinkEncryptSubElement(buffer: Buffer, position: number): Ota.ImageElement {
+    const tagID = buffer.readUInt16LE(position);
+    const length = buffer.readUInt32LE(position + 2);
+    const tagInfo = buffer.readUInt32LE(position + 4);
+    const data = buffer.subarray(position + 8, position + 8 + length);
+
+    return {tagID, length, data};
+}
+
+
+
+export function parseImage(buffer: Buffer, suppressElementImageParseFailure = false,telinkEncrypted = false): Ota.Image {
     const header: Ota.ImageHeader = {
         otaUpgradeFileIdentifier: buffer.subarray(0, 4),
         otaHeaderVersion: buffer.readUInt16LE(4),
@@ -213,6 +225,10 @@ export function parseImage(buffer: Buffer, suppressElementImageParseFailure = fa
         otaHeaderString: buffer.toString("utf8", 20, 52),
         totalImageSize: buffer.readUInt32LE(52),
     };
+
+
+
+
     let headerPos = 56;
     let didSuppressElementImageParseFailure = false;
 
@@ -245,9 +261,18 @@ export function parseImage(buffer: Buffer, suppressElementImageParseFailure = fa
 
     try {
         while (position < header.totalImageSize) {
-            const element = parseSubElement(buffer, position);
+
+            // Use the selected parser function
+            const element = telinkEncrypted ? parseTelinkEncryptSubElement(buffer, position) : parseSubElement(buffer, position);
+
             elements.push(element);
-            position += element.data.length + 6;
+
+
+            const elementOffset = telinkEncrypted ? 8 : 6;
+
+            // Update position with appropriate offset
+            position += element.data.length + elementOffset;
+            logger.debug(`Next element position: ${position} (offset: ${elementOffset})`, NS);
         }
     } catch (error) {
         if (!suppressElementImageParseFailure) {
@@ -348,7 +373,7 @@ function fillImageInfo(meta: Ota.ZigbeeOTAImageMeta): Ota.ZigbeeOTAImageMeta {
     assert(otaIdentifier !== -1, "Not a valid OTA file");
 
     // allow bypass non-spec Ledvance OTA files if proper manufacturer set
-    const image = parseImage(imageFile.subarray(otaIdentifier), meta.manufacturerCode === Zcl.ManufacturerCode.LEDVANCE_GMBH);
+    const image = parseImage(imageFile.subarray(otaIdentifier), meta.manufacturerCode === Zcl.ManufacturerCode.LEDVANCE_GMBH,meta.telinkEncrypted || false);
 
     // Will fill only those fields that were absent
     if (meta.imageType === undefined) {
@@ -666,7 +691,7 @@ async function getImage(current: Ota.ImageInfo, device: Zh.Device, extraMetas: O
 
     assert(otaIdentifier !== -1, "Not a valid OTA file");
 
-    const image = parseImage(downloadedFile.subarray(otaIdentifier), extraMetas.suppressElementImageParseFailure || false);
+    const image = parseImage(downloadedFile.subarray(otaIdentifier), extraMetas.suppressElementImageParseFailure || false,meta.telinkEncrypted || false);
 
     logger.debug(() => `${deviceLogString(device)} Got ${imageSet} image, header: ${JSON.stringify(image.header)}`, NS);
 

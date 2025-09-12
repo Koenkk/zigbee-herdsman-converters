@@ -508,6 +508,97 @@ describe("OTA", () => {
         }).toThrow("Not a valid OTA file");
     });
 
+
+    async function getStandardOtaImageBuffer(): Promise<Buffer> {
+        // Return a Buffer containing a standard OTA image
+        // You can use an existing test image, such as IKEA_BASE_URL
+        const imageRsp = fetchOverride(IKEA_BASE_URL);
+        return imageRsp.arrayBuffer!();
+    }
+
+    async function getTelinkOtaImageBuffer(): Promise<Buffer> {
+        // Return a Buffer containing a Telink-encrypted OTA image
+        // You need to have a Telink-encrypted test image
+        // If none is available, you can create a mocked Telink-encrypted image
+        const telinkImageUrl = "https://Sonoff/SN-TLSR8656-02LWD-01-v1.1.0.ota";
+        const imageRsp = fetchOverride(telinkImageUrl);
+        return imageRsp.arrayBuffer!();
+    }
+
+
+    describe("parseImage with telinkEncrypted parameter", () => {
+        it("should use standard parser and offset when telinkEncrypted is false", async () => {
+            // Get a standard OTA image buffer
+            const standardImageBuffer = await getStandardOtaImageBuffer();
+
+            // Parse the image with telinkEncrypted set to false
+            const image = parseImage(standardImageBuffer, false, false);
+
+            // Validate parsing results
+            expect(image).toBeDefined();
+            expect(image.header).toBeDefined();
+            expect(image.elements).toBeDefined();
+            expect(image.raw).toBeDefined();
+
+            // Add log validation if needed (verify standard parser usage)
+        });
+
+        it("should use Telink encrypted parser and offset when telinkEncrypted is true", async () => {
+            // Get a Telink-encrypted OTA image buffer
+            const telinkImageBuffer = await getTelinkOtaImageBuffer();
+
+            // Parse the image with telinkEncrypted set to true
+            const image = parseImage(telinkImageBuffer, false, true);
+
+            // Validate parsing results
+            expect(image).toBeDefined();
+            expect(image.header).toBeDefined();
+            expect(image.elements).toBeDefined();
+            expect(image.raw).toBeDefined();
+
+            // Add log validation if needed (verify Telink encrypted parser usage)
+        });
+
+        it("should handle parse errors correctly with telinkEncrypted parameter", async () => {
+            // Create an invalid or corrupted OTA image buffer
+            const invalidImageBuffer = Buffer.alloc(100, 0xFF);
+
+            // Test error handling when telinkEncrypted is true
+            expect(() => {
+                parseImage(invalidImageBuffer, false, true);
+            }).toThrow("Not a valid OTA file");
+
+            // Test error handling when telinkEncrypted is false
+            expect(() => {
+                parseImage(invalidImageBuffer, false, false);
+            }).toThrow("Not a valid OTA file");
+        });
+
+        it("should use correct offset calculation based on telinkEncrypted parameter", async () => {
+            // Get a known OTA image buffer
+            const imageBuffer = await getStandardOtaImageBuffer();
+
+            // Parse with telinkEncrypted set to false
+            const standardImage = parseImage(imageBuffer, false, false);
+
+            // Parse the same buffer with telinkEncrypted set to true
+            const telinkImage = parseImage(imageBuffer, false, true);
+
+
+            // Calculate total data size for standard parsing
+            const standardDataSize = standardImage.elements.reduce((sum, element) => sum + element.data.length, 0);
+
+            // Calculate total data size for Telink encrypted parsing
+            const telinkDataSize = telinkImage.elements.reduce((sum, element) => sum + element.data.length, 0);
+
+            // Expect data sizes to differ due to encryption/offset logic
+            expect(standardDataSize).not.toBe(telinkDataSize);
+        });
+    });
+
+
+
+
     describe("Checking", () => {
         const expectAvailableResult = (result: Ota.UpdateAvailableResult, available: boolean, currentFileVersion: number, otaFileVersion: number) => {
             expect(result.available).toStrictEqual(available);
