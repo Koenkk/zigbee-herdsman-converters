@@ -1659,12 +1659,8 @@ export const definitions: DefinitionWithExtend[] = [
             try { await reporting.rmsVoltage(endpoint, {min: 30, max: 300, change: 5}); } catch (e) { /* ignore */ }
             try { await reporting.rmsCurrent(endpoint, {min: 30, max: 300, change: 10}); } catch (e) { /* ignore */ }
             try { await reporting.activePower(endpoint, {min: 30, max: 300, change: 5}); } catch (e) { /* ignore */ }
-
-    
             await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering']);
             try { await reporting.currentSummDelivered(endpoint, {min: 60, max: 3600, change: 1}); } catch (e) { /* ignore */ }
-
-     
             await reporting.bind(endpoint, coordinatorEndpoint, ['genDeviceTempCfg']);
             try {
             await endpoint.read('genDeviceTempCfg', ['currentTemperature', 'deviceTempAlarmMask', 'clusterRevision']);
