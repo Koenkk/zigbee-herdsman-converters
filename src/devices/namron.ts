@@ -1625,40 +1625,37 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        zigbeeModel: ['4512792'],
-        model: '4512792',
-        vendor: 'Namron',
-        description: 'Namron Simplify 1-2p Relay',
-        fromZigbee: [
-            fz.on_off, 
-            fz.metering, 
-            fz.electrical_measurement, 
-            fz.DeviceTempCfg,
-        ],
+        zigbeeModel: ["4512792"],
+        model: "4512792",
+        vendor: "Namron",
+        description: "Namron Simplify 1-2p Relay",
+        fromZigbee: [fz.on_off, fz.metering, fz.electrical_measurement, fz.DeviceTempCfg],
         toZigbee: [tz.on_off],
         exposes: [
             exposes.presets.switch(),
-            exposes.presets.power(),     
-            exposes.presets.current(),  
-            exposes.presets.voltage(),  
-            exposes.presets.energy(),   
-            exposes.numeric('device_temperature', ea.STATE)
-                .withUnit('°C')
-                .withDescription('Internal device temperature (from genDeviceTempCfg.currentTemperature)'),
-            exposes.numeric('device_temperature_alarm_mask', ea.STATE)
-                .withDescription('Device temperature alarm mask (bitmask from genDeviceTempCfg.deviceTempAlarmMask)'),
+            exposes.presets.power(),
+            exposes.presets.current(),
+            exposes.presets.voltage(),
+            exposes.presets.energy(),
+            exposes
+                .numeric("device_temperature", ea.STATE)
+                .withUnit("°C")
+                .withDescription("Internal device temperature (from genDeviceTempCfg.currentTemperature)"),
+            exposes
+                .numeric("device_temperature_alarm_mask", ea.STATE)
+                .withDescription("Device temperature alarm mask (bitmask from genDeviceTempCfg.deviceTempAlarmMask)"),
         ],
         meta: {
-            meter: {divisor: 100, multiplier: 1}, 
+            meter: {divisor: 100, multiplier: 1},
             publishDuplicateTransaction: true,
         },
         configure: async (device, coordinatorEndpoint, logger) => {
-        const endpoint = device.getEndpoint(1);
-        await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-        await reporting.onOff(endpoint);
-        await reporting.bind(endpoint, coordinatorEndpoint, ['haElectricalMeasurement']);
-        await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering']);
-        await reporting.bind(endpoint, coordinatorEndpoint, ['genDeviceTempCfg']);
-        }, 
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff"]);
+            await reporting.onOff(endpoint);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["haElectricalMeasurement"]);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["seMetering"]);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genDeviceTempCfg"]);
+        },
     },
 ];
