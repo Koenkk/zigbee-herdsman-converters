@@ -133,7 +133,7 @@ const storeLocal = {
                             result[`energy_flow_${channel}`] = "sign";
                         } else {
                             result[`power_${channel}`] = power;
-                            result[`energy_flow_${channel}`] = sign * (invertedEnergyFlow ? -1 : 1) > 0 ? "consuming" : "producing";
+                            result[`energy_flow_${channel}`] = sign * (invertedEnergyFlow ? -1 : 1) >= 0 ? "consuming" : "producing";
                         }
                         result[`timestamp_${channel}`] = this[`timestamp_${channel}`];
                         result[`current_${channel}`] = current;
@@ -257,8 +257,9 @@ const convLocal = {
             from: (v: number, meta: Fz.Meta, options: KeyValue) => {
                 const invertedEnergyFlowKey = `invert_energy_flow_${channel}`;
                 const result_key = options[invertedEnergyFlowKey] ? `energy_produced_${channel}` : `energy_${channel}`;
+                const energy_sign = options[invertedEnergyFlowKey] ? -1 : 1;
                 const result = {} as KeyValueAny;
-                result[result_key] = v / 100;
+                result[result_key] = (v / 100) * energy_sign;
 
                 return result;
             },
@@ -270,8 +271,9 @@ const convLocal = {
             from: (v: number, meta: Fz.Meta, options: KeyValue) => {
                 const invertedEnergyFlowKey = `invert_energy_flow_${channel}`;
                 const result_key = options[invertedEnergyFlowKey] ? `energy_${channel}` : `energy_produced_${channel}`;
+                const energy_sign = options[invertedEnergyFlowKey] ? 1 : -1;
                 const result = {} as KeyValueAny;
-                result[result_key] = v / 100;
+                result[result_key] = (v / 100) * energy_sign;
 
                 return result;
             },
