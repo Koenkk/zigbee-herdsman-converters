@@ -1,5 +1,20 @@
 # Changelog
 
+## [25.24.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.23.0...v25.24.0) (2025-09-12)
+
+
+### Features
+
+* **add:** S-ZB-PDM1-R251 ([#9989](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9989)) ([aaef45f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/aaef45fa60e57eafb3e7b0a1dcbe3d6dc952cebb))
+
+
+### Bug Fixes
+
+* Bosch BSIR-EZ: re-implement the device from scratch ([#9987](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9987)) ([a7be85e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a7be85e51225c332b864899b404abfcd36f39a14))
+* **detect:** Detect `_TZE204_4bjixefp` as Tuya TS0601_din_4 ([#9990](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9990)) ([47bd3f7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/47bd3f7cec415770a6cf62b515a850140d06c383))
+* **detect:** Detect `eco-dim10-zigbee` as Eco-Dim.07/Eco-Dim.10 ([#9991](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9991)) ([b136d9d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b136d9dd8275559b96170d94e9f23226b46f3aa4))
+* Tuya TS020C: fix integration ([#9994](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9994)) ([a9c5934](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a9c5934b7a36d77ce1de9a667066fb39ac5860e0))
+
 ## [25.23.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.22.0...v25.23.0) (2025-09-11)
 
 
