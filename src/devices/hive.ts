@@ -260,7 +260,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMin(0)
                 .withValueMax(65535)
                 .withDescription(
-                    "Period in minutes for which the setpoint hold will be active. 65535 = attribute not" +
+                    "Period in minutes for which the setpoint hold will be active. null = attribute not" +
                         " used. 0 to 360 to match the remote display",
                 ),
         ],

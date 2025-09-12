@@ -23,4 +23,11 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Direct current wireless dimmable electronic drivers with DIP-SWITCH",
         extend: [m.light()],
     },
+    {
+        zigbeeModel: ["TCI - Mini ZLL I"],
+        model: "TCI - Mini ZLL I",
+        vendor: "TCI",
+        description: "Dali 1-10V driver",
+        extend: [m.light(), m.commandsOnOff(), m.commandsLevelCtrl()],
+    },
 ];

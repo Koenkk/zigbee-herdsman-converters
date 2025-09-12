@@ -194,6 +194,7 @@ import {definitions as meazon} from "./meazon";
 import {definitions as mercator} from "./mercator";
 import {definitions as miboxer} from "./miboxer";
 import {definitions as micromatic} from "./micromatic";
+import {definitions as mill} from "./mill";
 import {definitions as mindy} from "./mindy";
 import {definitions as modular} from "./modular";
 import {definitions as moes} from "./moes";
@@ -277,6 +278,7 @@ import {definitions as siterwell} from "./siterwell";
 import {definitions as skydance} from "./skydance";
 import {definitions as slackyDiy} from "./slacky_diy";
 import {definitions as slv} from "./slv";
+import {definitions as smarli} from "./smarli";
 import {definitions as smartHomePty} from "./smart_home_pty";
 import {definitions as smart9} from "./smart9";
 import {definitions as smartenit} from "./smartenit";
@@ -540,6 +542,7 @@ const definitions: DefinitionWithExtend[] = [
     ...mercator,
     ...miboxer,
     ...micromatic,
+    ...mill,
     ...mindy,
     ...modular,
     ...moes,
@@ -623,6 +626,7 @@ const definitions: DefinitionWithExtend[] = [
     ...skydance,
     ...slackyDiy,
     ...slv,
+    ...smarli,
     ...smart9,
     ...smartenit,
     ...smartHomePty,

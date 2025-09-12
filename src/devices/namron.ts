@@ -44,17 +44,17 @@ const fzLocal = {
             }
             if (data[0x100a] !== undefined) {
                 // Hysterersis
-                result.hysterersis = utils.precisionRound(data[0x100a], 2) / 10;
+                result.hysterersis = utils.precisionRound(data[0x100a] as number, 2) / 10;
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
     namron_thermostat2: {
         cluster: "hvacThermostat",
         type: ["attributeReport", "readResponse"],
         options: [exposes.options.local_temperature_based_on_sensor()],
         convert: (model, msg, publish, options, meta) => {
-            const runningModeStateMap: KeyValue = {0: 0, 3: 2, 4: 5};
+            const runningModeStateMap: Record<number, number> = {0: 0, 3: 2, 4: 5};
             // override mode "idle" - not a supported running mode
             if (msg.data.runningMode === 0x10) msg.data.runningMode = 0;
             // map running *mode* to *state*, as that's what used
@@ -62,7 +62,7 @@ const fzLocal = {
             if (msg.data.runningMode !== undefined) msg.data.runningState = runningModeStateMap[msg.data.runningMode];
             return fz.thermostat.convert(model, msg, publish, options, meta); // as KeyValue;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
 };
 
 const tzLocal = {

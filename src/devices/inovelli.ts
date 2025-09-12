@@ -395,7 +395,8 @@ const inovelliExtend = {
         supportsButtonTaps: boolean;
         splitValuesByEndpoint?: boolean;
     }) => {
-        const fromZigbee: Fz.Converter[] = [];
+        // biome-ignore lint/suspicious/noExplicitAny: generic
+        const fromZigbee: Fz.Converter<any, any, any>[] = [];
         const toZigbee: Tz.Converter[] = [];
         const exposes: Expose[] = [];
 
@@ -472,7 +473,8 @@ const inovelliExtend = {
         } as ModernExtend;
     },
     inovelliLight: ({splitValuesByEndpoint = false}: {splitValuesByEndpoint?: boolean} = {}) => {
-        const fromZigbee: Fz.Converter[] = [];
+        // biome-ignore lint/suspicious/noExplicitAny: generic
+        const fromZigbee: Fz.Converter<any, any, any>[] = [];
         const bindingList = ["genOnOff"];
 
         if (!splitValuesByEndpoint) {
@@ -491,7 +493,6 @@ const inovelliExtend = {
         return {
             fromZigbee,
             toZigbee: [
-                tz.on_off,
                 tzLocal.light_onoff_brightness_inovelli,
                 tz.power_on_behavior,
                 tz.ignore_transition,
@@ -505,7 +506,8 @@ const inovelliExtend = {
         } as ModernExtend;
     },
     inovelliFan: ({endpointId, splitValuesByEndpoint = false}: {endpointId: number; splitValuesByEndpoint?: boolean}) => {
-        const fromZigbee: Fz.Converter[] = [fzLocal.fan_mode(endpointId), fzLocal.breeze_mode(endpointId)];
+        // biome-ignore lint/suspicious/noExplicitAny: generic
+        const fromZigbee: Fz.Converter<any, any, any>[] = [fzLocal.fan_mode(endpointId), fzLocal.breeze_mode(endpointId)];
         const toZigbee: Tz.Converter[] = [tzLocal.fan_mode(endpointId), tzLocal.breezeMode(endpointId)];
         const exposes: Expose[] = [e.fan().withState("fan_state").withModes(Object.keys(FAN_MODES)), exposeBreezeMode()];
         const bindingList = ["genOnOff"];
@@ -1985,20 +1987,36 @@ const tzLocal = {
     light_onoff_brightness_inovelli: {
         ...tz.light_onoff_brightness,
         convertSet: async (entity, key, value, meta) => {
+            const {message} = meta;
             const transition = utils.getTransition(entity, "brightness", meta);
+            const state = utils.isString(message.state) ? message.state.toLowerCase() : null;
+
+            // If transition is not specified and command is on (with no brightness), off or toggle, use on_off converter
+            let brightness: number;
+            if (message.brightness != null) {
+                brightness = Number(message.brightness);
+            } else if (message.brightness_percent != null) {
+                brightness = utils.mapNumberRange(Number(message.brightness_percent), 0, 100, 0, 255);
+            }
+            if ((state === "toggle" || state === "off" || (brightness === undefined && state === "on")) && !transition.specified) {
+                const localMeta = {
+                    ...meta,
+                    converterOptions: {
+                        ctrlbits: 0,
+                        ontime: message.on_time != null ? Math.round((message.on_time as number) * 10) : 0xffff,
+                        offwaittime: message.off_wait_time != null ? Math.round((message.off_wait_time as number) * 10) : 0xffff,
+                    },
+                };
+                return await tz.on_off.convertSet(entity, key, value, localMeta);
+            }
+
             const localMeta = {
                 ...meta,
                 message: {
-                    ...meta.message,
+                    ...message,
                     transition: (!transition.specified ? 0xffff : transition.time) / 10,
                 },
-                converterOptions: {
-                    ctrlbits: 0,
-                    ontime: meta.message.on_time != null ? Math.round((meta.message.on_time as number) * 10) : 0xffff,
-                    offwaittime: meta.message.off_wait_time != null ? Math.round((meta.message.off_wait_time as number) * 10) : 0xffff,
-                },
             };
-
             return await tz.light_onoff_brightness.convertSet(entity, key, value, localMeta);
         },
     } satisfies Tz.Converter,
@@ -2161,10 +2179,14 @@ const tzLocal = {
 };
 
 const fzLocal = {
-    inovelli: (attributes: {[s: string]: Attribute}, cluster: string, splitValuesByEndpoint = false) =>
+    inovelli: (
+        attributes: {[s: string]: Attribute},
+        cluster: typeof INOVELLI_CLUSTER_NAME | typeof INOVELLI_MMWAVE_CLUSTER_NAME,
+        splitValuesByEndpoint = false,
+    ) =>
         ({
             cluster: cluster,
-            type: ["raw", "readResponse", "commandQueryNextImageRequest"],
+            type: ["raw", "readResponse"],
             convert: (model, msg, publish, options, meta) => {
                 if (msg.type === "raw" && msg.endpoint.ID === 2 && msg.data[4] === 0x00) {
                     // Scene Event
@@ -2193,16 +2215,18 @@ const fzLocal = {
                             return {
                                 // biome-ignore lint/performance/noAccumulatingSpread: ignored using `--suppress`
                                 ...p,
-                                [key]: Object.keys(attributes[key].values).find((k) => attributes[key].values[k] === msg.data[c]),
+                                [key]: Object.keys(attributes[key].values).find(
+                                    (k) => attributes[key].values[k] === msg.data[Number.parseInt(c, 10)],
+                                ),
                             };
                         }
                         // biome-ignore lint/performance/noAccumulatingSpread: ignored using `--suppress`
-                        return {...p, [key]: msg.data[c]};
+                        return {...p, [key]: msg.data[Number.parseInt(c, 10)]};
                     }, {});
                 }
                 return msg.data;
             },
-        }) satisfies Fz.Converter,
+        }) satisfies Fz.Converter<typeof cluster, undefined, ["raw", "readResponse"]>,
     fan_mode: (endpointId: number) =>
         ({
             cluster: "genLevelCtrl",
@@ -2218,7 +2242,7 @@ const fzLocal = {
                 }
                 return msg.data;
             },
-        }) satisfies Fz.Converter,
+        }) satisfies Fz.Converter<"genLevelCtrl", undefined, ["attributeReport", "readResponse"]>,
     fan_state: {
         cluster: "genOnOff",
         type: ["attributeReport", "readResponse"],
@@ -2228,7 +2252,7 @@ const fzLocal = {
             }
             return msg.data;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
     brightness: {
         cluster: "genLevelCtrl",
         type: ["attributeReport", "readResponse"],
@@ -2239,7 +2263,7 @@ const fzLocal = {
                 }
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genLevelCtrl", undefined, ["attributeReport", "readResponse"]>,
     /**
      * Decode breeze mode value:
      *
@@ -2258,9 +2282,10 @@ const fzLocal = {
             type: ["attributeReport", "readResponse"],
             convert: (model, msg, publish, options, meta) => {
                 if (msg.endpoint.ID === endpointId) {
-                    if (msg.data.breeze_mode !== undefined) {
+                    // TODO: typo?
+                    if (msg.data.breezeMode !== undefined) {
                         const bitmasks = [3, 60, 192, 3840, 12288, 245760, 786432, 15728640, 50331648, 1006632960];
-                        const raw = msg.data.breeze_mode;
+                        const raw = msg.data.breezeMode;
                         const s1 = BREEZE_MODES[raw & bitmasks[0]];
                         const s2 = BREEZE_MODES[(raw & bitmasks[2]) / 64];
                         const s3 = BREEZE_MODES[(raw & bitmasks[4]) / 4096];
@@ -2290,7 +2315,7 @@ const fzLocal = {
                     }
                 }
             },
-        }) satisfies Fz.Converter,
+        }) satisfies Fz.Converter<typeof INOVELLI_CLUSTER_NAME, Inovelli, ["attributeReport", "readResponse"]>,
     vzm36_fan_light_state: {
         cluster: "genOnOff",
         type: ["attributeReport", "readResponse"],
@@ -2307,7 +2332,7 @@ const fzLocal = {
                 return msg.data;
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
     led_effect_complete: {
         cluster: INOVELLI_CLUSTER_NAME,
         type: ["commandLedEffectComplete"],
@@ -2317,7 +2342,7 @@ const fzLocal = {
             }
             return {notificationComplete: "Unknown"};
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<typeof INOVELLI_CLUSTER_NAME, Inovelli, ["commandLedEffectComplete"]>,
 };
 
 const exposeLedEffects = () => {

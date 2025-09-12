@@ -892,7 +892,12 @@ export const definitions: DefinitionWithExtend[] = [
                     .climate()
                     .withSetpoint("current_heating_setpoint", 5, 45, heatingStepSize, ea.STATE_SET)
                     .withLocalTemperature(ea.STATE)
-                    .withLocalTemperatureCalibration(-30, 30, device.manufacturerName === "_TZE204_aoclfnxz" ? 1 : 0.1, ea.STATE_SET)
+                    .withLocalTemperatureCalibration(
+                        -30,
+                        30,
+                        ["_TZE204_aoclfnxz", "_TZE204_ltwbm23f"].includes(device.manufacturerName) ? 1 : 0.1,
+                        ea.STATE_SET,
+                    )
                     .withSystemMode(["off", "heat"], ea.STATE_SET)
                     .withRunningState(runningStates, ea.STATE)
                     .withPreset(["hold", "program"]),
@@ -1374,7 +1379,7 @@ export const definitions: DefinitionWithExtend[] = [
                 powerOnBehavior2: true,
                 switchMode: true,
             }),
-            m.actionEnumLookup<"genOnOff", undefined, "tuyaAction">({
+            m.actionEnumLookup<"genOnOff", undefined, ["commandTuyaAction"]>({
                 cluster: "genOnOff",
                 commands: ["commandTuyaAction"],
                 attribute: "value",
@@ -1396,7 +1401,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZHT-SR",
         vendor: "Moes",
         description: "Smart ring thermostat",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000", respondToMcuVersionResponse: false})],
         exposes: [
             e
                 .climate()

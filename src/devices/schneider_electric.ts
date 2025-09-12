@@ -1,4 +1,5 @@
 import {Zcl} from "zigbee-herdsman";
+import type {GpdAttributeReport} from "zigbee-herdsman/dist/zspec/zcl/definition/tstype";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as constants from "../lib/constants";
@@ -442,99 +443,99 @@ const fzLocal = {
 
             switch (commandID) {
                 case 0xa1: {
-                    const attr = msg.data.commandFrame.attributes;
-                    const clusterID = msg.data.commandFrame.clusterID;
+                    const attr = (msg.data.commandFrame as GpdAttributeReport).attributes;
+                    const clusterID = (msg.data.commandFrame as GpdAttributeReport).clusterID;
 
                     switch (clusterID) {
                         case 2820: {
                             // haElectricalMeasurement
-                            const acCurrentDivisor = attr.acCurrentDivisor;
-                            const acVoltageDivisor = attr.acVoltageDivisor;
-                            const acFrequencyDivisor = attr.acFrequencyDivisor;
-                            const powerDivisor = attr.powerDivisor;
+                            const acCurrentDivisor = attr.acCurrentDivisor as number;
+                            const acVoltageDivisor = attr.acVoltageDivisor as number;
+                            const acFrequencyDivisor = attr.acFrequencyDivisor as number;
+                            const powerDivisor = attr.powerDivisor as number;
 
                             if (attr.rmsVoltage !== undefined) {
-                                ret.voltage_phase_a = attr.rmsVoltage / acVoltageDivisor;
+                                ret.voltage_phase_a = (attr.rmsVoltage as number) / acVoltageDivisor;
                             }
 
                             if (attr.rmsVoltagePhB !== undefined) {
-                                ret.voltage_phase_b = attr.rmsVoltagePhB / acVoltageDivisor;
+                                ret.voltage_phase_b = (attr.rmsVoltagePhB as number) / acVoltageDivisor;
                             }
 
                             if (attr.rmsVoltagePhC !== undefined) {
-                                ret.voltage_phase_c = attr.rmsVoltagePhC / acVoltageDivisor;
+                                ret.voltage_phase_c = (attr.rmsVoltagePhC as number) / acVoltageDivisor;
                             }
 
                             if (attr["19200"] !== undefined) {
-                                ret.voltage_phase_ab = attr["19200"] / acVoltageDivisor;
+                                ret.voltage_phase_ab = (attr["19200"] as number) / acVoltageDivisor;
                             }
 
                             if (attr["19456"] !== undefined) {
-                                ret.voltage_phase_bc = attr["19456"] / acVoltageDivisor;
+                                ret.voltage_phase_bc = (attr["19456"] as number) / acVoltageDivisor;
                             }
 
                             if (attr["19712"] !== undefined) {
-                                ret.voltage_phase_ca = attr["19712"] / acVoltageDivisor;
+                                ret.voltage_phase_ca = (attr["19712"] as number) / acVoltageDivisor;
                             }
 
                             if (attr.rmsCurrent !== undefined) {
-                                ret.current_phase_a = attr.rmsCurrent / acCurrentDivisor;
+                                ret.current_phase_a = (attr.rmsCurrent as number) / acCurrentDivisor;
                             }
 
                             if (attr.rmsCurrentPhB !== undefined) {
-                                ret.current_phase_b = attr.rmsCurrentPhB / acCurrentDivisor;
+                                ret.current_phase_b = (attr.rmsCurrentPhB as number) / acCurrentDivisor;
                             }
 
                             if (attr.rmsCurrentPhC !== undefined) {
-                                ret.current_phase_c = attr.rmsCurrentPhC / acCurrentDivisor;
+                                ret.current_phase_c = (attr.rmsCurrentPhC as number) / acCurrentDivisor;
                             }
 
                             if (attr.totalActivePower !== undefined) {
-                                ret.power = (attr.totalActivePower * 1000) / powerDivisor;
+                                ret.power = ((attr.totalActivePower as number) * 1000) / powerDivisor;
                             }
 
                             if (attr.totalApparentPower !== undefined) {
-                                ret.power_apparent = (attr.totalApparentPower * 1000) / powerDivisor;
+                                ret.power_apparent = ((attr.totalApparentPower as number) * 1000) / powerDivisor;
                             }
 
                             if (attr.acFrequency !== undefined) {
-                                ret.ac_frequency = attr.acFrequency / acFrequencyDivisor;
+                                ret.ac_frequency = (attr.acFrequency as number) / acFrequencyDivisor;
                             }
 
                             if (attr.activePower !== undefined) {
-                                ret.power_phase_a = (attr.activePower * 1000) / powerDivisor;
+                                ret.power_phase_a = ((attr.activePower as number) * 1000) / powerDivisor;
                             }
 
                             if (attr.activePowerPhB !== undefined) {
-                                ret.power_phase_b = (attr.activePowerPhB * 1000) / powerDivisor;
+                                ret.power_phase_b = ((attr.activePowerPhB as number) * 1000) / powerDivisor;
                             }
 
                             if (attr.activePowerPhC !== undefined) {
-                                ret.power_phase_c = (attr.activePowerPhC * 1000) / powerDivisor;
+                                ret.power_phase_c = ((attr.activePowerPhC as number) * 1000) / powerDivisor;
                             }
                             break;
                         }
                         case 1794: {
                             // seMetering
-                            const divisor = attr.divisor;
+                            const divisor = attr.divisor as number;
 
                             if (attr.currentSummDelivered !== undefined) {
-                                const val = attr.currentSummDelivered;
+                                const val = attr.currentSummDelivered as number;
                                 ret.energy = val / divisor;
                             }
 
                             if (attr["16652"] !== undefined) {
-                                const val = attr["16652"];
+                                const val = attr["16652"] as number;
                                 ret.energy_phase_a = val / divisor;
                             }
 
                             if (attr["16908"] !== undefined) {
-                                const val = attr["16908"];
+                                const val = attr["16908"] as number;
                                 ret.energy_phase_b = val / divisor;
                             }
 
                             if (attr["17164"] !== undefined) {
-                                const val = attr["17164"];
+                                const val = attr["17164"] as number;
                                 ret.energy_phase_c = val / divisor;
                             }
 
@@ -581,7 +582,7 @@ const fzLocal = {
 
             return ret;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"greenPower", undefined, ["commandNotification", "commandCommissioningNotification"]>,
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -2174,6 +2175,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         toZigbee: [
             tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_occupied_cooling_setpoint,
             tz.thermostat_system_mode,
             tz.thermostat_local_temperature,
             tz.thermostat_control_sequence_of_operation,
@@ -2190,6 +2192,7 @@ export const definitions: DefinitionWithExtend[] = [
             e
                 .climate()
                 .withSetpoint("occupied_heating_setpoint", 4, 30, 0.5)
+                .withSetpoint("occupied_cooling_setpoint", 4, 30, 0.5)
                 .withLocalTemperature()
                 .withSystemMode(["off", "heat", "cool"])
                 .withPiHeatingDemand(),
@@ -2203,6 +2206,7 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint1, coordinatorEndpoint, ["hvacThermostat"]);
             await reporting.thermostatPIHeatingDemand(endpoint1);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint1);
+            await reporting.thermostatOccupiedCoolingSetpoint(endpoint1);
             await reporting.temperature(endpoint2);
             await endpoint1.read("hvacUserInterfaceCfg", ["keypadLockout", "tempDisplayMode"]);
             await reporting.bind(endpoint4, coordinatorEndpoint, ["msOccupancySensing"]);
@@ -2211,11 +2215,11 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.poll({
                 key: "measurement",
-                option: exposes.options.measurement_poll_interval().withDescription("Polling interval of the occupied heating setpoint"),
+                option: exposes.options.measurement_poll_interval().withDescription("Polling interval of the occupied heating/cooling setpoint"),
                 defaultIntervalSeconds: 20,
                 poll: async (device) => {
                     const endpoint = device.getEndpoint(1);
-                    await endpoint.read("hvacThermostat", ["occupiedHeatingSetpoint"]);
+                    await endpoint.read("hvacThermostat", ["occupiedHeatingSetpoint", "occupiedCoolingSetpoint"]);
                 },
             }),
         ],
