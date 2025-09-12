@@ -1629,8 +1629,13 @@ export const definitions: DefinitionWithExtend[] = [
         model: '4512792',
         vendor: 'Namron',
         description: 'Namron Simplify 1-2p Relay',
-        fromZigbee: [fz.on_off, fz.metering, fz.electrical_measurement, fz.DeviceTempCfg,],
-        toZigbee: [tz.on_off,],
+        fromZigbee: [
+            fz.on_off, 
+            fz.metering, 
+            fz.electrical_measurement, 
+            fz.DeviceTempCfg,
+        ],
+        toZigbee: [tz.on_off],
         exposes: [
             exposes.presets.switch(),
             exposes.presets.power(),     
@@ -1666,6 +1671,6 @@ export const definitions: DefinitionWithExtend[] = [
             await endpoint.read('genDeviceTempCfg', ['currentTemperature', 'deviceTempAlarmMask', 'clusterRevision']);
             } catch (e) {
                 if (logger && (logger as any).warn) (logger as any).warn(`genDeviceTempCfg read failed: ${e}`),
-        }
+        },
     },
 ];
