@@ -1624,4 +1624,60 @@ export const definitions: DefinitionWithExtend[] = [
             m.temperature({reporting: undefined}),
         ],
     },
+    {
+        ZigbeeModel: ['4512792'], // Basic->Model Identifier
+        model: '4512792',
+        vendor: 'Namron',
+        description: 'Namron Simplify 1-2p Relay',
+        fromZigbee: [
+            fz.on_off,
+            fz.metering,
+            fz.electrical_measurement,
+            fzDeviceTempCfg,
+        ],
+        toZigbee: [
+            tz.on_off,
+        ],
+        exposes: [
+            e.switch(),
+            e.power(),     // W
+            e.current(),   // A
+            e.voltage(),   // V
+            e.energy(),    // kWh
+            exposes.numeric('device_temperature', ea.STATE)
+                .withUnit('°C')
+                .withDescription('Internal device temperature (from genDeviceTempCfg.currentTemperature)'),
+            exposes.numeric('device_temperature_alarm_mask', ea.STATE)
+                .withDescription('Device temperature alarm mask (bitmask from genDeviceTempCfg.deviceTempAlarmMask)'),
+        ],
+        meta: {
+            meter: {divisor: 100, multiplier: 1}, // seMetering cluster (0x0702)
+            publishDuplicateTransaction: true,
+        },
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+
+            // On/Off
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
+
+            // Electrical Measurement (0x0B04)
+            await reporting.bind(endpoint, coordinatorEndpoint, ['haElectricalMeasurement']);
+            try { await reporting.readEletricalMeasurementMultiplierDivisors(endpoint); } catch (e) { /* noen enheter mangler */ }
+            try { await reporting.rmsVoltage(endpoint, {min: 30, max: 300, change: 5}); } catch (e) { /* ignore */ }
+            try { await reporting.rmsCurrent(endpoint, {min: 30, max: 300, change: 10}); } catch (e) { /* ignore */ }
+            try { await reporting.activePower(endpoint, {min: 30, max: 300, change: 5}); } catch (e) { /* ignore */ }
+
+            // Simple Metering (0x0702)
+            await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering']);
+            try { await reporting.currentSummDelivered(endpoint, {min: 60, max: 3600, change: 1}); } catch (e) { /* ignore */ }
+
+            // Device Temperature Configuration (0x0002)
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genDeviceTempCfg']);
+            try {
+                await endpoint.read('genDeviceTempCfg', ['currentTemperature', 'deviceTempAlarmMask', 'clusterRevision']);
+            } catch (e) {
+                logger.warn(`genDeviceTempCfg read failed: ${e}`);
+        ],
+    },
 ];
