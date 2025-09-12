@@ -952,7 +952,6 @@ export const definitions: DefinitionWithExtend[] = [
         description: "PIR sensor",
         fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery, fzLocal.ts020cIlluminance],
         extend: [tuya.modernExtend.tuyaBase({dp: true, queryOnDeviceAnnounce: true, queryOnConfigure: true})],
-        configure: tuya.configureMagicPacket,
         exposes: [
             e.occupancy(),
             e.battery(),
