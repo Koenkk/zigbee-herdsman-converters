@@ -1152,6 +1152,7 @@ export interface LightArgs {
     ota?: ModernExtend["ota"];
     levelConfig?: {features?: LevelConfigFeatures};
     levelReportingConfig?: ReportingConfigWithoutAttribute;
+    moveToLevelWithOnOffDisable?: boolean;
 }
 export function light(args: LightArgs = {}): ModernExtend {
     const {
@@ -1164,6 +1165,7 @@ export function light(args: LightArgs = {}): ModernExtend {
         turnsOffAtBrightness1 = false,
         endpointNames = undefined,
         levelReportingConfig = undefined,
+        moveToLevelWithOnOffDisable = false,
     } = args;
     let {colorTemp = undefined} = args;
     if (colorTemp) {
@@ -1174,7 +1176,6 @@ export function light(args: LightArgs = {}): ModernExtend {
               modes: ["xy"] satisfies ("xy" | "hs")[],
               applyRedFix: false,
               enhancedHue: true,
-              moveToLevelWithOnOffDisable: false,
               ...(isObject(color) ? color : {}),
           }
         : false;
@@ -1228,9 +1229,6 @@ export function light(args: LightArgs = {}): ModernExtend {
         if (!argsColor.enhancedHue) {
             meta.supportsEnhancedHue = false;
         }
-        if (argsColor.moveToLevelWithOnOffDisable) {
-            meta.moveToLevelWithOnOffDisable = true;
-        }
     }
 
     if (levelConfig) {
@@ -1260,6 +1258,10 @@ export function light(args: LightArgs = {}): ModernExtend {
 
     if (turnsOffAtBrightness1) {
         meta.turnsOffAtBrightness1 = turnsOffAtBrightness1;
+    }
+
+    if (moveToLevelWithOnOffDisable) {
+        meta.moveToLevelWithOnOffDisable = true;
     }
 
     const configure: Configure[] = [
