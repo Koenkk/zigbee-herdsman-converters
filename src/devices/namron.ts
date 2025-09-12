@@ -1679,6 +1679,6 @@ export const definitions: DefinitionWithExtend[] = [
             await endpoint.read('genDeviceTempCfg', ['currentTemperature', 'deviceTempAlarmMask', 'clusterRevision']);
             } catch (e) {
                 if (logger && (logger as any).warn) (logger as any).warn(`genDeviceTempCfg read failed: ${e}`);
-        ],
+        },
     },
 ];
