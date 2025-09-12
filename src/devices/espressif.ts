@@ -4,10 +4,10 @@ import type {DefinitionWithExtend} from "../lib/types";
 
 export const definitions: DefinitionWithExtend[] = [
     {
-        zigbeeModel: ['ZigbeeRangeExtender'],
+        fingerprint: [{modelID: "ZigbeeRangeExtender", manufacturerName: "Espressif"}],
         model: 'ZigbeeRangeExtender',
         vendor: 'Espressif',
-        description: "Espressif ESP32-C6/H2 Router",
+        description: "ESP32-C6/H2 Router",
         fromZigbee: [],
         toZigbee: [],
         exposes: [],
