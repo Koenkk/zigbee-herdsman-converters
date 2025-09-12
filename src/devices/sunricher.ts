@@ -181,9 +181,9 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Zigbee 2ch smart relay",
         extend: [
             m.identify(),
-            m.commandsScenes({endpointNames: ["1", "2"]}),
-            m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3}}),
-            m.onOff({powerOnBehavior: false, endpointNames: ["1", "2"], configureReporting: true}),
+            m.commandsScenes({endpointNames: ["relay1", "relay2"]}),
+            m.deviceEndpoints({endpoints: {relay1: 1, relay2: 2, "3": 3}}),
+            m.onOff({endpointNames: ["relay1", "relay2"], configureReporting: true}),
             m.electricityMeter({endpointNames: ["3"]}),
         ],
         meta: {multiEndpoint: true},
