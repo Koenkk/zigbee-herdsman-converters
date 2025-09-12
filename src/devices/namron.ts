@@ -1654,23 +1654,11 @@ export const definitions: DefinitionWithExtend[] = [
         },
         configure: async (device, coordinatorEndpoint, logger) => {
         const endpoint = device.getEndpoint(1);
-
-        
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-
-            await reporting.bind(endpoint, coordinatorEndpoint, ['haElectricalMeasurement']);
-            try { await reporting.readEletricalMeasurementMultiplierDivisors(endpoint); } catch (e) { /* some devices lack attributes */ }
-            try { await reporting.rmsVoltage(endpoint, {min: 30, max: 300, change: 5}); } catch (e) { /* ignore */ }
-            try { await reporting.rmsCurrent(endpoint, {min: 30, max: 300, change: 10}); } catch (e) { /* ignore */ }
-            try { await reporting.activePower(endpoint, {min: 30, max: 300, change: 5}); } catch (e) { /* ignore */ }
-            await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering']);
-            try { await reporting.currentSummDelivered(endpoint, {min: 60, max: 3600, change: 1}); } catch (e) { /* ignore */ }
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genDeviceTempCfg']);
-            try {
-            await endpoint.read('genDeviceTempCfg', ['currentTemperature', 'deviceTempAlarmMask', 'clusterRevision']);
-            } catch (e) {
-                if (logger && (logger as any).warn) (logger as any).warn(`genDeviceTempCfg read failed: ${e}`),
-        },
+        await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+        await reporting.onOff(endpoint);
+        await reporting.bind(endpoint, coordinatorEndpoint, ['haElectricalMeasurement']);
+        await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering']);
+        await reporting.bind(endpoint, coordinatorEndpoint, ['genDeviceTempCfg']);
+        }, 
     },
 ];
