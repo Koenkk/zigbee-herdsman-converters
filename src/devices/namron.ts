@@ -1624,4 +1624,134 @@ export const definitions: DefinitionWithExtend[] = [
             m.temperature({reporting: undefined}),
         ],
     },
+    {
+    zigbeeModel: ['4512791'],
+    model: '4512791',
+    vendor: 'Namron AS',
+    description: 'Namron Simplify Zigbee dimmer (1/2-pole) m/ dimming speed, phase-type (HW), start brightness og pole mode (HW)',
+    fromZigbee: [
+      fz.on_off,
+      fz.brightness,
+      fzLocal.electrical_measurement_scaled,
+      fzLocal.metering_scaled,
+      fz.power_on_behavior,
+      fzLocal.levelctrl_vendor_attrs,
+    ],
+    toZigbee: [
+      tz.on_off,
+      tzLocal.light_onoff_brightness_clamped,
+      tz.power_on_behavior,
+      tzLocal.min_brightness,
+      tzLocal.max_brightness,
+      tzLocal.start_brightness,
+      tzLocal.dimming_speed,
+      tzLocal.phase_type,
+      tzLocal.pole_mode,
+    ],
+    exposes: [
+      e.light_brightness(),
+      e.power(),
+      e.current(),
+      e.voltage(),
+      e.energy(),
+      exposes.enum('power_on_behavior', ea.ALL, ['off','on','toggle','previous']),
+      exposes.numeric('min_brightness', ea.ALL).withValueMin(1).withValueMax(127)
+        .withDescription('Minimum brightness (software clamp) — approx 1–50%').withCategory('config'),
+      exposes.numeric('max_brightness', ea.ALL).withValueMin(127).withValueMax(254)
+        .withDescription('Maximum brightness (software clamp) — approx 50–100%').withCategory('config'),
+      exposes.numeric('start_brightness', ea.ALL).withValueMin(1).withValueMax(254)
+        .withDescription('Default brightness at power-on/startup').withCategory('config'),
+      exposes.numeric('dimming_speed', ea.ALL).withDescription('Default ramp time in seconds')
+        .withValueMin(1).withValueMax(10).withCategory('config'),
+      exposes.enum('phase_type', ea.ALL, ['trailing','leading'])
+        .withDescription('AC dimming phase type (hardware-backed via 0xB000)').withCategory('config'),
+      exposes.enum('pole_mode', ea.ALL, ['1_pole','2_pole'])
+        .withDescription('Wiring mode (hardware-backed via 0xB001)').withCategory('config'),
+      exposes.numeric('transition', ea.SET).withDescription('Per-command transition time (seconds)').withValueMin(0),
+    ],
+    endpoint: (device) => ({default: 1}),
+
+    configure: async (device, coordinatorEndpoint) => {
+      const ep = device.getEndpoint(1) || device.getEndpoint(0) || device.endpoints?.[0];
+      if (!ep) return;
+
+      await ep.bind('genOnOff', coordinatorEndpoint);
+      await ep.bind('genLevelCtrl', coordinatorEndpoint);
+      try { await ep.bind('haElectricalMeasurement', coordinatorEndpoint); } catch {}
+      try { await ep.bind('seMetering', coordinatorEndpoint); } catch {}
+
+      try { await reporting.onOff(ep); } catch {}
+      try { await reporting.brightness(ep); } catch {}
+      try { await reporting.rmsVoltage(ep); } catch {}
+      try { await reporting.rmsCurrent(ep); } catch {}
+      try { await reporting.activePower(ep); } catch {}
+      try { await reporting.instantaneousDemand(ep); } catch {}
+      try { await reporting.currentSummDelivered(ep); } catch {}
+
+      try { await ep.read('genLevelCtrl', [ATTR_OUT_EDGE, ATTR_RELAYTYPE], {manufacturerCode: MFG_CODE}); } catch {}
+
+      globalStore.putValue(device, 'min_brightness', 20);
+      globalStore.putValue(device, 'max_brightness', 254);
+      globalStore.putValue(device, 'dimming_speed', 1);
+      globalStore.putValue(device, 'start_brightness', 128);
+    },
+
+    ota: ota.zigbeeOTA,
+  },
+    {
+        zigbeeModel: ['4512792'], // Basic->Model Identifier
+        model: '4512792',
+        vendor: 'Namron',
+        description: 'Namron Simplify 1-2p Relay',
+        fromZigbee: [
+            fz.on_off,
+            fz.metering,
+            fz.electrical_measurement,
+            fzDeviceTempCfg,
+        ],
+        toZigbee: [
+            tz.on_off,
+        ],
+        exposes: [
+            e.switch(),
+            e.power(),     // W
+            e.current(),   // A
+            e.voltage(),   // V
+            e.energy(),    // kWh
+            exposes.numeric('device_temperature', ea.STATE)
+                .withUnit('°C')
+                .withDescription('Internal device temperature (from genDeviceTempCfg.currentTemperature)'),
+            exposes.text('device_temperature_alarm_mask', ea.STATE)
+                .withDescription('Device temperature alarm mask (decoded: too_low, too_high, alarm_enabled, none)'),
+        ],
+        meta: {
+            meter: {divisor: 100, multiplier: 1}, // seMetering cluster (0x0702)
+            publishDuplicateTransaction: true,
+        },
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+
+            // On/Off
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.onOff(endpoint);
+
+            // Electrical Measurement (0x0B04)
+            await reporting.bind(endpoint, coordinatorEndpoint, ['haElectricalMeasurement']);
+            try { await reporting.readEletricalMeasurementMultiplierDivisors(endpoint); } catch (e) { /* noen enheter mangler */ }
+            try { await reporting.rmsVoltage(endpoint, {min: 30, max: 300, change: 5}); } catch (e) { /* ignore */ }
+            try { await reporting.rmsCurrent(endpoint, {min: 30, max: 300, change: 10}); } catch (e) { /* ignore */ }
+            try { await reporting.activePower(endpoint, {min: 30, max: 300, change: 5}); } catch (e) { /* ignore */ }
+
+            // Simple Metering (0x0702)
+            await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering']);
+            try { await reporting.currentSummDelivered(endpoint, {min: 60, max: 3600, change: 1}); } catch (e) { /* ignore */ }
+
+            // Device Temperature Configuration (0x0002)
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genDeviceTempCfg']);
+            try {
+                await endpoint.read('genDeviceTempCfg', ['currentTemperature', 'deviceTempAlarmMask', 'clusterRevision']);
+            } catch (e) {
+                logger.warn(`genDeviceTempCfg read failed: ${e}`);
+            }
+        },
 ];
