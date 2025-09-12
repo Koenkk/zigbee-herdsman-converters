@@ -1667,5 +1667,5 @@ export const definitions: DefinitionWithExtend[] = [
             } catch (e) {
                 if (logger && (logger as any).warn) (logger as any).warn(`genDeviceTempCfg read failed: ${e}`),
         }
-    }
+    },
 ];
