@@ -1747,9 +1747,11 @@ export const definitions: DefinitionWithExtend[] = [
 
             // Device Temperature Configuration (0x0002)
             await reporting.bind(endpoint, coordinatorEndpoint, ['genDeviceTempCfg']);
-            try { await endpoint.read('genDeviceTempCfg', ['currentTemperature', 'deviceTempAlarmMask', 'clusterRevision']);
+            try {
+                await endpoint.read('genDeviceTempCfg', ['currentTemperature', 'deviceTempAlarmMask', 'clusterRevision']);
             } catch (e) {
                 logger.warn(`genDeviceTempCfg read failed: ${e}`);
             }
-        ],
+        },
+    },
 ];
