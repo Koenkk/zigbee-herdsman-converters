@@ -387,7 +387,10 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: [{modelID: "C-ZB-LC20-CCT", manufacturerName: "Candeo"}],
+        fingerprint: [
+            {modelID: "C-ZB-LC20-CCT", manufacturerName: "Candeo"},
+            {modelID: "C-ZB-LC20v2-CCT", manufacturerName: "Candeo"},
+        ],
         model: "C-ZB-LC20-CCT",
         vendor: "Candeo",
         description: "Smart LED controller (CCT mode)",
@@ -404,9 +407,13 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.identify(),
         ],
+        ota: true,
     },
     {
-        fingerprint: [{modelID: "C-ZB-LC20-Dim", manufacturerName: "Candeo"}],
+        fingerprint: [
+            {modelID: "C-ZB-LC20-Dim", manufacturerName: "Candeo"},
+            {modelID: "C-ZB-LC20v2-Dim", manufacturerName: "Candeo"},
+        ],
         model: "C-ZB-LC20-Dim",
         vendor: "Candeo",
         description: "Smart LED controller (dimmer mode)",
@@ -422,9 +429,13 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.identify(),
         ],
+        ota: true,
     },
     {
-        fingerprint: [{modelID: "C-ZB-LC20-RGB", manufacturerName: "Candeo"}],
+        fingerprint: [
+            {modelID: "C-ZB-LC20-RGB", manufacturerName: "Candeo"},
+            {modelID: "C-ZB-LC20v2-RGB", manufacturerName: "Candeo"},
+        ],
         model: "C-ZB-LC20-RGB",
         vendor: "Candeo",
         description: "Smart LED controller (RGB mode)",
@@ -441,9 +452,13 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.identify(),
         ],
+        ota: true,
     },
     {
-        fingerprint: [{modelID: "C-ZB-LC20-RGBCCT", manufacturerName: "Candeo"}],
+        fingerprint: [
+            {modelID: "C-ZB-LC20-RGBCCT", manufacturerName: "Candeo"},
+            {modelID: "C-ZB-LC20v2-RGBCCT", manufacturerName: "Candeo"},
+        ],
         model: "C-ZB-LC20-RGBCCT",
         vendor: "Candeo",
         description: "Smart LED controller (RGBCCT mode)",
@@ -461,9 +476,13 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.identify(),
         ],
+        ota: true,
     },
     {
-        fingerprint: [{modelID: "C-ZB-LC20-RGBW", manufacturerName: "Candeo"}],
+        fingerprint: [
+            {modelID: "C-ZB-LC20-RGBW", manufacturerName: "Candeo"},
+            {modelID: "C-ZB-LC20v2-RGBW", manufacturerName: "Candeo"},
+        ],
         model: "C-ZB-LC20-RGBW",
         vendor: "Candeo",
         description: "Smart LED controller (RGBW mode)",
@@ -481,6 +500,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.identify(),
         ],
+        ota: true,
     },
     {
         fingerprint: [{modelID: "C-ZB-SM205-2G", manufacturerName: "Candeo"}],

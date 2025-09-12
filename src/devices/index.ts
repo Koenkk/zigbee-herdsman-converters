@@ -278,6 +278,7 @@ import {definitions as siterwell} from "./siterwell";
 import {definitions as skydance} from "./skydance";
 import {definitions as slackyDiy} from "./slacky_diy";
 import {definitions as slv} from "./slv";
+import {definitions as smarli} from "./smarli";
 import {definitions as smartHomePty} from "./smart_home_pty";
 import {definitions as smart9} from "./smart9";
 import {definitions as smartenit} from "./smartenit";
@@ -625,6 +626,7 @@ const definitions: DefinitionWithExtend[] = [
     ...skydance,
     ...slackyDiy,
     ...slv,
+    ...smarli,
     ...smart9,
     ...smartenit,
     ...smartHomePty,
