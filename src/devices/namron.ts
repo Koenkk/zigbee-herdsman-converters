@@ -1698,8 +1698,8 @@ export const definitions: DefinitionWithExtend[] = [
 
         ota: ota.zigbeeOTA,
        ], 
-  },
-  {
+    },
+    {
         zigbeeModel: ['4512792'], // Basic->Model Identifier
         model: '4512792',
         vendor: 'Namron',
