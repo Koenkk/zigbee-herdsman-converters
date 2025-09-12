@@ -1632,10 +1632,6 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.on_off, fz.metering, fz.electrical_measurement],
         toZigbee: [tz.on_off],
         exposes: [exposes.presets.switch(), exposes.presets.power(), exposes.presets.current(), exposes.presets.voltage(), exposes.presets.energy()],
-        meta: {
-            meter: {divisor: 100, multiplier: 1},
-            publishDuplicateTransaction: true,
-        },
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff"]);
