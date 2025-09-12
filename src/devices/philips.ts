@@ -13,19 +13,19 @@ const ea = exposes.access;
 
 export const definitions: DefinitionWithExtend[] = [
     {
-        zigbeeModel: ['929003736601_01'],
-        model: '929003736601_01',
-        vendor: 'Signify Netherlands B.V.',
-        description: 'Automatically generated definition',
-        extend: [philips.m.light({"colorTemp":{"range":[153,500]},"color":{"modes":["xy","hs"],"enhancedHue":true}})],
+        zigbeeModel: ["929003736601_01"],
+        model: "929003736601_01",
+        vendor: "Signify Netherlands B.V.",
+        description: "Automatically generated definition",
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
-    
+
     {
-        zigbeeModel: ['929003736601_02'],
-        model: '929003736601_02',
-        vendor: 'Signify Netherlands B.V.',
-        description: 'Automatically generated definition',
-        extend: [philips.m.light({"colorTemp":{"range":[153,500]},"color":{"modes":["xy","hs"],"enhancedHue":true}})],
+        zigbeeModel: ["929003736601_02"],
+        model: "929003736601_02",
+        vendor: "Signify Netherlands B.V.",
+        description: "Automatically generated definition",
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
     {
         zigbeeModel: ["929003810901_01", "929003810901_02", "929003810901_03"],
