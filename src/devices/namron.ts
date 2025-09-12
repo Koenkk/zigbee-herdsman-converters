@@ -1637,10 +1637,6 @@ export const definitions: DefinitionWithExtend[] = [
             exposes.presets.current(),
             exposes.presets.voltage(),
             exposes.presets.energy(),
-            exposes
-                .numeric("device_temperature", ea.STATE)
-                .withUnit("°C")
-                .withDescription("Internal device temperature (from genDeviceTempCfg.currentTemperature)"),
         ],
         meta: {
             meter: {divisor: 100, multiplier: 1},
