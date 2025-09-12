@@ -1190,8 +1190,14 @@ export const light_onoff_brightness: Tz.Converter = {
         // used 'MoveToLevelWithOnOff' so that'd break backwards compatibility. To keep the state, the user
         // has to explicitly set it to null.
         if (state === undefined) {
-            // Also write to `meta.message.state` in case we delegate to the `on_off` converter.
-            state = meta.message.state = brightness === 0 ? "off" : "on";
+            if (moveToLevelWithOnOffDisable) {
+                // Although in some cases it can be usefull to use explicit on and off and moveToLevel. In these casese
+                // we just ignore the brightness value and set the state to the current device state.
+                state = (meta.state.state as string).toLowerCase();
+            } else {
+                // Also write to `meta.message.state` in case we delegate to the `on_off` converter.
+                state = meta.message.state = brightness === 0 ? "off" : "on";
+            }
         }
 
         let publishBrightness = brightness !== undefined;
@@ -1279,18 +1285,29 @@ export const light_onoff_brightness: Tz.Converter = {
             globalStore.clearValue(entity, "turnedOffWithTransition");
         }
 
-        if (moveToLevelWithOnOffDisable && typeof meta.state.state === "string" && meta.state.state.toLowerCase() !== targetState) {
-            // When "moveToLevelWithOnOff" command is disabled due to poor implementation on some devices, we need to explicitly
-            // turn on or off the device before we can set it's level.
-            await on_off.convertSet(entity, "state", state, meta);
-        }
+        if (moveToLevelWithOnOffDisable) {
+            // On some devices "moveToLevelWithOnOff" command seems to be broken, leading to the light
+            // randomly switching off for levels lower than some threshold. Is those cases it's better to
+            // use "moveToLevel" with explicit On and Off when the state changes.
 
-        await entity.command(
-            "genLevelCtrl",
-            state === null || moveToLevelWithOnOffDisable ? "moveToLevel" : "moveToLevelWithOnOff",
-            {level: Number(brightness), transtime: transition.time},
-            utils.getOptions(meta.mapped, entity),
-        );
+            if (typeof meta.state.state === "string" && meta.state.state.toLowerCase() !== targetState) {
+                await on_off.convertSet(entity, "state", state, meta);
+            } else {
+                await entity.command(
+                    "genLevelCtrl",
+                    "moveToLevel",
+                    {level: Number(brightness), transtime: transition.time},
+                    utils.getOptions(meta.mapped, entity),
+                );
+            }
+        } else {
+            await entity.command(
+                "genLevelCtrl",
+                "moveToLevelWithOnOff",
+                {level: Number(brightness), transtime: transition.time},
+                utils.getOptions(meta.mapped, entity),
+            );
+        }
 
         const result = {state: {} as KeyValueAny};
         if (publishBrightness) {
