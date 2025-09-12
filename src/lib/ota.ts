@@ -212,7 +212,7 @@ function parseTelinkEncryptSubElement(buffer: Buffer, position: number): Ota.Ima
 
 
 
-export function parseImage(buffer: Buffer, suppressElementImageParseFailure = false): Ota.Image {
+export function parseImage(buffer: Buffer, suppressElementImageParseFailure = false,telinkEncrypted = false): Ota.Image {
     const header: Ota.ImageHeader = {
         otaUpgradeFileIdentifier: buffer.subarray(0, 4),
         otaHeaderVersion: buffer.readUInt16LE(4),
@@ -225,26 +225,10 @@ export function parseImage(buffer: Buffer, suppressElementImageParseFailure = fa
         otaHeaderString: buffer.toString("utf8", 20, 52),
         totalImageSize: buffer.readUInt32LE(52),
     };
-    /* check if specialParser devices*/
-    const SPECIAL_PRODUCTS: [number, number, (buffer: Buffer, position: number) => any, number][] = [
-        [0x1286, 0x080D, parseTelinkEncryptSubElement, 8], // SNZB02L/WD
-        [0x1286, 0x000B, parseTelinkEncryptSubElement, 8], // S60ZB
-        // Add more special product configurations
-        // [0x1234, 0x5678, parseOtherSpecialSubElement, 8], // 
-    ];
-    let useSpecialParser = false;
-    let specialParser = null;
-    let elementOffset = 6; // default offest
-    
-    for (const [code, type, parser, offset] of SPECIAL_PRODUCTS) {
-        if (header.manufacturerCode === code && header.imageType === type) {
-            useSpecialParser = true;
-            specialParser = parser;
-            elementOffset = offset; 
-            logger.debug(`Detected special product [0x${code.toString(16)}, 0x${type.toString(16)}], using special parser`, NS);
-            break;
-        }
-    }
+
+
+
+
     let headerPos = 56;
     let didSuppressElementImageParseFailure = false;
 
@@ -279,20 +263,16 @@ export function parseImage(buffer: Buffer, suppressElementImageParseFailure = fa
         while (position < header.totalImageSize) {
 
             // Use the selected parser function
-            const element = useSpecialParser ? specialParser(buffer, position) : parseSubElement(buffer, position);
+            const element = telinkEncrypted ? parseTelinkEncryptSubElement(buffer, position) : parseSubElement(buffer, position);
 
             elements.push(element);
 
-            // Update position with different offset based on product type
-            if (useSpecialParser) {
-                // For special products, use +8 offset
-                position += element.data.length + elementOffset;
-                logger.debug(`Next element position (special): ${position} (offset: 8)`, NS);
-            } else {
-                // For standard products, use original +6 offset
-                position += element.data.length + 6;
-                logger.debug(`Next element position (standard): ${position} (offset: 6)`, NS);
-            }
+
+            const elementOffset = telinkEncrypted ? 8 : 6;
+
+            // Update position with appropriate offset
+            position += element.data.length + elementOffset;
+            logger.debug(`Next element position: ${position} (offset: ${elementOffset})`, NS);
         }
     } catch (error) {
         if (!suppressElementImageParseFailure) {
@@ -393,7 +373,7 @@ function fillImageInfo(meta: Ota.ZigbeeOTAImageMeta): Ota.ZigbeeOTAImageMeta {
     assert(otaIdentifier !== -1, "Not a valid OTA file");
 
     // allow bypass non-spec Ledvance OTA files if proper manufacturer set
-    const image = parseImage(imageFile.subarray(otaIdentifier), meta.manufacturerCode === Zcl.ManufacturerCode.LEDVANCE_GMBH);
+    const image = parseImage(imageFile.subarray(otaIdentifier), meta.manufacturerCode === Zcl.ManufacturerCode.LEDVANCE_GMBH,meta.telinkEncrypted || false);
 
     // Will fill only those fields that were absent
     if (meta.imageType === undefined) {
@@ -711,7 +691,7 @@ async function getImage(current: Ota.ImageInfo, device: Zh.Device, extraMetas: O
 
     assert(otaIdentifier !== -1, "Not a valid OTA file");
 
-    const image = parseImage(downloadedFile.subarray(otaIdentifier), extraMetas.suppressElementImageParseFailure || false);
+    const image = parseImage(downloadedFile.subarray(otaIdentifier), extraMetas.suppressElementImageParseFailure || false,meta.telinkEncrypted || false);
 
     logger.debug(() => `${deviceLogString(device)} Got ${imageSet} image, header: ${JSON.stringify(image.header)}`, NS);
 

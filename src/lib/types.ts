@@ -525,6 +525,7 @@ export namespace Ota {
         maxFileVersion?: ImageHeader["fileVersion"];
         originalUrl?: string;
         releaseNotes?: string;
+        telinkEncrypted?: boolean; // Newly added Telink encryption flag
     }
     export type ExtraMetas = Pick<ZigbeeOTAImageMeta, "modelId" | "otaHeaderString" | "hardwareVersionMin" | "hardwareVersionMax"> & {
         manufacturerName?: string;
