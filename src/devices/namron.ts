@@ -1631,13 +1631,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Namron Simplify 1-2p Relay",
         fromZigbee: [fz.on_off, fz.metering, fz.electrical_measurement],
         toZigbee: [tz.on_off],
-        exposes: [
-            exposes.presets.switch(),
-            exposes.presets.power(),
-            exposes.presets.current(),
-            exposes.presets.voltage(),
-            exposes.presets.energy(),
-        ],
+        exposes: [exposes.presets.switch(), exposes.presets.power(), exposes.presets.current(), exposes.presets.voltage(), exposes.presets.energy()],
         meta: {
             meter: {divisor: 100, multiplier: 1},
             publishDuplicateTransaction: true,
