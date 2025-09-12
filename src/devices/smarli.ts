@@ -7,7 +7,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["S-ZB-PDM1-R251"],
         model: "S-ZB-PDM1-R251",
         vendor: "smarli.",
-        description: "Phase dimmer gen 1",
+        description: "phase dimmer gen 1",
         extend: [m.light({configureReporting: true}), m.electricityMeter(), sunricher.extend.externalSwitchType(), sunricher.extend.minimumPWM()],
     },
 ];
