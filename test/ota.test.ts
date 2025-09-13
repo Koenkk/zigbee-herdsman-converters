@@ -74,6 +74,7 @@ const LIXEE_BASE_URL = "https://github.com/Koenkk/zigbee-OTA/raw/master/images/L
 const SALUS_CONTROLS_BASE_URL = "https://github.com/Koenkk/zigbee-OTA/raw/master/images/SalusControls/WindowSensor_20240103.ota";
 const SECURIFI_BASE_URL = "https://github.com/Koenkk/zigbee-OTA/raw/master/images/Tuya/ZPS_CS5490_039.ota";
 const UBISYS_BASE_URL = "https://github.com/Koenkk/zigbee-OTA/raw/master/images/Ubisys/10F2-7B3A-0000-0005-02500447-m7b-r0.ota.zigbee";
+const TELINK_BASE_URL = "https://github.com/Koenkk/zigbee-OTA/raw/master/images/Sonoff/SN-TLSR8656-02LWD-01-v1.1.0.ota";
 
 const INOVELLI_PREV_URL = "https://github.com/Koenkk/zigbee-OTA/raw/master/images1/Inovelli/VZM31-SN_2.15-Production.ota";
 const XYZROE_PREV_URL = "https://github.com/Koenkk/zigbee-OTA/raw/master/images1/xyzroe/ZigUSB_C6.ota";
@@ -502,102 +503,58 @@ describe("OTA", () => {
         }
     });
 
-    it("fails when parsing invalid OTA file", () => {
-        expect(() => {
-            parseImage(Buffer.alloc(128, 0xff));
-        }).toThrow("Not a valid OTA file");
-    });
+    describe("parseImage", () => {
+        async function getOtaImageBuffer(baseUrl: string): Promise<Buffer> {
+            const imageRsp = fetchOverride(baseUrl);
+            return await imageRsp.arrayBuffer();
+        }
 
-
-    async function getStandardOtaImageBuffer(): Promise<Buffer> {
-        // Return a Buffer containing a standard OTA image
-        // You can use an existing test image, such as IKEA_BASE_URL
-        const imageRsp = fetchOverride(IKEA_BASE_URL);
-        return imageRsp.arrayBuffer!();
-    }
-
-    async function getTelinkOtaImageBuffer(): Promise<Buffer> {
-        // Return a Buffer containing a Telink-encrypted OTA image
-        // You need to have a Telink-encrypted test image
-        // If none is available, you can create a mocked Telink-encrypted image
-        const telinkImageUrl = "https://Sonoff/SN-TLSR8656-02LWD-01-v1.1.0.ota";
-        const imageRsp = fetchOverride(telinkImageUrl);
-        return imageRsp.arrayBuffer!();
-    }
-
-
-    describe("parseImage with telinkEncrypted parameter", () => {
-        it("should use standard parser and offset when telinkEncrypted is false", async () => {
-            // Get a standard OTA image buffer
-            const standardImageBuffer = await getStandardOtaImageBuffer();
-
-            // Parse the image with telinkEncrypted set to false
-            const image = parseImage(standardImageBuffer, false, false);
+        it("parses standard OTA file", async () => {
+            const image = parseImage(await getOtaImageBuffer(IKEA_BASE_URL));
 
             // Validate parsing results
-            expect(image).toBeDefined();
-            expect(image.header).toBeDefined();
-            expect(image.elements).toBeDefined();
-            expect(image.raw).toBeDefined();
-
-            // Add log validation if needed (verify standard parser usage)
+            expect(image.header).toStrictEqual({
+                fileVersion: 33816645,
+                imageType: 40766,
+                manufacturerCode: 4476,
+                otaHeaderFieldControl: 0,
+                otaHeaderLength: 56,
+                otaHeaderString: "GBL inspelning_smart_plug_soc   ",
+                otaHeaderVersion: 256,
+                otaUpgradeFileIdentifier: Buffer.from([30, 241, 238, 11]),
+                totalImageSize: 294530,
+                zigbeeStackVersion: 2,
+            });
+            expect(image.elements).toStrictEqual([{data: expect.any(Buffer), tagID: 0, length: 294468}]);
+            expect(image.raw.length).toBe(294530);
         });
 
-        it("should use Telink encrypted parser and offset when telinkEncrypted is true", async () => {
-            // Get a Telink-encrypted OTA image buffer
-            const telinkImageBuffer = await getTelinkOtaImageBuffer();
-
-            // Parse the image with telinkEncrypted set to true
-            const image = parseImage(telinkImageBuffer, false, true);
+        it("parses OTA file with Telink encryption", async () => {
+            const image = parseImage(await getOtaImageBuffer(TELINK_BASE_URL), false, "telinkEncrypted");
 
             // Validate parsing results
-            expect(image).toBeDefined();
-            expect(image.header).toBeDefined();
-            expect(image.elements).toBeDefined();
-            expect(image.raw).toBeDefined();
-
-            // Add log validation if needed (verify Telink encrypted parser usage)
+            expect(image.header).toStrictEqual({
+                fileVersion: 4352,
+                imageType: 2061,
+                manufacturerCode: 4742,
+                otaHeaderFieldControl: 0,
+                otaHeaderLength: 56,
+                otaHeaderString: "Telink OTA Sample Usage         ",
+                otaHeaderVersion: 256,
+                otaUpgradeFileIdentifier: Buffer.from([30, 241, 238, 11]),
+                totalImageSize: 167744,
+                zigbeeStackVersion: 2,
+            });
+            expect(image.elements).toStrictEqual([{data: expect.any(Buffer), tagID: 61440, length: 167680}]);
+            expect(image.raw.length).toBe(167744);
         });
 
-        it("should handle parse errors correctly with telinkEncrypted parameter", async () => {
-            // Create an invalid or corrupted OTA image buffer
-            const invalidImageBuffer = Buffer.alloc(100, 0xFF);
-
-            // Test error handling when telinkEncrypted is true
+        it("fails when parsing invalid OTA file", () => {
             expect(() => {
-                parseImage(invalidImageBuffer, false, true);
+                parseImage(Buffer.alloc(128, 0xff));
             }).toThrow("Not a valid OTA file");
-
-            // Test error handling when telinkEncrypted is false
-            expect(() => {
-                parseImage(invalidImageBuffer, false, false);
-            }).toThrow("Not a valid OTA file");
-        });
-
-        it("should use correct offset calculation based on telinkEncrypted parameter", async () => {
-            // Get a known OTA image buffer
-            const imageBuffer = await getStandardOtaImageBuffer();
-
-            // Parse with telinkEncrypted set to false
-            const standardImage = parseImage(imageBuffer, false, false);
-
-            // Parse the same buffer with telinkEncrypted set to true
-            const telinkImage = parseImage(imageBuffer, false, true);
-
-
-            // Calculate total data size for standard parsing
-            const standardDataSize = standardImage.elements.reduce((sum, element) => sum + element.data.length, 0);
-
-            // Calculate total data size for Telink encrypted parsing
-            const telinkDataSize = telinkImage.elements.reduce((sum, element) => sum + element.data.length, 0);
-
-            // Expect data sizes to differ due to encryption/offset logic
-            expect(standardDataSize).not.toBe(telinkDataSize);
         });
     });
-
-
-
 
     describe("Checking", () => {
         const expectAvailableResult = (result: Ota.UpdateAvailableResult, available: boolean, currentFileVersion: number, otaFileVersion: number) => {
