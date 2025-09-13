@@ -186,7 +186,7 @@ namespace ShellyZigbee {
                         ),
                     );
 
-                    return {state: return_attributes};
+                    return {state: {wifi: return_attributes}};
                 },
                 convertGet: async (entity, key, meta) => {
                     const queryScope = meta.message[key];
