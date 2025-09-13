@@ -410,7 +410,7 @@ async function extenderAnalogInput(device: Zh.Device, endpoints: Zh.Endpoint[]):
             access: "STATE_GET",
             endpointNames: [`${endpoint.ID}`],
         };
-        generated.push(new ExtendGenerator({extend: m.numeric, args, source: "analog"}));
+        generated.push(new ExtendGenerator({extend: m.numeric, args, source: "numeric"}));
     }
     return generated;
 }
