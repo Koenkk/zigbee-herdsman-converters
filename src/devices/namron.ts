@@ -1624,4 +1624,21 @@ export const definitions: DefinitionWithExtend[] = [
             m.temperature({reporting: undefined}),
         ],
     },
+    {
+        zigbeeModel: ["4512792"],
+        model: "4512792",
+        vendor: "Namron",
+        description: "Namron Simplify 1-2p Relay",
+        fromZigbee: [fz.on_off, fz.metering, fz.electrical_measurement],
+        toZigbee: [tz.on_off],
+        exposes: [exposes.presets.switch(), exposes.presets.power(), exposes.presets.current(), exposes.presets.voltage(), exposes.presets.energy()],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff"]);
+            await reporting.onOff(endpoint);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["haElectricalMeasurement"]);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["seMetering"]);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genDeviceTempCfg"]);
+        },
+    },
 ];
