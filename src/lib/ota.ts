@@ -210,6 +210,11 @@ function parseTelinkEncryptSubElement(buffer: Buffer, position: number): Ota.Ima
 }
 
 export function parseImage(buffer: Buffer, suppressElementImageParseFailure = false, customParseLogic: Ota.CustomParseLogic = undefined): Ota.Image {
+    logger.debug(
+        `Parsing image, size=${buffer.length}, suppressElementImageParseFailure=${suppressElementImageParseFailure}, customParseLogic=${customParseLogic}`,
+        NS,
+    );
+
     const header: Ota.ImageHeader = {
         otaUpgradeFileIdentifier: buffer.subarray(0, 4),
         otaHeaderVersion: buffer.readUInt16LE(4),
@@ -266,10 +271,7 @@ export function parseImage(buffer: Buffer, suppressElementImageParseFailure = fa
             }
 
             elements.push(element);
-
-            // Update position with appropriate offset
             position += element.data.length + elementOffset;
-            logger.debug(`Next element position: ${position} (offset: ${elementOffset})`, NS);
         }
     } catch (error) {
         if (!suppressElementImageParseFailure) {

@@ -526,6 +526,8 @@ describe("OTA", () => {
                 zigbeeStackVersion: 2,
             });
             expect(image.elements).toStrictEqual([{data: expect.any(Buffer), tagID: 0, length: 294468}]);
+            expect(image.elements[0].data.subarray(0, 5)).toStrictEqual(Buffer.from([235, 23, 166, 3, 8]));
+            expect(image.elements[0].data.subarray(-5)).toStrictEqual(Buffer.from([0, 142, 158, 67, 83]));
             expect(image.raw.length).toBe(294530);
         });
 
@@ -546,6 +548,8 @@ describe("OTA", () => {
                 zigbeeStackVersion: 2,
             });
             expect(image.elements).toStrictEqual([{data: expect.any(Buffer), tagID: 61440, length: 167680}]);
+            expect(image.elements[0].data.subarray(0, 5)).toStrictEqual(Buffer.from([244, 255, 67, 150, 128]));
+            expect(image.elements[0].data.subarray(-5)).toStrictEqual(Buffer.from([20, 232, 187, 227, 237]));
             expect(image.raw.length).toBe(167744);
         });
 
