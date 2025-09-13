@@ -11669,6 +11669,24 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
+        fingerprint: tuya.fingerprint("TS0001", ["_TZ3000_65ajyxua"]),
+        model: "FZB-1",
+        vendor: "Nova Digital",
+        description: "1-Gang switch with power-on behavior and indicator mode",
+        extend: [
+            tuya.modernExtend.tuyaOnOff({
+                powerOnBehavior2: true,
+                backlightModeOffOn: true,
+                indicatorMode: true,
+                inchingSwitch: true,
+            }),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0003", ["_TZ3000_pv4puuxi", "_TZ3000_avky2mvc", "_TZ3000_785olaiq", "_TZ3000_qxcnwv26"]),
         model: "TS0003_switch_3_gang",
         vendor: "Tuya",
