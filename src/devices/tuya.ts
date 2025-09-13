@@ -1051,6 +1051,11 @@ export const definitions: DefinitionWithExtend[] = [
                 modelID: "TS0203",
                 endpoints: [{ID: 1, profileID: 260, deviceID: 770, inputClusters: [0, 3, 1, 32, 1026, 1029], outputClusters: [25]}],
             },
+            {
+                manufacturerName: "Zbeacon",
+                modelID: "TS0202",
+                endpoints: [{ID: 1, profileID: 260, deviceID: 770, inputClusters: [0, 3, 1, 32, 1026, 1029], outputClusters: [25]}],
+            },
         ],
         model: "ZC-W1",
         vendor: "iHseno",
