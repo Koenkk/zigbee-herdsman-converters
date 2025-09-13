@@ -84,6 +84,7 @@ import {definitions as engo} from "./engo";
 import {definitions as enkin} from "./enkin";
 import {definitions as enocean} from "./enocean";
 import {definitions as envilar} from "./envilar";
+import {definitions as espressif} from "./espressif";
 import {definitions as essentialb} from "./essentialb";
 import {definitions as essentials} from "./essentials";
 import {definitions as eucontrols} from "./eucontrols";
@@ -430,9 +431,10 @@ const definitions: DefinitionWithExtend[] = [
     ...eglo,
     ...elko,
     ...enbrighten,
-    ...enocean,
     ...enkin,
+    ...enocean,
     ...envilar,
+    ...espressif,
     ...essentialb,
     ...essentials,
     ...eucontrols,
