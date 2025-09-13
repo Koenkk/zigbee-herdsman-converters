@@ -1,5 +1,25 @@
 # Changelog
 
+## [25.25.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.24.0...v25.25.0) (2025-09-13)
+
+
+### Features
+
+* **add:** 929003736601 ([#9999](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9999)) ([b68e7f7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b68e7f7a3d6407cde9856513ce702995fffe64a3))
+* **add:** Espressif-ZigbeeRangeExtender ([#9971](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9971)) ([679968f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/679968f275cfa125d3bd1ba8bd110fc70f672098))
+* **add:** FZB-1 ([#9997](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9997)) ([960db37](https://github.com/Koenkk/zigbee-herdsman-converters/commit/960db374861172b3775bb0149cd78eb305e37e81))
+* Support genAnalogInput/genAnalogOutput cluster for definition generator ([#10004](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10004)) ([4f61ff1](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4f61ff1162aacc407a3fa78f558b812e71b02ae5))
+* Support Telink encrypted OTAs ([#9984](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9984)) ([6cb5648](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6cb56489bc9e9ea4c2df99f9499d61d9c10671f0))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3002_sfh0jtz0` as Tuya TS0726_switch_4g_2s ([#10002](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10002)) ([56b1034](https://github.com/Koenkk/zigbee-herdsman-converters/commit/56b1034a770a5554473e92af4082ed3cc21a9867))
+* **detect:** Detect TS0202 Zbeacon as ZC-W1 https://github.com/Koenkk/zigbee-herdsman-converters/issues/9992 ([37dfdad](https://github.com/Koenkk/zigbee-herdsman-converters/commit/37dfdadeb5ca659f68df1d12a39d6374169e301b))
+* eWeLink CK-BL702-AL-01_1: fix various issues ([#9998](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9998)) ([2f100f1](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2f100f1a924bf810bbf1e44ffe7ca3dde0d79b25))
+* OSRAM 4058075816459: fix action list ([#10003](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10003)) ([22892aa](https://github.com/Koenkk/zigbee-herdsman-converters/commit/22892aaa4bab10a09f8e1bca7e1171fcf874a399))
+* SONOFF S60ZBTPF: reset current and power when OFF https://github.com/Koenkk/zigbee2mqtt/issues/28470 ([b20013f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b20013fa9c8fa692cab4c28842664cd2fef4e064))
+
 ## [25.24.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.23.0...v25.24.0) (2025-09-12)
 
 
