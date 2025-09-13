@@ -457,6 +457,7 @@ export namespace Tuya {
 
 export namespace Ota {
     export type OnProgress = (progress: number, remaining?: number) => void;
+    export type CustomParseLogic = undefined | "telinkEncrypted";
 
     export interface Settings {
         dataDir: string;
@@ -525,6 +526,7 @@ export namespace Ota {
         maxFileVersion?: ImageHeader["fileVersion"];
         originalUrl?: string;
         releaseNotes?: string;
+        customParseLogic?: CustomParseLogic;
     }
     export type ExtraMetas = Pick<ZigbeeOTAImageMeta, "modelId" | "otaHeaderString" | "hardwareVersionMin" | "hardwareVersionMax"> & {
         manufacturerName?: string;
