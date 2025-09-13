@@ -1192,7 +1192,7 @@ const tzTuyaSpiConverters = {
 };
     {
         fingerprint: [{ modelID: 'TS0601', manufacturerName: '_TZE284_gt5al3bl' }],
-        model: "GL-SPI-206W",
+        model: "GL-SPI-206P",
         vendor: "Gledopto",
         description: "Tuya SPI Pixel Controller RGBCCT/RGBW/RGB",
         extend: [
