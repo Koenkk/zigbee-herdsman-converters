@@ -1681,5 +1681,3 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
 ];
-    },
-];
