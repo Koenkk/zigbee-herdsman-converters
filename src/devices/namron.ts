@@ -1632,6 +1632,6 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.electricityMeter(), m.onOff()],
         toZigbee: [tz.on_off],
         exposes: [exposes.presets.switch(), exposes.presets.power(), exposes.presets.current(), exposes.presets.voltage(), exposes.presets.energy()],
-        },
+        }
     },
 ];
