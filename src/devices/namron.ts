@@ -1629,7 +1629,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "4512792",
         vendor: "Namron",
         description: "Namron Simplify 1-2p Relay",
-        fromZigbee: [fz.on_off, fz.metering, fz.electrical_measurement],
+        extend: [m.electricityMeter(), m.onOff()],
         toZigbee: [tz.on_off],
         exposes: [exposes.presets.switch(), exposes.presets.power(), exposes.presets.current(), exposes.presets.voltage(), exposes.presets.energy()],
         configure: async (device, coordinatorEndpoint, logger) => {
