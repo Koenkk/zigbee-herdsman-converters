@@ -241,6 +241,44 @@ interface YokisSubSystem {
     commands: never;
     commandResponses: never;
 }
+interface YokisTemperatureMeasurement {
+    attributes: {
+        currentValue: number;
+        minMeasuredValue: number;
+        maxMeasuredValue: number;
+        offset: number;
+        samplingNumber: number;
+        samplingPeriod: number;
+        deltaTemp: number;
+        minimalSendingPeriod: number;
+        maximalSendingPeriod: number;
+    };
+    commands: {
+        minMaxReset: Record<string, never>;
+    };
+    commandResponses: never;
+}
+interface YokisPilotWire {
+    attributes: {
+        actualOrder: number;
+        orderTimer: number;
+        preOrderTimer: number;
+        timerUnit: number;
+        ledMode: number;
+        pilotWireRelayMode: number;
+        orderScrollingMode: number;
+        orderNumberSupported: number;
+        fallbackOrder: number;
+    };
+    commands: {
+        setOrder: {
+            // biome-ignore lint/style/useNamingConvention: TODO
+            uc_Order: number;
+        };
+        toggleOrder: Record<string, never>;
+    };
+    commandResponses: never;
+}
 
 const YokisClustersDefinition: {
     [s: string]: ClusterDefinition;
@@ -1039,7 +1077,7 @@ const yokisExtendChecks = {
 
         return {
             payload: {
-                // biome-ignore lint/style/useNamingConvention: <explanation>
+                // biome-ignore lint/style/useNamingConvention: The current naming convention is currently matching the Yokis documentation
                 uc_Order: utils.getFromLookup(input, pilotwireOrderEnun),
             },
         };
@@ -1697,7 +1735,7 @@ const yokisCommandsExtend = {
             isModernExtend: true,
         };
     },
-    // biome-ignore lint/style/useNamingConvention: <explanation>
+    // biome-ignore lint/style/useNamingConvention: The current naming convention is currently matching the Yokis documentation
     pilotwire_setOrder: (): ModernExtend => {
         const exposes = e
             .enum("pilotwire_setOrder", ea.SET, Object.keys(pilotwireOrderEnun))
@@ -1713,7 +1751,11 @@ const yokisCommandsExtend = {
 
                     yokisExtendChecks.log(key, value, commandWrapper.payload);
 
-                    await entity.command("manuSpecificYokisPilotWire", "setOrder", commandWrapper.payload);
+                    await entity.command<"manuSpecificYokisPilotWire", "setOrder", YokisPilotWire>(
+                        "manuSpecificYokisPilotWire",
+                        "setOrder",
+                        commandWrapper.payload,
+                    );
                 },
             },
         ];
@@ -1724,7 +1766,7 @@ const yokisCommandsExtend = {
             isModernExtend: true,
         };
     },
-    // biome-ignore lint/style/useNamingConvention: <explanation>
+    // biome-ignore lint/style/useNamingConvention: The current naming convention is currently matching the Yokis documentation
     pilotwire_toggleOrder: (): ModernExtend => {
         const exposes = e
             .enum("pilotwire_toggleOrder", ea.SET, ["pilotwire_toggleOrder"])
@@ -1736,7 +1778,11 @@ const yokisCommandsExtend = {
                 key: ["pilotwire_toggleOrder"],
                 convertSet: async (entity, key, value, meta) => {
                     yokisExtendChecks.log(key, value);
-                    await entity.command("manuSpecificYokisPilotWire", "toggleOrder", {});
+                    await entity.command<"manuSpecificYokisPilotWire", "toggleOrder", YokisPilotWire>(
+                        "manuSpecificYokisPilotWire",
+                        "toggleOrder",
+                        {},
+                    );
                 },
             },
         ];
@@ -2632,13 +2678,14 @@ When a cluster is specified, the channel will only “control” the device bind
 ];
 */
 
+// biome-ignore lint/correctness/noUnusedVariables: Placeholder for potential futur implementation
 const YokisLoadManagerExtend: ModernExtend[] = [
     // Not implemented (probably never will)
 ];
 
 const YokisPilotWireExtend: ModernExtend[] = [
     // Actual Order
-    m.enumLookup({
+    m.enumLookup<"manuSpecificYokisPilotWire", YokisPilotWire>({
         name: "actual_order",
         lookup: {
             stop: 0x00,
@@ -2667,7 +2714,7 @@ const YokisPilotWireExtend: ModernExtend[] = [
     }),
 
     // Order timer
-    m.numeric({
+    m.numeric<"manuSpecificYokisPilotWire", YokisPilotWire>({
         name: "order_timer",
         cluster: "manuSpecificYokisPilotWire",
         attribute: "orderTimer",
@@ -2681,7 +2728,7 @@ const YokisPilotWireExtend: ModernExtend[] = [
     }),
 
     // Pre-Order timer
-    m.numeric({
+    m.numeric<"manuSpecificYokisPilotWire", YokisPilotWire>({
         name: "pre_order_timer",
         cluster: "manuSpecificYokisPilotWire",
         attribute: "preOrderTimer",
@@ -2695,7 +2742,7 @@ const YokisPilotWireExtend: ModernExtend[] = [
     }),
 
     // Timer unit
-    m.enumLookup({
+    m.enumLookup<"manuSpecificYokisPilotWire", YokisPilotWire>({
         name: "timer_unit",
         lookup: {
             second: 0x00,
@@ -2711,7 +2758,7 @@ const YokisPilotWireExtend: ModernExtend[] = [
     }),
 
     // Led mode
-    m.enumLookup({
+    m.enumLookup<"manuSpecificYokisPilotWire", YokisPilotWire>({
         name: "led_mode",
         lookup: {
             led_on: 0x00,
@@ -2727,7 +2774,7 @@ const YokisPilotWireExtend: ModernExtend[] = [
     }),
 
     // Pilot-wire relay mode
-    m.enumLookup({
+    m.enumLookup<"manuSpecificYokisPilotWire", YokisPilotWire>({
         name: "pilot_wire_relay_mode",
         lookup: {
             relay_on: 0x00,
@@ -2743,7 +2790,7 @@ const YokisPilotWireExtend: ModernExtend[] = [
     }),
 
     // Order scrolling mode
-    m.enumLookup({
+    m.enumLookup<"manuSpecificYokisPilotWire", YokisPilotWire>({
         name: "order_scrolling_mode",
         lookup: {
             forward: 0x00,
@@ -2759,7 +2806,7 @@ const YokisPilotWireExtend: ModernExtend[] = [
     }),
 
     // Order number supported
-    m.enumLookup({
+    m.enumLookup<"manuSpecificYokisPilotWire", YokisPilotWire>({
         name: "order_number_supported",
         lookup: {
             four_orders: 0x00,
@@ -2775,7 +2822,7 @@ const YokisPilotWireExtend: ModernExtend[] = [
     }),
 
     // Fallback Order
-    m.enumLookup({
+    m.enumLookup<"manuSpecificYokisPilotWire", YokisPilotWire>({
         name: "fallback_order",
         lookup: pilotwireOrderEnun,
         cluster: "manuSpecificYokisPilotWire",
@@ -2795,13 +2842,14 @@ const YokisPilotWireExtend: ModernExtend[] = [
     yokisCommandsExtend.pilotwire_toggleOrder(),
 ];
 
+// biome-ignore lint/correctness/noUnusedVariables: Placeholder for potential futur implementation
 const YokisStatsExtend: ModernExtend[] = [
     // Not implemented (probably never will)
 ];
 
 const YokisTemperatureMeasurementExtend: ModernExtend[] = [
     // currentValue > this is probably redundant with msTemperatureMeasurement
-    m.numeric({
+    m.numeric<"manuSpecificYokisTemperatureMeasurement", YokisTemperatureMeasurement>({
         name: "current_value",
         cluster: "manuSpecificYokisTemperatureMeasurement",
         attribute: "currentValue",
@@ -2817,7 +2865,7 @@ const YokisTemperatureMeasurementExtend: ModernExtend[] = [
         // reporting: {min: "10_SECONDS", max: "1_HOUR", change: 100},
     }),
 
-    m.numeric({
+    m.numeric<"manuSpecificYokisTemperatureMeasurement", YokisTemperatureMeasurement>({
         name: "min_measured_value",
         cluster: "manuSpecificYokisTemperatureMeasurement",
         attribute: "minMeasuredValue",
@@ -2832,7 +2880,7 @@ const YokisTemperatureMeasurementExtend: ModernExtend[] = [
         scale: 100,
     }),
 
-    m.numeric({
+    m.numeric<"manuSpecificYokisTemperatureMeasurement", YokisTemperatureMeasurement>({
         name: "max_measured_value",
         cluster: "manuSpecificYokisTemperatureMeasurement",
         attribute: "maxMeasuredValue",
@@ -2847,7 +2895,7 @@ const YokisTemperatureMeasurementExtend: ModernExtend[] = [
         scale: 100,
     }),
 
-    m.numeric({
+    m.numeric<"manuSpecificYokisTemperatureMeasurement", YokisTemperatureMeasurement>({
         name: "offset",
         cluster: "manuSpecificYokisTemperatureMeasurement",
         attribute: "offset",
@@ -2861,7 +2909,7 @@ const YokisTemperatureMeasurementExtend: ModernExtend[] = [
         scale: 10,
     }),
 
-    m.numeric({
+    m.numeric<"manuSpecificYokisTemperatureMeasurement", YokisTemperatureMeasurement>({
         name: "samplingPeriod",
         cluster: "manuSpecificYokisTemperatureMeasurement",
         attribute: "samplingPeriod",
@@ -2874,7 +2922,7 @@ const YokisTemperatureMeasurementExtend: ModernExtend[] = [
         valueStep: 1,
     }),
 
-    m.numeric({
+    m.numeric<"manuSpecificYokisTemperatureMeasurement", YokisTemperatureMeasurement>({
         name: "samplingNumber",
         cluster: "manuSpecificYokisTemperatureMeasurement",
         attribute: "samplingNumber",
@@ -2886,7 +2934,7 @@ const YokisTemperatureMeasurementExtend: ModernExtend[] = [
         valueStep: 1,
     }),
 
-    m.numeric({
+    m.numeric<"manuSpecificYokisTemperatureMeasurement", YokisTemperatureMeasurement>({
         name: "deltaTemp",
         cluster: "manuSpecificYokisTemperatureMeasurement",
         attribute: "deltaTemp",
@@ -2900,7 +2948,7 @@ const YokisTemperatureMeasurementExtend: ModernExtend[] = [
         scale: 10,
     }),
 
-    m.numeric({
+    m.numeric<"manuSpecificYokisTemperatureMeasurement", YokisTemperatureMeasurement>({
         name: "minimalSendingPeriod",
         cluster: "manuSpecificYokisTemperatureMeasurement",
         attribute: "minimalSendingPeriod",
@@ -2912,7 +2960,7 @@ const YokisTemperatureMeasurementExtend: ModernExtend[] = [
         valueStep: 1,
     }),
 
-    m.numeric({
+    m.numeric<"manuSpecificYokisTemperatureMeasurement", YokisTemperatureMeasurement>({
         name: "maximalSendingPeriod",
         cluster: "manuSpecificYokisTemperatureMeasurement",
         attribute: "maximalSendingPeriod",
