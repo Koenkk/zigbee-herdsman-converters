@@ -1639,6 +1639,5 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.onOff(endpoint);
         },
-        ota: ota.zigbeeOTA,
     },
 ];
