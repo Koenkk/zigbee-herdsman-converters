@@ -1628,22 +1628,22 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ['4512791'],
         model: '4512791',
         vendor: 'Namron AS',
-        description: 'Namron Simplify Zigbee dimmer (1/2-polet) Zigbee / BT',
+        description: 'Namron Zigbee dimmer (1/2-polet) med HW phase/pole, korrekt EM/metering skalering',
         fromZigbee: [
-          fz.on_off,
-          fz.brightness,
-          fzLocal.electrical_measurement_scaled,
-          fzLocal.metering_scaled,
-          fz.power_on_behavior,
-          fzLocal.levelctrl_vendor_attrs,
+            fz.on_off,
+            fz.brightness,
+            fzLocal.electrical_measurement_scaled,
+            fzLocal.metering_scaled,
+            fz.power_on_behavior,
+            fzLocal.levelctrl_vendor_attrs,
         ],
         toZigbee: [
-          tz.on_off,
-          tz.light_onoff_brightness,   // standard
-          tz.power_on_behavior,
-          tzLocal.start_brightness,    // standard LevelCtrl lagring
-          tzLocal.phase_type,          // HW (0xB000)
-          tzLocal.pole_mode,           // HW (0xB001)
+            tz.on_off,
+            tz.light_onoff_brightness,
+            tz.power_on_behavior,
+            tzLocal.start_brightness,
+            tzLocal.phase_type,
+            tzLocal.pole_mode,
         ],
         exposes: [
           e.light_brightness(),
@@ -1660,18 +1660,26 @@ export const definitions: DefinitionWithExtend[] = [
         configure: async (device, coordinatorEndpoint) => {
           const ep = device.getEndpoint(1) || device.getEndpoint(0) || device.endpoints?.[0];
           if (!ep) return;
+
+      // Bindinger
           await ep.bind('genOnOff', coordinatorEndpoint);
           await ep.bind('genLevelCtrl', coordinatorEndpoint);
-          try { await ep.bind('haElectricalMeasurement', coordinatorEndpoint); } catch {}
-          try { await ep.bind('seMetering', coordinatorEndpoint); } catch {}
-          try { await reporting.onOff(ep); } catch {}
-          try { await reporting.brightness(ep); } catch {}
-          try { await reporting.rmsVoltage(ep); } catch {}
-          try { await reporting.rmsCurrent(ep); } catch {}
-          try { await reporting.activePower(ep); } catch {}
-          try { await reporting.instantaneousDemand(ep); } catch {}
-          try { await reporting.currentSummDelivered(ep); } catch {}
-          try { await ep.read('genLevelCtrl', [ATTR_OUT_EDGE, ATTR_RELAYTYPE], {manufacturerCode: MFG_CODE}); } catch {},
-        ],
+          await ep.bind('haElectricalMeasurement', coordinatorEndpoint);
+          await ep.bind('seMetering', coordinatorEndpoint);
+
+      // Standard rapportering
+          await reporting.onOff(ep);
+          await reporting.brightness(ep);
+          await reporting.rmsVoltage(ep);
+          await reporting.rmsCurrent(ep);
+          await reporting.activePower(ep);
+          await reporting.instantaneousDemand(ep);
+          await reporting.currentSummDelivered(ep);
+
+      // Les HW-innstillinger (fase/pole) én gang
+          await ep.read('genLevelCtrl', [ATTR_OUT_EDGE, ATTR_RELAYTYPE], {manufacturerCode: MFG_CODE});
+        },
+    },
+];
     },
 ];
