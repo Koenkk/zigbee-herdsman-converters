@@ -421,6 +421,9 @@ async function extenderAnalogOutput(device: Zh.Device, endpoints: Zh.Endpoint[])
         const description = `analog_output_${endpoint.ID}`;
         const args: m.NumericArgs<"genAnalogOutput"> = {
             name: await getClusterAttributeValue(endpoint, "genAnalogOutput", "description", description),
+            valueMin: await getClusterAttributeValue(endpoint, "genAnalogOutput", "minPresentValue"),
+            valueMax: await getClusterAttributeValue(endpoint, "genAnalogOutput", "maxPresentValue"),
+            valueStep: await getClusterAttributeValue(endpoint, "genAnalogOutput", "resolution"),
             cluster: "genAnalogOutput",
             attribute: "presentValue",
             reporting: {min: "MIN", max: "MAX", change: 1},
