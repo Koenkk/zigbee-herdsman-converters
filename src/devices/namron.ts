@@ -1636,8 +1636,7 @@ export const definitions: DefinitionWithExtend[] = [
                 endpointNames: ["main"],
                 description: "Main dimmer switch",
             }),
-            m.light({
-            }),
+            m.light({}),
             m.electricityMeter({
                 endpointNames: ["main"],
                 power: {multiplier: 1, divisor: 10},
