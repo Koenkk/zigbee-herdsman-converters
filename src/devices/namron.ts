@@ -1632,8 +1632,6 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [
             fz.on_off,
             fz.brightness,
-            fzLocal.electrical_measurement_scaled,
-            fzLocal.metering_scaled,
             fz.power_on_behavior,
             fzLocal.levelctrl_vendor_attrs,
         ],
