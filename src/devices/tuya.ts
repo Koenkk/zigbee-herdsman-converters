@@ -19198,7 +19198,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.enum("window", ea.STATE, ["close", "open"]).withDescription("Indicates if window is open").withCategory("diagnostic"),
             e.power(),
             e.voltage(),
-            e.numeric("current", ea.STATE).withUnit("mA").withDescription("Instantaneous measured electrical current").withCategory("diagnostic"),
+            e.current(),
             e.energy(),
             e.energy().withProperty("energy_today").withDescription("Energy consumed today"),
             e.energy().withProperty("energy_yesterday").withDescription("Energy consumed yesterday"),
