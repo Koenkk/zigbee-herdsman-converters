@@ -1646,5 +1646,6 @@ export const definitions: DefinitionWithExtend[] = [
                 voltage: {multiplier: 1, divisor: 10},
                 current: {multiplier: 1, divisor: 100},
             }),
+        ],
     },
 ];
