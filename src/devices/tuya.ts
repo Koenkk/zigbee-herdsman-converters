@@ -7119,6 +7119,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZ3000_nzkqcvvs",
             "_TZ3000_rtcrrvia",
             "_TZ3000_ysiog9xi",
+            "_TZ3000_o1jzcxou",
         ]),
         model: "TS011F_plug_2",
         description: "Smart plug (without power monitoring)",
@@ -7128,6 +7129,7 @@ export const definitions: DefinitionWithExtend[] = [
                 powerOutageMemory: true,
                 indicatorMode: true,
                 childLock: true,
+                onOffCountdown: true,
             }),
         ],
         configure: async (device, coordinatorEndpoint) => {
