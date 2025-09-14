@@ -13,8 +13,8 @@ const ea = exposes.access;
 
 export const definitions: DefinitionWithExtend[] = [
     {
-        zigbeeModel: ["LCX030"],
-        model: "LCX030",
+        zigbeeModel: ["929004284702"],
+        model: "929004284702",
         vendor: "Signify Netherlands B.V.",
         description: "Hue Festavia Permanent String Lights",
         extend: [philips.m.light({colorTemp: {range: [50, 1000]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
