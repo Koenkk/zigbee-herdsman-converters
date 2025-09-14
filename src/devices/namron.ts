@@ -1636,7 +1636,7 @@ export const definitions: DefinitionWithExtend[] = [
                 endpointNames: ["main"],
                 description: "Main dimmer switch",
             }),
-            m.lightLevel({
+            m.light({
                 endpointNames: ["main"],
                 description: "Main dimmer level",
             }),
