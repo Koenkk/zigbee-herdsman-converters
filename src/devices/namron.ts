@@ -1624,4 +1624,53 @@ export const definitions: DefinitionWithExtend[] = [
             m.temperature({reporting: undefined}),
         ],
     },
+    {
+        zigbeeModel: ['4512791'],
+        model: '4512791',
+        vendor: 'Namron AS',
+        description: 'Namron Simplify Zigbee dimmer (1/2-polet) Zigbee / BT',
+        fromZigbee: [
+          fz.on_off,
+          fz.brightness,
+          fzLocal.electrical_measurement_scaled,
+          fzLocal.metering_scaled,
+          fz.power_on_behavior,
+          fzLocal.levelctrl_vendor_attrs,
+        ],
+        toZigbee: [
+          tz.on_off,
+          tz.light_onoff_brightness,   // standard
+          tz.power_on_behavior,
+          tzLocal.start_brightness,    // standard LevelCtrl lagring
+          tzLocal.phase_type,          // HW (0xB000)
+          tzLocal.pole_mode,           // HW (0xB001)
+        ],
+        exposes: [
+          e.light_brightness(),
+          e.power(), e.current(), e.voltage(), e.energy(),
+          exposes.enum('power_on_behavior', ea.ALL, ['off','on','toggle','previous']),
+          exposes.numeric('start_brightness', ea.ALL).withValueMin(1).withValueMax(254)
+            .withDescription('Default brightness at power-on/startup'),
+          exposes.enum('phase_type', ea.ALL, ['trailing','leading'])
+            .withDescription('AC dimming phase type (hardware via 0xB000)'),
+          exposes.enum('pole_mode', ea.ALL, ['1_pole','2_pole'])
+            .withDescription('Wiring mode (hardware via 0xB001)'),
+        ],
+        endpoint: (device) => ({default: 1}),
+        configure: async (device, coordinatorEndpoint) => {
+          const ep = device.getEndpoint(1) || device.getEndpoint(0) || device.endpoints?.[0];
+          if (!ep) return;
+          await ep.bind('genOnOff', coordinatorEndpoint);
+          await ep.bind('genLevelCtrl', coordinatorEndpoint);
+          try { await ep.bind('haElectricalMeasurement', coordinatorEndpoint); } catch {}
+          try { await ep.bind('seMetering', coordinatorEndpoint); } catch {}
+          try { await reporting.onOff(ep); } catch {}
+          try { await reporting.brightness(ep); } catch {}
+          try { await reporting.rmsVoltage(ep); } catch {}
+          try { await reporting.rmsCurrent(ep); } catch {}
+          try { await reporting.activePower(ep); } catch {}
+          try { await reporting.instantaneousDemand(ep); } catch {}
+          try { await reporting.currentSummDelivered(ep); } catch {}
+          try { await ep.read('genLevelCtrl', [ATTR_OUT_EDGE, ATTR_RELAYTYPE], {manufacturerCode: MFG_CODE}); } catch {}
+    },
 ];
