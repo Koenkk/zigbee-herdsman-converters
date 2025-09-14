@@ -1653,7 +1653,7 @@ export const definitions: DefinitionWithExtend[] = [
           }),
         ],
         exposes: [
-          e.linkquality(),
+          e.linkquality()],
         },
     },
 ];
