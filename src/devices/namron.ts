@@ -1632,13 +1632,6 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.electricityMeter(), m.onOff()],
         toZigbee: [tz.on_off],
         exposes: [exposes.presets.switch(), exposes.presets.power(), exposes.presets.current(), exposes.presets.voltage(), exposes.presets.energy()],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff"]);
-            await reporting.onOff(endpoint);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["haElectricalMeasurement"]);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["seMetering"]);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genDeviceTempCfg"]);
         },
     },
 ];
