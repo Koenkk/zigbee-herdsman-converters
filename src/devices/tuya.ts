@@ -4610,6 +4610,7 @@ export const definitions: DefinitionWithExtend[] = [
             {vendor: "Lonsonho", model: "X702"},
             {vendor: "AVATTO", model: "ZTS02"},
             tuya.whitelabel("PSMART", "T462", "2 Gang switch with backlight, countdown, inching", ["_TZ3000_wnzoyohq"]),
+            tuya.whitelabel("Nova Digital", "FZB-2", "2-Gang switch with backlight, countdown and inching", ["_TZ3000_5ksufhqi"]),
         ],
     },
 
