@@ -3053,6 +3053,10 @@ export interface ThermostatArgs {
     piHeatingDemand?: boolean;
     tempHold?: boolean;
     tempHoldDuration?: boolean;
+    maxHeat?: boolean | {min: number; max: number; step: number};
+    minHeat?: boolean | {min: number; max: number; step: number};
+    maxCool?: boolean | {min: number; max: number; step: number};
+    minCool?: boolean | {min: number; max: number; step: number};
 }
 
 export function thermostat(args: ThermostatArgs = {}): ModernExtend {
@@ -3063,13 +3067,7 @@ export function thermostat(args: ThermostatArgs = {}): ModernExtend {
     const exposes: Expose[] = [expose];
 
     const fromZigbee = [fz.thermostat];
-    const toZigbee = [
-        tz.thermostat_local_temperature,
-        tz.thermostat_setpoint_raise_lower,
-        tz.thermostat_remote_sensing,
-        tz.thermostat_control_sequence_of_operation,
-        tz.thermostat_relay_status_log,
-    ];
+    const toZigbee = [tz.thermostat_local_temperature];
     const configure: Configure[] = [
         setupConfigureForBinding("hvacThermostat", "input"),
         setupConfigureForReporting("hvacThermostat", "localTemp", {config: defaultRepConfig10, access: ea.STATE_GET}),
@@ -3190,6 +3188,46 @@ export function thermostat(args: ThermostatArgs = {}): ModernExtend {
                 .withDescription("Period in minutes for which the setpoint hold will be active (65535 - forever)"),
         );
         toZigbee.push(tz.thermostat_temperature_setpoint_hold_duration);
+    }
+
+    if (args.maxHeat) {
+        if (typeof args.maxHeat === "boolean") {
+            exposes.push(e.max_heat_setpoint_limit(5, 30, 0.5));
+        } else {
+            exposes.push(e.max_heat_setpoint_limit(args.maxHeat.min, args.maxHeat.max, args.maxHeat.step));
+        }
+        toZigbee.push(tz.thermostat_max_heat_setpoint_limit);
+        configure.push(setupConfigureForReporting("hvacThermostat", "maxHeatSetpointLimit", {config: defaultRepConfig, access: ea.STATE_GET}));
+    }
+
+    if (args.minHeat) {
+        if (typeof args.minHeat === "boolean") {
+            exposes.push(e.min_heat_setpoint_limit(5, 30, 0.5));
+        } else {
+            exposes.push(e.min_heat_setpoint_limit(args.minHeat.min, args.minHeat.max, args.minHeat.step));
+        }
+        toZigbee.push(tz.thermostat_min_heat_setpoint_limit);
+        configure.push(setupConfigureForReporting("hvacThermostat", "minHeatSetpointLimit", {config: defaultRepConfig, access: ea.STATE_GET}));
+    }
+
+    if (args.maxCool) {
+        if (typeof args.maxCool === "boolean") {
+            exposes.push(e.max_cool_setpoint_limit(5, 30, 0.5));
+        } else {
+            exposes.push(e.max_cool_setpoint_limit(args.maxCool.min, args.maxCool.max, args.maxCool.step));
+        }
+        toZigbee.push(tz.thermostat_max_cool_setpoint_limit);
+        configure.push(setupConfigureForReporting("hvacThermostat", "maxCoolSetpointLimit", {config: defaultRepConfig, access: ea.STATE_GET}));
+    }
+
+    if (args.minCool) {
+        if (typeof args.minCool === "boolean") {
+            exposes.push(e.min_cool_setpoint_limit(5, 30, 0.5));
+        } else {
+            exposes.push(e.min_cool_setpoint_limit(args.minCool.min, args.minCool.max, args.minCool.step));
+        }
+        toZigbee.push(tz.thermostat_min_cool_setpoint_limit);
+        configure.push(setupConfigureForReporting("hvacThermostat", "minCoolSetpointLimit", {config: defaultRepConfig, access: ea.STATE_GET}));
     }
 
     return {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
