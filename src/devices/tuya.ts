@@ -19290,7 +19290,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [39, "child_lock", tuya.valueConverter.lockUnlock],
                 [50, "current_heating_setpoint", tuya.valueConverter.divideBy10],
                 [101, "voltage", tuya.valueConverter.divideBy10],
-                [102, "current", tuya.valueConverter.raw],
+                [102, "current", tuya.valueConverter.divideBy1000],
                 [103, "temperature_sensibility", tuya.valueConverter.divideBy10],
                 [104, "energy_today", tuya.valueConverter.raw],
                 [105, "energy_yesterday", tuya.valueConverter.raw],
