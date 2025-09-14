@@ -1625,35 +1625,33 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        zigbeeModel: ['4512791'],
-        model: '4512791',
-        vendor: 'Namron AS',
-        description: 'Namron Simplify Zigbee dimmer (1/2-polet / Zigbee / BT)',
+        zigbeeModel: ["4512791"],
+        model: "4512791",
+        vendor: "Namron AS",
+        description: "Namron Simplify Zigbee dimmer (1/2-polet / Zigbee / BT)",
         extend: [
-          m.deviceEndpoints({endpoints: {main: 1}}),
-          m.onOff({
-            powerOnBehavior: true,
-            endpointNames: ['main'],
-            description: 'Main dimmer switch',
-          }),
-          m.lightLevel({
-            endpointNames: ['main'],
-            description: 'Main dimmer level',
-          }),
-        m.electricityMeter({
-            endpointNames: ['main'],
-            power:   {multiplier: 1, divisor: 10},
-            voltage: {multiplier: 1, divisor: 10},
-            current: {multiplier: 1, divisor: 100},
-          }),
-          m.metering({
-            endpointNames: ['main'],
-            energy: {multiplier: 1, divisor: 100},            // kWh
-            instantaneousDemand: {multiplier: 1, divisor: 10} // W
-          }),
+            m.deviceEndpoints({endpoints: {main: 1}}),
+            m.onOff({
+                powerOnBehavior: true,
+                endpointNames: ["main"],
+                description: "Main dimmer switch",
+            }),
+            m.lightLevel({
+                endpointNames: ["main"],
+                description: "Main dimmer level",
+            }),
+            m.electricityMeter({
+                endpointNames: ["main"],
+                power: {multiplier: 1, divisor: 10},
+                voltage: {multiplier: 1, divisor: 10},
+                current: {multiplier: 1, divisor: 100},
+            }),
+            m.metering({
+                endpointNames: ["main"],
+                energy: {multiplier: 1, divisor: 100}, // kWh
+                instantaneousDemand: {multiplier: 1, divisor: 10}, // W
+            }),
         ],
-        exposes: [
-          e.linkquality()
-        ],
+        exposes: [e.linkquality()],
     },
 ];
