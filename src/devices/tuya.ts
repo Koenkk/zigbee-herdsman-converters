@@ -19199,7 +19199,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.power(),
             e.voltage(),
             e.numeric("current", ea.STATE).withUnit("mA").withDescription("Instantaneous measured electrical current").withCategory("diagnostic"),
-            e.numeric("energy", ea.STATE).withUnit("kWh").withDescription("Sum of consumed energy").withCategory("diagnostic"),
+            e.energy(),
             e.numeric("energy_today", ea.STATE).withUnit("kWh").withDescription("Energy consumed today").withCategory("diagnostic"),
             e.numeric("energy_yesterday", ea.STATE).withUnit("kWh").withDescription("Energy consumed yesterday").withCategory("diagnostic"),
             e
