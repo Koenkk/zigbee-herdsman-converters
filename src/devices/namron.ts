@@ -1625,47 +1625,35 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        zigbeeModel: ["4512791"],
-        model: "4512791",
-        vendor: "Namron AS",
-        description: "Namron Simplify Zigbee dimmer (1/2-polet / Zigbee / BT)",
-
-        // Modern extend (on/off, brightness, transition, power_on_behavior)
-        extend: [extend.light_onoff_brightness()],
-
-        // Standard målinger (ikke custom): EM + Metering
-        fromZigbee: [fz.electrical_measurement, fz.metering],
-
-        exposes: [
-            e.light_brightness(),
-            e.power(),
-            e.current(),
-            e.voltage(),
-            e.energy(),
-            exposes.enum("power_on_behavior", ea.ALL, ["off", "on", "toggle", "previous"]),
-            e.linkquality(),
+        zigbeeModel: ['4512791'],
+        model: '4512791',
+        vendor: 'Namron AS',
+        description: 'Namron Simplify Zigbee dimmer (1/2-polet / Zigbee / BT)',
+        extend: [
+          m.deviceEndpoints({endpoints: {main: 1}}),
+          m.onOff({
+            powerOnBehavior: true,
+            endpointNames: ['main'],
+            description: 'Main dimmer switch',
+          }),
+          m.lightLevel({
+            endpointNames: ['main'],
+            description: 'Main dimmer level',
+          }),
+        m.electricityMeter({
+            endpointNames: ['main'],
+            power:   {multiplier: 1, divisor: 10},
+            voltage: {multiplier: 1, divisor: 10},
+            current: {multiplier: 1, divisor: 100},
+          }),
+          m.metering({
+            endpointNames: ['main'],
+            energy: {multiplier: 1, divisor: 100},            // kWh
+            instantaneousDemand: {multiplier: 1, divisor: 10} // W
+          }),
         ],
-
-        endpoint: (device) => ({default: 1}),
-
-        configure: async (device, coordinatorEndpoint) => {
-            const ep = device.getEndpoint(1);
-            if (!ep) return;
-
-            // Bind relevante clustere
-            await ep.bind("genOnOff", coordinatorEndpoint);
-            await ep.bind("genLevelCtrl", coordinatorEndpoint);
-            await ep.bind("haElectricalMeasurement", coordinatorEndpoint);
-            await ep.bind("seMetering", coordinatorEndpoint);
-
-            // Standard rapportering
-            await reporting.onOff(ep);
-            await reporting.brightness(ep);
-            await reporting.rmsVoltage(ep);
-            await reporting.rmsCurrent(ep);
-            await reporting.activePower(ep);
-            await reporting.instantaneousDemand(ep);
-            await reporting.currentSummDelivered(ep);
+        exposes: [
+          e.linkquality(),
         },
     },
 ];
