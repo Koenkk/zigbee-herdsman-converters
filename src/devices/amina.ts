@@ -164,7 +164,7 @@ const tzLocal = {
         convertSet: async (entity, key, value, meta) => {
             const level = value as number;
 
-            await entity.command('genLevelCtrl', 'moveToLevelWithOnOff', {level, transtime: 0}, utils.getOptions(meta.mapped, entity));
+            await entity.command("genLevelCtrl", "moveToLevelWithOnOff", {level, transtime: 0}, utils.getOptions(meta.mapped, entity));
         },
 
         convertGet: async (entity, key, meta) => {
@@ -189,9 +189,10 @@ export const definitions: DefinitionWithExtend[] = [
             e.binary("charging", ea.STATE, true, false).withDescription("Power is being delivered to the EV"),
             e.binary("derated", ea.STATE, true, false).withDescription("Charging derated due to high temperature"),
             e.binary("alarm_active", ea.STATE, true, false).withDescription("An active alarm is present"),
-            e.numeric('charge_limit_with_on_off', ea.ALL)
-                .withDescription('Sets the maximum charge amperage and turns charging on/off.')
-                .withUnit('A')
+            e
+                .numeric("charge_limit_with_on_off", ea.ALL)
+                .withDescription("Sets the maximum charge amperage and turns charging on/off.")
+                .withUnit("A")
                 .withValueMin(0)
                 .withValueMax(32),
         ],
