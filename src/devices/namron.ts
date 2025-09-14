@@ -1628,9 +1628,9 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["4512791"],
         model: "4512791",
         vendor: "Namron AS",
-        description: "Namron Zigbee dimmer (1/2-polet) med HW phase/pole, korrekt EM/metering skalering",
-        fromZigbee: [fz.on_off, fz.brightness, fz.power_on_behavior, fzLocal.levelctrl_vendor_attrs],
-        toZigbee: [tz.on_off, tz.light_onoff_brightness, tz.power_on_behavior, tzLocal.start_brightness, tzLocal.phase_type, tzLocal.pole_mode],
+        description: "Namron Simplify Zigbee dimmer (1/2-polet / Zigbee / BT) ",
+        fromZigbee: [fz.on_off, fz.brightness, fz.power_on_behavior],
+        toZigbee: [tz.on_off, tz.light_onoff_brightness, tz.power_on_behavior],
         exposes: [
             e.light_brightness(),
             e.power(),
@@ -1661,9 +1661,6 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.activePower(ep);
             await reporting.instantaneousDemand(ep);
             await reporting.currentSummDelivered(ep);
-
-            // Les HW-innstillinger (fase/pole) én gang
-            await ep.read("genLevelCtrl", [ATTR_OUT_EDGE, ATTR_RELAYTYPE], {manufacturerCode: MFG_CODE});
         },
     },
 ];
