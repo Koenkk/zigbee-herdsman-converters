@@ -376,6 +376,14 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        zigbeeModel: ["SIN-4-1-20_EQU"],
+        model: "SIN-4-1-20_EQU",
+        vendor: "Adeo",
+        description: "Adeo dry contact switch for central heating boilers",
+        extend: [m.onOff(), m.commandsOnOff()],
+    },
+
+    {
         zigbeeModel: ["SIN-4-RS-20_LEX"],
         model: "SIN-4-RS-20_LEX",
         vendor: "ADEO",
