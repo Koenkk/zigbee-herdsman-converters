@@ -1646,12 +1646,5 @@ export const definitions: DefinitionWithExtend[] = [
                 voltage: {multiplier: 1, divisor: 10},
                 current: {multiplier: 1, divisor: 100},
             }),
-            m.metering({
-                endpointNames: ["main"],
-                energy: {multiplier: 1, divisor: 100}, // kWh
-                instantaneousDemand: {multiplier: 1, divisor: 10}, // W
-            }),
-        ],
-        exposes: [e.linkquality()],
     },
 ];
