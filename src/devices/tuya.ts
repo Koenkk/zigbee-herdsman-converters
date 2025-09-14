@@ -125,13 +125,15 @@ const storeLocal = {
                     // Only publish if the set is complete otherwise discard everything.
                     if (sign !== null && power !== null && current !== null && powerFactor !== null) {
                         const signedPowerKey = `signed_power_${channel}`;
+                        const invertedEnergyFlowKey = `invert_energy_flow_${channel}`;
                         const signedPower = options[signedPowerKey] != null ? options[signedPowerKey] : false;
+                        const invertedEnergyFlow = options[invertedEnergyFlowKey] != null ? options[invertedEnergyFlowKey] : false;
                         if (signedPower) {
                             result[`power_${channel}`] = sign * power;
                             result[`energy_flow_${channel}`] = "sign";
                         } else {
                             result[`power_${channel}`] = power;
-                            result[`energy_flow_${channel}`] = sign > 0 ? "consuming" : "producing";
+                            result[`energy_flow_${channel}`] = sign * (invertedEnergyFlow ? -1 : 1) >= 0 ? "consuming" : "producing";
                         }
                         result[`timestamp_${channel}`] = this[`timestamp_${channel}`];
                         result[`current_${channel}`] = current;
@@ -246,6 +248,34 @@ const convLocal = {
             // power_ab datapoint is broken and will be recomputed so ignore it.
             from: (v: number, meta: Fz.Meta, options: KeyValue) => {
                 return {};
+            },
+        };
+    },
+
+    energyForwardPJ1203A: (channel: string) => {
+        return {
+            from: (v: number, meta: Fz.Meta, options: KeyValue) => {
+                const invertedEnergyFlowKey = `invert_energy_flow_${channel}`;
+                const result_key = options[invertedEnergyFlowKey] ? `energy_produced_${channel}` : `energy_${channel}`;
+                const energy_sign = options[invertedEnergyFlowKey] ? -1 : 1;
+                const result = {} as KeyValueAny;
+                result[result_key] = (v / 100) * energy_sign;
+
+                return result;
+            },
+        };
+    },
+
+    energyReversePJ1203A: (channel: string) => {
+        return {
+            from: (v: number, meta: Fz.Meta, options: KeyValue) => {
+                const invertedEnergyFlowKey = `invert_energy_flow_${channel}`;
+                const result_key = options[invertedEnergyFlowKey] ? `energy_${channel}` : `energy_produced_${channel}`;
+                const energy_sign = options[invertedEnergyFlowKey] ? 1 : -1;
+                const result = {} as KeyValueAny;
+                result[result_key] = (v / 100) * energy_sign;
+
+                return result;
             },
         };
     },
@@ -4610,6 +4640,7 @@ export const definitions: DefinitionWithExtend[] = [
             {vendor: "Lonsonho", model: "X702"},
             {vendor: "AVATTO", model: "ZTS02"},
             tuya.whitelabel("PSMART", "T462", "2 Gang switch with backlight, countdown, inching", ["_TZ3000_wnzoyohq"]),
+            tuya.whitelabel("Nova Digital", "FZB-2", "2-Gang switch with backlight, countdown and inching", ["_TZ3000_5ksufhqi"]),
         ],
     },
 
@@ -7088,6 +7119,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZ3000_nzkqcvvs",
             "_TZ3000_rtcrrvia",
             "_TZ3000_ysiog9xi",
+            "_TZ3000_o1jzcxou",
         ]),
         model: "TS011F_plug_2",
         description: "Smart plug (without power monitoring)",
@@ -7097,6 +7129,7 @@ export const definitions: DefinitionWithExtend[] = [
                 powerOutageMemory: true,
                 indicatorMode: true,
                 childLock: true,
+                onOffCountdown: true,
             }),
         ],
         configure: async (device, coordinatorEndpoint) => {
@@ -14039,6 +14072,8 @@ export const definitions: DefinitionWithExtend[] = [
             e
                 .binary("signed_power_b", ea.SET, true, false)
                 .withDescription("Report energy flow direction for channel B using signed power (default false)."),
+            e.binary("invert_energy_flow_a", ea.SET, true, false).withDescription("Report energy flow direction inverted for channel A."),
+            e.binary("invert_energy_flow_b", ea.SET, true, false).withDescription("Report energy flow direction inverted for channel B."),
         ],
         exposes: [
             e.ac_frequency(),
@@ -14086,10 +14121,10 @@ export const definitions: DefinitionWithExtend[] = [
                 [102, null, convLocal.energyFlowPJ1203A("a")], // energy_flow_a or the sign of power_a
                 [104, null, convLocal.energyFlowPJ1203A("b")], // energy_flow_b or the sign of power_b
                 [115, null, convLocal.powerAbPJ1203A()],
-                [106, "energy_a", tuya.valueConverter.divideBy100],
-                [108, "energy_b", tuya.valueConverter.divideBy100],
-                [107, "energy_produced_a", tuya.valueConverter.divideBy100],
-                [109, "energy_produced_b", tuya.valueConverter.divideBy100],
+                [106, null, convLocal.energyForwardPJ1203A("a")],
+                [108, null, convLocal.energyForwardPJ1203A("b")],
+                [107, null, convLocal.energyReversePJ1203A("a")],
+                [109, null, convLocal.energyReversePJ1203A("b")],
                 [129, "update_frequency", tuya.valueConverter.raw],
             ],
         },

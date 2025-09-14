@@ -1,5 +1,21 @@
 # Changelog
 
+## [25.26.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.25.0...v25.26.0) (2025-09-14)
+
+
+### Features
+
+* **add:** FZB-2 ([#10009](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10009)) ([f7b8c64](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f7b8c64c266420ef7ba99b86a250121686c84c0a))
+* **add:** SIN-4-1-20_EQU ([#10010](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10010)) ([8c8952a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8c8952a4a0a3fc1a1f8d457f7675afc85a399656))
+* amina S: support `charge_limit_with_on_off` ([#10011](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10011)) ([eeeebc7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/eeeebc7e0b466a9e7c9e22ed6dcfd166e157ee22))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3000_o1jzcxou` as Tuya TS011F_plug_2 https://github.com/Koenkk/zigbee-herdsman-converters/issues/10007 ([9d170ba](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9d170baa4f826cade612fa82735ca4a77a0c86b5))
+* **ignore:** [genAnalogOutput] adds minPresentValue, maxPresentValue, resolution ([#10012](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10012)) ([0418f68](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0418f68c875b1c3e525595ceda0fd179c76ab9ff))
+* Tuya PJ-1203A: add a configuration option to invert reported energy flow direction ([#9889](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9889)) ([6368557](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6368557380b7c87d3e5c179a6347c92e280523f3))
+
 ## [25.25.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.24.0...v25.25.0) (2025-09-13)
 
 
