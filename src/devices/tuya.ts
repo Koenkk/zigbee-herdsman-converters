@@ -19201,7 +19201,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.numeric("current", ea.STATE).withUnit("mA").withDescription("Instantaneous measured electrical current").withCategory("diagnostic"),
             e.energy(),
             e.energy().withProperty("energy_today").withDescription("Energy consumed today"),
-            e.numeric("energy_yesterday", ea.STATE).withUnit("kWh").withDescription("Energy consumed yesterday").withCategory("diagnostic"),
+            e.energy().withProperty('energy_yesterday').withDescription("Energy consumed yesterday"),
             e
                 .enum("device_mode_type", ea.STATE, ["four", "six", "switch"])
                 .withDescription("Indicates the actual pilot wire mode of the thermostat")
