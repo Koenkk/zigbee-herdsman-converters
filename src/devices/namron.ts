@@ -1629,12 +1629,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "4512791",
         vendor: "Namron AS",
         description: "Namron Zigbee dimmer (1/2-polet) med HW phase/pole, korrekt EM/metering skalering",
-        fromZigbee: [
-            fz.on_off,
-            fz.brightness,
-            fz.power_on_behavior,
-            fzLocal.levelctrl_vendor_attrs,
-        ],
+        fromZigbee: [fz.on_off, fz.brightness, fz.power_on_behavior, fzLocal.levelctrl_vendor_attrs],
         toZigbee: [tz.on_off, tz.light_onoff_brightness, tz.power_on_behavior, tzLocal.start_brightness, tzLocal.phase_type, tzLocal.pole_mode],
         exposes: [
             e.light_brightness(),
