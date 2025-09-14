@@ -19196,7 +19196,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription("Enable / Disable open window detection feature")
                 .withCategory("config"),
             e.enum("window", ea.STATE, ["close", "open"]).withDescription("Indicates if window is open").withCategory("diagnostic"),
-            e.numeric("power", ea.STATE).withUnit("W").withDescription("Instantaneous measured power").withCategory("diagnostic"),
+            e.power(),
             e.numeric("voltage", ea.STATE).withUnit("V").withDescription("Measured electrical potential value").withCategory("diagnostic"),
             e.numeric("current", ea.STATE).withUnit("mA").withDescription("Instantaneous measured electrical current").withCategory("diagnostic"),
             e.numeric("energy", ea.STATE).withUnit("kWh").withDescription("Sum of consumed energy").withCategory("diagnostic"),
