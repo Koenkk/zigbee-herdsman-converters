@@ -1625,10 +1625,10 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        zigbeeModel: ['4512791'],
-        model: '4512791',
-        vendor: 'Namron AS',
-        description: 'Namron Zigbee dimmer (1/2-polet) med HW phase/pole, korrekt EM/metering skalering',
+        zigbeeModel: ["4512791"],
+        model: "4512791",
+        vendor: "Namron AS",
+        description: "Namron Zigbee dimmer (1/2-polet) med HW phase/pole, korrekt EM/metering skalering",
         fromZigbee: [
             fz.on_off,
             fz.brightness,
@@ -1637,47 +1637,40 @@ export const definitions: DefinitionWithExtend[] = [
             fz.power_on_behavior,
             fzLocal.levelctrl_vendor_attrs,
         ],
-        toZigbee: [
-            tz.on_off,
-            tz.light_onoff_brightness,
-            tz.power_on_behavior,
-            tzLocal.start_brightness,
-            tzLocal.phase_type,
-            tzLocal.pole_mode,
-        ],
+        toZigbee: [tz.on_off, tz.light_onoff_brightness, tz.power_on_behavior, tzLocal.start_brightness, tzLocal.phase_type, tzLocal.pole_mode],
         exposes: [
-          e.light_brightness(),
-          e.power(), e.current(), e.voltage(), e.energy(),
-          exposes.enum('power_on_behavior', ea.ALL, ['off','on','toggle','previous']),
-          exposes.numeric('start_brightness', ea.ALL).withValueMin(1).withValueMax(254)
-            .withDescription('Default brightness at power-on/startup'),
-          exposes.enum('phase_type', ea.ALL, ['trailing','leading'])
-            .withDescription('AC dimming phase type (hardware via 0xB000)'),
-          exposes.enum('pole_mode', ea.ALL, ['1_pole','2_pole'])
-            .withDescription('Wiring mode (hardware via 0xB001)'),
+            e.light_brightness(),
+            e.power(),
+            e.current(),
+            e.voltage(),
+            e.energy(),
+            exposes.enum("power_on_behavior", ea.ALL, ["off", "on", "toggle", "previous"]),
+            exposes.numeric("start_brightness", ea.ALL).withValueMin(1).withValueMax(254).withDescription("Default brightness at power-on/startup"),
+            exposes.enum("phase_type", ea.ALL, ["trailing", "leading"]).withDescription("AC dimming phase type (hardware via 0xB000)"),
+            exposes.enum("pole_mode", ea.ALL, ["1_pole", "2_pole"]).withDescription("Wiring mode (hardware via 0xB001)"),
         ],
         endpoint: (device) => ({default: 1}),
         configure: async (device, coordinatorEndpoint) => {
-          const ep = device.getEndpoint(1) || device.getEndpoint(0) || device.endpoints?.[0];
-          if (!ep) return;
+            const ep = device.getEndpoint(1) || device.getEndpoint(0) || device.endpoints?.[0];
+            if (!ep) return;
 
-      // Bindinger
-          await ep.bind('genOnOff', coordinatorEndpoint);
-          await ep.bind('genLevelCtrl', coordinatorEndpoint);
-          await ep.bind('haElectricalMeasurement', coordinatorEndpoint);
-          await ep.bind('seMetering', coordinatorEndpoint);
+            // Bindinger
+            await ep.bind("genOnOff", coordinatorEndpoint);
+            await ep.bind("genLevelCtrl", coordinatorEndpoint);
+            await ep.bind("haElectricalMeasurement", coordinatorEndpoint);
+            await ep.bind("seMetering", coordinatorEndpoint);
 
-      // Standard rapportering
-          await reporting.onOff(ep);
-          await reporting.brightness(ep);
-          await reporting.rmsVoltage(ep);
-          await reporting.rmsCurrent(ep);
-          await reporting.activePower(ep);
-          await reporting.instantaneousDemand(ep);
-          await reporting.currentSummDelivered(ep);
+            // Standard rapportering
+            await reporting.onOff(ep);
+            await reporting.brightness(ep);
+            await reporting.rmsVoltage(ep);
+            await reporting.rmsCurrent(ep);
+            await reporting.activePower(ep);
+            await reporting.instantaneousDemand(ep);
+            await reporting.currentSummDelivered(ep);
 
-      // Les HW-innstillinger (fase/pole) én gang
-          await ep.read('genLevelCtrl', [ATTR_OUT_EDGE, ATTR_RELAYTYPE], {manufacturerCode: MFG_CODE});
+            // Les HW-innstillinger (fase/pole) én gang
+            await ep.read("genLevelCtrl", [ATTR_OUT_EDGE, ATTR_RELAYTYPE], {manufacturerCode: MFG_CODE});
         },
     },
 ];
