@@ -1671,6 +1671,7 @@ export const definitions: DefinitionWithExtend[] = [
           try { await reporting.activePower(ep); } catch {}
           try { await reporting.instantaneousDemand(ep); } catch {}
           try { await reporting.currentSummDelivered(ep); } catch {}
-          try { await ep.read('genLevelCtrl', [ATTR_OUT_EDGE, ATTR_RELAYTYPE], {manufacturerCode: MFG_CODE}); } catch {}
+          try { await ep.read('genLevelCtrl', [ATTR_OUT_EDGE, ATTR_RELAYTYPE], {manufacturerCode: MFG_CODE}); } catch {},
+        ],
     },
 ];
