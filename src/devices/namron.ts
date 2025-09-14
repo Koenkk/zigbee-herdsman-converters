@@ -1625,47 +1625,47 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        zigbeeModel: ['4512791'],
-        model: '4512791',
-        vendor: 'Namron AS',
-        description: 'Namron Simplify Zigbee dimmer (1/2-polet / Zigbee / BT)',
+        zigbeeModel: ["4512791"],
+        model: "4512791",
+        vendor: "Namron AS",
+        description: "Namron Simplify Zigbee dimmer (1/2-polet / Zigbee / BT)",
 
-    // Modern extend (on/off, brightness, transition, power_on_behavior)
+        // Modern extend (on/off, brightness, transition, power_on_behavior)
         extend: [extend.light_onoff_brightness()],
 
-    // Standard målinger (ikke custom): EM + Metering
-        fromZigbee: [
-          fz.electrical_measurement,
-          fz.metering,
-        ],
+        // Standard målinger (ikke custom): EM + Metering
+        fromZigbee: [fz.electrical_measurement, fz.metering],
 
         exposes: [
-          e.light_brightness(),
-          e.power(), e.current(), e.voltage(), e.energy(),
-          exposes.enum('power_on_behavior', ea.ALL, ['off','on','toggle','previous']),
-          e.linkquality(),
+            e.light_brightness(),
+            e.power(),
+            e.current(),
+            e.voltage(),
+            e.energy(),
+            exposes.enum("power_on_behavior", ea.ALL, ["off", "on", "toggle", "previous"]),
+            e.linkquality(),
         ],
 
         endpoint: (device) => ({default: 1}),
 
         configure: async (device, coordinatorEndpoint) => {
-          const ep = device.getEndpoint(1);
-          if (!ep) return;
+            const ep = device.getEndpoint(1);
+            if (!ep) return;
 
-      // Bind relevante clustere
-          await ep.bind('genOnOff', coordinatorEndpoint);
-          await ep.bind('genLevelCtrl', coordinatorEndpoint);
-          await ep.bind('haElectricalMeasurement', coordinatorEndpoint);
-          await ep.bind('seMetering', coordinatorEndpoint);
+            // Bind relevante clustere
+            await ep.bind("genOnOff", coordinatorEndpoint);
+            await ep.bind("genLevelCtrl", coordinatorEndpoint);
+            await ep.bind("haElectricalMeasurement", coordinatorEndpoint);
+            await ep.bind("seMetering", coordinatorEndpoint);
 
-      // Standard rapportering
-          await reporting.onOff(ep);
-          await reporting.brightness(ep);
-          await reporting.rmsVoltage(ep);
-          await reporting.rmsCurrent(ep);
-          await reporting.activePower(ep);
-          await reporting.instantaneousDemand(ep);
-          await reporting.currentSummDelivered(ep);
-      },
-     },
+            // Standard rapportering
+            await reporting.onOff(ep);
+            await reporting.brightness(ep);
+            await reporting.rmsVoltage(ep);
+            await reporting.rmsCurrent(ep);
+            await reporting.activePower(ep);
+            await reporting.instantaneousDemand(ep);
+            await reporting.currentSummDelivered(ep);
+        },
+    },
 ];
