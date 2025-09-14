@@ -19141,7 +19141,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0601_3regm3h6",
         vendor: "Tuya",
         description: "Smart thermostat for electric radiator with pilot wire",
-        fromZigbee: [tuya.fz.datapoints],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         toZigbee: [tuya.tz.datapoints],
         exposes: [
             e.binary("state", ea.STATE_SET, "ON", "OFF").withDescription("Turn the heater on or off").withCategory("config"),
