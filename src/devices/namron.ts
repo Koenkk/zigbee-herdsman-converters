@@ -1633,12 +1633,12 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: [tz.on_off, tz.power_on_behavior],
         exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy(), e.power_on_behavior()],
         configure: async (device, coordinatorEndpoint) => {
-          const endpoint = device.getEndpoint(1);
-          await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic', 'genOnOff', 'haElectricalMeasurement', 'seMetering']);
-          await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
-          await reporting.readMeteringMultiplierDivisor(endpoint);
-          await reporting.onOff(endpoint);
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genBasic", "genOnOff", "haElectricalMeasurement", "seMetering"]);
+            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+            await reporting.onOff(endpoint);
         },
-        ota: ota.zigbeeOTA
+        ota: ota.zigbeeOTA,
     },
 ];
