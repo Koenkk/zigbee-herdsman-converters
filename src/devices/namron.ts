@@ -1625,42 +1625,47 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        zigbeeModel: ["4512791"],
-        model: "4512791",
-        vendor: "Namron AS",
-        description: "Namron Simplify Zigbee dimmer (1/2-polet / Zigbee / BT) ",
-        fromZigbee: [fz.on_off, fz.brightness, fz.power_on_behavior],
-        toZigbee: [tz.on_off, tz.light_onoff_brightness, tz.power_on_behavior],
-        exposes: [
-            e.light_brightness(),
-            e.power(),
-            e.current(),
-            e.voltage(),
-            e.energy(),
-            exposes.enum("power_on_behavior", ea.ALL, ["off", "on", "toggle", "previous"]),
-            exposes.numeric("start_brightness", ea.ALL).withValueMin(1).withValueMax(254).withDescription("Default brightness at power-on/startup"),
-            exposes.enum("phase_type", ea.ALL, ["trailing", "leading"]).withDescription("AC dimming phase type (hardware via 0xB000)"),
-            exposes.enum("pole_mode", ea.ALL, ["1_pole", "2_pole"]).withDescription("Wiring mode (hardware via 0xB001)"),
+        zigbeeModel: ['4512791'],
+        model: '4512791',
+        vendor: 'Namron AS',
+        description: 'Namron Simplify Zigbee dimmer (1/2-polet / Zigbee / BT)',
+
+    // Modern extend (on/off, brightness, transition, power_on_behavior)
+        extend: [extend.light_onoff_brightness()],
+
+    // Standard målinger (ikke custom): EM + Metering
+        fromZigbee: [
+          fz.electrical_measurement,
+          fz.metering,
         ],
+
+        exposes: [
+          e.light_brightness(),
+          e.power(), e.current(), e.voltage(), e.energy(),
+          exposes.enum('power_on_behavior', ea.ALL, ['off','on','toggle','previous']),
+          e.linkquality(),
+        ],
+
         endpoint: (device) => ({default: 1}),
+
         configure: async (device, coordinatorEndpoint) => {
-            const ep = device.getEndpoint(1) || device.getEndpoint(0) || device.endpoints?.[0];
-            if (!ep) return;
+          const ep = device.getEndpoint(1);
+          if (!ep) return;
 
-            // Bindinger
-            await ep.bind("genOnOff", coordinatorEndpoint);
-            await ep.bind("genLevelCtrl", coordinatorEndpoint);
-            await ep.bind("haElectricalMeasurement", coordinatorEndpoint);
-            await ep.bind("seMetering", coordinatorEndpoint);
+      // Bind relevante clustere
+          await ep.bind('genOnOff', coordinatorEndpoint);
+          await ep.bind('genLevelCtrl', coordinatorEndpoint);
+          await ep.bind('haElectricalMeasurement', coordinatorEndpoint);
+          await ep.bind('seMetering', coordinatorEndpoint);
 
-            // Standard rapportering
-            await reporting.onOff(ep);
-            await reporting.brightness(ep);
-            await reporting.rmsVoltage(ep);
-            await reporting.rmsCurrent(ep);
-            await reporting.activePower(ep);
-            await reporting.instantaneousDemand(ep);
-            await reporting.currentSummDelivered(ep);
-        },
-    },
+      // Standard rapportering
+          await reporting.onOff(ep);
+          await reporting.brightness(ep);
+          await reporting.rmsVoltage(ep);
+          await reporting.rmsCurrent(ep);
+          await reporting.activePower(ep);
+          await reporting.instantaneousDemand(ep);
+          await reporting.currentSummDelivered(ep);
+      },
+     },
 ];
