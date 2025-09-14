@@ -1629,9 +1629,16 @@ export const definitions: DefinitionWithExtend[] = [
         model: "4512792",
         vendor: "Namron",
         description: "Namron Simplify 1-2p Relay",
-        extend: [m.electricityMeter(), m.onOff()],
-        toZigbee: [tz.on_off],
-        exposes: [exposes.presets.switch(), exposes.presets.power(), exposes.presets.current(), exposes.presets.voltage(), exposes.presets.energy()],
-        ],
+        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.power_on_behavior],
+        toZigbee: [tz.on_off, tz.power_on_behavior],
+        exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy(), e.power_on_behavior()],
+        configure: async (device, coordinatorEndpoint) => {
+          const endpoint = device.getEndpoint(1);
+          await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic', 'genOnOff', 'haElectricalMeasurement', 'seMetering']);
+          await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
+          await reporting.readMeteringMultiplierDivisor(endpoint);
+          await reporting.onOff(endpoint);
+        },
+        ota: ota.zigbeeOTA
     },
 ];
