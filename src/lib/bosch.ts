@@ -7,6 +7,7 @@ import * as m from "../lib/modernExtend";
 import {repInterval} from "./constants";
 import {logger} from "./logger";
 import {payload} from "./reporting";
+import * as globalStore from "./store";
 import type {Configure, DefinitionExposesFunction, DummyDevice, Expose, Fz, KeyValue, ModernExtend, OnEvent, Tz, Zh} from "./types";
 import * as utils from "./utils";
 import {toNumber} from "./utils";
@@ -1575,6 +1576,283 @@ export const boschBsirExtend = {
         ];
 
         return {exposes, fromZigbee, configure, isModernExtend: true};
+    },
+};
+//endregion
+
+//region Bosch BSEN-M device (Motion sensor)
+interface BoschBsenIasZoneCluster {
+    attributes: never;
+    commands: {
+        /** ID: 243 */
+        initCustomTestMode: {
+            /** Type: UINT16 */
+            data: number[];
+        };
+    };
+    commandResponses: never;
+}
+
+export const boschBsenExtend = {
+    customIasZoneCluster: () =>
+        m.deviceAddCustomCluster("ssIasZone", {
+            ID: Zcl.Clusters.ssIasZone.ID,
+            attributes: {},
+            commands: {
+                initCustomTestMode: {
+                    ID: 0x02,
+                    parameters: [{name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8}],
+                },
+            },
+            commandsResponse: {},
+        }),
+    battery: () =>
+        m.battery({
+            percentage: false,
+            percentageReporting: false,
+            lowStatus: true,
+            lowStatusReportingConfig: {min: "MIN", max: "MAX", change: 0},
+        }),
+    illuminance: () => m.illuminance({reporting: {min: "1_SECOND", max: 600, change: 3522}}),
+    // The temperature sensor isn't used at all by Bosch on the BSEN-M.
+    // Therefore, I decided to be a bit conservative with the reporting
+    // intervals to not drain the battery too much.
+    temperature: () => m.temperature({reporting: {min: "5_MINUTES", max: "MAX", change: 100}}),
+    tamperAndOccupancyAlarm: (): ModernExtend => {
+        const exposes: Expose[] = [
+            e
+                .binary("tamper", ea.STATE, true, false)
+                .withLabel("Tamper state")
+                .withDescription("Indicates whether the device is tampered")
+                .withCategory("diagnostic"),
+            e.binary("occupancy", ea.STATE, true, false).withDescription("Indicates whether the device detected any motion in the surroundings"),
+        ];
+
+        const fromZigbee = [
+            {
+                cluster: "ssIasZone",
+                type: ["commandStatusChangeNotification"],
+                convert: (model, msg, publish, options, meta) => {
+                    const zoneStatus = msg.data.zonestatus;
+                    if (zoneStatus !== undefined) {
+                        let payload = {};
+                        payload = {tamper: (zoneStatus & (1 << 2)) > 0, ...payload};
+                        const occupancyPayload = (zoneStatus & 1) > 0;
+
+                        if (occupancyPayload === true) {
+                            payload = {occupancy: occupancyPayload, ...payload};
+
+                            // After a detection, the device turns off the motion detection for ~3 minutes.
+                            // Unfortunately, the alarm is already turned off after 4 seconds for reasons
+                            // only known to Bosch. Therefore, we have to manually differ the turn-off by
+                            // 3 minutes to avoid any confusion.
+                            clearTimeout(globalStore.getValue(msg.endpoint, "occupancy_timeout_timer"));
+                            const timer = setTimeout(() => publish({occupancy: false}), 180 * 1000);
+                            globalStore.putValue(msg.endpoint, "occupancy_timeout_timer", timer);
+                        }
+
+                        return payload;
+                    }
+                },
+            } satisfies Fz.Converter<"ssIasZone", undefined, ["commandStatusChangeNotification"]>,
+        ];
+
+        const configure: Configure[] = [
+            async (device, coordinatorEndpoint, definition) => {
+                const endpoint = device.getEndpoint(1);
+                await endpoint.bind("ssIasZone", coordinatorEndpoint);
+            },
+        ];
+
+        return {
+            exposes,
+            fromZigbee,
+            configure,
+            isModernExtend: true,
+        };
+    },
+    sensitivityLevel: (): ModernExtend => {
+        const sensitivityLevelLookup = {
+            pet_immunity: 0xb8,
+            sneak_by_guard: 0xb0,
+            unknown: 0x00,
+        };
+
+        const exposes: Expose[] = [
+            e
+                .enum("sensitivity_level", ea.STATE_GET, Object.keys(sensitivityLevelLookup))
+                .withDescription("Specifies the selected sensitivity level on the back of the device (either 'pet immunity' or 'sneak-by guard').")
+                .withCategory("diagnostic"),
+        ];
+
+        const fromZigbee = [
+            {
+                cluster: "ssIasZone",
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    if (utils.hasAlreadyProcessedMessage(msg, model)) {
+                        return;
+                    }
+
+                    const result: KeyValue = {};
+                    const data = msg.data;
+
+                    if (data.currentZoneSensitivityLevel !== undefined) {
+                        result.sensitivity_level = utils.getFromLookupByValue(data.currentZoneSensitivityLevel, sensitivityLevelLookup, "unknown");
+                    }
+
+                    return result;
+                },
+            } satisfies Fz.Converter<"ssIasZone", undefined, ["attributeReport", "readResponse"]>,
+        ];
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ["sensitivity_level"],
+                convertGet: async (entity, key, meta) => {
+                    await entity.read("ssIasZone", ["currentZoneSensitivityLevel"]);
+                },
+            },
+        ];
+
+        const configure: Configure[] = [
+            async (device, coordinatorEndpoint, definition) => {
+                const endpoint = device.getEndpoint(1);
+
+                await endpoint.bind("ssIasZone", coordinatorEndpoint);
+                await endpoint.read("ssIasZone", ["numZoneSensitivityLevelsSupported", "currentZoneSensitivityLevel"]);
+
+                // The write request is made when using the proprietary
+                // Bosch Smart Home Controller II as of 15-09-2025. Looks like
+                // the default value was too low, and they didn't want to
+                // push a firmware update. We mimic it here to avoid complaints.
+                await endpoint.write("ssIasZone", {currentZoneSensitivityLevel: 176});
+            },
+        ];
+
+        return {
+            exposes,
+            fromZigbee,
+            toZigbee,
+            configure,
+            isModernExtend: true,
+        };
+    },
+    changedCheckinInterval: (): ModernExtend => {
+        const configure: Configure[] = [
+            async (device, coordinatorEndpoint, definition) => {
+                const endpoint = device.getEndpoint(1);
+
+                await endpoint.bind("ssIasZone", coordinatorEndpoint);
+                await endpoint.read("genPollCtrl", ["checkinInterval", "longPollInterval", "shortPollInterval"]);
+
+                // The write request is made when using the proprietary
+                // Bosch Smart Home Controller II as of 15-09-2025.
+                // The reason is unclear to me, but we mimic it here
+                // to avoid possible complaints in case it fixed any issues.
+                await endpoint.write("genPollCtrl", {checkinInterval: 2160});
+            },
+        ];
+
+        return {
+            configure,
+            isModernExtend: true,
+        };
+    },
+    testMode: (): ModernExtend => {
+        const testModeLookup = {
+            ON: true,
+            OFF: false,
+        };
+
+        const enableNormalOperationMode = async (endpoint: Zh.Endpoint | Zh.Group) => {
+            await endpoint.command("ssIasZone", "initNormalOpMode", {});
+        };
+
+        const enableTestMode = async (endpoint: Zh.Endpoint | Zh.Group) => {
+            await endpoint.command<"ssIasZone", "initCustomTestMode", BoschBsenIasZoneCluster>("ssIasZone", "initCustomTestMode", {
+                data: [0x00, 0x80],
+            });
+        };
+
+        const exposes: Expose[] = [
+            e
+                .binary(
+                    "test_mode",
+                    ea.STATE_SET,
+                    utils.getFromLookupByValue(true, testModeLookup),
+                    utils.getFromLookupByValue(false, testModeLookup),
+                )
+                .withDescription(
+                    "Activate the test mode. In this mode, the device blinks on every detected motion without any wait time in between to verify the installation. Please keep in mind that it can take up to 45 seconds for the test mode to be activated.",
+                )
+                .withCategory("config"),
+        ];
+
+        const fromZigbee = [
+            {
+                cluster: "ssIasZone",
+                type: ["commandStatusChangeNotification"],
+                convert: (model, msg, publish, options, meta) => {
+                    if (utils.hasAlreadyProcessedMessage(msg, model)) {
+                        return;
+                    }
+
+                    const result: KeyValue = {};
+                    const testModeActivationPending = meta.device.meta.awaitTestModeActivation;
+                    const testModeDeactivationPending = meta.device.meta.awaitTestModeDeactivation;
+
+                    if (testModeActivationPending) {
+                        result.test_mode = utils.getFromLookupByValue(true, testModeLookup);
+                        meta.device.meta.awaitTestModeActivation = false;
+                    } else if (testModeDeactivationPending) {
+                        result.test_mode = utils.getFromLookupByValue(false, testModeLookup);
+                        meta.device.meta.awaitTestModeDeactivation = false;
+                    }
+
+                    return result;
+                },
+            } satisfies Fz.Converter<"ssIasZone", undefined, ["commandStatusChangeNotification"]>,
+        ];
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ["test_mode"],
+                convertSet: async (entity, key, value, meta) => {
+                    if (key === "test_mode") {
+                        if (value === utils.getFromLookupByValue(true, testModeLookup)) {
+                            meta.device.meta.awaitTestModeActivation = true;
+                            await enableTestMode(entity);
+                        } else {
+                            meta.device.meta.awaitTestModeDeactivation = true;
+                            await enableNormalOperationMode(entity);
+                        }
+
+                        // The device needs up to 45 seconds until the mode
+                        // change is being done. This is signalised by a
+                        // commandStatusChangeNotification message in the
+                        // ssIasZone cluster. To avoid any confusion, we
+                        // wait for the state change until the device is ready.
+                        return;
+                    }
+                },
+            },
+        ];
+
+        const configure: Configure[] = [
+            (device, coordinatorEndpoint, definition) => {
+                // Workaround for the test mode state to be OFF by default
+                device.meta.awaitTestModeDeactivation = true;
+            },
+        ];
+
+        return {
+            exposes,
+            fromZigbee,
+            toZigbee,
+            configure,
+            isModernExtend: true,
+        };
     },
 };
 //endregion
