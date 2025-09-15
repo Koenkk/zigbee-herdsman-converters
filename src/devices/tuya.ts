@@ -125,13 +125,15 @@ const storeLocal = {
                     // Only publish if the set is complete otherwise discard everything.
                     if (sign !== null && power !== null && current !== null && powerFactor !== null) {
                         const signedPowerKey = `signed_power_${channel}`;
+                        const invertedEnergyFlowKey = `invert_energy_flow_${channel}`;
                         const signedPower = options[signedPowerKey] != null ? options[signedPowerKey] : false;
+                        const invertedEnergyFlow = options[invertedEnergyFlowKey] != null ? options[invertedEnergyFlowKey] : false;
                         if (signedPower) {
                             result[`power_${channel}`] = sign * power;
                             result[`energy_flow_${channel}`] = "sign";
                         } else {
                             result[`power_${channel}`] = power;
-                            result[`energy_flow_${channel}`] = sign > 0 ? "consuming" : "producing";
+                            result[`energy_flow_${channel}`] = sign * (invertedEnergyFlow ? -1 : 1) >= 0 ? "consuming" : "producing";
                         }
                         result[`timestamp_${channel}`] = this[`timestamp_${channel}`];
                         result[`current_${channel}`] = current;
@@ -246,6 +248,34 @@ const convLocal = {
             // power_ab datapoint is broken and will be recomputed so ignore it.
             from: (v: number, meta: Fz.Meta, options: KeyValue) => {
                 return {};
+            },
+        };
+    },
+
+    energyForwardPJ1203A: (channel: string) => {
+        return {
+            from: (v: number, meta: Fz.Meta, options: KeyValue) => {
+                const invertedEnergyFlowKey = `invert_energy_flow_${channel}`;
+                const result_key = options[invertedEnergyFlowKey] ? `energy_produced_${channel}` : `energy_${channel}`;
+                const energy_sign = options[invertedEnergyFlowKey] ? -1 : 1;
+                const result = {} as KeyValueAny;
+                result[result_key] = (v / 100) * energy_sign;
+
+                return result;
+            },
+        };
+    },
+
+    energyReversePJ1203A: (channel: string) => {
+        return {
+            from: (v: number, meta: Fz.Meta, options: KeyValue) => {
+                const invertedEnergyFlowKey = `invert_energy_flow_${channel}`;
+                const result_key = options[invertedEnergyFlowKey] ? `energy_${channel}` : `energy_produced_${channel}`;
+                const energy_sign = options[invertedEnergyFlowKey] ? 1 : -1;
+                const result = {} as KeyValueAny;
+                result[result_key] = (v / 100) * energy_sign;
+
+                return result;
             },
         };
     },
@@ -922,7 +952,7 @@ const fzLocal = {
         ["commandDataResponse", "commandDataReport", "commandActiveStatusReport", "commandActiveStatusReportAlt"]
     >,
     ts020cIlluminance: {
-        cluster: "manuSpecificTuya_2",
+        cluster: "manuSpecificTuya2",
         type: ["attributeReport"],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
@@ -931,7 +961,7 @@ const fzLocal = {
             }
             return result;
         },
-    } satisfies Fz.Converter<"manuSpecificTuya_2", undefined, ["attributeReport"]>,
+    } satisfies Fz.Converter<"manuSpecificTuya2", undefined, ["attributeReport"]>,
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -950,7 +980,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS020C",
         vendor: "Tuya",
         description: "PIR sensor",
-        fromZigbee: [fzLocal.ts020cIlluminance],
+        fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery, fzLocal.ts020cIlluminance],
         extend: [tuya.modernExtend.tuyaBase({dp: true, queryOnDeviceAnnounce: true, queryOnConfigure: true})],
         exposes: [
             e.occupancy(),
@@ -1049,6 +1079,11 @@ export const definitions: DefinitionWithExtend[] = [
             {
                 manufacturerName: "Zbeacon",
                 modelID: "TS0203",
+                endpoints: [{ID: 1, profileID: 260, deviceID: 770, inputClusters: [0, 3, 1, 32, 1026, 1029], outputClusters: [25]}],
+            },
+            {
+                manufacturerName: "Zbeacon",
+                modelID: "TS0202",
                 endpoints: [{ID: 1, profileID: 260, deviceID: 770, inputClusters: [0, 3, 1, 32, 1026, 1029], outputClusters: [25]}],
             },
         ],
@@ -2070,10 +2105,11 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: [tuya.tz.do_not_disturb],
         extend: [
             m.light({
-                colorTemp: {range: [50, 500], startup: true},
+                colorTemp: {range: [25, 1000], startup: true},
                 effect: true,
                 powerOnBehavior: true,
-                color: {modes: ["xy", "hs"], enhancedHue: false, moveToLevelWithOnOffDisable: true},
+                moveToLevelWithOnOffDisable: true,
+                color: {modes: ["xy"], enhancedHue: false},
             }),
         ],
         exposes: [tuya.exposes.doNotDisturb()],
@@ -4604,6 +4640,7 @@ export const definitions: DefinitionWithExtend[] = [
             {vendor: "Lonsonho", model: "X702"},
             {vendor: "AVATTO", model: "ZTS02"},
             tuya.whitelabel("PSMART", "T462", "2 Gang switch with backlight, countdown, inching", ["_TZ3000_wnzoyohq"]),
+            tuya.whitelabel("Nova Digital", "FZB-2", "2-Gang switch with backlight, countdown and inching", ["_TZ3000_5ksufhqi"]),
         ],
     },
 
@@ -7082,6 +7119,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZ3000_nzkqcvvs",
             "_TZ3000_rtcrrvia",
             "_TZ3000_ysiog9xi",
+            "_TZ3000_o1jzcxou",
         ]),
         model: "TS011F_plug_2",
         description: "Smart plug (without power monitoring)",
@@ -7091,6 +7129,7 @@ export const definitions: DefinitionWithExtend[] = [
                 powerOutageMemory: true,
                 indicatorMode: true,
                 childLock: true,
+                onOffCountdown: true,
             }),
         ],
         configure: async (device, coordinatorEndpoint) => {
@@ -8494,7 +8533,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0726", ["_TZ3002_sal078g8"]),
+        fingerprint: tuya.fingerprint("TS0726", ["_TZ3002_sal078g8", "_TZ3002_sfh0jtz0"]),
         model: "TS0726_switch_4g_2s",
         vendor: "Tuya",
         description: "COSWALL smart switch (4 gang + 2 scene)",
@@ -11663,6 +11702,24 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
+        fingerprint: tuya.fingerprint("TS0001", ["_TZ3000_65ajyxua"]),
+        model: "FZB-1",
+        vendor: "Nova Digital",
+        description: "1-Gang switch with power-on behavior and indicator mode",
+        extend: [
+            tuya.modernExtend.tuyaOnOff({
+                powerOnBehavior2: true,
+                backlightModeOffOn: true,
+                indicatorMode: true,
+                inchingSwitch: true,
+            }),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0003", ["_TZ3000_pv4puuxi", "_TZ3000_avky2mvc", "_TZ3000_785olaiq", "_TZ3000_qxcnwv26"]),
         model: "TS0003_switch_3_gang",
         vendor: "Tuya",
@@ -14015,6 +14072,8 @@ export const definitions: DefinitionWithExtend[] = [
             e
                 .binary("signed_power_b", ea.SET, true, false)
                 .withDescription("Report energy flow direction for channel B using signed power (default false)."),
+            e.binary("invert_energy_flow_a", ea.SET, true, false).withDescription("Report energy flow direction inverted for channel A."),
+            e.binary("invert_energy_flow_b", ea.SET, true, false).withDescription("Report energy flow direction inverted for channel B."),
         ],
         exposes: [
             e.ac_frequency(),
@@ -14062,10 +14121,10 @@ export const definitions: DefinitionWithExtend[] = [
                 [102, null, convLocal.energyFlowPJ1203A("a")], // energy_flow_a or the sign of power_a
                 [104, null, convLocal.energyFlowPJ1203A("b")], // energy_flow_b or the sign of power_b
                 [115, null, convLocal.powerAbPJ1203A()],
-                [106, "energy_a", tuya.valueConverter.divideBy100],
-                [108, "energy_b", tuya.valueConverter.divideBy100],
-                [107, "energy_produced_a", tuya.valueConverter.divideBy100],
-                [109, "energy_produced_b", tuya.valueConverter.divideBy100],
+                [106, null, convLocal.energyForwardPJ1203A("a")],
+                [108, null, convLocal.energyForwardPJ1203A("b")],
+                [107, null, convLocal.energyReversePJ1203A("a")],
+                [109, null, convLocal.energyReversePJ1203A("b")],
                 [129, "update_frequency", tuya.valueConverter.raw],
             ],
         },
@@ -16347,7 +16406,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_fhvdgeuh", "_TZE200_abatw3kj"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_fhvdgeuh", "_TZE200_abatw3kj", "_TZE204_4bjixefp"]),
         model: "TS0601_din_4",
         vendor: "Tuya",
         description: "Din rail switch with power monitoring and threshold settings",

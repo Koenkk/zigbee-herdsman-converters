@@ -96,6 +96,19 @@ const fzLocal = {
             }
         },
     } satisfies Fz.Converter<"genLevelCtrl", undefined, ["attributeReport", "readResponse"]>,
+    on_off_clear_electricity: {
+        cluster: "genOnOff",
+        type: ["attributeReport", "readResponse"],
+        options: [exposes.options.state_action()],
+        convert: (model, msg, publish, options, meta) => {
+            // https://github.com/Koenkk/zigbee2mqtt/issues/28470
+            let result = fz.on_off.convert(model, msg, publish, options, meta);
+            if (msg.data.onOff === 0) {
+                result = {...result, power: 0, current: 0};
+            }
+            return result;
+        },
+    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
 };
 
 const tzLocal = {
@@ -2003,6 +2016,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "SONOFF",
         description: "Zigbee smart plug",
         whiteLabel: [{vendor: "SONOFF", model: "S60ZBTPG", fingerprint: [{modelID: "S60ZBTPG"}]}],
+        fromZigbee: [fzLocal.on_off_clear_electricity],
         extend: [
             m.onOff({
                 powerOnBehavior: true,
