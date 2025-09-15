@@ -44,8 +44,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SM309-S-2CH",
         vendor: "Samotech",
         description: "Zigbee 2 channel in wall dimmer",
-        extend: [m.deviceEndpoints({endpoints: { 1: 1, 2: 2 } }), m.light({endpointNames: ["1", "2"]})],
-        meta: { multiEndpoint: true },
+        extend: [m.deviceEndpoints({endpoints: {1: 1, 2: 2}}), m.light({endpointNames: ["1", "2"]})],
+        meta: {multiEndpoint: true},
     },
     {
         // v1 doesn't support electricity measurements
