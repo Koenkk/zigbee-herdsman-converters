@@ -1625,10 +1625,10 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-      zigbeeModel: ['4512793'],
-      model: '4512793',
-      vendor: 'Namron AS',
-      description: 'Namron Simplify 4512793 – 6 buttons (action entity) + battery',
+      zigbeeModel: ["4512793, 4512794"],
+      model: "4512793",
+      vendor: "Namron AS",
+      description: 'Namron Simplify 6 buttons (action entity) + battery',
       extend: [m.battery()],             // battery reporting + battery entities
       fromZigbee: [fzLocal.namron4512793_remote],
       toZigbee: [],
