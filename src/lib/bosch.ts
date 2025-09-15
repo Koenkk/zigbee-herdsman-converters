@@ -1624,7 +1624,6 @@ export const boschBsenExtend = {
                 .binary("tamper", ea.STATE, true, false)
                 .withLabel("Tamper state")
                 .withDescription("Indicates whether the device is tampered")
-                .withCategory("diagnostic"),
             e
                 .binary("occupancy", ea.STATE, true, false)
                 .withLabel("Occupancy state")
