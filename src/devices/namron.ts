@@ -1643,4 +1643,5 @@ export const definitions: DefinitionWithExtend[] = [
           'button_3_down_press','button_3_down_hold','button_3_down_release',
         ]),
       ],
+    },
 ];
