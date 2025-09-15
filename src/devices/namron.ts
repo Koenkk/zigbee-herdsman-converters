@@ -1624,7 +1624,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.temperature({reporting: undefined}),
         ],
     },
-    const fz451279x_remote = {
+    const fz451279x_remote = {,
     cluster: 'zosungIRControl',
     type: ['raw'],
     convert: (model, msg, publish, options, meta) => {
