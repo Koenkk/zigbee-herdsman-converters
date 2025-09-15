@@ -1624,40 +1624,9 @@ export const definitions: DefinitionWithExtend[] = [
             m.temperature({reporting: undefined}),
         ],
     },
-    const fz451279x_remote = {,
-    cluster: 'zosungIRControl',
-    type: ['raw'],
-    convert: (model, msg, publish, options, meta) => {
-        const b = bytesFromMsg(msg);
-        if (!b.length) return;
-
-        const n   = b.length;
-        const btn = b[n - 2];            // 1..6
-        const raw = b[n - 1];            // 0x00/0x01/0x02
-        const kind = ACTIONS[raw];
-        if (!kind) return;
-
-        // intern channels-state
-        const ch   = chans(btn);
-        const last = getLastCh(meta.device);
-        if (ch !== last) setLastCh(meta.device, ch);
-
-        const base = `button_${col(btn)}_${sub(btn)}_`;
-        if (kind === 'hold') {
-            publish({action: base+'hold'});
-            return;
-        }
-        if (kind === 'release') {
-            publish({action: base+'press'});   // sikre rekkefølge
-            publish({action: base+'release'});
-            return;
-        }
-        publish({action: base+'press'});
-    },
-};
-
-function makeDef(modelId, label) {
-    return {
+    {
+        function makeDef(modelId, label) {
+        return {
         zigbeeModel: [modelId],
         model: modelId,
         vendor: 'Namron AS',
