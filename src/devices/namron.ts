@@ -1630,7 +1630,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Namron AS",
         description: "Namron Simplify 6 buttons (action entity) + battery",
         extend: [m.battery()], // battery reporting + battery entities
-        fromZigbee: [ mfHandler ],
+        fromZigbee: [mfHandler],
         toZigbee: [],
         // Expose ONLY action so HA gets sensor.<friendly>_action that updates on press
         exposes: [
