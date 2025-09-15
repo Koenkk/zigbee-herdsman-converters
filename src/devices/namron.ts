@@ -1625,23 +1625,35 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-      zigbeeModel: ["4512793, 4512794"],
-      model: "4512793",
-      vendor: "Namron AS",
-      description: 'Namron Simplify 6 buttons (action entity) + battery',
-      extend: [m.battery()],             // battery reporting + battery entities
-      fromZigbee: [fzLocal.namron4512793_remote],
-      toZigbee: [],
-  // Expose ONLY action so HA gets sensor.<friendly>_action that updates on press
-      exposes: [
-        e.action([
-          'button_1_up_press','button_1_up_hold','button_1_up_release',
-          'button_1_down_press','button_1_down_hold','button_1_down_release',
-          'button_2_up_press','button_2_up_hold','button_2_up_release',
-          'button_2_down_press','button_2_down_hold','button_2_down_release',
-          'button_3_up_press','button_3_up_hold','button_3_up_release',
-          'button_3_down_press','button_3_down_hold','button_3_down_release',
-        ]),
-      ],
+        zigbeeModel: ["4512793, 4512794"],
+        model: "4512793",
+        vendor: "Namron AS",
+        description: "Namron Simplify 6 buttons (action entity) + battery",
+        extend: [m.battery()], // battery reporting + battery entities
+        fromZigbee: [fzLocal.namron4512793_remote],
+        toZigbee: [],
+        // Expose ONLY action so HA gets sensor.<friendly>_action that updates on press
+        exposes: [
+            e.action([
+                "button_1_up_press",
+                "button_1_up_hold",
+                "button_1_up_release",
+                "button_1_down_press",
+                "button_1_down_hold",
+                "button_1_down_release",
+                "button_2_up_press",
+                "button_2_up_hold",
+                "button_2_up_release",
+                "button_2_down_press",
+                "button_2_down_hold",
+                "button_2_down_release",
+                "button_3_up_press",
+                "button_3_up_hold",
+                "button_3_up_release",
+                "button_3_down_press",
+                "button_3_down_hold",
+                "button_3_down_release",
+            ]),
+        ],
     },
 ];
