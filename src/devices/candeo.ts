@@ -6,6 +6,7 @@ import * as m from "../lib/modernExtend";
 import * as globalStore from "../lib/store";
 import type {DefinitionWithExtend, Fz, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
+import * as tuya from "../lib/tuya";
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -611,9 +612,54 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Motion sensor",
         extend: [
             m.battery(),
-            m.illuminance({reporting: {min: 1, max: 65535, change: 1}, scale: luxScale}),
+            m.illuminance({reporting: null, scale: luxScale}),
             m.iasZoneAlarm({zoneType: "occupancy", zoneAttributes: ["alarm_1"]}),
         ],
+        fromZigbee: [
+            tuya.fz.datapoints,
+        ],    
+        toZigbee: [
+            tuya.tz.datapoints,
+        ],
+        exposes: [
+            e
+                .enum("sensitivity", ea.STATE_SET, ["low", "medium", "high"])
+                .withDescription("PIR sensor sensitivity (refresh and update only while active)"),
+            e
+                .enum("keep_time", ea.STATE_SET, ["10", "30", "60", "120"])
+                .withDescription("PIR keep time in seconds (refresh and update only while active)"),
+            e
+                .numeric("illuminance_interval", ea.STATE_SET)
+                .withValueMin(1)
+                .withValueMax(720)
+                .withValueStep(1)
+                .withUnit("minutes")
+                .withDescription("Brightness acquisition interval (refresh and update only while active)"),
+        ],
+        meta: {
+            tuyaDatapoints: [            
+                [
+                    9,
+                    "sensitivity",
+                    tuya.valueConverterBasic.lookup({
+                        low: tuya.enum(0),
+                        medium: tuya.enum(1),
+                        high: tuya.enum(2),
+                    }),
+                ],
+                [
+                    10,
+                    "keep_time",
+                    tuya.valueConverterBasic.lookup({
+                        "10": tuya.enum(0),
+                        "30": tuya.enum(1),
+                        "60": tuya.enum(2),
+                        "120": tuya.enum(3),
+                    }),
+                ],
+                [102, "illuminance_interval", tuya.valueConverter.raw],
+            ],
+        },
     },
     {
         fingerprint: [{modelID: "C-ZB-DM201-2G"}],
