@@ -1625,21 +1625,20 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        zigbeeModel: ['4512792'],
-        model: '4512792',
-        vendor: 'Namron AS',
-        description: 'Namron Simplify 1-2p Relay (Zigbee / BT)',
+        zigbeeModel: ["4512792"],
+        model: "4512792",
+        vendor: "Namron AS",
+        description: "Namron Simplify 1-2p Relay (Zigbee / BT)",
         extend: [
-          m.onOff(),
-          m.electricityMeter({
-            expose: false,
-            power:   { multiplier: 1, divisor: 10 },   // W
-            voltage: { multiplier: 1, divisor: 10 },   // V -> 2383 -> 238.3
-            current: { multiplier: 1, divisor: 100 },  // A
-            energy:  { multiplier: 1, divisor: 100 },  // kWh
-          }),
+            m.onOff(),
+            m.electricityMeter({
+                expose: false,
+                power: {multiplier: 1, divisor: 10}, // W
+                voltage: {multiplier: 1, divisor: 10}, // V -> 2383 -> 238.3
+                current: {multiplier: 1, divisor: 100}, // A
+                energy: {multiplier: 1, divisor: 100}, // kWh
+            }),
         ],
-           ota: ota.zigbeeOTA,
-      },
-   
+        ota: ota.zigbeeOTA,
+    },
 ];
