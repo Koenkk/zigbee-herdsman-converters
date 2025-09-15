@@ -1610,6 +1610,8 @@ export const boschBsenExtend = {
         m.battery({
             percentage: false,
             percentageReporting: false,
+            voltage: true,
+            voltageToPercentage: {min: 2500, max: 3000},
             lowStatus: true,
             lowStatusReportingConfig: {min: "MIN", max: "MAX", change: 0},
         }),
