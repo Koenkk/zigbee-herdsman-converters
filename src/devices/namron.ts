@@ -1626,11 +1626,11 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["4512793, 4512794"],
-        model: "4512793",
+        model: "4512793 / 4512794",
         vendor: "Namron AS",
         description: "Namron Simplify 6 buttons (action entity) + battery",
         extend: [m.battery()], // battery reporting + battery entities
-        fromZigbee: [fzLocal.namron4512793_remote],
+        fromZigbee: [fzLocal.remote],
         toZigbee: [],
         // Expose ONLY action so HA gets sensor.<friendly>_action that updates on press
         exposes: [
