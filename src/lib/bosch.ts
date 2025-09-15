@@ -1580,7 +1580,7 @@ export const boschBsirExtend = {
 };
 //endregion
 
-//region Bosch BSEN-M device (Motion sensor)
+//region Bosch BSEN-M device (Motion detector)
 interface BoschBsenIasZoneCluster {
     attributes: never;
     commands: {
