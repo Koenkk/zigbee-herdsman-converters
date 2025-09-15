@@ -376,6 +376,14 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        zigbeeModel: ["SIN-4-1-20_EQU"],
+        model: "SIN-4-1-20_EQU",
+        vendor: "Adeo",
+        description: "Dry contact switch for central heating boilers",
+        extend: [m.onOff(), m.commandsOnOff()],
+    },
+
+    {
         zigbeeModel: ["SIN-4-RS-20_LEX"],
         model: "SIN-4-RS-20_LEX",
         vendor: "ADEO",
@@ -449,5 +457,12 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "ADEO",
         description: "ENKI LEXMAN wireless smart door window sensor",
         extend: [m.battery(), m.iasZoneAlarm({zoneType: "contact", zoneAttributes: ["alarm_1", "tamper", "battery_low"]})],
+    },
+    {
+        zigbeeModel: ["ZB-WaterSensor-D0001"],
+        model: "83633206",
+        vendor: "ADEO",
+        description: "ENKI LEXMAN water leak sensor",
+        extend: [m.battery(), m.iasZoneAlarm({zoneType: "water_leak", zoneAttributes: ["alarm_1", "alarm_2", "tamper", "battery_low"]})],
     },
 ];

@@ -13,6 +13,13 @@ const ea = exposes.access;
 
 export const definitions: DefinitionWithExtend[] = [
     {
+        zigbeeModel: ["929003736601_01", "929003736601_02"],
+        model: "929003736601",
+        vendor: "Philips",
+        description: "Hue Datura LED ceiling panel small round",
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+    },
+    {
         zigbeeModel: ["929003810901_01", "929003810901_02", "929003810901_03"],
         model: "929003810901",
         vendor: "Philips",
@@ -4198,5 +4205,47 @@ export const definitions: DefinitionWithExtend[] = [
                 gradient: {extraEffects: ["sparkle", "opal", "glisten", "underwater", "cosmos", "sunbeam", "enchant"]},
             }),
         ],
+    },
+    {
+        zigbeeModel: ["929003808401_01", "929003808401_02", "929003808401_03"],
+        model: "929003808401",
+        vendor: "Philips",
+        description: "Hue White & Color ambience Centris ceiling light (2 spots)",
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+    },
+    {
+        zigbeeModel: ["LWA032"],
+        model: "8720169363649",
+        vendor: "Philips",
+        description: "Hue White A60 E27 810lm",
+        extend: [philips.m.light()],
+    },
+    {
+        zigbeeModel: ["LCA017"],
+        model: "046677592530",
+        vendor: "Philips",
+        description: "Hue Essential White and Color Ambiance A19",
+        extend: [philips.m.light({colorTemp: {range: [153, 447]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+    },
+    {
+        zigbeeModel: ["LCB003"],
+        model: "046677592622",
+        vendor: "Philips",
+        description: "Hue Essential White and Color Ambiance BR30",
+        extend: [philips.m.light({colorTemp: {range: [153, 447]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+    },
+    {
+        zigbeeModel: ["LCA016"],
+        model: "8720169392182",
+        vendor: "Philips",
+        description: "Hue Essential White and Color Ambiance A60",
+        extend: [philips.m.light({colorTemp: {range: [153, 447]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+    },
+    {
+        zigbeeModel: ["LCG008"],
+        model: "8720169392540",
+        vendor: "Philips",
+        description: "Hue Essential White and Color Ambiance GU10",
+        extend: [philips.m.light({colorTemp: {range: [153, 447]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
 ];
