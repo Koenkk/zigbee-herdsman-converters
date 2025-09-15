@@ -1632,6 +1632,10 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.battery()], // battery reporting + battery entities
         fromZigbee: [m.handler],
         toZigbee: [],
+        const mfHandler = {
+        cluster: 'zosungIRControl',
+        type: ['raw'],
+        convert: (model, msg, publish, options, meta) => {
         // Expose ONLY action so HA gets sensor.<friendly>_action that updates on press
         exposes: [
             e.action([
