@@ -4,9 +4,9 @@ import * as fz from "../converters/fromZigbee";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as globalStore from "../lib/store";
+import * as tuya from "../lib/tuya";
 import type {DefinitionWithExtend, Fz, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
-import * as tuya from "../lib/tuya";
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -615,12 +615,8 @@ export const definitions: DefinitionWithExtend[] = [
             m.illuminance({reporting: null, scale: luxScale}),
             m.iasZoneAlarm({zoneType: "occupancy", zoneAttributes: ["alarm_1"]}),
         ],
-        fromZigbee: [
-            tuya.fz.datapoints,
-        ],    
-        toZigbee: [
-            tuya.tz.datapoints,
-        ],
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
         exposes: [
             e
                 .enum("sensitivity", ea.STATE_SET, ["low", "medium", "high"])
@@ -637,7 +633,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription("Brightness acquisition interval (refresh and update only while active)"),
         ],
         meta: {
-            tuyaDatapoints: [            
+            tuyaDatapoints: [
                 [
                     9,
                     "sensitivity",
