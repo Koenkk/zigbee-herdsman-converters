@@ -1625,7 +1625,10 @@ export const boschBsenExtend = {
                 .withLabel("Tamper state")
                 .withDescription("Indicates whether the device is tampered")
                 .withCategory("diagnostic"),
-            e.binary("occupancy", ea.STATE, true, false).withDescription("Indicates whether the device detected any motion in the surroundings"),
+            e
+                .binary("occupancy", ea.STATE, true, false)
+                .withLabel("Occupancy state")
+                .withDescription("Indicates whether the device detected any motion in the surroundings"),
         ];
 
         const fromZigbee = [
