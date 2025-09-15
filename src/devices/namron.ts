@@ -1625,19 +1625,21 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        zigbeeModel: ["4512792"],
-        model: "4512792",
-        vendor: "Namron",
-        description: "Namron Simplify 1-2p Relay",
-        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.power_on_behavior],
-        toZigbee: [tz.on_off, tz.power_on_behavior],
-        exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy(), e.power_on_behavior()],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genBasic", "genOnOff", "haElectricalMeasurement", "seMetering"]);
-            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
-            await reporting.readMeteringMultiplierDivisor(endpoint);
-            await reporting.onOff(endpoint);
-        },
-    },
+        zigbeeModel: ['4512792'],
+        model: '4512792',
+        vendor: 'Namron AS',
+        description: 'Namron Simplify 1-2p Relay (Zigbee / BT)',
+        extend: [
+          m.onOff(),
+          m.electricityMeter({
+            expose: false,
+            power:   { multiplier: 1, divisor: 10 },   // W
+            voltage: { multiplier: 1, divisor: 10 },   // V -> 2383 -> 238.3
+            current: { multiplier: 1, divisor: 100 },  // A
+            energy:  { multiplier: 1, divisor: 100 },  // kWh
+          }),
+        ],
+           ota: ota.zigbeeOTA,
+      },
+   
 ];
