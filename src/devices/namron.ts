@@ -1624,4 +1624,30 @@ export const definitions: DefinitionWithExtend[] = [
             m.temperature({reporting: undefined}),
         ],
     },
+    {
+        function makeDef(modelId, label) {
+        return {
+        zigbeeModel: [modelId],
+        model: modelId,
+        vendor: 'Namron AS',
+        description: `Namron Simplify ${label} — 6 buttons (action) + battery`,
+        extend: [m.battery()],
+        fromZigbee: [fz451279x_remote],
+        toZigbee: [],
+        exposes: [
+            e.action([
+                'button_1_up_press','button_1_up_hold','button_1_up_release',
+                'button_1_down_press','button_1_down_hold','button_1_down_release',
+                'button_2_up_press','button_2_up_hold','button_2_up_release',
+                'button_2_down_press','button_2_down_hold','button_2_down_release',
+                'button_3_up_press','button_3_up_hold','button_3_up_release',
+                'button_3_down_press','button_3_down_hold','button_3_down_release',
+            ]),
+        ],
+    };
+}
+
+module.exports = [
+    makeDef('4512793', '4512793 (white)'),
+    makeDef('4512794', '4512794 (black)'),
 ];
