@@ -614,9 +614,8 @@ export const definitions: DefinitionWithExtend[] = [
             m.battery(),
             m.illuminance({reporting: null, scale: luxScale}),
             m.iasZoneAlarm({zoneType: "occupancy", zoneAttributes: ["alarm_1"]}),
+            tuya.modernExtend.tuyaBase({dp: true}),
         ],
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
         exposes: [
             e
                 .enum("sensitivity", ea.STATE_SET, ["low", "medium", "high"])
