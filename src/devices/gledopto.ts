@@ -3,9 +3,9 @@ import * as libColor from "../lib/color";
 import * as exposes from "../lib/exposes";
 import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
-import type {Configure, DefinitionWithExtend, ModernExtend, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
 import * as tuya from "../lib/tuya";
+import type {Configure, DefinitionWithExtend, ModernExtend, Tz, Meta, Entity} from "../lib/types";
 
 const NS = "zhc:gledopto";
 const e = exposes.presets;
@@ -201,7 +201,7 @@ const tuyaValueConverters = {
 
 const tzColorTuyaSpi = {
     key: ["color", "brightness"],
-    convertSet: async (entity: any, key: string, value: any, meta: any) => {
+    convertSet: async (entity: Entity, key: string, value: unknown, meta: Meta) => {
         const ep = meta.device.endpoints[0];
         const modeNow = meta.state?.work_mode;
         if (meta.state?.state !== 'ON') {
@@ -239,7 +239,7 @@ const tzColorTuyaSpi = {
                 val1000 & 0xFF         
             ];
 
-            await tuya.sendDataPointRaw(ep, 61, dp61Payload);
+            await tuya.sendDataPointRaw(ep, 61, Buffer.from(dp61Payload));
 
             return { state: { state: 'ON', work_mode: 'colour', color: colorData } };
         }
@@ -250,7 +250,7 @@ const tzColorTuyaSpi = {
 
 const tzDp51Scene = {
     key: ["scene"],
-    convertSet: async (entity: any, key: string, value: any, meta: any) => {
+    convertSet: async (entity: Entity, key: string, value: unknown, meta: Meta) => {
         const ep = meta.device.endpoints[0];
         if (meta.state?.state !== 'ON') {
             await tuya.sendDataPointBool(ep, 1, true);
@@ -261,7 +261,7 @@ const tzDp51Scene = {
         const sceneName = value;
         const sceneData = SCENE_DATA[sceneName as keyof typeof SCENE_DATA];
         if (sceneData) {
-            await tuya.sendDataPointRaw(ep, 51, sceneData);
+            await tuya.sendDataPointRaw(ep, 51, Buffer.from(sceneData));
             return { state: { state: 'ON', work_mode: 'scene', scene: sceneName } };
         } else {
             throw new Error(`Unknown scene: ${sceneName}`);
@@ -271,7 +271,7 @@ const tzDp51Scene = {
 
 const tzDp52Music = {
     key: ["music_mode", "music_sensitivity"],
-    convertSet: async (entity: any, key: string, value: any, meta: any) => {
+    convertSet: async (entity: Entity, key: string, value: unknown, meta: Meta) => {
         const ep = meta.device.endpoints[0];
         if (meta.state?.state !== 'ON') {
             await tuya.sendDataPointBool(ep, 1, true);
@@ -286,7 +286,7 @@ const tzDp52Music = {
         if (key === 'music_mode') {
             musicMode = value;
         } else if (key === 'music_sensitivity') {
-            sensitivity = value;
+            sensitivity = value as number;
         }
         const baseMusicData = MUSIC_DATA[musicMode as keyof typeof MUSIC_DATA];
         if (!baseMusicData) {
@@ -295,7 +295,7 @@ const tzDp52Music = {
         const dp52Payload = [...baseMusicData];
         dp52Payload[5] = Math.max(1, Math.min(100, sensitivity)); 
 
-        await tuya.sendDataPointRaw(ep, 52, dp52Payload);
+        await tuya.sendDataPointRaw(ep, 52, Buffer.from(dp52Payload));
 
         return { state: { state: 'ON', work_mode: 'music', music_mode: musicMode, music_sensitivity: sensitivity } };
     },
