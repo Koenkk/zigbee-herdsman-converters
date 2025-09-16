@@ -5387,35 +5387,6 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_ax8a8ahx"]),
-        model: "ZM79E-DT",
-        vendor: "Tervix",
-        description: "Pro Line Zigbee curtain motor",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
-        exposes: [
-            e.text("work_state", ea.STATE),
-            e.cover_position().setAccess("position", ea.STATE_SET),
-            e.enum("opening_mode", ea.STATE_SET, ["tilt", "lift"]).withDescription("Opening mode"),
-            e.enum("motor_direction", ea.STATE_SET, ["left", "right"]).withDescription("Motor side"),
-            e.enum("set_upper_limit", ea.STATE_SET, ["start", "stop"]).withDescription("Learning"),
-            e.enum("factory_reset", ea.STATE_SET, ["SET"]).withDescription("Remove limits"),
-        ],
-        meta: {
-            tuyaDatapoints: [
-                [1, "state", tuya.valueConverterBasic.lookup({CLOSE: tuya.enum(2), STOP: tuya.enum(1), OPEN: tuya.enum(0)})],
-                [2, "position", tuya.valueConverter.coverPositionInverted],
-                [3, "position", tuya.valueConverter.coverPositionInverted],
-                [4, "opening_mode", tuya.valueConverterBasic.lookup({tilt: tuya.enum(0), lift: tuya.enum(1)})],
-                [7, "work_state", tuya.valueConverterBasic.lookup({standby: tuya.enum(0), success: tuya.enum(1), learning: tuya.enum(2)})],
-                [101, "motor_direction", tuya.valueConverterBasic.lookup({left: tuya.enum(0), right: tuya.enum(1)})],
-                [102, "set_upper_limit", tuya.valueConverterBasic.lookup({start: tuya.enum(1), stop: tuya.enum(0)})],
-                [107, "factory_reset", tuya.valueConverter.setLimit],
-            ],
-        },
-    },
-    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_2rvvqjoa"]),
         model: "BX82-TYZ1",
         vendor: "Manhot",
@@ -8788,75 +8759,128 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         exposes: [
-            // Core thermostat controls
+            // Weekly Schedule (Datapoint 48) - Placeholder
+            // The schedule is a raw 168-byte array (7 days x 24 bytes/day):
+            // - Each day has up to 6 slots (4 bytes each): [Hour (1B), Minute (1B), Temp x10 (2B)]
+            // - Empty slots: encoded as 00:00 time and 0°C temp (0x0000).
+            // To implement:
+            // - Converter 'from': Decode raw data into structured schedule (e.g., [{day, slots: [{time, temp}]}]).
+            // - Converter 'to': Encode user input back into raw 168-byte buffer format.
+
+            // Each timer can set the time in the 1st and 2nd bytes, and the temperature in the 3rd and 4th bytes.
+            // There are 6 timers. The default time is 06:00 20°C; 08:00 15°C; 11:30 15°C; 13:30 15°C; 17:00 22°C; 22:00 15°C.
+            // Each segment occupies 4 bytes. If the temperature contains decimals, the data must be expanded 10 times.
+            // If it does not contain decimals, it will be transmitted normally.
+            // For example, if it is 06:00 35.0, it will be transmitted as 06 00 01 5e. 6*4*3=72 bytes
+
+            // Climate Control
             e
                 .climate()
-                .withSetpoint("current_heating_setpoint", 5, 35, 0.5, ea.STATE_SET) // DP 16
-                .withLocalTemperature(ea.STATE) // DP 24
-                .withSystemMode(["auto", "heat", "off"], ea.STATE_SET) // DP 2
-                .withRunningState(["idle", "heat"], ea.STATE), // DP 3
+                .withSetpoint("current_heating_setpoint", 5, 35, 0.5, ea.STATE_SET)
+                .withLocalTemperature(ea.STATE)
+                .withLocalTemperatureCalibration(-9.9, 9.9, 0.1, ea.STATE_SET)
+                .withSystemMode(["off", "heat"], ea.STATE_SET)
+                .withRunningState(["idle", "heat"], ea.STATE),
 
-            // Basic settings
+            // Expose local temperature as a sensor
             e
-                .binary("state", ea.STATE_SET, "ON", "OFF")
-                .withDescription("Controls whether the thermostat is on or off."), // DP 1
-            e
-                .binary("child_lock", ea.STATE_SET, "ON", "OFF")
-                .withDescription("Locks the thermostat display to prevent accidental changes."), // DP 40
-            e
-                .numeric("relative_humidity", ea.STATE)
-                .withUnit("%")
-                .withDescription("Relative humidity reported by the thermostat."), // DP 34
+                .numeric("local_temperature", ea.STATE)
+                .withUnit("°C")
+                .withDescription("Current temperature measured by the thermostat."),
 
-            // Protection features
+            // Modes and Schedules
+            e.enum("mode", ea.STATE_SET, ["manual", "program"]),
+            e.enum("run_mode", ea.STATE_SET, ["heat_mode", "cool_mode"]).withDescription("Operation mode of the thermostat (heat or cool)."),
+            e.enum("week_program_periods", ea.STATE, ["periods_4"]).withDescription("Number of program periods per week (read-only)."),
+
+            // Features
             e
-                .binary("frost_protection", ea.STATE_SET, "ON", "OFF")
-                .withDescription("Enables frost protection against freezing temperatures."), // DP 10
+                .binary("factory_reset", ea.STATE_SET, "ON", "OFF")
+                .withDescription("WARNING: Restores the device to factory settings. All configurations will be lost."),
+            e.binary("child_lock", ea.STATE_SET, "ON", "OFF").withDescription("Enables or disables the child lock feature."),
+            e.enum("window_state", ea.STATE, ["open", "close"]).withDescription("Indicates whether the window is open or closed."),
+            e.enum("working_status", ea.STATE, ["Keeping Warm", "Working"]).withDescription("Current working status of the thermostat."),
+            e.binary("window_check", ea.STATE_SET, "ON", "OFF").withDescription("Checks whether the window is open or closed."),
+            e.binary("frost_protection", ea.STATE_SET, "ON", "OFF").withDescription("Enables frost protection mode."),
+            e.enum("sensor_choose", ea.STATE_SET, ["in", "out"]).withDescription("Selects between internal or external temperature sensors."),
+            e.binary("humidity_control", ea.STATE_SET, "ON", "OFF").withDescription("Controls the humidity protection feature."),
+            e.numeric("humidity", ea.STATE).withUnit("%").withDescription("Displays the current relative humidity level in percentage."),
+
+            // Weekly Schedule
+            e
+                .text("week_schedule", ea.STATE_SET)
+                .withDescription('Weekly schedule: structured format like - Monday: [{"time":"06:30","temp":20.0},...].'),
+
+            // Temperature and Control Adjustments
+            e
+                .numeric("upper_temp", ea.STATE_SET)
+                .withUnit("°C")
+                .withValueMin(35)
+                .withValueMax(95)
+                .withValueStep(0.5)
+                .withDescription("Set the upper temperature limit"),
             e
                 .numeric("hysteresis", ea.STATE_SET)
                 .withUnit("°C")
                 .withValueMin(0.1)
                 .withValueMax(5)
                 .withValueStep(0.1)
-                .withDescription("Hysteresis for heating/cooling cycle control."), // DP 106
-
-            // Calibration
+                .withDescription("Hysteresis for heating/cooling cycle control."),
             e
-                .numeric("temperature_calibration", ea.STATE_SET)
+                .numeric("temperature_correction", ea.STATE_SET)
                 .withUnit("°C")
-                .withValueMin(-5)
-                .withValueMax(5)
-                .withDescription("Offset correction for temperature calibration."), // DP 101
-
-            // Weekly schedule programming
+                .withValueMin(-9)
+                .withValueMax(9)
+                .withValueStep(1)
+                .withDescription("Temperature calibration adjustment."),
             e
-                .text("week_schedule", ea.STATE_SET)
-                .withDescription("Weekly schedule programming as a JSON string (6 periods per day)."), // DP 48
-            e
-                .binary("weekly_schedule_enabled", ea.STATE_SET, "ON", "OFF")
-                .withDescription("Enable or disable weekly scheduling functions."), // DP 108
-
-            // Secondary heating
-            e
-                .numeric("secondary_heating_setpoint", ea.STATE_SET)
+                .numeric("switch_sensitivity", ea.STATE_SET)
                 .withUnit("°C")
-                .withValueMin(5)
-                .withValueMax(35)
-                .withDescription("Secondary heating setpoint, e.g., for floor sensor."),
+                .withValueMin(0.5)
+                .withValueMax(5.0)
+                .withValueStep(0.5)
+                .withDescription("Temperature difference threshold to trigger switching."),
+            e
+                .numeric("floor_temp_protection", ea.STATE_SET)
+                .withUnit("°C")
+                .withValueMin(5.0)
+                .withValueMax(60.0)
+                .withValueStep(0.5)
+                .withDescription("Maximum allowed floor temperature for protection."),
+            e
+                .numeric("floor_low_protection", ea.STATE_SET)
+                .withUnit("°C")
+                .withValueMin(10.0)
+                .withValueMax(30.0)
+                .withValueStep(0.5)
+                .withDescription("Minimum allowed floor temperature for protection."),
         ],
         meta: {
             tuyaDatapoints: [
-                [1, "state", tuya.valueConverter.onOff], // DP 1: Toggle On/Off
-                [2, "system_mode", tuya.valueConverterBasic.lookup({auto: 0, heat: 1, off: 2})], // DP 2: System Mode
-                [3, "running_state", tuya.valueConverterBasic.lookup({idle: 0, heat: 1})], // DP 3: Running State
-                [10, "frost_protection", tuya.valueConverter.onOff], // DP 10: Frost protection
-                [16, "current_heating_setpoint", tuya.valueConverter.divideBy10], // DP 16: Heating Setpoint
-                [24, "local_temperature", tuya.valueConverter.divideBy10], // DP 24: Local Temperature
-                [34, "relative_humidity", tuya.valueConverter.raw], // DP 34: Relative Humidity (%)
-                [40, "child_lock", tuya.valueConverter.onOff], // DP 40: Display Lock
-                [48, "week_schedule", tuya.valueConverter.raw], // DP 48: Weekly Schedule Programming
-                [106, "hysteresis", tuya.valueConverter.divideBy10], // DP 106: Hysteresis
-                [101, "temperature_calibration", tuya.valueConverter.raw], // DP 101: Temperature Calibration
+                [1, "switch", tuya.valueConverter.onOff],
+                [2, "mode", tuya.valueConverterBasic.lookup({manual: 0, program: 1})],
+                [3, "working_status", tuya.valueConverterBasic.lookup({"Keeping Warm": 0, Working: 1})],
+                [8, "window_check", tuya.valueConverter.onOff],
+                [10, "frost_protection", tuya.valueConverter.onOff],
+                [16, "current_heating_setpoint", tuya.valueConverter.divideBy10],
+                [19, "upper_temp", tuya.valueConverter.divideBy10],
+                [24, "local_temperature", tuya.valueConverter.divideBy10],
+                [25, "window_state", tuya.valueConverterBasic.lookup({open: 1, close: 0})],
+                [27, "temperature_correction", tuya.valueConverter.raw],
+                [34, "humidity", tuya.valueConverter.raw],
+                [39, "factory_reset", tuya.valueConverter.onOff],
+                [43, "sensor_choose", tuya.valueConverterBasic.lookup({in: 0, out: 1})],
+                [48, "week_schedule", tuya.valueConverter.raw],
+                [58, "run_mode", tuya.valueConverterBasic.lookup({heat_mode: 1, cool_mode: 2})],
+                [61, "week_program_periods", tuya.valueConverterBasic.lookup({periods_4: 1})],
+                [101, "switch_sensitivity", tuya.valueConverter.divideBy10],
+                [102, "floor_temp_protection", tuya.valueConverter.divideBy10],
+                [103, "floor_low_protection", tuya.valueConverter.divideBy10],
+                [104, "window_open_detection_time", tuya.valueConverter.raw],
+                [105, "window_open_detection_temp", tuya.valueConverter.raw],
+                [106, "window_open_delay_time", tuya.valueConverter.raw],
+                [107, "humidity_control", tuya.valueConverter.onOff],
+                [108, "upper_humidity_limit", tuya.valueConverter.raw],
             ],
         },
     },
