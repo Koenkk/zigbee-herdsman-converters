@@ -1670,7 +1670,7 @@ export const boschBsenExtend = {
             } satisfies Fz.Converter<"ssIasZone", undefined, ["commandStatusChangeNotification"]>,
             {
                 cluster: "ssIasZone",
-                type: ["attributeReport", "readResponse"],
+                type: ["readResponse"],
                 convert: (model, msg, publish, options, meta) => {
                     const zoneStatus = msg.data.zoneStatus;
 
@@ -1692,7 +1692,7 @@ export const boschBsenExtend = {
 
                     return payload;
                 },
-            } satisfies Fz.Converter<"ssIasZone", undefined, ["attributeReport", "readResponse"]>,
+            } satisfies Fz.Converter<"ssIasZone", undefined, ["readResponse"]>,
         ];
 
         const configure: Configure[] = [
@@ -1827,7 +1827,7 @@ export const boschBsenExtend = {
         const fromZigbee = [
             {
                 cluster: "ssIasZone",
-                type: ["commandStatusChangeNotification", "attributeReport", "readResponse"],
+                type: ["commandStatusChangeNotification", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
                     const zoneStatus = "zonestatus" in msg.data ? msg.data.zonestatus : msg.data.zoneStatus;
 
@@ -1849,7 +1849,7 @@ export const boschBsenExtend = {
 
                     return result;
                 },
-            } satisfies Fz.Converter<"ssIasZone", undefined, ["commandStatusChangeNotification", "attributeReport", "readResponse"]>,
+            } satisfies Fz.Converter<"ssIasZone", undefined, ["commandStatusChangeNotification", "readResponse"]>,
         ];
 
         const toZigbee: Tz.Converter[] = [
