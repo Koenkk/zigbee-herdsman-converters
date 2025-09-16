@@ -1195,7 +1195,7 @@ export interface BoschBsirIasWdCluster {
         /** ID: 40965 | Type: UINT8 */
         lightDuration: number;
         /** ID: 40966 | Type: UINT8 */
-        alarmState: number;
+        deviceState: number;
     };
     commands: {
         /** ID: 243 */
@@ -1243,7 +1243,7 @@ export const boschBsirExtend = {
                 sirenDelay: {ID: 0xa003, type: Zcl.DataType.UINT16, manufacturerCode: manufacturerOptions.manufacturerCode},
                 lightDelay: {ID: 0xa004, type: Zcl.DataType.UINT16, manufacturerCode: manufacturerOptions.manufacturerCode},
                 lightDuration: {ID: 0xa005, type: Zcl.DataType.UINT8, manufacturerCode: manufacturerOptions.manufacturerCode},
-                alarmState: {ID: 0xa006, type: Zcl.DataType.UINT8, manufacturerCode: manufacturerOptions.manufacturerCode},
+                deviceState: {ID: 0xa006, type: Zcl.DataType.UINT8, manufacturerCode: manufacturerOptions.manufacturerCode},
             },
             commands: {
                 alarmControl: {
@@ -1308,20 +1308,23 @@ export const boschBsirExtend = {
             isModernExtend: true,
         };
     },
-    alarmState: () =>
+    deviceState: () =>
         m.enumLookup<"ssIasWd", BoschBsirIasWdCluster>({
-            name: "alarm_state",
+            name: "device_state",
             cluster: "ssIasWd",
-            attribute: "alarmState",
-            description: "Current state of the siren and light. Please keep in mind that these activate after the specified delay time.",
+            attribute: "deviceState",
+            description:
+                "Current state of the siren and light. Please keep in mind that these activate after the specified delay time (except when using an external alarm trigger).",
             lookup: {
+                siren_active_from_external_trigger: 0x05,
+                light_active_from_external_trigger: 0x06,
+                siren_and_light_active_from_external_trigger: 0x07,
                 siren_active: 0x09,
                 light_active: 0x0a,
                 siren_and_light_active: 0x0b,
-                no_alarm_active: 0x00,
+                idle: 0x00,
             },
             access: "STATE_GET",
-            entityCategory: "diagnostic",
         }),
     battery: () =>
         m.battery({
@@ -1426,13 +1429,19 @@ export const boschBsirExtend = {
             reporting: {min: "MIN", max: "MAX", change: 1},
             entityCategory: "config",
         }),
-    tamperAndPowerOutageState: (): ModernExtend => {
+    iasZoneStatus: (): ModernExtend => {
         const powerOutageLookup = {
             outage_detected: true,
             power_ok: false,
         };
 
         const exposes: Expose[] = [
+            e
+                .binary("external_trigger", ea.STATE, true, false)
+                .withLabel("External trigger state")
+                .withDescription(
+                    "Indicates whether an external alarm via the 'TRIGGER_IN' connectors on the back of the device is being received. Please keep in mind that the device automatically activates/deactivates an alarm in that case.",
+                ),
             e
                 .binary("tamper", ea.STATE, true, false)
                 .withLabel("Tamper state")
@@ -1455,18 +1464,18 @@ export const boschBsirExtend = {
         const fromZigbee = [
             {
                 cluster: "ssIasZone",
-                type: ["commandStatusChangeNotification", "attributeReport", "readResponse"],
+                type: ["commandStatusChangeNotification"],
                 convert: (model, msg, publish, options, meta) => {
                     if (utils.hasAlreadyProcessedMessage(msg, model)) {
                         return;
                     }
 
-                    const isChange = msg.type === "commandStatusChangeNotification";
-                    const zoneStatus = "zonestatus" in msg.data ? msg.data.zonestatus : msg.data.zoneStatus;
+                    const zoneStatus = msg.data.zonestatus;
+                    const alarmOneStatus = (zoneStatus & 1) > 0;
                     const tamperStatus = (zoneStatus & (1 << 2)) > 0;
                     const alarmTwoStatus = (zoneStatus & (1 << 1)) > 0;
 
-                    if (tamperStatus && isChange) {
+                    if (tamperStatus) {
                         meta.device
                             .getEndpoint(1)
                             .command<"ssIasZone", "acknowledgeStatusChange", BoschBsirIasZoneCluster>(
@@ -1480,7 +1489,7 @@ export const boschBsirExtend = {
                             });
                     }
 
-                    if (alarmTwoStatus && isChange) {
+                    if (alarmTwoStatus) {
                         meta.device
                             .getEndpoint(1)
                             .command<"ssIasZone", "acknowledgeStatusChange", BoschBsirIasZoneCluster>(
@@ -1495,11 +1504,12 @@ export const boschBsirExtend = {
                     }
 
                     return {
+                        external_trigger: alarmOneStatus,
                         tamper: tamperStatus,
                         power_outage: utils.getFromLookupByValue(alarmTwoStatus, powerOutageLookup),
                     };
                 },
-            } satisfies Fz.Converter<"ssIasZone", undefined, ["commandStatusChangeNotification", "attributeReport", "readResponse"]>,
+            } satisfies Fz.Converter<"ssIasZone", undefined, ["commandStatusChangeNotification"]>,
         ];
 
         const configure: Configure[] = [
