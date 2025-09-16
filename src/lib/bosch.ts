@@ -1429,7 +1429,7 @@ export const boschBsirExtend = {
             reporting: {min: "MIN", max: "MAX", change: 1},
             entityCategory: "config",
         }),
-    alarmStates: (): ModernExtend => {
+    iasZoneStatusStates: (): ModernExtend => {
         const powerOutageLookup = {
             outage_detected: true,
             power_ok: false,
@@ -1442,7 +1442,11 @@ export const boschBsirExtend = {
                 .withDescription(
                     "Indicates whether an external alarm via the 'TRIGGER_IN' connectors on the back of the device is being received. Please keep in mind that the device automatically activates/deactivates an alarm in that case.",
                 ),
-            e.binary("tamper", ea.STATE, true, false).withLabel("Tamper state").withDescription("Indicates whether the device is tampered"),
+            e
+                .binary("tamper", ea.STATE, true, false)
+                .withLabel("Tamper state")
+                .withDescription("Indicates whether the device is tampered")
+                .withCategory("diagnostic"),
             e
                 .binary(
                     "power_outage",
@@ -1453,7 +1457,8 @@ export const boschBsirExtend = {
                 .withLabel("Power outage state")
                 .withDescription(
                     "Indicates the configured primary power source experiences a power outage. This only works when using ac or dc power.",
-                ),
+                )
+                .withCategory("diagnostic"),
         ];
 
         const fromZigbee = [

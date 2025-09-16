@@ -1070,7 +1070,7 @@ export const definitions: DefinitionWithExtend[] = [
             boschBsirExtend.customIasWdCluster(),
             boschBsirExtend.deviceState(),
             boschBsirExtend.alarmControl(),
-            boschBsirExtend.alarmStates(),
+            boschBsirExtend.iasZoneStatusStates(),
             boschBsirExtend.battery(),
             boschBsirExtend.alarmMode(),
             boschBsirExtend.sirenVolume(),
