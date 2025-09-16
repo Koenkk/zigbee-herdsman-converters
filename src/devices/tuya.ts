@@ -11779,7 +11779,7 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [tuya.whitelabel("Homeetec", "37022714", "4 Gang switch with backlight", ["_TZE200_hewlydpz"])],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_p6vz3wzt"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_p6vz3wzt", "_TZE284_uqfph8ah"]),
         model: "TS0601_cover_5",
         vendor: "Tuya",
         description: "Curtain/blind switch",
@@ -11825,7 +11825,10 @@ export const definitions: DefinitionWithExtend[] = [
                 [103, "child_lock", tuya.valueConverter.onOff],
             ],
         },
-        whiteLabel: [tuya.whitelabel("Homeetec", "37022483", "Curtain/blind switch", ["_TZE200_p6vz3wzt"])],
+        whiteLabel: [
+            tuya.whitelabel("Homeetec", "37022483", "Curtain/blind switch", ["_TZE200_p6vz3wzt"]),
+            tuya.whitelabel("BSEED", "_TZE284_uqfph8ah", "Curtain/blind switch", ["_TZE284_uqfph8ah"]),
+        ],
     },
     {
         zigbeeModel: ["TS030F"],
