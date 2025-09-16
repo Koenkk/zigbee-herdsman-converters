@@ -1660,7 +1660,7 @@ export const boschBsenExtend = {
 
                         // After a detection, the device turns off the motion detection for ~3 minutes.
                         // Unfortunately, the alarm is already turned off after 4 seconds for reasons
-                        // only known to Bosch. Therefore, we have to manually differ the turn-off by
+                        // only known to Bosch. Therefore, we have to manually defer the turn-off by
                         // 3 minutes to avoid any confusion.
                         clearTimeout(globalStore.getValue(msg.endpoint, "occupancy_timeout_timer"));
                         const timer = setTimeout(() => publish({occupancy: false}), 184 * 1000);
