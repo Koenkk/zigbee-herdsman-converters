@@ -1429,7 +1429,7 @@ export const boschBsirExtend = {
             reporting: {min: "MIN", max: "MAX", change: 1},
             entityCategory: "config",
         }),
-    iasZoneStatusStates: (): ModernExtend => {
+    iasZoneStatus: (): ModernExtend => {
         const powerOutageLookup = {
             outage_detected: true,
             power_ok: false,
