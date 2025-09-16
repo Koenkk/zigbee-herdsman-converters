@@ -1622,7 +1622,11 @@ export const boschBsenExtend = {
     temperature: () => m.temperature({reporting: {min: "5_MINUTES", max: "MAX", change: 100}}),
     tamperAndOccupancyAlarm: (): ModernExtend => {
         const exposes: Expose[] = [
-            e.binary("tamper", ea.STATE, true, false).withLabel("Tamper state").withDescription("Indicates whether the device is tampered"),
+            e
+                .binary("tamper", ea.STATE, true, false)
+                .withLabel("Tamper state")
+                .withDescription("Indicates whether the device is tampered")
+                .withCategory("diagnostic"),
             e
                 .binary("occupancy", ea.STATE, true, false)
                 .withLabel("Occupancy state")
