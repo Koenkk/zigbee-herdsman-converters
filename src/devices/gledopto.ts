@@ -5,7 +5,8 @@ import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
 import * as utils from "../lib/utils";
 import * as tuya from "../lib/tuya";
-import type {Configure, DefinitionWithExtend, ModernExtend, Tz, Meta, Entity} from "../lib/types";
+import type {Configure, DefinitionWithExtend, ModernExtend, Tz} from "../lib/types";
+
 
 const NS = "zhc:gledopto";
 const e = exposes.presets;
@@ -284,7 +285,8 @@ const tzDp52Music = {
             throw new Error(`Unknown music mode: ${musicMode}`);
         }
         const dp52Payload: number[] = [...baseMusicData];
-        dp52Payload[5] = Math.max(1, Math.min(100, sensitivity as number)); 
+        dp52Payload[5] = Math.max(1, Math.min(100, Number(sensitivity))); 
+
 
         await tuya.sendDataPointRaw(ep, 52, Buffer.from(dp52Payload));
         return { state: { state: 'ON', work_mode: 'music', music_mode: musicMode, music_sensitivity: sensitivity } };
