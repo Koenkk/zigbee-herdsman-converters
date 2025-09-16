@@ -1637,9 +1637,9 @@ export const boschBsenExtend = {
         const fromZigbee = [
             {
                 cluster: "ssIasZone",
-                type: ["commandStatusChangeNotification"],
+                type: ["commandStatusChangeNotification", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
-                    const zoneStatus = msg.data.zonestatus;
+                    const zoneStatus = "zonestatus" in msg.data ? msg.data.zonestatus : msg.data.zoneStatus;
 
                     if (zoneStatus === undefined) {
                         return;
@@ -1650,11 +1650,13 @@ export const boschBsenExtend = {
                     const tamperStatus = (zoneStatus & (1 << 2)) > 0;
                     payload = {tamper: tamperStatus, ...payload};
 
-                    const occupancyStatus = (zoneStatus & 1) > 0;
-                    const isNewOccupancyStatusDetected = occupancyStatus === true;
+                    const alarmOneStatus = (zoneStatus & 1) > 0;
+                    const isChangeMessage = msg.type === "commandStatusChangeNotification";
+                    const isNewOccupancyStatusDetected = alarmOneStatus === true;
+                    const isCurrentOccupancyStatusUnset = meta.state.occupancy === undefined;
 
-                    if (isNewOccupancyStatusDetected) {
-                        payload = {occupancy: occupancyStatus, ...payload};
+                    if (isChangeMessage && isNewOccupancyStatusDetected) {
+                        payload = {occupancy: alarmOneStatus, ...payload};
 
                         // After a detection, the device turns off the motion detection for ~3 minutes.
                         // Unfortunately, the alarm is already turned off after 4 seconds for reasons
@@ -1663,36 +1665,13 @@ export const boschBsenExtend = {
                         clearTimeout(globalStore.getValue(msg.endpoint, "occupancy_timeout_timer"));
                         const timer = setTimeout(() => publish({occupancy: false}), 184 * 1000);
                         globalStore.putValue(msg.endpoint, "occupancy_timeout_timer", timer);
+                    } else if (isCurrentOccupancyStatusUnset) {
+                        payload = {occupancy: alarmOneStatus, ...payload};
                     }
 
                     return payload;
                 },
-            } satisfies Fz.Converter<"ssIasZone", undefined, ["commandStatusChangeNotification"]>,
-            {
-                cluster: "ssIasZone",
-                type: ["readResponse"],
-                convert: (model, msg, publish, options, meta) => {
-                    const zoneStatus = msg.data.zoneStatus;
-
-                    if (zoneStatus === undefined) {
-                        return;
-                    }
-
-                    let payload = {};
-
-                    const tamperStatus = (zoneStatus & (1 << 2)) > 0;
-                    payload = {tamper: tamperStatus, ...payload};
-
-                    const occupancyStatus = (zoneStatus & 1) > 0;
-                    const isCurrentOccupancyStatusUnset = meta.state.occupancy === undefined;
-
-                    if (isCurrentOccupancyStatusUnset) {
-                        payload = {occupancy: occupancyStatus, ...payload};
-                    }
-
-                    return payload;
-                },
-            } satisfies Fz.Converter<"ssIasZone", undefined, ["readResponse"]>,
+            } satisfies Fz.Converter<"ssIasZone", undefined, ["commandStatusChangeNotification", "readResponse"]>,
         ];
 
         const configure: Configure[] = [
