@@ -1314,7 +1314,7 @@ export const boschBsirExtend = {
             cluster: "ssIasWd",
             attribute: "deviceState",
             description:
-                "Current state of the siren and light. Please keep in mind that these activate after the specified delay time (expect when using an external alarm trigger).",
+                "Current state of the siren and light. Please keep in mind that these activate after the specified delay time (except when using an external alarm trigger).",
             lookup: {
                 siren_active_from_external_trigger: 0x05,
                 light_active_from_external_trigger: 0x06,
