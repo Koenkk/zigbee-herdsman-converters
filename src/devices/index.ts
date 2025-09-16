@@ -84,6 +84,7 @@ import {definitions as engo} from "./engo";
 import {definitions as enkin} from "./enkin";
 import {definitions as enocean} from "./enocean";
 import {definitions as envilar} from "./envilar";
+import {definitions as espressif} from "./espressif";
 import {definitions as essentialb} from "./essentialb";
 import {definitions as essentials} from "./essentials";
 import {definitions as eucontrols} from "./eucontrols";
@@ -278,6 +279,7 @@ import {definitions as siterwell} from "./siterwell";
 import {definitions as skydance} from "./skydance";
 import {definitions as slackyDiy} from "./slacky_diy";
 import {definitions as slv} from "./slv";
+import {definitions as smarli} from "./smarli";
 import {definitions as smartHomePty} from "./smart_home_pty";
 import {definitions as smart9} from "./smart9";
 import {definitions as smartenit} from "./smartenit";
@@ -429,9 +431,10 @@ const definitions: DefinitionWithExtend[] = [
     ...eglo,
     ...elko,
     ...enbrighten,
-    ...enocean,
     ...enkin,
+    ...enocean,
     ...envilar,
+    ...espressif,
     ...essentialb,
     ...essentials,
     ...eucontrols,
@@ -625,6 +628,7 @@ const definitions: DefinitionWithExtend[] = [
     ...skydance,
     ...slackyDiy,
     ...slv,
+    ...smarli,
     ...smart9,
     ...smartenit,
     ...smartHomePty,

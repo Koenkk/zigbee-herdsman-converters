@@ -1,7 +1,7 @@
 import {Zcl, ZSpec} from "zigbee-herdsman";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
-import {type BoschBmctCluster, boschBmctExtend} from "../lib/bosch";
+import {type BoschBmctCluster, boschBmctExtend, boschBsenExtend, boschBsirExtend, manufacturerOptions} from "../lib/bosch";
 import * as constants from "../lib/constants";
 import {repInterval} from "../lib/constants";
 import * as exposes from "../lib/exposes";
@@ -17,30 +17,6 @@ const e = exposes.presets;
 const ea = exposes.access;
 
 const NS = "zhc:bosch";
-const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH};
-
-const sirenVolume = {
-    low: 0x01,
-    medium: 0x02,
-    high: 0x03,
-};
-
-const sirenLight = {
-    only_light: 0x00,
-    only_siren: 0x01,
-    siren_and_light: 0x02,
-};
-
-const outdoorSirenState = {
-    ON: 0x07,
-    OFF: 0x00,
-};
-
-const sirenPowerSupply = {
-    solar_panel: 0x01,
-    ac_power_supply: 0x02,
-    dc_power_supply: 0x03,
-};
 
 // Universal Switch II
 const buttonMap: {[key: string]: number} = {
@@ -101,12 +77,6 @@ interface BoschHvacUserInterfaceCfg {
         displayBrightness: number;
     };
     commands: never;
-    commandResponses: never;
-}
-
-interface BoschSsIasWd {
-    attributes: never;
-    commands: {boschOutdoorSiren: {data: number}};
     commandResponses: never;
 }
 
@@ -996,88 +966,6 @@ const boschExtend = {
     },
 };
 const tzLocal = {
-    rbshoszbeu: {
-        key: ["light_delay", "siren_delay", "light_duration", "siren_duration", "siren_volume", "alarm_state", "power_source", "siren_and_light"],
-        convertSet: async (entity, key, value, meta) => {
-            if (key === "light_delay") {
-                const index = value;
-                await entity.write("ssIasWd", {40964: {value: index, type: 0x21}}, manufacturerOptions);
-                return {state: {light_delay: value}};
-            }
-            if (key === "siren_delay") {
-                const index = value;
-                await entity.write("ssIasWd", {40963: {value: index, type: 0x21}}, manufacturerOptions);
-                return {state: {siren_delay: value}};
-            }
-            if (key === "light_duration") {
-                const index = value;
-                await entity.write("ssIasWd", {40965: {value: index, type: 0x20}}, manufacturerOptions);
-                return {state: {light_duration: value}};
-            }
-            if (key === "siren_duration") {
-                const index = value;
-                await entity.write("ssIasWd", {40960: {value: index, type: 0x20}}, manufacturerOptions);
-                return {state: {siren_duration: value}};
-            }
-            if (key === "siren_and_light") {
-                const index = utils.getFromLookup(value, sirenLight);
-                await entity.write("ssIasWd", {40961: {value: index, type: 0x20}}, manufacturerOptions);
-                return {state: {siren_and_light: value}};
-            }
-            if (key === "siren_volume") {
-                const index = utils.getFromLookup(value, sirenVolume);
-                await entity.write("ssIasWd", {40962: {value: index, type: 0x20}}, manufacturerOptions);
-                return {state: {siren_volume: value}};
-            }
-            if (key === "power_source") {
-                const index = utils.getFromLookup(value, sirenPowerSupply);
-                await entity.write(0x0001, {40962: {value: index, type: 0x20}}, manufacturerOptions);
-                return {state: {power_source: value}};
-            }
-            if (key === "alarm_state") {
-                const endpoint = meta.device.getEndpoint(1);
-                const index = utils.getFromLookup(value, outdoorSirenState);
-                if (index === 0) {
-                    await endpoint.command<"ssIasWd", "boschOutdoorSiren", BoschSsIasWd>(
-                        "ssIasWd",
-                        "boschOutdoorSiren",
-                        {data: 0},
-                        manufacturerOptions,
-                    );
-                    return {state: {alarm_state: value}};
-                }
-                await endpoint.command<"ssIasWd", "boschOutdoorSiren", BoschSsIasWd>("ssIasWd", "boschOutdoorSiren", {data: 7}, manufacturerOptions);
-                return {state: {alarm_state: value}};
-            }
-        },
-        convertGet: async (entity, key, meta) => {
-            switch (key) {
-                case "light_delay":
-                    await entity.read("ssIasWd", [0xa004], manufacturerOptions);
-                    break;
-                case "siren_delay":
-                    await entity.read("ssIasWd", [0xa003], manufacturerOptions);
-                    break;
-                case "light_duration":
-                    await entity.read("ssIasWd", [0xa005], manufacturerOptions);
-                    break;
-                case "siren_duration":
-                    await entity.read("ssIasWd", [0xa000], manufacturerOptions);
-                    break;
-                case "siren_and_light":
-                    await entity.read("ssIasWd", [0xa001], manufacturerOptions);
-                    break;
-                case "siren_volume":
-                    await entity.read("ssIasWd", [0xa002], manufacturerOptions);
-                    break;
-                case "alarm_state":
-                    await entity.read("ssIasWd", [0xf0], manufacturerOptions);
-                    break;
-                default: // Unknown key
-                    throw new Error(`Unhandled key toZigbee.rbshoszbeu.convertGet ${key}`);
-            }
-        },
-    } satisfies Tz.Converter,
     bhius_config: {
         key: Object.keys(buttonMap),
         convertGet: async (entity, key, meta) => {
@@ -1176,92 +1064,23 @@ export const definitions: DefinitionWithExtend[] = [
         model: "BSIR-EZ",
         vendor: "Bosch",
         description: "Outdoor siren",
-        fromZigbee: [fz.battery, fz.power_source],
-        toZigbee: [tzLocal.rbshoszbeu, tz.warning],
-        meta: {battery: {voltageToPercentage: {min: 2500, max: 4200}}},
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg", "ssIasZone", "ssIasWd", "genBasic"]);
-            await reporting.batteryVoltage(endpoint);
-            await endpoint.read(0x0502, [0xa000, 0xa001, 0xa002, 0xa003, 0xa004, 0xa005], manufacturerOptions);
-            if (endpoint.binds.some((b) => b.cluster.name === "genPollCtrl")) {
-                await endpoint.unbind("genPollCtrl", coordinatorEndpoint);
-            }
-        },
-        exposes: [
-            e.binary("alarm_state", ea.ALL, "ON", "OFF").withDescription("Alarm turn ON/OFF"),
-            e
-                .numeric("light_delay", ea.ALL)
-                .withValueMin(0)
-                .withValueMax(30)
-                .withValueStep(1)
-                .withUnit("s")
-                .withDescription("Flashing light delay")
-                .withUnit("s"),
-            e
-                .numeric("siren_delay", ea.ALL)
-                .withValueMin(0)
-                .withValueMax(30)
-                .withValueStep(1)
-                .withUnit("s")
-                .withDescription("Siren alarm delay")
-                .withUnit("s"),
-            e
-                .numeric("siren_duration", ea.ALL)
-                .withValueMin(1)
-                .withValueMax(15)
-                .withValueStep(1)
-                .withUnit("m")
-                .withDescription("Duration of the alarm siren")
-                .withUnit("m"),
-            e
-                .numeric("light_duration", ea.ALL)
-                .withValueMin(1)
-                .withValueMax(15)
-                .withValueStep(1)
-                .withUnit("m")
-                .withDescription("Duration of the alarm light")
-                .withUnit("m"),
-            e.enum("siren_volume", ea.ALL, Object.keys(sirenVolume)).withDescription("Volume of the alarm"),
-            e.enum("siren_and_light", ea.ALL, Object.keys(sirenLight)).withDescription("Siren and Light behaviour during alarm "),
-            e.enum("power_source", ea.ALL, Object.keys(sirenPowerSupply)).withDescription("Siren power source"),
-            e
-                .warning()
-                .removeFeature("strobe_level")
-                .removeFeature("strobe")
-                .removeFeature("strobe_duty_cycle")
-                .removeFeature("level")
-                .removeFeature("duration"),
-            e.test(),
-            e.battery(),
-            e.battery_voltage(),
-            e.binary("ac_status", ea.STATE, true, false).withDescription("Is the device plugged in"),
-        ],
         extend: [
-            m.iasZoneAlarm({zoneType: "alarm", zoneAttributes: ["alarm_1", "tamper", "battery_low"]}),
-            m.deviceAddCustomCluster("ssIasZone", {
-                ID: Zcl.Clusters.ssIasZone.ID,
-                attributes: {},
-                commands: {
-                    boschTestTamper: {
-                        ID: 0xf3,
-                        parameters: [{name: "data", type: Zcl.DataType.UINT8}],
-                    },
-                },
-                commandsResponse: {},
-            }),
-            m.deviceAddCustomCluster("ssIasWd", {
-                ID: Zcl.Clusters.ssIasWd.ID,
-                attributes: {},
-                commands: {
-                    boschOutdoorSiren: {
-                        ID: 240,
-                        parameters: [{name: "data", type: Zcl.DataType.UINT8}],
-                    },
-                },
-                commandsResponse: {},
-            }),
-            m.quirkCheckinInterval(0),
+            boschBsirExtend.customPowerCfgCluster(),
+            boschBsirExtend.customIasZoneCluster(),
+            boschBsirExtend.customIasWdCluster(),
+            boschBsirExtend.deviceState(),
+            boschBsirExtend.alarmControl(),
+            boschBsirExtend.iasZoneStatus(),
+            boschBsirExtend.battery(),
+            boschBsirExtend.alarmMode(),
+            boschBsirExtend.sirenVolume(),
+            boschBsirExtend.sirenDuration(),
+            boschBsirExtend.lightDuration(),
+            boschBsirExtend.sirenDelay(),
+            boschBsirExtend.lightDelay(),
+            boschBsirExtend.primaryPowerSource(),
+            boschBsirExtend.currentPowerSource(),
+            boschBsirExtend.solarPanelVoltage(),
         ],
         ota: true,
     },
@@ -1825,19 +1644,19 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["RFPR-ZB-SH-EU"],
-        model: "RFPR-ZB-SH-EU",
+        model: "BSEN-M",
         vendor: "Bosch",
-        description: "Wireless motion detector",
-        fromZigbee: [fz.temperature, fz.battery, fz.ias_occupancy_alarm_1],
-        toZigbee: [],
-        meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["msTemperatureMeasurement", "genPowerCfg"]);
-            await reporting.temperature(endpoint);
-            await reporting.batteryVoltage(endpoint);
-        },
-        exposes: [e.temperature(), e.battery(), e.occupancy(), e.battery_low(), e.tamper()],
+        description: "Motion detector",
+        extend: [
+            boschBsenExtend.customIasZoneCluster(),
+            boschBsenExtend.changedCheckinInterval(),
+            boschBsenExtend.tamperAndOccupancyAlarm(),
+            boschBsenExtend.battery(),
+            boschBsenExtend.sensitivityLevel(),
+            boschBsenExtend.testMode(),
+            boschBsenExtend.illuminance(),
+            boschBsenExtend.temperature(),
+        ],
     },
     {
         zigbeeModel: ["RBSH-SP-ZB-EU", "RBSH-SP-ZB-FR", "RBSH-SP-ZB-GB"],

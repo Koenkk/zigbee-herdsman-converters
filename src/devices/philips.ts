@@ -13,6 +13,20 @@ const ea = exposes.access;
 
 export const definitions: DefinitionWithExtend[] = [
     {
+        zigbeeModel: ["LCX030"],
+        model: "929004284702",
+        vendor: "Philips",
+        description: "Hue Festavia permanent string lights",
+        extend: [philips.m.light({colorTemp: {range: [50, 1000]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+    },
+    {
+        zigbeeModel: ["929003736601_01", "929003736601_02"],
+        model: "929003736601",
+        vendor: "Philips",
+        description: "Hue Datura LED ceiling panel small round",
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+    },
+    {
         zigbeeModel: ["929003810901_01", "929003810901_02", "929003810901_03"],
         model: "929003810901",
         vendor: "Philips",
