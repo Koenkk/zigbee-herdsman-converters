@@ -1627,8 +1627,8 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["4512792"],
         model: "4512792",
-        vendor: "Namron AS",
-        description: "Namron Simplify 1-2p Relay (Zigbee / BT)",
+        vendor: "Namron",
+        description: "Simplify 1-2p relay (Zigbee / BT)",
         extend: [
             m.onOff(),
             m.electricityMeter({
