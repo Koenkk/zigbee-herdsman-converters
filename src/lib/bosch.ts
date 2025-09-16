@@ -1820,8 +1820,8 @@ export const boschBsenExtend = {
 
                     const result: KeyValue = {};
 
-                    const testModeStatus = ((zoneStatus >> 8) & 1) > 0;
-                    result.test_mode = utils.getFromLookupByValue(testModeStatus, testModeLookup);
+                    const testModeEnabled = ((zoneStatus >> 8) & 1) > 0;
+                    result.test_mode = utils.getFromLookupByValue(testModeEnabled, testModeLookup);
 
                     return result;
                 },
