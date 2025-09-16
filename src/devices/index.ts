@@ -200,6 +200,7 @@ import {definitions as mindy} from "./mindy";
 import {definitions as modular} from "./modular";
 import {definitions as moes} from "./moes";
 import {definitions as mullerLicht} from "./muller_licht";
+import {definitions as multir} from "./multir";
 import {definitions as multiterm} from "./multiterm";
 import {definitions as namron} from "./namron";
 import {definitions as nanoleaf} from "./nanoleaf";
@@ -549,6 +550,7 @@ const definitions: DefinitionWithExtend[] = [
     ...modular,
     ...moes,
     ...mullerLicht,
+	...multir,
     ...multiterm,
     ...namron,
     ...nanoleaf,
