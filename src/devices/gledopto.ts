@@ -65,6 +65,51 @@ const MUSIC_DATA = {
     ],
 } as const;
 
+const localValueConverter = {
+    scene_data_converter: {
+        to: (v: string) => {
+            const sceneData = SCENE_DATA[v as keyof typeof SCENE_DATA];
+            if (!sceneData) {
+                throw new Error(`Unknown scene: ${v}`);
+            }
+            return sceneData;
+        },
+        from: (v: Buffer | number[]) => {
+            const data = Buffer.isBuffer(v) ? Array.from(v) : v;
+            for (const [sceneName, sceneData] of Object.entries(SCENE_DATA)) {
+                if (JSON.stringify(data) === JSON.stringify(sceneData)) {
+                    return sceneName;
+                }
+            }
+            return null;
+        },
+    },
+    music_data_converter: {
+        to: (v: string) => {
+            const musicData = MUSIC_DATA[v as keyof typeof MUSIC_DATA];
+            if (!musicData) {
+                throw new Error(`Unknown music mode: ${v}`);
+            }
+            return musicData;
+        },
+        from: (v: Buffer | number[]) => {
+            const data = Buffer.isBuffer(v) ? Array.from(v) : v;
+            for (const [musicMode, musicData] of Object.entries(MUSIC_DATA)) {
+                if (
+                    data.length >= 4 &&
+                    data[0] === musicData[0] &&
+                    data[1] === musicData[1] &&
+                    data[2] === musicData[2] &&
+                    data[3] === musicData[3]
+                ) {
+                    return musicMode;
+                }
+            }
+            return null;
+        },
+    },
+};
+
 const tzLocal1 = {
     gledopto_light_onoff_brightness: {
         key: ["state", "brightness", "brightness_percent"],
@@ -172,165 +217,106 @@ const tzLocal = {
             return await tz.light_color_colortemp.convertGet(entity, key, meta);
         },
     } satisfies Tz.Converter,
-};
-
-//GL-SPI-206P
-function mapBrightnessToDp3(brightness: number): number {
-    const b = utils.toNumber(brightness, "brightness");
-    const mapped = Math.round(utils.mapNumberRange(b, 0, 254, 10, 1000));
-    return Math.max(10, Math.min(1000, mapped));
-}
-
-//GL-SPI-206P
-const tuyaValueConverters = {
-    scene_data_converter: {
-        to: (v: string) => {
-            const sceneData = SCENE_DATA[v as keyof typeof SCENE_DATA];
-            if (!sceneData) {
-                throw new Error(`Unknown scene: ${v}`);
+    glspi206p_scene: {
+        key: ["scene"],
+        convertSet: async (entity, key, value, meta) => {
+            const ep = meta.device.endpoints[0];
+            if (meta.state?.state !== "ON") {
+                await tuya.sendDataPointBool(ep, 1, true);
             }
-            return sceneData;
+            if (meta.state?.work_mode !== "scene") {
+                await tuya.sendDataPointEnum(ep, 2, 2);
+            }
+            const sceneName = value;
+            const sceneData = SCENE_DATA[sceneName as keyof typeof SCENE_DATA];
+            if (sceneData) {
+                await tuya.sendDataPointRaw(ep, 51, Buffer.from(sceneData));
+                return {state: {state: "ON", work_mode: "scene", scene: sceneName}};
+            }
+            throw new Error(`Unknown scene: ${sceneName}`);
         },
-        from: (v: Buffer | number[]) => {
-            const data = Buffer.isBuffer(v) ? Array.from(v) : v;
-            for (const [sceneName, sceneData] of Object.entries(SCENE_DATA)) {
-                if (JSON.stringify(data) === JSON.stringify(sceneData)) {
-                    return sceneName;
+    } satisfies Tz.Converter,
+    glspi206p_music: {
+        key: ["music_mode", "music_sensitivity"],
+        convertSet: async (entity, key, value, meta) => {
+            const ep = meta.device.endpoints[0];
+            if (meta.state?.state !== "ON") {
+                await tuya.sendDataPointBool(ep, 1, true);
+            }
+            if (meta.state?.work_mode !== "music") {
+                await tuya.sendDataPointEnum(ep, 2, 3);
+            }
+            const currentMusicMode = meta.state?.music_mode || "rock";
+            const currentSensitivity = Number(meta.state?.music_sensitivity) || 50;
+            let musicMode = currentMusicMode;
+            let sensitivity: number = currentSensitivity;
+
+            if (key === "music_mode") {
+                musicMode = value as string;
+            } else if (key === "music_sensitivity") {
+                sensitivity = Number(value);
+            }
+
+            const baseMusicData = MUSIC_DATA[musicMode as keyof typeof MUSIC_DATA];
+            if (!baseMusicData) {
+                throw new Error(`Unknown music mode: ${musicMode}`);
+            }
+            const dp52Payload: number[] = [...baseMusicData];
+            dp52Payload[5] = Math.max(1, Math.min(100, sensitivity));
+
+            await tuya.sendDataPointRaw(ep, 52, Buffer.from(dp52Payload));
+            return {state: {state: "ON", work_mode: "music", music_mode: musicMode, music_sensitivity: sensitivity}};
+        },
+    } satisfies Tz.Converter,
+    glspi206p_brightness_color: {
+        key: ["color", "brightness"],
+        convertSet: async (entity, key, value, meta) => {
+            const ep = meta.device.endpoints[0];
+            const modeNow = meta.state?.work_mode;
+            if (meta.state?.state !== "ON") {
+                await tuya.sendDataPointBool(ep, 1, true);
+            }
+            if (modeNow !== "colour") {
+                await tuya.sendDataPointEnum(ep, 2, 1);
+            }
+            if ("brightness" in meta.message) {
+                const brightness = Number(meta.message.brightness);
+                const mapped = Math.round(utils.mapNumberRange(utils.toNumber(brightness, "brightness"), 0, 254, 10, 1000));
+                const dp3 = Math.max(10, Math.min(1000, mapped));
+                if (dp3 !== meta.state?.brightness) {
+                    await tuya.sendDataPointValue(ep, 3, dp3);
                 }
             }
-            return null;
-        },
-    },
+            if ("color" in meta.message || key === "color") {
+                const colorData = meta.message.color ?? value;
+                const c = libColor.Color.fromConverterArg(colorData);
+                const hsv = c.isRGB() ? c.rgb.toHSV() : c.hsv;
 
-    music_data_converter: {
-        to: (v: string) => {
-            const musicData = MUSIC_DATA[v as keyof typeof MUSIC_DATA];
-            if (!musicData) {
-                throw new Error(`Unknown music mode: ${v}`);
+                const h = Math.max(0, Math.min(360, Math.round(hsv.hue)));
+                const sat1000 = Math.max(0, Math.min(1000, Math.round((hsv.saturation / 100) * 1000)));
+                const val1000 = 1000;
+
+                const dp61Payload = [
+                    0x00,
+                    0x01,
+                    0x01,
+                    0x14,
+                    0x00,
+                    (h >> 8) & 0xff,
+                    h & 0xff,
+                    (sat1000 >> 8) & 0xff,
+                    sat1000 & 0xff,
+                    (val1000 >> 8) & 0xff,
+                    val1000 & 0xff,
+                ];
+
+                await tuya.sendDataPointRaw(ep, 61, Buffer.from(dp61Payload));
+                return {state: {state: "ON", work_mode: "colour", color: colorData}};
             }
-            return musicData;
+            return {state: {state: "ON", work_mode: "colour"}};
         },
-        from: (v: Buffer | number[]) => {
-            const data = Buffer.isBuffer(v) ? Array.from(v) : v;
-            for (const [musicMode, musicData] of Object.entries(MUSIC_DATA)) {
-                if (
-                    data.length >= 4 &&
-                    data[0] === musicData[0] &&
-                    data[1] === musicData[1] &&
-                    data[2] === musicData[2] &&
-                    data[3] === musicData[3]
-                ) {
-                    return musicMode;
-                }
-            }
-            return null;
-        },
-    },
+    } satisfies Tz.Converter,
 };
-
-//GL-SPI-206P
-const tzColorTuyaSpi = {
-    key: ["color", "brightness"],
-    convertSet: async (entity, key, value, meta) => {
-        const ep = meta.device.endpoints[0];
-        const modeNow = meta.state?.work_mode;
-        if (meta.state?.state !== "ON") {
-            await tuya.sendDataPointBool(ep, 1, true);
-        }
-        if (modeNow !== "colour") {
-            await tuya.sendDataPointEnum(ep, 2, 1);
-        }
-        if ("brightness" in meta.message) {
-            const brightness = Number(meta.message.brightness);
-            const dp3 = mapBrightnessToDp3(brightness);
-            if (dp3 !== meta.state?.brightness) {
-                await tuya.sendDataPointValue(ep, 3, dp3);
-            }
-        }
-        if ("color" in meta.message || key === "color") {
-            const colorData = meta.message.color ?? value;
-            const c = libColor.Color.fromConverterArg(colorData);
-            const hsv = c.isRGB() ? c.rgb.toHSV() : c.hsv;
-
-            const h = Math.max(0, Math.min(360, Math.round(hsv.hue)));
-            const sat1000 = Math.max(0, Math.min(1000, Math.round((hsv.saturation / 100) * 1000)));
-            const val1000 = 1000;
-
-            const dp61Payload = [
-                0x00,
-                0x01,
-                0x01,
-                0x14,
-                0x00,
-                (h >> 8) & 0xff,
-                h & 0xff,
-                (sat1000 >> 8) & 0xff,
-                sat1000 & 0xff,
-                (val1000 >> 8) & 0xff,
-                val1000 & 0xff,
-            ];
-
-            await tuya.sendDataPointRaw(ep, 61, Buffer.from(dp61Payload));
-            return {state: {state: "ON", work_mode: "colour", color: colorData}};
-        }
-        return {state: {state: "ON", work_mode: "colour"}};
-    },
-} satisfies Tz.Converter;
-
-//GL-SPI-206P
-const tzDp51Scene = {
-    key: ["scene"],
-    convertSet: async (entity, key, value, meta) => {
-        const ep = meta.device.endpoints[0];
-        if (meta.state?.state !== "ON") {
-            await tuya.sendDataPointBool(ep, 1, true);
-        }
-        if (meta.state?.work_mode !== "scene") {
-            await tuya.sendDataPointEnum(ep, 2, 2);
-        }
-        const sceneName = value;
-        const sceneData = SCENE_DATA[sceneName as keyof typeof SCENE_DATA];
-        if (sceneData) {
-            await tuya.sendDataPointRaw(ep, 51, Buffer.from(sceneData));
-            return {state: {state: "ON", work_mode: "scene", scene: sceneName}};
-        }
-        throw new Error(`Unknown scene: ${sceneName}`);
-    },
-} satisfies Tz.Converter;
-
-//GL-SPI-206P
-const tzDp52Music = {
-    key: ["music_mode", "music_sensitivity"],
-    convertSet: async (entity, key, value, meta) => {
-        const ep = meta.device.endpoints[0];
-        if (meta.state?.state !== "ON") {
-            await tuya.sendDataPointBool(ep, 1, true);
-        }
-        if (meta.state?.work_mode !== "music") {
-            await tuya.sendDataPointEnum(ep, 2, 3);
-        }
-        const currentMusicMode = meta.state?.music_mode || "rock";
-        const currentSensitivity = Number(meta.state?.music_sensitivity) || 50; // 确保是数字
-        let musicMode = currentMusicMode;
-        let sensitivity: number = currentSensitivity; // 明确类型声明
-
-        if (key === "music_mode") {
-            musicMode = value as string;
-        } else if (key === "music_sensitivity") {
-            sensitivity = Number(value);
-        }
-
-        const baseMusicData = MUSIC_DATA[musicMode as keyof typeof MUSIC_DATA];
-        if (!baseMusicData) {
-            throw new Error(`Unknown music mode: ${musicMode}`);
-        }
-        const dp52Payload: number[] = [...baseMusicData];
-        dp52Payload[5] = Math.max(1, Math.min(100, sensitivity));
-
-        await tuya.sendDataPointRaw(ep, 52, Buffer.from(dp52Payload));
-        return {state: {state: "ON", work_mode: "music", music_mode: musicMode, music_sensitivity: sensitivity}};
-    },
-} satisfies Tz.Converter;
 
 function gledoptoLight(args?: m.LightArgs) {
     // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
@@ -1252,10 +1238,9 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: [{modelID: "TS0601", manufacturerName: "_TZE284_gt5al3bl"}],
         model: "GL-SPI-206P",
         vendor: "Gledopto",
-        description: "Tuya SPI Pixel Controller RGBCCT/RGBW/RGB",
+        description: "SPI pixel controller RGBCCT/RGBW/RGB",
         fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tzColorTuyaSpi, tzDp51Scene, tzDp52Music, tuya.tz.datapoints],
-        // onEvent: tuya.onEventSetTime,
+        toZigbee: [tzLocal.glspi206p_brightness_color, tzLocal.glspi206p_music, tzLocal.glspi206p_music, tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
         exposes: [
             e.light_colorhs(),
@@ -1346,8 +1331,8 @@ export const definitions: DefinitionWithExtend[] = [
                 [3, "brightness", tuya.valueConverter.scale0_254to0_1000],
                 [4, "color_temp", tuya.valueConverter.raw],
                 [7, "countdown", tuya.valueConverter.countdown],
-                [51, "scene", tuyaValueConverters.scene_data_converter],
-                [52, "music_mode", tuyaValueConverters.music_data_converter],
+                [51, "scene", localValueConverter.scene_data_converter],
+                [52, "music_mode", localValueConverter.music_data_converter],
                 [53, "lightpixel_number_set", tuya.valueConverter.raw],
                 [
                     101,
