@@ -1611,6 +1611,7 @@ export const boschBsenExtend = {
             percentage: false,
             percentageReporting: false,
             voltage: true,
+            voltageReporting: true,
             voltageToPercentage: {min: 2500, max: 3000},
             lowStatus: true,
             lowStatusReportingConfig: {min: "MIN", max: "MAX", change: 0},
@@ -1639,33 +1640,66 @@ export const boschBsenExtend = {
                 type: ["commandStatusChangeNotification"],
                 convert: (model, msg, publish, options, meta) => {
                     const zoneStatus = msg.data.zonestatus;
-                    if (zoneStatus !== undefined) {
-                        let payload = {};
-                        payload = {tamper: (zoneStatus & (1 << 2)) > 0, ...payload};
-                        const occupancyPayload = (zoneStatus & 1) > 0;
 
-                        if (occupancyPayload === true) {
-                            payload = {occupancy: occupancyPayload, ...payload};
-
-                            // After a detection, the device turns off the motion detection for ~3 minutes.
-                            // Unfortunately, the alarm is already turned off after 4 seconds for reasons
-                            // only known to Bosch. Therefore, we have to manually differ the turn-off by
-                            // 3 minutes to avoid any confusion.
-                            clearTimeout(globalStore.getValue(msg.endpoint, "occupancy_timeout_timer"));
-                            const timer = setTimeout(() => publish({occupancy: false}), 180 * 1000);
-                            globalStore.putValue(msg.endpoint, "occupancy_timeout_timer", timer);
-                        }
-
-                        return payload;
+                    if (zoneStatus === undefined) {
+                        return;
                     }
+
+                    let payload = {};
+
+                    const tamperStatus = (zoneStatus & (1 << 2)) > 0;
+                    payload = {tamper: tamperStatus, ...payload};
+
+                    const occupancyStatus = (zoneStatus & 1) > 0;
+                    const isNewOccupancyStatusDetected = occupancyStatus === true;
+
+                    if (isNewOccupancyStatusDetected) {
+                        payload = {occupancy: occupancyStatus, ...payload};
+
+                        // After a detection, the device turns off the motion detection for ~3 minutes.
+                        // Unfortunately, the alarm is already turned off after 4 seconds for reasons
+                        // only known to Bosch. Therefore, we have to manually differ the turn-off by
+                        // 3 minutes to avoid any confusion.
+                        clearTimeout(globalStore.getValue(msg.endpoint, "occupancy_timeout_timer"));
+                        const timer = setTimeout(() => publish({occupancy: false}), 184 * 1000);
+                        globalStore.putValue(msg.endpoint, "occupancy_timeout_timer", timer);
+                    }
+
+                    return payload;
                 },
             } satisfies Fz.Converter<"ssIasZone", undefined, ["commandStatusChangeNotification"]>,
+            {
+                cluster: "ssIasZone",
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    const zoneStatus = msg.data.zoneStatus;
+
+                    if (zoneStatus === undefined) {
+                        return;
+                    }
+
+                    let payload = {};
+
+                    const tamperStatus = (zoneStatus & (1 << 2)) > 0;
+                    payload = {tamper: tamperStatus, ...payload};
+
+                    const occupancyStatus = (zoneStatus & 1) > 0;
+                    const isCurrentOccupancyStatusUnset = meta.state.occupancy === undefined;
+
+                    if (isCurrentOccupancyStatusUnset) {
+                        payload = {occupancy: occupancyStatus, ...payload};
+                    }
+
+                    return payload;
+                },
+            } satisfies Fz.Converter<"ssIasZone", undefined, ["attributeReport", "readResponse"]>,
         ];
 
         const configure: Configure[] = [
             async (device, coordinatorEndpoint, definition) => {
                 const endpoint = device.getEndpoint(1);
                 await endpoint.bind("ssIasZone", coordinatorEndpoint);
+                await endpoint.read("ssIasZone", ["zoneStatus"]);
             },
         ];
 
@@ -1695,10 +1729,6 @@ export const boschBsenExtend = {
                 cluster: "ssIasZone",
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
-                    if (utils.hasAlreadyProcessedMessage(msg, model)) {
-                        return;
-                    }
-
                     const result: KeyValue = {};
                     const data = msg.data;
 
@@ -1797,9 +1827,11 @@ export const boschBsenExtend = {
         const fromZigbee = [
             {
                 cluster: "ssIasZone",
-                type: ["commandStatusChangeNotification"],
+                type: ["commandStatusChangeNotification", "attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
-                    if (utils.hasAlreadyProcessedMessage(msg, model)) {
+                    const zoneStatus = "zonestatus" in msg.data ? msg.data.zonestatus : msg.data.zoneStatus;
+
+                    if (zoneStatus === undefined) {
                         return;
                     }
 
@@ -1817,7 +1849,7 @@ export const boschBsenExtend = {
 
                     return result;
                 },
-            } satisfies Fz.Converter<"ssIasZone", undefined, ["commandStatusChangeNotification"]>,
+            } satisfies Fz.Converter<"ssIasZone", undefined, ["commandStatusChangeNotification", "attributeReport", "readResponse"]>,
         ];
 
         const toZigbee: Tz.Converter[] = [
@@ -1845,9 +1877,11 @@ export const boschBsenExtend = {
         ];
 
         const configure: Configure[] = [
-            (device, coordinatorEndpoint, definition) => {
+            async (device, coordinatorEndpoint, definition) => {
                 // Workaround for the test mode state to be OFF by default
                 device.meta.awaitTestModeDeactivation = true;
+                const endpoint = device.getEndpoint(1);
+                await endpoint.read("ssIasZone", ["zoneStatus"]);
             },
         ];
 
