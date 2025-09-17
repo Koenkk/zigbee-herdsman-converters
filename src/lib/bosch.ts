@@ -1666,9 +1666,9 @@ export const boschBsenExtend = {
                         payload = {occupancy: alarmOneStatus, ...payload};
 
                         const isChangeMessage = msg.type === "commandStatusChangeNotification";
-                        const isNewOccupancyStatusDetected = alarmOneStatus === true;
+                        const newOccupancyStatusDetected = alarmOneStatus === true;
 
-                        if (isChangeMessage && isNewOccupancyStatusDetected) {
+                        if (isChangeMessage && newOccupancyStatusDetected) {
                             // After a detection, the device turns off the motion detection for 3 minutes.
                             // Unfortunately, the alarm is already turned off after 4 seconds for reasons
                             // only known to Bosch. Therefore, we have to manually defer the turn-off by
