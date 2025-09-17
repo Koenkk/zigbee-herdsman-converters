@@ -1,5 +1,22 @@
 # Changelog
 
+## [25.28.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.27.0...v25.28.0) (2025-09-17)
+
+
+### Features
+
+* **add:** FPS-4-1-00 ([#9629](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9629)) ([801484d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/801484d0a3c917284b6bcbd49e13ff43b10451ae))
+* **add:** TOSA1-01WXJAT2A ([#10038](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10038)) ([8c86ffc](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8c86ffc6a1169a205023dd2c977e3a865759308e))
+* Bosch BSEN-M: use `iasZoneStatus` to determine if test mode is active or not and harden deferred occupancy turn-off ([#10034](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10034)) ([5d430fc](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5d430fc62ce8044c64bbc59facf4d8f68f2d3e1e))
+* Sunricher SR-ZG9101SAC-HP-SWITCH-2CH: support external switch type ([#10036](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10036)) ([7f81a72](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7f81a72672fa7096881d807280b000e025d28b82))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZE204_ic7jtutb` as Tuya TS0601_cover_1 https://github.com/Koenkk/zigbee2mqtt/issues/28648 ([cbe6846](https://github.com/Koenkk/zigbee-herdsman-converters/commit/cbe68461c062f42117e8464151ff8ab7d3fb78cc))
+* **ignore:** Tuya _TZE284_6kijc7nd improvements ([#10035](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10035)) ([85384e0](https://github.com/Koenkk/zigbee-herdsman-converters/commit/85384e0313e721998a5eb0afb6510d59eb0d4cf8))
+* Legrand 67772: remove dimmer converters ([#10037](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10037)) ([3d447b8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3d447b88d0429e898db6fef19ce8905f5f980b0e))
+
 ## [25.27.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.26.0...v25.27.0) (2025-09-16)
 
 
