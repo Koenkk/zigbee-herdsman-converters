@@ -4790,12 +4790,14 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Radiator thermostat W600",
         extend: [
             m.thermostat({
-                setpoints: {occupied_heating_setpoint: {min: 5, max: 30, step: 0.5}},
+                setpoints: {occupiedHeatingSetpoint: {min: 5, max: 30, step: 0.5}},
                 localTemperatureCalibration: true,
-                tempHold: true,
-                tempHoldDuration: true,
-                maxHeat: true,
-                minHeat: true,
+                temperatureSetpointHold: true,
+                temperatureSetpointHoldDuration: true,
+                setpointsLimit: {
+                    maxHeatSetpointLimit: {min: 5, max: 30, step: 0.5},
+                    minHeatSetpointLimit: {min: 5, max: 30, step: 0.5},
+                },
             }),
             m.enumLookup({
                 name: "calibrate",
@@ -4897,14 +4899,16 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Floor heating thermostat W500",
         extend: [
             m.thermostat({
-                setpoints: {occupied_heating_setpoint: {min: 5, max: 40, step: 0.5}},
+                setpoints: {occupiedHeatingSetpoint: {min: 5, max: 40, step: 0.5}},
                 localTemperatureCalibration: true,
-                tempHold: true,
-                tempHoldDuration: true,
+                temperatureSetpointHold: true,
+                temperatureSetpointHoldDuration: true,
                 systemMode: ["off", "heat"],
-                runningState: true,
-                maxHeat: {min: 5, max: 40, step: 0.5},
-                minHeat: true,
+                runningState: ["idle", "heat", "cool", "fan_only"],
+                setpointsLimit: {
+                    maxHeatSetpointLimit: {min: 5, max: 30, step: 0.5},
+                    minHeatSetpointLimit: {min: 5, max: 30, step: 0.5},
+                },
             }),
             m.enumLookup({
                 name: "preset",

@@ -3043,143 +3043,123 @@ export function bindCluster(args: {cluster: string | number; clusterType: "input
     return {configure, isModernExtend: true};
 }
 
+interface MinMaxStep {
+    min: number;
+    max: number;
+    step: number;
+}
+
+const SETPOINT_LOOKUP = {
+    occupiedHeatingSetpoint: {property: "occupied_heating_setpoint", tzConverter: tz.thermostat_occupied_heating_setpoint},
+    unoccupiedHeatingSetpoint: {property: "unoccupied_heating_setpoint", tzConverter: tz.thermostat_unoccupied_heating_setpoint},
+    occupiedCoolingSetpoint: {property: "occupied_cooling_setpoint", tzConverter: tz.thermostat_occupied_cooling_setpoint},
+    unoccupiedCoolingSetpoint: {property: "unoccupied_cooling_setpoint", tzConverter: tz.thermostat_unoccupied_cooling_setpoint},
+} as const;
+
+const SETPOINT_LIMIT_LOOKUP = {
+    maxHeatSetpointLimit: {tzConverter: tz.thermostat_max_heat_setpoint_limit, expose: e.max_heat_setpoint_limit},
+    minHeatSetpointLimit: {tzConverter: tz.thermostat_min_heat_setpoint_limit, expose: e.min_heat_setpoint_limit},
+    maxCoolSetpointLimit: {tzConverter: tz.thermostat_max_cool_setpoint_limit, expose: e.max_cool_setpoint_limit},
+    minCoolSetpointLimit: {tzConverter: tz.thermostat_min_cool_setpoint_limit, expose: e.min_cool_setpoint_limit},
+} as const;
+
 export interface ThermostatArgs {
-    setpoints?: {[name: string]: {min: number; max: number; step: number}};
-    fanMode?: boolean | string[];
-    localTemperatureCalibration?: boolean | {min: number; max: number; step: number};
-    systemMode?: boolean | string[];
-    runningState?: boolean | string[];
-    runningMode?: boolean | string[];
-    piHeatingDemand?: boolean;
-    tempHold?: boolean;
-    tempHoldDuration?: boolean;
-    maxHeat?: boolean | {min: number; max: number; step: number};
-    minHeat?: boolean | {min: number; max: number; step: number};
-    maxCool?: boolean | {min: number; max: number; step: number};
-    minCool?: boolean | {min: number; max: number; step: number};
+    localTemperatureCalibration?: true | MinMaxStep;
+    setpoints?: Partial<Record<keyof typeof SETPOINT_LOOKUP, MinMaxStep>>;
+    setpointsLimit?: Partial<Record<keyof typeof SETPOINT_LIMIT_LOOKUP, MinMaxStep>>;
+    systemMode?: Array<"off" | "heat" | "cool" | "auto" | "dry" | "fan_only" | "sleep" | "emergency_heating">;
+    runningState?: Array<"idle" | "heat" | "cool" | "fan_only">;
+    runningMode?: Array<"off" | "cool" | "heat">;
+    fanMode?: Array<"off" | "low" | "medium" | "high" | "on" | "auto" | "smart">;
+    piHeatingDemand?: true;
+    temperatureSetpointHold?: true;
+    temperatureSetpointHoldDuration?: true;
 }
 
 export function thermostat(args: ThermostatArgs = {}): ModernExtend {
-    const defaultRepConfig: ReportingConfigWithoutAttribute = {min: "MIN", max: "1_HOUR", change: 0};
-    const defaultRepConfig10: ReportingConfigWithoutAttribute = {min: "MIN", max: "1_HOUR", change: 10};
+    const {
+        localTemperatureCalibration = false,
+        setpoints = {},
+        setpointsLimit = {},
+        systemMode = undefined,
+        runningState = undefined,
+        runningMode = undefined,
+        piHeatingDemand = false,
+        temperatureSetpointHold = false,
+        temperatureSetpointHoldDuration = false,
+        fanMode = undefined,
+    } = args;
+
+    const repConfigChange0: ReportingConfigWithoutAttribute = {min: "MIN", max: "1_HOUR", change: 0};
+    const repConfigChange10: ReportingConfigWithoutAttribute = {min: "MIN", max: "1_HOUR", change: 10};
 
     const expose = e.climate().withLocalTemperature();
     const exposes: Expose[] = [expose];
-
     const fromZigbee = [fz.thermostat];
     const toZigbee = [tz.thermostat_local_temperature];
     const configure: Configure[] = [
         setupConfigureForBinding("hvacThermostat", "input"),
-        setupConfigureForReporting("hvacThermostat", "localTemp", {config: defaultRepConfig10, access: ea.STATE_GET}),
+        setupConfigureForReporting("hvacThermostat", "localTemp", {config: repConfigChange10, access: ea.STATE_GET}),
     ];
 
-    if (args.localTemperatureCalibration) {
-        if (typeof args.localTemperatureCalibration === "boolean") {
-            expose.withLocalTemperatureCalibration();
-        } else {
-            expose.withLocalTemperatureCalibration(
-                args.localTemperatureCalibration.min,
-                args.localTemperatureCalibration.max,
-                args.localTemperatureCalibration.step,
-            );
-        }
+    if (localTemperatureCalibration) {
+        const {min, max, step} = localTemperatureCalibration === true ? {min: -12.8, max: 12.8, step: 0.1} : localTemperatureCalibration;
+        expose.withLocalTemperatureCalibration(min, max, step);
         toZigbee.push(tz.thermostat_local_temperature_calibration);
     }
 
-    if (args.setpoints) {
-        if (args.setpoints["occupied_heating_setpoint"]) {
-            const params = args.setpoints["occupied_heating_setpoint"];
-            expose.withSetpoint("occupied_heating_setpoint", params.min, params.max, params.step);
-            toZigbee.push(tz.thermostat_occupied_heating_setpoint);
-            configure.push(
-                setupConfigureForReporting("hvacThermostat", "occupiedHeatingSetpoint", {config: defaultRepConfig10, access: ea.STATE_GET}),
-            );
-        }
-        if (args.setpoints["unoccupied_heating_setpoint"]) {
-            const params = args.setpoints["unoccupied_heating_setpoint"];
-            expose.withSetpoint("unoccupied_heating_setpoint", params.min, params.max, params.step);
-            toZigbee.push(tz.thermostat_unoccupied_heating_setpoint);
-            configure.push(
-                setupConfigureForReporting("hvacThermostat", "unoccupiedHeatingSetpoint", {config: defaultRepConfig10, access: ea.STATE_GET}),
-            );
-        }
-        if (args.setpoints["occupied_cooling_setpoint"]) {
-            const params = args.setpoints["occupied_cooling_setpoint"];
-            expose.withSetpoint("occupied_cooling_setpoint", params.min, params.max, params.step);
-            toZigbee.push(tz.thermostat_occupied_cooling_setpoint);
-            configure.push(
-                setupConfigureForReporting("hvacThermostat", "occupiedCoolingSetpoint", {config: defaultRepConfig10, access: ea.STATE_GET}),
-            );
-        }
-        if (args.setpoints["unoccupied_cooling_setpoint"]) {
-            const params = args.setpoints["unoccupied_cooling_setpoint"];
-            expose.withSetpoint("unoccupied_cooling_setpoint", params.min, params.max, params.step);
-            toZigbee.push(tz.thermostat_unoccupied_cooling_setpoint);
-            configure.push(
-                setupConfigureForReporting("hvacThermostat", "unoccupiedCoolingSetpoint", {config: defaultRepConfig10, access: ea.STATE_GET}),
-            );
-        }
+    for (const key of Object.keys(setpoints) as Array<keyof typeof SETPOINT_LOOKUP>) {
+        const {min, max, step} = setpoints[key];
+        const {property, tzConverter} = SETPOINT_LOOKUP[key];
+        expose.withSetpoint(property, min, max, step);
+        toZigbee.push(tzConverter);
+        configure.push(setupConfigureForReporting("hvacThermostat", key, {config: repConfigChange10, access: ea.STATE_GET}));
     }
 
-    if (args.systemMode) {
-        if (typeof args.systemMode === "boolean") {
-            expose.withSystemMode(["off", "heat", "cool", "auto", "dry", "fan_only", "sleep", "emergency_heating"]);
-        } else {
-            expose.withSystemMode(args.systemMode);
-        }
+    if (systemMode) {
+        expose.withSystemMode(args.systemMode);
         toZigbee.push(tz.thermostat_system_mode);
-        configure.push(setupConfigureForReporting("hvacThermostat", "systemMode", {config: defaultRepConfig, access: ea.STATE_GET}));
+        configure.push(setupConfigureForReporting("hvacThermostat", "systemMode", {config: repConfigChange0, access: ea.STATE_GET}));
     }
 
-    if (args.runningState) {
-        if (typeof args.runningState === "boolean") {
-            expose.withRunningState(["idle", "heat", "cool", "fan_only"]);
-        } else {
-            expose.withRunningState(args.runningState);
-        }
+    if (runningState) {
+        expose.withRunningState(runningState);
         toZigbee.push(tz.thermostat_running_state);
-        configure.push(setupConfigureForReporting("hvacThermostat", "runningState", {config: defaultRepConfig, access: ea.STATE_GET}));
+        configure.push(setupConfigureForReporting("hvacThermostat", "runningState", {config: repConfigChange0, access: ea.STATE_GET}));
     }
 
-    if (args.runningMode) {
-        if (typeof args.runningMode === "boolean") {
-            expose.withRunningMode(["off", "cool", "heat"]);
-        } else {
-            expose.withRunningMode(args.runningMode);
-        }
+    if (runningMode) {
+        expose.withRunningMode(runningMode);
         toZigbee.push(tz.thermostat_running_mode);
-        configure.push(setupConfigureForReporting("hvacThermostat", "runningMode", {config: defaultRepConfig, access: ea.STATE_GET}));
+        configure.push(setupConfigureForReporting("hvacThermostat", "runningMode", {config: repConfigChange0, access: ea.STATE_GET}));
     }
 
-    if (args.fanMode) {
-        if (typeof args.fanMode === "boolean") {
-            expose.withFanMode(["off", "low", "medium", "high", "on", "auto", "smart"]);
-        } else {
-            expose.withFanMode(args.fanMode);
-        }
+    if (fanMode) {
+        expose.withFanMode(fanMode);
         toZigbee.push(tz.fan_mode);
         configure.push(
             setupConfigureForBinding("hvacFanCtrl", "input"),
-            setupConfigureForReporting("hvacFanCtrl", "fanMode", {config: defaultRepConfig, access: ea.STATE_GET}),
+            setupConfigureForReporting("hvacFanCtrl", "fanMode", {config: repConfigChange0, access: ea.STATE_GET}),
         );
     }
 
-    if (args.piHeatingDemand) {
+    if (piHeatingDemand) {
         expose.withPiHeatingDemand();
         toZigbee.push(tz.thermostat_pi_heating_demand);
-        configure.push(setupConfigureForReporting("hvacThermostat", "pIHeatingDemand", {config: defaultRepConfig, access: ea.STATE_GET}));
+        configure.push(setupConfigureForReporting("hvacThermostat", "pIHeatingDemand", {config: repConfigChange0, access: ea.STATE_GET}));
     }
 
-    if (args.tempHold) {
+    if (temperatureSetpointHold) {
         exposes.push(
             e
                 .binary("temperature_setpoint_hold", ea.ALL, true, false)
                 .withDescription("Prevent changes. `false` = run normally. `true` = prevent from making changes."),
         );
         toZigbee.push(tz.thermostat_temperature_setpoint_hold);
-        configure.push(setupConfigureForReporting("hvacThermostat", "tempSetpointHold", {config: defaultRepConfig, access: ea.STATE_GET}));
+        configure.push(setupConfigureForReporting("hvacThermostat", "tempSetpointHold", {config: repConfigChange0, access: ea.STATE_GET}));
     }
-    if (args.tempHoldDuration) {
+
+    if (temperatureSetpointHoldDuration) {
         exposes.push(
             e
                 .numeric("temperature_setpoint_hold_duration", ea.ALL)
@@ -3190,44 +3170,12 @@ export function thermostat(args: ThermostatArgs = {}): ModernExtend {
         toZigbee.push(tz.thermostat_temperature_setpoint_hold_duration);
     }
 
-    if (args.maxHeat) {
-        if (typeof args.maxHeat === "boolean") {
-            exposes.push(e.max_heat_setpoint_limit(5, 30, 0.5));
-        } else {
-            exposes.push(e.max_heat_setpoint_limit(args.maxHeat.min, args.maxHeat.max, args.maxHeat.step));
-        }
-        toZigbee.push(tz.thermostat_max_heat_setpoint_limit);
-        configure.push(setupConfigureForReporting("hvacThermostat", "maxHeatSetpointLimit", {config: defaultRepConfig, access: ea.STATE_GET}));
-    }
-
-    if (args.minHeat) {
-        if (typeof args.minHeat === "boolean") {
-            exposes.push(e.min_heat_setpoint_limit(5, 30, 0.5));
-        } else {
-            exposes.push(e.min_heat_setpoint_limit(args.minHeat.min, args.minHeat.max, args.minHeat.step));
-        }
-        toZigbee.push(tz.thermostat_min_heat_setpoint_limit);
-        configure.push(setupConfigureForReporting("hvacThermostat", "minHeatSetpointLimit", {config: defaultRepConfig, access: ea.STATE_GET}));
-    }
-
-    if (args.maxCool) {
-        if (typeof args.maxCool === "boolean") {
-            exposes.push(e.max_cool_setpoint_limit(5, 30, 0.5));
-        } else {
-            exposes.push(e.max_cool_setpoint_limit(args.maxCool.min, args.maxCool.max, args.maxCool.step));
-        }
-        toZigbee.push(tz.thermostat_max_cool_setpoint_limit);
-        configure.push(setupConfigureForReporting("hvacThermostat", "maxCoolSetpointLimit", {config: defaultRepConfig, access: ea.STATE_GET}));
-    }
-
-    if (args.minCool) {
-        if (typeof args.minCool === "boolean") {
-            exposes.push(e.min_cool_setpoint_limit(5, 30, 0.5));
-        } else {
-            exposes.push(e.min_cool_setpoint_limit(args.minCool.min, args.minCool.max, args.minCool.step));
-        }
-        toZigbee.push(tz.thermostat_min_cool_setpoint_limit);
-        configure.push(setupConfigureForReporting("hvacThermostat", "minCoolSetpointLimit", {config: defaultRepConfig, access: ea.STATE_GET}));
+    for (const key of Object.keys(setpointsLimit) as Array<keyof typeof SETPOINT_LIMIT_LOOKUP>) {
+        const {min, max, step} = setpointsLimit[key];
+        const {expose, tzConverter} = SETPOINT_LIMIT_LOOKUP[key];
+        exposes.push(expose(min, max, step));
+        toZigbee.push(tzConverter);
+        configure.push(setupConfigureForReporting("hvacThermostat", key, {config: repConfigChange0, access: ea.STATE_GET}));
     }
 
     return {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
