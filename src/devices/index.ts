@@ -550,7 +550,7 @@ const definitions: DefinitionWithExtend[] = [
     ...modular,
     ...moes,
     ...mullerLicht,
-	...multir,
+    ...multir,
     ...multiterm,
     ...namron,
     ...nanoleaf,
