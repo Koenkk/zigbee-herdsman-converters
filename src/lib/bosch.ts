@@ -1866,7 +1866,7 @@ export const boschBsenExtend = {
             },
         ];
 
-        const configure: Configure[] = [m.setupConfigureForReading("ssIasZone", ["zoneStatus"])];
+        const configure: Configure[] = [m.setupConfigureForBinding("ssIasZone", "input"), m.setupConfigureForReading("ssIasZone", ["zoneStatus"])];
 
         return {
             exposes,
