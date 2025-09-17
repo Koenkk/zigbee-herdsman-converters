@@ -631,12 +631,7 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         fromZigbee: [fz.identify, fz.legrand_binary_input_on_off, fzLegrand.cluster_fc01],
         toZigbee: [tzLegrand.identify, tzLegrand.led_mode],
-        exposes: [
-            e.switch().withEndpoint("left"),
-            e.switch().withEndpoint("right"),
-            eLegrand.ledInDark(),
-            eLegrand.ledIfOn(),
-        ],
+        exposes: [e.switch().withEndpoint("left"), e.switch().withEndpoint("right"), eLegrand.ledInDark(), eLegrand.ledIfOn()],
         extend: [m.deviceEndpoints({endpoints: {left: 2, right: 1}}), m.light({configureReporting: true, endpointNames: ["left", "right"]})],
     },
     {
