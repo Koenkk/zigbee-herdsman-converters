@@ -4255,4 +4255,12 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Hue Essential White and Color Ambiance GU10",
         extend: [philips.m.light({colorTemp: {range: [153, 447]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
+    {
+        zigbeeModel: ['LCA015'],
+        model: 'LCA015',
+        vendor: 'Signify Netherlands B.V.',
+        description: 'Hue White and color ambiance A21 - E26 smart bulb - 1600',
+        extend: [philips.m.light({"colorTemp":{"range":[50,1000]},"color":{"modes":["xy","hs"],"enhancedHue":true}})],
+        meta: {},
+    },
 ];
