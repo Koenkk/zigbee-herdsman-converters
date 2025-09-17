@@ -1659,9 +1659,9 @@ export const boschBsenExtend = {
                     const tamperStatus = (zoneStatus & (1 << 2)) > 0;
                     payload = {tamper: tamperStatus, ...payload};
 
-                    const isOccupancyLockActive = meta.device.meta.occupancyLockTimeout ? meta.device.meta.occupancyLockTimeout > Date.now() : false;
+                    const occupancyLockActive = meta.device.meta.occupancyLockTimeout ? meta.device.meta.occupancyLockTimeout > Date.now() : false;
 
-                    if (!isOccupancyLockActive) {
+                    if (!occupancyLockActive) {
                         const alarmOneStatus = (zoneStatus & 1) > 0;
                         payload = {occupancy: alarmOneStatus, ...payload};
 
