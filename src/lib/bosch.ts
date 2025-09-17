@@ -7,7 +7,6 @@ import * as m from "../lib/modernExtend";
 import {repInterval} from "./constants";
 import {logger} from "./logger";
 import {payload} from "./reporting";
-import * as globalStore from "./store";
 import type {Configure, DefinitionExposesFunction, DummyDevice, Expose, Fz, KeyValue, ModernExtend, OnEvent, Tz, Zh} from "./types";
 import * as utils from "./utils";
 import {toNumber} from "./utils";
@@ -1647,7 +1646,7 @@ export const boschBsenExtend = {
         const fromZigbee = [
             {
                 cluster: "ssIasZone",
-                type: ["commandStatusChangeNotification", "readResponse"],
+                type: ["commandStatusChangeNotification", "attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
                     const zoneStatus = "zonestatus" in msg.data ? msg.data.zonestatus : msg.data.zoneStatus;
 
@@ -1660,28 +1659,29 @@ export const boschBsenExtend = {
                     const tamperStatus = (zoneStatus & (1 << 2)) > 0;
                     payload = {tamper: tamperStatus, ...payload};
 
-                    const alarmOneStatus = (zoneStatus & 1) > 0;
-                    const isChangeMessage = msg.type === "commandStatusChangeNotification";
-                    const isNewOccupancyStatusDetected = alarmOneStatus === true;
-                    const isCurrentOccupancyStatusUnset = meta.state.occupancy === undefined;
+                    const isOccupancyLockActive = meta.device.meta.occupancyLockTimeout ? meta.device.meta.occupancyLockTimeout > Date.now() : false;
 
-                    if (isChangeMessage && isNewOccupancyStatusDetected) {
+                    if (!isOccupancyLockActive) {
+                        const alarmOneStatus = (zoneStatus & 1) > 0;
                         payload = {occupancy: alarmOneStatus, ...payload};
 
-                        // After a detection, the device turns off the motion detection for 3 minutes.
-                        // Unfortunately, the alarm is already turned off after 4 seconds for reasons
-                        // only known to Bosch. Therefore, we have to manually defer the turn-off by
-                        // 4 seconds + 3 minutes to avoid any confusion.
-                        clearTimeout(globalStore.getValue(msg.endpoint, "occupancy_timeout_timer"));
-                        const timer = setTimeout(() => publish({occupancy: false}), 184 * 1000);
-                        globalStore.putValue(msg.endpoint, "occupancy_timeout_timer", timer);
-                    } else if (isCurrentOccupancyStatusUnset) {
-                        payload = {occupancy: alarmOneStatus, ...payload};
+                        const isChangeMessage = msg.type === "commandStatusChangeNotification";
+                        const isNewOccupancyStatusDetected = alarmOneStatus === true;
+
+                        if (isChangeMessage && isNewOccupancyStatusDetected) {
+                            // After a detection, the device turns off the motion detection for 3 minutes.
+                            // Unfortunately, the alarm is already turned off after 4 seconds for reasons
+                            // only known to Bosch. Therefore, we have to manually defer the turn-off by
+                            // 4 seconds + 3 minutes to avoid any confusion.
+                            const timeoutDelay = 184 * 1000;
+                            setTimeout(() => publish({occupancy: false}), timeoutDelay);
+                            meta.device.meta.occupancyLockTimeout = Date.now() + timeoutDelay;
+                        }
                     }
 
                     return payload;
                 },
-            } satisfies Fz.Converter<"ssIasZone", undefined, ["commandStatusChangeNotification", "readResponse"]>,
+            } satisfies Fz.Converter<"ssIasZone", undefined, ["commandStatusChangeNotification", "attributeReport", "readResponse"]>,
         ];
 
         const configure: Configure[] = [
@@ -1692,10 +1692,39 @@ export const boschBsenExtend = {
             },
         ];
 
+        const onEvent: OnEvent.Handler[] = [
+            async (event) => {
+                if (event.type !== "start") {
+                    return;
+                }
+
+                const occupancyLockTimeout = event.data.device.meta.occupancyLockTimeout;
+
+                if (occupancyLockTimeout === undefined) {
+                    return;
+                }
+
+                const currentTime = Date.now();
+                const endpoint = event.data.device.getEndpoint(1);
+
+                if (occupancyLockTimeout > currentTime) {
+                    const timeoutDelay = occupancyLockTimeout - currentTime;
+                    setTimeout(() => {
+                        endpoint.read("ssIasZone", ["zoneStatus"]).catch((exception) => {
+                            logger.warning(`Error during reading the zoneStatus on device '${event.data.device.ieeeAddr}': ${exception}`, NS);
+                        });
+                    }, timeoutDelay);
+                } else {
+                    await endpoint.read("ssIasZone", ["zoneStatus"]);
+                }
+            },
+        ];
+
         return {
             exposes,
             fromZigbee,
             configure,
+            onEvent,
             isModernExtend: true,
         };
     },
