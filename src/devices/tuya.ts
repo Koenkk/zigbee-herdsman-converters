@@ -19012,10 +19012,11 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_pglpvdar"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_pglpvdar", "_TZE284_4hdbt6rn"]),
         model: "TO-Q-SA1",
         vendor: "Tongou",
         description: "Zigbee energy meter (transformer clamp)",
+        whiteLabel: [tuya.whitelabel("Tongou", "TOSA1-01WXJAT2A", "Smart energy meter, two wire", ["_TZE284_4hdbt6rn"])],
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         exposes: [
