@@ -18963,7 +18963,6 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Tongou",
         description: "Zigbee energy meter (transformer clamp)",
         whiteLabel: [
-            tuya.whitelabel("Tongou", "TO-Q-SA1", "Smart energy meter, one wire", ["_TZE284_pglpvdar"]),
             tuya.whitelabel("Tongou", "TOSA1-01WXJAT2A", "Smart energy meter, two wire", ["_TZE284_4hdbt6rn"]),
         ],
         fromZigbee: [tuya.fz.datapoints],
