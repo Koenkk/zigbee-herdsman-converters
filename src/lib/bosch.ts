@@ -1684,13 +1684,7 @@ export const boschBsenExtend = {
             } satisfies Fz.Converter<"ssIasZone", undefined, ["commandStatusChangeNotification", "attributeReport", "readResponse"]>,
         ];
 
-        const configure: Configure[] = [
-            async (device, coordinatorEndpoint, definition) => {
-                const endpoint = device.getEndpoint(1);
-                await endpoint.bind("ssIasZone", coordinatorEndpoint);
-                await endpoint.read("ssIasZone", ["zoneStatus"]);
-            },
-        ];
+        const configure: Configure[] = [m.setupConfigureForBinding("ssIasZone", "input"), m.setupConfigureForReading("ssIasZone", ["zoneStatus"])];
 
         const onEvent: OnEvent.Handler[] = [
             async (event) => {
@@ -1769,11 +1763,10 @@ export const boschBsenExtend = {
         ];
 
         const configure: Configure[] = [
+            m.setupConfigureForBinding("ssIasZone", "input"),
+            m.setupConfigureForReading("ssIasZone", ["numZoneSensitivityLevelsSupported", "currentZoneSensitivityLevel"]),
             async (device, coordinatorEndpoint, definition) => {
                 const endpoint = device.getEndpoint(1);
-
-                await endpoint.bind("ssIasZone", coordinatorEndpoint);
-                await endpoint.read("ssIasZone", ["numZoneSensitivityLevelsSupported", "currentZoneSensitivityLevel"]);
 
                 // The write request is made when using the proprietary
                 // Bosch Smart Home Controller II as of 15-09-2025. Looks like
@@ -1793,11 +1786,9 @@ export const boschBsenExtend = {
     },
     changedCheckinInterval: (): ModernExtend => {
         const configure: Configure[] = [
+            m.setupConfigureForReading("genPollCtrl", ["checkinInterval", "longPollInterval", "shortPollInterval"]),
             async (device, coordinatorEndpoint, definition) => {
                 const endpoint = device.getEndpoint(1);
-
-                await endpoint.bind("ssIasZone", coordinatorEndpoint);
-                await endpoint.read("genPollCtrl", ["checkinInterval", "longPollInterval", "shortPollInterval"]);
 
                 // The write request is made when using the proprietary
                 // Bosch Smart Home Controller II as of 15-09-2025.
@@ -1875,12 +1866,7 @@ export const boschBsenExtend = {
             },
         ];
 
-        const configure: Configure[] = [
-            async (device, coordinatorEndpoint, definition) => {
-                const endpoint = device.getEndpoint(1);
-                await endpoint.read("ssIasZone", ["zoneStatus"]);
-            },
-        ];
+        const configure: Configure[] = [m.setupConfigureForReading("ssIasZone", ["zoneStatus"])];
 
         return {
             exposes,
