@@ -1,5 +1,20 @@
 # Changelog
 
+## [25.29.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.28.0...v25.29.0) (2025-09-18)
+
+
+### Features
+
+* **add:** 9290038539 ([#10039](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10039)) ([12e98cd](https://github.com/Koenkk/zigbee-herdsman-converters/commit/12e98cdfb596c635c29174cb962afcd4d4a41124))
+* **add:** MIR-MC100, MIR-IL100, MIR-SM200, MIR-SO100, MIR-TE600, MIR-WA100 ([#10032](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10032)) ([ddc5adc](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ddc5adce6f86686987a4c41ad8a6567aa7708726))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZE284_m1cvyneb` as Tuya TS0601_dimmer_1_gang_1 https://github.com/Koenkk/zigbee2mqtt/issues/28658 ([c0b59db](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c0b59db3fe98df11c2a6c29e5d93fe924ebf9aca))
+* Eurotronic COZB0001: add new model https://github.com/Koenkk/zigbee-herdsman-converters/issues/10043 ([7a1e982](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7a1e98236aec888a4af371389387ad5b055f29f5))
+* **ignore:** Fix _TZE204_3regm3h6 exposes ([f4e0ac4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f4e0ac420142be2a80d86888dd746dfe09151a5a))
+
 ## [25.28.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.27.0...v25.28.0) (2025-09-17)
 
 
