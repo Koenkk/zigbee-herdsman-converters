@@ -1,5 +1,44 @@
 # Changelog
 
+## [25.28.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.27.0...v25.28.0) (2025-09-17)
+
+
+### Features
+
+* **add:** FPS-4-1-00 ([#9629](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9629)) ([801484d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/801484d0a3c917284b6bcbd49e13ff43b10451ae))
+* **add:** TOSA1-01WXJAT2A ([#10038](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10038)) ([8c86ffc](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8c86ffc6a1169a205023dd2c977e3a865759308e))
+* Bosch BSEN-M: use `iasZoneStatus` to determine if test mode is active or not and harden deferred occupancy turn-off ([#10034](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10034)) ([5d430fc](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5d430fc62ce8044c64bbc59facf4d8f68f2d3e1e))
+* Sunricher SR-ZG9101SAC-HP-SWITCH-2CH: support external switch type ([#10036](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10036)) ([7f81a72](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7f81a72672fa7096881d807280b000e025d28b82))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZE204_ic7jtutb` as Tuya TS0601_cover_1 https://github.com/Koenkk/zigbee2mqtt/issues/28648 ([cbe6846](https://github.com/Koenkk/zigbee-herdsman-converters/commit/cbe68461c062f42117e8464151ff8ab7d3fb78cc))
+* **ignore:** Tuya _TZE284_6kijc7nd improvements ([#10035](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10035)) ([85384e0](https://github.com/Koenkk/zigbee-herdsman-converters/commit/85384e0313e721998a5eb0afb6510d59eb0d4cf8))
+* Legrand 67772: remove dimmer converters ([#10037](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10037)) ([3d447b8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3d447b88d0429e898db6fef19ce8905f5f980b0e))
+
+## [25.27.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.26.0...v25.27.0) (2025-09-16)
+
+
+### Features
+
+* **add:** _TZE204_3regm3h6 ([#10008](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10008)) ([46747f3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/46747f32ec7b77f74efd5a2ad242d157e2cf3016))
+* **add:** _TZE284_uqfph8ah https://github.com/Koenkk/zigbee2mqtt/issues/28625 ([4b9a5ee](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4b9a5eee62cec830054c921c947f878c1dd4d95f))
+* **add:** 4512792 ([#9995](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9995)) ([806bf74](https://github.com/Koenkk/zigbee-herdsman-converters/commit/806bf74ebd40ed784235988831c3c529377bd6b4))
+* **add:** 929004284702 ([#10006](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10006)) ([b1995bb](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b1995bb1f400261bbe837f84da6e89825352f7f9))
+* **add:** GL-SPI-206P ([#10029](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10029)) ([133b55a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/133b55a7d36e823a1f77dfff9a949137d03d253b))
+* **add:** SM309-S-2CH ([#10024](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10024)) ([25ed972](https://github.com/Koenkk/zigbee-herdsman-converters/commit/25ed972a0a9ab8588da4eb1d2f2d8f682a688c32))
+* **add:** ZE1-EN ([#10031](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10031)) ([c27d5b7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c27d5b7a3e42012a012f10f1fb051b01807312ac))
+* Bosch BSEN-M: re-name and overwork the device ([#10025](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10025)) ([7a5a945](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7a5a94557b23e7621edbde8b0b6d1823d3728c98))
+* Bosch BSIR-EZ: add support for external alarm triggers ([#10026](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10026)) ([182460d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/182460dfcf32cc668a2eb394d8585607c2c310e4))
+* Candeo C-ZB-SEMO: support more features ([#10023](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10023)) ([271e5e5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/271e5e52eb03e96622b216515000a483594d42c5))
+
+
+### Bug Fixes
+
+* **ignore:** bump the minor-patch group with 3 updates ([#10017](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10017)) ([7ab3ab5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7ab3ab51cd04165a8841cf1085427c6ccd59012e))
+* Third Reality 3RSP019BZ: add `allowBind` ([#10018](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10018)) ([1d4df58](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1d4df580673492c3d521047208fb26a7ce6fd50d))
+
 ## [25.26.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.25.0...v25.26.0) (2025-09-14)
 
 

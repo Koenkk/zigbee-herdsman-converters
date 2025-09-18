@@ -1409,6 +1409,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.electricityMeter(),
             m.identify(),
             m.commandsOnOff({endpointNames: ["l1", "l2"]}),
+            sunricher.extend.externalSwitchType(),
         ],
     },
     {
