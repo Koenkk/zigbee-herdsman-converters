@@ -73,8 +73,8 @@ export const definitions: DefinitionWithExtend[] = [
                 ID: 0xff02,
                 manufacturerCode: 0x1233,
                 attributes: {
-                    backOn: {ID: 0x0001, type: Zcl.DataType.UINT16},
-                    backOff: {ID: 0x0002, type: Zcl.DataType.UINT16},
+                    on_to_off_delay: {ID: 0x0001, type: Zcl.DataType.UINT16},
+                    off_to_on_delay: {ID: 0x0002, type: Zcl.DataType.UINT16},
                 },
                 commands: {},
                 commandsResponse: {},
