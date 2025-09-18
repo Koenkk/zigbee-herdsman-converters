@@ -723,3 +723,13 @@ export function splitArrayIntoChunks<T>(arr: T[], chunkSize: number): T[][] {
 
     return result;
 }
+
+export function determineEndpoint(entity: Zh.Endpoint | Zh.Group, meta: Tz.Meta, cluster: string | number): Zh.Endpoint | Zh.Group {
+    const {device, endpoint_name} = meta;
+    if (endpoint_name !== undefined) {
+        // In case an explicit endpoint is given, always send it to that endpoint
+        return entity;
+    }
+    // In case no endpoint is given, match the first endpoint which support the cluster.
+    return device.endpoints.find((e) => e.supportsInputCluster(cluster)) ?? device.endpoints[0];
+}

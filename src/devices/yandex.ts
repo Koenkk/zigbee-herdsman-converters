@@ -5,7 +5,7 @@ import {access as ea} from "../lib/exposes";
 import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
 import type {Configure, DefinitionWithExtend, ModernExtend, OnEvent, Tz} from "../lib/types";
-import {getFromLookup, isString} from "../lib/utils";
+import {determineEndpoint, getFromLookup, isString} from "../lib/utils";
 
 const NS = "zhc:yandex";
 const manufacturerCode = 0x140a;
@@ -48,21 +48,20 @@ function enumLookupWithSetCommand(args: EnumLookupWithSetCommandArgs): ModernExt
                 access & ea.SET
                     ? async (entity, key, value, meta) => {
                           const payloadValue = getFromLookup(value, lookup);
-                          await m
-                              .determineEndpoint(entity, meta, cluster)
-                              .command<typeof cluster, typeof setCommand, Yandex>(cluster, setCommand, {value: payloadValue}, zigbeeCommandOptions);
-                          await m
-                              .determineEndpoint(entity, meta, cluster)
-                              .read<typeof cluster, Yandex>(cluster, [attributeKey], zigbeeCommandOptions);
+                          await determineEndpoint(entity, meta, cluster).command<typeof cluster, typeof setCommand, Yandex>(
+                              cluster,
+                              setCommand,
+                              {value: payloadValue},
+                              zigbeeCommandOptions,
+                          );
+                          await determineEndpoint(entity, meta, cluster).read<typeof cluster, Yandex>(cluster, [attributeKey], zigbeeCommandOptions);
                           return {state: {[key]: value}};
                       }
                     : undefined,
             convertGet:
                 access & ea.GET
                     ? async (entity, key, meta) => {
-                          await m
-                              .determineEndpoint(entity, meta, cluster)
-                              .read<typeof cluster, Yandex>(cluster, [attributeKey], zigbeeCommandOptions);
+                          await determineEndpoint(entity, meta, cluster).read<typeof cluster, Yandex>(cluster, [attributeKey], zigbeeCommandOptions);
                       }
                     : undefined,
         },
@@ -89,21 +88,20 @@ function binaryWithSetCommand(args: BinaryWithSetCommandArgs): ModernExtend {
                 access & ea.SET
                     ? async (entity, key, value, meta) => {
                           const payloadValue = value === valueOn[0] ? valueOn[1] : valueOff[1];
-                          await m
-                              .determineEndpoint(entity, meta, cluster)
-                              .command<typeof cluster, typeof setCommand, Yandex>(cluster, setCommand, {value: payloadValue}, zigbeeCommandOptions);
-                          await m
-                              .determineEndpoint(entity, meta, cluster)
-                              .read<typeof cluster, Yandex>(cluster, [attributeKey], zigbeeCommandOptions);
+                          await determineEndpoint(entity, meta, cluster).command<typeof cluster, typeof setCommand, Yandex>(
+                              cluster,
+                              setCommand,
+                              {value: payloadValue},
+                              zigbeeCommandOptions,
+                          );
+                          await determineEndpoint(entity, meta, cluster).read<typeof cluster, Yandex>(cluster, [attributeKey], zigbeeCommandOptions);
                           return {state: {[key]: value}};
                       }
                     : undefined,
             convertGet:
                 access & ea.GET
                     ? async (entity, key, meta) => {
-                          await m
-                              .determineEndpoint(entity, meta, cluster)
-                              .read<typeof cluster, Yandex>(cluster, [attributeKey], zigbeeCommandOptions);
+                          await determineEndpoint(entity, meta, cluster).read<typeof cluster, Yandex>(cluster, [attributeKey], zigbeeCommandOptions);
                       }
                     : undefined,
         },

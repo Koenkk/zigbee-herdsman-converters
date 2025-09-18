@@ -6,10 +6,10 @@ import * as exposes from "../lib/exposes";
 import * as legacy from "../lib/legacy";
 import * as light from "../lib/light";
 import {logger} from "../lib/logger";
-import {determineEndpoint} from "../lib/modernExtend";
 import * as globalStore from "../lib/store";
 import type {KeyValue, KeyValueAny, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
+import {determineEndpoint} from "../lib/utils";
 
 const NS = "zhc:tz";
 const manufacturerOptions = {

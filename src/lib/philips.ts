@@ -10,7 +10,7 @@ import * as modernExtend from "./modernExtend";
 import * as globalStore from "./store";
 import type {Configure, Expose, Fz, KeyValue, KeyValueAny, ModernExtend, Tz} from "./types";
 import * as utils from "./utils";
-import {exposeEndpoints, isObject} from "./utils";
+import {determineEndpoint, exposeEndpoints, isObject} from "./utils";
 
 const NS = "zhc:philips";
 const ea = exposes.access;
@@ -251,7 +251,7 @@ const philipsModernExtend = {
                             break;
                     }
 
-                    const ep = modernExtend.determineEndpoint(entity, meta, "manuSpecificPhilipsContact");
+                    const ep = determineEndpoint(entity, meta, "manuSpecificPhilipsContact");
                     try {
                         await ep.read<"manuSpecificPhilipsContact", PhilipsContact>("manuSpecificPhilipsContact", [attrib]);
                     } catch (e) {
