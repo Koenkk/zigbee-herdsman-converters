@@ -1,7 +1,7 @@
 import {Zcl, ZSpec} from "zigbee-herdsman";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
-import {type BoschBmctCluster, boschBmctExtend, boschBsirExtend, manufacturerOptions} from "../lib/bosch";
+import {type BoschBmctCluster, boschBmctExtend, boschBsenExtend, boschBsirExtend, manufacturerOptions} from "../lib/bosch";
 import * as constants from "../lib/constants";
 import {repInterval} from "../lib/constants";
 import * as exposes from "../lib/exposes";
@@ -1068,9 +1068,9 @@ export const definitions: DefinitionWithExtend[] = [
             boschBsirExtend.customPowerCfgCluster(),
             boschBsirExtend.customIasZoneCluster(),
             boschBsirExtend.customIasWdCluster(),
-            boschBsirExtend.alarmState(),
+            boschBsirExtend.deviceState(),
             boschBsirExtend.alarmControl(),
-            boschBsirExtend.tamperAndPowerOutageState(),
+            boschBsirExtend.iasZoneStatus(),
             boschBsirExtend.battery(),
             boschBsirExtend.alarmMode(),
             boschBsirExtend.sirenVolume(),
@@ -1644,19 +1644,19 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["RFPR-ZB-SH-EU"],
-        model: "RFPR-ZB-SH-EU",
+        model: "BSEN-M",
         vendor: "Bosch",
-        description: "Wireless motion detector",
-        fromZigbee: [fz.temperature, fz.battery, fz.ias_occupancy_alarm_1],
-        toZigbee: [],
-        meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["msTemperatureMeasurement", "genPowerCfg"]);
-            await reporting.temperature(endpoint);
-            await reporting.batteryVoltage(endpoint);
-        },
-        exposes: [e.temperature(), e.battery(), e.occupancy(), e.battery_low(), e.tamper()],
+        description: "Motion detector",
+        extend: [
+            boschBsenExtend.customIasZoneCluster(),
+            boschBsenExtend.changedCheckinInterval(),
+            boschBsenExtend.tamperAndOccupancyAlarm(),
+            boschBsenExtend.battery(),
+            boschBsenExtend.sensitivityLevel(),
+            boschBsenExtend.testMode(),
+            boschBsenExtend.illuminance(),
+            boschBsenExtend.temperature(),
+        ],
     },
     {
         zigbeeModel: ["RBSH-SP-ZB-EU", "RBSH-SP-ZB-FR", "RBSH-SP-ZB-GB"],

@@ -1,5 +1,25 @@
+import {presets} from "../lib/exposes";
 import * as m from "../lib/modernExtend";
-import type {DefinitionWithExtend} from "../lib/types";
+import type {DefinitionWithExtend, Expose, Fz, KeyValue, ModernExtend} from "../lib/types";
+
+function imouAlarmButton(): ModernExtend {
+    const exposes: Expose[] = [presets.action(["press"])];
+
+    const fromZigbee = [
+        {
+            cluster: "ssIasZone",
+            type: "commandStatusChangeNotification",
+            convert: (model, msg, publish, options, meta) => {
+                const payload: KeyValue = {};
+                const zoneStatus = msg.data.zonestatus;
+                if (zoneStatus === 2) payload.action = "press";
+                return payload;
+            },
+        } satisfies Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification">,
+    ];
+
+    return {exposes, fromZigbee, isModernExtend: true};
+}
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -45,5 +65,12 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "IMOU",
         description: "Temperature and humidity sensor",
         extend: [m.battery(), m.temperature(), m.humidity()],
+    },
+    {
+        zigbeeModel: ["ZE1-EN"],
+        model: "ZE1-EN",
+        vendor: "IMOU",
+        description: "Wireless switch",
+        extend: [m.battery(), imouAlarmButton()],
     },
 ];

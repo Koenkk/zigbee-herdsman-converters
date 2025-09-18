@@ -1624,4 +1624,19 @@ export const definitions: DefinitionWithExtend[] = [
             m.temperature({reporting: undefined}),
         ],
     },
+    {
+        zigbeeModel: ["4512792"],
+        model: "4512792",
+        vendor: "Namron",
+        description: "Simplify 1-2p relay (Zigbee / BT)",
+        extend: [
+            m.onOff(),
+            m.electricityMeter({
+                power: {multiplier: 1, divisor: 10}, // W
+                voltage: {multiplier: 1, divisor: 10}, // V -> 2383 -> 238.3
+                current: {multiplier: 1, divisor: 100}, // A
+                energy: {multiplier: 1, divisor: 100}, // kWh
+            }),
+        ],
+    },
 ];
