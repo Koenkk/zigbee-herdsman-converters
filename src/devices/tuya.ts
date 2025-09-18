@@ -2629,6 +2629,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE204_vevc4c6g",
             "_TZE200_0nauxa0p",
             "_TZE200_ykgar0ow",
+            "_TZE284_m1cvyneb",
             "_TZE200_0hb4rdnp",
         ]),
         model: "TS0601_dimmer_1_gang_1",
