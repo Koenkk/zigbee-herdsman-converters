@@ -40,6 +40,14 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.light({configureReporting: true})],
     },
     {
+        zigbeeModel: ["SM309-S-2CH"],
+        model: "SM309-S-2CH",
+        vendor: "Samotech",
+        description: "Zigbee 2 channel in wall dimmer",
+        extend: [m.deviceEndpoints({endpoints: {1: 1, 2: 2}}), m.light({endpointNames: ["1", "2"]})],
+        meta: {multiEndpoint: true},
+    },
+    {
         // v1 doesn't support electricity measurements
         // https://github.com/Koenkk/zigbee2mqtt/issues/21449
         fingerprint: [{manufacturerName: "Samotech", modelID: "Dimmer-Switch-ZB3.0"}],

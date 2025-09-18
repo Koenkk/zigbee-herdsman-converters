@@ -1195,7 +1195,7 @@ export interface BoschBsirIasWdCluster {
         /** ID: 40965 | Type: UINT8 */
         lightDuration: number;
         /** ID: 40966 | Type: UINT8 */
-        alarmState: number;
+        deviceState: number;
     };
     commands: {
         /** ID: 243 */
@@ -1243,7 +1243,7 @@ export const boschBsirExtend = {
                 sirenDelay: {ID: 0xa003, type: Zcl.DataType.UINT16, manufacturerCode: manufacturerOptions.manufacturerCode},
                 lightDelay: {ID: 0xa004, type: Zcl.DataType.UINT16, manufacturerCode: manufacturerOptions.manufacturerCode},
                 lightDuration: {ID: 0xa005, type: Zcl.DataType.UINT8, manufacturerCode: manufacturerOptions.manufacturerCode},
-                alarmState: {ID: 0xa006, type: Zcl.DataType.UINT8, manufacturerCode: manufacturerOptions.manufacturerCode},
+                deviceState: {ID: 0xa006, type: Zcl.DataType.UINT8, manufacturerCode: manufacturerOptions.manufacturerCode},
             },
             commands: {
                 alarmControl: {
@@ -1308,20 +1308,23 @@ export const boschBsirExtend = {
             isModernExtend: true,
         };
     },
-    alarmState: () =>
+    deviceState: () =>
         m.enumLookup<"ssIasWd", BoschBsirIasWdCluster>({
-            name: "alarm_state",
+            name: "device_state",
             cluster: "ssIasWd",
-            attribute: "alarmState",
-            description: "Current state of the siren and light. Please keep in mind that these activate after the specified delay time.",
+            attribute: "deviceState",
+            description:
+                "Current state of the siren and light. Please keep in mind that these activate after the specified delay time (except when using an external alarm trigger).",
             lookup: {
+                siren_active_from_external_trigger: 0x05,
+                light_active_from_external_trigger: 0x06,
+                siren_and_light_active_from_external_trigger: 0x07,
                 siren_active: 0x09,
                 light_active: 0x0a,
                 siren_and_light_active: 0x0b,
-                no_alarm_active: 0x00,
+                idle: 0x00,
             },
             access: "STATE_GET",
-            entityCategory: "diagnostic",
         }),
     battery: () =>
         m.battery({
@@ -1426,13 +1429,19 @@ export const boschBsirExtend = {
             reporting: {min: "MIN", max: "MAX", change: 1},
             entityCategory: "config",
         }),
-    tamperAndPowerOutageState: (): ModernExtend => {
+    iasZoneStatus: (): ModernExtend => {
         const powerOutageLookup = {
             outage_detected: true,
             power_ok: false,
         };
 
         const exposes: Expose[] = [
+            e
+                .binary("external_trigger", ea.STATE, true, false)
+                .withLabel("External trigger state")
+                .withDescription(
+                    "Indicates whether an external alarm via the 'TRIGGER_IN' connectors on the back of the device is being received. Please keep in mind that the device automatically activates/deactivates an alarm in that case.",
+                ),
             e
                 .binary("tamper", ea.STATE, true, false)
                 .withLabel("Tamper state")
@@ -1455,18 +1464,18 @@ export const boschBsirExtend = {
         const fromZigbee = [
             {
                 cluster: "ssIasZone",
-                type: ["commandStatusChangeNotification", "attributeReport", "readResponse"],
+                type: ["commandStatusChangeNotification"],
                 convert: (model, msg, publish, options, meta) => {
                     if (utils.hasAlreadyProcessedMessage(msg, model)) {
                         return;
                     }
 
-                    const isChange = msg.type === "commandStatusChangeNotification";
-                    const zoneStatus = "zonestatus" in msg.data ? msg.data.zonestatus : msg.data.zoneStatus;
+                    const zoneStatus = msg.data.zonestatus;
+                    const alarmOneStatus = (zoneStatus & 1) > 0;
                     const tamperStatus = (zoneStatus & (1 << 2)) > 0;
                     const alarmTwoStatus = (zoneStatus & (1 << 1)) > 0;
 
-                    if (tamperStatus && isChange) {
+                    if (tamperStatus) {
                         meta.device
                             .getEndpoint(1)
                             .command<"ssIasZone", "acknowledgeStatusChange", BoschBsirIasZoneCluster>(
@@ -1480,7 +1489,7 @@ export const boschBsirExtend = {
                             });
                     }
 
-                    if (alarmTwoStatus && isChange) {
+                    if (alarmTwoStatus) {
                         meta.device
                             .getEndpoint(1)
                             .command<"ssIasZone", "acknowledgeStatusChange", BoschBsirIasZoneCluster>(
@@ -1495,11 +1504,12 @@ export const boschBsirExtend = {
                     }
 
                     return {
+                        external_trigger: alarmOneStatus,
                         tamper: tamperStatus,
                         power_outage: utils.getFromLookupByValue(alarmTwoStatus, powerOutageLookup),
                     };
                 },
-            } satisfies Fz.Converter<"ssIasZone", undefined, ["commandStatusChangeNotification", "attributeReport", "readResponse"]>,
+            } satisfies Fz.Converter<"ssIasZone", undefined, ["commandStatusChangeNotification"]>,
         ];
 
         const configure: Configure[] = [
@@ -1575,6 +1585,296 @@ export const boschBsirExtend = {
         ];
 
         return {exposes, fromZigbee, configure, isModernExtend: true};
+    },
+};
+//endregion
+
+//region Bosch BSEN-M device (Motion detector)
+interface BoschBsenIasZoneCluster {
+    attributes: never;
+    commands: {
+        /** ID: 243 */
+        initCustomTestMode: {
+            /** Type: UINT16 */
+            data: number[];
+        };
+    };
+    commandResponses: never;
+}
+
+export const boschBsenExtend = {
+    customIasZoneCluster: () =>
+        m.deviceAddCustomCluster("ssIasZone", {
+            ID: Zcl.Clusters.ssIasZone.ID,
+            attributes: {},
+            commands: {
+                initCustomTestMode: {
+                    ID: 0x02,
+                    parameters: [{name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8}],
+                },
+            },
+            commandsResponse: {},
+        }),
+    battery: () =>
+        m.battery({
+            percentage: false,
+            percentageReporting: false,
+            voltage: true,
+            voltageReporting: true,
+            voltageToPercentage: {min: 2500, max: 3000},
+            lowStatus: true,
+            lowStatusReportingConfig: {min: "MIN", max: "MAX", change: 0},
+        }),
+    illuminance: () => m.illuminance({reporting: {min: "1_SECOND", max: 600, change: 3522}}),
+    // The temperature sensor isn't used at all by Bosch on the BSEN-M.
+    // Therefore, I decided to be a bit conservative with the reporting
+    // intervals to not drain the battery too much.
+    temperature: () => m.temperature({reporting: {min: "5_MINUTES", max: "MAX", change: 100}}),
+    tamperAndOccupancyAlarm: (): ModernExtend => {
+        const exposes: Expose[] = [
+            e
+                .binary("tamper", ea.STATE, true, false)
+                .withLabel("Tamper state")
+                .withDescription("Indicates whether the device is tampered")
+                .withCategory("diagnostic"),
+            e
+                .binary("occupancy", ea.STATE, true, false)
+                .withLabel("Occupancy state")
+                .withDescription("Indicates whether the device detected any motion in the surroundings"),
+        ];
+
+        const fromZigbee = [
+            {
+                cluster: "ssIasZone",
+                type: ["commandStatusChangeNotification", "attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    const zoneStatus = "zonestatus" in msg.data ? msg.data.zonestatus : msg.data.zoneStatus;
+
+                    if (zoneStatus === undefined) {
+                        return;
+                    }
+
+                    let payload = {};
+
+                    const tamperStatus = (zoneStatus & (1 << 2)) > 0;
+                    payload = {tamper: tamperStatus, ...payload};
+
+                    const occupancyLockActive = meta.device.meta.occupancyLockTimeout ? meta.device.meta.occupancyLockTimeout > Date.now() : false;
+
+                    if (!occupancyLockActive) {
+                        const alarmOneStatus = (zoneStatus & 1) > 0;
+                        payload = {occupancy: alarmOneStatus, ...payload};
+
+                        const isChangeMessage = msg.type === "commandStatusChangeNotification";
+                        const newOccupancyStatusDetected = alarmOneStatus === true;
+
+                        if (isChangeMessage && newOccupancyStatusDetected) {
+                            // After a detection, the device turns off the motion detection for 3 minutes.
+                            // Unfortunately, the alarm is already turned off after 4 seconds for reasons
+                            // only known to Bosch. Therefore, we have to manually defer the turn-off by
+                            // 4 seconds + 3 minutes to avoid any confusion.
+                            const timeoutDelay = 184 * 1000;
+                            setTimeout(() => publish({occupancy: false}), timeoutDelay);
+                            meta.device.meta.occupancyLockTimeout = Date.now() + timeoutDelay;
+                        }
+                    }
+
+                    return payload;
+                },
+            } satisfies Fz.Converter<"ssIasZone", undefined, ["commandStatusChangeNotification", "attributeReport", "readResponse"]>,
+        ];
+
+        const configure: Configure[] = [m.setupConfigureForBinding("ssIasZone", "input"), m.setupConfigureForReading("ssIasZone", ["zoneStatus"])];
+
+        const onEvent: OnEvent.Handler[] = [
+            async (event) => {
+                if (event.type !== "start") {
+                    return;
+                }
+
+                const occupancyLockTimeout = event.data.device.meta.occupancyLockTimeout;
+
+                if (occupancyLockTimeout === undefined) {
+                    return;
+                }
+
+                const currentTime = Date.now();
+                const endpoint = event.data.device.getEndpoint(1);
+
+                if (occupancyLockTimeout > currentTime) {
+                    const timeoutDelay = occupancyLockTimeout - currentTime;
+                    setTimeout(() => {
+                        endpoint.read("ssIasZone", ["zoneStatus"]).catch((exception) => {
+                            logger.warning(`Error during reading the zoneStatus on device '${event.data.device.ieeeAddr}': ${exception}`, NS);
+                        });
+                    }, timeoutDelay);
+                } else {
+                    await endpoint.read("ssIasZone", ["zoneStatus"]);
+                }
+            },
+        ];
+
+        return {
+            exposes,
+            fromZigbee,
+            configure,
+            onEvent,
+            isModernExtend: true,
+        };
+    },
+    sensitivityLevel: (): ModernExtend => {
+        const sensitivityLevelLookup = {
+            pet_immunity: 0xb8,
+            sneak_by_guard: 0xb0,
+            unknown: 0x00,
+        };
+
+        const exposes: Expose[] = [
+            e
+                .enum("sensitivity_level", ea.STATE_GET, Object.keys(sensitivityLevelLookup))
+                .withDescription("Specifies the selected sensitivity level on the back of the device (either 'pet immunity' or 'sneak-by guard').")
+                .withCategory("diagnostic"),
+        ];
+
+        const fromZigbee = [
+            {
+                cluster: "ssIasZone",
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    const result: KeyValue = {};
+                    const data = msg.data;
+
+                    if (data.currentZoneSensitivityLevel !== undefined) {
+                        result.sensitivity_level = utils.getFromLookupByValue(data.currentZoneSensitivityLevel, sensitivityLevelLookup, "unknown");
+                    }
+
+                    return result;
+                },
+            } satisfies Fz.Converter<"ssIasZone", undefined, ["attributeReport", "readResponse"]>,
+        ];
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ["sensitivity_level"],
+                convertGet: async (entity, key, meta) => {
+                    await entity.read("ssIasZone", ["currentZoneSensitivityLevel"]);
+                },
+            },
+        ];
+
+        const configure: Configure[] = [
+            m.setupConfigureForBinding("ssIasZone", "input"),
+            m.setupConfigureForReading("ssIasZone", ["numZoneSensitivityLevelsSupported", "currentZoneSensitivityLevel"]),
+            async (device, coordinatorEndpoint, definition) => {
+                const endpoint = device.getEndpoint(1);
+
+                // The write request is made when using the proprietary
+                // Bosch Smart Home Controller II as of 15-09-2025. Looks like
+                // the default value was too low, and they didn't want to
+                // push a firmware update. We mimic it here to avoid complaints.
+                await endpoint.write("ssIasZone", {currentZoneSensitivityLevel: 176});
+            },
+        ];
+
+        return {
+            exposes,
+            fromZigbee,
+            toZigbee,
+            configure,
+            isModernExtend: true,
+        };
+    },
+    changedCheckinInterval: (): ModernExtend => {
+        const configure: Configure[] = [
+            m.setupConfigureForReading("genPollCtrl", ["checkinInterval", "longPollInterval", "shortPollInterval"]),
+            async (device, coordinatorEndpoint, definition) => {
+                const endpoint = device.getEndpoint(1);
+
+                // The write request is made when using the proprietary
+                // Bosch Smart Home Controller II as of 15-09-2025.
+                // The reason is unclear to me, but we mimic it here
+                // to avoid possible complaints in case it fixed any issues.
+                await endpoint.write("genPollCtrl", {checkinInterval: 2160});
+            },
+        ];
+
+        return {
+            configure,
+            isModernExtend: true,
+        };
+    },
+    testMode: (): ModernExtend => {
+        const testModeLookup = {
+            ON: true,
+            OFF: false,
+        };
+        const enableTestMode = async (endpoint: Zh.Endpoint | Zh.Group) => {
+            await endpoint.command<"ssIasZone", "initCustomTestMode", BoschBsenIasZoneCluster>("ssIasZone", "initCustomTestMode", {
+                data: [0x00, 0x80],
+            });
+        };
+
+        const disableTestMode = async (endpoint: Zh.Endpoint | Zh.Group) => {
+            await endpoint.command("ssIasZone", "initNormalOpMode", {});
+        };
+
+        const exposes: Expose[] = [
+            e
+                .binary("test_mode", ea.ALL, utils.getFromLookupByValue(true, testModeLookup), utils.getFromLookupByValue(false, testModeLookup))
+                .withDescription(
+                    "Activate the test mode. In this mode, the device blinks on every detected motion without any wait time in between to verify the installation. Please keep in mind that it can take up to 45 seconds for the test mode to be activated.",
+                )
+                .withCategory("config"),
+        ];
+
+        const fromZigbee = [
+            {
+                cluster: "ssIasZone",
+                type: ["commandStatusChangeNotification", "attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    const zoneStatus = "zonestatus" in msg.data ? msg.data.zonestatus : msg.data.zoneStatus;
+
+                    if (zoneStatus === undefined) {
+                        return;
+                    }
+
+                    const result: KeyValue = {};
+
+                    const testModeEnabled = (zoneStatus & (1 << 8)) > 0;
+                    result.test_mode = utils.getFromLookupByValue(testModeEnabled, testModeLookup);
+
+                    return result;
+                },
+            } satisfies Fz.Converter<"ssIasZone", undefined, ["commandStatusChangeNotification", "attributeReport", "readResponse"]>,
+        ];
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ["test_mode"],
+                convertSet: async (entity, key, value, meta) => {
+                    if (key === "test_mode") {
+                        if (value === utils.getFromLookupByValue(true, testModeLookup)) {
+                            await enableTestMode(entity);
+                        } else {
+                            await disableTestMode(entity);
+                        }
+                    }
+                },
+                convertGet: async (entity, key, meta) => {
+                    await entity.read("ssIasZone", ["zoneStatus"]);
+                },
+            },
+        ];
+
+        const configure: Configure[] = [m.setupConfigureForBinding("ssIasZone", "input"), m.setupConfigureForReading("ssIasZone", ["zoneStatus"])];
+
+        return {
+            exposes,
+            fromZigbee,
+            toZigbee,
+            configure,
+            isModernExtend: true,
+        };
     },
 };
 //endregion

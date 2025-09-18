@@ -629,39 +629,9 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Legrand",
         description: "Double wired switch with neutral",
         ota: true,
-        fromZigbee: [fz.identify, fz.legrand_binary_input_on_off, fz.lighting_ballast_configuration, fzLegrand.cluster_fc01],
-        toZigbee: [tzLegrand.identify, tz.legrand_device_mode, tzLegrand.led_mode, tz.ballast_config],
-        exposes: [
-            e
-                .numeric("ballast_minimum_level", ea.ALL)
-                .withValueMin(1)
-                .withValueMax(254)
-                .withDescription("Specifies the minimum brightness value")
-                .withEndpoint("left"),
-            e
-                .numeric("ballast_maximum_level", ea.ALL)
-                .withValueMin(1)
-                .withValueMax(254)
-                .withDescription("Specifies the maximum brightness value")
-                .withEndpoint("left"),
-            e
-                .numeric("ballast_minimum_level", ea.ALL)
-                .withValueMin(1)
-                .withValueMax(254)
-                .withDescription("Specifies the minimum brightness value")
-                .withEndpoint("right"),
-            e
-                .numeric("ballast_maximum_level", ea.ALL)
-                .withValueMin(1)
-                .withValueMax(254)
-                .withDescription("Specifies the maximum brightness value")
-                .withEndpoint("right"),
-            e.binary("device_mode", ea.ALL, "dimmer_on", "dimmer_off").withDescription("Allow the device to change brightness"),
-            e.switch().withEndpoint("left"),
-            e.switch().withEndpoint("right"),
-            eLegrand.ledInDark(),
-            eLegrand.ledIfOn(),
-        ],
+        fromZigbee: [fz.identify, fz.legrand_binary_input_on_off, fzLegrand.cluster_fc01],
+        toZigbee: [tzLegrand.identify, tzLegrand.led_mode],
+        exposes: [e.switch().withEndpoint("left"), e.switch().withEndpoint("right"), eLegrand.ledInDark(), eLegrand.ledIfOn()],
         extend: [m.deviceEndpoints({endpoints: {left: 2, right: 1}}), m.light({configureReporting: true, endpointNames: ["left", "right"]})],
     },
     {
