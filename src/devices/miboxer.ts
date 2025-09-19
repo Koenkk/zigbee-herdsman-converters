@@ -36,6 +36,51 @@ function getZoneGroupMapping(options: KeyValue = {}): Record<number, number> {
     return mapping;
 }
 
+// Get zone suffix from group ID by checking device options
+function getZoneSuffixFromGroupId(groupId: number | undefined, options: KeyValue = {}): string | null {
+    if (!groupId) return null;
+
+    // Get current zone group mapping from device options
+    const zoneGroupMapping = getZoneGroupMapping(options);
+
+    // Find the zone number for the given group ID
+    const zoneNumber = Object.keys(zoneGroupMapping).find((zone) => zoneGroupMapping[Number.parseInt(zone, 10)] === groupId);
+
+    // If no zone number is found for this group or if legacy actions are enabled, add no suffix
+    if (!zoneNumber || options.legacy_actions === true) {
+        return "";
+    }
+
+    return `_zone_${zoneNumber}`;
+}
+
+// Create fromZigbee converter that adds zone suffix to action names
+function createZoneAwareConverter<T extends string>(
+    // biome-ignore lint/suspicious/noExplicitAny: Fz.ConverterTypeStringOrArray is not exported
+    baseConverter: Fz.Converter<T, undefined, any>,
+    actionName: string,
+    // biome-ignore lint/suspicious/noExplicitAny: Fz.ConverterTypeStringOrArray is not exported
+): Fz.Converter<T, undefined, any> {
+    return {
+        cluster: baseConverter.cluster,
+        type: baseConverter.type,
+        convert: (model, msg, publish, options, meta) => {
+            const zoneSuffix = getZoneSuffixFromGroupId(msg.groupID, options);
+            if (zoneSuffix === null) return undefined;
+
+            // Call the base converter
+            const baseResult = baseConverter.convert(model, msg, publish, options, meta);
+            if (!baseResult) return undefined;
+
+            // Override the action with zone suffix
+            return {
+                ...baseResult,
+                action: `${actionName}${zoneSuffix}`,
+            };
+        },
+    };
+}
+
 // Create converters that extract action properties to numeric sensors
 const actionPropertyConverters = {
     hue_saturation: {
@@ -73,16 +118,23 @@ const actionPropertyConverters = {
     } as Fz.Converter<"genLevelCtrl", undefined, ["commandMoveToLevel", "commandMoveToLevelWithOnOff"]>,
 };
 
-// ModernExtend function for FUT089Z remote control (basic functionality)
+// ModernExtend function for FUT089Z remote control
 function miboxerFut089zControls() {
+    // Create zone-aware converters using base converters (they will dynamically read device options)
+    const onConverter = createZoneAwareConverter(fz.command_on, "on");
+    const offConverter = createZoneAwareConverter(fz.command_off, "off");
+    const brightnessConverter = createZoneAwareConverter(fz.command_move_to_level, "brightness_move_to_level");
+    const colorTempConverter = createZoneAwareConverter(fz.command_move_to_color_temp, "color_temperature_move");
+    const colorConverter = createZoneAwareConverter(fz.command_move_to_hue_and_saturation, "move_to_hue_and_saturation");
+
     // biome-ignore lint/suspicious/noExplicitAny: Fz.ConverterTypeStringOrArray is not exported
     const fromZigbee: Fz.Converter<string, undefined, any>[] = [
+        onConverter,
+        offConverter,
+        brightnessConverter,
+        colorTempConverter,
+        colorConverter,
         fz.battery,
-        fz.command_on,
-        fz.command_off,
-        fz.command_move_to_level,
-        fz.command_move_to_color_temp,
-        fz.command_move_to_hue_and_saturation,
         fz.tuya_switch_scene,
         // Add converters for numeric sensors (always included, but they check options internally)
         actionPropertyConverters.hue_saturation,
@@ -108,7 +160,27 @@ function miboxerFut089zControls() {
         new exposes.Binary("expose_values", exposes.access.SET, true, false).withDescription(
             "Expose additional numeric values for action properties (hue, saturation, level, etc.)",
         ),
+        new exposes.Binary("legacy_actions", exposes.access.SET, true, false).withDescription(
+            "Publish legacy actions without zone IDs (in addition to zone-specific actions)",
+        ),
     ];
+
+    // Generate action exposes for all possible zones
+    function zoneActions(legacy: boolean): string[] {
+        const baseActions = ["on", "off", "brightness_move_to_level", "color_temperature_move", "move_to_hue_and_saturation"];
+
+        if (legacy) {
+            return baseActions;
+        }
+
+        const actions: string[] = [];
+        for (let zoneNumber = 1; zoneNumber <= MAX_ZONES; zoneNumber++) {
+            baseActions.forEach((action) => {
+                actions.push(`${action}_zone_${zoneNumber}`);
+            });
+        }
+        return actions;
+    }
 
     // Event handler to update device when zone options change
     const eventHandlers: OnEvent.Handler[] = [
@@ -157,10 +229,8 @@ function miboxerFut089zControls() {
             ((device, options = {}) => {
                 const dynamicExposes = [];
 
-                // Add action expose
-                dynamicExposes.push(
-                    e.action(["on", "off", "brightness_move_to_level", "color_temperature_move", "move_to_hue_and_saturation", "tuya_switch_scene"]),
-                );
+                // Add action expose with zone-aware actions
+                dynamicExposes.push(e.action(zoneActions(options.legacy_actions === true)));
 
                 // Add numeric sensors if enabled in options
                 if (options.expose_values === true) {
