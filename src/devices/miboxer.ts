@@ -1,10 +1,40 @@
 import * as fz from "../converters/fromZigbee";
 import * as exposes from "../lib/exposes";
+import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
 import * as tuya from "../lib/tuya";
-import type {Definition, DefinitionExposesFunction, DefinitionWithExtend, Fz, Zh} from "../lib/types";
+import type {Definition, DefinitionExposesFunction, DefinitionWithExtend, Fz, KeyValue, OnEvent, Zh} from "../lib/types";
 
 const e = exposes.presets;
+
+// Constants
+const MAX_ZONES = 8;
+const DEFAULT_GROUP_ID_BASE = 100;
+
+// Default zone to group mapping configuration
+const defaultZoneGroupMapping: Record<number, number> = {
+    1: 101,
+    2: 102,
+    3: 103,
+    4: 104,
+    5: 105,
+    6: 106,
+    7: 107,
+    8: 108,
+} as const;
+
+// Get zone group mapping from device options with fallback to defaults
+function getZoneGroupMapping(options: KeyValue = {}): Record<number, number> {
+    const mapping = {...defaultZoneGroupMapping};
+    for (let i = 1; i <= MAX_ZONES; i++) {
+        const optionKey = `zone_${i}_group_id`;
+        const optionValue = options[optionKey];
+        if (optionValue !== undefined && typeof optionValue === "number" && optionValue > 0) {
+            mapping[i] = optionValue;
+        }
+    }
+    return mapping;
+}
 
 // Create converters that extract action properties to numeric sensors
 const actionPropertyConverters = {
@@ -63,11 +93,61 @@ function miboxerFut089zControls() {
     // Device exposes (battery info and action)
     const exposesList = [e.battery(), e.battery_voltage()];
 
-    // Device options for numeric sensors
+    // Device options for zone group mapping configuration and numeric sensors
     const deviceOptions = [
+        // Generate zone group ID options dynamically
+        ...Array.from({length: MAX_ZONES}, (_, i) => {
+            const zoneNum = i + 1;
+            return exposes
+                .numeric(`zone_${zoneNum}_group_id`, exposes.access.SET)
+                .withDescription(`Group ID for zone ${zoneNum} (default: ${DEFAULT_GROUP_ID_BASE + zoneNum})`)
+                .withValueMin(1)
+                .withValueMax(65535);
+        }),
+        // Feature toggles
         new exposes.Binary("expose_values", exposes.access.SET, true, false).withDescription(
             "Expose additional numeric values for action properties (hue, saturation, level, etc.)",
         ),
+    ];
+
+    // Event handler to update device when zone options change
+    const eventHandlers: OnEvent.Handler[] = [
+        async (event) => {
+            if (event.type !== "deviceOptionsChanged") return;
+
+            const {device, from, to} = event.data;
+
+            // Generate zone option keys dynamically
+            const zoneOptionKeys = Array.from({length: MAX_ZONES}, (_, i) => `zone_${i + 1}_group_id`);
+
+            const hasZoneOptionChanged = zoneOptionKeys.some((key) => from[key] !== to[key]);
+
+            if (hasZoneOptionChanged) {
+                try {
+                    const endpoint = device.getEndpoint(1);
+                    if (!endpoint) {
+                        throw new Error("Endpoint 1 not found on device");
+                    }
+
+                    // Get the updated zone group mapping from new options
+                    const updatedMapping = getZoneGroupMapping(to);
+
+                    // Build zone configuration array from the mapping
+                    const zoneConfig = Object.entries(updatedMapping).map(([zoneNum, groupId]) => ({
+                        zoneNum: Number.parseInt(zoneNum, 10),
+                        groupId: groupId,
+                    }));
+
+                    // Send the updated zone configuration to the device
+                    await endpoint.command("genGroups", "miboxerSetZones", {zones: zoneConfig});
+                } catch (error) {
+                    // Log error but don't throw to avoid breaking the update process
+                    logger.error(`Failed to update zone configuration: ${error}`, "zhc:miboxer");
+                }
+            }
+
+            event.data.deviceExposesChanged();
+        },
     ];
 
     return {
@@ -113,6 +193,7 @@ function miboxerFut089zControls() {
             }) as DefinitionExposesFunction,
         ],
         options: deviceOptions,
+        onEvent: eventHandlers,
         isModernExtend: true as true,
         configure: [
             async (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint, definition: Definition) => {
@@ -122,18 +203,17 @@ function miboxerFut089zControls() {
                 }
 
                 await tuya.configureMagicPacket(device, coordinatorEndpoint);
-                await endpoint.command("genGroups", "miboxerSetZones", {
-                    zones: [
-                        {zoneNum: 1, groupId: 101},
-                        {zoneNum: 2, groupId: 102},
-                        {zoneNum: 3, groupId: 103},
-                        {zoneNum: 4, groupId: 104},
-                        {zoneNum: 5, groupId: 105},
-                        {zoneNum: 6, groupId: 106},
-                        {zoneNum: 7, groupId: 107},
-                        {zoneNum: 8, groupId: 108},
-                    ],
-                });
+
+                // Use default zone group mapping for initial configuration
+                const currentMapping = getZoneGroupMapping();
+
+                // Build zone configuration array from the mapping
+                const zoneConfig = Object.entries(currentMapping).map(([zoneNum, groupId]) => ({
+                    zoneNum: Number.parseInt(zoneNum, 10),
+                    groupId: groupId,
+                }));
+
+                await endpoint.command("genGroups", "miboxerSetZones", {zones: zoneConfig});
                 await endpoint.command("genBasic", "tuyaSetup", {}, {disableDefaultResponse: true});
             },
         ],
