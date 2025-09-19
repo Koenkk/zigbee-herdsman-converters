@@ -1695,7 +1695,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "genPollCtrl",
                 clusterType: "input",
             }),
-            boschBsenExtend.customDoorWindowContactCluster(),
+            boschBsenExtend.doorWindowContactCluster(),
             boschBsenExtend.breakFunction(),
         ],
         configure: async (device, coordinatorEndpoint) => {
@@ -1711,7 +1711,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Bosch",
         description: "Door/window contact II plus",
         extend: [
-            boschExtend.doorWindowContact(true),
+            boschExtend.doorWindowContact(false),
             m.battery({
                 percentage: true,
                 lowStatus: true,
@@ -1720,7 +1720,8 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "genPollCtrl",
                 clusterType: "input",
             }),
-            boschBsenExtend.customDoorWindowContactCluster(),
+            boschBsenExtend.doorWindowContactCluster(),
+            boschBsenExtend.vibrationDetection(),
             boschBsenExtend.breakFunction(),
         ],
         configure: async (device, coordinatorEndpoint) => {
@@ -1744,7 +1745,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "genPollCtrl",
                 clusterType: "input",
             }),
-            boschBsenExtend.customDoorWindowContactCluster(),
+            boschBsenExtend.doorWindowContactCluster(),
             boschBsenExtend.breakFunction(),
         ],
         configure: async (device, coordinatorEndpoint) => {
