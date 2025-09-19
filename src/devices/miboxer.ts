@@ -46,8 +46,8 @@ function getZoneSuffixFromGroupId(groupId: number | undefined, options: KeyValue
     // Find the zone number for the given group ID
     const zoneNumber = Object.keys(zoneGroupMapping).find((zone) => zoneGroupMapping[Number.parseInt(zone, 10)] === groupId);
 
-    // If no zone number is found for this group or if legacy actions are enabled, add no suffix
-    if (!zoneNumber || options.legacy_actions === true) {
+    // If no zone number is found for this group or if zone actions are disabled, add no suffix
+    if (!zoneNumber || options.zone_actions !== true) {
         return "";
     }
 
@@ -160,16 +160,16 @@ function miboxerFut089zControls() {
         new exposes.Binary("expose_values", exposes.access.SET, true, false).withDescription(
             "Expose additional numeric values for action properties (hue, saturation, level, etc.)",
         ),
-        new exposes.Binary("legacy_actions", exposes.access.SET, true, false).withDescription(
-            "Publish legacy actions without zone IDs (in addition to zone-specific actions)",
+        new exposes.Binary("zone_actions", exposes.access.SET, true, false).withDescription(
+            "Publish zone-specific actions with zone IDs (e.g., on_zone_1, off_zone_2)",
         ),
     ];
 
     // Generate action exposes for all possible zones
-    function zoneActions(legacy: boolean): string[] {
+    function zoneActions(enableZoneActions: boolean): string[] {
         const baseActions = ["on", "off", "brightness_move_to_level", "color_temperature_move", "move_to_hue_and_saturation"];
 
-        if (legacy) {
+        if (!enableZoneActions) {
             return baseActions;
         }
 
@@ -230,7 +230,7 @@ function miboxerFut089zControls() {
                 const dynamicExposes = [];
 
                 // Add action expose with zone-aware actions
-                dynamicExposes.push(e.action(zoneActions(options.legacy_actions === true)));
+                dynamicExposes.push(e.action(zoneActions(options.zone_actions === true)));
 
                 // Add numeric sensors if enabled in options
                 if (options.expose_values === true) {
