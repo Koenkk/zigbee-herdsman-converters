@@ -1,7 +1,14 @@
 import {Zcl, ZSpec} from "zigbee-herdsman";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
-import {type BoschBmctCluster, boschBmctExtend, boschBsenExtend, boschBsirExtend, manufacturerOptions} from "../lib/bosch";
+import {
+    type BoschBmctCluster,
+    boschBmctExtend,
+    boschBsenExtend,
+    boschBsirExtend,
+    boschDoorWindowContactExtend,
+    manufacturerOptions,
+} from "../lib/bosch";
 import * as constants from "../lib/constants";
 import {repInterval} from "../lib/constants";
 import * as exposes from "../lib/exposes";
@@ -495,50 +502,6 @@ const boschExtend = {
         return {
             exposes,
             toZigbee,
-            isModernExtend: true,
-        };
-    },
-    doorWindowContact: (hasVibrationSensor?: boolean): ModernExtend => {
-        const exposes: Expose[] = [
-            e.binary("contact", ea.STATE, false, true).withDescription("Indicates whether the device is opened or closed"),
-            e
-                .enum("action", ea.STATE, ["none", "single", "long"])
-                .withDescription("Triggered action (e.g. a button click)")
-                .withCategory("diagnostic"),
-        ];
-        if (hasVibrationSensor) {
-            exposes.push(e.binary("vibration", ea.STATE, true, false).withDescription("Indicates whether the device detected vibration"));
-        }
-        const fromZigbee = [
-            {
-                cluster: "ssIasZone",
-                type: ["commandStatusChangeNotification", "attributeReport", "readResponse"],
-                convert: (model, msg, publish, options, meta) => {
-                    const zoneStatus = "zonestatus" in msg.data ? msg.data.zonestatus : msg.data.zoneStatus;
-                    if (zoneStatus !== undefined) {
-                        const lookup: KeyValue = {0: "none", 1: "single", 2: "long"};
-                        const result: KeyValue = {
-                            contact: !((zoneStatus & 1) > 0),
-                            vibration: (zoneStatus & (1 << 1)) > 0,
-                            tamper: (zoneStatus & (1 << 2)) > 0,
-                            battery_low: (zoneStatus & (1 << 3)) > 0,
-                            supervision_reports: (zoneStatus & (1 << 4)) > 0,
-                            restore_reports: (zoneStatus & (1 << 5)) > 0,
-                            trouble: (zoneStatus & (1 << 6)) > 0,
-                            ac_status: (zoneStatus & (1 << 7)) > 0,
-                            test: (zoneStatus & (1 << 8)) > 0,
-                            battery_defect: (zoneStatus & (1 << 9)) > 0,
-                            action: lookup[(zoneStatus >> 11) & 3],
-                        };
-                        if (result.action === "none") delete result.action;
-                        return result;
-                    }
-                },
-            } satisfies Fz.Converter<"ssIasZone", undefined, ["commandStatusChangeNotification", "attributeReport", "readResponse"]>,
-        ];
-        return {
-            exposes,
-            fromZigbee,
             isModernExtend: true,
         };
     },
@@ -1686,23 +1649,12 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Bosch",
         description: "Door/window contact II",
         extend: [
-            boschExtend.doorWindowContact(false),
-            m.battery({
-                percentage: true,
-                lowStatus: true,
-            }),
-            m.bindCluster({
-                cluster: "genPollCtrl",
-                clusterType: "input",
-            }),
-            boschBsenExtend.doorWindowContactCluster(),
-            boschBsenExtend.breakFunction(),
+            boschDoorWindowContactExtend.doorWindowContactCluster(),
+            boschDoorWindowContactExtend.reportContactState(),
+            boschDoorWindowContactExtend.reportButtonActions(),
+            boschDoorWindowContactExtend.breakFunctionality(),
+            boschDoorWindowContactExtend.battery(),
         ],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await endpoint.read("genPowerCfg", ["batteryPercentageRemaining"]);
-            await endpoint.read("ssIasZone", ["zoneStatus"]);
-        },
         ota: true,
     },
     {
@@ -1711,24 +1663,13 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Bosch",
         description: "Door/window contact II plus",
         extend: [
-            boschExtend.doorWindowContact(false),
-            m.battery({
-                percentage: true,
-                lowStatus: true,
-            }),
-            m.bindCluster({
-                cluster: "genPollCtrl",
-                clusterType: "input",
-            }),
-            boschBsenExtend.doorWindowContactCluster(),
-            boschBsenExtend.vibrationDetection(),
-            boschBsenExtend.breakFunction(),
+            boschDoorWindowContactExtend.doorWindowContactCluster(),
+            boschDoorWindowContactExtend.reportContactState(),
+            boschDoorWindowContactExtend.reportButtonActions(),
+            boschDoorWindowContactExtend.vibrationDetection(),
+            boschDoorWindowContactExtend.breakFunctionality(),
+            boschDoorWindowContactExtend.battery(),
         ],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await endpoint.read("genPowerCfg", ["batteryPercentageRemaining"]);
-            await endpoint.read("ssIasZone", ["zoneStatus"]);
-        },
     },
     {
         zigbeeModel: ["RBSH-SWD2-ZB"],
@@ -1736,23 +1677,13 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Bosch",
         description: "Door/window contact II [+M]",
         extend: [
-            boschExtend.doorWindowContact(false),
-            m.battery({
-                percentage: true,
-                lowStatus: true,
-            }),
-            m.bindCluster({
-                cluster: "genPollCtrl",
-                clusterType: "input",
-            }),
-            boschBsenExtend.doorWindowContactCluster(),
-            boschBsenExtend.breakFunction(),
+            boschDoorWindowContactExtend.doorWindowContactCluster(),
+            boschDoorWindowContactExtend.reportContactState(),
+            boschDoorWindowContactExtend.reportButtonActions({doublePressSupported: true}),
+            boschDoorWindowContactExtend.breakFunctionality(),
+            boschDoorWindowContactExtend.battery(),
         ],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await endpoint.read("genPowerCfg", ["batteryPercentageRemaining"]);
-            await endpoint.read("ssIasZone", ["zoneStatus"]);
-        },
+        ota: true,
     },
     {
         zigbeeModel: ["RBSH-MMD-ZB-EU"],

@@ -1589,19 +1589,7 @@ export const boschBsirExtend = {
 };
 //endregion
 
-//region Bosch BSEN-M device (Motion detector)
-interface BoschBsenIasZoneCluster {
-    attributes: never;
-    commands: {
-        /** ID: 243 */
-        initCustomTestMode: {
-            /** Type: UINT16 */
-            data: number[];
-        };
-    };
-    commandResponses: never;
-}
-
+//region Bosch BSEN-C2/-CV/-C2D devices (door/window contacts)
 interface BoschDoorWindowContactCluster {
     attributes: {
         /** ID: 0 | Type: UINT8 */
@@ -1614,20 +1602,20 @@ interface BoschDoorWindowContactCluster {
         vibrationDetectionEnabled: number;
         /** ID: 5 | Type: UINT8 | Only used on BSEN-CV */
         vibrationDetectionSensitivity: number;
-        /** ID: 7 | Type: UINT8 | Only used on BSEN-CV */
+        /** ID: 7 | Type: UINT8 | Only used on BSEN-CV with value 1 as default */
         unknownOne: number;
-        /** ID: 8 | Type: UINT8 | Only used on BSEN-CV */
+        /** ID: 8 | Type: UINT16 | Only used on BSEN-CV with value 30 as default */
         unknownTwo: number;
-        /** ID: 9 | Type: UINT8 | Only used on BSEN-CV */
+        /** ID: 9 | Type: UINT8 | Only used on BSEN-CV with value 3 as default */
         unknownThree: number;
-        /** ID: 10 | Type: UINT8 | Only used on BSEN-CV */
+        /** ID: 10 | Type: UINT8 | Only used on BSEN-CV with value 0 as default */
         unknownFour: number;
     };
     commands: never;
     commandResponses: never;
 }
 
-export const boschBsenExtend = {
+export const boschDoorWindowContactExtend = {
     doorWindowContactCluster: () =>
         m.deviceAddCustomCluster("boschDoorWindowContactCluster", {
             ID: 0xfcad,
@@ -1645,7 +1633,67 @@ export const boschBsenExtend = {
             commands: {},
             commandsResponse: {},
         }),
-    breakFunction: (): ModernExtend => {
+    battery: () =>
+        m.battery({
+            percentage: true,
+            lowStatus: true,
+            lowStatusReportingConfig: {min: "MIN", max: "MAX", change: 0},
+        }),
+    reportContactState: () => m.iasZoneAlarm({zoneType: "contact", zoneAttributes: ["alarm_1"]}),
+    reportButtonActions: (args?: {doublePressSupported: boolean}): ModernExtend => {
+        const {doublePressSupported} = args ?? {doublePressSupported: false};
+
+        const buttonActionsLookup = doublePressSupported
+            ? {
+                  double_press: 0x08,
+                  long_press: 0x02,
+                  single_press: 0x01,
+                  none: 0x00,
+              }
+            : {
+                  long_press: 0x02,
+                  single_press: 0x01,
+                  none: 0x00,
+              };
+
+        const exposes: Expose[] = [
+            e
+                .enum("action", ea.STATE, Object.keys(buttonActionsLookup))
+                .withDescription("Triggered action (e.g. a button click)")
+                .withCategory("diagnostic"),
+        ];
+
+        const fromZigbee = [
+            {
+                cluster: "ssIasZone",
+                type: ["commandStatusChangeNotification", "attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    const zoneStatus = "zonestatus" in msg.data ? msg.data.zonestatus : msg.data.zoneStatus;
+
+                    if (zoneStatus !== undefined) {
+                        const buttonPayload = zoneStatus >> 11;
+                        const buttonState = utils.getFromLookupByValue(buttonPayload, buttonActionsLookup);
+
+                        const result: KeyValue = {
+                            action: buttonState,
+                        };
+
+                        return result;
+                    }
+                },
+            } satisfies Fz.Converter<"ssIasZone", undefined, ["commandStatusChangeNotification", "attributeReport", "readResponse"]>,
+        ];
+
+        const configure: Configure[] = [m.setupConfigureForBinding("ssIasZone", "input"), m.setupConfigureForReading("ssIasZone", ["zoneStatus"])];
+
+        return {
+            exposes,
+            fromZigbee,
+            configure,
+            isModernExtend: true,
+        };
+    },
+    breakFunctionality: (): ModernExtend => {
         const breakFunctionEnabledLookup = {
             ON: 0x01,
             OFF: 0x00,
@@ -1913,6 +1961,23 @@ export const boschBsenExtend = {
             isModernExtend: true,
         };
     },
+};
+//endregion
+
+//region Bosch BSEN-M device (Motion detector)
+interface BoschBsenIasZoneCluster {
+    attributes: never;
+    commands: {
+        /** ID: 243 */
+        initCustomTestMode: {
+            /** Type: UINT16 */
+            data: number[];
+        };
+    };
+    commandResponses: never;
+}
+
+export const boschBsenExtend = {
     customIasZoneCluster: () =>
         m.deviceAddCustomCluster("ssIasZone", {
             ID: Zcl.Clusters.ssIasZone.ID,
