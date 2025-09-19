@@ -7052,8 +7052,14 @@ export const definitions: DefinitionWithExtend[] = [
             {vendor: "MODEMIX", model: "MOD048"},
             {vendor: "Coswall", model: "CS-AJ-DE2U-ZG-11"},
             {vendor: "Aubess", model: "TS011F_plug_1"},
-            tuya.whitelabel("BSEED", "FK86ZEUSK1W", "Wall-mounted electrical socket", ["_TZ3000_4ux0ondb", "_TZ3000_b28wrpvx", "_TZ3000_2uollq9d"]),
-            tuya.whitelabel("BSEED", "GL86ZEUSKM1PDAC1W", "Wall-mounted electrical EU socket with power monitoring", ["_TZ3210_5ct6e7ye"]),
+            tuya.whitelabel("BSEED", "TS011F_plug_1_2", "Wall-mounted electrical EU/FR/UK socket with power monitoring", [
+                "_TZ3000_4ux0ondb",
+                "_TZ3000_b28wrpvx",
+                "_TZ3000_2uollq9d",
+            ]),
+            tuya.whitelabel("BSEED", "_TZ3210_5ct6e7ye", "Wall-mounted electrical EU/FR/UK socket with power monitoring and USB", [
+                "_TZ3210_5ct6e7ye",
+            ]),
             tuya.whitelabel("Nous", "A1Z", "Smart plug (with power monitoring)", ["_TZ3000_2putqrmw", "_TZ3000_ksw8qtmt"]),
             tuya.whitelabel("Moes", "Moes_plug", "Smart plug (with power monitoring)", ["_TZ3000_yujkchbz"]),
             tuya.whitelabel("Moes", "ZK-EU", "Smart wallsocket (with power monitoring)", ["_TZ3000_ss98ec5d"]),
@@ -7126,6 +7132,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS011F_plug_2",
         description: "Smart plug (without power monitoring)",
         vendor: "Tuya",
+        whiteLabel: [tuya.whitelabel("BSEED", "_TZ3000_o1jzcxou", "Wall-mounted electrical EU/FR/UK socket", ["_TZ3000_o1jzcxou"])],
         extend: [
             tuya.modernExtend.tuyaOnOff({
                 powerOutageMemory: true,
