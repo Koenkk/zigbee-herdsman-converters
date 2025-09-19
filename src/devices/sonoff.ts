@@ -144,6 +144,8 @@ export interface SonoffEwelink {
         deviceWorkMode: number;
         detachRelayMode2: number;
         lackWaterCloseValveTimeout: number;
+        motorTravelCalibrationStatus: number;
+        motorRunStatus: number;
         acCurrentCurrentValue: number;
         acCurrentVoltageValue: number;
         acCurrentPowerValue: number;
@@ -180,6 +182,8 @@ const sonoffExtend = {
                 deviceWorkMode: {ID: 0x0018, type: Zcl.DataType.UINT8},
                 detachRelayMode2: {ID: 0x0019, type: Zcl.DataType.BITMAP8},
                 lackWaterCloseValveTimeout: {ID: 0x5011, type: Zcl.DataType.UINT16},
+                motorTravelCalibrationStatus: {ID: 0x5012, type: Zcl.DataType.UINT8},
+                motorRunStatus: {ID: 0x5013, type: Zcl.DataType.UINT8},
                 acCurrentCurrentValue: {ID: 0x7004, type: Zcl.DataType.UINT32},
                 acCurrentVoltageValue: {ID: 0x7005, type: Zcl.DataType.UINT32},
                 acCurrentPowerValue: {ID: 0x7006, type: Zcl.DataType.UINT32},
@@ -2499,6 +2503,42 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint3, coordinatorEndpoint, ["genOnOff"]);
             await reporting.onOff(endpoint3, {min: 1, max: 1810, change: 0});
             await endpoint3.read("genOnOff", [0x0000, 0x4003], defaultResponseOptions);
+        },
+    },
+    {
+        zigbeeModel: ["MINI-ZBRBS"],
+        model: "MINI-ZBRBS",
+        vendor: "SONOFF",
+        description: "Zigbee smart roller shutter switch",
+        extend: [
+            sonoffExtend.addCustomClusterEwelink(),
+            m.windowCovering({controls: ["lift"], coverInverted: true}),
+            m.enumLookup<"customClusterEwelink", SonoffEwelink>({
+                name: "motor_travel_calibration_status",
+                lookup: {Uncalibrated: 0, Calibrated: 1},
+                cluster: "customClusterEwelink",
+                attribute: "motorTravelCalibrationStatus",
+                description: "The calibration status of the curtain motor's stroke.",
+                access: "STATE_GET",
+            }),
+            m.enumLookup<"customClusterEwelink", SonoffEwelink>({
+                name: "motor_run_status",
+                lookup: {Stop: 0, Forward: 1, Reverse: 2},
+                cluster: "customClusterEwelink",
+                attribute: "motorRunStatus",
+                description: "The motor's current operating status, such as forward rotation, reverse rotation, and stop.",
+                access: "STATE_GET",
+            }),
+            sonoffExtend.externalSwitchTriggerMode({entityCategory: "config"}),
+        ],
+        ota: true,
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.read<"customClusterEwelink", SonoffEwelink>(
+                "customClusterEwelink",
+                ["radioPower", 0x0016, 0x5012, 0x5013],
+                defaultResponseOptions,
+            );
         },
     },
 ];
