@@ -1,5 +1,6 @@
 import * as fz from "../converters/fromZigbee";
 import * as exposes from "../lib/exposes";
+import * as m from "../lib/modernExtend";
 import * as tuya from "../lib/tuya";
 import type {DefinitionWithExtend} from "../lib/types";
 
@@ -33,6 +34,9 @@ export const definitions: DefinitionWithExtend[] = [
             e.battery(),
             e.battery_voltage(),
             e.action(["on", "off", "brightness_move_to_level", "color_temperature_move", "move_to_hue_and_saturation", "tuya_switch_scene"]),
+        ],
+        extend: [
+            m.quirkCheckinInterval(21600), // Device observed to report every 4h, set to 6h (21600s) for safety margin
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
