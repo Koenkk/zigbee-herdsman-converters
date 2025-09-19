@@ -1681,7 +1681,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        zigbeeModel: ["RBSH-SWD-ZB", "RBSH-SWD2-ZB"],
+        zigbeeModel: ["RBSH-SWD-ZB"],
         model: "BSEN-C2",
         vendor: "Bosch",
         description: "Door/window contact II",
@@ -1710,6 +1710,28 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Door/window contact II plus",
         extend: [
             boschExtend.doorWindowContact(true),
+            m.battery({
+                percentage: true,
+                lowStatus: true,
+            }),
+            m.bindCluster({
+                cluster: "genPollCtrl",
+                clusterType: "input",
+            }),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.read("genPowerCfg", ["batteryPercentageRemaining"]);
+            await endpoint.read("ssIasZone", ["zoneStatus"]);
+        },
+    },
+    {
+        zigbeeModel: ["RBSH-SWD2-ZB"],
+        model: "BSEN-C2D",
+        vendor: "Bosch",
+        description: "Door/window contact II [+M]",
+        extend: [
+            boschExtend.doorWindowContact(false),
             m.battery({
                 percentage: true,
                 lowStatus: true,
