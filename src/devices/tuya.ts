@@ -2629,6 +2629,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE204_vevc4c6g",
             "_TZE200_0nauxa0p",
             "_TZE200_ykgar0ow",
+            "_TZE284_m1cvyneb",
             "_TZE200_0hb4rdnp",
         ]),
         model: "TS0601_dimmer_1_gang_1",
@@ -19292,8 +19293,8 @@ export const definitions: DefinitionWithExtend[] = [
             e.voltage(),
             e.current(),
             e.energy(),
-            e.energy().withProperty("energy_today").withDescription("Energy consumed today"),
-            e.energy().withProperty("energy_yesterday").withDescription("Energy consumed yesterday"),
+            e.numeric("energy_today", ea.STATE).withUnit("kWh").withDescription("Energy consumed today"),
+            e.numeric("energy_yesterday", ea.STATE).withUnit("kWh").withDescription("Energy consumed yesterday"),
             e
                 .enum("device_mode_type", ea.STATE, ["four", "six", "switch"])
                 .withDescription("Indicates the actual pilot wire mode of the thermostat")

@@ -42,6 +42,7 @@ import {
     assertNumber,
     batteryVoltageToPercentage,
     configureSetPowerSourceWhenUnknown,
+    determineEndpoint,
     exposeEndpoints,
     flatten,
     getEndpointName,
@@ -288,16 +289,6 @@ export function setupConfigureForReading<Cl extends string | number, Custom exte
         }
     };
     return configure;
-}
-
-export function determineEndpoint(entity: Zh.Endpoint | Zh.Group, meta: Tz.Meta, cluster: string | number): Zh.Endpoint | Zh.Group {
-    const {device, endpoint_name} = meta;
-    if (endpoint_name !== undefined) {
-        // In case an explicit endpoint is given, always send it to that endpoint
-        return entity;
-    }
-    // In case no endpoint is given, match the first endpoint which support the cluster.
-    return device.endpoints.find((e) => e.supportsInputCluster(cluster)) ?? device.endpoints[0];
 }
 
 // #region General
@@ -3043,6 +3034,144 @@ export function ignoreClusterReport(args: {cluster: string | number}): ModernExt
 export function bindCluster(args: {cluster: string | number; clusterType: "input" | "output"; endpointNames?: string[]}): ModernExtend {
     const configure: Configure[] = [setupConfigureForBinding(args.cluster, args.clusterType, args.endpointNames)];
     return {configure, isModernExtend: true};
+}
+
+interface MinMaxStep {
+    min: number;
+    max: number;
+    step: number;
+}
+
+const SETPOINT_LOOKUP = {
+    occupiedHeatingSetpoint: {property: "occupied_heating_setpoint", tzConverter: tz.thermostat_occupied_heating_setpoint},
+    unoccupiedHeatingSetpoint: {property: "unoccupied_heating_setpoint", tzConverter: tz.thermostat_unoccupied_heating_setpoint},
+    occupiedCoolingSetpoint: {property: "occupied_cooling_setpoint", tzConverter: tz.thermostat_occupied_cooling_setpoint},
+    unoccupiedCoolingSetpoint: {property: "unoccupied_cooling_setpoint", tzConverter: tz.thermostat_unoccupied_cooling_setpoint},
+} as const;
+
+const SETPOINT_LIMIT_LOOKUP = {
+    maxHeatSetpointLimit: {tzConverter: tz.thermostat_max_heat_setpoint_limit, expose: e.max_heat_setpoint_limit},
+    minHeatSetpointLimit: {tzConverter: tz.thermostat_min_heat_setpoint_limit, expose: e.min_heat_setpoint_limit},
+    maxCoolSetpointLimit: {tzConverter: tz.thermostat_max_cool_setpoint_limit, expose: e.max_cool_setpoint_limit},
+    minCoolSetpointLimit: {tzConverter: tz.thermostat_min_cool_setpoint_limit, expose: e.min_cool_setpoint_limit},
+} as const;
+
+export interface ThermostatArgs {
+    localTemperatureCalibration?: true | MinMaxStep;
+    setpoints?: Partial<Record<keyof typeof SETPOINT_LOOKUP, MinMaxStep>>;
+    setpointsLimit?: Partial<Record<keyof typeof SETPOINT_LIMIT_LOOKUP, MinMaxStep>>;
+    systemMode?: Array<"off" | "heat" | "cool" | "auto" | "dry" | "fan_only" | "sleep" | "emergency_heating">;
+    runningState?: Array<"idle" | "heat" | "cool" | "fan_only">;
+    runningMode?: Array<"off" | "cool" | "heat">;
+    fanMode?: Array<"off" | "low" | "medium" | "high" | "on" | "auto" | "smart">;
+    piHeatingDemand?: true;
+    temperatureSetpointHold?: true;
+    temperatureSetpointHoldDuration?: true;
+}
+
+export function thermostat(args: ThermostatArgs = {}): ModernExtend {
+    const {
+        localTemperatureCalibration = false,
+        setpoints = {},
+        setpointsLimit = {},
+        systemMode = undefined,
+        runningState = undefined,
+        runningMode = undefined,
+        piHeatingDemand = false,
+        temperatureSetpointHold = false,
+        temperatureSetpointHoldDuration = false,
+        fanMode = undefined,
+    } = args;
+
+    const repConfigChange0: ReportingConfigWithoutAttribute = {min: "MIN", max: "1_HOUR", change: 0};
+    const repConfigChange10: ReportingConfigWithoutAttribute = {min: "MIN", max: "1_HOUR", change: 10};
+
+    const expose = e.climate().withLocalTemperature();
+    const exposes: Expose[] = [expose];
+    const fromZigbee = [fz.thermostat];
+    const toZigbee = [tz.thermostat_local_temperature];
+    const configure: Configure[] = [
+        setupConfigureForBinding("hvacThermostat", "input"),
+        setupConfigureForReporting("hvacThermostat", "localTemp", {config: repConfigChange10, access: ea.STATE_GET}),
+    ];
+
+    if (localTemperatureCalibration) {
+        const {min, max, step} = localTemperatureCalibration === true ? {min: -12.8, max: 12.8, step: 0.1} : localTemperatureCalibration;
+        expose.withLocalTemperatureCalibration(min, max, step);
+        toZigbee.push(tz.thermostat_local_temperature_calibration);
+    }
+
+    for (const key of Object.keys(setpoints) as Array<keyof typeof SETPOINT_LOOKUP>) {
+        const {min, max, step} = setpoints[key];
+        const {property, tzConverter} = SETPOINT_LOOKUP[key];
+        expose.withSetpoint(property, min, max, step);
+        toZigbee.push(tzConverter);
+        configure.push(setupConfigureForReporting("hvacThermostat", key, {config: repConfigChange10, access: ea.STATE_GET}));
+    }
+
+    if (systemMode) {
+        expose.withSystemMode(args.systemMode);
+        toZigbee.push(tz.thermostat_system_mode);
+        configure.push(setupConfigureForReporting("hvacThermostat", "systemMode", {config: repConfigChange0, access: ea.STATE_GET}));
+    }
+
+    if (runningState) {
+        expose.withRunningState(runningState);
+        toZigbee.push(tz.thermostat_running_state);
+        configure.push(setupConfigureForReporting("hvacThermostat", "runningState", {config: repConfigChange0, access: ea.STATE_GET}));
+    }
+
+    if (runningMode) {
+        expose.withRunningMode(runningMode);
+        toZigbee.push(tz.thermostat_running_mode);
+        configure.push(setupConfigureForReporting("hvacThermostat", "runningMode", {config: repConfigChange0, access: ea.STATE_GET}));
+    }
+
+    if (fanMode) {
+        expose.withFanMode(fanMode);
+        toZigbee.push(tz.fan_mode);
+        configure.push(
+            setupConfigureForBinding("hvacFanCtrl", "input"),
+            setupConfigureForReporting("hvacFanCtrl", "fanMode", {config: repConfigChange0, access: ea.STATE_GET}),
+        );
+    }
+
+    if (piHeatingDemand) {
+        expose.withPiHeatingDemand();
+        toZigbee.push(tz.thermostat_pi_heating_demand);
+        configure.push(setupConfigureForReporting("hvacThermostat", "pIHeatingDemand", {config: repConfigChange0, access: ea.STATE_GET}));
+    }
+
+    if (temperatureSetpointHold) {
+        exposes.push(
+            e
+                .binary("temperature_setpoint_hold", ea.ALL, true, false)
+                .withDescription("Prevent changes. `false` = run normally. `true` = prevent from making changes."),
+        );
+        toZigbee.push(tz.thermostat_temperature_setpoint_hold);
+        configure.push(setupConfigureForReporting("hvacThermostat", "tempSetpointHold", {config: repConfigChange0, access: ea.STATE_GET}));
+    }
+
+    if (temperatureSetpointHoldDuration) {
+        exposes.push(
+            e
+                .numeric("temperature_setpoint_hold_duration", ea.ALL)
+                .withValueMin(0)
+                .withValueMax(65535)
+                .withDescription("Period in minutes for which the setpoint hold will be active (65535 - forever)"),
+        );
+        toZigbee.push(tz.thermostat_temperature_setpoint_hold_duration);
+    }
+
+    for (const key of Object.keys(setpointsLimit) as Array<keyof typeof SETPOINT_LIMIT_LOOKUP>) {
+        const {min, max, step} = setpointsLimit[key];
+        const {expose, tzConverter} = SETPOINT_LIMIT_LOOKUP[key];
+        exposes.push(expose(min, max, step));
+        toZigbee.push(tzConverter);
+        configure.push(setupConfigureForReporting("hvacThermostat", key, {config: repConfigChange0, access: ea.STATE_GET}));
+    }
+
+    return {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
 }
 
 // #endregion
