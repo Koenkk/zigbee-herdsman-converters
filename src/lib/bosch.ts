@@ -1602,7 +1602,158 @@ interface BoschBsenIasZoneCluster {
     commandResponses: never;
 }
 
+interface BoschDoorWindowContactCluster {
+    attributes: {
+        /** ID: 0 | Type: UINT8 */
+        breakFunctionEnabled: number;
+        /** ID: 1 | Type: UINT8 */
+        breakFunctionState: number;
+        /** ID: 2 | Type: UINT8 */
+        breakFunctionTimeout: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
 export const boschBsenExtend = {
+    customDoorWindowContactCluster: () =>
+        m.deviceAddCustomCluster("boschDoorWindowContactCluster", {
+            ID: 0xfcad,
+            attributes: {
+                breakFunctionEnabled: {ID: 0x0000, type: Zcl.DataType.UINT8, manufacturerCode: manufacturerOptions.manufacturerCode},
+                breakFunctionState: {ID: 0x0001, type: Zcl.DataType.UINT8, manufacturerCode: manufacturerOptions.manufacturerCode},
+                breakFunctionTimeout: {ID: 0x0002, type: Zcl.DataType.UINT8, manufacturerCode: manufacturerOptions.manufacturerCode},
+                vibrationDetectionEnabled: {ID: 0x0004, type: Zcl.DataType.UINT8, manufacturerCode: manufacturerOptions.manufacturerCode},
+                vibrationDetectionSensitivity: {ID: 0x0005, type: Zcl.DataType.UINT8, manufacturerCode: manufacturerOptions.manufacturerCode},
+                unknownOne: {ID: 0x0007, type: Zcl.DataType.UINT8, manufacturerCode: manufacturerOptions.manufacturerCode},
+                unknownTwo: {ID: 0x0008, type: Zcl.DataType.UINT16, manufacturerCode: manufacturerOptions.manufacturerCode},
+                unknownThree: {ID: 0x0009, type: Zcl.DataType.UINT8, manufacturerCode: manufacturerOptions.manufacturerCode},
+                unknownFour: {ID: 0x000a, type: Zcl.DataType.UINT8, manufacturerCode: manufacturerOptions.manufacturerCode},
+            },
+            commands: {},
+            commandsResponse: {},
+        }),
+    breakFunction: (): ModernExtend => {
+        const breakFunctionEnabledLookup = {
+            ON: 0x01,
+            OFF: 0x00,
+        };
+
+        const breakFunctionStatusLookup = {
+            break_active: 0x01,
+            idle: 0x00,
+        };
+
+        const exposes: Expose[] = [
+            e
+                .binary(
+                    "break_function_enabled",
+                    ea.ALL,
+                    utils.getFromLookupByValue(0x01, breakFunctionEnabledLookup),
+                    utils.getFromLookupByValue(0x00, breakFunctionEnabledLookup),
+                )
+                .withLabel("Break function")
+                .withDescription(
+                    "Activates the break functionality for the door/window contact. You can activate the break function by pressing the operating button on the door/window contact twice. This means that the device temporarily stops reading the sensors.",
+                )
+                .withCategory("config"),
+            e
+                .numeric("break_function_timeout", ea.ALL)
+                .withLabel("Automatic time limit for breaks")
+                .withDescription(
+                    "Here you can define how long the break function is activated for the door/window contact. Once the time limit has expired, the break ends automatically. The LED on the device will flash orange as long as the break is activated when this setting is being used.",
+                )
+                .withValueMin(1)
+                .withValueMax(15)
+                .withUnit("minutes")
+                .withPreset("disable", null, "Disable automatic time limit")
+                .withCategory("config"),
+            e
+                .enum("break_function_state", ea.STATE_GET, Object.keys(breakFunctionStatusLookup))
+                .withLabel("Break function state")
+                .withDescription("Here you can see whether the device is in break mode or not"),
+        ];
+
+        const fromZigbee = [
+            {
+                cluster: "boschDoorWindowContactCluster",
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    const result: KeyValue = {};
+                    const data = msg.data;
+
+                    if (data.breakFunctionEnabled !== undefined) {
+                        result.break_function_enabled = utils.getFromLookupByValue(data.breakFunctionEnabled, breakFunctionEnabledLookup);
+                    }
+
+                    if (data.breakFunctionTimeout !== undefined) {
+                        result.break_function_timeout = data.breakFunctionTimeout === 0xff ? null : data.breakFunctionTimeout;
+                    }
+
+                    if (data.breakFunctionState !== undefined) {
+                        result.break_function_state = utils.getFromLookupByValue(data.breakFunctionState, breakFunctionStatusLookup);
+                    }
+
+                    return result;
+                },
+            } satisfies Fz.Converter<"boschDoorWindowContactCluster", BoschDoorWindowContactCluster, ["attributeReport", "readResponse"]>,
+        ];
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ["break_function_enabled", "break_function_timeout", "break_function_state"],
+                convertSet: async (entity, key, value, meta) => {
+                    if (key === "break_function_enabled") {
+                        await entity.write<"boschDoorWindowContactCluster", BoschDoorWindowContactCluster>("boschDoorWindowContactCluster", {
+                            breakFunctionEnabled: utils.getFromLookup(value, breakFunctionEnabledLookup),
+                        });
+                        return {state: {break_function_enabled: value}};
+                    }
+
+                    if (key === "break_function_timeout") {
+                        const index = value === null ? 0xff : utils.toNumber(value);
+                        await entity.write<"boschDoorWindowContactCluster", BoschDoorWindowContactCluster>("boschDoorWindowContactCluster", {
+                            breakFunctionTimeout: index,
+                        });
+                        return {state: {break_function_timeout: value}};
+                    }
+                },
+                convertGet: async (entity, key, meta) => {
+                    if (key === "break_function_enabled") {
+                        await entity.read<"boschDoorWindowContactCluster", BoschDoorWindowContactCluster>("boschDoorWindowContactCluster", [
+                            "breakFunctionEnabled",
+                        ]);
+                    }
+                    if (key === "break_function_timeout") {
+                        await entity.read<"boschDoorWindowContactCluster", BoschDoorWindowContactCluster>("boschDoorWindowContactCluster", [
+                            "breakFunctionTimeout",
+                        ]);
+                    }
+                    if (key === "break_function_state") {
+                        await entity.read<"boschDoorWindowContactCluster", BoschDoorWindowContactCluster>("boschDoorWindowContactCluster", [
+                            "breakFunctionState",
+                        ]);
+                    }
+                },
+            },
+        ];
+
+        const configure: Configure[] = [
+            m.setupConfigureForReading<"boschDoorWindowContactCluster", BoschDoorWindowContactCluster>("boschDoorWindowContactCluster", [
+                "breakFunctionEnabled",
+                "breakFunctionTimeout",
+                "breakFunctionState",
+            ]),
+        ];
+
+        return {
+            exposes,
+            fromZigbee,
+            toZigbee,
+            configure,
+            isModernExtend: true,
+        };
+    },
     customIasZoneCluster: () =>
         m.deviceAddCustomCluster("ssIasZone", {
             ID: Zcl.Clusters.ssIasZone.ID,

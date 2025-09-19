@@ -1695,6 +1695,8 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "genPollCtrl",
                 clusterType: "input",
             }),
+            boschBsenExtend.customDoorWindowContactCluster(),
+            boschBsenExtend.breakFunction(),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -1718,6 +1720,8 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "genPollCtrl",
                 clusterType: "input",
             }),
+            boschBsenExtend.customDoorWindowContactCluster(),
+            boschBsenExtend.breakFunction(),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -1740,6 +1744,8 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "genPollCtrl",
                 clusterType: "input",
             }),
+            boschBsenExtend.customDoorWindowContactCluster(),
+            boschBsenExtend.breakFunction(),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
