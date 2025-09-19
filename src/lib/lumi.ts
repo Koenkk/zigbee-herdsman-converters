@@ -938,20 +938,20 @@ export const numericAttributes2Payload = async (
     return payload;
 };
 
-const numericAttributes2Lookup = async (model: Definition, dataObject: KeyValue) => {
+const numericAttributes2Lookup = (model: Definition, dataObject: KeyValue) => {
     let result: KeyValue = {};
     for (const [key, value] of Object.entries(dataObject)) {
         switch (key) {
             case "247":
                 {
                     const dataObject247 = buffer2DataObject(model, value as Buffer);
-                    const result247 = await numericAttributes2Lookup(model, dataObject247);
+                    const result247 = numericAttributes2Lookup(model, dataObject247);
                     result = {...result, ...result247};
                 }
                 break;
             case "65281":
                 {
-                    const result65281 = await numericAttributes2Lookup(model, value as KeyValue);
+                    const result65281 = numericAttributes2Lookup(model, value as KeyValue);
                     result = {...result, ...result65281};
                 }
                 break;
