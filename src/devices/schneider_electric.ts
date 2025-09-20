@@ -1,5 +1,4 @@
 import {Zcl} from "zigbee-herdsman";
-import type {GpdAttributeReport} from "zigbee-herdsman/dist/zspec/zcl/definition/tstype";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as constants from "../lib/constants";
@@ -290,16 +289,7 @@ const schneiderElectricExtend = {
             ],
             exposes: [
                 ...endpointNames.map((endpointName) =>
-                    e.enum("state", ea.SET, ["OPEN", "CLOSE", "STOP"]).withDescription("State of the curtain").withEndpoint(endpointName),
-                ),
-                ...endpointNames.map((endpointName) =>
-                    e
-                        .numeric("position", ea.ALL)
-                        .withValueMin(0)
-                        .withValueMax(100)
-                        .withUnit("%")
-                        .withDescription("Position of the curtain")
-                        .withEndpoint(endpointName),
+                    e.cover_position().withDescription('State of the curtain').withEndpoint(endpointName),
                 ),
                 ...endpointNames.map((endpointName) =>
                     e
@@ -321,9 +311,13 @@ const schneiderElectricExtend = {
                     cluster: "visaConfiguration",
                     type: ["attributeReport"],
                     convert: (model, msg, publish, options, meta) => {
-                        return {
-                            [`key${key}_event_notification`]: msg.data[`key${key}EventNotification`],
-                        };
+                        for (const key of ["1", "2", "3", "4"]) {
+                            const zigbeeKey = `key${key}EventNotification`;
+                            if (Object.hasOwn(msg.data, zigbeeKey)) {
+                                // Trả về action thay vì enum thường
+                                return {action: `scene_${key}`};
+                            }
+                        }
                     },
                 },
             ],
@@ -443,99 +437,99 @@ const fzLocal = {
 
             switch (commandID) {
                 case 0xa1: {
-                    const attr = (msg.data.commandFrame as GpdAttributeReport).attributes;
-                    const clusterID = (msg.data.commandFrame as GpdAttributeReport).clusterID;
+                    const attr = msg.data.commandFrame.attributes;
+                    const clusterID = msg.data.commandFrame.clusterID;
 
                     switch (clusterID) {
                         case 2820: {
                             // haElectricalMeasurement
-                            const acCurrentDivisor = attr.acCurrentDivisor as number;
-                            const acVoltageDivisor = attr.acVoltageDivisor as number;
-                            const acFrequencyDivisor = attr.acFrequencyDivisor as number;
-                            const powerDivisor = attr.powerDivisor as number;
+                            const acCurrentDivisor = attr.acCurrentDivisor;
+                            const acVoltageDivisor = attr.acVoltageDivisor;
+                            const acFrequencyDivisor = attr.acFrequencyDivisor;
+                            const powerDivisor = attr.powerDivisor;
 
                             if (attr.rmsVoltage !== undefined) {
-                                ret.voltage_phase_a = (attr.rmsVoltage as number) / acVoltageDivisor;
+                                ret.voltage_phase_a = attr.rmsVoltage / acVoltageDivisor;
                             }
 
                             if (attr.rmsVoltagePhB !== undefined) {
-                                ret.voltage_phase_b = (attr.rmsVoltagePhB as number) / acVoltageDivisor;
+                                ret.voltage_phase_b = attr.rmsVoltagePhB / acVoltageDivisor;
                             }
 
                             if (attr.rmsVoltagePhC !== undefined) {
-                                ret.voltage_phase_c = (attr.rmsVoltagePhC as number) / acVoltageDivisor;
+                                ret.voltage_phase_c = attr.rmsVoltagePhC / acVoltageDivisor;
                             }
 
                             if (attr["19200"] !== undefined) {
-                                ret.voltage_phase_ab = (attr["19200"] as number) / acVoltageDivisor;
+                                ret.voltage_phase_ab = attr["19200"] / acVoltageDivisor;
                             }
 
                             if (attr["19456"] !== undefined) {
-                                ret.voltage_phase_bc = (attr["19456"] as number) / acVoltageDivisor;
+                                ret.voltage_phase_bc = attr["19456"] / acVoltageDivisor;
                             }
 
                             if (attr["19712"] !== undefined) {
-                                ret.voltage_phase_ca = (attr["19712"] as number) / acVoltageDivisor;
+                                ret.voltage_phase_ca = attr["19712"] / acVoltageDivisor;
                             }
 
                             if (attr.rmsCurrent !== undefined) {
-                                ret.current_phase_a = (attr.rmsCurrent as number) / acCurrentDivisor;
+                                ret.current_phase_a = attr.rmsCurrent / acCurrentDivisor;
                             }
 
                             if (attr.rmsCurrentPhB !== undefined) {
-                                ret.current_phase_b = (attr.rmsCurrentPhB as number) / acCurrentDivisor;
+                                ret.current_phase_b = attr.rmsCurrentPhB / acCurrentDivisor;
                             }
 
                             if (attr.rmsCurrentPhC !== undefined) {
-                                ret.current_phase_c = (attr.rmsCurrentPhC as number) / acCurrentDivisor;
+                                ret.current_phase_c = attr.rmsCurrentPhC / acCurrentDivisor;
                             }
 
                             if (attr.totalActivePower !== undefined) {
-                                ret.power = ((attr.totalActivePower as number) * 1000) / powerDivisor;
+                                ret.power = (attr.totalActivePower * 1000) / powerDivisor;
                             }
 
                             if (attr.totalApparentPower !== undefined) {
-                                ret.power_apparent = ((attr.totalApparentPower as number) * 1000) / powerDivisor;
+                                ret.power_apparent = (attr.totalApparentPower * 1000) / powerDivisor;
                             }
 
                             if (attr.acFrequency !== undefined) {
-                                ret.ac_frequency = (attr.acFrequency as number) / acFrequencyDivisor;
+                                ret.ac_frequency = attr.acFrequency / acFrequencyDivisor;
                             }
 
                             if (attr.activePower !== undefined) {
-                                ret.power_phase_a = ((attr.activePower as number) * 1000) / powerDivisor;
+                                ret.power_phase_a = (attr.activePower * 1000) / powerDivisor;
                             }
 
                             if (attr.activePowerPhB !== undefined) {
-                                ret.power_phase_b = ((attr.activePowerPhB as number) * 1000) / powerDivisor;
+                                ret.power_phase_b = (attr.activePowerPhB * 1000) / powerDivisor;
                             }
 
                             if (attr.activePowerPhC !== undefined) {
-                                ret.power_phase_c = ((attr.activePowerPhC as number) * 1000) / powerDivisor;
+                                ret.power_phase_c = (attr.activePowerPhC * 1000) / powerDivisor;
                             }
                             break;
                         }
                         case 1794: {
                             // seMetering
-                            const divisor = attr.divisor as number;
+                            const divisor = attr.divisor;
 
                             if (attr.currentSummDelivered !== undefined) {
-                                const val = attr.currentSummDelivered as number;
+                                const val = attr.currentSummDelivered;
                                 ret.energy = val / divisor;
                             }
 
                             if (attr["16652"] !== undefined) {
-                                const val = attr["16652"] as number;
+                                const val = attr["16652"];
                                 ret.energy_phase_a = val / divisor;
                             }
 
                             if (attr["16908"] !== undefined) {
-                                const val = attr["16908"] as number;
+                                const val = attr["16908"];
                                 ret.energy_phase_b = val / divisor;
                             }
 
                             if (attr["17164"] !== undefined) {
-                                const val = attr["17164"] as number;
+                                const val = attr["17164"];
                                 ret.energy_phase_c = val / divisor;
                             }
 
@@ -582,7 +576,7 @@ const fzLocal = {
 
             return ret;
         },
-    } satisfies Fz.Converter<"greenPower", undefined, ["commandNotification", "commandCommissioningNotification"]>,
+    } satisfies Fz.Converter,
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -2222,6 +2216,36 @@ export const definitions: DefinitionWithExtend[] = [
                     await endpoint.read("hvacThermostat", ["occupiedHeatingSetpoint", "occupiedCoolingSetpoint"]);
                 },
             }),
+        ],
+    },
+    {
+        zigbeeModel: ["E8332RWMZB"],
+        model: "E8332RWMZB",
+        vendor: "Schneider Electric",
+        description: "Wiser AvatarOn 2K Freelocate",
+        extend: [
+            schneiderElectricExtend.addVisaConfigurationCluster(Zcl.DataType.UINT8),
+            schneiderElectricExtend.visaConfigIndicatorLuminanceLevel(),
+            schneiderElectricExtend.visaConfigIndicatorColor(),
+            schneiderElectricExtend.visaKeyEventNotification("1"),
+            schneiderElectricExtend.visaKeyEventNotification("2"),
+        ],
+        exposes: [e.action(["key1", "key2"]).withDescription("Last Visa key pressed")],
+    },
+    {
+        zigbeeModel: ["E8331SCN200ZB"],
+        model: "E8331SCN200ZB",
+        vendor: "Schneider Electric",
+        description: "Wiser AvatarOn 1G curtain switch",
+        extend: [
+            m.deviceEndpoints({endpoints: {l1: 10}}),
+            schneiderElectricExtend.addVisaConfigurationCluster(Zcl.DataType.UINT8),
+            schneiderElectricExtend.visaConfigIndicatorLuminanceLevel(),
+            schneiderElectricExtend.visaConfigIndicatorColor(),
+            schneiderElectricExtend.visaIndicatorMode([0, 1, 2, 3]),
+            schneiderElectricExtend.visaWiserCurtain(["l1"]),
+            schneiderElectricExtend.visaConfigMotorType(1),
+            schneiderElectricExtend.visaConfigCurtainStatus(1),
         ],
     },
 ];
