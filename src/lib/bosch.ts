@@ -1643,18 +1643,15 @@ export const boschDoorWindowContactExtend = {
     reportButtonActions: (args?: {doublePressSupported: boolean}): ModernExtend => {
         const {doublePressSupported} = args ?? {doublePressSupported: false};
 
-        const buttonActionsLookup = doublePressSupported
-            ? {
-                  double_press: 0x08,
-                  long_press: 0x02,
-                  single_press: 0x01,
-                  none: 0x00,
-              }
-            : {
-                  long_press: 0x02,
-                  single_press: 0x01,
-                  none: 0x00,
-              };
+        let buttonActionsLookup = {
+            long_press: 0x02,
+            single_press: 0x01,
+            none: 0x00,
+        };
+
+        if (doublePressSupported) {
+            buttonActionsLookup = {...{double_press: 0x08}, ...buttonActionsLookup};
+        }
 
         const exposes: Expose[] = [
             e
