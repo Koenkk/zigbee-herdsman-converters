@@ -1683,7 +1683,6 @@ export const definitions: DefinitionWithExtend[] = [
             boschDoorWindowContactExtend.breakFunctionality(),
             boschDoorWindowContactExtend.battery(),
         ],
-        ota: true,
     },
     {
         zigbeeModel: ["RBSH-MMD-ZB-EU"],
