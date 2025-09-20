@@ -1639,7 +1639,12 @@ export const boschDoorWindowContactExtend = {
             lowStatus: true,
             lowStatusReportingConfig: {min: "MIN", max: "MAX", change: 0},
         }),
-    reportContactState: () => m.iasZoneAlarm({zoneType: "contact", zoneAttributes: ["alarm_1"]}),
+    reportContactState: () =>
+        m.iasZoneAlarm({
+            zoneType: "contact",
+            zoneAttributes: ["alarm_1"],
+            description: "Indicates whether the device detected an open or closed door/window",
+        }),
     reportButtonActions: (args?: {doublePressSupported: boolean}): ModernExtend => {
         const {doublePressSupported} = args ?? {doublePressSupported: false};
 
@@ -1656,7 +1661,7 @@ export const boschDoorWindowContactExtend = {
         const exposes: Expose[] = [
             e
                 .enum("action", ea.STATE, Object.keys(buttonActionsLookup))
-                .withDescription("Triggered action (e.g. a button click)")
+                .withDescription("Indicates button presses on the device")
                 .withCategory("diagnostic"),
         ];
 
