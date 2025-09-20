@@ -1589,6 +1589,383 @@ export const boschBsirExtend = {
 };
 //endregion
 
+//region Bosch BSEN-C2/-CV/-C2D devices (door/window contacts)
+interface BoschDoorWindowContactCluster {
+    attributes: {
+        /** ID: 0 | Type: UINT8 */
+        breakFunctionEnabled: number;
+        /** ID: 1 | Type: UINT8 */
+        breakFunctionState: number;
+        /** ID: 2 | Type: UINT8 */
+        breakFunctionTimeout: number;
+        /** ID: 4 | Type: UINT8 | Only used on BSEN-CV */
+        vibrationDetectionEnabled: number;
+        /** ID: 5 | Type: UINT8 | Only used on BSEN-CV */
+        vibrationDetectionSensitivity: number;
+        /** ID: 7 | Type: UINT8 | Only used on BSEN-CV with value 1 as default */
+        unknownOne: number;
+        /** ID: 8 | Type: UINT16 | Only used on BSEN-CV with value 30 as default */
+        unknownTwo: number;
+        /** ID: 9 | Type: UINT8 | Only used on BSEN-CV with value 3 as default */
+        unknownThree: number;
+        /** ID: 10 | Type: UINT8 | Only used on BSEN-CV with value 0 as default */
+        unknownFour: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+export const boschDoorWindowContactExtend = {
+    doorWindowContactCluster: () =>
+        m.deviceAddCustomCluster("boschDoorWindowContactCluster", {
+            ID: 0xfcad,
+            attributes: {
+                breakFunctionEnabled: {ID: 0x0000, type: Zcl.DataType.UINT8, manufacturerCode: manufacturerOptions.manufacturerCode},
+                breakFunctionState: {ID: 0x0001, type: Zcl.DataType.UINT8, manufacturerCode: manufacturerOptions.manufacturerCode},
+                breakFunctionTimeout: {ID: 0x0002, type: Zcl.DataType.UINT8, manufacturerCode: manufacturerOptions.manufacturerCode},
+                vibrationDetectionEnabled: {ID: 0x0004, type: Zcl.DataType.UINT8, manufacturerCode: manufacturerOptions.manufacturerCode},
+                vibrationDetectionSensitivity: {ID: 0x0005, type: Zcl.DataType.UINT8, manufacturerCode: manufacturerOptions.manufacturerCode},
+                unknownOne: {ID: 0x0007, type: Zcl.DataType.UINT8, manufacturerCode: manufacturerOptions.manufacturerCode},
+                unknownTwo: {ID: 0x0008, type: Zcl.DataType.UINT16, manufacturerCode: manufacturerOptions.manufacturerCode},
+                unknownThree: {ID: 0x0009, type: Zcl.DataType.UINT8, manufacturerCode: manufacturerOptions.manufacturerCode},
+                unknownFour: {ID: 0x000a, type: Zcl.DataType.UINT8, manufacturerCode: manufacturerOptions.manufacturerCode},
+            },
+            commands: {},
+            commandsResponse: {},
+        }),
+    battery: () =>
+        m.battery({
+            percentage: true,
+            lowStatus: true,
+            lowStatusReportingConfig: {min: "MIN", max: "MAX", change: 0},
+        }),
+    reportContactState: () =>
+        m.iasZoneAlarm({
+            zoneType: "contact",
+            zoneAttributes: ["alarm_1"],
+            description: "Indicates whether the device detected an open or closed door/window",
+        }),
+    reportButtonActions: (args?: {doublePressSupported: boolean}): ModernExtend => {
+        const {doublePressSupported} = args ?? {doublePressSupported: false};
+
+        let buttonActionsLookup = {
+            long_press: 0x02,
+            single_press: 0x01,
+            none: 0x00,
+        };
+
+        if (doublePressSupported) {
+            buttonActionsLookup = {...{double_press: 0x08}, ...buttonActionsLookup};
+        }
+
+        const exposes: Expose[] = [
+            e
+                .enum("action", ea.STATE, Object.keys(buttonActionsLookup))
+                .withDescription("Indicates button presses on the device")
+                .withCategory("diagnostic"),
+        ];
+
+        const fromZigbee = [
+            {
+                cluster: "ssIasZone",
+                type: ["commandStatusChangeNotification", "attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    const zoneStatus = "zonestatus" in msg.data ? msg.data.zonestatus : msg.data.zoneStatus;
+
+                    if (zoneStatus !== undefined) {
+                        const buttonPayload = zoneStatus >> 11;
+                        const buttonState = utils.getFromLookupByValue(buttonPayload, buttonActionsLookup);
+
+                        const result: KeyValue = {
+                            action: buttonState,
+                        };
+
+                        return result;
+                    }
+                },
+            } satisfies Fz.Converter<"ssIasZone", undefined, ["commandStatusChangeNotification", "attributeReport", "readResponse"]>,
+        ];
+
+        const configure: Configure[] = [m.setupConfigureForBinding("ssIasZone", "input"), m.setupConfigureForReading("ssIasZone", ["zoneStatus"])];
+
+        return {
+            exposes,
+            fromZigbee,
+            configure,
+            isModernExtend: true,
+        };
+    },
+    breakFunctionality: (): ModernExtend => {
+        const breakFunctionEnabledLookup = {
+            ON: 0x01,
+            OFF: 0x00,
+        };
+
+        const breakFunctionStatusLookup = {
+            break_active: 0x01,
+            idle: 0x00,
+        };
+
+        const exposes: Expose[] = [
+            e
+                .binary(
+                    "break_function_enabled",
+                    ea.ALL,
+                    utils.getFromLookupByValue(0x01, breakFunctionEnabledLookup),
+                    utils.getFromLookupByValue(0x00, breakFunctionEnabledLookup),
+                )
+                .withLabel("Break function")
+                .withDescription(
+                    "Activate the break function by pressing the operating button on the door/window contact twice. This means that the device temporarily stops reading the sensors.",
+                )
+                .withCategory("config"),
+            e
+                .numeric("break_function_timeout", ea.ALL)
+                .withLabel("Automatic time limit for breaks")
+                .withDescription(
+                    "Here you can define how long the break function is activated for the door/window contact. Once the time limit has expired, the break ends automatically. The LED on the device will flash orange as long as the break is activated when this setting is being used.",
+                )
+                .withValueMin(1)
+                .withValueMax(15)
+                .withUnit("minutes")
+                .withPreset("disable", null, "Disable automatic time limit")
+                .withCategory("config"),
+            e
+                .enum("break_function_state", ea.STATE_GET, Object.keys(breakFunctionStatusLookup))
+                .withLabel("Break function state")
+                .withDescription("Indicates whether the device is in break mode or not"),
+        ];
+
+        const fromZigbee = [
+            {
+                cluster: "boschDoorWindowContactCluster",
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    const result: KeyValue = {};
+                    const data = msg.data;
+
+                    if (data.breakFunctionEnabled !== undefined) {
+                        result.break_function_enabled = utils.getFromLookupByValue(data.breakFunctionEnabled, breakFunctionEnabledLookup);
+                    }
+
+                    if (data.breakFunctionTimeout !== undefined) {
+                        result.break_function_timeout = data.breakFunctionTimeout === 0xff ? null : data.breakFunctionTimeout;
+                    }
+
+                    if (data.breakFunctionState !== undefined) {
+                        result.break_function_state = utils.getFromLookupByValue(data.breakFunctionState, breakFunctionStatusLookup);
+                    }
+
+                    return result;
+                },
+            } satisfies Fz.Converter<"boschDoorWindowContactCluster", BoschDoorWindowContactCluster, ["attributeReport", "readResponse"]>,
+        ];
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ["break_function_enabled", "break_function_timeout", "break_function_state"],
+                convertSet: async (entity, key, value, meta) => {
+                    if (key === "break_function_enabled") {
+                        await entity.write<"boschDoorWindowContactCluster", BoschDoorWindowContactCluster>("boschDoorWindowContactCluster", {
+                            breakFunctionEnabled: utils.getFromLookup(value, breakFunctionEnabledLookup),
+                        });
+                        return {state: {break_function_enabled: value}};
+                    }
+
+                    if (key === "break_function_timeout") {
+                        const index = value === null ? 0xff : utils.toNumber(value);
+                        await entity.write<"boschDoorWindowContactCluster", BoschDoorWindowContactCluster>("boschDoorWindowContactCluster", {
+                            breakFunctionTimeout: index,
+                        });
+                        return {state: {break_function_timeout: value}};
+                    }
+                },
+                convertGet: async (entity, key, meta) => {
+                    if (key === "break_function_enabled") {
+                        await entity.read<"boschDoorWindowContactCluster", BoschDoorWindowContactCluster>("boschDoorWindowContactCluster", [
+                            "breakFunctionEnabled",
+                        ]);
+                    }
+                    if (key === "break_function_timeout") {
+                        await entity.read<"boschDoorWindowContactCluster", BoschDoorWindowContactCluster>("boschDoorWindowContactCluster", [
+                            "breakFunctionTimeout",
+                        ]);
+                    }
+                    if (key === "break_function_state") {
+                        await entity.read<"boschDoorWindowContactCluster", BoschDoorWindowContactCluster>("boschDoorWindowContactCluster", [
+                            "breakFunctionState",
+                        ]);
+                    }
+                },
+            },
+        ];
+
+        const configure: Configure[] = [
+            m.setupConfigureForReading<"boschDoorWindowContactCluster", BoschDoorWindowContactCluster>("boschDoorWindowContactCluster", [
+                "breakFunctionEnabled",
+                "breakFunctionTimeout",
+                "breakFunctionState",
+            ]),
+        ];
+
+        return {
+            exposes,
+            fromZigbee,
+            toZigbee,
+            configure,
+            isModernExtend: true,
+        };
+    },
+    vibrationDetection: (): ModernExtend => {
+        const vibrationDetectionEnabledLookup = {
+            ON: 0x01,
+            OFF: 0x00,
+        };
+
+        const vibrationDetectionSensitivityLookup = {
+            very_high: 0x05,
+            high: 0x04,
+            medium: 0x03,
+            moderate: 0x02,
+            low: 0x01,
+        };
+
+        const exposes: Expose[] = [
+            e
+                .binary(
+                    "vibration_detection_enabled",
+                    ea.ALL,
+                    utils.getFromLookupByValue(0x01, vibrationDetectionEnabledLookup),
+                    utils.getFromLookupByValue(0x00, vibrationDetectionEnabledLookup),
+                )
+                .withLabel("Vibration detection")
+                .withDescription("Activate the vibration detection to detect vibrations at the window or door via the integrated sensor as well")
+                .withCategory("config"),
+            e
+                .enum("vibration_detection_sensitivity", ea.ALL, Object.keys(vibrationDetectionSensitivityLookup))
+                .withLabel("Vibration detection sensitivity")
+                .withDescription("Set the sensitivity of the vibration detection sensor")
+                .withCategory("config"),
+            e.binary("vibration", ea.STATE_GET, true, false).withDescription("Indicates whether the device detected vibration"),
+        ];
+
+        const fromZigbee = [
+            {
+                cluster: "boschDoorWindowContactCluster",
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    const result: KeyValue = {};
+                    const data = msg.data;
+
+                    if (data.vibrationDetectionEnabled !== undefined) {
+                        result.vibration_detection_enabled = utils.getFromLookupByValue(
+                            data.vibrationDetectionEnabled,
+                            vibrationDetectionEnabledLookup,
+                        );
+                    }
+
+                    if (data.vibrationDetectionSensitivity !== undefined) {
+                        result.vibration_detection_sensitivity = utils.getFromLookupByValue(
+                            data.vibrationDetectionSensitivity,
+                            vibrationDetectionSensitivityLookup,
+                        );
+                    }
+
+                    return result;
+                },
+            } satisfies Fz.Converter<"boschDoorWindowContactCluster", BoschDoorWindowContactCluster, ["attributeReport", "readResponse"]>,
+            {
+                cluster: "ssIasZone",
+                type: ["commandStatusChangeNotification", "attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    const zoneStatus = "zonestatus" in msg.data ? msg.data.zonestatus : msg.data.zoneStatus;
+
+                    if (zoneStatus !== undefined) {
+                        const alarm2Payload = (zoneStatus & (1 << 1)) > 0;
+
+                        return {
+                            vibration: alarm2Payload,
+                        };
+                    }
+                },
+            } satisfies Fz.Converter<"ssIasZone", undefined, ["commandStatusChangeNotification", "attributeReport", "readResponse"]>,
+        ];
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ["vibration_detection_enabled", "vibration_detection_sensitivity", "vibration"],
+                convertSet: async (entity, key, value, meta) => {
+                    if (key === "vibration_detection_enabled") {
+                        await entity.write<"boschDoorWindowContactCluster", BoschDoorWindowContactCluster>("boschDoorWindowContactCluster", {
+                            vibrationDetectionEnabled: utils.getFromLookup(value, vibrationDetectionEnabledLookup),
+                        });
+                        return {state: {vibration_detection_enabled: value}};
+                    }
+
+                    if (key === "vibration_detection_sensitivity") {
+                        await entity.write<"boschDoorWindowContactCluster", BoschDoorWindowContactCluster>("boschDoorWindowContactCluster", {
+                            vibrationDetectionSensitivity: utils.getFromLookup(value, vibrationDetectionSensitivityLookup),
+                        });
+                        return {state: {vibration_detection_sensitivity: value}};
+                    }
+                },
+                convertGet: async (entity, key, meta) => {
+                    if (key === "vibration_detection_enabled") {
+                        await entity.read<"boschDoorWindowContactCluster", BoschDoorWindowContactCluster>("boschDoorWindowContactCluster", [
+                            "vibrationDetectionEnabled",
+                        ]);
+                    }
+                    if (key === "vibration_detection_sensitivity") {
+                        await entity.read<"boschDoorWindowContactCluster", BoschDoorWindowContactCluster>("boschDoorWindowContactCluster", [
+                            "vibrationDetectionSensitivity",
+                        ]);
+                    }
+                    if (key === "vibration") {
+                        await entity.read("ssIasZone", ["zoneStatus"]);
+                    }
+                },
+            },
+        ];
+
+        const configure: Configure[] = [
+            m.setupConfigureForBinding("ssIasZone", "input"),
+            m.setupConfigureForReading("ssIasZone", ["zoneStatus"]),
+            async (device, coordinatorEndpoint, definition) => {
+                const endpoint = device.getEndpoint(1);
+
+                // The write request is made when using the proprietary
+                // Bosch Smart Home Controller II as of 19-09-2025. Looks like
+                // the default value was too high, and they didn't want to
+                // push a firmware update. We mimic it here to avoid complaints.
+                await endpoint.write<"boschDoorWindowContactCluster", BoschDoorWindowContactCluster>("boschDoorWindowContactCluster", {
+                    vibrationDetectionSensitivity: vibrationDetectionSensitivityLookup.medium,
+                });
+
+                // The write request is made when using the proprietary
+                // Bosch Smart Home Controller II as of 19-09-2025. I have
+                // no idea what it does, but we mimic it here in case it
+                // fixes any issues.
+                await endpoint.write<"boschDoorWindowContactCluster", BoschDoorWindowContactCluster>("boschDoorWindowContactCluster", {
+                    unknownOne: 0x00,
+                });
+            },
+            m.setupConfigureForReading<"boschDoorWindowContactCluster", BoschDoorWindowContactCluster>("boschDoorWindowContactCluster", [
+                "vibrationDetectionEnabled",
+                "vibrationDetectionSensitivity",
+            ]),
+        ];
+
+        return {
+            exposes,
+            fromZigbee,
+            toZigbee,
+            configure,
+            isModernExtend: true,
+        };
+    },
+};
+//endregion
+
 //region Bosch BSEN-M device (Motion detector)
 interface BoschBsenIasZoneCluster {
     attributes: never;
