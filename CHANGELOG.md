@@ -1,5 +1,19 @@
 # Changelog
 
+## [25.30.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.29.0...v25.30.0) (2025-09-20)
+
+
+### Features
+
+* **add:** MINI-ZBRBS ([#10047](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10047)) ([5f63da9](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5f63da97399006bdca5a1e9f0f16cd666ee27bdf))
+* Bosch Door/Window Contact II: Overwork devices to match official features ([#10055](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10055)) ([ddf9cf7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ddf9cf713b08cb827b2a8107d9d65b17b9a3ea3e))
+
+
+### Bug Fixes
+
+* Lumi: fix battery modernExtend ([#10053](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10053)) ([ee34789](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ee3478911f032a745af6ad7d719ab9bab17c8238))
+* Third Reality 3RSS009Z: update private cluster  ([#10041](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10041)) ([46095f2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/46095f230fe9043de4c2cf43b85643cfdfe07780))
+
 ## [25.29.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.28.0...v25.29.0) (2025-09-18)
 
 
