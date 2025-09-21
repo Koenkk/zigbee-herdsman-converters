@@ -734,6 +734,17 @@ const tzLocal = {
             return ret;
         },
     } satisfies Tz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    TS0601_knob_dimmer_switch_group_id: {
+        key: ["group_id"],
+        convertSet: async (entity, key, value, meta) => {
+            // The device uses custom group command known from miboxer switches to bind to a group.
+
+            await entity.command("genGroups", "miboxerSetZones", {
+                zones: [{zoneNum: 1, groupId: Number(value)}],
+            });
+        },
+    } satisfies Tz.Converter,
 };
 
 const fzLocal = {
@@ -18819,25 +18830,51 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Tuya",
         description: "Dimmer knob with two lights",
         fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
+        toZigbee: [tzLocal.TS0601_knob_dimmer_switch_group_id, tuya.tz.datapoints],
         exposes: [
+            e.switch(),
             e.switch().withEndpoint("l1"),
             e.switch().withEndpoint("l2"),
-            e.light_brightness_colortemp([154, 370]),
-            e.enum("adjustment_mode", ea.STATE_SET, ["brightness", "color_temp"]).withDescription("Adjustment mode"),
+            tuya.exposes.switchMode().withEndpoint("l1"),
+            tuya.exposes.switchMode().withEndpoint("l2"),
+
+            e.numeric("brightness", ea.ALL).withValueMin(1).withValueMax(100).withDescription("Brightness"),
+            e
+                .numeric("color_temp", ea.ALL)
+                .withUnit("K")
+                .withValueMin(2700)
+                .withValueMax(6500)
+                .withDescription("Color temperature in Kelvin (converted from 0–1000 Tuya raw)"),
+
+            e.enum("adjustment_mode", ea.ALL, ["brightness", "color_temp"]).withDescription("Adjustment mode"),
+            tuya.exposes.powerOnBehavior(),
+            e.action(["button_1", "button_2"]),
+            e.enum("mode", ea.ALL, ["knob", "scene"]).withDescription("Mode"),
+
+            e.numeric("group_id", ea.SET).withValueMin(1).withValueMax(10000).withDescription("Group IDs to bind to (separated by comma)."),
         ],
         meta: {
             multiEndpoint: true,
             tuyaDatapoints: [
                 [102, "state", tuya.valueConverter.onOff],
-                [103, "brightness", tuya.valueConverterBasic.scale(0, 254, 0, 1000)],
-                [105, "adjustment_mode", tuya.valueConverterBasic.lookup({brightness: tuya.enum(0), color_temp: tuya.enum(1)})],
-                [107, "color_temp", tuya.valueConverterBasic.scale(154, 370, 0, 1000)],
                 [121, "state_l1", tuya.valueConverter.onOff],
                 [122, "state_l2", tuya.valueConverter.onOff],
+                [131, "switch_mode_l1", tuya.valueConverter.switchMode],
+                [132, "switch_mode_l2", tuya.valueConverter.switchMode],
+                [103, "brightness", tuya.valueConverterBasic.scale(0, 100, 0, 1000)],
+                [107, "color_temp", tuya.valueConverterBasic.scale(2700, 6500, 0, 1000)],
+                [105, "adjustment_mode", tuya.valueConverterBasic.lookup({brightness: tuya.enum(0), color_temp: tuya.enum(1)})],
+                [106, "power_on_behavior", tuya.valueConverter.powerOnBehavior],
+                [111, "action", tuya.valueConverterBasic.lookup({button_1: tuya.enum(0)})],
+                [112, "action", tuya.valueConverterBasic.lookup({button_2: tuya.enum(0)})],
+                [141, "mode", tuya.valueConverterBasic.lookup({knob: tuya.enum(0), scene: tuya.enum(1)})],
             ],
         },
-        configure: tuya.configureMagicPacket,
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+            await endpoint.command("genBasic", "tuyaSetup", {}, {disableDefaultResponse: true});
+        },
         endpoint: (device) => ({
             default: 1,
             l1: 1,
