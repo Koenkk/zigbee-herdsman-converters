@@ -1602,6 +1602,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Bosch",
         description: "Smart plug compact [+M]",
         extend: [
+            boschGeneralExtend.handleZclVersionReadRequest(),
             boschGeneralExtend.customSeMeteringCluster(),
             boschSmartPlugExtend.smartPlugCluster(),
             boschSmartPlugExtend.onOff(),
@@ -1659,7 +1660,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Bosch",
         description: "Phase-cut dimmer",
         extend: [
-            boschBmctExtend.handleZclVersionReadRequest(),
+            boschGeneralExtend.handleZclVersionReadRequest(),
             m.deviceAddCustomCluster("boschEnergyDevice", {
                 ID: 0xfca0,
                 manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
@@ -1703,7 +1704,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Bosch",
         description: "Relay (potential free)",
         extend: [
-            boschBmctExtend.handleZclVersionReadRequest(),
+            boschGeneralExtend.handleZclVersionReadRequest(),
             m.deviceAddCustomCluster("boschEnergyDevice", {
                 ID: 0xfca0,
                 manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
@@ -1820,7 +1821,7 @@ export const definitions: DefinitionWithExtend[] = [
                 },
                 commandsResponse: {},
             }),
-            boschBmctExtend.handleZclVersionReadRequest(),
+            boschGeneralExtend.handleZclVersionReadRequest(),
             boschBmctExtend.slzExtends(),
             boschGeneralExtend.customSeMeteringCluster(),
             boschGeneralExtend.resetEnergyMeters(),
