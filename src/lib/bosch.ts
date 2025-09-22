@@ -78,7 +78,7 @@ export const boschGeneralExtend = {
             isModernExtend: true,
         };
     },
-    autoOff: (args?: {endpoint?: number}): ModernExtend => {
+    autoOff: (args?: {endpoint: number}): ModernExtend => {
         const {endpoint} = args ?? {};
 
         const offOnLookup: KeyValue = {
