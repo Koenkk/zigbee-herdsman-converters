@@ -1660,7 +1660,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Phase-cut dimmer",
         extend: [
             boschBmctExtend.handleZclVersionReadRequest(),
-            m.deviceAddCustomCluster("boschEnergyCluster", {
+            m.deviceAddCustomCluster("boschEnergyDeviceCluster", {
                 ID: 0xfca0,
                 manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
                 attributes: {
@@ -1704,7 +1704,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Relay (potential free)",
         extend: [
             boschBmctExtend.handleZclVersionReadRequest(),
-            m.deviceAddCustomCluster("boschEnergyCluster", {
+            m.deviceAddCustomCluster("boschEnergyDeviceCluster", {
                 ID: 0xfca0,
                 manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
                 attributes: {
@@ -1755,7 +1755,7 @@ export const definitions: DefinitionWithExtend[] = [
                 power: {change: 1},
                 energy: {change: 1},
             }),
-            m.deviceAddCustomCluster("boschEnergyCluster", {
+            m.deviceAddCustomCluster("boschEnergyDeviceCluster", {
                 ID: 0xfca0,
                 manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
                 attributes: {
@@ -1830,13 +1830,13 @@ export const definitions: DefinitionWithExtend[] = [
             const lightConfiguration = async () => {
                 const endpoint1 = device.getEndpoint(1);
                 await reporting.bind(endpoint1, coordinatorEndpoint, ["genIdentify"]);
-                await endpoint1.read<"boschEnergyCluster", BoschBmctCluster>("boschEnergyCluster", ["switchType"]);
+                await endpoint1.read<"boschEnergyDeviceCluster", BoschBmctCluster>("boschEnergyDeviceCluster", ["switchType"]);
 
                 const endpoint2 = device.getEndpoint(2);
-                await reporting.bind(endpoint2, coordinatorEndpoint, ["genIdentify", "genOnOff", "boschEnergyCluster"]);
+                await reporting.bind(endpoint2, coordinatorEndpoint, ["genIdentify", "genOnOff", "boschEnergyDeviceCluster"]);
                 await reporting.onOff(endpoint2);
                 await endpoint2.read<"genOnOff">("genOnOff", ["onOff", "startUpOnOff"]);
-                await endpoint2.read<"boschEnergyCluster", BoschBmctCluster>("boschEnergyCluster", [
+                await endpoint2.read<"boschEnergyDeviceCluster", BoschBmctCluster>("boschEnergyDeviceCluster", [
                     "switchMode",
                     "childLock",
                     "autoOffEnabled",
@@ -1844,10 +1844,10 @@ export const definitions: DefinitionWithExtend[] = [
                 ]);
 
                 const endpoint3 = device.getEndpoint(3);
-                await reporting.bind(endpoint3, coordinatorEndpoint, ["genIdentify", "genOnOff", "boschEnergyCluster"]);
+                await reporting.bind(endpoint3, coordinatorEndpoint, ["genIdentify", "genOnOff", "boschEnergyDeviceCluster"]);
                 await reporting.onOff(endpoint3);
                 await endpoint3.read<"genOnOff">("genOnOff", ["onOff", "startUpOnOff"]);
-                await endpoint3.read<"boschEnergyCluster", BoschBmctCluster>("boschEnergyCluster", [
+                await endpoint3.read<"boschEnergyDeviceCluster", BoschBmctCluster>("boschEnergyDeviceCluster", [
                     "switchMode",
                     "childLock",
                     "autoOffEnabled",
@@ -1857,14 +1857,14 @@ export const definitions: DefinitionWithExtend[] = [
 
             const shutterConfiguration = async () => {
                 const endpoint1 = device.getEndpoint(1);
-                await reporting.bind(endpoint1, coordinatorEndpoint, ["genIdentify", "closuresWindowCovering", "boschEnergyCluster"]);
+                await reporting.bind(endpoint1, coordinatorEndpoint, ["genIdentify", "closuresWindowCovering", "boschEnergyDeviceCluster"]);
                 await reporting.currentPositionLiftPercentage(endpoint1);
                 await endpoint1.read<"closuresWindowCovering">("closuresWindowCovering", ["currentPositionLiftPercentage"]);
 
-                const payloadMotorState = payload<"boschEnergyCluster", BoschBmctCluster>("motorState", 0, repInterval.MAX, 0);
-                await endpoint1.configureReporting("boschEnergyCluster", payloadMotorState);
+                const payloadMotorState = payload<"boschEnergyDeviceCluster", BoschBmctCluster>("motorState", 0, repInterval.MAX, 0);
+                await endpoint1.configureReporting("boschEnergyDeviceCluster", payloadMotorState);
 
-                await endpoint1.read<"boschEnergyCluster", BoschBmctCluster>("boschEnergyCluster", [
+                await endpoint1.read<"boschEnergyDeviceCluster", BoschBmctCluster>("boschEnergyDeviceCluster", [
                     "switchType",
                     "switchMode",
                     "motorState",
@@ -1877,7 +1877,7 @@ export const definitions: DefinitionWithExtend[] = [
             };
 
             const endpoint1 = device.getEndpoint(1);
-            await endpoint1.read<"boschEnergyCluster", BoschBmctCluster>("boschEnergyCluster", ["deviceMode"]);
+            await endpoint1.read<"boschEnergyDeviceCluster", BoschBmctCluster>("boschEnergyDeviceCluster", ["deviceMode"]);
 
             await lightConfiguration();
             await shutterConfiguration();
@@ -2056,10 +2056,10 @@ export const definitions: DefinitionWithExtend[] = [
             };
 
             if (!utils.isDummyDevice(device)) {
-                const deviceModeKey = device.getEndpoint(1).getClusterAttributeValue("boschEnergyCluster", "deviceMode");
+                const deviceModeKey = device.getEndpoint(1).getClusterAttributeValue("boschEnergyDeviceCluster", "deviceMode");
                 const deviceMode = Object.keys(stateDeviceMode).find((key) => stateDeviceMode[key] === deviceModeKey);
 
-                const switchTypeKey = device.getEndpoint(1).getClusterAttributeValue("boschEnergyCluster", "switchType");
+                const switchTypeKey = device.getEndpoint(1).getClusterAttributeValue("boschEnergyDeviceCluster", "switchType");
                 const switchType = Object.keys(stateSwitchType).find((key) => stateSwitchType[key] === switchTypeKey);
 
                 if (deviceMode === "light") {
