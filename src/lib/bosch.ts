@@ -2469,9 +2469,7 @@ export const boschSmartPlugExtend = {
                     utils.getFromLookupByValue(0x00, energySavingModeEnabledLookup),
                 )
                 .withLabel("Energy-saving mode")
-                .withDescription(
-                    "Here you can activate the energy-saving mode. Please keep in mind to turn it off when using this plug with a photovoltaic system.",
-                )
+                .withDescription("Here you can activate the energy-saving mode")
                 .withCategory("config"),
             e
                 .numeric("energy_saving_mode_threshold", ea.ALL)
