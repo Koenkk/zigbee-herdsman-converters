@@ -1650,7 +1650,15 @@ export const definitions: DefinitionWithExtend[] = [
         model: "MUR36014",
         vendor: "Schneider Electric",
         description: "Mureva EVlink Smart socket outlet",
-        extend: [m.onOff({powerOnBehavior: true}), m.electricityMeter()],
+        extend: [
+            m.onOff(),
+            m.electricityMeter({
+                // Unit supports acVoltage and acCurrent, but only acCurrent divisor/multiplier can be read
+                voltage: {multiplier: 1, divisor: 1},
+                // power is provided by 'seMetering' instead of "haElectricalMeasurement"
+                power: {cluster: "metering"},
+            }),
+        ],
     },
     {
         zigbeeModel: ["NHMOTION/SWITCH/1"],
