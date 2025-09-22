@@ -2332,13 +2332,14 @@ export const boschSmartPlugExtend = {
     smartPlugCluster: () =>
         m.deviceAddCustomCluster("boschSmartPlugCluster", {
             ID: 0xfca0,
+            manufacturerCode: manufacturerOptions.manufacturerCode,
             attributes: {
-                automaticTurnOffEnabled: {ID: 0x0006, type: Zcl.DataType.BOOLEAN, manufacturerCode: manufacturerOptions.manufacturerCode},
-                automaticTurnOffTimer: {ID: 0x0007, type: Zcl.DataType.UINT16, manufacturerCode: manufacturerOptions.manufacturerCode},
-                ledBrightness: {ID: 0x002c, type: Zcl.DataType.UINT8, manufacturerCode: manufacturerOptions.manufacturerCode},
-                energySavingModeEnabled: {ID: 0x002d, type: Zcl.DataType.BOOLEAN, manufacturerCode: manufacturerOptions.manufacturerCode},
-                energySavingModeThreshold: {ID: 0x002e, type: Zcl.DataType.UINT16, manufacturerCode: manufacturerOptions.manufacturerCode},
-                energySavingModeTimer: {ID: 0x002f, type: Zcl.DataType.UINT32, manufacturerCode: manufacturerOptions.manufacturerCode},
+                automaticTurnOffEnabled: {ID: 0x0006, type: Zcl.DataType.BOOLEAN},
+                automaticTurnOffTimer: {ID: 0x0007, type: Zcl.DataType.UINT16},
+                ledBrightness: {ID: 0x002c, type: Zcl.DataType.UINT8},
+                energySavingModeEnabled: {ID: 0x002d, type: Zcl.DataType.BOOLEAN},
+                energySavingModeThreshold: {ID: 0x002e, type: Zcl.DataType.UINT16},
+                energySavingModeTimer: {ID: 0x002f, type: Zcl.DataType.UINT32},
             },
             commands: {},
             commandsResponse: {},
