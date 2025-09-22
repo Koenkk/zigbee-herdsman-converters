@@ -42,10 +42,7 @@ export const boschGeneralExtend = {
         }),
     resetEnergyMeter: (): ModernExtend => {
         const exposes: Expose[] = [
-            e
-                .enum("reset_energy_meter", ea.SET, ["reset"])
-                .withDescription("Triggers the reset of the energy meter to 0 kWh")
-                .withCategory("config"),
+            e.enum("reset_energy_meter", ea.SET, ["reset"]).withDescription("Triggers the reset of the energy meter to 0 kWh").withCategory("config"),
         ];
         const toZigbee: Tz.Converter[] = [
             {
@@ -2311,8 +2308,8 @@ export const boschBsenExtend = {
 interface BoschSmartPlugCluster {
     attributes: {
         /** ID: 6 | Type: BOOLEAN | Only used on BSP-FD */
-        unknownAttributeOne: number;
-        /** ID: 7 | Type: BOOLEAN | Only used on BSP-FD */
+        unknownAttributeOne: boolean;
+        /** ID: 7 | Type: UINT16 | Only used on BSP-FD */
         unknownAttributeTwo: number;
         /** ID: 44 | Type: UINT8 | Only used on BSP-FD */
         ledBrightness: number;
