@@ -20,7 +20,7 @@ const NS = "zhc:bosch";
 export const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH};
 
 //region Generally used bosch functionality
-interface BoschSeMetering {
+interface BoschSeMeteringCluster {
     attributes: never;
     commands: {
         resetEnergyMeters: Record<string, never>;
@@ -94,7 +94,7 @@ export const boschGeneralExtend = {
             {
                 key: ["reset_energy_meters"],
                 convertSet: async (entity, key, value, meta) => {
-                    await entity.command<"seMetering", "resetEnergyMeters", BoschSeMetering>(
+                    await entity.command<"seMetering", "resetEnergyMeters", BoschSeMeteringCluster>(
                         "seMetering",
                         "resetEnergyMeters",
                         {},
