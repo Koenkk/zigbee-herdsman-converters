@@ -40,6 +40,37 @@ interface BoschGeneralEnergyDeviceCluster {
 }
 
 export const boschGeneralExtend = {
+    handleZclVersionReadRequest: (): ModernExtend => {
+        const onEvent: OnEvent.Handler[] = [
+            (event) => {
+                if (event.type !== "deviceAnnounce") {
+                    return;
+                }
+
+                event.data.device.customReadResponse = (frame, endpoint) => {
+                    const isZclVersionRequest = frame.isCluster("genBasic") && frame.payload.find((i: {attrId: number}) => i.attrId === 0);
+
+                    if (!isZclVersionRequest) {
+                        return false;
+                    }
+
+                    const payload: TPartialClusterAttributes<"genBasic"> = {
+                        zclVersion: 1,
+                    };
+
+                    endpoint.readResponse(frame.cluster.name, frame.header.transactionSequenceNumber, payload).catch((e) => {
+                        logger.warning(`Custom zclVersion response failed for '${event.data.device.ieeeAddr}': ${e}`, NS);
+                    });
+
+                    return true;
+                };
+            },
+        ];
+        return {
+            onEvent,
+            isModernExtend: true,
+        };
+    },
     customSeMeteringCluster: () =>
         m.deviceAddCustomCluster("seMetering", {
             ID: Zcl.Clusters.seMetering.ID,
@@ -189,37 +220,6 @@ export const boschGeneralExtend = {
             fromZigbee,
             toZigbee,
             configure,
-            isModernExtend: true,
-        };
-    },
-    handleZclVersionReadRequest: (): ModernExtend => {
-        const onEvent: OnEvent.Handler[] = [
-            (event) => {
-                if (event.type !== "deviceAnnounce") {
-                    return;
-                }
-
-                event.data.device.customReadResponse = (frame, endpoint) => {
-                    const isZclVersionRequest = frame.isCluster("genBasic") && frame.payload.find((i: {attrId: number}) => i.attrId === 0);
-
-                    if (!isZclVersionRequest) {
-                        return false;
-                    }
-
-                    const payload: TPartialClusterAttributes<"genBasic"> = {
-                        zclVersion: 1,
-                    };
-
-                    endpoint.readResponse(frame.cluster.name, frame.header.transactionSequenceNumber, payload).catch((e) => {
-                        logger.warning(`Custom zclVersion response failed for '${event.data.device.ieeeAddr}': ${e}`, NS);
-                    });
-
-                    return true;
-                };
-            },
-        ];
-        return {
-            onEvent,
             isModernExtend: true,
         };
     },
