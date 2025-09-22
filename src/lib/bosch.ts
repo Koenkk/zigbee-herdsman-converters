@@ -3,6 +3,7 @@ import type {TPartialClusterAttributes} from "zigbee-herdsman/dist/zspec/zcl/def
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
+import type {ElectricityMeterArgs} from "../lib/modernExtend";
 import * as m from "../lib/modernExtend";
 import {repInterval} from "./constants";
 import {logger} from "./logger";
@@ -42,7 +43,10 @@ export const boschGeneralExtend = {
         }),
     resetEnergyMeter: (): ModernExtend => {
         const exposes: Expose[] = [
-            e.enum("reset_energy_meter", ea.SET, ["reset"]).withDescription("Triggers the reset of the energy meter to 0 kWh").withCategory("config"),
+            e
+                .enum("reset_energy_meter", ea.SET, ["reset"])
+                .withDescription("Triggers the reset of the energy meters (both consumed and generated) to 0 kWh")
+                .withCategory("config"),
         ];
         const toZigbee: Tz.Converter[] = [
             {
@@ -2304,17 +2308,17 @@ export const boschBsenExtend = {
 };
 //endregion
 
-//region Bosch BSP-FZ2/-EZ2/-GZ2/-FD (smart plug compact)
+//region Bosch BSP-FZ2/-EZ2/-GZ2/-FD (compact smart plugs)
 interface BoschSmartPlugCluster {
     attributes: {
-        /** ID: 6 | Type: BOOLEAN | Only used on BSP-FD */
-        unknownAttributeOne: boolean;
-        /** ID: 7 | Type: UINT16 | Only used on BSP-FD */
-        unknownAttributeTwo: number;
+        /** ID: 6 | Type: BOOLEAN */
+        automaticTurnOffEnabled: number;
+        /** ID: 7 | Type: UINT16 */
+        automaticTurnOffTimer: number;
         /** ID: 44 | Type: UINT8 | Only used on BSP-FD */
         ledBrightness: number;
         /** ID: 45 | Type: BOOLEAN | Only used on BSP-FD */
-        energySavingModeEnabled: boolean;
+        energySavingModeEnabled: number;
         /** ID: 46 | Type: UINT16 | Only used on BSP-FD */
         energySavingModeThreshold: number;
         /** ID: 47 | Type: UINT32 | Only used on BSP-FD */
@@ -2329,8 +2333,8 @@ export const boschSmartPlugExtend = {
         m.deviceAddCustomCluster("boschSmartPlugCluster", {
             ID: 0xfca0,
             attributes: {
-                unknownAttributeOne: {ID: 0x0006, type: Zcl.DataType.BOOLEAN, manufacturerCode: manufacturerOptions.manufacturerCode},
-                unknownAttributeTwo: {ID: 0x0007, type: Zcl.DataType.UINT16, manufacturerCode: manufacturerOptions.manufacturerCode},
+                automaticTurnOffEnabled: {ID: 0x0006, type: Zcl.DataType.BOOLEAN, manufacturerCode: manufacturerOptions.manufacturerCode},
+                automaticTurnOffTimer: {ID: 0x0007, type: Zcl.DataType.UINT16, manufacturerCode: manufacturerOptions.manufacturerCode},
                 ledBrightness: {ID: 0x002c, type: Zcl.DataType.UINT8, manufacturerCode: manufacturerOptions.manufacturerCode},
                 energySavingModeEnabled: {ID: 0x002d, type: Zcl.DataType.BOOLEAN, manufacturerCode: manufacturerOptions.manufacturerCode},
                 energySavingModeThreshold: {ID: 0x002e, type: Zcl.DataType.UINT16, manufacturerCode: manufacturerOptions.manufacturerCode},
@@ -2339,6 +2343,104 @@ export const boschSmartPlugExtend = {
             commands: {},
             commandsResponse: {},
         }),
+    onOff: () => m.onOff({powerOnBehavior: true, configureReporting: true}),
+    automaticTurnOff: (): ModernExtend => {
+        const automaticTurnOffEnabledLookup = {
+            ON: 0x01,
+            OFF: 0x00,
+        };
+
+        const exposes: Expose[] = [
+            e
+                .binary(
+                    "automatic_turn_off_enabled",
+                    ea.ALL,
+                    utils.getFromLookupByValue(0x01, automaticTurnOffEnabledLookup),
+                    utils.getFromLookupByValue(0x00, automaticTurnOffEnabledLookup),
+                )
+                .withLabel("Automatic turn-off")
+                .withDescription(
+                    "Here you can activate the automatic turn-off feature. If you use this feature, the plug will automatically turn off after the set amount of time.",
+                )
+                .withCategory("config"),
+            e
+                .numeric("automatic_turn_off_timer", ea.ALL)
+                .withLabel("Automatic turn-off timer")
+                .withDescription("Here you can set the amount of time after which the plug will be automatically turned off")
+                .withUnit("minutes")
+                .withValueMin(0)
+                .withValueMax(720)
+                .withValueStep(0.5)
+                .withCategory("config"),
+        ];
+
+        const fromZigbee = [
+            {
+                cluster: "boschSmartPlugCluster",
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    const result: KeyValueAny = {};
+                    const data = msg.data;
+
+                    if (data.automaticTurnOffEnabled !== undefined) {
+                        result.automatic_turn_off_enabled = utils.getFromLookupByValue(data.automaticTurnOffEnabled, automaticTurnOffEnabledLookup);
+                    }
+
+                    if (data.automaticTurnOffTimer !== undefined) {
+                        result.automatic_turn_off_timer = utils.toNumber(data.automaticTurnOffTimer) / 60;
+                    }
+
+                    return result;
+                },
+            } satisfies Fz.Converter<"boschSmartPlugCluster", BoschSmartPlugCluster, ["attributeReport", "readResponse"]>,
+        ];
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ["automatic_turn_off_enabled", "automatic_turn_off_timer"],
+                convertSet: async (entity, key, value, meta) => {
+                    if (key === "automatic_turn_off_enabled") {
+                        await entity.write<"boschSmartPlugCluster", BoschSmartPlugCluster>("boschSmartPlugCluster", {
+                            automaticTurnOffEnabled: utils.getFromLookup(value, automaticTurnOffEnabledLookup),
+                        });
+                        return {state: {automatic_turn_off_enabled: value}};
+                    }
+
+                    if (key === "automatic_turn_off_timer") {
+                        await entity.write<"boschSmartPlugCluster", BoschSmartPlugCluster>("boschSmartPlugCluster", {
+                            automaticTurnOffTimer: utils.toNumber(value) * 60,
+                        });
+                        return {state: {automatic_turn_off_timer: value}};
+                    }
+                },
+                convertGet: async (entity, key, meta) => {
+                    if (key === "automatic_turn_off_enabled") {
+                        await entity.read<"boschSmartPlugCluster", BoschSmartPlugCluster>("boschSmartPlugCluster", ["automaticTurnOffEnabled"]);
+                    }
+
+                    if (key === "automatic_turn_off_timer") {
+                        await entity.read<"boschSmartPlugCluster", BoschSmartPlugCluster>("boschSmartPlugCluster", ["automaticTurnOffTimer"]);
+                    }
+                },
+            },
+        ];
+
+        const configure: Configure[] = [
+            m.setupConfigureForBinding("boschSmartPlugCluster", "input"),
+            m.setupConfigureForReading<"boschSmartPlugCluster", BoschSmartPlugCluster>("boschSmartPlugCluster", [
+                "automaticTurnOffEnabled",
+                "automaticTurnOffTimer",
+            ]),
+        ];
+
+        return {
+            exposes,
+            fromZigbee,
+            toZigbee,
+            configure,
+            isModernExtend: true,
+        };
+    },
     ledBrightness: () =>
         m.numeric<"boschSmartPlugCluster", BoschSmartPlugCluster>({
             name: "led_brightness",
@@ -2353,8 +2455,8 @@ export const boschSmartPlugExtend = {
         }),
     energySavingMode: (): ModernExtend => {
         const energySavingModeEnabledLookup = {
-            ON: true,
-            OFF: false,
+            ON: 0x01,
+            OFF: 0x00,
         };
 
         const exposes: Expose[] = [
@@ -2362,18 +2464,19 @@ export const boschSmartPlugExtend = {
                 .binary(
                     "energy_saving_mode_enabled",
                     ea.ALL,
-                    utils.getFromLookupByValue(true, energySavingModeEnabledLookup),
-                    utils.getFromLookupByValue(false, energySavingModeEnabledLookup),
+                    utils.getFromLookupByValue(0x01, energySavingModeEnabledLookup),
+                    utils.getFromLookupByValue(0x00, energySavingModeEnabledLookup),
                 )
-                .withLabel("Energy saving mode")
+                .withLabel("Energy-saving mode")
                 .withDescription(
-                    "Here you can activate the energy saving mode. Please keep in mind to turn it off when using this plug with a PV module.",
+                    "Here you can activate the energy-saving mode. Please keep in mind to turn it off when using this plug with a photovoltaic system.",
                 )
                 .withCategory("config"),
             e
                 .numeric("energy_saving_mode_threshold", ea.ALL)
+                .withLabel("Energy-saving threshold")
                 .withDescription(
-                    "Here you can set the threshold for the energy saving mode. If the consumption falls below the set value (and the timer has met), the smart plug will be turned off.",
+                    "Here you can set the threshold for the energy-saving mode. If the consumption falls below the set value (and the timer has been met), the smart plug will be turned off.",
                 )
                 .withUnit("watt")
                 .withValueMin(1)
@@ -2382,7 +2485,8 @@ export const boschSmartPlugExtend = {
                 .withCategory("config"),
             e
                 .numeric("energy_saving_mode_timer", ea.ALL)
-                .withDescription("Here you can set the time the threshold has to be met before the smart plug will be turned off")
+                .withLabel("Energy-saving timer")
+                .withDescription("Here you can set the time the threshold has to be met before the smart plug is turned off")
                 .withUnit("seconds")
                 .withValueMin(1)
                 .withValueMax(1800)
@@ -2423,18 +2527,21 @@ export const boschSmartPlugExtend = {
                         await entity.write<"boschSmartPlugCluster", BoschSmartPlugCluster>("boschSmartPlugCluster", {
                             energySavingModeEnabled: utils.getFromLookup(value, energySavingModeEnabledLookup),
                         });
+                        return {state: {energy_saving_mode_enabled: value}};
                     }
 
                     if (key === "energy_saving_mode_threshold") {
                         await entity.write<"boschSmartPlugCluster", BoschSmartPlugCluster>("boschSmartPlugCluster", {
                             energySavingModeThreshold: utils.toNumber(value) * 10,
                         });
+                        return {state: {energy_saving_mode_threshold: value}};
                     }
 
                     if (key === "energy_saving_mode_timer") {
                         await entity.write<"boschSmartPlugCluster", BoschSmartPlugCluster>("boschSmartPlugCluster", {
                             energySavingModeTimer: utils.toNumber(value),
                         });
+                        return {state: {energy_saving_mode_timer: value}};
                     }
                 },
                 convertGet: async (entity, key, meta) => {
@@ -2470,5 +2577,13 @@ export const boschSmartPlugExtend = {
             isModernExtend: true,
         };
     },
+    electricityMeter: (args?: ElectricityMeterArgs) =>
+        m.electricityMeter({
+            voltage: false,
+            current: false,
+            power: {change: 1},
+            energy: {change: 1},
+            ...args,
+        }),
 };
 //endregion
