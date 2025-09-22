@@ -33,7 +33,7 @@ export const boschGeneralExtend = {
             ID: Zcl.Clusters.seMetering.ID,
             attributes: {},
             commands: {
-                resetEnergyReading: {
+                resetEnergyMeter: {
                     ID: 0x80,
                     parameters: [],
                 },
@@ -43,13 +43,13 @@ export const boschGeneralExtend = {
     resetEnergyMeter: (): ModernExtend => {
         const exposes: Expose[] = [
             e
-                .enum("reset_energy_reading", ea.SET, ["reset"])
-                .withDescription("Triggers the reset of the energy meter to 0 kWh.")
+                .enum("reset_energy_meter", ea.SET, ["reset"])
+                .withDescription("Triggers the reset of the energy meter to 0 kWh")
                 .withCategory("config"),
         ];
         const toZigbee: Tz.Converter[] = [
             {
-                key: ["reset_energy_reading"],
+                key: ["reset_energy_meter"],
                 convertSet: async (entity, key, value, meta) => {
                     await entity.command<"seMetering", "resetEnergyMeter", BoschSeMetering>(
                         "seMetering",
