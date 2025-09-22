@@ -2027,15 +2027,19 @@ const fzLocal = {
                 if (msg.type === "readResponse") {
                     return Object.keys(msg.data).reduce((p, c) => {
                         const key = splitValuesByEndpoint ? `${c}_${msg.endpoint.ID}` : c;
+                        const obj = typeof msg.data === 'string' ? JSON.parse(msg.data) : msg.data;
+                        const raw = (obj as Record<string, unknown>)[c];
                         if (attributes[key] && attributes[key].displayType === "enum") {
                             return {
                                 // biome-ignore lint/performance/noAccumulatingSpread: ignored using `--suppress`
                                 ...p,
-                                [key]: Object.keys(attributes[key].values).find((k) => attributes[key].values[k] === msg.data[c]),
+                                [key]: Object.keys(attributes[key].values).find(
+                                    (k) => attributes[key].values[k] === raw,
+                                ),
                             };
                         }
                         // biome-ignore lint/performance/noAccumulatingSpread: ignored using `--suppress`
-                        return {...p, [key]: msg.data[c]};
+                        return {...p, [key]: raw};
                     }, {});
                 }
                 return msg.data;
