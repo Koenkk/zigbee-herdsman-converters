@@ -1586,7 +1586,7 @@ export const definitions: DefinitionWithExtend[] = [
             boschGeneralExtend.customSeMeteringCluster(),
             boschSmartPlugExtend.smartPlugCluster(),
             boschSmartPlugExtend.onOff(),
-            boschSmartPlugExtend.automaticTurnOff(),
+            boschGeneralExtend.autoOff(),
             boschSmartPlugExtend.electricityMeter(),
             boschGeneralExtend.resetEnergyMeters(),
         ],
@@ -1605,7 +1605,7 @@ export const definitions: DefinitionWithExtend[] = [
             boschGeneralExtend.customSeMeteringCluster(),
             boschSmartPlugExtend.smartPlugCluster(),
             boschSmartPlugExtend.onOff(),
-            boschSmartPlugExtend.automaticTurnOff(),
+            boschGeneralExtend.autoOff(),
             boschSmartPlugExtend.ledBrightness(),
             boschSmartPlugExtend.energySavingMode(),
             boschSmartPlugExtend.electricityMeter({producedEnergy: true}),
@@ -1660,7 +1660,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Phase-cut dimmer",
         extend: [
             boschBmctExtend.handleZclVersionReadRequest(),
-            m.deviceAddCustomCluster("boschSpecific", {
+            m.deviceAddCustomCluster("boschEnergyCluster", {
                 ID: 0xfca0,
                 manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
                 attributes: {
@@ -1704,13 +1704,11 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Relay (potential free)",
         extend: [
             boschBmctExtend.handleZclVersionReadRequest(),
-            m.deviceAddCustomCluster("boschSpecific", {
+            m.deviceAddCustomCluster("boschEnergyCluster", {
                 ID: 0xfca0,
                 manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
                 attributes: {
                     switchType: {ID: 0x0001, type: Zcl.DataType.ENUM8},
-                    autoOffEnabled: {ID: 0x0006, type: Zcl.DataType.BOOLEAN},
-                    autoOffTime: {ID: 0x0007, type: Zcl.DataType.UINT16},
                     childLock: {ID: 0x0008, type: Zcl.DataType.BOOLEAN},
                     pulseLength: {ID: 0x0024, type: Zcl.DataType.UINT16},
                     switchMode: {ID: 0x0031, type: Zcl.DataType.BOOLEAN},
@@ -1735,7 +1733,7 @@ export const definitions: DefinitionWithExtend[] = [
                 switchTypeLookup: boschBmctRzSettings.switchTypes,
             }),
             boschBmctExtend.childLock(),
-            boschBmctExtend.autoOff(),
+            boschGeneralExtend.autoOff(),
             boschBmctExtend.pulseLength({
                 updateDeviceMode: true,
                 deviceModesLookup: boschBmctRzSettings.deviceModes,
@@ -1757,7 +1755,7 @@ export const definitions: DefinitionWithExtend[] = [
                 power: {change: 1},
                 energy: {change: 1},
             }),
-            m.deviceAddCustomCluster("boschSpecific", {
+            m.deviceAddCustomCluster("boschEnergyCluster", {
                 ID: 0xfca0,
                 manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
                 attributes: {
@@ -1832,13 +1830,13 @@ export const definitions: DefinitionWithExtend[] = [
             const lightConfiguration = async () => {
                 const endpoint1 = device.getEndpoint(1);
                 await reporting.bind(endpoint1, coordinatorEndpoint, ["genIdentify"]);
-                await endpoint1.read<"boschSpecific", BoschBmctCluster>("boschSpecific", ["switchType"]);
+                await endpoint1.read<"boschEnergyCluster", BoschBmctCluster>("boschEnergyCluster", ["switchType"]);
 
                 const endpoint2 = device.getEndpoint(2);
-                await reporting.bind(endpoint2, coordinatorEndpoint, ["genIdentify", "genOnOff", "boschSpecific"]);
+                await reporting.bind(endpoint2, coordinatorEndpoint, ["genIdentify", "genOnOff", "boschEnergyCluster"]);
                 await reporting.onOff(endpoint2);
                 await endpoint2.read<"genOnOff">("genOnOff", ["onOff", "startUpOnOff"]);
-                await endpoint2.read<"boschSpecific", BoschBmctCluster>("boschSpecific", [
+                await endpoint2.read<"boschEnergyCluster", BoschBmctCluster>("boschEnergyCluster", [
                     "switchMode",
                     "childLock",
                     "autoOffEnabled",
@@ -1846,10 +1844,10 @@ export const definitions: DefinitionWithExtend[] = [
                 ]);
 
                 const endpoint3 = device.getEndpoint(3);
-                await reporting.bind(endpoint3, coordinatorEndpoint, ["genIdentify", "genOnOff", "boschSpecific"]);
+                await reporting.bind(endpoint3, coordinatorEndpoint, ["genIdentify", "genOnOff", "boschEnergyCluster"]);
                 await reporting.onOff(endpoint3);
                 await endpoint3.read<"genOnOff">("genOnOff", ["onOff", "startUpOnOff"]);
-                await endpoint3.read<"boschSpecific", BoschBmctCluster>("boschSpecific", [
+                await endpoint3.read<"boschEnergyCluster", BoschBmctCluster>("boschEnergyCluster", [
                     "switchMode",
                     "childLock",
                     "autoOffEnabled",
@@ -1859,14 +1857,14 @@ export const definitions: DefinitionWithExtend[] = [
 
             const shutterConfiguration = async () => {
                 const endpoint1 = device.getEndpoint(1);
-                await reporting.bind(endpoint1, coordinatorEndpoint, ["genIdentify", "closuresWindowCovering", "boschSpecific"]);
+                await reporting.bind(endpoint1, coordinatorEndpoint, ["genIdentify", "closuresWindowCovering", "boschEnergyCluster"]);
                 await reporting.currentPositionLiftPercentage(endpoint1);
                 await endpoint1.read<"closuresWindowCovering">("closuresWindowCovering", ["currentPositionLiftPercentage"]);
 
-                const payloadMotorState = payload<"boschSpecific", BoschBmctCluster>("motorState", 0, repInterval.MAX, 0);
-                await endpoint1.configureReporting("boschSpecific", payloadMotorState);
+                const payloadMotorState = payload<"boschEnergyCluster", BoschBmctCluster>("motorState", 0, repInterval.MAX, 0);
+                await endpoint1.configureReporting("boschEnergyCluster", payloadMotorState);
 
-                await endpoint1.read<"boschSpecific", BoschBmctCluster>("boschSpecific", [
+                await endpoint1.read<"boschEnergyCluster", BoschBmctCluster>("boschEnergyCluster", [
                     "switchType",
                     "switchMode",
                     "motorState",
@@ -1879,7 +1877,7 @@ export const definitions: DefinitionWithExtend[] = [
             };
 
             const endpoint1 = device.getEndpoint(1);
-            await endpoint1.read<"boschSpecific", BoschBmctCluster>("boschSpecific", ["deviceMode"]);
+            await endpoint1.read<"boschEnergyCluster", BoschBmctCluster>("boschEnergyCluster", ["deviceMode"]);
 
             await lightConfiguration();
             await shutterConfiguration();
@@ -2058,10 +2056,10 @@ export const definitions: DefinitionWithExtend[] = [
             };
 
             if (!utils.isDummyDevice(device)) {
-                const deviceModeKey = device.getEndpoint(1).getClusterAttributeValue("boschSpecific", "deviceMode");
+                const deviceModeKey = device.getEndpoint(1).getClusterAttributeValue("boschEnergyCluster", "deviceMode");
                 const deviceMode = Object.keys(stateDeviceMode).find((key) => stateDeviceMode[key] === deviceModeKey);
 
-                const switchTypeKey = device.getEndpoint(1).getClusterAttributeValue("boschSpecific", "switchType");
+                const switchTypeKey = device.getEndpoint(1).getClusterAttributeValue("boschEnergyCluster", "switchType");
                 const switchType = Object.keys(stateSwitchType).find((key) => stateSwitchType[key] === switchTypeKey);
 
                 if (deviceMode === "light") {
