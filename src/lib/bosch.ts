@@ -2368,6 +2368,7 @@ export const boschSmartPlugExtend = {
             name: "led_brightness",
             cluster: "boschEnergyCluster",
             attribute: "ledBrightness",
+            label: "LED brightness",
             description: "Here you can adjust the LED brightness",
             valueMin: 0,
             valueMax: 100,
