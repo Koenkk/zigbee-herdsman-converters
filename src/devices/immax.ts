@@ -84,11 +84,11 @@ const fzLocal = {
             }
             //volume
             if (msg.data["2"] !== undefined) {
-                result.volume = utils.mapNumberRange(msg.data["2"], 100, 0, 0, 100);
+                result.volume = utils.mapNumberRange(msg.data["2"] as number, 100, 0, 0, 100);
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"ssIasWd", undefined, ["attributeReport", "readResponse"]>,
     ts0219genBasic: {
         cluster: "genBasic",
         type: ["attributeReport", "readResponse"],
@@ -99,7 +99,7 @@ const fzLocal = {
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genBasic", undefined, ["attributeReport", "readResponse"]>,
     ts0219ssIasZone: {
         cluster: "ssIasZone",
         type: ["attributeReport", "readResponse"],
@@ -110,7 +110,7 @@ const fzLocal = {
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"ssIasZone", undefined, ["attributeReport", "readResponse"]>,
 };
 
 export const definitions: DefinitionWithExtend[] = [

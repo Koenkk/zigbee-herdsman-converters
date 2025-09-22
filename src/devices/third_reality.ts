@@ -9,6 +9,27 @@ import type {DefinitionWithExtend, Fz, KeyValue} from "../lib/types";
 
 const e = exposes.presets;
 
+interface ThirdAcceleration {
+    attributes: {
+        coolDownTime: number;
+        xAxis: number;
+        yAxis: number;
+        zAxis: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+interface ThirdMotionSensor {
+    attributes: {
+        coldDownTime: number;
+        localRoutinTime: number;
+        luxThreshold: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
 const fzLocal = {
     thirdreality_acceleration: {
         cluster: "3rVirationSpecialcluster",
@@ -20,15 +41,15 @@ const fzLocal = {
             if (msg.data.zAxis) payload.z_axis = msg.data.zAxis;
             return payload;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"3rVirationSpecialcluster", ThirdAcceleration, ["attributeReport", "readResponse"]>,
     thirdreality_private_motion_sensor: {
         cluster: "r3Specialcluster",
         type: "attributeReport",
         convert: (model, msg, publish, options, meta) => {
-            const zoneStatus = msg.data[2];
+            const zoneStatus = msg.data[2] as number;
             return {occupancy: (zoneStatus & 1) > 0};
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"r3Specialcluster", ThirdMotionSensor, "attributeReport">,
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -52,8 +73,8 @@ export const definitions: DefinitionWithExtend[] = [
                 ID: 0xff02,
                 manufacturerCode: 0x1233,
                 attributes: {
-                    backOn: {ID: 0x0001, type: Zcl.DataType.UINT16},
-                    backOff: {ID: 0x0002, type: Zcl.DataType.UINT16},
+                    onToOffDelay: {ID: 0x0001, type: Zcl.DataType.UINT16},
+                    offToOnDelay: {ID: 0x0002, type: Zcl.DataType.UINT16},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -229,6 +250,7 @@ export const definitions: DefinitionWithExtend[] = [
                 attributes: {
                     onToOffDelay: {ID: 0x0001, type: Zcl.DataType.UINT16},
                     offToOnDelay: {ID: 0x0002, type: Zcl.DataType.UINT16},
+                    allowBind: {ID: 0x0020, type: Zcl.DataType.UINT8},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -451,6 +473,7 @@ export const definitions: DefinitionWithExtend[] = [
                     resetSummationDelivered: {ID: 0x0000, type: Zcl.DataType.UINT8},
                     onToOffDelay: {ID: 0x0001, type: Zcl.DataType.UINT16},
                     offToOnDelay: {ID: 0x0002, type: Zcl.DataType.UINT16},
+                    allowBind: {ID: 0x0020, type: Zcl.DataType.UINT8},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -469,13 +492,14 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.onOff(),
             m.electricityMeter({acFrequency: true, powerFactor: true}),
-            m.deviceAddCustomCluster("3rDualPlugSpecialcluster", {
+            m.deviceAddCustomCluster("3rPlugSpecialcluster", {
                 ID: 0xff03,
                 manufacturerCode: 0x1407,
                 attributes: {
                     resetSummationDelivered: {ID: 0x0000, type: Zcl.DataType.UINT8},
                     onToOffDelay: {ID: 0x0001, type: Zcl.DataType.UINT16},
                     offToOnDelay: {ID: 0x0002, type: Zcl.DataType.UINT16},
+                    allowBind: {ID: 0x0020, type: Zcl.DataType.UINT8},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -607,6 +631,7 @@ export const definitions: DefinitionWithExtend[] = [
                     resetSummationDelivered: {ID: 0x0000, type: Zcl.DataType.UINT8},
                     onToOffDelay: {ID: 0x0001, type: Zcl.DataType.UINT16},
                     offToOnDelay: {ID: 0x0002, type: Zcl.DataType.UINT16},
+                    allowBind: {ID: 0x0020, type: Zcl.DataType.UINT8},
                 },
                 commands: {},
                 commandsResponse: {},

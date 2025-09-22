@@ -42,7 +42,7 @@ const fzPerenio = {
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"haDiagnostic", undefined, ["attributeReport", "readResponse"]>,
     switch_type: {
         cluster: "genMultistateValue",
         type: ["attributeReport", "readResponse"],
@@ -61,7 +61,7 @@ const fzPerenio = {
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genMultistateValue", undefined, ["attributeReport", "readResponse"]>,
     smart_plug: {
         cluster: "perenioSpecific",
         type: ["attributeReport", "readResponse"],
@@ -100,7 +100,6 @@ const fzPerenio = {
                 2: "previous",
             };
             if (msg.data[0] !== undefined) {
-                // @ts-expect-error ignore
                 result.default_on_off_state = powerOnStateLookup[msg.data[0]];
             }
             if (msg.data[1] !== undefined) {
@@ -126,7 +125,7 @@ const fzPerenio = {
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"perenioSpecific", undefined, ["attributeReport", "readResponse"]>,
 };
 
 const tzPerenio = {

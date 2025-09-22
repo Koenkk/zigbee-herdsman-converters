@@ -212,16 +212,16 @@ const fzLocal = {
         type: ["readResponse", "attributeReport"],
         convert: (model, msg, publish, options, meta) => {
             const channel = utils.getKey(model.endpoint(msg.device), msg.endpoint.ID);
-            const {buttonMode} = msg.data;
+            const {switchType} = msg.data;
             const inputLink = msg.data[0x4001];
             const bindCommand = msg.data[0x4002];
             return {
-                [`button_mode_${channel}`]: utils.getKey(buttonModesList, buttonMode),
+                [`button_mode_${channel}`]: utils.getKey(buttonModesList, switchType),
                 [`link_to_output_${channel}`]: utils.getKey(inputLinkList, inputLink),
                 [`bind_command_${channel}`]: utils.getKey(bindCommandList, bindCommand),
             };
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genOnOffSwitchCfg", undefined, ["readResponse", "attributeReport"]>,
     zigusb_analog_input: {
         cluster: "genAnalogInput",
         type: ["attributeReport", "readResponse"],
@@ -278,7 +278,7 @@ const fzLocal = {
             }
             return payload;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genAnalogInput", undefined, ["attributeReport", "readResponse"]>,
     zigusb_on_off_invert: {
         cluster: "genOnOff",
         type: ["attributeReport", "readResponse"],
@@ -291,7 +291,7 @@ const fzLocal = {
                 return payload;
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     ZigDC_ina3221: {
         cluster: "genAnalogInput",
@@ -321,7 +321,7 @@ const fzLocal = {
             }
             return payload;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genAnalogInput", undefined, ["attributeReport", "readResponse"]>,
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     ZigDC_uptime: {
         cluster: "genAnalogInput",
@@ -336,7 +336,7 @@ const fzLocal = {
 
             return payload;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genAnalogInput", undefined, ["attributeReport", "readResponse"]>,
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     ZigDC_input_config: {
         cluster: "genOnOffSwitchCfg",
@@ -351,7 +351,7 @@ const fzLocal = {
                 [`bind_command_${channel}`]: utils.getKey(bindCommandList, bindCommand),
             };
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genOnOffSwitchCfg", undefined, ["readResponse", "attributeReport"]>,
 };
 
 function zigusbBtnConfigExposes(epName: string) {

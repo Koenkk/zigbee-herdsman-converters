@@ -1,6 +1,7 @@
 import * as fz from "../converters/fromZigbee";
 import * as exposes from "../lib/exposes";
 import * as legacy from "../lib/legacy";
+import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as tuya from "../lib/tuya";
 import type {DefinitionWithExtend} from "../lib/types";
@@ -14,9 +15,9 @@ export const definitions: DefinitionWithExtend[] = [
         model: "E5",
         vendor: "Nous",
         description: "Temperature & humidity",
-        fromZigbee: [fz.temperature, fz.humidity, fz.battery],
-        toZigbee: [],
-        exposes: [e.temperature(), e.humidity(), e.battery()],
+        fromZigbee: [fz.temperature, fz.humidity],
+        exposes: [e.temperature(), e.humidity()],
+        extend: [m.battery()],
     },
     {
         fingerprint: tuya.fingerprint("TS0601", [

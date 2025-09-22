@@ -187,7 +187,14 @@ export const buffer2DataObject = (model: Definition, buffer: Buffer) => {
     return dataObject;
 };
 
-export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, model: Definition, options: KeyValue, dataObject: KeyValue) => {
+export const numericAttributes2Payload = async (
+    // biome-ignore lint/suspicious/noExplicitAny: too generic to properly type
+    msg: Fz.Message<any, undefined, any>,
+    meta: Fz.Meta,
+    model: Definition,
+    options: KeyValue,
+    dataObject: KeyValue,
+) => {
     let payload: KeyValue = {};
 
     for (const [key, value] of Object.entries(dataObject)) {
@@ -931,20 +938,20 @@ export const numericAttributes2Payload = async (msg: Fz.Message, meta: Fz.Meta, 
     return payload;
 };
 
-const numericAttributes2Lookup = async (model: Definition, dataObject: KeyValue) => {
+const numericAttributes2Lookup = (model: Definition, dataObject: KeyValue) => {
     let result: KeyValue = {};
     for (const [key, value] of Object.entries(dataObject)) {
         switch (key) {
             case "247":
                 {
                     const dataObject247 = buffer2DataObject(model, value as Buffer);
-                    const result247 = await numericAttributes2Lookup(model, dataObject247);
+                    const result247 = numericAttributes2Lookup(model, dataObject247);
                     result = {...result, ...result247};
                 }
                 break;
             case "65281":
                 {
-                    const result65281 = await numericAttributes2Lookup(model, value as KeyValue);
+                    const result65281 = numericAttributes2Lookup(model, value as KeyValue);
                     result = {...result, ...result65281};
                 }
                 break;
@@ -1760,7 +1767,7 @@ export const lumiModernExtend = {
             ...args,
         }),
     lumiOutageCountRestoreBindReporting: (): ModernExtend => {
-        const fromZigbee: Fz.Converter[] = [
+        const fromZigbee = [
             {
                 cluster: "manuSpecificLumi",
                 type: ["attributeReport", "readResponse"],
@@ -1771,7 +1778,7 @@ export const lumiModernExtend = {
                     //  under the manuSpecificLumi cluster as attribute 247, we simple decode and grab value with ID 5.
                     // Normal attribute publishing and decoding will be left to the classic fromZigbee or modernExtends.
                     if (msg.data["247"] !== undefined) {
-                        const dataDecoded = buffer2DataObject(model, msg.data["247"]);
+                        const dataDecoded = buffer2DataObject(model, msg.data["247"] as Buffer);
                         if (dataDecoded["5"] !== undefined) {
                             assertNumber(dataDecoded["5"]);
 
@@ -1823,7 +1830,7 @@ export const lumiModernExtend = {
                         }
                     }
                 },
-            },
+            } satisfies Fz.Converter<"manuSpecificLumi", undefined, ["attributeReport", "readResponse"]>,
         ];
 
         return {fromZigbee, isModernExtend: true};
@@ -1853,14 +1860,14 @@ export const lumiModernExtend = {
         }),
     lumiElectricityMeter: (): ModernExtend => {
         const exposes = [e.energy(), e.voltage(), e.current()];
-        const fromZigbee: Fz.Converter[] = [
+        const fromZigbee = [
             {
                 cluster: "manuSpecificLumi",
                 type: ["attributeReport", "readResponse"],
                 convert: async (model, msg, publish, options, meta) => {
                     return await numericAttributes2Payload(msg, meta, model, options, msg.data);
                 },
-            },
+            } satisfies Fz.Converter<"manuSpecificLumi", undefined, ["attributeReport", "readResponse"]>,
         ];
 
         return {exposes, fromZigbee, isModernExtend: true};
@@ -1934,14 +1941,14 @@ export const lumiModernExtend = {
             ...args,
         }),
     lumiPreventReset: (): ModernExtend => {
-        const converter: Fz.Converter = {
+        const converter: Fz.Converter<"genBasic", undefined, ["attributeReport"]> = {
             cluster: "genBasic",
             type: ["attributeReport"],
             convert: (model, msg, publish, options, meta) => {
                 if (
                     !msg.data[0xfff0] ||
                     // eg: [0xaa, 0x10, 0x05, 0x41, 0x87, 0x01, 0x01, 0x10, 0x00]
-                    !msg.data[0xfff0].slice(0, 5).equals(Buffer.from([0xaa, 0x10, 0x05, 0x41, 0x87]))
+                    !(msg.data[0xfff0] as Buffer).slice(0, 5).equals(Buffer.from([0xaa, 0x10, 0x05, 0x41, 0x87]))
                 ) {
                     return;
                 }
@@ -1973,7 +1980,7 @@ export const lumiModernExtend = {
             ...args,
         }),
     lumiSlider: (): ModernExtend => {
-        const fromZigbee: Fz.Converter[] = [
+        const fromZigbee = [
             {
                 cluster: "manuSpecificLumi",
                 type: ["attributeReport", "readResponse"],
@@ -1990,12 +1997,12 @@ export const lumiModernExtend = {
                             action_slide_time: msg.data[561],
                             action_slide_speed: msg.data[562],
                             action_slide_relative_displacement: msg.data[563],
-                            action: actionLookup[msg.data[652]],
+                            action: actionLookup[msg.data[652] as number],
                             action_slide_time_delta: msg.data[769],
                         };
                     }
                 },
-            },
+            } satisfies Fz.Converter<"manuSpecificLumi", undefined, ["attributeReport", "readResponse"]>,
         ];
 
         const exposes: Expose[] = [
@@ -2050,18 +2057,18 @@ export const lumiModernExtend = {
     lumiVibration: (): ModernExtend => {
         const exposes: Expose[] = [e.action(["shake", "triple_strike", "movement"])];
 
-        const fromZigbee: Fz.Converter[] = [
+        const fromZigbee = [
             {
                 cluster: "ssIasZone",
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
                     if (msg.data[45] !== undefined) {
-                        const zoneStatus = msg.data[45];
+                        const zoneStatus = msg.data[45] as number;
                         const actionLookup: KeyValueNumberString = {1: "shake", 2: "triple_strike"};
                         return {action: actionLookup[zoneStatus]};
                     }
                 },
-            },
+            } satisfies Fz.Converter<"ssIasZone", undefined, ["attributeReport", "readResponse"]>,
             {
                 cluster: "genMultistateInput",
                 type: ["attributeReport", "readResponse"],
@@ -2070,7 +2077,7 @@ export const lumiModernExtend = {
                         return {action: "triple_strike"};
                     }
                 },
-            },
+            } satisfies Fz.Converter<"genMultistateInput", undefined, ["attributeReport", "readResponse"]>,
             {
                 cluster: "manuSpecificLumi",
                 type: ["attributeReport", "readResponse"],
@@ -2079,7 +2086,7 @@ export const lumiModernExtend = {
                         return {action: "movement"};
                     }
                 },
-            },
+            } satisfies Fz.Converter<"manuSpecificLumi", undefined, ["attributeReport", "readResponse"]>,
         ];
 
         return {exposes, fromZigbee, isModernExtend: true};
@@ -2118,7 +2125,7 @@ export const lumiModernExtend = {
         args = {cluster: "manuSpecificLumi", deviceTemperatureAttribute: 3, powerOutageCountAttribute: 5, resetsWhenPairing: false, ...args};
         const exposes: Expose[] = [e.device_temperature(), e.power_outage_count(args.resetsWhenPairing)];
 
-        const fromZigbee: Fz.Converter[] = [
+        const fromZigbee = [
             {
                 cluster: args.cluster,
                 type: ["attributeReport", "readResponse"],
@@ -2136,7 +2143,7 @@ export const lumiModernExtend = {
                     }
                     return payload;
                 },
-            },
+            } satisfies Fz.Converter<typeof args.cluster, undefined, ["attributeReport", "readResponse"]>,
         ];
 
         return {exposes, fromZigbee, isModernExtend: true};
@@ -2160,7 +2167,7 @@ export const lumiModernExtend = {
             );
         }
 
-        const fromZigbee: Fz.Converter[] = [
+        const fromZigbee = [
             {
                 cluster: "manuSpecificLumi",
                 type: ["attributeReport", "readResponse"],
@@ -2169,8 +2176,8 @@ export const lumiModernExtend = {
                         const act: KeyValueNumberString = {1: "start_rotating", 2: "rotation", 3: "stop_rotating"};
                         const state: KeyValueNumberString = {0: "released", 128: "pressed"};
                         return {
-                            action: act[msg.data[570] & ~128],
-                            action_rotation_button_state: state[msg.data[570] & 128],
+                            action: act[(msg.data[570] as number) & ~128],
+                            action_rotation_button_state: state[(msg.data[570] as number) & 128],
                             action_rotation_angle: msg.data[558],
                             action_rotation_angle_speed: msg.data[560],
                             action_rotation_percent: msg.data[563],
@@ -2179,7 +2186,7 @@ export const lumiModernExtend = {
                         };
                     }
                 },
-            },
+            } satisfies Fz.Converter<"manuSpecificLumi", undefined, ["attributeReport", "readResponse"]>,
         ];
 
         return {exposes, fromZigbee, isModernExtend: true};
@@ -2239,7 +2246,7 @@ export const lumiModernExtend = {
         };
         const exposes: Expose[] = [e.battery(), e.battery_voltage()];
 
-        const fromZigbee: Fz.Converter[] = [
+        const fromZigbee = [
             {
                 cluster: args.cluster,
                 type: ["attributeReport", "readResponse"],
@@ -2259,7 +2266,7 @@ export const lumiModernExtend = {
                     }
                     return payload;
                 },
-            },
+            } satisfies Fz.Converter<typeof args.cluster, undefined, ["attributeReport", "readResponse"]>,
         ];
 
         return {exposes, fromZigbee, isModernExtend: true};
@@ -2353,7 +2360,7 @@ export const lumiModernExtend = {
             ...args,
         }),
     lumiPreventLeave: (): ModernExtend => {
-        const converter: Fz.Converter = {
+        const converter: Fz.Converter<"manuSpecificLumi", undefined, ["attributeReport"]> = {
             cluster: "manuSpecificLumi",
             type: ["attributeReport"],
             convert: (model, msg, publish, options, meta) => {
@@ -2587,12 +2594,12 @@ export const lumiModernExtend = {
                         });
                         return result;
                     },
-                } satisfies Fz.Converter,
+                } satisfies Fz.Converter<"manuSpecificLumi", undefined, ["attributeReport", "readResponse"]>,
             ],
         } satisfies ModernExtend;
     },
     lumiReadPositionOnReport: (type: "genAnalogOutput" | "genMultistateOutput" | "genBasic"): ModernExtend => {
-        let converter: Fz.Converter;
+        let converter: Fz.Converter<"genAnalogOutput" | "genMultistateOutput" | "genBasic", undefined, ["attributeReport"]>;
         if (type === "genAnalogOutput") {
             converter = {
                 cluster: "genAnalogOutput",
@@ -2604,7 +2611,7 @@ export const lumiModernExtend = {
                         .read("genAnalogOutput", ["presentValue"])
                         .catch((error) => logger.error(`Failed to read position '${msg.device.ieeeAddr}' (${error})`, NS));
                 },
-            };
+            } satisfies Fz.Converter<"genAnalogOutput", undefined, ["attributeReport"]>;
         } else if (type === "genMultistateOutput") {
             converter = {
                 cluster: "genMultistateOutput",
@@ -2619,7 +2626,7 @@ export const lumiModernExtend = {
                             .catch((error) => logger.error(`Failed to read position '${msg.device.ieeeAddr}' (${error})`, NS));
                     }
                 },
-            };
+            } satisfies Fz.Converter<"genMultistateOutput", undefined, ["attributeReport"]>;
         } else if (type === "genBasic") {
             converter = {
                 cluster: "genBasic",
@@ -2634,7 +2641,7 @@ export const lumiModernExtend = {
                             .catch((error) => logger.error(`Failed to read position '${msg.device.ieeeAddr}' (${error})`, NS));
                     }
                 },
-            };
+            } satisfies Fz.Converter<"genBasic", undefined, ["attributeReport"]>;
         }
         return {fromZigbee: [converter], isModernExtend: true};
     },
@@ -2665,7 +2672,7 @@ export const fromZigbee = {
         convert: async (model, msg, publish, options, meta) => {
             return await numericAttributes2Payload(msg, meta, model, options, msg.data);
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genBasic", undefined, ["attributeReport", "readResponse"]>,
     lumi_basic_raw: {
         cluster: "genBasic",
         type: ["raw"],
@@ -2677,21 +2684,21 @@ export const fromZigbee = {
             }
             return payload;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genBasic", undefined, ["raw"]>,
     lumi_specific: {
         cluster: "manuSpecificLumi",
         type: ["attributeReport", "readResponse"],
         convert: async (model, msg, publish, options, meta) => {
             return await numericAttributes2Payload(msg, meta, model, options, msg.data);
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificLumi", undefined, ["attributeReport", "readResponse"]>,
     lumi_co2: {
         cluster: "msCO2",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             return {co2: Math.floor(msg.data.measuredValue)};
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"msCO2", undefined, ["attributeReport", "readResponse"]>,
     lumi_pm25: {
         cluster: "pm25Measurement",
         type: ["attributeReport", "readResponse"],
@@ -2700,21 +2707,21 @@ export const fromZigbee = {
                 return {pm25: msg.data.measuredValue};
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"pm25Measurement", undefined, ["attributeReport", "readResponse"]>,
     lumi_contact: {
         cluster: "genOnOff",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             return {contact: msg.data.onOff === 0};
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
     lumi_power: {
         cluster: "genAnalogInput",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             return {power: msg.data.presentValue};
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genAnalogInput", undefined, ["attributeReport", "readResponse"]>,
     lumi_action: {
         cluster: "genOnOff",
         type: ["attributeReport"],
@@ -2724,12 +2731,11 @@ export const fromZigbee = {
             }
 
             if (model.model === "WXKG11LM") {
-                // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
-                let clicks;
+                let clicks: number | undefined;
                 if (msg.data.onOff) {
                     clicks = 1;
                 } else if (msg.data["32768"]) {
-                    clicks = msg.data["32768"];
+                    clicks = msg.data["32768"] as number;
                 }
 
                 const actionLookup: KeyValueAny = {1: "single", 2: "double", 3: "triple", 4: "quadruple"};
@@ -2761,7 +2767,7 @@ export const fromZigbee = {
 
             return {action: `${action}${button}`};
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport"]>,
     lumi_action_multistate: {
         cluster: "genMultistateInput",
         type: ["attributeReport", "readResponse"],
@@ -2913,7 +2919,7 @@ export const fromZigbee = {
                 return {action};
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genMultistateInput", undefined, ["attributeReport", "readResponse"]>,
     lumi_action_analog: {
         cluster: "genAnalogInput",
         type: ["attributeReport", "readResponse"],
@@ -2940,12 +2946,12 @@ export const fromZigbee = {
                 };
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genAnalogInput", undefined, ["attributeReport", "readResponse"]>,
     lumi_temperature: {
         cluster: "msTemperatureMeasurement",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
-            const temperature = Number.parseFloat(msg.data.measuredValue) / 100.0;
+            const temperature = msg.data.measuredValue / 100.0;
 
             // https://github.com/Koenkk/zigbee2mqtt/issues/798
             // Sometimes the sensor publishes non-realistic vales.
@@ -2953,7 +2959,7 @@ export const fromZigbee = {
                 return {temperature};
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"msTemperatureMeasurement", undefined, ["attributeReport", "readResponse"]>,
     lumi_pressure: {
         cluster: "msPressureMeasurement",
         type: ["attributeReport", "readResponse"],
@@ -2963,7 +2969,7 @@ export const fromZigbee = {
                 return result;
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"msPressureMeasurement", undefined, ["attributeReport", "readResponse"]>,
 
     // lumi class specific
     lumi_feeder: {
@@ -3059,7 +3065,7 @@ export const fromZigbee = {
             });
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificLumi", undefined, ["attributeReport", "readResponse"]>,
     lumi_trv: {
         cluster: "manuSpecificLumi",
         type: ["attributeReport", "readResponse"],
@@ -3152,7 +3158,7 @@ export const fromZigbee = {
             });
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificLumi", undefined, ["attributeReport", "readResponse"]>,
     lumi_presence_region_events: {
         cluster: "manuSpecificLumi",
         type: ["attributeReport", "readResponse"],
@@ -3198,13 +3204,13 @@ export const fromZigbee = {
 
             return payload;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificLumi", undefined, ["attributeReport", "readResponse"]>,
     lumi_lock_report: {
         cluster: "genBasic",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data["65328"]) {
-                const data = `0x${msg.data["65328"].toString(16)}`;
+                const data = `0x${(msg.data["65328"] as number).toString(16)}`;
                 const state = Number(data.substring(2, 4));
                 const action = Number(data.substring(4, 6));
                 const keynum = Number(data.substring(6, 8));
@@ -3232,7 +3238,7 @@ export const fromZigbee = {
                 }
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genBasic", undefined, ["attributeReport", "readResponse"]>,
     lumi_occupancy_illuminance: {
         // This is for occupancy sensor that only send a message when motion detected,
         // but do not send a motion stop.
@@ -3275,7 +3281,7 @@ export const fromZigbee = {
                 return payload;
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificLumi", undefined, ["attributeReport", "readResponse"]>,
     lumi_curtain_position: {
         cluster: "genAnalogOutput",
         type: ["attributeReport", "readResponse"],
@@ -3292,7 +3298,7 @@ export const fromZigbee = {
             const closed = options.invert_cover ? position === 100 : position === 0;
             return {position, state: closed ? "CLOSE" : "OPEN"};
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genAnalogOutput", undefined, ["attributeReport", "readResponse"]>,
     lumi_curtain_position_tilt: {
         cluster: "closuresWindowCovering",
         type: ["attributeReport", "readResponse"],
@@ -3313,7 +3319,7 @@ export const fromZigbee = {
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"closuresWindowCovering", undefined, ["attributeReport", "readResponse"]>,
     lumi_operation_mode_basic: {
         cluster: "genBasic",
         type: ["attributeReport", "readResponse"],
@@ -3324,27 +3330,27 @@ export const fromZigbee = {
                 const mappingMode: KeyValueNumberString = {18: "control_relay", 254: "decoupled"};
                 const key = 0xff22;
                 if (msg.data[key] !== undefined) {
-                    payload.operation_mode = mappingMode[msg.data[key]];
+                    payload.operation_mode = mappingMode[msg.data[key] as number];
                 }
             } else {
                 const mappingButton: KeyValueNumberString = {65314: "left", 65315: "right"};
                 const mappingMode: KeyValueNumberString = {18: "control_left_relay", 34: "control_right_relay", 254: "decoupled"};
                 for (const key in mappingButton) {
                     if (msg.data[key] !== undefined) {
-                        payload[`operation_mode_${mappingButton[key]}`] = mappingMode[msg.data[key]];
+                        payload[`operation_mode_${mappingButton[key]}`] = mappingMode[msg.data[key] as number];
                     }
                 }
             }
 
             return payload;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genBasic", undefined, ["attributeReport", "readResponse"]>,
     lumi_bulb_interval: {
         cluster: "genBasic",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data["65281"]) {
-                const data = msg.data["65281"];
+                const data = msg.data["65281"] as Record<number, number | number[]>; // Mi Struct
                 return {
                     state: data["100"] === 1 ? "ON" : "OFF",
                     brightness: data["101"],
@@ -3352,7 +3358,7 @@ export const fromZigbee = {
                 };
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genBasic", undefined, ["attributeReport", "readResponse"]>,
     lumi_on_off: {
         cluster: "genOnOff",
         type: ["attributeReport", "readResponse"],
@@ -3363,7 +3369,7 @@ export const fromZigbee = {
                 return {[property]: msg.data.onOff === 1 ? "ON" : "OFF"};
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
     lumi_curtain_status: {
         cluster: "genMultistateOutput",
         type: ["attributeReport"],
@@ -3388,7 +3394,7 @@ export const fromZigbee = {
                 };
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genMultistateOutput", undefined, ["attributeReport"]>,
     lumi_curtain_options: {
         cluster: "manuSpecificLumi",
         type: ["attributeReport", "readResponse"],
@@ -3403,7 +3409,7 @@ export const fromZigbee = {
                 return {limits_calibration: msg.data.curtainCalibrated === 1 ? "calibrated" : "recalibrate"};
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificLumi", undefined, ["attributeReport", "readResponse"]>,
     lumi_vibration_analog: {
         cluster: "closuresDoorLock",
         type: ["attributeReport", "readResponse"],
@@ -3418,7 +3424,7 @@ export const fromZigbee = {
 
             if (msg.data["85"]) {
                 const vibrationLookup: KeyValueAny = {1: "vibration", 2: "tilt", 3: "drop"};
-                result.action = vibrationLookup[msg.data["85"]];
+                result.action = vibrationLookup[msg.data["85"] as number];
 
                 // Device only sends a message when vibration is detected.
                 // Therefore we need to publish a no_vibration message on our own.
@@ -3449,13 +3455,13 @@ export const fromZigbee = {
             if (msg.data["1285"]) {
                 // https://github.com/dresden-elektronik/deconz-rest-plugin/issues/748#issuecomment-419669995
                 // Only first 2 bytes are relevant.
-                const data = msg.data["1285"] >> 8;
+                const data = (msg.data["1285"] as number) >> 8;
                 // Swap byte order
                 result.strength = ((data & 0xff) << 8) | ((data >> 8) & 0xff);
             }
 
             if (msg.data["1288"]) {
-                const data = msg.data["1288"];
+                const data = msg.data["1288"] as number;
 
                 const buffer = Buffer.alloc(6);
                 buffer.writeUIntLE(data, 0, 6);
@@ -3486,22 +3492,22 @@ export const fromZigbee = {
 
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"closuresDoorLock", undefined, ["attributeReport", "readResponse"]>,
     lumi_illuminance: {
         cluster: "msIlluminanceMeasurement",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             // also trigger movement, because there is no illuminance without movement
             // https://github.com/Koenkk/zigbee-herdsman-converters/issues/1925
-            msg.data.occupancy = 1;
-            const payload = fz.occupancy_with_timeout.convert(model, msg, publish, options, meta) as KeyValueAny;
+            const newMsg = {...msg, type: "attributeReport" as const, data: {occupancy: 1}};
+            const payload = fz.occupancy_with_timeout.convert(model, newMsg, publish, options, meta) as KeyValueAny;
             if (payload) {
                 const illuminance = msg.data.measuredValue;
                 payload.illuminance = illuminance;
             }
             return payload;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"msIlluminanceMeasurement", undefined, ["attributeReport", "readResponse"]>,
     lumi_occupancy: {
         // This is for occupancy sensor that only send a message when motion detected,
         // but do not send a motion stop.
@@ -3537,30 +3543,32 @@ export const fromZigbee = {
             noOccupancySince(msg.endpoint, options, publish, "start");
             return payload;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"msOccupancySensing", undefined, ["attributeReport", "readResponse"]>,
     lumi_smoke: {
         cluster: "ssIasZone",
         type: "commandStatusChangeNotification",
         convert: (model, msg, publish, options, meta) => {
-            const result = fz.ias_smoke_alarm_1.convert(model, msg, publish, options, meta) as KeyValueAny;
+            const newMsg = {...msg, type: "commandStatusChangeNotification" as const, data: {zonestatus: msg.data.zonestatus}};
+            const result = fz.ias_smoke_alarm_1.convert(model, newMsg, publish, options, meta) as KeyValueAny;
             const zoneStatus = msg.data.zonestatus;
             if (result) result.test = (zoneStatus & (1 << 1)) > 0;
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification">,
     lumi_gas_density: {
         cluster: "genBasic",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             const data = msg.data;
             if (data?.["65281"]) {
-                const basicAttrs = data["65281"];
+                const basicAttrs = data["65281"] as Record<number, number | number[]>; // Mi Struct
+
                 if (basicAttrs["100"] !== undefined) {
                     return {gas_density: basicAttrs["100"]};
                 }
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genBasic", undefined, ["attributeReport", "readResponse"]>,
     lumi_gas_sensitivity: {
         cluster: "ssIasZone",
         type: ["attributeReport", "readResponse"],
@@ -3569,7 +3577,7 @@ export const fromZigbee = {
             const lookup: KeyValueAny = {"1": "low", "2": "medium", "3": "high"};
 
             if (data && data["65520"] !== undefined) {
-                const value = data["65520"];
+                const value = data["65520"] as string;
                 if (value?.startsWith("0x020")) {
                     return {
                         sensitivity: lookup[value.charAt(5)],
@@ -3577,7 +3585,7 @@ export const fromZigbee = {
                 }
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"ssIasZone", undefined, ["attributeReport", "readResponse"]>,
     lumi_door_lock_low_battery: {
         cluster: "genPowerCfg",
         type: ["attributeReport", "readResponse"],
@@ -3586,7 +3594,7 @@ export const fromZigbee = {
                 return {battery_low: msg.data.batteryAlarmMask === 1};
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genPowerCfg", undefined, ["attributeReport", "readResponse"]>,
     lumi_door_lock_report: {
         cluster: "closuresDoorLock",
         type: ["attributeReport", "readResponse"],
@@ -3615,7 +3623,7 @@ export const fromZigbee = {
             if (model.model === "ZNMS11LM") {
                 if (msg.data["65296"]) {
                     // finger/password success
-                    const data = msg.data["65296"].toString(16);
+                    const data = (msg.data["65296"] as number).toString(16);
                     const command = data.substr(0, 1); // 1 finger open, 2 password open
                     const userId = data.substr(5, 2);
                     const userType = data.substr(1, 1); // 1 admin, 2 user
@@ -3626,7 +3634,7 @@ export const fromZigbee = {
                     result.action_user = Number.parseInt(userId, 16);
                 } else if (msg.data["65297"]) {
                     // finger, password failed or bell
-                    const data = msg.data["65297"].toString(16);
+                    const data = (msg.data["65297"] as number).toString(16);
                     const times = data.substr(0, 1);
                     const type = data.substr(5, 2); // 00 bell, 02 password, 40 error finger
                     result.data = data;
@@ -3639,9 +3647,9 @@ export const fromZigbee = {
                     } else if (type === "00") {
                         result.action = lockStatusLookup[13];
                     }
-                } else if (msg.data["65281"]?.["1"]) {
+                } else if ((msg.data["65281"] as Record<number, number | number[]>)?.["1"]) {
                     // user added/delete
-                    const data = msg.data["65281"]["1"].toString(16);
+                    const data = (msg.data["65281"] as Record<number, number | number[]>)["1"].toString(16);
                     const command = data.substr(0, 1); // 1 add, 2 delete
                     const userId = data.substr(5, 2);
                     result.action = lockStatusLookup[6 + Number.parseInt(command, 16)];
@@ -3652,7 +3660,7 @@ export const fromZigbee = {
                 if (msg.data["65526"]) {
                     // lock final status
                     // Convert data back to hex to decode
-                    const data = Buffer.from(msg.data["65526"], "ascii").toString("hex");
+                    const data = Buffer.from(msg.data["65526"] as string, "ascii").toString("hex");
                     const command = data.substr(6, 4);
                     if (
                         command === "0301" || // ZNMS12LM
@@ -3718,7 +3726,7 @@ export const fromZigbee = {
                     }
                 } else if (msg.data["65296"]) {
                     // finger/password success
-                    const data = Buffer.from(msg.data["65296"], "ascii").toString("hex");
+                    const data = Buffer.from(msg.data["65296"] as string, "ascii").toString("hex");
                     const command = data.substr(6, 2); // 1 finger open, 2 password open
                     const userId = data.substr(12, 2);
                     const userType = data.substr(8, 1); // 1 admin, 2 user
@@ -3728,7 +3736,7 @@ export const fromZigbee = {
                     result.action_user = Number.parseInt(userId, 16);
                 } else if (msg.data["65297"]) {
                     // finger, password failed or bell
-                    const data = Buffer.from(msg.data["65297"], "ascii").toString("hex");
+                    const data = Buffer.from(msg.data["65297"] as string, "ascii").toString("hex");
                     const times = data.substr(6, 2);
                     const type = data.substr(12, 2); // 00 bell, 02 password, 40 error finger
                     if (type === "40") {
@@ -3743,14 +3751,14 @@ export const fromZigbee = {
                     }
                 } else if (msg.data["65281"]) {
                     // password added/delete
-                    const data = Buffer.from(msg.data["65281"], "ascii").toString("hex");
+                    const data = Buffer.from(msg.data["65281"] as string, "ascii").toString("hex");
                     const command = data.substr(18, 2); // 1 add, 2 delete
                     const userId = data.substr(12, 2);
                     result.action = lockStatusLookup[6 + Number.parseInt(command, 16)];
                     result.action_user = Number.parseInt(userId, 16);
                 } else if (msg.data["65522"]) {
                     // set language
-                    const data = Buffer.from(msg.data["65522"], "ascii").toString("hex");
+                    const data = Buffer.from(msg.data["65522"] as string, "ascii").toString("hex");
                     const langId = data.substr(6, 2); // 1 chinese, 2: english
                     result.action = lockStatusLookup[14] + (langId === "2" ? "_english" : "_chinese");
                 }
@@ -3758,7 +3766,7 @@ export const fromZigbee = {
 
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"closuresDoorLock", undefined, ["attributeReport", "readResponse"]>,
     lumi_action_on: {
         cluster: "genOnOff",
         type: "commandOn",
@@ -3766,7 +3774,7 @@ export const fromZigbee = {
             if (hasAlreadyProcessedMessage(msg, model)) return;
             return {action: "button_2_single"};
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genOnOff", undefined, "commandOn">,
     lumi_action_off: {
         cluster: "genOnOff",
         type: "commandOff",
@@ -3774,7 +3782,7 @@ export const fromZigbee = {
             if (hasAlreadyProcessedMessage(msg, model)) return;
             return {action: "button_1_single"};
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genOnOff", undefined, "commandOff">,
     lumi_action_step: {
         cluster: "genLevelCtrl",
         type: "commandStep",
@@ -3783,7 +3791,7 @@ export const fromZigbee = {
             const button = msg.data.stepmode === 0 ? "4" : "3";
             return {action: `button_${button}_single`};
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genLevelCtrl", undefined, "commandStep">,
     lumi_action_stop: {
         cluster: "genLevelCtrl",
         type: "commandStop",
@@ -3796,7 +3804,7 @@ export const fromZigbee = {
                 return payload;
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genLevelCtrl", undefined, "commandStop">,
     lumi_action_move: {
         cluster: "genLevelCtrl",
         type: "commandMove",
@@ -3806,7 +3814,7 @@ export const fromZigbee = {
             globalStore.putValue(msg.endpoint, "button", {button, start: Date.now()});
             return {action: `button_${button}_hold`};
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genLevelCtrl", undefined, "commandMove">,
     lumi_action_step_color_temp: {
         cluster: "lightingColorCtrl",
         type: "commandStepColorTemp",
@@ -3823,7 +3831,7 @@ export const fromZigbee = {
             }
             return {action: `button_${action}`};
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"lightingColorCtrl", undefined, "commandStepColorTemp">,
     lumi_action_move_color_temp: {
         cluster: "lightingColorCtrl",
         type: "commandMoveColorTemp",
@@ -3842,7 +3850,7 @@ export const fromZigbee = {
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"lightingColorCtrl", undefined, "commandMoveColorTemp">,
 
     // lumi device specific
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
@@ -3899,13 +3907,13 @@ export const fromZigbee = {
                     publish({action: "single"});
                 }
             } else {
-                const clicks = msg.data["32768"];
+                const clicks = msg.data["32768"] as number;
                 const actionLookup: KeyValueAny = {1: "single", 2: "double", 3: "triple", 4: "quadruple"};
                 const payload = actionLookup[clicks] ? actionLookup[clicks] : "many";
                 publish({action: payload});
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     lumi_smart_panel_ZNCJMB14LM: {
         cluster: "manuSpecificLumi",
@@ -3914,71 +3922,74 @@ export const fromZigbee = {
             const result: KeyValueAny = {};
             if (msg.data[0x0215] !== undefined) {
                 const lookup: KeyValueAny = {0: "classic", 1: "concise"};
-                result.theme = lookup[msg.data[0x0215]];
+                result.theme = lookup[msg.data[0x0215] as number];
             }
             if (msg.data[0x0214] !== undefined) {
                 const lookup: KeyValueAny = {1: "classic", 2: "analog clock"};
-                result.screen_saver_style = lookup[msg.data[0x0214]];
+                result.screen_saver_style = lookup[msg.data[0x0214] as number];
             }
             if (msg.data[0x0213] !== undefined) {
-                result.standby_enabled = !!(msg.data[0x0213] & 1);
+                result.standby_enabled = !!((msg.data[0x0213] as number) & 1);
             }
             if (msg.data[0x0212] !== undefined) {
                 const lookup: KeyValueAny = {0: "mute", 1: "low", 2: "medium", 3: "high"};
-                result.beep_volume = lookup[msg.data[0x0212]];
+                result.beep_volume = lookup[msg.data[0x0212] as number];
             }
             if (msg.data[0x0211] !== undefined) {
                 result.lcd_brightness = msg.data[0x0211];
             }
             if (msg.data[0x022b] !== undefined) {
                 const lookup: KeyValueAny = {0: "none", 1: "1", 2: "2", 3: "1 and 2", 4: "3", 5: "1 and 3", 6: "2 and 3", 7: "all"};
-                result.available_switches = lookup[msg.data[0x022b]];
+                result.available_switches = lookup[msg.data[0x022b] as number];
             }
             if (msg.data[0x217] !== undefined) {
                 const lookup: KeyValueAny = {3: "small", 4: "medium", 5: "large"};
-                result.font_size = lookup[msg.data[0x217]];
+                result.font_size = lookup[msg.data[0x217] as number];
             }
             if (msg.data[0x219] !== undefined) {
                 const lookup: KeyValueAny = {0: "scene", 1: "feel", 2: "thermostat", 3: "switch"};
-                result.homepage = lookup[msg.data[0x219]];
+                result.homepage = lookup[msg.data[0x219] as number];
             }
             if (msg.data[0x210] !== undefined) {
                 const lookup: KeyValueAny = {0: "chinese", 1: "english"};
-                result.language = lookup[msg.data[0x210]];
+                result.language = lookup[msg.data[0x210] as number];
             }
             if (msg.data[0x216] !== undefined) {
                 result.standby_time = msg.data[0x216];
             }
             if (msg.data[0x218] !== undefined) {
-                result.lcd_auto_brightness_enabled = !!(msg.data[0x218] & 1);
+                result.lcd_auto_brightness_enabled = !!((msg.data[0x218] as number) & 1);
             }
             if (msg.data[0x221] !== undefined) {
-                result.screen_saver_enabled = !!(msg.data[0x221] & 1);
+                result.screen_saver_enabled = !!(msg.data[0x221] as number & 1);
             }
             if (msg.data[0x222] !== undefined) {
                 result.standby_lcd_brightness = msg.data[0x222];
             }
             if (msg.data[0x223] !== undefined) {
                 const lookup: KeyValueAny = {1: "1", 2: "2", 3: "3", 4: "4", 5: "5", 6: "6", 7: "7", 8: "8", 9: "9", 10: "10", 11: "11"};
-                const textarr = msg.data[0x223].slice(1, msg.data[0x223].length);
-                result.switch_1_icon = lookup[msg.data[0x223][0]];
+                const value = msg.data[0x223] as number[];
+                const textarr = value.slice(1);
+                result.switch_1_icon = lookup[value[0]];
                 result.switch_1_text = String.fromCharCode(...textarr);
             }
             if (msg.data[0x224] !== undefined) {
                 const lookup: KeyValueAny = {1: "1", 2: "2", 3: "3", 4: "4", 5: "5", 6: "6", 7: "7", 8: "8", 9: "9", 10: "10", 11: "11"};
-                const textarr = msg.data[0x224].slice(1, msg.data[0x224].length);
-                result.switch_2_icon = lookup[msg.data[0x224][0]];
+                const value = msg.data[0x224] as number[];
+                const textarr = value.slice(1);
+                result.switch_2_icon = lookup[value[0]];
                 result.switch_2_text = String.fromCharCode(...textarr);
             }
             if (msg.data[0x225] !== undefined) {
                 const lookup: KeyValueAny = {1: "1", 2: "2", 3: "3", 4: "4", 5: "5", 6: "6", 7: "7", 8: "8", 9: "9", 10: "10", 11: "11"};
-                const textarr = msg.data[0x225].slice(1, msg.data[0x225].length);
-                result.switch_3_icon = lookup[msg.data[0x225][0]];
+                const value = msg.data[0x225] as number[];
+                const textarr = value.slice(1);
+                result.switch_3_icon = lookup[value[0]];
                 result.switch_3_text = String.fromCharCode(...textarr);
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificLumi", undefined, ["attributeReport", "readResponse"]>,
 };
 
 export const toZigbee = {

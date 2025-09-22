@@ -516,7 +516,7 @@ export async function findByDevice(device: Zh.Device, generateForUnknown = false
 }
 
 export async function findDefinition(device: Zh.Device, generateForUnknown = false): Promise<DefinitionWithExtend | undefined> {
-    if (!device) {
+    if (!device || device.type === "Coordinator") {
         return undefined;
     }
 
@@ -571,7 +571,7 @@ export async function findDefinition(device: Zh.Device, generateForUnknown = fal
         }
     }
 
-    if (!generateForUnknown || device.type === "Coordinator") {
+    if (!generateForUnknown) {
         return undefined;
     }
 

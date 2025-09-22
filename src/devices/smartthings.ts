@@ -319,13 +319,13 @@ export const definitions: DefinitionWithExtend[] = [
             }
             await reporting.temperature(endpoint);
             await reporting.batteryPercentageRemaining(endpoint);
-            const payloadA = reporting.payload<"manuSpecificSamsungAccelerometer">("acceleration", 10, constants.repInterval.MINUTE, 1);
+            const payloadA = reporting.payload<"manuSpecificSamsungAccelerometer">("acceleration", 10, constants.repInterval.HOUR, 5);
             await endpoint.configureReporting("manuSpecificSamsungAccelerometer", payloadA, options);
-            const payloadX = reporting.payload<"manuSpecificSamsungAccelerometer">("x_axis", 10, constants.repInterval.MINUTE, 1);
+            const payloadX = reporting.payload<"manuSpecificSamsungAccelerometer">("x_axis", 10, constants.repInterval.HOUR, 5);
             await endpoint.configureReporting("manuSpecificSamsungAccelerometer", payloadX, options);
-            const payloadY = reporting.payload<"manuSpecificSamsungAccelerometer">("y_axis", 10, constants.repInterval.MINUTE, 1);
+            const payloadY = reporting.payload<"manuSpecificSamsungAccelerometer">("y_axis", 10, constants.repInterval.HOUR, 5);
             await endpoint.configureReporting("manuSpecificSamsungAccelerometer", payloadY, options);
-            const payloadZ = reporting.payload<"manuSpecificSamsungAccelerometer">("z_axis", 10, constants.repInterval.MINUTE, 1);
+            const payloadZ = reporting.payload<"manuSpecificSamsungAccelerometer">("z_axis", 10, constants.repInterval.HOUR, 5);
             await endpoint.configureReporting("manuSpecificSamsungAccelerometer", payloadZ, options);
         },
         exposes: [e.temperature(), e.contact(), e.battery_low(), e.tamper(), e.battery(), e.moving(), e.x_axis(), e.y_axis(), e.z_axis()],

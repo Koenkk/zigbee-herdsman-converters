@@ -20,7 +20,7 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             return {action: "on"};
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genOnOff", undefined, "commandTuyaAction">,
 };
 
 const valueConverterLocal = {

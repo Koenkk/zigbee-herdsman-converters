@@ -94,13 +94,14 @@ export const definitions: DefinitionWithExtend[] = [
                 ],
                 options,
             );
-            await reporting.batteryPercentageRemaining(endpoint, {min: 3600, max: 86400, change: 1});
+            await reporting.batteryPercentageRemaining(endpoint, {min: 3600, max: constants.repInterval.MAX, change: 1});
         },
     },
     {
         fingerprint: [
             {modelID: "SPZB0001", manufacturerName: "Eurotronic", dateCode: "20221110"},
             {modelID: "SPZB0001", manufacturerName: "Eurotronic", dateCode: "20240821"},
+            {modelID: "SPZB0001", manufacturerName: "Eurotronic", dateCode: "20241105"},
         ],
         model: "COZB0001",
         vendor: "Eurotronic",
