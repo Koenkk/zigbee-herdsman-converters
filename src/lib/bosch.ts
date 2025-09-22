@@ -3,10 +3,10 @@ import type {TPartialClusterAttributes} from "zigbee-herdsman/dist/zspec/zcl/def
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
-import type {ElectricityMeterArgs} from "../lib/modernExtend";
 import * as m from "../lib/modernExtend";
 import {repInterval} from "./constants";
 import {logger} from "./logger";
+import type {ElectricityMeterArgs} from "./modernExtend";
 import {payload} from "./reporting";
 import type {Configure, DefinitionExposesFunction, DummyDevice, Expose, Fz, KeyValue, KeyValueAny, ModernExtend, OnEvent, Tz, Zh} from "./types";
 import * as utils from "./utils";
