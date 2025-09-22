@@ -2216,12 +2216,12 @@ const fzLocal = {
                                 // biome-ignore lint/performance/noAccumulatingSpread: ignored using `--suppress`
                                 ...p,
                                 [key]: Object.keys(attributes[key].values).find(
-                                    (k) => attributes[key].values[k] === msg.data[Number.parseInt(c, 10)],
+                                    (k) => attributes[key].values[k] === msg.data[c],
                                 ),
                             };
                         }
                         // biome-ignore lint/performance/noAccumulatingSpread: ignored using `--suppress`
-                        return {...p, [key]: msg.data[Number.parseInt(c, 10)]};
+                        return {...p, [key]: msg.data[c]};
                     }, {});
                 }
                 return msg.data;
