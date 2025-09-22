@@ -7,6 +7,8 @@ import {
     boschBsenExtend,
     boschBsirExtend,
     boschDoorWindowContactExtend,
+    boschGeneralExtend,
+    boschSmartPlugExtend,
     manufacturerOptions,
 } from "../lib/bosch";
 import * as constants from "../lib/constants";
@@ -141,14 +143,6 @@ interface TwinguardAlarm {
         alarm_status: number;
     };
     commands: {burglarAlarm: {data: number}};
-    commandResponses: never;
-}
-
-interface BoschSeMetering {
-    attributes: never;
-    commands: {
-        resetEnergyReading: Record<string, never>;
-    };
     commandResponses: never;
 }
 
@@ -464,44 +458,6 @@ const boschExtend = {
         ];
         return {
             fromZigbee,
-            isModernExtend: true,
-        };
-    },
-    seMeteringCluster: () =>
-        m.deviceAddCustomCluster("seMetering", {
-            ID: Zcl.Clusters.seMetering.ID,
-            attributes: {},
-            commands: {
-                resetEnergyReading: {
-                    ID: 0x80,
-                    parameters: [],
-                },
-            },
-            commandsResponse: {},
-        }),
-    resetEnergyReading: (): ModernExtend => {
-        const exposes: Expose[] = [
-            e
-                .enum("reset_energy_reading", ea.SET, ["reset"])
-                .withDescription("Triggers the reset of the energy reading to 0 kWh.")
-                .withCategory("config"),
-        ];
-        const toZigbee: Tz.Converter[] = [
-            {
-                key: ["reset_energy_reading"],
-                convertSet: async (entity, key, value, meta) => {
-                    await entity.command<"seMetering", "resetEnergyReading", BoschSeMetering>(
-                        "seMetering",
-                        "resetEnergyReading",
-                        {},
-                        manufacturerOptions,
-                    );
-                },
-            },
-        ];
-        return {
-            exposes,
-            toZigbee,
             isModernExtend: true,
         };
     },
@@ -1625,7 +1581,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["RBSH-SP-ZB-EU", "RBSH-SP-ZB-FR", "RBSH-SP-ZB-GB"],
         model: "BSP-FZ2",
         vendor: "Bosch",
-        description: "Plug compact EU",
+        description: "Smart plug compact (EU version)",
         extend: [
             m.onOff(),
             m.electricityMeter({
@@ -1634,13 +1590,34 @@ export const definitions: DefinitionWithExtend[] = [
                 power: {change: 1},
                 energy: {change: 1},
             }),
-            boschExtend.seMeteringCluster(),
-            boschExtend.resetEnergyReading(),
+            boschGeneralExtend.customSeMeteringCluster(),
+            boschGeneralExtend.resetEnergyMeter(),
         ],
         ota: true,
         whiteLabel: [
-            {vendor: "Bosch", model: "BSP-EZ2", description: "Plug compact FR", fingerprint: [{modelID: "RBSH-SP-ZB-FR"}]},
-            {vendor: "Bosch", model: "BSP-GZ2", description: "Plug compact UK", fingerprint: [{modelID: "RBSH-SP-ZB-GB"}]},
+            {vendor: "Bosch", model: "BSP-EZ2", description: "Smart plug compact (FR version)", fingerprint: [{modelID: "RBSH-SP-ZB-FR"}]},
+            {vendor: "Bosch", model: "BSP-GZ2", description: "Smart plug compact (GB version)", fingerprint: [{modelID: "RBSH-SP-ZB-GB"}]},
+        ],
+    },
+    {
+        zigbeeModel: ["RBSH-SP2-ZB-EU"],
+        model: "BSP-FD",
+        vendor: "Bosch",
+        description: "Smart plug compact [+M]",
+        extend: [
+            boschGeneralExtend.customSeMeteringCluster(),
+            boschSmartPlugExtend.smartPlugCluster(),
+            m.onOff(),
+            m.electricityMeter({
+                producedEnergy: true,
+                voltage: false,
+                current: false,
+                power: {change: 1},
+                energy: {change: 1},
+            }),
+            boschGeneralExtend.resetEnergyMeter(),
+            boschSmartPlugExtend.ledBrightness(),
+            boschSmartPlugExtend.energySavingMode(),
         ],
     },
     {
@@ -1855,8 +1832,8 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             boschBmctExtend.handleZclVersionReadRequest(),
             boschBmctExtend.slzExtends(),
-            boschExtend.seMeteringCluster(),
-            boschExtend.resetEnergyReading(),
+            boschGeneralExtend.customSeMeteringCluster(),
+            boschGeneralExtend.resetEnergyMeter(),
         ],
         ota: true,
         configure: async (device, coordinatorEndpoint) => {

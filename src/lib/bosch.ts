@@ -7,7 +7,7 @@ import * as m from "../lib/modernExtend";
 import {repInterval} from "./constants";
 import {logger} from "./logger";
 import {payload} from "./reporting";
-import type {Configure, DefinitionExposesFunction, DummyDevice, Expose, Fz, KeyValue, ModernExtend, OnEvent, Tz, Zh} from "./types";
+import type {Configure, DefinitionExposesFunction, DummyDevice, Expose, Fz, KeyValue, KeyValueAny, ModernExtend, OnEvent, Tz, Zh} from "./types";
 import * as utils from "./utils";
 import {toNumber} from "./utils";
 
@@ -17,6 +17,57 @@ const ea = exposes.access;
 const NS = "zhc:bosch";
 
 export const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH};
+
+//region Generally used bosch functionality
+interface BoschSeMetering {
+    attributes: never;
+    commands: {
+        resetEnergyMeter: Record<string, never>;
+    };
+    commandResponses: never;
+}
+
+export const boschGeneralExtend = {
+    customSeMeteringCluster: () =>
+        m.deviceAddCustomCluster("seMetering", {
+            ID: Zcl.Clusters.seMetering.ID,
+            attributes: {},
+            commands: {
+                resetEnergyReading: {
+                    ID: 0x80,
+                    parameters: [],
+                },
+            },
+            commandsResponse: {},
+        }),
+    resetEnergyMeter: (): ModernExtend => {
+        const exposes: Expose[] = [
+            e
+                .enum("reset_energy_reading", ea.SET, ["reset"])
+                .withDescription("Triggers the reset of the energy meter to 0 kWh.")
+                .withCategory("config"),
+        ];
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ["reset_energy_reading"],
+                convertSet: async (entity, key, value, meta) => {
+                    await entity.command<"seMetering", "resetEnergyMeter", BoschSeMetering>(
+                        "seMetering",
+                        "resetEnergyMeter",
+                        {},
+                        manufacturerOptions,
+                    );
+                },
+            },
+        ];
+        return {
+            exposes,
+            toZigbee,
+            isModernExtend: true,
+        };
+    },
+};
+//endregion
 
 //region Bosch BMCT-DZ/-RZ/-SLZ devices
 export interface BoschBmctCluster {
@@ -2244,6 +2295,175 @@ export const boschBsenExtend = {
         ];
 
         const configure: Configure[] = [m.setupConfigureForBinding("ssIasZone", "input"), m.setupConfigureForReading("ssIasZone", ["zoneStatus"])];
+
+        return {
+            exposes,
+            fromZigbee,
+            toZigbee,
+            configure,
+            isModernExtend: true,
+        };
+    },
+};
+//endregion
+
+//region Bosch BSP-FZ2/-EZ2/-GZ2/-FD (smart plug compact)
+interface BoschSmartPlugCluster {
+    attributes: {
+        /** ID: 6 | Type: BOOLEAN | Only used on BSP-FD */
+        unknownAttributeOne: number;
+        /** ID: 7 | Type: BOOLEAN | Only used on BSP-FD */
+        unknownAttributeTwo: number;
+        /** ID: 44 | Type: UINT8 | Only used on BSP-FD */
+        ledBrightness: number;
+        /** ID: 45 | Type: BOOLEAN | Only used on BSP-FD */
+        energySavingModeEnabled: boolean;
+        /** ID: 46 | Type: UINT16 | Only used on BSP-FD */
+        energySavingModeThreshold: number;
+        /** ID: 47 | Type: UINT32 | Only used on BSP-FD */
+        energySavingModeTimer: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+export const boschSmartPlugExtend = {
+    smartPlugCluster: () =>
+        m.deviceAddCustomCluster("boschSmartPlugCluster", {
+            ID: 0xfca0,
+            attributes: {
+                unknownAttributeOne: {ID: 0x0006, type: Zcl.DataType.BOOLEAN, manufacturerCode: manufacturerOptions.manufacturerCode},
+                unknownAttributeTwo: {ID: 0x0007, type: Zcl.DataType.UINT16, manufacturerCode: manufacturerOptions.manufacturerCode},
+                ledBrightness: {ID: 0x002c, type: Zcl.DataType.UINT8, manufacturerCode: manufacturerOptions.manufacturerCode},
+                energySavingModeEnabled: {ID: 0x002d, type: Zcl.DataType.BOOLEAN, manufacturerCode: manufacturerOptions.manufacturerCode},
+                energySavingModeThreshold: {ID: 0x002e, type: Zcl.DataType.UINT16, manufacturerCode: manufacturerOptions.manufacturerCode},
+                energySavingModeTimer: {ID: 0x002f, type: Zcl.DataType.UINT32, manufacturerCode: manufacturerOptions.manufacturerCode},
+            },
+            commands: {},
+            commandsResponse: {},
+        }),
+    ledBrightness: () =>
+        m.numeric<"boschSmartPlugCluster", BoschSmartPlugCluster>({
+            name: "led_brightness",
+            cluster: "boschSmartPlugCluster",
+            attribute: "ledBrightness",
+            description: "Here you can adjust the LED brightness",
+            valueMin: 0,
+            valueMax: 100,
+            valueStep: 1,
+            unit: "%",
+            entityCategory: "config",
+        }),
+    energySavingMode: (): ModernExtend => {
+        const energySavingModeEnabledLookup = {
+            ON: true,
+            OFF: false,
+        };
+
+        const exposes: Expose[] = [
+            e
+                .binary(
+                    "energy_saving_mode_enabled",
+                    ea.ALL,
+                    utils.getFromLookupByValue(true, energySavingModeEnabledLookup),
+                    utils.getFromLookupByValue(false, energySavingModeEnabledLookup),
+                )
+                .withLabel("Energy saving mode")
+                .withDescription(
+                    "Here you can activate the energy saving mode. Please keep in mind to turn it off when using this plug with a PV module.",
+                )
+                .withCategory("config"),
+            e
+                .numeric("energy_saving_mode_threshold", ea.ALL)
+                .withDescription(
+                    "Here you can set the threshold for the energy saving mode. If the consumption falls below the set value (and the timer has met), the smart plug will be turned off.",
+                )
+                .withUnit("watt")
+                .withValueMin(1)
+                .withValueMax(50)
+                .withValueStep(1)
+                .withCategory("config"),
+            e
+                .numeric("energy_saving_mode_timer", ea.ALL)
+                .withDescription("Here you can set the time the threshold has to be met before the smart plug will be turned off")
+                .withUnit("seconds")
+                .withValueMin(1)
+                .withValueMax(1800)
+                .withValueStep(1)
+                .withCategory("config"),
+        ];
+
+        const fromZigbee = [
+            {
+                cluster: "boschSmartPlugCluster",
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    const result: KeyValueAny = {};
+                    const data = msg.data;
+
+                    if (data.energySavingModeEnabled !== undefined) {
+                        result.energy_saving_mode_enabled = utils.getFromLookupByValue(data.energySavingModeEnabled, energySavingModeEnabledLookup);
+                    }
+
+                    if (data.energySavingModeThreshold !== undefined) {
+                        result.energy_saving_mode_threshold = utils.toNumber(data.energySavingModeThreshold) / 10;
+                    }
+
+                    if (data.energySavingModeTimer !== undefined) {
+                        result.energy_saving_mode_timer = utils.toNumber(data.energySavingModeTimer);
+                    }
+
+                    return result;
+                },
+            } satisfies Fz.Converter<"boschSmartPlugCluster", BoschSmartPlugCluster, ["attributeReport", "readResponse"]>,
+        ];
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ["energy_saving_mode_enabled", "energy_saving_mode_threshold", "energy_saving_mode_timer"],
+                convertSet: async (entity, key, value, meta) => {
+                    if (key === "energy_saving_mode_enabled") {
+                        await entity.write<"boschSmartPlugCluster", BoschSmartPlugCluster>("boschSmartPlugCluster", {
+                            energySavingModeEnabled: utils.getFromLookup(value, energySavingModeEnabledLookup),
+                        });
+                    }
+
+                    if (key === "energy_saving_mode_threshold") {
+                        await entity.write<"boschSmartPlugCluster", BoschSmartPlugCluster>("boschSmartPlugCluster", {
+                            energySavingModeThreshold: utils.toNumber(value) * 10,
+                        });
+                    }
+
+                    if (key === "energy_saving_mode_timer") {
+                        await entity.write<"boschSmartPlugCluster", BoschSmartPlugCluster>("boschSmartPlugCluster", {
+                            energySavingModeTimer: utils.toNumber(value),
+                        });
+                    }
+                },
+                convertGet: async (entity, key, meta) => {
+                    if (key === "energy_saving_mode_enabled") {
+                        await entity.read<"boschSmartPlugCluster", BoschSmartPlugCluster>("boschSmartPlugCluster", ["energySavingModeEnabled"]);
+                    }
+
+                    if (key === "energy_saving_mode_threshold") {
+                        await entity.read<"boschSmartPlugCluster", BoschSmartPlugCluster>("boschSmartPlugCluster", ["energySavingModeThreshold"]);
+                    }
+
+                    if (key === "energy_saving_mode_timer") {
+                        await entity.read<"boschSmartPlugCluster", BoschSmartPlugCluster>("boschSmartPlugCluster", ["energySavingModeTimer"]);
+                    }
+                },
+            },
+        ];
+
+        const configure: Configure[] = [
+            m.setupConfigureForBinding("boschSmartPlugCluster", "input"),
+            m.setupConfigureForReading<"boschSmartPlugCluster", BoschSmartPlugCluster>("boschSmartPlugCluster", [
+                "energySavingModeEnabled",
+                "energySavingModeThreshold",
+                "energySavingModeTimer",
+            ]),
+        ];
 
         return {
             exposes,
