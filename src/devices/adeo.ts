@@ -465,4 +465,11 @@ export const definitions: DefinitionWithExtend[] = [
         description: "ENKI LEXMAN water leak sensor",
         extend: [m.battery(), m.iasZoneAlarm({zoneType: "water_leak", zoneAttributes: ["alarm_1", "alarm_2", "tamper", "battery_low"]})],
     },
+    {
+        zigbeeModel: ["WSD005"],
+        model: "WSD005",
+        vendor: "ADEO",
+        description: "ENKI LEXMAN motor for roller shutler",
+        extend: [m.windowCovering({ controls: ["lift"] })],
+    },
 ];
