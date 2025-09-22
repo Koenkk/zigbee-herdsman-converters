@@ -2212,7 +2212,7 @@ const fzLocal = {
                     return Object.keys(msg.data).reduce((p, c) => {
                         const key = splitValuesByEndpoint ? `${c}_${msg.endpoint.ID}` : c;
                         const obj = typeof msg.data === "string" ? JSON.parse(msg.data) : msg.data;
-                        let raw = (obj as Record<string, unknown>)[c];
+                        const raw = (obj as Record<string, unknown>)[c];
                         if (attributes[key] && attributes[key].displayType === "enum") {
                             return {
                                 // biome-ignore lint/performance/noAccumulatingSpread: ignored using `--suppress`
