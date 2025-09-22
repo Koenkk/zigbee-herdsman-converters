@@ -1588,7 +1588,7 @@ export const definitions: DefinitionWithExtend[] = [
             boschSmartPlugExtend.onOff(),
             boschSmartPlugExtend.automaticTurnOff(),
             boschSmartPlugExtend.electricityMeter(),
-            boschGeneralExtend.resetEnergyMeter(),
+            boschGeneralExtend.resetEnergyMeters(),
         ],
         ota: true,
         whiteLabel: [
@@ -1609,7 +1609,7 @@ export const definitions: DefinitionWithExtend[] = [
             boschSmartPlugExtend.ledBrightness(),
             boschSmartPlugExtend.energySavingMode(),
             boschSmartPlugExtend.electricityMeter({producedEnergy: true}),
-            boschGeneralExtend.resetEnergyMeter(),
+            boschGeneralExtend.resetEnergyMeters(),
         ],
     },
     {
@@ -1825,7 +1825,7 @@ export const definitions: DefinitionWithExtend[] = [
             boschBmctExtend.handleZclVersionReadRequest(),
             boschBmctExtend.slzExtends(),
             boschGeneralExtend.customSeMeteringCluster(),
-            boschGeneralExtend.resetEnergyMeter(),
+            boschGeneralExtend.resetEnergyMeters(),
         ],
         ota: true,
         configure: async (device, coordinatorEndpoint) => {

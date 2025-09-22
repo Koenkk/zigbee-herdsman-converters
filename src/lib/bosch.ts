@@ -23,7 +23,7 @@ export const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.ROBER
 interface BoschSeMetering {
     attributes: never;
     commands: {
-        resetEnergyMeter: Record<string, never>;
+        resetEnergyMeters: Record<string, never>;
     };
     commandResponses: never;
 }
@@ -34,27 +34,27 @@ export const boschGeneralExtend = {
             ID: Zcl.Clusters.seMetering.ID,
             attributes: {},
             commands: {
-                resetEnergyMeter: {
+                resetEnergyMeters: {
                     ID: 0x80,
                     parameters: [],
                 },
             },
             commandsResponse: {},
         }),
-    resetEnergyMeter: (): ModernExtend => {
+    resetEnergyMeters: (): ModernExtend => {
         const exposes: Expose[] = [
             e
-                .enum("reset_energy_meter", ea.SET, ["reset"])
+                .enum("reset_energy_meters", ea.SET, ["reset"])
                 .withDescription("Triggers the reset of the energy meters (both consumed and generated) to 0 kWh")
                 .withCategory("config"),
         ];
         const toZigbee: Tz.Converter[] = [
             {
-                key: ["reset_energy_meter"],
+                key: ["reset_energy_meters"],
                 convertSet: async (entity, key, value, meta) => {
-                    await entity.command<"seMetering", "resetEnergyMeter", BoschSeMetering>(
+                    await entity.command<"seMetering", "resetEnergyMeters", BoschSeMetering>(
                         "seMetering",
-                        "resetEnergyMeter",
+                        "resetEnergyMeters",
                         {},
                         manufacturerOptions,
                     );
