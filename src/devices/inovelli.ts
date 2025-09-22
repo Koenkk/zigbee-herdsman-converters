@@ -2211,7 +2211,7 @@ const fzLocal = {
                 if (msg.type === "readResponse") {
                     return Object.keys(msg.data).reduce((p, c) => {
                         const key = splitValuesByEndpoint ? `${c}_${msg.endpoint.ID}` : c;
-                        const obj = typeof msg.data === 'string' ? JSON.parse(msg.data) : msg.data;
+                        const obj = typeof msg.data === "string" ? JSON.parse(msg.data) : msg.data;
                         let raw = (obj as Record<string, unknown>)[c];
                         // Handle UINT8 values that z2m processes as null/NaN
                         // Convert UINT8 values of 255 to a more z2m-friendly representation
@@ -2224,9 +2224,7 @@ const fzLocal = {
                             return {
                                 // biome-ignore lint/performance/noAccumulatingSpread: ignored using `--suppress`
                                 ...p,
-                                [key]: Object.keys(attributes[key].values).find(
-                                    (k) => attributes[key].values[k] === raw,
-                                ),
+                                [key]: Object.keys(attributes[key].values).find((k) => attributes[key].values[k] === raw),
                             };
                         }
                         // biome-ignore lint/performance/noAccumulatingSpread: ignored using `--suppress`
