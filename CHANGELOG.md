@@ -1,5 +1,32 @@
 # Changelog
 
+## [25.30.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.29.0...v25.30.0) (2025-09-22)
+
+
+### Features
+
+* **add:** E8332RWMZB, E8331SCN200ZB ([#10056](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10056)) ([030636e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/030636ef4ae5656c48a0974b4ba2a364b9fa9a3b))
+* **add:** MINI-ZBRBS ([#10047](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10047)) ([5f63da9](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5f63da97399006bdca5a1e9f0f16cd666ee27bdf))
+* **add:** WSD005 ([#10066](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10066)) ([628a967](https://github.com/Koenkk/zigbee-herdsman-converters/commit/628a967627544f338676c5d573ff0b9860b9e54a))
+* Bosch Door/Window Contact II: Overwork devices to match official features ([#10055](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10055)) ([ddf9cf7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ddf9cf713b08cb827b2a8107d9d65b17b9a3ea3e))
+
+
+### Bug Fixes
+
+* Bosch BSP-FD: add support for the device and add auto-off feature for all smart plug compact ([#10063](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10063)) ([af61e8f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/af61e8f9aa0a5153794ff107ec21e169a320c533))
+* **detect:** Detect `_TZ3000_zxrfobzw` and `_TZ3000_qq9ahj6z` as iHsenso ([#10052](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10052)) ([7b5aaa4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7b5aaa4d716d30b47ada3eefd9dc1aae21983716))
+* **detect:** Detect `_TZ3002_zjuvw9zf` as BSEED EC-GL86ZPCS21 ([#10061](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10061)) ([9057639](https://github.com/Koenkk/zigbee-herdsman-converters/commit/90576393813990a32c9cbe173d5fb4056e6ca548))
+* **detect:** Detect `_TZ3210_f0byevky` as YSR-MINI-01_rgbcct https://github.com/Koenkk/zigbee2mqtt/issues/28593 ([016ed28](https://github.com/Koenkk/zigbee-herdsman-converters/commit/016ed288311d13e87d7a10deaf8906832778b641))
+* **detect:** Detect `_TZE204_6kijc7nd` as Tervix _TZE284_6kijc7nd ([#10057](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10057)) ([ad8c286](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ad8c2869a49bdfc4cc8bb1555b2e593a5d3fda4a))
+* **detect:** Detect `_TZE284_wdfurkoa` as Zemismart ZM25R1 https://github.com/Koenkk/zigbee2mqtt/issues/28681 ([da665eb](https://github.com/Koenkk/zigbee-herdsman-converters/commit/da665eb5efa4633823c5567c92cec341e08ed4c5))
+* Fixed BSEED outlets' whiteLabels ([#10051](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10051)) ([643ef92](https://github.com/Koenkk/zigbee-herdsman-converters/commit/643ef923f4dffcfe98db5eefe815641213084c78))
+* **ignore:** bump the minor-patch group with 2 updates ([#10060](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10060)) ([7e40d7f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7e40d7f55c8e0f2c106945f976d135568c98365b))
+* Innr RCL 232 C: enable OTA https://github.com/Koenkk/zigbee2mqtt/issues/28680 ([4524f56](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4524f568d17e68776b39c66a89a461ad43fc6360))
+* Lumi: fix battery modernExtend ([#10053](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10053)) ([ee34789](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ee3478911f032a745af6ad7d719ab9bab17c8238))
+* Schneider Electric MUR36014: improve support ([#10050](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10050)) ([a6ef942](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a6ef94290a9a3cd84703ac3467b9296c30b8d315))
+* SUTON STB3L-125-ZJ: fix `Error: Expected string or number, got: undefined` https://github.com/Koenkk/zigbee-herdsman-converters/issues/10030 ([42f6146](https://github.com/Koenkk/zigbee-herdsman-converters/commit/42f614691a4cf81ab549cf81c0b018debfb9a2aa))
+* Third Reality 3RSS009Z: update private cluster  ([#10041](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10041)) ([46095f2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/46095f230fe9043de4c2cf43b85643cfdfe07780))
+
 ## [25.29.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.28.0...v25.29.0) (2025-09-18)
 
 
