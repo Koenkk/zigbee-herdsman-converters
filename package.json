@@ -43,7 +43,7 @@
         "buffer-crc32": "^1.0.0",
         "iconv-lite": "^0.7.0",
         "semver": "^7.7.1",
-        "zigbee-herdsman": "^6.1.1"
+        "zigbee-herdsman": "^6.1.2"
     },
     "exports": {
         ".": "./dist/index.js",
@@ -55,7 +55,7 @@
     "devDependencies": {
         "@biomejs/biome": "^2.2.4",
         "@types/buffer-crc32": "^0.2.4",
-        "@types/node": "^24.4.0",
+        "@types/node": "^24.5.2",
         "@types/semver": "^7.7.1",
         "@vitest/coverage-v8": "3.2.4",
         "fast-deep-equal": "^3.1.3",
