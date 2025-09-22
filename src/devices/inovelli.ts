@@ -2025,7 +2025,6 @@ const fzLocal = {
                     return {action: `${button}_${action}`};
                 }
                 if (msg.type === "readResponse") {
-                    // Add logging to debug what we're receiving
                     return Object.keys(msg.data).reduce((p, c) => {
                         const key = splitValuesByEndpoint ? `${c}_${msg.endpoint.ID}` : c;
                         const obj = typeof msg.data === 'string' ? JSON.parse(msg.data) : msg.data;
@@ -2037,7 +2036,6 @@ const fzLocal = {
                                 raw = 255;
                             }
                         }
-                        
                         if (attributes[key] && attributes[key].displayType === "enum") {
                             return {
                                 // biome-ignore lint/performance/noAccumulatingSpread: ignored using `--suppress`
