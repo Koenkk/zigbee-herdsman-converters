@@ -28,7 +28,7 @@ interface BoschSeMetering {
     commandResponses: never;
 }
 
-interface BoschGeneralEnergyCluster {
+interface BoschEnergyCluster {
     attributes: {
         /** ID: 6 | Type: BOOLEAN */
         autoOffEnabled: number;
@@ -143,7 +143,7 @@ export const boschGeneralExtend = {
 
                     return result;
                 },
-            } satisfies Fz.Converter<"boschEnergyCluster", BoschGeneralEnergyCluster, ["attributeReport", "readResponse"]>,
+            } satisfies Fz.Converter<"boschEnergyCluster", BoschEnergyCluster, ["attributeReport", "readResponse"]>,
         ];
         const toZigbee: Tz.Converter[] = [
             {
@@ -151,14 +151,14 @@ export const boschGeneralExtend = {
                 convertSet: async (entity, key, value, meta) => {
                     if (key === "auto_off_enabled") {
                         const selectedState = utils.getFromLookup(value, offOnLookup);
-                        await entity.write<"boschEnergyCluster", BoschGeneralEnergyCluster>("boschEnergyCluster", {
+                        await entity.write<"boschEnergyCluster", BoschEnergyCluster>("boschEnergyCluster", {
                             autoOffEnabled: utils.toNumber(selectedState),
                         });
                         return {state: {auto_off_enabled: value}};
                     }
 
                     if (key === "auto_off_time") {
-                        await entity.write<"boschEnergyCluster", BoschGeneralEnergyCluster>("boschEnergyCluster", {
+                        await entity.write<"boschEnergyCluster", BoschEnergyCluster>("boschEnergyCluster", {
                             autoOffTime: toNumber(value) * 60,
                         });
                         return {state: {auto_off_time: value}};
@@ -166,10 +166,10 @@ export const boschGeneralExtend = {
                 },
                 convertGet: async (entity, key, meta) => {
                     if (key === "auto_off_enabled") {
-                        await entity.read<"boschEnergyCluster", BoschGeneralEnergyCluster>("boschEnergyCluster", ["autoOffEnabled"]);
+                        await entity.read<"boschEnergyCluster", BoschEnergyCluster>("boschEnergyCluster", ["autoOffEnabled"]);
                     }
                     if (key === "auto_off_time") {
-                        await entity.read<"boschEnergyCluster", BoschGeneralEnergyCluster>("boschEnergyCluster", ["autoOffTime"]);
+                        await entity.read<"boschEnergyCluster", BoschEnergyCluster>("boschEnergyCluster", ["autoOffTime"]);
                     }
                 },
             },
@@ -177,7 +177,7 @@ export const boschGeneralExtend = {
 
         const configure: Configure[] = [
             m.setupConfigureForBinding("boschEnergyCluster", "input"),
-            m.setupConfigureForReading<"boschEnergyCluster", BoschGeneralEnergyCluster>("boschEnergyCluster", ["autoOffEnabled", "autoOffTime"]),
+            m.setupConfigureForReading<"boschEnergyCluster", BoschEnergyCluster>("boschEnergyCluster", ["autoOffEnabled", "autoOffTime"]),
         ];
 
         return {
@@ -192,7 +192,7 @@ export const boschGeneralExtend = {
 //endregion
 
 //region Bosch BMCT-DZ/-RZ/-SLZ devices
-export interface BoschBmctCluster extends BoschGeneralEnergyCluster {
+export interface BoschBmctCluster extends BoschEnergyCluster {
     attributes: {
         /** ID: 0 | Type: ENUM8 | Only used by BMCT-SLZ */
         deviceMode: number;
@@ -2327,7 +2327,7 @@ export const boschBsenExtend = {
 //endregion
 
 //region Bosch BSP-FZ2/-EZ2/-GZ2/-FD (compact smart plugs)
-interface BoschSmartPlugCluster extends BoschGeneralEnergyCluster {
+interface BoschSmartPlugCluster extends BoschEnergyCluster {
     attributes: {
         /** ID: 6 | Type: BOOLEAN */
         autoOffEnabled: number;
