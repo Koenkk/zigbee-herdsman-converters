@@ -1581,7 +1581,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["RBSH-SP-ZB-EU", "RBSH-SP-ZB-FR", "RBSH-SP-ZB-GB"],
         model: "BSP-FZ2",
         vendor: "Bosch",
-        description: "Smart plug compact (EU version)",
+        description: "Smart plug compact (type F plug)",
         extend: [
             boschGeneralExtend.customSeMeteringCluster(),
             boschSmartPlugExtend.smartPlugCluster(),
@@ -1592,8 +1592,8 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         ota: true,
         whiteLabel: [
-            {vendor: "Bosch", model: "BSP-EZ2", description: "Smart plug compact (FR version)", fingerprint: [{modelID: "RBSH-SP-ZB-FR"}]},
-            {vendor: "Bosch", model: "BSP-GZ2", description: "Smart plug compact (GB version)", fingerprint: [{modelID: "RBSH-SP-ZB-GB"}]},
+            {vendor: "Bosch", model: "BSP-EZ2", description: "Smart plug compact (type E plug)", fingerprint: [{modelID: "RBSH-SP-ZB-FR"}]},
+            {vendor: "Bosch", model: "BSP-GZ2", description: "Smart plug compact (type G plug)", fingerprint: [{modelID: "RBSH-SP-ZB-GB"}]},
         ],
     },
     {
