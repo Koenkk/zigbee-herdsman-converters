@@ -2213,13 +2213,6 @@ const fzLocal = {
                         const key = splitValuesByEndpoint ? `${c}_${msg.endpoint.ID}` : c;
                         const obj = typeof msg.data === "string" ? JSON.parse(msg.data) : msg.data;
                         let raw = (obj as Record<string, unknown>)[c];
-                        // Handle UINT8 values that z2m processes as null/NaN
-                        // Convert UINT8 values of 255 to a more z2m-friendly representation
-                        if (attributes[key] && attributes[key].dataType === Zcl.DataType.UINT8) {
-                            if (Number.isNaN(raw) || raw === null || raw === undefined) {
-                                raw = 255;
-                            }
-                        }
                         if (attributes[key] && attributes[key].displayType === "enum") {
                             return {
                                 // biome-ignore lint/performance/noAccumulatingSpread: ignored using `--suppress`
