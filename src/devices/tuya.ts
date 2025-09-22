@@ -8761,7 +8761,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_6kijc7nd"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_6kijc7nd", "_TZE204_6kijc7nd"]),
         model: "_TZE284_6kijc7nd",
         vendor: "Tervix",
         description: "Tervix Zigbee thermostat",
@@ -8787,7 +8787,6 @@ export const definitions: DefinitionWithExtend[] = [
                 .climate()
                 .withSetpoint("current_heating_setpoint", 5, 35, 0.5, ea.STATE_SET)
                 .withLocalTemperature(ea.STATE)
-                .withLocalTemperatureCalibration(-9.9, 9.9, 0.1, ea.STATE_SET)
                 .withSystemMode(["off", "heat"], ea.STATE_SET)
                 .withRunningState(["idle", "heat"], ea.STATE),
 
@@ -8820,6 +8819,27 @@ export const definitions: DefinitionWithExtend[] = [
                 .text("week_schedule", ea.STATE_SET)
                 .withDescription('Weekly schedule: structured format like - Monday: [{"time":"06:30","temp":20.0},...].'),
 
+            e
+                .numeric("window_open_detection_time", ea.STATE_SET)
+                .withUnit("min")
+                .withValueMin(2)
+                .withValueMax(30)
+                .withValueStep(1)
+                .withDescription("Window open detection threshold in minutes."),
+            e
+                .numeric("window_open_detection_temp", ea.STATE_SET)
+                .withUnit("°C")
+                .withValueMin(2)
+                .withValueMax(4)
+                .withDescription("Temperature threshold for window open detection."),
+            e
+                .numeric("window_open_delay_time", ea.STATE_SET)
+                .withUnit("min")
+                .withValueMin(10)
+                .withValueMax(60)
+                .withValueStep(1)
+                .withDescription("Delay time for triggering window open detection (minutes)."),
+
             // Temperature and Control Adjustments
             e
                 .numeric("upper_temp", ea.STATE_SET)
@@ -8828,13 +8848,6 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMax(95)
                 .withValueStep(0.5)
                 .withDescription("Set the upper temperature limit"),
-            e
-                .numeric("hysteresis", ea.STATE_SET)
-                .withUnit("°C")
-                .withValueMin(0.1)
-                .withValueMax(5)
-                .withValueStep(0.1)
-                .withDescription("Hysteresis for heating/cooling cycle control."),
             e
                 .numeric("temperature_correction", ea.STATE_SET)
                 .withUnit("°C")
@@ -8866,7 +8879,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         meta: {
             tuyaDatapoints: [
-                [1, "switch", tuya.valueConverter.onOff],
+                [1, "system_mode", tuya.valueConverterBasic.lookup({off: 0, heat: 1})],
                 [2, "mode", tuya.valueConverterBasic.lookup({manual: 0, program: 1})],
                 [3, "working_status", tuya.valueConverterBasic.lookup({"Keeping Warm": 0, Working: 1})],
                 [8, "window_check", tuya.valueConverter.onOff],
@@ -8878,10 +8891,11 @@ export const definitions: DefinitionWithExtend[] = [
                 [27, "temperature_correction", tuya.valueConverter.raw],
                 [34, "humidity", tuya.valueConverter.raw],
                 [39, "factory_reset", tuya.valueConverter.onOff],
+                [40, "child_lock", tuya.valueConverter.onOff],
                 [43, "sensor_choose", tuya.valueConverterBasic.lookup({in: 0, out: 1})],
                 [48, "week_schedule", tuya.valueConverter.raw],
                 [58, "run_mode", tuya.valueConverterBasic.lookup({heat_mode: 1, cool_mode: 2})],
-                [61, "week_program_periods", tuya.valueConverterBasic.lookup({periods_4: 1})],
+                [61, "week_program_periods", tuya.valueConverterBasic.lookup({periods_4: "periods_4"})],
                 [101, "switch_sensitivity", tuya.valueConverter.divideBy10],
                 [102, "floor_temp_protection", tuya.valueConverter.divideBy10],
                 [103, "floor_low_protection", tuya.valueConverter.divideBy10],
