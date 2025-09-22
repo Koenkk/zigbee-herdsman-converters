@@ -92,7 +92,7 @@ export const boschGeneralExtend = {
             }
 
             if (device.modelID === "RBSH-MMR-ZB-EU") {
-                const pulsedModeEnabled = device.getEndpoint(1).getClusterAttributeValue("boschEnergyDeviceCluster", "pulseLength") !== 0;
+                const pulsedModeEnabled = device.getEndpoint(1).getClusterAttributeValue("boschEnergyDevice", "pulseLength") !== 0;
 
                 if (pulsedModeEnabled) {
                     return [];
@@ -125,7 +125,7 @@ export const boschGeneralExtend = {
 
         const fromZigbee = [
             {
-                cluster: "boschEnergyDeviceCluster",
+                cluster: "boschEnergyDevice",
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
                     const result: KeyValue = {};
@@ -143,7 +143,7 @@ export const boschGeneralExtend = {
 
                     return result;
                 },
-            } satisfies Fz.Converter<"boschEnergyDeviceCluster", BoschGeneralEnergyDeviceCluster, ["attributeReport", "readResponse"]>,
+            } satisfies Fz.Converter<"boschEnergyDevice", BoschGeneralEnergyDeviceCluster, ["attributeReport", "readResponse"]>,
         ];
         const toZigbee: Tz.Converter[] = [
             {
@@ -151,14 +151,14 @@ export const boschGeneralExtend = {
                 convertSet: async (entity, key, value, meta) => {
                     if (key === "auto_off_enabled") {
                         const selectedState = utils.getFromLookup(value, offOnLookup);
-                        await entity.write<"boschEnergyDeviceCluster", BoschGeneralEnergyDeviceCluster>("boschEnergyDeviceCluster", {
+                        await entity.write<"boschEnergyDevice", BoschGeneralEnergyDeviceCluster>("boschEnergyDevice", {
                             autoOffEnabled: utils.toNumber(selectedState),
                         });
                         return {state: {auto_off_enabled: value}};
                     }
 
                     if (key === "auto_off_time") {
-                        await entity.write<"boschEnergyDeviceCluster", BoschGeneralEnergyDeviceCluster>("boschEnergyDeviceCluster", {
+                        await entity.write<"boschEnergyDevice", BoschGeneralEnergyDeviceCluster>("boschEnergyDevice", {
                             autoOffTime: toNumber(value) * 60,
                         });
                         return {state: {auto_off_time: value}};
@@ -166,21 +166,19 @@ export const boschGeneralExtend = {
                 },
                 convertGet: async (entity, key, meta) => {
                     if (key === "auto_off_enabled") {
-                        await entity.read<"boschEnergyDeviceCluster", BoschGeneralEnergyDeviceCluster>("boschEnergyDeviceCluster", [
-                            "autoOffEnabled",
-                        ]);
+                        await entity.read<"boschEnergyDevice", BoschGeneralEnergyDeviceCluster>("boschEnergyDevice", ["autoOffEnabled"]);
                     }
                     if (key === "auto_off_time") {
-                        await entity.read<"boschEnergyDeviceCluster", BoschGeneralEnergyDeviceCluster>("boschEnergyDeviceCluster", ["autoOffTime"]);
+                        await entity.read<"boschEnergyDevice", BoschGeneralEnergyDeviceCluster>("boschEnergyDevice", ["autoOffTime"]);
                     }
                 },
             },
         ];
 
         const configure: Configure[] = [
-            m.setupConfigureForBinding("boschEnergyDeviceCluster", "input", endpoint ? [endpoint.toString()] : null),
-            m.setupConfigureForReading<"boschEnergyDeviceCluster", BoschGeneralEnergyDeviceCluster>(
-                "boschEnergyDeviceCluster",
+            m.setupConfigureForBinding("boschEnergyDevice", "input", endpoint ? [endpoint.toString()] : null),
+            m.setupConfigureForReading<"boschEnergyDevice", BoschGeneralEnergyDeviceCluster>(
+                "boschEnergyDevice",
                 ["autoOffEnabled", "autoOffTime"],
                 endpoint ? [endpoint.toString()] : null,
             ),
@@ -258,7 +256,7 @@ export const boschBmctExtend = {
                 return [];
             }
 
-            const switchTypeKey = device.getEndpoint(1).getClusterAttributeValue("boschEnergyDeviceCluster", "switchType") ?? 0x00;
+            const switchTypeKey = device.getEndpoint(1).getClusterAttributeValue("boschEnergyDevice", "switchType") ?? 0x00;
             const selectedSwitchType = utils.getFromLookupByValue(switchTypeKey, switchTypeLookup);
 
             if (selectedSwitchType === "none") {
@@ -268,7 +266,7 @@ export const boschBmctExtend = {
             let supportedSwitchModes = Object.keys(switchModeLookup);
 
             if (device.modelID === "RBSH-MMS-ZB-EU") {
-                const deviceModeKey = device.getEndpoint(1).getClusterAttributeValue("boschEnergyDeviceCluster", "deviceMode");
+                const deviceModeKey = device.getEndpoint(1).getClusterAttributeValue("boschEnergyDevice", "deviceMode");
                 const deviceMode = utils.getFromLookupByValue(deviceModeKey, deviceModeLookup);
 
                 if (deviceMode === "light") {
@@ -304,7 +302,7 @@ export const boschBmctExtend = {
 
         const fromZigbee = [
             {
-                cluster: "boschEnergyDeviceCluster",
+                cluster: "boschEnergyDevice",
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
                     const result: KeyValue = {};
@@ -317,7 +315,7 @@ export const boschBmctExtend = {
 
                     return result;
                 },
-            } satisfies Fz.Converter<"boschEnergyDeviceCluster", BoschBmctCluster, ["attributeReport", "readResponse"]>,
+            } satisfies Fz.Converter<"boschEnergyDevice", BoschBmctCluster, ["attributeReport", "readResponse"]>,
         ];
         const toZigbee: Tz.Converter[] = [
             {
@@ -325,13 +323,13 @@ export const boschBmctExtend = {
                 convertSet: async (entity, key, value, meta) => {
                     if (key === "switch_mode") {
                         const index = <number>utils.getFromLookup(value, switchModeLookup);
-                        await entity.write<"boschEnergyDeviceCluster", BoschBmctCluster>("boschEnergyDeviceCluster", {switchMode: index});
+                        await entity.write<"boschEnergyDevice", BoschBmctCluster>("boschEnergyDevice", {switchMode: index});
                         return {state: {switch_mode: value}};
                     }
                 },
                 convertGet: async (entity, key, meta) => {
                     if (key === "switch_mode") {
-                        await entity.read<"boschEnergyDeviceCluster", BoschBmctCluster>("boschEnergyDeviceCluster", ["switchMode"]);
+                        await entity.read<"boschEnergyDevice", BoschBmctCluster>("boschEnergyDevice", ["switchMode"]);
                     }
                 },
             },
@@ -340,7 +338,7 @@ export const boschBmctExtend = {
         const configure: Configure[] = [
             async (device, coordinatorEndpoint, definition) => {
                 const desiredEndpoint = device.getEndpoint(endpoint ?? 1);
-                await desiredEndpoint.read<"boschEnergyDeviceCluster", BoschBmctCluster>("boschEnergyDeviceCluster", ["switchMode"]);
+                await desiredEndpoint.read<"boschEnergyDevice", BoschBmctCluster>("boschEnergyDevice", ["switchMode"]);
             },
         ];
 
@@ -366,7 +364,7 @@ export const boschBmctExtend = {
                 return [];
             }
 
-            const currentSwitchType = device.getEndpoint(1).getClusterAttributeValue("boschEnergyDeviceCluster", "switchType") ?? 0x00;
+            const currentSwitchType = device.getEndpoint(1).getClusterAttributeValue("boschEnergyDevice", "switchType") ?? 0x00;
 
             if (currentSwitchType === 0) {
                 return [];
@@ -386,7 +384,7 @@ export const boschBmctExtend = {
 
         const fromZigbee = [
             {
-                cluster: "boschEnergyDeviceCluster",
+                cluster: "boschEnergyDevice",
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
                     const result: KeyValue = {};
@@ -399,7 +397,7 @@ export const boschBmctExtend = {
 
                     return result;
                 },
-            } satisfies Fz.Converter<"boschEnergyDeviceCluster", BoschBmctCluster, ["attributeReport", "readResponse"]>,
+            } satisfies Fz.Converter<"boschEnergyDevice", BoschBmctCluster, ["attributeReport", "readResponse"]>,
         ];
         const toZigbee: Tz.Converter[] = [
             {
@@ -408,14 +406,14 @@ export const boschBmctExtend = {
                     if (key === "child_lock") {
                         const selectedMode = <number>utils.getFromLookup(value, childLockLookup);
 
-                        await entity.write<"boschEnergyDeviceCluster", BoschBmctCluster>("boschEnergyDeviceCluster", {childLock: selectedMode});
+                        await entity.write<"boschEnergyDevice", BoschBmctCluster>("boschEnergyDevice", {childLock: selectedMode});
 
                         return {state: {child_lock: value}};
                     }
                 },
                 convertGet: async (entity, key, meta) => {
                     if (key === "child_lock") {
-                        await entity.read<"boschEnergyDeviceCluster", BoschBmctCluster>("boschEnergyDeviceCluster", ["childLock"]);
+                        await entity.read<"boschEnergyDevice", BoschBmctCluster>("boschEnergyDevice", ["childLock"]);
                     }
                 },
             },
@@ -424,7 +422,7 @@ export const boschBmctExtend = {
         const configure: Configure[] = [
             async (device, coordinatorEndpoint, definition) => {
                 const desiredEndpoint = device.getEndpoint(endpoint ?? 1);
-                await desiredEndpoint.read<"boschEnergyDeviceCluster", BoschBmctCluster>("boschEnergyDeviceCluster", ["childLock"]);
+                await desiredEndpoint.read<"boschEnergyDevice", BoschBmctCluster>("boschEnergyDevice", ["childLock"]);
             },
         ];
 
@@ -437,9 +435,9 @@ export const boschBmctExtend = {
         };
     },
     actuatorType: () =>
-        m.enumLookup<"boschEnergyDeviceCluster", BoschBmctCluster>({
+        m.enumLookup<"boschEnergyDevice", BoschBmctCluster>({
             name: "actuator_type",
-            cluster: "boschEnergyDeviceCluster",
+            cluster: "boschEnergyDevice",
             attribute: "actuatorType",
             description: "Select the appropriate actuator type so that the connected device can be controlled correctly.",
             lookup: {
@@ -449,9 +447,9 @@ export const boschBmctExtend = {
             entityCategory: "config",
         }),
     dimmerType: () =>
-        m.enumLookup<"boschEnergyDeviceCluster", BoschBmctCluster>({
+        m.enumLookup<"boschEnergyDevice", BoschBmctCluster>({
             name: "dimmer_type",
-            cluster: "boschEnergyDeviceCluster",
+            cluster: "boschEnergyDevice",
             attribute: "dimmerType",
             description: "Select the appropriate dimmer type for your lamps. Make sure that you are only using dimmable lamps.",
             lookup: {
@@ -487,7 +485,7 @@ export const boschBmctExtend = {
 
         const fromZigbee = [
             {
-                cluster: "boschEnergyDeviceCluster",
+                cluster: "boschEnergyDevice",
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
                     const result: KeyValue = {};
@@ -503,7 +501,7 @@ export const boschBmctExtend = {
 
                     return result;
                 },
-            } satisfies Fz.Converter<"boschEnergyDeviceCluster", BoschBmctCluster, ["attributeReport", "readResponse"]>,
+            } satisfies Fz.Converter<"boschEnergyDevice", BoschBmctCluster, ["attributeReport", "readResponse"]>,
         ];
         const toZigbee: Tz.Converter[] = [
             {
@@ -511,15 +509,13 @@ export const boschBmctExtend = {
                 convertSet: async (entity, key, value, meta) => {
                     if (key === "minimum_brightness") {
                         const newMinimumBrightness = toNumber(value);
-                        const currentState = await entity.read<"boschEnergyDeviceCluster", BoschBmctCluster>("boschEnergyDeviceCluster", [
-                            "maximumBrightness",
-                        ]);
+                        const currentState = await entity.read<"boschEnergyDevice", BoschBmctCluster>("boschEnergyDevice", ["maximumBrightness"]);
 
                         if (newMinimumBrightness >= currentState.maximumBrightness) {
                             throw new Error("The minimum brightness must be lower than the maximum brightness!");
                         }
 
-                        await entity.write<"boschEnergyDeviceCluster", BoschBmctCluster>("boschEnergyDeviceCluster", {
+                        await entity.write<"boschEnergyDevice", BoschBmctCluster>("boschEnergyDevice", {
                             minimumBrightness: newMinimumBrightness,
                         });
 
@@ -528,15 +524,13 @@ export const boschBmctExtend = {
 
                     if (key === "maximum_brightness") {
                         const newMaximumBrightness = toNumber(value);
-                        const currentState = await entity.read<"boschEnergyDeviceCluster", BoschBmctCluster>("boschEnergyDeviceCluster", [
-                            "minimumBrightness",
-                        ]);
+                        const currentState = await entity.read<"boschEnergyDevice", BoschBmctCluster>("boschEnergyDevice", ["minimumBrightness"]);
 
                         if (newMaximumBrightness <= currentState.minimumBrightness) {
                             throw new Error("The maximum brightness must be higher than the minimum brightness!");
                         }
 
-                        await entity.write<"boschEnergyDeviceCluster", BoschBmctCluster>("boschEnergyDeviceCluster", {
+                        await entity.write<"boschEnergyDevice", BoschBmctCluster>("boschEnergyDevice", {
                             maximumBrightness: newMaximumBrightness,
                         });
 
@@ -545,10 +539,10 @@ export const boschBmctExtend = {
                 },
                 convertGet: async (entity, key, meta) => {
                     if (key === "minimum_brightness") {
-                        await entity.read<"boschEnergyDeviceCluster", BoschBmctCluster>("boschEnergyDeviceCluster", ["minimumBrightness"]);
+                        await entity.read<"boschEnergyDevice", BoschBmctCluster>("boschEnergyDevice", ["minimumBrightness"]);
                     }
                     if (key === "maximum_brightness") {
-                        await entity.read<"boschEnergyDeviceCluster", BoschBmctCluster>("boschEnergyDeviceCluster", ["maximumBrightness"]);
+                        await entity.read<"boschEnergyDevice", BoschBmctCluster>("boschEnergyDevice", ["maximumBrightness"]);
                     }
                 },
             },
@@ -557,10 +551,7 @@ export const boschBmctExtend = {
         const configure: Configure[] = [
             async (device, coordinatorEndpoint, definition) => {
                 const endpoint = device.getEndpoint(1);
-                await endpoint.read<"boschEnergyDeviceCluster", BoschBmctCluster>("boschEnergyDeviceCluster", [
-                    "minimumBrightness",
-                    "maximumBrightness",
-                ]);
+                await endpoint.read<"boschEnergyDevice", BoschBmctCluster>("boschEnergyDevice", ["minimumBrightness", "maximumBrightness"]);
             },
         ];
 
@@ -601,7 +592,7 @@ export const boschBmctExtend = {
                             const endpoint = meta.device.getEndpoint(1);
 
                             if (newPulseLength > 0) {
-                                await endpoint.write<"boschEnergyDeviceCluster", BoschBmctCluster>("boschEnergyDeviceCluster", {
+                                await endpoint.write<"boschEnergyDevice", BoschBmctCluster>("boschEnergyDevice", {
                                     switchType: 0x05,
                                     switchMode: 0x00,
                                     childLock: 0x00,
@@ -609,7 +600,7 @@ export const boschBmctExtend = {
                                     autoOffTime: 0,
                                 });
 
-                                await endpoint.read<"boschEnergyDeviceCluster", BoschBmctCluster>("boschEnergyDeviceCluster", [
+                                await endpoint.read<"boschEnergyDevice", BoschBmctCluster>("boschEnergyDevice", [
                                     "switchType",
                                     "switchMode",
                                     "childLock",
@@ -617,22 +608,22 @@ export const boschBmctExtend = {
                                     "autoOffTime",
                                 ]);
                             } else {
-                                await endpoint.write<"boschEnergyDeviceCluster", BoschBmctCluster>("boschEnergyDeviceCluster", {
+                                await endpoint.write<"boschEnergyDevice", BoschBmctCluster>("boschEnergyDevice", {
                                     switchType: 0x00,
                                     switchMode: 0x00,
                                     childLock: 0x00,
                                 });
-                                await endpoint.read<"boschEnergyDeviceCluster", BoschBmctCluster>("boschEnergyDeviceCluster", [
+                                await endpoint.read<"boschEnergyDevice", BoschBmctCluster>("boschEnergyDevice", [
                                     "switchType",
                                     "switchMode",
                                     "childLock",
                                 ]);
                             }
 
-                            await endpoint.write<"boschEnergyDeviceCluster", BoschBmctCluster>("boschEnergyDeviceCluster", {
+                            await endpoint.write<"boschEnergyDevice", BoschBmctCluster>("boschEnergyDevice", {
                                 pulseLength: newPulseLength,
                             });
-                            await endpoint.read<"boschEnergyDeviceCluster", BoschBmctCluster>("boschEnergyDeviceCluster", ["pulseLength"]);
+                            await endpoint.read<"boschEnergyDevice", BoschBmctCluster>("boschEnergyDevice", ["pulseLength"]);
                         }
 
                         return {state: {device_mode: value}};
@@ -655,7 +646,7 @@ export const boschBmctExtend = {
                 return [];
             }
 
-            if (device.getEndpoint(1).getClusterAttributeValue("boschEnergyDeviceCluster", "pulseLength") === 0) {
+            if (device.getEndpoint(1).getClusterAttributeValue("boschEnergyDevice", "pulseLength") === 0) {
                 return [];
             }
 
@@ -674,7 +665,7 @@ export const boschBmctExtend = {
 
         const fromZigbee = [
             {
-                cluster: "boschEnergyDeviceCluster",
+                cluster: "boschEnergyDevice",
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
                     const result: KeyValue = {};
@@ -704,7 +695,7 @@ export const boschBmctExtend = {
 
                     return result;
                 },
-            } satisfies Fz.Converter<"boschEnergyDeviceCluster", BoschBmctCluster, ["attributeReport", "readResponse"]>,
+            } satisfies Fz.Converter<"boschEnergyDevice", BoschBmctCluster, ["attributeReport", "readResponse"]>,
         ];
         const toZigbee: Tz.Converter[] = [
             {
@@ -713,7 +704,7 @@ export const boschBmctExtend = {
                     if (key === "pulse_length") {
                         const selectedPulseLength = toNumber(value) * 10;
 
-                        await entity.write<"boschEnergyDeviceCluster", BoschBmctCluster>("boschEnergyDeviceCluster", {
+                        await entity.write<"boschEnergyDevice", BoschBmctCluster>("boschEnergyDevice", {
                             pulseLength: selectedPulseLength,
                         });
 
@@ -722,7 +713,7 @@ export const boschBmctExtend = {
                 },
                 convertGet: async (entity, key, meta) => {
                     if (key === "pulse_length") {
-                        await entity.read<"boschEnergyDeviceCluster", BoschBmctCluster>("boschEnergyDeviceCluster", ["pulseLength"]);
+                        await entity.read<"boschEnergyDevice", BoschBmctCluster>("boschEnergyDevice", ["pulseLength"]);
                     }
                 },
             },
@@ -731,7 +722,7 @@ export const boschBmctExtend = {
         const configure: Configure[] = [
             async (device, coordinatorEndpoint, definition) => {
                 const endpoint = device.getEndpoint(1);
-                await endpoint.read<"boschEnergyDeviceCluster", BoschBmctCluster>("boschEnergyDeviceCluster", ["pulseLength"]);
+                await endpoint.read<"boschEnergyDevice", BoschBmctCluster>("boschEnergyDevice", ["pulseLength"]);
             },
         ];
 
@@ -754,7 +745,7 @@ export const boschBmctExtend = {
             let supportedSwitchTypes = Object.keys(switchTypeLookup);
 
             if (device.modelID === "RBSH-MMR-ZB-EU") {
-                const pulseModeActive = <number>device.getEndpoint(1).getClusterAttributeValue("boschEnergyDeviceCluster", "pulseLength") > 0;
+                const pulseModeActive = <number>device.getEndpoint(1).getClusterAttributeValue("boschEnergyDevice", "pulseLength") > 0;
 
                 if (pulseModeActive) {
                     supportedSwitchTypes = Object.keys(switchTypeLookup).filter(
@@ -776,7 +767,7 @@ export const boschBmctExtend = {
 
         const fromZigbee = [
             {
-                cluster: "boschEnergyDeviceCluster",
+                cluster: "boschEnergyDevice",
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
                     const result: KeyValue = {};
@@ -794,7 +785,7 @@ export const boschBmctExtend = {
 
                     return result;
                 },
-            } satisfies Fz.Converter<"boschEnergyDeviceCluster", BoschBmctCluster, ["attributeReport", "readResponse"]>,
+            } satisfies Fz.Converter<"boschEnergyDevice", BoschBmctCluster, ["attributeReport", "readResponse"]>,
         ];
         const toZigbee: Tz.Converter[] = [
             {
@@ -804,31 +795,28 @@ export const boschBmctExtend = {
                         const selectedSwitchType = <number>utils.getFromLookup(value, switchTypeLookup);
 
                         if (meta.device.meta.switchType !== selectedSwitchType) {
-                            const endpoints = meta.device.endpoints.filter((e) => e.supportsInputCluster("boschEnergyDeviceCluster"));
+                            const endpoints = meta.device.endpoints.filter((e) => e.supportsInputCluster("boschEnergyDevice"));
 
                             for (const endpoint of endpoints) {
-                                await endpoint.write<"boschEnergyDeviceCluster", BoschBmctCluster>("boschEnergyDeviceCluster", {
+                                await endpoint.write<"boschEnergyDevice", BoschBmctCluster>("boschEnergyDevice", {
                                     switchMode: 0x00,
                                     childLock: 0x00,
                                 });
-                                await endpoint.read<"boschEnergyDeviceCluster", BoschBmctCluster>("boschEnergyDeviceCluster", [
-                                    "switchMode",
-                                    "childLock",
-                                ]);
+                                await endpoint.read<"boschEnergyDevice", BoschBmctCluster>("boschEnergyDevice", ["switchMode", "childLock"]);
                             }
                         }
 
-                        await entity.write<"boschEnergyDeviceCluster", BoschBmctCluster>("boschEnergyDeviceCluster", {
+                        await entity.write<"boschEnergyDevice", BoschBmctCluster>("boschEnergyDevice", {
                             switchType: selectedSwitchType,
                         });
-                        await entity.read<"boschEnergyDeviceCluster", BoschBmctCluster>("boschEnergyDeviceCluster", ["switchType"]);
+                        await entity.read<"boschEnergyDevice", BoschBmctCluster>("boschEnergyDevice", ["switchType"]);
 
                         return {state: {switch_type: value}};
                     }
                 },
                 convertGet: async (entity, key, meta) => {
                     if (key === "switch_type") {
-                        await entity.read<"boschEnergyDeviceCluster", BoschBmctCluster>("boschEnergyDeviceCluster", ["switchType"]);
+                        await entity.read<"boschEnergyDevice", BoschBmctCluster>("boschEnergyDevice", ["switchType"]);
                     }
                 },
             },
@@ -837,7 +825,7 @@ export const boschBmctExtend = {
         const configure: Configure[] = [
             async (device, coordinatorEndpoint, definition) => {
                 const endpoint = device.getEndpoint(1);
-                await endpoint.read<"boschEnergyDeviceCluster", BoschBmctCluster>("boschEnergyDeviceCluster", ["switchType"]);
+                await endpoint.read<"boschEnergyDevice", BoschBmctCluster>("boschEnergyDevice", ["switchType"]);
             },
         ];
 
@@ -891,7 +879,7 @@ export const boschBmctExtend = {
                 return exposeList;
             }
 
-            const switchTypeKey = device.getEndpoint(1).getClusterAttributeValue("boschEnergyDeviceCluster", "switchType") ?? 0x00;
+            const switchTypeKey = device.getEndpoint(1).getClusterAttributeValue("boschEnergyDevice", "switchType") ?? 0x00;
             const selectedSwitchType = utils.getFromLookupByValue(switchTypeKey, switchTypeLookup);
 
             let supportedActionTypes: string[];
@@ -926,7 +914,7 @@ export const boschBmctExtend = {
 
         const fromZigbee = [
             {
-                cluster: "boschEnergyDeviceCluster",
+                cluster: "boschEnergyDevice",
                 type: ["raw"],
                 convert: (model, msg, publish, options, meta) => {
                     const command = msg.data[4];
@@ -965,7 +953,7 @@ export const boschBmctExtend = {
 
                     return {action: action, action_duration: duration};
                 },
-            } satisfies Fz.Converter<"boschEnergyDeviceCluster", BoschBmctCluster, ["raw"]>,
+            } satisfies Fz.Converter<"boschEnergyDevice", BoschBmctCluster, ["raw"]>,
         ];
 
         return {
@@ -1009,7 +997,7 @@ export const boschBmctExtend = {
             fz.power_on_behavior,
             fz.cover_position_tilt,
             {
-                cluster: "boschEnergyDeviceCluster",
+                cluster: "boschEnergyDevice",
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
                     const result: KeyValue = {};
@@ -1072,7 +1060,7 @@ export const boschBmctExtend = {
                     }
                     return result;
                 },
-            } satisfies Fz.Converter<"boschEnergyDeviceCluster", BoschBmctCluster, ["attributeReport", "readResponse"]>,
+            } satisfies Fz.Converter<"boschEnergyDevice", BoschBmctCluster, ["attributeReport", "readResponse"]>,
         ];
         const toZigbee: Tz.Converter[] = [
             tz.power_on_behavior,
@@ -1104,8 +1092,8 @@ export const boschBmctExtend = {
                     }
                     if (key === "device_mode") {
                         const index = utils.getFromLookup(value, stateDeviceMode);
-                        await entity.write<"boschEnergyDeviceCluster", BoschBmctCluster>("boschEnergyDeviceCluster", {deviceMode: index});
-                        await entity.read<"boschEnergyDeviceCluster", BoschBmctCluster>("boschEnergyDeviceCluster", ["deviceMode"]);
+                        await entity.write<"boschEnergyDevice", BoschBmctCluster>("boschEnergyDevice", {deviceMode: index});
+                        await entity.read<"boschEnergyDevice", BoschBmctCluster>("boschEnergyDevice", ["deviceMode"]);
                         return {state: {device_mode: value}};
                     }
                     if (key === "switch_type") {
@@ -1113,19 +1101,16 @@ export const boschBmctExtend = {
                             const switchModeDefault = utils.getFromLookup("coupled", stateSwitchMode);
                             const childLockDefault = utils.getFromLookup("OFF", stateOffOn);
 
-                            await endpoint.write<"boschEnergyDeviceCluster", BoschBmctCluster>("boschEnergyDeviceCluster", {
+                            await endpoint.write<"boschEnergyDevice", BoschBmctCluster>("boschEnergyDevice", {
                                 switchMode: switchModeDefault,
                                 childLock: childLockDefault,
                             });
-                            await endpoint.read<"boschEnergyDeviceCluster", BoschBmctCluster>("boschEnergyDeviceCluster", [
-                                "switchMode",
-                                "childLock",
-                            ]);
+                            await endpoint.read<"boschEnergyDevice", BoschBmctCluster>("boschEnergyDevice", ["switchMode", "childLock"]);
                         };
 
                         const switchType = utils.getFromLookup(value, stateSwitchType);
-                        await entity.write<"boschEnergyDeviceCluster", BoschBmctCluster>("boschEnergyDeviceCluster", {switchType: switchType});
-                        await entity.read<"boschEnergyDeviceCluster", BoschBmctCluster>("boschEnergyDeviceCluster", ["switchType"]);
+                        await entity.write<"boschEnergyDevice", BoschBmctCluster>("boschEnergyDevice", {switchType: switchType});
+                        await entity.read<"boschEnergyDevice", BoschBmctCluster>("boschEnergyDevice", ["switchType"]);
                         await applyDefaultForSwitchModeAndChildLock(entity);
 
                         const leftEndpoint = meta.device.getEndpoint(2);
@@ -1138,21 +1123,21 @@ export const boschBmctExtend = {
                     }
                     if (key === "switch_mode") {
                         const index = utils.getFromLookup(value, stateSwitchMode);
-                        await entity.write<"boschEnergyDeviceCluster", BoschBmctCluster>("boschEnergyDeviceCluster", {switchMode: index});
+                        await entity.write<"boschEnergyDevice", BoschBmctCluster>("boschEnergyDevice", {switchMode: index});
                         return {state: {switch_mode: value}};
                     }
                     if (key === "child_lock") {
                         const index = utils.getFromLookup(value, stateOffOn);
-                        await entity.write<"boschEnergyDeviceCluster", BoschBmctCluster>("boschEnergyDeviceCluster", {childLock: index});
+                        await entity.write<"boschEnergyDevice", BoschBmctCluster>("boschEnergyDevice", {childLock: index});
                         return {state: {child_lock: value}};
                     }
                     if (key === "auto_off_enabled") {
                         const index = utils.getFromLookup(value, stateOffOn);
-                        await entity.write<"boschEnergyDeviceCluster", BoschBmctCluster>("boschEnergyDeviceCluster", {autoOffEnabled: index});
+                        await entity.write<"boschEnergyDevice", BoschBmctCluster>("boschEnergyDevice", {autoOffEnabled: index});
                         return {state: {auto_off_enabled: value}};
                     }
                     if (key === "auto_off_time" && typeof value === "number") {
-                        await entity.write<"boschEnergyDeviceCluster", BoschBmctCluster>("boschEnergyDeviceCluster", {autoOffTime: value * 60});
+                        await entity.write<"boschEnergyDevice", BoschBmctCluster>("boschEnergyDevice", {autoOffTime: value * 60});
                         return {state: {auto_off_time: value}};
                     }
                 },
@@ -1166,22 +1151,22 @@ export const boschBmctExtend = {
                             }
                             break;
                         case "device_mode":
-                            await entity.read<"boschEnergyDeviceCluster", BoschBmctCluster>("boschEnergyDeviceCluster", ["deviceMode"]);
+                            await entity.read<"boschEnergyDevice", BoschBmctCluster>("boschEnergyDevice", ["deviceMode"]);
                             break;
                         case "switch_type":
-                            await entity.read<"boschEnergyDeviceCluster", BoschBmctCluster>("boschEnergyDeviceCluster", ["switchType"]);
+                            await entity.read<"boschEnergyDevice", BoschBmctCluster>("boschEnergyDevice", ["switchType"]);
                             break;
                         case "switch_mode":
-                            await entity.read<"boschEnergyDeviceCluster", BoschBmctCluster>("boschEnergyDeviceCluster", ["switchMode"]);
+                            await entity.read<"boschEnergyDevice", BoschBmctCluster>("boschEnergyDevice", ["switchMode"]);
                             break;
                         case "child_lock":
-                            await entity.read<"boschEnergyDeviceCluster", BoschBmctCluster>("boschEnergyDeviceCluster", ["childLock"]);
+                            await entity.read<"boschEnergyDevice", BoschBmctCluster>("boschEnergyDevice", ["childLock"]);
                             break;
                         case "auto_off_enabled":
-                            await entity.read<"boschEnergyDeviceCluster", BoschBmctCluster>("boschEnergyDeviceCluster", ["autoOffEnabled"]);
+                            await entity.read<"boschEnergyDevice", BoschBmctCluster>("boschEnergyDevice", ["autoOffEnabled"]);
                             break;
                         case "auto_off_time":
-                            await entity.read<"boschEnergyDeviceCluster", BoschBmctCluster>("boschEnergyDeviceCluster", ["autoOffTime"]);
+                            await entity.read<"boschEnergyDevice", BoschBmctCluster>("boschEnergyDevice", ["autoOffTime"]);
                             break;
                         default:
                             throw new Error(`Unhandled key boschExtend.bmct.toZigbee.convertGet ${key}`);
@@ -1194,19 +1179,19 @@ export const boschBmctExtend = {
                     if (key === "calibration_opening_time") {
                         const number = utils.toNumber(value, "calibration_opening_time");
                         const index = number * 10;
-                        await entity.write<"boschEnergyDeviceCluster", BoschBmctCluster>("boschEnergyDeviceCluster", {calibrationOpeningTime: index});
+                        await entity.write<"boschEnergyDevice", BoschBmctCluster>("boschEnergyDevice", {calibrationOpeningTime: index});
                         return {state: {calibration_opening_time: number}};
                     }
                     if (key === "calibration_closing_time") {
                         const number = utils.toNumber(value, "calibration_closing_time");
                         const index = number * 10;
-                        await entity.write<"boschEnergyDeviceCluster", BoschBmctCluster>("boschEnergyDeviceCluster", {calibrationClosingTime: index});
+                        await entity.write<"boschEnergyDevice", BoschBmctCluster>("boschEnergyDevice", {calibrationClosingTime: index});
                         return {state: {calibration_closing_time: number}};
                     }
                     if (key === "calibration_button_hold_time") {
                         const number = utils.toNumber(value, "calibration_button_hold_time");
                         const index = number * 10;
-                        await entity.write<"boschEnergyDeviceCluster", BoschBmctCluster>("boschEnergyDeviceCluster", {
+                        await entity.write<"boschEnergyDevice", BoschBmctCluster>("boschEnergyDevice", {
                             calibrationButtonHoldTime: index,
                         });
                         return {state: {calibration_button_hold_time: number}};
@@ -1214,7 +1199,7 @@ export const boschBmctExtend = {
                     if (key === "calibration_motor_start_delay") {
                         const number = utils.toNumber(value, "calibration_motor_start_delay");
                         const index = number * 10;
-                        await entity.write<"boschEnergyDeviceCluster", BoschBmctCluster>("boschEnergyDeviceCluster", {
+                        await entity.write<"boschEnergyDevice", BoschBmctCluster>("boschEnergyDevice", {
                             calibrationMotorStartDelay: index,
                         });
                         return {state: {calibration_motor_start_delay: number}};
@@ -1223,20 +1208,16 @@ export const boschBmctExtend = {
                 convertGet: async (entity, key, meta) => {
                     switch (key) {
                         case "calibration_opening_time":
-                            await entity.read<"boschEnergyDeviceCluster", BoschBmctCluster>("boschEnergyDeviceCluster", ["calibrationOpeningTime"]);
+                            await entity.read<"boschEnergyDevice", BoschBmctCluster>("boschEnergyDevice", ["calibrationOpeningTime"]);
                             break;
                         case "calibration_closing_time":
-                            await entity.read<"boschEnergyDeviceCluster", BoschBmctCluster>("boschEnergyDeviceCluster", ["calibrationClosingTime"]);
+                            await entity.read<"boschEnergyDevice", BoschBmctCluster>("boschEnergyDevice", ["calibrationClosingTime"]);
                             break;
                         case "calibration_button_hold_time":
-                            await entity.read<"boschEnergyDeviceCluster", BoschBmctCluster>("boschEnergyDeviceCluster", [
-                                "calibrationButtonHoldTime",
-                            ]);
+                            await entity.read<"boschEnergyDevice", BoschBmctCluster>("boschEnergyDevice", ["calibrationButtonHoldTime"]);
                             break;
                         case "calibration_motor_start_delay":
-                            await entity.read<"boschEnergyDeviceCluster", BoschBmctCluster>("boschEnergyDeviceCluster", [
-                                "calibrationMotorStartDelay",
-                            ]);
+                            await entity.read<"boschEnergyDevice", BoschBmctCluster>("boschEnergyDevice", ["calibrationMotorStartDelay"]);
                             break;
                         default:
                             throw new Error(`Unhandled key boschExtend.bmct.toZigbee.convertGet ${key}`);
@@ -2385,7 +2366,7 @@ interface BoschSmartPlugCluster extends BoschGeneralEnergyDeviceCluster {
 
 export const boschSmartPlugExtend = {
     smartPlugCluster: () =>
-        m.deviceAddCustomCluster("boschEnergyDeviceCluster", {
+        m.deviceAddCustomCluster("boschEnergyDevice", {
             ID: 0xfca0,
             manufacturerCode: manufacturerOptions.manufacturerCode,
             attributes: {
@@ -2401,9 +2382,9 @@ export const boschSmartPlugExtend = {
         }),
     onOff: () => m.onOff({powerOnBehavior: true, configureReporting: true}),
     ledBrightness: () =>
-        m.numeric<"boschEnergyDeviceCluster", BoschSmartPlugCluster>({
+        m.numeric<"boschEnergyDevice", BoschSmartPlugCluster>({
             name: "led_brightness",
-            cluster: "boschEnergyDeviceCluster",
+            cluster: "boschEnergyDevice",
             attribute: "ledBrightness",
             label: "LED brightness",
             description: "Here you can adjust the LED brightness",
@@ -2454,7 +2435,7 @@ export const boschSmartPlugExtend = {
 
         const fromZigbee = [
             {
-                cluster: "boschEnergyDeviceCluster",
+                cluster: "boschEnergyDevice",
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
                     const result: KeyValueAny = {};
@@ -2474,7 +2455,7 @@ export const boschSmartPlugExtend = {
 
                     return result;
                 },
-            } satisfies Fz.Converter<"boschEnergyDeviceCluster", BoschSmartPlugCluster, ["attributeReport", "readResponse"]>,
+            } satisfies Fz.Converter<"boschEnergyDevice", BoschSmartPlugCluster, ["attributeReport", "readResponse"]>,
         ];
 
         const toZigbee: Tz.Converter[] = [
@@ -2482,21 +2463,21 @@ export const boschSmartPlugExtend = {
                 key: ["energy_saving_mode_enabled", "energy_saving_mode_threshold", "energy_saving_mode_timer"],
                 convertSet: async (entity, key, value, meta) => {
                     if (key === "energy_saving_mode_enabled") {
-                        await entity.write<"boschEnergyDeviceCluster", BoschSmartPlugCluster>("boschEnergyDeviceCluster", {
+                        await entity.write<"boschEnergyDevice", BoschSmartPlugCluster>("boschEnergyDevice", {
                             energySavingModeEnabled: utils.getFromLookup(value, energySavingModeEnabledLookup),
                         });
                         return {state: {energy_saving_mode_enabled: value}};
                     }
 
                     if (key === "energy_saving_mode_threshold") {
-                        await entity.write<"boschEnergyDeviceCluster", BoschSmartPlugCluster>("boschEnergyDeviceCluster", {
+                        await entity.write<"boschEnergyDevice", BoschSmartPlugCluster>("boschEnergyDevice", {
                             energySavingModeThreshold: utils.toNumber(value) * 10,
                         });
                         return {state: {energy_saving_mode_threshold: value}};
                     }
 
                     if (key === "energy_saving_mode_timer") {
-                        await entity.write<"boschEnergyDeviceCluster", BoschSmartPlugCluster>("boschEnergyDeviceCluster", {
+                        await entity.write<"boschEnergyDevice", BoschSmartPlugCluster>("boschEnergyDevice", {
                             energySavingModeTimer: utils.toNumber(value),
                         });
                         return {state: {energy_saving_mode_timer: value}};
@@ -2504,25 +2485,23 @@ export const boschSmartPlugExtend = {
                 },
                 convertGet: async (entity, key, meta) => {
                     if (key === "energy_saving_mode_enabled") {
-                        await entity.read<"boschEnergyDeviceCluster", BoschSmartPlugCluster>("boschEnergyDeviceCluster", ["energySavingModeEnabled"]);
+                        await entity.read<"boschEnergyDevice", BoschSmartPlugCluster>("boschEnergyDevice", ["energySavingModeEnabled"]);
                     }
 
                     if (key === "energy_saving_mode_threshold") {
-                        await entity.read<"boschEnergyDeviceCluster", BoschSmartPlugCluster>("boschEnergyDeviceCluster", [
-                            "energySavingModeThreshold",
-                        ]);
+                        await entity.read<"boschEnergyDevice", BoschSmartPlugCluster>("boschEnergyDevice", ["energySavingModeThreshold"]);
                     }
 
                     if (key === "energy_saving_mode_timer") {
-                        await entity.read<"boschEnergyDeviceCluster", BoschSmartPlugCluster>("boschEnergyDeviceCluster", ["energySavingModeTimer"]);
+                        await entity.read<"boschEnergyDevice", BoschSmartPlugCluster>("boschEnergyDevice", ["energySavingModeTimer"]);
                     }
                 },
             },
         ];
 
         const configure: Configure[] = [
-            m.setupConfigureForBinding("boschEnergyDeviceCluster", "input"),
-            m.setupConfigureForReading<"boschEnergyDeviceCluster", BoschSmartPlugCluster>("boschEnergyDeviceCluster", [
+            m.setupConfigureForBinding("boschEnergyDevice", "input"),
+            m.setupConfigureForReading<"boschEnergyDevice", BoschSmartPlugCluster>("boschEnergyDevice", [
                 "energySavingModeEnabled",
                 "energySavingModeThreshold",
                 "energySavingModeTimer",
