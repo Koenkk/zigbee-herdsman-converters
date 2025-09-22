@@ -470,6 +470,6 @@ export const definitions: DefinitionWithExtend[] = [
         model: "WSD005",
         vendor: "ADEO",
         description: "ENKI LEXMAN motor for roller shutler",
-        extend: [m.windowCovering({ controls: ["lift"] })],
+        extend: [m.windowCovering({controls: ["lift"]})],
     },
 ];
