@@ -45,7 +45,7 @@ export const boschGeneralExtend = {
         const exposes: Expose[] = [
             e
                 .enum("reset_energy_meters", ea.SET, ["reset"])
-                .withDescription("Triggers the reset of the energy meters (both consumed and, if supported, generated) to 0 kWh")
+                .withDescription("Triggers the reset of all energy meters on the device to 0 kWh")
                 .withCategory("config"),
         ];
         const toZigbee: Tz.Converter[] = [
