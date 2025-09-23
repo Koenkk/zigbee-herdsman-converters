@@ -293,7 +293,7 @@ export const numericAttributes2Payload = async (
             case "13":
                 if (["ZNXDD01LM"].includes(model.model)) {
                     // We don't know what the value means for these devices.
-                } else if (["ZNCLBL01LM"].includes(model.model)) {
+                } else if (["ZNCLBL01LM", "PS-S04D"].includes(model.model)) {
                     // Overwrite version advertised by `genBasic` and `genOta` with correct version:
                     // https://github.com/Koenkk/zigbee2mqtt/issues/15745
                     assertNumber(value);
@@ -638,7 +638,7 @@ export const numericAttributes2Payload = async (
                 payload.detection_interval = value;
                 break;
             case "268":
-                if (["RTCGQ13LM", "RTCGQ14LM", "RTCZCGQ11LM"].includes(model.model)) {
+                if (["RTCGQ13LM", "RTCGQ14LM", "RTCZCGQ11LM", "PS-S04D"].includes(model.model)) {
                     payload.motion_sensitivity = getFromLookup(value, {1: "low", 2: "medium", 3: "high"});
                 } else if (["JT-BZ-01AQ/A"].includes(model.model)) {
                     payload.gas_sensitivity = getFromLookup(value, {1: "15%LEL", 2: "10%LEL"});
@@ -705,7 +705,7 @@ export const numericAttributes2Payload = async (
                 }
                 break;
             case "322":
-                if (["RTCZCGQ11LM"].includes(model.model)) {
+                if (["RTCZCGQ11LM", "PS-S04D"].includes(model.model)) {
                     payload.presence = getFromLookup(value, {0: false, 1: true, 255: null});
                 }
                 break;
@@ -2345,6 +2345,9 @@ export const lumiModernExtend = {
                 },
             ],
         } satisfies ModernExtend;
+    },
+    fp300DetectionRange: () => {
+
     },
     lumiMultiClick: (args?: Partial<modernExtend.BinaryArgs<"manuSpecificLumi">>) =>
         modernExtend.binary({
