@@ -418,6 +418,9 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueStep(1),
             e.child_lock(),
             e
+                .enum("radar_config", ea.STATE_SET, ["none", "10s", "20s", "30s", "45s", "60s"])
+                .withDescription("Radar Config"),
+            e
                 .enum("switch_color_on", ea.STATE_SET, ["red", "blue", "green", "white", "yellow", "magenta", "cyan", "warm_white", "warm_yellow"])
                 .withDescription("Switch lightcolor when on"),
             e
@@ -450,9 +453,10 @@ export const definitions: DefinitionWithExtend[] = [
                 [29, "relay_status", valueConverterLocal.relayStatus],
                 [101, "child_lock", tuya.valueConverter.lockUnlock],
                 [102, "backlight_brightness", tuya.valueConverter.raw],
-                [103, "switch_color_off", valueConverterLocal.switchColor],
-                [104, "switch_color_on", valueConverterLocal.switchColor],
+                [103, "switch_color_on", valueConverterLocal.switchColor],
+                [104, "switch_color_off", valueConverterLocal.switchColor],
                 [105, "name", valueConverterLocal.name],
+                [111, "radar_config", valueConverterLocal.radarConfig],
                 [209, "cycle_schedule", valueConverterLocal.cycleSchedule],
             ],
         },
@@ -476,6 +480,9 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMax(100)
                 .withValueStep(1),
             e.child_lock(),
+            e
+                .enum("radar_config", ea.STATE_SET, ["none", "10s", "20s", "30s", "45s", "60s"])
+                .withDescription("Radar Config"),
             e
                 .enum("switch_color_on", ea.STATE_SET, ["red", "blue", "green", "white", "yellow", "magenta", "cyan", "warm_white", "warm_yellow"])
                 .withDescription("Switch lightcolor when on"),
@@ -533,10 +540,11 @@ export const definitions: DefinitionWithExtend[] = [
                 [30, "relay_status_l2", valueConverterLocal.relayStatus],
                 [101, "child_lock", tuya.valueConverter.lockUnlock],
                 [102, "backlight_brightness", tuya.valueConverter.raw],
-                [103, "switch_color_off", valueConverterLocal.switchColor],
-                [104, "switch_color_on", valueConverterLocal.switchColor],
+                [103, "switch_color_on", valueConverterLocal.switchColor],
+                [104, "switch_color_off", valueConverterLocal.switchColor],
                 [105, "name_l1", valueConverterLocal.name],
                 [106, "name_l2", valueConverterLocal.name],
+                [111, "radar_config", valueConverterLocal.radarConfig],
                 [209, "cycle_schedule", valueConverterLocal.cycleSchedule],
             ],
         },
@@ -561,6 +569,9 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMax(100)
                 .withValueStep(1),
             e.child_lock(),
+            e
+                .enum("radar_config", ea.STATE_SET, ["none", "10s", "20s", "30s", "45s", "60s"])
+                .withDescription("Radar Config"),
             e
                 .enum("switch_color_on", ea.STATE_SET, ["red", "blue", "green", "white", "yellow", "magenta", "cyan", "warm_white", "warm_yellow"])
                 .withDescription("Switch lightcolor when on"),
@@ -634,11 +645,12 @@ export const definitions: DefinitionWithExtend[] = [
                 [31, "relay_status_l3", valueConverterLocal.relayStatus],
                 [101, "child_lock", tuya.valueConverter.lockUnlock],
                 [102, "backlight_brightness", tuya.valueConverter.raw],
-                [103, "switch_color_off", valueConverterLocal.switchColor],
-                [104, "switch_color_on", valueConverterLocal.switchColor],
+                [103, "switch_color_on", valueConverterLocal.switchColor],
+                [104, "switch_color_off", valueConverterLocal.switchColor],
                 [105, "name_l1", valueConverterLocal.name],
                 [106, "name_l2", valueConverterLocal.name],
                 [107, "name_l3", valueConverterLocal.name],
+                [111, "radar_config", valueConverterLocal.radarConfig],
                 [209, "cycle_schedule", valueConverterLocal.cycleSchedule],
             ],
         },
@@ -665,6 +677,9 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMax(100)
                 .withValueStep(1),
             e.child_lock(),
+            e
+                .enum("radar_config", ea.STATE_SET, ["none", "10s", "20s", "30s", "45s", "60s"])
+                .withDescription("Radar Config"),
             e
                 .enum("switch_color_on", ea.STATE_SET, ["red", "blue", "green", "white", "yellow", "magenta", "cyan", "warm_white", "warm_yellow"])
                 .withDescription("Switch lightcolor when on"),
@@ -754,12 +769,13 @@ export const definitions: DefinitionWithExtend[] = [
                 [32, "relay_status_l4", valueConverterLocal.relayStatus],
                 [101, "child_lock", tuya.valueConverter.lockUnlock],
                 [102, "backlight_brightness", tuya.valueConverter.raw],
-                [103, "switch_color_off", valueConverterLocal.switchColor],
-                [104, "switch_color_on", valueConverterLocal.switchColor],
+                [103, "switch_color_on", valueConverterLocal.switchColor],
+                [104, "switch_color_off", valueConverterLocal.switchColor],
                 [105, "name_l1", valueConverterLocal.name],
                 [106, "name_l2", valueConverterLocal.name],
                 [107, "name_l3", valueConverterLocal.name],
                 [108, "name_l4", valueConverterLocal.name],
+                [111, "radar_config", valueConverterLocal.radarConfig],
                 [201, "cycle_schedule", valueConverterLocal.cycleSchedule],
             ],
         },
