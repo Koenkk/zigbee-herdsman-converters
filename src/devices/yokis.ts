@@ -1844,12 +1844,7 @@ const YokisInputExtend: ModernExtend[] = [
         lookup: inputModeEnum,
         cluster: "manuSpecificYokisInput",
         attribute: "inputMode",
-        description: `Indicate how the input should be handle:
-        - 0 -> Unknown
-        - 1 -> Push button
-        - 2 -> Switch
-        - 3 -> Relay
-        - 4 -> FP_IN`,
+        description: "Indicate how the input should be handled",
         entityCategory: "config",
     }),
 
@@ -1859,9 +1854,7 @@ const YokisInputExtend: ModernExtend[] = [
         lookup: {nc: 0x00, no: 0x01},
         cluster: "manuSpecificYokisInput",
         attribute: "contactMode",
-        description: `Indicate the contact nature of the entry:
-        - 0 -> NC
-        - 1 -> NO`,
+        description: "Indicate the contact nature of the entry",
         entityCategory: "config",
     }),
 
@@ -2136,10 +2129,7 @@ const yokisLightControlExtend: ModernExtend[] = [
         lookup: {timer: 0x00, staircase: 0x01, pulse: 0x02},
         cluster: "manuSpecificYokisLightControl",
         attribute: "operatingMode",
-        description: `Indicates the operating mode: 
-        - 0x00 -> Timer 
-        - 0x01 -> Staircase
-        - 0x02 -> Pulse`,
+        description: "Indicates the operating mode",
         entityCategory: "config",
     }),
 
@@ -2243,11 +2233,7 @@ const yokisLightControlExtend: ModernExtend[] = [
         lookup: stateAfterBlinkEnum,
         cluster: "manuSpecificYokisLightControl",
         attribute: "stateAfterBlink",
-        description: `Indicate which state must be apply after a blink sequence:
-        - 0x00 -> State before blinking
-        - 0x01 -> OFF
-        - 0x02 -> ON
-        - 0x03 -> Infinite blinking`,
+        description: "Indicate which state must be apply after a blink sequence",
         entityCategory: "config",
     }),
 
@@ -2697,15 +2683,7 @@ const YokisPilotWireExtend: ModernExtend[] = [
         },
         cluster: "manuSpecificYokisPilotWire",
         attribute: "actualOrder",
-        description: `Represent the actual order used by the device:
-- 0x00 -> Stop
-- 0x01 -> Frost-off
-- 0x02 -> Eco (default)
-- 0x03 -> Confort-2
-- 0x04 -> Confort-1
-- 0x05 -> Confort
-- 0xF0 -> ShortCut error
-- 0xF1 -> Temperature error`,
+        description: "Represent the actual order used by the device",
         access: "STATE_GET",
         reporting: {min: repInterval.MINUTE, max: repInterval.HOUR, change: 1},
         entityCategory: "diagnostic",
@@ -2748,9 +2726,7 @@ const YokisPilotWireExtend: ModernExtend[] = [
         },
         cluster: "manuSpecificYokisPilotWire",
         attribute: "timerUnit",
-        description: `Represent the actual unit used for local command configuration :
-- 0x00 -> Second (default)
-- 0x01 -> Minutes`,
+        description: "Represent the actual unit used for local command configuration",
         // reporting: {min: repInterval.MINUTE, max: repInterval.HOUR, change: 1}, // we probably dont need to do a reporting for configuration attribute
         entityCategory: "config",
     }),
