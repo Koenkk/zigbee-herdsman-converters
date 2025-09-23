@@ -1736,13 +1736,13 @@ const yokisCommandsExtend = {
     // biome-ignore lint/style/useNamingConvention: The current naming convention is currently matching the Yokis documentation
     pilotwire_setOrder: (): ModernExtend => {
         const exposes = e
-            .enum("pilotwire_setOrder", ea.SET, Object.keys(pilotwireOrderEnun))
+            .enum("pilotwire_set_order", ea.SET, Object.keys(pilotwireOrderEnun))
             .withDescription("Set the device in the specified order.")
             .withCategory("config");
 
         const toZigbee: Tz.Converter[] = [
             {
-                key: ["pilotwire_setOrder"],
+                key: ["pilotwire_set_order"],
                 convertSet: async (entity, key, value, meta) => {
                     utils.assertString(value);
                     const commandWrapper = yokisExtendChecks.parsePilotwireOrder(value);
@@ -1767,13 +1767,13 @@ const yokisCommandsExtend = {
     // biome-ignore lint/style/useNamingConvention: The current naming convention is currently matching the Yokis documentation
     pilotwire_toggleOrder: (): ModernExtend => {
         const exposes = e
-            .enum("pilotwire_toggleOrder", ea.SET, ["pilotwire_toggleOrder"])
+            .enum("pilotwire_toggle_order", ea.SET, ["pilotwire_toggle_order"])
             .withDescription("Toggle between order by respecting the scrolling order")
             .withCategory("config");
 
         const toZigbee: Tz.Converter[] = [
             {
-                key: ["pilotwire_toggleOrder"],
+                key: ["pilotwire_toggle_order"],
                 convertSet: async (entity, key, value, meta) => {
                     yokisExtendChecks.log(key, value);
                     await entity.command<"manuSpecificYokisPilotWire", "toggleOrder", YokisPilotWire>(
