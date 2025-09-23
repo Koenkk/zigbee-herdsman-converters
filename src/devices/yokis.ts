@@ -272,8 +272,7 @@ interface YokisPilotWire {
     };
     commands: {
         setOrder: {
-            // biome-ignore lint/style/useNamingConvention: TODO
-            uc_Order: number;
+            order: number;
         };
         toggleOrder: Record<string, never>;
     };
@@ -688,7 +687,7 @@ const YokisClustersDefinition: {
                 ID: 0x00,
                 parameters: [
                     // Order to be set: 0x00 -> Stop, 0x01 -> Frost-off, 0x02 -> Eco, 0x03 -> Confort-2, 0x04 -> Confort-1, 0x05 -> Confort
-                    {name: "uc_Order", type: Zcl.DataType.UINT8},
+                    {name: "order", type: Zcl.DataType.UINT8},
                 ],
             },
             // Toggle between order by respecting the scrolling order.
@@ -1077,8 +1076,7 @@ const yokisExtendChecks = {
 
         return {
             payload: {
-                // biome-ignore lint/style/useNamingConvention: The current naming convention is currently matching the Yokis documentation
-                uc_Order: utils.getFromLookup(input, pilotwireOrderEnun),
+                order: utils.getFromLookup(input, pilotwireOrderEnun),
             },
         };
     },
@@ -2827,13 +2825,7 @@ const YokisPilotWireExtend: ModernExtend[] = [
         lookup: pilotwireOrderEnun,
         cluster: "manuSpecificYokisPilotWire",
         attribute: "fallbackOrder",
-        description: `Represent the fallback order used by the device after the end of an order timer is reached
-- 0x00 -> Stop
-- 0x01 -> Frost-off
-- 0x02 -> Eco (default)
-- 0x03 -> Confort-2
-- 0x04 -> Confort-1
-- 0x05 -> Confor`,
+        description: "Represent the fallback order used by the device after the end of an order timer is reached",
         // reporting: {min: repInterval.MINUTE, max: repInterval.HOUR, change: 1}, // we probably dont need to do a reporting for configuration attribute
         entityCategory: "config",
     }),
