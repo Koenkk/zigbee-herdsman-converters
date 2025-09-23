@@ -2211,7 +2211,6 @@ const fzLocal = {
                 if (msg.type === "readResponse") {
                     return Object.keys(msg.data).reduce((p, c) => {
                         const key = splitValuesByEndpoint ? `${c}_${msg.endpoint.ID}` : c;
-                        const obj = typeof msg.data === "string" ? JSON.parse(msg.data) : msg.data;
                         const raw = (msg.data as Record<string | number, unknown>)[c];
                         if (attributes[key] && attributes[key].displayType === "enum") {
                             return {
