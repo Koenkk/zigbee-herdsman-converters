@@ -58,7 +58,6 @@ function getZoneSuffixFromGroupId(groupId: number | undefined, options: KeyValue
 function createZoneAwareConverter<T extends string>(
     // biome-ignore lint/suspicious/noExplicitAny: Fz.ConverterTypeStringOrArray is not exported
     baseConverter: Fz.Converter<T, undefined, any>,
-    actionName: string,
     // biome-ignore lint/suspicious/noExplicitAny: Fz.ConverterTypeStringOrArray is not exported
 ): Fz.Converter<T, undefined, any> {
     return {
@@ -70,12 +69,12 @@ function createZoneAwareConverter<T extends string>(
 
             // Call the base converter
             const baseResult = baseConverter.convert(model, msg, publish, options, meta);
-            if (!baseResult) return undefined;
+            if (!baseResult || typeof baseResult !== "object" || !("action" in baseResult)) return baseResult;
 
             // Override the action with zone suffix
             return {
                 ...baseResult,
-                action: `${actionName}${zoneSuffix}`,
+                action: `${baseResult.action}${zoneSuffix}`,
             };
         },
     };
@@ -121,11 +120,11 @@ const actionPropertyConverters = {
 // ModernExtend function for FUT089Z remote control
 function miboxerFut089zControls() {
     // Create zone-aware converters using base converters (they will dynamically read device options)
-    const onConverter = createZoneAwareConverter(fz.command_on, "on");
-    const offConverter = createZoneAwareConverter(fz.command_off, "off");
-    const brightnessConverter = createZoneAwareConverter(fz.command_move_to_level, "brightness_move_to_level");
-    const colorTempConverter = createZoneAwareConverter(fz.command_move_to_color_temp, "color_temperature_move");
-    const colorConverter = createZoneAwareConverter(fz.command_move_to_hue_and_saturation, "move_to_hue_and_saturation");
+    const onConverter = createZoneAwareConverter(fz.command_on);
+    const offConverter = createZoneAwareConverter(fz.command_off);
+    const brightnessConverter = createZoneAwareConverter(fz.command_move_to_level);
+    const colorTempConverter = createZoneAwareConverter(fz.command_move_to_color_temp);
+    const colorConverter = createZoneAwareConverter(fz.command_move_to_hue_and_saturation);
 
     // biome-ignore lint/suspicious/noExplicitAny: Fz.ConverterTypeStringOrArray is not exported
     const fromZigbee: Fz.Converter<string, undefined, any>[] = [
