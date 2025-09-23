@@ -77,6 +77,19 @@ function socketIndicatorMode() {
     });
 }
 
+function evlinkIndicatorMode() {
+    return m.enumLookup({
+        name: "indicator_mode",
+        lookup: {
+            default: 1,
+            temporary: 5,
+        },
+        cluster: "manuSpecificSchneiderFanSwitchConfiguration",
+        attribute: "ledIndication",
+        description: "Set indicator mode",
+    });
+}
+
 function fanIndicatorMode() {
     const description = "Set Indicator Mode.";
     return m.enumLookup({
@@ -1658,6 +1671,7 @@ export const definitions: DefinitionWithExtend[] = [
                 // power is provided by 'seMetering' instead of "haElectricalMeasurement"
                 power: {cluster: "metering"},
             }),
+            evlinkIndicatorMode(),
         ],
     },
     {
