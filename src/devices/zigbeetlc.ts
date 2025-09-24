@@ -310,7 +310,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Tuya",
         description: "Temperature & humidity sensor (pvxx/ZigbeeTLc)",
         extend: [
-            m.temperature({reporting: {min: "10_SECONDS", max: "1_HOUR", change: 10}}),
+            m.temperature(),
             m.humidity(),
             extend.temperatureCalibration,
             extend.humidityCalibration,
