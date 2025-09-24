@@ -44,6 +44,14 @@ const valueConverterLocal = {
         warmwhite: tuya.enum(7),
         warmyellow: tuya.enum(8),
     }),
+    radarConfig: tuya.valueConverterBasic.lookup({
+        "none": tuya.enum(0),
+        "10s": tuya.enum(1),
+        "20s": tuya.enum(2),
+        "30s": tuya.enum(3),
+        "45s": tuya.enum(4),
+        "60s": tuya.enum(5),
+    }),
     name: {
         to: (v: string, meta: Tz.Meta) => {
             const stringValue = String(v ?? "");
