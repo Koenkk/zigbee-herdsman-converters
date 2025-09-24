@@ -45,7 +45,7 @@ const valueConverterLocal = {
         warmyellow: tuya.enum(8),
     }),
     radarConfig: tuya.valueConverterBasic.lookup({
-        "none": tuya.enum(0),
+        none: tuya.enum(0),
         "10s": tuya.enum(1),
         "20s": tuya.enum(2),
         "30s": tuya.enum(3),
