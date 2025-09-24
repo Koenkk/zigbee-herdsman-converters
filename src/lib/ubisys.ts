@@ -301,7 +301,7 @@ export const ubisysModernExtend = {
             .binary(propertyName, access, true, false)
             .withDescription("When Vacation Mode is active the schedule is disabled and unoccupied_heating_setpoint is used.");
 
-        const fromZigbee: Fz.Converter[] = [
+        const fromZigbee = [
             {
                 cluster: clusterName,
                 type: ["attributeReport", "readResponse"],
@@ -310,7 +310,7 @@ export const ubisysModernExtend = {
                         return {[propertyName]: msg.data.occupancy === 0};
                     }
                 },
-            },
+            } satisfies Fz.Converter<typeof clusterName, undefined, ["attributeReport", "readResponse"]>,
         ];
 
         const toZigbee: Tz.Converter[] = [

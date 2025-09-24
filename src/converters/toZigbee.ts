@@ -6,10 +6,10 @@ import * as exposes from "../lib/exposes";
 import * as legacy from "../lib/legacy";
 import * as light from "../lib/light";
 import {logger} from "../lib/logger";
-import {determineEndpoint} from "../lib/modernExtend";
 import * as globalStore from "../lib/store";
 import type {KeyValue, KeyValueAny, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
+import {determineEndpoint} from "../lib/utils";
 
 const NS = "zhc:tz";
 const manufacturerOptions = {
@@ -1162,6 +1162,7 @@ export const light_onoff_brightness: Tz.Converter = {
         const moveToLevelWithOnOffDisable = utils.getMetaValue(entity, meta.mapped, "moveToLevelWithOnOffDisable", "allEqual", false);
         let state = message.state !== undefined ? (typeof message.state === "string" ? message.state.toLowerCase() : null) : undefined;
         let brightness: number;
+
         if (message.brightness != null) {
             brightness = Number(message.brightness);
         } else if (message.brightness_percent != null) {
@@ -1189,12 +1190,19 @@ export const light_onoff_brightness: Tz.Converter = {
         // used 'MoveToLevelWithOnOff' so that'd break backwards compatibility. To keep the state, the user
         // has to explicitly set it to null.
         if (state === undefined) {
-            // Also write to `meta.message.state` in case we delegate to the `on_off` converter.
-            state = meta.message.state = brightness === 0 ? "off" : "on";
+            if (moveToLevelWithOnOffDisable) {
+                // Although in some cases it can be usefull to use explicit on and off and moveToLevel. In these casese
+                // we just ignore the brightness value and set the state to the current device state.
+                state = (meta.state.state as string).toLowerCase();
+            } else {
+                // Also write to `meta.message.state` in case we delegate to the `on_off` converter.
+                state = meta.message.state = brightness === 0 ? "off" : "on";
+            }
         }
 
         let publishBrightness = brightness !== undefined;
         const targetState = state === "toggle" ? (meta.state.state === "ON" ? "off" : "on") : state;
+
         if (targetState === "off") {
             // Simulate 'Off' with transition via 'MoveToLevelWithOnOff', otherwise just use 'Off'.
             // TODO: if this is a group where some members don't support Level Control, turning them off
@@ -1276,12 +1284,30 @@ export const light_onoff_brightness: Tz.Converter = {
             globalStore.putValue(entity, "brightness", brightness);
             globalStore.clearValue(entity, "turnedOffWithTransition");
         }
-        await entity.command(
-            "genLevelCtrl",
-            state === null || moveToLevelWithOnOffDisable ? "moveToLevel" : "moveToLevelWithOnOff",
-            {level: Number(brightness), transtime: transition.time},
-            utils.getOptions(meta.mapped, entity),
-        );
+
+        if (moveToLevelWithOnOffDisable) {
+            // On some devices "moveToLevelWithOnOff" command seems to be broken, leading to the light
+            // randomly switching off for levels lower than some threshold. Is those cases it's better to
+            // use "moveToLevel" with explicit On and Off when the state changes.
+
+            if (typeof meta.state.state === "string" && meta.state.state.toLowerCase() !== targetState) {
+                await on_off.convertSet(entity, "state", state, meta);
+            } else {
+                await entity.command(
+                    "genLevelCtrl",
+                    "moveToLevel",
+                    {level: Number(brightness), transtime: transition.time},
+                    utils.getOptions(meta.mapped, entity),
+                );
+            }
+        } else {
+            await entity.command(
+                "genLevelCtrl",
+                "moveToLevelWithOnOff",
+                {level: Number(brightness), transtime: transition.time},
+                utils.getOptions(meta.mapped, entity),
+            );
+        }
 
         const result = {state: {} as KeyValueAny};
         if (publishBrightness) {

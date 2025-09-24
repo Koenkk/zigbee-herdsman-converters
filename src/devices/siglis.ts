@@ -24,7 +24,7 @@ const actionLookup = {
     3: "hold",
 };
 
-const zifgredFromZigbeeButtonEvent: Fz.Converter = {
+const zifgredFromZigbeeButtonEvent: Fz.Converter<"manuSpecificSiglisZigfred", undefined, ["commandSiglisZigfredButtonEvent"]> = {
     cluster: "manuSpecificSiglisZigfred",
     type: ["commandSiglisZigfredButtonEvent"],
     convert: (model, msg, publish, options, meta) => {

@@ -83,31 +83,31 @@ const fzLocal = {
                 //logger.info(`Model: ${model.model}`, NS);
                 let data: number;
                 if (model.model === model_r06 || model.model === model_r09) {
-                    data = Number.parseFloat(msg.data.minSetpointDeadBand) / 10;
+                    data = msg.data.minSetpointDeadBand / 10;
                     result.hysteresis_temperature = data;
                 } else {
-                    data = Number.parseInt(msg.data.minSetpointDeadBand, 10);
+                    data = msg.data.minSetpointDeadBand;
                     result.deadzone_temperature = data;
                 }
                 //logger.info(`DeadBand: ${data}`, NS);
             }
             if (msg.data[attrThermFrostProtect] !== undefined) {
-                const data = Number.parseInt(msg.data[attrThermFrostProtect], 10) / 100;
+                const data = Number.parseInt(msg.data[attrThermFrostProtect] as string, 10) / 100;
                 result.frost_protect = data;
             }
             if (msg.data[attrThermHeatProtect] !== undefined) {
-                const data = Number.parseInt(msg.data[attrThermHeatProtect], 10) / 100;
+                const data = Number.parseInt(msg.data[attrThermHeatProtect] as string, 10) / 100;
                 result.heat_protect = data;
             }
             if (msg.data[attrThermEcoMode] !== undefined) {
                 result.eco_mode = msg.data[attrThermEcoMode] === 1 ? "On" : "Off";
             }
             if (msg.data[attrThermEcoModeCoolTemperature] !== undefined) {
-                const data = Number.parseInt(msg.data[attrThermEcoModeCoolTemperature], 10) / 100;
+                const data = Number.parseInt(msg.data[attrThermEcoModeCoolTemperature] as string, 10) / 100;
                 result.eco_mode_cool_temperature = data;
             }
             if (msg.data[attrThermEcoModeHeatTemperature] !== undefined) {
-                const data = Number.parseInt(msg.data[attrThermEcoModeHeatTemperature], 10) / 100;
+                const data = Number.parseInt(msg.data[attrThermEcoModeHeatTemperature] as string, 10) / 100;
                 result.eco_mode_heat_temperature = data;
             }
             if (msg.data[attrThermFrostProtectOnOff] !== undefined) {
@@ -131,12 +131,12 @@ const fzLocal = {
                 result.schedule_mode = utils.getFromLookup(msg.data[attrThermScheduleMode], lookup);
             }
             if (msg.data[attrThermExtTemperatureCalibration] !== undefined) {
-                const data = Number.parseInt(msg.data[attrThermExtTemperatureCalibration], 10) / 10;
+                const data = Number.parseInt(msg.data[attrThermExtTemperatureCalibration] as string, 10) / 10;
                 result.external_temperature_calibration = data;
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
     thermostat_schedule: {
         cluster: "hvacThermostat",
         type: ["commandSetWeeklySchedule"],
@@ -150,7 +150,7 @@ const fzLocal = {
             const daysOfWeek = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
             return Object.fromEntries(daysOfWeekNums.map((d) => [`schedule_${daysOfWeek[d]}`, schedule]));
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"hvacThermostat", undefined, ["commandSetWeeklySchedule"]>,
     fancontrol_control: {
         cluster: "hvacFanCtrl",
         type: ["attributeReport", "readResponse"],
@@ -161,7 +161,7 @@ const fzLocal = {
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"hvacFanCtrl", undefined, ["attributeReport", "readResponse"]>,
     display_brightness: {
         cluster: "genLevelCtrl",
         type: ["attributeReport", "readResponse"],
@@ -174,7 +174,7 @@ const fzLocal = {
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genLevelCtrl", undefined, ["attributeReport", "readResponse"]>,
 };
 
 const tzLocal = {
@@ -706,33 +706,33 @@ const electricityMeterExtend = {
                 },
             },
         ];
-        const fromZigbee: Fz.Converter[] = [
+        const fromZigbee = [
             {
                 cluster: "seMetering",
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
                     const result: KeyValueAny = {};
                     if (msg.data.divisor !== undefined) {
-                        const energyDivisor = Number.parseInt(msg.data.divisor, 10);
+                        const energyDivisor = msg.data.divisor;
                         globalStore.putValue(meta.device, "energyDivisor", energyDivisor);
                         result.e_divisor = energyDivisor;
                     }
                     return result;
                 },
-            },
+            } satisfies Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]>,
             {
                 cluster: "seMetering",
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
                     const result: KeyValueAny = {};
                     if (msg.data.multiplier !== undefined) {
-                        const energyMultiplier = Number.parseInt(msg.data.multiplier, 10);
+                        const energyMultiplier = msg.data.multiplier;
                         globalStore.putValue(meta.device, "energyMultiplier", energyMultiplier);
                         result.e_multiplier = energyMultiplier;
                     }
                     return result;
                 },
-            },
+            } satisfies Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]>,
             {
                 cluster: "seMetering",
                 type: ["attributeReport", "readResponse"],
@@ -748,11 +748,11 @@ const electricityMeterExtend = {
                             energyMultiplier = 1;
                         }
                         const data = msg.data.currentTier1SummDelivered;
-                        result.energy_tier_1 = (Number.parseInt(data, 10) / energyDivisor) * energyMultiplier;
+                        result.energy_tier_1 = (data / energyDivisor) * energyMultiplier;
                     }
                     return result;
                 },
-            },
+            } satisfies Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]>,
             {
                 cluster: "seMetering",
                 type: ["attributeReport", "readResponse"],
@@ -768,11 +768,11 @@ const electricityMeterExtend = {
                             energyMultiplier = 1;
                         }
                         const data = msg.data.currentTier2SummDelivered;
-                        result.energy_tier_2 = (Number.parseInt(data, 10) / energyDivisor) * energyMultiplier;
+                        result.energy_tier_2 = (data / energyDivisor) * energyMultiplier;
                     }
                     return result;
                 },
-            },
+            } satisfies Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]>,
             {
                 cluster: "seMetering",
                 type: ["attributeReport", "readResponse"],
@@ -788,11 +788,11 @@ const electricityMeterExtend = {
                             energyMultiplier = 1;
                         }
                         const data = msg.data.currentTier3SummDelivered;
-                        result.energy_tier_3 = (Number.parseInt(data, 10) / energyDivisor) * energyMultiplier;
+                        result.energy_tier_3 = (data / energyDivisor) * energyMultiplier;
                     }
                     return result;
                 },
-            },
+            } satisfies Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]>,
             {
                 cluster: "seMetering",
                 type: ["attributeReport", "readResponse"],
@@ -808,11 +808,11 @@ const electricityMeterExtend = {
                             energyMultiplier = 1;
                         }
                         const data = msg.data.currentTier4SummDelivered;
-                        result.energy_tier_4 = (Number.parseInt(data, 10) / energyDivisor) * energyMultiplier;
+                        result.energy_tier_4 = (data / energyDivisor) * energyMultiplier;
                     }
                     return result;
                 },
-            },
+            } satisfies Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]>,
             {
                 cluster: "seMetering",
                 type: ["attributeReport", "readResponse"],
@@ -824,7 +824,7 @@ const electricityMeterExtend = {
                     }
                     return result;
                 },
-            },
+            } satisfies Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]>,
             {
                 cluster: "seMetering",
                 type: ["attributeReport", "readResponse"],
@@ -836,7 +836,7 @@ const electricityMeterExtend = {
                     }
                     return result;
                 },
-            },
+            } satisfies Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]>,
             {
                 cluster: "seMetering",
                 type: ["attributeReport", "readResponse"],
@@ -848,7 +848,7 @@ const electricityMeterExtend = {
                     }
                     return result;
                 },
-            },
+            } satisfies Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]>,
             {
                 cluster: "seMetering",
                 type: ["attributeReport", "readResponse"],
@@ -856,39 +856,38 @@ const electricityMeterExtend = {
                     const result: KeyValueAny = {};
                     if (msg.data.status !== undefined) {
                         const data = msg.data.status;
-                        const value = Number.parseInt(data, 10);
                         return {
-                            battery_low: (value & (1 << 1)) > 0,
-                            tamper: (value & (1 << 2)) > 0,
+                            battery_low: (data & (1 << 1)) > 0,
+                            tamper: (data & (1 << 2)) > 0,
                         };
                     }
                     return result;
                 },
-            },
+            } satisfies Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]>,
             {
                 cluster: "seMetering",
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
                     const result: KeyValueAny = {};
                     if (msg.data.remainingBattLife !== undefined) {
-                        const data = Number.parseInt(msg.data.remainingBattLife, 10);
+                        const data = msg.data.remainingBattLife;
                         result.battery_life = data;
                     }
                     return result;
                 },
-            },
+            } satisfies Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]>,
             {
                 cluster: "seMetering",
                 type: ["readResponse"],
                 convert: (model, msg, publish, options, meta) => {
                     const result: KeyValueAny = {};
                     if (msg.data[attrElCityMeterMeasurementPreset] !== undefined) {
-                        const data = Number.parseInt(msg.data[attrElCityMeterMeasurementPreset], 10);
+                        const data = Number.parseInt(msg.data[attrElCityMeterMeasurementPreset] as string, 10);
                         result.device_measurement_preset = data;
                     }
                     return result;
                 },
-            },
+            } satisfies Fz.Converter<"seMetering", undefined, ["readResponse"]>,
         ];
         return {
             exposes,
@@ -986,19 +985,19 @@ const air_extend = {
             },
         ];
 
-        const fromZigbee: Fz.Converter[] = [
+        const fromZigbee = [
             {
                 cluster: "genLevelCtrl",
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
                     const result: KeyValueAny = {};
                     if (Object.hasOwn(msg.data, "currentLevel")) {
-                        const data = Number.parseInt(msg.data.currentLevel, 10);
+                        const data = msg.data.currentLevel;
                         result.brightness = data;
                     }
                     return result;
                 },
-            },
+            } satisfies Fz.Converter<"genLevelCtrl", undefined, ["attributeReport", "readResponse"]>,
         ];
 
         return {
@@ -1045,11 +1044,9 @@ const air_extend = {
             },
         ];
 
-        const fromZigbee: Fz.Converter[] = [];
-
         return {
             exposes,
-            fromZigbee,
+            fromZigbee: [],
             toZigbee,
             isModernExtend: true,
         };
