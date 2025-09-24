@@ -1,5 +1,22 @@
 # Changelog
 
+## [25.31.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.30.0...v25.31.0) (2025-09-24)
+
+
+### Features
+
+* **add:** 929004581801 ([#10071](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10071)) ([72b5b68](https://github.com/Koenkk/zigbee-herdsman-converters/commit/72b5b68f883c70a1aee76093e64f89d1d395cbae))
+* Schneider Electric MUR36014: support `indicator_mode` ([#10068](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10068)) ([eb0faa7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/eb0faa7c71c6c184cb925f20145c5b2c619fae79))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZE284_wbhaespm` as SUTON STB3L-125-ZJ ([#10073](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10073)) ([6a1b499](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6a1b4994b42429e0a1c1e6c4b64ba0d724de4556))
+* Inovelli: fix parsing of custom cluster attribute ([#10065](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10065)) ([8580fd5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8580fd53a2cc98ca4e8771f40d7dcc57dfbd3e44))
+* Tuya ME201WZ: disable mcu version response https://github.com/Koenkk/zigbee2mqtt/issues/28455 ([8ed9547](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8ed9547834365814251c2dda45cd033d91e1ae1d))
+* Yokis: new cluster definitions, new device and updates on existing devices ([#10054](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10054)) ([2cd446d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2cd446dfc89aebe27b2a1487314e9808d031fda6))
+* Zemismart ZMS-206EU: add radar and correct inverted switch color ON/OFF ([#10074](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10074)) ([3c37dca](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3c37dca4d80493fbabb6d8b0a03349bd911ccf30))
+
 ## [25.30.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.29.0...v25.30.0) (2025-09-22)
 
 
