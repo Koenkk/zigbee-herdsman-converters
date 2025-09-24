@@ -624,37 +624,6 @@ const ubisys = {
                         );
                     }
                 }
-
-                // re-read effective settings and dump them to the log
-                await ubisys.tz.configure_device_setup.convertGet(entity, key, meta);
-            },
-
-            convertGet: async (entity, key, meta) => {
-                const cluster = Zcl.Utils.getCluster("manuSpecificUbisysDeviceSetup", null, meta.device.customClusters);
-
-                const devMgmtEp = meta.device.getEndpoint(232);
-                await devMgmtEp.zclCommand(
-                    "manuSpecificUbisysDeviceSetup",
-                    "readStructured",
-                    [
-                        {
-                            attrId: cluster.getAttribute("inputConfigurations").ID,
-                            selector: {}, // i.e. "whole"
-                        },
-                    ],
-                    manufacturerOptions.ubisysNull,
-                );
-                await devMgmtEp.zclCommand(
-                    "manuSpecificUbisysDeviceSetup",
-                    "readStructured",
-                    [
-                        {
-                            attrId: cluster.getAttribute("inputActions").ID,
-                            selector: {}, // i.e. "whole"
-                        },
-                    ],
-                    manufacturerOptions.ubisysNull,
-                );
             },
         } satisfies Tz.Converter,
     },
