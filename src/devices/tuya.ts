@@ -7668,7 +7668,7 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [{vendor: "TNCE", model: "RMDZB-1PNL63"}],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_wbhaespm", "_TZE200_wbhaespm"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_wbhaespm", "_TZE200_wbhaespm", "_TZE284_wbhaespm"]),
         model: "STB3L-125-ZJ",
         vendor: "SUTON",
         description: "Zigbee DIN RCBO energy meter",
