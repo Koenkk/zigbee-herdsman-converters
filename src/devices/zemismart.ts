@@ -417,9 +417,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMax(100)
                 .withValueStep(1),
             e.child_lock(),
-            e
-                .enum("radar_config", ea.STATE_SET, ["none", "10s", "20s", "30s", "45s", "60s"])
-                .withDescription("Radar Config"),
+            e.enum("radar_config", ea.STATE_SET, ["none", "10s", "20s", "30s", "45s", "60s"]).withDescription("Radar Config"),
             e
                 .enum("switch_color_on", ea.STATE_SET, ["red", "blue", "green", "white", "yellow", "magenta", "cyan", "warm_white", "warm_yellow"])
                 .withDescription("Switch lightcolor when on"),
@@ -480,9 +478,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMax(100)
                 .withValueStep(1),
             e.child_lock(),
-            e
-                .enum("radar_config", ea.STATE_SET, ["none", "10s", "20s", "30s", "45s", "60s"])
-                .withDescription("Radar Config"),
+            e.enum("radar_config", ea.STATE_SET, ["none", "10s", "20s", "30s", "45s", "60s"]).withDescription("Radar Config"),
             e
                 .enum("switch_color_on", ea.STATE_SET, ["red", "blue", "green", "white", "yellow", "magenta", "cyan", "warm_white", "warm_yellow"])
                 .withDescription("Switch lightcolor when on"),
@@ -569,9 +565,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMax(100)
                 .withValueStep(1),
             e.child_lock(),
-            e
-                .enum("radar_config", ea.STATE_SET, ["none", "10s", "20s", "30s", "45s", "60s"])
-                .withDescription("Radar Config"),
+            e.enum("radar_config", ea.STATE_SET, ["none", "10s", "20s", "30s", "45s", "60s"]).withDescription("Radar Config"),
             e
                 .enum("switch_color_on", ea.STATE_SET, ["red", "blue", "green", "white", "yellow", "magenta", "cyan", "warm_white", "warm_yellow"])
                 .withDescription("Switch lightcolor when on"),
@@ -677,9 +671,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMax(100)
                 .withValueStep(1),
             e.child_lock(),
-            e
-                .enum("radar_config", ea.STATE_SET, ["none", "10s", "20s", "30s", "45s", "60s"])
-                .withDescription("Radar Config"),
+            e.enum("radar_config", ea.STATE_SET, ["none", "10s", "20s", "30s", "45s", "60s"]).withDescription("Radar Config"),
             e
                 .enum("switch_color_on", ea.STATE_SET, ["red", "blue", "green", "white", "yellow", "magenta", "cyan", "warm_white", "warm_yellow"])
                 .withDescription("Switch lightcolor when on"),
