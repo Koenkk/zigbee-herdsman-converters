@@ -72,14 +72,14 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        model: 'S4PL-00416EU',
-        vendor: 'Shelly',
-        description: 'Shelly Power Strip 4 Gen4',
+        model: "S4PL-00416EU",
+        vendor: "Shelly",
+        description: "Shelly Power Strip 4 Gen4",
         extend: [
-            m.deviceEndpoints({"endpoints":{"1":1,"2":2,"3":3,"4":4,"239":239}}),
-            m.onOff({"powerOnBehavior":false,"endpointNames":["1","2","3","4"]}),
-            m.electricityMeter()
+            m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3, "4": 4, "239": 239}}),
+            m.onOff({powerOnBehavior: false, endpointNames: ["1", "2", "3", "4"]}),
+            m.electricityMeter(),
         ],
-        meta: {"multiEndpoint":true},
-    }
+        meta: {multiEndpoint: true},
+    },
 ];
