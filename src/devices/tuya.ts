@@ -4667,7 +4667,6 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZ3000_v4l4b0lp",
             "_TZ3000_uilitwsy",
             "_TZ3000_66fekqhh",
-            "_TZ3000_eqsair32",
             "_TZ3000_ok0ggpk7",
         ]),
         model: "TS0003_switch_3_gang_with_backlight",
@@ -4696,7 +4695,6 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Zemismart", "ZM-L03E-Z", "3 gang switch with neutral", ["_TZ3000_empogkya", "_TZ3000_lsunm46z", "_TZ3000_uilitwsy"]),
             tuya.whitelabel("AVATTO", "ZWOT16-W2", "2 gang switch and 1 socket", ["_TZ3000_66fekqhh"]),
             tuya.whitelabel("Tuya", "M10Z", "2 gang switch with 20A power socket", ["_TZ3000_lubfc1t5"]),
-            tuya.whitelabel("Zemismart", "TB26-3", "3 gang switch", ["_TZ3000_eqsair32"]),
         ],
     },
     {
@@ -4732,6 +4730,7 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [
             {vendor: "BSEED", model: "TS0003", description: "Zigbee switch"},
             tuya.whitelabel("Tuya", "TS0003_1", "3 gang switch", ["_TZ3000_ouwfc1qj"]),
+            tuya.whitelabel("Zemismart", "TB26-3", "3 gang switch", ["_TZ3000_eqsair32"]),
         ],
         meta: {disableDefaultResponse: true},
         configure: async (device, coordinatorEndpoint) => {
