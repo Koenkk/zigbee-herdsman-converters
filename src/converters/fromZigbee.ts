@@ -2303,6 +2303,12 @@ export const ts0216_siren: Fz.Converter<"ssIasWd", undefined, ["attributeReport"
         if (msg.data["2"] !== undefined) {
             result.volume = mapNumberRange(msg.data["2"] as number, 100, 10, 0, 100);
         }
+
+        if (["_TYZB01_sbpc1zrb"].includes(meta.device.manufacturerName) && typeof msg.data["2"] === "number") {
+            const volData = msg.data["2"];
+            result.volume = volData === 0 ? 0 : mapNumberRange(volData, 100, 33, 1, 100);
+        }
+
         if (msg.data["61440"] !== undefined) {
             result.alarm = msg.data["61440"] !== 0;
         }
