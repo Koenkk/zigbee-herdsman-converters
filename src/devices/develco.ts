@@ -640,8 +640,8 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
-            develcoModernExtend.temperature(), // TODO: ep 38
-            m.illuminance(), // TODO: ep 39
+            develcoModernExtend.temperature({reporting: {min: 10, max: 3600, change: 100}}),
+            m.illuminance({reporting: {min: 10, max: 3600, change: 100}}),
             m.battery({
                 voltageToPercentage: {min: 2500, max: 3000},
                 percentage: true,
