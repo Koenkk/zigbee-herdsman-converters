@@ -276,7 +276,6 @@ const boschExtend = {
             reporting: {min: "10_SECONDS", max: "MAX", change: null},
             description: "Bosch-specific operating mode (overrides system mode)",
             lookup: {schedule: 0x00, manual: 0x01, pause: 0x05},
-            zigbeeCommandOptions: manufacturerOptions,
         }),
     windowDetection: () =>
         m.binary<"hvacThermostat", BoschHvacThermostat>({
@@ -286,7 +285,6 @@ const boschExtend = {
             description: "Enable/disable window open (Lo.) mode",
             valueOn: ["ON", 0x01],
             valueOff: ["OFF", 0x00],
-            zigbeeCommandOptions: manufacturerOptions,
         }),
     boostHeating: () =>
         m.binary<"hvacThermostat", BoschHvacThermostat>({
@@ -297,7 +295,6 @@ const boschExtend = {
             description: "Activate boost heating (5 min. on TRV)",
             valueOn: ["ON", 0x01],
             valueOff: ["OFF", 0x00],
-            zigbeeCommandOptions: manufacturerOptions,
         }),
     childLock: () =>
         m.binary({
@@ -317,7 +314,6 @@ const boschExtend = {
             valueMin: 5,
             valueMax: 30,
             unit: "s",
-            zigbeeCommandOptions: manufacturerOptions,
         }),
     displayBrightness: () =>
         m.numeric<"hvacUserInterfaceCfg", BoschHvacUserInterfaceCfg>({
@@ -327,7 +323,6 @@ const boschExtend = {
             description: "Sets brightness of the display",
             valueMin: 0,
             valueMax: 10,
-            zigbeeCommandOptions: manufacturerOptions,
         }),
     valveAdaptProcess: (): ModernExtend => {
         const adaptationStatus: KeyValue = {
@@ -384,7 +379,7 @@ const boschExtend = {
                     return {state: {valve_adapt_process: value}};
                 },
                 convertGet: async (entity, key, meta) => {
-                    await entity.read<"hvacThermostat", BoschHvacThermostat>("hvacThermostat", ["valveAdaptStatus"], manufacturerOptions);
+                    await entity.read<"hvacThermostat", BoschHvacThermostat>("hvacThermostat", ["valveAdaptStatus"]);
                 },
             },
         ];
@@ -418,18 +413,18 @@ const boschExtend = {
                     if (key === "pi_heating_demand") {
                         let demand = utils.toNumber(value, key);
                         demand = utils.numberWithinRange(demand, 0, 100);
-                        await entity.write<"hvacThermostat", BoschHvacThermostat>("hvacThermostat", {heatingDemand: demand}, manufacturerOptions);
+                        await entity.write<"hvacThermostat", BoschHvacThermostat>("hvacThermostat", {heatingDemand: demand});
                         return {state: {pi_heating_demand: demand}};
                     }
                 },
                 convertGet: async (entity, key, meta) => {
-                    await entity.read<"hvacThermostat", BoschHvacThermostat>("hvacThermostat", ["heatingDemand"], manufacturerOptions);
+                    await entity.read<"hvacThermostat", BoschHvacThermostat>("hvacThermostat", ["heatingDemand"]);
                 },
             },
             {
                 key: ["running_state"],
                 convertGet: async (entity, key, meta) => {
-                    await entity.read<"hvacThermostat", BoschHvacThermostat>("hvacThermostat", ["heatingDemand"], manufacturerOptions);
+                    await entity.read<"hvacThermostat", BoschHvacThermostat>("hvacThermostat", ["heatingDemand"]);
                 },
             },
         ];
