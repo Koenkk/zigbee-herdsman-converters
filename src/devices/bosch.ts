@@ -389,7 +389,7 @@ const boschExtend = {
                     if ("dstStart" in msg.data && "dstEnd" in msg.data && "dstShift" in msg.data) {
                         const payload: TPartialClusterAttributes<"genTime"> = {};
 
-                        payload.dstEnd = 0x00;
+                        payload.dstStart = 0x00;
                         payload.dstEnd = 0x00;
                         payload.dstShift = 0x00;
 
