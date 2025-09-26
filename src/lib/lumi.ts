@@ -427,7 +427,7 @@ export const numericAttributes2Payload = async (
                     assertNumber(value);
                     const battery = value / 2;
                     payload.battery = precisionRound(battery, 2);
-                } else if (["RTCZCGQ11LM"].includes(model.model)) {
+                } else if (["RTCZCGQ11LM", "PS-S04D"].includes(model.model)) {
                     payload.presence = getFromLookup(value, {0: false, 1: true, 255: null});
                 } else if (["ZNXDD01LM"].includes(model.model)) {
                     payload.brightness = value;
@@ -468,6 +468,8 @@ export const numericAttributes2Payload = async (
                 } else if (["ZNXDD01LM"].includes(model.model)) {
                     // const color_temp_min = (value & 0xffff); // 2700
                     // const color_temp_max = (value >> 16) & 0xffff; // 6500
+                } else if (["PS-S04D"].includes(model.model)) {
+                    payload.pir_detection = value === 1;
                 }
                 break;
             case "105":
@@ -2384,7 +2386,7 @@ export const lumiModernExtend = {
         return {exposes, fromZigbee, isModernExtend: true};
     },
     fp300PIRDetection: () => {
-        const attribute = {ID: 0x014d, type: 0x20};
+        const attribute = {ID: 0x014d, type: 0x20}; // Attribute: 333
         return modernExtend.binary({
             name: "pir_detection",
             valueOn: [true, 1],
