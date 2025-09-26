@@ -964,13 +964,13 @@ const fzLocal = {
             return result;
         },
     } satisfies Fz.Converter<"manuSpecificTuya2", undefined, ["attributeReport"]>,
-    SGS02Z_unit_convert:{
+    sgs02zUnitConvert: {
         cluster: "manuSpecificTuya",
-        type: ["commandDataReport", "commandDataResponse"],
+        type: ["commandDataResponse", "commandDataReport", "commandActiveStatusReport", "commandActiveStatusReportAlt"],
         convert: (model, msg, publish, options, meta) => {
             const result = tuya.fz.datapoints.convert(model, msg, publish, options, meta) || {};
             const dev = meta.device?.ieeeAddr;
-            const s = sgs02zState.get(dev) || {unit: 'celsius', lastCelsius: undefined};
+            const s = sgs02zState.get(dev) || {unit: "celsius", lastCelsius: undefined};
             // 1) check if there are any changes in temperature and temperature scale in this message
             const hasTemp = "temperature" in result;
             const hasUnit = "temperature_unit" in result;
@@ -988,8 +988,8 @@ const fzLocal = {
             result.temperature_unit = s.unit;
             // 4) Unified output temperature: Prioritize using the cached lastCelsius and convert it to the current s.unit for display
             if ((hasTemp || hasUnit) && s.lastCelsius !== undefined) {
-                const out = (s.unit === 'fahrenheit') ? +(s.lastCelsius * 9/5 + 32).toFixed(1) : s.lastCelsius;
-                const unitSymbol = (s.unit === 'fahrenheit') ? '°F' : '°C';
+                const out = s.unit === "fahrenheit" ? +((s.lastCelsius * 9) / 5 + 32).toFixed(1) : s.lastCelsius;
+                const unitSymbol = s.unit === "fahrenheit" ? "°F" : "°C";
                 result.temperature_scale = `${out}${unitSymbol}`;
                 result.temperature = out;
             }
@@ -998,18 +998,23 @@ const fzLocal = {
                 const illuminanceValue = Number(result.illuminance);
                 if (!Number.isNaN(illuminanceValue)) {
                     const illuminanceMap = {
-                        0: 'Low-',
-                        1: 'Low',
-                        2: 'NOR',
-                        3: 'High',
-                        4: 'High+'
-                    };
-                    result.illuminance_level = illuminanceMap[illuminanceValue] || illuminanceValue.toString();
+                        0: "Low-",
+                        1: "Low",
+                        2: "NOR",
+                        3: "High",
+                        4: "High+",
+                    } as const;
+
+                    result.illuminance_level = illuminanceMap[illuminanceValue as keyof typeof illuminanceMap] || illuminanceValue.toString();
                 }
             }
             return result;
         },
-    } satisfies Fz.Converter<"manuSpecificTuya", undefined, ["commandDataReport","commandDataResponse"]>,
+    } satisfies Fz.Converter<
+        "manuSpecificTuya",
+        undefined,
+        ["commandDataResponse", "commandDataReport", "commandActiveStatusReport", "commandActiveStatusReportAlt"]
+    >,
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -2657,7 +2662,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SGS02Z",
         vendor: "Tuya",
         description: "Soil sensor",
-        fromZigbee: [fzLocal.SGS02Z_unit_convert],
+        fromZigbee: [fzLocal.sgs02zUnitConvert],
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
         exposes: [
@@ -2665,7 +2670,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.soil_moisture(),
             tuya.exposes.temperatureUnit(),
             e.text("illuminance_level", exposes.access.STATE).withDescription("Illuminance level"),
-            e.battery()
+            e.battery(),
         ],
         meta: {
             tuyaDatapoints: [
