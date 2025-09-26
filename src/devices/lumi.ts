@@ -5032,7 +5032,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
 
             m.numeric({
-                name: "PIR_detection_interval",
+                name: "pir_detection_interval",
                 valueMin: 2, // Min: 2S
                 valueMax: 300, // Max: 300s
                 valueStep: 1, // Step: 1s

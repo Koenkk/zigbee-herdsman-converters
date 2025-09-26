@@ -2515,7 +2515,7 @@ export const lumiModernExtend = {
         return {
             isModernExtend: true,
             exposes: [
-                e.enum("track_target_distance", ea.SET, ["Start Tracking Distance"]).withDescription("Initiate current target distance tracking."),
+                e.enum("track_target_distance", ea.SET, ["start_tracking_distance"]).withDescription("Initiate current target distance tracking."),
             ],
             toZigbee: [
                 {
