@@ -403,6 +403,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.action(["scene_1"]),
             exposes.enum("induction_mode", ea.ALL, ["ON", "OFF"]).withDescription("Induction mode"),
             exposes.enum("vibration_mode", ea.ALL, ["Gear 0", "Gear 1", "Gear 2", "Gear 3"]).withDescription("Vibration"),
+            exposes.enum("indicator_status", ea.ALL, ["Off", "Relay", "Invert"]).withDescription("Indicator status"),
         ],
         endpoint: (device) => {
             return {
@@ -420,7 +421,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [24, "state_l1", tuya.valueConverter.onOff],
                 [30, "countdown_l1", tuya.valueConverter.countdown],
                 [36, "backlight_mode", tuya.valueConverter.onOff],
-                [37, "indicator_mode", tuya.valueConverterBasic.lookup({none: 0, relay: 1, pos: 2})],
+                [37, 'indicator_status', tuya.valueConverterBasic.lookup({off: tuya.enum(0), Relay: tuya.enum(1), Invert: tuya.enum(2)})],
                 [38, "power_on_behavior", tuya.valueConverter.powerOnBehaviorEnum],
                 [103, "induction_mode", tuya.valueConverter.onOff],
                 [
