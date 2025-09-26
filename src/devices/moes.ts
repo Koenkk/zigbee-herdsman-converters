@@ -421,7 +421,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [24, "state_l1", tuya.valueConverter.onOff],
                 [30, "countdown_l1", tuya.valueConverter.countdown],
                 [36, "backlight_mode", tuya.valueConverter.onOff],
-                [37, 'indicator_status', tuya.valueConverterBasic.lookup({off: tuya.enum(0), Relay: tuya.enum(1), Invert: tuya.enum(2)})],
+                [37, "indicator_status", tuya.valueConverterBasic.lookup({off: tuya.enum(0), Relay: tuya.enum(1), Invert: tuya.enum(2)})],
                 [38, "power_on_behavior", tuya.valueConverter.powerOnBehaviorEnum],
                 [103, "induction_mode", tuya.valueConverter.onOff],
                 [
