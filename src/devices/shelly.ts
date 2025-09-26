@@ -72,6 +72,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
+        zigbeeModel: ["Power Strip 4 Gen4"],
         model: "S4PL-00416EU",
         vendor: "Shelly",
         description: "Shelly Power Strip 4 Gen4",
