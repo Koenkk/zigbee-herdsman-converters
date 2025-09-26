@@ -1267,28 +1267,31 @@ export const definitions: DefinitionWithExtend[] = [
                 change: 50,
             });
             await reporting.thermostatKeypadLockMode(endpoint);
-            await endpoint.configureReporting<"hvacThermostat", BoschHvacThermostat>(
-                "hvacThermostat",
-                [
-                    {
-                        attribute: "heatingDemand",
-                        minimumReportInterval: constants.repInterval.SECONDS_10,
-                        maximumReportInterval: constants.repInterval.MAX,
-                        reportableChange: null,
-                    },
-                ],
-            );
+            await endpoint.configureReporting<"hvacThermostat", BoschHvacThermostat>("hvacThermostat", [
+                {
+                    attribute: "heatingDemand",
+                    minimumReportInterval: constants.repInterval.SECONDS_10,
+                    maximumReportInterval: constants.repInterval.MAX,
+                    reportableChange: null,
+                },
+            ]);
             await endpoint.read("genPowerCfg", ["batteryPercentageRemaining"]);
             await endpoint.read("hvacThermostat", ["localTemperatureCalibration", "setpointChangeSource"]);
-            await endpoint.read<"hvacThermostat", BoschHvacThermostat>(
-                "hvacThermostat",
-                ["operatingMode", "heatingDemand", "valveAdaptStatus", "remoteTemperature", "windowDetection", "boostHeating"],
-            );
+            await endpoint.read<"hvacThermostat", BoschHvacThermostat>("hvacThermostat", [
+                "operatingMode",
+                "heatingDemand",
+                "valveAdaptStatus",
+                "remoteTemperature",
+                "windowDetection",
+                "boostHeating",
+            ]);
             await endpoint.read("hvacUserInterfaceCfg", ["keypadLockout"]);
-            await endpoint.read<"hvacUserInterfaceCfg", BoschHvacUserInterfaceCfg>(
-                "hvacUserInterfaceCfg",
-                ["displayOrientation", "displayedTemperature", "displayOntime", "displayBrightness"],
-            );
+            await endpoint.read<"hvacUserInterfaceCfg", BoschHvacUserInterfaceCfg>("hvacUserInterfaceCfg", [
+                "displayOrientation",
+                "displayedTemperature",
+                "displayOntime",
+                "displayBrightness",
+            ]);
         },
     },
     {
@@ -1358,15 +1361,9 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.thermostatKeypadLockMode(endpoint);
             await endpoint.read("genPowerCfg", ["batteryVoltage"]);
             await endpoint.read("hvacThermostat", ["localTemperatureCalibration"]);
-            await endpoint.read<"hvacThermostat", BoschHvacThermostat>(
-                "hvacThermostat",
-                ["operatingMode", "windowDetection", "boostHeating"],
-            );
+            await endpoint.read<"hvacThermostat", BoschHvacThermostat>("hvacThermostat", ["operatingMode", "windowDetection", "boostHeating"]);
             await endpoint.read("hvacUserInterfaceCfg", ["keypadLockout"]);
-            await endpoint.read<"hvacUserInterfaceCfg", BoschHvacUserInterfaceCfg>(
-                "hvacUserInterfaceCfg",
-                ["displayOntime", "displayBrightness"],
-            );
+            await endpoint.read<"hvacUserInterfaceCfg", BoschHvacUserInterfaceCfg>("hvacUserInterfaceCfg", ["displayOntime", "displayBrightness"]);
         },
     },
     {
@@ -1427,15 +1424,9 @@ export const definitions: DefinitionWithExtend[] = [
             });
             await reporting.thermostatKeypadLockMode(endpoint);
             await endpoint.read("hvacThermostat", ["localTemperatureCalibration"]);
-            await endpoint.read<"hvacThermostat", BoschHvacThermostat>(
-                "hvacThermostat",
-                ["operatingMode", "windowDetection", "boostHeating"],
-            );
+            await endpoint.read<"hvacThermostat", BoschHvacThermostat>("hvacThermostat", ["operatingMode", "windowDetection", "boostHeating"]);
             await endpoint.read("hvacUserInterfaceCfg", ["keypadLockout"]);
-            await endpoint.read<"hvacUserInterfaceCfg", BoschHvacUserInterfaceCfg>(
-                "hvacUserInterfaceCfg",
-                ["displayOntime", "displayBrightness"],
-            );
+            await endpoint.read<"hvacUserInterfaceCfg", BoschHvacUserInterfaceCfg>("hvacUserInterfaceCfg", ["displayOntime", "displayBrightness"]);
         },
     },
     {
