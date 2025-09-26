@@ -81,5 +81,6 @@ export const definitions: DefinitionWithExtend[] = [
             m.onOff({powerOnBehavior: false, endpointNames: ["1", "2", "3", "4"]}),
             m.electricityMeter(),
         ],
+        meta: {"multiEndpoint":true},
     },
 ];
