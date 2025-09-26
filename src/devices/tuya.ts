@@ -8701,6 +8701,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.binary("alarm", ea.STATE_SET, true, false),
             e.numeric("volume", ea.ALL).withValueMin(0).withValueMax(100).withDescription("Volume of siren"),
         ],
+        whiteLabel: [tuya.whitelabel("Hejhome", "GKZ-SA141", "Sound and flash siren", ["_TYZB01_sbpc1zrb"])],
         toZigbee: [tz.ts0216_alarm, tz.ts0216_duration, tz.ts0216_volume],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
