@@ -8980,6 +8980,8 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE204_oh8y8pv8",
             "_TZE204_gops3slb",
             "_TZE284_gops3slb",
+            "_TZE284_zjhoqbrd",
+            "_TZE204_zjhoqbrd",
         ]),
         model: "ZWT198/ZWT100-BH",
         vendor: "Tuya",
