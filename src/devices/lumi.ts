@@ -4988,17 +4988,9 @@ export const definitions: DefinitionWithExtend[] = [
         model: "PS-S04D",
         vendor: "Aqara",
         description: "Presence sensor FP300",
-        fromZigbee: [
-            lumi.fromZigbee.lumi_specific
-        ],
-        toZigbee: [
-            lumi.toZigbee.lumi_presence,
-            lumi.toZigbee.lumi_motion_sensitivity
-        ],
-        exposes: [
-            e.power_outage_count(),
-            e.motion_sensitivity_select(["low", "medium", "high"]).withDescription("Presence Detection Sensitivity."),
-        ],
+        fromZigbee: [lumi.fromZigbee.lumi_specific],
+        toZigbee: [lumi.toZigbee.lumi_presence, lumi.toZigbee.lumi_motion_sensitivity],
+        exposes: [e.power_outage_count(), e.motion_sensitivity_select(["low", "medium", "high"]).withDescription("Presence Detection Sensitivity.")],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await endpoint.read("manuSpecificLumi", [0x00ee], {manufacturerCode: manufacturerCode}); // Read OTA data; makes the device expose more attributes related to OTA
@@ -5051,11 +5043,11 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Higher detection frequency results in higher accuracy but lower battery life.",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
-            
+
             m.illuminance(),
             m.humidity(),
             m.temperature(),
-            lumi.lumiModernExtend.fp1eSpatialLearning(), 
+            lumi.lumiModernExtend.fp1eSpatialLearning(),
             lumi.lumiModernExtend.fp1eRestartDevice(),
             m.identify(),
 
@@ -5065,7 +5057,8 @@ export const definitions: DefinitionWithExtend[] = [
                 lookup: {off: 0, low: 1, medium: 2, high: 3, custom: 4},
                 cluster: "manuSpecificLumi",
                 attribute: {ID: 0x0170, type: Zcl.DataType.UINT8}, // Attribute: 368
-                description: "Sampling time frequency, increasing affects battery life. Setting to custom allows specifying period, interval & threshold.",
+                description:
+                    "Sampling time frequency, increasing affects battery life. Setting to custom allows specifying period, interval & threshold.",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.numeric({
@@ -5080,7 +5073,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "How often temp & humidity readings are taken on the device when in custom mode.",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
-            
+
             // Temperature
             m.numeric({
                 name: "temp_reporting_interval",
@@ -5114,7 +5107,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Temperature reporting type when in custom mode.",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
-            
+
             // Humidity
             m.numeric({
                 name: "humidity_reporting_interval",
@@ -5155,13 +5148,14 @@ export const definitions: DefinitionWithExtend[] = [
                 lookup: {off: 0, low: 1, medium: 2, high: 3, custom: 4},
                 cluster: "manuSpecificLumi",
                 attribute: {ID: 0x0192, type: Zcl.DataType.UINT8}, // Attribute: 402
-                description: "Sampling time frequency, increasing affects battery life. Setting to custom allows specifying period, interval & threshold.",
+                description:
+                    "Sampling time frequency, increasing affects battery life. Setting to custom allows specifying period, interval & threshold.",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.numeric({
                 name: "light_sampling_period",
                 valueMin: 0.5, // Min: 500ms
-                valueMax: 3600, // Max: 1h = 3600s 
+                valueMax: 3600, // Max: 1h = 3600s
                 valueStep: 0.5, // Step: 500ms
                 scale: 1000,
                 unit: "sec",
@@ -5202,7 +5196,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "illumination reporting type when in custom mode.",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
-            
+
             // Read current target distance
             lumi.lumiModernExtend.fp300TrackDistance(),
             lumi.lumiModernExtend.fp1eTargetDistance(), // Same attribute. Need to send 0x0198 to start tracking
@@ -5216,7 +5210,7 @@ export const definitions: DefinitionWithExtend[] = [
 
             // OTA
             m.quirkCheckinInterval("1_HOUR"),
-            lumi.lumiModernExtend.lumiZigbeeOTA()
-        ]
-    }
+            lumi.lumiModernExtend.lumiZigbeeOTA(),
+        ],
+    },
 ];

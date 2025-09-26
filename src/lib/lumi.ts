@@ -1185,7 +1185,7 @@ function writeTime(buffer: Buffer, offset: number, time: number, isNextDay: bool
 /**
  * Formats a number of minutes into a user-readable 24-hour time notation in the form hh:mm.
  */
-function formatTime(timeMinutes: number, padHour: boolean = false): string {
+function formatTime(timeMinutes: number, padHour = false): string {
     const hours = Math.floor(timeMinutes / 60);
     const minutes = timeMinutes % 60;
     if (padHour) return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
@@ -1225,7 +1225,7 @@ function encodeTimeFormat(startTime: string, endTime: string): number {
     return Math.floor(start / 60) | ((start % 60) << 8) | (Math.floor(end / 60) << 16) | ((end % 60) << 24);
 }
 
-function decodeTimeFormat(value: number): { startTime: string, endTime: string } | null {
+function decodeTimeFormat(value: number): {startTime: string; endTime: string} | null {
     if (value < 0 || value > 0xffffffff) return null;
 
     const startHour = value & 0xff;
@@ -1237,23 +1237,23 @@ function decodeTimeFormat(value: number): { startTime: string, endTime: string }
 
     return {
         startTime: formatTime(startHour * 60 + startMin),
-        endTime: formatTime(endHour * 60 + endMin)
+        endTime: formatTime(endHour * 60 + endMin),
     };
 }
 
 // Encodes and decodes detection range composite value (used in FP300) from/to int
-function encodeDetectionRangeComposite(detection_range_value: number, rangeCount: number): { [key: string]: boolean } {
-    const composite_values: { [key: string]: boolean } = {};
+function encodeDetectionRangeComposite(detectionRangeValue: number, rangeCount: number): {[key: string]: boolean} {
+    const composite_values: {[key: string]: boolean} = {};
     for (let i = 0; i < rangeCount; ++i) {
-        composite_values[`detection_range_${i}`] = ((detection_range_value >>> i) & 1) == 1;
+        composite_values[`detection_range_${i}`] = ((detectionRangeValue >>> i) & 1) === 1;
     }
     return composite_values;
 }
 
-function decodeDetectionRangeComposite(composite_values: { [key: string]: boolean }, rangeCount: number): number {
+function decodeDetectionRangeComposite(compositeValues: {[key: string]: boolean}, rangeCount: number): number {
     let intValue = 0;
     for (let i = 0; i < rangeCount; ++i) {
-        if (composite_values[`detection_range_${i}`]) intValue |= 1 << i;
+        if (compositeValues[`detection_range_${i}`]) intValue |= 1 << i;
     }
     return intValue;
 }
@@ -1968,31 +1968,23 @@ export const lumiModernExtend = {
         return {
             isModernExtend: true,
             exposes: [
-                e
-                    .text("schedule_start_time", ea.ALL)
-                    .withDescription(
-                        "LED disable schedule start time (HH:MM format)",
-                    ),
-                e
-                    .text("schedule_end_time", ea.ALL)
-                    .withDescription(
-                        "LED disable schedule end time (HH:MM format)",
-                    )
+                e.text("schedule_start_time", ea.ALL).withDescription("LED disable schedule start time (HH:MM format)"),
+                e.text("schedule_end_time", ea.ALL).withDescription("LED disable schedule end time (HH:MM format)"),
             ],
             fromZigbee: [
                 {
                     cluster: "manuSpecificLumi",
                     type: ["attributeReport", "readResponse"],
-                    convert: async (model, msg, publish, options, meta) => {
+                    convert: (model, msg, publish, options, meta) => {
                         if (msg.data["574"] !== undefined) {
                             const rawValue = msg.data["574"];
                             const decoded = decodeTimeFormat(rawValue);
 
                             return {
-                                schedule_start_time: decoded ? decoded.startTime : '--:--',
-                                schedule_end_time: decoded ? decoded.endTime : '--:--',
-                                schedule_time_raw: rawValue
-                            }
+                                schedule_start_time: decoded ? decoded.startTime : "--:--",
+                                schedule_end_time: decoded ? decoded.endTime : "--:--",
+                                schedule_time_raw: rawValue,
+                            };
                         }
                     },
                 },
@@ -2002,21 +1994,28 @@ export const lumiModernExtend = {
                     key: ["schedule_start_time", "schedule_end_time"],
                     convertSet: async (entity, key, value, meta) => {
                         assertString(value);
-                        
+
                         // Read current and replace the attribute being edited
-                        const newData: { [key: string]: any } = {
-                            schedule_start_time: meta.state?.schedule_start_time ?? "00:00",
-                            schedule_end_time: meta.state?.schedule_end_time ?? "00:00",
-                            schedule_time_raw: meta.state?.schedule_time_raw
+                        const newData: KeyValue = {
+                            schedule_start_time: meta.state?.schedule_start_time,
+                            schedule_end_time: meta.state?.schedule_end_time,
+                            schedule_time_raw: meta.state?.schedule_time_raw,
                         };
                         newData[key] = value;
 
-                        // Encode and write
-                        const encodedValue = encodeTimeFormat(newData.schedule_start_time, newData.schedule_end_time);
-                        newData.schedule_time_raw = encodedValue;
-                        await entity.write("manuSpecificLumi", { 574: { value: encodedValue, type: 0x0023 } }, {manufacturerCode: manufacturerCode});
+                        const startTime: string =
+                            newData.schedule_start_time != null && typeof newData.schedule_start_time === "string"
+                                ? newData.schedule_start_time
+                                : "00:00";
+                        const endTime: string =
+                            newData.schedule_end_time != null && typeof newData.schedule_end_time === "string" ? newData.schedule_end_time : "00:00";
 
-                        return { state: newData };
+                        // Encode and write
+                        const encodedValue = encodeTimeFormat(startTime, endTime);
+                        newData.schedule_time_raw = encodedValue;
+                        await entity.write("manuSpecificLumi", {574: {value: encodedValue, type: 0x0023}}, {manufacturerCode: manufacturerCode});
+
+                        return {state: newData};
                     },
                     convertGet: async (entity, key, meta) => {
                         const endpoint = meta.device.getEndpoint(1);
@@ -2393,58 +2392,59 @@ export const lumiModernExtend = {
             access: "STATE_GET",
             cluster: "manuSpecificLumi",
             attribute: attribute,
-            description: "Indicates whether the PIR sensor detects motion (in mmWave + PIR mode after mmWave presence detection PIR sensors gets turned off so this attribute might change to false although the presence is detected).",
+            description:
+                "Indicates whether the PIR sensor detects motion (in mmWave + PIR mode after mmWave presence detection PIR sensors gets turned off so this attribute might change to false although the presence is detected).",
         });
     },
-    fp300DetectionRange: (args?: {
-        range_offset: number,
-        ranges_count: number
-    }): ModernExtend => {
+    fp300DetectionRange: (args?: {rangeOffset: number; rangesCount: number}): ModernExtend => {
+        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         args = {
-            range_offset: 0.25,
-            ranges_count: 24,
+            rangeOffset: 0.25,
+            rangesCount: 24,
             ...args,
         };
 
         let detectionRangeComposite = e
             .composite("detection_range_composite", "detection_range_composite", ea.ALL)
             .withDescription("Specifies the detection range using set of boolean settings.");
-        for (let i = 0; i < args.ranges_count; ++i) {
+        for (let i = 0; i < args.rangesCount; ++i) {
             detectionRangeComposite = detectionRangeComposite.withFeature(
                 e
                     .binary(`detection_range_${i}`, ea.SET, true, false)
-                    .withDescription(`${(i * args.range_offset).toFixed(2)}m - ${(i * args.range_offset + 1).toFixed(2)}m`)
-            )
+                    .withDescription(`${(i * args.rangeOffset).toFixed(2)}m - ${(i * args.rangeOffset + 1).toFixed(2)}m`),
+            );
         }
 
         return {
             isModernExtend: true,
             exposes: [
                 e
-                    .numeric('detection_range', ea.ALL)
+                    .numeric("detection_range", ea.ALL)
                     .withValueMin(0)
                     .withValueMax((1 << 24) - 1)
                     .withValueStep(1)
-                    .withDescription("Specifies the range that is being detected. Requires mmWave radar mode. Press the on-device button to wake the device up and refresh its' settings."),
-                detectionRangeComposite
+                    .withDescription(
+                        "Specifies the range that is being detected. Requires mmWave radar mode. Press the on-device button to wake the device up and refresh its' settings.",
+                    ),
+                detectionRangeComposite,
             ],
             fromZigbee: [
                 {
                     cluster: "manuSpecificLumi",
                     type: ["attributeReport", "readResponse"],
-                    convert: async (model, msg, publish, options, meta) => {
+                    convert: (model, msg, publish, options, meta) => {
                         if (msg.data["410"] && Buffer.isBuffer(msg.data["410"])) {
                             const buffer = msg.data["410"];
-                            const detection_range_value = (buffer.length > 0) ? buffer.readUIntLE(2, 3) : 0xFFFFFF;
+                            const detection_range_value = buffer.length > 0 ? buffer.readUIntLE(2, 3) : 0xffffff;
 
                             return {
-                                detection_range_prefix: (buffer.length > 0) ? buffer.readUIntLE(0, 2) : 0x0300,
+                                detection_range_prefix: buffer.length > 0 ? buffer.readUIntLE(0, 2) : 0x0300,
                                 detection_range: detection_range_value,
-                                detection_range_composite: encodeDetectionRangeComposite(detection_range_value, args.ranges_count)
+                                detection_range_composite: encodeDetectionRangeComposite(detection_range_value, args.rangesCount),
                             };
                         }
                     },
-                }
+                },
             ],
             toZigbee: [
                 {
@@ -2452,59 +2452,71 @@ export const lumiModernExtend = {
                     convertSet: async (entity, key, value, meta) => {
                         assertNumber(value);
 
-                        const detection_range_prefix: number = (meta.state?.detection_range_prefix != null && typeof(meta.state?.detection_range_prefix) == 'number') ? meta.state?.detection_range_prefix : 0x0300;
+                        const detection_range_prefix: number =
+                            meta.state?.detection_range_prefix != null && typeof meta.state?.detection_range_prefix === "number"
+                                ? meta.state?.detection_range_prefix
+                                : 0x0300;
 
                         const buffer = Buffer.allocUnsafe(5);
                         buffer.writeUIntLE(detection_range_prefix, 0, 2);
                         buffer.writeUIntLE(value, 2, 3);
 
-                        await entity.write("manuSpecificLumi", {
-                            410: {value: buffer, type: 0x41}
-                        }, {manufacturerCode: manufacturerCode});
+                        await entity.write(
+                            "manuSpecificLumi",
+                            {
+                                410: {value: buffer, type: 0x41},
+                            },
+                            {manufacturerCode: manufacturerCode},
+                        );
                         return {
                             state: {
                                 detection_range: value,
-                                detection_range_composite: encodeDetectionRangeComposite(value, args.ranges_count)
-                            }
+                                detection_range_composite: encodeDetectionRangeComposite(value, args.rangesCount),
+                            },
                         };
                     },
                     convertGet: async (entity, key, meta) => {
                         const endpoint = meta.device.getEndpoint(1);
                         await endpoint.read("manuSpecificLumi", [0x019a], {manufacturerCode: manufacturerCode});
-                    }
+                    },
                 },
                 {
                     key: ["detection_range_composite"],
                     convertSet: async (entity, key, value, meta) => {
                         assertObject(value);
 
-                        const detection_range_prefix: number = (meta.state?.detection_range_prefix != null && typeof(meta.state?.detection_range_prefix) == 'number') ? meta.state?.detection_range_prefix : 0x0300;
-                        const detection_range_value = decodeDetectionRangeComposite(value, args.ranges_count);
-                        
+                        const detection_range_prefix: number =
+                            meta.state?.detection_range_prefix != null && typeof meta.state?.detection_range_prefix === "number"
+                                ? meta.state?.detection_range_prefix
+                                : 0x0300;
+                        const detection_range_value = decodeDetectionRangeComposite(value, args.rangesCount);
+
                         const buffer = Buffer.allocUnsafe(5);
                         buffer.writeUIntLE(detection_range_prefix, 0, 2);
                         buffer.writeUIntLE(detection_range_value, 2, 3);
 
-                        await entity.write("manuSpecificLumi", { 410: {value: buffer, type: 0x41} }, {manufacturerCode: manufacturerCode});
+                        await entity.write("manuSpecificLumi", {410: {value: buffer, type: 0x41}}, {manufacturerCode: manufacturerCode});
                         return {
                             state: {
                                 detection_range: detection_range_value,
-                                detection_range_composite: value
-                            }
+                                detection_range_composite: value,
+                            },
                         };
                     },
                     convertGet: async (entity, key, meta) => {
                         const endpoint = meta.device.getEndpoint(1);
                         await endpoint.read("manuSpecificLumi", [0x019a], {manufacturerCode: manufacturerCode});
-                    }
+                    },
                 },
-            ]
+            ],
         } satisfies ModernExtend;
     },
     fp300TrackDistance: () => {
         return {
             isModernExtend: true,
-            exposes: [e.enum("track_target_distance", ea.SET, ["Start Tracking Distance"]).withDescription("Initiate current target distance tracking.")],
+            exposes: [
+                e.enum("track_target_distance", ea.SET, ["Start Tracking Distance"]).withDescription("Initiate current target distance tracking."),
+            ],
             toZigbee: [
                 {
                     key: ["track_target_distance"],
