@@ -1,4 +1,5 @@
 import {Zcl, ZSpec} from "zigbee-herdsman";
+import type {TPartialClusterAttributes} from "zigbee-herdsman/dist/zspec/zcl/definition/clusters-types";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import {
@@ -9,6 +10,7 @@ import {
     boschDoorWindowContactExtend,
     boschGeneralExtend,
     boschSmartPlugExtend,
+    boschThermostatExtend,
     manufacturerOptions,
 } from "../lib/bosch";
 import * as constants from "../lib/constants";
@@ -268,62 +270,6 @@ const boschExtend = {
             commands: {},
             commandsResponse: {},
         }),
-    operatingMode: () =>
-        m.enumLookup<"hvacThermostat", BoschHvacThermostat>({
-            name: "operating_mode",
-            cluster: "hvacThermostat",
-            attribute: "operatingMode",
-            reporting: {min: "10_SECONDS", max: "MAX", change: null},
-            description: "Bosch-specific operating mode (overrides system mode)",
-            lookup: {schedule: 0x00, manual: 0x01, pause: 0x05},
-        }),
-    windowDetection: () =>
-        m.binary<"hvacThermostat", BoschHvacThermostat>({
-            name: "window_detection",
-            cluster: "hvacThermostat",
-            attribute: "windowDetection",
-            description: "Enable/disable window open (Lo.) mode",
-            valueOn: ["ON", 0x01],
-            valueOff: ["OFF", 0x00],
-        }),
-    boostHeating: () =>
-        m.binary<"hvacThermostat", BoschHvacThermostat>({
-            name: "boost_heating",
-            cluster: "hvacThermostat",
-            attribute: "boostHeating",
-            reporting: {min: "10_SECONDS", max: "MAX", change: null, attribute: "boostHeating"},
-            description: "Activate boost heating (5 min. on TRV)",
-            valueOn: ["ON", 0x01],
-            valueOff: ["OFF", 0x00],
-        }),
-    childLock: () =>
-        m.binary({
-            name: "child_lock",
-            cluster: "hvacUserInterfaceCfg",
-            attribute: "keypadLockout",
-            description: "Enables/disables physical input on the device",
-            valueOn: ["LOCK", 0x01],
-            valueOff: ["UNLOCK", 0x00],
-        }),
-    displayOntime: () =>
-        m.numeric<"hvacUserInterfaceCfg", BoschHvacUserInterfaceCfg>({
-            name: "display_ontime",
-            cluster: "hvacUserInterfaceCfg",
-            attribute: "displayOntime",
-            description: "Sets the display on-time",
-            valueMin: 5,
-            valueMax: 30,
-            unit: "s",
-        }),
-    displayBrightness: () =>
-        m.numeric<"hvacUserInterfaceCfg", BoschHvacUserInterfaceCfg>({
-            name: "display_brightness",
-            cluster: "hvacUserInterfaceCfg",
-            attribute: "displayBrightness",
-            description: "Sets brightness of the display",
-            valueMin: 0,
-            valueMax: 10,
-        }),
     valveAdaptProcess: (): ModernExtend => {
         const adaptationStatus: KeyValue = {
             none: 0x00,
@@ -441,12 +387,13 @@ const boschExtend = {
                 type: "read",
                 convert: async (model, msg, publish, options, meta) => {
                     if ("dstStart" in msg.data && "dstEnd" in msg.data && "dstShift" in msg.data) {
-                        const response = {
-                            dstStart: {attribute: 0x0003, status: Zcl.Status.SUCCESS, value: 0x00},
-                            dstEnd: {attribute: 0x0004, status: Zcl.Status.SUCCESS, value: 0x00},
-                            dstShift: {attribute: 0x0005, status: Zcl.Status.SUCCESS, value: 0x00},
-                        };
-                        await msg.endpoint.readResponse(msg.cluster, msg.meta.zclTransactionSequenceNumber, response);
+                        const payload: TPartialClusterAttributes<"genTime"> = {};
+
+                        payload.dstEnd = 0x00;
+                        payload.dstEnd = 0x00;
+                        payload.dstShift = 0x00;
+
+                        await msg.endpoint.readResponse("genTime", msg.meta.zclTransactionSequenceNumber, payload);
                     }
                 },
             } satisfies Fz.Converter<"genTime", undefined, "read">,
@@ -1192,9 +1139,9 @@ export const definitions: DefinitionWithExtend[] = [
                 percentage: true,
                 lowStatus: false,
             }),
-            boschExtend.operatingMode(),
-            boschExtend.windowDetection(),
-            boschExtend.boostHeating(),
+            boschThermostatExtend.operatingMode(),
+            boschThermostatExtend.windowDetection(),
+            boschThermostatExtend.boostHeating(),
             m.numeric<"hvacThermostat", BoschHvacThermostat>({
                 name: "remote_temperature",
                 cluster: "hvacThermostat",
@@ -1215,9 +1162,9 @@ export const definitions: DefinitionWithExtend[] = [
                 lookup: {manual: 0x00, schedule: 0x01, externally: 0x02},
                 access: "STATE_GET",
             }),
-            boschExtend.childLock(),
-            boschExtend.displayOntime(),
-            boschExtend.displayBrightness(),
+            boschThermostatExtend.childLock(),
+            boschThermostatExtend.displayOntime(),
+            boschThermostatExtend.displayBrightness(),
             m.enumLookup<"hvacUserInterfaceCfg", BoschHvacUserInterfaceCfg>({
                 name: "display_orientation",
                 cluster: "hvacUserInterfaceCfg",
@@ -1329,12 +1276,12 @@ export const definitions: DefinitionWithExtend[] = [
                 percentageReporting: false,
             }),
             m.humidity(),
-            boschExtend.operatingMode(),
-            boschExtend.windowDetection(),
-            boschExtend.boostHeating(),
-            boschExtend.childLock(),
-            boschExtend.displayOntime(),
-            boschExtend.displayBrightness(),
+            boschThermostatExtend.operatingMode(),
+            boschThermostatExtend.windowDetection(),
+            boschThermostatExtend.boostHeating(),
+            boschThermostatExtend.childLock(),
+            boschThermostatExtend.displayOntime(),
+            boschThermostatExtend.displayBrightness(),
         ],
         ota: true,
         configure: async (device, coordinatorEndpoint) => {
@@ -1393,12 +1340,12 @@ export const definitions: DefinitionWithExtend[] = [
             boschExtend.hvacThermostatCluster(),
             boschExtend.hvacUserInterfaceCfgCluster(),
             m.humidity(),
-            boschExtend.operatingMode(),
-            boschExtend.windowDetection(),
-            boschExtend.boostHeating(),
-            boschExtend.childLock(),
-            boschExtend.displayOntime(),
-            boschExtend.displayBrightness(),
+            boschThermostatExtend.operatingMode(),
+            boschThermostatExtend.windowDetection(),
+            boschThermostatExtend.boostHeating(),
+            boschThermostatExtend.childLock(),
+            boschThermostatExtend.displayOntime(),
+            boschThermostatExtend.displayBrightness(),
         ],
         ota: true,
         configure: async (device, coordinatorEndpoint) => {

@@ -2525,3 +2525,209 @@ export const boschSmartPlugExtend = {
         }),
 };
 //endregion
+
+//region Bosch BTH-RA/-RM/-RM230Z (thermostats)
+export interface BoschThermostatCluster {
+    attributes: {
+        operatingMode: number;
+        heatingDemand: number;
+        valveAdaptStatus: number;
+        remoteTemperature: number;
+        windowDetection: number;
+        boostHeating: number;
+    };
+    commands: {
+        calibrateValve: Record<string, never>;
+    };
+    commandResponses: never;
+}
+
+export interface BoschUserInterfaceCfgCluster {
+    attributes: {
+        displayOrientation: number;
+        displayedTemperature: number;
+        displayOntime: number;
+        displayBrightness: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+export const boschThermostatExtend = {
+    customThermostatCluster: () =>
+        m.deviceAddCustomCluster("hvacThermostat", {
+            ID: Zcl.Clusters.hvacThermostat.ID,
+            attributes: {
+                operatingMode: {
+                    ID: 0x4007,
+                    type: Zcl.DataType.ENUM8,
+                    manufacturerCode: manufacturerOptions.manufacturerCode,
+                },
+                heatingDemand: {
+                    ID: 0x4020,
+                    type: Zcl.DataType.ENUM8,
+                    manufacturerCode: manufacturerOptions.manufacturerCode,
+                },
+                valveAdaptStatus: {
+                    ID: 0x4022,
+                    type: Zcl.DataType.ENUM8,
+                    manufacturerCode: manufacturerOptions.manufacturerCode,
+                },
+                // Only used on BTH-RM230Z
+                unknownAttribute0: {
+                    ID: 0x4025,
+                    type: Zcl.DataType.ENUM8,
+                    manufacturerCode: manufacturerOptions.manufacturerCode,
+                },
+                remoteTemperature: {
+                    ID: 0x4040,
+                    type: Zcl.DataType.INT16,
+                    manufacturerCode: manufacturerOptions.manufacturerCode,
+                },
+                windowDetection: {
+                    ID: 0x4042,
+                    type: Zcl.DataType.ENUM8,
+                    manufacturerCode: manufacturerOptions.manufacturerCode,
+                },
+                boostHeating: {
+                    ID: 0x4043,
+                    type: Zcl.DataType.ENUM8,
+                    manufacturerCode: manufacturerOptions.manufacturerCode,
+                },
+                externalSensorTemperature: {
+                    ID: 0x4052,
+                    type: Zcl.DataType.INT16,
+                    manufacturerCode: manufacturerOptions.manufacturerCode,
+                },
+                // 0x00: normally closed
+                // 0x01: normally open
+                valveType: {
+                    ID: 0x4060,
+                    type: Zcl.DataType.ENUM8,
+                    manufacturerCode: manufacturerOptions.manufacturerCode,
+                },
+                // Only used on BTH-RM230Z
+                // Read-Only
+                unknownAttribute1: {
+                    ID: 0x4061,
+                    type: Zcl.DataType.ENUM8,
+                    manufacturerCode: manufacturerOptions.manufacturerCode,
+                },
+                // 0x00: Not used
+                // 0xb0: Cable temperature sensor (without regulation)
+                // 0xb1: Cable temperature sensor (with regulation)
+                externalSensorMode: {
+                    ID: 0x4062,
+                    type: Zcl.DataType.ENUM8,
+                    manufacturerCode: manufacturerOptions.manufacturerCode,
+                },
+                // 0x00: underfloor heating
+                // 0x02: radiator
+                // 0x03: central heating
+                heaterType: {
+                    ID: 0x4063,
+                    type: Zcl.DataType.ENUM8,
+                    manufacturerCode: manufacturerOptions.manufacturerCode,
+                },
+                // 0x00 when ok
+                // 0x08 on E04
+                errorState: {
+                    ID: 0x5000,
+                    type: Zcl.DataType.BITMAP8,
+                    manufacturerCode: manufacturerOptions.manufacturerCode,
+                },
+            },
+            commands: {
+                calibrateValve: {
+                    ID: 0x41,
+                    parameters: [],
+                },
+            },
+            commandsResponse: {},
+        }),
+    customUserInterfaceCfgCluster: () =>
+        m.deviceAddCustomCluster("hvacUserInterfaceCfg", {
+            ID: Zcl.Clusters.hvacUserInterfaceCfg.ID,
+            attributes: {
+                displayOrientation: {
+                    ID: 0x400b,
+                    type: Zcl.DataType.UINT8,
+                    manufacturerCode: manufacturerOptions.manufacturerCode,
+                },
+                displayedTemperature: {
+                    ID: 0x4039,
+                    type: Zcl.DataType.ENUM8,
+                    manufacturerCode: manufacturerOptions.manufacturerCode,
+                },
+                displayOntime: {
+                    ID: 0x403a,
+                    type: Zcl.DataType.ENUM8,
+                    manufacturerCode: manufacturerOptions.manufacturerCode,
+                },
+                displayBrightness: {
+                    ID: 0x403b,
+                    type: Zcl.DataType.ENUM8,
+                    manufacturerCode: manufacturerOptions.manufacturerCode,
+                },
+            },
+            commands: {},
+            commandsResponse: {},
+        }),
+    operatingMode: () =>
+        m.enumLookup<"hvacThermostat", BoschThermostatCluster>({
+            name: "operating_mode",
+            cluster: "hvacThermostat",
+            attribute: "operatingMode",
+            reporting: {min: "10_SECONDS", max: "MAX", change: null},
+            description: "Bosch-specific operating mode (overrides system mode)",
+            lookup: {schedule: 0x00, manual: 0x01, pause: 0x05},
+        }),
+    windowDetection: () =>
+        m.binary<"hvacThermostat", BoschThermostatCluster>({
+            name: "window_detection",
+            cluster: "hvacThermostat",
+            attribute: "windowDetection",
+            description: "Enable/disable window open (Lo.) mode",
+            valueOn: ["ON", 0x01],
+            valueOff: ["OFF", 0x00],
+        }),
+    boostHeating: () =>
+        m.binary<"hvacThermostat", BoschThermostatCluster>({
+            name: "boost_heating",
+            cluster: "hvacThermostat",
+            attribute: "boostHeating",
+            reporting: {min: "10_SECONDS", max: "MAX", change: null, attribute: "boostHeating"},
+            description: "Activate boost heating (5 min. on TRV)",
+            valueOn: ["ON", 0x01],
+            valueOff: ["OFF", 0x00],
+        }),
+    childLock: () =>
+        m.binary({
+            name: "child_lock",
+            cluster: "hvacUserInterfaceCfg",
+            attribute: "keypadLockout",
+            description: "Enables/disables physical input on the device",
+            valueOn: ["LOCK", 0x01],
+            valueOff: ["UNLOCK", 0x00],
+        }),
+    displayOntime: () =>
+        m.numeric<"hvacUserInterfaceCfg", BoschUserInterfaceCfgCluster>({
+            name: "display_ontime",
+            cluster: "hvacUserInterfaceCfg",
+            attribute: "displayOntime",
+            description: "Sets the display on-time",
+            valueMin: 5,
+            valueMax: 30,
+            unit: "s",
+        }),
+    displayBrightness: () =>
+        m.numeric<"hvacUserInterfaceCfg", BoschUserInterfaceCfgCluster>({
+            name: "display_brightness",
+            cluster: "hvacUserInterfaceCfg",
+            attribute: "displayBrightness",
+            description: "Sets brightness of the display",
+            valueMin: 0,
+            valueMax: 10,
+        }),
+};
+//endregion
