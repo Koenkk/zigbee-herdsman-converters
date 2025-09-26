@@ -83,13 +83,11 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        zigbeeModel: ['Flood'],
-        model: 'S4SN-0071A',
-        vendor: 'Shelly',
-        description: 'Flood Gen 4',
-        extend: [
-            m.battery(),
-            m.iasZoneAlarm({"zoneType":"generic","zoneAttributes":["alarm_1","alarm_2","tamper","battery_low"]})],
+        zigbeeModel: ["Flood"],
+        model: "S4SN-0071A",
+        vendor: "Shelly",
+        description: "Flood Gen 4",
+        extend: [m.battery(), m.iasZoneAlarm({zoneType: "generic", zoneAttributes: ["alarm_1", "alarm_2", "tamper", "battery_low"]})],
         meta: {},
-    }
+    },
 ];
