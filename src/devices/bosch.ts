@@ -1210,7 +1210,6 @@ export const definitions: DefinitionWithExtend[] = [
                 valueStep: 0.01,
                 unit: "°C",
                 scale: 100,
-                zigbeeCommandOptions: manufacturerOptions,
             }),
             m.enumLookup({
                 name: "setpoint_change_source",
@@ -1230,7 +1229,6 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: "displayOrientation",
                 description: "Sets orientation of the display",
                 lookup: {normal: 0x00, flipped: 0x01},
-                zigbeeCommandOptions: manufacturerOptions,
             }),
             m.enumLookup<"hvacUserInterfaceCfg", BoschHvacUserInterfaceCfg>({
                 name: "displayed_temperature",
@@ -1238,7 +1236,6 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: "displayedTemperature",
                 description: "Temperature displayed on the TRV",
                 lookup: {target: 0x00, measured: 0x01},
-                zigbeeCommandOptions: manufacturerOptions,
             }),
             m.enumLookup<"hvacThermostat", BoschHvacThermostat>({
                 name: "valve_adapt_status",
@@ -1253,16 +1250,11 @@ export const definitions: DefinitionWithExtend[] = [
                     error: 0x03,
                     success: 0x04,
                 },
-                zigbeeCommandOptions: manufacturerOptions,
                 access: "STATE_GET",
             }),
             boschExtend.valveAdaptProcess(),
             boschExtend.heatingDemand(),
             boschExtend.ignoreDst(),
-            m.bindCluster({
-                cluster: "genPollCtrl",
-                clusterType: "input",
-            }),
         ],
         ota: true,
         configure: async (device, coordinatorEndpoint) => {
@@ -1285,20 +1277,17 @@ export const definitions: DefinitionWithExtend[] = [
                         reportableChange: null,
                     },
                 ],
-                manufacturerOptions,
             );
             await endpoint.read("genPowerCfg", ["batteryPercentageRemaining"]);
             await endpoint.read("hvacThermostat", ["localTemperatureCalibration", "setpointChangeSource"]);
             await endpoint.read<"hvacThermostat", BoschHvacThermostat>(
                 "hvacThermostat",
                 ["operatingMode", "heatingDemand", "valveAdaptStatus", "remoteTemperature", "windowDetection", "boostHeating"],
-                manufacturerOptions,
             );
             await endpoint.read("hvacUserInterfaceCfg", ["keypadLockout"]);
             await endpoint.read<"hvacUserInterfaceCfg", BoschHvacUserInterfaceCfg>(
                 "hvacUserInterfaceCfg",
                 ["displayOrientation", "displayedTemperature", "displayOntime", "displayBrightness"],
-                manufacturerOptions,
             );
         },
     },
@@ -1330,6 +1319,7 @@ export const definitions: DefinitionWithExtend[] = [
             tz.thermostat_temperature_display_mode,
         ],
         extend: [
+            boschGeneralExtend.handleZclVersionReadRequest(),
             boschExtend.hvacThermostatCluster(),
             boschExtend.hvacUserInterfaceCfgCluster(),
             m.battery({
@@ -1347,10 +1337,6 @@ export const definitions: DefinitionWithExtend[] = [
             boschExtend.childLock(),
             boschExtend.displayOntime(),
             boschExtend.displayBrightness(),
-            m.bindCluster({
-                cluster: "genPollCtrl",
-                clusterType: "input",
-            }),
         ],
         ota: true,
         configure: async (device, coordinatorEndpoint) => {
@@ -1375,13 +1361,11 @@ export const definitions: DefinitionWithExtend[] = [
             await endpoint.read<"hvacThermostat", BoschHvacThermostat>(
                 "hvacThermostat",
                 ["operatingMode", "windowDetection", "boostHeating"],
-                manufacturerOptions,
             );
             await endpoint.read("hvacUserInterfaceCfg", ["keypadLockout"]);
             await endpoint.read<"hvacUserInterfaceCfg", BoschHvacUserInterfaceCfg>(
                 "hvacUserInterfaceCfg",
                 ["displayOntime", "displayBrightness"],
-                manufacturerOptions,
             );
         },
     },
@@ -1413,6 +1397,7 @@ export const definitions: DefinitionWithExtend[] = [
             tz.thermostat_temperature_display_mode,
         ],
         extend: [
+            boschGeneralExtend.handleZclVersionReadRequest(),
             boschExtend.hvacThermostatCluster(),
             boschExtend.hvacUserInterfaceCfgCluster(),
             m.humidity(),
@@ -1445,13 +1430,11 @@ export const definitions: DefinitionWithExtend[] = [
             await endpoint.read<"hvacThermostat", BoschHvacThermostat>(
                 "hvacThermostat",
                 ["operatingMode", "windowDetection", "boostHeating"],
-                manufacturerOptions,
             );
             await endpoint.read("hvacUserInterfaceCfg", ["keypadLockout"]);
             await endpoint.read<"hvacUserInterfaceCfg", BoschHvacUserInterfaceCfg>(
                 "hvacUserInterfaceCfg",
                 ["displayOntime", "displayBrightness"],
-                manufacturerOptions,
             );
         },
     },
