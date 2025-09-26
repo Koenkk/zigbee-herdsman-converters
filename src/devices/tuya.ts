@@ -22,6 +22,8 @@ const {tuyaLight, tuyaBase, tuyaMagicPacket, dpBinary, dpNumeric, dpEnumLookup} 
 const e = exposes.presets;
 const ea = exposes.access;
 
+const sgs02zState = new Map(); // key=ieeeAddr -> { unit: 'celsius'|'fahrenheit', lastCelsius: number|undefined }
+
 const fzZosung = zosung.fzZosung;
 const tzZosung = zosung.tzZosung;
 const ez = zosung.presetsZosung;
@@ -962,6 +964,52 @@ const fzLocal = {
             return result;
         },
     } satisfies Fz.Converter<"manuSpecificTuya2", undefined, ["attributeReport"]>,
+    SGS02Z_unit_convert:{
+        cluster: "manuSpecificTuya",
+        type: ["commandDataReport", "commandDataResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const result = tuya.fz.datapoints.convert(model, msg, publish, options, meta) || {};
+            const dev = meta.device?.ieeeAddr;
+            const s = sgs02zState.get(dev) || {unit: 'celsius', lastCelsius: undefined};
+            // 1) check if there are any changes in temperature and temperature scale in this message
+            const hasTemp = "temperature" in result;
+            const hasUnit = "temperature_unit" in result;
+            // 2) Temperature: The device reports a constant temperature of ° C (divideBy10) and caches lastCelsius
+            if (hasTemp) {
+                const c = result.temperature; // °C
+                s.lastCelsius = c;
+            }
+            // 3) Temperature Scale: Update Cache
+            if (hasUnit) {
+                s.unit = result.temperature_unit; // 'celsius' | 'fahrenheit'
+            }
+            sgs02zState.set(dev, s);
+            // Always publish the current temperature scale along with it to ensure consistency between the front-end display and the internal cache
+            result.temperature_unit = s.unit;
+            // 4) Unified output temperature: Prioritize using the cached lastCelsius and convert it to the current s.unit for display
+            if ((hasTemp || hasUnit) && s.lastCelsius !== undefined) {
+                const out = (s.unit === 'fahrenheit') ? +(s.lastCelsius * 9/5 + 32).toFixed(1) : s.lastCelsius;
+                const unitSymbol = (s.unit === 'fahrenheit') ? '°F' : '°C';
+                result.temperature_scale = `${out}${unitSymbol}`;
+                result.temperature = out;
+            }
+            // 6) Illumination value mapping: Convert numerical values into corresponding text descriptions
+            if ("illuminance" in result) {
+                const illuminanceValue = Number(result.illuminance);
+                if (!Number.isNaN(illuminanceValue)) {
+                    const illuminanceMap = {
+                        0: 'Low-',
+                        1: 'Low',
+                        2: 'NOR',
+                        3: 'High',
+                        4: 'High+'
+                    };
+                    result.illuminance_level = illuminanceMap[illuminanceValue] || illuminanceValue.toString();
+                }
+            }
+            return result;
+        },
+    } satisfies Fz.Converter<"manuSpecificTuya", undefined, ["commandDataReport","commandDataResponse"]>,
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -2603,6 +2651,31 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
         whiteLabel: [tuya.whitelabel("GIEX", "GX04", "Soil Moisture Sensor", ["_TZE284_nhgdf6qr"])],
+    },
+    {
+        fingerprint: tuya.fingerprint("SGS02Z", ["_TZE284_nt4pquef"]),
+        model: "SGS02Z",
+        vendor: "Tuya",
+        description: "Soil sensor",
+        fromZigbee: [fzLocal.SGS02Z_unit_convert],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.temperature(),
+            e.soil_moisture(),
+            tuya.exposes.temperatureUnit(),
+            e.text("illuminance_level", exposes.access.STATE).withDescription("Illuminance level"),
+            e.battery()
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [2, "illuminance", tuya.valueConverter.raw],
+                [3, "soil_moisture", tuya.valueConverter.raw],
+                [5, "temperature", tuya.valueConverter.divideBy10],
+                [9, "temperature_unit", tuya.valueConverter.temperatureUnitEnum],
+                [15, "battery", tuya.valueConverter.raw],
+            ],
+        },
     },
     {
         fingerprint: tuya.fingerprint("TS0601", [
