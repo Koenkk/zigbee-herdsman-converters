@@ -2271,6 +2271,18 @@ export const lumiModernExtend = {
 
         return {exposes, fromZigbee, isModernExtend: true};
     },
+    fp300PIRDetection: () => {
+        const attribute = {ID: 0x014d, type: 0x20};
+        return modernExtend.binary({
+            name: "pir_detection",
+            valueOn: [true, 1],
+            valueOff: [false, 0],
+            access: "STATE_GET",
+            cluster: "manuSpecificLumi",
+            attribute: attribute,
+            description: "Indicates whether the PIR sensor detects motion (in mmWave + PIR mode after mmWave presence detection PIR sensors gets turned off so this attribute might change to false although the presence is detected).",
+        });
+    },
     fp1ePresence: () => {
         const attribute = {ID: 0x0142, type: 0x20};
         return modernExtend.binary({
