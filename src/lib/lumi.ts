@@ -1236,8 +1236,8 @@ function decodeTimeFormat(value: number): {startTime: string; endTime: string} |
     if (startHour > 23 || startMin > 59 || endHour > 23 || endMin > 59) return null;
 
     return {
-        startTime: formatTime(startHour * 60 + startMin),
-        endTime: formatTime(endHour * 60 + endMin),
+        startTime: formatTime(startHour * 60 + startMin, true),
+        endTime: formatTime(endHour * 60 + endMin, true),
     };
 }
 
