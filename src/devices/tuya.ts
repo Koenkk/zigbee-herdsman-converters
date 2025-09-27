@@ -2585,7 +2585,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_aao3yzhs", "_TZE284_nhgdf6qr", "_TZE284_ap9owrsa", "_TZE284_33bwcga2", "_TZE284_wckqztdq"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_aao3yzhs", "_TZE284_nhgdf6qr", "_TZE284_ap9owrsa", "_TZE284_33bwcga2", "_TZE284_wckqztdq", "_TZE284_3urschql"]),
         model: "TS0601_soil_3",
         vendor: "Tuya",
         description: "Soil sensor",
@@ -2603,6 +2603,7 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
         whiteLabel: [tuya.whitelabel("GIEX", "GX04", "Soil Moisture Sensor", ["_TZE284_nhgdf6qr"])],
+        whiteLabel: [tuya.whitelabel("GIEX", "GX06", "Soil Moisture Sensor", ["_TZE284_3urschql"])],
     },
     {
         fingerprint: tuya.fingerprint("TS0601", [
