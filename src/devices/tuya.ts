@@ -2602,8 +2602,10 @@ export const definitions: DefinitionWithExtend[] = [
                 [15, "battery", tuya.valueConverterBasic.scale(6, 60, 0, 100)], //device reports back false scaling
             ],
         },
-        whiteLabel: [tuya.whitelabel("GIEX", "GX04", "Soil Moisture Sensor", ["_TZE284_nhgdf6qr"])],
-        whiteLabel: [tuya.whitelabel("GIEX", "GX06", "Soil Moisture Sensor", ["_TZE284_3urschql"])],
+        whiteLabel: [
+            tuya.whitelabel("GIEX", "GX04", "Soil Moisture Sensor", ["_TZE284_nhgdf6qr"]),
+            tuya.whitelabel("GIEX", "GX06", "Soil Moisture Sensor", ["_TZE284_3urschql"])
+        ],
     },
     {
         fingerprint: tuya.fingerprint("TS0601", [
