@@ -82,4 +82,12 @@ export const definitions: DefinitionWithExtend[] = [
             m.electricityMeter({endpointNames: ["1", "2", "3", "4"]}),
         ],
     },
+    {
+        zigbeeModel: ["Flood"],
+        model: "S4SN-0071A",
+        vendor: "Shelly",
+        description: "Flood Gen 4",
+        extend: [m.battery(), m.iasZoneAlarm({zoneType: "water_leak", zoneAttributes: ["alarm_1", "tamper", "battery_low"]})],
+        meta: {},
+    },
 ];
