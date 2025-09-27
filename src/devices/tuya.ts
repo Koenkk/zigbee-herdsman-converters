@@ -16886,7 +16886,9 @@ export const definitions: DefinitionWithExtend[] = [
                 .withSetpoint("current_heating_setpoint", 5, 30, 0.5, ea.STATE_SET)
                 .withSystemMode(["off", "heat"], ea.STATE_SET),
             e.binary("heating_demand", ea.STATE, "ON", "OFF").withDescription("Valve demand (0=off, 1=heating)"),
-            e.binary("temporary_leaving", ea.STATE_SET, "ON", "OFF").withDescription("Temporary leaving mode (checkmark on display, disables heating)"),
+            e
+                .binary("temporary_leaving", ea.STATE_SET, "ON", "OFF")
+                .withDescription("Temporary leaving mode (checkmark on display, disables heating)"),
             e.child_lock(),
         ],
         meta: {
