@@ -80,7 +80,8 @@ export function mapNumberRange(value: number, fromLow: number, fromHigh: number,
 }
 
 const transactionStore: {[s: string]: number[]} = {};
-export function hasAlreadyProcessedMessage(msg: Fz.Message, model: Definition, id: number = null, key: string = null) {
+// biome-ignore lint/suspicious/noExplicitAny: generic
+export function hasAlreadyProcessedMessage(msg: Fz.Message<any, any, any>, model: Definition, id: number = null, key: string = null) {
     if (model.meta?.publishDuplicateTransaction) return false;
     const currentID = id !== null ? id : msg.meta.zclTransactionSequenceNumber;
     // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
@@ -159,21 +160,24 @@ export function toPercentage(value: number, min: number, max: number) {
     return Math.round(normalised * 100);
 }
 
-export function addActionGroup(payload: KeyValue, msg: Fz.Message, definition: Definition) {
+// biome-ignore lint/suspicious/noExplicitAny: generic
+export function addActionGroup(payload: KeyValue, msg: Fz.Message<any, any, any>, definition: Definition) {
     const disableActionGroup = definition.meta?.disableActionGroup;
     if (!disableActionGroup && msg.groupID) {
         payload.action_group = msg.groupID;
     }
 }
 
-export function getEndpointName(msg: Fz.Message, definition: Definition, meta: Fz.Meta) {
+// biome-ignore lint/suspicious/noExplicitAny: generic
+export function getEndpointName(msg: Fz.Message<any, any, any>, definition: Definition, meta: Fz.Meta) {
     if (!definition.endpoint) {
         throw new Error(`Definition '${definition.model}' has not endpoint defined`);
     }
     return getKey(definition.endpoint(meta.device), msg.endpoint.ID);
 }
 
-export function postfixWithEndpointName(value: string, msg: Fz.Message, definition: Definition, meta: Fz.Meta) {
+// biome-ignore lint/suspicious/noExplicitAny: generic
+export function postfixWithEndpointName(value: string, msg: Fz.Message<any, any, any>, definition: Definition, meta: Fz.Meta) {
     // Prevent breaking change https://github.com/Koenkk/zigbee2mqtt/issues/13451
     if (!meta) {
         logger.warning("No meta passed to postfixWithEndpointName, update your external converter!", NS);
@@ -718,4 +722,14 @@ export function splitArrayIntoChunks<T>(arr: T[], chunkSize: number): T[][] {
     }
 
     return result;
+}
+
+export function determineEndpoint(entity: Zh.Endpoint | Zh.Group, meta: Tz.Meta, cluster: string | number): Zh.Endpoint | Zh.Group {
+    const {device, endpoint_name} = meta;
+    if (endpoint_name !== undefined) {
+        // In case an explicit endpoint is given, always send it to that endpoint
+        return entity;
+    }
+    // In case no endpoint is given, match the first endpoint which support the cluster.
+    return device.endpoints.find((e) => e.supportsInputCluster(cluster)) ?? device.endpoints[0];
 }

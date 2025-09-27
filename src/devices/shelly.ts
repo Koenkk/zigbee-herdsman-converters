@@ -66,11 +66,20 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Shelly",
         description: "2PM Gen4 (Switch mode)",
         extend: [
+            m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
             m.onOff({powerOnBehavior: false, endpointNames: ["l1", "l2"]}),
             m.electricityMeter({producedEnergy: true, acFrequency: true, endpointNames: ["l1", "l2"]}),
         ],
-        endpoint: (device) => {
-            return {l1: 1, l2: 2};
-        },
+    },
+    {
+        zigbeeModel: ["Power Strip"],
+        model: "S4PL-00416EU",
+        vendor: "Shelly",
+        description: "Power strip 4 Gen4",
+        extend: [
+            m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3, "4": 4}}),
+            m.onOff({powerOnBehavior: false, endpointNames: ["1", "2", "3", "4"]}),
+            m.electricityMeter(),
+        ],
     },
 ];

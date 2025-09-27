@@ -7,21 +7,23 @@ import type {DefinitionWithExtend} from "../lib/types";
 const e = exposes.presets;
 
 export const definitions: DefinitionWithExtend[] = [
-    {
-        zigbeeModel: ["leakSMART Water Sensor V2"],
-        model: "8840100H",
-        vendor: "Waxman",
-        description: "leakSMART water sensor v2",
-        fromZigbee: [fz._8840100H_water_leak_alarm, fz.temperature, fz.battery],
-        toZigbee: [],
-        exposes: [e.battery(), e.temperature(), e.water_leak()],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg", "haApplianceEventsAlerts", "msTemperatureMeasurement"]);
-            await reporting.batteryPercentageRemaining(endpoint);
-            await reporting.temperature(endpoint);
-        },
-    },
+    // Disabled because fz._8840100H_water_leak_alarm is very likely broken
+    // https://github.com/Koenkk/zigbee-herdsman-converters/pull/9867#discussion_r2311954776
+    // {
+    //     zigbeeModel: ["leakSMART Water Sensor V2"],
+    //     model: "8840100H",
+    //     vendor: "Waxman",
+    //     description: "leakSMART water sensor v2",
+    //     fromZigbee: [fz._8840100H_water_leak_alarm, fz.temperature, fz.battery],
+    //     toZigbee: [],
+    //     exposes: [e.battery(), e.temperature(), e.water_leak()],
+    //     configure: async (device, coordinatorEndpoint) => {
+    //         const endpoint = device.getEndpoint(1);
+    //         await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg", "haApplianceEventsAlerts", "msTemperatureMeasurement"]);
+    //         await reporting.batteryPercentageRemaining(endpoint);
+    //         await reporting.temperature(endpoint);
+    //     },
+    // },
     {
         zigbeeModel: ["House Water Valve - MDL-TBD", "leakSMART Water Valve v2.10"],
         // Should work with all manufacturer model numbers for the 2.0 series:
