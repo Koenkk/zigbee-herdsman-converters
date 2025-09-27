@@ -16872,6 +16872,54 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_madl8ejv"]),
+        model: "SAS936RHB-7-Z03",
+        vendor: "Saswell",
+        description: "Wireless Temperature Sensor",
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e
+                .climate()
+                .withLocalTemperature(ea.STATE)
+                .withSetpoint("current_heating_setpoint", 5, 30, 0.5, ea.STATE_SET)
+                .withSystemMode(["off", "heat"], ea.STATE_SET),
+            e.binary("heating_demand", ea.STATE, "ON", "OFF").withDescription("Valve demand (0=off, 1=heating)"),
+            e.binary("temporary_leaving", ea.STATE_SET, "ON", "OFF").withDescription("Temporary leaving mode (checkmark on display, disables heating)"),
+            e.child_lock(),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [102, "local_temperature", tuya.valueConverter.divideBy10],
+                [103, "current_heating_setpoint", tuya.valueConverter.divideBy10],
+                [
+                    101,
+                    "system_mode",
+                    {
+                        to: async (v: string, meta: Tz.Meta) => {
+                            await tuya.sendDataPointBool(meta.device.endpoints[0], 101, v === "heat", "dataRequest", 1);
+                        },
+                        from: (v: boolean) => (v === true ? "heat" : "off"),
+                    },
+                ],
+                [
+                    3,
+                    "heating_demand",
+                    {
+                        from: (v: unknown) => {
+                            const value = Array.isArray(v) ? v[v.length - 1] : v;
+                            return value === 1 ? "ON" : "OFF";
+                        },
+                        to: (v: string) => (v === "ON" ? 1 : 0),
+                    },
+                ],
+                [106, "temporary_leaving", tuya.valueConverter.onOff],
+                [40, "child_lock", tuya.valueConverter.lockUnlock],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_pbo8cj0z"]),
         model: "TS0601_GTZ10",
         vendor: "Tuya",
