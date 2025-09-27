@@ -4983,4 +4983,234 @@ export const definitions: DefinitionWithExtend[] = [
             m.identify(),
         ],
     },
+    {
+        zigbeeModel: ["lumi.sensor_occupy.agl8"],
+        model: "PS-S04D",
+        vendor: "Aqara",
+        description: "Presence sensor FP300",
+        fromZigbee: [lumi.fromZigbee.lumi_specific],
+        toZigbee: [lumi.toZigbee.lumi_presence, lumi.toZigbee.lumi_motion_sensitivity],
+        exposes: [e.power_outage_count(), e.motion_sensitivity_select(["low", "medium", "high"]).withDescription("Presence Detection Sensitivity.")],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.read("manuSpecificLumi", [0x00ee], {manufacturerCode: manufacturerCode}); // Read OTA data; makes the device expose more attributes related to OTA
+            await endpoint.read("manuSpecificLumi", [0x010c], {manufacturerCode: manufacturerCode}); // Read motion sensitivity
+            await endpoint.read("manuSpecificLumi", [0x0142], {manufacturerCode: manufacturerCode}); // Read current presence
+            await endpoint.read("manuSpecificLumi", [0x014f], {manufacturerCode: manufacturerCode}); // Read current PIR interval
+            await endpoint.read("manuSpecificLumi", [0x0197], {manufacturerCode: manufacturerCode}); // Read current absence delay timer value
+            await endpoint.read("manuSpecificLumi", [0x019a], {manufacturerCode: manufacturerCode}); // Read detection range
+        },
+        extend: [
+            lumi.lumiModernExtend.lumiBattery({
+                voltageToPercentage: {min: 2850, max: 3000},
+                voltageAttribute: 0x0017, // Attribute: 23
+                //percentageAtrribute: 0x0018 // Attribute: 24 // TODO: Should confirm to be sure
+            }),
+            lumi.lumiModernExtend.fp1ePresence(),
+            lumi.lumiModernExtend.fp300PIRDetection(),
+
+            m.enumLookup({
+                name: "presence_detection_options",
+                lookup: {both: 0, mmwave: 1, pir: 2},
+                cluster: "manuSpecificLumi",
+                attribute: {ID: 0x0199, type: Zcl.DataType.UINT8}, // Attribute: 409
+                description: "Presence detection sensor type",
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
+
+            m.numeric({
+                name: "absence_delay_timer",
+                valueMin: 10,
+                valueMax: 300,
+                valueStep: 5,
+                scale: 1,
+                unit: "sec",
+                cluster: "manuSpecificLumi",
+                attribute: {ID: 0x0197, type: Zcl.DataType.UINT32}, // Attribute: 407
+                description: "Value for delay before the device reports absence when no presence is detected",
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
+
+            m.numeric({
+                name: "pir_detection_interval",
+                valueMin: 2, // Min: 2S
+                valueMax: 300, // Max: 300s
+                valueStep: 1, // Step: 1s
+                scale: 1,
+                unit: "sec",
+                cluster: "manuSpecificLumi",
+                attribute: {ID: 0x014f, type: Zcl.DataType.UINT16}, // Attribute: 335
+                description: "Higher detection frequency results in higher accuracy but lower battery life.",
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
+
+            m.illuminance(),
+            m.humidity(),
+            m.temperature(),
+            lumi.lumiModernExtend.fp1eSpatialLearning(),
+            lumi.lumiModernExtend.fp1eRestartDevice(),
+            m.identify(),
+
+            // Sampling parameters
+            m.enumLookup({
+                name: "temp_&_humidity_sampling",
+                lookup: {off: 0, low: 1, medium: 2, high: 3, custom: 4},
+                cluster: "manuSpecificLumi",
+                attribute: {ID: 0x0170, type: Zcl.DataType.UINT8}, // Attribute: 368
+                description:
+                    "Sampling time frequency, increasing affects battery life. Setting to custom allows specifying period, interval & threshold.",
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
+            m.numeric({
+                name: "temp_&_humidity_sampling_period",
+                valueMin: 0.5, // Min: 500ms
+                valueMax: 3600, // Max: 1h = 3600s
+                valueStep: 0.5, // Step: 500ms
+                scale: 1000,
+                unit: "sec",
+                cluster: "manuSpecificLumi",
+                attribute: {ID: 0x0162, type: Zcl.DataType.UINT32}, // Attribute: 354
+                description: "How often temp & humidity readings are taken on the device when in custom mode.",
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
+
+            // Temperature
+            m.numeric({
+                name: "temp_reporting_interval",
+                valueMin: 600, // Min: 10min = 600s
+                valueMax: 3600, // Max: 1h = 3600s
+                valueStep: 600, // Step: 10min = 600s
+                scale: 1000,
+                unit: "sec",
+                cluster: "manuSpecificLumi",
+                attribute: {ID: 0x0163, type: Zcl.DataType.UINT32}, // Attribute: 355
+                description: "Custom time interval for temperature data reporting.",
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
+            m.numeric({
+                name: "temp_reporting_threshold",
+                valueMin: 0.2, // Min: 0,2 C
+                valueMax: 3, // Max: 3,0 C
+                valueStep: 0.1, // Step: 0,1 C
+                scale: 100,
+                unit: "°C",
+                cluster: "manuSpecificLumi",
+                attribute: {ID: 0x0164, type: Zcl.DataType.UINT16}, // Attribute: 356
+                description: "Reporting will trigger as temperature change reaches this value when in custom mode.",
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
+            m.enumLookup({
+                name: "temp_reporting_mode",
+                lookup: {threshold: 1, "reporting interval": 2, "threshold and interval": 3},
+                cluster: "manuSpecificLumi",
+                attribute: {ID: 0x0165, type: Zcl.DataType.UINT8}, // Attribute: 357
+                description: "Temperature reporting type when in custom mode.",
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
+
+            // Humidity
+            m.numeric({
+                name: "humidity_reporting_interval",
+                valueMin: 600, // Min: 10min = 600s
+                valueMax: 3600, // Max: 1h = 3600s
+                valueStep: 600, // Step: 10min = 600s
+                scale: 1000,
+                unit: "sec",
+                cluster: "manuSpecificLumi",
+                attribute: {ID: 0x016a, type: Zcl.DataType.UINT32}, // Attribute: 362
+                description: "Custom time interval for humidity data reporting.",
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
+            m.numeric({
+                name: "humidity_reporting_threshold",
+                valueMin: 2, // Min: 2%
+                valueMax: 10, // Max: 10%
+                valueStep: 0.5, // Step: 0,5%
+                scale: 100,
+                unit: "%",
+                cluster: "manuSpecificLumi",
+                attribute: {ID: 0x016b, type: Zcl.DataType.UINT16}, // Attribute: 363
+                description: "Reporting will trigger as humidity change reaches this value when in custom mode.",
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
+            m.enumLookup({
+                name: "humidity_report_mode",
+                lookup: {threshold: 1, "reporting interval": 2, "threshold and interval": 3},
+                cluster: "manuSpecificLumi",
+                attribute: {ID: 0x016c, type: Zcl.DataType.UINT8}, // Attribute: 364
+                description: "Humidity reporting type when in custom mode.",
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
+
+            // Illuminance
+            m.enumLookup({
+                name: "light_sampling",
+                lookup: {off: 0, low: 1, medium: 2, high: 3, custom: 4},
+                cluster: "manuSpecificLumi",
+                attribute: {ID: 0x0192, type: Zcl.DataType.UINT8}, // Attribute: 402
+                description:
+                    "Sampling time frequency, increasing affects battery life. Setting to custom allows specifying period, interval & threshold.",
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
+            m.numeric({
+                name: "light_sampling_period",
+                valueMin: 0.5, // Min: 500ms
+                valueMax: 3600, // Max: 1h = 3600s
+                valueStep: 0.5, // Step: 500ms
+                scale: 1000,
+                unit: "sec",
+                cluster: "manuSpecificLumi",
+                attribute: {ID: 0x0193, type: Zcl.DataType.UINT32}, // Attribute: 403
+                description: "How often illumination readings are taken on the device when in custom mode.",
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
+            m.numeric({
+                name: "light_reporting_interval",
+                valueMin: 20, // Min: 20s
+                valueMax: 3600, // Max: 1h = 3600s
+                valueStep: 20, // Step: 20s
+                scale: 1000,
+                unit: "sec",
+                cluster: "manuSpecificLumi",
+                attribute: {ID: 0x0194, type: Zcl.DataType.UINT32}, // attribute 404
+                description: "Custom interval for illumination data reporting.",
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
+            m.numeric({
+                name: "light_reporting_threshold",
+                valueMin: 3, // Min: 3%
+                valueMax: 20, /// Max: 20%
+                valueStep: 0.5, // Step: 0,5%
+                scale: 100,
+                unit: "%",
+                cluster: "manuSpecificLumi",
+                attribute: {ID: 0x0195, type: Zcl.DataType.UINT16}, // Attribute: 405
+                description: "Reporting will trigger as illumination percentage change reaches this value when in custom mode.",
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
+            m.enumLookup({
+                name: "light_report_mode",
+                lookup: {threshold: 1, "reporting interval": 2, "threshold and interval": 3},
+                cluster: "manuSpecificLumi",
+                attribute: {ID: 0x0196, type: Zcl.DataType.UINT8}, // Attribute: 406
+                description: "illumination reporting type when in custom mode.",
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
+
+            // Read current target distance
+            lumi.lumiModernExtend.fp300TrackDistance(),
+            lumi.lumiModernExtend.fp1eTargetDistance(), // Same attribute. Need to send 0x0198 to start tracking
+
+            // Set detection range
+            lumi.lumiModernExtend.fp300DetectionRange(),
+
+            // LED Indicator
+            lumi.lumiModernExtend.lumiLedDisabledNight(),
+            lumi.lumiModernExtend.lumiLedDisabledNightTime(),
+
+            // OTA
+            m.quirkCheckinInterval("1_HOUR"),
+            lumi.lumiModernExtend.lumiZigbeeOTA(),
+        ],
+    },
 ];
