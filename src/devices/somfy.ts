@@ -96,7 +96,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["Tilt & Lift 25 WF Roller"],
-        model: "Tilt & Lift 25 WF Roller",
+        model: "1245602",
         vendor: "SOMFY",
         description: "Tilt and lift blinds motor",
         extend: [m.windowCovering({controls: ["lift", "tilt"]}), m.battery()],
