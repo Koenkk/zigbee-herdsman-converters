@@ -1,5 +1,19 @@
 # Changelog
 
+## [25.33.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.32.0...v25.33.0) (2025-09-27)
+
+
+### Features
+
+* **add:** GX06 ([#10094](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10094)) ([83b4c40](https://github.com/Koenkk/zigbee-herdsman-converters/commit/83b4c405a177d1182c47d7408bbf508826b08129))
+* **add:** PS-S04D ([#10086](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10086)) ([1c54699](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1c5469977fe975e5703aa3a9e6eae0f67e77b459))
+
+
+### Bug Fixes
+
+* Develco MOSZB-140: reporting configuration to fix excessive reports ([#10081](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10081)) ([53f5ba1](https://github.com/Koenkk/zigbee-herdsman-converters/commit/53f5ba1a0e6a9bc93b90fd5e88298000e523173b))
+* **ignore:** All endpoints have electricityMeter for S4PL-00416EU ([#10090](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10090)) ([e659af9](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e659af9d3b8e583a964bacdb0c2ac3916eab09fe))
+
 ## [25.32.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.31.0...v25.32.0) (2025-09-26)
 
 
