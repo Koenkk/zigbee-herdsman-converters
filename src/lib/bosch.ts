@@ -2646,7 +2646,7 @@ export const boschThermostatExtend = {
             systemMode: ["off", "heat", "cool"],
             runningState: ["idle", "heat", "cool"],
         }),
-    heatingDemand: () =>
+    customHeatingDemand: () =>
         m.numeric<"hvacThermostat", BoschThermostatCluster>({
             name: "pi_heating_demand",
             cluster: "hvacThermostat",
@@ -2847,7 +2847,7 @@ export const boschThermostatExtend = {
             isModernExtend: true,
         };
     },
-    runningState: (): ModernExtend => {
+    customRunningState: (): ModernExtend => {
         const runningStates = ["idle", "heat"];
 
         const exposes: Expose[] = [e.enum("running_state", ea.STATE_GET, runningStates).withDescription("The current running state")];
