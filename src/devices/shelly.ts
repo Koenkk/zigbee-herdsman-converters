@@ -72,7 +72,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        zigbeeModel: ["Power Strip"],
+        fingerprint: [{modelID: "Power Strip", manufacturerName: "Shelly"}],
         model: "S4PL-00416EU",
         vendor: "Shelly",
         description: "Power strip 4 Gen4",
@@ -83,11 +83,10 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        zigbeeModel: ["Flood"],
+        fingerprint: [{modelID: "Flood", manufacturerName: "Shelly"}],
         model: "S4SN-0071A",
         vendor: "Shelly",
         description: "Flood Gen 4",
         extend: [m.battery(), m.iasZoneAlarm({zoneType: "water_leak", zoneAttributes: ["alarm_1", "tamper", "battery_low"]})],
-        meta: {},
     },
 ];
