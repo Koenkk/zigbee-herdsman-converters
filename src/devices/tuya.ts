@@ -6656,7 +6656,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TRV602Z",
         vendor: "Tuya",
         description: "Thermostatic radiator valve.",
-        whiteLabel: [tuya.whitelabel("Moes", "TRV801Z", "Thermostatic radiator valve", ["_TZE204_qyr2m29i"])],
+        whiteLabel: [tuya.whitelabel("Moes", "TRV801Z", "Thermostatic radiator valve", ["_TZE204_qyr2m29i", "_TZE284_ltwbm23f"])],
         extend: [tuyaBase({dp: true})],
         exposes: [
             e.battery(),
