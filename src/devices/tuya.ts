@@ -19454,7 +19454,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_k7p2q5d9"]),
         model: "ZS-300Z",
-        vendor: "arteco",
+        vendor: "Arteco",
         description: "Soil moisture sensor",
         extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
         exposes: [
