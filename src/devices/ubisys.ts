@@ -8,7 +8,7 @@ import * as exposes from "../lib/exposes";
 import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import type {DefinitionWithExtend, Fz, KeyValue, KeyValueAny, Tz, Zh} from "../lib/types";
+import type {DefinitionWithExtend, Fz, KeyValue, KeyValueAny, Tz} from "../lib/types";
 import {
     type UbisysClosuresWindowCovering,
     type UbisysDeviceSetup,
@@ -360,66 +360,51 @@ const ubisys = {
 
                 // ubisys switched to writeStructure a while ago, change log only goes back to 1.9.x
                 // and it happened before that but to be safe we will only use writeStrucutre on 1.9.0 and up
-                let useWriteStruct = false;
-                if (meta.device.softwareBuildID && semverValid(meta.device.softwareBuildID, true)) {
-                    useWriteStruct = semverGte(meta.device.softwareBuildID, "1.9.0", true);
-                }
-                if (useWriteStruct) {
-                    logger.debug(`ubisys: using writeStructure for '${meta.options.friendly_name}'.`, NS);
+                if (
+                    !meta.device.softwareBuildID ||
+                    !semverValid(meta.device.softwareBuildID, true) ||
+                    !semverGte(meta.device.softwareBuildID, "1.9.0", true)
+                ) {
+                    logger.warning(`ubisys: update firmware of '${meta.options.friendly_name}' before writing configure_device_setup!`, NS);
+                    return;
                 }
 
                 if (value.input_configurations != null) {
                     // example: [0, 0, 0, 0]
-                    if (useWriteStruct) {
-                        await devMgmtEp.writeStructured(
-                            "manuSpecificUbisysDeviceSetup",
-                            [
-                                {
-                                    attrId: attributeInputConfigurations.ID,
-                                    selector: {},
-                                    dataType: Zcl.DataType.ARRAY,
-                                    elementData: {
-                                        elementType: Zcl.DataType.DATA8,
-                                        elements: value.input_configurations,
-                                    },
+                    await devMgmtEp.writeStructured(
+                        "manuSpecificUbisysDeviceSetup",
+                        [
+                            {
+                                attrId: attributeInputConfigurations.ID,
+                                selector: {},
+                                dataType: Zcl.DataType.ARRAY,
+                                elementData: {
+                                    elementType: Zcl.DataType.DATA8,
+                                    elements: value.input_configurations,
                                 },
-                            ],
-                            manufacturerOptions.ubisysNull,
-                        );
-                    } else {
-                        await devMgmtEp.write<"manuSpecificUbisysDeviceSetup", UbisysDeviceSetup>(
-                            "manuSpecificUbisysDeviceSetup",
-                            {inputConfigurations: {elementType: Zcl.DataType.DATA8, elements: value.input_configurations}},
-                            manufacturerOptions.ubisysNull,
-                        );
-                    }
+                            },
+                        ],
+                        manufacturerOptions.ubisysNull,
+                    );
                 }
 
                 if (value.input_actions != null) {
                     // example (default for C4): [[0,13,1,6,0,2], [1,13,2,6,0,2], [2,13,3,6,0,2], [3,13,4,6,0,2]]
-                    if (useWriteStruct) {
-                        await devMgmtEp.writeStructured(
-                            "manuSpecificUbisysDeviceSetup",
-                            [
-                                {
-                                    attrId: attributeInputActions.ID,
-                                    selector: {},
-                                    dataType: Zcl.DataType.ARRAY,
-                                    elementData: {
-                                        elementType: Zcl.DataType.OCTET_STR,
-                                        elements: value.input_actions,
-                                    },
+                    await devMgmtEp.writeStructured(
+                        "manuSpecificUbisysDeviceSetup",
+                        [
+                            {
+                                attrId: attributeInputActions.ID,
+                                selector: {},
+                                dataType: Zcl.DataType.ARRAY,
+                                elementData: {
+                                    elementType: Zcl.DataType.OCTET_STR,
+                                    elements: value.input_actions,
                                 },
-                            ],
-                            manufacturerOptions.ubisysNull,
-                        );
-                    } else {
-                        await devMgmtEp.write<"manuSpecificUbisysDeviceSetup", UbisysDeviceSetup>(
-                            "manuSpecificUbisysDeviceSetup",
-                            {inputActions: {elementType: Zcl.DataType.OCTET_STR, elements: value.input_actions}},
-                            manufacturerOptions.ubisysNull,
-                        );
-                    }
+                            },
+                        ],
+                        manufacturerOptions.ubisysNull,
+                    );
                 }
 
                 if (value.input_action_templates != null) {
@@ -427,31 +412,31 @@ const ubisys = {
                         // source: "ZigBee Device Physical Input Configurations Integrator’s Guide"
                         // (can be obtained directly from ubisys upon request)
                         toggle: {
-                            getInputActions: (input: unknown, endpoint: Zh.Endpoint) => [[input, 0x0d, endpoint, 0x06, 0x00, 0x02]],
+                            getInputActions: (input: number, endpoint: number) => [[input, 0x0d, endpoint, 0x06, 0x00, 0x02]],
                         },
                         toggle_switch: {
-                            getInputActions: (input: unknown, endpoint: Zh.Endpoint) => [
+                            getInputActions: (input: number, endpoint: number) => [
                                 [input, 0x0d, endpoint, 0x06, 0x00, 0x02],
                                 [input, 0x03, endpoint, 0x06, 0x00, 0x02],
                             ],
                         },
                         on_off_switch: {
-                            getInputActions: (input: unknown, endpoint: Zh.Endpoint) => [
+                            getInputActions: (input: number, endpoint: number) => [
                                 [input, 0x0d, endpoint, 0x06, 0x00, 0x01],
                                 [input, 0x03, endpoint, 0x06, 0x00, 0x00],
                             ],
                         },
                         on: {
-                            getInputActions: (input: unknown, endpoint: Zh.Endpoint) => [[input, 0x0d, endpoint, 0x06, 0x00, 0x01]],
+                            getInputActions: (input: number, endpoint: number) => [[input, 0x0d, endpoint, 0x06, 0x00, 0x01]],
                         },
                         off: {
-                            getInputActions: (input: unknown, endpoint: Zh.Endpoint) => [[input, 0x0d, endpoint, 0x06, 0x00, 0x00]],
+                            getInputActions: (input: number, endpoint: number) => [[input, 0x0d, endpoint, 0x06, 0x00, 0x00]],
                         },
                         dimmer_single: {
-                            getInputActions: (input: unknown, endpoint: Zh.Endpoint, template: KeyValue) => {
+                            getInputActions: (input: number, endpoint: number, template: KeyValue) => {
                                 const moveUpCmd = template.no_onoff || template.no_onoff_up ? 0x01 : 0x05;
                                 const moveDownCmd = template.no_onoff || template.no_onoff_down ? 0x01 : 0x05;
-                                const moveRate = template.rate || 50;
+                                const moveRate = (template.rate as number) || 50;
                                 return [
                                     [input, 0x07, endpoint, 0x06, 0x00, 0x02],
                                     [input, 0x86, endpoint, 0x08, 0x00, moveUpCmd, 0x00, moveRate],
@@ -462,10 +447,10 @@ const ubisys = {
                         },
                         dimmer_double: {
                             doubleInputs: true,
-                            getInputActions: (inputs: unknown[], endpoint: Zh.Endpoint, template: KeyValue) => {
+                            getInputActions: (inputs: number[], endpoint: number, template: KeyValue) => {
                                 const moveUpCmd = template.no_onoff || template.no_onoff_up ? 0x01 : 0x05;
                                 const moveDownCmd = template.no_onoff || template.no_onoff_down ? 0x01 : 0x05;
-                                const moveRate = template.rate || 50;
+                                const moveRate = (template.rate as number) || 50;
                                 return [
                                     [inputs[0], 0x07, endpoint, 0x06, 0x00, 0x01],
                                     [inputs[0], 0x06, endpoint, 0x08, 0x00, moveUpCmd, 0x00, moveRate],
@@ -479,7 +464,7 @@ const ubisys = {
                         cover: {
                             cover: true,
                             doubleInputs: true,
-                            getInputActions: (inputs: unknown[], endpoint: Zh.Endpoint) => [
+                            getInputActions: (inputs: number[], endpoint: number) => [
                                 [inputs[0], 0x0d, endpoint, 0x02, 0x01, 0x00],
                                 [inputs[0], 0x07, endpoint, 0x02, 0x01, 0x02],
                                 [inputs[1], 0x0d, endpoint, 0x02, 0x01, 0x01],
@@ -489,7 +474,7 @@ const ubisys = {
                         cover_switch: {
                             cover: true,
                             doubleInputs: true,
-                            getInputActions: (inputs: unknown[], endpoint: Zh.Endpoint) => [
+                            getInputActions: (inputs: number[], endpoint: number) => [
                                 [inputs[0], 0x0d, endpoint, 0x02, 0x01, 0x00],
                                 [inputs[0], 0x03, endpoint, 0x02, 0x01, 0x02],
                                 [inputs[1], 0x0d, endpoint, 0x02, 0x01, 0x01],
@@ -498,27 +483,27 @@ const ubisys = {
                         },
                         cover_up: {
                             cover: true,
-                            getInputActions: (input: unknown, endpoint: Zh.Endpoint) => [[input, 0x0d, endpoint, 0x02, 0x01, 0x00]],
+                            getInputActions: (input: number, endpoint: number) => [[input, 0x0d, endpoint, 0x02, 0x01, 0x00]],
                         },
                         cover_down: {
                             cover: true,
-                            getInputActions: (input: unknown, endpoint: Zh.Endpoint) => [[input, 0x0d, endpoint, 0x02, 0x01, 0x01]],
+                            getInputActions: (input: number, endpoint: number) => [[input, 0x0d, endpoint, 0x02, 0x01, 0x01]],
                         },
                         scene: {
                             scene: true,
-                            getInputActions: (input: unknown, endpoint: Zh.Endpoint, groupId: number, sceneId: number) => [
+                            getInputActions: (input: number, endpoint: number, groupId: number, sceneId: number) => [
                                 [input, 0x07, endpoint, 0x05, 0x00, 0x05, groupId & 0xff, groupId >> 8, sceneId],
                             ],
-                            getInputActions2: (input: unknown, endpoint: Zh.Endpoint, groupId: number, sceneId: number) => [
+                            getInputActions2: (input: number, endpoint: number, groupId: number, sceneId: number) => [
                                 [input, 0x06, endpoint, 0x05, 0x00, 0x05, groupId & 0xff, groupId >> 8, sceneId],
                             ],
                         },
                         scene_switch: {
                             scene: true,
-                            getInputActions: (input: unknown, endpoint: Zh.Endpoint, groupId: number, sceneId: number) => [
+                            getInputActions: (input: number, endpoint: number, groupId: number, sceneId: number) => [
                                 [input, 0x0d, endpoint, 0x05, 0x00, 0x05, groupId & 0xff, groupId >> 8, sceneId],
                             ],
-                            getInputActions2: (input: unknown, endpoint: Zh.Endpoint, groupId: number, sceneId: number) => [
+                            getInputActions2: (input: number, endpoint: number, groupId: number, sceneId: number) => [
                                 [input, 0x03, endpoint, 0x05, 0x00, 0x05, groupId & 0xff, groupId >> 8, sceneId],
                             ],
                         },
@@ -526,17 +511,21 @@ const ubisys = {
 
                     // first input
                     let input = 0;
-                    // first client endpoint - depends on actual device
-                    if (Array.isArray(meta.mapped)) throw new Error("Not supported for groups");
+
+                    if (Array.isArray(meta.mapped)) {
+                        // first client endpoint - depends on actual device
+                        throw new Error("Not supported for groups");
+                    }
+
                     let endpoint = {S1: 2, S2: 3, D1: 2, J1: 2, C4: 1}[meta.mapped.model];
                     // default group id
                     let groupId = 0;
-
                     const templates = Array.isArray(value.input_action_templates) ? value.input_action_templates : [value.input_action_templates];
-                    let resultingInputActions: unknown[] = [];
+                    const resultingInputActions: number[][][] = [];
+
                     for (const template of templates) {
-                        // @ts-expect-error ignore
-                        const templateType = templateTypes[template.type];
+                        const templateType = templateTypes[template.type as keyof typeof templateTypes];
+
                         if (!templateType) {
                             throw new Error(
                                 `input_action_templates: Template type '${template.type}' is not valid ` +
@@ -547,92 +536,94 @@ const ubisys = {
                         if (template.input !== undefined) {
                             input = template.input;
                         }
+
                         if (template.endpoint !== undefined) {
                             endpoint = template.endpoint;
                         }
+
                         // C4 cover endpoints only start at 5
-                        if (templateType.cover && meta.mapped.model === "C4" && endpoint < 5) {
+                        if ("cover" in templateType && meta.mapped.model === "C4" && endpoint < 5) {
                             endpoint += 4;
                         }
 
-                        // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
-                        let inputActions;
-                        if (!templateType.doubleInputs) {
-                            if (!templateType.scene) {
-                                // single input, no scene(s)
-                                inputActions = templateType.getInputActions(input, endpoint, template);
-                            } else {
+                        let inputActions: number[][] = [];
+
+                        if ("doubleInputs" in templateType) {
+                            // double inputs
+                            const inputArr = template.inputs !== undefined ? template.inputs : [input, input + 1];
+                            inputActions = templateType.getInputActions(inputArr, endpoint, template);
+
+                            if (Array.isArray(inputArr)) {
+                                input = Math.max(...inputArr);
+                            }
+                        } else {
+                            if ("scene" in templateType) {
                                 // scene(s) (always single input)
                                 if (template.scene_id === undefined) {
                                     throw new Error(`input_action_templates: Need an attribute 'scene_id' for '${template.type}'`);
                                 }
+
                                 if (template.group_id !== undefined) {
                                     groupId = template.group_id;
                                 }
+
                                 inputActions = templateType.getInputActions(input, endpoint, groupId, template.scene_id);
 
                                 if (template.scene_id_2 !== undefined) {
                                     if (template.group_id_2 !== undefined) {
                                         groupId = template.group_id_2;
                                     }
+
                                     inputActions = inputActions.concat(templateType.getInputActions2(input, endpoint, groupId, template.scene_id_2));
                                 }
+                            } else {
+                                // single input, no scene(s)
+                                inputActions = templateType.getInputActions(input, endpoint, template);
                             }
-                        } else {
-                            // double inputs
-                            input = template.inputs !== undefined ? template.inputs : [input, input + 1];
-                            inputActions = templateType.getInputActions(input, endpoint, template);
                         }
-                        resultingInputActions = resultingInputActions.concat(inputActions);
 
-                        logger.warning(`ubisys: Using input(s) ${input} and endpoint ${endpoint} for '${template.type}'.`, NS);
-                        // input might by now be an array (in case of double inputs)
-                        input = (Array.isArray(input) ? Math.max(...input) : input) + 1;
+                        resultingInputActions.push(inputActions);
+
+                        logger.warning(`ubisys: Using input ${input} and endpoint ${endpoint} for '${template.type}'.`, NS);
+                        input += 1;
                         endpoint += 1;
                     }
 
-                    logger.debug(`ubisys: input_actions to be sent to '${meta.options.friendly_name}': ${JSON.stringify(resultingInputActions)}`, NS);
-                    if (useWriteStruct) {
+                    // XXX: input_action_templates is not validated
+                    //      it could potentially write values that don't fit OCTET_STR (e.g. value at x index is > 0xff)
+
+                    // write length of octet str array at index 0
+                    await devMgmtEp.writeStructured(
+                        "manuSpecificUbisysDeviceSetup",
+                        [
+                            {
+                                attrId: attributeInputActions.ID,
+                                selector: {indicatorType: Zcl.StructuredIndicatorType.Whole, indexes: [0]},
+                                dataType: Zcl.DataType.UINT16,
+                                elementData: resultingInputActions.flat().length,
+                            },
+                        ],
+                        manufacturerOptions.ubisysNull,
+                    );
+
+                    let index = 1;
+
+                    // write in chunks to prevent frame overflow
+                    // XXX: depends entirely on the values inside the nested array as far as "not overflowing"
+                    //      it also is not optimized for "minimum writes", since count is based on nesting
+                    for (const inputAction of resultingInputActions) {
                         await devMgmtEp.writeStructured(
                             "manuSpecificUbisysDeviceSetup",
-                            [
-                                {
-                                    attrId: attributeInputActions.ID,
-                                    selector: {},
-                                    dataType: Zcl.DataType.ARRAY,
-                                    elementData: {
-                                        elementType: Zcl.DataType.OCTET_STR,
-                                        elements: resultingInputActions,
-                                    },
-                                },
-                            ],
-                            manufacturerOptions.ubisysNull,
-                        );
-                    } else {
-                        await devMgmtEp.write<"manuSpecificUbisysDeviceSetup", UbisysDeviceSetup>(
-                            "manuSpecificUbisysDeviceSetup",
-                            {inputActions: {elementType: Zcl.DataType.OCTET_STR, elements: resultingInputActions}},
+                            inputAction.map((a) => ({
+                                attrId: attributeInputActions.ID,
+                                selector: {indicatorType: Zcl.StructuredIndicatorType.Whole, indexes: [index++]},
+                                dataType: Zcl.DataType.OCTET_STR,
+                                elementData: Buffer.from(a),
+                            })),
                             manufacturerOptions.ubisysNull,
                         );
                     }
                 }
-
-                // re-read effective settings and dump them to the log
-                await ubisys.tz.configure_device_setup.convertGet(entity, key, meta);
-            },
-
-            convertGet: async (entity, key, meta) => {
-                const devMgmtEp = meta.device.getEndpoint(232);
-                await devMgmtEp.read<"manuSpecificUbisysDeviceSetup", UbisysDeviceSetup>(
-                    "manuSpecificUbisysDeviceSetup",
-                    ["inputConfigurations"],
-                    manufacturerOptions.ubisysNull,
-                );
-                await devMgmtEp.read<"manuSpecificUbisysDeviceSetup", UbisysDeviceSetup>(
-                    "manuSpecificUbisysDeviceSetup",
-                    ["inputActions"],
-                    manufacturerOptions.ubisysNull,
-                );
             },
         } satisfies Tz.Converter,
     },
