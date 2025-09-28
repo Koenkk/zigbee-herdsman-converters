@@ -137,11 +137,11 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({colorTemp: true}), m.identify()],
     },
     {
-    　　　zigbeeModel: ['TRADFRI bulb E26 WS opal 440lm'],
-    　　　model: 'TRADFRIbulbT120E26WSopal440lm',
-    　　　vendor: 'IKEA of Sweden',
-    　　　description: 'TRÅDFRI bulb T120 E26 White spectrum opal 440 lumen',
-        extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight(), m.identify()],
+        zigbeeModel: ['TRADFRI bulb E26 WS opal 440lm'],
+        model: '',
+        vendor: 'IKEA of Sweden',
+        description: 'TRÅDFRI bulb T120 E26 White spectrum opal 440 lumen',
+        extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({colorTemp: true}), m.identify()],
 　　 },
     {
         zigbeeModel: ["TRADFRI bulb E27 WW clear 250lm", "TRADFRI bulb E26 WW clear 250lm"],
