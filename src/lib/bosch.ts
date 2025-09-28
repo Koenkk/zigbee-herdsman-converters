@@ -2639,8 +2639,8 @@ export const boschThermostatExtend = {
     rmThermostat: () =>
         m.thermostat({
             setpoints: {
-                occupiedHeatingSetpoint: {min: 4.5, max: 30, step: 0.5},
-                occupiedCoolingSetpoint: {min: 4.5, max: 30, step: 0.5},
+                occupiedHeatingSetpoint: {min: 5, max: 30, step: 0.5},
+                occupiedCoolingSetpoint: {min: 5, max: 30, step: 0.5},
             },
             localTemperatureCalibration: {min: -5, max: 5, step: 0.1},
             systemMode: ["off", "heat", "cool"],
