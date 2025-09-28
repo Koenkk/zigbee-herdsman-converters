@@ -709,11 +709,7 @@ export const definitions: DefinitionWithExtend[] = [
             boschBsirExtend.currentPowerSource(),
             boschBsirExtend.solarPanelVoltage(),
             boschGeneralExtend.batteryWithPercentageAndLowStatus({
-                percentageReportingConfig: {
-                    min: "MIN",
-                    max: "MAX",
-                    change: 1,
-                },
+                percentageReportingConfig: {min: "MIN", max: "MAX", change: 1},
             }),
         ],
         ota: true,
