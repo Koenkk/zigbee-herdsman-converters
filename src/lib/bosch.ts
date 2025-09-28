@@ -507,6 +507,7 @@ export const boschBmctExtend = {
                 normally_closed: 0x00,
                 normally_open: 0x01,
             },
+            entityCategory: "config",
         }),
     dimmerType: () =>
         m.enumLookup<"boschEnergyDevice", BoschBmctCluster>({
