@@ -3107,6 +3107,7 @@ export const boschThermostatExtend = {
             m.setupConfigureForReporting<"hvacThermostat", BoschThermostatCluster>("hvacThermostat", "valveAdaptStatus", {
                 config: {min: "MIN", max: "MAX", change: null},
             }),
+            m.setupConfigureForReading<"hvacThermostat", BoschThermostatCluster>("hvacThermostat", ["valveAdaptStatus"]),
         ];
 
         return {
