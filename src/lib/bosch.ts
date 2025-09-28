@@ -34,7 +34,7 @@ const NS = "zhc:bosch";
 export const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH};
 
 //region Generally used bosch functionality
-interface BoschSeMeteringCluster {
+interface BoschMeteringCluster {
     attributes: never;
     commands: {
         resetEnergyMeters: Record<string, never>;
@@ -56,7 +56,7 @@ interface BoschGeneralEnergyDeviceCluster {
 export const boschGeneralExtend = {
     /** Some Bosch devices ask the coordinator for their ZCL version
      * during an interview. Without answer, these devices regularly re-join
-     * the network and sometimes respond delays. To avoid that, we have
+     * the network and sometimes respond delayed. To avoid that, we have
      * to make sure that a readRequest for the zclVersion is always
      * answered. The answered zclVersion is taken from the Bosch Smart
      * Home Controller II.
@@ -96,7 +96,7 @@ export const boschGeneralExtend = {
             isModernExtend: true,
         };
     },
-    customSeMeteringCluster: () =>
+    customMeteringCluster: () =>
         m.deviceAddCustomCluster("seMetering", {
             ID: Zcl.Clusters.seMetering.ID,
             attributes: {},
@@ -119,7 +119,7 @@ export const boschGeneralExtend = {
             {
                 key: ["reset_energy_meters"],
                 convertSet: async (entity, key, value, meta) => {
-                    await entity.command<"seMetering", "resetEnergyMeters", BoschSeMeteringCluster>(
+                    await entity.command<"seMetering", "resetEnergyMeters", BoschMeteringCluster>(
                         "seMetering",
                         "resetEnergyMeters",
                         {},
