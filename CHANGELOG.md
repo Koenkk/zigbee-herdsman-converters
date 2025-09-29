@@ -1,5 +1,19 @@
 # Changelog
 
+## [25.34.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.33.0...v25.34.0) (2025-09-29)
+
+
+### Features
+
+* **add:** SAS936RHB-7-Z03 ([#10097](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10097)) ([55a93c5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/55a93c537927c262400ae81727682750d768944f))
+
+
+### Bug Fixes
+
+* **ignore:** bump the minor-patch group with 2 updates ([#10105](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10105)) ([ad9af12](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ad9af125d59c131a9ab804d9e3fe0f88f9f6e6ed))
+* **ignore:** Revert changes for TB26-3 ([#10104](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10104)) ([9b2e28a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9b2e28aad8dfa044f7dbc3f0d78ae8e5db59b401))
+* Third Reality: 3RSB02015Z and 3RCB01057Z: update private clusters ([#10106](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10106)) ([69565ac](https://github.com/Koenkk/zigbee-herdsman-converters/commit/69565ac93f94eadd86af04560e617c39e7da7f44))
+
 ## [25.33.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.32.0...v25.33.0) (2025-09-28)
 
 
