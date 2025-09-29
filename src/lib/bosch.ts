@@ -3,7 +3,7 @@ import type {TPartialClusterAttributes} from "zigbee-herdsman/dist/zspec/zcl/def
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
-import type {BatteryArgs} from "../lib/modernExtend";
+import type {BatteryArgs, EnumLookupArgs} from "../lib/modernExtend";
 import * as m from "../lib/modernExtend";
 import {repInterval} from "./constants";
 import {logger} from "./logger";
@@ -2700,14 +2700,15 @@ export const boschThermostatExtend = {
             entityCategory: "config",
         }),
     humidity: () => m.humidity(),
-    operatingMode: () =>
+    operatingMode: (args?: Partial<EnumLookupArgs<"hvacThermostat", BoschThermostatCluster>>) =>
         m.enumLookup<"hvacThermostat", BoschThermostatCluster>({
             name: "operating_mode",
             cluster: "hvacThermostat",
             attribute: "operatingMode",
-            description: "Bosch-specific operating mode (overrides system mode)",
+            description: "Bosch-specific operating mode",
             lookup: {schedule: 0x00, manual: 0x01, pause: 0x05},
             reporting: {min: "MIN", max: "MAX", change: null},
+            ...args,
         }),
     windowOpenMode: () =>
         m.binary<"hvacThermostat", BoschThermostatCluster>({
