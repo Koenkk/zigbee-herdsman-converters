@@ -300,6 +300,6 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Connect-Z magnetic wall mountable light RCU",
         extend: [m.deviceEndpoints({endpoints: {"1": 1, "3": 3}}), m.commandsOnOff(), m.commandsLevelCtrl(), m.commandsColorCtrl()],
         meta: {multiEndpoint: true},
-        whitelabel: [{vendor: "EGLO", model: "900116"}],
+        whiteLabel: [{vendor: "EGLO", model: "900116"}],
     },
 ];
