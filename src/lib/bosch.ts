@@ -3130,11 +3130,11 @@ export const boschThermostatExtend = {
                 type: "read",
                 convert: async (model, msg, publish, options, meta) => {
                     if ("dstStart" in msg.data && "dstEnd" in msg.data && "dstShift" in msg.data) {
-                        const payload: TPartialClusterAttributes<"genTime"> = {};
-
-                        payload.dstStart = 0x00;
-                        payload.dstEnd = 0x00;
-                        payload.dstShift = 0x00;
+                        const payload: TPartialClusterAttributes<"genTime"> = {
+                            dstStart: 0x00,
+                            dstEnd: 0x00,
+                            dstShift: 0x00,
+                        };
 
                         await msg.endpoint.readResponse("genTime", msg.meta.zclTransactionSequenceNumber, payload);
                     }
