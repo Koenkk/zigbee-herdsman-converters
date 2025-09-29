@@ -3042,7 +3042,7 @@ export const boschThermostatExtend = {
         };
     },
     valveAdaptation: (): ModernExtend => {
-        const valveAdaptStatusLookup: KeyValue = {
+        const valveAdaptStatusLookup = {
             none: 0x00,
             ready_to_calibrate: 0x01,
             calibration_in_progress: 0x02,
@@ -3085,12 +3085,12 @@ export const boschThermostatExtend = {
                 key: ["valve_adapt_status", "valve_adapt_process"],
                 convertSet: async (entity, key, value, meta) => {
                     if (key === "valve_adapt_process") {
-                        let adaptStatus;
+                        let adaptStatus: number;
 
                         try {
                             adaptStatus = utils.getFromLookup(meta.state.valve_adapt_status, valveAdaptStatusLookup);
                         } catch {
-                            adaptStatus = utils.getFromLookupByValue(valveAdaptStatusLookup.none, valveAdaptStatusLookup);
+                            adaptStatus = valveAdaptStatusLookup.none;
                         }
 
                         switch (adaptStatus) {
@@ -3130,14 +3130,13 @@ export const boschThermostatExtend = {
             isModernExtend: true,
         };
     },
-    /** During the interview, the Bosch thermostats ask the coordinator for
+    /** The Bosch thermostats ask the coordinator on several occasions for
      * information about daylight saving time. As we don't support the setup
      * of schedules, we just answer with 0x00 so that the device stops asking.
      *
-     * As it looks like Bosch devices don't like it when the answer isn't
-     * provided together with the rest of the time information, we have to
-     * use a customReadResponse here and duplicate some code from
-     * zigbee-herdsman. */
+     * Since Bosch devices don't seem to like it when we offer incomplete
+     * answers, we have to use a customReadResponse here and duplicate
+     * some code from zigbee-herdsman. */
     handleDaylightSavingTimeReadRequest: (): ModernExtend => {
         const onEvent: OnEvent.Handler[] = [
             (event) => {
