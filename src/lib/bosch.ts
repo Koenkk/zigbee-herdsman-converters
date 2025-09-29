@@ -2782,7 +2782,7 @@ export const boschThermostatExtend = {
             description: "Input for remote temperature sensor. Required at least every 30 minutes to prevent fallback to the internal sensor!",
             valueMin: 0.0,
             valueMax: 35.0,
-            valueStep: 0.01,
+            valueStep: 0.2,
             unit: "°C",
             scale: 100,
         }),
