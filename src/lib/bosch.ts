@@ -91,6 +91,7 @@ export const boschGeneralExtend = {
                 };
             },
         ];
+
         return {
             onEvent,
             isModernExtend: true,
@@ -2656,7 +2657,7 @@ export const boschThermostatExtend = {
             unit: "%",
             valueMin: 0,
             valueMax: 100,
-            reporting: {min: "MIN", max: "MAX", change: 1},
+            reporting: {min: "MIN", max: "MAX", change: null},
             access: "ALL",
         }),
     cableSensorMode: () =>
@@ -2717,6 +2718,7 @@ export const boschThermostatExtend = {
                 "Activates the window open mode, where the thermostat disables any heating/cooling to prevent unnecessary energy consumption. Please keep in mind that the device itself does not detect any open windows!",
             valueOn: ["ON", 0x01],
             valueOff: ["OFF", 0x00],
+            reporting: {min: "MIN", max: "MAX", change: null, attribute: "windowOpenMode"},
         }),
     childLock: () =>
         m.binary({
@@ -3112,7 +3114,6 @@ export const boschThermostatExtend = {
             m.setupConfigureForReporting<"hvacThermostat", BoschThermostatCluster>("hvacThermostat", "valveAdaptStatus", {
                 config: {min: "MIN", max: "MAX", change: null},
             }),
-            m.setupConfigureForReading<"hvacThermostat", BoschThermostatCluster>("hvacThermostat", ["valveAdaptStatus"]),
         ];
 
         return {
@@ -3125,27 +3126,70 @@ export const boschThermostatExtend = {
     },
     /** During the interview, the Bosch thermostats ask the coordinator for
      * information about daylight saving time. As we don't support the setup
-     * of schedules, we just answer with 0 so that the device stops asking. */
+     * of schedules, we just answer with 0x00 so that the device stops asking.
+     *
+     * As it looks like Bosch devices don't like it when the answer isn't
+     * provided together with the rest of the time information, we have to
+     * use a customReadResponse here and duplicate some code from
+     * zigbee-herdsman. */
     handleDaylightSavingTimeReadRequest: (): ModernExtend => {
-        const fromZigbee = [
-            {
-                cluster: "genTime",
-                type: "read",
-                convert: async (model, msg, publish, options, meta) => {
-                    if ("dstStart" in msg.data && "dstEnd" in msg.data && "dstShift" in msg.data) {
-                        const payload: TPartialClusterAttributes<"genTime"> = {
-                            dstStart: 0x00,
-                            dstEnd: 0x00,
-                            dstShift: 0x00,
-                        };
+        const onEvent: OnEvent.Handler[] = [
+            (event) => {
+                if (event.type !== "start") {
+                    return;
+                }
 
-                        await msg.endpoint.readResponse("genTime", msg.meta.zclTransactionSequenceNumber, payload);
+                event.data.device.customReadResponse = (frame, endpoint) => {
+                    const isTimeClusterRequest = frame.isCluster("genTime");
+
+                    if (!isTimeClusterRequest) {
+                        return false;
                     }
-                },
-            } satisfies Fz.Converter<"genTime", undefined, "read">,
+
+                    const daylightSavingTimeRequested =
+                        frame.payload.find((i: {attrId: number}) => i.attrId === Zcl.Clusters.genTime.attributes.dstStart.ID) &&
+                        frame.payload.find((i: {attrId: number}) => i.attrId === Zcl.Clusters.genTime.attributes.dstEnd.ID) &&
+                        frame.payload.find((i: {attrId: number}) => i.attrId === Zcl.Clusters.genTime.attributes.dstShift.ID);
+
+                    if (!daylightSavingTimeRequested) {
+                        return false;
+                    }
+
+                    const payload: TPartialClusterAttributes<"genTime"> = {
+                        dstStart: 0x00,
+                        dstEnd: 0x00,
+                        dstShift: 0x00,
+                    };
+
+                    const OneJanuary2000 = new Date("January 01, 2000 00:00:00 UTC+00:00").getTime();
+                    const time = Math.round((Date.now() - OneJanuary2000) / 1000);
+
+                    const timeRequested = frame.payload.find((i: {attrId: number}) => i.attrId === Zcl.Clusters.genTime.attributes.time.ID);
+                    if (timeRequested) {
+                        payload.time = time;
+                    }
+
+                    const timeZoneRequested = frame.payload.find((i: {attrId: number}) => i.attrId === Zcl.Clusters.genTime.attributes.timeZone.ID);
+                    if (timeZoneRequested) {
+                        payload.timeZone = new Date().getTimezoneOffset() * -1 * 60;
+                    }
+
+                    const localTimeRequested = frame.payload.find((i: {attrId: number}) => i.attrId === Zcl.Clusters.genTime.attributes.localTime.ID);
+                    if (localTimeRequested) {
+                        payload.localTime = time - new Date().getTimezoneOffset() * 60;
+                    }
+
+                    endpoint.readResponse(frame.cluster.name, frame.header.transactionSequenceNumber, payload).catch((e) => {
+                        logger.warning(`Custom genTime response failed for '${event.data.device.ieeeAddr}': ${e}`, NS);
+                    });
+
+                    return true;
+                };
+            },
         ];
+
         return {
-            fromZigbee,
+            onEvent,
             isModernExtend: true,
         };
     },
