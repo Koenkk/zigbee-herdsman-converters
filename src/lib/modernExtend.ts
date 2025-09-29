@@ -3106,6 +3106,7 @@ export function thermostat(args: ThermostatArgs = {}): ModernExtend {
         const {min, max, step} = localTemperatureCalibration === true ? {min: -12.8, max: 12.8, step: 0.1} : localTemperatureCalibration;
         expose.withLocalTemperatureCalibration(min, max, step);
         toZigbee.push(tz.thermostat_local_temperature_calibration);
+        configure.push(setupConfigureForReading("hvacThermostat", ["localTemperatureCalibration"]));
     }
 
     for (const key of Object.keys(setpoints) as Array<keyof typeof SETPOINT_LOOKUP>) {
@@ -3168,6 +3169,7 @@ export function thermostat(args: ThermostatArgs = {}): ModernExtend {
                 .withDescription("Period in minutes for which the setpoint hold will be active (65535 - forever)"),
         );
         toZigbee.push(tz.thermostat_temperature_setpoint_hold_duration);
+        configure.push(setupConfigureForReading("hvacThermostat", ["tempSetpointHoldDuration"]));
     }
 
     for (const key of Object.keys(setpointsLimit) as Array<keyof typeof SETPOINT_LIMIT_LOOKUP>) {
