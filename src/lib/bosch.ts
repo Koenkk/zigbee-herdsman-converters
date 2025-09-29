@@ -3085,7 +3085,13 @@ export const boschThermostatExtend = {
                 key: ["valve_adapt_status", "valve_adapt_process"],
                 convertSet: async (entity, key, value, meta) => {
                     if (key === "valve_adapt_process") {
-                        const adaptStatus = utils.getFromLookup(meta.state.valve_adapt_status, valveAdaptStatusLookup, valveAdaptStatusLookup.none);
+                        let adaptStatus;
+
+                        try {
+                            adaptStatus = utils.getFromLookup(meta.state.valve_adapt_status, valveAdaptStatusLookup);
+                        } catch {
+                            adaptStatus = utils.getFromLookupByValue(valveAdaptStatusLookup.none, valveAdaptStatusLookup);
+                        }
 
                         switch (adaptStatus) {
                             case valveAdaptStatusLookup.ready_to_calibrate:
