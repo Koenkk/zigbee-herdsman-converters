@@ -16875,10 +16875,8 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_madl8ejv"]),
         model: "SAS936RHB-7-Z03",
         vendor: "Saswell",
-        description: "Wireless Temperature Sensor",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        description: "Wireless temperature sensor",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e
                 .climate()
