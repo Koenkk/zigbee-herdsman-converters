@@ -55,11 +55,10 @@ interface BoschGeneralEnergyDeviceCluster {
 
 export const boschGeneralExtend = {
     /** Some Bosch devices ask the coordinator for their ZCL version
-     * during an interview. Without answer, these devices regularly re-join
-     * the network and sometimes respond delayed. To avoid that, we have
-     * to make sure that a readRequest for the zclVersion is always
-     * answered. The answered zclVersion is taken from the Bosch Smart
-     * Home Controller II.
+     * during deviceAnnouncement. Without answer, these devices regularly
+     * re-join the network. To avoid that, we have to make sure that a readRequest
+     * for the zclVersion is always being answered. The answered zclVersion is
+     * taken from the Bosch Smart Home Controller II.
      *
      * Exception: BTH-RM and BTH-RM230Z ask the coordinator at regular
      * intervals for their zclVersion (maybe availability check like Z2M does?)
