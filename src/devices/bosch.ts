@@ -1,7 +1,16 @@
 import {Zcl, ZSpec} from "zigbee-herdsman";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
-import {type BoschBmctCluster, boschBmctExtend, boschBsenExtend, boschBsirExtend, manufacturerOptions} from "../lib/bosch";
+import {
+    type BoschBmctCluster,
+    boschBmctExtend,
+    boschBsenExtend,
+    boschBsirExtend,
+    boschDoorWindowContactExtend,
+    boschGeneralExtend,
+    boschSmartPlugExtend,
+    manufacturerOptions,
+} from "../lib/bosch";
 import * as constants from "../lib/constants";
 import {repInterval} from "../lib/constants";
 import * as exposes from "../lib/exposes";
@@ -134,14 +143,6 @@ interface TwinguardAlarm {
         alarm_status: number;
     };
     commands: {burglarAlarm: {data: number}};
-    commandResponses: never;
-}
-
-interface BoschSeMetering {
-    attributes: never;
-    commands: {
-        resetEnergyReading: Record<string, never>;
-    };
     commandResponses: never;
 }
 
@@ -456,88 +457,6 @@ const boschExtend = {
             } satisfies Fz.Converter<"genTime", undefined, "read">,
         ];
         return {
-            fromZigbee,
-            isModernExtend: true,
-        };
-    },
-    seMeteringCluster: () =>
-        m.deviceAddCustomCluster("seMetering", {
-            ID: Zcl.Clusters.seMetering.ID,
-            attributes: {},
-            commands: {
-                resetEnergyReading: {
-                    ID: 0x80,
-                    parameters: [],
-                },
-            },
-            commandsResponse: {},
-        }),
-    resetEnergyReading: (): ModernExtend => {
-        const exposes: Expose[] = [
-            e
-                .enum("reset_energy_reading", ea.SET, ["reset"])
-                .withDescription("Triggers the reset of the energy reading to 0 kWh.")
-                .withCategory("config"),
-        ];
-        const toZigbee: Tz.Converter[] = [
-            {
-                key: ["reset_energy_reading"],
-                convertSet: async (entity, key, value, meta) => {
-                    await entity.command<"seMetering", "resetEnergyReading", BoschSeMetering>(
-                        "seMetering",
-                        "resetEnergyReading",
-                        {},
-                        manufacturerOptions,
-                    );
-                },
-            },
-        ];
-        return {
-            exposes,
-            toZigbee,
-            isModernExtend: true,
-        };
-    },
-    doorWindowContact: (hasVibrationSensor?: boolean): ModernExtend => {
-        const exposes: Expose[] = [
-            e.binary("contact", ea.STATE, false, true).withDescription("Indicates whether the device is opened or closed"),
-            e
-                .enum("action", ea.STATE, ["none", "single", "long"])
-                .withDescription("Triggered action (e.g. a button click)")
-                .withCategory("diagnostic"),
-        ];
-        if (hasVibrationSensor) {
-            exposes.push(e.binary("vibration", ea.STATE, true, false).withDescription("Indicates whether the device detected vibration"));
-        }
-        const fromZigbee = [
-            {
-                cluster: "ssIasZone",
-                type: ["commandStatusChangeNotification", "attributeReport", "readResponse"],
-                convert: (model, msg, publish, options, meta) => {
-                    const zoneStatus = "zonestatus" in msg.data ? msg.data.zonestatus : msg.data.zoneStatus;
-                    if (zoneStatus !== undefined) {
-                        const lookup: KeyValue = {0: "none", 1: "single", 2: "long"};
-                        const result: KeyValue = {
-                            contact: !((zoneStatus & 1) > 0),
-                            vibration: (zoneStatus & (1 << 1)) > 0,
-                            tamper: (zoneStatus & (1 << 2)) > 0,
-                            battery_low: (zoneStatus & (1 << 3)) > 0,
-                            supervision_reports: (zoneStatus & (1 << 4)) > 0,
-                            restore_reports: (zoneStatus & (1 << 5)) > 0,
-                            trouble: (zoneStatus & (1 << 6)) > 0,
-                            ac_status: (zoneStatus & (1 << 7)) > 0,
-                            test: (zoneStatus & (1 << 8)) > 0,
-                            battery_defect: (zoneStatus & (1 << 9)) > 0,
-                            action: lookup[(zoneStatus >> 11) & 3],
-                        };
-                        if (result.action === "none") delete result.action;
-                        return result;
-                    }
-                },
-            } satisfies Fz.Converter<"ssIasZone", undefined, ["commandStatusChangeNotification", "attributeReport", "readResponse"]>,
-        ];
-        return {
-            exposes,
             fromZigbee,
             isModernExtend: true,
         };
@@ -1662,45 +1581,50 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["RBSH-SP-ZB-EU", "RBSH-SP-ZB-FR", "RBSH-SP-ZB-GB"],
         model: "BSP-FZ2",
         vendor: "Bosch",
-        description: "Plug compact EU",
+        description: "Smart plug compact (type F plug)",
         extend: [
-            m.onOff(),
-            m.electricityMeter({
-                voltage: false,
-                current: false,
-                power: {change: 1},
-                energy: {change: 1},
-            }),
-            boschExtend.seMeteringCluster(),
-            boschExtend.resetEnergyReading(),
+            boschGeneralExtend.customSeMeteringCluster(),
+            boschSmartPlugExtend.smartPlugCluster(),
+            boschSmartPlugExtend.onOff(),
+            boschGeneralExtend.autoOff(),
+            boschSmartPlugExtend.electricityMeter(),
+            boschGeneralExtend.resetEnergyMeters(),
         ],
         ota: true,
         whiteLabel: [
-            {vendor: "Bosch", model: "BSP-EZ2", description: "Plug compact FR", fingerprint: [{modelID: "RBSH-SP-ZB-FR"}]},
-            {vendor: "Bosch", model: "BSP-GZ2", description: "Plug compact UK", fingerprint: [{modelID: "RBSH-SP-ZB-GB"}]},
+            {vendor: "Bosch", model: "BSP-EZ2", description: "Smart plug compact (type E plug)", fingerprint: [{modelID: "RBSH-SP-ZB-FR"}]},
+            {vendor: "Bosch", model: "BSP-GZ2", description: "Smart plug compact (type G plug)", fingerprint: [{modelID: "RBSH-SP-ZB-GB"}]},
         ],
     },
     {
-        zigbeeModel: ["RBSH-SWD-ZB", "RBSH-SWD2-ZB"],
+        zigbeeModel: ["RBSH-SP2-ZB-EU"],
+        model: "BSP-FD",
+        vendor: "Bosch",
+        description: "Smart plug compact [+M]",
+        extend: [
+            boschGeneralExtend.handleZclVersionReadRequest(),
+            boschGeneralExtend.customSeMeteringCluster(),
+            boschSmartPlugExtend.smartPlugCluster(),
+            boschSmartPlugExtend.onOff(),
+            boschGeneralExtend.autoOff(),
+            boschSmartPlugExtend.ledBrightness(),
+            boschSmartPlugExtend.energySavingMode(),
+            boschSmartPlugExtend.electricityMeter({producedEnergy: true}),
+            boschGeneralExtend.resetEnergyMeters(),
+        ],
+    },
+    {
+        zigbeeModel: ["RBSH-SWD-ZB"],
         model: "BSEN-C2",
         vendor: "Bosch",
         description: "Door/window contact II",
         extend: [
-            boschExtend.doorWindowContact(false),
-            m.battery({
-                percentage: true,
-                lowStatus: true,
-            }),
-            m.bindCluster({
-                cluster: "genPollCtrl",
-                clusterType: "input",
-            }),
+            boschDoorWindowContactExtend.doorWindowContactCluster(),
+            boschDoorWindowContactExtend.reportContactState(),
+            boschDoorWindowContactExtend.reportButtonActions(),
+            boschDoorWindowContactExtend.breakFunctionality(),
+            boschDoorWindowContactExtend.battery(),
         ],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await endpoint.read("genPowerCfg", ["batteryPercentageRemaining"]);
-            await endpoint.read("ssIasZone", ["zoneStatus"]);
-        },
         ota: true,
     },
     {
@@ -1709,21 +1633,26 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Bosch",
         description: "Door/window contact II plus",
         extend: [
-            boschExtend.doorWindowContact(true),
-            m.battery({
-                percentage: true,
-                lowStatus: true,
-            }),
-            m.bindCluster({
-                cluster: "genPollCtrl",
-                clusterType: "input",
-            }),
+            boschDoorWindowContactExtend.doorWindowContactCluster(),
+            boschDoorWindowContactExtend.reportContactState(),
+            boschDoorWindowContactExtend.reportButtonActions(),
+            boschDoorWindowContactExtend.vibrationDetection(),
+            boschDoorWindowContactExtend.breakFunctionality(),
+            boschDoorWindowContactExtend.battery(),
         ],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await endpoint.read("genPowerCfg", ["batteryPercentageRemaining"]);
-            await endpoint.read("ssIasZone", ["zoneStatus"]);
-        },
+    },
+    {
+        zigbeeModel: ["RBSH-SWD2-ZB"],
+        model: "BSEN-C2D",
+        vendor: "Bosch",
+        description: "Door/window contact II [+M]",
+        extend: [
+            boschDoorWindowContactExtend.doorWindowContactCluster(),
+            boschDoorWindowContactExtend.reportContactState(),
+            boschDoorWindowContactExtend.reportButtonActions({doublePressSupported: true}),
+            boschDoorWindowContactExtend.breakFunctionality(),
+            boschDoorWindowContactExtend.battery(),
+        ],
     },
     {
         zigbeeModel: ["RBSH-MMD-ZB-EU"],
@@ -1731,8 +1660,8 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Bosch",
         description: "Phase-cut dimmer",
         extend: [
-            boschBmctExtend.handleZclVersionReadRequest(),
-            m.deviceAddCustomCluster("boschSpecific", {
+            boschGeneralExtend.handleZclVersionReadRequest(),
+            m.deviceAddCustomCluster("boschEnergyDevice", {
                 ID: 0xfca0,
                 manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
                 attributes: {
@@ -1775,14 +1704,12 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Bosch",
         description: "Relay (potential free)",
         extend: [
-            boschBmctExtend.handleZclVersionReadRequest(),
-            m.deviceAddCustomCluster("boschSpecific", {
+            boschGeneralExtend.handleZclVersionReadRequest(),
+            m.deviceAddCustomCluster("boschEnergyDevice", {
                 ID: 0xfca0,
                 manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
                 attributes: {
                     switchType: {ID: 0x0001, type: Zcl.DataType.ENUM8},
-                    autoOffEnabled: {ID: 0x0006, type: Zcl.DataType.BOOLEAN},
-                    autoOffTime: {ID: 0x0007, type: Zcl.DataType.UINT16},
                     childLock: {ID: 0x0008, type: Zcl.DataType.BOOLEAN},
                     pulseLength: {ID: 0x0024, type: Zcl.DataType.UINT16},
                     switchMode: {ID: 0x0031, type: Zcl.DataType.BOOLEAN},
@@ -1807,7 +1734,7 @@ export const definitions: DefinitionWithExtend[] = [
                 switchTypeLookup: boschBmctRzSettings.switchTypes,
             }),
             boschBmctExtend.childLock(),
-            boschBmctExtend.autoOff(),
+            boschGeneralExtend.autoOff(),
             boschBmctExtend.pulseLength({
                 updateDeviceMode: true,
                 deviceModesLookup: boschBmctRzSettings.deviceModes,
@@ -1829,7 +1756,7 @@ export const definitions: DefinitionWithExtend[] = [
                 power: {change: 1},
                 energy: {change: 1},
             }),
-            m.deviceAddCustomCluster("boschSpecific", {
+            m.deviceAddCustomCluster("boschEnergyDevice", {
                 ID: 0xfca0,
                 manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
                 attributes: {
@@ -1894,23 +1821,23 @@ export const definitions: DefinitionWithExtend[] = [
                 },
                 commandsResponse: {},
             }),
-            boschBmctExtend.handleZclVersionReadRequest(),
+            boschGeneralExtend.handleZclVersionReadRequest(),
             boschBmctExtend.slzExtends(),
-            boschExtend.seMeteringCluster(),
-            boschExtend.resetEnergyReading(),
+            boschGeneralExtend.customSeMeteringCluster(),
+            boschGeneralExtend.resetEnergyMeters(),
         ],
         ota: true,
         configure: async (device, coordinatorEndpoint) => {
             const lightConfiguration = async () => {
                 const endpoint1 = device.getEndpoint(1);
                 await reporting.bind(endpoint1, coordinatorEndpoint, ["genIdentify"]);
-                await endpoint1.read<"boschSpecific", BoschBmctCluster>("boschSpecific", ["switchType"]);
+                await endpoint1.read<"boschEnergyDevice", BoschBmctCluster>("boschEnergyDevice", ["switchType"]);
 
                 const endpoint2 = device.getEndpoint(2);
-                await reporting.bind(endpoint2, coordinatorEndpoint, ["genIdentify", "genOnOff", "boschSpecific"]);
+                await reporting.bind(endpoint2, coordinatorEndpoint, ["genIdentify", "genOnOff", "boschEnergyDevice"]);
                 await reporting.onOff(endpoint2);
                 await endpoint2.read<"genOnOff">("genOnOff", ["onOff", "startUpOnOff"]);
-                await endpoint2.read<"boschSpecific", BoschBmctCluster>("boschSpecific", [
+                await endpoint2.read<"boschEnergyDevice", BoschBmctCluster>("boschEnergyDevice", [
                     "switchMode",
                     "childLock",
                     "autoOffEnabled",
@@ -1918,10 +1845,10 @@ export const definitions: DefinitionWithExtend[] = [
                 ]);
 
                 const endpoint3 = device.getEndpoint(3);
-                await reporting.bind(endpoint3, coordinatorEndpoint, ["genIdentify", "genOnOff", "boschSpecific"]);
+                await reporting.bind(endpoint3, coordinatorEndpoint, ["genIdentify", "genOnOff", "boschEnergyDevice"]);
                 await reporting.onOff(endpoint3);
                 await endpoint3.read<"genOnOff">("genOnOff", ["onOff", "startUpOnOff"]);
-                await endpoint3.read<"boschSpecific", BoschBmctCluster>("boschSpecific", [
+                await endpoint3.read<"boschEnergyDevice", BoschBmctCluster>("boschEnergyDevice", [
                     "switchMode",
                     "childLock",
                     "autoOffEnabled",
@@ -1931,14 +1858,14 @@ export const definitions: DefinitionWithExtend[] = [
 
             const shutterConfiguration = async () => {
                 const endpoint1 = device.getEndpoint(1);
-                await reporting.bind(endpoint1, coordinatorEndpoint, ["genIdentify", "closuresWindowCovering", "boschSpecific"]);
+                await reporting.bind(endpoint1, coordinatorEndpoint, ["genIdentify", "closuresWindowCovering", "boschEnergyDevice"]);
                 await reporting.currentPositionLiftPercentage(endpoint1);
                 await endpoint1.read<"closuresWindowCovering">("closuresWindowCovering", ["currentPositionLiftPercentage"]);
 
-                const payloadMotorState = payload<"boschSpecific", BoschBmctCluster>("motorState", 0, repInterval.MAX, 0);
-                await endpoint1.configureReporting("boschSpecific", payloadMotorState);
+                const payloadMotorState = payload<"boschEnergyDevice", BoschBmctCluster>("motorState", 0, repInterval.MAX, 0);
+                await endpoint1.configureReporting("boschEnergyDevice", payloadMotorState);
 
-                await endpoint1.read<"boschSpecific", BoschBmctCluster>("boschSpecific", [
+                await endpoint1.read<"boschEnergyDevice", BoschBmctCluster>("boschEnergyDevice", [
                     "switchType",
                     "switchMode",
                     "motorState",
@@ -1951,7 +1878,7 @@ export const definitions: DefinitionWithExtend[] = [
             };
 
             const endpoint1 = device.getEndpoint(1);
-            await endpoint1.read<"boschSpecific", BoschBmctCluster>("boschSpecific", ["deviceMode"]);
+            await endpoint1.read<"boschEnergyDevice", BoschBmctCluster>("boschEnergyDevice", ["deviceMode"]);
 
             await lightConfiguration();
             await shutterConfiguration();
@@ -2130,10 +2057,10 @@ export const definitions: DefinitionWithExtend[] = [
             };
 
             if (!utils.isDummyDevice(device)) {
-                const deviceModeKey = device.getEndpoint(1).getClusterAttributeValue("boschSpecific", "deviceMode");
+                const deviceModeKey = device.getEndpoint(1).getClusterAttributeValue("boschEnergyDevice", "deviceMode");
                 const deviceMode = Object.keys(stateDeviceMode).find((key) => stateDeviceMode[key] === deviceModeKey);
 
-                const switchTypeKey = device.getEndpoint(1).getClusterAttributeValue("boschSpecific", "switchType");
+                const switchTypeKey = device.getEndpoint(1).getClusterAttributeValue("boschEnergyDevice", "switchType");
                 const switchType = Object.keys(stateSwitchType).find((key) => stateSwitchType[key] === switchTypeKey);
 
                 if (deviceMode === "light") {
