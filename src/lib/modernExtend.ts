@@ -3106,7 +3106,6 @@ export function thermostat(args: ThermostatArgs = {}): ModernExtend {
         const {min, max, step} = localTemperatureCalibration === true ? {min: -12.8, max: 12.8, step: 0.1} : localTemperatureCalibration;
         expose.withLocalTemperatureCalibration(min, max, step);
         toZigbee.push(tz.thermostat_local_temperature_calibration);
-        configure.push(setupConfigureForReading("hvacThermostat", ["localTemperatureCalibration"]));
     }
 
     for (const key of Object.keys(setpoints) as Array<keyof typeof SETPOINT_LOOKUP>) {
