@@ -599,12 +599,12 @@ export const definitions: DefinitionWithExtend[] = [
                 ID: 0xff04,
                 manufacturerCode: 0x1407,
                 attributes: {
-                    allowBind: {ID: 0x0020  , type: Zcl.DataType.UINT8},
+                    allowBind: {ID: 0x0020, type: Zcl.DataType.UINT8},
                 },
                 commands: {},
                 commandsResponse: {},
-        }),
-    ],
+            }),
+        ],
     },
     {
         zigbeeModel: ["3RSPE01044BZ"],
