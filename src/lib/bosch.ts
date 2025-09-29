@@ -2924,7 +2924,9 @@ export const boschThermostatExtend = {
             {
                 key: ["boost_heating"],
                 convertSet: async (entity, key, value, meta) => {
-                    if (value === utils.getFromLookupByValue(boostHeatingLookup.ON, boostHeatingLookup)) {
+                    const enableBoostHeating = value === utils.getFromLookupByValue(boostHeatingLookup.ON, boostHeatingLookup);
+
+                    if (enableBoostHeating) {
                         const systemModeNotSetToHeat = "system_mode" in meta.state && meta.state.system_mode !== "heat";
 
                         if (systemModeNotSetToHeat) {
