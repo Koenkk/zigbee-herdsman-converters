@@ -2735,7 +2735,10 @@ export const boschThermostatExtend = {
             attribute: "displayBrightness",
             description: "Sets brightness of the display",
             valueMin: 0,
-            valueMax: 10,
+            valueMax: 100,
+            valueStep: 10,
+            unit: "%",
+            scale: 0.1,
             entityCategory: "config",
         }),
     displaySwitchOnDuration: () =>
