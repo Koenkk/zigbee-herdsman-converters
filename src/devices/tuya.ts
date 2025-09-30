@@ -351,19 +351,15 @@ const convLocal = {
 };
 
 const tzLocal = {
-     ts0049_countdown: {
+    ts0049_countdown: {
         key: ["countdown"],
         convertSet: async (entity, key, value, meta) => {
             utils.assertNumber(value);
             const data = Buffer.alloc(5);
-            const scaledValue = value * 60; // 
-            data.writeUInt32BE(scaledValue, 1); // 
-            data[0] = 0x0b; // 
-            await entity.command("manuSpecificTuyaE001", "setCountdown",
-             {payload: data},
-                utils.getOptions(meta.mapped, 1),
-              );
-
+            const scaledValue = value * 60; //
+            data.writeUInt32BE(scaledValue, 1); //
+            data[0] = 0x0b; //
+            await entity.command("manuSpecificTuyaE001", "setCountdown", {payload: data}, utils.getOptions(meta.mapped, 1));
         },
     } satisfies Tz.Converter,
 
@@ -984,14 +980,13 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             const len = msg.data.length;
             const command = msg.data[2];
-            if ((len>10)&& command === 0x0a && msg.data[7]===0x0b && (msg.data[6]===0x05 || msg.data[6]===0x06)) {
-               const data = msg.data.slice(8);
-               const value = data.readUInt32BE(0);
+            if (len > 10 && command === 0x0a && msg.data[7] === 0x0b && (msg.data[6] === 0x05 || msg.data[6] === 0x06)) {
+                const data = msg.data.slice(8);
+                const value = data.readUInt32BE(0);
                 return {
-                    countdown: value/60,
+                    countdown: value / 60,
                 };
             }
-          
         },
     } satisfies Fz.Converter<"manuSpecificTuyaE001", undefined, ["attributeReport"]>,
 };
@@ -19682,29 +19677,30 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Haozee",
         description: "Water valve",
         toZigbee: [tzLocal.ts0049_countdown],
-        fromZigbee:[fzLocal.ts0049_countdown],
-        extend: [m.battery(), m.onOff({powerOnBehavior: false}), 
-        m.deviceAddCustomCluster("manuSpecificTuyaE001", {
-            ID: 0xe001,
-            attributes: {},
-            commands: {
-                setCountdown: {
-                    ID: 0xfe,
-                    parameters: [{name: "payload", type: 1008}],
+        fromZigbee: [fzLocal.ts0049_countdown],
+        extend: [
+            m.battery(),
+            m.onOff({powerOnBehavior: false}),
+            m.deviceAddCustomCluster("manuSpecificTuyaE001", {
+                ID: 0xe001,
+                attributes: {},
+                commands: {
+                    setCountdown: {
+                        ID: 0xfe,
+                        parameters: [{name: "payload", type: 1008}],
+                    },
                 },
-                
-            },
-            commandsResponse: {},
-        })],
-        exposes: [
-             e
-            .numeric("countdown", ea.STATE_SET)
-            .withValueMin(1)
-            .withValueMax(1440)
-            .withValueStep(1)
-            .withUnit("minute")
-            .withDescription("Watering countdown to turn device off after a certain time"),
+                commandsResponse: {},
+            }),
         ],
-       
+        exposes: [
+            e
+                .numeric("countdown", ea.STATE_SET)
+                .withValueMin(1)
+                .withValueMax(1440)
+                .withValueStep(1)
+                .withUnit("minute")
+                .withDescription("Watering countdown to turn device off after a certain time"),
+        ],
     },
 ];
