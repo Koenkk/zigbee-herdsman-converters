@@ -2212,7 +2212,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withLocalTemperature()
                 .withSystemMode(["off", "heat", "cool"])
                 .withRunningState(["idle", "heat", "cool"])
-                .withPiHeatingDemand(),
+                .withPiHeatingDemand()
                 .withPiCoolingDemand(),
             e.temperature(),
             e.occupancy(),
