@@ -32,8 +32,7 @@ interface TuyaGenOnOff {
     commandResponses: never;
 }
 
-
-interface ts0049Countdown {
+interface Ts0049Countdown {
     attributes: never;
     commands: {setCountdown: {data: Buffer}};
 
@@ -367,9 +366,7 @@ const tzLocal = {
             data.writeUInt32BE(scaledValue, 1); //
             data[0] = 0x0b; //
 
-            await entity.command<"manuSpecificTuyaE001", "setCountdown", ts0049Countdown>("manuSpecificTuyaE001", "setCountdown", {data});
-           
-
+            await entity.command<"manuSpecificTuyaE001", "setCountdown", Ts0049Countdown>("manuSpecificTuyaE001", "setCountdown", {data});
         },
     } satisfies Tz.Converter,
 
