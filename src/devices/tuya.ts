@@ -993,7 +993,7 @@ const fzLocal = {
             }
           
         },
-    } satisfies Fz.Converter<"manuSpecificTuyaE001", undefined, ["attributeReport"]>,
+    } satisfies Fz.Converter<"manuSpecificTuyaE001", undefined, "raw">,
 };
 
 export const definitions: DefinitionWithExtend[] = [
