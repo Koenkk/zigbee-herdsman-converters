@@ -2413,6 +2413,7 @@ export const definitions: DefinitionWithExtend[] = [
                 "_TZ3000_k4ej3ww2", // Aubess IH-K665
                 "_TZ3000_kstbkt6a", // Aubess IH-K665
                 "_TZ3000_upgcbody", // Zigbee water leak sensor
+                "_TYZB01_ttvdudvx", // Zigbee water leak sensor
             ];
             if (!device || !noTamperModels.includes(device.manufacturerName)) {
                 exps.push(e.tamper());
