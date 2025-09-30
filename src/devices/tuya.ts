@@ -19646,7 +19646,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: tuya.fingerprint("TS0049", ["_TZ3000_kz1anoi8"]),
-        model: "ZG-306Z",
+        model: "HZ-WT02",
         vendor: "Haozee",
         description: "Water valve",
         extend: [m.battery(), m.onOff({powerOnBehavior: false}), tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true})],
