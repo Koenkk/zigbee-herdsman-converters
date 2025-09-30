@@ -1,4 +1,6 @@
+import { request } from "http";
 import {Zcl} from "zigbee-herdsman";
+import { TuyaWeatherSyncValue } from "zigbee-herdsman/dist/zspec/zcl/definition/tstype";
 
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
@@ -57,6 +59,33 @@ export const dataTypes = {
     string: 3, // [ N byte string ]
     enum: 4, // [ 0-255 ]
     bitmap: 5, // [ 1,2,4 bytes ] as bits
+};
+
+export const M8ProTuyaWeatherCondition = {
+    Sunny: 100,
+    HeavyRain: 101,
+    Cloudy: 102,
+    Sandstorm: 103,
+    LightSnow: 104,
+    Snow: 105,
+    FreezingFog: 106,
+    Rainstorm: 107,
+    Shower: 108,
+    Dust: 109,
+    Spit: 112,
+    Sleet: 113,
+    Yin: 114,
+    FreezingRain: 115,
+    Rain: 118,
+    Fog: 121,
+    HeavyShower: 123,
+    HeavySnow: 124,
+    HeavyDownpour: 125,
+    Blizzard: 126,
+    Hailstone: 127,
+    SnowShower: 130,
+    Haze: 140,
+    ThunderShower: 143
 };
 
 export function convertBufferToNumber(chunks: Buffer | number[]) {
@@ -2745,6 +2774,101 @@ const tuyaModernExtend = {
             ...args,
         });
     },
+    tuyaWeatherForecast(args: {
+            includeCurrentWeather?: boolean;
+            numberOfForecastDays?: number;
+            correctForNegativeValues?: boolean;
+        } = {},
+    ): ModernExtend {
+        const {
+            includeCurrentWeather = true,
+            numberOfForecastDays = 3,
+            correctForNegativeValues = false,
+        } = args;
+
+        const tz_fileds = includeCurrentWeather ? ["temperature_0", "humidity_0", "condition_0"] : [];
+
+        for (let i=0; i<numberOfForecastDays; ++i) {
+            tz_fileds.push("temperature_" + i);
+            tz_fileds.push("humidity_" + i);
+            tz_fileds.push("condition_" + i);
+        }
+
+        function _vCorr(val: number): number {
+            if (correctForNegativeValues && val < 1) {
+                return val-1;
+            }
+            return val;
+        }
+
+        function _prepareTuyaWeatherSyncPayload(meta : Fz.Meta | Tz.Meta, numberOfForecastDays : number, includeCurrentWeather : boolean) : TuyaWeatherSyncValue {
+            const forecastTemperature: number[] = [];
+            const forecastHumidity: number[] = [];
+            const forecastCondition: number[] = [];
+
+            for (let i=1; i<=numberOfForecastDays; ++i) {
+                forecastTemperature.push("temperature_" + i in meta.state ? _vCorr(meta.state["temperature_" + i] as number) as number : 0);
+                forecastHumidity.push("humidity_" + i in meta.state ? meta.state["humidity" + i] as number : 0);
+                forecastCondition.push("condition_" + i in meta.state ? M8ProTuyaWeatherCondition[meta.state["condition_" + i] as keyof typeof M8ProTuyaWeatherCondition] : 0);
+            }
+
+            return {
+                numberOfForecastDays: numberOfForecastDays,
+                includeCurrentWeather: includeCurrentWeather,
+                currentTemperature: "temperature_0" in meta.state ? _vCorr(meta.state["temperature_0"] as number) as number : 0,
+                currentHumidity: "humidity_0" in meta.state ? meta.state["humidity_0"] as number : 0,
+                currentCondition: "condition_0" in meta.state ? M8ProTuyaWeatherCondition[meta.state["condition_0"] as keyof typeof M8ProTuyaWeatherCondition] : 0,
+                forecastTemperature: forecastTemperature,
+                forecastHumidity: forecastHumidity,
+                forecastCondition: forecastCondition,
+            }
+        }
+
+        const fzConverter: Fz.Converter<
+            "manuSpecificTuya",
+            undefined,
+            [
+                "commandTuyaWeatherRequest"
+            ]
+        > = {
+            type: [
+                "commandTuyaWeatherRequest"
+            ],
+            cluster: "manuSpecificTuya",
+            convert: (model, msg, publish, options, meta) => {
+                logger.warning(JSON.stringify(msg), NS);
+
+                if (msg.type === "commandTuyaWeatherRequest") {
+                    const request_pld = msg.data.payload;
+                    const pld = _prepareTuyaWeatherSyncPayload(meta, request_pld.numberOfForecastDays, request_pld.includeCurrentWeather);
+
+                    msg.endpoint.command("manuSpecificTuya", "tuyaWeatherSync", {payload: pld});
+                }
+            },
+        };
+
+        const tzConverter: Tz.Converter = {
+            key: tz_fileds,
+            convertSet: async (entity, key, value, meta) => {
+                meta.state[key] = value;
+
+                const pld = _prepareTuyaWeatherSyncPayload(meta, numberOfForecastDays, includeCurrentWeather);
+
+                entity.command("manuSpecificTuya", "tuyaWeatherSync", {payload: pld});
+
+                return {state: {[key]: value}};
+            },
+        }
+
+        const result: ModernExtend = {
+            configure: [],
+            isModernExtend: true,
+            fromZigbee: [fzConverter],
+            toZigbee: [tzConverter],
+        };
+
+        return result;
+    }
 };
 export {tuyaModernExtend as modernExtend};
 

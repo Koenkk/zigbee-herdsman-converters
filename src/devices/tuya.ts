@@ -17,7 +17,7 @@ import {addActionGroup, hasAlreadyProcessedMessage, postfixWithEndpointName} fro
 import * as zosung from "../lib/zosung";
 
 const NS = "zhc:tuya";
-const {tuyaLight, tuyaBase, tuyaMagicPacket, dpBinary, dpNumeric, dpEnumLookup} = tuya.modernExtend;
+const {tuyaLight, tuyaBase, tuyaMagicPacket, dpBinary, dpNumeric, dpEnumLookup, tuyaWeatherForecast} = tuya.modernExtend;
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -10094,7 +10094,11 @@ export const definitions: DefinitionWithExtend[] = [
         model: "M8Pro",
         vendor: "Tuya",
         description: "4 gang switch with LCD",
-        extend: [tuyaBase({dp: true}), m.deviceEndpoints({endpoints: {l1: 1, l2: 1, l3: 1, l4: 1}})],
+        extend: [
+            tuyaWeatherForecast({includeCurrentWeather: true, numberOfForecastDays: 3, correctForNegativeValues: true}),
+            tuyaBase({dp: true}),
+            m.deviceEndpoints({endpoints: {l1: 1, l2: 1, l3: 1, l4: 1}})
+        ],
         exposes: [
             tuya.exposes.switch().withEndpoint("l1"),
             tuya.exposes.switch().withEndpoint("l2"),
@@ -10108,11 +10112,18 @@ export const definitions: DefinitionWithExtend[] = [
             e.text("scene_name", ea.STATE_SET).withEndpoint("l2").withDescription("Name for Scene 2"),
             e.text("scene_name", ea.STATE_SET).withEndpoint("l3").withDescription("Name for Scene 3"),
             e.text("scene_name", ea.STATE_SET).withEndpoint("l4").withDescription("Name for Scene 4"),
-            exposes.enum("mode", ea.STATE_SET, ["switch_1", "scene_1", "smart_light_1"]).withEndpoint("l1").withDescription("Switch1 mode"),
-            exposes.enum("mode", ea.STATE_SET, ["switch_1", "scene_1", "smart_light_1"]).withEndpoint("l2").withDescription("Switch2 mode"),
-            exposes.enum("mode", ea.STATE_SET, ["switch_1", "scene_1", "smart_light_1"]).withEndpoint("l3").withDescription("Switch3 mode"),
-            exposes.enum("mode", ea.STATE_SET, ["switch_1", "scene_1", "smart_light_1"]).withEndpoint("l4").withDescription("Switch4 mode"),
+            e.enum("mode", ea.STATE_SET, ["switch_1", "scene_1", "smart_light_1"]).withEndpoint("l1").withDescription("Switch1 mode"),
+            e.enum("mode", ea.STATE_SET, ["switch_1", "scene_1", "smart_light_1"]).withEndpoint("l2").withDescription("Switch2 mode"),
+            e.enum("mode", ea.STATE_SET, ["switch_1", "scene_1", "smart_light_1"]).withEndpoint("l3").withDescription("Switch3 mode"),
+            e.enum("mode", ea.STATE_SET, ["switch_1", "scene_1", "smart_light_1"]).withEndpoint("l4").withDescription("Switch4 mode"),
             e.action(["scene_1", "scene_2", "scene_3", "scene_4"]),
+
+            e.binary("backlight", ea.ALL, "ON", "OFF").withDescription("Backlight"),
+            e.enum("indicator_switch", ea.STATE_SET, ["status", "switch_position", "off"]).withDescription("Indicator switch"),
+            e.binary("backlight_switch", ea.ALL, "ON", "OFF").withDescription("Backlight switch"),
+
+            e.numeric("temperature_1", ea.STATE_SET).withDescription("Temperature"),
+            e.enum("condition_1", ea.STATE_SET, Object.keys(tuya.M8ProTuyaWeatherCondition)).withDescription("Weather condition"),
         ],
         meta: {
             tuyaDatapoints: [
@@ -10136,6 +10147,9 @@ export const definitions: DefinitionWithExtend[] = [
                 [2, "action", tuya.valueConverter.static("scene_2")],
                 [3, "action", tuya.valueConverter.static("scene_3")],
                 [4, "action", tuya.valueConverter.static("scene_4")],
+                [101, "backlight", tuya.valueConverter.onOff],
+                [36, "backlight_switch", tuya.valueConverter.onOff],
+                [37, "indicator_switch", tuya.valueConverterBasic.lookup({status: tuya.enum(0), switch_position: tuya.enum(1), off: tuya.enum(2)})],
             ],
         },
     },
