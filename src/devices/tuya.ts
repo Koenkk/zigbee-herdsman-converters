@@ -10097,7 +10097,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             tuyaWeatherForecast({includeCurrentWeather: true, numberOfForecastDays: 3, correctForNegativeValues: true}),
             tuyaBase({dp: true}),
-            m.deviceEndpoints({endpoints: {l1: 1, l2: 1, l3: 1, l4: 1}})
+            m.deviceEndpoints({endpoints: {l1: 1, l2: 1, l3: 1, l4: 1}}),
         ],
         exposes: [
             tuya.exposes.switch().withEndpoint("l1"),
@@ -10122,7 +10122,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.enum("indicator_switch", ea.STATE_SET, ["status", "switch_position", "off"]).withDescription("Indicator switch"),
             e.binary("backlight_switch", ea.ALL, "ON", "OFF").withDescription("Backlight switch"),
 
-            e.numeric("temperature_1", ea.STATE_SET).withDescription("Temperature"),
+            e.numeric("temperature_1", ea.STATE_SET).withValueMin(-65).withValueMax(99).withDescription("Temperature"),
             e.enum("condition_1", ea.STATE_SET, Object.keys(tuya.M8ProTuyaWeatherCondition)).withDescription("Weather condition"),
         ],
         meta: {

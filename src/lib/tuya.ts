@@ -1,6 +1,5 @@
-import { request } from "http";
 import {Zcl} from "zigbee-herdsman";
-import { TuyaWeatherSyncValue } from "zigbee-herdsman/dist/zspec/zcl/definition/tstype";
+import type {TuyaWeatherSyncValue} from "zigbee-herdsman/dist/zspec/zcl/definition/tstype";
 
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
@@ -85,7 +84,7 @@ export const M8ProTuyaWeatherCondition = {
     Hailstone: 127,
     SnowShower: 130,
     Haze: 140,
-    ThunderShower: 143
+    ThunderShower: 143,
 };
 
 export function convertBufferToNumber(chunks: Buffer | number[]) {
@@ -2774,66 +2773,60 @@ const tuyaModernExtend = {
             ...args,
         });
     },
-    tuyaWeatherForecast(args: {
-            includeCurrentWeather?: boolean;
-            numberOfForecastDays?: number;
-            correctForNegativeValues?: boolean;
-        } = {},
+    tuyaWeatherForecast(
+        args: {includeCurrentWeather?: boolean; numberOfForecastDays?: number; correctForNegativeValues?: boolean} = {},
     ): ModernExtend {
-        const {
-            includeCurrentWeather = true,
-            numberOfForecastDays = 3,
-            correctForNegativeValues = false,
-        } = args;
+        const {includeCurrentWeather = true, numberOfForecastDays = 3, correctForNegativeValues = false} = args;
 
         const tz_fileds = includeCurrentWeather ? ["temperature_0", "humidity_0", "condition_0"] : [];
 
-        for (let i=0; i<numberOfForecastDays; ++i) {
-            tz_fileds.push("temperature_" + i);
-            tz_fileds.push("humidity_" + i);
-            tz_fileds.push("condition_" + i);
+        for (let i = 0; i < numberOfForecastDays; ++i) {
+            tz_fileds.push(`temperature_${i}`);
+            tz_fileds.push(`humidity_${i}`);
+            tz_fileds.push(`condition_${i}`);
         }
 
         function _vCorr(val: number): number {
             if (correctForNegativeValues && val < 1) {
-                return val-1;
+                return val - 1;
             }
             return val;
         }
 
-        function _prepareTuyaWeatherSyncPayload(meta : Fz.Meta | Tz.Meta, numberOfForecastDays : number, includeCurrentWeather : boolean) : TuyaWeatherSyncValue {
+        function _prepareTuyaWeatherSyncPayload(
+            meta: Fz.Meta | Tz.Meta,
+            numberOfForecastDays: number,
+            includeCurrentWeather: boolean,
+        ): TuyaWeatherSyncValue {
             const forecastTemperature: number[] = [];
             const forecastHumidity: number[] = [];
             const forecastCondition: number[] = [];
 
-            for (let i=1; i<=numberOfForecastDays; ++i) {
-                forecastTemperature.push("temperature_" + i in meta.state ? _vCorr(meta.state["temperature_" + i] as number) as number : 0);
-                forecastHumidity.push("humidity_" + i in meta.state ? meta.state["humidity" + i] as number : 0);
-                forecastCondition.push("condition_" + i in meta.state ? M8ProTuyaWeatherCondition[meta.state["condition_" + i] as keyof typeof M8ProTuyaWeatherCondition] : 0);
+            for (let i = 1; i <= numberOfForecastDays; ++i) {
+                forecastTemperature.push(`temperature_${i}` in meta.state ? (_vCorr(meta.state[`temperature_${i}`] as number) as number) : 0);
+                forecastHumidity.push(`humidity_${i}` in meta.state ? (meta.state[`humidity${i}`] as number) : 0);
+                forecastCondition.push(
+                    `condition_${i}` in meta.state
+                        ? M8ProTuyaWeatherCondition[meta.state[`condition_${i}`] as keyof typeof M8ProTuyaWeatherCondition]
+                        : 0,
+                );
             }
 
             return {
                 numberOfForecastDays: numberOfForecastDays,
                 includeCurrentWeather: includeCurrentWeather,
-                currentTemperature: "temperature_0" in meta.state ? _vCorr(meta.state["temperature_0"] as number) as number : 0,
-                currentHumidity: "humidity_0" in meta.state ? meta.state["humidity_0"] as number : 0,
-                currentCondition: "condition_0" in meta.state ? M8ProTuyaWeatherCondition[meta.state["condition_0"] as keyof typeof M8ProTuyaWeatherCondition] : 0,
+                currentTemperature: "temperature_0" in meta.state ? (_vCorr(meta.state["temperature_0"] as number) as number) : 0,
+                currentHumidity: "humidity_0" in meta.state ? (meta.state["humidity_0"] as number) : 0,
+                currentCondition:
+                    "condition_0" in meta.state ? M8ProTuyaWeatherCondition[meta.state["condition_0"] as keyof typeof M8ProTuyaWeatherCondition] : 0,
                 forecastTemperature: forecastTemperature,
                 forecastHumidity: forecastHumidity,
                 forecastCondition: forecastCondition,
-            }
+            };
         }
 
-        const fzConverter: Fz.Converter<
-            "manuSpecificTuya",
-            undefined,
-            [
-                "commandTuyaWeatherRequest"
-            ]
-        > = {
-            type: [
-                "commandTuyaWeatherRequest"
-            ],
+        const fzConverter: Fz.Converter<"manuSpecificTuya", undefined, ["commandTuyaWeatherRequest"]> = {
+            type: ["commandTuyaWeatherRequest"],
             cluster: "manuSpecificTuya",
             convert: (model, msg, publish, options, meta) => {
                 logger.warning(JSON.stringify(msg), NS);
@@ -2849,7 +2842,7 @@ const tuyaModernExtend = {
 
         const tzConverter: Tz.Converter = {
             key: tz_fileds,
-            convertSet: async (entity, key, value, meta) => {
+            convertSet: (entity, key, value, meta) => {
                 meta.state[key] = value;
 
                 const pld = _prepareTuyaWeatherSyncPayload(meta, numberOfForecastDays, includeCurrentWeather);
@@ -2858,7 +2851,7 @@ const tuyaModernExtend = {
 
                 return {state: {[key]: value}};
             },
-        }
+        };
 
         const result: ModernExtend = {
             configure: [],
@@ -2868,7 +2861,7 @@ const tuyaModernExtend = {
         };
 
         return result;
-    }
+    },
 };
 export {tuyaModernExtend as modernExtend};
 
