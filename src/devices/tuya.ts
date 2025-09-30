@@ -19562,7 +19562,7 @@ export const definitions: DefinitionWithExtend[] = [
     vendor: "HOBEIAN",
     description: "24Ghz human presence sensor",
     fromZigbee: [tuya.fz.datapoints],
-    toZigbee: [tzDatapoints],
+    toZigbee: [tuya.tz.datapoints],
     exposes: [
       e.presence(),
       e.illuminance(),
