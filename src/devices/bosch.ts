@@ -862,7 +862,6 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Bosch",
         description: "Radiator thermostat II",
         extend: [
-            boschThermostatExtend.handleDaylightSavingTimeReadRequest(),
             boschThermostatExtend.customThermostatCluster(),
             boschThermostatExtend.customUserInterfaceCfgCluster(),
             boschThermostatExtend.raThermostat(),
@@ -893,7 +892,6 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Room thermostat II",
         extend: [
             boschGeneralExtend.handleZclVersionReadRequest(),
-            boschThermostatExtend.handleDaylightSavingTimeReadRequest(),
             boschThermostatExtend.customThermostatCluster(),
             boschThermostatExtend.customUserInterfaceCfgCluster(),
             boschThermostatExtend.rmThermostat(),
@@ -918,7 +916,6 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Room thermostat II 230V",
         extend: [
             boschGeneralExtend.handleZclVersionReadRequest(),
-            boschThermostatExtend.handleDaylightSavingTimeReadRequest(),
             boschThermostatExtend.customThermostatCluster(),
             boschThermostatExtend.customUserInterfaceCfgCluster(),
             boschThermostatExtend.rmThermostat(),
