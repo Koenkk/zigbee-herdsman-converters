@@ -19644,4 +19644,26 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
+     {
+        fingerprint: tuya.fingerprint("TS0049", ["_TZ3000_kz1anoi8"]),
+        model: "ZG-306Z",
+        vendor: "Haozee",
+        description: "Water valve",
+        extend: [
+          m.battery(), 
+          m.onOff({powerOnBehavior: false}),
+          tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true})
+        ],
+        exposes: [
+            tuya.exposes.errorStatus(),
+            tuya.exposes.countdown().withValueMin(0).withValueMax(255).withUnit("minutes").withDescription("Max on time in minutes"),
+        ],
+        meta: {
+            tuyaSendCommand: "sendData",
+            tuyaDatapoints: [
+                [26, "error_status", tuya.valueConverter.raw],
+                [111, "countdown", tuya.valueConverter.raw],
+            ],
+        },
+    }, 
 ];
