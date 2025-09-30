@@ -1,5 +1,19 @@
 # Changelog
 
+## [25.35.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.34.0...v25.35.0) (2025-09-30)
+
+
+### Features
+
+* **add:** ERCU_WS_Zm ([#10113](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10113)) ([69fb293](https://github.com/Koenkk/zigbee-herdsman-converters/commit/69fb293faaca413a53c67afdc28680e9db9a4032))
+* Bosch BTH-RA/-RM/-RM230Z: rework implementation ([#10110](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10110)) ([688c8a6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/688c8a693c9a39bea4d866d3ae2d3b3d78a8d0c4))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3000_kfu8zapd` as Moes XH-SY-04Z ([#10109](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10109)) ([77115d2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/77115d2101c6a30c1bc3c44d7c5a9ffbcdd28661))
+* Tuya _TYZB01_ttvdudvx: remove tamper as it's not supported ([#10114](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10114)) ([d3f7d85](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d3f7d857012cd898a6d31deae80808e9a12175cb))
+
 ## [25.34.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.33.0...v25.34.0) (2025-09-29)
 
 
