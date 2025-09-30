@@ -32,6 +32,11 @@ interface TuyaGenOnOff {
     commandResponses: never;
 }
 
+interface st0049Countdown {
+     attributes: never;
+    commands: {setCountdown: {payload: Buffer}};
+    commandResponses: never;
+}
 const storeLocal = {
     getPrivatePJ1203A: (device: Zh.Device) => {
         let priv = globalStore.getValue(device, "private_state");
@@ -359,7 +364,8 @@ const tzLocal = {
             const scaledValue = value * 60; //
             data.writeUInt32BE(scaledValue, 1); //
             data[0] = 0x0b; //
-            await entity.command("manuSpecificTuyaE001", "setCountdown", {payload: data}, utils.getOptions(meta.mapped, 1));
+            await entity.command<"manuSpecificTuyaE001", "setCountdown", st0049Countdown>("manuSpecificTuyaE001", "setCountdown", {data});
+           
         },
     } satisfies Tz.Converter,
 
