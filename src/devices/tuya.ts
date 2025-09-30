@@ -352,7 +352,7 @@ const convLocal = {
 
 const tzLocal = {
     ts0049_countdown: {
-        key: ["countdown"],
+        key: ["water_countdown"],
         convertSet: async (entity, key, value, meta) => {
             utils.assertNumber(value);
             const data = Buffer.alloc(5);
@@ -19695,7 +19695,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         exposes: [
             e
-                .numeric("countdown", ea.STATE_SET)
+                .numeric("water_countdown", ea.STATE_SET)
                 .withValueMin(1)
                 .withValueMax(1440)
                 .withValueStep(1)
