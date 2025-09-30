@@ -2211,6 +2211,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withLocalTemperature()
                 .withSystemMode(["off", "heat", "cool"])
                 .withPiHeatingDemand(),
+                .withPiCoolingDemand(),
             e.temperature(),
             e.occupancy(),
         ],
@@ -2220,6 +2221,7 @@ export const definitions: DefinitionWithExtend[] = [
             const endpoint4 = device.getEndpoint(4);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["hvacThermostat"]);
             await reporting.thermostatPIHeatingDemand(endpoint1);
+            await reporting.thermostatPICoolingDemand(endpoint1);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint1);
             await reporting.thermostatOccupiedCoolingSetpoint(endpoint1);
             await reporting.temperature(endpoint2);

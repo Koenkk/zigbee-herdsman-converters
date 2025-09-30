@@ -706,6 +706,18 @@ export class Climate extends Base {
         return this;
     }
 
+    withPiCoolingDemand(access = a.STATE) {
+        this.addFeature(
+            new Numeric("pi_cooling_demand", access)
+                .withLabel("PI cooling demand")
+                .withValueMin(0)
+                .withValueMax(100)
+                .withUnit("%")
+                .withDescription("Position of the valve (= demanded cooling) where 0% is fully closed and 100% is fully open"),
+        );
+        return this;
+    }
+
     withControlSequenceOfOperation(modes: string[], access = a.STATE) {
         const allowed = [
             "cooling_only",
