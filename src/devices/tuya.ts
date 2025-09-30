@@ -19031,9 +19031,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueStep(1)
                 .withUnit("x")
                 .withDescription("Static detection sensitivity"),
-            e
-                .enum("motion_detection_mode", ea.STATE_SET, ["pir_and_radar", "pir_or_radar", "only_radar"])
-                .withDescription("Motion detection mode"),     
+            e.enum("motion_detection_mode", ea.STATE_SET, ["pir_and_radar", "pir_or_radar", "only_radar"]).withDescription("Motion detection mode"),
         ],
         meta: {
             tuyaDatapoints: [
@@ -19614,49 +19612,42 @@ export const definitions: DefinitionWithExtend[] = [
       ],
     },
   },
-
   {
-    zigbeeModel:["ZG-204ZE"],
-    fingerprint: [
-            {modelID: "CK-BL702-MWS-01(7016)", manufacturerName: "ZG-204ZE"},
+        zigbeeModel: ["ZG-204ZE"],
+        fingerprint: [{modelID: "CK-BL702-MWS-01(7016)", manufacturerName: "ZG-204ZE"}],
+        model: "ZG-204ZE",
+        vendor: "HOBEIAN",
+        description: "10G mw motion detection",
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        exposes: [
+            e.presence(),
+
+            e.battery(),
+            e
+                .numeric("fading_time", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(28800)
+                .withValueStep(1)
+                .withUnit("s")
+                .withDescription("Motion keep time"),
+            e.binary("indicator", ea.STATE_SET, "ON", "OFF").withDescription("LED indicator mode"),
+            e
+                .numeric("motion_detection_sensitivity", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(19)
+                .withValueStep(1)
+                .withUnit("x")
+                .withDescription("The larger the value, the more sensitive it is (refresh and update only while active)"),
         ],
-    model: "ZG-204ZE",
-    vendor: "HOBEIAN",
-    description: "10G mw motion detection",
-    fromZigbee: [tuya.fz.datapoints],
-    toZigbee: [tuya.tz.datapoints],
-    exposes: [
-      e.presence(),
-   
-      e.battery(),
-      e
-        .numeric("fading_time", ea.STATE_SET)
-        .withValueMin(0)
-        .withValueMax(28800)
-        .withValueStep(1)
-        .withUnit("s")
-        .withDescription("Motion keep time"),
-      e
-        .binary("indicator", ea.STATE_SET, "ON", "OFF")
-        .withDescription("LED indicator mode"),
-      e
-        .numeric("motion_detection_sensitivity", ea.STATE_SET)
-        .withValueMin(0)
-        .withValueMax(19)
-        .withValueStep(1)
-        .withUnit("x")
-        .withDescription(
-          "The larger the value, the more sensitive it is (refresh and update only while active)",
-        ),
-    ],
-    meta: {
-      tuyaDatapoints: [
-        [1, "presence", tuya.valueConverter.trueFalse1],
-        [102, "fading_time", tuya.valueConverter.raw],
-        [2, "motion_detection_sensitivity", tuya.valueConverter.raw],
-        [108, "indicator", tuya.valueConverter.onOff],
-        [110, "battery", tuya.valueConverter.raw],
-      ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "presence", tuya.valueConverter.trueFalse1],
+                [102, "fading_time", tuya.valueConverter.raw],
+                [2, "motion_detection_sensitivity", tuya.valueConverter.raw],
+                [108, "indicator", tuya.valueConverter.onOff],
+                [110, "battery", tuya.valueConverter.raw],
+            ],
+        },
     },
-  },
 ];
