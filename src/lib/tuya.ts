@@ -684,7 +684,7 @@ export const valueConverter = {
                 const state = meta.state.over_current_breaker;
                 const buf = Buffer.from([
                     1,
-                    utils.getFromLookup(state, onOffLookup),
+                    utils.getFromLookup(state, onOffLookup, 0),
                     0,
                     utils.toNumber(meta.message.over_current_threshold, "over_current_threshold"),
                 ]);
@@ -693,7 +693,7 @@ export const valueConverter = {
                 const threshold = meta.state.over_current_threshold;
                 const buf = Buffer.from([
                     1,
-                    utils.getFromLookup(meta.message.over_current_breaker, onOffLookup),
+                    utils.getFromLookup(meta.message.over_current_breaker, onOffLookup, 0),
                     0,
                     utils.toNumber(threshold, "over_current_threshold"),
                 ]);
@@ -702,42 +702,42 @@ export const valueConverter = {
                 const state = meta.state.over_voltage_breaker;
                 const buf = Buffer.alloc(8);
                 buf.writeUInt8(3, 4);
-                buf.writeUInt8(utils.getFromLookup(state, onOffLookup), 5);
+                buf.writeUInt8(utils.getFromLookup(state, onOffLookup, 0), 5);
                 buf.writeUInt16BE(utils.toNumber(meta.message.over_voltage_threshold, "over_voltage_threshold"), 6);
                 await sendDataPointRaw(entity, 18, buf, sendCommand, 1);
             } else if (meta.message.over_voltage_breaker) {
                 const threshold = meta.state.over_voltage_threshold;
                 const buf = Buffer.alloc(8);
                 buf.writeUInt8(3, 4);
-                buf.writeUInt8(utils.getFromLookup(meta.message.over_voltage_breaker, onOffLookup), 5);
+                buf.writeUInt8(utils.getFromLookup(meta.message.over_voltage_breaker, onOffLookup, 0), 5);
                 buf.writeUInt16BE(utils.toNumber(threshold, "over_voltage_threshold"), 6);
                 await sendDataPointRaw(entity, 18, buf, sendCommand, 1);
             } else if (meta.message.under_voltage_threshold) {
                 const state = meta.state.under_voltage_breaker;
                 const buf = Buffer.alloc(12);
                 buf.writeUInt8(4, 8);
-                buf.writeUInt8(utils.getFromLookup(state, onOffLookup), 9);
+                buf.writeUInt8(utils.getFromLookup(state, onOffLookup, 0), 9);
                 buf.writeUInt16BE(utils.toNumber(meta.message.under_voltage_threshold, "under_voltage_threshold"), 10);
                 await sendDataPointRaw(entity, 18, buf, sendCommand, 1);
             } else if (meta.message.under_voltage_breaker) {
                 const threshold = meta.state.under_voltage_threshold;
                 const buf = Buffer.alloc(12);
                 buf.writeUInt8(4, 8);
-                buf.writeUInt8(utils.getFromLookup(meta.message.under_voltage_breaker, onOffLookup), 9);
+                buf.writeUInt8(utils.getFromLookup(meta.message.under_voltage_breaker, onOffLookup, 0), 9);
                 buf.writeUInt16BE(utils.toNumber(threshold, "under_voltage_threshold"), 10);
                 await sendDataPointRaw(entity, 18, buf, sendCommand, 1);
             } else if (meta.message.insufficient_balance_threshold) {
                 const state = meta.state.insufficient_balance_breaker;
                 const buf = Buffer.alloc(16);
                 buf.writeUInt8(8, 12);
-                buf.writeUInt8(utils.getFromLookup(state, onOffLookup), 13);
+                buf.writeUInt8(utils.getFromLookup(state, onOffLookup, 0), 13);
                 buf.writeUInt16BE(utils.toNumber(meta.message.insufficient_balance_threshold, "insufficient_balance_threshold"), 14);
                 await sendDataPointRaw(entity, 18, buf, sendCommand, 1);
             } else if (meta.message.insufficient_balance_breaker) {
                 const threshold = meta.state.insufficient_balance_threshold;
                 const buf = Buffer.alloc(16);
                 buf.writeUInt8(8, 12);
-                buf.writeUInt8(utils.getFromLookup(meta.message.insufficient_balance_breaker, onOffLookup), 13);
+                buf.writeUInt8(utils.getFromLookup(meta.message.insufficient_balance_breaker, onOffLookup, 0), 13);
                 buf.writeUInt16BE(utils.toNumber(threshold, "insufficient_balance_threshold"), 14);
                 await sendDataPointRaw(entity, 18, buf, sendCommand, 1);
             }

@@ -40,7 +40,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withPreset(["schedule", "eco", "comfort", "frost_protection", "holiday"])
                 .withRunningState(["idle", "heat"], ea.STATE)
                 .withSystemMode(["off", "heat"], ea.STATE, "Only for Homeassistant")
-                .withLocalTemperatureCalibration(-9.5, 9.5, 0.5, ea.STATE_SET),
+                .withLocalTemperatureCalibration(-9.5, 15, 0.5, ea.STATE_SET),
             ...tuya.exposes.scheduleAllDays(ea.STATE_SET, "HH:MM/C HH:MM/C HH:MM/C HH:MM/C HH:MM/C HH:MM/C"),
         ],
         meta: {
@@ -105,7 +105,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [32, "schedule_friday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(5, 6)],
                 [33, "schedule_saturday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(6, 6)],
                 [34, "schedule_sunday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(7, 6)],
-                [47, "local_temperature_calibration", tuya.valueConverter.localTempCalibration2],
+                [47, "local_temperature_calibration", tuya.valueConverter.localTempCalibration3],
             ],
         },
     },

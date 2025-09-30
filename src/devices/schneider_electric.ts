@@ -77,6 +77,19 @@ function socketIndicatorMode() {
     });
 }
 
+function evlinkIndicatorMode() {
+    return m.enumLookup({
+        name: "indicator_mode",
+        lookup: {
+            default: 1,
+            temporary: 5,
+        },
+        cluster: "manuSpecificSchneiderFanSwitchConfiguration",
+        attribute: "ledIndication",
+        description: "Set indicator mode",
+    });
+}
+
 function fanIndicatorMode() {
     const description = "Set Indicator Mode.";
     return m.enumLookup({
@@ -289,18 +302,7 @@ const schneiderElectricExtend = {
                 },
             ],
             exposes: [
-                ...endpointNames.map((endpointName) =>
-                    e.enum("state", ea.SET, ["OPEN", "CLOSE", "STOP"]).withDescription("State of the curtain").withEndpoint(endpointName),
-                ),
-                ...endpointNames.map((endpointName) =>
-                    e
-                        .numeric("position", ea.ALL)
-                        .withValueMin(0)
-                        .withValueMax(100)
-                        .withUnit("%")
-                        .withDescription("Position of the curtain")
-                        .withEndpoint(endpointName),
-                ),
+                ...endpointNames.map((endpointName) => e.cover_position().withDescription("State of the curtain").withEndpoint(endpointName)),
                 ...endpointNames.map((endpointName) =>
                     e
                         .numeric("transition", ea.ALL)
@@ -321,9 +323,12 @@ const schneiderElectricExtend = {
                     cluster: "visaConfiguration",
                     type: ["attributeReport"],
                     convert: (model, msg, publish, options, meta) => {
-                        return {
-                            [`key${key}_event_notification`]: msg.data[`key${key}EventNotification`],
-                        };
+                        for (const key of ["1", "2", "3", "4"]) {
+                            const zigbeeKey = `key${key}EventNotification`;
+                            if (Object.hasOwn(msg.data, zigbeeKey)) {
+                                return {action: `scene_${key}`};
+                            }
+                        }
                     },
                 },
             ],
@@ -1658,7 +1663,16 @@ export const definitions: DefinitionWithExtend[] = [
         model: "MUR36014",
         vendor: "Schneider Electric",
         description: "Mureva EVlink Smart socket outlet",
-        extend: [m.onOff({powerOnBehavior: true}), m.electricityMeter()],
+        extend: [
+            m.onOff(),
+            m.electricityMeter({
+                // Unit supports acVoltage and acCurrent, but only acCurrent divisor/multiplier can be read
+                voltage: {multiplier: 1, divisor: 1},
+                // power is provided by 'seMetering' instead of "haElectricalMeasurement"
+                power: {cluster: "metering"},
+            }),
+            evlinkIndicatorMode(),
+        ],
     },
     {
         zigbeeModel: ["NHMOTION/SWITCH/1"],
@@ -2096,6 +2110,7 @@ export const definitions: DefinitionWithExtend[] = [
             schneiderElectricExtend.visaKeyEventNotification("3"),
             schneiderElectricExtend.visaKeyEventNotification("4"),
         ],
+        exposes: [e.action(["key1", "key2", "key3", "key4"]).withDescription("Last Visa key pressed")],
     },
     {
         zigbeeModel: ["NHMOTION/DIMMER/1"],
@@ -2222,6 +2237,36 @@ export const definitions: DefinitionWithExtend[] = [
                     await endpoint.read("hvacThermostat", ["occupiedHeatingSetpoint", "occupiedCoolingSetpoint"]);
                 },
             }),
+        ],
+    },
+    {
+        zigbeeModel: ["E8332RWMZB"],
+        model: "E8332RWMZB",
+        vendor: "Schneider Electric",
+        description: "Wiser AvatarOn 2K Freelocate",
+        extend: [
+            schneiderElectricExtend.addVisaConfigurationCluster(Zcl.DataType.UINT8),
+            schneiderElectricExtend.visaConfigIndicatorLuminanceLevel(),
+            schneiderElectricExtend.visaConfigIndicatorColor(),
+            schneiderElectricExtend.visaKeyEventNotification("1"),
+            schneiderElectricExtend.visaKeyEventNotification("2"),
+        ],
+        exposes: [e.action(["key1", "key2"]).withDescription("Last Visa key pressed")],
+    },
+    {
+        zigbeeModel: ["E8331SCN200ZB"],
+        model: "E8331SCN200ZB",
+        vendor: "Schneider Electric",
+        description: "Wiser AvatarOn 1G curtain switch",
+        extend: [
+            m.deviceEndpoints({endpoints: {l1: 10}}),
+            schneiderElectricExtend.addVisaConfigurationCluster(Zcl.DataType.UINT8),
+            schneiderElectricExtend.visaConfigIndicatorLuminanceLevel(),
+            schneiderElectricExtend.visaConfigIndicatorColor(),
+            schneiderElectricExtend.visaIndicatorMode([0, 1, 2, 3]),
+            schneiderElectricExtend.visaWiserCurtain(["l1"]),
+            schneiderElectricExtend.visaConfigMotorType(1),
+            schneiderElectricExtend.visaConfigCurtainStatus(1),
         ],
     },
 ];

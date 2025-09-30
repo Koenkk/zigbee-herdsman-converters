@@ -63,6 +63,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Innr",
         description: "Round ceilng light - white and colour",
         extend: [m.light({colorTemp: {range: [153, 556]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+        ota: true,
     },
     {
         zigbeeModel: ["RCL 240 T"],
