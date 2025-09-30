@@ -2197,6 +2197,7 @@ export const definitions: DefinitionWithExtend[] = [
             tz.schneider_pilot_mode,
             tz.schneider_thermostat_keypad_lockout,
             tz.thermostat_temperature_display_mode,
+            tz.thermostat_running_state,
         ],
         exposes: [
             e.binary("keypad_lockout", ea.STATE_SET, "lock1", "unlock").withDescription("Enables/disables physical input on the device"),
@@ -2210,6 +2211,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withSetpoint("occupied_cooling_setpoint", 4, 30, 0.5)
                 .withLocalTemperature()
                 .withSystemMode(["off", "heat", "cool"])
+                .withRunningState(["idle", "heat", "cool"])
                 .withPiHeatingDemand(),
                 .withPiCoolingDemand(),
             e.temperature(),
