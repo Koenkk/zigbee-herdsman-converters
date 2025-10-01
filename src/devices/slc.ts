@@ -11,6 +11,6 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "SLC",
         description: "SmartOne Driver CC 2CH 350-1500mA TW 50W",
         ota: true,
-        extend: [m.light({colorTemp: {range: [160, 450]}})]
+        extend: [m.light({colorTemp: {range: [160, 450]}})],
     }
 ];
