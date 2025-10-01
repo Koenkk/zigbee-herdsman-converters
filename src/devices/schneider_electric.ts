@@ -2197,6 +2197,7 @@ export const definitions: DefinitionWithExtend[] = [
             tz.schneider_pilot_mode,
             tz.schneider_thermostat_keypad_lockout,
             tz.thermostat_temperature_display_mode,
+            tz.thermostat_running_state,
         ],
         exposes: [
             e.binary("keypad_lockout", ea.STATE_SET, "lock1", "unlock").withDescription("Enables/disables physical input on the device"),
@@ -2210,7 +2211,9 @@ export const definitions: DefinitionWithExtend[] = [
                 .withSetpoint("occupied_cooling_setpoint", 4, 30, 0.5)
                 .withLocalTemperature()
                 .withSystemMode(["off", "heat", "cool"])
-                .withPiHeatingDemand(),
+                .withRunningState(["idle", "heat", "cool"])
+                .withPiHeatingDemand()
+                .withPiCoolingDemand(),
             e.temperature(),
             e.occupancy(),
         ],
@@ -2220,6 +2223,7 @@ export const definitions: DefinitionWithExtend[] = [
             const endpoint4 = device.getEndpoint(4);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["hvacThermostat"]);
             await reporting.thermostatPIHeatingDemand(endpoint1);
+            await reporting.thermostatPICoolingDemand(endpoint1);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint1);
             await reporting.thermostatOccupiedCoolingSetpoint(endpoint1);
             await reporting.temperature(endpoint2);
