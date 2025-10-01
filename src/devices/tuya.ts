@@ -11443,12 +11443,11 @@ export const definitions: DefinitionWithExtend[] = [
         model: "LYAI-14",
         vendor: "Tuya",
         description: "Solar intelligent timed water valve controller",
-        configure: tuya.configureMagicPacket,
-        extend: [m.battery(), m.onOff({powerOnBehavior: false})],
+        extend: [m.battery(), m.onOff({powerOnBehavior: false}), tuya.modernExtend.tuyaBase({dp: true})],
         // Countdown is not working properly yet - device ignores it and uses the default (10 minutes)
         // Countdown can be set using the Tuya app/hub and it will persist
-        fromZigbee: [fz.battery, fz.on_off, fz.ignore_basic_report, /*tuya.fz.on_off_countdown,*/ tuya.fz.datapoints],
-        toZigbee: [tz.on_off, /*tuya.tz.on_off_countdown,*/ tuya.tz.datapoints],
+        fromZigbee: [fz.battery, fz.on_off, fz.ignore_basic_report /*tuya.fz.on_off_countdown,*/],
+        toZigbee: [tz.on_off /*tuya.tz.on_off_countdown,*/],
         exposes: [
             tuya.exposes.countdown().withAccess(ea.ALL),
             e.numeric("error_status", ea.STATE).withDescription("Device error code"),
