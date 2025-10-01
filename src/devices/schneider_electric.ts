@@ -2225,7 +2225,7 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.temperature(endpoint2);
             await endpoint1.read("hvacUserInterfaceCfg", ["keypadLockout", "tempDisplayMode"]);
             await reporting.bind(endpoint4, coordinatorEndpoint, ["msOccupancySensing"]);
-            await reporting.thermostatOccupancy(endpoint4);
+            await utils.ignoreUnsupportedAttribute(async () => await reporting.thermostatOccupancy(endpoint4), "thermostatOccupancy");
         },
         extend: [
             m.poll({
