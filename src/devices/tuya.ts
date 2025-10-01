@@ -11439,6 +11439,35 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint("TS0049", ["_TZ3290_ixd9mvv4"]),
+        model: "LYAI-14",
+        vendor: "Tuya",
+        description: "Solar intelligent timed water valve controller",
+        extend: [m.battery(), m.onOff({powerOnBehavior: false}), tuya.modernExtend.tuyaBase({dp: true})],
+        // Countdown is not working properly yet - device ignores it and uses the default (10 minutes)
+        // Countdown can be set using the Tuya app/hub and it will persist
+        fromZigbee: [fz.battery, fz.on_off, fz.ignore_basic_report /*tuya.fz.on_off_countdown,*/],
+        toZigbee: [tz.on_off /*tuya.tz.on_off_countdown,*/],
+        exposes: [
+            tuya.exposes.countdown().withAccess(ea.ALL),
+            e.numeric("error_status", ea.STATE).withDescription("Device error code"),
+            e.enum("rain_sensor_status", ea.STATE, ["rain", "no_rain"]).withDescription("Rain sensor state"),
+            e.binary("rain_sensor_switch", ea.STATE_SET, "ON", "OFF").withDescription("Enable/disable rain sensor"),
+            e.enum("battery_state", ea.STATE, ["no_charge", "charging", "charged"]).withDescription("Battery charging state"),
+        ],
+        meta: {
+            tuyaSendCommand: "sendData",
+            tuyaDatapoints: [
+                [1, "state", tuya.valueConverter.onOff],
+                [4, "error_status", tuya.valueConverter.raw],
+                [11, "countdown", tuya.valueConverter.countdown],
+                [101, "rain_sensor_status", tuya.valueConverterBasic.lookup({rain: tuya.enum(0), no_rain: tuya.enum(1)})],
+                [102, "rain_sensor_switch", tuya.valueConverter.onOff],
+                [103, "battery_state", tuya.valueConverterBasic.lookup({no_charge: tuya.enum(0), charging: tuya.enum(1), charged: tuya.enum(2)})],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_eaet5qt5", "_TZE284_fhvpaltk"]),
         model: "TS0601_water_switch",
         vendor: "Tuya",
