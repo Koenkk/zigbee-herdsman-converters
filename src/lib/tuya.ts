@@ -1414,6 +1414,21 @@ export const valueConverter = {
             },
         };
     },
+    utf16BEHexString: {
+        // String -> hex (UTF-16BE)
+        to: (v: string) => {
+            const s = v.trim();
+            return Buffer.from(s, "utf16le").swap16().toString("hex");
+        },
+
+        // hex (UTF-16BE) -> String
+        from: (hex?: string) => {
+            if (!hex) return "";
+            const s = hex.trim();
+            if ((s.length & 1) !== 0) return "";
+            return Buffer.from(s, "hex").swap16().toString("utf16le").trim();
+        },
+    },
 };
 
 const tuyaTz = {
