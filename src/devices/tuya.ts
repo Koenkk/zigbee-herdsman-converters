@@ -6703,17 +6703,43 @@ export const definitions: DefinitionWithExtend[] = [
             tuyaDatapoints: [
                 [
                     2,
-                    "preset",
-                    tuya.valueConverterBasic.lookup({
-                        off: tuya.enum(0),
-                        antifrost: tuya.enum(1),
-                        eco: tuya.enum(2),
-                        comfort: tuya.enum(3),
-                        auto: tuya.enum(4),
-                        on: tuya.enum(5),
+                    null,
+                    tuya.valueConverter.thermostatSystemModeAndPresetMap({
+                        fromMap: {
+                            0: {deviceMode: "off", systemMode: "off", preset: "off"},
+                            1: {deviceMode: "antifrost", systemMode: "auto", preset: "antifrost"},
+                            2: {deviceMode: "eco", systemMode: "auto", preset: "eco"},
+                            3: {deviceMode: "comfort", systemMode: "auto", preset: "comfort"},
+                            4: {deviceMode: "auto", systemMode: "auto", preset: "auto"},
+                            5: {deviceMode: "on", systemMode: "heat", preset: "on"},
+                        },
                     }),
                 ],
-                [2, "system_mode", tuya.valueConverter.thermostatSystemModeAndPreset("system_mode")],
+                [
+                    2,
+                    "preset",
+                    tuya.valueConverter.thermostatSystemModeAndPresetMap({
+                        toMap: {
+                            off: new tuya.Enum(0),
+                            antifrost: new tuya.Enum(1),
+                            eco: new tuya.Enum(2),
+                            comfort: new tuya.Enum(3),
+                            auto: new tuya.Enum(4),
+                            on: new tuya.Enum(5),
+                        },
+                    }),
+                ],
+                [
+                    2,
+                    "system_mode",
+                    tuya.valueConverter.thermostatSystemModeAndPresetMap({
+                        toMap: {
+                            off: new tuya.Enum(0),
+                            auto: new tuya.Enum(4),
+                            heat: new tuya.Enum(5),
+                        },
+                    }),
+                ],
                 [3, "running_state", tuya.valueConverterBasic.lookup({heat: 1, idle: 0})],
                 [4, "current_heating_setpoint", tuya.valueConverter.divideBy10],
                 [5, "local_temperature", tuya.valueConverter.divideBy10],
