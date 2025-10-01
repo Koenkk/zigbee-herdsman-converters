@@ -1,5 +1,21 @@
 # Changelog
 
+## [25.36.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.35.1...v25.36.0) (2025-10-01)
+
+
+### Features
+
+* **add:** S32052 ([#10124](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10124)) ([94bdef6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/94bdef6fd462ab5ea5075c12b88f46bed31193e2))
+* Scneider Electric S520619: support more features ([#10118](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10118)) ([9e3275e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9e3275e2236b5c0d068ec430ba49cf72db857fd8))
+
+
+### Bug Fixes
+
+* Aqara W500: rename `sensor_source` to `sensor` ([#10122](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10122)) ([489daa3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/489daa3adff1c06479d54ffa70af1de4f9e1c124))
+* Schneider Electric S520619: fix configure failing https://github.com/Koenkk/zigbee2mqtt/issues/28775 ([b2cd7dc](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b2cd7dc05ac686e720cf9a490d039e21ea285043))
+* Tuya TRV602Z: correct preset and system mode mapping ([#10123](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10123)) ([21ae096](https://github.com/Koenkk/zigbee-herdsman-converters/commit/21ae096e48847cfb9cf1711437bd8b172f30d537))
+* Tuya TS0601_cover_3: disable respondToMcuVersionResponse https://github.com/Koenkk/zigbee2mqtt/issues/28655 ([cee6f66](https://github.com/Koenkk/zigbee-herdsman-converters/commit/cee6f662ae43c32631eba9577fcba5664ad442f9))
+
 ## [25.35.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.35.0...v25.35.1) (2025-09-30)
 
 

@@ -355,18 +355,9 @@ export const skip = {
 };
 
 export const configureMagicPacket = async (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint) => {
-    try {
-        const endpoint = device.endpoints[0];
-        await endpoint.read("genBasic", ["manufacturerName", "zclVersion", "appVersion", "modelId", "powerSource", 0xfffe]);
-    } catch (e) {
-        // Fails for some Tuya devices with UNSUPPORTED_ATTRIBUTE, ignore that.
-        // e.g. https://github.com/Koenkk/zigbee2mqtt/issues/14857
-        if ((e as Error).message.includes("UNSUPPORTED_ATTRIBUTE")) {
-            logger.debug("configureMagicPacket failed, ignoring...", NS);
-        } else {
-            throw e;
-        }
-    }
+    await utils.ignoreUnsupportedAttribute(async () => {
+        await device.endpoints[0].read("genBasic", ["manufacturerName", "zclVersion", "appVersion", "modelId", "powerSource", 0xfffe]);
+    }, "Tuya configureMagicPacket");
 };
 
 export const configureQuery = async (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint) => {

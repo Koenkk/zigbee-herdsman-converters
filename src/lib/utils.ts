@@ -625,6 +625,18 @@ export function toNumber(value: unknown, property?: string): number {
     return result;
 }
 
+export const ignoreUnsupportedAttribute = async (func: () => Promise<void>, failMessage: string) => {
+    try {
+        await func();
+    } catch (e) {
+        if ((e as Error).message.includes("UNSUPPORTED_ATTRIBUTE")) {
+            logger.debug(`Ignoring unsupported attribute error: ${failMessage}`, NS);
+        } else {
+            throw e;
+        }
+    }
+};
+
 export function getFromLookup<V>(value: unknown, lookup: {[s: number | string]: V}, defaultValue: V = undefined, keyIsBool = false): V {
     if (!keyIsBool) {
         if (typeof value === "string") {
