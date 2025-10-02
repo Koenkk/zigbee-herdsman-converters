@@ -8522,19 +8522,6 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0726", ["_TZ3002_jn2x20tg"]),
-        model: "TS0726_1_gang",
-        vendor: "Tuya",
-        description: "1 gang switch with neutral wire",
-        fromZigbee: [fz.on_off, tuya.fz.power_on_behavior_2, fz.ignore_basic_report, fzLocal.TS0726_action],
-        toZigbee: [tz.on_off, tuya.tz.power_on_behavior_2, tzLocal.TS0726_switch_mode],
-        exposes: [e.switch(), e.power_on_behavior(), e.enum("switch_mode", ea.STATE_SET, ["switch", "scene"]), e.action(["scene_1"])],
-        configure: async (device, coordinatorEndpoint) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint);
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
-        },
-    },
-    {
         fingerprint: tuya.fingerprint("TS0726", ["_TZ3002_iedhxgyi"]),
         model: "TS0726_3_gang",
         vendor: "Tuya",
@@ -18273,10 +18260,11 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0726", ["_TZ3000_5kxl9esg"]),
+        fingerprint: tuya.fingerprint("TS0726", ["_TZ3000_5kxl9esg", "_TZ3002_jn2x20tg"]),
         model: "TS0726_1_gang_scene_switch",
         vendor: "Tuya",
         description: "1 gang switch with scene and backlight",
+        whiteLabel: [tuya.whitelabel("BSEED", "EC-GL86ZPCS11", "1 gang switch with scene and backlight", ["_TZ3002_jn2x20tg"])],
         fromZigbee: [fz.ignore_basic_report, fzLocal.TS0726_action],
         exposes: [e.action(["scene_1"])],
         extend: [
