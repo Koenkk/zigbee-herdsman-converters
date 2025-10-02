@@ -1238,7 +1238,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [16, "silence", tuya.valueConverter.raw],
             ],
         },
-        whiteLabel: [tuya.whitelabel("HEIMAN", "HS-720ES", "Carbon monoxide alarm", ["_TZE200_hr0tdd47"])],
+        whiteLabel: [tuya.whitelabel("Heiman", "HS-720ES", "Carbon monoxide alarm", ["_TZE200_hr0tdd47"])],
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_vawy74yh", "_TZE284_vawy74yh"]),

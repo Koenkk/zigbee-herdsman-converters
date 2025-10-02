@@ -4302,7 +4302,7 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [legacy.fromZigbee.tuya_water_leak, fz.ignore_basic_report],
         exposes: [e.water_leak()],
         toZigbee: [],
-        whiteLabel: [{vendor: "Neo", model: "NAS-WS02B0"}],
+        whiteLabel: [{vendor: "NEO", model: "NAS-WS02B0"}],
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_jthf7vb6"]),
@@ -7203,7 +7203,7 @@ export const definitions: DefinitionWithExtend[] = [
             {vendor: "VIKEFON", model: "TS011F"},
             {vendor: "BlitzWolf", model: "BW-SHP15"},
             {vendor: "AVATTO", model: "MIUCOT10Z"},
-            {vendor: "Neo", model: "PLUG-001SPB2"},
+            {vendor: "NEO", model: "PLUG-001SPB2"},
         ],
         ota: true,
         extend: [
@@ -14526,7 +14526,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_kyhbrfyl"]),
         model: "NAS-PS09B2",
-        vendor: "Neo",
+        vendor: "NEO",
         description: "Human presence sensor",
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
