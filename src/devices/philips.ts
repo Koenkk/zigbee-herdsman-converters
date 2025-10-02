@@ -23,7 +23,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["LCX030"],
         model: "929004284702",
         vendor: "Philips",
-        description: "Hue Festavia permanent string lights",
+        description: "Hue Festavia permanent outdoor string lights",
         extend: [philips.m.light({colorTemp: {range: [50, 1000]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
     {
