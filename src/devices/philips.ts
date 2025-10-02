@@ -16,7 +16,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["LCX029"],
         model: "929004581801",
         vendor: "Philips",
-        description: "Hue Festivia globe outdoor string lights",
+        description: "Hue Festavia globe outdoor string lights",
         extend: [philips.m.light({colorTemp: {range: [50, 1000]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
     {

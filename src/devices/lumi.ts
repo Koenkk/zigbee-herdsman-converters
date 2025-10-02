@@ -4930,8 +4930,8 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.humidity(),
             m.enumLookup({
-                name: "sensor_source",
-                lookup: {internal: 0, ntc: 2},
+                name: "sensor",
+                lookup: {internal: 0, external: 1, ntc: 2},
                 cluster: "manuSpecificLumi",
                 attribute: {ID: 0x0280, type: Zcl.DataType.UINT8},
                 description: "Temperature sensor source",

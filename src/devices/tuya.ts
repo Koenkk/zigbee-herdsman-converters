@@ -5798,7 +5798,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0601_cover_3",
         vendor: "Tuya",
         description: "Cover motor",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000", respondToMcuVersionResponse: false})],
         options: [exposes.options.invert_cover()],
         exposes: [
             e.battery(),
@@ -6703,17 +6703,43 @@ export const definitions: DefinitionWithExtend[] = [
             tuyaDatapoints: [
                 [
                     2,
-                    "preset",
-                    tuya.valueConverterBasic.lookup({
-                        off: tuya.enum(0),
-                        antifrost: tuya.enum(1),
-                        eco: tuya.enum(2),
-                        comfort: tuya.enum(3),
-                        auto: tuya.enum(4),
-                        on: tuya.enum(5),
+                    null,
+                    tuya.valueConverter.thermostatSystemModeAndPresetMap({
+                        fromMap: {
+                            0: {deviceMode: "off", systemMode: "off", preset: "off"},
+                            1: {deviceMode: "antifrost", systemMode: "auto", preset: "antifrost"},
+                            2: {deviceMode: "eco", systemMode: "auto", preset: "eco"},
+                            3: {deviceMode: "comfort", systemMode: "auto", preset: "comfort"},
+                            4: {deviceMode: "auto", systemMode: "auto", preset: "auto"},
+                            5: {deviceMode: "on", systemMode: "heat", preset: "on"},
+                        },
                     }),
                 ],
-                [2, "system_mode", tuya.valueConverter.thermostatSystemModeAndPreset("system_mode")],
+                [
+                    2,
+                    "preset",
+                    tuya.valueConverter.thermostatSystemModeAndPresetMap({
+                        toMap: {
+                            off: new tuya.Enum(0),
+                            antifrost: new tuya.Enum(1),
+                            eco: new tuya.Enum(2),
+                            comfort: new tuya.Enum(3),
+                            auto: new tuya.Enum(4),
+                            on: new tuya.Enum(5),
+                        },
+                    }),
+                ],
+                [
+                    2,
+                    "system_mode",
+                    tuya.valueConverter.thermostatSystemModeAndPresetMap({
+                        toMap: {
+                            off: new tuya.Enum(0),
+                            auto: new tuya.Enum(4),
+                            heat: new tuya.Enum(5),
+                        },
+                    }),
+                ],
                 [3, "running_state", tuya.valueConverterBasic.lookup({heat: 1, idle: 0})],
                 [4, "current_heating_setpoint", tuya.valueConverter.divideBy10],
                 [5, "local_temperature", tuya.valueConverter.divideBy10],
@@ -11409,6 +11435,35 @@ export const definitions: DefinitionWithExtend[] = [
                 [101, "state", tuya.valueConverter.onOff],
                 [111, "countdown", tuya.valueConverter.raw],
                 [115, "battery_state", tuya.valueConverter.batteryState],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0049", ["_TZ3290_ixd9mvv4"]),
+        model: "LYAI-14",
+        vendor: "Tuya",
+        description: "Solar intelligent timed water valve controller",
+        extend: [m.battery(), m.onOff({powerOnBehavior: false}), tuya.modernExtend.tuyaBase({dp: true})],
+        // Countdown is not working properly yet - device ignores it and uses the default (10 minutes)
+        // Countdown can be set using the Tuya app/hub and it will persist
+        fromZigbee: [fz.battery, fz.on_off, fz.ignore_basic_report /*tuya.fz.on_off_countdown,*/],
+        toZigbee: [tz.on_off /*tuya.tz.on_off_countdown,*/],
+        exposes: [
+            tuya.exposes.countdown().withAccess(ea.ALL),
+            e.numeric("error_status", ea.STATE).withDescription("Device error code"),
+            e.enum("rain_sensor_status", ea.STATE, ["rain", "no_rain"]).withDescription("Rain sensor state"),
+            e.binary("rain_sensor_switch", ea.STATE_SET, "ON", "OFF").withDescription("Enable/disable rain sensor"),
+            e.enum("battery_state", ea.STATE, ["no_charge", "charging", "charged"]).withDescription("Battery charging state"),
+        ],
+        meta: {
+            tuyaSendCommand: "sendData",
+            tuyaDatapoints: [
+                [1, "state", tuya.valueConverter.onOff],
+                [4, "error_status", tuya.valueConverter.raw],
+                [11, "countdown", tuya.valueConverter.countdown],
+                [101, "rain_sensor_status", tuya.valueConverterBasic.lookup({rain: tuya.enum(0), no_rain: tuya.enum(1)})],
+                [102, "rain_sensor_switch", tuya.valueConverter.onOff],
+                [103, "battery_state", tuya.valueConverterBasic.lookup({no_charge: tuya.enum(0), charging: tuya.enum(1), charged: tuya.enum(2)})],
             ],
         },
     },
