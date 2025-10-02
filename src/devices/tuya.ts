@@ -19602,7 +19602,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_7zazvlyn"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_7zazvlyn", "_TZE284_idn2htgu"]),
         model: "F3-Pro",
         vendor: "Tuya",
         description: "Smart panel, 4-gang switch with scene, dimmer, and curtain control",
