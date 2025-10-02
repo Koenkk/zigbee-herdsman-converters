@@ -26,7 +26,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["MIR-MC100"],
         model: "MIR-MC100",
         vendor: "MultIR",
-        description: "Doors sensor",
+        description: "Door sensor",
         extend: [
             m.battery(),
             m.iasZoneAlarm({
@@ -39,7 +39,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["MIR-IL100"],
         model: "MIR-IL100",
         vendor: "MultIR",
-        description: "Pir leakage",
+        description: "PIR sensor",
         extend: [
             m.battery(),
             m.iasZoneAlarm({
@@ -74,7 +74,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["MIR-TE600"],
         model: "MIR-TE600",
         vendor: "MultIR",
-        description: "temperature sensor",
+        description: "Temperature sensor",
         extend: [m.battery(), m.temperature(), m.humidity()],
         meta: {
             multiEndpoint: true,
@@ -84,7 +84,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["MIR-WA100"],
         model: "MIR-WA100",
         vendor: "MultIR",
-        description: "Water leakage",
+        description: "Water leakage sensor",
         extend: [
             m.battery(),
             m.iasZoneAlarm({
