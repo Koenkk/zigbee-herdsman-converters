@@ -144,7 +144,14 @@ export const definitions: DefinitionWithExtend[] = [
         model: "OGL 130 C",
         vendor: "Innr",
         description: "Outdoor smart globe lights",
-        extend: [m.light({colorTemp: {range: [100, 1000]}, color: {modes: ["xy", "hs"], applyRedFix: true}, turnsOffAtBrightness1: true})],
+        extend: [
+            m.light({
+                colorTemp: {range: [100, 1000]},
+                color: {modes: ["xy", "hs"], applyRedFix: true},
+                turnsOffAtBrightness1: true,
+                powerOnBehavior: false,
+            }),
+        ],
     },
     {
         zigbeeModel: ["OPL 130 C"],
