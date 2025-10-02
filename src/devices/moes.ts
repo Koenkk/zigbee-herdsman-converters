@@ -1535,7 +1535,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_xtrnjaoz"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_xtrnjaoz", "_TZE200_xtrnjaoz"]),
         model: "GM25TEQ-TYZ-2/25",
         vendor: "Moes",
         description: "Roller Shade Blinds Motor for 38mm Tube",
