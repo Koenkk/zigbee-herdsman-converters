@@ -13098,7 +13098,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: tuya.fingerprint("TS011F", ["_TZ3000_cfnprab5", "_TZ3000_o005nuxx", "_TZ3000_gdyjfvgm"]),
         model: "TS011F_5",
-        description: "5 gang switch",
+        description: "Power strip 5 gang",
         vendor: "Tuya",
         extend: [
             tuya.modernExtend.tuyaOnOff({
@@ -13843,7 +13843,7 @@ export const definitions: DefinitionWithExtend[] = [
             const exps = [
                 e.enum("state", ea.STATE, ["none", "presence", "move"]).withDescription("Presence state sensor"),
                 e.presence().withDescription("Occupancy"),
-                e.numeric("distance", ea.STATE).withDescription("Target distance"),
+                e.numeric("distance", ea.STATE).withUnit("m").withDescription("Target distance"),
                 e.binary("find_switch", ea.STATE_SET, "ON", "OFF").withDescription("distance switch"),
                 e.illuminance().withDescription("Illuminance sensor"),
                 e.numeric("move_sensitivity", ea.STATE_SET).withValueMin(1).withValueMax(10).withValueStep(1).withDescription("Motion Sensitivity"),
