@@ -19768,54 +19768,53 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
-	{
-		fingerprint: [{modelID: 'TS0001', manufacturerName: '_TZ3210_sb8x2xci'}],
-		model: 'TYLK-ZBH1-RF',
-		vendor: 'HuaCaoe',
-		description: 'Zigbee smart garage door opener',
-		fromZigbee: [
-			{
-				cluster: 'genOnOff',
-				type: ['attributeReport', 'readResponse'],
-				convert: (model, msg, publish, options, meta) => {
-					const lastTriggerTime = meta.device.meta.lastTriggerTime ?? 0;
-					if (Date.now() - lastTriggerTime < 500) {
-						return;
-					}
-					if (msg.data.hasOwnProperty('onOff')) {
-						const value = msg.data.onOff;
-						return {
-							contact: value !== 0 ? 'OPEN' : 'CLOSED',
-						};
-					}
-				},
-			},
-		],
-		toZigbee: [
-			{
-				key: ['trigger'],
-				convertSet: async (entity, key, value, meta) => {
-					if (typeof value === 'string' && value.toUpperCase() === 'ON') {
-						meta.device.meta.lastTriggerTime = Date.now();
-						await entity.command('genOnOff', 'on', {}, {disableDefaultResponse: true});
-						await new Promise(resolve => setTimeout(resolve, 10));
-						await entity.command('genOnOff', 'off', {}, {disableDefaultResponse: true});
-						return {state: {trigger: 'OFF'}};
-					}
-				},
-			},
-		],
-		exposes: [
-			new exposes.Binary('contact', ea.STATE, 'OPEN', 'CLOSED')
-				.withDescription('Indicates if the contact is open or closed')
-				.withDeviceClass('garage_door'),
-			new exposes.Binary('trigger', ea.STATE_SET, 'ON', 'OFF')
-				.withDescription('Trigger the garage door'),
-		],
-		configure: async (device, coordinatorEndpoint, logger) => {
-			const endpoint = device.getEndpoint(1);
-			await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-			await reporting.onOff(endpoint);
-		},
-	},
+    {
+        fingerprint: [{modelID: "TS0001", manufacturerName: "_TZ3210_sb8x2xci"}],
+        model: "TYLK-ZBH1-RF",
+        vendor: "HuaCaoe",
+        description: "Zigbee smart garage door opener",
+        fromZigbee: [
+            {
+                cluster: "genOnOff",
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    const lastTriggerTime = meta.device.meta.lastTriggerTime ?? 0;
+                    if (Date.now() - lastTriggerTime < 500) {
+                        return;
+                    }
+                    if (Object.hasOwn(msg.data, "onOff")) {
+                        const value = msg.data.onOff;
+                        return {
+                            contact: value !== 0 ? "OPEN" : "CLOSED",
+                        };
+                    }
+                },
+            },
+        ],
+        toZigbee: [
+            {
+                key: ["trigger"],
+                convertSet: async (entity, key, value, meta) => {
+                    if (typeof value === "string" && value.toUpperCase() === "ON") {
+                        meta.device.meta.lastTriggerTime = Date.now();
+                        await entity.command("genOnOff", "on", {}, {disableDefaultResponse: true});
+                        await new Promise((resolve) => setTimeout(resolve, 10));
+                        await entity.command("genOnOff", "off", {}, {disableDefaultResponse: true});
+                        return {state: {trigger: "OFF"}};
+                    }
+                },
+            },
+        ],
+        exposes: [
+            new exposes.Binary("contact", ea.STATE, "OPEN", "CLOSED")
+                .withDescription("Indicates if the contact is open or closed")
+                .withDeviceClass("garage_door"),
+            new exposes.Binary("trigger", ea.STATE_SET, "ON", "OFF").withDescription("Trigger the garage door"),
+        ],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff"]);
+            await reporting.onOff(endpoint);
+        },
+    },
 ];
