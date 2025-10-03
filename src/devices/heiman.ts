@@ -446,6 +446,20 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.contact(), e.battery(), e.battery_low(), e.tamper()],
     },
     {
+        zigbeeModel: ["HS8DS-EF2-3.0"],
+        model: "HS8DS-EFA",
+        vendor: "Heiman",
+        description: "Door sensor",
+        extend: [m.battery(), m.iasZoneAlarm({zoneType: "contact", zoneAttributes: ["alarm_1", "battery_low"]})],
+    },
+    {
+        zigbeeModel: ["D1-EF2-3.0"],
+        model: "D1-EFA",
+        vendor: "Heiman",
+        description: "Door sensor",
+        extend: [m.battery(), m.iasZoneAlarm({zoneType: "contact", zoneAttributes: ["alarm_1", "battery_low", "tamper"]})],
+    },
+    {
         zigbeeModel: ["DoorSensor-EM", "DoorSensor-EF-3.0"],
         model: "HS1DS",
         vendor: "Heiman",
@@ -1078,7 +1092,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["HS2FD-EF1-3.0"],
         model: "HS2FD-EF1-3.0",
-        vendor: "HEIMAN",
+        vendor: "Heiman",
         description: "Fall Detection Sensor",
         extend: [
             m.deviceAddCustomCluster("RadarSensorHeiman", {

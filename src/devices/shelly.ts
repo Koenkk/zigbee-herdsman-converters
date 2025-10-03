@@ -71,4 +71,22 @@ export const definitions: DefinitionWithExtend[] = [
             m.electricityMeter({producedEnergy: true, acFrequency: true, endpointNames: ["l1", "l2"]}),
         ],
     },
+    {
+        fingerprint: [{modelID: "Power Strip", manufacturerName: "Shelly"}],
+        model: "S4PL-00416EU",
+        vendor: "Shelly",
+        description: "Power strip 4 Gen4",
+        extend: [
+            m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3, "4": 4}}),
+            m.onOff({powerOnBehavior: false, endpointNames: ["1", "2", "3", "4"]}),
+            m.electricityMeter({endpointNames: ["1", "2", "3", "4"]}),
+        ],
+    },
+    {
+        fingerprint: [{modelID: "Flood", manufacturerName: "Shelly"}],
+        model: "S4SN-0071A",
+        vendor: "Shelly",
+        description: "Flood Gen 4",
+        extend: [m.battery(), m.iasZoneAlarm({zoneType: "water_leak", zoneAttributes: ["alarm_1", "tamper", "battery_low"]})],
+    },
 ];

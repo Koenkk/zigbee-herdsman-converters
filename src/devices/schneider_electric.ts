@@ -77,6 +77,19 @@ function socketIndicatorMode() {
     });
 }
 
+function evlinkIndicatorMode() {
+    return m.enumLookup({
+        name: "indicator_mode",
+        lookup: {
+            default: 1,
+            temporary: 5,
+        },
+        cluster: "manuSpecificSchneiderFanSwitchConfiguration",
+        attribute: "ledIndication",
+        description: "Set indicator mode",
+    });
+}
+
 function fanIndicatorMode() {
     const description = "Set Indicator Mode.";
     return m.enumLookup({
@@ -1658,6 +1671,7 @@ export const definitions: DefinitionWithExtend[] = [
                 // power is provided by 'seMetering' instead of "haElectricalMeasurement"
                 power: {cluster: "metering"},
             }),
+            evlinkIndicatorMode(),
         ],
     },
     {
@@ -2183,6 +2197,7 @@ export const definitions: DefinitionWithExtend[] = [
             tz.schneider_pilot_mode,
             tz.schneider_thermostat_keypad_lockout,
             tz.thermostat_temperature_display_mode,
+            tz.thermostat_running_state,
         ],
         exposes: [
             e.binary("keypad_lockout", ea.STATE_SET, "lock1", "unlock").withDescription("Enables/disables physical input on the device"),
@@ -2196,7 +2211,9 @@ export const definitions: DefinitionWithExtend[] = [
                 .withSetpoint("occupied_cooling_setpoint", 4, 30, 0.5)
                 .withLocalTemperature()
                 .withSystemMode(["off", "heat", "cool"])
-                .withPiHeatingDemand(),
+                .withRunningState(["idle", "heat", "cool"])
+                .withPiHeatingDemand()
+                .withPiCoolingDemand(),
             e.temperature(),
             e.occupancy(),
         ],
@@ -2206,12 +2223,13 @@ export const definitions: DefinitionWithExtend[] = [
             const endpoint4 = device.getEndpoint(4);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["hvacThermostat"]);
             await reporting.thermostatPIHeatingDemand(endpoint1);
+            await reporting.thermostatPICoolingDemand(endpoint1);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint1);
             await reporting.thermostatOccupiedCoolingSetpoint(endpoint1);
             await reporting.temperature(endpoint2);
             await endpoint1.read("hvacUserInterfaceCfg", ["keypadLockout", "tempDisplayMode"]);
             await reporting.bind(endpoint4, coordinatorEndpoint, ["msOccupancySensing"]);
-            await reporting.thermostatOccupancy(endpoint4);
+            await utils.ignoreUnsupportedAttribute(async () => await reporting.thermostatOccupancy(endpoint4), "thermostatOccupancy");
         },
         extend: [
             m.poll({

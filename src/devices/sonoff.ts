@@ -2512,7 +2512,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Zigbee smart roller shutter switch",
         extend: [
             sonoffExtend.addCustomClusterEwelink(),
-            m.windowCovering({controls: ["lift"], coverInverted: true}),
+            m.windowCovering({controls: ["lift"], coverInverted: false}),
             m.enumLookup<"customClusterEwelink", SonoffEwelink>({
                 name: "motor_travel_calibration_status",
                 lookup: {Uncalibrated: 0, Calibrated: 1},

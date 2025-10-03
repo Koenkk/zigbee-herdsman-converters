@@ -309,7 +309,16 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZG-227Z-z",
         vendor: "Tuya",
         description: "Temperature & humidity sensor (pvxx/ZigbeeTLc)",
-        extend: [m.temperature(), m.humidity(), m.battery({voltage: true})],
+        extend: [
+            m.temperature(),
+            m.humidity(),
+            extend.temperatureCalibration,
+            extend.humidityCalibration,
+            extend.measurementInterval,
+            m.battery({
+                voltage: true,
+            }),
+        ],
         ota: true,
     },
 ];
