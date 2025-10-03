@@ -734,6 +734,33 @@ const tzLocal = {
             return ret;
         },
     } satisfies Tz.Converter,
+    videosec_KRC702Z_on_off_action: {
+        key: ['state'],
+        convertSet: async (entity, key, value, meta) => {
+            // This converter is for multi-endpoint devices, so we need the endpoint name (e.g., 'l1', 'l2').
+            const endpointName = meta.endpoint_name;
+            if (!endpointName) {
+                // If there's no endpoint, fall back to the default Tuya converter.
+                return tuya.tz.datapoints.convertSet(entity, key, value, meta);
+            }
+
+            // Construct the property name used to store the current state, e.g., 'state_l1'.
+            const stateProperty = `state_${endpointName}`;
+
+            // Check if the device's current reported state matches the command we want to send.
+            // This prevents sending a redundant command (e.g., sending 'ON' when it's already on).
+            if (meta.state && meta.state[stateProperty] &&
+                typeof value === 'string' &&
+                (meta.state[stateProperty] as string).toLowerCase() === value.toLowerCase()) {
+                // Log that we are blocking the command and return nothing, which stops the command from being sent.
+                logger.debug(`KRC702Z: Blocking command for ${endpointName} as it is already ${value}`, NS);
+                return;
+            }
+
+            // If the states are different, proceed with sending the command.
+            return tuya.tz.datapoints.convertSet(entity, key, value, meta);
+        },
+    } satisfies Tz.Converter,
 };
 
 const fzLocal = {
@@ -1226,6 +1253,31 @@ export const definitions: DefinitionWithExtend[] = [
             exposes.options.precision("temperature"),
             exposes.options.calibration("temperature"),
         ],
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_z1xg4gsp']),
+        model: 'KRC702Z',
+        vendor: 'Videosec',
+        description: '2 gang smart switch with toggle fix',
+        fromZigbee: [tuya.fz.datapoints],
+        // Use the custom 'toZigbee' converter defined above.
+        toZigbee: [tzLocal.videosec_KRC702Z_on_off_action],
+        exposes: [
+            e.switch().withEndpoint('l1'),
+            e.switch().withEndpoint('l2'),
+        ],
+        meta: {
+            multiEndpoint: true,
+            // Map the Tuya datapoint IDs to the Zigbee2MQTT states.
+            tuyaDatapoints: [
+                [19, 'state_l1', tuya.valueConverter.onOff],
+                [20, 'state_l2', tuya.valueConverter.onOff],
+            ],
+        },
+        // Define that both logical endpoints ('l1', 'l2') are handled by the device's physical endpoint 1.
+        endpoint: (device) => {
+            return {'l1': 1, 'l2': 1};
+        },
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_zpvusbtv"]),
