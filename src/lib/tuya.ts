@@ -2121,7 +2121,7 @@ const tuyaModernExtend = {
             queryOnConfigure?: true;
             bindBasicOnConfigure?: true;
             queryIntervalSeconds?: number;
-            respondToMcuVersionResponse?: false;
+            respondToMcuVersionResponse?: true;
             mcuVersionRequestOnConfigure?: true;
             forceTimeUpdates?: true;
             timeStart?: "2000" | "off";
@@ -2138,7 +2138,9 @@ const tuyaModernExtend = {
             // Every hour when a message is received the time will be updated.
             forceTimeUpdates = false,
             timeStart = "1970",
-            respondToMcuVersionResponse = true,
+            // Disable by default as with many Tuya devices it doesn't work well.
+            // https://github.com/Koenkk/zigbee2mqtt/issues/28367#issuecomment-3363460429
+            respondToMcuVersionResponse = false,
         } = args;
 
         const fzConverter: Fz.Converter<
