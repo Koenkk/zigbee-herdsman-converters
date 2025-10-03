@@ -54,7 +54,7 @@ export const boschGeneralExtend = {
 
                 const device = event.data.device;
                 logger.debug(
-                    `Try to apply cluster rename from ${oldClusterName} to ${newClusterName} for device ${device.ieeeAddr}, current meta state: ${JSON.stringify(device.meta)}`,
+                    `Try to apply cluster rename from ${oldClusterName} to ${newClusterName} for device ${device.ieeeAddr}. Current meta state: ${JSON.stringify(device.meta)}`,
                     NS,
                 );
 
@@ -70,7 +70,7 @@ export const boschGeneralExtend = {
                             logger.debug(`Try to read ${attributeToRead} in ${newClusterName}`, NS);
                             await endpoint.read(clusterDefinition.ID, [clusterDefinition.attributes[attributeToRead].ID]);
                         } catch (exception) {
-                            logger.debug(`Error during read attempt on attribute ${attributeToRead}, skipping... ${exception}`, NS);
+                            logger.debug(`Error during read attempt on attribute ${attributeToRead}. Skipping... ${exception}`, NS);
                         }
                     }
 
@@ -85,7 +85,7 @@ export const boschGeneralExtend = {
                     );
                 } else {
                     logger.debug(
-                        `Cluster rename from ${oldClusterName} to ${newClusterName} for device ${device.ieeeAddr} already applied, skipping...`,
+                        `Cluster rename from ${oldClusterName} to ${newClusterName} for device ${device.ieeeAddr} already applied. Skipping...`,
                         NS,
                     );
                 }
