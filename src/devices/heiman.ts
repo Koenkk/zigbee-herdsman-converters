@@ -1092,7 +1092,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["HS2FD-EF1-3.0"],
         model: "HS2FD-EF1-3.0",
-        vendor: "HEIMAN",
+        vendor: "Heiman",
         description: "Fall Detection Sensor",
         extend: [
             m.deviceAddCustomCluster("RadarSensorHeiman", {

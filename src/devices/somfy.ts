@@ -99,6 +99,6 @@ export const definitions: DefinitionWithExtend[] = [
         model: "1245602",
         vendor: "SOMFY",
         description: "Tilt and lift blinds motor",
-        extend: [m.windowCovering({controls: ["lift", "tilt"]}), m.battery()],
+        extend: [m.windowCovering({controls: ["lift", "tilt"]}), m.battery(), m.identify()],
     },
 ];
