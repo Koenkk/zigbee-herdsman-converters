@@ -388,18 +388,9 @@ export const skip = {
 };
 
 export const configureMagicPacket = async (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint) => {
-    try {
-        const endpoint = device.endpoints[0];
-        await endpoint.read("genBasic", ["manufacturerName", "zclVersion", "appVersion", "modelId", "powerSource", 0xfffe]);
-    } catch (e) {
-        // Fails for some Tuya devices with UNSUPPORTED_ATTRIBUTE, ignore that.
-        // e.g. https://github.com/Koenkk/zigbee2mqtt/issues/14857
-        if ((e as Error).message.includes("UNSUPPORTED_ATTRIBUTE")) {
-            logger.debug("configureMagicPacket failed, ignoring...", NS);
-        } else {
-            throw e;
-        }
-    }
+    await utils.ignoreUnsupportedAttribute(async () => {
+        await device.endpoints[0].read("genBasic", ["manufacturerName", "zclVersion", "appVersion", "modelId", "powerSource", 0xfffe]);
+    }, "Tuya configureMagicPacket");
 };
 
 export const configureQuery = async (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint) => {
@@ -1447,6 +1438,21 @@ export const valueConverter = {
             },
         };
     },
+    utf16BEHexString: {
+        // String -> hex (UTF-16BE)
+        to: (v: string) => {
+            const s = v.trim();
+            return Buffer.from(s, "utf16le").swap16().toString("hex");
+        },
+
+        // hex (UTF-16BE) -> String
+        from: (hex?: string) => {
+            if (!hex) return "";
+            const s = hex.trim();
+            if ((s.length & 1) !== 0) return "";
+            return Buffer.from(s, "hex").swap16().toString("utf16le").trim();
+        },
+    },
 };
 
 const tuyaTz = {
@@ -2148,7 +2154,7 @@ const tuyaModernExtend = {
             queryOnConfigure?: true;
             bindBasicOnConfigure?: true;
             queryIntervalSeconds?: number;
-            respondToMcuVersionResponse?: false;
+            respondToMcuVersionResponse?: true;
             mcuVersionRequestOnConfigure?: true;
             forceTimeUpdates?: true;
             timeStart?: "2000" | "off";
@@ -2165,7 +2171,9 @@ const tuyaModernExtend = {
             // Every hour when a message is received the time will be updated.
             forceTimeUpdates = false,
             timeStart = "1970",
-            respondToMcuVersionResponse = true,
+            // Disable by default as with many Tuya devices it doesn't work well.
+            // https://github.com/Koenkk/zigbee2mqtt/issues/28367#issuecomment-3363460429
+            respondToMcuVersionResponse = false,
         } = args;
 
         const fzConverter: Fz.Converter<

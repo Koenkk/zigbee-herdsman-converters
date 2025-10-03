@@ -40,6 +40,78 @@ interface BoschGeneralEnergyDeviceCluster {
 }
 
 export const boschGeneralExtend = {
+    /** Some devices now use a different name for some custom clusters than
+     * originally used. This can lead to issues like those described in
+     * https://github.com/Koenkk/zigbee2mqtt/issues/28806. To prevent that
+     * we have to make sure that all attributes of the renamed cluster are
+     * available when using "getEndpoint().getClusterAttributeValue()". */
+    handleRenamedCustomCluster: (oldClusterName: string, newClusterName: string): ModernExtend => {
+        const onEvent: OnEvent.Handler[] = [
+            async (event) => {
+                if (event.type !== "start") {
+                    return;
+                }
+
+                const device = event.data.device;
+
+                const renameAlreadyApplied = device.meta.renamedClusters?.includes(oldClusterName);
+                if (!renameAlreadyApplied) {
+                    logger.debug(
+                        `Try to apply cluster rename from ${oldClusterName} to ${newClusterName} for device ${device.ieeeAddr}. Current meta state: ${JSON.stringify(device.meta)}`,
+                        NS,
+                    );
+
+                    const newClusterDefinition = device.customClusters[newClusterName];
+                    const endpointsWithNewCluster = device.endpoints.filter((endpoint) => endpoint.clusters[newClusterName] !== undefined);
+
+                    for (const endpointToRead in endpointsWithNewCluster) {
+                        const endpoint = endpointsWithNewCluster[endpointToRead];
+                        logger.debug(`Attempt to read all attributes for cluster ${newClusterName} from endpoint ${endpoint.ID}`, NS);
+
+                        for (const attributeToRead in newClusterDefinition.attributes) {
+                            const attributeValueExistsInDatabase =
+                                endpoint.getClusterAttributeValue(newClusterName, newClusterDefinition.attributes[attributeToRead].ID) !== undefined;
+
+                            if (!attributeValueExistsInDatabase) {
+                                logger.debug(
+                                    `Attempt to read undefined attribute ${attributeToRead} in cluster ${newClusterName} from endpoint ${endpoint.ID}`,
+                                    NS,
+                                );
+
+                                try {
+                                    await endpoint.read(newClusterDefinition.ID, [newClusterDefinition.attributes[attributeToRead].ID]);
+                                } catch (exception) {
+                                    logger.debug(
+                                        `Error during read attempt for attribute ${attributeToRead}. Probably unsupported attribute on this device or endpoint. Skipping... ${exception}`,
+                                        NS,
+                                    );
+                                }
+                            } else {
+                                logger.debug(
+                                    `Value for attribute ${attributeToRead} in cluster ${newClusterName} from endpoint ${endpoint.ID} already in database. Skipping...`,
+                                    NS,
+                                );
+                            }
+                        }
+                    }
+
+                    logger.debug(`All attributes are read, now calling deviceExposeChanged() for device ${device.ieeeAddr}`, NS);
+                    event.data.deviceExposesChanged();
+
+                    device.meta.renamedClusters =
+                        device.meta.renamedClusters === undefined ? [oldClusterName] : [...device.meta.renamedClusters, oldClusterName];
+                    logger.debug(
+                        `Cluster rename from ${oldClusterName} to ${newClusterName} for device ${device.ieeeAddr} successfully applied. New meta state: ${JSON.stringify(device.meta)}`,
+                        NS,
+                    );
+                }
+            },
+        ];
+        return {
+            onEvent,
+            isModernExtend: true,
+        };
+    },
     handleZclVersionReadRequest: (): ModernExtend => {
         const onEvent: OnEvent.Handler[] = [
             (event) => {
