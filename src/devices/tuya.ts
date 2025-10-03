@@ -19811,13 +19811,12 @@ export const definitions: DefinitionWithExtend[] = [
                 },
             },
         ],
-		exposes: [
-			new exposes.Binary('contact', ea.STATE, 'OPEN', 'CLOSED')
-				.withDescription('Indicates if the contact is open or closed')
-				.withProperty({device_class: 'garage_door'}),
-			new exposes.Binary('trigger', ea.STATE_SET, 'ON', 'OFF')
-				.withDescription('Trigger the garage door'),
-		],
+        exposes: [
+            new exposes.Binary("contact", ea.STATE, "OPEN", "CLOSED")
+                .withDescription("Indicates if the contact is open or closed")
+                .withProperty({device_class: "garage_door"}),
+            new exposes.Binary("trigger", ea.STATE_SET, "ON", "OFF").withDescription("Trigger the garage door"),
+        ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff"]);
