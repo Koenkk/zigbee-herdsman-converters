@@ -71,8 +71,9 @@ export const boschGeneralExtend = {
 
                         for (const attributeToRead in newClusterDefinition.attributes) {
                             const attributeValueExistsInDatabase =
-                                endpoint.getClusterAttributeValue(newClusterName, newClusterDefinition.attributes[attributeToRead].ID) === undefined;
-                            if (attributeValueExistsInDatabase) {
+                                endpoint.getClusterAttributeValue(newClusterName, newClusterDefinition.attributes[attributeToRead].ID) !== undefined;
+
+                            if (!attributeValueExistsInDatabase) {
                                 logger.debug(
                                     `Attempt to read undefined attribute ${attributeToRead} in cluster ${newClusterName} from endpoint ${endpoint.ID}`,
                                     NS,
