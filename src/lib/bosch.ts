@@ -44,8 +44,7 @@ export const boschGeneralExtend = {
      * originally used. This can lead to issues like those described in
      * https://github.com/Koenkk/zigbee2mqtt/issues/28806 . To prevent that
      * we have to make sure that all attributes of the renamed cluster are
-     * available when using "getClusterAttributeValue()" in the
-     * "exposes" function. */
+     * available when using "getEndpoint().getClusterAttributeValue()". */
     handleRenamedCluster: (oldClusterName: string, newClusterName: string): ModernExtend => {
         const onEvent: OnEvent.Handler[] = [
             async (event) => {
