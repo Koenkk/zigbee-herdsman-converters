@@ -42,7 +42,7 @@ interface BoschGeneralEnergyDeviceCluster {
 export const boschGeneralExtend = {
     /** Some devices now use a different name for some custom clusters than
      * originally used. This can lead to issues like those described in
-     * https://github.com/Koenkk/zigbee2mqtt/issues/28806 . To prevent that
+     * https://github.com/Koenkk/zigbee2mqtt/issues/28806. To prevent that
      * we have to make sure that all attributes of the renamed cluster are
      * available when using "getEndpoint().getClusterAttributeValue()". */
     handleRenamedCluster: (oldClusterName: string, newClusterName: string): ModernExtend => {
@@ -62,15 +62,21 @@ export const boschGeneralExtend = {
                 if (!renameAlreadyApplied) {
                     logger.debug("The cluster rename isn't applied yet. Read all available attributes once", NS);
 
-                    const clusterDefinition = device.customClusters[newClusterName];
-                    const endpoint = device.getEndpoint(1);
+                    const newClusterDefinition = device.customClusters[newClusterName];
+                    const endpointsWithNewCluster = device.endpoints.filter((endpoint) => endpoint.clusters[newClusterName] !== undefined);
 
-                    for (const attributeToRead in clusterDefinition.attributes) {
-                        try {
-                            logger.debug(`Try to read ${attributeToRead} in ${newClusterName}`, NS);
-                            await endpoint.read(clusterDefinition.ID, [clusterDefinition.attributes[attributeToRead].ID]);
-                        } catch (exception) {
-                            logger.debug(`Error during read attempt on attribute ${attributeToRead}. Skipping... ${exception}`, NS);
+                    for (const endpointToRead in endpointsWithNewCluster) {
+                        const endpoint = endpointsWithNewCluster[endpointToRead];
+                        logger.debug(`Attempt to read all attributes for cluster ${newClusterName} from endpoint ${endpoint.ID}`, NS);
+
+                        for (const attributeToRead in newClusterDefinition.attributes) {
+                            logger.debug(`Attempt to read attribute ${attributeToRead} in cluster ${newClusterName} from endpoint ${endpoint.ID}`, NS);
+
+                            try {
+                                await endpoint.read(newClusterDefinition.ID, [newClusterDefinition.attributes[attributeToRead].ID]);
+                            } catch (exception) {
+                                logger.debug(`Error during read attempt for attribute ${attributeToRead}. Probably unsupported attribute on this device or endpoint. Skipping... ${exception}`, NS);
+                            }
                         }
                     }
 
