@@ -513,13 +513,15 @@ export async function getClusterAttributeValue<
     fallback: ClusterOrRawAttributes<Cl, Custom>[Attr] = undefined,
 ): Promise<ClusterOrRawAttributes<Cl, Custom>[Attr]> {
     try {
-        if (endpoint.getClusterAttributeValue(cluster, attribute) == null) {
-            await endpoint.read<Cl, Custom>(cluster, [attribute] as ClusterOrRawAttributeKeys<Cl, Custom>, {
+        const value = endpoint.getClusterAttributeValue(cluster, attribute);
+        if (value == null) {
+            const result = await endpoint.read<Cl, Custom>(cluster, [attribute] as ClusterOrRawAttributeKeys<Cl, Custom>, {
                 sendPolicy: "immediate",
                 disableRecovery: true,
             });
+            return result[attribute] ?? fallback;
         }
-        return endpoint.getClusterAttributeValue(cluster, attribute) as ClusterOrRawAttributes<Cl, Custom>[Attr];
+        return value as ClusterOrRawAttributes<Cl, Custom>[Attr];
     } catch (error) {
         if (fallback !== undefined) return fallback;
         throw error;
