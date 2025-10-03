@@ -100,7 +100,7 @@ export const boschGeneralExtend = {
     handleZclVersionReadRequest: (): ModernExtend => {
         const onEvent: OnEvent.Handler[] = [
             (event) => {
-                if (event.type !== "start") {
+                if (event.type !== "deviceAnnounce") {
                     return;
                 }
 
