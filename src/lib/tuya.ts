@@ -1,5 +1,4 @@
 import {Zcl} from "zigbee-herdsman";
-import type {TuyaWeatherSyncValue} from "zigbee-herdsman/dist/zspec/zcl/definition/tstype";
 
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
@@ -86,6 +85,12 @@ export const M8ProTuyaWeatherCondition = {
     Haze: 140,
     ThunderShower: 143,
 };
+
+export enum TuyaWeatherID {
+    Temperature = 0x01,
+    Humidity = 0x02,
+    Condition = 0x03,
+}
 
 export function convertBufferToNumber(chunks: Buffer | number[]) {
     let value = 0;
@@ -2793,47 +2798,89 @@ const tuyaModernExtend = {
             return val;
         }
 
-        function _prepareTuyaWeatherSyncPayload(
-            meta: Fz.Meta | Tz.Meta,
-            numberOfForecastDays: number,
-            includeCurrentWeather: boolean,
-        ): TuyaWeatherSyncValue {
-            const forecastTemperature: number[] = [];
-            const forecastHumidity: number[] = [];
-            const forecastCondition: number[] = [];
+        function _prepareTuyaWeatherSyncPayload(meta: Fz.Meta | Tz.Meta, numberOfForecastDays: number, includeCurrentWeather: boolean): Buffer {
+            let bOffset = 0;
+            const buffer = Buffer.alloc(6 + (includeCurrentWeather ? 6 : 1) + numberOfForecastDays * 6);
+
+            buffer.writeUInt8(0x11, bOffset++);
+            buffer.writeUInt8(0, bOffset++);
+            buffer.writeUInt8(0x12, bOffset++);
+            buffer.writeUInt8(numberOfForecastDays, bOffset++);
+            buffer.writeUInt8(0x13, bOffset++);
+
+            const weather_values: Record<TuyaWeatherID, number[]> = {1: [], 2: [], 3: []};
+
+            if (includeCurrentWeather) {
+                buffer.writeUInt8(0x1, bOffset++);
+                weather_values[TuyaWeatherID.Temperature].push(
+                    "temperature_0" in meta.state ? (_vCorr(meta.state["temperature_0"] as number) as number) : 0,
+                );
+                weather_values[TuyaWeatherID.Humidity].push("humidity_0" in meta.state ? (meta.state["humidity_0"] as number) : 0);
+                weather_values[TuyaWeatherID.Condition].push(
+                    "condition_0" in meta.state ? M8ProTuyaWeatherCondition[meta.state["condition_0"] as keyof typeof M8ProTuyaWeatherCondition] : 0,
+                );
+            } else {
+                buffer.writeUInt8(0x0, bOffset++);
+            }
 
             for (let i = 1; i <= numberOfForecastDays; ++i) {
-                forecastTemperature.push(`temperature_${i}` in meta.state ? (_vCorr(meta.state[`temperature_${i}`] as number) as number) : 0);
-                forecastHumidity.push(`humidity_${i}` in meta.state ? (meta.state[`humidity${i}`] as number) : 0);
-                forecastCondition.push(
+                weather_values[TuyaWeatherID.Temperature].push(
+                    `temperature_${i}` in meta.state ? (_vCorr(meta.state[`temperature_${i}`] as number) as number) : 0,
+                );
+                weather_values[TuyaWeatherID.Humidity].push(`humidity_${i}` in meta.state ? (meta.state[`humidity${i}`] as number) : 0);
+                weather_values[TuyaWeatherID.Condition].push(
                     `condition_${i}` in meta.state
                         ? M8ProTuyaWeatherCondition[meta.state[`condition_${i}`] as keyof typeof M8ProTuyaWeatherCondition]
                         : 0,
                 );
             }
 
-            return {
-                numberOfForecastDays: numberOfForecastDays,
-                includeCurrentWeather: includeCurrentWeather,
-                currentTemperature: "temperature_0" in meta.state ? (_vCorr(meta.state["temperature_0"] as number) as number) : 0,
-                currentHumidity: "humidity_0" in meta.state ? (meta.state["humidity_0"] as number) : 0,
-                currentCondition:
-                    "condition_0" in meta.state ? M8ProTuyaWeatherCondition[meta.state["condition_0"] as keyof typeof M8ProTuyaWeatherCondition] : 0,
-                forecastTemperature: forecastTemperature,
-                forecastHumidity: forecastHumidity,
-                forecastCondition: forecastCondition,
-            };
+            for (const id of [1, 2, 3]) {
+                buffer.writeUInt8(id, bOffset++);
+                for (const j of weather_values[id as TuyaWeatherID]) {
+                    if (id === TuyaWeatherID.Temperature) {
+                        buffer.writeInt16BE(j, bOffset);
+                        bOffset += 2;
+                    } else if (id === TuyaWeatherID.Humidity) {
+                        buffer.writeInt16BE(j, bOffset);
+                        bOffset += 2;
+                    } else if (id === TuyaWeatherID.Condition) {
+                        buffer.writeUInt8(j, bOffset++);
+                    }
+                }
+            }
+            buffer.writeUInt8(0, bOffset++);
+            return buffer;
         }
 
         const fzConverter: Fz.Converter<"manuSpecificTuya", undefined, ["commandTuyaWeatherRequest"]> = {
             type: ["commandTuyaWeatherRequest"],
             cluster: "manuSpecificTuya",
             convert: (model, msg, publish, options, meta) => {
-                logger.warning(JSON.stringify(msg), NS);
-
                 if (msg.type === "commandTuyaWeatherRequest") {
-                    const request_pld = msg.data.payload;
-                    const pld = _prepareTuyaWeatherSyncPayload(meta, request_pld.numberOfForecastDays, request_pld.includeCurrentWeather);
+                    // Although the parameter is specified as "Data length" in the documentation, some devices
+                    // send values in this field that don't correspond to the rest of packet data. Relying on this
+                    // field would lead to parsing errors in those cases, thus it's required to search for constant flags.
+                    let bOffset = 0;
+                    const buffer = msg.data.payload;
+                    const _length = buffer.readUInt16LE(bOffset);
+                    bOffset += 2;
+                    const _version_number = buffer.readUInt8(bOffset++);
+                    const _location_type = buffer.readUInt8(bOffset++);
+                    const weather_request = [];
+
+                    let nextField = buffer.readUInt8(bOffset++);
+
+                    while (nextField !== 0x12 && nextField !== 0x13) {
+                        weather_request.push(nextField);
+                        nextField = buffer.readUInt8(bOffset++);
+                    }
+
+                    const number_of_forecast_days = nextField === 0x12 ? buffer.readUInt8(bOffset++) : 0;
+                    const _current_weather_flag = nextField === 0x12 ? buffer.readUInt8(bOffset++) : 0;
+                    const include_current_weather = buffer.readUInt8(bOffset++) !== 0;
+
+                    const pld = _prepareTuyaWeatherSyncPayload(meta, number_of_forecast_days, include_current_weather);
 
                     msg.endpoint.command("manuSpecificTuya", "tuyaWeatherSync", {payload: pld});
                 }
