@@ -2576,6 +2576,7 @@ export interface NumericArgs<Cl extends string | number, Custom extends TCustomC
     label?: string;
     entityCategory?: "config" | "diagnostic";
     precision?: number;
+    fzConvert?: Fz.Converter<Cl, Custom, ["attributeReport", "readResponse"]>["convert"];
 }
 export function numeric<Cl extends string | number, Custom extends TCustomCluster | undefined = undefined>(
     args: NumericArgs<Cl, Custom>,
@@ -2595,6 +2596,7 @@ export function numeric<Cl extends string | number, Custom extends TCustomCluste
         label,
         entityCategory,
         precision,
+        fzConvert,
     } = args;
 
     const endpoints = args.endpointNames;
@@ -2628,26 +2630,28 @@ export function numeric<Cl extends string | number, Custom extends TCustomCluste
         {
             cluster: cluster.toString(),
             type: ["attributeReport", "readResponse"],
-            convert: (model, msg, publish, options, meta) => {
-                if (attributeKey in msg.data) {
-                    const endpoint = endpoints?.find((e) => getEndpointName(msg, model, meta) === e);
-                    if (endpoints && !endpoint) {
-                        return;
+            convert:
+                fzConvert ??
+                ((model, msg, publish, options, meta) => {
+                    if (attributeKey in msg.data) {
+                        const endpoint = endpoints?.find((e) => getEndpointName(msg, model, meta) === e);
+                        if (endpoints && !endpoint) {
+                            return;
+                        }
+
+                        let value = msg.data[attributeKey];
+                        assertNumber(value);
+
+                        if (scale !== undefined) {
+                            value = typeof scale === "number" ? value / scale : scale(value, "from");
+                        }
+                        assertNumber(value);
+                        if (precision != null) value = precisionRound(value, precision);
+
+                        const expose = exposes.length === 1 ? exposes[0] : exposes.find((e) => e.endpoint === endpoint);
+                        return {[expose.property]: value};
                     }
-
-                    let value = msg.data[attributeKey];
-                    assertNumber(value);
-
-                    if (scale !== undefined) {
-                        value = typeof scale === "number" ? value / scale : scale(value, "from");
-                    }
-                    assertNumber(value);
-                    if (precision != null) value = precisionRound(value, precision);
-
-                    const expose = exposes.length === 1 ? exposes[0] : exposes.find((e) => e.endpoint === endpoint);
-                    return {[expose.property]: value};
-                }
-            },
+                }),
             // biome-ignore lint/suspicious/noExplicitAny: generic
         } satisfies Fz.Converter<any, undefined, ["attributeReport", "readResponse"]>,
     ];
