@@ -19773,19 +19773,15 @@ export const definitions: DefinitionWithExtend[] = [
 		model: 'TYLK-ZBH1-RF',
 		vendor: 'HuaCaoe',
 		description: 'Zigbee smart garage door opener',
-		icon: 'mdi:garage',
 		fromZigbee: [
 			{
 				cluster: 'genOnOff',
 				type: ['attributeReport', 'readResponse'],
 				convert: (model, msg, publish, options, meta) => {
-					// IMPORTANT: Read the last trigger time from the device's local state.
-					const state = meta.device.getLocalState();
-					const lastTriggerTime = state?.lastTriggerTime ?? 0;
-	
+					// Read the last trigger time from the device's meta info.
+					const lastTriggerTime = meta.device.meta.lastTriggerTime ?? 0;
 					// Ignore onOff reports within 500ms of a trigger to filter out command echoes.
 					if (Date.now() - lastTriggerTime < 500) {
-						meta.logger.debug('Ignoring onOff report within 500ms of trigger');
 						return;
 					}
 					if (msg.data.hasOwnProperty('onOff')) {
@@ -19801,9 +19797,10 @@ export const definitions: DefinitionWithExtend[] = [
 			{
 				key: ['trigger'],
 				convertSet: async (entity, key, value, meta) => {
-					if (value.toUpperCase() === 'ON') {
-						// IMPORTANT: Set the last trigger time in the device's local state.
-						meta.device.setLocalState({lastTriggerTime: Date.now()});
+					// Check if value is a string before using string methods.
+					if (typeof value === 'string' && value.toUpperCase() === 'ON') {
+						// Set the last trigger time in the device's meta info.
+						meta.device.meta.lastTriggerTime = Date.now();
 						// Send a brief ON/OFF pulse to trigger the relay.
 						await entity.command('genOnOff', 'on', {}, {disableDefaultResponse: true});
 						await new Promise(resolve => setTimeout(resolve, 10));
@@ -19815,10 +19812,11 @@ export const definitions: DefinitionWithExtend[] = [
 			},
 		],
 		exposes: [
-			e.binary('contact', ea.STATE, 'OPEN', 'CLOSED')
+			// Using the more explicit constructor to avoid validation errors.
+			new exposes.Binary('contact', ea.STATE, 'OPEN', 'CLOSED')
 				.withDescription('Indicates if the contact is open or closed')
 				.withProperty('device_class', 'garage_door'),
-			e.binary('trigger', ea.STATE_SET, 'ON', 'OFF')
+			new exposes.Binary('trigger', ea.STATE_SET, 'ON', 'OFF')
 				.withDescription('Trigger the garage door'),
 		],
 		configure: async (device, coordinatorEndpoint, logger) => {
