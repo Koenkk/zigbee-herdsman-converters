@@ -19768,4 +19768,63 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
+	{
+		fingerprint: [{modelID: 'TS0001', manufacturerName: '_TZ3210_sb8x2xci'}],
+		model: 'TYLK-ZBH1-RF',
+		vendor: 'HuaCaoe',
+		description: 'Zigbee smart garage door opener',
+		icon: 'mdi:garage',
+		fromZigbee: [
+			{
+				cluster: 'genOnOff',
+				type: ['attributeReport', 'readResponse'],
+				convert: (model, msg, publish, options, meta) => {
+					// IMPORTANT: Read the last trigger time from the device's local state.
+					const state = meta.device.getLocalState();
+					const lastTriggerTime = state?.lastTriggerTime ?? 0;
+	
+					// Ignore onOff reports within 500ms of a trigger to filter out command echoes.
+					if (Date.now() - lastTriggerTime < 500) {
+						meta.logger.debug('Ignoring onOff report within 500ms of trigger');
+						return;
+					}
+					if (msg.data.hasOwnProperty('onOff')) {
+						const value = msg.data.onOff;
+						return {
+							contact: value !== 0 ? 'OPEN' : 'CLOSED',
+						};
+					}
+				},
+			},
+		],
+		toZigbee: [
+			{
+				key: ['trigger'],
+				convertSet: async (entity, key, value, meta) => {
+					if (value.toUpperCase() === 'ON') {
+						// IMPORTANT: Set the last trigger time in the device's local state.
+						meta.device.setLocalState({lastTriggerTime: Date.now()});
+						// Send a brief ON/OFF pulse to trigger the relay.
+						await entity.command('genOnOff', 'on', {}, {disableDefaultResponse: true});
+						await new Promise(resolve => setTimeout(resolve, 10));
+						await entity.command('genOnOff', 'off', {}, {disableDefaultResponse: true});
+						// Return the 'OFF' state to make the switch in Home Assistant momentary.
+						return {state: {trigger: 'OFF'}};
+					}
+				},
+			},
+		],
+		exposes: [
+			e.binary('contact', ea.STATE, 'OPEN', 'CLOSED')
+				.withDescription('Indicates if the contact is open or closed')
+				.withProperty('device_class', 'garage_door'),
+			e.binary('trigger', ea.STATE_SET, 'ON', 'OFF')
+				.withDescription('Trigger the garage door'),
+		],
+		configure: async (device, coordinatorEndpoint, logger) => {
+			const endpoint = device.getEndpoint(1);
+			await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+			await reporting.onOff(endpoint);
+		},
+	},
 ];
