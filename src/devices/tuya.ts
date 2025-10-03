@@ -19768,61 +19768,60 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
-	{
-		fingerprint: [{modelID: 'TS0001', manufacturerName: '_TZ3210_sb8x2xci'}],
-		model: 'TYLK-ZBH1-RF',
-		vendor: 'HuaCaoe',
-		description: 'Zigbee smart garage door opener',
-		fromZigbee: [
-			{
-				cluster: 'genOnOff',
-				type: ['attributeReport', 'readResponse'],
-				convert: (model, msg, publish, options, meta) => {
-					// Read the last trigger time from the device's meta info.
-					const lastTriggerTime = meta.device.meta.lastTriggerTime ?? 0;
-					// Ignore onOff reports within 500ms of a trigger to filter out command echoes.
-					if (Date.now() - lastTriggerTime < 500) {
-						return;
-					}
-					if (msg.data.hasOwnProperty('onOff')) {
-						const value = msg.data.onOff;
-						return {
-							contact: value !== 0 ? 'OPEN' : 'CLOSED',
-						};
-					}
-				},
-			},
-		],
-		toZigbee: [
-			{
-				key: ['trigger'],
-				convertSet: async (entity, key, value, meta) => {
-					// Check if value is a string before using string methods.
-					if (typeof value === 'string' && value.toUpperCase() === 'ON') {
-						// Set the last trigger time in the device's meta info.
-						meta.device.meta.lastTriggerTime = Date.now();
-						// Send a brief ON/OFF pulse to trigger the relay.
-						await entity.command('genOnOff', 'on', {}, {disableDefaultResponse: true});
-						await new Promise(resolve => setTimeout(resolve, 10));
-						await entity.command('genOnOff', 'off', {}, {disableDefaultResponse: true});
-						// Return the 'OFF' state to make the switch in Home Assistant momentary.
-						return {state: {trigger: 'OFF'}};
-					}
-				},
-			},
-		],
-		exposes: [
-			// Using the more explicit constructor to avoid validation errors.
-			new exposes.Binary('contact', ea.STATE, 'OPEN', 'CLOSED')
-				.withDescription('Indicates if the contact is open or closed')
-				.withProperty('device_class', 'garage_door'),
-			new exposes.Binary('trigger', ea.STATE_SET, 'ON', 'OFF')
-				.withDescription('Trigger the garage door'),
-		],
-		configure: async (device, coordinatorEndpoint, logger) => {
-			const endpoint = device.getEndpoint(1);
-			await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-			await reporting.onOff(endpoint);
-		},
-	},
+    {
+        fingerprint: [{modelID: "TS0001", manufacturerName: "_TZ3210_sb8x2xci"}],
+        model: "TYLK-ZBH1-RF",
+        vendor: "HuaCaoe",
+        description: "Zigbee smart garage door opener",
+        fromZigbee: [
+            {
+                cluster: "genOnOff",
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    // Read the last trigger time from the device's meta info.
+                    const lastTriggerTime = meta.device.meta.lastTriggerTime ?? 0;
+                    // Ignore onOff reports within 500ms of a trigger to filter out command echoes.
+                    if (Date.now() - lastTriggerTime < 500) {
+                        return;
+                    }
+                    if (Object.hasOwn(msg.data, "onOff")) {
+                        const value = msg.data.onOff;
+                        return {
+                            contact: value !== 0 ? "OPEN" : "CLOSED",
+                        };
+                    }
+                },
+            },
+        ],
+        toZigbee: [
+            {
+                key: ["trigger"],
+                convertSet: async (entity, key, value, meta) => {
+                    // Check if value is a string before using string methods.
+                    if (typeof value === "string" && value.toUpperCase() === "ON") {
+                        // Set the last trigger time in the device's meta info.
+                        meta.device.meta.lastTriggerTime = Date.now();
+                        // Send a brief ON/OFF pulse to trigger the relay.
+                        await entity.command("genOnOff", "on", {}, {disableDefaultResponse: true});
+                        await new Promise((resolve) => setTimeout(resolve, 10));
+                        await entity.command("genOnOff", "off", {}, {disableDefaultResponse: true});
+                        // Return the 'OFF' state to make the switch in Home Assistant momentary.
+                        return {state: {trigger: "OFF"}};
+                    }
+                },
+            },
+        ],
+        exposes: [
+            // Using the more explicit constructor to avoid validation errors.
+            new exposes.Binary("contact", ea.STATE, "OPEN", "CLOSED")
+                .withDescription("Indicates if the contact is open or closed")
+                .withProperty("device_class", "garage_door"),
+            new exposes.Binary("trigger", ea.STATE_SET, "ON", "OFF").withDescription("Trigger the garage door"),
+        ],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff"]);
+            await reporting.onOff(endpoint);
+        },
+    },
 ];
