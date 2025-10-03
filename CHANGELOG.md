@@ -1,5 +1,12 @@
 # Changelog
 
+## [25.37.2](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.37.1...v25.37.2) (2025-10-03)
+
+
+### Bug Fixes
+
+* Fix race condition in `getClusterAttributeValue` https://github.com/Koenkk/zigbee2mqtt/issues/28808 ([ecb04da](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ecb04da93a2e723050b2f0ccf0514be1aecbf88a))
+
 ## [25.37.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.37.0...v25.37.1) (2025-10-03)
 
 
