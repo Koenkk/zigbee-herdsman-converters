@@ -127,16 +127,16 @@ const vsmartExtend = {
     addLedColorControl: (): ModernExtend => {
         const exposes_list = [
             exposes
-                .text("ledIndicatorColorOn", ea.SET)
+                .text("led_indicator_color_on", ea.SET)
                 .withDescription("LED indicator color when switch is ON (hex format: #RRGGBB, e.g., #ff0000 for red)"),
             exposes
-                .text("ledIndicatorColorOff", ea.SET)
+                .text("led_indicator_color_off", ea.SET)
                 .withDescription("LED indicator color when switch is OFF (hex format: #RRGGBB, e.g., #ffffff for white)"),
         ];
 
         const toZigbee: Tz.Converter[] = [
             {
-                key: ["ledIndicatorColorOn", "ledIndicatorColorOff"],
+                key: ["led_indicator_color_on", "led_indicator_color_off"],
                 convertSet: async (entity, key, value) => {
                     const hexColor = String(value).trim();
 
@@ -150,7 +150,7 @@ const vsmartExtend = {
                     const g = Number.parseInt(hex.substring(2, 4), 16);
                     const b = Number.parseInt(hex.substring(4, 6), 16);
 
-                    const state = key === "ledIndicatorColorOn" ? 0x01 : 0x00;
+                    const state = key === "led_indicator_color_on" ? 0x01 : 0x00;
                     const payload = {
                         data: [r, g, b, state],
                     };
@@ -174,7 +174,7 @@ const vsmartExtend = {
     addVibrationIntensityControl: (): ModernExtend => {
         const exposes_list = [
             exposes
-                .numeric("vibrationIntensity", ea.SET)
+                .numeric("vibration_intensity", ea.SET)
                 .withValueMin(0)
                 .withValueMax(MAX_PERCENTAGE)
                 .withValueStep(1)
@@ -184,7 +184,7 @@ const vsmartExtend = {
 
         const toZigbee: Tz.Converter[] = [
             {
-                key: ["vibrationIntensity"],
+                key: ["vibration_intensity"],
                 convertSet: async (entity, key, value) => {
                     const intensity = Number(value);
 
@@ -215,10 +215,10 @@ const vsmartExtend = {
     addTimePeriodControl: (): ModernExtend => {
         const exposes_list = [
             exposes
-                .composite("timePeriods", "timePeriods", ea.SET)
+                .composite("time_periods", "time_periods", ea.SET)
                 .withFeature(
                     exposes
-                        .numeric("morningStartHour", ea.SET)
+                        .numeric("morning_start_hour", ea.SET)
                         .withValueMin(MIN_HOUR)
                         .withValueMax(MAX_HOUR)
                         .withValueStep(1)
@@ -227,7 +227,7 @@ const vsmartExtend = {
                 )
                 .withFeature(
                     exposes
-                        .numeric("eveningStartHour", ea.SET)
+                        .numeric("evening_start_hour", ea.SET)
                         .withValueMin(MIN_HOUR)
                         .withValueMax(MAX_HOUR)
                         .withValueStep(1)
@@ -236,7 +236,7 @@ const vsmartExtend = {
                 )
                 .withFeature(
                     exposes
-                        .numeric("nightStartHour", ea.SET)
+                        .numeric("night_start_hour", ea.SET)
                         .withValueMin(MIN_HOUR)
                         .withValueMax(MAX_HOUR)
                         .withValueStep(1)
@@ -248,17 +248,20 @@ const vsmartExtend = {
 
         const toZigbee: Tz.Converter[] = [
             {
-                key: ["timePeriods"],
+                key: ["time_periods"],
                 convertSet: async (entity, key, value) => {
                     const periods = value as {
-                        morningStartHour: number;
-                        eveningStartHour: number;
-                        nightStartHour: number;
+                        // biome-ignore lint/style/useNamingConvention: snake_case is required for API compatibility
+                        morning_start_hour: number;
+                        // biome-ignore lint/style/useNamingConvention: snake_case is required for API compatibility
+                        evening_start_hour: number;
+                        // biome-ignore lint/style/useNamingConvention: snake_case is required for API compatibility
+                        night_start_hour: number;
                     };
 
-                    const morningHour = Number(periods.morningStartHour);
-                    const eveningHour = Number(periods.eveningStartHour);
-                    const nightHour = Number(periods.nightStartHour);
+                    const morningHour = Number(periods.morning_start_hour);
+                    const eveningHour = Number(periods.evening_start_hour);
+                    const nightHour = Number(periods.night_start_hour);
 
                     if (Number.isNaN(morningHour) || morningHour < MIN_HOUR || morningHour > MAX_HOUR) {
                         throw new Error(`Invalid morning start hour. Expected: ${MIN_HOUR}-${MAX_HOUR}`);
@@ -306,21 +309,21 @@ const vsmartExtend = {
     addLedIntensityControl: (): ModernExtend => {
         const exposes_list = [
             exposes
-                .numeric("morningLedIntensity", ea.SET)
+                .numeric("morning_led_intensity", ea.SET)
                 .withValueMin(0)
                 .withValueMax(MAX_PERCENTAGE)
                 .withValueStep(1)
                 .withUnit("%")
                 .withDescription("LED intensity for morning period (0-100%)"),
             exposes
-                .numeric("eveningLedIntensity", ea.SET)
+                .numeric("evening_led_intensity", ea.SET)
                 .withValueMin(0)
                 .withValueMax(MAX_PERCENTAGE)
                 .withValueStep(1)
                 .withUnit("%")
                 .withDescription("LED intensity for evening period (0-100%)"),
             exposes
-                .numeric("nightLedIntensity", ea.SET)
+                .numeric("night_led_intensity", ea.SET)
                 .withValueMin(0)
                 .withValueMax(MAX_PERCENTAGE)
                 .withValueStep(1)
@@ -329,9 +332,9 @@ const vsmartExtend = {
         ];
 
         const toZigbee: Tz.Converter[] = [
-            createLedIntensityConverter("morningLedIntensity", 0, "morning"),
-            createLedIntensityConverter("eveningLedIntensity", 1, "evening"),
-            createLedIntensityConverter("nightLedIntensity", 2, "night"),
+            createLedIntensityConverter("morning_led_intensity", 0, "morning"),
+            createLedIntensityConverter("evening_led_intensity", 1, "evening"),
+            createLedIntensityConverter("night_led_intensity", 2, "night"),
         ];
 
         return {exposes: exposes_list, toZigbee, isModernExtend: true};
@@ -339,10 +342,10 @@ const vsmartExtend = {
     addLedBrightnessLevelsControl: (): ModernExtend => {
         const exposes_list = [
             exposes
-                .composite("ledBrightnessLevels", "ledBrightnessLevels", ea.SET)
+                .composite("led_brightness_levels", "led_brightness_levels", ea.SET)
                 .withFeature(
                     exposes
-                        .numeric("lowBrightnessPercent", ea.SET)
+                        .numeric("low_brightness_percent", ea.SET)
                         .withValueMin(0)
                         .withValueMax(MAX_PERCENTAGE)
                         .withValueStep(1)
@@ -351,7 +354,7 @@ const vsmartExtend = {
                 )
                 .withFeature(
                     exposes
-                        .numeric("mediumBrightnessPercent", ea.SET)
+                        .numeric("medium_brightness_percent", ea.SET)
                         .withValueMin(0)
                         .withValueMax(MAX_PERCENTAGE)
                         .withValueStep(1)
@@ -360,7 +363,7 @@ const vsmartExtend = {
                 )
                 .withFeature(
                     exposes
-                        .numeric("highBrightnessPercent", ea.SET)
+                        .numeric("high_brightness_percent", ea.SET)
                         .withValueMin(0)
                         .withValueMax(MAX_PERCENTAGE)
                         .withValueStep(1)
@@ -374,17 +377,20 @@ const vsmartExtend = {
 
         const toZigbee: Tz.Converter[] = [
             {
-                key: ["ledBrightnessLevels"],
+                key: ["led_brightness_levels"],
                 convertSet: async (entity, key, value) => {
                     const levels = value as {
-                        lowBrightnessPercent: number;
-                        mediumBrightnessPercent: number;
-                        highBrightnessPercent: number;
+                        // biome-ignore lint/style/useNamingConvention: snake_case is required for API compatibility
+                        low_brightness_percent: number;
+                        // biome-ignore lint/style/useNamingConvention: snake_case is required for API compatibility
+                        medium_brightness_percent: number;
+                        // biome-ignore lint/style/useNamingConvention: snake_case is required for API compatibility
+                        high_brightness_percent: number;
                     };
 
-                    const lowPercent = Number(levels.lowBrightnessPercent);
-                    const mediumPercent = Number(levels.mediumBrightnessPercent);
-                    const highPercent = Number(levels.highBrightnessPercent);
+                    const lowPercent = Number(levels.low_brightness_percent);
+                    const mediumPercent = Number(levels.medium_brightness_percent);
+                    const highPercent = Number(levels.high_brightness_percent);
 
                     if (Number.isNaN(lowPercent) || lowPercent < 0 || lowPercent > MAX_PERCENTAGE) {
                         throw new Error(`Invalid low brightness percentage. Expected: 0-${MAX_PERCENTAGE}`);
@@ -444,7 +450,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["HS-SWL100ZB-VNM", "HS-SWN100ZB-VNM", "HS-SWB100ZB-VNM", "HS-SRW100ZB-VNM"],
         model: "HS-SW100ZB-VNM",
         vendor: "VSmart",
-        description: "VSmart Wall Switch 1 Gang",
+        description: "Wall switch 1 gang",
         extend: [
             m.onOff({powerOnBehavior: false}),
             vsmartExtend.customCluster(),
@@ -459,7 +465,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["HS-SWL200ZB-VNM", "HS-SWN200ZB-VNM", "HS-SWB200ZB-VNM", "HS-SRW200ZB-VNM"],
         model: "HS-SW200ZB-VNM",
         vendor: "VSmart",
-        description: "VSmart Wall Switch 2 Gang",
+        description: "Wall switch 2 gang",
         extend: [
             m.deviceEndpoints({endpoints: {1: 1, 2: 2}}),
             m.onOff({powerOnBehavior: false, endpointNames: ["1", "2"]}),
@@ -476,7 +482,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["HS-SWL300ZB-VNM"],
         model: "HS-SW300ZB-VNM",
         vendor: "VSmart",
-        description: "VSmart Wall Switch 3 Gang",
+        description: "Wall switch 3 gang",
         extend: [
             m.deviceEndpoints({endpoints: {1: 1, 2: 2, 3: 3}}),
             m.onOff({powerOnBehavior: false, endpointNames: ["1", "2", "3"]}),
@@ -493,7 +499,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["HS-SWL400ZB-VNM"],
         model: "HS-SW400ZB-VNM",
         vendor: "VSmart",
-        description: "VSmart Wall Switch 4 Gang",
+        description: "Wall switch 4 gang",
         extend: [
             m.deviceEndpoints({endpoints: {1: 1, 2: 2, 3: 3, 4: 4}}),
             m.onOff({powerOnBehavior: false, endpointNames: ["1", "2", "3", "4"]}),
@@ -510,7 +516,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["HS-SEDR00ZB-VNM"],
         model: "HS-SEDR00ZB-VNM",
         vendor: "VSmart",
-        description: "VSmart Door/Window Sensor",
+        description: "Door/window sensor",
         fromZigbee: [vsmartContactAlarm],
         toZigbee: [],
         exposes: [e.contact(), e.battery(), e.tamper(), e.battery_low()],
@@ -519,7 +525,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["HS-SEOC00ZB-VNM"],
         model: "HS-SEOC00ZB-VNM",
         vendor: "VSmart",
-        description: "VSmart Occupancy Sensor",
+        description: "Occupancy sensor",
         extend: [m.battery(), m.occupancy()],
         meta: {},
     },
