@@ -70,25 +70,16 @@ export const boschGeneralExtend = {
                         logger.debug(`Attempt to read all attributes for cluster ${newClusterName} from endpoint ${endpoint.ID}`, NS);
 
                         for (const attributeToRead in newClusterDefinition.attributes) {
-                            const attributeValueExistsInDatabase =
-                                endpoint.getClusterAttributeValue(newClusterName, newClusterDefinition.attributes[attributeToRead].ID) === undefined;
-                            if (attributeValueExistsInDatabase) {
-                                logger.debug(
-                                    `Attempt to read undefined attribute ${attributeToRead} in cluster ${newClusterName} from endpoint ${endpoint.ID}`,
-                                    NS,
-                                );
+                            logger.debug(
+                                `Attempt to read attribute ${attributeToRead} in cluster ${newClusterName} from endpoint ${endpoint.ID}`,
+                                NS,
+                            );
 
-                                try {
-                                    await endpoint.read(newClusterDefinition.ID, [newClusterDefinition.attributes[attributeToRead].ID]);
-                                } catch (exception) {
-                                    logger.debug(
-                                        `Error during read attempt for attribute ${attributeToRead}. Probably unsupported attribute on this device or endpoint. Skipping... ${exception}`,
-                                        NS,
-                                    );
-                                }
-                            } else {
+                            try {
+                                await endpoint.read(newClusterDefinition.ID, [newClusterDefinition.attributes[attributeToRead].ID]);
+                            } catch (exception) {
                                 logger.debug(
-                                    `Value for attribute ${attributeToRead} in cluster ${newClusterName} from endpoint ${endpoint.ID} already in database. Skipping...`,
+                                    `Error during read attempt for attribute ${attributeToRead}. Probably unsupported attribute on this device or endpoint. Skipping... ${exception}`,
                                     NS,
                                 );
                             }
