@@ -53,14 +53,13 @@ export const boschGeneralExtend = {
                 }
 
                 const device = event.data.device;
-                logger.debug(
-                    `Try to apply cluster rename from ${oldClusterName} to ${newClusterName} for device ${device.ieeeAddr}. Current meta state: ${JSON.stringify(device.meta)}`,
-                    NS,
-                );
 
                 const renameAlreadyApplied = device.meta.renamedClusters?.includes(oldClusterName);
                 if (!renameAlreadyApplied) {
-                    logger.debug("The cluster rename isn't applied yet. Read all available attributes once", NS);
+                    logger.debug(
+                        `Try to apply cluster rename from ${oldClusterName} to ${newClusterName} for device ${device.ieeeAddr}. Current meta state: ${JSON.stringify(device.meta)}`,
+                        NS,
+                    );
 
                     const newClusterDefinition = device.customClusters[newClusterName];
                     const endpointsWithNewCluster = device.endpoints.filter((endpoint) => endpoint.clusters[newClusterName] !== undefined);
@@ -103,11 +102,6 @@ export const boschGeneralExtend = {
                         device.meta.renamedClusters === undefined ? [oldClusterName] : [...device.meta.renamedClusters, oldClusterName];
                     logger.debug(
                         `Cluster rename from ${oldClusterName} to ${newClusterName} for device ${device.ieeeAddr} successfully applied. New meta state: ${JSON.stringify(device.meta)}`,
-                        NS,
-                    );
-                } else {
-                    logger.debug(
-                        `Cluster rename from ${oldClusterName} to ${newClusterName} for device ${device.ieeeAddr} already applied. Skipping...`,
                         NS,
                     );
                 }
