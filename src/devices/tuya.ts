@@ -735,7 +735,7 @@ const tzLocal = {
         },
     } satisfies Tz.Converter,
     videosecKrc702zOnOffAction: {
-        key: ['state'],
+        key: ["state"],
         convertSet: async (entity, key, value, meta) => {
             // This converter is for multi-endpoint devices, so we need the endpoint name (e.g., 'l1', 'l2').
             const endpointName = meta.endpoint_name;
@@ -749,9 +749,11 @@ const tzLocal = {
 
             // Check if the device's current reported state matches the command we want to send.
             // This prevents sending a redundant command (e.g., sending 'ON' when it's already on).
-            if (meta.state?.[stateProperty] &&
-                typeof value === 'string' &&
-                (meta.state[stateProperty] as string).toLowerCase() === value.toLowerCase()) {
+            if (
+                meta.state?.[stateProperty] &&
+                typeof value === "string" &&
+                (meta.state[stateProperty] as string).toLowerCase() === value.toLowerCase()
+            ) {
                 // Log that we are blocking the command and return nothing, which stops the command from being sent.
                 logger.debug(`KRC702Z: Blocking command for ${endpointName} as it is already ${value}`, NS);
                 return;
@@ -1255,10 +1257,10 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_z1xg4gsp']),
-        model: 'KRC702Z',
-        vendor: 'Videosec',
-        description: '2 gang smart switch with toggle fix',
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_z1xg4gsp"]),
+        model: "KRC702Z",
+        vendor: "Videosec",
+        description: "2 gang smart switch with toggle fix",
         fromZigbee: [tuya.fz.datapoints],
         // REASONING for custom converter:
         // Some TuYa toggle-based switches can misinterpret repeated commands (e.g., sending 'ON' when already 'ON')
@@ -1266,21 +1268,18 @@ export const definitions: DefinitionWithExtend[] = [
         // This custom converter (`videosecKrc702zOnOffAction`) prevents this by checking the device's current state.
         // It only sends the command if the requested state is different from the current state, ensuring reliable control.
         toZigbee: [tzLocal.videosecKrc702zOnOffAction],
-        exposes: [
-            e.switch().withEndpoint('l1'),
-            e.switch().withEndpoint('l2'),
-        ],
+        exposes: [e.switch().withEndpoint("l1"), e.switch().withEndpoint("l2")],
         meta: {
             multiEndpoint: true,
             // Map the Tuya datapoint IDs to the Zigbee2MQTT states.
             tuyaDatapoints: [
-                [19, 'state_l1', tuya.valueConverter.onOff],
-                [20, 'state_l2', tuya.valueConverter.onOff],
+                [19, "state_l1", tuya.valueConverter.onOff],
+                [20, "state_l2", tuya.valueConverter.onOff],
             ],
         },
         // Define that both logical endpoints ('l1', 'l2') are handled by the device's physical endpoint 1.
         endpoint: (device) => {
-            return {'l1': 1, 'l2': 1};
+            return {l1: 1, l2: 1};
         },
     },
     {
