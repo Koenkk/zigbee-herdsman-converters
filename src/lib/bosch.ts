@@ -40,10 +40,67 @@ interface BoschGeneralEnergyDeviceCluster {
 }
 
 export const boschGeneralExtend = {
+    /** Some devices now use a different name for some custom clusters than
+     * originally used. This can lead to issues like those described in
+     * https://github.com/Koenkk/zigbee2mqtt/issues/28806 . To prevent that
+     * we have to make sure that all attributes of the renamed cluster are
+     * available when using "getClusterAttributeValue()" in the
+     * "exposes" function. */
+    handleRenamedCluster: (oldClusterName: string, newClusterName: string): ModernExtend => {
+        const onEvent: OnEvent.Handler[] = [
+            async (event) => {
+                if (event.type !== "start") {
+                    return;
+                }
+
+                const device = event.data.device;
+                logger.debug(
+                    `Try to apply cluster rename from ${oldClusterName} to ${newClusterName} for device ${device.ieeeAddr}, current meta state: ${JSON.stringify(device.meta)}`,
+                    NS,
+                );
+
+                const renameAlreadyApplied = device.meta.renamedClusters?.includes(oldClusterName);
+                if (!renameAlreadyApplied) {
+                    logger.debug("The cluster rename isn't applied yet. Read all available attributes once", NS);
+
+                    const clusterDefinition = device.customClusters[newClusterName];
+                    const endpoint = device.getEndpoint(1);
+
+                    for (const attributeToRead in clusterDefinition.attributes) {
+                        try {
+                            logger.debug(`Try to read ${attributeToRead} in ${newClusterName}`, NS);
+                            await endpoint.read(clusterDefinition.ID, [clusterDefinition.attributes[attributeToRead].ID]);
+                        } catch (exception) {
+                            logger.debug(`Error during read attempt on attribute ${attributeToRead}, skipping... ${exception}`, NS);
+                        }
+                    }
+
+                    logger.debug(`All attributes are read, now calling deviceExposeChanged() for device ${device.ieeeAddr}`, NS);
+                    event.data.deviceExposesChanged();
+
+                    device.meta.renamedClusters =
+                        device.meta.renamedClusters === undefined ? [oldClusterName] : [...device.meta.renamedClusters, oldClusterName];
+                    logger.debug(
+                        `Cluster rename from ${oldClusterName} to ${newClusterName} for device ${device.ieeeAddr} successfully applied. New meta state: ${JSON.stringify(device.meta)}`,
+                        NS,
+                    );
+                } else {
+                    logger.debug(
+                        `Cluster rename from ${oldClusterName} to ${newClusterName} for device ${device.ieeeAddr} already applied, skipping...`,
+                        NS,
+                    );
+                }
+            },
+        ];
+        return {
+            onEvent,
+            isModernExtend: true,
+        };
+    },
     handleZclVersionReadRequest: (): ModernExtend => {
         const onEvent: OnEvent.Handler[] = [
             (event) => {
-                if (event.type !== "deviceAnnounce") {
+                if (event.type !== "start") {
                     return;
                 }
 
