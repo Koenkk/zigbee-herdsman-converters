@@ -1,9 +1,8 @@
 import {Zcl} from "zigbee-herdsman";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
-import type {DefinitionWithExtend, Fz, ModernExtend, Tz} from "../lib/types";
+import type {DefinitionWithExtend, ModernExtend, Tz} from "../lib/types";
 
-const e = exposes.presets;
 const ea = exposes.access;
 
 const VSMART_MANUFACTURER_CODE = 0x1379;
@@ -13,21 +12,6 @@ const HOUR_TO_PERIOD_MULTIPLIER = 4;
 const MAX_PERCENTAGE = 100;
 const MAX_HOUR = 23;
 const MIN_HOUR = 0;
-
-const vsmartContactAlarm: Fz.Converter<"ssIasZone", undefined, ["commandStatusChangeNotification", "attributeReport"]> = {
-    cluster: "ssIasZone",
-    type: ["commandStatusChangeNotification", "attributeReport"],
-    convert: (_model, msg, _publish, _options, _meta) => {
-        const zoneStatus = "zonestatus" in msg.data ? msg.data.zonestatus : msg.data.zoneStatus;
-        if (zoneStatus !== undefined) {
-            return {
-                contact: (zoneStatus & 1) > 0, // No inversion for VSmart
-                tamper: (zoneStatus & (1 << 2)) > 0,
-                battery_low: (zoneStatus & (1 << 3)) > 0,
-            };
-        }
-    },
-};
 
 interface VSmartLedControl {
     attributes: Record<string, never>;
@@ -73,7 +57,7 @@ const createLedIntensityConverter = (fieldName: string, endpointIndex: number, p
     },
 });
 
-const vsmartExtend = {
+const mLocal = {
     customCluster: (): ModernExtend =>
         m.deviceAddCustomCluster("vsmartSwitchControl", {
             ID: 0x0000,
@@ -124,7 +108,7 @@ const vsmartExtend = {
                 },
             },
         }),
-    addLedColorControl: (): ModernExtend => {
+    ledColorControl: (): ModernExtend => {
         const exposes_list = [
             exposes
                 .text("led_indicator_color_on", ea.SET)
@@ -171,7 +155,7 @@ const vsmartExtend = {
 
         return {exposes: exposes_list, toZigbee, isModernExtend: true};
     },
-    addVibrationIntensityControl: (): ModernExtend => {
+    vibrationIntensityControl: (): ModernExtend => {
         const exposes_list = [
             exposes
                 .numeric("vibration_intensity", ea.SET)
@@ -212,7 +196,7 @@ const vsmartExtend = {
 
         return {exposes: exposes_list, toZigbee, isModernExtend: true};
     },
-    addTimePeriodControl: (): ModernExtend => {
+    timePeriodControl: (): ModernExtend => {
         const exposes_list = [
             exposes
                 .composite("time_periods", "time_periods", ea.SET)
@@ -306,7 +290,7 @@ const vsmartExtend = {
 
         return {exposes: exposes_list, toZigbee, isModernExtend: true};
     },
-    addLedIntensityControl: (): ModernExtend => {
+    ledIntensityControl: (): ModernExtend => {
         const exposes_list = [
             exposes
                 .numeric("morning_led_intensity", ea.SET)
@@ -339,7 +323,7 @@ const vsmartExtend = {
 
         return {exposes: exposes_list, toZigbee, isModernExtend: true};
     },
-    addLedBrightnessLevelsControl: (): ModernExtend => {
+    ledBrightnessLevelsControl: (): ModernExtend => {
         const exposes_list = [
             exposes
                 .composite("led_brightness_levels", "led_brightness_levels", ea.SET)
@@ -453,12 +437,12 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Wall switch 1 gang",
         extend: [
             m.onOff({powerOnBehavior: false}),
-            vsmartExtend.customCluster(),
-            vsmartExtend.addLedColorControl(),
-            vsmartExtend.addVibrationIntensityControl(),
-            vsmartExtend.addTimePeriodControl(),
-            vsmartExtend.addLedIntensityControl(),
-            vsmartExtend.addLedBrightnessLevelsControl(),
+            mLocal.customCluster(),
+            mLocal.ledColorControl(),
+            mLocal.vibrationIntensityControl(),
+            mLocal.timePeriodControl(),
+            mLocal.ledIntensityControl(),
+            mLocal.ledBrightnessLevelsControl(),
         ],
     },
     {
@@ -469,14 +453,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.deviceEndpoints({endpoints: {1: 1, 2: 2}}),
             m.onOff({powerOnBehavior: false, endpointNames: ["1", "2"]}),
-            vsmartExtend.customCluster(),
-            vsmartExtend.addLedColorControl(),
-            vsmartExtend.addVibrationIntensityControl(),
-            vsmartExtend.addTimePeriodControl(),
-            vsmartExtend.addLedIntensityControl(),
-            vsmartExtend.addLedBrightnessLevelsControl(),
+            mLocal.customCluster(),
+            mLocal.ledColorControl(),
+            mLocal.vibrationIntensityControl(),
+            mLocal.timePeriodControl(),
+            mLocal.ledIntensityControl(),
+            mLocal.ledBrightnessLevelsControl(),
         ],
-        meta: {multiEndpoint: true},
     },
     {
         zigbeeModel: ["HS-SWL300ZB-VNM"],
@@ -486,14 +469,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.deviceEndpoints({endpoints: {1: 1, 2: 2, 3: 3}}),
             m.onOff({powerOnBehavior: false, endpointNames: ["1", "2", "3"]}),
-            vsmartExtend.customCluster(),
-            vsmartExtend.addLedColorControl(),
-            vsmartExtend.addVibrationIntensityControl(),
-            vsmartExtend.addTimePeriodControl(),
-            vsmartExtend.addLedIntensityControl(),
-            vsmartExtend.addLedBrightnessLevelsControl(),
+            mLocal.customCluster(),
+            mLocal.ledColorControl(),
+            mLocal.vibrationIntensityControl(),
+            mLocal.timePeriodControl(),
+            mLocal.ledIntensityControl(),
+            mLocal.ledBrightnessLevelsControl(),
         ],
-        meta: {multiEndpoint: true},
     },
     {
         zigbeeModel: ["HS-SWL400ZB-VNM"],
@@ -503,23 +485,20 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.deviceEndpoints({endpoints: {1: 1, 2: 2, 3: 3, 4: 4}}),
             m.onOff({powerOnBehavior: false, endpointNames: ["1", "2", "3", "4"]}),
-            vsmartExtend.customCluster(),
-            vsmartExtend.addLedColorControl(),
-            vsmartExtend.addVibrationIntensityControl(),
-            vsmartExtend.addTimePeriodControl(),
-            vsmartExtend.addLedIntensityControl(),
-            vsmartExtend.addLedBrightnessLevelsControl(),
+            mLocal.customCluster(),
+            mLocal.ledColorControl(),
+            mLocal.vibrationIntensityControl(),
+            mLocal.timePeriodControl(),
+            mLocal.ledIntensityControl(),
+            mLocal.ledBrightnessLevelsControl(),
         ],
-        meta: {multiEndpoint: true},
     },
     {
         zigbeeModel: ["HS-SEDR00ZB-VNM"],
         model: "HS-SEDR00ZB-VNM",
         vendor: "VSmart",
         description: "Door/window sensor",
-        fromZigbee: [vsmartContactAlarm],
-        toZigbee: [],
-        exposes: [e.contact(), e.battery(), e.tamper(), e.battery_low()],
+        extend: [m.iasZoneAlarm({zoneType: "contact", zoneAttributes: ["alarm_1", "battery_low", "tamper"]})],
     },
     {
         zigbeeModel: ["HS-SEOC00ZB-VNM"],
@@ -527,6 +506,5 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "VSmart",
         description: "Occupancy sensor",
         extend: [m.battery(), m.occupancy()],
-        meta: {},
     },
 ];
