@@ -32,6 +32,12 @@ interface TuyaGenOnOff {
     commandResponses: never;
 }
 
+interface Ts0049Countdown {
+    attributes: never;
+    commands: {setCountdown: {data: Buffer}};
+
+    commandResponses: never;
+}
 const storeLocal = {
     getPrivatePJ1203A: (device: Zh.Device) => {
         let priv = globalStore.getValue(device, "private_state");
@@ -349,6 +355,19 @@ const convLocal = {
 };
 
 const tzLocal = {
+    ts0049_countdown: {
+        key: ["water_countdown"],
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertNumber(value);
+            const data = Buffer.alloc(5);
+            const scaledValue = value * 60; //
+            data.writeUInt32BE(scaledValue, 1); //
+            data[0] = 0x0b; //
+
+            await entity.command<"manuSpecificTuyaE001", "setCountdown", Ts0049Countdown>("manuSpecificTuyaE001", "setCountdown", {data});
+        },
+    } satisfies Tz.Converter,
+
     ts110eCountdown: {
         key: ["countdown"],
         convertSet: async (entity, key, value, meta) => {
@@ -960,6 +979,21 @@ const fzLocal = {
             return result;
         },
     } satisfies Fz.Converter<"manuSpecificTuya2", undefined, ["attributeReport"]>,
+    ts0049_countdown: {
+        cluster: "manuSpecificTuyaE001",
+        type: "raw",
+        convert: (model, msg, publish, options, meta) => {
+            const len = msg.data.length;
+            const command = msg.data[2];
+            if (len > 10 && command === 0x0a && msg.data[7] === 0x0b && (msg.data[6] === 0x05 || msg.data[6] === 0x06)) {
+                const data = msg.data.slice(8);
+                const value = data.readUInt32BE(0);
+                return {
+                    countdown: value / 60,
+                };
+            }
+        },
+    } satisfies Fz.Converter<"manuSpecificTuyaE001", undefined, "raw">,
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -10660,8 +10694,8 @@ export const definitions: DefinitionWithExtend[] = [
                 [2, "humidity", tuya.valueConverter.raw],
                 [4, "battery", tuya.valueConverter.raw],
                 [9, "temperature_unit", tuya.valueConverter.temperatureUnit],
-                [23, "temperature_calibration", tuya.valueConverter.divideBy10],
-                [24, "humidity_calibration", tuya.valueConverter.raw],
+                [23, "temperature_calibration", tuya.valueConverter.localTempCalibration3],
+                [24, "humidity_calibration", tuya.valueConverter.localTempCalibration2],
             ],
         },
     },
@@ -16570,9 +16604,9 @@ export const definitions: DefinitionWithExtend[] = [
                 [107, "soil_moisture", tuya.valueConverter.raw],
                 [108, "battery", tuya.valueConverter.raw],
                 [106, "temperature_unit", tuya.valueConverter.temperatureUnit],
-                [104, "temperature_calibration", tuya.valueConverter.divideBy10],
-                [105, "humidity_calibration", tuya.valueConverter.raw],
-                [102, "soil_calibration", tuya.valueConverter.raw],
+                [104, "temperature_calibration", tuya.valueConverter.localTempCalibration3],
+                [105, "humidity_calibration", tuya.valueConverter.localTempCalibration2],
+                [102, "soil_calibration", tuya.valueConverter.localTempCalibration2],
                 [111, "temperature_sampling", tuya.valueConverter.raw],
                 [112, "soil_sampling", tuya.valueConverter.raw],
                 [110, "soil_warning", tuya.valueConverter.raw],
@@ -18676,8 +18710,8 @@ export const definitions: DefinitionWithExtend[] = [
                 [111, "temperature", tuya.valueConverter.divideBy10],
                 [101, "humidity", tuya.valueConverter.raw],
                 [109, "temperature_unit", tuya.valueConverter.temperatureUnit],
-                [105, "temperature_calibration", tuya.valueConverter.divideBy10],
-                [104, "humidity_calibration", tuya.valueConverter.raw],
+                [105, "temperature_calibration", tuya.valueConverter.localTempCalibration3],
+                [104, "humidity_calibration", tuya.valueConverter.localTempCalibration2],
                 [107, "illuminance_interval", tuya.valueConverter.raw],
             ],
         },
@@ -18853,9 +18887,9 @@ export const definitions: DefinitionWithExtend[] = [
                 [3, "soil_moisture", tuya.valueConverter.raw],
                 [15, "battery", tuya.valueConverter.raw],
                 [9, "temperature_unit", tuya.valueConverter.temperatureUnit],
-                [104, "temperature_calibration", tuya.valueConverter.divideBy10],
-                [105, "humidity_calibration", tuya.valueConverter.raw],
-                [102, "soil_calibration", tuya.valueConverter.raw],
+                [104, "temperature_calibration", tuya.valueConverter.localTempCalibration3],
+                [105, "humidity_calibration", tuya.valueConverter.localTempCalibration2],
+                [102, "soil_calibration", tuya.valueConverter.localTempCalibration2],
                 [111, "temperature_sampling", tuya.valueConverter.raw],
                 [112, "soil_sampling", tuya.valueConverter.raw],
                 [110, "soil_warning", tuya.valueConverter.raw],
@@ -19113,6 +19147,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueStep(1)
                 .withUnit("x")
                 .withDescription("Static detection sensitivity"),
+            e.enum("motion_detection_mode", ea.STATE_SET, ["pir_and_radar", "pir_or_radar", "only_radar"]).withDescription("Motion detection mode"),
         ],
         meta: {
             tuyaDatapoints: [
@@ -19126,9 +19161,18 @@ export const definitions: DefinitionWithExtend[] = [
                 [111, "temperature", tuya.valueConverter.divideBy10],
                 [101, "humidity", tuya.valueConverter.raw],
                 [109, "temperature_unit", tuya.valueConverter.temperatureUnit],
-                [105, "temperature_calibration", tuya.valueConverter.divideBy10],
-                [104, "humidity_calibration", tuya.valueConverter.raw],
+                [105, "temperature_calibration", tuya.valueConverter.localTempCalibration3],
+                [104, "humidity_calibration", tuya.valueConverter.localTempCalibration2],
                 [107, "illuminance_interval", tuya.valueConverter.raw],
+                [
+                    112,
+                    "motion_detection_mode",
+                    tuya.valueConverterBasic.lookup({
+                        pir_and_radar: tuya.enum(0),
+                        pir_or_radar: tuya.enum(1),
+                        only_radar: tuya.enum(2),
+                    }),
+                ],
             ],
         },
     },
@@ -19622,6 +19666,131 @@ export const definitions: DefinitionWithExtend[] = [
                 [111, "water_warning", tuya.valueConverterBasic.lookup({none: tuya.enum(0), alarm: tuya.enum(1)})],
             ],
         },
+    },
+    {
+        zigbeeModel: ["ZG-204ZK"],
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_ka8l86iu"]),
+        model: "ZG-204ZK",
+        vendor: "HOBEIAN",
+        description: "24Ghz human presence sensor",
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        exposes: [
+            e.presence(),
+            e.illuminance(),
+            e.battery(),
+            e
+                .numeric("fading_time", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(28800)
+                .withValueStep(1)
+                .withUnit("s")
+                .withDescription("Presence keep time"),
+            e
+                .numeric("static_detection_distance", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(10)
+                .withValueStep(0.01)
+                .withUnit("m")
+                .withDescription("Static detection distance"),
+            e
+                .numeric("static_detection_sensitivity", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(10)
+                .withValueStep(1)
+                .withUnit("x")
+                .withDescription("Static detection sensitivity"),
+            e
+                .numeric("motion_detection_sensitivity", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(10)
+                .withValueStep(1)
+                .withUnit("x")
+                .withDescription("Motion detection sensitivity (Firmware version>=0122052017)"),
+            e.binary("indicator", ea.STATE_SET, "ON", "OFF").withDescription("LED indicator mode"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "presence", tuya.valueConverter.trueFalse1],
+                [106, "illuminance", tuya.valueConverter.raw],
+                [102, "fading_time", tuya.valueConverter.raw],
+                [4, "static_detection_distance", tuya.valueConverter.divideBy100],
+                [2, "static_detection_sensitivity", tuya.valueConverter.raw],
+                [107, "indicator", tuya.valueConverter.onOff],
+                [123, "motion_detection_sensitivity", tuya.valueConverter.raw],
+                [121, "battery", tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
+        zigbeeModel: ["ZG-204ZE"],
+        fingerprint: [{modelID: "CK-BL702-MWS-01(7016)", manufacturerName: "ZG-204ZE"}],
+        model: "ZG-204ZE",
+        vendor: "HOBEIAN",
+        description: "10G mw motion detection",
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        exposes: [
+            e.presence(),
+
+            e.battery(),
+            e
+                .numeric("fading_time", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(28800)
+                .withValueStep(1)
+                .withUnit("s")
+                .withDescription("Motion keep time"),
+            e.binary("indicator", ea.STATE_SET, "ON", "OFF").withDescription("LED indicator mode"),
+            e
+                .numeric("motion_detection_sensitivity", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(19)
+                .withValueStep(1)
+                .withUnit("x")
+                .withDescription("The larger the value, the more sensitive it is (refresh and update only while active)"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "presence", tuya.valueConverter.trueFalse1],
+                [102, "fading_time", tuya.valueConverter.raw],
+                [2, "motion_detection_sensitivity", tuya.valueConverter.raw],
+                [108, "indicator", tuya.valueConverter.onOff],
+                [110, "battery", tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0049", ["_TZ3000_kz1anoi8"]),
+        model: "HZ-WT02",
+        vendor: "Haozee",
+        description: "Water valve",
+        toZigbee: [tzLocal.ts0049_countdown],
+        fromZigbee: [fzLocal.ts0049_countdown],
+        extend: [
+            m.battery(),
+            m.onOff({powerOnBehavior: false}),
+            m.deviceAddCustomCluster("manuSpecificTuyaE001", {
+                ID: 0xe001,
+                attributes: {},
+                commands: {
+                    setCountdown: {
+                        ID: 0xfe,
+                        parameters: [{name: "data", type: 1008}],
+                    },
+                },
+                commandsResponse: {},
+            }),
+        ],
+        exposes: [
+            e
+                .numeric("water_countdown", ea.STATE_SET)
+                .withValueMin(1)
+                .withValueMax(1440)
+                .withValueStep(1)
+                .withUnit("minute")
+                .withDescription("Watering countdown to turn device off after a certain time"),
+        ],
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_7zazvlyn", "_TZE284_idn2htgu"]),
