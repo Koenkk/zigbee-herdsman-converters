@@ -4904,7 +4904,9 @@ export const definitions: DefinitionWithExtend[] = [
                 temperatureSetpointHold: true,
                 temperatureSetpointHoldDuration: true,
                 systemMode: ["off", "heat"],
-                runningState: ["idle", "heat", "cool", "fan_only"],
+                runningState: {
+                    values: ["idle", "heat", "cool", "fan_only"],
+                },
                 setpointsLimit: {
                     maxHeatSetpointLimit: {min: 5, max: 30, step: 0.5},
                     minHeatSetpointLimit: {min: 5, max: 30, step: 0.5},

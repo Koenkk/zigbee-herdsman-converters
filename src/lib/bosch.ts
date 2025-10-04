@@ -2664,6 +2664,7 @@ export interface BoschUserInterfaceCfgCluster {
 }
 
 const boschThermostatLookup = {
+    raRunningStates: <("idle" | "heat" | "cool" | "fan_only")[]>["idle", "heat"],
     heaterType: {
         underfloor_heating: 0x00,
         central_heating: 0x03,
@@ -2710,13 +2711,19 @@ export const boschThermostatExtend = {
         }),
     rmThermostat: () =>
         m.thermostat({
+            localTemperature: {
+                configure: {bypass: true},
+            },
+            localTemperatureCalibration: {min: -5, max: 5, step: 0.1},
             setpoints: {
                 occupiedHeatingSetpoint: {min: 5, max: 30, step: 0.5},
                 occupiedCoolingSetpoint: {min: 5, max: 30, step: 0.5},
             },
-            localTemperatureCalibration: {min: -5, max: 5, step: 0.1},
             systemMode: ["off", "heat", "cool"],
-            runningState: ["idle", "heat", "cool"],
+            runningState: {
+                values: ["idle", "heat", "cool"],
+                configure: {bypass: true},
+            },
         }),
     customHeatingDemand: () =>
         m.numeric<"hvacThermostat", BoschThermostatCluster>({
@@ -2737,7 +2744,9 @@ export const boschThermostatExtend = {
             cluster: "hvacThermostat",
             attribute: "cableSensorMode",
             description:
-                'Select a configuration for the sensor connection. If you select "with_regulation", the measured temperature on the cable sensor is used by the heating/cooling algorithm instead of the local temperature.',
+                'Select a configuration for the sensor connection. If you select "with_regulation", ' +
+                "the measured temperature on the cable sensor is used by the heating/cooling algorithm " +
+                "instead of the local temperature.",
             lookup: {not_used: 0x00, cable_sensor_without_regulation: 0xb0, cable_sensor_with_regulation: 0xb1},
             entityCategory: "config",
         }),
@@ -2787,7 +2796,9 @@ export const boschThermostatExtend = {
             cluster: "hvacThermostat",
             attribute: "windowOpenMode",
             description:
-                "Activates the window open mode, where the thermostat disables any heating/cooling to prevent unnecessary energy consumption. Please keep in mind that the device itself does not detect any open windows!",
+                "Activates the window open mode, where the thermostat disables any heating/cooling" +
+                "to prevent unnecessary energy consumption. Please keep in mind that the device" +
+                "itself does not detect any open windows!",
             valueOn: ["ON", 0x01],
             valueOff: ["OFF", 0x00],
             reporting: {min: "MIN", max: "MAX", change: null, attribute: "windowOpenMode"},
@@ -2881,14 +2892,28 @@ export const boschThermostatExtend = {
     raThermostat: (): ModernExtend => {
         const thermostat = m.thermostat({
             localTemperature: {
-                description:
-                    "Temperature used by the heating algorithm. This is the temperature measured on the device (by default) or the remote temperature (if set within the last 30 min).",
+                values: {
+                    description:
+                        "Temperature used by the heating algorithm. This is the " +
+                        "temperature measured on the device (by default) or the " +
+                        "remote temperature (if set within the last 30 min).",
+                },
+                configure: {
+                    reportingInterval: {min: 30, max: 900, change: 20},
+                },
             },
             setpoints: {
                 occupiedHeatingSetpoint: {min: 5, max: 30, step: 0.5},
             },
             localTemperatureCalibration: {min: -5, max: 5, step: 0.1},
             systemMode: ["heat"],
+            runningState: {
+                values: boschThermostatLookup.raRunningStates,
+                bypassFromZigbee: true,
+                configure: {
+                    bypass: true,
+                },
+            },
         });
 
         const exposes: (Expose | DefinitionExposesFunction)[] = thermostat.exposes;
@@ -2925,10 +2950,6 @@ export const boschThermostatExtend = {
         };
     },
     customRunningState: (): ModernExtend => {
-        const runningStates = ["idle", "heat"];
-
-        const exposes: Expose[] = [e.enum("running_state", ea.STATE_GET, runningStates).withDescription("The current running state")];
-
         const fromZigbee = [
             {
                 cluster: "hvacThermostat",
@@ -2938,7 +2959,10 @@ export const boschThermostatExtend = {
                     const data = msg.data;
 
                     if (data.heatingDemand !== undefined) {
-                        result.running_state = utils.toNumber(data.heatingDemand) > 0 ? runningStates[1] : runningStates[0];
+                        result.running_state =
+                            utils.toNumber(data.heatingDemand) > 0
+                                ? boschThermostatLookup.raRunningStates[1]
+                                : boschThermostatLookup.raRunningStates[0];
                     }
 
                     return result;
@@ -2956,7 +2980,6 @@ export const boschThermostatExtend = {
         ];
 
         return {
-            exposes,
             fromZigbee,
             toZigbee,
             isModernExtend: true,

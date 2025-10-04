@@ -3046,6 +3046,15 @@ interface MinMaxStep {
     step: number;
 }
 
+interface ValuesWithModernExtendConfiguration<T> {
+    values: T;
+    configure?: Partial<{
+        bypass: boolean;
+        reportingInterval: ReportingConfigWithoutAttribute;
+    }>;
+    bypassFromZigbee?: boolean;
+}
+
 const SETPOINT_LOOKUP = {
     occupiedHeatingSetpoint: {property: "occupied_heating_setpoint", tzConverter: tz.thermostat_occupied_heating_setpoint},
     unoccupiedHeatingSetpoint: {property: "unoccupied_heating_setpoint", tzConverter: tz.thermostat_unoccupied_heating_setpoint},
@@ -3061,12 +3070,12 @@ const SETPOINT_LIMIT_LOOKUP = {
 } as const;
 
 export interface ThermostatArgs {
-    localTemperature?: Partial<Description>;
+    localTemperature?: Partial<ValuesWithModernExtendConfiguration<Description>>;
     localTemperatureCalibration?: true | MinMaxStep;
     setpoints?: Partial<Record<keyof typeof SETPOINT_LOOKUP, MinMaxStep>>;
     setpointsLimit?: Partial<Record<keyof typeof SETPOINT_LIMIT_LOOKUP, MinMaxStep>>;
     systemMode?: Array<"off" | "heat" | "cool" | "auto" | "dry" | "fan_only" | "sleep" | "emergency_heating">;
-    runningState?: Array<"idle" | "heat" | "cool" | "fan_only">;
+    runningState?: Partial<ValuesWithModernExtendConfiguration<Array<"idle" | "heat" | "cool" | "fan_only">>>;
     runningMode?: Array<"off" | "cool" | "heat">;
     fanMode?: Array<"off" | "low" | "medium" | "high" | "on" | "auto" | "smart">;
     piHeatingDemand?: true;
@@ -3092,15 +3101,29 @@ export function thermostat(args: ThermostatArgs = {}): ModernExtend {
     const repConfigChange0: ReportingConfigWithoutAttribute = {min: "MIN", max: "1_HOUR", change: 0};
     const repConfigChange10: ReportingConfigWithoutAttribute = {min: "MIN", max: "1_HOUR", change: 10};
 
-    const localTemperatureDescription = localTemperature.description ?? undefined;
-    const expose = e.climate().withLocalTemperature(undefined, localTemperatureDescription);
-    const exposes: Expose[] = [expose];
-    const fromZigbee = [fz.thermostat];
-    const toZigbee = [tz.thermostat_local_temperature];
-    const configure: Configure[] = [
-        setupConfigureForBinding("hvacThermostat", "input"),
-        setupConfigureForReporting("hvacThermostat", "localTemp", {config: repConfigChange10, access: ea.STATE_GET}),
-    ];
+    const exposes: Expose[] = <Expose[]>[];
+    const fromZigbee = [];
+    const toZigbee = [];
+    const configure: Configure[] = <Configure[]>[];
+
+    const expose = e.climate().withLocalTemperature(undefined, localTemperature.values?.description ?? undefined);
+    exposes.push(expose);
+
+    if (!localTemperature?.bypassFromZigbee) {
+        fromZigbee.push(fz.thermostat);
+    }
+
+    toZigbee.push(tz.thermostat_local_temperature);
+
+    if (!localTemperature.configure?.bypass) {
+        configure.push(
+            setupConfigureForBinding("hvacThermostat", "input"),
+            setupConfigureForReporting("hvacThermostat", "localTemp", {
+                config: localTemperature.configure?.reportingInterval ?? repConfigChange10,
+                access: ea.STATE_GET,
+            }),
+        );
+    }
 
     if (localTemperatureCalibration) {
         const {min, max, step} = localTemperatureCalibration === true ? {min: -12.8, max: 12.8, step: 0.1} : localTemperatureCalibration;
@@ -3114,19 +3137,35 @@ export function thermostat(args: ThermostatArgs = {}): ModernExtend {
         const {property, tzConverter} = SETPOINT_LOOKUP[key];
         expose.withSetpoint(property, min, max, step);
         toZigbee.push(tzConverter);
-        configure.push(setupConfigureForReporting("hvacThermostat", key, {config: repConfigChange10, access: ea.STATE_GET}));
+        configure.push(
+            setupConfigureForReporting("hvacThermostat", key, {
+                config: repConfigChange10,
+                access: ea.STATE_GET,
+            }),
+        );
     }
 
     if (systemMode) {
-        expose.withSystemMode(args.systemMode);
+        expose.withSystemMode(systemMode);
         toZigbee.push(tz.thermostat_system_mode);
         configure.push(setupConfigureForReporting("hvacThermostat", "systemMode", {config: repConfigChange0, access: ea.STATE_GET}));
     }
 
     if (runningState) {
-        expose.withRunningState(runningState);
-        toZigbee.push(tz.thermostat_running_state);
-        configure.push(setupConfigureForReporting("hvacThermostat", "runningState", {config: repConfigChange0, access: ea.STATE_GET}));
+        expose.withRunningState(runningState.values);
+
+        if (!runningState?.bypassFromZigbee) {
+            toZigbee.push(tz.thermostat_running_state);
+        }
+
+        if (!runningState.configure?.bypass) {
+            configure.push(
+                setupConfigureForReporting("hvacThermostat", "runningState", {
+                    config: runningState.configure?.reportingInterval ?? repConfigChange0,
+                    access: ea.STATE_GET,
+                }),
+            );
+        }
     }
 
     if (runningMode) {
