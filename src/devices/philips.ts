@@ -13,10 +13,17 @@ const ea = exposes.access;
 
 export const definitions: DefinitionWithExtend[] = [
     {
-        zigbeeModel: ["LCX029", "LCX028"],
+        zigbeeModel: ["LCX028"],
+        model: "929004581901",
+        vendor: "Philips",
+        description: "Hue Festavia globe outdoor string lights (14 meter with 20 bulbs)",
+        extend: [philips.m.light({colorTemp: {range: [50, 1000]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+    },
+    {
+        zigbeeModel: ["LCX029"],
         model: "929004581801",
         vendor: "Philips",
-        description: "Hue Festavia globe outdoor string lights",
+        description: "Hue Festavia globe outdoor string lights (7 meter with 10 bulbs)",
         extend: [philips.m.light({colorTemp: {range: [50, 1000]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
     {
