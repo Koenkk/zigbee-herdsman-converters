@@ -3401,8 +3401,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "KRC-103",
         vendor: "Videosec",
         description: "6 gang kinetic switch actuator",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
+        extend: [tuya.modernExtend.tuyaBase({dp: true}), m.deviceEndpoints({endpoints: {l1: 1, l2: 1, l3: 1, l4: 1, l5: 1, l6: 1}})],
         exposes: [
             e.switch().withEndpoint("l1"),
             e.switch().withEndpoint("l2"),
@@ -3412,7 +3411,6 @@ export const definitions: DefinitionWithExtend[] = [
             e.switch().withEndpoint("l6"),
         ],
         meta: {
-            multiEndpoint: true,
             tuyaDatapoints: [
                 [19, "state_l1", tuya.valueConverter.onOff],
                 [20, "state_l2", tuya.valueConverter.onOff],
@@ -3421,9 +3419,6 @@ export const definitions: DefinitionWithExtend[] = [
                 [23, "state_l5", tuya.valueConverter.onOff],
                 [24, "state_l6", tuya.valueConverter.onOff],
             ],
-        },
-        endpoint: (device) => {
-            return {l1: 1, l2: 1, l3: 1, l4: 1, l5: 1, l6: 1};
         },
     },
     {
