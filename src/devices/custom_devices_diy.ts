@@ -65,13 +65,13 @@ const fzLocal = {
             if (msg.data["4919"]) result.transmit_power = msg.data["4919"];
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genBasic", undefined, ["attributeReport", "readResponse"]>,
     humidity2: {
         cluster: "msRelativeHumidity",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             // multi-endpoint version based on the stastard onverter 'fz.humidity'
-            let humidity = Number.parseFloat(msg.data.measuredValue) / 100.0;
+            let humidity = msg.data.measuredValue / 100.0;
             humidity = calibrateAndPrecisionRoundOptions(humidity, options, "humidity");
 
             // https://github.com/Koenkk/zigbee2mqtt/issues/798
@@ -83,7 +83,7 @@ const fzLocal = {
                 return {[property]: humidity};
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"msRelativeHumidity", undefined, ["attributeReport", "readResponse"]>,
     illuminance2: {
         cluster: "msIlluminanceMeasurement",
         type: ["attributeReport", "readResponse"],
@@ -96,7 +96,7 @@ const fzLocal = {
             const property1 = multiEndpoint ? postfixWithEndpointName("illuminance", msg, model, meta) : "illuminance";
             return {[property1]: illuminanceLux};
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"msIlluminanceMeasurement", undefined, ["attributeReport", "readResponse"]>,
     pressure2: {
         cluster: "msPressureMeasurement",
         type: ["attributeReport", "readResponse"],
@@ -107,14 +107,14 @@ const fzLocal = {
                 const scale = msg.endpoint.getClusterAttributeValue("msPressureMeasurement", "scale") as number;
                 pressure = msg.data.scaledValue / 10 ** scale / 100.0; // convert to hPa
             } else {
-                pressure = Number.parseFloat(msg.data.measuredValue);
+                pressure = msg.data.measuredValue;
             }
             pressure = calibrateAndPrecisionRoundOptions(pressure, options, "pressure");
             const multiEndpoint = model.meta?.multiEndpoint;
             const property = multiEndpoint ? postfixWithEndpointName("pressure", msg, model, meta) : "pressure";
             return {[property]: pressure};
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"msPressureMeasurement", undefined, ["attributeReport", "readResponse"]>,
     multi_zig_sw_battery: {
         cluster: "genPowerCfg",
         type: ["attributeReport", "readResponse"],
@@ -123,7 +123,7 @@ const fzLocal = {
             const battery = (voltage - 2200) / 8;
             return {battery: battery > 100 ? 100 : battery, voltage: voltage};
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genPowerCfg", undefined, ["attributeReport", "readResponse"]>,
     multi_zig_sw_switch_buttons: {
         cluster: "genMultistateInput",
         type: ["attributeReport", "readResponse"],
@@ -134,7 +134,7 @@ const fzLocal = {
             const action = actionLookup[value];
             return {action: `${button}_${action}`};
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genMultistateInput", undefined, ["attributeReport", "readResponse"]>,
     multi_zig_sw_switch_config: {
         cluster: "genOnOffSwitchCfg",
         type: ["readResponse", "attributeReport"],
@@ -143,7 +143,7 @@ const fzLocal = {
             const {switchType} = msg.data;
             return {[`switch_type_${channel}`]: getKey(switchTypesList, switchType)};
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genOnOffSwitchCfg", undefined, ["readResponse", "attributeReport"]>,
 };
 
 function ptvoGetMetaOption(device: Zh.Device | DummyDevice, key: string, defaultValue: unknown) {

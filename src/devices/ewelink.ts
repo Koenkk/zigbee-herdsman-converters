@@ -22,7 +22,7 @@ const fzLocal = {
             if (msg.endpoint.ID !== 1) return;
             return {rain: (zoneStatus & 1) > 0};
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification">,
 };
 
 export const definitions: DefinitionWithExtend[] = [

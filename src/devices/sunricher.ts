@@ -44,6 +44,19 @@ interface SunricherSensor {
     commandResponses: never;
 }
 
+export interface SunricherRemote {
+    attributes: never;
+    commands: {
+        press: {
+            messageType: number;
+            button2: number;
+            button1: number;
+            pressType: number;
+        };
+    };
+    commandResponses: never;
+}
+
 const fzLocal = {
     SRZGP2801K45C: {
         cluster: "greenPower",
@@ -69,7 +82,7 @@ const fzLocal = {
             };
             return {action: utils.getFromLookup(commandID, lookup)};
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"greenPower", undefined, ["commandNotification", "commandCommissioningNotification"]>,
     ZG9095B: {
         cluster: "hvacThermostat",
         type: ["attributeReport", "readResponse"],
@@ -83,7 +96,7 @@ const fzLocal = {
 
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
 };
 const tzLocal = {
     ZG9095B: {
@@ -1396,6 +1409,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.electricityMeter(),
             m.identify(),
             m.commandsOnOff({endpointNames: ["l1", "l2"]}),
+            sunricher.extend.externalSwitchType(),
         ],
     },
     {
@@ -1817,7 +1831,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        zigbeeModel: ["ZG9092", "HK-LN-HEATER-A", "ROB_200-040-0"],
+        zigbeeModel: ["ZG9092", "HK-LN-HEATER-A", "ROB_200-040-0", "HT-THERMZ3W-1"],
         model: "SR-ZG9092A",
         vendor: "Sunricher",
         description: "Touch thermostat",

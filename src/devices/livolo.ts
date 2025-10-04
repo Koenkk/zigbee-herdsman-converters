@@ -34,7 +34,7 @@ const mLocal = {
 
 const fzLocal = {
     // biome-ignore lint/suspicious/noExplicitAny: ignore
-    prevent_disconnect: (args: {dp: number; payload: ((data: any) => RawClusterAttributes) | RawClusterAttributes}): Fz.Converter => {
+    prevent_disconnect: (args: {dp: number; payload: ((data: any) => RawClusterAttributes) | RawClusterAttributes}): Fz.Converter<"genPowerCfg"> => {
         return {
             // This is needed while pairing in order to let the device know that the interview went right and prevent
             // it from disconnecting from the Zigbee network.

@@ -130,6 +130,7 @@ export const definitions: DefinitionWithExtend[] = [
             "TRADFRIbulbT120E27WSopal470lm",
             "TRADFRIbulbT120E26WSopal450lm",
             "TRADFRIbulbT120E26WSopal470lm",
+            "TRADFRI bulb E26 WS opal 440lm",
         ],
         model: "LED1937T5",
         vendor: "IKEA",
@@ -744,7 +745,9 @@ export const definitions: DefinitionWithExtend[] = [
             m.identify({isSleepy: true}),
             tradfriCommandsOnOff(),
             tradfriCommandsLevelCtrl(),
-            ikeaArrowClick(),
+            // No genScenes cluster
+            // https://github.com/Koenkk/zigbee2mqtt/issues/28161
+            ikeaArrowClick({bind: false}),
             ikeaBattery(),
         ],
         ota: true,

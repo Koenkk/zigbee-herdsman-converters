@@ -11,6 +11,26 @@ import type {DefinitionWithExtend, Fz, Reporting, Tz, Zh} from "../lib/types";
 const e = exposes.presets;
 const ea = exposes.access;
 
+interface RadarSensorHeiman {
+    attributes: {
+        // biome-ignore lint/style/useNamingConvention: TODO
+        enable_indicator: number;
+        sensitivity: number;
+        // biome-ignore lint/style/useNamingConvention: TODO
+        enable_sub_region_isolation: number;
+        // biome-ignore lint/style/useNamingConvention: TODO
+        installation_method: number;
+        // biome-ignore lint/style/useNamingConvention: TODO
+        cell_mounted_table: Buffer;
+        // biome-ignore lint/style/useNamingConvention: TODO
+        wall_mounted_table: Buffer;
+        // biome-ignore lint/style/useNamingConvention: TODO
+        sub_region_isolation_table: Buffer;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
 const fzLocal = {
     occupancyRadarHeiman: {
         cluster: "msOccupancySensing",
@@ -30,7 +50,7 @@ const fzLocal = {
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"msOccupancySensing", undefined, ["attributeReport", "readResponse"]>,
     radarSensorHeiman: {
         cluster: "RadarSensorHeiman",
         type: ["attributeReport", "readResponse"],
@@ -48,45 +68,43 @@ const fzLocal = {
 
             for (const key of Object.keys(msg.data)) {
                 if (mapAttributes[key]) {
-                    const value = msg.data[key];
-                    if (value.length >= 5) {
+                    const value = msg.data[key as keyof typeof msg.data & string];
+                    if (Buffer.isBuffer(value) && value.length >= 5) {
                         try {
-                            const buffer = Buffer.from(value, "binary");
-
                             if (key === "cell_mounted_table") {
-                                if (buffer.length !== 10) {
-                                    throw new Error(`Invalid cell_mounted_table data length: expected 10 bytes, got ${buffer.length}.`);
+                                if (value.length !== 10) {
+                                    throw new Error(`Invalid cell_mounted_table data length: expected 10 bytes, got ${value.length}.`);
                                 }
                                 const coordinates = [
-                                    buffer.readInt16LE(0), // x1
-                                    buffer.readInt16LE(2), // y1
-                                    buffer.readInt16LE(4), // x2
-                                    buffer.readInt16LE(6), // y2
-                                    buffer.readInt16LE(8), // height
+                                    value.readInt16LE(0), // x1
+                                    value.readInt16LE(2), // y1
+                                    value.readInt16LE(4), // x2
+                                    value.readInt16LE(6), // y2
+                                    value.readInt16LE(8), // height
                                 ];
                                 result.cell_mounted_table = coordinates.join(",");
                             } else if (key === "wall_mounted_table") {
-                                if (buffer.length !== 8) {
-                                    throw new Error(`Invalid wall_mounted_table data length: expected 8 bytes, got ${buffer.length}.`);
+                                if (value.length !== 8) {
+                                    throw new Error(`Invalid wall_mounted_table data length: expected 8 bytes, got ${value.length}.`);
                                 }
                                 const coordinates = [
-                                    buffer.readInt16LE(0), // x1
-                                    buffer.readInt16LE(2), // y1
-                                    buffer.readInt16LE(4), // x2
-                                    buffer.readInt16LE(6), // height
+                                    value.readInt16LE(0), // x1
+                                    value.readInt16LE(2), // y1
+                                    value.readInt16LE(4), // x2
+                                    value.readInt16LE(6), // height
                                 ];
                                 result.wall_mounted_table = coordinates.join(",");
                             } else if (key === "sub_region_isolation_table") {
-                                if (buffer.length !== 12) {
-                                    throw new Error(`Invalid sub_region_isolation_table data length: expected 12 bytes, got ${buffer.length}.`);
+                                if (value.length !== 12) {
+                                    throw new Error(`Invalid sub_region_isolation_table data length: expected 12 bytes, got ${value.length}.`);
                                 }
                                 const coordinates = [
-                                    buffer.readInt16LE(0), // x1
-                                    buffer.readInt16LE(2), // y1
-                                    buffer.readInt16LE(4), // x2
-                                    buffer.readInt16LE(6), // y2
-                                    buffer.readInt16LE(8), // z1
-                                    buffer.readInt16LE(10), // z2
+                                    value.readInt16LE(0), // x1
+                                    value.readInt16LE(2), // y1
+                                    value.readInt16LE(4), // x2
+                                    value.readInt16LE(6), // y2
+                                    value.readInt16LE(8), // z1
+                                    value.readInt16LE(10), // z2
                                 ];
                                 result.sub_region_isolation_table = coordinates.join(",");
                             }
@@ -100,7 +118,7 @@ const fzLocal = {
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"RadarSensorHeiman", RadarSensorHeiman, ["attributeReport", "readResponse"]>,
 };
 
 const tzLocal = {
@@ -426,6 +444,20 @@ export const definitions: DefinitionWithExtend[] = [
             await endpoint.read("genPowerCfg", ["batteryPercentageRemaining"]);
         },
         exposes: [e.contact(), e.battery(), e.battery_low(), e.tamper()],
+    },
+    {
+        zigbeeModel: ["HS8DS-EF2-3.0"],
+        model: "HS8DS-EFA",
+        vendor: "Heiman",
+        description: "Door sensor",
+        extend: [m.battery(), m.iasZoneAlarm({zoneType: "contact", zoneAttributes: ["alarm_1", "battery_low"]})],
+    },
+    {
+        zigbeeModel: ["D1-EF2-3.0"],
+        model: "D1-EFA",
+        vendor: "Heiman",
+        description: "Door sensor",
+        extend: [m.battery(), m.iasZoneAlarm({zoneType: "contact", zoneAttributes: ["alarm_1", "battery_low", "tamper"]})],
     },
     {
         zigbeeModel: ["DoorSensor-EM", "DoorSensor-EF-3.0"],
@@ -1060,7 +1092,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["HS2FD-EF1-3.0"],
         model: "HS2FD-EF1-3.0",
-        vendor: "HEIMAN",
+        vendor: "Heiman",
         description: "Fall Detection Sensor",
         extend: [
             m.deviceAddCustomCluster("RadarSensorHeiman", {
@@ -1116,30 +1148,10 @@ export const definitions: DefinitionWithExtend[] = [
                 ),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
-            interface HeimanRadar {
-                attributes: {
-                    // biome-ignore lint/style/useNamingConvention: TODO
-                    enable_indicator: number;
-                    sensitivity: number;
-                    // biome-ignore lint/style/useNamingConvention: TODO
-                    enable_sub_region_isolation: number;
-                    // biome-ignore lint/style/useNamingConvention: TODO
-                    installation_method: number;
-                    // biome-ignore lint/style/useNamingConvention: TODO
-                    cell_mounted_table: Buffer;
-                    // biome-ignore lint/style/useNamingConvention: TODO
-                    wall_mounted_table: Buffer;
-                    // biome-ignore lint/style/useNamingConvention: TODO
-                    sub_region_isolation_table: Buffer;
-                };
-                commands: never;
-                commandResponses: never;
-            }
-
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["msOccupancySensing", "RadarSensorHeiman"]);
             await reporting.occupancy(endpoint);
-            await endpoint.read<"RadarSensorHeiman", HeimanRadar>("RadarSensorHeiman", [
+            await endpoint.read<"RadarSensorHeiman", RadarSensorHeiman>("RadarSensorHeiman", [
                 "cell_mounted_table",
                 "wall_mounted_table",
                 "sub_region_isolation_table",
