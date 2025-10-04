@@ -19769,8 +19769,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE204_vjpaih9f']),
         zigbeeModel: ['TS0601'],
-        model: 'N-TRV16',
-        icon: './TS601_AVATTO_N-TRV16.jpg',
+        model: 'AVATTO-N-TRV16',
         vendor: 'AVATTO',
         description: 'AVATTO Tuya Zigbee TRV',
         extend: [],
