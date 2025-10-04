@@ -4281,6 +4281,6 @@ export const definitions: DefinitionWithExtend[] = [
         model: "8720169364066",
         vendor: "Philips",
         description: "Hue White and Color Ambiance A60 - E27 smart bulb- 1100",
-        extend: [philips.m.light({"colorTemp":{"range":[50,1000]},"color":{"modes":["xy","hs"],"enhancedHue":true}})],
-    }
+        extend: [philips.m.light({colorTemp: {range: [50, 1000]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+    },
 ];
