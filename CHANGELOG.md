@@ -1,5 +1,22 @@
 # Changelog
 
+## [25.38.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.37.2...v25.38.0) (2025-10-04)
+
+
+### Features
+
+* **add:** 929004581901 ([#10173](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10173)) ([58420e5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/58420e521b4904096ba88c59a6f1e4a644dd05cd))
+* **add:** HZ-WT02, ZG-204ZE, ZG-204ZK ([#10115](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10115)) ([8620d66](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8620d6613dadc6ac1f650a19a50a98dbac699e13))
+* **add:** KRC-103 ([#10174](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10174)) ([4653a7f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4653a7f81dd3baed11c765491a0e69c44d9b900b))
+* **add:** TNCE_CLIMATE https://github.com/Koenkk/zigbee2mqtt/issues/28855 ([00c6530](https://github.com/Koenkk/zigbee-herdsman-converters/commit/00c65301bcab1389492b9aba8520968aff68ab86))
+* Philips 929004581801 and 929004284702: support gradients https://github.com/Koenkk/zigbee-herdsman-converters/pull/10071 ([3f075bb](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3f075bbdf38dac7aa2506813e0da971c202bc46a))
+
+
+### Bug Fixes
+
+* **detect:** Detect `HT-THERMZ3W-1` as `SR-ZG9092A` ([#10180](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10180)) ([be68405](https://github.com/Koenkk/zigbee-herdsman-converters/commit/be684054bd86961356782c9df1edf15bea046723))
+* Tuya PJ-1203A: revert change of the sign from positive to negative for produced energy value. ([#10172](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10172)) ([ccc65c3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ccc65c3dc499a4540a4622cc66c120109a61d2f7))
+
 ## [25.37.2](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.37.1...v25.37.2) (2025-10-03)
 
 
