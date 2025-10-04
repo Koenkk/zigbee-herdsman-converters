@@ -24,14 +24,14 @@ export const definitions: DefinitionWithExtend[] = [
         model: "929004581801",
         vendor: "Philips",
         description: "Hue Festavia globe outdoor string lights (7 meter with 10 bulbs)",
-        extend: [philips.m.light({colorTemp: {range: [50, 1000]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true, gradient: {extraEffects: ["sparkle", "opal", "glisten"]}})],
     },
     {
         zigbeeModel: ["LCX030"],
         model: "929004284702",
         vendor: "Philips",
         description: "Hue Festavia permanent outdoor string lights",
-        extend: [philips.m.light({colorTemp: {range: [50, 1000]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true, gradient: {extraEffects: ["sparkle", "opal", "glisten"]}})],
     },
     {
         zigbeeModel: ["929003736601_01", "929003736601_02"],
