@@ -3048,11 +3048,11 @@ interface MinMaxStep {
 
 interface ValuesWithModernExtendConfiguration<T> {
     values: T;
-    configure?: Partial<{
+    configure: Partial<{
         bypass: boolean;
         reportingInterval: ReportingConfigWithoutAttribute;
     }>;
-    bypassFromZigbee?: boolean;
+    bypassFromZigbee: boolean;
 }
 
 const SETPOINT_LOOKUP = {
