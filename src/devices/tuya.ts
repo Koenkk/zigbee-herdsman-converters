@@ -19767,6 +19767,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription("Watering countdown to turn device off after a certain time"),
         ],
     },
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_7zazvlyn", "_TZE284_idn2htgu"]),
         model: "F3-Pro",
         vendor: "Tuya",
