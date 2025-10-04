@@ -900,6 +900,20 @@ export function soilMoisture(args: Partial<NumericArgs<"msSoilMoisture">> = {}) 
     });
 }
 
+export function windSpeed(args: Partial<NumericArgs<"msWindSpeed">> = {}) {
+    return numeric({
+        name: "wind_speed",
+        cluster: "msWindSpeed",
+        attribute: "measuredValue",
+        reporting: {min: "10_SECONDS", max: "1_HOUR", change: 1},
+        description: "Measured wind speed value",
+        unit: "m/s",
+        scale: 100,
+        access: "STATE_GET",
+        ...args,
+    });
+}
+
 export interface OccupancyArgs {
     pirConfig?: ("otu_delay" | "uto_delay" | "uto_threshold")[];
     ultrasonicConfig?: ("otu_delay" | "uto_delay" | "uto_threshold")[];
