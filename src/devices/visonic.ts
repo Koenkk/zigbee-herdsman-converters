@@ -54,7 +54,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "MCT-340 E",
         vendor: "Visonic",
         description: "Magnetic door & window contact sensor",
-        fromZigbee: [fz.ias_contact_alarm_1, fz.temperature, fz.battery, fz.ignore_zclversion_read],
+        fromZigbee: [fz.ias_contact_alarm_1, fz.temperature, fz.battery],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: "3V_2100"}},
         configure: async (device, coordinatorEndpoint) => {
@@ -70,7 +70,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "MCT-340 SMA",
         vendor: "Visonic",
         description: "Magnetic door & window contact sensor",
-        fromZigbee: [fz.ias_contact_alarm_1, fz.temperature, fz.battery, fz.ignore_zclversion_read],
+        fromZigbee: [fz.ias_contact_alarm_1, fz.temperature, fz.battery],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: "3V_2100"}},
         configure: async (device, coordinatorEndpoint) => {

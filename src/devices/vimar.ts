@@ -61,7 +61,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "14593",
         vendor: "Vimar",
         description: "16A outlet IoT connected",
-        fromZigbee: [fz.on_off, fz.ignore_basic_report, fz.electrical_measurement],
+        fromZigbee: [fz.on_off, fz.electrical_measurement],
         toZigbee: [tz.on_off],
         exposes: [e.switch(), e.power()],
         configure: async (device, coordinatorEndpoint) => {

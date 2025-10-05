@@ -1,6 +1,5 @@
 import assert from "node:assert";
 import {Zcl} from "zigbee-herdsman";
-import * as fz from "../converters/fromZigbee";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as globalStore from "../lib/store";
@@ -241,7 +240,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Candeo",
         description: "Zigbee switch module",
         extend: [m.onOff()],
-        fromZigbee: [fzLocal.switch_type, fz.ignore_genOta],
+        fromZigbee: [fzLocal.switch_type],
         toZigbee: [tzLocal.switch_type],
         exposes: [e.enum("external_switch_type", ea.ALL, ["momentary", "toggle"]).withLabel("External switch type")],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -296,7 +295,7 @@ export const definitions: DefinitionWithExtend[] = [
                 energy: {min: 10, max: 1800, change: 360000},
             }),
         ],
-        fromZigbee: [fzLocal.switch_type, fz.ignore_genOta],
+        fromZigbee: [fzLocal.switch_type],
         toZigbee: [tzLocal.switch_type],
         exposes: [e.enum("external_switch_type", ea.ALL, ["momentary", "toggle"]).withLabel("External switch type")],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -335,7 +334,7 @@ export const definitions: DefinitionWithExtend[] = [
                 energy: {min: 10, max: 1800, change: 360000},
             }),
         ],
-        fromZigbee: [fzLocal.switch_type, fz.ignore_genOta],
+        fromZigbee: [fzLocal.switch_type],
         toZigbee: [tzLocal.switch_type],
         exposes: [e.enum("external_switch_type", ea.ALL, ["momentary", "toggle"]).withLabel("External switch type")],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -521,7 +520,7 @@ export const definitions: DefinitionWithExtend[] = [
                 energy: {min: 10, max: 1800, change: 360000},
             }),
         ],
-        fromZigbee: [fzLocal.switch_type, fz.ignore_genOta],
+        fromZigbee: [fzLocal.switch_type],
         toZigbee: [tzLocal.switch_type],
         exposes: [e.enum("external_switch_type", ea.ALL, ["momentary", "toggle"]).withLabel("External switch type").withEndpoint("e11")],
         meta: {},
@@ -563,7 +562,7 @@ export const definitions: DefinitionWithExtend[] = [
                 levelConfig: {features: ["on_off_transition_time", "on_level", "current_level_startup"]},
             }),
         ],
-        fromZigbee: [fzLocal.switch_type, fz.ignore_genOta],
+        fromZigbee: [fzLocal.switch_type],
         toZigbee: [tzLocal.switch_type],
         exposes: [e.enum("external_switch_type", ea.ALL, ["momentary", "toggle"]).withLabel("External switch type")],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -699,7 +698,7 @@ export const definitions: DefinitionWithExtend[] = [
                 commandsResponse: {},
             }),
         ],
-        fromZigbee: [fzLocal.rotary_remote_control, fz.ignore_genOta],
+        fromZigbee: [fzLocal.rotary_remote_control],
         exposes: [
             e.action([
                 "button_1_click",
@@ -802,7 +801,7 @@ export const definitions: DefinitionWithExtend[] = [
                 energy: {min: 5, max: 1800, change: 50},
             }),
         ],
-        fromZigbee: [fzLocal.rd1p_knob_rotation, fzLocal.rd1p_knob_press, fz.ignore_genOta],
+        fromZigbee: [fzLocal.rd1p_knob_rotation, fzLocal.rd1p_knob_press],
         toZigbee: [],
         exposes: [
             e
@@ -843,7 +842,7 @@ export const definitions: DefinitionWithExtend[] = [
                 energy: {min: 5, max: 1800, change: 50},
             }),
         ],
-        fromZigbee: [fzLocal.rd1p_knob_rotation, fzLocal.rd1p_knob_press, fz.ignore_genOta],
+        fromZigbee: [fzLocal.rd1p_knob_rotation, fzLocal.rd1p_knob_press],
         toZigbee: [],
         exposes: [
             e

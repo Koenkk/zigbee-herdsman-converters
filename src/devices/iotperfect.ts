@@ -1,4 +1,3 @@
-import * as fz from "../converters/fromZigbee";
 import * as exposes from "../lib/exposes";
 import * as legacy from "../lib/legacy";
 import * as tuya from "../lib/tuya";
@@ -14,7 +13,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "IOTPerfect",
         description: "Smart water/gas valve",
         exposes: [e.switch().setAccess("state", ea.STATE_SET)],
-        fromZigbee: [legacy.fz.tuya_switch, fz.ignore_time_read, fz.ignore_basic_report],
+        fromZigbee: [legacy.fz.tuya_switch],
         toZigbee: [legacy.tz.tuya_switch_state],
     },
 ];

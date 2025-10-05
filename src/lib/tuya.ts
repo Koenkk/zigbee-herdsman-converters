@@ -2568,7 +2568,7 @@ const tuyaModernExtend = {
             ? args.endpoints.map((ee) => e.switch().withEndpoint(ee))
             : [e.switch()];
         // biome-ignore lint/suspicious/noExplicitAny: generic
-        const fromZigbee: Fz.Converter<any, any, any>[] = [fz.on_off, fz.ignore_basic_report];
+        const fromZigbee: Fz.Converter<any, any, any>[] = [fz.on_off];
         const toZigbee: Tz.Converter[] = [];
         if (args.onOffCountdown) {
             fromZigbee.push(tuyaFz.on_off_countdown);

@@ -5010,11 +5010,6 @@ export const ignore_onoff_report: Fz.Converter<"genOnOff", undefined, ["attribut
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {},
 };
-export const ignore_basic_report: Fz.Converter<"genBasic", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "genBasic",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {},
-};
 export const ignore_illuminance_report: Fz.Converter<"msIlluminanceMeasurement", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "msIlluminanceMeasurement",
     type: ["attributeReport", "readResponse"],
@@ -5127,11 +5122,6 @@ export const ignore_command_stop: Fz.Converter<"genLevelCtrl", undefined, "comma
     type: "commandStop",
     convert: (model, msg, publish, options, meta) => {},
 };
-export const ignore_poll_ctrl: Fz.Converter<"genPollCtrl", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "genPollCtrl",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {},
-};
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const ignore_genLevelCtrl_report: Fz.Converter<"genLevelCtrl", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "genLevelCtrl",
@@ -5139,25 +5129,9 @@ export const ignore_genLevelCtrl_report: Fz.Converter<"genLevelCtrl", undefined,
     convert: (model, msg, publish, options, meta) => {},
 };
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const ignore_genOta: Fz.Converter<"genOta", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "genOta",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {},
-};
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const ignore_haDiagnostic: Fz.Converter<"haDiagnostic", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "haDiagnostic",
     type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {},
-};
-export const ignore_zclversion_read: Fz.Converter<"genBasic", undefined, "read"> = {
-    cluster: "genBasic",
-    type: "read",
-    convert: (model, msg, publish, options, meta) => {},
-};
-export const ignore_time_read: Fz.Converter<"genTime", undefined, "read"> = {
-    cluster: "genTime",
-    type: "read",
     convert: (model, msg, publish, options, meta) => {},
 };
 export const ignore_tuya_set_time: Fz.Converter<"manuSpecificTuya", undefined, ["commandMcuSyncTime"]> = {
