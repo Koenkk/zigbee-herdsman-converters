@@ -498,7 +498,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "HS-SEDR00ZB-VNM",
         vendor: "VSmart",
         description: "Door/window sensor",
-        extend: [m.iasZoneAlarm({zoneType: "contact", zoneAttributes: ["alarm_1", "battery_low", "tamper"]})],
+        extend: [m.iasZoneAlarm({zoneType: "contact", zoneAttributes: ["alarm_1", "battery_low", "tamper"], invertAlarm: true})],
     },
     {
         zigbeeModel: ["HS-SEOC00ZB-VNM"],

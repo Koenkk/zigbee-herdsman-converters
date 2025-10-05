@@ -1621,11 +1621,13 @@ export interface IasArgs {
     keepAliveTimeout?: number;
     zoneStatusReporting?: boolean;
     description?: string;
+    invertAlarm?: true;
     manufacturerZoneAttributes?: ManufacturerZoneAttribute[];
 }
 export function iasZoneAlarm(args: IasArgs): ModernExtend {
     const exposes: Expose[] = [];
-    const invertAlarmPayload = args.zoneType === "contact";
+    let invertAlarmPayload = args.zoneType === "contact";
+    if (args.invertAlarm) invertAlarmPayload = !invertAlarmPayload;
     const bothAlarms = args.zoneAttributes.includes("alarm_1") && args.zoneAttributes.includes("alarm_2");
 
     let alarm1Name = "alarm_1";
