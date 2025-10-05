@@ -35,7 +35,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "GWA1531",
         description: "Shutter actuator",
         vendor: "Gewiss",
-        fromZigbee: [fz.cover_position_tilt, fz.ignore_basic_report],
+        fromZigbee: [fz.cover_position_tilt],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
         meta: {coverInverted: true},
         configure: async (device, coordinatorEndpoint) => {

@@ -157,15 +157,7 @@ export const definitions: DefinitionWithExtend[] = [
 
             return expose;
         },
-        fromZigbee: [
-            zifgredFromZigbeeButtonEvent,
-            fz.color_colortemp,
-            fz.on_off,
-            fz.brightness,
-            fz.level_config,
-            fz.power_on_behavior,
-            fz.ignore_basic_report,
-        ],
+        fromZigbee: [zifgredFromZigbeeButtonEvent, fz.color_colortemp, fz.on_off, fz.brightness, fz.level_config, fz.power_on_behavior],
         toZigbee: [
             tz.light_onoff_brightness,
             tz.light_color,
@@ -334,7 +326,6 @@ export const definitions: DefinitionWithExtend[] = [
             fz.brightness,
             fz.level_config,
             fz.power_on_behavior,
-            fz.ignore_basic_report,
             fz.cover_position_tilt,
         ],
         toZigbee: [

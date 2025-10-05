@@ -41,7 +41,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "U86Z223A10-ZJU01(GD)",
         vendor: "Honyar",
         description: "Smart power socket 10A with USB (with power monitoring)",
-        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.ignore_basic_report],
+        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering],
         toZigbee: [tz.on_off],
         exposes: [e.switch().withEndpoint("l1"), e.switch().withEndpoint("l2"), e.power(), e.current(), e.voltage(), e.energy()],
         meta: {multiEndpoint: true, multiEndpointSkip: ["energy", "current", "voltage", "power"]},

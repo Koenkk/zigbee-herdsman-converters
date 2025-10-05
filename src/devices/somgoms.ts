@@ -1,4 +1,3 @@
-import * as fz from "../converters/fromZigbee";
 import * as exposes from "../lib/exposes";
 import * as legacy from "../lib/legacy";
 import * as tuya from "../lib/tuya";
@@ -14,7 +13,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Somgoms",
         description: "1 gang switch",
         exposes: [e.switch().setAccess("state", ea.STATE_SET)],
-        fromZigbee: [legacy.fz.tuya_switch, fz.ignore_time_read, fz.ignore_basic_report],
+        fromZigbee: [legacy.fz.tuya_switch],
         toZigbee: [legacy.tz.tuya_switch_state],
     },
     {
@@ -22,7 +21,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZSTY-SM-1CTZG-US-W",
         vendor: "Somgoms",
         description: "Curtain switch",
-        fromZigbee: [legacy.fz.tuya_cover, fz.ignore_basic_report],
+        fromZigbee: [legacy.fz.tuya_cover],
         toZigbee: [legacy.tz.tuya_cover_control, legacy.tz.tuya_cover_options],
         exposes: [e.cover_position().setAccess("position", ea.STATE_SET)],
     },
@@ -31,7 +30,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SM-1CTW-EU",
         vendor: "Somgoms",
         description: "Curtain switch",
-        fromZigbee: [legacy.fz.tuya_cover, fz.ignore_basic_report],
+        fromZigbee: [legacy.fz.tuya_cover],
         toZigbee: [legacy.tz.tuya_cover_control, legacy.tz.tuya_cover_options],
         exposes: [e.cover_position().setAccess("position", ea.STATE_SET)],
     },
@@ -40,7 +39,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZSTY-SM-1DMZG-US-W",
         vendor: "Somgoms",
         description: "Dimmer switch",
-        fromZigbee: [legacy.fz.tuya_dimmer, fz.ignore_basic_report],
+        fromZigbee: [legacy.fz.tuya_dimmer],
         toZigbee: [legacy.tz.tuya_dimmer_state, legacy.tz.tuya_dimmer_level],
         exposes: [e.light_brightness().setAccess("state", ea.STATE_SET).setAccess("brightness", ea.STATE_SET)],
     },

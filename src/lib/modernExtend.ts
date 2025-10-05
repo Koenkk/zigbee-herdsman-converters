@@ -900,6 +900,20 @@ export function soilMoisture(args: Partial<NumericArgs<"msSoilMoisture">> = {}) 
     });
 }
 
+export function windSpeed(args: Partial<NumericArgs<"msWindSpeed">> = {}) {
+    return numeric({
+        name: "wind_speed",
+        cluster: "msWindSpeed",
+        attribute: "measuredValue",
+        reporting: {min: "10_SECONDS", max: "1_HOUR", change: 1},
+        description: "Measured wind speed value",
+        unit: "m/s",
+        scale: 100,
+        access: "STATE_GET",
+        ...args,
+    });
+}
+
 export interface OccupancyArgs {
     pirConfig?: ("otu_delay" | "uto_delay" | "uto_threshold")[];
     ultrasonicConfig?: ("otu_delay" | "uto_delay" | "uto_threshold")[];
@@ -1174,7 +1188,7 @@ export function light(args: LightArgs = {}): ModernExtend {
     const lightExpose = exposeEndpoints(e.light().withBrightness(), endpointNames);
 
     const fromZigbee: Fz.Converter<"genBasic" | "genOnOff" | "genLevelCtrl" | "lightingColorCtrl", undefined, ["attributeReport", "readResponse"]>[] =
-        [fz.on_off, fz.brightness, fz.ignore_basic_report, fz.level_config];
+        [fz.on_off, fz.brightness, fz.level_config];
     const toZigbee: Tz.Converter[] = [
         endpointNames ? {...tz.light_onoff_brightness, endpoints: endpointNames} : tz.light_onoff_brightness,
         tz.ignore_transition,
@@ -1621,11 +1635,13 @@ export interface IasArgs {
     keepAliveTimeout?: number;
     zoneStatusReporting?: boolean;
     description?: string;
+    invertAlarm?: true;
     manufacturerZoneAttributes?: ManufacturerZoneAttribute[];
 }
 export function iasZoneAlarm(args: IasArgs): ModernExtend {
     const exposes: Expose[] = [];
-    const invertAlarmPayload = args.zoneType === "contact";
+    let invertAlarmPayload = args.zoneType === "contact";
+    if (args.invertAlarm) invertAlarmPayload = !invertAlarmPayload;
     const bothAlarms = args.zoneAttributes.includes("alarm_1") && args.zoneAttributes.includes("alarm_2");
 
     let alarm1Name = "alarm_1";
@@ -2576,6 +2592,7 @@ export interface NumericArgs<Cl extends string | number, Custom extends TCustomC
     label?: string;
     entityCategory?: "config" | "diagnostic";
     precision?: number;
+    fzConvert?: Fz.Converter<Cl, Custom, ["attributeReport", "readResponse"]>["convert"];
 }
 export function numeric<Cl extends string | number, Custom extends TCustomCluster | undefined = undefined>(
     args: NumericArgs<Cl, Custom>,
@@ -2595,6 +2612,7 @@ export function numeric<Cl extends string | number, Custom extends TCustomCluste
         label,
         entityCategory,
         precision,
+        fzConvert,
     } = args;
 
     const endpoints = args.endpointNames;
@@ -2628,26 +2646,28 @@ export function numeric<Cl extends string | number, Custom extends TCustomCluste
         {
             cluster: cluster.toString(),
             type: ["attributeReport", "readResponse"],
-            convert: (model, msg, publish, options, meta) => {
-                if (attributeKey in msg.data) {
-                    const endpoint = endpoints?.find((e) => getEndpointName(msg, model, meta) === e);
-                    if (endpoints && !endpoint) {
-                        return;
+            convert:
+                fzConvert ??
+                ((model, msg, publish, options, meta) => {
+                    if (attributeKey in msg.data) {
+                        const endpoint = endpoints?.find((e) => getEndpointName(msg, model, meta) === e);
+                        if (endpoints && !endpoint) {
+                            return;
+                        }
+
+                        let value = msg.data[attributeKey];
+                        assertNumber(value);
+
+                        if (scale !== undefined) {
+                            value = typeof scale === "number" ? value / scale : scale(value, "from");
+                        }
+                        assertNumber(value);
+                        if (precision != null) value = precisionRound(value, precision);
+
+                        const expose = exposes.length === 1 ? exposes[0] : exposes.find((e) => e.endpoint === endpoint);
+                        return {[expose.property]: value};
                     }
-
-                    let value = msg.data[attributeKey];
-                    assertNumber(value);
-
-                    if (scale !== undefined) {
-                        value = typeof scale === "number" ? value / scale : scale(value, "from");
-                    }
-                    assertNumber(value);
-                    if (precision != null) value = precisionRound(value, precision);
-
-                    const expose = exposes.length === 1 ? exposes[0] : exposes.find((e) => e.endpoint === endpoint);
-                    return {[expose.property]: value};
-                }
-            },
+                }),
             // biome-ignore lint/suspicious/noExplicitAny: generic
         } satisfies Fz.Converter<any, undefined, ["attributeReport", "readResponse"]>,
     ];

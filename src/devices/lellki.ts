@@ -97,7 +97,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "WP30-EU",
         description: "Power cord 4 sockets EU (with power monitoring)",
         vendor: "LELLKI",
-        fromZigbee: [fz.on_off_force_multiendpoint, fz.electrical_measurement, fz.metering, fz.ignore_basic_report, tuya.fz.power_outage_memory],
+        fromZigbee: [fz.on_off_force_multiendpoint, fz.electrical_measurement, fz.metering, tuya.fz.power_outage_memory],
         toZigbee: [tz.on_off, tuya.tz.power_on_behavior_1],
         extend: [tuya.modernExtend.electricityMeasurementPoll()],
         configure: async (device, coordinatorEndpoint) => {

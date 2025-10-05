@@ -15,7 +15,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "NAS-AB02B0",
         vendor: "NEO",
         description: "Temperature & humidity sensor and alarm",
-        fromZigbee: [legacy.fz.neo_t_h_alarm, fz.ignore_basic_report, fz.ignore_tuya_set_time],
+        fromZigbee: [legacy.fz.neo_t_h_alarm, fz.ignore_tuya_set_time],
         toZigbee: [legacy.tz.neo_t_h_alarm],
         exposes: [
             e.temperature(),
@@ -45,7 +45,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "NAS-AB02B2",
         vendor: "NEO",
         description: "Alarm",
-        fromZigbee: [legacy.fz.neo_alarm, fz.ignore_basic_report],
+        fromZigbee: [legacy.fz.neo_alarm],
         toZigbee: [legacy.tz.neo_alarm],
         exposes: [
             e.battery_low(),
