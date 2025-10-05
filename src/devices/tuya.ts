@@ -1239,8 +1239,8 @@ export const definitions: DefinitionWithExtend[] = [
             multiEndpoint: true,
             tuyaDatapoints: [
                 // Use the new converter from the main tuya library
-                [19, "state_l1", tuya.valueConverter.onOffStateIgnoringAlreadyCurrentState], 
-                [20, "state_l2", tuya.valueConverter.onOffStateIgnoringAlreadyCurrentState], 
+                [19, "state_l1", tuya.valueConverter.onOffStateIgnoringAlreadyCurrentState],
+                [20, "state_l2", tuya.valueConverter.onOffStateIgnoringAlreadyCurrentState],
             ],
         },
         endpoint: (device) => {
