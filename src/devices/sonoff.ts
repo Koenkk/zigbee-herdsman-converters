@@ -2037,8 +2037,17 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: "acCurrentCurrentValue",
                 description: "Current",
                 unit: "A",
-                scale: 1000,
                 access: "STATE_GET",
+                // https://github.com/Koenkk/zigbee2mqtt/issues/28470#issuecomment-3369116710
+                reporting: {min: "10_SECONDS", max: "MAX", change: 2},
+                fzConvert: (model, msg, publish, options, meta) => {
+                    // Device keeps reporting a acCurrentCurrentValue after turning OFF.
+                    // Make sure power = 0 when turned OFF
+                    // https://github.com/Koenkk/zigbee2mqtt/issues/28470
+                    if ("acCurrentCurrentValue" in msg.data) {
+                        return {current: meta.state.state === "ON" ? msg.data.acCurrentCurrentValue / 1000 : 0};
+                    }
+                },
             }),
             m.numeric<"customClusterEwelink", SonoffEwelink>({
                 name: "voltage",
