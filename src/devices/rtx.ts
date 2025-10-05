@@ -14,7 +14,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "RTX",
         description: "Zigbee smart water valve",
         extend: [tuya.modernExtend.tuyaBase({forceTimeUpdates: true})],
-        fromZigbee: [legacy.fz.ZVG1, fz.ignore_basic_report],
+        fromZigbee: [legacy.fz.ZVG1],
         toZigbee: [
             legacy.tz.tuya_switch_state,
             legacy.tz.ZVG1_weather_delay,
