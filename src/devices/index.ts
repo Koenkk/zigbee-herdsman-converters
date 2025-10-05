@@ -313,6 +313,7 @@ import {definitions as theLightGroup} from "./the_light_group";
 import {definitions as thirdReality} from "./third_reality";
 import {definitions as titanProducts} from "./titan_products";
 import {definitions as tlwglobal} from "./tlwglobal";
+import {definitions as tnce} from "./tnce";
 import {definitions as tplink} from "./tplink";
 import {definitions as trust} from "./trust";
 import {definitions as tubeszb} from "./tubeszb";
@@ -327,6 +328,7 @@ import {definitions as villeroyBoch} from "./villeroy_boch";
 import {definitions as vimar} from "./vimar";
 import {definitions as visonic} from "./visonic";
 import {definitions as vrey} from "./vrey";
+import {definitions as vsmart} from "./vsmart";
 import {definitions as wally} from "./wally";
 import {definitions as waxman} from "./waxman";
 import {definitions as weiser} from "./weiser";
@@ -649,8 +651,8 @@ const definitions: DefinitionWithExtend[] = [
     ...sowilo,
     ...spotmau,
     ...sprut,
-    ...stelpro,
     ...stello,
+    ...stelpro,
     ...sunricher,
     ...superled,
     ...swann,
@@ -664,6 +666,7 @@ const definitions: DefinitionWithExtend[] = [
     ...thirdReality,
     ...titanProducts,
     ...tlwglobal,
+    ...tnce,
     ...tplink,
     ...trust,
     ...tubeszb,
@@ -703,6 +706,7 @@ const definitions: DefinitionWithExtend[] = [
     ...zipato,
     ...qa,
     ...engo,
+    ...vsmart,
 ];
 
 export default definitions;

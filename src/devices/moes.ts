@@ -982,7 +982,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .enum("power_on_behavior", ea.STATE_SET, Object.values(legacy.moesSwitch.powerOnBehavior))
                 .withDescription("Controls the behavior when the device is powered on"),
         ],
-        fromZigbee: [fz.ignore_basic_report, legacy.fz.tuya_switch, legacy.fz.moes_switch],
+        fromZigbee: [legacy.fz.tuya_switch, legacy.fz.moes_switch],
         toZigbee: [legacy.tz.tuya_switch_state, legacy.tz.moes_switch],
         extend: [tuya.modernExtend.tuyaBase({forceTimeUpdates: true})],
         meta: {multiEndpoint: true},
@@ -1012,7 +1012,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .enum("power_on_behavior", ea.STATE_SET, Object.values(legacy.moesSwitch.powerOnBehavior))
                 .withDescription("Controls the behavior when the device is powered on"),
         ],
-        fromZigbee: [fz.ignore_basic_report, legacy.fz.tuya_switch, legacy.fz.moes_switch],
+        fromZigbee: [legacy.fz.tuya_switch, legacy.fz.moes_switch],
         toZigbee: [legacy.tz.tuya_switch_state, legacy.tz.moes_switch],
         extend: [tuya.modernExtend.tuyaBase({forceTimeUpdates: true})],
         meta: {multiEndpoint: true},
@@ -1044,7 +1044,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .enum("power_on_behavior", ea.STATE_SET, Object.values(legacy.moesSwitch.powerOnBehavior))
                 .withDescription("Controls the behavior when the device is powered on"),
         ],
-        fromZigbee: [fz.ignore_basic_report, legacy.fz.tuya_switch, legacy.fz.moes_switch],
+        fromZigbee: [legacy.fz.tuya_switch, legacy.fz.moes_switch],
         toZigbee: [legacy.tz.tuya_switch_state, legacy.tz.moes_switch],
         extend: [tuya.modernExtend.tuyaBase({forceTimeUpdates: true})],
         meta: {multiEndpoint: true},
@@ -1081,7 +1081,7 @@ export const definitions: DefinitionWithExtend[] = [
         // ota: true,
         // OTA available but bricks device https://github.com/Koenkk/zigbee2mqtt/issues/18840
         extend: [tuya.modernExtend.tuyaBase({forceTimeUpdates: true})],
-        fromZigbee: [fz.ignore_basic_report, fz.ignore_tuya_set_time, legacy.fz.moesS_thermostat],
+        fromZigbee: [fz.ignore_tuya_set_time, legacy.fz.moesS_thermostat],
         toZigbee: [
             legacy.tz.moesS_thermostat_current_heating_setpoint,
             legacy.tz.moesS_thermostat_child_lock,
@@ -1154,7 +1154,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Moes",
         description: "Zigbee + RF curtain switch",
         extend: [tuya.modernExtend.tuyaBase({forceTimeUpdates: true})],
-        fromZigbee: [legacy.fz.moes_cover, fz.ignore_basic_report],
+        fromZigbee: [legacy.fz.moes_cover],
         toZigbee: [legacy.tz.moes_cover],
         exposes: [
             e.cover_position().setAccess("position", ea.STATE_SET),
@@ -1204,7 +1204,7 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [tuya.whitelabel("Tuya", "iH-F8260", "Universal smart IR remote control", ["_TZ3290_gnl5a6a5xvql7c2a"])],
     },
     {
-        fingerprint: tuya.fingerprint("TS0049", ["_TZ3000_cjfmu5he", "_TZ3000_kz1anoi8", "_TZ3000_mq4wujmp", "_TZ3000_5af5r192", "_TZE200_fphxkxue"]),
+        fingerprint: tuya.fingerprint("TS0049", ["_TZ3000_cjfmu5he", "_TZ3000_mq4wujmp", "_TZ3000_5af5r192", "_TZE200_fphxkxue"]),
         model: "ZWV-YC",
         vendor: "Moes",
         description: "Water valve",

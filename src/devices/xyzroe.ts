@@ -369,7 +369,6 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "xyzroe",
         description: "Zigbee USB power monitor and switch",
         fromZigbee: [
-            fz.ignore_basic_report,
             fzLocal.zigusb_on_off_invert,
             fzLocal.zigusb_analog_input,
             fz.temperature,
@@ -417,15 +416,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZigDC",
         vendor: "xyzroe",
         description: "ZigDC",
-        fromZigbee: [
-            fz.ignore_basic_report,
-            fz.temperature,
-            fz.humidity,
-            fz.ptvo_multistate_action,
-            fzLocal.ZigDC_ina3221,
-            fzLocal.ZigDC_uptime,
-            fzLocal.ZigDC_input_config,
-        ],
+        fromZigbee: [fz.temperature, fz.humidity, fz.ptvo_multistate_action, fzLocal.ZigDC_ina3221, fzLocal.ZigDC_uptime, fzLocal.ZigDC_input_config],
         toZigbee: [tzLocal.ZigDC_interval, tzLocal.ZigDC_input_config],
         exposes: [
             e.current().withAccess(ea.STATE).withEndpoint("ch1"),

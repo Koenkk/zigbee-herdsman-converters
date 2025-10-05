@@ -521,7 +521,7 @@ export async function getClusterAttributeValue<
             });
             return result[attribute] ?? fallback;
         }
-        return value as ClusterOrRawAttributes<Cl, Custom>[Attr];
+        return (value as ClusterOrRawAttributes<Cl, Custom>[Attr]) ?? fallback;
     } catch (error) {
         if (fallback !== undefined) return fallback;
         throw error;

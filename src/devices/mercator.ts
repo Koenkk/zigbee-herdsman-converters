@@ -31,7 +31,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SMA02P",
         vendor: "Mercator Ikuü",
         description: "Motion detector",
-        fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery, fz.ignore_basic_report, fz.ias_occupancy_alarm_1_report],
+        fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery, fz.ias_occupancy_alarm_1_report],
         toZigbee: [],
         exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery(), e.battery_voltage()],
         configure: async (device, coordinatorEndpoint) => {
@@ -59,7 +59,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SMA04P",
         vendor: "Mercator Ikuü",
         description: "Contact sensor",
-        fromZigbee: [fz.ias_contact_alarm_1, fz.battery, fz.ignore_basic_report, fz.ias_contact_alarm_1_report],
+        fromZigbee: [fz.ias_contact_alarm_1, fz.battery, fz.ias_contact_alarm_1_report],
         toZigbee: [],
         exposes: [e.contact(), e.battery_low(), e.tamper(), e.battery(), e.battery_voltage()],
         configure: async (device, coordinatorEndpoint) => {

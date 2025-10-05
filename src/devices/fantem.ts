@@ -37,7 +37,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZB003-X",
         vendor: "Fantem",
         description: "4 in 1 multi sensor",
-        fromZigbee: [fz.battery, fz.ignore_basic_report, legacy.fz.ZB003X, fz.ZB003X_attr, fz.ZB003X_occupancy],
+        fromZigbee: [fz.battery, legacy.fz.ZB003X, fz.ZB003X_attr, fz.ZB003X_occupancy],
         toZigbee: [legacy.tz.ZB003X],
         whiteLabel: [tuya.whitelabel("EFK", "is-thpl-zb", "4 in 1 multi sensor", ["_TZ3210_0aqbrnts"])],
         exposes: [
