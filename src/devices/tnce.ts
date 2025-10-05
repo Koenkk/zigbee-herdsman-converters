@@ -5,8 +5,8 @@ export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: [
             {
-                type: "Router",
-                manufacturerName: "AwoX",
+                type: "EndDevice",
+                manufacturerName: "TELINK",
                 modelID: "TLSR82xx",
                 endpoints: [{ID: 1, profileID: 260, deviceID: 770, inputClusters: [0, 3, 32, 1026, 1029, 1], outputClusters: [25]}],
             },
