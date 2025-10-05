@@ -328,6 +328,7 @@ import {definitions as villeroyBoch} from "./villeroy_boch";
 import {definitions as vimar} from "./vimar";
 import {definitions as visonic} from "./visonic";
 import {definitions as vrey} from "./vrey";
+import {definitions as vsmart} from "./vsmart";
 import {definitions as wally} from "./wally";
 import {definitions as waxman} from "./waxman";
 import {definitions as weiser} from "./weiser";
@@ -705,6 +706,7 @@ const definitions: DefinitionWithExtend[] = [
     ...zipato,
     ...qa,
     ...engo,
+    ...vsmart,
 ];
 
 export default definitions;
