@@ -404,7 +404,6 @@ const tzLocal = {
 };
 
 const localFromZigbeeThermostat = [
-    fz.ignore_basic_report,
     fz.thermostat,
     fz.fan,
     fz.namron_hvac_user_interface,

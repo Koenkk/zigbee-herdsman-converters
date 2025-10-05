@@ -379,7 +379,7 @@ export const definitions: DefinitionWithExtend[] = [
             {vendor: "Frient", model: "94430", description: "Smart Intelligent Smoke Alarm"},
             {vendor: "Cavius", model: "2103", description: "RF SMOKE ALARM, 5 YEAR 65MM"},
         ],
-        fromZigbee: [fz.ias_smoke_alarm_1_develco, fz.ignore_basic_report, fz.ias_enroll, fz.ias_wd, develco.fz.fault_status],
+        fromZigbee: [fz.ias_smoke_alarm_1_develco, fz.ias_enroll, fz.ias_wd, develco.fz.fault_status],
         toZigbee: [tz.warning, tz.ias_max_duration, tz.warning_simple],
         ota: true,
         extend: [
@@ -456,7 +456,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Develco",
         description: "Fire detector with siren",
         whiteLabel: [{vendor: "Frient", model: "94431", description: "Smart Intelligent Heat Alarm"}],
-        fromZigbee: [fz.ias_smoke_alarm_1_develco, fz.ignore_basic_report, fz.ias_enroll, fz.ias_wd, develco.fz.fault_status],
+        fromZigbee: [fz.ias_smoke_alarm_1_develco, fz.ias_enroll, fz.ias_wd, develco.fz.fault_status],
         toZigbee: [tz.warning, tz.ias_max_duration, tz.warning_simple],
         ota: true,
         extend: [

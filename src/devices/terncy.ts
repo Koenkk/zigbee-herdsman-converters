@@ -61,7 +61,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "TERNCY",
         description: "Smart light socket",
         exposes: [e.switch(), e.action(["single"])],
-        fromZigbee: [fz.on_off, fz.terncy_raw, fz.ignore_basic_report],
+        fromZigbee: [fz.on_off, fz.terncy_raw],
         toZigbee: [tz.on_off],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);

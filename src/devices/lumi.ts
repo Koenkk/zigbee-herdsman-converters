@@ -1911,14 +1911,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZNCZ04LM",
         description: "Mi smart plug EU",
         vendor: "Xiaomi",
-        fromZigbee: [
-            fz.on_off,
-            lumi.fromZigbee.lumi_power,
-            lumi.fromZigbee.lumi_specific,
-            fz.ignore_occupancy_report,
-            fz.ignore_illuminance_report,
-            fz.ignore_time_read,
-        ],
+        fromZigbee: [fz.on_off, lumi.fromZigbee.lumi_power, lumi.fromZigbee.lumi_specific, fz.ignore_occupancy_report, fz.ignore_illuminance_report],
         toZigbee: [
             tz.on_off,
             lumi.toZigbee.lumi_power,
@@ -2447,12 +2440,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Roller shade driver E1",
         vendor: "Aqara",
         whiteLabel: [{vendor: "Aqara", model: "RSD-M01"}],
-        fromZigbee: [
-            lumi.fromZigbee.lumi_curtain_position,
-            lumi.fromZigbee.lumi_curtain_status,
-            fz.ignore_basic_report,
-            lumi.fromZigbee.lumi_specific,
-        ],
+        fromZigbee: [lumi.fromZigbee.lumi_curtain_position, lumi.fromZigbee.lumi_curtain_status, lumi.fromZigbee.lumi_specific],
         ota: true,
         toZigbee: [lumi.toZigbee.lumi_curtain_position_state, lumi.toZigbee.lumi_curtain_battery, lumi.toZigbee.lumi_curtain_charging_status],
         exposes: [
@@ -2653,7 +2641,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZNMS13LM",
         description: "Smart door lock S2 Pro",
         vendor: "Aqara",
-        fromZigbee: [lumi.fromZigbee.lumi_door_lock_report, fz.ignore_basic_report],
+        fromZigbee: [lumi.fromZigbee.lumi_door_lock_report],
         toZigbee: [],
         exposes: [
             e.binary("state", ea.STATE, "UNLOCK", "LOCK"),
@@ -2685,7 +2673,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZNMS11LM",
         description: "Smart door lock",
         vendor: "Aqara",
-        fromZigbee: [lumi.fromZigbee.lumi_door_lock_report, fz.ignore_basic_report],
+        fromZigbee: [lumi.fromZigbee.lumi_door_lock_report],
         toZigbee: [],
         exposes: [
             e.binary("state", ea.STATE, "UNLOCK", "LOCK"),

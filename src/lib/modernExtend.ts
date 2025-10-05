@@ -1188,7 +1188,7 @@ export function light(args: LightArgs = {}): ModernExtend {
     const lightExpose = exposeEndpoints(e.light().withBrightness(), endpointNames);
 
     const fromZigbee: Fz.Converter<"genBasic" | "genOnOff" | "genLevelCtrl" | "lightingColorCtrl", undefined, ["attributeReport", "readResponse"]>[] =
-        [fz.on_off, fz.brightness, fz.ignore_basic_report, fz.level_config];
+        [fz.on_off, fz.brightness, fz.level_config];
     const toZigbee: Tz.Converter[] = [
         endpointNames ? {...tz.light_onoff_brightness, endpoints: endpointNames} : tz.light_onoff_brightness,
         tz.ignore_transition,
