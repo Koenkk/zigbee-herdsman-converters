@@ -19452,9 +19452,11 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription("Current running mode")
                 .withCategory("diagnostic"),
             e
-             .binary("radiators_without_integrated_regulation", ea.STATE_SET, "ON", "OFF")
-             .withDescription("Enable this for radiator without integrated regulation. OFF if Comfort, Eco and Antifrost temperatures can be defined on the radiator. ON if the radiator has no integrated regulation (i.e define temperatures on the thermostat).")
-             .withCategory("config"),
+                .binary("radiators_without_integrated_regulation", ea.STATE_SET, "ON", "OFF")
+                .withDescription(
+                    "Enable this for radiator without integrated regulation. OFF if Comfort, Eco and Antifrost temperatures can be defined on the radiator. ON if the radiator has no integrated regulation (i.e define temperatures on the thermostat).",
+                )
+                .withCategory("config"),
             e
                 .numeric("comfort_temperature", ea.STATE_SET)
                 .withUnit("  C")
