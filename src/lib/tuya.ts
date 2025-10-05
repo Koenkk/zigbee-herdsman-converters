@@ -953,6 +953,34 @@ export const valueConverter = {
             },
         };
     },
+    /**
+     * This converter is for TuYa toggle-based switches that can misinterpret repeated
+     * commands (e.g., sending 'ON' when already 'ON') as a "toggle" command.
+     */
+    onOffStateIgnoringAlreadyCurrentState: {
+        to: (value: string, meta: Tz.Meta) => {
+            const endpointName = meta.endpoint_name;
+            // The multi-endpoint check is important for this logic to work correctly
+            if (!endpointName) {
+                // Fallback for non-multi-endpoint devices
+                return value.toLowerCase() === 'on';
+            }
+            const stateProperty = `state_${endpointName}`;
+            // Check if the device's current reported state matches the command we want to send.
+            if (
+                meta.state?.[stateProperty] &&
+                (meta.state[stateProperty] as string).toLowerCase() === value.toLowerCase()
+            ) {
+                logger.debug(`KRC702Z: Blocking command for ${endpointName} as it is already ${value}`, NS);
+                // Return undefined to tell the generic datapoint converter to skip sending this command
+                return undefined;
+            }
+            // States are different, proceed with the standard on/off conversion (e.g., "ON" -> true)
+            return value.toLowerCase() === 'on';
+        },
+        // The 'from' converter behaves like the standard onOff converter
+        from: (value: boolean) => (value ? 'ON' : 'OFF'),
+    },
     thermostatScheduleDayMultiDPWithDayNumber: (dayNum: number, transitionCount = 4) => {
         return {
             from: (v: string) => valueConverter.thermostatScheduleDayMultiDPWithTransitionCount(transitionCount).from(v),
