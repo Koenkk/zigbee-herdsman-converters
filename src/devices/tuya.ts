@@ -19452,6 +19452,10 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription("Current running mode")
                 .withCategory("diagnostic"),
             e
+             .binary("radiators_without_integrated_regulation", ea.STATE_SET, "ON", "OFF")
+             .withDescription("Enable this for radiator without integrated regulation. OFF if Comfort, Eco and Antifrost temperatures can be defined on the radiator. ON if the radiator has no integrated regulation (i.e define temperatures on the thermostat).")
+             .withCategory("config"),
+            e
                 .numeric("comfort_temperature", ea.STATE_SET)
                 .withUnit("  C")
                 .withValueMin(5)
@@ -19571,6 +19575,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [113, "week_program_6", tuya.valueConverter.raw],
                 [114, "week_program_7", tuya.valueConverter.raw],
                 [115, "set_temp_switch", tuya.valueConverter.onOff],
+                [115, "radiators_without_integrated_regulation", tuya.valueConverter.onOff],
                 [116, "antifrost", tuya.valueConverter.onOff],
                 [117, "eco_temperature", tuya.valueConverter.divideBy10],
                 [118, "comfort_temperature", tuya.valueConverter.divideBy10],
