@@ -7183,13 +7183,11 @@ export const definitions: DefinitionWithExtend[] = [
 
             await reporting.rmsCurrent(endpoint, {change: 50});
 
-            if (
-                !["_TZ3000_0zfrhq4i", "_TZ3000_okaz9tjs", "_TZ3000_typdpbpg", "_TZ3000_ww6drja5", "Zbeacon", "_TZ3000_gjnozsaz"].includes(
-                    device.manufacturerName,
-                )
-            ) {
+            if (!["_TZ3000_0zfrhq4i", "_TZ3000_okaz9tjs", "_TZ3000_typdpbpg", "_TZ3000_ww6drja5", "Zbeacon"].includes(device.manufacturerName)) {
                 // Gives INVALID_DATA_TYPE error for _TZ3000_0zfrhq4i (as well as a few others in issue 20028)
                 // https://github.com/Koenkk/zigbee2mqtt/discussions/19680#discussioncomment-7667035
+                // Don't do this for `_TZ3000_gjnozsaz` (was previously in the list, but removed after:
+                // https://github.com/Koenkk/zigbee2mqtt/issues/28729#issuecomment-3370261334
                 await reporting.activePower(endpoint, {change: 10});
             }
             await reporting.currentSummDelivered(endpoint);
