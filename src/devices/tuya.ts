@@ -17,7 +17,7 @@ import {addActionGroup, hasAlreadyProcessedMessage, postfixWithEndpointName} fro
 import * as zosung from "../lib/zosung";
 
 const NS = "zhc:tuya";
-const {tuyaLight, tuyaBase, tuyaMagicPacket, dpBinary, dpNumeric, dpEnumLookup} = tuya.modernExtend;
+const {tuyaLight, tuyaBase, tuyaMagicPacket, dpBinary, dpNumeric, dpEnumLookup, tuyaWeatherForecast} = tuya.modernExtend;
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -7194,13 +7194,11 @@ export const definitions: DefinitionWithExtend[] = [
 
             await reporting.rmsCurrent(endpoint, {change: 50});
 
-            if (
-                !["_TZ3000_0zfrhq4i", "_TZ3000_okaz9tjs", "_TZ3000_typdpbpg", "_TZ3000_ww6drja5", "Zbeacon", "_TZ3000_gjnozsaz"].includes(
-                    device.manufacturerName,
-                )
-            ) {
+            if (!["_TZ3000_0zfrhq4i", "_TZ3000_okaz9tjs", "_TZ3000_typdpbpg", "_TZ3000_ww6drja5", "Zbeacon"].includes(device.manufacturerName)) {
                 // Gives INVALID_DATA_TYPE error for _TZ3000_0zfrhq4i (as well as a few others in issue 20028)
                 // https://github.com/Koenkk/zigbee2mqtt/discussions/19680#discussioncomment-7667035
+                // Don't do this for `_TZ3000_gjnozsaz` (was previously in the list, but removed after:
+                // https://github.com/Koenkk/zigbee2mqtt/issues/28729#issuecomment-3370261334
                 await reporting.activePower(endpoint, {change: 10});
             }
             await reporting.currentSummDelivered(endpoint);
@@ -10157,7 +10155,11 @@ export const definitions: DefinitionWithExtend[] = [
         model: "M8Pro",
         vendor: "Tuya",
         description: "4 gang switch with LCD",
-        extend: [tuyaBase({dp: true}), m.deviceEndpoints({endpoints: {l1: 1, l2: 1, l3: 1, l4: 1}})],
+        extend: [
+            tuyaWeatherForecast({includeCurrentWeather: true, numberOfForecastDays: 3, correctForNegativeValues: true}),
+            tuyaBase({dp: true}),
+            m.deviceEndpoints({endpoints: {l1: 1, l2: 1, l3: 1, l4: 1}}),
+        ],
         exposes: [
             tuya.exposes.switch().withEndpoint("l1"),
             tuya.exposes.switch().withEndpoint("l2"),
@@ -10171,11 +10173,18 @@ export const definitions: DefinitionWithExtend[] = [
             e.text("scene_name", ea.STATE_SET).withEndpoint("l2").withDescription("Name for Scene 2"),
             e.text("scene_name", ea.STATE_SET).withEndpoint("l3").withDescription("Name for Scene 3"),
             e.text("scene_name", ea.STATE_SET).withEndpoint("l4").withDescription("Name for Scene 4"),
-            exposes.enum("mode", ea.STATE_SET, ["switch_1", "scene_1", "smart_light_1"]).withEndpoint("l1").withDescription("Switch1 mode"),
-            exposes.enum("mode", ea.STATE_SET, ["switch_1", "scene_1", "smart_light_1"]).withEndpoint("l2").withDescription("Switch2 mode"),
-            exposes.enum("mode", ea.STATE_SET, ["switch_1", "scene_1", "smart_light_1"]).withEndpoint("l3").withDescription("Switch3 mode"),
-            exposes.enum("mode", ea.STATE_SET, ["switch_1", "scene_1", "smart_light_1"]).withEndpoint("l4").withDescription("Switch4 mode"),
+            e.enum("mode", ea.STATE_SET, ["switch_1", "scene_1", "smart_light_1"]).withEndpoint("l1").withDescription("Switch1 mode"),
+            e.enum("mode", ea.STATE_SET, ["switch_1", "scene_1", "smart_light_1"]).withEndpoint("l2").withDescription("Switch2 mode"),
+            e.enum("mode", ea.STATE_SET, ["switch_1", "scene_1", "smart_light_1"]).withEndpoint("l3").withDescription("Switch3 mode"),
+            e.enum("mode", ea.STATE_SET, ["switch_1", "scene_1", "smart_light_1"]).withEndpoint("l4").withDescription("Switch4 mode"),
             e.action(["scene_1", "scene_2", "scene_3", "scene_4"]),
+
+            e.binary("backlight", ea.ALL, "ON", "OFF").withDescription("Backlight"),
+            e.enum("indicator_switch", ea.STATE_SET, ["status", "switch_position", "off"]).withDescription("Indicator switch"),
+            e.binary("backlight_switch", ea.ALL, "ON", "OFF").withDescription("Backlight switch"),
+
+            e.numeric("temperature_1", ea.STATE_SET).withValueMin(-65).withValueMax(99).withDescription("Temperature"),
+            e.enum("condition_1", ea.STATE_SET, Object.keys(tuya.M8ProTuyaWeatherCondition)).withDescription("Weather condition"),
         ],
         meta: {
             tuyaDatapoints: [
@@ -10199,6 +10208,9 @@ export const definitions: DefinitionWithExtend[] = [
                 [2, "action", tuya.valueConverter.static("scene_2")],
                 [3, "action", tuya.valueConverter.static("scene_3")],
                 [4, "action", tuya.valueConverter.static("scene_4")],
+                [101, "backlight", tuya.valueConverter.onOff],
+                [36, "backlight_switch", tuya.valueConverter.onOff],
+                [37, "indicator_switch", tuya.valueConverterBasic.lookup({status: tuya.enum(0), switch_position: tuya.enum(1), off: tuya.enum(2)})],
             ],
         },
     },
@@ -19475,6 +19487,12 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription("Current running mode")
                 .withCategory("diagnostic"),
             e
+                .binary("radiators_without_integrated_regulation", ea.STATE_SET, "ON", "OFF")
+                .withDescription(
+                    "Enable this for radiator without integrated regulation. OFF if Comfort, Eco and Antifrost temperatures can be defined on the radiator. ON if the radiator has no integrated regulation (i.e define temperatures on the thermostat).",
+                )
+                .withCategory("config"),
+            e
                 .numeric("comfort_temperature", ea.STATE_SET)
                 .withUnit("  C")
                 .withValueMin(5)
@@ -19594,6 +19612,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [113, "week_program_6", tuya.valueConverter.raw],
                 [114, "week_program_7", tuya.valueConverter.raw],
                 [115, "set_temp_switch", tuya.valueConverter.onOff],
+                [115, "radiators_without_integrated_regulation", tuya.valueConverter.onOff],
                 [116, "antifrost", tuya.valueConverter.onOff],
                 [117, "eco_temperature", tuya.valueConverter.divideBy10],
                 [118, "comfort_temperature", tuya.valueConverter.divideBy10],

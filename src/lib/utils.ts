@@ -510,7 +510,7 @@ export async function getClusterAttributeValue<
     endpoint: Zh.Endpoint,
     cluster: Cl,
     attribute: Attr,
-    fallback: ClusterOrRawAttributes<Cl, Custom>[Attr] = undefined,
+    fallback: ClusterOrRawAttributes<Cl, Custom>[Attr],
 ): Promise<ClusterOrRawAttributes<Cl, Custom>[Attr]> {
     try {
         const value = endpoint.getClusterAttributeValue(cluster, attribute);
@@ -522,9 +522,8 @@ export async function getClusterAttributeValue<
             return result[attribute] ?? fallback;
         }
         return (value as ClusterOrRawAttributes<Cl, Custom>[Attr]) ?? fallback;
-    } catch (error) {
-        if (fallback !== undefined) return fallback;
-        throw error;
+    } catch {
+        return fallback;
     }
 }
 

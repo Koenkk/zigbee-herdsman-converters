@@ -23,6 +23,7 @@ export const definitions: DefinitionWithExtend[] = [
                 "_TZE200_9gvruqf5",
                 "_TZE200_zr9c0day",
                 "_TZE200_0dvm9mva",
+                "_TZE284_0dvm9mva",
                 "_TZE200_h4cgnbzg",
                 "_TZE200_gd4rvykv",
                 "_TZE200_exfrnlow",

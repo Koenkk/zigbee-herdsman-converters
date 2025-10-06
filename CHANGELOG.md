@@ -1,5 +1,27 @@
 # Changelog
 
+## [25.40.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.39.0...v25.40.0) (2025-10-06)
+
+
+### Features
+
+* **add:** 756200027, 756200030 ([#10228](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10228)) ([4ece5b3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4ece5b359e4bf82ebc8b99d02227fcf9a24dac20))
+* **add:** 8720169264274 ([#10214](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10214)) ([7c1b6bf](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7c1b6bfb472e5ebabaaaefef3c95ae786c3445a0))
+* **add:** SM315 ([#10218](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10218)) ([17f306d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/17f306dbb0ab90573fcbfc5c96441b89140b5a48))
+* Tuya _TZE204_3regm3h6: support `radiators_without_integrated_regulation` ([#10215](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10215)) ([70fc3b1](https://github.com/Koenkk/zigbee-herdsman-converters/commit/70fc3b1204c8971686281d0b6fdad5382689f846))
+* Tuya M8Pro: add weather info support ([#10119](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10119)) ([327bd6a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/327bd6af43946ff72a6ee63931f9959b2df63b7b))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3290_785fbxik` as Tuya iH-F8260 https://github.com/Koenkk/zigbee2mqtt/issues/28911 ([a2f73fc](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a2f73fc14e023683f79df29f4775b84b0d9332a1))
+* **detect:** Detect `_TZE284_0dvm9mva` as Saswell SEA801-Zigbee/SEA802-Zigbee https://github.com/Koenkk/zigbee-herdsman-converters/issues/10209 ([d944b41](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d944b4195e88822278d5893d58d86017de905738))
+* Failing to start due to `genAnalogOutput.read(["minPresentValue"]) UNSUPPORTED_ATTRIBUTE` error https://github.com/Koenkk/zigbee2mqtt/issues/28910 ([90de2ef](https://github.com/Koenkk/zigbee-herdsman-converters/commit/90de2efaf999d6d09031a53c0d14588becaa3f63))
+* **ignore:** bump the minor-patch group with 3 updates ([#10219](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10219)) ([c29b07f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c29b07f78857d7c2593f5ae5be4e39508532e181))
+* **ignore:** update zhc to 6.1.5 ([3289f1e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3289f1e4f2d4dc99d181fb3eccbc32e2e014ccee))
+* **ignore:** update zhc to 6.2.0 ([92fff9d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/92fff9df7fb3251b3e422c4618cc9efccd02581f))
+* Tuya _TZ3000_gjnozsaz: fix power not reporting https://github.com/Koenkk/zigbee2mqtt/issues/28729 ([3c3004c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3c3004ca44ce4ff016f9e6e9c7f79064b5a1fb69))
+
 ## [25.39.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.38.0...v25.39.0) (2025-10-05)
 
 

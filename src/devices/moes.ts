@@ -1171,6 +1171,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZ3290_gnl5a6a5xvql7c2a",
             "_TZ3290_yyax9ajf",
             "_TZ3290_nkpxapoz",
+            "_TZ3290_785fbxik",
         ]),
         model: "UFO-R11",
         vendor: "Moes",
@@ -1201,7 +1202,7 @@ export const definitions: DefinitionWithExtend[] = [
                 await reporting.batteryVoltage(endpoint);
             }
         },
-        whiteLabel: [tuya.whitelabel("Tuya", "iH-F8260", "Universal smart IR remote control", ["_TZ3290_gnl5a6a5xvql7c2a"])],
+        whiteLabel: [tuya.whitelabel("Tuya", "iH-F8260", "Universal smart IR remote control", ["_TZ3290_gnl5a6a5xvql7c2a", "_TZ3290_785fbxik"])],
     },
     {
         fingerprint: tuya.fingerprint("TS0049", ["_TZ3000_cjfmu5he", "_TZ3000_mq4wujmp", "_TZ3000_5af5r192", "_TZE200_fphxkxue"]),
