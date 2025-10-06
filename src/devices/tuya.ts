@@ -19027,20 +19027,14 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.exposes.switchMode().withEndpoint("l1"),
             tuya.exposes.switchMode().withEndpoint("l2"),
 
-            e.numeric("brightness", ea.ALL).withValueMin(1).withValueMax(100).withDescription("Brightness"),
-            e
-                .numeric("color_temp", ea.ALL)
-                .withUnit("K")
-                .withValueMin(2700)
-                .withValueMax(6500)
-                .withDescription("Color temperature in Kelvin (converted from 0–1000 Tuya raw)"),
+            e.light_brightness_colortemp([2700, 6500]),
 
             e.enum("adjustment_mode", ea.ALL, ["brightness", "color_temp"]).withDescription("Adjustment mode"),
             tuya.exposes.powerOnBehavior(),
             e.action(["button_1", "button_2"]),
             e.enum("mode", ea.ALL, ["knob", "scene"]).withDescription("Mode"),
 
-            e.numeric("group_id", ea.SET).withValueMin(1).withValueMax(10000).withDescription("Group IDs to bind to (separated by comma)."),
+            e.numeric("group_id", ea.SET).withValueMin(1).withValueMax(10000).withDescription("Group ID to bind to."),
         ],
         meta: {
             multiEndpoint: true,
@@ -19050,7 +19044,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [122, "state_l2", tuya.valueConverter.onOff],
                 [131, "switch_mode_l1", tuya.valueConverter.switchMode],
                 [132, "switch_mode_l2", tuya.valueConverter.switchMode],
-                [103, "brightness", tuya.valueConverterBasic.scale(0, 100, 0, 1000)],
+                [103, "brightness", tuya.valueConverterBasic.scale(0, 254, 0, 1000)],
                 [107, "color_temp", tuya.valueConverterBasic.scale(2700, 6500, 0, 1000)],
                 [105, "adjustment_mode", tuya.valueConverterBasic.lookup({brightness: tuya.enum(0), color_temp: tuya.enum(1)})],
                 [106, "power_on_behavior", tuya.valueConverter.powerOnBehavior],
