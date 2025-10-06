@@ -31,10 +31,10 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["Mec Driver module"],
-        model: "756200026",
+        model: "756200027",
         vendor: "LS Deutschland GmbH",
         description: "Mec Driver module 1-channel Zigbee (12V)",
-        whiteLabel: [{model: "756200027", vendor: "LS Deutschland GmbH", description: "Mec Driver module 1-channel Zigbee (24V)"}],
+        whiteLabel: [{model: "756200028", vendor: "LS Deutschland GmbH", description: "Mec Driver module 1-channel Zigbee (24V)"}],
         extend: [m.light({colorTemp: {range: [153, 500]}})],
     },
     {
