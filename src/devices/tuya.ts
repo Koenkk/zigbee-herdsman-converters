@@ -19781,7 +19781,85 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueStep(1)
                 .withUnit("minute")
                 .withDescription("Watering countdown to turn device off after a certain time"),
+        ]
+    },
+    {
+        fingerprint: [{ modelID: 'TS0601', manufacturerName: '_TZE200_agumlajc' }],
+        model: 'SSWMPIR-ZB',
+        vendor: 'Mercator Ikuü',
+        description: 'Combination Sensor (Motion, Temperature, Humidity, Light)',
+
+        // Use Tuya helpers for datapoints received from device
+        fromZigbee: [tuya.fz.datapoints],
+        // Use custom message  for datapoints sent to device (Tuya helpers appeared to wrap datapoints twice creating syntax errors in communications to device)
+        toZigbee: [{
+            key: ['brightness_threshold', 'motion_hold_time', 'motion_sensitivity', 'light_control_mode'],
+            convertSet: async (entity, key, value, meta) => {
+                const dpMap = {
+                    brightness_threshold: 102,
+                    motion_hold_time: 103,
+                    motion_sensitivity: 106,
+                    light_control_mode: 105,
+                };
+                const dp = dpMap[key];
+                let data;
+    
+                if (key === 'light_control_mode') {
+                    const lookup = {ON: 0, OFF: 1, AUTO: 2};
+                    data = [lookup[value]];
+                    await tuya.sendDataPointEnum(entity, dp, data[0]);
+                } else {
+                    const val = Number(value);
+                    await tuya.sendDataPointValue(entity, dp, val);
+                }
+    
+                return {state: {[key]: value}};
+            },
+        }],
+
+        exposes: [
+            e.occupancy(),
+            e.temperature(),
+            e.humidity(),
+            e.illuminance(),
+
+            e.enum('light_control_mode', ea.ALL, ['ON', 'OFF', 'AUTO'])
+                .withDescription('Light control mode'),
+
+            e.numeric('brightness_threshold', ea.ALL)
+                .withValueMin(0)
+                .withValueMax(1000)
+                .withUnit('lx')
+                .withDescription('Brightness threshold for AUTO light control'),
+
+            e.numeric('motion_hold_time', ea.ALL)
+                .withValueMin(1)
+                .withValueMax(1000)
+                .withUnit('s')
+                .withDescription('Time in seconds the light remains on after motion stops for AUTO light control'),
+
+            e.numeric('motion_sensitivity', ea.ALL)
+                .withValueMin(0)
+                .withValueMax(100)
+                .withDescription('Motion detection sensitivity (0–100) for AUTO light control'),
         ],
+
+        meta: {
+            tuyaDatapoints: [
+                [1, 'temperature', tuya.valueConverter.divideBy10],
+                [2, 'humidity', tuya.valueConverter.raw], 
+                [101, 'illuminance', tuya.valueConverter.raw],
+                [102, 'brightness_threshold', tuya.valueConverter.raw],
+                [103, 'motion_hold_time', tuya.valueConverter.raw],
+                [104, 'occupancy', tuya.valueConverter.trueFalse1],
+                [105, 'light_control_mode', tuya.valueConverterBasic.lookup({'ON': 0, 'OFF': 1, 'AUTO': 2})],
+                [106, 'motion_sensitivity', tuya.valueConverter.raw],
+            ],
+        },
+
+        // Optional Tuya helpers for time sync & config
+        onEvent: tuya.onEventSetTime,
+        configure: tuya.configureMagicPacket,
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_7zazvlyn", "_TZE284_idn2htgu"]),
