@@ -7183,13 +7183,11 @@ export const definitions: DefinitionWithExtend[] = [
 
             await reporting.rmsCurrent(endpoint, {change: 50});
 
-            if (
-                !["_TZ3000_0zfrhq4i", "_TZ3000_okaz9tjs", "_TZ3000_typdpbpg", "_TZ3000_ww6drja5", "Zbeacon", "_TZ3000_gjnozsaz"].includes(
-                    device.manufacturerName,
-                )
-            ) {
+            if (!["_TZ3000_0zfrhq4i", "_TZ3000_okaz9tjs", "_TZ3000_typdpbpg", "_TZ3000_ww6drja5", "Zbeacon"].includes(device.manufacturerName)) {
                 // Gives INVALID_DATA_TYPE error for _TZ3000_0zfrhq4i (as well as a few others in issue 20028)
                 // https://github.com/Koenkk/zigbee2mqtt/discussions/19680#discussioncomment-7667035
+                // Don't do this for `_TZ3000_gjnozsaz` (was previously in the list, but removed after:
+                // https://github.com/Koenkk/zigbee2mqtt/issues/28729#issuecomment-3370261334
                 await reporting.activePower(endpoint, {change: 10});
             }
             await reporting.currentSummDelivered(endpoint);
@@ -19452,6 +19450,12 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription("Current running mode")
                 .withCategory("diagnostic"),
             e
+                .binary("radiators_without_integrated_regulation", ea.STATE_SET, "ON", "OFF")
+                .withDescription(
+                    "Enable this for radiator without integrated regulation. OFF if Comfort, Eco and Antifrost temperatures can be defined on the radiator. ON if the radiator has no integrated regulation (i.e define temperatures on the thermostat).",
+                )
+                .withCategory("config"),
+            e
                 .numeric("comfort_temperature", ea.STATE_SET)
                 .withUnit("  C")
                 .withValueMin(5)
@@ -19571,6 +19575,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [113, "week_program_6", tuya.valueConverter.raw],
                 [114, "week_program_7", tuya.valueConverter.raw],
                 [115, "set_temp_switch", tuya.valueConverter.onOff],
+                [115, "radiators_without_integrated_regulation", tuya.valueConverter.onOff],
                 [116, "antifrost", tuya.valueConverter.onOff],
                 [117, "eco_temperature", tuya.valueConverter.divideBy10],
                 [118, "comfort_temperature", tuya.valueConverter.divideBy10],
