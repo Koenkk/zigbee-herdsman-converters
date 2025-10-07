@@ -1808,9 +1808,9 @@ export const definitions: DefinitionWithExtend[] = [
             lumi.lumiModernExtend.fp1eSpatialLearning(),
             lumi.lumiModernExtend.fp1eRestartDevice(),
             m.identify(),
-            
+
             lumi.lumiModernExtend.fp1eAIInterference(),
-            lumi.lumiModernExtend.fp1eAdaptiveSensitivity()
+            lumi.lumiModernExtend.fp1eAdaptiveSensitivity(),
         ],
     },
     {
@@ -5009,7 +5009,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Presence detection sensor type",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
-            
+
             lumi.lumiModernExtend.fp1eAIInterference(),
             lumi.lumiModernExtend.fp1eAdaptiveSensitivity(),
 

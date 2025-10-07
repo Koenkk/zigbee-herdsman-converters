@@ -2540,7 +2540,8 @@ export const lumiModernExtend = {
             valueOff: ["OFF", 0],
             cluster: "manuSpecificLumi",
             attribute: attribute,
-            description: "AI interference source self-identification switch, when enabled can identify fans, air conditioners and other interference sources",
+            description:
+                "AI interference source self-identification switch, when enabled can identify fans, air conditioners and other interference sources",
             access: "ALL",
             zigbeeCommandOptions: {manufacturerCode},
         });
