@@ -1,5 +1,25 @@
 # Changelog
 
+## [25.41.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.40.0...v25.41.0) (2025-10-07)
+
+
+### Features
+
+* **add:** REXZB-111 ([#10234](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10234)) ([c2ea11c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c2ea11caa6478c3aed4270785eef6580c94397fb))
+* **add:** ZN-USC1U-HT ([#10235](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10235)) ([9b00082](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9b0008204ce1a4680befa03bb7ae156307ef4a2f))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3000_bs93npae` as EC-GL86ZPCRS31 ([#10233](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10233)) ([b05da59](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b05da59ac3842929f57f1613ce62ab5dcffa91c4))
+* **detect:** Detect `_TZ3290_8xzb2ghn` as Tuya ZS06 ([1dd9ab0](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1dd9ab0d67c8df8702bbb991d7a2d2cedabb1ed7))
+* Livolo TI0001-illuminance: fix reported illuminance unit ([#10231](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10231)) ([39d0956](https://github.com/Koenkk/zigbee-herdsman-converters/commit/39d09563dab637633fa4c87fa0c7c73a6baaa6ee))
+* Livolo TI0001-pir: fix prevent disconnect payload ([#10229](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10229)) ([885918c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/885918cc81c6d1d53190527f740360bdaed3a42c))
+* Move S32052 to preexisting manufacturer file ([#10241](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10241)) ([a530ab1](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a530ab14aca8d2f042ac370df6210e90de0a7043))
+* Namron Edge Thermostat: fix `regulator_percentage ` data type ([#10242](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10242)) ([6f26918](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6f26918b36144cfc2ddb8d7341fd315a44485f9a))
+* NodOn SEM-4-1-00: fix attribute updates ([#10248](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10248)) ([8ddc7ab](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8ddc7ab1197bdde1acdccc6b6c620f16c7ad48d9))
+* Rename `LS Deutschland GmbH` to `L&S Lighting` ([#10230](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10230)) ([2fc4979](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2fc497908bb6afd7ce21476acfd1e11e04fed5f1))
+
 ## [25.40.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.39.0...v25.40.0) (2025-10-06)
 
 
