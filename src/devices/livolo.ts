@@ -216,7 +216,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Livolo",
         exposes: [
             e.noise_detected(),
-            e.illuminance().withUnit("%").withValueMin(0).withValueMax(100),
+            e.illuminance(),
             e.enum("noise_level", ea.STATE, ["silent", "normal", "lively", "noisy"]).withDescription("Detected noise level"),
         ],
         fromZigbee: [
