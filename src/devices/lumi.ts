@@ -5007,6 +5007,28 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
 
+            m.binary({
+                name: "ai_interference_source_selfidentification",
+                valueOn: ["ON", 1],
+                valueOff: ["OFF", 0],
+                cluster: "manuSpecificLumi",
+                attribute: {ID: 0x015e, type: 0x20}, // Attribute: 350
+                description: "AI interference source self-identification switch (identifies interference sources such as fans and air conditioners)",
+                access: "ALL",
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
+
+            m.binary({
+                name: "ai_sensitivity_adaptive",
+                valueOn: ["ON", 1],
+                valueOff: ["OFF", 0],
+                cluster: "manuSpecificLumi",
+                attribute: {ID: 0x015d, type: 0x20}, // Attribute: 349
+                description: "AI adaptive sensitivity",
+                access: "ALL",
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
+
             m.numeric({
                 name: "absence_delay_timer",
                 valueMin: 10,
