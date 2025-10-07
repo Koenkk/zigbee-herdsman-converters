@@ -4579,6 +4579,17 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TH-S04D",
         vendor: "Aqara",
         description: "Climate Sensor W100",
+        fromZigbee: [lumi.fromZigbee.w100_0844_req, lumi.fromZigbee.pmtsd_from_w100],
+        toZigbee: [lumi.toZigbee.pmtsd_to_w100, lumi.toZigbee.thermostat_mode],
+        exposes: [
+            e.action(["W100_PMTSD_request"]).withDescription("W100 Requesting PMTSD Data via 08000844 Request"),
+            e.text("PMTSD_from_W100_Data", ea.STATE).withDescription("Timestamp+Most Recent PMTSD Values Sent by W100"),
+            e
+                .binary("Thermostat_Mode", ea.ALL, "ON", "OFF")
+                .withDescription(
+                    "On: Enable thermostat mode. Buttons send encrypted payloads and middle line is enabled. Off: Disable thermostat mode. Buttons send actions and middle line is disabled.",
+                ),
+        ],
         extend: [
             lumiZigbeeOTA(),
             m.temperature(),
