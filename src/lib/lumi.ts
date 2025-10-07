@@ -2534,7 +2534,7 @@ export const lumiModernExtend = {
     },
     fp1eAIInterference: () => {
         const attribute = {ID: 0x015e, type: 0x20}; // Attribute: 350
-        return m.binary({
+        return modernExtend.binary({
             name: "ai_interference_source_selfidentification",
             valueOn: ["ON", 1],
             valueOff: ["OFF", 0],
@@ -2548,7 +2548,7 @@ export const lumiModernExtend = {
     },
     fp1eAdaptiveSensitivity: () => {
         const attribute = {ID: 0x015d, type: 0x20}; // Attribute: 349
-        return m.binary({
+        return modernExtend.binary({
             name: "ai_sensitivity_adaptive",
             valueOn: ["ON", 1],
             valueOff: ["OFF", 0],
