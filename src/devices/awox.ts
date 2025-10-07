@@ -293,4 +293,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.battery(), m.occupancy(), m.commandsOnOff(), m.commandsLevelCtrl()],
         whiteLabel: [{vendor: "EGLO", model: "99106"}],
     },
+    {
+        zigbeeModel: ["ERCU_WS_Zm"],
+        model: "ERCU_WS_Zm",
+        vendor: "AwoX",
+        description: "Connect-Z magnetic wall mountable light RCU",
+        extend: [m.deviceEndpoints({endpoints: {"1": 1, "3": 3}}), m.commandsOnOff(), m.commandsLevelCtrl(), m.commandsColorCtrl()],
+        meta: {multiEndpoint: true},
+        whiteLabel: [{vendor: "EGLO", model: "900116"}],
+    },
 ];

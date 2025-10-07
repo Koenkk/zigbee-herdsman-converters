@@ -101,6 +101,8 @@ const fzLocal = {
         type: ["attributeReport", "readResponse"],
         options: [exposes.options.state_action()],
         convert: (model, msg, publish, options, meta) => {
+            // Device keeps reporting a acCurrentPowerValue after turning OFF.
+            // Make sure power = 0 when turned OFF
             // https://github.com/Koenkk/zigbee2mqtt/issues/28470
             let result = fz.on_off.convert(model, msg, publish, options, meta);
             if (msg.data.onOff === 0) {
@@ -144,6 +146,8 @@ export interface SonoffEwelink {
         deviceWorkMode: number;
         detachRelayMode2: number;
         lackWaterCloseValveTimeout: number;
+        motorTravelCalibrationStatus: number;
+        motorRunStatus: number;
         acCurrentCurrentValue: number;
         acCurrentVoltageValue: number;
         acCurrentPowerValue: number;
@@ -180,6 +184,8 @@ const sonoffExtend = {
                 deviceWorkMode: {ID: 0x0018, type: Zcl.DataType.UINT8},
                 detachRelayMode2: {ID: 0x0019, type: Zcl.DataType.BITMAP8},
                 lackWaterCloseValveTimeout: {ID: 0x5011, type: Zcl.DataType.UINT16},
+                motorTravelCalibrationStatus: {ID: 0x5012, type: Zcl.DataType.UINT8},
+                motorRunStatus: {ID: 0x5013, type: Zcl.DataType.UINT8},
                 acCurrentCurrentValue: {ID: 0x7004, type: Zcl.DataType.UINT32},
                 acCurrentVoltageValue: {ID: 0x7005, type: Zcl.DataType.UINT32},
                 acCurrentPowerValue: {ID: 0x7006, type: Zcl.DataType.UINT32},
@@ -2031,8 +2037,17 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: "acCurrentCurrentValue",
                 description: "Current",
                 unit: "A",
-                scale: 1000,
                 access: "STATE_GET",
+                // https://github.com/Koenkk/zigbee2mqtt/issues/28470#issuecomment-3369116710
+                reporting: {min: "10_SECONDS", max: "MAX", change: 2},
+                fzConvert: (model, msg, publish, options, meta) => {
+                    // Device keeps reporting a acCurrentCurrentValue after turning OFF.
+                    // Make sure power = 0 when turned OFF
+                    // https://github.com/Koenkk/zigbee2mqtt/issues/28470
+                    if ("acCurrentCurrentValue" in msg.data) {
+                        return {current: meta.state.state === "ON" ? msg.data.acCurrentCurrentValue / 1000 : 0};
+                    }
+                },
             }),
             m.numeric<"customClusterEwelink", SonoffEwelink>({
                 name: "voltage",
@@ -2049,9 +2064,16 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: "acCurrentPowerValue",
                 description: "Active power",
                 unit: "W",
-                scale: 1000,
                 access: "STATE_GET",
                 reporting: {min: "10_SECONDS", max: "MAX", change: 0},
+                fzConvert: (model, msg, publish, options, meta) => {
+                    // Device keeps reporting a acCurrentPowerValue after turning OFF.
+                    // Make sure power = 0 when turned OFF
+                    // https://github.com/Koenkk/zigbee2mqtt/issues/28470
+                    if ("acCurrentPowerValue" in msg.data) {
+                        return {power: meta.state.state === "ON" ? msg.data.acCurrentPowerValue / 1000 : 0};
+                    }
+                },
             }),
             m.numeric<"customClusterEwelink", SonoffEwelink>({
                 name: "energy_yesterday",
@@ -2499,6 +2521,42 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint3, coordinatorEndpoint, ["genOnOff"]);
             await reporting.onOff(endpoint3, {min: 1, max: 1810, change: 0});
             await endpoint3.read("genOnOff", [0x0000, 0x4003], defaultResponseOptions);
+        },
+    },
+    {
+        zigbeeModel: ["MINI-ZBRBS"],
+        model: "MINI-ZBRBS",
+        vendor: "SONOFF",
+        description: "Zigbee smart roller shutter switch",
+        extend: [
+            sonoffExtend.addCustomClusterEwelink(),
+            m.windowCovering({controls: ["lift"], coverInverted: false}),
+            m.enumLookup<"customClusterEwelink", SonoffEwelink>({
+                name: "motor_travel_calibration_status",
+                lookup: {Uncalibrated: 0, Calibrated: 1},
+                cluster: "customClusterEwelink",
+                attribute: "motorTravelCalibrationStatus",
+                description: "The calibration status of the curtain motor's stroke.",
+                access: "STATE_GET",
+            }),
+            m.enumLookup<"customClusterEwelink", SonoffEwelink>({
+                name: "motor_run_status",
+                lookup: {Stop: 0, Forward: 1, Reverse: 2},
+                cluster: "customClusterEwelink",
+                attribute: "motorRunStatus",
+                description: "The motor's current operating status, such as forward rotation, reverse rotation, and stop.",
+                access: "STATE_GET",
+            }),
+            sonoffExtend.externalSwitchTriggerMode({entityCategory: "config"}),
+        ],
+        ota: true,
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.read<"customClusterEwelink", SonoffEwelink>(
+                "customClusterEwelink",
+                ["radioPower", 0x0016, 0x5012, 0x5013],
+                defaultResponseOptions,
+            );
         },
     },
 ];

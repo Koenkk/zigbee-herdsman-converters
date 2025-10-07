@@ -15,7 +15,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "R7060",
         vendor: "Woox",
         description: "Smart garden irrigation control",
-        fromZigbee: [fz.on_off, fz.ignore_tuya_set_time, fz.ignore_basic_report, legacy.fromZigbee.woox_R7060],
+        fromZigbee: [fz.on_off, fz.ignore_tuya_set_time, legacy.fromZigbee.woox_R7060],
         toZigbee: [tz.on_off],
         extend: [tuya.modernExtend.tuyaBase({timeStart: "2000"})],
         exposes: [e.switch(), e.battery()],
@@ -53,7 +53,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Woox",
         description: "Smart smoke alarm",
         meta: {timeout: 30000, disableDefaultResponse: true},
-        fromZigbee: [legacy.fromZigbee.R7049_status, fz.ignore_tuya_set_time, fz.ignore_time_read],
+        fromZigbee: [legacy.fromZigbee.R7049_status, fz.ignore_tuya_set_time],
         toZigbee: [legacy.toZigbee.R7049_silenceSiren, legacy.toZigbee.R7049_testAlarm, legacy.toZigbee.R7049_alarm],
         exposes: [
             e.battery_low(),

@@ -250,11 +250,11 @@ const sdevices = {
                         payload.ledIndicatorOnB = value;
                         break;
                 }
-                await m.determineEndpoint(entity, meta, "manuSpecificSDevices").write("manuSpecificSDevices", payload, defaultResponseOptions);
+                await utils.determineEndpoint(entity, meta, "manuSpecificSDevices").write("manuSpecificSDevices", payload, defaultResponseOptions);
                 return {state: {[key]: value}};
             },
             convertGet: async (entity, key, meta) => {
-                await m
+                await utils
                     .determineEndpoint(entity, meta, "manuSpecificSDevices")
                     .read<"manuSpecificSDevices", SberDevices>(
                         "manuSpecificSDevices",
@@ -283,11 +283,11 @@ const sdevices = {
                         payload.ledIndicatorOffB = value;
                         break;
                 }
-                await m.determineEndpoint(entity, meta, "manuSpecificSDevices").write("manuSpecificSDevices", payload, defaultResponseOptions);
+                await utils.determineEndpoint(entity, meta, "manuSpecificSDevices").write("manuSpecificSDevices", payload, defaultResponseOptions);
                 return {state: {[key]: value}};
             },
             convertGet: async (entity, key, meta) => {
-                await m
+                await utils
                     .determineEndpoint(entity, meta, "manuSpecificSDevices")
                     .read<"manuSpecificSDevices", SberDevices>(
                         "manuSpecificSDevices",
@@ -345,11 +345,11 @@ const sdevices = {
                 }
                 const payload: KeyValueAny = {};
                 payload.buttonEnableMultiClick = value.toUpperCase() === "ON" ? 1 : 0;
-                await m.determineEndpoint(entity, meta, "manuSpecificSDevices").write("manuSpecificSDevices", payload, defaultResponseOptions);
+                await utils.determineEndpoint(entity, meta, "manuSpecificSDevices").write("manuSpecificSDevices", payload, defaultResponseOptions);
                 return {state: {[key]: value}};
             },
             convertGet: async (entity, key, meta) => {
-                await m
+                await utils
                     .determineEndpoint(entity, meta, "manuSpecificSDevices")
                     .read<"manuSpecificSDevices", SberDevices>("manuSpecificSDevices", ["buttonEnableMultiClick"], defaultResponseOptions);
             },

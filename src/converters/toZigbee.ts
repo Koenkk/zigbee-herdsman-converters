@@ -6,10 +6,10 @@ import * as exposes from "../lib/exposes";
 import * as legacy from "../lib/legacy";
 import * as light from "../lib/light";
 import {logger} from "../lib/logger";
-import {determineEndpoint} from "../lib/modernExtend";
 import * as globalStore from "../lib/store";
 import type {KeyValue, KeyValueAny, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
+import {determineEndpoint} from "../lib/utils";
 
 const NS = "zhc:tz";
 const manufacturerOptions = {
@@ -4143,6 +4143,13 @@ export const ts0216_volume: Tz.Converter = {
     key: ["volume"],
     convertSet: async (entity, key, value, meta) => {
         utils.assertNumber(value);
+
+        if (["_TYZB01_sbpc1zrb"].includes(meta.device.manufacturerName)) {
+            const volume = value === 0 ? 0 : utils.mapNumberRange(value, 1, 100, 100, 33);
+            await entity.write("ssIasWd", {2: {value: volume, type: 0x20}});
+            return;
+        }
+
         await entity.write("ssIasWd", {2: {value: utils.mapNumberRange(value, 0, 100, 100, 10), type: 0x20}});
     },
     convertGet: async (entity, key, meta) => {

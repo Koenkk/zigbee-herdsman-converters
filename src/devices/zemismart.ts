@@ -44,6 +44,14 @@ const valueConverterLocal = {
         warmwhite: tuya.enum(7),
         warmyellow: tuya.enum(8),
     }),
+    radarConfig: tuya.valueConverterBasic.lookup({
+        none: tuya.enum(0),
+        "10s": tuya.enum(1),
+        "20s": tuya.enum(2),
+        "30s": tuya.enum(3),
+        "45s": tuya.enum(4),
+        "60s": tuya.enum(5),
+    }),
     name: {
         to: (v: string, meta: Tz.Meta) => {
             const stringValue = String(v ?? "");
@@ -72,7 +80,7 @@ const valueConverterLocal = {
 
 export const definitions: DefinitionWithExtend[] = [
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_1vxgqfba", "_TZE200_wdfurkoa", "_TZE200_sq6affpe"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_1vxgqfba", "_TZE200_wdfurkoa", "_TZE200_sq6affpe", "_TZE284_wdfurkoa"]),
         model: "ZM25R1",
         vendor: "Zemismart",
         description: "Tubular motor",
@@ -125,7 +133,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZM-CSW032-D",
         vendor: "Zemismart",
         description: "Curtain/roller blind switch",
-        fromZigbee: [fz.ignore_basic_report, fz.ZMCSW032D_cover_position],
+        fromZigbee: [fz.ZMCSW032D_cover_position],
         toZigbee: [tz.cover_state, tz.ZMCSW032D_cover_position],
         exposes: [e.cover_position()],
         meta: {multiEndpoint: true},
@@ -218,7 +226,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Zemismart",
         description: "Tubular motor",
         // mcuVersionResponse spsams: https://github.com/Koenkk/zigbee2mqtt/issues/19817
-        extend: [tuya.modernExtend.tuyaBase({dp: true, respondToMcuVersionResponse: false, timeStart: "off"})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "off"})],
         options: [exposes.options.invert_cover()],
         exposes: [
             e.text("work_state", ea.STATE),
@@ -309,7 +317,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZM25TQ",
         vendor: "Zemismart",
         description: "Tubular motor",
-        fromZigbee: [legacy.fz.tuya_cover, fz.ignore_basic_report],
+        fromZigbee: [legacy.fz.tuya_cover],
         toZigbee: [legacy.tz.tuya_cover_control, legacy.tz.tuya_cover_options, legacy.tz.tuya_data_point_test],
         exposes: [e.cover_position().setAccess("position", ea.STATE_SET)],
         extend: [m.forcePowerSource({powerSource: "Mains (single phase)"})],
@@ -325,7 +333,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.switch().withEndpoint("l3").setAccess("state", ea.STATE_SET),
             e.switch().withEndpoint("l4").setAccess("state", ea.STATE_SET),
         ],
-        fromZigbee: [fz.ignore_basic_report, legacy.fz.tuya_switch],
+        fromZigbee: [legacy.fz.tuya_switch],
         toZigbee: [legacy.tz.tuya_switch_state],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
@@ -353,7 +361,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.switch().withEndpoint("l5").setAccess("state", ea.STATE_SET),
             e.switch().withEndpoint("l6").setAccess("state", ea.STATE_SET),
         ],
-        fromZigbee: [fz.ignore_basic_report, legacy.fz.tuya_switch],
+        fromZigbee: [legacy.fz.tuya_switch],
         toZigbee: [legacy.tz.tuya_switch_state],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
@@ -405,7 +413,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZMS-206US-1",
         vendor: "Zemismart",
         description: "Smart screen switch 1 gang",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "off", respondToMcuVersionResponse: false})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "off"})],
         exposes: [
             tuya.exposes.backlightModeOffOn().withAccess(ea.STATE_SET),
             e.switch(),
@@ -417,6 +425,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMax(100)
                 .withValueStep(1),
             e.child_lock(),
+            e.enum("radar_config", ea.STATE_SET, ["none", "10s", "20s", "30s", "45s", "60s"]).withDescription("Radar Config"),
             e
                 .enum("switch_color_on", ea.STATE_SET, ["red", "blue", "green", "white", "yellow", "magenta", "cyan", "warm_white", "warm_yellow"])
                 .withDescription("Switch lightcolor when on"),
@@ -450,9 +459,10 @@ export const definitions: DefinitionWithExtend[] = [
                 [29, "relay_status", valueConverterLocal.relayStatus],
                 [101, "child_lock", tuya.valueConverter.lockUnlock],
                 [102, "backlight_brightness", tuya.valueConverter.raw],
-                [103, "switch_color_off", valueConverterLocal.switchColor],
-                [104, "switch_color_on", valueConverterLocal.switchColor],
+                [103, "switch_color_on", valueConverterLocal.switchColor],
+                [104, "switch_color_off", valueConverterLocal.switchColor],
                 [105, "name", valueConverterLocal.name],
+                [111, "radar_config", valueConverterLocal.radarConfig],
                 [209, "cycle_schedule", valueConverterLocal.cycleSchedule],
             ],
         },
@@ -462,7 +472,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZMS-206EU-2",
         vendor: "Zemismart",
         description: "Smart screen switch 2 gang",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "off", respondToMcuVersionResponse: false})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "off"})],
         exposes: [
             tuya.exposes.backlightModeOffOn().withAccess(ea.STATE_SET),
             e.switch(),
@@ -476,6 +486,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMax(100)
                 .withValueStep(1),
             e.child_lock(),
+            e.enum("radar_config", ea.STATE_SET, ["none", "10s", "20s", "30s", "45s", "60s"]).withDescription("Radar Config"),
             e
                 .enum("switch_color_on", ea.STATE_SET, ["red", "blue", "green", "white", "yellow", "magenta", "cyan", "warm_white", "warm_yellow"])
                 .withDescription("Switch lightcolor when on"),
@@ -533,10 +544,11 @@ export const definitions: DefinitionWithExtend[] = [
                 [30, "relay_status_l2", valueConverterLocal.relayStatus],
                 [101, "child_lock", tuya.valueConverter.lockUnlock],
                 [102, "backlight_brightness", tuya.valueConverter.raw],
-                [103, "switch_color_off", valueConverterLocal.switchColor],
-                [104, "switch_color_on", valueConverterLocal.switchColor],
+                [103, "switch_color_on", valueConverterLocal.switchColor],
+                [104, "switch_color_off", valueConverterLocal.switchColor],
                 [105, "name_l1", valueConverterLocal.name],
                 [106, "name_l2", valueConverterLocal.name],
+                [111, "radar_config", valueConverterLocal.radarConfig],
                 [209, "cycle_schedule", valueConverterLocal.cycleSchedule],
             ],
         },
@@ -546,7 +558,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZMS-206EU-3",
         vendor: "Zemismart",
         description: "Smart screen switch 3 gang",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "off", respondToMcuVersionResponse: false})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "off"})],
         exposes: [
             tuya.exposes.backlightModeOffOn().withAccess(ea.STATE_SET),
             e.switch(),
@@ -561,6 +573,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMax(100)
                 .withValueStep(1),
             e.child_lock(),
+            e.enum("radar_config", ea.STATE_SET, ["none", "10s", "20s", "30s", "45s", "60s"]).withDescription("Radar Config"),
             e
                 .enum("switch_color_on", ea.STATE_SET, ["red", "blue", "green", "white", "yellow", "magenta", "cyan", "warm_white", "warm_yellow"])
                 .withDescription("Switch lightcolor when on"),
@@ -634,11 +647,12 @@ export const definitions: DefinitionWithExtend[] = [
                 [31, "relay_status_l3", valueConverterLocal.relayStatus],
                 [101, "child_lock", tuya.valueConverter.lockUnlock],
                 [102, "backlight_brightness", tuya.valueConverter.raw],
-                [103, "switch_color_off", valueConverterLocal.switchColor],
-                [104, "switch_color_on", valueConverterLocal.switchColor],
+                [103, "switch_color_on", valueConverterLocal.switchColor],
+                [104, "switch_color_off", valueConverterLocal.switchColor],
                 [105, "name_l1", valueConverterLocal.name],
                 [106, "name_l2", valueConverterLocal.name],
                 [107, "name_l3", valueConverterLocal.name],
+                [111, "radar_config", valueConverterLocal.radarConfig],
                 [209, "cycle_schedule", valueConverterLocal.cycleSchedule],
             ],
         },
@@ -648,7 +662,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZMS-206US-4",
         vendor: "Zemismart",
         description: "Smart screen switch 4 gang US",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "off", respondToMcuVersionResponse: false})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "off"})],
         exposes: [
             tuya.exposes.backlightModeOffOn().withAccess(ea.STATE_SET),
             e.switch(),
@@ -665,6 +679,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMax(100)
                 .withValueStep(1),
             e.child_lock(),
+            e.enum("radar_config", ea.STATE_SET, ["none", "10s", "20s", "30s", "45s", "60s"]).withDescription("Radar Config"),
             e
                 .enum("switch_color_on", ea.STATE_SET, ["red", "blue", "green", "white", "yellow", "magenta", "cyan", "warm_white", "warm_yellow"])
                 .withDescription("Switch lightcolor when on"),
@@ -754,12 +769,13 @@ export const definitions: DefinitionWithExtend[] = [
                 [32, "relay_status_l4", valueConverterLocal.relayStatus],
                 [101, "child_lock", tuya.valueConverter.lockUnlock],
                 [102, "backlight_brightness", tuya.valueConverter.raw],
-                [103, "switch_color_off", valueConverterLocal.switchColor],
-                [104, "switch_color_on", valueConverterLocal.switchColor],
+                [103, "switch_color_on", valueConverterLocal.switchColor],
+                [104, "switch_color_off", valueConverterLocal.switchColor],
                 [105, "name_l1", valueConverterLocal.name],
                 [106, "name_l2", valueConverterLocal.name],
                 [107, "name_l3", valueConverterLocal.name],
                 [108, "name_l4", valueConverterLocal.name],
+                [111, "radar_config", valueConverterLocal.radarConfig],
                 [201, "cycle_schedule", valueConverterLocal.cycleSchedule],
             ],
         },

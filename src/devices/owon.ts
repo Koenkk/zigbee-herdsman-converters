@@ -279,7 +279,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "PIR313-E",
         vendor: "OWON",
         description: "Motion sensor",
-        fromZigbee: [fz.battery, fz.ignore_basic_report, fz.ias_occupancy_alarm_1, fz.temperature, fz.humidity, fz.occupancy_timeout],
+        fromZigbee: [fz.battery, fz.ias_occupancy_alarm_1, fz.temperature, fz.humidity, fz.occupancy_timeout],
         toZigbee: [],
         exposes: [e.occupancy(), e.tamper(), e.battery_low(), e.temperature(), e.humidity()],
         configure: async (device, coordinatorEndpoint) => {
@@ -543,7 +543,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "PIR323-PTH",
         vendor: "OWON",
         description: "Multi-sensor",
-        fromZigbee: [fz.battery, fz.ignore_basic_report, fz.ias_occupancy_alarm_1, fz.temperature, fz.humidity, fz.occupancy_timeout],
+        fromZigbee: [fz.battery, fz.ias_occupancy_alarm_1, fz.temperature, fz.humidity, fz.occupancy_timeout],
         toZigbee: [],
         exposes: [e.occupancy(), e.battery_low(), e.temperature(), e.humidity()],
         configure: async (device, coordinatorEndpoint) => {

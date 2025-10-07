@@ -73,8 +73,8 @@ export const definitions: DefinitionWithExtend[] = [
                 ID: 0xff02,
                 manufacturerCode: 0x1233,
                 attributes: {
-                    backOn: {ID: 0x0001, type: Zcl.DataType.UINT16},
-                    backOff: {ID: 0x0002, type: Zcl.DataType.UINT16},
+                    onToOffDelay: {ID: 0x0001, type: Zcl.DataType.UINT16},
+                    offToOnDelay: {ID: 0x0002, type: Zcl.DataType.UINT16},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -250,6 +250,7 @@ export const definitions: DefinitionWithExtend[] = [
                 attributes: {
                     onToOffDelay: {ID: 0x0001, type: Zcl.DataType.UINT16},
                     offToOnDelay: {ID: 0x0002, type: Zcl.DataType.UINT16},
+                    allowBind: {ID: 0x0020, type: Zcl.DataType.UINT8},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -283,6 +284,7 @@ export const definitions: DefinitionWithExtend[] = [
                 manufacturerCode: 0x1233,
                 attributes: {
                     infraredOff: {ID: 0x0000, type: Zcl.DataType.UINT8},
+                    allowBind: {ID: 0x0020, type: Zcl.DataType.UINT8},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -303,7 +305,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["3RSB02015Z"],
         model: "3RSB02015Z",
         vendor: "Third Reality",
-        description: "Smart blind Gen2",
+        description: "Third Reality Blind Gen2",
         extend: [
             m.battery(),
             m.windowCovering({controls: ["lift"]}),
@@ -312,9 +314,9 @@ export const definitions: DefinitionWithExtend[] = [
                 ID: 0xfff1,
                 manufacturerCode: 0x1233,
                 attributes: {
-                    infrared_enable: {ID: 0x0000, type: 0x20},
-                    calibration_distance: {ID: 0x0001, type: 0x28},
-                    limit_position: {ID: 0x0002, type: 0x21},
+                    infraredEnable: {ID: 0x0000, type: Zcl.DataType.UINT8},
+                    compensationSpeed: {ID: 0x0001, type: Zcl.DataType.INT8},
+                    limitPosition: {ID: 0x0002, type: Zcl.DataType.UINT16},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -591,7 +593,18 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Third Reality",
         description: "Zigbee color lights",
         ota: true,
-        extend: [m.light({colorTemp: {range: [154, 500]}, color: {modes: ["xy", "hs"]}})],
+        extend: [
+            m.light({colorTemp: {range: [154, 500]}, color: {modes: ["xy", "hs"], enhancedHue: false}}),
+            m.deviceAddCustomCluster("3rColorSpecialCluster", {
+                ID: 0xff04,
+                manufacturerCode: 0x1407,
+                attributes: {
+                    allowBind: {ID: 0x0020, type: Zcl.DataType.UINT8},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+        ],
     },
     {
         zigbeeModel: ["3RSPE01044BZ"],
