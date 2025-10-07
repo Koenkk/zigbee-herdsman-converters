@@ -345,6 +345,8 @@ export const numericAttributes2Payload = async (
                     // https://github.com/Koenkk/zigbee2mqtt/issues/12279
                 } else if (["RTCGQ15LM"].includes(model.model)) {
                     payload.occupancy = value;
+                } else if (["PS-S04D"].includes(model.model)) {
+                    payload.presence = value === 1;
                 } else if (["WSDCGQ01LM", "WSDCGQ11LM", "WSDCGQ12LM", "VOCKQJK11LM"].includes(model.model)) {
                     // https://github.com/Koenkk/zigbee2mqtt/issues/798
                     // Sometimes the sensor publishes non-realistic vales, filter these
@@ -427,7 +429,7 @@ export const numericAttributes2Payload = async (
                     assertNumber(value);
                     const battery = value / 2;
                     payload.battery = precisionRound(battery, 2);
-                } else if (["RTCZCGQ11LM", "PS-S04D"].includes(model.model)) {
+                } else if (["RTCZCGQ11LM"].includes(model.model)) {
                     payload.presence = getFromLookup(value, {0: false, 1: true, 255: null});
                 } else if (["ZNXDD01LM"].includes(model.model)) {
                     payload.brightness = value;
