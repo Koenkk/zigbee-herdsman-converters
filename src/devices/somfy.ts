@@ -101,33 +101,4 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Tilt and lift blinds motor",
         extend: [m.windowCovering({controls: ["lift", "tilt"]}), m.battery(), m.identify()],
     },
-    {
-        zigbeeModel: ["1871215B"],
-        model: "1871215B",
-        vendor: "Somfy",
-        description: "Connected plug E type with power monitoring",
-        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering],
-        toZigbee: [tz.on_off],
-        exposes: [
-            e.switch().withEndpoint("1"),
-            e.power().withEndpoint("1"),
-            e.current().withEndpoint("1"),
-            e.voltage().withEndpoint("1"),
-            e.energy().withEndpoint("1"),
-        ],
-        endpoint: (device) => {
-            return {1: 1};
-        },
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "haElectricalMeasurement", "seMetering"]);
-            await reporting.onOff(endpoint);
-            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
-            await reporting.activePower(endpoint);
-            await reporting.rmsCurrent(endpoint);
-            await reporting.rmsVoltage(endpoint);
-            await reporting.readMeteringMultiplierDivisor(endpoint);
-            await reporting.currentSummDelivered(endpoint);
-        },
-    },
 ];
