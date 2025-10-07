@@ -260,7 +260,6 @@ export const definitions: DefinitionWithExtend[] = [
             fz.command_step_saturation,
             fz.color_stop_raw,
             fz.scenes_recall_scene_65024,
-            fz.ignore_genOta,
         ],
         toZigbee: [],
         exposes: [
@@ -464,5 +463,12 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "ADEO",
         description: "ENKI LEXMAN water leak sensor",
         extend: [m.battery(), m.iasZoneAlarm({zoneType: "water_leak", zoneAttributes: ["alarm_1", "alarm_2", "tamper", "battery_low"]})],
+    },
+    {
+        zigbeeModel: ["WSD005"],
+        model: "WSD005",
+        vendor: "ADEO",
+        description: "ENKI LEXMAN motor for roller shutler",
+        extend: [m.windowCovering({controls: ["lift"]})],
     },
 ];

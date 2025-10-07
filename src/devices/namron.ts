@@ -143,7 +143,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Namron",
         description: "Zigbee dimmer 400W",
         ota: true,
-        extend: [m.light({configureReporting: true})],
+        extend: [m.light({configureReporting: true}), m.electricityMeter({voltage: false, current: false})],
     },
     {
         zigbeeModel: ["4512708"],
@@ -366,15 +366,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "4512726",
         vendor: "Namron",
         description: "Zigbee 4 in 1 dimmer",
-        fromZigbee: [
-            fz.battery,
-            fz.command_on,
-            fz.command_off,
-            fz.command_move_to_level,
-            fz.command_move_to_color_temp,
-            fz.command_move_to_hue,
-            fz.ignore_genOta,
-        ],
+        fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_move_to_level, fz.command_move_to_color_temp, fz.command_move_to_hue],
         toZigbee: [],
         exposes: [e.battery(), e.battery_voltage(), e.action(["on", "off", "brightness_move_to_level", "color_temperature_move", "move_to_hue"])],
         meta: {battery: {dontDividePercentage: true}},
@@ -1625,15 +1617,12 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        function makeDef(modelId, label) {
-        return {
-        zigbeeModel: [modelId],
-        model: modelId,
-        vendor: 'Namron AS',
-        description: `Namron Simplify ${label} — 6 buttons (action) + battery`,
+      
+        zigbeeModel: ["4512793", "4512794"],
+        model: "4512793", "4512794",
+        vendor: "Namron AS",
+        description: "Namron Simplify on wall 6 buttons (action) + battery White/Black",
         extend: [m.battery()],
-        fromZigbee: [fz451279x_remote],
-        toZigbee: [],
         exposes: [
             e.action([
                 'button_1_up_press','button_1_up_hold','button_1_up_release',
@@ -1644,10 +1633,5 @@ export const definitions: DefinitionWithExtend[] = [
                 'button_3_down_press','button_3_down_hold','button_3_down_release',
             ]),
         ],
-    };
-}
-
-module.exports = [
-    makeDef('4512793', '4512793 (white)'),
-    makeDef('4512794', '4512794 (black)'),
+    },
 ];

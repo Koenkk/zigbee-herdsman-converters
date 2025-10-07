@@ -478,7 +478,7 @@ const inovelliExtend = {
         const bindingList = ["genOnOff"];
 
         if (!splitValuesByEndpoint) {
-            fromZigbee.push(fz.on_off, fz.brightness, fz.level_config, fz.power_on_behavior, fz.ignore_basic_report);
+            fromZigbee.push(fz.on_off, fz.brightness, fz.level_config, fz.power_on_behavior);
             bindingList.push("genLevelCtrl");
         }
 
@@ -2211,17 +2211,16 @@ const fzLocal = {
                 if (msg.type === "readResponse") {
                     return Object.keys(msg.data).reduce((p, c) => {
                         const key = splitValuesByEndpoint ? `${c}_${msg.endpoint.ID}` : c;
+                        const raw = (msg.data as Record<string | number, unknown>)[c];
                         if (attributes[key] && attributes[key].displayType === "enum") {
                             return {
                                 // biome-ignore lint/performance/noAccumulatingSpread: ignored using `--suppress`
                                 ...p,
-                                [key]: Object.keys(attributes[key].values).find(
-                                    (k) => attributes[key].values[k] === msg.data[Number.parseInt(c, 10)],
-                                ),
+                                [key]: Object.keys(attributes[key].values).find((k) => attributes[key].values[k] === raw),
                             };
                         }
                         // biome-ignore lint/performance/noAccumulatingSpread: ignored using `--suppress`
-                        return {...p, [key]: msg.data[Number.parseInt(c, 10)]};
+                        return {...p, [key]: raw};
                     }, {});
                 }
                 return msg.data;

@@ -1,9 +1,9 @@
 import assert from "node:assert";
 import {Zcl} from "zigbee-herdsman";
-import * as fz from "../converters/fromZigbee";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as globalStore from "../lib/store";
+import * as tuya from "../lib/tuya";
 import type {DefinitionWithExtend, Fz, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
 
@@ -240,7 +240,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Candeo",
         description: "Zigbee switch module",
         extend: [m.onOff()],
-        fromZigbee: [fzLocal.switch_type, fz.ignore_genOta],
+        fromZigbee: [fzLocal.switch_type],
         toZigbee: [tzLocal.switch_type],
         exposes: [e.enum("external_switch_type", ea.ALL, ["momentary", "toggle"]).withLabel("External switch type")],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -295,7 +295,7 @@ export const definitions: DefinitionWithExtend[] = [
                 energy: {min: 10, max: 1800, change: 360000},
             }),
         ],
-        fromZigbee: [fzLocal.switch_type, fz.ignore_genOta],
+        fromZigbee: [fzLocal.switch_type],
         toZigbee: [tzLocal.switch_type],
         exposes: [e.enum("external_switch_type", ea.ALL, ["momentary", "toggle"]).withLabel("External switch type")],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -334,7 +334,7 @@ export const definitions: DefinitionWithExtend[] = [
                 energy: {min: 10, max: 1800, change: 360000},
             }),
         ],
-        fromZigbee: [fzLocal.switch_type, fz.ignore_genOta],
+        fromZigbee: [fzLocal.switch_type],
         toZigbee: [tzLocal.switch_type],
         exposes: [e.enum("external_switch_type", ea.ALL, ["momentary", "toggle"]).withLabel("External switch type")],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -520,7 +520,7 @@ export const definitions: DefinitionWithExtend[] = [
                 energy: {min: 10, max: 1800, change: 360000},
             }),
         ],
-        fromZigbee: [fzLocal.switch_type, fz.ignore_genOta],
+        fromZigbee: [fzLocal.switch_type],
         toZigbee: [tzLocal.switch_type],
         exposes: [e.enum("external_switch_type", ea.ALL, ["momentary", "toggle"]).withLabel("External switch type").withEndpoint("e11")],
         meta: {},
@@ -562,7 +562,7 @@ export const definitions: DefinitionWithExtend[] = [
                 levelConfig: {features: ["on_off_transition_time", "on_level", "current_level_startup"]},
             }),
         ],
-        fromZigbee: [fzLocal.switch_type, fz.ignore_genOta],
+        fromZigbee: [fzLocal.switch_type],
         toZigbee: [tzLocal.switch_type],
         exposes: [e.enum("external_switch_type", ea.ALL, ["momentary", "toggle"]).withLabel("External switch type")],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -611,9 +611,49 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Motion sensor",
         extend: [
             m.battery(),
-            m.illuminance({reporting: {min: 1, max: 65535, change: 1}, scale: luxScale}),
+            m.illuminance({reporting: null, scale: luxScale}),
             m.iasZoneAlarm({zoneType: "occupancy", zoneAttributes: ["alarm_1"]}),
+            tuya.modernExtend.tuyaBase({dp: true}),
         ],
+        exposes: [
+            e
+                .enum("sensitivity", ea.STATE_SET, ["low", "medium", "high"])
+                .withDescription("PIR sensor sensitivity (refresh and update only while active)"),
+            e
+                .enum("keep_time", ea.STATE_SET, ["10", "30", "60", "120"])
+                .withDescription("PIR keep time in seconds (refresh and update only while active)"),
+            e
+                .numeric("illuminance_interval", ea.STATE_SET)
+                .withValueMin(1)
+                .withValueMax(720)
+                .withValueStep(1)
+                .withUnit("minutes")
+                .withDescription("Brightness acquisition interval (refresh and update only while active)"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [
+                    9,
+                    "sensitivity",
+                    tuya.valueConverterBasic.lookup({
+                        low: tuya.enum(0),
+                        medium: tuya.enum(1),
+                        high: tuya.enum(2),
+                    }),
+                ],
+                [
+                    10,
+                    "keep_time",
+                    tuya.valueConverterBasic.lookup({
+                        "10": tuya.enum(0),
+                        "30": tuya.enum(1),
+                        "60": tuya.enum(2),
+                        "120": tuya.enum(3),
+                    }),
+                ],
+                [102, "illuminance_interval", tuya.valueConverter.raw],
+            ],
+        },
     },
     {
         fingerprint: [{modelID: "C-ZB-DM201-2G"}],
@@ -658,7 +698,7 @@ export const definitions: DefinitionWithExtend[] = [
                 commandsResponse: {},
             }),
         ],
-        fromZigbee: [fzLocal.rotary_remote_control, fz.ignore_genOta],
+        fromZigbee: [fzLocal.rotary_remote_control],
         exposes: [
             e.action([
                 "button_1_click",
@@ -761,7 +801,7 @@ export const definitions: DefinitionWithExtend[] = [
                 energy: {min: 5, max: 1800, change: 50},
             }),
         ],
-        fromZigbee: [fzLocal.rd1p_knob_rotation, fzLocal.rd1p_knob_press, fz.ignore_genOta],
+        fromZigbee: [fzLocal.rd1p_knob_rotation, fzLocal.rd1p_knob_press],
         toZigbee: [],
         exposes: [
             e
@@ -802,7 +842,7 @@ export const definitions: DefinitionWithExtend[] = [
                 energy: {min: 5, max: 1800, change: 50},
             }),
         ],
-        fromZigbee: [fzLocal.rd1p_knob_rotation, fzLocal.rd1p_knob_press, fz.ignore_genOta],
+        fromZigbee: [fzLocal.rd1p_knob_rotation, fzLocal.rd1p_knob_press],
         toZigbee: [],
         exposes: [
             e

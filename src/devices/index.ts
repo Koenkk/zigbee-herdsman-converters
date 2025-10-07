@@ -200,6 +200,7 @@ import {definitions as mindy} from "./mindy";
 import {definitions as modular} from "./modular";
 import {definitions as moes} from "./moes";
 import {definitions as mullerLicht} from "./muller_licht";
+import {definitions as multir} from "./multir";
 import {definitions as multiterm} from "./multiterm";
 import {definitions as namron} from "./namron";
 import {definitions as nanoleaf} from "./nanoleaf";
@@ -278,6 +279,7 @@ import {definitions as sinope} from "./sinope";
 import {definitions as siterwell} from "./siterwell";
 import {definitions as skydance} from "./skydance";
 import {definitions as slackyDiy} from "./slacky_diy";
+import {definitions as slc} from "./slc";
 import {definitions as slv} from "./slv";
 import {definitions as smarli} from "./smarli";
 import {definitions as smartHomePty} from "./smart_home_pty";
@@ -311,6 +313,7 @@ import {definitions as theLightGroup} from "./the_light_group";
 import {definitions as thirdReality} from "./third_reality";
 import {definitions as titanProducts} from "./titan_products";
 import {definitions as tlwglobal} from "./tlwglobal";
+import {definitions as tnce} from "./tnce";
 import {definitions as tplink} from "./tplink";
 import {definitions as trust} from "./trust";
 import {definitions as tubeszb} from "./tubeszb";
@@ -325,6 +328,7 @@ import {definitions as villeroyBoch} from "./villeroy_boch";
 import {definitions as vimar} from "./vimar";
 import {definitions as visonic} from "./visonic";
 import {definitions as vrey} from "./vrey";
+import {definitions as vsmart} from "./vsmart";
 import {definitions as wally} from "./wally";
 import {definitions as waxman} from "./waxman";
 import {definitions as weiser} from "./weiser";
@@ -549,6 +553,7 @@ const definitions: DefinitionWithExtend[] = [
     ...modular,
     ...moes,
     ...mullerLicht,
+    ...multir,
     ...multiterm,
     ...namron,
     ...nanoleaf,
@@ -627,6 +632,7 @@ const definitions: DefinitionWithExtend[] = [
     ...siterwell,
     ...skydance,
     ...slackyDiy,
+    ...slc,
     ...slv,
     ...smarli,
     ...smart9,
@@ -645,8 +651,8 @@ const definitions: DefinitionWithExtend[] = [
     ...sowilo,
     ...spotmau,
     ...sprut,
-    ...stelpro,
     ...stello,
+    ...stelpro,
     ...sunricher,
     ...superled,
     ...swann,
@@ -660,6 +666,7 @@ const definitions: DefinitionWithExtend[] = [
     ...thirdReality,
     ...titanProducts,
     ...tlwglobal,
+    ...tnce,
     ...tplink,
     ...trust,
     ...tubeszb,
@@ -699,6 +706,7 @@ const definitions: DefinitionWithExtend[] = [
     ...zipato,
     ...qa,
     ...engo,
+    ...vsmart,
 ];
 
 export default definitions;

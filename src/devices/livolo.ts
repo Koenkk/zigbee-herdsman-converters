@@ -187,7 +187,7 @@ export const definitions: DefinitionWithExtend[] = [
             fz.livolo_pir_state,
             fzLocal.prevent_disconnect({
                 dp: 0x01,
-                payload: {8194: {value: [0, 0, 0, 0, 0, 0, 0], type: 0x0e}},
+                payload: {8194: {value: 0n, type: 0x0e}},
             }),
         ],
         extend: [mLocal.poll()],

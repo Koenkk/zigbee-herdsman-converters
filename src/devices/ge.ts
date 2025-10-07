@@ -41,7 +41,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "45853GE",
         vendor: "GE",
         description: "Plug-in smart switch",
-        fromZigbee: [fz.on_off, fz.metering, fz.ignore_basic_report],
+        fromZigbee: [fz.on_off, fz.metering],
         toZigbee: [tz.on_off, tz.ignore_transition],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);

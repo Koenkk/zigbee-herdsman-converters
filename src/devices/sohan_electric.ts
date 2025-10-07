@@ -1,4 +1,3 @@
-import * as fz from "../converters/fromZigbee";
 import * as m from "../lib/modernExtend";
 import * as tuya from "../lib/tuya";
 import type {DefinitionWithExtend} from "../lib/types";
@@ -10,6 +9,6 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "SOHAN Electric",
         description: "DIN circuit breaker (1 pole / 2 poles)",
         extend: [m.onOff()],
-        fromZigbee: [fz.ignore_basic_report, fz.ignore_time_read],
+        fromZigbee: [],
     },
 ];
