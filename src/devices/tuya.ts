@@ -4787,6 +4787,23 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
+        fingerprint: tuya.fingerprint("TS0003", ["_TZ3000_aracgljk"]),
+        model: "SA-3",
+        vendor: "Nova Digital",
+        description: "Safira smart light switch - 3 gang",
+        extend: [
+            tuya.modernExtend.tuyaBase(),
+            m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3}}),
+            tuya.modernExtend.tuyaOnOff({
+                endpoints: ["l1", "l2", "l3"],
+                powerOutageMemory: true,
+                switchType: true,
+                indicatorMode: true,
+                backlightModeOffOn: true,
+            }),
+        ],
+    },
+    {
         zigbeeModel: ["TS0003"],
         model: "TS0003",
         vendor: "Tuya",
