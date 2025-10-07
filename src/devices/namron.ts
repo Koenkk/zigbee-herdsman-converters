@@ -1619,7 +1619,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
       
         zigbeeModel: ["4512793", "4512794"],
-        model: "4512793", "4512794",
+        model: "4512793",
         vendor: "Namron AS",
         description: "Namron Simplify on wall 6 buttons (action) + battery White/Black",
         extend: [m.battery()],
