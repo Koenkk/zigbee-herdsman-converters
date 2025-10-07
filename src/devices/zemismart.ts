@@ -786,11 +786,10 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Zemismart",
         description: "Smart curtain wall switch",
         options: [exposes.options.invert_cover()],
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.cover_position().setAccess("position", ea.STATE_SET),
-            e.enum("motor_steering", ea.STATE_SET, ["FORWARD", "BACKWARD"]).withDescription("Motor Steering"),
+            e.enum("motor_steering", ea.STATE_SET, ["FORWARD", "BACKWARD"]).withDescription("Motor steering"),
             e
                 .numeric("calibration_time", ea.STATE_SET)
                 .withValueMin(0)
