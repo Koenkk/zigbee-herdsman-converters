@@ -2556,7 +2556,7 @@ export const lumiModernExtend = {
             description: "Adaptive sensitivity switch function.",
             access: "ALL",
             zigbeeCommandOptions: {manufacturerCode},
-        };
+        });
     },
     fp1ePresence: () => {
         const attribute = {ID: 0x0142, type: 0x20};
