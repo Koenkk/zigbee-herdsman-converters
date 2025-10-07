@@ -2532,6 +2532,32 @@ export const lumiModernExtend = {
             ],
         } satisfies ModernExtend;
     },
+    fp1eAIInterference: () => {
+        const attribute = {ID: 0x015e, type: 0x20}; // Attribute: 350
+        return m.binary({
+            name: "ai_interference_source_selfidentification",
+            valueOn: ["ON", 1],
+            valueOff: ["OFF", 0],
+            cluster: "manuSpecificLumi",
+            attribute: attribute,
+            description: "AI interference source self-identification switch, when enabled can identify fans, air conditioners and other interference sources",
+            access: "ALL",
+            zigbeeCommandOptions: {manufacturerCode},
+        });
+    },
+    fp1eAdaptiveSensitivity: () => {
+        const attribute = {ID: 0x015d, type: 0x20}; // Attribute: 349
+        return m.binary({
+            name: "ai_sensitivity_adaptive",
+            valueOn: ["ON", 1],
+            valueOff: ["OFF", 0],
+            cluster: "manuSpecificLumi",
+            attribute: attribute,
+            description: "Adaptive sensitivity switch function.",
+            access: "ALL",
+            zigbeeCommandOptions: {manufacturerCode},
+        };
+    },
     fp1ePresence: () => {
         const attribute = {ID: 0x0142, type: 0x20};
         return modernExtend.binary({
