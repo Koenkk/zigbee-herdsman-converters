@@ -2642,7 +2642,7 @@ export interface BoschThermostatCluster {
         /** ID: 20480 | Type: BITMAP8 */
         errorState: number;
         /** ID: 20496 | Type: ENUM8 | Only used on BTH-RA */
-        awaitingCalibrationAfterUpdate: number;
+        automaticValveAdapt: number;
     };
     commands: {
         /** ID: 65 | Only used on BTH-RA */
@@ -2694,7 +2694,7 @@ export const boschThermostatExtend = {
                 cableSensorMode: {ID: 0x4062, type: Zcl.DataType.ENUM8, manufacturerCode: manufacturerOptions.manufacturerCode},
                 heaterType: {ID: 0x4063, type: Zcl.DataType.ENUM8, manufacturerCode: manufacturerOptions.manufacturerCode},
                 errorState: {ID: 0x5000, type: Zcl.DataType.BITMAP8, manufacturerCode: manufacturerOptions.manufacturerCode},
-                awaitingCalibrationAfterUpdate: {
+                automaticValveAdapt: {
                     ID: 0x5010,
                     type: Zcl.DataType.ENUM8,
                     manufacturerCode: manufacturerOptions.manufacturerCode,
@@ -3223,11 +3223,49 @@ export const boschThermostatExtend = {
             success: 0x04,
         };
 
+        const valveAdaptAutomaticLookup = {
+            false: 0x00,
+            true: 0x01,
+        };
+
+        const triggerValveAdaptation = async (state: KeyValue, endpoint: Zh.Endpoint | Zh.Group, throwError: boolean) => {
+            let adaptStatus: number;
+
+            try {
+                adaptStatus = utils.getFromLookup(state.valve_adapt_status, valveAdaptStatusLookup);
+            } catch {
+                adaptStatus = valveAdaptStatusLookup.none;
+            }
+
+            switch (adaptStatus) {
+                case valveAdaptStatusLookup.ready_to_calibrate:
+                case valveAdaptStatusLookup.error:
+                    await endpoint.command<"hvacThermostat", "calibrateValve", BoschThermostatCluster>(
+                        "hvacThermostat",
+                        "calibrateValve",
+                        {},
+                        manufacturerOptions,
+                    );
+                    break;
+                default:
+                    if (throwError) {
+                        throw new Error("Valve adaptation process not possible right now!");
+                    }
+            }
+        };
+
         const exposes: Expose[] = [
             e
                 .enum("valve_adapt_status", ea.STATE_GET, Object.keys(valveAdaptStatusLookup))
                 .withLabel("Valve adaptation status")
                 .withDescription("Specifies the current status of the valve adaptation")
+                .withCategory("diagnostic"),
+            e
+                .enum("automatic_valve_adapt_possible", ea.STATE_GET, Object.keys(valveAdaptAutomaticLookup))
+                .withLabel("Automatic valve adaptation")
+                .withDescription(
+                    "Specifies if an automatic valve adaptation is being requested by the thermostat (for example after a successful firmware upgrade)",
+                )
                 .withCategory("diagnostic"),
             e
                 .enum("valve_adapt_process", ea.SET, ["adapt"])
@@ -3240,12 +3278,25 @@ export const boschThermostatExtend = {
             {
                 cluster: "hvacThermostat",
                 type: ["attributeReport", "readResponse"],
-                convert: (model, msg, publish, options, meta) => {
+                convert: async (model, msg, publish, options, meta) => {
                     const result: KeyValue = {};
                     const data = msg.data;
 
                     if (data.valveAdaptStatus !== undefined) {
                         result.valve_adapt_status = utils.getFromLookupByValue(data.valveAdaptStatus, valveAdaptStatusLookup);
+
+                        const automaticValveAdapt = utils.getFromLookup(
+                            meta.state.automatic_valve_adapt,
+                            valveAdaptAutomaticLookup,
+                            valveAdaptAutomaticLookup.false,
+                        );
+                        if (automaticValveAdapt === valveAdaptAutomaticLookup.true) {
+                            await triggerValveAdaptation(meta.state, msg.endpoint, false);
+                        }
+                    }
+
+                    if (data.automaticValveAdapt !== undefined) {
+                        result.automatic_valve_adapt_possible = utils.getFromLookupByValue(data.automaticValveAdapt, valveAdaptAutomaticLookup);
                     }
 
                     return result;
@@ -3255,35 +3306,18 @@ export const boschThermostatExtend = {
 
         const toZigbee: Tz.Converter[] = [
             {
-                key: ["valve_adapt_status", "valve_adapt_process"],
+                key: ["valve_adapt_status", "valve_adapt_process", "automatic_valve_adapt"],
                 convertSet: async (entity, key, value, meta) => {
                     if (key === "valve_adapt_process") {
-                        let adaptStatus: number;
-
-                        try {
-                            adaptStatus = utils.getFromLookup(meta.state.valve_adapt_status, valveAdaptStatusLookup);
-                        } catch {
-                            adaptStatus = valveAdaptStatusLookup.none;
-                        }
-
-                        switch (adaptStatus) {
-                            case valveAdaptStatusLookup.ready_to_calibrate:
-                            case valveAdaptStatusLookup.error:
-                                await entity.command<"hvacThermostat", "calibrateValve", BoschThermostatCluster>(
-                                    "hvacThermostat",
-                                    "calibrateValve",
-                                    {},
-                                    manufacturerOptions,
-                                );
-                                break;
-                            default:
-                                throw new Error("Valve adaptation process not possible right now!");
-                        }
+                        await triggerValveAdaptation(meta.state, entity, true);
                     }
                 },
                 convertGet: async (entity, key, meta) => {
                     if (key === "valve_adapt_status") {
                         await entity.read<"hvacThermostat", BoschThermostatCluster>("hvacThermostat", ["valveAdaptStatus"]);
+                    }
+                    if (key === "automatic_valve_adapt") {
+                        await entity.read<"hvacThermostat", BoschThermostatCluster>("hvacThermostat", ["automaticValveAdapt"]);
                     }
                 },
             },
