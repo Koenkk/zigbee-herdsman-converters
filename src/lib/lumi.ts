@@ -6011,7 +6011,7 @@ export const toZigbee = {
     } satisfies Tz.Converter,
 
     thermostat_mode: {
-        key: ["Thermostat_Mode"],
+        key: ["mode"],
         convertSet: async (entity, key, value, meta) => {
             const deviceMac = meta.device.ieeeAddr.replace(/^0x/, "").toLowerCase();
             const hubMac = "54ef4480711a";
