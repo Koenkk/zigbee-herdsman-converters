@@ -3262,7 +3262,7 @@ export const boschThermostatExtend = {
                 .withCategory("diagnostic"),
             e
                 .enum("automatic_valve_adapt", ea.STATE_GET, Object.keys(automaticValveAdaptLookup))
-                .withLabel("Automatic valve adaptation")
+                .withLabel("Automatic valve adaptation requested")
                 .withDescription(
                     "Specifies if an automatic valve adaptation is being requested by the thermostat (for example after a successful firmware upgrade)",
                 )
@@ -3328,6 +3328,7 @@ export const boschThermostatExtend = {
                 config: {min: "MIN", max: "MAX", change: null},
                 access: ea.STATE_GET,
             }),
+            m.setupConfigureForReading<"hvacThermostat", BoschThermostatCluster>("hvacThermostat", ["automaticValveAdapt"]),
         ];
 
         return {
