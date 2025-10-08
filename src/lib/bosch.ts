@@ -2694,11 +2694,7 @@ export const boschThermostatExtend = {
                 cableSensorMode: {ID: 0x4062, type: Zcl.DataType.ENUM8, manufacturerCode: manufacturerOptions.manufacturerCode},
                 heaterType: {ID: 0x4063, type: Zcl.DataType.ENUM8, manufacturerCode: manufacturerOptions.manufacturerCode},
                 errorState: {ID: 0x5000, type: Zcl.DataType.BITMAP8, manufacturerCode: manufacturerOptions.manufacturerCode},
-                automaticValveAdapt: {
-                    ID: 0x5010,
-                    type: Zcl.DataType.ENUM8,
-                    manufacturerCode: manufacturerOptions.manufacturerCode,
-                },
+                automaticValveAdapt: {ID: 0x5010, type: Zcl.DataType.ENUM8, manufacturerCode: manufacturerOptions.manufacturerCode},
             },
             commands: {
                 calibrateValve: {ID: 0x41, parameters: []},
