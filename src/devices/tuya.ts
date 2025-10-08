@@ -19960,18 +19960,11 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [
-            {
-                modelID: "TS0601",
-                manufacturerName: "_TZE204_mvtclclq",
-            },
-        ],
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_mvtclclq"]),
         model: "DS-1450WN",
         vendor: "Tuya",
         description: "Smart Zigbee Switch with Power Monitoring",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.switch_().withState("switch", true, "Control the USB A on/off state", ea.STATE_SET).withLabel("USB A").withEndpoint("1"),
             e.switch_().withState("switch", true, "Control the USB C on/off state", ea.STATE_SET).withLabel("USB C").withEndpoint("2"),
