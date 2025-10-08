@@ -3223,7 +3223,7 @@ export const boschThermostatExtend = {
             success: 0x04,
         };
 
-        const valveAdaptAutomaticLookup = {
+        const automaticValveAdaptLookup = {
             false: 0x00,
             true: 0x01,
         };
@@ -3261,7 +3261,7 @@ export const boschThermostatExtend = {
                 .withDescription("Specifies the current status of the valve adaptation")
                 .withCategory("diagnostic"),
             e
-                .enum("automatic_valve_adapt_possible", ea.STATE_GET, Object.keys(valveAdaptAutomaticLookup))
+                .enum("automatic_valve_adapt_possible", ea.STATE_GET, Object.keys(automaticValveAdaptLookup))
                 .withLabel("Automatic valve adaptation")
                 .withDescription(
                     "Specifies if an automatic valve adaptation is being requested by the thermostat (for example after a successful firmware upgrade)",
@@ -3287,16 +3287,16 @@ export const boschThermostatExtend = {
 
                         const automaticValveAdapt = utils.getFromLookup(
                             meta.state.automatic_valve_adapt,
-                            valveAdaptAutomaticLookup,
-                            valveAdaptAutomaticLookup.false,
+                            automaticValveAdaptLookup,
+                            automaticValveAdaptLookup.false,
                         );
-                        if (automaticValveAdapt === valveAdaptAutomaticLookup.true) {
+                        if (automaticValveAdapt === automaticValveAdaptLookup.true) {
                             await triggerValveAdaptation(meta.state, msg.endpoint, false);
                         }
                     }
 
                     if (data.automaticValveAdapt !== undefined) {
-                        result.automatic_valve_adapt_possible = utils.getFromLookupByValue(data.automaticValveAdapt, valveAdaptAutomaticLookup);
+                        result.automatic_valve_adapt = utils.getFromLookupByValue(data.automaticValveAdapt, automaticValveAdaptLookup);
                     }
 
                     return result;
