@@ -19962,68 +19962,84 @@ export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: [
             {
-                modelID: 'TS0601',
-                manufacturerName: '_TZE204_mvtclclq',
+                modelID: "TS0601",
+                manufacturerName: "_TZE204_mvtclclq",
             },
         ],
-        model: 'DS-1450WN',
-        vendor: 'Tuya',
-        description: 'Smart Zigbee Switch with Power Monitoring',
+        model: "DS-1450WN",
+        vendor: "Tuya",
+        description: "Smart Zigbee Switch with Power Monitoring",
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
         exposes: [
-            e.switch_()
-                .withState('switch', true, 'Control the USB A on/off state', ea.STATE_SET)
-                .withLabel('USB A').withEndpoint('1'),
-            e.switch_()
-                .withState('switch', true, 'Control the USB C on/off state', ea.STATE_SET)
-                .withLabel('USB C').withEndpoint('2'),
-            e.switch_()
-                .withState('switch', true, 'Control the Plug 1 on/off state', ea.STATE_SET)
-                .withLabel('Plug 1').withEndpoint('3'),
-            e.switch_()
-                .withState('switch', true, 'Control the Plug 2 on/off state', ea.STATE_SET)
-                .withLabel('Plug 2').withEndpoint('4'),
-            e.numeric('countdown_1', ea.STATE_SET)
-                .withLabel('USB A Countdown')
+            e.switch_().withState("switch", true, "Control the USB A on/off state", ea.STATE_SET).withLabel("USB A").withEndpoint("1"),
+            e.switch_().withState("switch", true, "Control the USB C on/off state", ea.STATE_SET).withLabel("USB C").withEndpoint("2"),
+            e.switch_().withState("switch", true, "Control the Plug 1 on/off state", ea.STATE_SET).withLabel("Plug 1").withEndpoint("3"),
+            e.switch_().withState("switch", true, "Control the Plug 2 on/off state", ea.STATE_SET).withLabel("Plug 2").withEndpoint("4"),
+            e
+                .numeric("countdown_1", ea.STATE_SET)
+                .withLabel("USB A Countdown")
                 .withValueMin(0)
                 .withValueMax(86400)
                 .withValueStep(1)
-                .withDescription('Countdown timer for USB A')
-                .withUnit('s'),
-            e.numeric('countdown_2', ea.STATE_SET)
-                .withLabel('USB C Countdown')
+                .withDescription("Countdown timer for USB A")
+                .withUnit("s"),
+            e
+                .numeric("countdown_2", ea.STATE_SET)
+                .withLabel("USB C Countdown")
                 .withValueMin(0)
                 .withValueMax(86400)
                 .withValueStep(1)
-                .withDescription('Countdown timer for USB C')
-                .withUnit('s'),
-            e.numeric('countdown_3', ea.STATE_SET)
-                .withLabel('Plug 1 Countdown')
+                .withDescription("Countdown timer for USB C")
+                .withUnit("s"),
+            e
+                .numeric("countdown_3", ea.STATE_SET)
+                .withLabel("Plug 1 Countdown")
                 .withValueMin(0)
                 .withValueMax(86400)
                 .withValueStep(1)
-                .withDescription('Countdown timer for Plug 1')
-                .withUnit('s'),
-            e.numeric('countdown_4', ea.STATE_SET)
-                .withLabel('Plug 2 Countdown')
+                .withDescription("Countdown timer for Plug 1")
+                .withUnit("s"),
+            e
+                .numeric("countdown_4", ea.STATE_SET)
+                .withLabel("Plug 2 Countdown")
                 .withValueMin(0)
                 .withValueMax(86400)
                 .withValueStep(1)
-                .withDescription('Countdown timer for Plug 2')
-                .withUnit('s'),
-            e.enum('relay_status', ea.STATE_SET, ['memory', 'on', 'off'])
-                .withLabel('Relay Status')
-                .withDescription('Set the Relay Status'),
-            e.switch_()
-                .withState('switch', true, 'Enables/disables backlight indicator', ea.STATE_SET)
-                .withLabel('Switch Backlight').withEndpoint('backlight'),
-            e.numeric('cur_current', ea.STATE).withLabel('Current').withUnit('A').withDescription('Instantaneous measured electrical current').withCategory('diagnostic'),
-            e.numeric('cur_power', ea.STATE).withLabel('Power').withUnit('W').withDescription('Instantaneous measured power').withCategory('diagnostic'),
-            e.numeric('cur_voltage', ea.STATE).withLabel('Voltage').withUnit('V').withDescription('Measured electrical voltage').withCategory('diagnostic'),
-            e.numeric('total_battery', ea.STATE).withLabel('Produced Energy').withUnit('kWh').withDescription('Sum of produced energy').withCategory('diagnostic'),
-            e.child_lock()
+                .withDescription("Countdown timer for Plug 2")
+                .withUnit("s"),
+            e.enum("relay_status", ea.STATE_SET, ["memory", "on", "off"]).withLabel("Relay Status").withDescription("Set the Relay Status"),
+            e
+                .switch_()
+                .withState("switch", true, "Enables/disables backlight indicator", ea.STATE_SET)
+                .withLabel("Switch Backlight")
+                .withEndpoint("backlight"),
+            e
+                .numeric("cur_current", ea.STATE)
+                .withLabel("Current")
+                .withUnit("A")
+                .withDescription("Instantaneous measured electrical current")
+                .withCategory("diagnostic"),
+            e
+                .numeric("cur_power", ea.STATE)
+                .withLabel("Power")
+                .withUnit("W")
+                .withDescription("Instantaneous measured power")
+                .withCategory("diagnostic"),
+            e
+                .numeric("cur_voltage", ea.STATE)
+                .withLabel("Voltage")
+                .withUnit("V")
+                .withDescription("Measured electrical voltage")
+                .withCategory("diagnostic"),
+            e
+                .numeric("total_battery", ea.STATE)
+                .withLabel("Produced Energy")
+                .withUnit("kWh")
+                .withDescription("Sum of produced energy")
+                .withCategory("diagnostic"),
+            e.child_lock(),
         ],
         meta: {
             overrideHaDiscoveryPayload: (payload) => {
@@ -20057,7 +20073,6 @@ export const definitions: DefinitionWithExtend[] = [
                     payload.command_topic = `${payload.command_topic.substring(0, payload.command_topic.lastIndexOf("/4/set"))}/set/switch_4`;
                     payload.name = "Plug 2";
                 }
-
             },
             tuyaDatapoints: [
                 [1, "switch_1", tuya.valueConverter.onOff],
@@ -20068,14 +20083,14 @@ export const definitions: DefinitionWithExtend[] = [
                 [8, "countdown_2", tuya.valueConverter.countdown],
                 [9, "countdown_3", tuya.valueConverter.countdown],
                 [10, "countdown_4", tuya.valueConverter.countdown],
-                [14, "relay_status", tuya.valueConverterBasic.lookup({"memory": tuya.enum(0), "on": tuya.enum(1), "off": tuya.enum(2)})],
+                [14, "relay_status", tuya.valueConverterBasic.lookup({memory: tuya.enum(0), on: tuya.enum(1), off: tuya.enum(2)})],
                 [16, "switch_backlight", tuya.valueConverter.onOff],
                 [21, "cur_current", tuya.valueConverter.divideBy10],
                 [22, "cur_power", tuya.valueConverter.divideBy10],
                 [23, "cur_voltage", tuya.valueConverter.divideBy10],
                 [105, "total_battery", tuya.valueConverter.divideBy10],
-                [106, "child_lock", tuya.valueConverter.lockUnlock]
-            ]
+                [106, "child_lock", tuya.valueConverter.lockUnlock],
+            ],
         },
-    }
+    },
 ];
