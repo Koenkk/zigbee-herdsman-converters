@@ -121,6 +121,7 @@ import {definitions as hej} from "./hej";
 import {definitions as hfh} from "./hfh";
 import {definitions as hilux} from "./hilux";
 import {definitions as hive} from "./hive";
+import {definitions as hoftronic} from "./hoftronic";
 import {definitions as homeseer} from "./homeseer";
 import {definitions as hommyn} from "./hommyn";
 import {definitions as honyar} from "./honyar";
@@ -474,6 +475,7 @@ const definitions: DefinitionWithExtend[] = [
     ...hfh,
     ...hilux,
     ...hive,
+    ...hoftronic,
     ...homeseer,
     ...hommyn,
     ...honyar,
