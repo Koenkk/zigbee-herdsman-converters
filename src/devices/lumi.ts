@@ -4585,7 +4585,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.action(["W100_PMTSD_request"]).withDescription("W100 Requesting PMTSD Data via 08000844 Request"),
             e.text("PMTSD_from_W100_Data", ea.STATE).withDescription("Timestamp+Most Recent PMTSD Values Sent by W100"),
             e
-                .binary("Thermostat_Mode", ea.ALL, "ON", "OFF")
+                .binary("mode", ea.ALL, "ON", "OFF")
                 .withDescription(
                     "On: Enable thermostat mode. Buttons send encrypted payloads and middle line is enabled. Off: Disable thermostat mode. Buttons send actions and middle line is disabled.",
                 ),
