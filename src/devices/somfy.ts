@@ -108,13 +108,6 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Connected plug E type with power monitoring",
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering],
         toZigbee: [tz.on_off],
-        exposes: [
-            e.switch().withEndpoint("1"),
-            e.power().withEndpoint("1"),
-            e.current().withEndpoint("1"),
-            e.voltage().withEndpoint("1"),
-            e.energy().withEndpoint("1"),
-        ],
         endpoint: (device) => {
             return {1: 1};
         },
