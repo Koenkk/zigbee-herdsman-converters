@@ -3228,7 +3228,7 @@ export const boschThermostatExtend = {
             true: 0x01,
         };
 
-        const triggerValveAdaptation = async (state: KeyValue, endpoint: Zh.Endpoint | Zh.Group, throwError: boolean) => {
+        const triggerValveAdaptation = async (state: KeyValue, endpoint: Zh.Endpoint | Zh.Group, throwError = true) => {
             let adaptStatus: number;
 
             try {
@@ -3306,10 +3306,10 @@ export const boschThermostatExtend = {
 
         const toZigbee: Tz.Converter[] = [
             {
-                key: ["valve_adapt_status", "valve_adapt_process", "automatic_valve_adapt"],
+                key: ["valve_adapt_status", "automatic_valve_adapt", "valve_adapt_process"],
                 convertSet: async (entity, key, value, meta) => {
                     if (key === "valve_adapt_process") {
-                        await triggerValveAdaptation(meta.state, entity, true);
+                        await triggerValveAdaptation(meta.state, entity);
                     }
                 },
                 convertGet: async (entity, key, meta) => {
