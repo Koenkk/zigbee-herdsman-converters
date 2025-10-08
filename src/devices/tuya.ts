@@ -1866,10 +1866,12 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
         exposes: [
             // DP101 → enum; device reports 0=open, 1=closed, 2=tilted (note swapped 0/1).
-            e.enum("opening_state", ea.STATE, ["open", "closed", "tilted"])
+            e
+                .enum("opening_state", ea.STATE, ["open", "closed", "tilted"])
                 .withDescription("Opening state (Tuya DP101)"),
             // Some firmware variants expose an alarm bit (commonly DP16).
-            e.binary("alarm", ea.STATE, true, false)
+            e
+                .binary("alarm", ea.STATE, true, false)
                 .withDescription("Alarm (Tuya DP16; some FW variants may differ)"),
             e.battery(),
         ],
@@ -1881,12 +1883,12 @@ export const definitions: DefinitionWithExtend[] = [
             tuyaDatapoints: [
                 [101, "opening_state", tuya.valueConverterBasic.lookup({open: 0, closed: 1, tilted: 2})],
                 // Alarm: some FW-Versions uses 10/13/16 (1=true, 0=false)
-                [10,  "alarm", tuya.valueConverter.trueFalse1_0],
-                [13,  "alarm", tuya.valueConverter.trueFalse1_0],
-                [16,  "alarm", tuya.valueConverter.trueFalse1_0],
+                [10, "alarm", tuya.valueConverter.trueFalse1_0],
+                [13, "alarm", tuya.valueConverter.trueFalse1_0],
+                [16, "alarm", tuya.valueConverter.trueFalse1_0],
                 // Battery: primary DP102; DP2 as fallback for other batches
                 [102, "battery", tuya.valueConverter.raw],
-                [2,   "battery", tuya.valueConverter.raw],
+                [2, "battery", tuya.valueConverter.raw],
             ],
         },
     },
