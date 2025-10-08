@@ -3055,13 +3055,13 @@ interface MinMaxStep {
 
 interface ValuesWithModernExtendConfiguration<T> {
     values: T;
-    fromZigbee: Partial<{
+    fromZigbee?: Partial<{
         skip: boolean;
     }>;
-    toZigbee: Partial<{
+    toZigbee?: Partial<{
         skip: boolean;
     }>;
-    configure: Partial<{
+    configure?: Partial<{
         skip: boolean;
         reporting: false | ReportingConfigWithoutAttribute;
         access: Access;
@@ -3084,36 +3084,34 @@ const SETPOINT_LIMIT_LOOKUP = {
 
 export interface ThermostatArgs {
     localTemperature?: Partial<ValuesWithModernExtendConfiguration<Description>>;
-    localTemperatureCalibration?: Partial<Omit<ValuesWithModernExtendConfiguration<true | MinMaxStep>, "fromZigbee">>;
-    setpoints?: Partial<Omit<ValuesWithModernExtendConfiguration<Partial<Record<keyof typeof SETPOINT_LOOKUP, MinMaxStep>>>, "fromZigbee">>;
+    localTemperatureCalibration?: Omit<ValuesWithModernExtendConfiguration<true | MinMaxStep>, "fromZigbee">;
+    setpoints?: Omit<ValuesWithModernExtendConfiguration<Partial<Record<keyof typeof SETPOINT_LOOKUP, MinMaxStep>>>, "fromZigbee">;
     setpointsLimit?: Partial<Record<keyof typeof SETPOINT_LIMIT_LOOKUP, MinMaxStep>>;
-    systemMode?: Partial<
-        Omit<
-            ValuesWithModernExtendConfiguration<Array<"off" | "heat" | "cool" | "auto" | "dry" | "fan_only" | "sleep" | "emergency_heating">>,
-            "fromZigbee"
-        >
+    systemMode?: Omit<
+        ValuesWithModernExtendConfiguration<Array<"off" | "heat" | "cool" | "auto" | "dry" | "fan_only" | "sleep" | "emergency_heating">>,
+        "fromZigbee"
     >;
-    runningState?: Partial<Omit<ValuesWithModernExtendConfiguration<Array<"idle" | "heat" | "cool" | "fan_only">>, "fromZigbee">>;
+    runningState?: Omit<ValuesWithModernExtendConfiguration<Array<"idle" | "heat" | "cool" | "fan_only">>, "fromZigbee">;
     runningMode?: Array<"off" | "cool" | "heat">;
     fanMode?: Array<"off" | "low" | "medium" | "high" | "on" | "auto" | "smart">;
-    piHeatingDemand?: Partial<Omit<ValuesWithModernExtendConfiguration<true>, "fromZigbee">>;
+    piHeatingDemand?: Omit<ValuesWithModernExtendConfiguration<true | Access>, "fromZigbee">;
     temperatureSetpointHold?: true;
     temperatureSetpointHoldDuration?: true;
 }
 
 export function thermostat(args: ThermostatArgs = {}): ModernExtend {
     const {
-        localTemperature = {},
-        localTemperatureCalibration = false,
-        setpoints = {},
+        localTemperature = undefined,
+        localTemperatureCalibration = undefined,
+        setpoints = undefined,
         setpointsLimit = {},
         systemMode = undefined,
         runningState = undefined,
         runningMode = undefined,
+        fanMode = undefined,
         piHeatingDemand = undefined,
         temperatureSetpointHold = false,
         temperatureSetpointHoldDuration = false,
-        fanMode = undefined,
     } = args;
 
     const repConfigChange0: ReportingConfigWithoutAttribute = {min: "MIN", max: "1_HOUR", change: 0};
@@ -3124,23 +3122,23 @@ export function thermostat(args: ThermostatArgs = {}): ModernExtend {
     const toZigbee = [];
     const configure: Configure[] = <Configure[]>[];
 
-    const expose = e.climate().withLocalTemperature(undefined, localTemperature.values?.description ?? undefined);
+    const expose = e.climate().withLocalTemperature(undefined, localTemperature?.values?.description ?? undefined);
     exposes.push(expose);
 
-    if (!localTemperature.fromZigbee?.skip) {
+    if (!localTemperature?.fromZigbee?.skip) {
         fromZigbee.push(fz.thermostat);
     }
 
-    if (!localTemperature.toZigbee?.skip) {
+    if (!localTemperature?.toZigbee?.skip) {
         toZigbee.push(tz.thermostat_local_temperature);
     }
 
-    if (!localTemperature.configure?.skip) {
+    if (!localTemperature?.configure?.skip) {
         configure.push(
             setupConfigureForBinding("hvacThermostat", "input"),
             setupConfigureForReporting("hvacThermostat", "localTemp", {
-                config: localTemperature.configure?.reporting ?? repConfigChange10,
-                access: localTemperature.configure?.access ?? ea.STATE_GET,
+                config: localTemperature?.configure?.reporting ?? repConfigChange10,
+                access: localTemperature?.configure?.access ?? ea.STATE_GET,
             }),
         );
     }
@@ -3233,7 +3231,7 @@ export function thermostat(args: ThermostatArgs = {}): ModernExtend {
     }
 
     if (piHeatingDemand) {
-        expose.withPiHeatingDemand(piHeatingDemand.configure?.access ?? undefined);
+        expose.withPiHeatingDemand(piHeatingDemand.values !== true ? piHeatingDemand.values : undefined);
 
         if (!piHeatingDemand.toZigbee?.skip) {
             toZigbee.push(tz.thermostat_pi_heating_demand);

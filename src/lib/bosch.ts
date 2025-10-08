@@ -2947,13 +2947,12 @@ export const boschThermostatExtend = {
                 },
             },
             piHeatingDemand: {
-                values: true,
+                values: ea.ALL,
                 toZigbee: {
                     skip: true,
                 },
                 configure: {
                     skip: true,
-                    access: ea.ALL,
                 },
             },
         });
