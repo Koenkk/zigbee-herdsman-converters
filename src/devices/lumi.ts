@@ -1808,6 +1808,9 @@ export const definitions: DefinitionWithExtend[] = [
             lumi.lumiModernExtend.fp1eSpatialLearning(),
             lumi.lumiModernExtend.fp1eRestartDevice(),
             m.identify(),
+
+            lumi.lumiModernExtend.fp1eAIInterference(),
+            lumi.lumiModernExtend.fp1eAdaptiveSensitivity(),
         ],
     },
     {
@@ -4989,6 +4992,7 @@ export const definitions: DefinitionWithExtend[] = [
             await endpoint.read("manuSpecificLumi", [0x019a], {manufacturerCode: manufacturerCode}); // Read detection range
         },
         extend: [
+            lumi.lumiModernExtend.lumiPreventLeave(),
             lumi.lumiModernExtend.lumiBattery({
                 voltageToPercentage: {min: 2850, max: 3000},
                 voltageAttribute: 0x0017, // Attribute: 23
@@ -5005,6 +5009,9 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Presence detection sensor type",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
+
+            lumi.lumiModernExtend.fp1eAIInterference(),
+            lumi.lumiModernExtend.fp1eAdaptiveSensitivity(),
 
             m.numeric({
                 name: "absence_delay_timer",
