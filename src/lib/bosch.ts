@@ -3261,7 +3261,7 @@ export const boschThermostatExtend = {
                 .withDescription("Specifies the current status of the valve adaptation")
                 .withCategory("diagnostic"),
             e
-                .enum("automatic_valve_adapt_possible", ea.STATE_GET, Object.keys(automaticValveAdaptLookup))
+                .enum("automatic_valve_adapt", ea.STATE_GET, Object.keys(automaticValveAdaptLookup))
                 .withLabel("Automatic valve adaptation")
                 .withDescription(
                     "Specifies if an automatic valve adaptation is being requested by the thermostat (for example after a successful firmware upgrade)",
