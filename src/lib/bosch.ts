@@ -2804,8 +2804,8 @@ export const boschThermostatExtend = {
             cluster: "hvacThermostat",
             attribute: "windowOpenMode",
             description:
-                "Activates the window open mode, where the thermostat disables any heating/cooling" +
-                "to prevent unnecessary energy consumption. Please keep in mind that the device" +
+                "Activates the window open mode, where the thermostat disables any heating/cooling " +
+                "to prevent unnecessary energy consumption. Please keep in mind that the device " +
                 "itself does not detect any open windows!",
             valueOn: ["ON", 0x01],
             valueOff: ["OFF", 0x00],
