@@ -1,5 +1,21 @@
 # Changelog
 
+## [25.42.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.41.0...v25.42.0) (2025-10-08)
+
+
+### Features
+
+* **add:** HD300W-ZB ([#10254](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10254)) ([e45e88f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e45e88f3c07a6b55b170a63a80a1fdea759c883d))
+* **add:** SA-3 ([#10252](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10252)) ([925c711](https://github.com/Koenkk/zigbee-herdsman-converters/commit/925c711e88a7ab411e0d6b7938e2a7a6579993df))
+* **add:** TZE284_6teua268 ([#10259](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10259)) ([0a26a9a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0a26a9ad5799cb3e6c386640625031ffad8a863c))
+* Aqara FP1E: improvements and support more features ([#10251](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10251)) ([03651ec](https://github.com/Koenkk/zigbee-herdsman-converters/commit/03651ecd0093d4b349d435314b265c6c2d43715d))
+
+
+### Bug Fixes
+
+* CK-BL702-AL-01_1: enable "hs" color mode ([#10257](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10257)) ([a85b580](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a85b58054a5cb54abc6932b8a9808a66c865d054))
+* **detect:** Detect `_TZE284_9m4kmbfu` as Saswell SEA801-Zigbee/SEA802-Zigbee https://github.com/Koenkk/zigbee2mqtt/issues/28956 ([767b323](https://github.com/Koenkk/zigbee-herdsman-converters/commit/767b3233ae232d5b93aa17373320c72b6d9bd4eb))
+
 ## [25.41.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.40.0...v25.41.0) (2025-10-07)
 
 
