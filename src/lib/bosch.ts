@@ -2921,6 +2921,7 @@ export const boschThermostatExtend = {
             },
             localTemperatureCalibration: {
                 values: {min: -5, max: 5, step: 0.1},
+                configure: {reporting: false},
             },
             setpoints: {
                 values: {
