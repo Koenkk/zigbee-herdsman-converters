@@ -2142,7 +2142,7 @@ export const definitions: DefinitionWithExtend[] = [
                 effect: true,
                 powerOnBehavior: true,
                 moveToLevelWithOnOffDisable: true,
-                color: {modes: ["xy"], enhancedHue: false},
+                color: {modes: ["hs", "xy"], enhancedHue: false},
             }),
         ],
         exposes: [tuya.exposes.doNotDisturb()],
