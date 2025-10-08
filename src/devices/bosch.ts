@@ -866,12 +866,7 @@ export const definitions: DefinitionWithExtend[] = [
             boschThermostatExtend.customUserInterfaceCfgCluster(),
             boschThermostatExtend.raThermostat(),
             boschThermostatExtend.setpointChangeSource(),
-            boschThermostatExtend.customHeatingDemand(),
-            boschThermostatExtend.customRunningState(),
-            boschThermostatExtend.operatingMode({
-                description: "Bosch-specific operating mode (overrides system mode)",
-            }),
-            boschThermostatExtend.windowOpenMode(),
+            boschThermostatExtend.windowOpenMode({reporting: {min: "MIN", max: "MAX", change: null, attribute: "windowOpenMode"}}),
             boschThermostatExtend.boostHeating(),
             boschThermostatExtend.remoteTemperature(),
             boschThermostatExtend.childLock(),

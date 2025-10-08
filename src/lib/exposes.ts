@@ -701,7 +701,8 @@ export class Climate extends Base {
                 .withValueMin(0)
                 .withValueMax(100)
                 .withUnit("%")
-                .withDescription("Position of the valve (= demanded heat) where 0% is fully closed and 100% is fully open"),
+                .withDescription("Position of the valve (= demanded heat) where 0% is fully closed and 100% is fully open")
+                .withAccess(access),
         );
         return this;
     }
@@ -713,7 +714,8 @@ export class Climate extends Base {
                 .withValueMin(0)
                 .withValueMax(100)
                 .withUnit("%")
-                .withDescription("Position of the valve (= demanded cooling) where 0% is fully closed and 100% is fully open"),
+                .withDescription("Position of the valve (= demanded cooling) where 0% is fully closed and 100% is fully open")
+                .withAccess(access),
         );
         return this;
     }
