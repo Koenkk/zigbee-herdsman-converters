@@ -118,6 +118,7 @@ export const definitions: DefinitionWithExtend[] = [
         endpoint: (device) => {
             return {1: 1};
         },
+        exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "haElectricalMeasurement", "seMetering"]);
