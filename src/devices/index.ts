@@ -121,6 +121,7 @@ import {definitions as hej} from "./hej";
 import {definitions as hfh} from "./hfh";
 import {definitions as hilux} from "./hilux";
 import {definitions as hive} from "./hive";
+import {definitions as hoftronic} from "./hoftronic";
 import {definitions as homeseer} from "./homeseer";
 import {definitions as hommyn} from "./hommyn";
 import {definitions as honyar} from "./honyar";
@@ -279,7 +280,6 @@ import {definitions as sinope} from "./sinope";
 import {definitions as siterwell} from "./siterwell";
 import {definitions as skydance} from "./skydance";
 import {definitions as slackyDiy} from "./slacky_diy";
-import {definitions as slc} from "./slc";
 import {definitions as slv} from "./slv";
 import {definitions as smarli} from "./smarli";
 import {definitions as smartHomePty} from "./smart_home_pty";
@@ -475,6 +475,7 @@ const definitions: DefinitionWithExtend[] = [
     ...hfh,
     ...hilux,
     ...hive,
+    ...hoftronic,
     ...homeseer,
     ...hommyn,
     ...honyar,
@@ -632,7 +633,6 @@ const definitions: DefinitionWithExtend[] = [
     ...siterwell,
     ...skydance,
     ...slackyDiy,
-    ...slc,
     ...slv,
     ...smarli,
     ...smart9,

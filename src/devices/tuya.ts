@@ -1869,6 +1869,42 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        // Tuya/Senoro window sensor variant with 3-state opening on DP101.
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_6teua268"]),
+        model: "TZE284_6teua268",
+        vendor: "Tuya",
+        whiteLabel: [{vendor: "Senoro", model: "Senoro.Win v2"}],
+        description: "Window sensor with 3-state opening (DP101), optional alarm, battery",
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
+        exposes: [
+            // DP101 → enum; device reports 0=open, 1=closed, 2=tilted (note swapped 0/1).
+            e
+                .enum("opening_state", ea.STATE, ["open", "closed", "tilted"])
+                .withDescription("Opening state (Tuya DP101)"),
+            // Some firmware variants expose an alarm bit (commonly DP16).
+            e
+                .binary("alarm", ea.STATE, true, false)
+                .withDescription("Alarm (Tuya DP16; some FW variants may use DP10/13)"),
+            e.battery(),
+        ],
+        meta: {
+            // Datapoints from logs:
+            //  - 101: 0=open, 1=closed, 2=tilted
+            //  - 16 : alarm (boolean) — optional by firmware
+            //  - 102: battery percentage (0..100)
+            tuyaDatapoints: [
+                [101, "opening_state", tuya.valueConverterBasic.lookup({open: 0, closed: 1, tilted: 2})],
+                // Alarm: primary DP16; some FW-Versions uses 10/13
+                [10, "alarm", tuya.valueConverter.raw],
+                [13, "alarm", tuya.valueConverter.raw],
+                [16, "alarm", tuya.valueConverter.raw],
+                // Battery: primary DP102; DP2 as fallback for other batches
+                [102, "battery", tuya.valueConverter.raw],
+                [2, "battery", tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
         zigbeeModel: ["ZG-301Z"],
         fingerprint: [
             ...tuya.fingerprint("TS0001", [
@@ -2153,7 +2189,7 @@ export const definitions: DefinitionWithExtend[] = [
                 effect: true,
                 powerOnBehavior: true,
                 moveToLevelWithOnOffDisable: true,
-                color: {modes: ["xy"], enhancedHue: false},
+                color: {modes: ["hs", "xy"], enhancedHue: false},
             }),
         ],
         exposes: [tuya.exposes.doNotDisturb()],
@@ -3203,6 +3239,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         meta: {coverInverted: true},
         whiteLabel: [
+            tuya.whitelabel("BSEED", "EC-GL86ZPCRS31", "Curtain/blind switch", ["_TZ3000_bs93npae"]),
             tuya.whitelabel("Danor", "SK-Z802C-US", "Smart curtain/shutter switch", ["_TZ3000_8h7wgocw"]),
             {vendor: "LoraTap", model: "SC400"},
             tuya.whitelabel("LoraTap", "SC500ZB", "Smart curtain/shutter switch", ["_TZ3000_e3vhyirx", "_TZ3000_femsaaua"]),
@@ -4793,6 +4830,23 @@ export const definitions: DefinitionWithExtend[] = [
                 indicatorMode: true,
                 backlightModeOffOn: true,
                 inchingSwitch: true,
+            }),
+        ],
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0003", ["_TZ3000_aracgljk"]),
+        model: "SA-3",
+        vendor: "Nova Digital",
+        description: "Safira smart light switch - 3 gang",
+        extend: [
+            tuya.modernExtend.tuyaBase(),
+            m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3}}),
+            tuya.modernExtend.tuyaOnOff({
+                endpoints: ["l1", "l2", "l3"],
+                powerOutageMemory: true,
+                switchType: true,
+                indicatorMode: true,
+                backlightModeOffOn: true,
             }),
         ],
     },
@@ -10600,6 +10654,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZ3290_lypnqvlem5eq1ree",
             "_TZ3290_uc8lwbi2",
             "_TZ3290_nba3knpsarkawgnt",
+            "_TZ3290_8xzb2ghn",
         ]),
         model: "ZS06",
         vendor: "Tuya",
@@ -10618,6 +10673,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Tuya", "UFO-R4Z", "Universal smart IR remote control", ["_TZ3290_rlkmy85q4pzoxobl"]),
             tuya.whitelabel("QA", "QAIRZPRO", "Infrared hub pro", ["_TZ3290_jxvzqatwgsaqzx1u", "_TZ3290_lypnqvlem5eq1ree"]),
             tuya.whitelabel("Zemismart", "ZM-18-USB", "Universal smart IR remote control", ["_TZ3290_uc8lwbi2"]),
+            tuya.whitelabel("Zemismart", "ZXMIR-02", "Universal smart IR remote control", ["_TZ3290_8xzb2ghn"]),
         ],
     },
     {

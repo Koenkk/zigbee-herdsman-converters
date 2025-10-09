@@ -76,6 +76,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.light({configureReporting: true})],
     },
     {
+        zigbeeModel: ["S32052"],
+        model: "S32052",
+        vendor: "SLC",
+        description: "SLC SmartOne Driver CC LED dimmable driver 2CH TW 350-1500mA 50W",
+        extend: [m.light({colorTemp: {range: [160, 450]}})],
+    },
+    {
         zigbeeModel: ["S32053"],
         model: "S32053",
         vendor: "The Light Group",

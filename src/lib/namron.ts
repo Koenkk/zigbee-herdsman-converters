@@ -210,7 +210,7 @@ export const edgeThermostat = {
         modernExtend.numeric({
             name: "regulator_percentage",
             cluster: "hvacThermostat",
-            attribute: {ID: 0x801d, type: Zcl.DataType.UINT8},
+            attribute: {ID: 0x801d, type: Zcl.DataType.INT16},
             description: "Regulator percentage",
             unit: "%",
             valueMax: 100,
