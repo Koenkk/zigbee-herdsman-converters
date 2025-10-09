@@ -51,6 +51,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.light({turnsOffAtBrightness1: true})],
     },
     {
+        zigbeeModel: ["AE 282 C"],
+        model: "AE 282 C",
+        vendor: "Innr",
+        description: "Smart Bulb Colour E27 (800lm)",
+        extend: [m.light({"colorTemp": {"range":[153,556]}, "color": {"modes":["xy","hs"], "enhancedHue":true}})],
+    },
+    {
         zigbeeModel: ["RCL 231 T"],
         model: "RCL 231 T",
         vendor: "Innr",
@@ -206,6 +213,13 @@ export const definitions: DefinitionWithExtend[] = [
             }),
         ],
         ota: true,
+    },
+    {
+        zigbeeModel: ["RB 252 C"],
+        model: "RB 252 C",
+        vendor: "Innr",
+        description: "Smart bulb Candle Colour E14",
+        extend: [m.light({"colorTemp": {"range":[153,556]}, "color": {"modes":["xy","hs"], "enhancedHue":true}})],
     },
     {
         zigbeeModel: ["RB 262"],
