@@ -19083,7 +19083,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.exposes.switchMode().withEndpoint("l1"),
             tuya.exposes.switchMode().withEndpoint("l2"),
 
-            e.light_brightness_colortemp([2700, 6500]),
+            e.light_brightness_colortemp([154, 370]),
 
             e.enum("adjustment_mode", ea.ALL, ["brightness", "color_temp"]).withDescription("Adjustment mode"),
             tuya.exposes.powerOnBehavior(),
@@ -19101,7 +19101,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [131, "switch_mode_l1", tuya.valueConverter.switchMode],
                 [132, "switch_mode_l2", tuya.valueConverter.switchMode],
                 [103, "brightness", tuya.valueConverterBasic.scale(0, 254, 0, 1000)],
-                [107, "color_temp", tuya.valueConverterBasic.scale(2700, 6500, 0, 1000)],
+                [107, "color_temp", tuya.valueConverterBasic.scale(154, 370, 0, 1000)],
                 [105, "adjustment_mode", tuya.valueConverterBasic.lookup({brightness: tuya.enum(0), color_temp: tuya.enum(1)})],
                 [106, "power_on_behavior", tuya.valueConverter.powerOnBehavior],
                 [111, "action", tuya.valueConverterBasic.lookup({button_1: tuya.enum(0)})],
