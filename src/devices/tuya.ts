@@ -1260,6 +1260,26 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_z1xg4gsp"]),
+        model: "KRC702Z",
+        vendor: "Videosec",
+        description: "2 gang smart switch with toggle fix",
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints], // Use the standard datapoints converter
+        exposes: [e.switch().withEndpoint("l1"), e.switch().withEndpoint("l2")],
+        meta: {
+            multiEndpoint: true,
+            tuyaDatapoints: [
+                // Use the new converter from the main tuya library
+                [19, "state_l1", tuya.valueConverter.onOffStateIgnoringAlreadyCurrentState],
+                [20, "state_l2", tuya.valueConverter.onOffStateIgnoringAlreadyCurrentState],
+            ],
+        },
+        endpoint: (device) => {
+            return {l1: 1, l2: 1};
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_zpvusbtv"]),
         model: "ZN2S-RS02E",
         vendor: "Tuya",
