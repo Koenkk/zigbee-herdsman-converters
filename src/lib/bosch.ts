@@ -3241,11 +3241,6 @@ export const boschThermostatExtend = {
             success: 0x04,
         };
 
-        const automaticValveAdaptLookup = {
-            false: 0x00,
-            true: 0x01,
-        };
-
         const triggerValveAdaptation = async (state: KeyValue, endpoint: Zh.Endpoint | Zh.Group, throwError = true) => {
             let adaptStatus: number;
 
@@ -3279,7 +3274,7 @@ export const boschThermostatExtend = {
                 .withDescription("Specifies the current status of the valve adaptation")
                 .withCategory("diagnostic"),
             e
-                .enum("automatic_valve_adapt", ea.STATE_GET, Object.keys(automaticValveAdaptLookup))
+                .binary("automatic_valve_adapt", ea.STATE_GET, true, false)
                 .withLabel("Automatic valve adaptation requested")
                 .withDescription(
                     "Specifies if an automatic valve adaptation is being requested by the thermostat (for example after a successful firmware upgrade)",
@@ -3303,25 +3298,14 @@ export const boschThermostatExtend = {
                     if (data.valveAdaptStatus !== undefined) {
                         result.valve_adapt_status = utils.getFromLookupByValue(data.valveAdaptStatus, valveAdaptStatusLookup);
 
-                        let automaticValveAdapt: number;
-
-                        try {
-                            automaticValveAdapt = utils.getFromLookup(
-                                meta.state.automatic_valve_adapt,
-                                automaticValveAdaptLookup,
-                                automaticValveAdaptLookup.false,
-                            );
-                        } catch {
-                            automaticValveAdapt = automaticValveAdaptLookup.false;
-                        }
-
-                        if (automaticValveAdapt === automaticValveAdaptLookup.true) {
+                        const automaticValveAdapt = meta.state.automatic_valve_adapt ?? false;
+                        if (automaticValveAdapt === true) {
                             await triggerValveAdaptation(meta.state, msg.endpoint, false);
                         }
                     }
 
                     if (data.automaticValveAdapt !== undefined) {
-                        result.automatic_valve_adapt = utils.getFromLookupByValue(data.automaticValveAdapt, automaticValveAdaptLookup);
+                        result.automatic_valve_adapt = !!data.automaticValveAdapt;
                     }
 
                     return result;
