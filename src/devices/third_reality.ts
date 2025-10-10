@@ -588,10 +588,13 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.occupancy()],
     },
     {
-        zigbeeModel: ["3RCB01057Z"],
+        zigbeeModel: ["3RCB01057Z", "3RCB02070Z"],
         model: "3RCB01057Z",
         vendor: "Third Reality",
-        description: "Zigbee color lights",
+        description: "Smart Color Bulb ZL1",
+        whiteLabel: [
+            {vendor: 'Third Reality', model: '3RCB02070Z', description: 'Smart Color Bulb ZL4', fingerprint: [{modelID: '3RCB02070Z'}]},
+        ],
         ota: true,
         extend: [
             m.light({colorTemp: {range: [154, 500]}, color: {modes: ["xy", "hs"], enhancedHue: false}}),
