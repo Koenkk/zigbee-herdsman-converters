@@ -3,7 +3,7 @@
         "allowSyntheticDefaultImports": true,
         "module": "commonjs",
         "esModuleInterop": true,
-	"target": "esnext",
+        "target": "esnext",
         "lib": ["esnext"],
         "sourceMap": true,
         "declaration": true,
