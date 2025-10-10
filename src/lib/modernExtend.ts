@@ -240,13 +240,6 @@ export function setupConfigureForReporting<Cl extends string | number, Custom ex
                 }
             }
 
-            logger.error(JSON.stringify(endpoints), NS);
-            logger.error(JSON.stringify(coordinatorEndpoint), NS);
-            logger.error(JSON.stringify(cluster), NS);
-            logger.error(JSON.stringify(reportConfig), NS);
-            logger.error(JSON.stringify(configureReporting), NS);
-            logger.error(JSON.stringify(read), NS);
-
             for (const endpoint of endpoints) {
                 await setupAttributes<Cl, Custom>(endpoint, coordinatorEndpoint, cluster, [reportConfig], configureReporting, read);
             }

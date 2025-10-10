@@ -3,7 +3,7 @@ import type {TPartialClusterAttributes} from "zigbee-herdsman/dist/zspec/zcl/def
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
-import type {BatteryArgs, BinaryArgs, EnumLookupArgs, NumericArgs} from "../lib/modernExtend";
+import type {BatteryArgs} from "../lib/modernExtend";
 import * as m from "../lib/modernExtend";
 import {repInterval} from "./constants";
 import {logger} from "./logger";
@@ -2783,18 +2783,46 @@ export const boschThermostatExtend = {
             entityCategory: "config",
         }),
     humidity: () => m.humidity({reporting: false}),
-    operatingMode: (args?: Partial<EnumLookupArgs<"hvacThermostat", BoschThermostatCluster>>) =>
-        m.enumLookup<"hvacThermostat", BoschThermostatCluster>({
+    operatingMode: (args?: {enableReporting: boolean}): ModernExtend => {
+        const operatingModeLookup = {schedule: 0x00, manual: 0x01, pause: 0x05};
+
+        const operatingMode = m.enumLookup<"hvacThermostat", BoschThermostatCluster>({
             name: "operating_mode",
             cluster: "hvacThermostat",
             attribute: "operatingMode",
             description: "Bosch-specific operating mode",
-            lookup: {schedule: 0x00, manual: 0x01, pause: 0x05},
-            reporting: false,
+            lookup: operatingModeLookup,
+            reporting: args?.enableReporting ? {min: "MIN", max: "MAX", change: null} : false,
             entityCategory: "config",
-            ...args,
-        }),
-    windowOpenMode: (args?: Partial<BinaryArgs<"hvacThermostat", BoschThermostatCluster>>) =>
+        });
+
+        const expose: DefinitionExposesFunction = (device: Zh.Device | DummyDevice, options: KeyValue): Expose[] => {
+            if (utils.isDummyDevice(device)) {
+                return [];
+            }
+
+            let description = "Bosch-specific operating mode";
+
+            if (device.modelID === "RBSH-TRV0-ZB-EU" || device.modelID === "RBSH-TRV1-ZB-EU") {
+                description += " (overrides system mode)";
+            }
+
+            return [e.enum("operating_mode", ea.ALL, Object.keys(operatingModeLookup)).withDescription(description).withCategory("config")];
+        };
+
+        const fromZigbee = operatingMode.fromZigbee;
+        const toZigbee: Tz.Converter[] = operatingMode.toZigbee;
+        const configure: Configure[] = operatingMode.configure;
+
+        return {
+            exposes: [expose],
+            fromZigbee,
+            toZigbee,
+            configure,
+            isModernExtend: true,
+        };
+    },
+    windowOpenMode: (args?: {enableReporting: boolean}) =>
         m.binary<"hvacThermostat", BoschThermostatCluster>({
             name: "window_open_mode",
             cluster: "hvacThermostat",
@@ -2805,8 +2833,7 @@ export const boschThermostatExtend = {
                 "itself does not detect any open windows!",
             valueOn: ["ON", 0x01],
             valueOff: ["OFF", 0x00],
-            reporting: false,
-            ...args,
+            reporting: args?.enableReporting ? {min: "MIN", max: "MAX", change: null, attribute: "windowOpenMode"} : false,
         }),
     childLock: () =>
         m.binary({
@@ -2880,15 +2907,15 @@ export const boschThermostatExtend = {
             reporting: false,
             entityCategory: "config",
         }),
-    setpointChangeSource: () =>
+    setpointChangeSource: (args?: {enableReporting: boolean}) =>
         m.enumLookup({
             name: "setpoint_change_source",
             cluster: "hvacThermostat",
             attribute: "setpointChangeSource",
             description: "Source of the current setpoint temperature",
             lookup: {manual: 0x00, schedule: 0x01, externally: 0x02},
-            reporting: {min: "MIN", max: "MAX", change: null},
             access: "STATE_GET",
+            reporting: args?.enableReporting ? {min: "MIN", max: "MAX", change: null} : false,
             entityCategory: "diagnostic",
         }),
     rmBattery: () =>
@@ -2963,19 +2990,14 @@ export const boschThermostatExtend = {
         toZigbee.push(...runningState.toZigbee);
 
         // Add converters and configure for custom heating demand
-        const piHeatingDemand = boschThermostatExtend.customHeatingDemand({
-            reporting: {min: "MIN", max: "MAX", change: null},
-        });
+        const piHeatingDemand = boschThermostatExtend.customHeatingDemand();
         fromZigbee.push(...piHeatingDemand.fromZigbee);
         toZigbee.push(...piHeatingDemand.toZigbee);
         configure = [...configure, ...piHeatingDemand.configure];
 
         // Add Bosch operating mode
         // (will be used by this thermostat, thus being added here)
-        const customOperatingModes = boschThermostatExtend.operatingMode({
-            description: "Bosch-specific operating mode (overrides system mode)",
-            reporting: {min: "MIN", max: "MAX", change: null},
-        });
+        const customOperatingModes = boschThermostatExtend.operatingMode({enableReporting: true});
         exposes.push(...customOperatingModes.exposes);
         fromZigbee.push(...customOperatingModes.fromZigbee);
         toZigbee.push(...customOperatingModes.toZigbee);
@@ -3046,7 +3068,7 @@ export const boschThermostatExtend = {
             isModernExtend: true,
         };
     },
-    customHeatingDemand: (args?: Partial<NumericArgs<"hvacThermostat", BoschThermostatCluster>>) =>
+    customHeatingDemand: () =>
         m.numeric<"hvacThermostat", BoschThermostatCluster>({
             name: "pi_heating_demand",
             cluster: "hvacThermostat",
@@ -3057,9 +3079,9 @@ export const boschThermostatExtend = {
             valueMin: 0,
             valueMax: 100,
             access: "ALL",
-            ...args,
+            reporting: {min: "MIN", max: "MAX", change: null},
         }),
-    boostHeating: (): ModernExtend => {
+    boostHeating: (args?: {enableReporting: boolean}): ModernExtend => {
         const boostHeatingLookup: KeyValue = {
             OFF: 0x00,
             ON: 0x01,
@@ -3131,7 +3153,7 @@ export const boschThermostatExtend = {
 
         const configure: Configure[] = [
             m.setupConfigureForReporting<"hvacThermostat", BoschThermostatCluster>("hvacThermostat", "boostHeating", {
-                config: {min: "MIN", max: "MAX", change: null},
+                config: args?.enableReporting ? {min: "MIN", max: "MAX", change: null} : false,
                 access: ea.ALL,
             }),
         ];
@@ -3144,7 +3166,7 @@ export const boschThermostatExtend = {
             isModernExtend: true,
         };
     },
-    errorState: (): ModernExtend => {
+    errorState: (args?: {enableReporting: boolean}): ModernExtend => {
         const exposes: Expose[] = [
             e
                 .text("error_state", ea.STATE_GET)
@@ -3197,7 +3219,7 @@ export const boschThermostatExtend = {
 
         const configure: Configure[] = [
             m.setupConfigureForReporting<"hvacThermostat", BoschThermostatCluster>("hvacThermostat", "errorState", {
-                config: {min: "MIN", max: "MAX", change: null},
+                config: args?.enableReporting ? {min: "MIN", max: "MAX", change: null} : false,
                 access: ea.STATE_GET,
             }),
         ];
@@ -3281,11 +3303,18 @@ export const boschThermostatExtend = {
                     if (data.valveAdaptStatus !== undefined) {
                         result.valve_adapt_status = utils.getFromLookupByValue(data.valveAdaptStatus, valveAdaptStatusLookup);
 
-                        const automaticValveAdapt = utils.getFromLookup(
-                            meta.state.automatic_valve_adapt,
-                            automaticValveAdaptLookup,
-                            automaticValveAdaptLookup.false,
-                        );
+                        let automaticValveAdapt: number;
+
+                        try {
+                            automaticValveAdapt = utils.getFromLookup(
+                                meta.state.automatic_valve_adapt,
+                                automaticValveAdaptLookup,
+                                automaticValveAdaptLookup.false,
+                            );
+                        } catch {
+                            automaticValveAdapt = automaticValveAdaptLookup.false;
+                        }
+
                         if (automaticValveAdapt === automaticValveAdaptLookup.true) {
                             await triggerValveAdaptation(meta.state, msg.endpoint, false);
                         }
