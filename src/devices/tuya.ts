@@ -1527,7 +1527,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_s1xgth2u"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_s1xgth2u", "_TZE284_9ern5sfh"]),
         model: "TS0601_temperature_humidity_sensor_3",
         vendor: "Tuya",
         description: "Temperature & humidity sensor",
