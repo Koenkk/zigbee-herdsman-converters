@@ -1617,18 +1617,32 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        zigbeeModel: ["4512792"],
-        model: "4512792",
-        vendor: "Namron",
-        description: "Simplify 1-2p relay (Zigbee / BT)",
-        extend: [
-            m.onOff(),
-            m.electricityMeter({
-                power: {multiplier: 1, divisor: 10}, // W
-                voltage: {multiplier: 1, divisor: 10}, // V -> 2383 -> 238.3
-                current: {multiplier: 1, divisor: 100}, // A
-                energy: {multiplier: 1, divisor: 100}, // kWh
-            }),
+        zigbeeModel: ["4512793", "4512794"],
+        model: "4512793",
+        vendor: "Namron AS",
+        description: "Namron Simplify on wall 6 buttons (action) + battery White/Black",
+        extend: [m.battery()],
+        exposes: [
+            e.action([
+                "button_1_up_press",
+                "button_1_up_hold",
+                "button_1_up_release",
+                "button_1_down_press",
+                "button_1_down_hold",
+                "button_1_down_release",
+                "button_2_up_press",
+                "button_2_up_hold",
+                "button_2_up_release",
+                "button_2_down_press",
+                "button_2_down_hold",
+                "button_2_down_release",
+                "button_3_up_press",
+                "button_3_up_hold",
+                "button_3_up_release",
+                "button_3_down_press",
+                "button_3_down_hold",
+                "button_3_down_release",
+            ]),
         ],
     },
 ];
