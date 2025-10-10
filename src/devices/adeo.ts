@@ -260,7 +260,6 @@ export const definitions: DefinitionWithExtend[] = [
             fz.command_step_saturation,
             fz.color_stop_raw,
             fz.scenes_recall_scene_65024,
-            fz.ignore_genOta,
         ],
         toZigbee: [],
         exposes: [

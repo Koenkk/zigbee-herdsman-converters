@@ -282,7 +282,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "HG06668",
         vendor: "Lidl",
         description: "Silvercrest smart wireless door bell button",
-        fromZigbee: [fz.battery, fz.tuya_doorbell_button, fz.ignore_basic_report],
+        fromZigbee: [fz.battery, fz.tuya_doorbell_button],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -387,7 +387,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "PSBZS A1",
         vendor: "Lidl",
         description: "Parkside smart watering timer",
-        fromZigbee: [fz.ignore_basic_report, fz.ignore_tuya_set_time, fz.ignore_onoff_report],
+        fromZigbee: [fz.ignore_tuya_set_time, fz.ignore_onoff_report],
         extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true})],
         onEvent: async (event) => {
             if (event.type === "deviceInterview" && event.data.status === "successful") {

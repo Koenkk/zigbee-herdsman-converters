@@ -46,4 +46,11 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.electricityMeter({threePhase: true})],
         ota: true,
     },
+    {
+        zigbeeModel: ["REXZB-111"],
+        model: "REXZB-111",
+        vendor: "Frient",
+        description: "Zigbee repeater with backup battery",
+        extend: [m.battery(), m.iasZoneAlarm({zoneType: "generic", zoneAttributes: ["alarm_1", "alarm_2", "tamper", "battery_low"]}), m.identify()],
+    },
 ];

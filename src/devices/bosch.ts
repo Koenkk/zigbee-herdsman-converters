@@ -1585,6 +1585,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             boschGeneralExtend.customSeMeteringCluster(),
             boschSmartPlugExtend.smartPlugCluster(),
+            boschGeneralExtend.handleRenamedCustomCluster("boschSpecific", "boschEnergyDevice"),
             boschSmartPlugExtend.onOff(),
             boschGeneralExtend.autoOff(),
             boschSmartPlugExtend.electricityMeter(),
@@ -1620,6 +1621,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Door/window contact II",
         extend: [
             boschDoorWindowContactExtend.doorWindowContactCluster(),
+            boschGeneralExtend.handleRenamedCustomCluster("boschSpecific", "boschDoorWindowContactCluster"),
             boschDoorWindowContactExtend.reportContactState(),
             boschDoorWindowContactExtend.reportButtonActions(),
             boschDoorWindowContactExtend.breakFunctionality(),
@@ -1634,6 +1636,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Door/window contact II plus",
         extend: [
             boschDoorWindowContactExtend.doorWindowContactCluster(),
+            boschGeneralExtend.handleRenamedCustomCluster("boschSpecific", "boschDoorWindowContactCluster"),
             boschDoorWindowContactExtend.reportContactState(),
             boschDoorWindowContactExtend.reportButtonActions(),
             boschDoorWindowContactExtend.vibrationDetection(),
@@ -1648,6 +1651,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Door/window contact II [+M]",
         extend: [
             boschDoorWindowContactExtend.doorWindowContactCluster(),
+            boschGeneralExtend.handleRenamedCustomCluster("boschSpecific", "boschDoorWindowContactCluster"),
             boschDoorWindowContactExtend.reportContactState(),
             boschDoorWindowContactExtend.reportButtonActions({doublePressSupported: true}),
             boschDoorWindowContactExtend.breakFunctionality(),
@@ -1675,6 +1679,7 @@ export const definitions: DefinitionWithExtend[] = [
                 commands: {},
                 commandsResponse: {},
             }),
+            boschGeneralExtend.handleRenamedCustomCluster("boschSpecific", "boschEnergyDevice"),
             m.light({
                 configureReporting: true,
                 levelConfig: {features: ["on_level", "current_level_startup"]},
@@ -1718,6 +1723,7 @@ export const definitions: DefinitionWithExtend[] = [
                 commands: {},
                 commandsResponse: {},
             }),
+            boschGeneralExtend.handleRenamedCustomCluster("boschSpecific", "boschEnergyDevice"),
             boschBmctExtend.rzDeviceModes({
                 deviceModesLookup: boschBmctRzSettings.deviceModes,
             }),
@@ -1821,6 +1827,7 @@ export const definitions: DefinitionWithExtend[] = [
                 },
                 commandsResponse: {},
             }),
+            boschGeneralExtend.handleRenamedCustomCluster("boschSpecific", "boschEnergyDevice"),
             boschGeneralExtend.handleZclVersionReadRequest(),
             boschBmctExtend.slzExtends(),
             boschGeneralExtend.customSeMeteringCluster(),

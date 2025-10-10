@@ -1,7 +1,7 @@
+import {expect, vi} from "vitest";
 import type {Device} from "zigbee-herdsman/dist/controller/model";
 import type {DeviceType} from "zigbee-herdsman/dist/controller/tstype";
 import {Clusters} from "zigbee-herdsman/dist/zspec/zcl/definition/cluster";
-
 import * as tz from "../src/converters/toZigbee";
 import {findByDevice} from "../src/index";
 import type {Definition, DefinitionMeta, Fz, Zh} from "../src/lib/types";
