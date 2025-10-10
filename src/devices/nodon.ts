@@ -265,6 +265,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withFanMode(["off", "low", "medium", "high", "auto"])
                 .withAcLouverPosition(["fully_open", "fully_closed", "half_open", "quarter_open", "three_quarters_open"]),
         ],
+        extend: [m.humidity()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const binds = ["hvacFanCtrl", "genIdentify", "hvacThermostat"];
@@ -304,6 +305,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.electricityMeter({
                 acFrequency: true,
                 powerFactor: true,
+                producedEnergy: true,
             }),
         ],
         ota: true,
