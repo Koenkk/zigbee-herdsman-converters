@@ -137,7 +137,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "27087-03",
         vendor: "Iris",
         description: "Hose faucet water timer",
-        fromZigbee: [fz.on_off, fz.battery, fz.ignore_time_read],
+        fromZigbee: [fz.on_off, fz.battery],
         toZigbee: [tz.on_off],
         meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
         configure: async (device, coordinatorEndpoint) => {

@@ -48,7 +48,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "DIN power consumption module (same as Legrand 412015)",
         vendor: "BTicino",
         extend: [m.onOff(), m.electricityMeter({cluster: "electrical"})],
-        fromZigbee: [fz.identify, fzLegrand.cluster_fc01, fz.ignore_basic_report, fz.ignore_genOta],
+        fromZigbee: [fz.identify, fzLegrand.cluster_fc01],
         toZigbee: [tz.legrand_device_mode, tzLegrand.identify],
         exposes: [
             e

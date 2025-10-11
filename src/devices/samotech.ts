@@ -78,4 +78,11 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Zigbee smart pull cord dimmer switch",
         extend: [m.light({configureReporting: true, effect: false, powerOnBehavior: false})],
     },
+    {
+        zigbeeModel: ["SM315"],
+        model: "SM315",
+        vendor: "Samotech",
+        description: "Zigbee rotary cord dimmer",
+        extend: [m.light({configureReporting: true, effect: false, powerOnBehavior: false})],
+    },
 ];

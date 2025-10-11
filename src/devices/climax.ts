@@ -56,7 +56,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "PSM-29ZBSR",
         vendor: "Climax",
         description: "Power plug",
-        fromZigbee: [fz.on_off, fz.metering, fz.ignore_basic_report],
+        fromZigbee: [fz.on_off, fz.metering],
         toZigbee: [tz.on_off, tz.ignore_transition],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);

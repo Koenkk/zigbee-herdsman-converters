@@ -101,6 +101,8 @@ const fzLocal = {
         type: ["attributeReport", "readResponse"],
         options: [exposes.options.state_action()],
         convert: (model, msg, publish, options, meta) => {
+            // Device keeps reporting a acCurrentPowerValue after turning OFF.
+            // Make sure power = 0 when turned OFF
             // https://github.com/Koenkk/zigbee2mqtt/issues/28470
             let result = fz.on_off.convert(model, msg, publish, options, meta);
             if (msg.data.onOff === 0) {
@@ -2035,8 +2037,17 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: "acCurrentCurrentValue",
                 description: "Current",
                 unit: "A",
-                scale: 1000,
                 access: "STATE_GET",
+                // https://github.com/Koenkk/zigbee2mqtt/issues/28470#issuecomment-3369116710
+                reporting: {min: "10_SECONDS", max: "MAX", change: 2},
+                fzConvert: (model, msg, publish, options, meta) => {
+                    // Device keeps reporting a acCurrentCurrentValue after turning OFF.
+                    // Make sure power = 0 when turned OFF
+                    // https://github.com/Koenkk/zigbee2mqtt/issues/28470
+                    if ("acCurrentCurrentValue" in msg.data) {
+                        return {current: meta.state.state === "ON" ? msg.data.acCurrentCurrentValue / 1000 : 0};
+                    }
+                },
             }),
             m.numeric<"customClusterEwelink", SonoffEwelink>({
                 name: "voltage",
@@ -2053,9 +2064,16 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: "acCurrentPowerValue",
                 description: "Active power",
                 unit: "W",
-                scale: 1000,
                 access: "STATE_GET",
                 reporting: {min: "10_SECONDS", max: "MAX", change: 0},
+                fzConvert: (model, msg, publish, options, meta) => {
+                    // Device keeps reporting a acCurrentPowerValue after turning OFF.
+                    // Make sure power = 0 when turned OFF
+                    // https://github.com/Koenkk/zigbee2mqtt/issues/28470
+                    if ("acCurrentPowerValue" in msg.data) {
+                        return {power: meta.state.state === "ON" ? msg.data.acCurrentPowerValue / 1000 : 0};
+                    }
+                },
             }),
             m.numeric<"customClusterEwelink", SonoffEwelink>({
                 name: "energy_yesterday",
@@ -2512,7 +2530,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Zigbee smart roller shutter switch",
         extend: [
             sonoffExtend.addCustomClusterEwelink(),
-            m.windowCovering({controls: ["lift"], coverInverted: true}),
+            m.windowCovering({controls: ["lift"], coverInverted: false}),
             m.enumLookup<"customClusterEwelink", SonoffEwelink>({
                 name: "motor_travel_calibration_status",
                 lookup: {Uncalibrated: 0, Calibrated: 1},

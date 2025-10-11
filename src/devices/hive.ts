@@ -28,14 +28,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "MOT003",
         vendor: "Hive",
         description: "Motion sensor",
-        fromZigbee: [
-            fz.temperature,
-            fz.ias_occupancy_alarm_1_with_timeout,
-            fz.battery,
-            fz.ignore_basic_report,
-            fz.ignore_iaszone_statuschange,
-            fz.ignore_iaszone_attreport,
-        ],
+        fromZigbee: [fz.temperature, fz.ias_occupancy_alarm_1_with_timeout, fz.battery, fz.ignore_iaszone_statuschange, fz.ignore_iaszone_attreport],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(6);
