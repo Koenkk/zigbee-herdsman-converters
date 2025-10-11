@@ -6245,6 +6245,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE284_rv6iuyxb" /* model: 'TRV06-AT', vendor: 'THALEOS' */,
             "_TZE200_rv6iuyxb" /* model: 'TRV06-AT', vendor: 'THALEOS' */,
             "_TZE200_suxywabt" /* model: 'TRV06-AT', vendor: 'THALEOS' */,
+            "_TZE200_d3z1ukqw" /* model: 'Eco-4160', vendor: 'Echos' */,
         ]),
         model: "TS0601_thermostat_3",
         vendor: "Tuya",
@@ -6267,6 +6268,7 @@ export const definitions: DefinitionWithExtend[] = [
                 "_TZE200_rv6iuyxb",
                 "_TZE200_suxywabt",
             ]),
+            tuya.whitelabel("Echos", "Eco-4160", "Thermostatic radiator valve", ["_TZE200_d3z1ukqw"]),
         ],
         extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
         exposes: [
