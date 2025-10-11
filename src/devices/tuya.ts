@@ -20004,7 +20004,10 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription("Countdown timer for Plug 2")
                 .withUnit("s"),
             e.enum("relay_status", ea.STATE_SET, ["memory", "on", "off"]).withLabel("Relay Status").withDescription("Set the Relay Status"),
-            e.binary("switch_backlight", ea.STATE_SET, "ON", "OFF").withLabel("Switch Backlight").withDescription("Enables/disables backlight indicator"),
+            e
+                .binary("switch_backlight", ea.STATE_SET, "ON", "OFF")
+                .withLabel("Switch Backlight")
+                .withDescription("Enables/disables backlight indicator"),
             e.current(),
             e.power(),
             e.voltage(),
