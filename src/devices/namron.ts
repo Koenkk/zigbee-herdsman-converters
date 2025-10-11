@@ -89,7 +89,7 @@ const tzLocal = {
                 const payload = {4105: {value: value ? 1 : 0, type: Zcl.DataType.ENUM8}};
                 await entity.write("hvacThermostat", payload, sunricherManufacturer);
             } else if (key === "hysterersis") {
-                const payload = {4106: {value: utils.toNumber(value, "hysterersis") * 10, type: 0x20}};
+                const payload = {4106: {value: utils.toNumber(value, "hysterersis") * 10, type: Zcl.DataType.UINT8}};
                 await entity.write("hvacThermostat", payload, sunricherManufacturer);
             }
         },
