@@ -20045,4 +20045,87 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_mvtclclq"]),
+        model: "DS-1450WN",
+        vendor: "Tuya",
+        description: "Smart Zigbee Switch with Power Monitoring",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+
+        exposes: [
+            e.switch().withEndpoint("usb_a"),
+            e.switch().withEndpoint("usb_c"),
+            e.switch().withEndpoint("plug_1"),
+            e.switch().withEndpoint("plug_2"),
+            e
+                .numeric("countdown_usb_a", ea.STATE_SET)
+                .withLabel("USB A Countdown")
+                .withValueMin(0)
+                .withValueMax(86400)
+                .withValueStep(1)
+                .withDescription("Countdown timer for USB A")
+                .withUnit("s"),
+            e
+                .numeric("countdown_usb_c", ea.STATE_SET)
+                .withLabel("USB C Countdown")
+                .withValueMin(0)
+                .withValueMax(86400)
+                .withValueStep(1)
+                .withDescription("Countdown timer for USB C")
+                .withUnit("s"),
+            e
+                .numeric("countdown_plug_1", ea.STATE_SET)
+                .withLabel("Plug 1 Countdown")
+                .withValueMin(0)
+                .withValueMax(86400)
+                .withValueStep(1)
+                .withDescription("Countdown timer for Plug 1")
+                .withUnit("s"),
+            e
+                .numeric("countdown_plug_2", ea.STATE_SET)
+                .withLabel("Plug 2 Countdown")
+                .withValueMin(0)
+                .withValueMax(86400)
+                .withValueStep(1)
+                .withDescription("Countdown timer for Plug 2")
+                .withUnit("s"),
+            e.enum("relay_status", ea.STATE_SET, ["memory", "on", "off"]).withLabel("Relay Status").withDescription("Set the Relay Status"),
+            e
+                .binary("switch_backlight", ea.STATE_SET, "ON", "OFF")
+                .withLabel("Switch Backlight")
+                .withDescription("Enables/disables backlight indicator"),
+            e.current(),
+            e.power(),
+            e.voltage(),
+            e.produced_energy(),
+            e.child_lock(),
+        ],
+        endpoint: (_) => ({
+            default: 1,
+            usb_a: 1,
+            usb_c: 1,
+            plug_1: 1,
+            plug_2: 1,
+        }),
+        meta: {
+            multiEndpoint: true,
+            tuyaDatapoints: [
+                [1, "state_usb_a", tuya.valueConverter.onOff],
+                [2, "state_usb_c", tuya.valueConverter.onOff],
+                [3, "state_plug_1", tuya.valueConverter.onOff],
+                [4, "state_plug_2", tuya.valueConverter.onOff],
+                [7, "countdown_usb_a", tuya.valueConverter.countdown],
+                [8, "countdown_usb_c", tuya.valueConverter.countdown],
+                [9, "countdown_plug_1", tuya.valueConverter.countdown],
+                [10, "countdown_plug_2", tuya.valueConverter.countdown],
+                [14, "relay_status", tuya.valueConverterBasic.lookup({memory: tuya.enum(0), on: tuya.enum(1), off: tuya.enum(2)})],
+                [16, "switch_backlight", tuya.valueConverter.onOff],
+                [21, "current", tuya.valueConverter.divideBy10],
+                [22, "power", tuya.valueConverter.divideBy10],
+                [23, "voltage", tuya.valueConverter.divideBy10],
+                [105, "produced_energy", tuya.valueConverter.divideBy10],
+                [106, "child_lock", tuya.valueConverter.lockUnlock],
+            ],
+        },
+    },
 ];
