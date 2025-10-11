@@ -4278,6 +4278,88 @@ export const fromZigbee = {
             return result;
         },
     } satisfies Fz.Converter<"manuSpecificLumi", undefined, ["attributeReport", "readResponse"]>,
+
+    w100_0844_req: {
+        cluster: "manuSpecificLumi",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const attr = msg.data[65522];
+            if (!attr || !Buffer.isBuffer(attr)) return;
+
+            const endsWith = Buffer.from([0x08, 0x00, 0x08, 0x44]);
+            if (attr.slice(-4).equals(endsWith)) {
+                logger.info(`Detected PMTSD request from device ${meta.device.ieeeAddr}`, NS);
+                return {action: "data_request"};
+            }
+        },
+    } satisfies Fz.Converter<"manuSpecificLumi", undefined, ["attributeReport", "readResponse"]>,
+
+    pmtsd_from_w100: {
+        cluster: "manuSpecificLumi",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const data = msg.data[65522];
+            if (!data || !Buffer.isBuffer(data)) return;
+
+            const endsWith = Buffer.from([0x08, 0x44]);
+            const idx = data.indexOf(endsWith);
+            if (idx === -1 || idx + 2 >= data.length) return;
+
+            const payloadLen = data[idx + 2];
+            const payloadStart = idx + 3;
+            const payloadEnd = payloadStart + payloadLen;
+
+            if (payloadEnd > data.length) return;
+
+            const payloadBytes = data.slice(payloadStart, payloadEnd);
+            let payloadAscii: string;
+            try {
+                payloadAscii = payloadBytes.toString("ascii");
+            } catch {
+                return;
+            }
+
+            const result: {[key: string]: string} = {};
+            const partsForCombined: string[] = [];
+            const pairs = payloadAscii.split("_");
+            pairs.forEach((p) => {
+                if (p.length >= 2) {
+                    const key = p[0];
+                    const value = p.slice(1);
+                    let newKey: string;
+                    switch (key) {
+                        case "p":
+                            newKey = "PW";
+                            break;
+                        case "m":
+                            newKey = "MW";
+                            break;
+                        case "t":
+                            newKey = "TW";
+                            break;
+                        case "s":
+                            newKey = "SW";
+                            break;
+                        case "d":
+                            newKey = "DW";
+                            break;
+                        default:
+                            newKey = `${key.toUpperCase()}W`;
+                    }
+                    result[newKey] = value;
+                    partsForCombined.push(`${newKey}${value}`);
+                }
+            });
+            const ts = Date.now();
+            const combinedString = partsForCombined.length ? `${ts}_${partsForCombined.join("_")}` : `${ts}`;
+
+            logger.info(`Decoded PMTSD: ${JSON.stringify(result)} from ${meta.device.ieeeAddr}`, NS);
+            return {
+                ...result,
+                data: combinedString,
+            };
+        },
+    } satisfies Fz.Converter<"manuSpecificLumi", undefined, ["attributeReport", "readResponse"]>,
 };
 
 export const toZigbee = {
@@ -5905,6 +5987,103 @@ export const toZigbee = {
                 return {state: statearr};
             }
             throw new Error(`Not supported: '${key}'`);
+        },
+    } satisfies Tz.Converter,
+
+    pmtsd_to_w100: {
+        key: ["PMTSD_to_W100"],
+        convertSet: async (entity, key, value, meta) => {
+            const {p, m, t, s, d} = value as {p: string; m: string; t: string; s: string; d: string};
+
+            const pmtsdStr = `P${p}_M${m}_T${t}_S${s}_D${d}`;
+            const pmtsdBytes = Array.from(pmtsdStr).map((c) => c.charCodeAt(0));
+            const pmtsdLen = pmtsdBytes.length;
+
+            const fixedHeader = [
+                0xaa,
+                0x71,
+                0x1f,
+                0x44,
+                0x00,
+                0x00,
+                0x05,
+                0x41,
+                0x1c,
+                0x00,
+                0x00,
+                0x54,
+                0xef,
+                0x44,
+                0x80,
+                0x71,
+                0x1a,
+                0x08,
+                0x00,
+                0x08,
+                0x44,
+                pmtsdLen,
+            ];
+
+            const counter = Math.floor(Math.random() * 256);
+            fixedHeader[4] = counter;
+
+            const fullPayload = [...fixedHeader, ...pmtsdBytes];
+
+            const checksum = fullPayload.reduce((sum, b) => sum + b, 0) & 0xff;
+            fullPayload[5] = checksum;
+
+            await entity.write(64704, {65522: {value: Buffer.from(fullPayload), type: 65}}, {manufacturerCode: 4447, disableDefaultResponse: true});
+
+            logger.info(`PMTSD frame sent: ${pmtsdStr} (Counter: ${counter}, Checksum: ${checksum})`, NS);
+            return {};
+        },
+    } satisfies Tz.Converter,
+
+    thermostat_mode: {
+        key: ["mode"],
+        convertSet: async (entity, key, value, meta) => {
+            const deviceMac = meta.device.ieeeAddr.replace(/^0x/, "").toLowerCase();
+            const hubMac = "54ef4480711a";
+            function cleanMac(mac: string, expectedLen: number) {
+                const cleaned = mac.replace(/[:-]/g, "");
+                if (cleaned.length !== expectedLen) {
+                    throw new Error(`MAC must be ${expectedLen} hex digits`);
+                }
+                return cleaned;
+            }
+
+            const dev = Buffer.from(cleanMac(deviceMac, 16), "hex");
+            const hub = Buffer.from(cleanMac(hubMac, 12), "hex");
+
+            let frame: Buffer;
+
+            if (value === "ON") {
+                const prefix = Buffer.concat([
+                    Buffer.from("aa713244", "hex"),
+                    Buffer.from([Math.floor(Math.random() * 256), Math.floor(Math.random() * 256)]),
+                ]);
+                const zigbeeHeader = Buffer.from("02412f6891", "hex");
+                const messageId = Buffer.from([Math.floor(Math.random() * 256), Math.floor(Math.random() * 256)]);
+                const control = Buffer.from([0x18]);
+                const payloadMacs = Buffer.concat([dev, Buffer.from("0000", "hex"), hub]);
+                const payloadTail = Buffer.from("08000844150a0109e7a9bae8b083e58a9f000000000001012a40", "hex");
+
+                frame = Buffer.concat([prefix, zigbeeHeader, messageId, control, payloadMacs, payloadTail]);
+            } else {
+                const prefix = Buffer.from([0xaa, 0x71, 0x1c, 0x44, 0x69, 0x1c, 0x04, 0x41, 0x19, 0x68, 0x91]);
+                const frameId = Buffer.from([Math.floor(Math.random() * 256)]);
+                const seq = Buffer.from([Math.floor(Math.random() * 256)]);
+                const control = Buffer.from([0x18]);
+
+                frame = Buffer.concat([prefix, frameId, seq, control, dev]);
+                if (frame.length < 34) {
+                    frame = Buffer.concat([frame, Buffer.alloc(34 - frame.length, 0x00)]);
+                }
+            }
+            await entity.write(64704, {65522: {value: frame, type: 0x41}}, {manufacturerCode: 4447, disableDefaultResponse: true});
+
+            logger.info(`Thermostat_Mode=${value} payload=${frame.toString("hex")}`, NS);
+            return {};
         },
     } satisfies Tz.Converter,
 };
