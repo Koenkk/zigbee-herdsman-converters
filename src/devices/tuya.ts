@@ -19965,13 +19965,14 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Tuya",
         description: "Smart Zigbee Switch with Power Monitoring",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
+
         exposes: [
-            e.switch_().withState("switch", true, "Control the USB A on/off state", ea.STATE_SET).withLabel("USB A").withEndpoint("1"),
-            e.switch_().withState("switch", true, "Control the USB C on/off state", ea.STATE_SET).withLabel("USB C").withEndpoint("2"),
-            e.switch_().withState("switch", true, "Control the Plug 1 on/off state", ea.STATE_SET).withLabel("Plug 1").withEndpoint("3"),
-            e.switch_().withState("switch", true, "Control the Plug 2 on/off state", ea.STATE_SET).withLabel("Plug 2").withEndpoint("4"),
+            e.switch().withEndpoint("usb_a"),
+            e.switch().withEndpoint("usb_c"),
+            e.switch().withEndpoint("plug_1"),
+            e.switch().withEndpoint("plug_2"),
             e
-                .numeric("countdown_1", ea.STATE_SET)
+                .numeric("countdown_usb_a", ea.STATE_SET)
                 .withLabel("USB A Countdown")
                 .withValueMin(0)
                 .withValueMax(86400)
@@ -19979,7 +19980,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription("Countdown timer for USB A")
                 .withUnit("s"),
             e
-                .numeric("countdown_2", ea.STATE_SET)
+                .numeric("countdown_usb_c", ea.STATE_SET)
                 .withLabel("USB C Countdown")
                 .withValueMin(0)
                 .withValueMax(86400)
@@ -19987,7 +19988,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription("Countdown timer for USB C")
                 .withUnit("s"),
             e
-                .numeric("countdown_3", ea.STATE_SET)
+                .numeric("countdown_plug_1", ea.STATE_SET)
                 .withLabel("Plug 1 Countdown")
                 .withValueMin(0)
                 .withValueMax(86400)
@@ -19995,7 +19996,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription("Countdown timer for Plug 1")
                 .withUnit("s"),
             e
-                .numeric("countdown_4", ea.STATE_SET)
+                .numeric("countdown_plug_2", ea.STATE_SET)
                 .withLabel("Plug 2 Countdown")
                 .withValueMin(0)
                 .withValueMax(86400)
@@ -20003,85 +20004,37 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription("Countdown timer for Plug 2")
                 .withUnit("s"),
             e.enum("relay_status", ea.STATE_SET, ["memory", "on", "off"]).withLabel("Relay Status").withDescription("Set the Relay Status"),
-            e
-                .switch_()
-                .withState("switch", true, "Enables/disables backlight indicator", ea.STATE_SET)
-                .withLabel("Switch Backlight")
-                .withEndpoint("backlight"),
-            e
-                .numeric("cur_current", ea.STATE)
-                .withLabel("Current")
-                .withUnit("A")
-                .withDescription("Instantaneous measured electrical current")
-                .withCategory("diagnostic"),
-            e
-                .numeric("cur_power", ea.STATE)
-                .withLabel("Power")
-                .withUnit("W")
-                .withDescription("Instantaneous measured power")
-                .withCategory("diagnostic"),
-            e
-                .numeric("cur_voltage", ea.STATE)
-                .withLabel("Voltage")
-                .withUnit("V")
-                .withDescription("Measured electrical voltage")
-                .withCategory("diagnostic"),
-            e
-                .numeric("total_battery", ea.STATE)
-                .withLabel("Produced Energy")
-                .withUnit("kWh")
-                .withDescription("Sum of produced energy")
-                .withCategory("diagnostic"),
+            e.binary("switch_backlight", ea.STATE_SET, "ON", "OFF").withLabel("Switch Backlight").withDescription("Enables/disables backlight indicator"),
+            e.current(),
+            e.power(),
+            e.voltage(),
+            e.produced_energy(),
             e.child_lock(),
         ],
+        endpoint: (_) => ({
+            default: 1,
+            usb_a: 1,
+            usb_c: 1,
+            plug_1: 1,
+            plug_2: 1,
+        }),
         meta: {
-            overrideHaDiscoveryPayload: (payload) => {
-                // Override switches discovery
-                if (payload.command_topic?.endsWith("/backlight/set")) {
-                    // Change to end with /set/switch_backlight
-                    payload.command_topic = `${payload.command_topic.substring(0, payload.command_topic.lastIndexOf("/backlight/set"))}/set/switch_backlight`;
-                    payload.name = "Switch Backlight";
-                }
-
-                if (payload.command_topic?.endsWith("/1/set")) {
-                    // Change to end with /set/switch_1
-                    payload.command_topic = `${payload.command_topic.substring(0, payload.command_topic.lastIndexOf("/1/set"))}/set/switch_1`;
-                    payload.name = "USB A";
-                }
-
-                if (payload.command_topic?.endsWith("/2/set")) {
-                    // Change to end with /set/switch_2
-                    payload.command_topic = `${payload.command_topic.substring(0, payload.command_topic.lastIndexOf("/2/set"))}/set/switch_2`;
-                    payload.name = "USB C";
-                }
-
-                if (payload.command_topic?.endsWith("/3/set")) {
-                    // Change to end with /set/switch_3
-                    payload.command_topic = `${payload.command_topic.substring(0, payload.command_topic.lastIndexOf("/3/set"))}/set/switch_3`;
-                    payload.name = "Plug 1";
-                }
-
-                if (payload.command_topic?.endsWith("/4/set")) {
-                    // Change to end with /set/switch_4
-                    payload.command_topic = `${payload.command_topic.substring(0, payload.command_topic.lastIndexOf("/4/set"))}/set/switch_4`;
-                    payload.name = "Plug 2";
-                }
-            },
+            multiEndpoint: true,
             tuyaDatapoints: [
-                [1, "switch_1", tuya.valueConverter.onOff],
-                [2, "switch_2", tuya.valueConverter.onOff],
-                [3, "switch_3", tuya.valueConverter.onOff],
-                [4, "switch_4", tuya.valueConverter.onOff],
-                [7, "countdown_1", tuya.valueConverter.countdown],
-                [8, "countdown_2", tuya.valueConverter.countdown],
-                [9, "countdown_3", tuya.valueConverter.countdown],
-                [10, "countdown_4", tuya.valueConverter.countdown],
+                [1, "state_usb_a", tuya.valueConverter.onOff],
+                [2, "state_usb_c", tuya.valueConverter.onOff],
+                [3, "state_plug_1", tuya.valueConverter.onOff],
+                [4, "state_plug_2", tuya.valueConverter.onOff],
+                [7, "countdown_usb_a", tuya.valueConverter.countdown],
+                [8, "countdown_usb_c", tuya.valueConverter.countdown],
+                [9, "countdown_plug_1", tuya.valueConverter.countdown],
+                [10, "countdown_plug_2", tuya.valueConverter.countdown],
                 [14, "relay_status", tuya.valueConverterBasic.lookup({memory: tuya.enum(0), on: tuya.enum(1), off: tuya.enum(2)})],
                 [16, "switch_backlight", tuya.valueConverter.onOff],
-                [21, "cur_current", tuya.valueConverter.divideBy10],
-                [22, "cur_power", tuya.valueConverter.divideBy10],
-                [23, "cur_voltage", tuya.valueConverter.divideBy10],
-                [105, "total_battery", tuya.valueConverter.divideBy10],
+                [21, "current", tuya.valueConverter.divideBy10],
+                [22, "power", tuya.valueConverter.divideBy10],
+                [23, "voltage", tuya.valueConverter.divideBy10],
+                [105, "produced_energy", tuya.valueConverter.divideBy10],
                 [106, "child_lock", tuya.valueConverter.lockUnlock],
             ],
         },
