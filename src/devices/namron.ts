@@ -39,7 +39,7 @@ const fzLocal = {
             }
             if (data[0x1009] !== undefined) {
                 // WindowOpenCheck
-                const lookup = {0: "enable", 1: "disable"};
+                const lookup = {0: "disable", 1: "enable"};
                 result.window_open_check = utils.getFromLookup(data[0x1009], lookup);
             }
             if (data[0x100a] !== undefined) {
@@ -81,7 +81,7 @@ const tzLocal = {
                 const payload = {4100: {value: utils.getFromLookup(value, lookup), type: Zcl.DataType.ENUM8}};
                 await entity.write("hvacThermostat", payload, sunricherManufacturer);
             } else if (key === "window_open_check") {
-                const lookup = {enable: 0, disable: 1};
+                const lookup = {disable: 0, enable: 1};
                 const payload = {4105: {value: utils.getFromLookup(value, lookup), type: Zcl.DataType.ENUM8}};
                 await entity.write("hvacThermostat", payload, sunricherManufacturer);
             } else if (key === "hysterersis") {
