@@ -304,7 +304,6 @@ export const definitions: DefinitionWithExtend[] = [
             m.electricityMeter({
                 acFrequency: true,
                 powerFactor: true,
-                configureReporting: false,
             }),
         ],
         ota: true,

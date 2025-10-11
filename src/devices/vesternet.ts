@@ -34,7 +34,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "VES-ZB-HLD-017",
         vendor: "Vesternet",
         description: "Zigbee high load switch",
-        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.power_on_behavior, fz.ignore_genOta],
+        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.power_on_behavior],
         toZigbee: [tz.on_off, tz.power_on_behavior],
         exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy(), e.power_on_behavior(["off", "on", "previous"])],
         whiteLabel: [{vendor: "Sunricher", model: "SR-ZG9101SAC-HP-SWITCH-B"}],
@@ -55,7 +55,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "VES-ZB-MOT-019",
         vendor: "Vesternet",
         description: "Zigbee motor controller",
-        fromZigbee: [fz.cover_position_tilt, fz.ignore_genOta],
+        fromZigbee: [fz.cover_position_tilt],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
         exposes: [e.cover_position()],
         whiteLabel: [{vendor: "Sunricher", model: "SR-ZG9080A"}],
@@ -75,7 +75,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "VES-ZB-REM-013",
         vendor: "Vesternet",
         description: "Zigbee remote control - 12 button",
-        fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.command_recall, fz.battery, fz.ignore_genOta],
+        fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.command_recall, fz.battery],
         exposes: [
             e.battery(),
             e.action([
@@ -132,7 +132,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "VES-ZB-SWI-005",
         vendor: "Vesternet",
         description: "Zigbee switch",
-        fromZigbee: [fz.on_off, fz.power_on_behavior, fz.ignore_genOta],
+        fromZigbee: [fz.on_off, fz.power_on_behavior],
         toZigbee: [tz.on_off, tz.power_on_behavior],
         exposes: [e.switch(), e.power_on_behavior(["off", "on", "previous"])],
         whiteLabel: [{vendor: "Sunricher", model: "SR-ZG9100A-S"}],
@@ -150,7 +150,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "VES-ZB-SWI-015",
         vendor: "Vesternet",
         description: "Zigbee 2 channel switch",
-        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.power_on_behavior, fz.ignore_genOta],
+        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, fz.power_on_behavior],
         toZigbee: [tz.on_off, tz.power_on_behavior],
         exposes: [
             e.switch().withEndpoint("l1"),
@@ -202,7 +202,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "VES-ZB-WAL-006",
         vendor: "Vesternet",
         description: "Zigbee wall controller - 2 button",
-        fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.battery, fz.ignore_genOta],
+        fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.battery],
         exposes: [e.battery(), e.action(["on_1", "off_1", "stop_1", "brightness_move_up_1", "brightness_move_down_1", "brightness_stop_1"])],
         toZigbee: [],
         meta: {multiEndpoint: true, battery: {dontDividePercentage: true}},
@@ -220,7 +220,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "VES-ZB-WAL-011",
         vendor: "Vesternet",
         description: "Zigbee wall controller - 4 button",
-        fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.battery, fz.ignore_genOta],
+        fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.battery],
         exposes: [
             e.battery(),
             e.action([
@@ -256,7 +256,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "VES-ZB-WAL-012",
         vendor: "Vesternet",
         description: "Zigbee wall controller - 8 button",
-        fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.battery, fz.ignore_genOta],
+        fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.battery],
         exposes: [
             e.battery(),
             e.action([

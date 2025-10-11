@@ -109,16 +109,7 @@ export const definitions: DefinitionWithExtend[] = [
                 await reporting.bind(endpoint13, coordinatorEndpoint, ["genLevelCtrl"]);
             }
         },
-        fromZigbee: [
-            fz.ignore_basic_report,
-            fz.on_off,
-            fz.brightness,
-            fz.command_on,
-            fz.command_off,
-            fz.command_step,
-            fz.command_stop,
-            fz.command_recall,
-        ],
+        fromZigbee: [fz.on_off, fz.brightness, fz.command_on, fz.command_off, fz.command_step, fz.command_stop, fz.command_recall],
         toZigbee: [tz.light_onoff_brightness, tz.light_brightness_step, tz.light_brightness_move],
         extend: [
             // This device doesn't support reporting. Therefore we read the on/off state every 60 seconds.
