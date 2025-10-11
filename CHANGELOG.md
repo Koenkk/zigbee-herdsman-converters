@@ -1,5 +1,30 @@
 # Changelog
 
+## [25.43.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.42.0...v25.43.0) (2025-10-11)
+
+
+### Features
+
+* **add:** 929003479901 ([#10281](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10281)) ([8e29c74](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8e29c74adf9d3da28dbaf1b9e60011491ef7c28d))
+* **add:** DS-1450WN ([#10256](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10256)) ([6bd1b9e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6bd1b9ed0e79ead605ecd21d20417ac251092a89))
+* **add:** E2220, AE 282 C, RB 252 C ([#10275](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10275)) ([9e95321](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9e953216c49b42edd221769e70f602e115afe190))
+* **add:** Eco-4160 ([#10260](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10260)) ([c547f6e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c547f6ea3a30c89e8929c0f36dbeb10c7351e64a))
+* **add:** KES-606US-L4 ([#10268](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10268)) ([fbe8910](https://github.com/Koenkk/zigbee-herdsman-converters/commit/fbe8910d3ff42d2863883ea99858d2c60cd9b844))
+* Aqara W100: add thermostat mode functions ([#10238](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10238)) ([e7bc543](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e7bc5430b524154132d26f1f6e148fa4754a2a4e))
+* Shelly: support Wi-Fi configuration for Gen4 devices ([#10276](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10276)) ([6312107](https://github.com/Koenkk/zigbee-herdsman-converters/commit/631210744e2ba7d6ce53c6e236bf6bb4bd821cad))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZE200_4mh6tyyo` as ION Industries ID200W-ZIGB ([#10273](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10273)) ([76941f9](https://github.com/Koenkk/zigbee-herdsman-converters/commit/76941f919f82de3c529c3536cda1f3e49f80d11c))
+* **detect:** Detect `_TZE284_9ern5sfh` as Tuya TS0601_temperature_humidity_sensor_3 ([#10289](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10289)) ([89f5b41](https://github.com/Koenkk/zigbee-herdsman-converters/commit/89f5b41d77ae73802892ce8e44df000b6db492e0))
+* **detect:** Detect `929003598102` as Philips 929003598101 ([#10274](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10274)) ([81121de](https://github.com/Koenkk/zigbee-herdsman-converters/commit/81121de9d570066c7bdf01dce5a13c7ebb515231))
+* Namron panel heaters: fix window detection ([#10295](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10295)) ([390753f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/390753f70b55748b9635a8af22646f3e6d1f5d62))
+* NodOn IRB-4-1-00 and SEM-4-1-00: various updates ([#10286](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10286)) ([e1e46e9](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e1e46e96068e2dfcf6227469102d073fa6487254))
+* Restore behavior of using MoveToLevel when state is null ([#10269](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10269)) ([cd518cf](https://github.com/Koenkk/zigbee-herdsman-converters/commit/cd518cfa4223aca71482bc7e8f2e230a4a48cd70))
+* Tuya RB-SRAIN01: fix battery state not updating https://github.com/Koenkk/zigbee-herdsman-converters/issues/10263 ([38d6284](https://github.com/Koenkk/zigbee-herdsman-converters/commit/38d62846f672c2a97ffe14f6aa1591cdbf5fee18))
+* Tuya TS0601_knob_dimmer_switch: various improvements ([#10058](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10058)) ([6c3ee34](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6c3ee3488da7edf6f93324534cabb9b08216ad48))
+
 ## [25.42.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.41.0...v25.42.0) (2025-10-08)
 
 
