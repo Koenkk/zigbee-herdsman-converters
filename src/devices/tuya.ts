@@ -2497,7 +2497,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Tuya",
         description: "Solar rain sensor",
         fromZigbee: [tuya.fz.datapoints],
-        extend: [m.iasZoneAlarm({zoneType: "rain", zoneAttributes: ["alarm_1"]}), m.battery({percentageReporting: false})],
+        extend: [m.iasZoneAlarm({zoneType: "rain", zoneAttributes: ["alarm_1"]}), m.battery({percentageReporting: true})],
         exposes: [
             e.illuminance().withUnit("lx"),
             e.numeric("illuminance_average_20min", ea.STATE).withUnit("lx").withDescription("Illuminance average for the last 20 minutes"),
