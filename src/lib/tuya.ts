@@ -332,6 +332,7 @@ const tuyaExposes = {
             .withDescription("Do not disturb mode, when enabled this function will keep the light OFF after a power outage"),
     colorPowerOnBehavior: () =>
         e.enum("color_power_on_behavior", ea.STATE_SET, ["initial", "previous", "customized"]).withDescription("Power on behavior state"),
+    powerOnBehavior: () => e.enum("power_on_behavior", ea.ALL, ["off", "on", "previous"]).withDescription("Power on behavior state"),
     switchMode: () =>
         e.enum("switch_mode", ea.STATE_SET, ["switch", "scene"]).withDescription("Sets the mode of the switch to act as a switch or as a scene"),
     switchMode2: () =>
