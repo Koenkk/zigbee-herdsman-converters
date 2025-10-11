@@ -4260,7 +4260,7 @@ export const fromZigbee = {
             const endsWith = Buffer.from([0x08, 0x00, 0x08, 0x44]);
             if (attr.slice(-4).equals(endsWith)) {
                 logger.info(`Detected PMTSD request from device ${meta.device.ieeeAddr}`, NS);
-                return {action: "W100_PMTSD_request"};
+                return {action: "data_request"};
             }
         },
     } satisfies Fz.Converter<"manuSpecificLumi", undefined, ["attributeReport", "readResponse"]>,
@@ -4327,7 +4327,7 @@ export const fromZigbee = {
             logger.info(`Decoded PMTSD: ${JSON.stringify(result)} from ${meta.device.ieeeAddr}`, NS);
             return {
                 ...result,
-                pmtsd_from_w100_data: combinedString,
+                data: combinedString,
             };
         },
     } satisfies Fz.Converter<"manuSpecificLumi", undefined, ["attributeReport", "readResponse"]>,
