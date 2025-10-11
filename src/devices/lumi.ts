@@ -4582,7 +4582,7 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [lumi.fromZigbee.w100_0844_req, lumi.fromZigbee.pmtsd_from_w100],
         toZigbee: [lumi.toZigbee.pmtsd_to_w100, lumi.toZigbee.thermostat_mode],
         exposes: [
-            e.action(["W100_PMTSD_request"]).withDescription("W100 Requesting PMTSD Data via 08000844 Request"),
+            e.action(["data_request"]).withDescription("W100 Requesting PMTSD Data via 08000844 Request"),
             e.text("data", ea.STATE).withDescription("Timestamp+Most Recent PMTSD Values Sent by W100"),
             e
                 .binary("mode", ea.ALL, "ON", "OFF")
