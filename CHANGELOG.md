@@ -1,5 +1,21 @@
 # Changelog
 
+## [25.44.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.43.0...v25.44.0) (2025-10-12)
+
+
+### Features
+
+* **add:** 1871215B ([#10232](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10232)) ([6418217](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6418217f2d1115a7f8c6e48eb5eaf925b268bfa9))
+* **add:** RB 287 C ([#10312](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10312)) ([f29680b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f29680b71abb2c40eace05554bace1af2b6450aa))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZE284_6hrnp30w` as Tuya TS0601_cover_1 https://github.com/Koenkk/zigbee2mqtt/issues/28796 ([30921d7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/30921d702e1c249aaec70829ec97cd25180fb239))
+* **detect:** Detect `_TZE284_hcs66axl` as Nedis ZBHTR20WT https://github.com/Koenkk/zigbee-herdsman-converters/issues/10300 ([dd95bfd](https://github.com/Koenkk/zigbee-herdsman-converters/commit/dd95bfd5f225b89b3a296b9f283f2c9415c4e047))
+* **detect:** Detect `CK-BL702-MSW-01(7011)-1` as eWeLink CK-BL702-MSW-01(7010) https://github.com/Koenkk/zigbee-herdsman-converters/issues/10293 ([9280bc5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9280bc5c8b6821e9cd417b0181e665e680fb725c))
+* Tuya _TZ3000_isw9u95y: fix humidity divided by 10 https://github.com/Koenkk/zigbee2mqtt/issues/28987 ([8c4a6be](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8c4a6be6c730c2e645effa3cc3e55a24b3db5173))
+
 ## [25.43.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.42.0...v25.43.0) (2025-10-11)
 
 
