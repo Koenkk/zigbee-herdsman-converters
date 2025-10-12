@@ -821,4 +821,20 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
+    {
+        fingerprint: tuya.fingerprint("TS0004", ["_TZ3000_nsa76jai"]),
+        model: "KES-606US-L4",
+        vendor: "Zemismart",
+        description: "Smart light switch - 4 gang (US)",
+        extend: [
+            m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4}}),
+            tuya.modernExtend.tuyaOnOff({
+                endpoints: ["l1", "l2", "l3", "l4"],
+                powerOnBehavior2: true,
+                backlightModeOffOn: true,
+                indicatorMode: true,
+            }),
+        ],
+        configure: tuya.configureMagicPacket,
+    },
 ];

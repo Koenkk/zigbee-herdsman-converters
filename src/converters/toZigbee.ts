@@ -1303,7 +1303,7 @@ export const light_onoff_brightness: Tz.Converter = {
         } else {
             await entity.command(
                 "genLevelCtrl",
-                "moveToLevelWithOnOff",
+                state === null ? "moveToLevel" : "moveToLevelWithOnOff",
                 {level: Number(brightness), transtime: transition.time},
                 utils.getOptions(meta.mapped, entity),
             );

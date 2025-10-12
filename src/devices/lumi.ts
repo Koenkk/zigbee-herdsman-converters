@@ -1808,6 +1808,9 @@ export const definitions: DefinitionWithExtend[] = [
             lumi.lumiModernExtend.fp1eSpatialLearning(),
             lumi.lumiModernExtend.fp1eRestartDevice(),
             m.identify(),
+
+            lumi.lumiModernExtend.fp1eAIInterference(),
+            lumi.lumiModernExtend.fp1eAdaptiveSensitivity(),
         ],
     },
     {
@@ -4579,6 +4582,17 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TH-S04D",
         vendor: "Aqara",
         description: "Climate Sensor W100",
+        fromZigbee: [lumi.fromZigbee.w100_0844_req, lumi.fromZigbee.pmtsd_from_w100],
+        toZigbee: [lumi.toZigbee.pmtsd_to_w100, lumi.toZigbee.thermostat_mode],
+        exposes: [
+            e.action(["data_request"]).withDescription("W100 Requesting PMTSD Data via 08000844 Request"),
+            e.text("data", ea.STATE).withDescription("Timestamp+Most Recent PMTSD Values Sent by W100"),
+            e
+                .binary("mode", ea.ALL, "ON", "OFF")
+                .withDescription(
+                    "On: Enable thermostat mode. Buttons send encrypted payloads and middle line is enabled. Off: Disable thermostat mode. Buttons send actions and middle line is disabled.",
+                ),
+        ],
         extend: [
             lumiZigbeeOTA(),
             m.temperature(),
@@ -4989,6 +5003,7 @@ export const definitions: DefinitionWithExtend[] = [
             await endpoint.read("manuSpecificLumi", [0x019a], {manufacturerCode: manufacturerCode}); // Read detection range
         },
         extend: [
+            lumi.lumiModernExtend.lumiPreventLeave(),
             lumi.lumiModernExtend.lumiBattery({
                 voltageToPercentage: {min: 2850, max: 3000},
                 voltageAttribute: 0x0017, // Attribute: 23
@@ -5005,6 +5020,9 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Presence detection sensor type",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
+
+            lumi.lumiModernExtend.fp1eAIInterference(),
+            lumi.lumiModernExtend.fp1eAdaptiveSensitivity(),
 
             m.numeric({
                 name: "absence_delay_timer",

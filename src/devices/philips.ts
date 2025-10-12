@@ -2139,6 +2139,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true, gradient: true})],
     },
     {
+        zigbeeModel: ["929003479901"],
+        model: "929003479901",
+        vendor: "Philips",
+        description: "Hue Gradient Signe floor lamp (oak)",
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true, gradient: true})],
+    },
+    {
         zigbeeModel: ["LCT020"],
         model: "4080148P7",
         vendor: "Philips",
@@ -3475,7 +3482,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
-        zigbeeModel: ["929003598101"],
+        zigbeeModel: ["929003598101", "929003598102"],
         model: "929003598101",
         vendor: "Philips",
         description: "Hue White & Color Ambiance Surimu round panel",
