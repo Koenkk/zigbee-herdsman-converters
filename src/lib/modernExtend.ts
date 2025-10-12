@@ -2724,7 +2724,7 @@ export interface BinaryArgs<Cl extends string | number, Custom extends TCustomCl
     description: string;
     zigbeeCommandOptions?: {manufacturerCode: number};
     endpointName?: string;
-    reporting?: false | ReportingConfig<Cl, Custom>;
+    reporting?: false | ReportingConfigWithoutAttribute;
     access?: "STATE" | "STATE_GET" | "STATE_SET" | "SET" | "ALL";
     label?: string;
     entityCategory?: "config" | "diagnostic";

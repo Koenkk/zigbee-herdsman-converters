@@ -2778,7 +2778,7 @@ export const boschThermostatExtend = {
                 "itself does not detect any open windows!",
             valueOn: ["ON", 0x01],
             valueOff: ["OFF", 0x00],
-            reporting: args?.enableReporting ? {min: "MIN", max: "MAX", change: null, attribute: "windowOpenMode"} : false,
+            reporting: args?.enableReporting ? {min: "MIN", max: "MAX", change: null} : false,
         }),
     childLock: () =>
         m.binary({
@@ -2788,7 +2788,7 @@ export const boschThermostatExtend = {
             description: "Enables/disables physical input on the thermostat",
             valueOn: ["LOCK", 0x01],
             valueOff: ["UNLOCK", 0x00],
-            reporting: {min: "MIN", max: "MAX", change: null, attribute: "keypadLockout"},
+            reporting: {min: "MIN", max: "MAX", change: null},
         }),
     displayBrightness: () =>
         m.numeric<"hvacUserInterfaceCfg", BoschUserInterfaceCfgCluster>({
