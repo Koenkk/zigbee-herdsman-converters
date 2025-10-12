@@ -27,13 +27,13 @@ import type {DefinitionWithExtend} from "../lib/types";
 const fzLocal = {
     ikeaParasollRawConverter: {
         cluster: 65365, // integer cluster IDs
-        type: ['raw'],
+        type: ["raw"],
         convert: (model, msg, publish, options, meta) => {
             const data = msg.data; // e.g., [21,104,17,62,240,110,111,116,105,102,121,0,0,0]
             const contactState = data[data.length - 1]; // last number
-            return {contact: contactState ? false : true}; 
+            return {contact: contactState ? false : true};
         },
-    }
+    },
 };
 
 export const definitions: DefinitionWithExtend[] = [
