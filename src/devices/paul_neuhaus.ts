@@ -58,7 +58,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "NLG-TW light",
         vendor: "Paul Neuhaus",
         description: "Various tunable white lights (e.g. 8195-55)",
-        extend: [m.light({colorTemp: {range: [153, 370]}})],
+        extend: [m.light({colorTemp: {range: [153, 370]}, configureReporting: true})],
     },
     {
         zigbeeModel: ["NLG-RGBW light "], // the space as the end is intentional, as this is what the device sends
