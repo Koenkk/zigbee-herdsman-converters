@@ -7,14 +7,23 @@ const e = exposes.presets;
 
 function paulNeuhausTWLight(args?: m.LightArgs) {
     const result = m.light(args);
-    // This device doesn't support reporting so we read the state
-    // at regular intervals
+
     result.onEvent = m.poll({
         key: "interval",
         defaultIntervalSeconds: 5,
         poll: async (device) => {
-            const endpoint = device.getEndpoint(1);
+            // check if this firmware version needs polling
+            const version = device.softwareBuildID;
+            if (!version) {
+              // default to no polling
+              return;
+            }
+            if (version !== "1.0.6" && version !== "1.1") {
+              // not an affected version
+              return;
+            }
 
+            const endpoint = device.getEndpoint(1);
             try {
                 await endpoint.read("genOnOff", ["onOff"]);
                 await endpoint.read("genLevelCtrl", ["currentLevel"]);
@@ -27,6 +36,7 @@ function paulNeuhausTWLight(args?: m.LightArgs) {
             }
         },
     }).onEvent;
+
     return result;
 }
 
