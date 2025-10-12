@@ -24,6 +24,18 @@ import {
 import * as m from "../lib/modernExtend";
 import type {DefinitionWithExtend} from "../lib/types";
 
+const fzLocal = {
+    ikeaParasollRawConverter: {
+        cluster: 65365, // integer cluster IDs
+        type: ['raw'],
+        convert: (model, msg, publish, options, meta) => {
+            const data = msg.data; // e.g., [21,104,17,62,240,110,111,116,105,102,121,0,0,0]
+            const contactState = data[data.length - 1]; // last number
+            return {contact: contactState ? false : true}; 
+        },
+    }
+};
+
 export const definitions: DefinitionWithExtend[] = [
     // #region light
     // lights naming convention: type, light capabilities, form, diffuser type, brightness
@@ -944,6 +956,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "E2013",
         vendor: "IKEA",
         description: "PARASOLL door/window sensor",
+        fromZigbee: [fzLocal.ikeaParasollRawConverter],
         extend: [
             addCustomClusterManuSpecificIkeaUnknown(),
             m.deviceEndpoints({endpoints: {"1": 1, "2": 2}}),
