@@ -13,19 +13,18 @@ function paulNeuhausTWLight(args?: m.LightArgs) {
         key: "interval",
         defaultIntervalSeconds: 5,
         poll: async (device) => {
-          const endpoint = device.getEndpoint(1);
+            const endpoint = device.getEndpoint(1);
 
-          try {
-            await endpoint.read("genOnOff", ["onOff"]);
-            await endpoint.read("genLevelCtrl", ["currentLevel"]);
+            try {
+                await endpoint.read("genOnOff", ["onOff"]);
+                await endpoint.read("genLevelCtrl", ["currentLevel"]);
 
-            if (endpoint.supportsInputCluster("lightingColorCtrl")) {
-              await endpoint.read("lightingColorCtrl", ["colorTemperature"]);
+                if (endpoint.supportsInputCluster("lightingColorCtrl")) {
+                    await endpoint.read("lightingColorCtrl", ["colorTemperature"]);
+                }
+            } catch {
+                // Do nothing
             }
-
-          } catch {
-            // Do nothing
-          }
         },
     }).onEvent;
     return result;
@@ -84,7 +83,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "NLG-TW light",
         vendor: "Paul Neuhaus",
         description: "Various tunable white lights (e.g. 8195-55)",
-        extend: [paulNeuhausTWLight({colorTemp: {range: [153, 370]}, configureReporting: true })],
+        extend: [paulNeuhausTWLight({colorTemp: {range: [153, 370]}, configureReporting: true})],
     },
     {
         zigbeeModel: ["NLG-RGBW light "], // the space as the end is intentional, as this is what the device sends
