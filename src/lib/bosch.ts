@@ -2655,6 +2655,8 @@ export interface BoschUserInterfaceCfgCluster {
     attributes: {
         /** ID: 16395 | Type: UINT8 | Only used on BTH-RA */
         displayOrientation: number;
+        /** ID: 16435 | Type: ENUM8 | Only used on BTH-RM and BTH-RM230Z */
+        activityLed: number;
         /** ID: 16441 | Type: ENUM8 | Only used on BTH-RA */
         displayedTemperature: number;
         /** ID: 16442 | Type: ENUM8 */
@@ -2667,11 +2669,16 @@ export interface BoschUserInterfaceCfgCluster {
 }
 
 const boschThermostatLookup = {
+    systemModes: {
+        heat: 0x04,
+        cool: 0x03,
+    },
     raRunningStates: <("idle" | "heat" | "cool" | "fan_only")[]>["idle", "heat"],
     heaterType: {
         underfloor_heating: 0x00,
-        central_heating: 0x03,
         radiator: 0x02,
+        central_heating: 0x01,
+        manual_control: 0x03,
     },
 };
 
@@ -2706,6 +2713,7 @@ export const boschThermostatExtend = {
             ID: Zcl.Clusters.hvacUserInterfaceCfg.ID,
             attributes: {
                 displayOrientation: {ID: 0x400b, type: Zcl.DataType.UINT8, manufacturerCode: manufacturerOptions.manufacturerCode},
+                activityLed: {ID: 0x4033, type: Zcl.DataType.ENUM8, manufacturerCode: manufacturerOptions.manufacturerCode},
                 displayedTemperature: {ID: 0x4039, type: Zcl.DataType.ENUM8, manufacturerCode: manufacturerOptions.manufacturerCode},
                 displaySwitchOnDuration: {ID: 0x403a, type: Zcl.DataType.ENUM8, manufacturerCode: manufacturerOptions.manufacturerCode},
                 displayBrightness: {ID: 0x403b, type: Zcl.DataType.ENUM8, manufacturerCode: manufacturerOptions.manufacturerCode},
@@ -2713,31 +2721,7 @@ export const boschThermostatExtend = {
             commands: {},
             commandsResponse: {},
         }),
-    rmThermostat: () =>
-        m.thermostat({
-            localTemperature: {
-                configure: {reporting: false},
-            },
-            localTemperatureCalibration: {
-                values: {min: -5, max: 5, step: 0.1},
-                configure: {reporting: false},
-            },
-            setpoints: {
-                values: {
-                    occupiedHeatingSetpoint: {min: 5, max: 30, step: 0.5},
-                    occupiedCoolingSetpoint: {min: 5, max: 30, step: 0.5},
-                },
-                configure: {reporting: false},
-            },
-            systemMode: {
-                values: ["off", "heat", "cool"],
-                configure: {reporting: false},
-            },
-            runningState: {
-                values: ["idle", "heat", "cool"],
-                configure: {reporting: false},
-            },
-        }),
+    relayState: () => m.onOff({description: "The state of the relay controlling the connected heating/cooling device", powerOnBehavior: false}),
     cableSensorMode: () =>
         m.enumLookup<"hvacThermostat", BoschThermostatCluster>({
             name: "cable_sensor_mode",
@@ -2767,7 +2751,7 @@ export const boschThermostatExtend = {
             name: "heater_type",
             cluster: "hvacThermostat",
             attribute: "heaterType",
-            description: "Select the connected heater type",
+            description: "Select the connected heater type or 'manual_control' if you like to activate the relay manually when necessary",
             lookup: boschThermostatLookup.heaterType,
             reporting: false,
             entityCategory: "config",
@@ -2783,45 +2767,6 @@ export const boschThermostatExtend = {
             entityCategory: "config",
         }),
     humidity: () => m.humidity({reporting: false}),
-    operatingMode: (args?: {enableReporting: boolean}): ModernExtend => {
-        const operatingModeLookup = {schedule: 0x00, manual: 0x01, pause: 0x05};
-
-        const operatingMode = m.enumLookup<"hvacThermostat", BoschThermostatCluster>({
-            name: "operating_mode",
-            cluster: "hvacThermostat",
-            attribute: "operatingMode",
-            description: "Bosch-specific operating mode",
-            lookup: operatingModeLookup,
-            reporting: args?.enableReporting ? {min: "MIN", max: "MAX", change: null} : false,
-            entityCategory: "config",
-        });
-
-        const expose: DefinitionExposesFunction = (device: Zh.Device | DummyDevice, options: KeyValue): Expose[] => {
-            if (utils.isDummyDevice(device)) {
-                return [];
-            }
-
-            let description = "Bosch-specific operating mode";
-
-            if (device.modelID === "RBSH-TRV0-ZB-EU" || device.modelID === "RBSH-TRV1-ZB-EU") {
-                description += " (overrides system mode)";
-            }
-
-            return [e.enum("operating_mode", ea.ALL, Object.keys(operatingModeLookup)).withDescription(description).withCategory("config")];
-        };
-
-        const fromZigbee = operatingMode.fromZigbee;
-        const toZigbee: Tz.Converter[] = operatingMode.toZigbee;
-        const configure: Configure[] = operatingMode.configure;
-
-        return {
-            exposes: [expose],
-            fromZigbee,
-            toZigbee,
-            configure,
-            isModernExtend: true,
-        };
-    },
     windowOpenMode: (args?: {enableReporting: boolean}) =>
         m.binary<"hvacThermostat", BoschThermostatCluster>({
             name: "window_open_mode",
@@ -2840,7 +2785,7 @@ export const boschThermostatExtend = {
             name: "child_lock",
             cluster: "hvacUserInterfaceCfg",
             attribute: "keypadLockout",
-            description: "Enables/disables physical input on the device",
+            description: "Enables/disables physical input on the thermostat",
             valueOn: ["LOCK", 0x01],
             valueOff: ["UNLOCK", 0x00],
             reporting: {min: "MIN", max: "MAX", change: null, attribute: "keypadLockout"},
@@ -2893,6 +2838,17 @@ export const boschThermostatExtend = {
             reporting: false,
             entityCategory: "config",
         }),
+    activityLedState: () =>
+        m.enumLookup<"hvacUserInterfaceCfg", BoschUserInterfaceCfgCluster>({
+            name: "activity_led",
+            cluster: "hvacUserInterfaceCfg",
+            attribute: "activityLed",
+            label: "Activity LED state",
+            description: "Determines the state of the little dot on the display next to the heating/cooling symbol",
+            lookup: {off: 0x00, auto: 0x01, on: 0x02},
+            reporting: false,
+            entityCategory: "config",
+        }),
     remoteTemperature: () =>
         m.numeric<"hvacThermostat", BoschThermostatCluster>({
             name: "remote_temperature",
@@ -2918,6 +2874,19 @@ export const boschThermostatExtend = {
             reporting: args?.enableReporting ? {min: "MIN", max: "MAX", change: null} : false,
             entityCategory: "diagnostic",
         }),
+    customHeatingDemand: () =>
+        m.numeric<"hvacThermostat", BoschThermostatCluster>({
+            name: "pi_heating_demand",
+            cluster: "hvacThermostat",
+            attribute: "heatingDemand",
+            label: "PI heating demand",
+            description: "Position of the valve (= demanded heat) where 0% is fully closed and 100% is fully open",
+            unit: "%",
+            valueMin: 0,
+            valueMax: 100,
+            access: "ALL",
+            reporting: {min: "MIN", max: "MAX", change: null},
+        }),
     rmBattery: () =>
         m.battery({
             percentage: true,
@@ -2928,6 +2897,138 @@ export const boschThermostatExtend = {
             lowStatus: true,
             lowStatusReportingConfig: {min: "MIN", max: "MAX", change: null},
         }),
+    rmThermostat: (): ModernExtend => {
+        const thermostat = m.thermostat({
+            localTemperature: {
+                configure: {reporting: false},
+            },
+            localTemperatureCalibration: {
+                values: {min: -5, max: 5, step: 0.1},
+                configure: {reporting: false},
+            },
+            setpoints: {
+                values: {
+                    occupiedHeatingSetpoint: {min: 5, max: 30, step: 0.5},
+                    occupiedCoolingSetpoint: {min: 5, max: 30, step: 0.5},
+                },
+                configure: {reporting: false},
+            },
+            systemMode: {
+                values: ["heat", "cool"],
+                toZigbee: {skip: true},
+                configure: {skip: true},
+            },
+            runningState: {
+                values: ["idle", "heat", "cool"],
+                configure: {reporting: false},
+            },
+        });
+
+        const expose: DefinitionExposesFunction = (device: Zh.Device | DummyDevice, options: KeyValue) => {
+            const returnedThermostat = <Expose[]>thermostat.exposes;
+
+            if (utils.isDummyDevice(device)) {
+                return returnedThermostat;
+            }
+
+            let currentSystemMode: string;
+            try {
+                currentSystemMode = utils.getFromLookupByValue(
+                    device.getEndpoint(1).getClusterAttributeValue("hvacThermostat", "systemMode"),
+                    boschThermostatLookup.systemModes,
+                );
+            } catch {
+                currentSystemMode = "heat";
+            }
+
+            // The thermostat is a singleton, thus the values must be set
+            // manually as filtering will lead to an array without
+            // heat/cool in them after two systemMode changes.
+            returnedThermostat[0].features.forEach((exposedAttribute, index, array) => {
+                if (exposedAttribute.type === "enum") {
+                    if (exposedAttribute.name === "system_mode") {
+                        exposedAttribute.label = "Active system mode";
+                        exposedAttribute.description =
+                            "Currently used system mode by the thermostat. This field is primarily " +
+                            "used to configure the thermostat in Home Assistant correctly.";
+                        exposedAttribute.values = [currentSystemMode];
+                        exposedAttribute.access = ea.STATE;
+                    }
+
+                    if (exposedAttribute.name === "running_state") {
+                        exposedAttribute.values = ["idle", currentSystemMode];
+                    }
+                }
+            });
+            return returnedThermostat;
+        };
+
+        return {
+            exposes: [expose],
+            fromZigbee: thermostat.fromZigbee,
+            toZigbee: thermostat.toZigbee,
+            configure: thermostat.configure,
+            isModernExtend: true,
+        };
+    },
+    customSystemMode: (): ModernExtend => {
+        const exposes: Expose[] = [
+            e
+                .enum("custom_system_mode", ea.ALL, Object.keys(boschThermostatLookup.systemModes))
+                .withLabel("Available system modes")
+                .withDescription("Select if the thermostat is connected to a heating or a cooling device")
+                .withCategory("config"),
+        ];
+
+        const fromZigbee = [
+            {
+                cluster: "hvacThermostat",
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    const result: KeyValue = {};
+                    const data = msg.data;
+
+                    if (data.systemMode !== undefined) {
+                        result.custom_system_mode = utils.getFromLookupByValue(data.systemMode, boschThermostatLookup.systemModes);
+                        meta.deviceExposesChanged();
+                    }
+
+                    return result;
+                },
+            } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
+        ];
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ["custom_system_mode"],
+                convertSet: async (entity, key, value, meta) => {
+                    await entity.write("hvacThermostat", {
+                        systemMode: utils.toNumber(utils.getFromLookup(value, boschThermostatLookup.systemModes)),
+                    });
+
+                    return {state: {custom_system_mode: value}};
+                },
+                convertGet: async (entity, key, meta) => {
+                    await entity.read("hvacThermostat", ["systemMode"]);
+                },
+            },
+        ];
+
+        const configure: Configure[] = [
+            m.setupConfigureForReporting("hvacThermostat", "systemMode", {
+                config: false,
+                access: ea.ALL,
+            }),
+        ];
+
+        return {
+            exposes,
+            fromZigbee,
+            toZigbee,
+            configure,
+            isModernExtend: true,
+        };
+    },
     raThermostat: (): ModernExtend => {
         // Native thermostat
         const thermostat = m.thermostat({
@@ -2995,40 +3096,11 @@ export const boschThermostatExtend = {
         toZigbee.push(...piHeatingDemand.toZigbee);
         configure = [...configure, ...piHeatingDemand.configure];
 
-        // Add Bosch operating mode
-        // (will be used by this thermostat, thus being added here)
-        const customOperatingModes = boschThermostatExtend.operatingMode({enableReporting: true});
-        exposes.push(...customOperatingModes.exposes);
-        fromZigbee.push(...customOperatingModes.fromZigbee);
-        toZigbee.push(...customOperatingModes.toZigbee);
-        configure = [...configure, ...customOperatingModes.configure];
-
-        // Add overrideHaDiscoveryPayload to use the Bosch operating mode as system_mode for the
-        // HA thermostat instead of native system_mode attribute that just supports "heat" here.
-        // https://github.com/Koenkk/zigbee2mqtt/pull/23075#issue-2355829475
-        const meta: DefinitionMeta = {
-            overrideHaDiscoveryPayload: (payload) => {
-                if (payload.mode_command_topic?.endsWith("/system_mode")) {
-                    payload.mode_command_topic = payload.mode_command_topic.substring(0, payload.mode_command_topic.lastIndexOf("/system_mode"));
-                    payload.mode_command_template =
-                        "{% set values = " +
-                        `{ 'auto':'schedule','heat':'manual','off':'pause'} %}` +
-                        `{"operating_mode": "{{ values[value] if value in values.keys() else 'pause' }}"}`;
-                    payload.mode_state_template =
-                        "{% set values = " +
-                        `{'schedule':'auto','manual':'heat','pause':'off'} %}` +
-                        `{% set value = value_json.operating_mode %}{{ values[value] if value in values.keys() else 'off' }}`;
-                    payload.modes = ["off", "heat", "auto"];
-                }
-            },
-        };
-
         return {
             exposes,
             fromZigbee,
             toZigbee,
             configure,
-            meta,
             isModernExtend: true,
         };
     },
@@ -3068,19 +3140,92 @@ export const boschThermostatExtend = {
             isModernExtend: true,
         };
     },
-    customHeatingDemand: () =>
-        m.numeric<"hvacThermostat", BoschThermostatCluster>({
-            name: "pi_heating_demand",
+    operatingMode: (args?: {enableReporting: boolean}): ModernExtend => {
+        const operatingModeLookup = {schedule: 0x00, manual: 0x01, pause: 0x05};
+
+        const operatingMode = m.enumLookup<"hvacThermostat", BoschThermostatCluster>({
+            name: "operating_mode",
             cluster: "hvacThermostat",
-            attribute: "heatingDemand",
-            label: "PI heating demand",
-            description: "Position of the valve (= demanded heat) where 0% is fully closed and 100% is fully open",
-            unit: "%",
-            valueMin: 0,
-            valueMax: 100,
-            access: "ALL",
-            reporting: {min: "MIN", max: "MAX", change: null},
-        }),
+            attribute: "operatingMode",
+            description: "Bosch-specific operating mode. This is being used as mode on the exposed thermostat when using Home Assistant.",
+            lookup: operatingModeLookup,
+            reporting: args?.enableReporting ? {min: "MIN", max: "MAX", change: null} : false,
+            entityCategory: "config",
+        });
+
+        const exposes: (Expose | DefinitionExposesFunction)[] = operatingMode.exposes;
+        const fromZigbee = operatingMode.fromZigbee;
+        const toZigbee: Tz.Converter[] = operatingMode.toZigbee;
+        const configure: Configure[] = operatingMode.configure;
+
+        const removeLowAndHighTemperatureFields = (payload: KeyValueAny) => {
+            payload.temperature_high_command_topic = undefined;
+            payload.temperature_low_command_topic = undefined;
+
+            payload.temperature_high_state_template = undefined;
+            payload.temperature_low_state_template = undefined;
+
+            payload.temperature_high_state_topic = undefined;
+            payload.temperature_low_state_topic = undefined;
+        };
+
+        // Override the payload send to Home Assistant to achieve the following:
+        // 1. Use the Bosch operating mode instead of system modes
+        //    See: https://github.com/Koenkk/zigbee2mqtt/pull/23075#issue-2355829475
+        // 2. Remove setpoints not compatible with the currently used system mode
+        //    See: https://github.com/Koenkk/zigbee2mqtt/issues/28892
+        const meta: DefinitionMeta = {
+            overrideHaDiscoveryPayload: (payload) => {
+                if (payload.modes !== undefined) {
+                    if (payload.modes.includes("heat")) {
+                        payload.mode_command_template =
+                            `{% set values = { 'auto':'schedule', 'heat':'manual', 'off':'pause' } %}` +
+                            `{"operating_mode": "{{ values[value] if value in values.keys() else 'pause' }}"}`;
+                        payload.mode_state_template =
+                            `{% set values = { 'schedule':'auto', 'manual':'heat', 'pause':'off' } %}` +
+                            "{% set value = value_json.operating_mode %}" +
+                            `{{ values[value] if value in values.keys() else 'off' }}`;
+
+                        if (payload.temperature_low_command_topic !== undefined) {
+                            payload.temperature_command_topic = payload.temperature_low_command_topic;
+                            payload.temperature_state_template = payload.temperature_low_state_template;
+                            payload.temperature_state_topic = payload.temperature_low_state_topic;
+
+                            removeLowAndHighTemperatureFields(payload);
+                        }
+                    } else if (payload.modes.includes("cool")) {
+                        payload.mode_command_template =
+                            `{% set values = { 'auto':'schedule', 'cool':'manual', 'off':'pause' } %}` +
+                            `{"operating_mode": "{{ values[value] if value in values.keys() else 'pause' }}"}`;
+                        payload.mode_state_template =
+                            `{% set values = { 'schedule':'auto', 'manual':'cool', 'pause':'off' } %}` +
+                            "{% set value = value_json.operating_mode %}" +
+                            `{{ values[value] if value in values.keys() else 'off' }}`;
+
+                        if (payload.temperature_high_command_topic !== undefined) {
+                            payload.temperature_command_topic = payload.temperature_high_command_topic;
+                            payload.temperature_state_template = payload.temperature_high_state_template;
+                            payload.temperature_state_topic = payload.temperature_high_state_topic;
+
+                            removeLowAndHighTemperatureFields(payload);
+                        }
+                    }
+
+                    payload.modes = ["off", ...payload.modes, "auto"];
+                    payload.mode_command_topic = payload.mode_command_topic.replace("/system_mode", "");
+                }
+            },
+        };
+
+        return {
+            exposes,
+            fromZigbee,
+            toZigbee,
+            configure,
+            meta,
+            isModernExtend: true,
+        };
+    },
     boostHeating: (args?: {enableReporting: boolean}): ModernExtend => {
         const boostHeatingLookup: KeyValue = {
             OFF: 0x00,
@@ -3277,13 +3422,16 @@ export const boschThermostatExtend = {
                 .binary("automatic_valve_adapt", ea.STATE_GET, true, false)
                 .withLabel("Automatic valve adaptation requested")
                 .withDescription(
-                    "Specifies if an automatic valve adaptation is being requested by the thermostat (for example after a successful firmware upgrade)",
+                    "Specifies if an automatic valve adaptation is being requested by the thermostat " +
+                        "(for example after a successful firmware upgrade). If this is the case, the " +
+                        "valve adaptation will be automatically started as soon as the adaptation status " +
+                        "is 'ready_to_calibrate' or 'error'.",
                 )
                 .withCategory("diagnostic"),
             e
                 .enum("valve_adapt_process", ea.SET, ["adapt"])
                 .withLabel("Trigger adaptation process")
-                .withDescription('Trigger the valve adaptation process. Only possible when adaptation status is "ready_to_calibrate" or "error".')
+                .withDescription("Trigger the valve adaptation process. Only possible when the adaptation status is 'ready_to_calibrate' or 'error'.")
                 .withCategory("config"),
         ];
 
