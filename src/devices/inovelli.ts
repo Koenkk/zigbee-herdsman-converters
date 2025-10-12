@@ -478,7 +478,7 @@ const inovelliExtend = {
         const bindingList = ["genOnOff"];
 
         if (!splitValuesByEndpoint) {
-            fromZigbee.push(fz.on_off, fz.brightness, fz.level_config, fz.power_on_behavior, fz.ignore_basic_report);
+            fromZigbee.push(fz.on_off, fz.brightness, fz.level_config, fz.power_on_behavior);
             bindingList.push("genLevelCtrl");
         }
 

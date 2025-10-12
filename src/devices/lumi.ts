@@ -1808,6 +1808,9 @@ export const definitions: DefinitionWithExtend[] = [
             lumi.lumiModernExtend.fp1eSpatialLearning(),
             lumi.lumiModernExtend.fp1eRestartDevice(),
             m.identify(),
+
+            lumi.lumiModernExtend.fp1eAIInterference(),
+            lumi.lumiModernExtend.fp1eAdaptiveSensitivity(),
         ],
     },
     {
@@ -1911,14 +1914,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZNCZ04LM",
         description: "Mi smart plug EU",
         vendor: "Xiaomi",
-        fromZigbee: [
-            fz.on_off,
-            lumi.fromZigbee.lumi_power,
-            lumi.fromZigbee.lumi_specific,
-            fz.ignore_occupancy_report,
-            fz.ignore_illuminance_report,
-            fz.ignore_time_read,
-        ],
+        fromZigbee: [fz.on_off, lumi.fromZigbee.lumi_power, lumi.fromZigbee.lumi_specific, fz.ignore_occupancy_report, fz.ignore_illuminance_report],
         toZigbee: [
             tz.on_off,
             lumi.toZigbee.lumi_power,
@@ -2447,12 +2443,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Roller shade driver E1",
         vendor: "Aqara",
         whiteLabel: [{vendor: "Aqara", model: "RSD-M01"}],
-        fromZigbee: [
-            lumi.fromZigbee.lumi_curtain_position,
-            lumi.fromZigbee.lumi_curtain_status,
-            fz.ignore_basic_report,
-            lumi.fromZigbee.lumi_specific,
-        ],
+        fromZigbee: [lumi.fromZigbee.lumi_curtain_position, lumi.fromZigbee.lumi_curtain_status, lumi.fromZigbee.lumi_specific],
         ota: true,
         toZigbee: [lumi.toZigbee.lumi_curtain_position_state, lumi.toZigbee.lumi_curtain_battery, lumi.toZigbee.lumi_curtain_charging_status],
         exposes: [
@@ -2653,7 +2644,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZNMS13LM",
         description: "Smart door lock S2 Pro",
         vendor: "Aqara",
-        fromZigbee: [lumi.fromZigbee.lumi_door_lock_report, fz.ignore_basic_report],
+        fromZigbee: [lumi.fromZigbee.lumi_door_lock_report],
         toZigbee: [],
         exposes: [
             e.binary("state", ea.STATE, "UNLOCK", "LOCK"),
@@ -2685,7 +2676,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZNMS11LM",
         description: "Smart door lock",
         vendor: "Aqara",
-        fromZigbee: [lumi.fromZigbee.lumi_door_lock_report, fz.ignore_basic_report],
+        fromZigbee: [lumi.fromZigbee.lumi_door_lock_report],
         toZigbee: [],
         exposes: [
             e.binary("state", ea.STATE, "UNLOCK", "LOCK"),
@@ -4591,6 +4582,17 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TH-S04D",
         vendor: "Aqara",
         description: "Climate Sensor W100",
+        fromZigbee: [lumi.fromZigbee.w100_0844_req, lumi.fromZigbee.pmtsd_from_w100],
+        toZigbee: [lumi.toZigbee.pmtsd_to_w100, lumi.toZigbee.thermostat_mode],
+        exposes: [
+            e.action(["data_request"]).withDescription("W100 Requesting PMTSD Data via 08000844 Request"),
+            e.text("data", ea.STATE).withDescription("Timestamp+Most Recent PMTSD Values Sent by W100"),
+            e
+                .binary("mode", ea.ALL, "ON", "OFF")
+                .withDescription(
+                    "On: Enable thermostat mode. Buttons send encrypted payloads and middle line is enabled. Off: Disable thermostat mode. Buttons send actions and middle line is disabled.",
+                ),
+        ],
         extend: [
             lumiZigbeeOTA(),
             m.temperature(),
@@ -5005,6 +5007,7 @@ export const definitions: DefinitionWithExtend[] = [
             await endpoint.read("manuSpecificLumi", [0x019a], {manufacturerCode: manufacturerCode}); // Read detection range
         },
         extend: [
+            lumi.lumiModernExtend.lumiPreventLeave(),
             lumi.lumiModernExtend.lumiBattery({
                 voltageToPercentage: {min: 2850, max: 3000},
                 voltageAttribute: 0x0017, // Attribute: 23
@@ -5021,6 +5024,9 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Presence detection sensor type",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
+
+            lumi.lumiModernExtend.fp1eAIInterference(),
+            lumi.lumiModernExtend.fp1eAdaptiveSensitivity(),
 
             m.numeric({
                 name: "absence_delay_timer",

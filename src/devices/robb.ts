@@ -145,7 +145,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ROB_200-007-0",
         vendor: "ROBB",
         description: "Zigbee 8 button wall switch",
-        fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.battery, fz.ignore_genOta],
+        fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.battery],
         exposes: [
             e.battery(),
             e.action([
@@ -196,7 +196,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ROB_200-025-0",
         vendor: "ROBB",
         description: "Zigbee 8 button wall switch",
-        fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.battery, fz.ignore_genOta],
+        fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.battery],
         exposes: [
             e.battery(),
             e.action([

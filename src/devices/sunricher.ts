@@ -1831,7 +1831,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        zigbeeModel: ["ZG9092", "HK-LN-HEATER-A", "ROB_200-040-0"],
+        zigbeeModel: ["ZG9092", "HK-LN-HEATER-A", "ROB_200-040-0", "HT-THERMZ3W-1"],
         model: "SR-ZG9092A",
         vendor: "Sunricher",
         description: "Touch thermostat",

@@ -39,12 +39,17 @@ const fzLocal = {
             }
             if (data[0x1009] !== undefined) {
                 // WindowOpenCheck
-                const lookup = {0: "enable", 1: "disable"};
-                result.window_open_check = utils.getFromLookup(data[0x1009], lookup);
+                // According to manual 0: enable, 1: disable
+                // According to real life testing 0: disable, 1: enable
+                result.window_detection = data[0x1009] === 1;
             }
             if (data[0x100a] !== undefined) {
                 // Hysterersis
                 result.hysterersis = utils.precisionRound(data[0x100a] as number, 2) / 10;
+            }
+            if (data[0x100b] !== undefined) {
+                // WindowOpen, 0: Window is not opened, 1: Window is opened
+                result.window_open = data[0x100b] === 1;
             }
             return result;
         },
@@ -67,7 +72,7 @@ const fzLocal = {
 
 const tzLocal = {
     namron_panelheater: {
-        key: ["display_brightnesss", "display_auto_off", "power_up_status", "window_open_check", "hysterersis"],
+        key: ["display_brightnesss", "display_auto_off", "power_up_status", "window_detection", "hysterersis", "window_open"],
         convertSet: async (entity, key, value, meta) => {
             if (key === "display_brightnesss") {
                 const payload = {4096: {value: value, type: Zcl.DataType.ENUM8}};
@@ -80,12 +85,11 @@ const tzLocal = {
                 const lookup = {manual: 0, last_state: 1};
                 const payload = {4100: {value: utils.getFromLookup(value, lookup), type: Zcl.DataType.ENUM8}};
                 await entity.write("hvacThermostat", payload, sunricherManufacturer);
-            } else if (key === "window_open_check") {
-                const lookup = {enable: 0, disable: 1};
-                const payload = {4105: {value: utils.getFromLookup(value, lookup), type: Zcl.DataType.ENUM8}};
+            } else if (key === "window_detection") {
+                const payload = {4105: {value: value ? 1 : 0, type: Zcl.DataType.ENUM8}};
                 await entity.write("hvacThermostat", payload, sunricherManufacturer);
             } else if (key === "hysterersis") {
-                const payload = {4106: {value: utils.toNumber(value, "hysterersis") * 10, type: 0x20}};
+                const payload = {4106: {value: utils.toNumber(value, "hysterersis") * 10, type: Zcl.DataType.UINT8}};
                 await entity.write("hvacThermostat", payload, sunricherManufacturer);
             }
         },
@@ -100,11 +104,14 @@ const tzLocal = {
                 case "power_up_status":
                     await entity.read("hvacThermostat", [0x1004], sunricherManufacturer);
                     break;
-                case "window_open_check":
+                case "window_detection":
                     await entity.read("hvacThermostat", [0x1009], sunricherManufacturer);
                     break;
                 case "hysterersis":
                     await entity.read("hvacThermostat", [0x100a], sunricherManufacturer);
+                    break;
+                case "window_open":
+                    await entity.read("hvacThermostat", [0x100b], sunricherManufacturer);
                     break;
 
                 default: // Unknown key
@@ -366,15 +373,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "4512726",
         vendor: "Namron",
         description: "Zigbee 4 in 1 dimmer",
-        fromZigbee: [
-            fz.battery,
-            fz.command_on,
-            fz.command_off,
-            fz.command_move_to_level,
-            fz.command_move_to_color_temp,
-            fz.command_move_to_hue,
-            fz.ignore_genOta,
-        ],
+        fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_move_to_level, fz.command_move_to_color_temp, fz.command_move_to_hue],
         toZigbee: [],
         exposes: [e.battery(), e.battery_voltage(), e.action(["on", "off", "brightness_move_to_level", "color_temperature_move", "move_to_hue"])],
         meta: {battery: {dontDividePercentage: true}},
@@ -934,7 +933,8 @@ export const definitions: DefinitionWithExtend[] = [
             e
                 .enum("power_up_status", ea.ALL, ["manual", "last_state"])
                 .withDescription("The mode after a power reset.  Default: Previous Mode. See instructions for information about manual"),
-            e.enum("window_open_check", ea.ALL, ["enable", "disable"]).withDescription("Turn on/off window check mode"),
+            e.window_detection_bool(),
+            e.window_open(ea.STATE_GET),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -972,7 +972,7 @@ export const definitions: DefinitionWithExtend[] = [
                 "hvacThermostat",
                 [
                     {
-                        attribute: {ID: 0x1000, type: 0x30},
+                        attribute: {ID: 0x1000, type: Zcl.DataType.ENUM8},
                         minimumReportInterval: 0,
                         maximumReportInterval: constants.repInterval.HOUR,
                         reportableChange: null,
@@ -985,7 +985,7 @@ export const definitions: DefinitionWithExtend[] = [
                 "hvacThermostat",
                 [
                     {
-                        attribute: {ID: 0x1001, type: 0x30},
+                        attribute: {ID: 0x1001, type: Zcl.DataType.ENUM8},
                         minimumReportInterval: 0,
                         maximumReportInterval: constants.repInterval.HOUR,
                         reportableChange: null,
@@ -998,7 +998,7 @@ export const definitions: DefinitionWithExtend[] = [
                 "hvacThermostat",
                 [
                     {
-                        attribute: {ID: 0x1004, type: 0x30},
+                        attribute: {ID: 0x1004, type: Zcl.DataType.ENUM8},
                         minimumReportInterval: 0,
                         maximumReportInterval: constants.repInterval.HOUR,
                         reportableChange: null,
@@ -1006,12 +1006,12 @@ export const definitions: DefinitionWithExtend[] = [
                 ],
                 sunricherManufacturer,
             );
-            // window_open_check
+            // window_detection
             await endpoint.configureReporting(
                 "hvacThermostat",
                 [
                     {
-                        attribute: {ID: 0x1009, type: 0x30},
+                        attribute: {ID: 0x1009, type: Zcl.DataType.ENUM8},
                         minimumReportInterval: 0,
                         maximumReportInterval: constants.repInterval.HOUR,
                         reportableChange: null,
@@ -1032,10 +1032,23 @@ export const definitions: DefinitionWithExtend[] = [
                 ],
                 sunricherManufacturer,
             );
+            // window_open
+            await endpoint.configureReporting(
+                "hvacThermostat",
+                [
+                    {
+                        attribute: {ID: 0x100b, type: Zcl.DataType.ENUM8},
+                        minimumReportInterval: 0,
+                        maximumReportInterval: constants.repInterval.HOUR,
+                        reportableChange: null,
+                    },
+                ],
+                sunricherManufacturer,
+            );
 
             await endpoint.read("hvacThermostat", ["systemMode", "runningState", "occupiedHeatingSetpoint"]);
             await endpoint.read("hvacUserInterfaceCfg", ["keypadLockout"]);
-            await endpoint.read("hvacThermostat", [0x1000, 0x1001, 0x1004, 0x1009, 0x100a], sunricherManufacturer);
+            await endpoint.read("hvacThermostat", [0x1000, 0x1001, 0x1004, 0x1009, 0x100a, 0x100b], sunricherManufacturer);
 
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
         },

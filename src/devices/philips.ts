@@ -13,18 +13,25 @@ const ea = exposes.access;
 
 export const definitions: DefinitionWithExtend[] = [
     {
-        zigbeeModel: ["LCX029", "LCX028"],
+        zigbeeModel: ["LCX028"],
+        model: "929004581901",
+        vendor: "Philips",
+        description: "Hue Festavia globe outdoor string lights (14 meter with 20 bulbs)",
+        extend: [philips.m.light({colorTemp: {range: [50, 1000]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+    },
+    {
+        zigbeeModel: ["LCX029"],
         model: "929004581801",
         vendor: "Philips",
-        description: "Hue Festavia globe outdoor string lights",
-        extend: [philips.m.light({colorTemp: {range: [50, 1000]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+        description: "Hue Festavia globe outdoor string lights (7 meter with 10 bulbs)",
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true, gradient: {extraEffects: ["sparkle", "opal", "glisten"]}})],
     },
     {
         zigbeeModel: ["LCX030"],
         model: "929004284702",
         vendor: "Philips",
         description: "Hue Festavia permanent outdoor string lights",
-        extend: [philips.m.light({colorTemp: {range: [50, 1000]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true, gradient: {extraEffects: ["sparkle", "opal", "glisten"]}})],
     },
     {
         zigbeeModel: ["929003736601_01", "929003736601_02"],
@@ -120,6 +127,20 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Philips",
         description: "Philips Hue A60 bulb with on/off control",
         extend: [philips.m.light()],
+    },
+    {
+        zigbeeModel: ["LTA015"],
+        model: "9290038549H",
+        vendor: "Philips",
+        description: "Hue white ambiance",
+        extend: [philips.m.light({colorTemp: {range: [222, 454]}})],
+    },
+    {
+        zigbeeModel: ["LCA012"],
+        model: "9290038536H",
+        vendor: "Philips",
+        description: "Hue white ambiance and color",
+        extend: [philips.m.light({colorTemp: {range: [154, 455]}, color: true})],
     },
     {
         zigbeeModel: ["LTA013"],
@@ -476,6 +497,13 @@ export const definitions: DefinitionWithExtend[] = [
         model: "8720169264151",
         vendor: "Philips",
         description: "Hue Slim recessed light S 90mm black",
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+    },
+    {
+        zigbeeModel: ["LCD011"],
+        model: "8720169264274",
+        vendor: "Philips",
+        description: "Hue Slim recessed light 170mm black",
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
     {
@@ -2111,6 +2139,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true, gradient: true})],
     },
     {
+        zigbeeModel: ["929003479901"],
+        model: "929003479901",
+        vendor: "Philips",
+        description: "Hue Gradient Signe floor lamp (oak)",
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true, gradient: true})],
+    },
+    {
         zigbeeModel: ["LCT020"],
         model: "4080148P7",
         vendor: "Philips",
@@ -3447,7 +3482,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
-        zigbeeModel: ["929003598101"],
+        zigbeeModel: ["929003598101", "929003598102"],
         model: "929003598101",
         vendor: "Philips",
         description: "Hue White & Color Ambiance Surimu round panel",
@@ -4208,7 +4243,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
     {
-        zigbeeModel: ["LGT012", "046677590161", "046677590130"],
+        zigbeeModel: ["LGT009", "LGT010", "LGT012", "046677590161", "046677590130"],
         model: "046677590161",
         vendor: "Philips",
         description: "Hue Play wall washer",
@@ -4267,6 +4302,13 @@ export const definitions: DefinitionWithExtend[] = [
         model: "9290038539",
         vendor: "Philips",
         description: "Hue White and color ambiance A21 - E26 smart bulb - 1600",
+        extend: [philips.m.light({colorTemp: {range: [50, 1000]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+    },
+    {
+        zigbeeModel: ["LCA011"],
+        model: "8720169364066",
+        vendor: "Philips",
+        description: "Hue White and Color Ambiance A60 - E27 smart bulb- 1100",
         extend: [philips.m.light({colorTemp: {range: [50, 1000]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
 ];

@@ -133,7 +133,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZM-CSW032-D",
         vendor: "Zemismart",
         description: "Curtain/roller blind switch",
-        fromZigbee: [fz.ignore_basic_report, fz.ZMCSW032D_cover_position],
+        fromZigbee: [fz.ZMCSW032D_cover_position],
         toZigbee: [tz.cover_state, tz.ZMCSW032D_cover_position],
         exposes: [e.cover_position()],
         meta: {multiEndpoint: true},
@@ -226,7 +226,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Zemismart",
         description: "Tubular motor",
         // mcuVersionResponse spsams: https://github.com/Koenkk/zigbee2mqtt/issues/19817
-        extend: [tuya.modernExtend.tuyaBase({dp: true, respondToMcuVersionResponse: false, timeStart: "off"})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "off"})],
         options: [exposes.options.invert_cover()],
         exposes: [
             e.text("work_state", ea.STATE),
@@ -317,7 +317,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZM25TQ",
         vendor: "Zemismart",
         description: "Tubular motor",
-        fromZigbee: [legacy.fz.tuya_cover, fz.ignore_basic_report],
+        fromZigbee: [legacy.fz.tuya_cover],
         toZigbee: [legacy.tz.tuya_cover_control, legacy.tz.tuya_cover_options, legacy.tz.tuya_data_point_test],
         exposes: [e.cover_position().setAccess("position", ea.STATE_SET)],
         extend: [m.forcePowerSource({powerSource: "Mains (single phase)"})],
@@ -333,7 +333,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.switch().withEndpoint("l3").setAccess("state", ea.STATE_SET),
             e.switch().withEndpoint("l4").setAccess("state", ea.STATE_SET),
         ],
-        fromZigbee: [fz.ignore_basic_report, legacy.fz.tuya_switch],
+        fromZigbee: [legacy.fz.tuya_switch],
         toZigbee: [legacy.tz.tuya_switch_state],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
@@ -361,7 +361,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.switch().withEndpoint("l5").setAccess("state", ea.STATE_SET),
             e.switch().withEndpoint("l6").setAccess("state", ea.STATE_SET),
         ],
-        fromZigbee: [fz.ignore_basic_report, legacy.fz.tuya_switch],
+        fromZigbee: [legacy.fz.tuya_switch],
         toZigbee: [legacy.tz.tuya_switch_state],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
@@ -413,7 +413,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZMS-206US-1",
         vendor: "Zemismart",
         description: "Smart screen switch 1 gang",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "off", respondToMcuVersionResponse: false})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "off"})],
         exposes: [
             tuya.exposes.backlightModeOffOn().withAccess(ea.STATE_SET),
             e.switch(),
@@ -472,7 +472,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZMS-206EU-2",
         vendor: "Zemismart",
         description: "Smart screen switch 2 gang",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "off", respondToMcuVersionResponse: false})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "off"})],
         exposes: [
             tuya.exposes.backlightModeOffOn().withAccess(ea.STATE_SET),
             e.switch(),
@@ -558,7 +558,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZMS-206EU-3",
         vendor: "Zemismart",
         description: "Smart screen switch 3 gang",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "off", respondToMcuVersionResponse: false})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "off"})],
         exposes: [
             tuya.exposes.backlightModeOffOn().withAccess(ea.STATE_SET),
             e.switch(),
@@ -662,7 +662,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZMS-206US-4",
         vendor: "Zemismart",
         description: "Smart screen switch 4 gang US",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "off", respondToMcuVersionResponse: false})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "off"})],
         exposes: [
             tuya.exposes.backlightModeOffOn().withAccess(ea.STATE_SET),
             e.switch(),
@@ -779,5 +779,62 @@ export const definitions: DefinitionWithExtend[] = [
                 [201, "cycle_schedule", valueConverterLocal.cycleSchedule],
             ],
         },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_mpg22jc1"]),
+        model: "ZN-USC1U-HT",
+        vendor: "Zemismart",
+        description: "Smart curtain wall switch",
+        options: [exposes.options.invert_cover()],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.cover_position().setAccess("position", ea.STATE_SET),
+            e.enum("motor_steering", ea.STATE_SET, ["FORWARD", "BACKWARD"]).withDescription("Motor steering"),
+            e
+                .numeric("calibration_time", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(500)
+                .withUnit("s")
+                .withDescription("Calibration time in seconds (Please fully close the curtain before set the calibration time)"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [
+                    1,
+                    "state",
+                    tuya.valueConverterBasic.lookup({
+                        OPEN: tuya.enum(0),
+                        STOP: tuya.enum(1),
+                        CLOSE: tuya.enum(2),
+                    }),
+                ],
+                [2, "position", tuya.valueConverter.coverPosition],
+                [
+                    8,
+                    "motor_steering",
+                    tuya.valueConverterBasic.lookup({
+                        FORWARD: tuya.enum(0),
+                        BACKWARD: tuya.enum(1),
+                    }),
+                ],
+                [10, "calibration_time", tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0004", ["_TZ3000_nsa76jai"]),
+        model: "KES-606US-L4",
+        vendor: "Zemismart",
+        description: "Smart light switch - 4 gang (US)",
+        extend: [
+            m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4}}),
+            tuya.modernExtend.tuyaOnOff({
+                endpoints: ["l1", "l2", "l3", "l4"],
+                powerOnBehavior2: true,
+                backlightModeOffOn: true,
+                indicatorMode: true,
+            }),
+        ],
+        configure: tuya.configureMagicPacket,
     },
 ];

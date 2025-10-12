@@ -632,16 +632,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "WV704R0A0902",
         vendor: "Schneider Electric",
         description: "Wiser radiator thermostat",
-        fromZigbee: [
-            fz.ignore_basic_report,
-            fz.ignore_haDiagnostic,
-            fz.ignore_genOta,
-            fz.ignore_zclversion_read,
-            fz.thermostat,
-            fz.battery,
-            fz.hvac_user_interface,
-            fz.wiser_device_info,
-        ],
+        fromZigbee: [fz.ignore_haDiagnostic, fz.thermostat, fz.battery, fz.hvac_user_interface, fz.wiser_device_info],
         toZigbee: [tz.thermostat_occupied_heating_setpoint, tz.thermostat_keypad_lockout],
         meta: {battery: {voltageToPercentage: {min: 2500, max: 3200}}},
         exposes: [
@@ -1016,16 +1007,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "CCTFR6100Z3",
         vendor: "Schneider Electric",
         description: "Wiser radiator thermostat",
-        fromZigbee: [
-            fz.ignore_basic_report,
-            fz.ignore_haDiagnostic,
-            fz.ignore_genOta,
-            fz.ignore_zclversion_read,
-            fz.thermostat,
-            fz.battery,
-            fz.hvac_user_interface,
-            fz.wiser_device_info,
-        ],
+        fromZigbee: [fz.ignore_haDiagnostic, fz.thermostat, fz.battery, fz.hvac_user_interface, fz.wiser_device_info],
         toZigbee: [tz.thermostat_occupied_heating_setpoint, tz.thermostat_keypad_lockout],
         exposes: [
             e
@@ -1425,9 +1407,6 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Schneider Electric",
         description: "Wiser radiator thermostat (VACT)",
         fromZigbee: [
-            fz.ignore_basic_report,
-            fz.ignore_genOta,
-            fz.ignore_zclversion_read,
             fz.battery,
             fz.hvac_user_interface,
             fz.wiser_smart_thermostat,
@@ -1485,9 +1464,6 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Schneider Electric",
         description: "Wiser thermostat (RTS)",
         fromZigbee: [
-            fz.ignore_basic_report,
-            fz.ignore_genOta,
-            fz.ignore_zclversion_read,
             fz.battery,
             fz.hvac_user_interface,
             fz.wiser_smart_thermostat_client,
@@ -1538,7 +1514,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "EER50000",
         vendor: "Schneider Electric",
         description: "Wiser H-Relay (HACT)",
-        fromZigbee: [fz.ignore_basic_report, fz.ignore_genOta, fz.ignore_zclversion_read, fz.wiser_smart_thermostat, fz.metering, fz.identify],
+        fromZigbee: [fz.wiser_smart_thermostat, fz.metering, fz.identify],
         toZigbee: [
             tz.thermostat_local_temperature,
             tz.thermostat_occupied_heating_setpoint,

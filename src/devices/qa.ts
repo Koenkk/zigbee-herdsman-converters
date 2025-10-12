@@ -188,7 +188,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.switch().withEndpoint("l3").setAccess("state", ea.STATE_SET),
             e.switch().withEndpoint("l4").setAccess("state", ea.STATE_SET),
         ],
-        fromZigbee: [fz.ignore_basic_report, legacy.fz.tuya_switch],
+        fromZigbee: [legacy.fz.tuya_switch],
         toZigbee: [legacy.tz.tuya_switch_state],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
@@ -217,7 +217,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.switch().withEndpoint("l5").setAccess("state", ea.STATE_SET),
             e.switch().withEndpoint("l6").setAccess("state", ea.STATE_SET),
         ],
-        fromZigbee: [fz.ignore_basic_report, legacy.fz.tuya_switch],
+        fromZigbee: [legacy.fz.tuya_switch],
         toZigbee: [legacy.tz.tuya_switch_state],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
