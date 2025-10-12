@@ -23,7 +23,7 @@ function paulNeuhausTWLight(args?: m.LightArgs) {
               await endpoint.read("lightingColorCtrl", ["colorTemperature"]);
             }
 
-          } catch (error) {
+          } catch {
             // Do nothing
           }
         },
