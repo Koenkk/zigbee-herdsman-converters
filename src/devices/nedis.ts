@@ -7,7 +7,7 @@ const ea = exposes.access;
 
 export const definitions: DefinitionWithExtend[] = [
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_ne4pikwm", "_TZE284_ne4pikwm"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_ne4pikwm", "_TZE284_ne4pikwm", "_TZE284_hcs66axl"]),
         model: "ZBHTR20WT",
         vendor: "Nedis",
         description: "Thermostat radiator valve",

@@ -822,7 +822,7 @@ const fzLocal = {
     TS0201_humidity: {
         ...fz.humidity,
         convert: (model, msg, publish, options, meta) => {
-            if (["_TZ3210_ncw88jfq", "_TZ3000_ywagc4rj"].includes(meta.device.manufacturerName)) {
+            if (["_TZ3210_ncw88jfq", "_TZ3000_ywagc4rj", "_TZ3000_isw9u95y"].includes(meta.device.manufacturerName)) {
                 msg.data.measuredValue *= 10;
             }
             return fz.humidity.convert(model, msg, publish, options, meta);
@@ -5106,6 +5106,7 @@ export const definitions: DefinitionWithExtend[] = [
                 "_TZE200_2odrmqwq",
                 "_TZE204_lh3arisb",
                 "_TZE284_udank5zs",
+                "_TZE284_6hrnp30w",
                 "_TZE284_b7kbnl6q",
                 "_TZE200_7shyddj3",
                 "_TZE204_a2jcoyuk",
