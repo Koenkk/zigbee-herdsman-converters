@@ -20154,7 +20154,6 @@ export const definitions: DefinitionWithExtend[] = [
     		e.energy()
         ],
         meta: {
-            // All datapoints go in here
             tuyaDatapoints: [
     			[1, "state", tuya.valueConverter.onOff],
     			[30, "swing_mode", tuya.valueConverter.onOff],
@@ -20165,8 +20164,8 @@ export const definitions: DefinitionWithExtend[] = [
     			[25, "sleep", tuya.valueConverter.onOff],
     			[102, "turbo", tuya.valueConverter.onOff],
     			[103, "quiet", tuya.valueConverter.onOff],
-                [116, "power", tuya.valueConverter.raw] //to confirm if raw,divideBy10,divideBy100, or divideBy1000. Only supported AC unit has output value. Otherwise it shows value as 0 or N/A.
-                [117, "energy", tuya.valueConverter.raw], //to confirm if raw,divideBy10,divideBy100, or divideBy1000. Only supported AC unit has output value. Otherwise it shows value as 0 or N/A.
+                [116, "power", tuya.valueConverter.raw],
+                [117, "energy", tuya.valueConverter.raw]
     		],
         },
     },
