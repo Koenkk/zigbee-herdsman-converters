@@ -7618,9 +7618,9 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_6ycgarab"]),
-        model: 'TS0601_smoke_co',
-        vendor: 'Tuya',
-        description: 'Dual Smoke CO sensor',
+        model: "TS0601_smoke_co",
+        vendor: "Tuya",
+        description: "Dual Smoke CO sensor",
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         onEvent: tuya.onEventSetTime,
@@ -7635,25 +7635,41 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         meta: {
             tuyaDatapoints: [
-                [1, "smoke", tuya.valueConverterBasic.lookup({
-                    alarm: tuya.enum(0),
-                    none: tuya.enum(1),
-                    detecting: tuya.enum(2),
-                    unknown: tuya.enum(3),
-                })],
-                [5, "alarm_volume", tuya.valueConverterBasic.lookup({
-                    low: tuya.enum(0),
-                    medium: tuya.enum(1),
-                    high: tuya.enum(2),
-                    mute: tuya.enum(3),
-                })],
+                [
+                    1,
+                    "smoke",
+                    tuya.valueConverterBasic.lookup({
+                        alarm: tuya.enum(0),
+                        none: tuya.enum(1),
+                        detecting: tuya.enum(2),
+                        unknown: tuya.enum(3),
+                    }),
+                ],
+                [
+                    5,
+                    "alarm_volume",
+                    tuya.valueConverterBasic.lookup({
+                        low: tuya.enum(0),
+                        medium: tuya.enum(1),
+                        high: tuya.enum(2),
+                        mute: tuya.enum(3),
+                    }),
+                ],
                 [15, "battery", tuya.valueConverter.raw],
                 [16, "silence", tuya.valueConverter.raw],
                 [17, "alarm_switch", tuya.valueConverter.raw],
                 [18, "carbon_monoxide", tuya.valueConverter.trueFalseEnum0],
             ],
         },
-        extend: [tuya.modernExtend.tuyaBase({dp: true, bindBasicOnConfigure: true, queryOnDeviceAnnounce: true, queryOnConfigure: true, forceTimeUpdates: true})],
+        extend: [
+            tuya.modernExtend.tuyaBase({
+                dp: true,
+                bindBasicOnConfigure: true,
+                queryOnDeviceAnnounce: true,
+                queryOnConfigure: true,
+                forceTimeUpdates: true,
+            }),
+        ],
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_5d3vhjro"]),
