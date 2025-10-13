@@ -20129,4 +20129,45 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_snfdqllf"]),
+        model: "AETZ01_AC",
+        vendor: "Tuya",
+        description: "Smart Air Conditioner",
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEventSetTime,
+        configure: tuya.configureMagicPacket,
+        exposes: [
+    		e.binary("state", ea.STATE_SET, "ON", "OFF").withDescription("Turn AC ON/OFF"),
+    		e
+        		.climate()
+        		.withLocalTemperature(ea.STATE)
+        		.withSetpoint("current_heating_setpoint", 16, 30, 1, ea.STATE_SET)
+        		.withSystemMode(["cool", "dry", "fan_only"], ea.STATE_SET)
+        		.withFanMode(["low", "medium", "high", "auto"], ea.STATE_SET)
+    			.withSwingMode(["off", "on"], ea.STATE_SET),
+    		e.binary("sleep", ea.STATE_SET, "ON", "OFF").withDescription("Sleep Mode"),
+    		e.binary("turbo", ea.STATE_SET, "ON", "OFF").withDescription("Turbo Mode"),
+    		e.binary("quiet", ea.STATE_SET, "ON", "OFF").withDescription("Quiet Mode"),
+    		e.power(),
+    		e.energy()
+        ],
+        meta: {
+            // All datapoints go in here
+            tuyaDatapoints: [
+    			[1, "state", tuya.valueConverter.onOff],
+    			[30, "swing_mode", tuya.valueConverter.onOff],
+    			[2, "current_heating_setpoint", tuya.valueConverter.raw],
+        		[3, "local_temperature", tuya.valueConverter.raw],
+                [4, "system_mode", tuya.valueConverterBasic.lookup({cool: tuya.enum(0),dry: tuya.enum(1),fan_only: tuya.enum(2)})],
+    			[5, "fan_mode", tuya.valueConverterBasic.lookup({low: tuya.enum(0),medium: tuya.enum(1),high: tuya.enum(2),auto: tuya.enum(3)})],
+    			[25, "sleep", tuya.valueConverter.onOff],
+    			[102, "turbo", tuya.valueConverter.onOff],
+    			[103, "quiet", tuya.valueConverter.onOff],
+                [116, "power", tuya.valueConverter.raw] //to confirm if raw,divideBy10,divideBy100, or divideBy1000. Only supported AC unit has output value. Otherwise it shows value as 0 or N/A.
+                [117, "energy", tuya.valueConverter.raw], //to confirm if raw,divideBy10,divideBy100, or divideBy1000. Only supported AC unit has output value. Otherwise it shows value as 0 or N/A.
+    		],
+        },
+    },
 ];
