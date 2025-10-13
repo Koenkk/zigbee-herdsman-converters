@@ -2704,12 +2704,13 @@ export const definitions: DefinitionWithExtend[] = [
                 [
                     2,
                     "illuminance_level",
-                    {
-                        from: (value: number) => {
-                            const map: {[key: number]: string} = {0: "Low-", 1: "Low", 2: "NOR", 3: "High", 4: "High+"};
-                            return map[value] || value.toString();
-                        },
-                    },
+                    tuya.valueConverterBasic.lookup({
+                        "Low-": 0,
+                        Low: 1,
+                        NOR: 2,
+                        High: 3,
+                        "High+": 4,
+                    }),
                 ],
                 [3, "soil_moisture", tuya.valueConverter.raw],
                 [5, "temperature", tuya.valueConverter.divideBy10],
