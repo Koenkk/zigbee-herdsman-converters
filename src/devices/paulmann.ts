@@ -283,7 +283,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        zigbeeModel: ["501.40"],
+        zigbeeModel: ["501.40", "50140"],
         model: "501.40",
         vendor: "Paulmann",
         description: "RGB remote control",
