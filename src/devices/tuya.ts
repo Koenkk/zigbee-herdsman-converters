@@ -20136,7 +20136,6 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Smart Air Conditioner",
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime,
         configure: tuya.configureMagicPacket,
         exposes: [
             e.binary("state", ea.STATE_SET, "ON", "OFF").withDescription("Turn AC ON/OFF"),
