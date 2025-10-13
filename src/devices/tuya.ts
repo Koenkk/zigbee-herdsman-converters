@@ -1857,9 +1857,9 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_v6iczj35"]),
-        model: 'TS0601_gas_sensor_5',
-        vendor: 'Tuya',
-        description: 'LPG gas sensor',
+        model: "TS0601_gas_sensor_5",
+        vendor: "Tuya",
+        description: "LPG gas sensor",
         whiteLabel: tuya.whitelabel("Spacetronik", "ZB-DG03", "LPG Gas Sensor", ["_TZE204_v6iczj35"]),
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
@@ -1868,21 +1868,27 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [
             e.gas(),
             e.binary("preheat", ea.STATE, true, false).withDescription("Sensor preheat active"),
-            e.enum("fault", ea.STATE, ["none", "fault", "serious_fault", "sensor_fault", "probe_fault", "power_fault",]).withDescription("Fault status of the device (none = no fault)"),
+            e
+                .enum("fault", ea.STATE, ["none", "fault", "serious_fault", "sensor_fault", "probe_fault", "power_fault"])
+                .withDescription("Fault status of the device (none = no fault)"),
             e.binary("lifecycle", ea.STATE, true, false).withDescription("Sensor lifetime limit"),
         ],
         meta: {
             tuyaDatapoints: [
-                [1,  "gas", tuya.valueConverter.trueFalseEnum0],
+                [1, "gas", tuya.valueConverter.trueFalseEnum0],
                 [10, "preheat", tuya.valueConverter.trueFalse1],
-                [11, "fault", tuya.valueConverterBasic.lookup({
-                    none: 0,
-                    fault: 1,
-                    serious_fault: 2,
-                    sensor_fault: 3,
-                    probe_fault: 4,
-                    power_fault: 5,
-                })],
+                [
+                    11,
+                    "fault",
+                    tuya.valueConverterBasic.lookup({
+                        none: 0,
+                        fault: 1,
+                        serious_fault: 2,
+                        sensor_fault: 3,
+                        probe_fault: 4,
+                        power_fault: 5,
+                    }),
+                ],
                 [12, "lifecycle", tuya.valueConverter.trueFalse0],
             ],
         },
