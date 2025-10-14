@@ -2092,13 +2092,17 @@ export const boschDoorWindowContactExtend = {
             async (device, coordinatorEndpoint, definition) => {
                 const endpoint = device.getEndpoint(1);
 
-                // The write request is made when using the proprietary
-                // Bosch Smart Home Controller II as of 19-09-2025. Looks like
-                // the default value was too high, and they didn't want to
-                // push a firmware update. We mimic it here to avoid complaints.
-                await endpoint.write<"boschDoorWindowContactCluster", BoschDoorWindowContactCluster>("boschDoorWindowContactCluster", {
-                    vibrationDetectionSensitivity: vibrationDetectionSensitivityLookup.medium,
-                });
+                if (device.meta.newDefaultSensitivityApplied === undefined) {
+                    // The write request is made when using the proprietary
+                    // Bosch Smart Home Controller II as of 19-09-2025. Looks like
+                    // the default value was too high, and they didn't want to
+                    // push a firmware update. We mimic it here to avoid complaints.
+                    await endpoint.write<"boschDoorWindowContactCluster", BoschDoorWindowContactCluster>("boschDoorWindowContactCluster", {
+                        vibrationDetectionSensitivity: vibrationDetectionSensitivityLookup.medium,
+                    });
+
+                    device.meta.newDefaultSensitivityApplied = true;
+                }
 
                 // The write request is made when using the proprietary
                 // Bosch Smart Home Controller II as of 19-09-2025. I have
