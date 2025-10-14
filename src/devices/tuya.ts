@@ -1271,7 +1271,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_ajlu4cud", "_TZE284_ajlu4cud"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_ajlu4cud"]),
         model: "TS0601_water_meter",
         vendor: "Tuya",
         description: "Ultrasonic water meter",
