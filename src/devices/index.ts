@@ -31,6 +31,7 @@ import {definitions as blaupunkt} from "./blaupunkt";
 import {definitions as blitzwolf} from "./blitzwolf";
 import {definitions as bosch} from "./bosch";
 import {definitions as bouffaloLab} from "./bouffalo_lab";
+import {definitions as box} from "./box";
 import {definitions as brimate} from "./brimate";
 import {definitions as brunHolding} from "./brun_holding";
 import {definitions as bseed} from "./bseed";
@@ -386,6 +387,7 @@ const definitions: DefinitionWithExtend[] = [
     ...blitzwolf,
     ...bosch,
     ...bouffaloLab,
+    ...box,
     ...brimate,
     ...brunHolding,
     ...bseed,
