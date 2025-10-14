@@ -20258,10 +20258,10 @@ export const definitions: DefinitionWithExtend[] = [
                 [103, "eco_temperature", tuya.valueConverter.divideBy10],
                 [104, "comfort_temperature", tuya.valueConverter.divideBy10],
                 [105, "antifrost_temperature", tuya.valueConverter.divideBy10],
-              ]
-        }
+            ],
+        },
     },
-      {
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_snfdqllf"]),
         model: "AETZ01_AC",
         vendor: "Tuya",
