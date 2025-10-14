@@ -1538,7 +1538,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_s1xgth2u", "_TZE284_9ern5sfh"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_s1xgth2u"]),
         model: "TS0601_temperature_humidity_sensor_3",
         vendor: "Tuya",
         description: "Temperature & humidity sensor",
@@ -1551,6 +1551,23 @@ export const definitions: DefinitionWithExtend[] = [
                 [4, "battery", tuya.valueConverter.raw], // maybe?
                 [9, "temperature_unit", tuya.valueConverter.temperatureUnitEnum],
                 [19, "temperature_sensitivity", tuya.valueConverter.raw], // maybe? commented this out for now
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_9ern5sfh"]),
+        model: "TS0601_temperature_humidity_sensor_4",
+        vendor: "Tuya",
+        description: "Temperature & humidity sensor",
+        extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true, queryOnConfigure: true})],
+        exposes: [e.temperature(), e.humidity(), e.battery(), tuya.exposes.temperatureUnit()],
+        meta: {
+            tuyaDatapoints: [
+                [1, "temperature", tuya.valueConverter.divideBy10],
+                [2, "humidity", tuya.valueConverter.divideBy10],
+                [4, "battery", tuya.valueConverter.raw],
+                [9, "temperature_unit", tuya.valueConverter.temperatureUnitEnum],
+                [19, "temperature_sensitivity", tuya.valueConverter.raw],
             ],
         },
     },
@@ -1852,6 +1869,40 @@ export const definitions: DefinitionWithExtend[] = [
                 [11, "fault_alarm", tuya.valueConverter.trueFalse1],
                 [13, "alarm_switch", tuya.valueConverter.raw],
                 [16, "silence", tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_v6iczj35"]),
+        model: "ZB-DG03",
+        vendor: "Spacetronik",
+        description: "LPG gas sensor",
+        extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true, queryOnConfigure: true})],
+        exposes: [
+            e.gas(),
+            e.binary("preheat", ea.STATE, true, false).withDescription("Sensor preheat active"),
+            e
+                .enum("fault", ea.STATE, ["none", "fault", "serious_fault", "sensor_fault", "probe_fault", "power_fault"])
+                .withDescription("Fault status of the device (none = no fault)"),
+            e.binary("lifecycle", ea.STATE, true, false).withDescription("Sensor lifetime limit"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "gas", tuya.valueConverter.trueFalseEnum0],
+                [10, "preheat", tuya.valueConverter.trueFalse1],
+                [
+                    11,
+                    "fault",
+                    tuya.valueConverterBasic.lookup({
+                        none: 0,
+                        fault: 1,
+                        serious_fault: 2,
+                        sensor_fault: 3,
+                        probe_fault: 4,
+                        power_fault: 5,
+                    }),
+                ],
+                [12, "lifecycle", tuya.valueConverter.trueFalse0],
             ],
         },
     },
@@ -5919,6 +5970,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE200_nw1r9hp6",
             "_TZE200_9p5xmj5r",
             "_TZE200_eevqq1uv",
+            "_TZE204_ejh6owwz",
             "_TZE200_ba69l9ol",
         ]),
         model: "TS0601_cover_3",
@@ -9565,12 +9617,12 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_nklqjk62", "_TZE204_nklqjk62", "_TZE204_jktmrpoj"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_nklqjk62", "_TZE204_nklqjk62", "_TZE204_jktmrpoj", "_TZE284_nklqjk62"]),
         model: "TS0601_garage_door_opener",
         vendor: "Tuya",
         description: "Garage door opener",
         whiteLabel: [
-            tuya.whitelabel("MatSee Plus", "PJ-ZGD01", "Garage door opener", ["_TZE204_nklqjk62"]),
+            tuya.whitelabel("MatSee Plus", "PJ-ZGD01", "Garage door opener", ["_TZE204_nklqjk62", "_TZE284_nklqjk62"]),
             tuya.whitelabel("Moes", "ZM-102-M", "Garage door opener", ["_TZE204_jktmrpoj"]),
         ],
         extend: [
@@ -20206,6 +20258,43 @@ export const definitions: DefinitionWithExtend[] = [
                 [103, "eco_temperature", tuya.valueConverter.divideBy10],
                 [104, "comfort_temperature", tuya.valueConverter.divideBy10],
                 [105, "antifrost_temperature", tuya.valueConverter.divideBy10],
+              ]
+        }
+    },
+      {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_snfdqllf"]),
+        model: "AETZ01_AC",
+        vendor: "Tuya",
+        description: "Smart air conditioner",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.binary("state", ea.STATE_SET, "ON", "OFF").withDescription("Turn AC ON/OFF"),
+            e
+                .climate()
+                .withLocalTemperature(ea.STATE)
+                .withSetpoint("current_heating_setpoint", 16, 30, 1, ea.STATE_SET)
+                .withSystemMode(["cool", "dry", "fan_only"], ea.STATE_SET)
+                .withFanMode(["low", "medium", "high", "auto"], ea.STATE_SET)
+                .withSwingMode(["off", "on"], ea.STATE_SET),
+            e.binary("sleep", ea.STATE_SET, "ON", "OFF").withDescription("Sleep Mode"),
+            e.binary("turbo", ea.STATE_SET, "ON", "OFF").withDescription("Turbo Mode"),
+            e.binary("quiet", ea.STATE_SET, "ON", "OFF").withDescription("Quiet Mode"),
+            e.power(),
+            e.energy(),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "state", tuya.valueConverter.onOff],
+                [30, "swing_mode", tuya.valueConverter.onOff],
+                [2, "current_heating_setpoint", tuya.valueConverter.raw],
+                [3, "local_temperature", tuya.valueConverter.raw],
+                [4, "system_mode", tuya.valueConverterBasic.lookup({cool: tuya.enum(0), dry: tuya.enum(1), fan_only: tuya.enum(2)})],
+                [5, "fan_mode", tuya.valueConverterBasic.lookup({low: tuya.enum(0), medium: tuya.enum(1), high: tuya.enum(2), auto: tuya.enum(3)})],
+                [25, "sleep", tuya.valueConverter.onOff],
+                [102, "turbo", tuya.valueConverter.onOff],
+                [103, "quiet", tuya.valueConverter.onOff],
+                [116, "power", tuya.valueConverter.raw],
+                [117, "energy", tuya.valueConverter.raw],
             ],
         },
     },
