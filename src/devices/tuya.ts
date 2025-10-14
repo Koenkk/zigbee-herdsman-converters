@@ -1271,6 +1271,53 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_ajlu4cud", "_TZE284_ajlu4cud"]),
+        model: "TS0601_water_meter",
+        vendor: "Tuya",
+        description: "Ultrasonic water meter",
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
+        exposes: [
+            // Water consumption sensor
+            e
+                .numeric("water_consumed", ea.STATE)
+                .withUnit("m³")
+                .withDescription("Total water consumption")
+                .withValueMin(0)
+                .withValueStep(0.001),
+
+            // Flow rate sensor
+            e
+                .numeric("flow_rate", ea.STATE)
+                .withUnit("m³/h")
+                .withDescription("Instantaneous water flow rate")
+                .withValueMin(0)
+                .withValueStep(0.001),
+
+            // Temperature sensor
+            e.temperature(),
+
+            // Voltage monitoring
+            e.voltage(),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "water_consumed", tuya.valueConverter.divideBy1000],
+                [21, "flow_rate", tuya.valueConverter.divideBy1000],
+                [22, "temperature", tuya.valueConverter.divideBy100],
+                [26, "voltage", tuya.valueConverter.divideBy100],
+            ],
+        },
+        // Optional: Add device-specific options
+        options: [
+            exposes.options.precision("water_consumed"),
+            exposes.options.calibration("water_consumed"),
+            exposes.options.precision("flow_rate"),
+            exposes.options.calibration("flow_rate"),
+            exposes.options.precision("temperature"),
+            exposes.options.calibration("temperature"),
+        ],
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_zpvusbtv"]),
         model: "ZN2S-RS02E",
         vendor: "Tuya",
