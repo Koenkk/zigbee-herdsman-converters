@@ -20177,15 +20177,15 @@ export const definitions: DefinitionWithExtend[] = [
             e.temperature(),
             e.humidity(),
             tuya.exposes.batteryState(),
-            e.enum("self_test", ea.STATE, ["Checking", "Check success", "Check failure"]).withDescription('Test button status'),
-            e.enum('silence', ea.STATE_SET, ['ON']).withDescription('Silence alarm'),
-            e.text("version", ea.STATE_GET).withDescription('Device version')
+            e.enum("self_test", ea.STATE, ["Checking", "Check success", "Check failure"]).withDescription("Test button status"),
+            e.enum("silence", ea.STATE_SET, ["ON"]).withDescription("Silence alarm"),
+            e.text("version", ea.STATE_GET).withDescription("Device version"),
         ],
         meta: {
             // All datapoints go in here
             tuyaDatapoints: [
                 [1, "smoke", tuya.valueConverter.trueFalse0],
-                [9, "self_test", tuya.valueConverterBasic.lookup({ checking: 0, check_success: 1, check_failure: 2 })],
+                [9, "self_test", tuya.valueConverterBasic.lookup({checking: 0, check_success: 1, check_failure: 2})],
                 [14, "battery_state", tuya.valueConverter.batteryState],
                 [16, "silence", tuya.valueConverter.onOff],
                 [23, "temperature", tuya.valueConverter.divideBy10],
