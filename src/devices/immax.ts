@@ -84,11 +84,11 @@ const fzLocal = {
             }
             //volume
             if (msg.data["2"] !== undefined) {
-                result.volume = utils.mapNumberRange(msg.data["2"], 100, 0, 0, 100);
+                result.volume = utils.mapNumberRange(msg.data["2"] as number, 100, 0, 0, 100);
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"ssIasWd", undefined, ["attributeReport", "readResponse"]>,
     ts0219genBasic: {
         cluster: "genBasic",
         type: ["attributeReport", "readResponse"],
@@ -99,7 +99,7 @@ const fzLocal = {
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genBasic", undefined, ["attributeReport", "readResponse"]>,
     ts0219ssIasZone: {
         cluster: "ssIasZone",
         type: ["attributeReport", "readResponse"],
@@ -110,7 +110,7 @@ const fzLocal = {
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"ssIasZone", undefined, ["attributeReport", "readResponse"]>,
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -245,7 +245,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "07703L",
         vendor: "Immax",
         description: "Radiator valve",
-        fromZigbee: [legacy.fz.tuya_thermostat_weekly_schedule_2, legacy.fz.etop_thermostat, fz.ignore_basic_report, fz.ignore_tuya_set_time],
+        fromZigbee: [legacy.fz.tuya_thermostat_weekly_schedule_2, legacy.fz.etop_thermostat, fz.ignore_tuya_set_time],
         toZigbee: [
             legacy.tz.etop_thermostat_system_mode,
             legacy.tz.etop_thermostat_away_mode,
@@ -318,7 +318,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "07502L",
         vendor: "Immax",
         description: "4 in 1 multi sensor",
-        fromZigbee: [fz.battery, fz.ignore_basic_report, legacy.fz.ZB003X, fz.ZB003X_attr, fz.ZB003X_occupancy],
+        fromZigbee: [fz.battery, legacy.fz.ZB003X, fz.ZB003X_attr, fz.ZB003X_occupancy],
         toZigbee: [legacy.tz.ZB003X],
         exposes: [
             e.occupancy(),

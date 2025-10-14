@@ -43,39 +43,39 @@ const develco = {
                     msg.endpoint.saveClusterAttributeKeyValue("seMetering", {divisor: 1000, multiplier: 1});
                 }
             },
-        } satisfies Fz.Converter,
+        } satisfies Fz.Converter<"seMetering", undefined, ["attributeReport"]>,
         // Some Develco devices report strange values sometimes
         // https://github.com/Koenkk/zigbee2mqtt/issues/13329
         electrical_measurement: {
             ...fz.electrical_measurement,
             convert: (model, msg, publish, options, meta) => {
-                if (msg.data.rmsVoltage !== 0xffff && msg.data.rmsCurrent !== 0xffff && msg.data.activePower !== -0x8000) {
+                if (!Number.isNaN(msg.data.rmsVoltage) && !Number.isNaN(msg.data.rmsCurrent) && !Number.isNaN(msg.data.activePower)) {
                     return fz.electrical_measurement.convert(model, msg, publish, options, meta);
                 }
             },
-        } satisfies Fz.Converter,
+        } satisfies Fz.Converter<"haElectricalMeasurement", undefined, ["attributeReport", "readResponse"]>,
         total_power: {
             cluster: "haElectricalMeasurement",
             type: ["attributeReport", "readResponse"],
             convert: (model, msg, publish, options, meta) => {
                 const result: KeyValue = {};
-                if (msg.data.totalActivePower !== undefined && msg.data.totalActivePower !== -0x80000000) {
+                if (msg.data.totalActivePower !== undefined && !Number.isNaN(msg.data.totalActivePower)) {
                     result[utils.postfixWithEndpointName("power", msg, model, meta)] = msg.data.totalActivePower;
                 }
-                if (msg.data.totalReactivePower !== undefined && msg.data.totalReactivePower !== -0x80000000) {
+                if (msg.data.totalReactivePower !== undefined && !Number.isNaN(msg.data.totalReactivePower)) {
                     result[utils.postfixWithEndpointName("power_reactive", msg, model, meta)] = msg.data.totalReactivePower;
                 }
                 return result;
             },
-        } satisfies Fz.Converter,
+        } satisfies Fz.Converter<"haElectricalMeasurement", undefined, ["attributeReport", "readResponse"]>,
         metering: {
             ...fz.metering,
             convert: (model, msg, publish, options, meta) => {
-                if (msg.data.instantaneousDemand !== -0x800000 && msg.data.currentSummDelivered?.[1] !== 0) {
+                if (!Number.isNaN(msg.data.instantaneousDemand) && msg.data.currentSummDelivered !== 0) {
                     return fz.metering.convert(model, msg, publish, options, meta);
                 }
             },
-        } satisfies Fz.Converter,
+        } satisfies Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]>,
         pulse_configuration: {
             cluster: "seMetering",
             type: ["attributeReport", "readResponse"],
@@ -87,7 +87,7 @@ const develco = {
 
                 return result;
             },
-        } satisfies Fz.Converter,
+        } satisfies Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]>,
         interface_mode: {
             cluster: "seMetering",
             type: ["attributeReport", "readResponse"],
@@ -106,7 +106,7 @@ const develco = {
 
                 return result;
             },
-        } satisfies Fz.Converter,
+        } satisfies Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]>,
         fault_status: {
             cluster: "genBinaryInput",
             type: ["attributeReport", "readResponse"],
@@ -121,7 +121,7 @@ const develco = {
                 }
                 return result;
             },
-        } satisfies Fz.Converter,
+        } satisfies Fz.Converter<"genBinaryInput", undefined, ["attributeReport", "readResponse"]>,
         led_control: {
             cluster: "genBasic",
             type: ["attributeReport", "readResponse"],
@@ -134,7 +134,7 @@ const develco = {
 
                 return state;
             },
-        } satisfies Fz.Converter,
+        } satisfies Fz.Converter<"genBasic", DevelcoGenBasic, ["attributeReport", "readResponse"]>,
         ias_occupancy_timeout: {
             cluster: "ssIasZone",
             type: ["attributeReport", "readResponse"],
@@ -147,7 +147,7 @@ const develco = {
 
                 return state;
             },
-        } satisfies Fz.Converter,
+        } satisfies Fz.Converter<"ssIasZone", undefined, ["attributeReport", "readResponse"]>,
         input: {
             cluster: "genBinaryInput",
             type: ["attributeReport", "readResponse"],
@@ -159,7 +159,7 @@ const develco = {
                 }
                 return result;
             },
-        } satisfies Fz.Converter,
+        } satisfies Fz.Converter<"genBinaryInput", undefined, ["attributeReport", "readResponse"]>,
     },
     tz: {
         pulse_configuration: {
@@ -379,7 +379,7 @@ export const definitions: DefinitionWithExtend[] = [
             {vendor: "Frient", model: "94430", description: "Smart Intelligent Smoke Alarm"},
             {vendor: "Cavius", model: "2103", description: "RF SMOKE ALARM, 5 YEAR 65MM"},
         ],
-        fromZigbee: [fz.ias_smoke_alarm_1_develco, fz.ignore_basic_report, fz.ias_enroll, fz.ias_wd, develco.fz.fault_status],
+        fromZigbee: [fz.ias_smoke_alarm_1_develco, fz.ias_enroll, fz.ias_wd, develco.fz.fault_status],
         toZigbee: [tz.warning, tz.ias_max_duration, tz.warning_simple],
         ota: true,
         extend: [
@@ -456,7 +456,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Develco",
         description: "Fire detector with siren",
         whiteLabel: [{vendor: "Frient", model: "94431", description: "Smart Intelligent Heat Alarm"}],
-        fromZigbee: [fz.ias_smoke_alarm_1_develco, fz.ignore_basic_report, fz.ias_enroll, fz.ias_wd, develco.fz.fault_status],
+        fromZigbee: [fz.ias_smoke_alarm_1_develco, fz.ias_enroll, fz.ias_wd, develco.fz.fault_status],
         toZigbee: [tz.warning, tz.ias_max_duration, tz.warning_simple],
         ota: true,
         extend: [
@@ -640,8 +640,10 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
-            develcoModernExtend.temperature(), // TODO: ep 38
-            m.illuminance(), // TODO: ep 39
+            // Prevent excessive reports
+            // https://github.com/Koenkk/zigbee-herdsman-converters/pull/10081
+            develcoModernExtend.temperature({reporting: {min: 10, max: 3600, change: 100}}),
+            m.illuminance({reporting: {min: 10, max: 3600, change: 100}}),
             m.battery({
                 voltageToPercentage: {min: 2500, max: 3000},
                 percentage: true,

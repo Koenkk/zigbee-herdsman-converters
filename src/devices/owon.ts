@@ -41,7 +41,7 @@ const fzLocal = {
                 return fz.temperature.convert(model, msg, publish, options, meta);
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"msTemperatureMeasurement", undefined, ["attributeReport", "readResponse"]>,
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     PC321_metering: {
         cluster: "seMetering",
@@ -120,12 +120,12 @@ const fzLocal = {
             }
             if (msg.data.owonCurrentSum !== undefined || msg.data["12547"] !== undefined) {
                 // 0x3103 -> 12547
-                const data = msg.data.owonCurrentSum || msg.data["12547"] * factor;
+                const data = msg.data.owonCurrentSum || (msg.data["12547"] as number) * factor;
                 payload.current = data;
             }
             if (msg.data.owonReactiveEnergySum !== undefined || msg.data["16643"] !== undefined) {
                 // 0x4103 -> 16643
-                const value = msg.data.owonReactiveEnergySum || msg.data["16643"];
+                const value = msg.data.owonReactiveEnergySum || (msg.data["16643"] as number);
                 payload.reactive_energy = value * factor;
             }
             if (msg.data.owonL1PowerFactor !== undefined) {
@@ -140,7 +140,7 @@ const fzLocal = {
 
             return payload;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]>,
 
     owonFds315: {
         cluster: "fallDetectionOwon",
@@ -175,7 +175,7 @@ const fzLocal = {
                 "leftFallDetectionRange",
                 "rightFallDetectionRange",
                 "frontFallDetectionRange",
-            ];
+            ] as const;
             const values = keys.map((k) => (data[k] !== undefined ? data[k] : null));
 
             if (!values.includes(null)) {
@@ -184,7 +184,7 @@ const fzLocal = {
 
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"fallDetectionOwon", OwonFallDetection, ["attributeReport", "readResponse"]>,
 };
 
 const tzLocal = {
@@ -279,7 +279,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "PIR313-E",
         vendor: "OWON",
         description: "Motion sensor",
-        fromZigbee: [fz.battery, fz.ignore_basic_report, fz.ias_occupancy_alarm_1, fz.temperature, fz.humidity, fz.occupancy_timeout],
+        fromZigbee: [fz.battery, fz.ias_occupancy_alarm_1, fz.temperature, fz.humidity, fz.occupancy_timeout],
         toZigbee: [],
         exposes: [e.occupancy(), e.tamper(), e.battery_low(), e.temperature(), e.humidity()],
         configure: async (device, coordinatorEndpoint) => {
@@ -543,7 +543,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "PIR323-PTH",
         vendor: "OWON",
         description: "Multi-sensor",
-        fromZigbee: [fz.battery, fz.ignore_basic_report, fz.ias_occupancy_alarm_1, fz.temperature, fz.humidity, fz.occupancy_timeout],
+        fromZigbee: [fz.battery, fz.ias_occupancy_alarm_1, fz.temperature, fz.humidity, fz.occupancy_timeout],
         toZigbee: [],
         exposes: [e.occupancy(), e.battery_low(), e.temperature(), e.humidity()],
         configure: async (device, coordinatorEndpoint) => {

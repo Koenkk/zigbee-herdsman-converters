@@ -100,6 +100,8 @@ const INPUT_EXTENDERS: Extender[] = [
     ],
     [["genBinaryInput"], extenderBinaryInput],
     [["genBinaryOutput"], extenderBinaryOutput],
+    [["genAnalogInput"], extenderAnalogInput],
+    [["genAnalogOutput"], extenderAnalogOutput],
 ];
 
 const OUTPUT_EXTENDERS: Extender[] = [
@@ -391,6 +393,45 @@ async function extenderBinaryOutput(device: Zh.Device, endpoints: Zh.Endpoint[])
             endpointName: `${endpoint.ID}`,
         };
         generated.push(new ExtendGenerator({extend: m.binary, args, source: "binary"}));
+    }
+    return generated;
+}
+
+async function extenderAnalogInput(device: Zh.Device, endpoints: Zh.Endpoint[]): Promise<GeneratedExtend[]> {
+    const generated: GeneratedExtend[] = [];
+    for (const endpoint of endpoints) {
+        const description = `analog_input_${endpoint.ID}`;
+        const args: m.NumericArgs<"genAnalogInput"> = {
+            name: await getClusterAttributeValue(endpoint, "genAnalogInput", "description", description),
+            cluster: "genAnalogInput",
+            attribute: "presentValue",
+            reporting: {min: "MIN", max: "MAX", change: 1},
+            description: description,
+            access: "STATE_GET",
+            endpointNames: [`${endpoint.ID}`],
+        };
+        generated.push(new ExtendGenerator({extend: m.numeric, args, source: "numeric"}));
+    }
+    return generated;
+}
+
+async function extenderAnalogOutput(device: Zh.Device, endpoints: Zh.Endpoint[]): Promise<GeneratedExtend[]> {
+    const generated: GeneratedExtend[] = [];
+    for (const endpoint of endpoints) {
+        const description = `analog_output_${endpoint.ID}`;
+        const args: m.NumericArgs<"genAnalogOutput"> = {
+            name: await getClusterAttributeValue(endpoint, "genAnalogOutput", "description", description),
+            valueMin: await getClusterAttributeValue(endpoint, "genAnalogOutput", "minPresentValue", undefined),
+            valueMax: await getClusterAttributeValue(endpoint, "genAnalogOutput", "maxPresentValue", undefined),
+            valueStep: await getClusterAttributeValue(endpoint, "genAnalogOutput", "resolution", undefined),
+            cluster: "genAnalogOutput",
+            attribute: "presentValue",
+            reporting: {min: "MIN", max: "MAX", change: 1},
+            description: description,
+            access: "ALL",
+            endpointNames: [`${endpoint.ID}`],
+        };
+        generated.push(new ExtendGenerator({extend: m.numeric, args, source: "numeric"}));
     }
     return generated;
 }

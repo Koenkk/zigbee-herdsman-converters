@@ -84,6 +84,7 @@ import {definitions as engo} from "./engo";
 import {definitions as enkin} from "./enkin";
 import {definitions as enocean} from "./enocean";
 import {definitions as envilar} from "./envilar";
+import {definitions as espressif} from "./espressif";
 import {definitions as essentialb} from "./essentialb";
 import {definitions as essentials} from "./essentials";
 import {definitions as eucontrols} from "./eucontrols";
@@ -120,6 +121,7 @@ import {definitions as hej} from "./hej";
 import {definitions as hfh} from "./hfh";
 import {definitions as hilux} from "./hilux";
 import {definitions as hive} from "./hive";
+import {definitions as hoftronic} from "./hoftronic";
 import {definitions as homeseer} from "./homeseer";
 import {definitions as hommyn} from "./hommyn";
 import {definitions as honyar} from "./honyar";
@@ -194,10 +196,12 @@ import {definitions as meazon} from "./meazon";
 import {definitions as mercator} from "./mercator";
 import {definitions as miboxer} from "./miboxer";
 import {definitions as micromatic} from "./micromatic";
+import {definitions as mill} from "./mill";
 import {definitions as mindy} from "./mindy";
 import {definitions as modular} from "./modular";
 import {definitions as moes} from "./moes";
 import {definitions as mullerLicht} from "./muller_licht";
+import {definitions as multir} from "./multir";
 import {definitions as multiterm} from "./multiterm";
 import {definitions as namron} from "./namron";
 import {definitions as nanoleaf} from "./nanoleaf";
@@ -277,6 +281,7 @@ import {definitions as siterwell} from "./siterwell";
 import {definitions as skydance} from "./skydance";
 import {definitions as slackyDiy} from "./slacky_diy";
 import {definitions as slv} from "./slv";
+import {definitions as smarli} from "./smarli";
 import {definitions as smartHomePty} from "./smart_home_pty";
 import {definitions as smart9} from "./smart9";
 import {definitions as smartenit} from "./smartenit";
@@ -308,6 +313,7 @@ import {definitions as theLightGroup} from "./the_light_group";
 import {definitions as thirdReality} from "./third_reality";
 import {definitions as titanProducts} from "./titan_products";
 import {definitions as tlwglobal} from "./tlwglobal";
+import {definitions as tnce} from "./tnce";
 import {definitions as tplink} from "./tplink";
 import {definitions as trust} from "./trust";
 import {definitions as tubeszb} from "./tubeszb";
@@ -322,6 +328,7 @@ import {definitions as villeroyBoch} from "./villeroy_boch";
 import {definitions as vimar} from "./vimar";
 import {definitions as visonic} from "./visonic";
 import {definitions as vrey} from "./vrey";
+import {definitions as vsmart} from "./vsmart";
 import {definitions as wally} from "./wally";
 import {definitions as waxman} from "./waxman";
 import {definitions as weiser} from "./weiser";
@@ -428,9 +435,10 @@ const definitions: DefinitionWithExtend[] = [
     ...eglo,
     ...elko,
     ...enbrighten,
-    ...enocean,
     ...enkin,
+    ...enocean,
     ...envilar,
+    ...espressif,
     ...essentialb,
     ...essentials,
     ...eucontrols,
@@ -467,6 +475,7 @@ const definitions: DefinitionWithExtend[] = [
     ...hfh,
     ...hilux,
     ...hive,
+    ...hoftronic,
     ...homeseer,
     ...hommyn,
     ...honyar,
@@ -540,10 +549,12 @@ const definitions: DefinitionWithExtend[] = [
     ...mercator,
     ...miboxer,
     ...micromatic,
+    ...mill,
     ...mindy,
     ...modular,
     ...moes,
     ...mullerLicht,
+    ...multir,
     ...multiterm,
     ...namron,
     ...nanoleaf,
@@ -623,6 +634,7 @@ const definitions: DefinitionWithExtend[] = [
     ...skydance,
     ...slackyDiy,
     ...slv,
+    ...smarli,
     ...smart9,
     ...smartenit,
     ...smartHomePty,
@@ -639,8 +651,8 @@ const definitions: DefinitionWithExtend[] = [
     ...sowilo,
     ...spotmau,
     ...sprut,
-    ...stelpro,
     ...stello,
+    ...stelpro,
     ...sunricher,
     ...superled,
     ...swann,
@@ -654,6 +666,7 @@ const definitions: DefinitionWithExtend[] = [
     ...thirdReality,
     ...titanProducts,
     ...tlwglobal,
+    ...tnce,
     ...tplink,
     ...trust,
     ...tubeszb,
@@ -693,6 +706,7 @@ const definitions: DefinitionWithExtend[] = [
     ...zipato,
     ...qa,
     ...engo,
+    ...vsmart,
 ];
 
 export default definitions;

@@ -31,7 +31,7 @@ export const definitions: DefinitionWithExtend[] = [
                 "brightness_up_release",
             ]),
         ],
-        fromZigbee: [fz.command_on, fz.command_off, fz.command_step, fz.ignore_basic_report, fz.command_move, fz.command_stop, fz.command_recall],
+        fromZigbee: [fz.command_on, fz.command_off, fz.command_step, fz.command_move, fz.command_stop, fz.command_recall],
         toZigbee: [],
     },
     {
@@ -39,7 +39,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "CTR.UBX",
         vendor: "Airam",
         description: "CTR.U remote BX",
-        fromZigbee: [fz.command_on, fz.command_off, fz.command_step, fz.command_move, fz.command_stop, fz.command_recall, fz.ignore_basic_report],
+        fromZigbee: [fz.command_on, fz.command_off, fz.command_step, fz.command_move, fz.command_stop, fz.command_recall],
         exposes: [
             e.action([
                 "on",

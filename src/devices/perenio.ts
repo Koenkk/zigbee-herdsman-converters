@@ -42,7 +42,7 @@ const fzPerenio = {
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"haDiagnostic", undefined, ["attributeReport", "readResponse"]>,
     switch_type: {
         cluster: "genMultistateValue",
         type: ["attributeReport", "readResponse"],
@@ -61,7 +61,7 @@ const fzPerenio = {
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genMultistateValue", undefined, ["attributeReport", "readResponse"]>,
     smart_plug: {
         cluster: "perenioSpecific",
         type: ["attributeReport", "readResponse"],
@@ -100,7 +100,6 @@ const fzPerenio = {
                 2: "previous",
             };
             if (msg.data[0] !== undefined) {
-                // @ts-expect-error ignore
                 result.default_on_off_state = powerOnStateLookup[msg.data[0]];
             }
             if (msg.data[1] !== undefined) {
@@ -126,7 +125,7 @@ const fzPerenio = {
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"perenioSpecific", undefined, ["attributeReport", "readResponse"]>,
 };
 
 const tzPerenio = {
@@ -260,7 +259,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "PECLS01",
         vendor: "Perenio",
         description: "Flood alarm device",
-        fromZigbee: [fz.ias_water_leak_alarm_1, fz.ignore_basic_report, fz.battery],
+        fromZigbee: [fz.ias_water_leak_alarm_1, fz.battery],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -275,7 +274,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "PECWS01",
         vendor: "Perenio",
         description: "Door sensor",
-        fromZigbee: [fz.ias_contact_alarm_1, fz.battery, fz.ignore_basic_report, fz.ias_contact_alarm_1_report],
+        fromZigbee: [fz.ias_contact_alarm_1, fz.battery, fz.ias_contact_alarm_1_report],
         toZigbee: [],
         exposes: [e.contact(), e.battery(), e.battery_voltage()],
         configure: async (device, coordinatorEndpoint) => {

@@ -65,13 +65,13 @@ const fzLocal = {
             if (msg.data["4919"]) result.transmit_power = msg.data["4919"];
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genBasic", undefined, ["attributeReport", "readResponse"]>,
     humidity2: {
         cluster: "msRelativeHumidity",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             // multi-endpoint version based on the stastard onverter 'fz.humidity'
-            let humidity = Number.parseFloat(msg.data.measuredValue) / 100.0;
+            let humidity = msg.data.measuredValue / 100.0;
             humidity = calibrateAndPrecisionRoundOptions(humidity, options, "humidity");
 
             // https://github.com/Koenkk/zigbee2mqtt/issues/798
@@ -83,7 +83,7 @@ const fzLocal = {
                 return {[property]: humidity};
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"msRelativeHumidity", undefined, ["attributeReport", "readResponse"]>,
     illuminance2: {
         cluster: "msIlluminanceMeasurement",
         type: ["attributeReport", "readResponse"],
@@ -96,7 +96,7 @@ const fzLocal = {
             const property1 = multiEndpoint ? postfixWithEndpointName("illuminance", msg, model, meta) : "illuminance";
             return {[property1]: illuminanceLux};
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"msIlluminanceMeasurement", undefined, ["attributeReport", "readResponse"]>,
     pressure2: {
         cluster: "msPressureMeasurement",
         type: ["attributeReport", "readResponse"],
@@ -107,14 +107,14 @@ const fzLocal = {
                 const scale = msg.endpoint.getClusterAttributeValue("msPressureMeasurement", "scale") as number;
                 pressure = msg.data.scaledValue / 10 ** scale / 100.0; // convert to hPa
             } else {
-                pressure = Number.parseFloat(msg.data.measuredValue);
+                pressure = msg.data.measuredValue;
             }
             pressure = calibrateAndPrecisionRoundOptions(pressure, options, "pressure");
             const multiEndpoint = model.meta?.multiEndpoint;
             const property = multiEndpoint ? postfixWithEndpointName("pressure", msg, model, meta) : "pressure";
             return {[property]: pressure};
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"msPressureMeasurement", undefined, ["attributeReport", "readResponse"]>,
     multi_zig_sw_battery: {
         cluster: "genPowerCfg",
         type: ["attributeReport", "readResponse"],
@@ -123,7 +123,7 @@ const fzLocal = {
             const battery = (voltage - 2200) / 8;
             return {battery: battery > 100 ? 100 : battery, voltage: voltage};
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genPowerCfg", undefined, ["attributeReport", "readResponse"]>,
     multi_zig_sw_switch_buttons: {
         cluster: "genMultistateInput",
         type: ["attributeReport", "readResponse"],
@@ -134,7 +134,7 @@ const fzLocal = {
             const action = actionLookup[value];
             return {action: `${button}_${action}`};
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genMultistateInput", undefined, ["attributeReport", "readResponse"]>,
     multi_zig_sw_switch_config: {
         cluster: "genOnOffSwitchCfg",
         type: ["readResponse", "attributeReport"],
@@ -143,7 +143,7 @@ const fzLocal = {
             const {switchType} = msg.data;
             return {[`switch_type_${channel}`]: getKey(switchTypesList, switchType)};
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genOnOffSwitchCfg", undefined, ["readResponse", "attributeReport"]>,
 };
 
 function ptvoGetMetaOption(device: Zh.Device | DummyDevice, key: string, defaultValue: unknown) {
@@ -293,7 +293,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "CC2530.ROUTER",
         vendor: "Custom devices (DiY)",
         description: "CC2530 router",
-        fromZigbee: [fz.CC2530ROUTER_led, fz.CC2530ROUTER_meta, fz.ignore_basic_report],
+        fromZigbee: [fz.CC2530ROUTER_led, fz.CC2530ROUTER_meta],
         toZigbee: [tz.ptvo_switch_trigger],
         exposes: [e.binary("led", ea.STATE, true, false)],
     },
@@ -302,7 +302,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "CC2538.ROUTER.V1",
         vendor: "Custom devices (DiY)",
         description: "MODKAM stick СС2538 router",
-        fromZigbee: [fz.ignore_basic_report],
+        fromZigbee: [],
         toZigbee: [],
         exposes: [],
     },
@@ -311,7 +311,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "CC2538.ROUTER.V2",
         vendor: "Custom devices (DiY)",
         description: "MODKAM stick СС2538 router with temperature sensor",
-        fromZigbee: [fz.ignore_basic_report, fz.device_temperature],
+        fromZigbee: [fz.device_temperature],
         toZigbee: [],
         exposes: [e.device_temperature()],
     },
@@ -327,7 +327,6 @@ export const definitions: DefinitionWithExtend[] = [
             fz.ptvo_switch_uart,
             fz.ptvo_switch_analog_input,
             fz.brightness,
-            fz.ignore_basic_report,
             fz.temperature,
             fzLocal.humidity2,
             fzLocal.pressure2,
@@ -537,18 +536,19 @@ export const definitions: DefinitionWithExtend[] = [
         },
         meta: {multiEndpoint: true, tuyaThermostatPreset: legacy.fz /* for subclassed custom converters */},
         endpoint: (device) => {
-            // biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
-            const endpointList: any = [];
+            const endpointList: Record<string, number> = {};
+            let count = 0;
             const deviceConfig = ptvoGetMetaOption(device, "device_config", "");
             if (device?.endpoints) {
                 for (const endpoint of device.endpoints) {
                     const epId = endpoint.ID;
                     const epName = `l${epId}`;
                     endpointList[epName] = epId;
+                    count++;
                 }
             }
             if (deviceConfig === "") {
-                if (endpointList.length === 0) {
+                if (count === 0) {
                     // fallback code
                     for (let epId = 1; epId <= 8; epId++) {
                         const epName = `l${epId}`;
@@ -743,7 +743,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "MULTI-ZIG-SW",
         vendor: "smarthjemmet.dk",
         description: "Multi switch from Smarthjemmet.dk",
-        fromZigbee: [fz.ignore_basic_report, fzLocal.multi_zig_sw_switch_buttons, fzLocal.multi_zig_sw_battery, fzLocal.multi_zig_sw_switch_config],
+        fromZigbee: [fzLocal.multi_zig_sw_switch_buttons, fzLocal.multi_zig_sw_battery, fzLocal.multi_zig_sw_switch_config],
         toZigbee: [tzLocal.multi_zig_sw_switch_type],
         exposes: [
             ...[e.enum("switch_type_1", exposes.access.ALL, Object.keys(switchTypesList)).withEndpoint("button_1")],
@@ -982,7 +982,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "QUAD-ZIG-SW",
         vendor: "smarthjemmet.dk",
         description: "FUGA compatible switch from Smarthjemmet.dk",
-        fromZigbee: [fz.ignore_basic_report, fzLocal.multi_zig_sw_switch_buttons, fzLocal.multi_zig_sw_battery, fzLocal.multi_zig_sw_switch_config],
+        fromZigbee: [fzLocal.multi_zig_sw_switch_buttons, fzLocal.multi_zig_sw_battery, fzLocal.multi_zig_sw_switch_config],
         toZigbee: [tzLocal.multi_zig_sw_switch_type],
         exposes: [
             ...[e.enum("switch_type_1", exposes.access.ALL, Object.keys(switchTypesList)).withEndpoint("button_1")],
@@ -1007,7 +1007,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ptvo_counter_2ch",
         vendor: "Custom devices (DiY)",
         description: "2 channel counter",
-        fromZigbee: [fz.ignore_basic_report, fz.battery, fz.ptvo_switch_analog_input, fz.on_off],
+        fromZigbee: [fz.battery, fz.ptvo_switch_analog_input, fz.on_off],
         toZigbee: [tz.ptvo_switch_trigger, tz.ptvo_switch_analog_input, tz.on_off],
         exposes: [
             e.battery(),
@@ -1067,5 +1067,12 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.on_off, fz.fan_speed],
         toZigbee: [tz.on_off, tz.fan_speed],
         exposes: [e.fan().withState().withSpeed()],
+    },
+    {
+        zigbeeModel: ["ZBColorLightBulb"],
+        model: "m5NanoC6",
+        vendor: "Custom devices (DiY)",
+        description: "DIY Zigbee light using M5NanoC6",
+        extend: [m.light({color: {modes: ["xy", "hs"]}})],
     },
 ];
