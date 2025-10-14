@@ -1,4 +1,5 @@
 import * as m from "../lib/modernExtend";
+import * as sunricher from "../lib/sunricher";
 import type {DefinitionWithExtend} from "../lib/types";
 
 export const definitions: DefinitionWithExtend[] = [
@@ -41,5 +42,13 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Nordtronic",
         description: "Box Dimmer G2",
         extend: [m.light({configureReporting: true}), m.electricityMeter()],
+    },
+    {
+        fingerprint: [{modelID: "CoDIMZ 98425033", manufacturerName: "Nordtronic A/S"}],
+        zigbeeModel: ["CoDIMZ 98425033"],
+        model: "98425033",
+        vendor: "Nordtronic",
+        description: "Ceiling mounted zigbee micro smart dimmer",
+        extend: [m.light({configureReporting: true}), m.electricityMeter(), sunricher.extend.externalSwitchType()],
     },
 ];
