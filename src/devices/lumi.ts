@@ -3962,6 +3962,7 @@ export const definitions: DefinitionWithExtend[] = [
                 endpointNames: ["top", "bottom"],
             }),
             lumiAction({
+                actionLookup: {hold: 0, single: 1, double: 2, release: 255},
                 endpointNames: ["top", "bottom"],
                 extraActions: ["slider_single", "slider_double", "slider_hold", "slider_up", "slider_down"],
             }),
@@ -3989,6 +3990,7 @@ export const definitions: DefinitionWithExtend[] = [
                 endpointNames: ["top", "center", "bottom"],
             }),
             lumiAction({
+                actionLookup: {hold: 0, single: 1, double: 2, release: 255},
                 endpointNames: ["top", "center", "bottom"],
                 extraActions: ["slider_single", "slider_double", "slider_hold", "slider_up", "slider_down"],
             }),
