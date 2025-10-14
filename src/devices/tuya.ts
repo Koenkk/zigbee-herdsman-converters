@@ -1538,7 +1538,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_s1xgth2u", "_TZE284_9ern5sfh"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_s1xgth2u"]),
         model: "TS0601_temperature_humidity_sensor_3",
         vendor: "Tuya",
         description: "Temperature & humidity sensor",
@@ -1551,6 +1551,23 @@ export const definitions: DefinitionWithExtend[] = [
                 [4, "battery", tuya.valueConverter.raw], // maybe?
                 [9, "temperature_unit", tuya.valueConverter.temperatureUnitEnum],
                 [19, "temperature_sensitivity", tuya.valueConverter.raw], // maybe? commented this out for now
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_9ern5sfh"]),
+        model: "TS0601_temperature_humidity_sensor_4",
+        vendor: "Tuya",
+        description: "Temperature & humidity sensor",
+        extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true, queryOnConfigure: true})],
+        exposes: [e.temperature(), e.humidity(), e.battery(), tuya.exposes.temperatureUnit()],
+        meta: {
+            tuyaDatapoints: [
+                [1, "temperature", tuya.valueConverter.divideBy10],
+                [2, "humidity", tuya.valueConverter.divideBy10],
+                [4, "battery", tuya.valueConverter.raw],
+                [9, "temperature_unit", tuya.valueConverter.temperatureUnitEnum],
+                [19, "temperature_sensitivity", tuya.valueConverter.raw],
             ],
         },
     },
@@ -1852,6 +1869,40 @@ export const definitions: DefinitionWithExtend[] = [
                 [11, "fault_alarm", tuya.valueConverter.trueFalse1],
                 [13, "alarm_switch", tuya.valueConverter.raw],
                 [16, "silence", tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_v6iczj35"]),
+        model: "ZB-DG03",
+        vendor: "Spacetronik",
+        description: "LPG gas sensor",
+        extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true, queryOnConfigure: true})],
+        exposes: [
+            e.gas(),
+            e.binary("preheat", ea.STATE, true, false).withDescription("Sensor preheat active"),
+            e
+                .enum("fault", ea.STATE, ["none", "fault", "serious_fault", "sensor_fault", "probe_fault", "power_fault"])
+                .withDescription("Fault status of the device (none = no fault)"),
+            e.binary("lifecycle", ea.STATE, true, false).withDescription("Sensor lifetime limit"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "gas", tuya.valueConverter.trueFalseEnum0],
+                [10, "preheat", tuya.valueConverter.trueFalse1],
+                [
+                    11,
+                    "fault",
+                    tuya.valueConverterBasic.lookup({
+                        none: 0,
+                        fault: 1,
+                        serious_fault: 2,
+                        sensor_fault: 3,
+                        probe_fault: 4,
+                        power_fault: 5,
+                    }),
+                ],
+                [12, "lifecycle", tuya.valueConverter.trueFalse0],
             ],
         },
     },
@@ -9566,12 +9617,12 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_nklqjk62", "_TZE204_nklqjk62", "_TZE204_jktmrpoj"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_nklqjk62", "_TZE204_nklqjk62", "_TZE204_jktmrpoj", "_TZE284_nklqjk62"]),
         model: "TS0601_garage_door_opener",
         vendor: "Tuya",
         description: "Garage door opener",
         whiteLabel: [
-            tuya.whitelabel("MatSee Plus", "PJ-ZGD01", "Garage door opener", ["_TZE204_nklqjk62"]),
+            tuya.whitelabel("MatSee Plus", "PJ-ZGD01", "Garage door opener", ["_TZE204_nklqjk62", "_TZE284_nklqjk62"]),
             tuya.whitelabel("Moes", "ZM-102-M", "Garage door opener", ["_TZE204_jktmrpoj"]),
         ],
         extend: [
