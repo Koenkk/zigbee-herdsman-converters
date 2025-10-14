@@ -121,11 +121,11 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.light()],
     },
     {
-        zigbeeModel: ["500.47"],
+        fingerprint: [{modelID: "500.47"}, {modelID: "RGBW", manufacturerName: "Paulmann Licht GmbH", softwareBuildID: "1400-0001"}],
         model: "500.47",
         vendor: "Paulmann",
         description: "SmartHome Zigbee MaxLED RGBW controller max. 72W 24V DC",
-        extend: [m.light({colorTemp: {range: undefined}, color: {modes: ["xy", "hs"], applyRedFix: true}})],
+        extend: [m.light({colorTemp: {range: [153, 370]}, color: {modes: ["xy", "hs"], enhancedHue: true, applyRedFix: true}})],
     },
     {
         zigbeeModel: ["RGBW light", "500.49", "RGBW_light"],
@@ -179,6 +179,13 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Paulmann",
         description: "SmartHome Zigbee LED-Modul Coin 1x6W White",
         extend: [m.light()],
+    },
+    {
+        fingerprint: [{modelID: "RGBW", manufacturerName: "Paulmann Licht GmbH", softwareBuildID: "PIIC413"}],
+        model: "924.70",
+        vendor: "Paulmann",
+        description: "LED RGBW+ Module Recessed Light Zigbee Base Coin Single",
+        extend: [m.light({colorTemp: {range: [153, 370]}, color: {modes: ["xy", "hs"]}})],
     },
     {
         zigbeeModel: ["371000001"],
