@@ -5970,6 +5970,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE200_nw1r9hp6",
             "_TZE200_9p5xmj5r",
             "_TZE200_eevqq1uv",
+            "_TZE204_ejh6owwz",
             "_TZE200_ba69l9ol",
         ]),
         model: "TS0601_cover_3",
