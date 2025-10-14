@@ -15,8 +15,8 @@ importers:
         specifier: ^0.7.0
         version: 0.7.0
       semver:
-        specifier: ^7.7.1
-        version: 7.7.2
+        specifier: ^7.7.3
+        version: 7.7.3
       zigbee-herdsman:
         specifier: ^6.2.0
         version: 6.2.0
@@ -28,14 +28,14 @@ importers:
         specifier: ^0.2.4
         version: 0.2.4
       '@types/node':
-        specifier: ^24.6.2
-        version: 24.6.2
+        specifier: ^24.7.2
+        version: 24.7.2
       '@types/semver':
         specifier: ^7.7.1
         version: 7.7.1
       '@vitest/coverage-v8':
         specifier: 3.2.4
-        version: 3.2.4(vitest@3.2.4(@types/node@24.6.2))
+        version: 3.2.4(vitest@3.2.4(@types/node@24.7.2))
       fast-deep-equal:
         specifier: ^3.1.3
         version: 3.1.3
@@ -46,8 +46,8 @@ importers:
         specifier: ^6.0.1
         version: 6.0.1
       ts-morph:
-        specifier: ^27.0.0
-        version: 27.0.0
+        specifier: ^27.0.2
+        version: 27.0.2
       tsc-watch:
         specifier: ^7.2.0
         version: 7.2.0(typescript@5.9.3)
@@ -56,7 +56,7 @@ importers:
         version: 5.9.3
       vitest:
         specifier: ^3.1.1
-        version: 3.2.4(@types/node@24.6.2)
+        version: 3.2.4(@types/node@24.7.2)
 
 packages:
 
@@ -449,8 +449,8 @@ packages:
     resolution: {integrity: sha512-F7xLJKsjGo2WuEWMSEO1SimRcOA+WtWICsY13r0ahx8s2SecPQH06338g28OT7cW7uRXI7oEQAk62qh5gHJW3g==}
     engines: {node: '>=20.0.0'}
 
-  '@ts-morph/common@0.28.0':
-    resolution: {integrity: sha512-4w6X/oFmvXcwux6y6ExfM/xSqMHw20cYwFJH+BlYrtGa6nwY9qGq8GXnUs1sVYeF2o/KT3S8hAH6sKBI3VOkBg==}
+  '@ts-morph/common@0.28.1':
+    resolution: {integrity: sha512-W74iWf7ILp1ZKNYXY5qbddNaml7e9Sedv5lvU1V8lftlitkc9Pq1A+jlH23ltDgWYeZFFEqGCD1Ies9hqu3O+g==}
 
   '@types/buffer-crc32@0.2.4':
     resolution: {integrity: sha512-GSrhSZOK1/wazf2CjDp3CVJQKWzSc5Ugq3NyZ/RQqg1MWtmA9mAT6i6LzGKhzcRxDOl8aLB+AzvObDSlrMpvLw==}
@@ -464,8 +464,8 @@ packages:
   '@types/estree@1.0.8':
     resolution: {integrity: sha512-dWHzHa2WqEXI/O1E9OjrocMTKJl2mSrEolh1Iomrv6U+JuNwaHXsXx9bLu5gG7BUWFIN0skIQJQ/L1rIex4X6w==}
 
-  '@types/node@24.6.2':
-    resolution: {integrity: sha512-d2L25Y4j+W3ZlNAeMKcy7yDsK425ibcAOO2t7aPTz6gNMH0z2GThtwENCDc0d/Pw9wgyRqE5Px1wkV7naz8ang==}
+  '@types/node@24.7.2':
+    resolution: {integrity: sha512-/NbVmcGTP+lj5oa4yiYxxeBjRivKQ5Ns1eSZeB99ExsEQ6rX5XYU1Zy/gGxY/ilqtD4Etx9mKyrPxZRetiahhA==}
 
   '@types/semver@7.7.1':
     resolution: {integrity: sha512-FmgJfu+MOcQ370SD0ev7EI8TlCAfKYU+B4m5T3yXc1CiRN94g/SZPtsCkk506aUDtlMnFZvasDwHHUcZUEaYuA==}
@@ -850,8 +850,8 @@ packages:
   safer-buffer@2.1.2:
     resolution: {integrity: sha512-YZo3K82SD7Riyi0E1EQPojLz7kpepnSQI9IyPbHHg1XXXevb5dJI7tpyN2ADxGcQbHG7vcyRHk0cbwqcQriUtg==}
 
-  semver@7.7.2:
-    resolution: {integrity: sha512-RF0Fw+rO5AMf9MAyaRXI4AV0Ulj5lMHqVxxdSgiVbixSCXoEmmX/jk0CuJw4+3SqroYO9VoUh+HcuJivvtJemA==}
+  semver@7.7.3:
+    resolution: {integrity: sha512-SdsKMrI9TdgjdweUSR9MweHA4EJ8YxHn8DFaDisvhVlUOe4BF1tLD7GAj0lIqWVl+dPb/rExr0Btby5loQm20Q==}
     engines: {node: '>=10'}
     hasBin: true
 
@@ -952,8 +952,8 @@ packages:
     resolution: {integrity: sha512-t2T/WLB2WRgZ9EpE4jgPJ9w+i66UZfDc8wHh0xrwiRNN+UwH98GIJkTeZqX9rg0i0ptwzqW+uYeIF0T4F8LR7A==}
     engines: {node: '>=14.0.0'}
 
-  ts-morph@27.0.0:
-    resolution: {integrity: sha512-xcqelpTR5PCuZMs54qp9DE3t7tPgA2v/P1/qdW4ke5b3Y5liTGTYj6a/twT35EQW/H5okRqp1UOqwNlgg0K0eQ==}
+  ts-morph@27.0.2:
+    resolution: {integrity: sha512-fhUhgeljcrdZ+9DZND1De1029PrE+cMkIP7ooqkLRTrRLTqcki2AstsyJm0vRNbTbVCNJ0idGlbBrfqc7/nA8w==}
 
   tsc-watch@7.2.0:
     resolution: {integrity: sha512-4gRFawQD1cVSaILvG7wl2x6NtteKbS2dGBMbL7Q6n1ldLIOKXCJUoEwUXdGuee4dp+zcnA6tukBBLz1lZrNI9w==}
@@ -967,8 +967,8 @@ packages:
     engines: {node: '>=14.17'}
     hasBin: true
 
-  undici-types@7.13.0:
-    resolution: {integrity: sha512-Ov2Rr9Sx+fRgagJ5AX0qvItZG/JKKoBRAVITs1zk7IqZGTJUwgUr7qoYBpWwakpWilTZFM98rG/AFRocu10iIQ==}
+  undici-types@7.14.0:
+    resolution: {integrity: sha512-QQiYxHuyZ9gQUIrmPo3IA+hUl4KYk8uSA7cHrcKd/l3p1OTpZcM0Tbp9x7FAtXdAYhlasd60ncPpgu6ihG6TOA==}
 
   vite-node@3.2.4:
     resolution: {integrity: sha512-EbKSKh+bh1E1IFxeO0pg1n4dvoOTt0UDiXMd/qn++r98+jPO1xtJilvXldeuQ8giIB5IkpjCgMleHMNEsGH6pg==}
@@ -1324,7 +1324,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@ts-morph/common@0.28.0':
+  '@ts-morph/common@0.28.1':
     dependencies:
       minimatch: 10.0.3
       path-browserify: 1.0.1
@@ -1332,7 +1332,7 @@ snapshots:
 
   '@types/buffer-crc32@0.2.4':
     dependencies:
-      '@types/node': 24.6.2
+      '@types/node': 24.7.2
 
   '@types/chai@5.2.2':
     dependencies:
@@ -1342,13 +1342,13 @@ snapshots:
 
   '@types/estree@1.0.8': {}
 
-  '@types/node@24.6.2':
+  '@types/node@24.7.2':
     dependencies:
-      undici-types: 7.13.0
+      undici-types: 7.14.0
 
   '@types/semver@7.7.1': {}
 
-  '@vitest/coverage-v8@3.2.4(vitest@3.2.4(@types/node@24.6.2))':
+  '@vitest/coverage-v8@3.2.4(vitest@3.2.4(@types/node@24.7.2))':
     dependencies:
       '@ampproject/remapping': 2.3.0
       '@bcoe/v8-coverage': 1.0.2
@@ -1363,7 +1363,7 @@ snapshots:
       std-env: 3.9.0
       test-exclude: 7.0.1
       tinyrainbow: 2.0.0
-      vitest: 3.2.4(@types/node@24.6.2)
+      vitest: 3.2.4(@types/node@24.7.2)
     transitivePeerDependencies:
       - supports-color
 
@@ -1375,13 +1375,13 @@ snapshots:
       chai: 5.2.0
       tinyrainbow: 2.0.0
 
-  '@vitest/mocker@3.2.4(vite@6.3.5(@types/node@24.6.2))':
+  '@vitest/mocker@3.2.4(vite@6.3.5(@types/node@24.7.2))':
     dependencies:
       '@vitest/spy': 3.2.4
       estree-walker: 3.0.3
       magic-string: 0.30.17
     optionalDependencies:
-      vite: 6.3.5(@types/node@24.6.2)
+      vite: 6.3.5(@types/node@24.7.2)
 
   '@vitest/pretty-format@3.2.4':
     dependencies:
@@ -1643,7 +1643,7 @@ snapshots:
 
   make-dir@4.0.0:
     dependencies:
-      semver: 7.7.2
+      semver: 7.7.3
 
   map-stream@0.1.0: {}
 
@@ -1751,7 +1751,7 @@ snapshots:
 
   safer-buffer@2.1.2: {}
 
-  semver@7.7.2: {}
+  semver@7.7.3: {}
 
   shebang-command@2.0.0:
     dependencies:
@@ -1839,9 +1839,9 @@ snapshots:
 
   tinyspy@4.0.3: {}
 
-  ts-morph@27.0.0:
+  ts-morph@27.0.2:
     dependencies:
-      '@ts-morph/common': 0.28.0
+      '@ts-morph/common': 0.28.1
       code-block-writer: 13.0.3
 
   tsc-watch@7.2.0(typescript@5.9.3):
@@ -1854,15 +1854,15 @@ snapshots:
 
   typescript@5.9.3: {}
 
-  undici-types@7.13.0: {}
+  undici-types@7.14.0: {}
 
-  vite-node@3.2.4(@types/node@24.6.2):
+  vite-node@3.2.4(@types/node@24.7.2):
     dependencies:
       cac: 6.7.14
       debug: 4.4.1
       es-module-lexer: 1.7.0
       pathe: 2.0.3
-      vite: 6.3.5(@types/node@24.6.2)
+      vite: 6.3.5(@types/node@24.7.2)
     transitivePeerDependencies:
       - '@types/node'
       - jiti
@@ -1877,7 +1877,7 @@ snapshots:
       - tsx
       - yaml
 
-  vite@6.3.5(@types/node@24.6.2):
+  vite@6.3.5(@types/node@24.7.2):
     dependencies:
       esbuild: 0.25.5
       fdir: 6.4.6(picomatch@4.0.2)
@@ -1886,14 +1886,14 @@ snapshots:
       rollup: 4.44.0
       tinyglobby: 0.2.14
     optionalDependencies:
-      '@types/node': 24.6.2
+      '@types/node': 24.7.2
       fsevents: 2.3.3
 
-  vitest@3.2.4(@types/node@24.6.2):
+  vitest@3.2.4(@types/node@24.7.2):
     dependencies:
       '@types/chai': 5.2.2
       '@vitest/expect': 3.2.4
-      '@vitest/mocker': 3.2.4(vite@6.3.5(@types/node@24.6.2))
+      '@vitest/mocker': 3.2.4(vite@6.3.5(@types/node@24.7.2))
       '@vitest/pretty-format': 3.2.4
       '@vitest/runner': 3.2.4
       '@vitest/snapshot': 3.2.4
@@ -1911,11 +1911,11 @@ snapshots:
       tinyglobby: 0.2.14
       tinypool: 1.1.1
       tinyrainbow: 2.0.0
-      vite: 6.3.5(@types/node@24.6.2)
-      vite-node: 3.2.4(@types/node@24.6.2)
+      vite: 6.3.5(@types/node@24.7.2)
+      vite-node: 3.2.4(@types/node@24.7.2)
       why-is-node-running: 2.3.0
     optionalDependencies:
-      '@types/node': 24.6.2
+      '@types/node': 24.7.2
     transitivePeerDependencies:
       - jiti
       - less
