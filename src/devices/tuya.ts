@@ -1857,14 +1857,10 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_v6iczj35"]),
-        model: "TS0601_gas_sensor_5",
-        vendor: "Tuya",
+        model: "ZB-DG03",
+        vendor: "Spacetronik",
         description: "LPG gas sensor",
-        whiteLabel: tuya.whitelabel("Spacetronik", "ZB-DG03", "LPG Gas Sensor", ["_TZE204_v6iczj35"]),
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime,
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true, queryOnConfigure: true})],
         exposes: [
             e.gas(),
             e.binary("preheat", ea.STATE, true, false).withDescription("Sensor preheat active"),
@@ -1892,7 +1888,6 @@ export const definitions: DefinitionWithExtend[] = [
                 [12, "lifecycle", tuya.valueConverter.trueFalse0],
             ],
         },
-        extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true, queryOnConfigure: true})],
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_hiith90n"]),
