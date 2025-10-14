@@ -20260,7 +20260,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.exposes.batteryState(),
             e.enum("self_test", ea.STATE, ["Checking", "Check success", "Check failure"]).withDescription("Test button status"),
             e.enum("silence", ea.STATE_SET, ["ON"]).withDescription("Silence alarm"),
-            e.text("version", ea.STATE_GET).withDescription("Device version")
+            e.text("version", ea.STATE_GET).withDescription("Device version"),
         ],
         meta: {
             // All datapoints go in here
