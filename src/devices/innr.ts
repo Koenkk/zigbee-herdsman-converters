@@ -93,7 +93,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "FL 140 C",
         vendor: "Innr",
         description: "Color Flex LED strip 4m 1200lm",
-        extend: [m.light({colorTemp: {range: [153, 555]}, color: {modes: ["xy", "hs"], applyRedFix: true}, turnsOffAtBrightness1: true})],
+        extend: [m.light({colorTemp: {range: [153, 555]}, color: {modes: ["xy", "hs"], applyRedFix: true}, turnsOffAtBrightness1: true, powerOnBehavior: false})],
     },
     {
         zigbeeModel: ["FL 130 C"],
