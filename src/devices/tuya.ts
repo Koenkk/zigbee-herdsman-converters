@@ -20130,31 +20130,6 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_gyzlwu5q"]),
-        zigbeeModel: ["TS0601"],
-        model: "TS0601_TZE284_gyzlwu5q",
-        vendor: "Tuya",
-        description: "Smoke detector with temperature and humidity sensor",
-        extend: [tuya.modernExtend.tuyaBase({dp: true})],
-        exposes: [
-            e.smoke(),
-            e.temperature(),
-            e.humidity(),
-            tuya.exposes.batteryState(),
-            e.enum("self_test", ea.STATE, ["Checking", "Check success", "Check failure"]).withDescription("Test button status"),
-            e.enum("silence", ea.STATE_SET, ["ON"]).withDescription("Silence alarm"),
-            e.text("version", ea.STATE_GET).withDescription("Device version"),
-        ],
-        meta: {
-            // All datapoints go in here
-            tuyaDatapoints: [
-                [1, "smoke", tuya.valueConverter.trueFalse0],
-                [9, "self_test", tuya.valueConverterBasic.lookup({checking: 0, check_success: 1, check_failure: 2})],
-                [14, "battery_state", tuya.valueConverter.batteryState],
-                [16, "silence", tuya.valueConverter.onOff],
-                [23, "temperature", tuya.valueConverter.divideBy10],
-                [24, "humidity", tuya.valueConverter.raw],
-                [103, "version", tuya.valueConverter.raw], // maybe!?
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_snfdqllf"]),
         model: "AETZ01_AC",
         vendor: "Tuya",
@@ -20188,6 +20163,35 @@ export const definitions: DefinitionWithExtend[] = [
                 [103, "quiet", tuya.valueConverter.onOff],
                 [116, "power", tuya.valueConverter.raw],
                 [117, "energy", tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_gyzlwu5q"]),
+        zigbeeModel: ["TS0601"],
+        model: "TS0601_TZE284_gyzlwu5q",
+        vendor: "Tuya",
+        description: "Smoke detector with temperature and humidity sensor",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.smoke(),
+            e.temperature(),
+            e.humidity(),
+            tuya.exposes.batteryState(),
+            e.enum("self_test", ea.STATE, ["Checking", "Check success", "Check failure"]).withDescription('Test button status'),
+            e.enum('silence', ea.STATE_SET, ['ON']).withDescription('Silence alarm'),
+            e.text("version", ea.STATE_GET).withDescription('Device version')
+        ],
+        meta: {
+            // All datapoints go in here
+            tuyaDatapoints: [
+                [1, "smoke", tuya.valueConverter.trueFalse0],
+                [9, "self_test", tuya.valueConverterBasic.lookup({ checking: 0, check_success: 1, check_failure: 2 })],
+                [14, "battery_state", tuya.valueConverter.batteryState],
+                [16, "silence", tuya.valueConverter.onOff],
+                [23, "temperature", tuya.valueConverter.divideBy10],
+                [24, "humidity", tuya.valueConverter.raw],
+                [103, "version", tuya.valueConverter.raw], // maybe!?
             ],
         },
     },
