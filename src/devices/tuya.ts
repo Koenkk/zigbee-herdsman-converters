@@ -2794,6 +2794,39 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
+        fingerprint: tuya.fingerprint("SGS02Z", ["_TZE284_nt4pquef"]),
+        model: "SGS02Z",
+        vendor: "Tuya",
+        description: "Soil sensor",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.temperature(),
+            e.soil_moisture(),
+            tuya.exposes.temperatureUnit(),
+            e.enum("illuminance_level", ea.STATE, ["low-", "low", "nor", "high", "high+"]).withDescription("Illuminance level"),
+            e.battery(),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [
+                    2,
+                    "illuminance_level",
+                    tuya.valueConverterBasic.lookup({
+                        "low-": 0,
+                        low: 1,
+                        nor: 2,
+                        high: 3,
+                        "high+": 4,
+                    }),
+                ],
+                [3, "soil_moisture", tuya.valueConverter.raw],
+                [5, "temperature", tuya.valueConverter.divideBy10],
+                [9, "temperature_unit", tuya.valueConverter.temperatureUnitEnum],
+                [15, "battery", tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", [
             "_TZE200_ip2akl4w",
             "_TZE200_1agwnems",
