@@ -1345,6 +1345,15 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        zigbeeModel: ["Dongle-PMG24_ZBRouter"],
+        model: "PMG24_router",
+        vendor: "SONOFF",
+        description: "Router",
+        fromZigbee: [fz.linkquality_from_basic],
+        toZigbee: [],
+        exposes: [],
+    },
+    {
         zigbeeModel: ["SNZB-02D"],
         model: "SNZB-02D",
         vendor: "SONOFF",
