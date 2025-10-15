@@ -1,10 +1,12 @@
-import * as exp from "../lib/exposes";
+import * as exposes from "../lib/exposes";
 import * as tuya from "../lib/tuya";
 import type {DefinitionWithExtend} from "../lib/types";
 
+const e = exposes.presets;
+
 function sceneAction() {
     const lookup = ["scene_1", "scene_2", "scene_3", "scene_4", "scene_5", "scene_6", "scene_7", "scene_8", "scene_9", "scene_10"];
-    const expose = exp.presets.action(lookup);
+    const expose = e.action(lookup);
     return [
         tuya.modernExtend.dpEnumLookup({
             dp: 0x01,
@@ -182,7 +184,7 @@ export const definitions: DefinitionWithExtend[] = [
                 type: tuya.dataTypes.bool,
                 valueOn: ["ON", true],
                 valueOff: ["OFF", false],
-                expose: exp.switch().withState("state_l1", false, "Channel 1"),
+                expose: e.switch().withEndpoint("l1"),
             }),
             tuya.modernExtend.dpBinary({
                 name: "state_l2",
@@ -190,7 +192,7 @@ export const definitions: DefinitionWithExtend[] = [
                 type: tuya.dataTypes.bool,
                 valueOn: ["ON", true],
                 valueOff: ["OFF", false],
-                expose: exp.switch().withState("state_l2", false, "Channel 2"),
+                expose: e.switch().withEndpoint("l2"),
             }),
             tuya.modernExtend.dpEnumLookup({
                 name: "record_rf",
