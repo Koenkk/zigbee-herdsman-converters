@@ -350,7 +350,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "motion_status",
                 cluster: "manuSpecificSengledMotionSensor",
                 attribute: "motionStatus",
-                reporting: {attribute: "motionStatus", min: "1_SECOND", max: "MAX", change: 1},
+                reporting: {min: "1_SECOND", max: "MAX", change: 1},
                 description: "Whether the PAR38 bulb has detected motion",
                 valueOn: [true, 0x01],
                 valueOff: [false, 0x00],
