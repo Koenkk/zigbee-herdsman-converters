@@ -627,6 +627,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "E2206",
         vendor: "IKEA",
         description: "INSPELNING smart plug",
+        whiteLabel: [{model: "E2220", vendor: "IKEA", description: "INSPELNING smart plug (US)"}],
         extend: [addCustomClusterManuSpecificIkeaUnknown(), m.onOff(), m.identify(), m.electricityMeter()],
         ota: true,
         configure: async (device) => {

@@ -1,0 +1,105 @@
+name: External Converter Issue
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  comment:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Comment on external converter
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const issue = context.payload.issue;
+
+            // Only proceed if the issue title starts with "[External Converter]"
+            if (!issue.title || !issue.title.startsWith("[External Converter]")) {
+              return;
+            }
+
+            // Check for placeholder text
+            const placeholderText = '<!-- REPLACE THIS LINE WITH YOUR EXTERNAL CONVERTER\'S CODE -->';
+            if (issue.body && issue.body.includes(placeholderText)) {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issue.number,
+                  body: [
+                    "👋 Hi there! It looks like you haven't replaced the placeholder text with your external converter code.",
+                    "",
+                    "Please replace this line:",
+                    "```",
+                    "<!-- REPLACE THIS LINE WITH YOUR EXTERNAL CONVERTER'S CODE -->",
+                    "```",
+                    "",
+                    "With your actual external converter code.",
+                    "Read the [docs](https://www.zigbee2mqtt.io/advanced/support-new-devices/01_support_new_devices.html#_2-creating-the-external-definition) on how to retrieve the external converter."
+                  ].join('\n')
+                });
+                return;
+            }
+
+            // Check if Tuya manufacturer name is already supported.
+            const regex = /['"](_T\w+_\w+)['"]/g;
+            let tuyaManufacturerNames = [];
+            let match;
+            while ((match = regex.exec(issue.body)) !== null) {
+                tuyaManufacturerNames.push(match[1]);
+            }
+            if (tuyaManufacturerNames.length > 0) {
+                // Checkout the repo and grep for the manufacturer name
+                const execSync = require('child_process').execSync;
+                execSync(`git clone https://github.com/${context.repo.owner}/${context.repo.repo}.git zhc`, {stdio: 'ignore'});
+
+                for (const name of tuyaManufacturerNames) {
+                    // Grep for the manufacturer name
+                    let grepResult = '';
+                    try {
+                      grepResult = execSync(`grep -r "${name}" zhc`, {encoding: 'utf8'});
+                    } catch (err) {}
+
+                    if (grepResult) {
+                      await github.rest.issues.createComment({
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        issue_number: issue.number,
+                        body: [
+                          `👋 Hi there! The Tuya device with manufacturer name \`${name}\` is already supported in the latest dev branch.`,
+                          "See this [guide](https://www.zigbee2mqtt.io/advanced/more/switch-to-dev-branch.html) on how to update, after updating you can remove your external converter.",
+                          "",
+                          "In case you created the external converter with the goal to extend or fix an issue with the out-of-the-box support, please submit a pull request.",
+                          "For instructions on how to create a pull request, see the [GitHub documentation](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-pull-requests).",
+                          "If you need help with the process, feel free to ask here and we'll be happy to assist."
+                        ].join('\n')
+                      });
+                      await github.rest.issues.update({
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        issue_number: issue.number,
+                        state: "closed",
+                      });
+                      return;
+                    }
+                }
+            }
+
+            // Create a request to pull request comment
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issue.number,
+              body: [
+              "🙏 Thank you for creating this issue and sharing your external converter!",
+              "",
+              "Please submit a pull request on this repository so the device can be supported out-of-the-box with the next release.",
+              "For instructions on how to create a pull request, see the [GitHub documentation](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-pull-requests).",
+              "",
+              "If you need help with the process, feel free to ask here and we'll be happy to assist."
+              ].join('\n')
+            });

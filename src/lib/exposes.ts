@@ -1374,7 +1374,8 @@ export const presets = {
             .withState("window_detection", true, "Enables/disables window detection on the device", access.STATE_SET),
     window_detection_bool: (access: number = a.ALL) =>
         new Binary("window_detection", access, true, false).withDescription("Enables/disables window detection on the device").withCategory("config"),
-    window_open: () => new Binary("window_open", access.STATE, true, false).withDescription("Indicates if window is open").withCategory("diagnostic"),
+    window_open: (access: number = a.STATE) =>
+        new Binary("window_open", access, true, false).withDescription("Indicates if window is open").withCategory("diagnostic"),
     moving: () => new Binary("moving", access.STATE, true, false).withDescription("Indicates if the device is moving"),
     x_axis: () => new Numeric("x_axis", access.STATE).withDescription("Accelerometer X value"),
     y_axis: () => new Numeric("y_axis", access.STATE).withDescription("Accelerometer Y value"),
