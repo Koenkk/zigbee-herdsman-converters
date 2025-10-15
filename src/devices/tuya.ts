@@ -2689,14 +2689,12 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SGS02Z",
         vendor: "Tuya",
         description: "Soil sensor",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.temperature(),
             e.soil_moisture(),
             tuya.exposes.temperatureUnit(),
-            e.text("illuminance_level", exposes.access.STATE).withDescription("Illuminance level"),
+            e.enum("illuminance_level", ea.STATE, ["low-", "low", "nor", "high", "high+"]).withDescription("Illuminance level"),
             e.battery(),
         ],
         meta: {
