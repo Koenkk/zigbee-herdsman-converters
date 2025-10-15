@@ -2218,6 +2218,7 @@ export const definitions: DefinitionWithExtend[] = [
             lumi.toZigbee.lumi_heartbeat_indicator,
             lumi.toZigbee.lumi_linkage_alarm,
         ],
+        ota: true,
         exposes: [
             e.smoke().withAccess(ea.STATE_GET),
             e.numeric("smoke_density", ea.STATE_GET).withDescription("Value of smoke concentration"),
