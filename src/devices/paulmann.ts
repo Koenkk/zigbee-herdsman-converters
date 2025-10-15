@@ -124,7 +124,7 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: [{modelID: "500.47"}, {modelID: "RGBW", manufacturerName: "Paulmann Licht GmbH", softwareBuildID: "1400-0001"}],
         model: "500.47",
         vendor: "Paulmann",
-        description: "SmartHome Zigbee MaxLED RGBW controller max. 72W 24V DC",
+        description: "SmartHome Zigbee MaxLED RGBW controller",
         extend: [m.light({colorTemp: {range: [153, 370]}, color: {modes: ["xy", "hs"], enhancedHue: true, applyRedFix: true}})],
     },
     {
