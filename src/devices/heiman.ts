@@ -47,10 +47,25 @@ const fzLocal = {
                 result.occupancy = bit0 === 1;
                 result.sensor_status = ["none", "activity"][bit1to3] || "unknown";
                 result.fall_status = ["normal", "fall_warning", "fall_alarm"][bit4to5] || "unknown";
+
+            } else if (Object.hasOwn(msg.data, "ultrasonicOToUDelay")) {
+                result.RadarDelayTime = msg.data.ultrasonicOToUDelay;
             }
+
             return result;
         },
     } satisfies Fz.Converter<"msOccupancySensing", undefined, ["attributeReport", "readResponse"]>,
+    illuminanceHeiman: {
+        cluster: "msIlluminanceMeasurement",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const result: Record<string, unknown> = {};
+            if (Object.hasOwn(msg.data, "measuredValue")) {
+                result.illuminance = msg.data.measuredValue;
+            }
+            return result;
+        },
+    } satisfies Fz.Converter<"msIlluminanceMeasurement", undefined, ["attributeReport", "readResponse"]>,
     radarSensorHeiman: {
         cluster: "RadarSensorHeiman",
         type: ["attributeReport", "readResponse"],
@@ -258,6 +273,42 @@ const tzLocal = {
             }
 
             await entity.read(cluster, [attributeId], {manufacturerCode: 0x120b});
+        },
+    } satisfies Tz.Converter,
+    customFeatureHeiman: {
+        key: ["radarDelayTime"],
+
+        convertSet: async (entity, key, value, meta) => {
+            const cluster = "msOccupancySensing";
+            const mapAttributes: Record<string, {id: number; type: number}> = {
+                radarDelayTime: {id: 0x0020, type: 0x21},
+            };
+
+            const attributeInfo = mapAttributes[key];
+            if (!attributeInfo) {
+                throw new Error(`Unsupported attribute: ${key}`);
+            }
+
+            const {id, type} = attributeInfo;
+
+            // let payloadValue = value;
+            await entity.write(cluster, {[id]: {value: value, type} });
+
+            return {state: {[key]: value}};
+        },
+
+        convertGet: async (entity, key, meta) => {
+            const cluster = "msOccupancySensing";
+            const mapAttributes: Record<string, number> = {
+                radarDelayTime: 0x0020,
+            };
+
+            const attributeId = mapAttributes[key];
+            if (!attributeId) {
+                throw new Error(`Unsupported attribute for get: ${key}`);
+            }
+
+            await entity.read(cluster, [attributeId] );
         },
     } satisfies Tz.Converter,
 };
@@ -484,7 +535,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.contact(), e.battery_low(), e.tamper()],
     },
     {
-        zigbeeModel: ["WaterSensor-N", "WaterSensor-EM", "WaterSensor-N-3.0", "WaterSensor-EF-3.0", "WaterSensor2-EF-3.0", "WATER_TPV13"],
+        zigbeeModel: ["WaterSensor-N", "WaterSensor-EM", "WaterSensor-N-3.0", "WaterSensor-EF-3.0", "WATER_TPV13"],
         model: "HS1WL/HS3WL",
         vendor: "Heiman",
         description: "Water leakage sensor",
@@ -497,6 +548,23 @@ export const definitions: DefinitionWithExtend[] = [
             await endpoint.read("genPowerCfg", ["batteryPercentageRemaining"]);
         },
         exposes: [e.water_leak(), e.battery_low(), e.tamper(), e.battery()],
+    },
+    {
+        zigbeeModel: ["WaterSensor2-EF-3.0"],
+        model: "HS2WL",
+        vendor: "Heiman",
+        description: "Water leakage sensor",
+        fromZigbee: [fz.ias_water_leak_alarm_1, fz.battery, fz.temperature],
+        toZigbee: [],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg", "msTemperatureMeasurement"]);
+            // await reporting.temperature(endpoint);
+            await reporting.batteryPercentageRemaining(endpoint);
+            await endpoint.read("genPowerCfg", ["batteryPercentageRemaining"]);
+            await endpoint.read("msTemperatureMeasurement", ["measuredValue"]);
+        },
+        exposes: [e.water_leak(), e.battery_low(), e.temperature(), e.battery()],
     },
     {
         fingerprint: [{modelID: "RC-N", manufacturerName: "HEIMAN"}],
@@ -1088,11 +1156,10 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Smoke detector relabeled for zipato",
         extend: [m.iasZoneAlarm({zoneType: "smoke", zoneAttributes: ["alarm_1", "tamper", "battery_low"]}), m.battery(), m.iasWarning()],
     },
-
     {
         zigbeeModel: ["HS2FD-EF1-3.0"],
         model: "HS2FD-EF1-3.0",
-        vendor: "HEIMAN",
+        vendor: "Heiman",
         description: "Fall Detection Sensor",
         extend: [
             m.deviceAddCustomCluster("RadarSensorHeiman", {
@@ -1156,6 +1223,48 @@ export const definitions: DefinitionWithExtend[] = [
                 "wall_mounted_table",
                 "sub_region_isolation_table",
             ]);
+        },
+        endpoint: (device) => ({default: 1}),
+    },
+    {
+        zigbeeModel: ["HS8OS-EF1-3.0"],
+        model: "HS8OS-EF1-3.0",
+        vendor: "Heiman",
+        description: "Human presence sensor",
+        extend: [
+            m.deviceAddCustomCluster("RadarSensorHeiman", {
+                ID: 0xfc8b,
+                manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD,
+                attributes: {
+                    enable_indicator: {ID: 0xf001, type: Zcl.DataType.UINT8}, // 0: off, 1: enable
+                    sensitivity: {ID: 0xf002, type: Zcl.DataType.UINT8}, // 0: min 100: max of sensitivity
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+        ],
+        fromZigbee: [fz.identify, fzLocal.occupancyRadarHeiman, fzLocal.radarSensorHeiman, fzLocal.illuminanceHeiman],
+        toZigbee: [tzLocal.radarSensorHeiman, tzLocal.customFeatureHeiman],
+        ota: true,
+        exposes: [
+            e.binary("occupancy", ea.STATE, true, false).withDescription("Indicates if someone is present"),
+            e.enum("sensor_status", ea.STATE, ["none", "activity", "unknown"]).withDescription("Sensor activity status"),
+            e.enum("enable_indicator", ea.ALL, [0, 1]).withDescription("0: Off, 1: Enable"),
+            e.numeric("sensitivity", ea.ALL)
+                .withValueMin(0)
+                .withValueMax(100)
+                .withDescription("Sensitivity of the radar sensor in range of 0 ~ 100%"),
+            e.numeric("illuminance", ea.STATE).withDescription("ambient illuminance in lux"),
+            e.numeric("radarDelayTime", ea.ALL)
+                .withValueMin(60)
+                .withValueMax(3600)
+                .withDescription("in range of 60 ~ 3600s"),
+        ],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["msOccupancySensing", "msIlluminanceMeasurement", "RadarSensorHeiman"]);
+            await endpoint.read("msIlluminanceMeasurement", ["measuredValue"]);
+            await endpoint.read("msOccupancySensing", ["ultrasonicOToUDelay"]);
         },
         endpoint: (device) => ({default: 1}),
     },
