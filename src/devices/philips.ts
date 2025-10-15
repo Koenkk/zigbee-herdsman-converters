@@ -493,17 +493,14 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: undefined}})],
     },
     {
-        zigbeeModel: ["LCD009"],
+        zigbeeModel: ["LCD009", "LCD010", "LCD011"],
         model: "8720169264151",
         vendor: "Philips",
-        description: "Hue Slim recessed light S 90mm black",
-        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
-    },
-    {
-        zigbeeModel: ["LCD011"],
-        model: "8720169264274",
-        vendor: "Philips",
-        description: "Hue Slim recessed light 170mm black",
+        description: "Hue Slim recessed light 90mm (Black)",
+        whiteLabel: [
+            {model: "8720169264212", vendor: "Philips", description: "Hue Slim recessed light 170mm (White)", fingerprint: [{modelID: "LCD010"}]},
+            {model: "8720169264274", vendor: "Philips", description: "Hue Slim recessed light 170mm (Black)", fingerprint: [{modelID: "LCD011"}]},
+        ],
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
     {
