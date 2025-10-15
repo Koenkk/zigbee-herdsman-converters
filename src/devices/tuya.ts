@@ -20350,8 +20350,6 @@ export const definitions: DefinitionWithExtend[] = [
         model: "228WZH",
         vendor: "Tuya",
         description: "Smoke detector with temperature and humidity sensor",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.smoke(),
