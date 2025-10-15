@@ -1,5 +1,26 @@
 # Changelog
 
+## [25.46.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.45.0...v25.46.0) (2025-10-15)
+
+
+### Features
+
+* **add:** 228WZH ([#10357](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10357)) ([db70ec6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/db70ec64c7a8aed98a19ae24e738f0c8ec4945ab))
+* **add:** 8720169264212 ([#10355](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10355)) ([3c35767](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3c357670c83d8af7be3dddca4c4558704034e18d))
+* **add:** 924.70 ([#10353](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10353)) ([1ecc3e1](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1ecc3e19dbb6d5c5f9866d0fe0d396d02a74ef39))
+* **add:** PMG24_router https://github.com/koenkk/zigbee2mqtt/issues/28927 ([f472cdd](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f472cdd2debb539d5ca046f32852721fbda31db6))
+* **add:** SGS02Z ([#10083](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10083)) ([942993a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/942993a3d0d0784b1077d8fc84701c5bab3710c7))
+* Aqara JY-GZ-01AQ: support OTA https://github.com/Koenkk/zigbee-OTA/pull/897 ([3796e7d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3796e7d17a01028f38b421e3d3457d49c802a363))
+* Third Reality 3RWS18BZ: support `siren_on_off` and `siren_minutes` ([#10356](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10356)) ([70ba1ad](https://github.com/Koenkk/zigbee-herdsman-converters/commit/70ba1ad341768ad8d1d73e933024567e2cbfaf63))
+
+
+### Bug Fixes
+
+* Bosch BTH-RA / BTH-RM / BTH-RM230Z thermostats: rework implementation ([#10309](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10309)) ([0e7993c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0e7993c768cb70369eb9fa4fd19ecea4bb7488c6))
+* **detect:** Detect `_TZE284_lbhh5o6z` as AVATTO ZWSMD-4 https://github.com/Koenkk/zigbee2mqtt/issues/29109 ([98dacf8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/98dacf840972f201530bfd76d62d6e8b563bad05))
+* Fix `Cannot read properties of undefined (reading 'toUpperCase')` error https://github.com/Koenkk/zigbee2mqtt/issues/28808 ([e699b02](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e699b02392eebe22daf1c6db17dca09810bc6c93))
+* **ignore:** fix b2cfa7e4d65a316180964953ded9a5b345b830d4 ([03d9fbf](https://github.com/Koenkk/zigbee-herdsman-converters/commit/03d9fbf3bf7eac0ac20ca80240eb926cdbd3d386))
+
 ## [25.45.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.44.0...v25.45.0) (2025-10-14)
 
 
