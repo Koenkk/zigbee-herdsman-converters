@@ -6,9 +6,12 @@ import {
     boschBsenExtend,
     boschBsirExtend,
     boschDoorWindowContactExtend,
+    boschGeneralEnergyDeviceExtend,
     boschGeneralExtend,
+    boschGeneralSensorDeviceExtend,
     boschSmartPlugExtend,
     boschThermostatExtend,
+    boschWaterAlarmExtend,
     manufacturerOptions,
 } from "../lib/bosch";
 import {repInterval} from "../lib/constants";
@@ -116,12 +119,6 @@ interface TwinguardAlarm {
         alarm_status: number;
     };
     commands: {burglarAlarm: {data: number}};
-    commandResponses: never;
-}
-
-interface BoschSpecificBwa1 {
-    attributes: {alarmOnMotion: number};
-    commands: never;
     commandResponses: never;
 }
 
@@ -716,51 +713,20 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["RBSH-WS-ZB-EU"],
-        model: "BWA-1",
+        model: "BSEN-W",
         vendor: "Bosch",
-        description: "Smart water alarm",
+        description: "Water alarm (formerly known as BWA-1)",
         extend: [
-            m.deviceAddCustomCluster("boschSpecific", {
-                ID: 0xfcac,
-                manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
-                attributes: {
-                    alarmOnMotion: {
-                        ID: 0x0003,
-                        type: Zcl.DataType.BOOLEAN,
-                    },
-                },
-                commands: {},
-                commandsResponse: {},
-            }),
-            m.iasZoneAlarm({
-                zoneType: "water_leak",
-                zoneAttributes: ["alarm_1", "tamper"],
-            }),
-            m.battery({
-                percentage: true,
-                lowStatus: true,
-            }),
-            m.binary<"boschSpecific", BoschSpecificBwa1>({
-                name: "alarm_on_motion",
-                cluster: "boschSpecific",
-                attribute: "alarmOnMotion",
-                description: "Toggle audible alarm on motion",
-                valueOn: ["ON", 0x01],
-                valueOff: ["OFF", 0x00],
-                zigbeeCommandOptions: manufacturerOptions,
-                entityCategory: "config",
-            }),
-            m.bindCluster({
-                cluster: "genPollCtrl",
-                clusterType: "input",
-            }),
+            boschGeneralSensorDeviceExtend.customIasZoneCluster(),
+            boschWaterAlarmExtend.changedSensitivityLevel(),
+            boschWaterAlarmExtend.waterAlarmCluster(),
+            boschGeneralExtend.handleRenamedCustomCluster("boschSpecific", "boschWaterAlarm"),
+            boschWaterAlarmExtend.waterAndTamperAlarm(),
+            boschWaterAlarmExtend.muteAlarmControl(),
+            boschWaterAlarmExtend.alarmOnMotion(),
+            boschWaterAlarmExtend.testMode(),
+            boschGeneralExtend.batteryWithPercentageAndLowStatus(),
         ],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await endpoint.read("genPowerCfg", ["batteryPercentageRemaining"]);
-            await endpoint.read("ssIasZone", ["zoneStatus"]);
-            await endpoint.read<"boschSpecific", BoschSpecificBwa1>("boschSpecific", ["alarmOnMotion"], manufacturerOptions);
-        },
         ota: true,
     },
     {
@@ -1049,7 +1015,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Bosch",
         description: "Motion detector",
         extend: [
-            boschBsenExtend.customIasZoneCluster(),
+            boschGeneralSensorDeviceExtend.customIasZoneCluster(),
             boschBsenExtend.changedCheckinInterval(),
             boschBsenExtend.tamperAndOccupancyAlarm(),
             boschBsenExtend.battery(),
@@ -1065,13 +1031,13 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Bosch",
         description: "Smart plug compact (type F plug)",
         extend: [
-            boschGeneralExtend.customMeteringCluster(),
+            boschGeneralEnergyDeviceExtend.customMeteringCluster(),
             boschSmartPlugExtend.smartPlugCluster(),
             boschGeneralExtend.handleRenamedCustomCluster("boschSpecific", "boschEnergyDevice"),
             boschSmartPlugExtend.onOff(),
-            boschGeneralExtend.autoOff(),
+            boschGeneralEnergyDeviceExtend.autoOff(),
             boschSmartPlugExtend.electricityMeter(),
-            boschGeneralExtend.resetEnergyMeters(),
+            boschGeneralEnergyDeviceExtend.resetEnergyMeters(),
         ],
         ota: true,
         whiteLabel: [
@@ -1086,14 +1052,14 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Smart plug compact [+M]",
         extend: [
             boschGeneralExtend.handleZclVersionReadRequest(),
-            boschGeneralExtend.customMeteringCluster(),
+            boschGeneralEnergyDeviceExtend.customMeteringCluster(),
             boschSmartPlugExtend.smartPlugCluster(),
             boschSmartPlugExtend.onOff(),
-            boschGeneralExtend.autoOff(),
+            boschGeneralEnergyDeviceExtend.autoOff(),
             boschSmartPlugExtend.ledBrightness(),
             boschSmartPlugExtend.energySavingMode(),
             boschSmartPlugExtend.electricityMeter({producedEnergy: true}),
-            boschGeneralExtend.resetEnergyMeters(),
+            boschGeneralEnergyDeviceExtend.resetEnergyMeters(),
         ],
     },
     {
@@ -1222,7 +1188,7 @@ export const definitions: DefinitionWithExtend[] = [
                 switchTypeLookup: boschBmctRzSettings.switchTypes,
             }),
             boschBmctExtend.childLock(),
-            boschGeneralExtend.autoOff(),
+            boschGeneralEnergyDeviceExtend.autoOff(),
             boschBmctExtend.pulseLength({
                 updateDeviceMode: true,
                 deviceModesLookup: boschBmctRzSettings.deviceModes,
@@ -1312,8 +1278,8 @@ export const definitions: DefinitionWithExtend[] = [
             boschGeneralExtend.handleRenamedCustomCluster("boschSpecific", "boschEnergyDevice"),
             boschGeneralExtend.handleZclVersionReadRequest(),
             boschBmctExtend.slzExtends(),
-            boschGeneralExtend.customMeteringCluster(),
-            boschGeneralExtend.resetEnergyMeters(),
+            boschGeneralEnergyDeviceExtend.customMeteringCluster(),
+            boschGeneralEnergyDeviceExtend.resetEnergyMeters(),
         ],
         ota: true,
         configure: async (device, coordinatorEndpoint) => {
