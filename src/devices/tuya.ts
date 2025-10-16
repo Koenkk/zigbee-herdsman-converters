@@ -19813,30 +19813,31 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Cover motor",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
-            e.enum("control", ea.STATE_SET, ["stop", "open", "close"]).withDescription("Control the motor"),
-            e.numeric("time_total", ea.STATE).withUnit("s").withDescription("Total movement time"),
-            e.enum("work_state", ea.STATE, ["opening", "closing", "stopped"]).withDescription("Work state"),
-            e.enum("dry_contact_switch_mode", ea.STATE_SET, ["mode1", "mode2"]).withDescription("Dry contact switch mode"),
-            e.enum("ac_switch_mode", ea.STATE_SET, ["mode1", "mode2"]).withDescription("AC switch mode"),
-            e.numeric("speed", ea.STATE_SET).withValueMin(0).withValueMax(100).withDescription("Motor speed"),
-            e.numeric("percent_state", ea.STATE).withUnit("%").withDescription("Current percent position"),
-            e.enum("dot_mode", ea.STATE_SET, ["single", "multi"]).withDescription("Dot mode"),
-            e.numeric("percent_control", ea.STATE_SET).withUnit("%").withValueMin(0).withValueMax(100).withDescription("Set percent position"),
-            e.enum("direction", ea.STATE_SET, ["normal", "reversed"]).withDescription("Motor direction"),
-            e.enum("border", ea.STATE_SET, ["UP", "Down", "Delete"]).withDescription("Border mode"),
+            e.cover_position().setAccess("position", ea.STATE_SET),
+            e
+                .enum("dot_mode", ea.STATE_SET, ["single", "multi"])
+                .withDescription("Dot mode"), // DP 104
+            e
+                .enum("direction", ea.STATE_SET, ["normal", "reversed"])
+                .withDescription("Motor direction"), // DP 11
+            e
+                .enum("border", ea.STATE_SET, ["UP", "Down", "Delete"])
+                .withDescription("Border mode"), // DP 16
+            e
+                .numeric("speed", ea.STATE_SET)
+                .withValueMin(1)
+                .withValueMax(5)
+                .withDescription("Motor speed"), // DP 103
+            e.text("work_state", ea.STATE),
         ],
-
         meta: {
             tuyaDatapoints: [
-                [1, "control", tuya.valueConverterBasic.lookup({stop: tuya.enum(1), open: tuya.enum(0), close: tuya.enum(2)})],
-                [2, "time_total", tuya.valueConverter.raw],
+                [1, "state", tuya.valueConverterBasic.lookup({OPEN: tuya.enum(0), STOP: tuya.enum(1), CLOSE: tuya.enum(2)})],
                 [3, "work_state", tuya.valueConverterBasic.lookup({opening: tuya.enum(0), closing: tuya.enum(1), stopped: tuya.enum(2)})],
-                [101, "dry_contact_switch_mode", tuya.valueConverterBasic.lookup({mode1: tuya.enum(0), mode2: tuya.enum(1)})],
-                [102, "ac_switch_mode", tuya.valueConverterBasic.lookup({mode1: tuya.enum(0), mode2: tuya.enum(1)})],
+                [9, "position", tuya.valueConverter.coverPositionInverted],
+                [8, "position", tuya.valueConverter.coverPositionInverted],
                 [103, "speed", tuya.valueConverter.raw],
-                [8, "percent_state", tuya.valueConverter.raw],
                 [104, "dot_mode", tuya.valueConverterBasic.lookup({single: tuya.enum(0), multi: tuya.enum(1)})],
-                [9, "percent_control", tuya.valueConverter.raw],
                 [11, "direction", tuya.valueConverterBasic.lookup({normal: tuya.enum(0), reversed: tuya.enum(1)})],
                 [16, "border", tuya.valueConverterBasic.lookup({Up: tuya.enum(0), Down: tuya.enum(1), Delete: tuya.enum(2)})],
             ],
