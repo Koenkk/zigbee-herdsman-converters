@@ -794,10 +794,9 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["OSP 240"],
         model: "OSP 240",
-        vendor: "innr",
-        description: "Outdoor Smart Plug",
+        vendor: "Innr",
+        description: "Outdoor smart plug",
         extend: [m.onOff(), m.electricityMeter()],
-        meta: {},
     },
     {
         zigbeeModel: ["OFL 120 C"],
