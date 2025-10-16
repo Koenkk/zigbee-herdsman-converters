@@ -717,7 +717,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Bosch",
         description: "Water alarm (formerly known as BWA-1)",
         extend: [
-            boschGeneralSensorDeviceExtend.customZoneCluster(),
+            boschGeneralSensorDeviceExtend.customIasZoneCluster(),
             boschWaterAlarmExtend.waterAlarmCluster(),
             boschGeneralExtend.handleRenamedCustomCluster("boschSpecific", "boschWaterAlarm"),
             boschWaterAlarmExtend.waterAndTamperAlarm(),
@@ -1014,7 +1014,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Bosch",
         description: "Motion detector",
         extend: [
-            boschGeneralSensorDeviceExtend.customZoneCluster(),
+            boschGeneralSensorDeviceExtend.customIasZoneCluster(),
             boschBsenExtend.changedCheckinInterval(),
             boschBsenExtend.tamperAndOccupancyAlarm(),
             boschBsenExtend.battery(),

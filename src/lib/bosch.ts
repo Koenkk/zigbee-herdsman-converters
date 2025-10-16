@@ -342,7 +342,7 @@ export const boschGeneralEnergyDeviceExtend = {
 //endregion
 
 //region Generally used Bosch functionality on sensor devices
-interface BoschGeneralSensorDeviceZoneCluster {
+interface BoschGeneralSensorDeviceIasZoneCluster {
     attributes: never;
     commands: {
         /** ID: 2 */
@@ -359,7 +359,7 @@ interface BoschGeneralSensorDeviceZoneCluster {
 }
 
 export const boschGeneralSensorDeviceExtend = {
-    customZoneCluster: () =>
+    customIasZoneCluster: () =>
         m.deviceAddCustomCluster("ssIasZone", {
             ID: Zcl.Clusters.ssIasZone.ID,
             attributes: {},
@@ -385,7 +385,7 @@ export const boschGeneralSensorDeviceExtend = {
         const defaultTimeout = 3;
 
         const enableTestMode = async (endpoint: Zh.Endpoint | Zh.Group, timeout: number) => {
-            await endpoint.command<"ssIasZone", "initCustomTestMode", BoschGeneralSensorDeviceZoneCluster>("ssIasZone", "initCustomTestMode", {
+            await endpoint.command<"ssIasZone", "initCustomTestMode", BoschGeneralSensorDeviceIasZoneCluster>("ssIasZone", "initCustomTestMode", {
                 timeoutInSeconds: timeout,
                 reportTestInZoneStatus: 0x80,
             });
@@ -477,7 +477,7 @@ export const boschGeneralSensorDeviceExtend = {
             },
         ];
 
-        const configure: Configure[] = [m.setupConfigureForReading("ssIasZone", ["zoneStatus"])];
+        const configure: Configure[] = [m.setupConfigureForBinding("ssIasZone", "input"), m.setupConfigureForReading("ssIasZone", ["zoneStatus"])];
 
         return {
             exposes,
@@ -2640,7 +2640,7 @@ export const boschWaterAlarmExtend = {
             } satisfies Fz.Converter<"ssIasZone", undefined, ["commandStatusChangeNotification", "attributeReport", "readResponse"]>,
         ];
 
-        const configure: Configure[] = [m.setupConfigureForReading("ssIasZone", ["zoneStatus"])];
+        const configure: Configure[] = [m.setupConfigureForBinding("ssIasZone", "input"), m.setupConfigureForReading("ssIasZone", ["zoneStatus"])];
 
         return {
             exposes,
