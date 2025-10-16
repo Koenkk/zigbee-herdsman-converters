@@ -22,7 +22,21 @@ import {
     tradfriRequestedBrightness,
 } from "../lib/ikea";
 import * as m from "../lib/modernExtend";
-import type {DefinitionWithExtend} from "../lib/types";
+import type {DefinitionWithExtend, Fz} from "../lib/types";
+
+const fzLocal = {
+    // Raw data decoding for older Parasoll firmware build (20230406).
+    // only handles contact state
+    ikeaParasollRawConverter: {
+        cluster: 65365, // integer cluster IDs
+        type: "raw",
+        convert: (model, msg, publish, options, meta) => {
+            const data = msg.data; // e.g., [21,104,17,62,240,110,111,116,105,102,121,0,0,0]
+            const contactState = data[data.length - 1]; // last number
+            return {contact: contactState === 0 ? true : false};
+        },
+    } satisfies Fz.Converter<65365, undefined, "raw">,
+};
 
 export const definitions: DefinitionWithExtend[] = [
     // #region light
@@ -944,6 +958,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "E2013",
         vendor: "IKEA",
         description: "PARASOLL door/window sensor",
+        fromZigbee: [fzLocal.ikeaParasollRawConverter],
         extend: [
             addCustomClusterManuSpecificIkeaUnknown(),
             m.deviceEndpoints({endpoints: {"1": 1, "2": 2}}),
