@@ -381,6 +381,8 @@ export const boschGeneralSensorDeviceExtend = {
             OFF: false,
         };
 
+        const defaultTimeout = 3;
+
         const enableTestMode = async (endpoint: Zh.Endpoint | Zh.Group, timeout: number) => {
             await endpoint.command<"ssIasZone", "initCustomTestMode", BoschGeneralSensorDeviceZoneCluster>("ssIasZone", "initCustomTestMode", {
                 timeoutInSeconds: timeout,
@@ -403,7 +405,7 @@ export const boschGeneralSensorDeviceExtend = {
             exposes.push(
                 e
                     .numeric("test_mode_timeout", ea.ALL)
-                    .withDescription("Determines how long the test mode should be activated. The default length is 3 seconds.")
+                    .withDescription(`Determines how long the test mode should be activated. The default length is ${defaultTimeout} seconds.`)
                     .withValueMin(1)
                     .withValueMax(255)
                     .withUnit("seconds")
@@ -444,7 +446,7 @@ export const boschGeneralSensorDeviceExtend = {
                                 const currentTimeout = meta.state.test_mode_timeout;
 
                                 if (currentTimeout == null) {
-                                    timeout = 3;
+                                    timeout = defaultTimeout;
                                     meta.publish({test_mode_timeout: timeout});
                                 } else {
                                     timeout = utils.toNumber(currentTimeout);
@@ -468,7 +470,7 @@ export const boschGeneralSensorDeviceExtend = {
                     }
 
                     if (key === "test_mode_timeout" && meta.state.test_mode_timeout == null) {
-                        meta.publish({test_mode_timeout: supportTimeout ? 3 : 0});
+                        meta.publish({test_mode_timeout: supportTimeout ? defaultTimeout : 0});
                     }
                 },
             },
