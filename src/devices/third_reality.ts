@@ -521,7 +521,7 @@ export const definitions: DefinitionWithExtend[] = [
                     onToOffDelay: {ID: 0x0001, type: Zcl.DataType.UINT16},
                     offToOnDelay: {ID: 0x0002, type: Zcl.DataType.UINT16},
                     allowBind: {ID: 0x0020, type: Zcl.DataType.UINT8},
-                    power_up_value: {ID: 0x0040, type: Zcl.DataType.UINT16},
+                    powerUpValue: {ID: 0x0040, type: Zcl.DataType.UINT16},
                     power_down_value: {ID: 0x0041, type: Zcl.DataType.UINT16},
                 },
                 commands: {},
