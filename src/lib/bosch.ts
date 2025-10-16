@@ -2508,12 +2508,12 @@ interface BoschWaterAlarmCluster {
     };
     commands: {
         /** ID: 0 */
-        alarmControl: {
+        muteAlarmControl: {
             /** Type: UINT8 */
             data: number;
         };
         /** ID: 1 */
-        alarmControlResponse: {
+        muteAlarmControlResponse: {
             /** Type: ENUM8 */
             data: number;
         };
@@ -2530,8 +2530,8 @@ export const boschWaterAlarmExtend = {
                 alarmOnMotion: {ID: 0x0003, type: Zcl.DataType.BOOLEAN},
             },
             commands: {
-                alarmControl: {ID: 0x00, parameters: [{name: "data", type: Zcl.DataType.UINT8}]},
-                alarmControlResponse: {ID: 0x01, parameters: [{name: "data", type: Zcl.DataType.ENUM8}]},
+                muteAlarmControl: {ID: 0x00, parameters: [{name: "data", type: Zcl.DataType.UINT8}]},
+                muteAlarmControlResponse: {ID: 0x01, parameters: [{name: "data", type: Zcl.DataType.ENUM8}]},
             },
             commandsResponse: {},
         }),
@@ -2559,13 +2559,13 @@ export const boschWaterAlarmExtend = {
             zoneType: "water_leak",
             zoneAttributes: ["alarm_1", "tamper"],
         }),
-    alarmControl: (): ModernExtend => {
-        const alarmControlLookup = {
+    muteAlarmControl: (): ModernExtend => {
+        const muteAlarmControlLookup = {
             UNMUTED: false,
             MUTED: true,
         };
 
-        const alarmControlResponseLookup = {
+        const muteAlarmControlResponseLookup = {
             muted: 0x00,
             error: 0x01,
             no_change: 0x02,
@@ -2577,8 +2577,8 @@ export const boschWaterAlarmExtend = {
                 .binary(
                     "water_leak_alarm_control",
                     ea.ALL,
-                    utils.getFromLookupByValue(true, alarmControlLookup),
-                    utils.getFromLookupByValue(false, alarmControlLookup),
+                    utils.getFromLookupByValue(true, muteAlarmControlLookup),
+                    utils.getFromLookupByValue(false, muteAlarmControlLookup),
                 )
                 .withLabel("Mute water leak alarm")
                 .withDescription("In case of an water leak, you can mute and unmute the audible alarm here"),
@@ -2588,17 +2588,17 @@ export const boschWaterAlarmExtend = {
             {
                 key: ["water_leak_alarm_control"],
                 convertSet: async (entity, key, value, meta) => {
-                    if (value === utils.getFromLookupByValue(false, alarmControlLookup)) {
-                        await entity.command<"boschWaterAlarm", "alarmControl", BoschWaterAlarmCluster>(
+                    if (value === utils.getFromLookupByValue(false, muteAlarmControlLookup)) {
+                        await entity.command<"boschWaterAlarm", "muteAlarmControl", BoschWaterAlarmCluster>(
                             "boschWaterAlarm",
-                            "alarmControl",
+                            "muteAlarmControl",
                             {data: 0x00},
                             manufacturerOptions,
                         );
                     } else {
-                        await entity.command<"boschWaterAlarm", "alarmControl", BoschWaterAlarmCluster>(
+                        await entity.command<"boschWaterAlarm", "muteAlarmControl", BoschWaterAlarmCluster>(
                             "boschWaterAlarm",
-                            "alarmControl",
+                            "muteAlarmControl",
                             {data: 0x01},
                             manufacturerOptions,
                         );
@@ -2621,19 +2621,19 @@ export const boschWaterAlarmExtend = {
                         return;
                     }
 
-                    const alarmControlResponse = msg.data[5];
+                    const muteAlarmControlResponse = msg.data[5];
 
-                    switch (alarmControlResponse) {
-                        case alarmControlResponseLookup.muted:
+                    switch (muteAlarmControlResponse) {
+                        case muteAlarmControlResponseLookup.muted:
                             logger.debug(`Alarm on device '${meta.device.ieeeAddr}' was muted`, NS);
                             break;
-                        case alarmControlResponseLookup.error:
+                        case muteAlarmControlResponseLookup.error:
                             logger.error(`Alarm on device '${meta.device.ieeeAddr}' could not be muted right now (e.g., no active alarm)!`, NS);
                             break;
-                        case alarmControlResponseLookup.no_change:
+                        case muteAlarmControlResponseLookup.no_change:
                             logger.debug(`Alarm on device '${meta.device.ieeeAddr}' is already in requested state`, NS);
                             break;
-                        case alarmControlResponseLookup.unmuted:
+                        case muteAlarmControlResponseLookup.unmuted:
                             logger.debug(`Alarm on device '${meta.device.ieeeAddr}' was unmuted`, NS);
                             break;
                     }
@@ -2652,7 +2652,7 @@ export const boschWaterAlarmExtend = {
                     const result: KeyValue = {};
 
                     const alarmMuted = (zoneStatus & (1 << 1)) > 0;
-                    result.water_leak_alarm_control = utils.getFromLookupByValue(alarmMuted, alarmControlLookup);
+                    result.water_leak_alarm_control = utils.getFromLookupByValue(alarmMuted, muteAlarmControlLookup);
 
                     return result;
                 },

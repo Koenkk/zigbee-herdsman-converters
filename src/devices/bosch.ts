@@ -722,7 +722,7 @@ export const definitions: DefinitionWithExtend[] = [
             boschWaterAlarmExtend.waterAlarmCluster(),
             boschGeneralExtend.handleRenamedCustomCluster("boschSpecific", "boschWaterAlarm"),
             boschWaterAlarmExtend.waterAndTamperAlarm(),
-            boschWaterAlarmExtend.alarmControl(),
+            boschWaterAlarmExtend.muteAlarmControl(),
             boschWaterAlarmExtend.alarmOnMotion(),
             boschWaterAlarmExtend.testMode(),
             boschGeneralExtend.batteryWithPercentageAndLowStatus(),
