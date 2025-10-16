@@ -20407,4 +20407,40 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_udaucpdi"]),
+        model: "TS0601_boiler_6",
+        vendor: "AVATTO",
+        description: "Smart boiler switch",
+        extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true})],
+        exposes: [
+            e.switch(),
+            e.enum("level", ea.STATE_SET, ["T0", "T30", "T60", "T90", "T120", "TON"]).withDescription("LEVEL"),
+            e.numeric("countdown", ea.STATE_SET).withValueMin(0).withValueMax(7200).withUnit("s").withDescription("countdown"),
+            e.numeric("cur_current", ea.STATE).withUnit("mA").withDescription("Current"),
+            e.numeric("cur_power", ea.STATE).withUnit("W").withDescription("Current Power"),
+            e.numeric("cur_voltage", ea.STATE).withUnit("V").withDescription("Current Voltage"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "switch_1", tuya.valueConverter.onOff],
+                [21, "cur_current", tuya.valueConverterBasic.scale(0, 30000, 0, 30000)],
+                [22, "cur_power", tuya.valueConverter.divideBy10],
+                [23, "cur_voltage", tuya.valueConverter.divideBy10],
+                [
+                    102,
+                    "level",
+                    tuya.valueConverterBasic.lookup({
+                        T0: tuya.enum(0),
+                        T30: tuya.enum(1),
+                        T60: tuya.enum(2),
+                        T90: tuya.enum(3),
+                        T120: tuya.enum(4),
+                        TON: tuya.enum(5),
+                    }),
+                ],
+                [103, "countdown", tuya.valueConverter.raw],
+            ],
+        },
+    },
 ];
