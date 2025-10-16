@@ -2544,7 +2544,7 @@ export const boschWaterAlarmExtend = {
 
                 // The write request is made when using the proprietary
                 // Bosch Smart Home Controller II as of 16-10-2025. Looks like
-                // the default value was too low, and they didn't want to
+                // the default value was too high, and they didn't want to
                 // push a firmware update. We mimic it here to avoid complaints.
                 await endpoint.write("ssIasZone", {currentZoneSensitivityLevel: 5});
             },
