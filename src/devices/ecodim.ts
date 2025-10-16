@@ -213,7 +213,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: [
-            {modelID: "CCT Light", manufacturerName: "Zigbee/CCT", manufacturerID: 4137},
+            {modelID: "CCT Light", manufacturerName: "ZigBee/CCT", manufacturerID: 4137},
             {modelID: "CCT Light", manufacturerName: "Astuta/ZB-CCT", manufacturerID: 4137},
         ],
         model: "ED-10041",
