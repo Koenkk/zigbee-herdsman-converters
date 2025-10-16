@@ -2458,7 +2458,6 @@ export const boschBsenExtend = {
 
         const configure: Configure[] = [
             m.setupConfigureForBinding("ssIasZone", "input"),
-            m.setupConfigureForReading("ssIasZone", ["numZoneSensitivityLevelsSupported", "currentZoneSensitivityLevel"]),
             async (device, coordinatorEndpoint, definition) => {
                 const endpoint = device.getEndpoint(1);
 
@@ -2538,7 +2537,6 @@ export const boschWaterAlarmExtend = {
     changedSensitivityLevel: (): ModernExtend => {
         const configure: Configure[] = [
             m.setupConfigureForBinding("ssIasZone", "input"),
-            m.setupConfigureForReading("ssIasZone", ["numZoneSensitivityLevelsSupported", "currentZoneSensitivityLevel"]),
             async (device, coordinatorEndpoint, definition) => {
                 const endpoint = device.getEndpoint(1);
 
