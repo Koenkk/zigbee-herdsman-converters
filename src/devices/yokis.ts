@@ -305,7 +305,7 @@ const YokisClustersDefinition: {
                 response: 0,
                 parameters: [],
             },
-            // Open ZigBee network
+            // Open Zigbee network
             openNetwork: {
                 ID: 0x12,
                 response: 0,
@@ -1148,7 +1148,7 @@ const yokisCommandsExtend = {
     openNetwork: (): ModernExtend => {
         const exposes = e
             .composite("open_network_command", "open_network_prop", ea.SET)
-            .withDescription("Open ZigBee network")
+            .withDescription("Open Zigbee network")
             .withFeature(
                 e
                     .numeric("opening_time", ea.SET) //uc_OpeningTime
