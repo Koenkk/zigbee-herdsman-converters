@@ -670,7 +670,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["ZigUP"],
         model: "ZigUP",
         vendor: "Custom devices (DiY)",
-        description: "CC2530 based ZigBee relais, switch, sensor and router",
+        description: "CC2530 based Zigbee relais, switch, sensor and router",
         fromZigbee: [fz.ZigUP],
         toZigbee: [tz.on_off, tz.light_color, tz.ZigUP_lock],
         exposes: [e.switch()],

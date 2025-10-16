@@ -409,7 +409,7 @@ const ubisys = {
 
                 if (value.input_action_templates != null) {
                     const templateTypes = {
-                        // source: "ZigBee Device Physical Input Configurations Integrator’s Guide"
+                        // source: "Zigbee Device Physical Input Configurations Integrator’s Guide"
                         // (can be obtained directly from ubisys upon request)
                         toggle: {
                             getInputActions: (input: number, endpoint: number) => [[input, 0x0d, endpoint, 0x06, 0x00, 0x02]],
