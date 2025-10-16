@@ -1,5 +1,25 @@
 # Changelog
 
+## [25.47.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.46.0...v25.47.0) (2025-10-16)
+
+
+### Features
+
+* **add:** 98425034 ([#10374](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10374)) ([943f04b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/943f04bf9bf2fb7e45c13a43d240628346da3d50))
+* **add:** OSP 240 ([#10378](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10378)) ([1253b48](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1253b4817f2cb366ed3b9508e0160e83ea70b6b9))
+* **add:** ZBPD23400 ([#10367](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10367)) ([355eec8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/355eec81a1f18c7781ef41a46616aa87e69249ec))
+* Bosch BSEN-W: re-work implementation to expose all official features ([#10369](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10369)) ([835a7fa](https://github.com/Koenkk/zigbee-herdsman-converters/commit/835a7fa033692e6e7384d82289a5622557d51e5f))
+
+
+### Bug Fixes
+
+* Develco MOSZB-140: reduce reporting interval ([#10370](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10370)) ([d1a3fcf](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d1a3fcf2d9d9d3f7e8ca333d1fdab476e0a4588e))
+* IKEA E2013: fix contact state for devices with firmware build 20230406 ([#10324](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10324)) ([3f16c78](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3f16c78e667edbc976c909c91c446215f0d17381))
+* Moes SFL02-Z-*: disable mcuSyncTime https://github.com/Koenkk/zigbee2mqtt/issues/28486 ([b7482d3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b7482d387d3d014fac4fa13f2f1283d516a5dfb2))
+* Schneider Electric CCT5010-0001: disable power on behaviour https://github.com/Koenkk/zigbee2mqtt.io/pull/4289 ([c7ece15](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c7ece15227d46d69c4a73c3f2030888a38b88927))
+* Third Reality 3RSP02064Z: add more attributes to private cluster ([#10368](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10368)) ([5c28466](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5c28466dd3e8c24fc8abbec708dcaf33a8475c31))
+* Tuya TS0601_cover_11: fix integration https://github.com/Koenkk/zigbee2mqtt/discussions/28452 ([4305b1b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4305b1b2f520ee16d0a3fae8bd07e44f85a50110))
+
 ## [25.46.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.45.0...v25.46.0) (2025-10-15)
 
 
