@@ -44,7 +44,6 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.light({configureReporting: true}), m.electricityMeter()],
     },
     {
-        fingerprint: [{modelID: "CoDIMZ 98425033", manufacturerName: "Nordtronic A/S"}],
         zigbeeModel: ["CoDIMZ 98425033"],
         model: "98425033",
         vendor: "Nordtronic",
@@ -52,7 +51,6 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.light({configureReporting: true}), m.electricityMeter(), sunricher.extend.externalSwitchType()],
     },
     {
-        fingerprint: [{modelID: "DINDimZ 98425034", manufacturerName: "Nordtronic A/S"}],
         zigbeeModel: ["DINDimZ 98425034"],
         model: "98425034",
         vendor: "Nordtronic",
