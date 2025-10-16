@@ -51,4 +51,12 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Ceiling mounted zigbee micro smart dimmer",
         extend: [m.light({configureReporting: true}), m.electricityMeter(), sunricher.extend.externalSwitchType()],
     },
+    {
+        fingerprint: [{modelID: "DINDimZ 98425034", manufacturerName: "Nordtronic A/S"}],
+        zigbeeModel: ["DINDimZ 98425034"],
+        model: "98425034",
+        vendor: "Nordtronic",
+        description: "ZigBee din rail smart dimmer",
+        extend: [m.light({configureReporting: true}), m.electricityMeter()],
+    },
 ];
