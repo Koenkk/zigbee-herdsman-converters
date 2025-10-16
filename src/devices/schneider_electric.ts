@@ -678,7 +678,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Schneider Electric",
         description: "Micro module dimmer",
         ota: true,
-        extend: [m.light({configureReporting: true, levelConfig: {}})],
+        extend: [m.light({powerOnBehavior: false, configureReporting: true, levelConfig: {}})],
         fromZigbee: [fz.wiser_lighting_ballast_configuration],
         toZigbee: [tz.ballast_config, tz.wiser_dimmer_mode],
         exposes: [
