@@ -1,4 +1,5 @@
 import {Zcl} from "zigbee-herdsman";
+import type {SendPolicy} from "zigbee-herdsman/dist/controller/tstype";
 import type {TPartialClusterAttributes} from "zigbee-herdsman/dist/zspec/zcl/definition/clusters-types";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
@@ -31,7 +32,10 @@ const ea = exposes.access;
 
 const NS = "zhc:bosch";
 
-export const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH};
+export const manufacturerOptions = {
+    manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
+    sendPolicy: <SendPolicy>"immediate",
+};
 
 //region Generally used Bosch functionality
 export const boschGeneralExtend = {
@@ -2593,7 +2597,7 @@ export const boschWaterAlarmExtend = {
                         return;
                     }
 
-                    const alarmControlResponse = utils.getFromLookup(msg.data[5], alarmControlResponseLookup);
+                    const alarmControlResponse = msg.data[5];
 
                     switch (alarmControlResponse) {
                         case alarmControlResponseLookup.muted:
