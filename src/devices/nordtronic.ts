@@ -54,7 +54,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["DINDimZ 98425034"],
         model: "98425034",
         vendor: "Nordtronic",
-        description: "ZigBee din rail smart dimmer",
+        description: "Zigbee din rail smart dimmer",
         extend: [m.light({configureReporting: true}), m.electricityMeter()],
     },
 ];

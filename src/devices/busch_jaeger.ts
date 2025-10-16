@@ -84,7 +84,7 @@ export const definitions: DefinitionWithExtend[] = [
 
             // These devices only have a very limited amount of memory available. Possibly depending on network size (?)
             // they only support around 5 bindings so we need to be very careful about the binding setup. We intentionally
-            // skip binding the endpoint 18 (light endpoint) to the coordinator. The device does not support ZigBee
+            // skip binding the endpoint 18 (light endpoint) to the coordinator. The device does not support Zigbee
             // reporting anyways and we poll the device's state instead, so this does not cause any loss of functionality.
             const endpoint18 = device.getEndpoint(0x12);
             if (endpoint18 == null) {

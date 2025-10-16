@@ -57,7 +57,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["ZBPD23400"],
         model: "ZBPD23400",
         vendor: "EVN",
-        description: "ZigBee AC dimmer",
+        description: "Zigbee AC dimmer",
         extend: [m.light({configureReporting: true})],
     },
 ];
