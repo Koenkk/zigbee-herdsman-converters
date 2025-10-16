@@ -48,7 +48,7 @@ const fzLocal = {
                 result.sensor_status = ["none", "activity"][bit1to3] || "unknown";
                 result.fall_status = ["normal", "fall_warning", "fall_alarm"][bit4to5] || "unknown";
             } else if (Object.hasOwn(msg.data, "ultrasonicOToUDelay")) {
-                result.radar_delay_time  = msg.data.ultrasonicOToUDelay;
+                result.radar_delay_time = msg.data.ultrasonicOToUDelay;
             }
 
             return result;
@@ -1262,7 +1262,6 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         exposes: [
             e.binary("occupancy", ea.STATE, true, false).withDescription("Indicates if someone is present"),
-            // e.enum("sensor_status", ea.STATE, ["none", "activity", "unknown"]).withDescription("Sensor activity status"),
             e.enum("enable_indicator", ea.ALL, [0, 1]).withDescription("0: Off, 1: Enable"),
             e
                 .numeric("sensitivity", ea.ALL)
@@ -1275,7 +1274,12 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["msOccupancySensing", "msIlluminanceMeasurement", "RadarSensorHeiman", "haDiagnostic"]);
+            await reporting.bind(endpoint, coordinatorEndpoint, [
+                "msOccupancySensing",
+                "msIlluminanceMeasurement",
+                "RadarSensorHeiman",
+                "haDiagnostic",
+            ]);
             await endpoint.read("msIlluminanceMeasurement", ["measuredValue"]);
             await endpoint.read("msOccupancySensing", ["ultrasonicOToUDelay"]);
         },
