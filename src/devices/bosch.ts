@@ -719,6 +719,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             boschGeneralSensorDeviceExtend.customZoneCluster(),
             boschWaterAlarmExtend.waterAlarmCluster(),
+            boschGeneralExtend.handleRenamedCustomCluster("boschSpecific", "boschWaterAlarm"),
             boschWaterAlarmExtend.waterAndTamperAlarm(),
             boschWaterAlarmExtend.alarmControl(),
             boschWaterAlarmExtend.alarmOnMotion(),
