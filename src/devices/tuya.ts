@@ -2794,6 +2794,39 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
+        fingerprint: tuya.fingerprint("SGS02Z", ["_TZE284_nt4pquef"]),
+        model: "SGS02Z",
+        vendor: "Tuya",
+        description: "Soil sensor",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.temperature(),
+            e.soil_moisture(),
+            tuya.exposes.temperatureUnit(),
+            e.enum("illuminance_level", ea.STATE, ["low-", "low", "nor", "high", "high+"]).withDescription("Illuminance level"),
+            e.battery(),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [
+                    2,
+                    "illuminance_level",
+                    tuya.valueConverterBasic.lookup({
+                        "low-": 0,
+                        low: 1,
+                        nor: 2,
+                        high: 3,
+                        "high+": 4,
+                    }),
+                ],
+                [3, "soil_moisture", tuya.valueConverter.raw],
+                [5, "temperature", tuya.valueConverter.divideBy10],
+                [9, "temperature_unit", tuya.valueConverter.temperatureUnitEnum],
+                [15, "battery", tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", [
             "_TZE200_ip2akl4w",
             "_TZE200_1agwnems",
@@ -3454,6 +3487,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE204_f5efvtbv",
             "_TZE284_f5efvtbv",
             "_TZE204_lbhh5o6z",
+            "_TZE284_lbhh5o6z",
         ]),
         model: "TS0601_switch_4_gang_1",
         vendor: "Tuya",
@@ -3474,7 +3508,7 @@ export const definitions: DefinitionWithExtend[] = [
             {vendor: "Moes", model: "WS-EUB1-ZG"},
             {vendor: "AVATTO", model: "ZGB-WS-EU"},
             tuya.whitelabel("AVATTO", "WSMD-4", "4 gang switch", ["_TZE204_f5efvtbv", "_TZE284_f5efvtbv"]),
-            tuya.whitelabel("AVATTO", "ZWSMD-4", "4 gang switch", ["_TZE204_lbhh5o6z"]),
+            tuya.whitelabel("AVATTO", "ZWSMD-4", "4 gang switch", ["_TZE204_lbhh5o6z", "_TZE284_lbhh5o6z"]),
             tuya.whitelabel("Tuya", "MG-ZG04W", "4 gang switch", ["_TZE204_mexisfik"]),
         ],
         meta: {
@@ -20342,6 +20376,34 @@ export const definitions: DefinitionWithExtend[] = [
                 [103, "quiet", tuya.valueConverter.onOff],
                 [116, "power", tuya.valueConverter.raw],
                 [117, "energy", tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_gyzlwu5q"]),
+        model: "228WZH",
+        vendor: "Tuya",
+        description: "Smoke detector with temperature and humidity sensor",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.smoke(),
+            e.temperature(),
+            e.humidity(),
+            tuya.exposes.batteryState(),
+            e.enum("self_test", ea.STATE, ["Checking", "Check success", "Check failure"]).withDescription("Test button status"),
+            e.enum("silence", ea.STATE_SET, ["ON"]).withDescription("Silence alarm"),
+            e.text("version", ea.STATE_GET).withDescription("Device version"),
+        ],
+        meta: {
+            // All datapoints go in here
+            tuyaDatapoints: [
+                [1, "smoke", tuya.valueConverter.trueFalse0],
+                [9, "self_test", tuya.valueConverterBasic.lookup({checking: 0, check_success: 1, check_failure: 2})],
+                [14, "battery_state", tuya.valueConverter.batteryState],
+                [16, "silence", tuya.valueConverter.onOff],
+                [23, "temperature", tuya.valueConverter.divideBy10],
+                [24, "humidity", tuya.valueConverter.raw],
+                [103, "version", tuya.valueConverter.raw], // maybe!?
             ],
         },
     },
