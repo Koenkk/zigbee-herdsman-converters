@@ -168,6 +168,7 @@ export const boschGeneralExtend = {
 interface BoschMeteringCluster {
     attributes: never;
     commands: {
+        /** ID: 128 */
         resetEnergyMeters: Record<string, never>;
     };
     commandResponses: never;
@@ -2502,14 +2503,16 @@ export const boschBsenExtend = {
 //region Bosch BSEN-M (Water alarm)
 interface BoschWaterAlarmCluster {
     attributes: {
-        /** ID: 6 | Type: BOOLEAN */
+        /** ID: 3 | Type: BOOLEAN */
         alarmOnMotion: number;
     };
     commands: {
+        /** ID: 0 */
         alarmControl: {
             /** Type: UINT8 */
             data: number;
         };
+        /** ID: 1 */
         alarmControlResponse: {
             /** Type: ENUM8 */
             data: number;
