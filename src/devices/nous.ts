@@ -148,4 +148,128 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
-];
+    // --- Datapoints (DP) ---
+const DP_LEAK_STATUS = 1;        // Состояние протечки
+const DP_BATTERY_LEVEL = 4;      // Заряд батареи
+const DP_WORKING_MODE = 101;     // Режим работы
+const DP_STATUS = 102;           // Статус устройства
+const DP_ALARM_RINGTONE = 103;   // Тон сирены
+
+// --- Константы маппинга ---
+const WORKING_MODES = {
+    0: 'normal',
+    1: 'silent',
+    2: 'test',
+},
+
+const ALARM_RINGTONES = {
+    0: 'tone_1',
+    1: 'tone_2',
+    2: 'tone_3',
+},
+
+// --- Локальная функция lookup (замена tuya.valueConverter.lookup) ---
+const valueConverterLookup = (lookupTable) => ({
+    from: (v) => lookupTable[v] ?? v,
+    to: (v) => {
+        const entry = Object.entries(lookupTable).find(([, name]) => name === v);
+        return entry ? Number(entry[0]) : v;
+    },
+}),
+
+// --- Основное описание устройства ---
+const definition = {
+    fingerprint: tuya.fingerprint('TS0601', ['_TZE284_1di7ujzp']),
+    model: 'E13',
+    vendor: 'NOUS',
+    description: 'Tuya Zigbee water leak sensor with sound alarm',
+    fromZigbee: [tuya.fz.datapoints],
+    toZigbee: [tuya.tz.datapoints],
+    configure: tuya.configureMagicPacket,
+    exposes: [
+        e.water_leak().withDescription('Water leak detected or not'),
+        e.battery().withDescription('Battery level in %'),
+        e.enum('working_mode', ea.ALL, Object.values(WORKING_MODES))
+            .withDescription('Operational mode of the device'),
+        e.text('status', ea.STATE)
+            .withDescription('Device status (normal, fault, etc.)'),
+        e.enum('alarm_ringtone', ea.ALL, Object.values(ALARM_RINGTONES))
+            .withDescription('Select alarm ringtone'),
+    ],
+    meta: {
+        tuyaDatapoints: [
+            [DP_LEAK_STATUS, 'water_leak', tuya.valueConverter.trueFalse0],
+            [DP_BATTERY_LEVEL, 'battery', tuya.valueConverter.raw],
+            [DP_WORKING_MODE, 'working_mode', valueConverterLookup(WORKING_MODES)],
+            [DP_STATUS, 'status', tuya.valueConverter.raw],
+            [DP_ALARM_RINGTONE, 'alarm_ringtone', valueConverterLookup(ALARM_RINGTONES)],
+        ],
+    },
+},
+    // --- Datapoints (DP) ---
+const DP_CO_STATE = 1;       // Состояние CO (норма / тревога)
+const DP_CO_VALUE = 2;       // Уровень CO в ppm
+const DP_SELF_CHECKING = 8;  // Самопроверка
+const DP_CHECK_RESULT = 9;   // Результат самопроверки
+const DP_PREHEAT = 10;       // Прогрев
+const DP_FAULT = 11;         // Ошибка
+const DP_LIFECYCLE = 12;     // Срок службы
+const DP_BATTERY_STATE = 14; // Заряд батареи
+
+// --- Маппинги статусов ---
+const CO_STATES = {0: 'normal', 1: 'alarm'};
+const CHECK_RESULTS = {0: 'ok', 1: 'error'};
+const PREHEAT_STATE = {0: 'off', 1: 'on'};
+const FAULT_STATE = {0: 'normal', 1: 'fault'};
+
+// --- Локальная функция lookup ---
+const valueConverterLookup = (lookupTable) => ({
+    from: (v) => lookupTable[v] ?? v,
+    to: (v) => {
+        const entry = Object.entries(lookupTable).find(([, name]) => name === v);
+        return entry ? Number(entry[0]) : v;
+    },
+}),
+
+// --- Основное описание устройства ---
+const definition = {
+    fingerprint: tuya.fingerprint('TS0601', ['_TZE284_sonkaxrd']),
+    model: 'E12',
+    vendor: 'NOUS',
+    description: 'Tuya Zigbee carbon monoxide (CO) sensor',
+    fromZigbee: [tuya.fz.datapoints],
+    toZigbee: [tuya.tz.datapoints],
+    configure: tuya.configureMagicPacket,
+    exposes: [
+        e.enum('co_state', ea.STATE, Object.values(CO_STATES))
+            .withDescription('CO alarm state (normal or alarm)'),
+        e.numeric('co_value', ea.STATE)
+            .withUnit('ppm')
+            .withDescription('Current CO concentration'),
+        e.binary('self_checking', ea.ALL, 'ON', 'OFF')
+            .withDescription('Triggers self-checking process'),
+        e.enum('checking_result', ea.STATE, Object.values(CHECK_RESULTS))
+            .withDescription('Result of self-checking'),
+        e.enum('preheat', ea.STATE, Object.values(PREHEAT_STATE))
+            .withDescription('Sensor preheating status'),
+        e.enum('fault', ea.STATE, Object.values(FAULT_STATE))
+            .withDescription('Sensor fault indicator'),
+        e.numeric('lifecycle', ea.STATE)
+            .withUnit('days')
+            .withDescription('Sensor service life or usage counter'),
+        e.battery().withDescription('Battery level in %'),
+    ],
+    meta: {
+        tuyaDatapoints: [
+            [DP_CO_STATE, 'co_state', valueConverterLookup(CO_STATES)],
+            [DP_CO_VALUE, 'co_value', tuya.valueConverter.raw],
+            [DP_SELF_CHECKING, 'self_checking', tuya.valueConverter.trueFalse0],
+            [DP_CHECK_RESULT, 'checking_result', valueConverterLookup(CHECK_RESULTS)],
+            [DP_PREHEAT, 'preheat', valueConverterLookup(PREHEAT_STATE)],
+            [DP_FAULT, 'fault', valueConverterLookup(FAULT_STATE)],
+            [DP_LIFECYCLE, 'lifecycle', tuya.valueConverter.raw],
+            [DP_BATTERY_STATE, 'battery', tuya.valueConverter.raw],
+        ],
+    },
+},
+],
