@@ -2542,8 +2542,8 @@ export const boschWaterAlarmExtend = {
         }),
     alarmControl: (): ModernExtend => {
         const alarmControlLookup = {
-            UNMUTE: false,
-            MUTE: true,
+            UNMUTED: false,
+            MUTED: true,
         };
 
         const alarmControlResponseLookup = {
