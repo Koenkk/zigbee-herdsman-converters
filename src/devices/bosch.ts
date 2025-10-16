@@ -718,6 +718,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Water alarm (formerly known as BWA-1)",
         extend: [
             boschGeneralSensorDeviceExtend.customIasZoneCluster(),
+            boschWaterAlarmExtend.changedSensitivityLevel(),
             boschWaterAlarmExtend.waterAlarmCluster(),
             boschGeneralExtend.handleRenamedCustomCluster("boschSpecific", "boschWaterAlarm"),
             boschWaterAlarmExtend.waterAndTamperAlarm(),

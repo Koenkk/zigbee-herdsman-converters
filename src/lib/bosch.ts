@@ -2535,6 +2535,25 @@ export const boschWaterAlarmExtend = {
             },
             commandsResponse: {},
         }),
+    changedSensitivityLevel: (): ModernExtend => {
+        const configure: Configure[] = [
+            m.setupConfigureForBinding("ssIasZone", "input"),
+            m.setupConfigureForReading("ssIasZone", ["numZoneSensitivityLevelsSupported", "currentZoneSensitivityLevel"]),
+            async (device, coordinatorEndpoint, definition) => {
+                const endpoint = device.getEndpoint(1);
+
+                // The write request is made when using the proprietary
+                // Bosch Smart Home Controller II as of 16-10-2025. Looks like
+                // the default value was too low, and they didn't want to
+                // push a firmware update. We mimic it here to avoid complaints.
+                await endpoint.write("ssIasZone", {currentZoneSensitivityLevel: 5});
+            },
+        ];
+        return {
+            configure,
+            isModernExtend: true,
+        };
+    },
     waterAndTamperAlarm: () =>
         m.iasZoneAlarm({
             zoneType: "water_leak",
