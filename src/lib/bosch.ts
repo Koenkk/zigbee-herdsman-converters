@@ -1,4 +1,5 @@
 import {Zcl} from "zigbee-herdsman";
+import type {SendPolicy} from "zigbee-herdsman/dist/controller/tstype";
 import type {TPartialClusterAttributes} from "zigbee-herdsman/dist/zspec/zcl/definition/clusters-types";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
@@ -31,28 +32,12 @@ const ea = exposes.access;
 
 const NS = "zhc:bosch";
 
-export const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH};
+export const manufacturerOptions = {
+    manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
+    sendPolicy: <SendPolicy>"immediate",
+};
 
-//region Generally used bosch functionality
-interface BoschMeteringCluster {
-    attributes: never;
-    commands: {
-        resetEnergyMeters: Record<string, never>;
-    };
-    commandResponses: never;
-}
-
-interface BoschGeneralEnergyDeviceCluster {
-    attributes: {
-        /** ID: 6 | Type: BOOLEAN */
-        autoOffEnabled: number;
-        /** ID: 7 | Type: UINT16 */
-        autoOffTime: number;
-    };
-    commands: never;
-    commandResponses: never;
-}
-
+//region Generally used Bosch functionality
 export const boschGeneralExtend = {
     /** Some devices now use a different name for some custom clusters than
      * originally used. This can lead to issues like those described in
@@ -168,6 +153,39 @@ export const boschGeneralExtend = {
             isModernExtend: true,
         };
     },
+    batteryWithPercentageAndLowStatus: (args?: BatteryArgs) =>
+        m.battery({
+            percentage: true,
+            percentageReportingConfig: false,
+            lowStatus: true,
+            lowStatusReportingConfig: {min: "MIN", max: "MAX", change: null},
+            ...args,
+        }),
+};
+//endregion
+
+//region Generally used Bosch functionality on energy controlling devices
+interface BoschMeteringCluster {
+    attributes: never;
+    commands: {
+        /** ID: 128 */
+        resetEnergyMeters: Record<string, never>;
+    };
+    commandResponses: never;
+}
+
+interface BoschGeneralEnergyDeviceCluster {
+    attributes: {
+        /** ID: 6 | Type: BOOLEAN */
+        autoOffEnabled: number;
+        /** ID: 7 | Type: UINT16 */
+        autoOffTime: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+export const boschGeneralEnergyDeviceExtend = {
     customMeteringCluster: () =>
         m.deviceAddCustomCluster("seMetering", {
             ID: Zcl.Clusters.seMetering.ID,
@@ -206,14 +224,6 @@ export const boschGeneralExtend = {
             isModernExtend: true,
         };
     },
-    batteryWithPercentageAndLowStatus: (args?: BatteryArgs) =>
-        m.battery({
-            percentage: true,
-            percentageReportingConfig: false,
-            lowStatus: true,
-            lowStatusReportingConfig: {min: "MIN", max: "MAX", change: null},
-            ...args,
-        }),
     autoOff: (args?: {endpoint: number}): ModernExtend => {
         const {endpoint} = args ?? {};
 
@@ -322,6 +332,155 @@ export const boschGeneralExtend = {
 
         return {
             exposes: [expose],
+            fromZigbee,
+            toZigbee,
+            configure,
+            isModernExtend: true,
+        };
+    },
+};
+//endregion
+
+//region Generally used Bosch functionality on sensor devices
+interface BoschGeneralSensorDeviceIasZoneCluster {
+    attributes: never;
+    commands: {
+        /** ID: 2 */
+        initCustomTestMode: {
+            /** Type: UINT8 */
+            timeoutInSeconds: number;
+            /** Type: ENUM8 | Known values are
+             * 0x80 (BSEN-M - changes the zoneStatus when test is activated) and
+             * 0x00 (BSEN-W - no change in zoneStatus). */
+            reportTestInZoneStatus: number;
+        };
+    };
+    commandResponses: never;
+}
+
+export const boschGeneralSensorDeviceExtend = {
+    customIasZoneCluster: () =>
+        m.deviceAddCustomCluster("ssIasZone", {
+            ID: Zcl.Clusters.ssIasZone.ID,
+            attributes: {},
+            commands: {
+                initCustomTestMode: {
+                    ID: 0x02,
+                    parameters: [
+                        {name: "timeoutInSeconds", type: Zcl.DataType.UINT8},
+                        {name: "reportTestInZoneStatus", type: Zcl.DataType.ENUM8},
+                    ],
+                },
+            },
+            commandsResponse: {},
+        }),
+    testMode: (args: {testModeDescription: string; supportTimeout?: boolean}): ModernExtend => {
+        const {testModeDescription, supportTimeout = false} = args;
+
+        const testModeLookup = {
+            ON: true,
+            OFF: false,
+        };
+
+        const defaultTimeout = 3;
+
+        const enableTestMode = async (endpoint: Zh.Endpoint | Zh.Group, timeout: number) => {
+            await endpoint.command<"ssIasZone", "initCustomTestMode", BoschGeneralSensorDeviceIasZoneCluster>("ssIasZone", "initCustomTestMode", {
+                timeoutInSeconds: timeout,
+                reportTestInZoneStatus: 0x80,
+            });
+        };
+
+        const disableTestMode = async (endpoint: Zh.Endpoint | Zh.Group) => {
+            await endpoint.command("ssIasZone", "initNormalOpMode", {});
+        };
+
+        const exposes: Expose[] = [
+            e
+                .binary("test_mode", ea.ALL, utils.getFromLookupByValue(true, testModeLookup), utils.getFromLookupByValue(false, testModeLookup))
+                .withDescription(testModeDescription)
+                .withCategory("config"),
+        ];
+
+        if (supportTimeout) {
+            exposes.push(
+                e
+                    .numeric("test_mode_timeout", ea.ALL)
+                    .withDescription(`Determines how long the test mode should be activated. The default length is ${defaultTimeout} seconds.`)
+                    .withValueMin(1)
+                    .withValueMax(255)
+                    .withUnit("seconds")
+                    .withCategory("config"),
+            );
+        }
+
+        const fromZigbee = [
+            {
+                cluster: "ssIasZone",
+                type: ["commandStatusChangeNotification", "attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    const zoneStatus = "zonestatus" in msg.data ? msg.data.zonestatus : msg.data.zoneStatus;
+
+                    if (zoneStatus === undefined) {
+                        return;
+                    }
+
+                    const result: KeyValue = {};
+
+                    const testModeEnabled = (zoneStatus & (1 << 8)) > 0;
+                    result.test_mode = utils.getFromLookupByValue(testModeEnabled, testModeLookup);
+
+                    return result;
+                },
+            } satisfies Fz.Converter<"ssIasZone", undefined, ["commandStatusChangeNotification", "attributeReport", "readResponse"]>,
+        ];
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ["test_mode", "test_mode_timeout"],
+                convertSet: async (entity, key, value, meta) => {
+                    if (key === "test_mode") {
+                        if (value === utils.getFromLookupByValue(true, testModeLookup)) {
+                            let timeout: number;
+
+                            if (supportTimeout) {
+                                const currentTimeout = meta.state.test_mode_timeout;
+
+                                if (currentTimeout == null) {
+                                    timeout = defaultTimeout;
+                                    meta.publish({test_mode_timeout: timeout});
+                                } else {
+                                    timeout = utils.toNumber(currentTimeout);
+                                }
+                            } else {
+                                timeout = 0;
+                            }
+
+                            await enableTestMode(entity, timeout);
+                        } else {
+                            await disableTestMode(entity);
+                        }
+                    }
+                    if (key === "test_mode_timeout") {
+                        return {state: {test_mode_timeout: value}};
+                    }
+                },
+                convertGet: async (entity, key, meta) => {
+                    if (key === "test_mode") {
+                        await entity.read("ssIasZone", ["zoneStatus"]);
+                    }
+
+                    if (key === "test_mode_timeout" && meta.state.test_mode_timeout == null) {
+                        meta.publish({test_mode_timeout: supportTimeout ? defaultTimeout : 0});
+                    }
+                },
+            },
+        ];
+
+        const configure: Configure[] = [m.setupConfigureForBinding("ssIasZone", "input"), m.setupConfigureForReading("ssIasZone", ["zoneStatus"])];
+
+        return {
+            exposes,
             fromZigbee,
             toZigbee,
             configure,
@@ -2142,31 +2301,7 @@ export const boschDoorWindowContactExtend = {
 //endregion
 
 //region Bosch BSEN-M device (Motion detector)
-interface BoschBsenIasZoneCluster {
-    attributes: never;
-    commands: {
-        /** ID: 243 */
-        initCustomTestMode: {
-            /** Type: UINT16 */
-            data: number[];
-        };
-    };
-    commandResponses: never;
-}
-
 export const boschBsenExtend = {
-    customIasZoneCluster: () =>
-        m.deviceAddCustomCluster("ssIasZone", {
-            ID: Zcl.Clusters.ssIasZone.ID,
-            attributes: {},
-            commands: {
-                initCustomTestMode: {
-                    ID: 0x02,
-                    parameters: [{name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8}],
-                },
-            },
-            commandsResponse: {},
-        }),
     battery: () =>
         m.battery({
             percentage: false,
@@ -2176,6 +2311,13 @@ export const boschBsenExtend = {
             voltageToPercentage: {min: 2500, max: 3000},
             lowStatus: true,
             lowStatusReportingConfig: {min: "MIN", max: "MAX", change: null},
+        }),
+    testMode: () =>
+        boschGeneralSensorDeviceExtend.testMode({
+            testModeDescription:
+                "Activates the test mode. In this mode, the device blinks on every detected motion " +
+                "without any wait time in between to verify the installation. Please keep in mind " +
+                "that it can take up to 45 seconds for the test mode to be activated.",
         }),
     illuminance: () => m.illuminance({reporting: {min: "1_SECOND", max: 600, change: 3522}}),
     // The temperature sensor isn't used at all by Bosch on the BSEN-M.
@@ -2355,31 +2497,148 @@ export const boschBsenExtend = {
             isModernExtend: true,
         };
     },
-    testMode: (): ModernExtend => {
-        const testModeLookup = {
-            ON: true,
-            OFF: false,
+};
+//endregion
+
+//region Bosch BSEN-M (Water alarm)
+interface BoschWaterAlarmCluster {
+    attributes: {
+        /** ID: 3 | Type: BOOLEAN */
+        alarmOnMotion: number;
+    };
+    commands: {
+        /** ID: 0 */
+        muteAlarmControl: {
+            /** Type: UINT8 */
+            data: number;
         };
-        const enableTestMode = async (endpoint: Zh.Endpoint | Zh.Group) => {
-            await endpoint.command<"ssIasZone", "initCustomTestMode", BoschBsenIasZoneCluster>("ssIasZone", "initCustomTestMode", {
-                data: [0x00, 0x80],
-            });
+        /** ID: 1 */
+        muteAlarmControlResponse: {
+            /** Type: ENUM8 */
+            data: number;
+        };
+    };
+    commandResponses: never;
+}
+
+export const boschWaterAlarmExtend = {
+    waterAlarmCluster: () =>
+        m.deviceAddCustomCluster("boschWaterAlarm", {
+            ID: 0xfcac,
+            manufacturerCode: manufacturerOptions.manufacturerCode,
+            attributes: {
+                alarmOnMotion: {ID: 0x0003, type: Zcl.DataType.BOOLEAN},
+            },
+            commands: {
+                muteAlarmControl: {ID: 0x00, parameters: [{name: "data", type: Zcl.DataType.UINT8}]},
+                muteAlarmControlResponse: {ID: 0x01, parameters: [{name: "data", type: Zcl.DataType.ENUM8}]},
+            },
+            commandsResponse: {},
+        }),
+    changedSensitivityLevel: (): ModernExtend => {
+        const configure: Configure[] = [
+            m.setupConfigureForBinding("ssIasZone", "input"),
+            m.setupConfigureForReading("ssIasZone", ["numZoneSensitivityLevelsSupported", "currentZoneSensitivityLevel"]),
+            async (device, coordinatorEndpoint, definition) => {
+                const endpoint = device.getEndpoint(1);
+
+                // The write request is made when using the proprietary
+                // Bosch Smart Home Controller II as of 16-10-2025. Looks like
+                // the default value was too high, and they didn't want to
+                // push a firmware update. We mimic it here to avoid complaints.
+                await endpoint.write("ssIasZone", {currentZoneSensitivityLevel: 5});
+            },
+        ];
+        return {
+            configure,
+            isModernExtend: true,
+        };
+    },
+    waterAndTamperAlarm: () =>
+        m.iasZoneAlarm({
+            zoneType: "water_leak",
+            zoneAttributes: ["alarm_1", "tamper"],
+        }),
+    muteAlarmControl: (): ModernExtend => {
+        const muteAlarmControlLookup = {
+            UNMUTED: false,
+            MUTED: true,
         };
 
-        const disableTestMode = async (endpoint: Zh.Endpoint | Zh.Group) => {
-            await endpoint.command("ssIasZone", "initNormalOpMode", {});
+        const muteAlarmControlResponseLookup = {
+            muted: 0x00,
+            error: 0x01,
+            no_change: 0x02,
+            unmuted: 0x03,
         };
 
         const exposes: Expose[] = [
             e
-                .binary("test_mode", ea.ALL, utils.getFromLookupByValue(true, testModeLookup), utils.getFromLookupByValue(false, testModeLookup))
-                .withDescription(
-                    "Activate the test mode. In this mode, the device blinks on every detected motion without any wait time in between to verify the installation. Please keep in mind that it can take up to 45 seconds for the test mode to be activated.",
+                .binary(
+                    "water_leak_alarm_control",
+                    ea.ALL,
+                    utils.getFromLookupByValue(true, muteAlarmControlLookup),
+                    utils.getFromLookupByValue(false, muteAlarmControlLookup),
                 )
-                .withCategory("config"),
+                .withLabel("Mute water leak alarm")
+                .withDescription("In case of an water leak, you can mute and unmute the audible alarm here"),
+        ];
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ["water_leak_alarm_control"],
+                convertSet: async (entity, key, value, meta) => {
+                    if (value === utils.getFromLookupByValue(false, muteAlarmControlLookup)) {
+                        await entity.command<"boschWaterAlarm", "muteAlarmControl", BoschWaterAlarmCluster>(
+                            "boschWaterAlarm",
+                            "muteAlarmControl",
+                            {data: 0x00},
+                            manufacturerOptions,
+                        );
+                    } else {
+                        await entity.command<"boschWaterAlarm", "muteAlarmControl", BoschWaterAlarmCluster>(
+                            "boschWaterAlarm",
+                            "muteAlarmControl",
+                            {data: 0x01},
+                            manufacturerOptions,
+                        );
+                    }
+                },
+                convertGet: async (entity, key, meta) => {
+                    await entity.read("ssIasZone", ["zoneStatus"]);
+                },
+            },
         ];
 
         const fromZigbee = [
+            {
+                cluster: "boschWaterAlarm",
+                type: ["raw"],
+                convert: (model, msg, publish, options, meta) => {
+                    const command = msg.data[4];
+
+                    if (command !== 0x01) {
+                        return;
+                    }
+
+                    const muteAlarmControlResponse = msg.data[5];
+
+                    switch (muteAlarmControlResponse) {
+                        case muteAlarmControlResponseLookup.muted:
+                            logger.debug(`Alarm on device '${meta.device.ieeeAddr}' was muted`, NS);
+                            break;
+                        case muteAlarmControlResponseLookup.error:
+                            logger.error(`Alarm on device '${meta.device.ieeeAddr}' could not be muted right now (e.g., no active alarm)!`, NS);
+                            break;
+                        case muteAlarmControlResponseLookup.no_change:
+                            logger.debug(`Alarm on device '${meta.device.ieeeAddr}' is already in requested state`, NS);
+                            break;
+                        case muteAlarmControlResponseLookup.unmuted:
+                            logger.debug(`Alarm on device '${meta.device.ieeeAddr}' was unmuted`, NS);
+                            break;
+                    }
+                },
+            } satisfies Fz.Converter<"boschWaterAlarm", BoschWaterAlarmCluster, ["raw"]>,
             {
                 cluster: "ssIasZone",
                 type: ["commandStatusChangeNotification", "attributeReport", "readResponse"],
@@ -2392,42 +2651,42 @@ export const boschBsenExtend = {
 
                     const result: KeyValue = {};
 
-                    const testModeEnabled = (zoneStatus & (1 << 8)) > 0;
-                    result.test_mode = utils.getFromLookupByValue(testModeEnabled, testModeLookup);
+                    const alarmMuted = (zoneStatus & (1 << 1)) > 0;
+                    result.water_leak_alarm_control = utils.getFromLookupByValue(alarmMuted, muteAlarmControlLookup);
 
                     return result;
                 },
             } satisfies Fz.Converter<"ssIasZone", undefined, ["commandStatusChangeNotification", "attributeReport", "readResponse"]>,
         ];
 
-        const toZigbee: Tz.Converter[] = [
-            {
-                key: ["test_mode"],
-                convertSet: async (entity, key, value, meta) => {
-                    if (key === "test_mode") {
-                        if (value === utils.getFromLookupByValue(true, testModeLookup)) {
-                            await enableTestMode(entity);
-                        } else {
-                            await disableTestMode(entity);
-                        }
-                    }
-                },
-                convertGet: async (entity, key, meta) => {
-                    await entity.read("ssIasZone", ["zoneStatus"]);
-                },
-            },
-        ];
-
         const configure: Configure[] = [m.setupConfigureForBinding("ssIasZone", "input"), m.setupConfigureForReading("ssIasZone", ["zoneStatus"])];
 
         return {
             exposes,
-            fromZigbee,
             toZigbee,
+            fromZigbee,
             configure,
             isModernExtend: true,
         };
     },
+    alarmOnMotion: () =>
+        m.binary<"boschWaterAlarm", BoschWaterAlarmCluster>({
+            name: "alarm_on_motion",
+            cluster: "boschWaterAlarm",
+            attribute: "alarmOnMotion",
+            description: "If your water alarm is moved, an acoustic signal sounds",
+            valueOn: ["ON", 0x01],
+            valueOff: ["OFF", 0x00],
+            entityCategory: "config",
+        }),
+    testMode: () =>
+        boschGeneralSensorDeviceExtend.testMode({
+            testModeDescription:
+                "Activates the test mode. In this mode, the device acts like it would when " +
+                "detecting any water to verify the installation. Please keep in mind " +
+                "that it can take up to 10 seconds for the test mode to be activated.",
+            supportTimeout: true,
+        }),
 };
 //endregion
 
