@@ -355,10 +355,7 @@ interface BoschGeneralSensorDeviceIasZoneCluster {
         initCustomTestMode: {
             /** Type: UINT8 */
             testTimeout: number;
-            /** Type: ENUM8 | Known values are:
-             * - BSEN-M : 0x80 (changes the zoneStatus when test is activated)
-             * - BSEN-W: 0x00 (no change in zoneStatus)
-             * - BSD-2: 0x00 (changes the zoneStatus when test is activated) */
+            /** Type: ENUM8 | Known values are 0x80 (BSEN-M) and 0x00 (BSEN-W / BSD-2) */
             unknownParameter: number;
         };
         /** ID: 128 | Only used on BSD-2 */
