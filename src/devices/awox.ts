@@ -66,6 +66,14 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.light()],
     },
     {
+    zigbeeModel: ['EZMB-RGB-TW-CLB'],
+    model: 'EZMB-RGB-TW-CLB',
+    vendor: 'AwoX',
+    description: 'EGLO Zigbee RGB+TW Ceiling light',
+    extend: [m.deviceEndpoints({"endpoints":{"1":1,"3":3}}), m.light({"colorTemp":{"range":[153,370]},"color":{"modes":["xy","hs"],"enhancedHue":true}}), m.commandsOnOff(), m.commandsLevelCtrl(), m.commandsColorCtrl()],
+    meta: {"multiEndpoint":true},
+    },
+    {
         zigbeeModel: ["TLSR82xx"],
         model: "33951/33948",
         vendor: "AwoX",
