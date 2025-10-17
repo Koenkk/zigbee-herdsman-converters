@@ -1,5 +1,20 @@
 # Changelog
 
+## [25.48.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.47.0...v25.48.0) (2025-10-17)
+
+
+### Features
+
+* Schneider Electric EKO07259: update temperature range for thermostat ([#10387](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10387)) ([6ad1dba](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6ad1dba4e4dcfe61d082dba5653cfff3ef7d6355))
+
+
+### Bug Fixes
+
+* **detect:** SPZB0001 20231019 as Eurotronic COZB0001 ([#10386](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10386)) ([257edf3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/257edf397452a438d9b46f7b349315376c69f7db))
+* **ignore:** Rename `ZigBee` -&gt; `Zigbee` ([#10384](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10384)) ([2ad87db](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2ad87db740e3806e87bbea385e26802bb874df6b))
+* Sinopé TH1123ZB-G2: fix energy value ([#10389](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10389)) ([5947412](https://github.com/Koenkk/zigbee-herdsman-converters/commit/594741218d1f969343ee3678de790cdc0785c292))
+* Tuya _TZ3000_okaz9tjs: fix configure failing https://github.com/Koenkk/zigbee2mqtt/issues/29034 ([7b3149f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7b3149f31a4a4ee8e4e6ad7f81f8284a24cdb49b))
+
 ## [25.47.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.46.0...v25.47.0) (2025-10-16)
 
 
