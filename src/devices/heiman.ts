@@ -5,8 +5,8 @@ import * as constants from "../lib/constants";
 import * as exposes from "../lib/exposes";
 import {
     addCustomClusterHeimanSpecificAirQuality,
-    addCustomClusterHeimanSpecificScenes,
     addCustomClusterHeimanSpecificInfraRedRemote,
+    addCustomClusterHeimanSpecificScenes,
 } from "../lib/heiman";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
