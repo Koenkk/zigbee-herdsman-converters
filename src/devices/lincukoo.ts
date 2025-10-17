@@ -327,4 +327,13 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
+
+    {
+    zigbeeModel: ['CZB01'],
+    model: 'CZB01',
+    vendor: 'Lincukoo',
+    description: 'Wireless switch with 1 button',
+    extend: [m.battery(), m.commandsOnOff()],
+    meta: {},
+    },
 ];
