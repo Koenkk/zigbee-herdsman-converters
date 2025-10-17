@@ -1,4 +1,4 @@
-import {Zcl} from "zigbee-herdsman";
+import {Zcl, ZSpec} from "zigbee-herdsman";
 import type {SendPolicy} from "zigbee-herdsman/dist/controller/tstype";
 import type {TPartialClusterAttributes} from "zigbee-herdsman/dist/zspec/zcl/definition/clusters-types";
 import * as fz from "../converters/fromZigbee";
@@ -10,6 +10,7 @@ import {repInterval} from "./constants";
 import {logger} from "./logger";
 import type {ElectricityMeterArgs} from "./modernExtend";
 import {payload} from "./reporting";
+import * as globalStore from "./store";
 import type {
     Configure,
     DefinitionExposesFunction,
@@ -343,16 +344,29 @@ export const boschGeneralEnergyDeviceExtend = {
 
 //region Generally used Bosch functionality on sensor devices
 interface BoschGeneralSensorDeviceIasZoneCluster {
-    attributes: never;
+    attributes: {
+        /** ID: 36609 | Type: UINT8 | Only used on BSD-2 with default value 0 */
+        unknownAttribute1: number;
+        /** ID: 36614 | Type: UINT8 | Only used on BSD-2 with default value 0 */
+        unknownAttribute2: number;
+    };
     commands: {
         /** ID: 2 */
         initCustomTestMode: {
             /** Type: UINT8 */
-            timeoutInSeconds: number;
-            /** Type: ENUM8 | Known values are
-             * 0x80 (BSEN-M - changes the zoneStatus when test is activated) and
-             * 0x00 (BSEN-W - no change in zoneStatus). */
-            reportTestInZoneStatus: number;
+            testTimeout: number;
+            /** Type: ENUM8 | Known values are:
+             * - BSEN-M : 0x80 (changes the zoneStatus when test is activated)
+             * - BSEN-W: 0x00 (no change in zoneStatus)
+             * - BSD-2: 0x00 (changes the zoneStatus when test is activated) */
+            unknownParameter: number;
+        };
+        /** ID: 128 | Only used on BSD-2 */
+        alarmControl: {
+            /** Type: ENUM8 */
+            alarmMode: number;
+            /** Type: UINT8 */
+            alarmTimeout: number;
         };
     };
     commandResponses: never;
@@ -362,32 +376,40 @@ export const boschGeneralSensorDeviceExtend = {
     customIasZoneCluster: () =>
         m.deviceAddCustomCluster("ssIasZone", {
             ID: Zcl.Clusters.ssIasZone.ID,
-            attributes: {},
+            attributes: {
+                unknownAttribute1: {ID: 0x8f01, type: Zcl.DataType.UINT8, manufacturerCode: manufacturerOptions.manufacturerCode},
+                unknownAttribute2: {ID: 0x8f06, type: Zcl.DataType.UINT8, manufacturerCode: manufacturerOptions.manufacturerCode},
+            },
             commands: {
                 initCustomTestMode: {
                     ID: 0x02,
                     parameters: [
-                        {name: "timeoutInSeconds", type: Zcl.DataType.UINT8},
-                        {name: "reportTestInZoneStatus", type: Zcl.DataType.ENUM8},
+                        {name: "testTimeout", type: Zcl.DataType.UINT8},
+                        {name: "unknownParameter", type: Zcl.DataType.ENUM8},
+                    ],
+                },
+                alarmControl: {
+                    ID: 0x80,
+                    parameters: [
+                        {name: "alarmMode", type: Zcl.DataType.ENUM8},
+                        {name: "alarmTimeout", type: Zcl.DataType.UINT8},
                     ],
                 },
             },
             commandsResponse: {},
         }),
-    testMode: (args: {testModeDescription: string; supportTimeout?: boolean}): ModernExtend => {
-        const {testModeDescription, supportTimeout = false} = args;
+    testMode: (args: {testModeDescription: string; supportTimeout?: boolean; defaultTimeout?: number; zoneStatusBit?: number}): ModernExtend => {
+        const {testModeDescription, supportTimeout = false, defaultTimeout = 0, zoneStatusBit = 8} = args;
 
         const testModeLookup = {
             ON: true,
             OFF: false,
         };
 
-        const defaultTimeout = 3;
-
-        const enableTestMode = async (endpoint: Zh.Endpoint | Zh.Group, timeout: number) => {
+        const enableTestMode = async (endpoint: Zh.Endpoint | Zh.Group, timeoutInSeconds: number) => {
             await endpoint.command<"ssIasZone", "initCustomTestMode", BoschGeneralSensorDeviceIasZoneCluster>("ssIasZone", "initCustomTestMode", {
-                timeoutInSeconds: timeout,
-                reportTestInZoneStatus: 0x80,
+                testTimeout: timeoutInSeconds,
+                unknownParameter: supportTimeout ? 0x00 : 0x80,
             });
         };
 
@@ -427,7 +449,7 @@ export const boschGeneralSensorDeviceExtend = {
 
                     const result: KeyValue = {};
 
-                    const testModeEnabled = (zoneStatus & (1 << 8)) > 0;
+                    const testModeEnabled = (zoneStatus & (1 << zoneStatusBit)) > 0;
                     result.test_mode = utils.getFromLookupByValue(testModeEnabled, testModeLookup);
 
                     return result;
@@ -441,22 +463,18 @@ export const boschGeneralSensorDeviceExtend = {
                 convertSet: async (entity, key, value, meta) => {
                     if (key === "test_mode") {
                         if (value === utils.getFromLookupByValue(true, testModeLookup)) {
-                            let timeout: number;
+                            let timeoutInSeconds: number;
 
-                            if (supportTimeout) {
-                                const currentTimeout = meta.state.test_mode_timeout;
+                            const currentTimeout = meta.state.test_mode_timeout;
 
-                                if (currentTimeout == null) {
-                                    timeout = defaultTimeout;
-                                    meta.publish({test_mode_timeout: timeout});
-                                } else {
-                                    timeout = utils.toNumber(currentTimeout);
-                                }
+                            if (currentTimeout == null) {
+                                timeoutInSeconds = defaultTimeout;
+                                meta.publish({test_mode_timeout: timeoutInSeconds});
                             } else {
-                                timeout = 0;
+                                timeoutInSeconds = utils.toNumber(currentTimeout);
                             }
 
-                            await enableTestMode(entity, timeout);
+                            await enableTestMode(entity, timeoutInSeconds);
                         } else {
                             await disableTestMode(entity);
                         }
@@ -471,7 +489,7 @@ export const boschGeneralSensorDeviceExtend = {
                     }
 
                     if (key === "test_mode_timeout" && meta.state.test_mode_timeout == null) {
-                        meta.publish({test_mode_timeout: supportTimeout ? defaultTimeout : 0});
+                        meta.publish({test_mode_timeout: defaultTimeout});
                     }
                 },
             },
@@ -2686,7 +2704,215 @@ export const boschWaterAlarmExtend = {
                 "detecting any water to verify the installation. Please keep in mind " +
                 "that it can take up to 10 seconds for the test mode to be activated.",
             supportTimeout: true,
+            defaultTimeout: 3,
         }),
+};
+//endregion
+
+//region Bosch BSD-2 (Smoke alarm II)
+export const boschSmokeAlarmExtend = {
+    enforceDefaultSensitivityLevel: (): ModernExtend => {
+        const onEvent: OnEvent.Handler[] = [
+            async (event) => {
+                if (event.type !== "start") {
+                    return;
+                }
+
+                const device = event.data.device;
+                const endpoint = device.getEndpoint(1);
+                const sensitivityLevelResponse = await endpoint.read("ssIasZone", ["currentZoneSensitivityLevel"]);
+
+                // In previous implementations, the user was able to change the
+                // sensitivity level of the smoke detector. That is not supported
+                // when using the Bosch Smart Home Controller II. As the previous
+                // creator assumed that Bosch follows the ZCL specification for
+                // the sensitivity level (which isn't the case), this may result
+                // in an unintentionally lowered sensitivity level. Therefore,
+                // we enforce the manufacturer's default value here for safety
+                // reasons, as we talk about a device that should save lives...
+                if (sensitivityLevelResponse.currentZoneSensitivityLevel !== 0) {
+                    await endpoint.write("ssIasZone", {currentZoneSensitivityLevel: 0x00});
+                }
+            },
+        ];
+        return {
+            onEvent,
+            isModernExtend: true,
+        };
+    },
+    smokeAlarmAndButtonPushes: () =>
+        m.iasZoneAlarm({
+            zoneType: "smoke",
+            zoneAttributes: ["alarm_1"],
+            manufacturerZoneAttributes: [
+                {
+                    bit: 11,
+                    name: "smoke_alarm_silenced",
+                    valueOn: true,
+                    valueOff: false,
+                    description:
+                        "Indicates whether an smoke alarm was silenced on the device itself for 10 minutes. " +
+                        "Please keep in mind that the smoke detection is being disabled during that " +
+                        "time period as well.",
+                    entityCategory: "diagnostic",
+                },
+                {
+                    bit: 8,
+                    name: "button_pushed",
+                    valueOn: true,
+                    valueOff: false,
+                    description:
+                        "Indicates whether the button on the device is being pushed for at least " +
+                        "3 seconds (e.g., to trigger a test alarm or silence a smoke alarm)",
+                    entityCategory: "diagnostic",
+                },
+            ],
+        }),
+    alarmControl: (): ModernExtend => {
+        const alarmModeLookup = {
+            manual_smoke_alarm: 0x00,
+            manual_burglar_alarm: 0x01,
+        };
+
+        const onOffLookup = {
+            OFF: false,
+            ON: true,
+        };
+
+        const defaultBroadcastAlarms: boolean = true;
+
+        function setDefaultBroadcastAlarms(meta: Tz.Meta) {
+            const newBroadcastStatus = utils.getFromLookupByValue(defaultBroadcastAlarms, onOffLookup);
+            meta.publish({broadcast_alarms: newBroadcastStatus});
+        }
+
+        async function sendAlarmControlMessage(endpoint: Zh.Endpoint, broadcastAlarm: boolean, alarmMode: number, timeoutInSeconds: number) {
+            if (broadcastAlarm === true) {
+                await endpoint.zclCommandBroadcast<"ssIasZone", "alarmControl", BoschGeneralSensorDeviceIasZoneCluster>(
+                    255,
+                    ZSpec.BroadcastAddress.SLEEPY,
+                    "ssIasZone",
+                    "alarmControl",
+                    {alarmMode: alarmMode, alarmTimeout: timeoutInSeconds},
+                    manufacturerOptions,
+                );
+            } else {
+                await endpoint.command<"ssIasZone", "alarmControl", BoschGeneralSensorDeviceIasZoneCluster>(
+                    "ssIasZone",
+                    "alarmControl",
+                    {alarmMode: alarmMode, alarmTimeout: timeoutInSeconds},
+                    manufacturerOptions,
+                );
+            }
+        }
+
+        const exposes: Expose[] = [
+            e
+                .binary("manual_smoke_alarm", ea.ALL, utils.getFromLookupByValue(true, onOffLookup), utils.getFromLookupByValue(false, onOffLookup))
+                .withDescription("Indicates whether the smoke alarm siren is being manually activated on the device"),
+            e
+                .binary("manual_burglar_alarm", ea.ALL, utils.getFromLookupByValue(true, onOffLookup), utils.getFromLookupByValue(false, onOffLookup))
+                .withDescription("Indicates whether the burglar alarm siren is being manually activated on the device"),
+            e
+                .binary("broadcast_alarms", ea.ALL, utils.getFromLookupByValue(true, onOffLookup), utils.getFromLookupByValue(false, onOffLookup))
+                .withLabel("Broadcast alarms")
+                .withDescription(
+                    "Broadcast manual alarm state changes to all BSD-2 devices on the network. Please keep in mind " +
+                        "that a detected smoke alarm is not being transmitted automatically to other devices. " +
+                        "To achieve that, you must set up an automation, e.g., in Home Assistant.",
+                )
+                .withCategory("config"),
+        ];
+
+        const fromZigbee = [
+            {
+                cluster: "ssIasZone",
+                type: ["commandStatusChangeNotification", "attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    const zoneStatus = "zonestatus" in msg.data ? msg.data.zonestatus : msg.data.zoneStatus;
+
+                    if (zoneStatus === undefined) {
+                        return;
+                    }
+
+                    const result: KeyValue = {};
+
+                    const smokeAlarmEnabled = (zoneStatus & (1 << 1)) > 0;
+                    result.manual_smoke_alarm = utils.getFromLookupByValue(smokeAlarmEnabled, onOffLookup);
+
+                    const burglarAlarmEnabled = (zoneStatus & (1 << 7)) > 0;
+                    result.manual_burglar_alarm = utils.getFromLookupByValue(burglarAlarmEnabled, onOffLookup);
+
+                    return result;
+                },
+            } satisfies Fz.Converter<"ssIasZone", undefined, ["commandStatusChangeNotification", "attributeReport", "readResponse"]>,
+        ];
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ["manual_smoke_alarm", "manual_burglar_alarm", "broadcast_alarms"],
+                convertSet: async (entity, key, value, meta) => {
+                    if (key === "manual_smoke_alarm" || key === "manual_burglar_alarm") {
+                        let broadcastAlarm: boolean;
+
+                        try {
+                            broadcastAlarm = utils.getFromLookup(meta.state.broadcast_alarms, onOffLookup);
+                        } catch {
+                            setDefaultBroadcastAlarms(meta);
+                            broadcastAlarm = defaultBroadcastAlarms;
+                        }
+
+                        const alarmMode = utils.getFromLookup(key, alarmModeLookup);
+                        const enableAlarm = utils.getFromLookup(value, onOffLookup);
+                        const timeoutInSeconds = enableAlarm ? 0xff : 0;
+
+                        utils.assertEndpoint(entity);
+                        await sendAlarmControlMessage(entity, broadcastAlarm, alarmMode, timeoutInSeconds);
+                        clearTimeout(globalStore.getValue("boschSmokeAlarm", "alarmTimer"));
+
+                        if (enableAlarm) {
+                            const alarmTimer = setTimeout(
+                                async () => await sendAlarmControlMessage(entity, broadcastAlarm, alarmMode, timeoutInSeconds),
+                                (timeoutInSeconds - 60) * 1000,
+                            );
+                            globalStore.putValue("boschSmokeAlarm", "alarmTimer", alarmTimer);
+                        }
+                    }
+                    if (key === "broadcast_alarms") {
+                        return {state: {broadcast_alarms: value}};
+                    }
+                },
+                convertGet: async (entity, key, meta) => {
+                    if (key === "manual_smoke_alarm" || key === "manual_burglar_alarm") {
+                        await entity.read("ssIasZone", ["zoneStatus"]);
+                    }
+                    if (key === "broadcast_alarms") {
+                        if (meta.state[key] === undefined) {
+                            setDefaultBroadcastAlarms(meta);
+                        }
+                    }
+                },
+            },
+        ];
+
+        return {
+            exposes,
+            fromZigbee,
+            toZigbee,
+            isModernExtend: true,
+        };
+    },
+    testMode: () =>
+        boschGeneralSensorDeviceExtend.testMode({
+            testModeDescription:
+                "Check the function of the smoke alarm. Pay attention to the alarm sound " +
+                "and the flashing of the alarm LED. Please keep in mind that it can take " +
+                "up to 10 seconds for the test mode to be activated.",
+            supportTimeout: true,
+            defaultTimeout: 5,
+            zoneStatusBit: 10,
+        }),
+    battery: () => boschGeneralExtend.batteryWithPercentageAndLowStatus({percentageReportingConfig: {min: "MIN", max: "MAX", change: 1}}),
 };
 //endregion
 
