@@ -2883,10 +2883,8 @@ export const boschSmokeAlarmExtend = {
                     if (key === "manual_smoke_alarm" || key === "manual_burglar_alarm") {
                         await entity.read("ssIasZone", ["zoneStatus"]);
                     }
-                    if (key === "broadcast_alarms") {
-                        if (meta.state[key] === undefined) {
-                            setDefaultBroadcastAlarms(meta);
-                        }
+                    if (key === "broadcast_alarms" && meta.state[key] === undefined) {
+                        setDefaultBroadcastAlarms(meta);
                     }
                 },
             },
