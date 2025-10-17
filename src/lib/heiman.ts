@@ -53,7 +53,7 @@ export function addCustomClusterHeimanSpecificScenes(): ModernExtend {
         ...manufacturerOptions,
         // from HS2SS-3.0海曼智能情景开关API文档-V01
         ID: 0xfc80,
-        manufacturerCode: ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD,
+        manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD,
         attributes: {},
         commands: {
             cinema: {
@@ -86,7 +86,7 @@ export function addCustomClusterHeimanSpecificInfraRedRemote(): ModernExtend {
         ...manufacturerOptions,
         // from HS2IRC-3.0海曼智能红外转发控制器API-V01文档
         ID: 0xfc82,
-        manufacturerCode: ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD,
+        manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD,
         attributes: {},
         commands: {
             sendKey: {
