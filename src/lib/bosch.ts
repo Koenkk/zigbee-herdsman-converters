@@ -2716,19 +2716,21 @@ export const boschSmokeAlarmExtend = {
                 }
 
                 const device = event.data.device;
-                const endpoint = device.getEndpoint(1);
-                const sensitivityLevelResponse = await endpoint.read("ssIasZone", ["currentZoneSensitivityLevel"]);
 
-                // In previous implementations, the user was able to change the
-                // sensitivity level of the smoke detector. That is not supported
-                // when using the Bosch Smart Home Controller II. As the previous
-                // creator assumed that Bosch follows the ZCL specification for
-                // the sensitivity level (which isn't the case), this may result
-                // in an unintentionally lowered sensitivity level. Therefore,
-                // we enforce the manufacturer's default value here for safety
-                // reasons, as we talk about a device that should save lives...
-                if (sensitivityLevelResponse.currentZoneSensitivityLevel !== 0) {
+                if (device.meta.defaultSensitivityLevelApplied !== true) {
+                    const endpoint = device.getEndpoint(1);
+
+                    // In previous implementations, the user was able to change the
+                    // sensitivity level of the smoke detector. That is not supported
+                    // when using the Bosch Smart Home Controller II. As the previous
+                    // creator assumed that Bosch follows the ZCL specification for
+                    // the sensitivity level (which isn't the case), this may result
+                    // in an unintentionally lowered sensitivity level. Therefore,
+                    // we enforce the manufacturer's default value here for safety
+                    // reasons, as we talk about a device that should save lives...
                     await endpoint.write("ssIasZone", {currentZoneSensitivityLevel: 0x00});
+
+                    device.meta.defaultSensitivityLevelApplied = true;
                 }
             },
         ];
