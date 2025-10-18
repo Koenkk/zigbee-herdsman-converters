@@ -1752,7 +1752,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.temperature(), e.humidity(), e.co2(), e.voc().withUnit("ppb"), e.formaldehyd().withUnit("µg/m³")],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_rbbx5mfq"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_rbbx5mfq", "_TZE204_rbbx5mfq"]),
         model: "TS0601_illuminance_temperature_humidity_sensor_2",
         vendor: "Tuya",
         description: "Illuminance sensor",
