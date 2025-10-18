@@ -2726,12 +2726,12 @@ export const boschSmokeAlarmExtend = {
 
                 const device = event.data.device;
 
-                if (device.meta.defaultSensitivityLevelApplied !== true) {
+                if (device.meta.enforceDefaultSensitivityLevelApplied !== true) {
                     const endpoint = device.getEndpoint(1);
 
                     await endpoint.write("ssIasZone", {currentZoneSensitivityLevel: 0x00});
 
-                    device.meta.defaultSensitivityLevelApplied = true;
+                    device.meta.enforceDefaultSensitivityLevelApplied = true;
                 }
             },
         ];
