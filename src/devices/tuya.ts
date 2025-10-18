@@ -11378,6 +11378,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZG-204ZM",
         vendor: "Tuya",
         description: "PIR 24Ghz human presence sensor",
+        whiteLabel: [tuya.whitelabel("Tuya", "ZG-204ZM", "Presence radar and motion sensor", ["HOBEIAN"])],
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         exposes: [
