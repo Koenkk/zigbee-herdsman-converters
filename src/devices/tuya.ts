@@ -1585,7 +1585,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_s1xgth2u"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_s1xgth2u", "_TZE200_t3xd7l44"]),
         model: "TS0601_temperature_humidity_sensor_3",
         vendor: "Tuya",
         description: "Temperature & humidity sensor",
@@ -1600,23 +1600,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [19, "temperature_sensitivity", tuya.valueConverter.raw], // maybe? commented this out for now
             ],
         },
-    },
-    {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_t3xd7l44"]),
-        model: "TS0601_temperature_humidity_sensor_with_clock",
-        vendor: "Tuya",
-        description: "Temperature & humidity sensor",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true, queryOnConfigure: true})],
-        exposes: [e.temperature(), e.humidity(), e.battery(), tuya.exposes.temperatureUnit()],
-        meta: {
-            tuyaDatapoints: [
-                [1, "temperature", tuya.valueConverter.divideBy10],
-                [2, "humidity", tuya.valueConverter.raw],
-                [4, "battery", tuya.valueConverter.raw], // maybe?
-                [9, "temperature_unit", tuya.valueConverter.temperatureUnitEnum],
-                [19, "temperature_sensitivity", tuya.valueConverter.raw], // maybe? commented this out for now
-            ],
-        },
+        whiteLabel: [tuya.whitelabel("Tuya", "TZE200_t3xd7l44", "Temperature and humidity sensor with clock", ["_TZE200_t3xd7l44"])],
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_9ern5sfh"]),
