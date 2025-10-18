@@ -283,4 +283,11 @@ export const definitions: DefinitionWithExtend[] = [
             shellyModernExtend.shellyWiFiSetup(),
         ],
     },
+    {
+        fingerprint: [{modelID: "Ecowitt WS90", manufacturerName: "Shelly"}],
+        model: "WS90",
+        vendor: "Shelly",
+        description: "Weather station",
+        extend: [m.battery(), m.illuminance(), m.temperature(), m.pressure(), m.humidity()],
+    },
 ];
