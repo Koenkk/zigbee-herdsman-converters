@@ -398,11 +398,11 @@ export const boschGeneralSensorDeviceExtend = {
     testMode: (args: {
         testModeDescription: string;
         sensitivityLevelToUse: number;
-        supportTimeout?: boolean;
+        variableTimeoutSupported?: boolean;
         defaultTimeout?: number;
         zoneStatusBit?: number;
     }): ModernExtend => {
-        const {testModeDescription, sensitivityLevelToUse, supportTimeout = false, defaultTimeout = 0, zoneStatusBit = 8} = args;
+        const {testModeDescription, sensitivityLevelToUse, variableTimeoutSupported = false, defaultTimeout = 0, zoneStatusBit = 8} = args;
 
         const testModeLookup = {
             ON: true,
@@ -427,7 +427,7 @@ export const boschGeneralSensorDeviceExtend = {
                 .withCategory("config"),
         ];
 
-        if (supportTimeout) {
+        if (variableTimeoutSupported) {
             exposes.push(
                 e
                     .numeric("test_mode_timeout", ea.ALL)
@@ -2708,7 +2708,7 @@ export const boschWaterAlarmExtend = {
                 "detecting any water to verify the installation. Please keep in mind " +
                 "that it can take up to 10 seconds for the test mode to be activated.",
             sensitivityLevelToUse: 0x00,
-            supportTimeout: true,
+            variableTimeoutSupported: true,
             defaultTimeout: 3,
         }),
 };
@@ -2921,7 +2921,7 @@ export const boschSmokeAlarmExtend = {
                 "and the flashing of the alarm LED. Please keep in mind that it can take " +
                 "up to 10 seconds for the test mode to be activated.",
             sensitivityLevelToUse: 0x00,
-            supportTimeout: true,
+            variableTimeoutSupported: true,
             defaultTimeout: 5,
             zoneStatusBit: 10,
         }),
