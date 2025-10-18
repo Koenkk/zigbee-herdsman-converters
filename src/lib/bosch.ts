@@ -26,7 +26,7 @@ import type {
     Zh,
 } from "./types";
 import * as utils from "./utils";
-import {toNumber} from "./utils";
+import {sleep, toNumber} from "./utils";
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -2796,14 +2796,20 @@ export const boschSmokeAlarmExtend = {
 
         async function sendAlarmControlMessage(endpoint: Zh.Endpoint, broadcastAlarm: boolean, alarmMode: number, timeoutInSeconds: number) {
             if (broadcastAlarm === true) {
-                await endpoint.zclCommandBroadcast<"ssIasZone", "alarmControl", BoschGeneralSensorDeviceIasZoneCluster>(
-                    255,
-                    ZSpec.BroadcastAddress.SLEEPY,
-                    "ssIasZone",
-                    "alarmControl",
-                    {alarmMode: alarmMode, alarmTimeout: timeoutInSeconds},
-                    manufacturerOptions,
-                );
+                // Bosch sends broadcast messages two times with 4 seconds in between to
+                // ensure all sleepy devices receive them. We mimic the same pattern here.
+                for (let index = 0; index < 2; index++) {
+                    await endpoint.zclCommandBroadcast<"ssIasZone", "alarmControl", BoschGeneralSensorDeviceIasZoneCluster>(
+                        255,
+                        ZSpec.BroadcastAddress.SLEEPY,
+                        "ssIasZone",
+                        "alarmControl",
+                        {alarmMode: alarmMode, alarmTimeout: timeoutInSeconds},
+                        manufacturerOptions,
+                    );
+
+                    await sleep(4000);
+                }
             } else {
                 await endpoint.command<"ssIasZone", "alarmControl", BoschGeneralSensorDeviceIasZoneCluster>(
                     "ssIasZone",
@@ -2872,7 +2878,7 @@ export const boschSmokeAlarmExtend = {
 
                         const alarmMode = utils.getFromLookup(key, alarmModeLookup);
                         const enableAlarm = utils.getFromLookup(value, onOffLookup);
-                        const timeoutInSeconds = enableAlarm ? 0xff : 0;
+                        const timeoutInSeconds = enableAlarm ? 0xf0 : 0;
 
                         utils.assertEndpoint(entity);
                         await sendAlarmControlMessage(entity, broadcastAlarm, alarmMode, timeoutInSeconds);
