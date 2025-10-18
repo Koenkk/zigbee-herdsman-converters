@@ -10,6 +10,7 @@ import {
     boschGeneralExtend,
     boschGeneralSensorDeviceExtend,
     boschSmartPlugExtend,
+    boschSmokeAlarmExtend,
     boschThermostatExtend,
     boschWaterAlarmExtend,
     manufacturerOptions,
@@ -167,98 +168,6 @@ const boschBmctDzSettings = {
 };
 
 const boschExtend = {
-    smokeAlarm: (): ModernExtend => {
-        const smokeAlarm = {
-            OFF: 0x0000,
-            ON: 0x3c00, // 15360 or 46080 works
-        };
-        const burglarAlarm = {
-            OFF: 0x0001,
-            ON: 0xb401, // 46081
-        };
-        const exposes: Expose[] = [
-            e.binary("smoke", ea.STATE, true, false).withDescription("Indicates whether the device detected smoke"),
-            e
-                .binary("test", ea.STATE, true, false)
-                .withDescription("Indicates whether the device is currently performing a test")
-                .withCategory("diagnostic"),
-            e.binary("alarm_smoke", ea.ALL, true, false).withDescription("Toggle the smoke alarm siren").withCategory("config"),
-            e.binary("alarm_burglar", ea.ALL, true, false).withDescription("Toggle the burglar alarm siren").withCategory("config"),
-        ];
-        const fromZigbee = [
-            {
-                cluster: "ssIasZone",
-                type: ["commandStatusChangeNotification", "attributeReport", "readResponse"],
-                convert: (model, msg, publish, options, meta) => {
-                    const zoneStatus = "zonestatus" in msg.data ? msg.data.zonestatus : msg.data.zoneStatus;
-                    if (zoneStatus !== undefined) {
-                        return {
-                            smoke: (zoneStatus & 1) > 0,
-                            alarm_smoke: (zoneStatus & (1 << 1)) > 0,
-                            battery_low: (zoneStatus & (1 << 3)) > 0,
-                            supervision_reports: (zoneStatus & (1 << 4)) > 0,
-                            restore_reports: (zoneStatus & (1 << 5)) > 0,
-                            alarm_burglar: (zoneStatus & (1 << 7)) > 0,
-                            test: (zoneStatus & (1 << 8)) > 0,
-                            alarm_silenced: (zoneStatus & (1 << 11)) > 0,
-                        };
-                    }
-                },
-            } satisfies Fz.Converter<"ssIasZone", undefined, ["commandStatusChangeNotification", "attributeReport", "readResponse"]>,
-        ];
-        const toZigbee: Tz.Converter[] = [
-            {
-                key: ["alarm_smoke", "alarm_burglar"],
-                convertSet: async (entity, key, value, meta) => {
-                    if (key === "alarm_smoke") {
-                        let transformedValue = "OFF";
-                        if (value === true) {
-                            transformedValue = "ON";
-                        }
-                        const index = utils.getFromLookup(transformedValue, smokeAlarm);
-                        await entity.command<"ssIasZone", "boschSmokeAlarmSiren", BoschSmokeAlarmSiren>(
-                            "ssIasZone",
-                            "boschSmokeAlarmSiren",
-                            {data: index},
-                            manufacturerOptions,
-                        );
-                        return {state: {alarm_smoke: value}};
-                    }
-                    if (key === "alarm_burglar") {
-                        let transformedValue = "OFF";
-                        if (value === true) {
-                            transformedValue = "ON";
-                        }
-                        const index = utils.getFromLookup(transformedValue, burglarAlarm);
-                        await entity.command<"ssIasZone", "boschSmokeAlarmSiren", BoschSmokeAlarmSiren>(
-                            "ssIasZone",
-                            "boschSmokeAlarmSiren",
-                            {data: index},
-                            manufacturerOptions,
-                        );
-                        return {state: {alarm_burglar: value}};
-                    }
-                },
-                convertGet: async (entity, key, meta) => {
-                    switch (key) {
-                        case "alarm_smoke":
-                        case "alarm_burglar":
-                        case "zone_status":
-                            await entity.read("ssIasZone", ["zoneStatus"]);
-                            break;
-                        default:
-                            throw new Error(`Unhandled key boschExtend.smokeAlarm.toZigbee.convertGet ${key}`);
-                    }
-                },
-            },
-        ];
-        return {
-            exposes,
-            fromZigbee,
-            toZigbee,
-            isModernExtend: true,
-        };
-    },
     broadcastAlarm: (): ModernExtend => {
         const sirenState = {
             smoke_off: 0x0000,
@@ -735,46 +644,13 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Bosch",
         description: "Smoke alarm II",
         extend: [
-            m.deviceAddCustomCluster("ssIasZone", {
-                ID: Zcl.Clusters.ssIasZone.ID,
-                attributes: {},
-                commands: {
-                    boschSmokeAlarmSiren: {
-                        ID: 0x80,
-                        parameters: [{name: "data", type: Zcl.DataType.UINT16}],
-                    },
-                },
-                commandsResponse: {},
-            }),
-            boschExtend.smokeAlarm(),
-            m.battery({
-                percentage: true,
-                lowStatus: false,
-            }),
-            m.enumLookup({
-                name: "sensitivity",
-                cluster: "ssIasZone",
-                attribute: "currentZoneSensitivityLevel",
-                description: "Sensitivity of the smoke detector",
-                lookup: {
-                    low: 0x00,
-                    medium: 0x01,
-                    high: 0x02,
-                },
-                entityCategory: "config",
-            }),
-            boschExtend.broadcastAlarm(),
-            m.bindCluster({
-                cluster: "genPollCtrl",
-                clusterType: "input",
-            }),
+            boschSmokeAlarmExtend.enforceDefaultSensitivityLevel(),
+            boschGeneralSensorDeviceExtend.customIasZoneCluster(),
+            boschSmokeAlarmExtend.smokeAlarmAndButtonPushes(),
+            boschSmokeAlarmExtend.alarmControl(),
+            boschSmokeAlarmExtend.testMode(),
+            boschSmokeAlarmExtend.battery(),
         ],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await endpoint.read("genPowerCfg", ["batteryPercentageRemaining"]);
-            await endpoint.read("ssIasZone", ["zoneStatus"]);
-            await endpoint.read("ssIasZone", ["currentZoneSensitivityLevel"]);
-        },
     },
     {
         zigbeeModel: [
