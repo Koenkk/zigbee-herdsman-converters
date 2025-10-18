@@ -2708,6 +2708,15 @@ export const boschWaterAlarmExtend = {
 
 //region Bosch BSD-2 (Smoke alarm II)
 export const boschSmokeAlarmExtend = {
+    /** In previous implementations, the user was able to change the
+     * sensitivity level of the smoke detector. That is not supported
+     * when using the Bosch Smart Home Controller II. As the previous
+     * creator assumed that Bosch follows the ZCL specification for
+     * the sensitivity level (which isn't the case), this may result
+     * in an unintentionally lowered sensitivity level. Therefore,
+     * we set the manufacturer's default value here once to reverse
+     * any previous modifications for safety reasons, as we talk
+     * about a device that should save lives... */
     enforceDefaultSensitivityLevel: (): ModernExtend => {
         const onEvent: OnEvent.Handler[] = [
             async (event) => {
@@ -2720,14 +2729,6 @@ export const boschSmokeAlarmExtend = {
                 if (device.meta.defaultSensitivityLevelApplied !== true) {
                     const endpoint = device.getEndpoint(1);
 
-                    // In previous implementations, the user was able to change the
-                    // sensitivity level of the smoke detector. That is not supported
-                    // when using the Bosch Smart Home Controller II. As the previous
-                    // creator assumed that Bosch follows the ZCL specification for
-                    // the sensitivity level (which isn't the case), this may result
-                    // in an unintentionally lowered sensitivity level. Therefore,
-                    // we enforce the manufacturer's default value here for safety
-                    // reasons, as we talk about a device that should save lives...
                     await endpoint.write("ssIasZone", {currentZoneSensitivityLevel: 0x00});
 
                     device.meta.defaultSensitivityLevelApplied = true;
