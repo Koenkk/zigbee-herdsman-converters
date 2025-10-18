@@ -124,8 +124,8 @@ export const definitions: DefinitionWithExtend[] = [
         ota: {manufacturerName: "SalusControls"},
     },
     {
-        zigbeeModel: ["FC600"],
-        model: "FC600",
+        zigbeeModel: ["FC600", "FC600NH"],
+        model: "FC600/FC600NH",
         vendor: "Salus Controls",
         description: "Fan coil thermostat",
         extend: [
