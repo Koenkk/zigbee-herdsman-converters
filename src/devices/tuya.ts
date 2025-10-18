@@ -7621,12 +7621,13 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0601_smoke_co",
         vendor: "Tuya",
         description: "Dual Smoke CO sensor",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime,
         configure: tuya.configureMagicPacket,
         exposes: [
-            e.enum("smoke", ea.STATE, ["alarm", "none", "detecting", "unknown"]).withDescription("Smoke sensor status"),
+            e.smoke(),
+            e
+                .enum("smoke_state", ea.STATE, ["alarm", "none", "detecting", "unknown"])
+                .withLabel("Smoke sensor status")
+                .withDescription("Possible states: alarm, none, detecting, unknown"),
             e.enum("alarm_volume", ea.STATE_SET, ["mute", "low", "medium", "high"]).withDescription("Alarm volume"),
             e.battery(),
             tuya.exposes.silence(),
@@ -7637,13 +7638,17 @@ export const definitions: DefinitionWithExtend[] = [
             tuyaDatapoints: [
                 [
                     1,
-                    "smoke",
-                    tuya.valueConverterBasic.lookup({
-                        alarm: tuya.enum(0),
-                        none: tuya.enum(1),
-                        detecting: tuya.enum(2),
-                        unknown: tuya.enum(3),
-                    }),
+                    null,
+                    {
+                        from: (v: number) => {
+                            const lookup = {alarm: tuya.enum(0), none: tuya.enum(1), detecting: tuya.enum(2), unknown: tuya.enum(3)};
+                            const smokeState = Object.entries(lookup).find((i) => i[1].valueOf() === v)[0];
+                            return {
+                                smoke: smokeState === "alarm",
+                                smoke_state: smokeState,
+                            };
+                        },
+                    },
                 ],
                 [
                     5,
