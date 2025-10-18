@@ -7722,7 +7722,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_e2bedvo9", "_TZE200_dnz6yvl2", "_TZE284_6ycgarab", "_TZE284_e2bedvo9"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_e2bedvo9", "_TZE200_dnz6yvl2", "_TZE284_e2bedvo9"]),
         model: "ZSS-QY-SSD-A-EN",
         vendor: "Tuya",
         description: "Smart smoke alarm",
@@ -7747,6 +7747,65 @@ export const definitions: DefinitionWithExtend[] = [
                 [17, "self_test", tuya.valueConverter.raw],
             ],
         },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_6ycgarab"]),
+        model: "TS0601_smoke_co",
+        vendor: "Tuya",
+        description: "Dual smoke CO sensor",
+        exposes: [
+            e.smoke(),
+            e
+                .enum("smoke_state", ea.STATE, ["alarm", "none", "detecting", "unknown"])
+                .withLabel("Smoke sensor status")
+                .withDescription("Possible states: alarm, none, detecting, unknown"),
+            e.enum("alarm_volume", ea.STATE_SET, ["mute", "low", "medium", "high"]).withDescription("Alarm volume"),
+            e.battery(),
+            tuya.exposes.silence(),
+            e.binary("alarm_switch", ea.STATE_SET, true, false).withDescription("Disable the alarm"),
+            e.carbon_monoxide(),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [
+                    1,
+                    null,
+                    {
+                        from: (v: number) => {
+                            const lookup = {alarm: tuya.enum(0), none: tuya.enum(1), detecting: tuya.enum(2), unknown: tuya.enum(3)};
+                            const smokeState = Object.entries(lookup).find((i) => i[1].valueOf() === v)[0];
+                            return {
+                                smoke: smokeState === "alarm",
+                                smoke_state: smokeState,
+                            };
+                        },
+                    },
+                ],
+                [
+                    5,
+                    "alarm_volume",
+                    tuya.valueConverterBasic.lookup({
+                        low: tuya.enum(0),
+                        medium: tuya.enum(1),
+                        high: tuya.enum(2),
+                        mute: tuya.enum(3),
+                    }),
+                ],
+                [15, "battery", tuya.valueConverter.raw],
+                [16, "silence", tuya.valueConverter.raw],
+                [17, "alarm_switch", tuya.valueConverter.raw],
+                [18, "carbon_monoxide", tuya.valueConverter.trueFalseEnum0],
+            ],
+        },
+        extend: [
+            tuya.modernExtend.tuyaBase({
+                dp: true,
+                bindBasicOnConfigure: true,
+                queryOnDeviceAnnounce: true,
+                queryOnConfigure: true,
+                forceTimeUpdates: true,
+            }),
+        ],
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_5d3vhjro"]),
