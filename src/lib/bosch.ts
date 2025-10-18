@@ -352,11 +352,11 @@ interface BoschGeneralSensorDeviceIasZoneCluster {
     };
     commands: {
         /** ID: 2 */
-        initCustomTestMode: {
+        initiateTestMode: {
             /** Type: UINT8 */
-            testTimeout: number;
+            testModeDuration: number;
             /** Type: ENUM8 | Known values are 0x80 (BSEN-M) and 0x00 (BSEN-W / BSD-2) */
-            unknownParameter: number;
+            currentZoneSensitivityLevel: number;
         };
         /** ID: 128 | Only used on BSD-2 */
         alarmControl: {
@@ -378,11 +378,11 @@ export const boschGeneralSensorDeviceExtend = {
                 unknownAttribute2: {ID: 0x8f06, type: Zcl.DataType.UINT8, manufacturerCode: manufacturerOptions.manufacturerCode},
             },
             commands: {
-                initCustomTestMode: {
+                initiateTestMode: {
                     ID: 0x02,
                     parameters: [
-                        {name: "testTimeout", type: Zcl.DataType.UINT8},
-                        {name: "unknownParameter", type: Zcl.DataType.ENUM8},
+                        {name: "testModeDuration", type: Zcl.DataType.UINT8},
+                        {name: "currentZoneSensitivityLevel", type: Zcl.DataType.ENUM8},
                     ],
                 },
                 alarmControl: {
@@ -395,18 +395,24 @@ export const boschGeneralSensorDeviceExtend = {
             },
             commandsResponse: {},
         }),
-    testMode: (args: {testModeDescription: string; supportTimeout?: boolean; defaultTimeout?: number; zoneStatusBit?: number}): ModernExtend => {
-        const {testModeDescription, supportTimeout = false, defaultTimeout = 0, zoneStatusBit = 8} = args;
+    testMode: (args: {
+        testModeDescription: string;
+        sensitivityLevelToUse: number;
+        supportTimeout?: boolean;
+        defaultTimeout?: number;
+        zoneStatusBit?: number;
+    }): ModernExtend => {
+        const {testModeDescription, sensitivityLevelToUse, supportTimeout = false, defaultTimeout = 0, zoneStatusBit = 8} = args;
 
         const testModeLookup = {
             ON: true,
             OFF: false,
         };
 
-        const enableTestMode = async (endpoint: Zh.Endpoint | Zh.Group, timeoutInSeconds: number) => {
-            await endpoint.command<"ssIasZone", "initCustomTestMode", BoschGeneralSensorDeviceIasZoneCluster>("ssIasZone", "initCustomTestMode", {
-                testTimeout: timeoutInSeconds,
-                unknownParameter: supportTimeout ? 0x00 : 0x80,
+        const enableTestMode = async (endpoint: Zh.Endpoint | Zh.Group, sensitivityLevelToUse: number, timeoutInSeconds: number) => {
+            await endpoint.command<"ssIasZone", "initiateTestMode", BoschGeneralSensorDeviceIasZoneCluster>("ssIasZone", "initiateTestMode", {
+                testModeDuration: timeoutInSeconds,
+                currentZoneSensitivityLevel: sensitivityLevelToUse,
             });
         };
 
@@ -471,7 +477,7 @@ export const boschGeneralSensorDeviceExtend = {
                                 timeoutInSeconds = utils.toNumber(currentTimeout);
                             }
 
-                            await enableTestMode(entity, timeoutInSeconds);
+                            await enableTestMode(entity, sensitivityLevelToUse, timeoutInSeconds);
                         } else {
                             await disableTestMode(entity);
                         }
@@ -2333,6 +2339,7 @@ export const boschBsenExtend = {
                 "Activates the test mode. In this mode, the device blinks on every detected motion " +
                 "without any wait time in between to verify the installation. Please keep in mind " +
                 "that it can take up to 45 seconds for the test mode to be activated.",
+            sensitivityLevelToUse: 0x80,
         }),
     illuminance: () => m.illuminance({reporting: {min: "1_SECOND", max: 600, change: 3522}}),
     // The temperature sensor isn't used at all by Bosch on the BSEN-M.
@@ -2700,6 +2707,7 @@ export const boschWaterAlarmExtend = {
                 "Activates the test mode. In this mode, the device acts like it would when " +
                 "detecting any water to verify the installation. Please keep in mind " +
                 "that it can take up to 10 seconds for the test mode to be activated.",
+            sensitivityLevelToUse: 0x00,
             supportTimeout: true,
             defaultTimeout: 3,
         }),
@@ -2906,6 +2914,7 @@ export const boschSmokeAlarmExtend = {
                 "Check the function of the smoke alarm. Pay attention to the alarm sound " +
                 "and the flashing of the alarm LED. Please keep in mind that it can take " +
                 "up to 10 seconds for the test mode to be activated.",
+            sensitivityLevelToUse: 0x00,
             supportTimeout: true,
             defaultTimeout: 5,
             zoneStatusBit: 10,
