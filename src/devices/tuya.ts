@@ -7620,8 +7620,7 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_6ycgarab"]),
         model: "TS0601_smoke_co",
         vendor: "Tuya",
-        description: "Dual Smoke CO sensor",
-        configure: tuya.configureMagicPacket,
+        description: "Dual smoke CO sensor",
         exposes: [
             e.smoke(),
             e
