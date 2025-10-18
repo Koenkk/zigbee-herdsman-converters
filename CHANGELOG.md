@@ -1,5 +1,26 @@
 # Changelog
 
+## [25.49.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.48.0...v25.49.0) (2025-10-18)
+
+
+### Features
+
+* **add:** 4099854295256 ([#10395](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10395)) ([6ad4f3f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6ad4f3f7060d3a1dfa8c4ba79433c72864adc382))
+* **add:** CZB01 ([#10393](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10393)) ([8af628b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8af628b73f97b2329d861604aa496d6c7a8296b0))
+* **add:** TS0601_smoke_co ([#10329](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10329)) ([8c345cd](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8c345cd68a2d41fddcacd0098422fb17eb4393cc))
+* **add:** WS90 ([#10402](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10402)) ([207a1e4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/207a1e429227e6d1d3115d463b87a01c39017e83))
+* **add:** WZDA1 ([#10410](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10410)) ([3809046](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3809046e55e836be043d27c7136f83c363e05368))
+* Innr RCL 231 T: support OTA ([#10401](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10401)) ([0901cee](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0901ceea3296c87b3e3fec85b22cf805ee3dd749))
+
+
+### Bug Fixes
+
+* Bosch BSD-2 (Smoke alarm II): re-work implementation ([#10404](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10404)) ([75ba1d8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/75ba1d899395e24eeddcab062a29a707c2ea4500))
+* **detect:** Detect `_TZE204_rbbx5mfq` as Tuya TS0601_illuminance_temperature_humidity_sensor_2 https://github.com/Koenkk/zigbee2mqtt/discussions/29137 ([dbd9815](https://github.com/Koenkk/zigbee-herdsman-converters/commit/dbd9815eb17a878c7b75ed024b58c8e0087f4677))
+* **detect:** Detect `_TZE284_aaeaifez` as Tuya ZWT198/ZWT100-BH ([#10399](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10399)) ([b5be7c2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b5be7c24343c9c79807310b884c22880b8ec1ef2))
+* Heiman: move custom cluster to zigbee-herdsman-converters ([#10396](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10396)) ([124563d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/124563d815004271bddc37ee2012fbbfd0fdd7d1))
+* PTVO: various improvements ([#10408](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10408)) ([d70021f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d70021fcffc1edf792787e5aa730dbc447bd6bfa))
+
 ## [25.48.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.47.0...v25.48.0) (2025-10-17)
 
 
