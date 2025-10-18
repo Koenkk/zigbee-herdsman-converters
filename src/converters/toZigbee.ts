@@ -3362,7 +3362,7 @@ export const ptvo_switch_trigger: Tz.Converter = {
                 ]);
             } else if (utils.hasEndpoints(meta.device, [1])) {
                 const endpoint = meta.device.getEndpoint(1);
-                await entity.configureReporting("genBasic", [
+                await endpoint.configureReporting("genBasic", [
                     {
                         attribute: "zclVersion",
                         minimumReportInterval: value,
