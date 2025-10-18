@@ -216,6 +216,17 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
+        zigbeeModel: ["EM Mini"],
+        model: "S4EM-001PXCEU16",
+        vendor: "Shelly",
+        description: "EM Mini Gen4",
+        extend: [
+            m.electricityMeter({producedEnergy: true, acFrequency: true}),
+            ...shellyModernExtend.shellyCustomClusters(),
+            shellyModernExtend.shellyWiFiSetup(),
+        ],
+    },
+    {
         fingerprint: [
             {
                 type: "Router",
