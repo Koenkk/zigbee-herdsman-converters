@@ -7404,10 +7404,10 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3000_ww6drja5'}],
-        model: 'JR-ZPM01',
-        vendor: 'Girier',
-        description: 'Smart plug (with power monitoring, indicator not controllable)', // indicator LED not controllable via Zigbee, attribute exists but no hardware effect
+        fingerprint: [{modelID: "TS011F", manufacturerName: "_TZ3000_ww6drja5"}],
+        model: "JR-ZPM01",
+        vendor: "Girier",
+        description: "Smart plug (with power monitoring, indicator not controllable)", // indicator LED not controllable via Zigbee, attribute exists but no hardware effect
         extend: [
             tuya.modernExtend.tuyaOnOff({
                 electricalMeasurements: true,
