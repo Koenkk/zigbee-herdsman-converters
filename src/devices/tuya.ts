@@ -7370,7 +7370,7 @@ export const definitions: DefinitionWithExtend[] = [
                 electricalMeasurements: true,
                 electricalMeasurementsFzConverter: fzLocal.TS011F_electrical_measurement,
                 powerOutageMemory: true,
-                indicatorMode: true,
+                indicatorMode: (manufacturerName) => manufacturerName === "_TZ3000_ww6drja5",
                 childLock: true,
                 onOffCountdown: true,
             }),
