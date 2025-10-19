@@ -7381,6 +7381,8 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "haElectricalMeasurement", "seMetering"]);
 
             if (!["_TZ3000_okaz9tjs"].includes(device.manufacturerName)) {
+                // https://github.com/Koenkk/zigbee2mqtt/issues/29034
+                await reporting.currentSummDelivered(endpoint);
                 await reporting.rmsVoltage(endpoint, {change: 5});
                 await reporting.rmsCurrent(endpoint, {change: 50});
             }
@@ -7392,7 +7394,7 @@ export const definitions: DefinitionWithExtend[] = [
                 // https://github.com/Koenkk/zigbee2mqtt/issues/28729#issuecomment-3370261334
                 await reporting.activePower(endpoint, {change: 10});
             }
-            await reporting.currentSummDelivered(endpoint);
+
             const acCurrentDivisor = device.manufacturerName === "_TZ3000_typdpbpg" ? 2000 : 1000;
             endpoint.saveClusterAttributeKeyValue("haElectricalMeasurement", {
                 acCurrentDivisor,
