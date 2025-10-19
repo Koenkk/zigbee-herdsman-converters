@@ -125,9 +125,10 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["FC600", "FC600NH"],
-        model: "FC600/FC600NH",
+        model: "FC600",
         vendor: "Salus Controls",
         description: "Fan coil thermostat",
+        whiteLabel: [{vendor: "Salus Controls", model: "FC600NH", description: "Fan coil thermostat", fingerprint: [{modelID: "FC600NH"}]}],
         extend: [
             m.deviceAddCustomCluster("manuSpecificSalus", {
                 ID: 0xfc04,
