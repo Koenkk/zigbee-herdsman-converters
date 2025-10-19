@@ -7357,6 +7357,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Nous", "A6Z", "Outdoor smart socket", ["_TZ3000_266azbg3"]),
             tuya.whitelabel("Nedis", "ZBPO130FWT", "Outdoor smart plug (with power monitoring)", ["_TZ3000_3ias4w4o"]),
             tuya.whitelabel("Nous", "A9Z", "Smart Zigbee Socket", ["_TZ3210_ddigca5n"]),
+            tuya.whitelabel("Girier", "JR-ZPM01", "Smart Plug", ["_TZ3000_ww6drja5"]),
             tuya.whitelabel("Nous", "A7Z", "Smart Zigbee Socket", ["_TZ3210_rwmitwj4"]),
             tuya.whitelabel("Zbeacon", "TS011F_plug_1_1", "Smart plug (with power monitoring)", ["Zbeacon"]),
             tuya.whitelabel("NEO", "NAS-WR01B", "Smart plug (with electrical measurements)", ["_TZ3000_gjnozsaz"]),
@@ -7367,7 +7368,7 @@ export const definitions: DefinitionWithExtend[] = [
                 electricalMeasurements: true,
                 electricalMeasurementsFzConverter: fzLocal.TS011F_electrical_measurement,
                 powerOutageMemory: true,
-                indicatorMode: true,
+                indicatorMode: (manufacturerName) => manufacturerName === "_TZ3000_ww6drja5",
                 childLock: true,
                 onOffCountdown: true,
             }),
@@ -7382,7 +7383,7 @@ export const definitions: DefinitionWithExtend[] = [
                 await reporting.rmsCurrent(endpoint, {change: 50});
             }
 
-            if (!["_TZ3000_0zfrhq4i", "_TZ3000_okaz9tjs", "_TZ3000_typdpbpg", "Zbeacon"].includes(device.manufacturerName)) {
+            if (!["_TZ3000_0zfrhq4i", "_TZ3000_okaz9tjs", "_TZ3000_typdpbpg", "_TZ3000_ww6drja5", "Zbeacon"].includes(device.manufacturerName)) {
                 // Gives INVALID_DATA_TYPE error for _TZ3000_0zfrhq4i (as well as a few others in issue 20028)
                 // https://github.com/Koenkk/zigbee2mqtt/discussions/19680#discussioncomment-7667035
                 // Don't do this for `_TZ3000_gjnozsaz` (was previously in the list, but removed after:
@@ -7402,22 +7403,6 @@ export const definitions: DefinitionWithExtend[] = [
             utils.attachOutputCluster(device, "genOta");
             device.save();
         },
-    },
-    {
-        fingerprint: [{modelID: "TS011F", manufacturerName: "_TZ3000_ww6drja5"}],
-        model: "JR-ZPM01",
-        vendor: "Girier",
-        description: "Smart plug (with power monitoring, indicator not controllable)", // indicator LED not controllable via Zigbee, attribute exists but no hardware effect
-        extend: [
-            tuya.modernExtend.tuyaOnOff({
-                electricalMeasurements: true,
-                electricalMeasurementsFzConverter: fzLocal.TS011F_electrical_measurement,
-                powerOutageMemory: true,
-                indicatorMode: false, // disabled, no hardware effect
-                childLock: true,
-                onOffCountdown: true,
-            }),
-        ],
     },
     {
         fingerprint: tuya.fingerprint("TS011F", [
