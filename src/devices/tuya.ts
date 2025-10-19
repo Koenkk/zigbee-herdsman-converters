@@ -1586,7 +1586,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_s1xgth2u"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_s1xgth2u", "_TZE200_t3xd7l44"]),
         model: "TS0601_temperature_humidity_sensor_3",
         vendor: "Tuya",
         description: "Temperature & humidity sensor",
@@ -1601,6 +1601,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [19, "temperature_sensitivity", tuya.valueConverter.raw], // maybe? commented this out for now
             ],
         },
+        whiteLabel: [tuya.whitelabel("Tuya", "TZE200_t3xd7l44", "Temperature and humidity sensor with clock", ["_TZE200_t3xd7l44"])],
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_9ern5sfh"]),
@@ -4943,7 +4944,8 @@ export const definitions: DefinitionWithExtend[] = [
         },
         whiteLabel: [
             tuya.whitelabel("Lonsonho", "X703A", "3 Gang switch with backlight", ["_TZ3000_rhkfbfcv"]),
-            tuya.whitelabel("Zemismart", "ZM-L03E-Z", "3 gang switch with neutral", ["_TZ3000_empogkya", "_TZ3000_lsunm46z", "_TZ3000_uilitwsy"]),
+            tuya.whitelabel("Zemismart", "ZM-L03E-Z", "3 gang switch with neutral", ["_TZ3000_empogkya", "_TZ3000_lsunm46z"]),
+            tuya.whitelabel("Zemismart", "KES-606US-L3", "3 gang switch with neutral", ["_TZ3000_uilitwsy"]),
             tuya.whitelabel("AVATTO", "ZWOT16-W2", "2 gang switch and 1 socket", ["_TZ3000_66fekqhh"]),
             tuya.whitelabel("Tuya", "M10Z", "2 gang switch with 20A power socket", ["_TZ3000_lubfc1t5"]),
         ],
@@ -7368,7 +7370,7 @@ export const definitions: DefinitionWithExtend[] = [
                 electricalMeasurements: true,
                 electricalMeasurementsFzConverter: fzLocal.TS011F_electrical_measurement,
                 powerOutageMemory: true,
-                indicatorMode: true,
+                indicatorMode: (manufacturerName) => manufacturerName === "_TZ3000_ww6drja5",
                 childLock: true,
                 onOffCountdown: true,
             }),
@@ -7379,6 +7381,8 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "haElectricalMeasurement", "seMetering"]);
 
             if (!["_TZ3000_okaz9tjs"].includes(device.manufacturerName)) {
+                // https://github.com/Koenkk/zigbee2mqtt/issues/29034
+                await reporting.currentSummDelivered(endpoint);
                 await reporting.rmsVoltage(endpoint, {change: 5});
                 await reporting.rmsCurrent(endpoint, {change: 50});
             }
@@ -7390,7 +7394,7 @@ export const definitions: DefinitionWithExtend[] = [
                 // https://github.com/Koenkk/zigbee2mqtt/issues/28729#issuecomment-3370261334
                 await reporting.activePower(endpoint, {change: 10});
             }
-            await reporting.currentSummDelivered(endpoint);
+
             const acCurrentDivisor = device.manufacturerName === "_TZ3000_typdpbpg" ? 2000 : 1000;
             endpoint.saveClusterAttributeKeyValue("haElectricalMeasurement", {
                 acCurrentDivisor,
