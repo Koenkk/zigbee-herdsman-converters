@@ -35,19 +35,31 @@ export const definitions: DefinitionWithExtend[] = [
             }),
         ],
     },
-    {
-        zigbeeModel: ["MIR-IL100"],
-        model: "MIR-IL100",
-        vendor: "MultIR",
-        description: "PIR sensor",
-        extend: [
-            m.battery(),
-            m.iasZoneAlarm({
-                zoneType: "occupancy",
-                zoneAttributes: ["alarm_1", "tamper", "battery_low"],
-            }),
-        ],
-    },
+	{
+		zigbeeModel: ['MIR-IL100-ZB'],
+		model: 'MIR-IL100-ZB',
+		vendor: 'MultIR',
+		description: 'PIR sensor',
+		extend: [
+			m.battery(),
+			m.iasZoneAlarm({
+				zoneType: 'occupancy',
+				zoneAttributes: ['alarm_1', 'tamper', 'battery_low']
+			}),
+			m.enumLookup({
+				name: 'sensitivity',
+				cluster: 'ssIasZone',
+				attribute: 'currentZoneSensitivityLevel',
+				description: 'Sensitivity of the pir detector',
+				lookup: {
+					low: 0x00,
+					medium: 0x01,
+					high: 0x02
+				},
+				entityCategory: 'config'
+			})
+		]
+	},
     {
         zigbeeModel: ["MIR-SM200"],
         model: "MIR-SM200",
