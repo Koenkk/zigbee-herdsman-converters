@@ -883,9 +883,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Innr",
         description: "Outdoor smart spot XL color",
         ota: true,
-        extend: [
-            m.light({colorTemp: {range: [100, 1000]}, color: {modes: ["xy", "hs"], enhancedHue: true}}),
-        ]
+        extend: [m.light({colorTemp: {range: [100, 1000]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
     {
         zigbeeModel: ["BE 220"],
