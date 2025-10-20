@@ -42,8 +42,8 @@ export const definitions: DefinitionWithExtend[] = [
                 .numeric("temperature_delta", ea.STATE_SET)
                 .withUnit("°C")
                 .withValueMax(10)
-                .withValueMin(0.5)
-                .withValueStep(0.5)
+                .withValueMin(0.1)
+                .withValueStep(0.1)
                 .withPreset("default", 1, "Default value")
                 .withDescription("The delta between local_temperature and current_heating_setpoint to trigger Heat"),
             e.enum("working_day", ea.STATE_SET, ["mon_fri", "mon_sat", "mon_sun"]).withDescription("Workday setting"),
