@@ -7438,8 +7438,6 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: [
-            // https://github.com/Koenkk/zigbee2mqtt/issues/28729
-            {modelID: "TS011F", applicationVersion: 240, manufacturerName: "_TZ3000_gjnozsaz", priority: -1},
             {modelID: "TS011F", applicationVersion: 160, priority: -1},
             {modelID: "TS011F", applicationVersion: 100, priority: -1},
             {modelID: "TS011F", applicationVersion: 69, priority: -1},
