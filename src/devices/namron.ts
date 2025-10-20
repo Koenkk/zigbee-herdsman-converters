@@ -1631,7 +1631,6 @@ export const definitions: DefinitionWithExtend[] = [
             }),
         ],
     },
-];
     {
         zigbeeModel: ["4512791"],
         model: "4512791",
