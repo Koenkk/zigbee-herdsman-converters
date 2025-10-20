@@ -5545,7 +5545,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_debczeci", "_TZE284_1lvln0x6"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_debczeci", "_TZE284_1lvln0x6", "_TZE204_debczeci"]),
         model: "iHsenso_TS0601_human_presence",
         vendor: "iHseno",
         description: "Human presence sensor",
