@@ -1651,5 +1651,26 @@ export const definitions: DefinitionWithExtend[] = [
                 energy: {multiplier: 1, divisor: 100}, // kWh
             }),
         ],
+    }, 
+    {
+        zigbeeModel: ["4512791"],
+        model: "4512791",
+        vendor: "Namron",
+        description: "Namron Simplify Zigbee dimmer (1/2-polet / Zigbee / BT)",
+        extend: [
+            m.light({}),
+            m.electricityMeter({
+                power: {multiplier: 1, divisor: 10},
+                voltage: {multiplier: 1, divisor: 10},
+                current: {multiplier: 1, divisor: 100},
+                energy: {multiplier: 1, divisor: 100},
+            }),
+        ],
+        exposes: [
+            exposes.numeric("dimming_speed", ea.ALL).withValueMin(1).withValueMax(10).withDescription("Default ramp time in seconds"),
+            exposes.numeric("min_brightness", ea.ALL).withValueMin(1).withValueMax(127).withDescription("Minimum brightness (≈1–50%)"),
+            exposes.numeric("max_brightness", ea.ALL).withValueMin(127).withValueMax(254).withDescription("Maximum brightness (≈50–100%)"),
+            exposes.numeric("start_brightness", ea.ALL).withValueMin(1).withValueMax(254).withDescription("Default brightness at power-on/startup"),
+        ],
     },
 ];
