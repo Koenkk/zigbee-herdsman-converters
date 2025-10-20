@@ -20473,13 +20473,12 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_4cqhd2ha"]),
-        model: "TS0601",
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_4cqhd2ha", "_TZE200_8ply8mjj"]),
+        model: "TZE284_4cqhd2ha",
         vendor: "Girier",
         description: "Vibration sensor",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        whiteLabel: [tuya.whitelabel("Conecto", "COZIGVS", "Vibration sensor", ["_TZE200_8ply8mjj"])],
         exposes: [
             e.vibration(),
             e
