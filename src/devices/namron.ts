@@ -1667,7 +1667,6 @@ export const definitions: DefinitionWithExtend[] = [
             }),
         ],
         exposes: [
-            exposes.numeric("dimming_speed", ea.ALL).withValueMin(1).withValueMax(10).withDescription("Default ramp time in seconds"),
             exposes.numeric("min_brightness", ea.ALL).withValueMin(1).withValueMax(127).withDescription("Minimum brightness (≈1–50%)"),
             exposes.numeric("max_brightness", ea.ALL).withValueMin(127).withValueMax(254).withDescription("Maximum brightness (≈50–100%)"),
             exposes.numeric("start_brightness", ea.ALL).withValueMin(1).withValueMax(254).withDescription("Default brightness at power-on/startup"),
