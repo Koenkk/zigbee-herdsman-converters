@@ -1651,7 +1651,7 @@ export const definitions: DefinitionWithExtend[] = [
                 energy: {multiplier: 1, divisor: 100}, // kWh
             }),
         ],
-    }, 
+    },
     {
         zigbeeModel: ["4512791"],
         model: "4512791",
