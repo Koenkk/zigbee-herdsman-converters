@@ -20483,7 +20483,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [
             e.vibration(),
             e
-                .numeric("sensitivity", ea.STATE_SET)
+                .numeric("sensitivity", ea.STATE)
                 .withValueMin(0)
                 .withValueMax(2)
                 .withDescription(
