@@ -878,6 +878,14 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.light({colorTemp: {range: [100, 1000]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
     {
+        zigbeeModel: ["OSL 140 C"],
+        model: "OSL 140 C",
+        vendor: "Innr",
+        description: "Outdoor smart spot XL color",
+        ota: true,
+        extend: [m.light({colorTemp: {range: [100, 1000]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+    },
+    {
         zigbeeModel: ["BE 220"],
         model: "BE 220",
         vendor: "Innr",
