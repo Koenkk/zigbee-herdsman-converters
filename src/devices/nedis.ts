@@ -11,7 +11,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZBHTR20WT",
         vendor: "Nedis",
         description: "Thermostat radiator valve",
-        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "1970"})],
         exposes: [
             e.battery_low(),
             e.child_lock(),
