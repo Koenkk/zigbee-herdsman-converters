@@ -58,7 +58,7 @@ export const definitions: DefinitionWithExtend[] = [
             legacy.tz.saswell_thermostat_anti_scaling,
             legacy.tz.tuya_thermostat_weekly_schedule,
         ],
-        extend: [tuya.modernExtend.tuyaBase({bindBasicOnConfigure: true})],
+        extend: [tuya.modernExtend.tuyaBase({bindBasicOnConfigure: true, timeStart: "1970"})],
         meta: {
             thermostat: {
                 weeklyScheduleMaxTransitions: 4,

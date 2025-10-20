@@ -17,7 +17,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Smart garden irrigation control",
         fromZigbee: [fz.on_off, fz.ignore_tuya_set_time, legacy.fromZigbee.woox_R7060],
         toZigbee: [tz.on_off],
-        extend: [tuya.modernExtend.tuyaBase({timeStart: "2000"})],
+        extend: [tuya.modernExtend.tuyaBase()],
         exposes: [e.switch(), e.battery()],
         meta: {disableDefaultResponse: true},
     },
