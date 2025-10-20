@@ -16,22 +16,21 @@ const DP_STATUS = 102;
 const DP_ALARM_RINGTONE = 103;
 
 const WORKING_MODES = {
-    0: 'normal',
-    1: 'silent',
-    2: 'test',
+    0: "normal",
+    1: "silent",
+    2: "test",
 };
 
 const ALARM_RINGTONES = {
-    0: 'tone_1',
-    1: 'tone_2',
-    2: 'tone_3',
+    0: "tone_1",
+    1: "tone_2",
+    2: "tone_3",
 };
-
 
 const valueConverterLookup = (lookupTable: {[key: number]: string}) => ({
     from: (v: number) => lookupTable[v] ?? v,
     to: (v: string | number) => {
-        if (typeof v === 'number') return v;
+        if (typeof v === "number") return v;
         const entry = Object.entries(lookupTable).find(([, name]) => name === v);
         return entry ? Number(entry[0]) : v;
     },
@@ -48,30 +47,27 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.battery()],
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE284_1di7ujzp']),
-        model: 'E13',
-        vendor: 'Nous',
-        description: 'Tuya Zigbee water leak sensor with sound alarm',
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_1di7ujzp"]),
+        model: "E13",
+        vendor: "Nous",
+        description: "Tuya Zigbee water leak sensor with sound alarm",
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
         exposes: [
-            e.water_leak().withDescription('Water leak detected or not'),
-            e.battery().withDescription('Battery level in %'),
-            e.enum('working_mode', ea.ALL, Object.values(WORKING_MODES))
-                .withDescription('Operational mode of the device'),
-            e.text('status', ea.STATE)
-                .withDescription('Device status (normal, fault, etc.)'),
-            e.enum('alarm_ringtone', ea.ALL, Object.values(ALARM_RINGTONES))
-                .withDescription('Select alarm ringtone'),
+            e.water_leak().withDescription("Water leak detected or not"),
+            e.battery().withDescription("Battery level in %"),
+            e.enum("working_mode", ea.ALL, Object.values(WORKING_MODES)).withDescription("Operational mode of the device"),
+            e.text("status", ea.STATE).withDescription("Device status (normal, fault, etc.)"),
+            e.enum("alarm_ringtone", ea.ALL, Object.values(ALARM_RINGTONES)).withDescription("Select alarm ringtone"),
         ],
         meta: {
             tuyaDatapoints: [
-                [DP_LEAK_STATUS, 'water_leak', tuya.valueConverter.trueFalse0],
-                [DP_BATTERY_LEVEL, 'battery', tuya.valueConverter.raw],
-                [DP_WORKING_MODE, 'working_mode', valueConverterLookup(WORKING_MODES)],
-                [DP_STATUS, 'status', tuya.valueConverter.raw],
-                [DP_ALARM_RINGTONE, 'alarm_ringtone', valueConverterLookup(ALARM_RINGTONES)],
+                [DP_LEAK_STATUS, "water_leak", tuya.valueConverter.trueFalse0],
+                [DP_BATTERY_LEVEL, "battery", tuya.valueConverter.raw],
+                [DP_WORKING_MODE, "working_mode", valueConverterLookup(WORKING_MODES)],
+                [DP_STATUS, "status", tuya.valueConverter.raw],
+                [DP_ALARM_RINGTONE, "alarm_ringtone", valueConverterLookup(ALARM_RINGTONES)],
             ],
         },
     },
