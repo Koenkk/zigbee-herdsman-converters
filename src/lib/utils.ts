@@ -391,7 +391,7 @@ export function toCamelCase(value: KeyValueAny | string) {
 
 export function getLabelFromName(name: string) {
     const label = name.replace(/_/g, " ");
-    return label[0].toUpperCase() + label.slice(1);
+    return label.length === 0 ? label : label[0].toUpperCase() + label.slice(1);
 }
 
 export function saveSceneState(entity: Zh.Endpoint, sceneID: number, groupID: number, state: KeyValue, name: string) {
@@ -510,7 +510,7 @@ export async function getClusterAttributeValue<
     endpoint: Zh.Endpoint,
     cluster: Cl,
     attribute: Attr,
-    fallback: ClusterOrRawAttributes<Cl, Custom>[Attr] = undefined,
+    fallback: ClusterOrRawAttributes<Cl, Custom>[Attr],
 ): Promise<ClusterOrRawAttributes<Cl, Custom>[Attr]> {
     try {
         const value = endpoint.getClusterAttributeValue(cluster, attribute);
@@ -519,12 +519,11 @@ export async function getClusterAttributeValue<
                 sendPolicy: "immediate",
                 disableRecovery: true,
             });
-            return result[attribute] ?? fallback;
+            return result[attribute];
         }
         return value as ClusterOrRawAttributes<Cl, Custom>[Attr];
-    } catch (error) {
-        if (fallback !== undefined) return fallback;
-        throw error;
+    } catch {
+        return fallback;
     }
 }
 

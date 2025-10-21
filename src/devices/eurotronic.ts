@@ -103,6 +103,7 @@ export const definitions: DefinitionWithExtend[] = [
             {modelID: "SPZB0001", manufacturerName: "Eurotronic", dateCode: "20240821"},
             {modelID: "SPZB0001", manufacturerName: "Eurotronic", dateCode: "20241105"},
             {modelID: "SPZB0001", manufacturerName: "Eurotronic", dateCode: "20240315"},
+            {modelID: "SPZB0001", manufacturerName: "Eurotronic", dateCode: "20231019"},
         ],
         model: "COZB0001",
         vendor: "Eurotronic",

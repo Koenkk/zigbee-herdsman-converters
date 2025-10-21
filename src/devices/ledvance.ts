@@ -46,6 +46,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.onOff(), m.electricityMeter()],
     },
     {
+        zigbeeModel: ["PLUG EU EM T, black"],
+        model: "4099854295256",
+        vendor: "LEDVANCE",
+        description: "SMART+ indoor plug EU with energy meter - black",
+        extend: [m.onOff(), m.electricityMeter()],
+    },
+    {
         zigbeeModel: ["PLUG COMPACT OUTDOOR EU EM T", "PLUG COMPACT EU EM T"],
         model: "4099854293276",
         vendor: "LEDVANCE",

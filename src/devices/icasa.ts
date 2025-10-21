@@ -10,14 +10,14 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["ICZB-IW11D"],
         model: "ICZB-IW11D",
         vendor: "iCasa",
-        description: "ZigBee AC dimmer",
+        description: "Zigbee AC dimmer",
         extend: [m.light({configureReporting: true})],
     },
     {
         zigbeeModel: ["ICZB-DC11"],
         model: "ICZB-DC11",
         vendor: "iCasa",
-        description: "ZigBee 12-36V DC LED dimmer",
+        description: "Zigbee 12-36V DC LED dimmer",
         extend: [m.light({configureReporting: true})],
     },
     {

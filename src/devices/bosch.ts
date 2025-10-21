@@ -1,17 +1,20 @@
 import {Zcl, ZSpec} from "zigbee-herdsman";
 import * as fz from "../converters/fromZigbee";
-import * as tz from "../converters/toZigbee";
 import {
     type BoschBmctCluster,
     boschBmctExtend,
     boschBsenExtend,
     boschBsirExtend,
     boschDoorWindowContactExtend,
+    boschGeneralEnergyDeviceExtend,
     boschGeneralExtend,
+    boschGeneralSensorDeviceExtend,
     boschSmartPlugExtend,
+    boschSmokeAlarmExtend,
+    boschThermostatExtend,
+    boschWaterAlarmExtend,
     manufacturerOptions,
 } from "../lib/bosch";
-import * as constants from "../lib/constants";
 import {repInterval} from "../lib/constants";
 import * as exposes from "../lib/exposes";
 import {logger} from "../lib/logger";
@@ -62,32 +65,6 @@ const labelConfirmation = `Specifies LED color (rgb) and pattern of the confirma
 4-7: Durations for sequence fade-in -> on -> fade-out -> off (e.g. 01020102)
 8: Number of Repetitions (01=1 to ff=255)
 Example: 30ff00000102010001`;
-
-interface BoschHvacThermostat {
-    attributes: {
-        operatingMode: number;
-        heatingDemand: number;
-        valveAdaptStatus: number;
-        remoteTemperature: number;
-        windowDetection: number;
-        boostHeating: number;
-    };
-    commands: {
-        calibrateValve: Record<string, never>;
-    };
-    commandResponses: never;
-}
-
-interface BoschHvacUserInterfaceCfg {
-    attributes: {
-        displayOrientation: number;
-        displayedTemperature: number;
-        displayOntime: number;
-        displayBrightness: number;
-    };
-    commands: never;
-    commandResponses: never;
-}
 
 interface TwinguardSmokeDetector {
     attributes: {
@@ -146,12 +123,6 @@ interface TwinguardAlarm {
     commandResponses: never;
 }
 
-interface BoschSpecificBwa1 {
-    attributes: {alarmOnMotion: number};
-    commands: never;
-    commandResponses: never;
-}
-
 interface BoschSpecificBhius {
     attributes: never;
     commands: {
@@ -197,362 +168,6 @@ const boschBmctDzSettings = {
 };
 
 const boschExtend = {
-    hvacThermostatCluster: () =>
-        m.deviceAddCustomCluster("hvacThermostat", {
-            ID: Zcl.Clusters.hvacThermostat.ID,
-            attributes: {
-                operatingMode: {
-                    ID: 0x4007,
-                    type: Zcl.DataType.ENUM8,
-                    manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
-                },
-                heatingDemand: {
-                    ID: 0x4020,
-                    type: Zcl.DataType.ENUM8,
-                    manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
-                },
-                valveAdaptStatus: {
-                    ID: 0x4022,
-                    type: Zcl.DataType.ENUM8,
-                    manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
-                },
-                remoteTemperature: {
-                    ID: 0x4040,
-                    type: Zcl.DataType.INT16,
-                    manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
-                },
-                windowDetection: {
-                    ID: 0x4042,
-                    type: Zcl.DataType.ENUM8,
-                    manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
-                },
-                boostHeating: {
-                    ID: 0x4043,
-                    type: Zcl.DataType.ENUM8,
-                    manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
-                },
-            },
-            commands: {
-                calibrateValve: {
-                    ID: 0x41,
-                    parameters: [],
-                },
-            },
-            commandsResponse: {},
-        }),
-    hvacUserInterfaceCfgCluster: () =>
-        m.deviceAddCustomCluster("hvacUserInterfaceCfg", {
-            ID: Zcl.Clusters.hvacUserInterfaceCfg.ID,
-            attributes: {
-                displayOrientation: {
-                    ID: 0x400b,
-                    type: Zcl.DataType.UINT8,
-                    manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
-                },
-                displayedTemperature: {
-                    ID: 0x4039,
-                    type: Zcl.DataType.ENUM8,
-                    manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
-                },
-                displayOntime: {
-                    ID: 0x403a,
-                    type: Zcl.DataType.ENUM8,
-                    manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
-                },
-                displayBrightness: {
-                    ID: 0x403b,
-                    type: Zcl.DataType.ENUM8,
-                    manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
-                },
-            },
-            commands: {},
-            commandsResponse: {},
-        }),
-    operatingMode: () =>
-        m.enumLookup<"hvacThermostat", BoschHvacThermostat>({
-            name: "operating_mode",
-            cluster: "hvacThermostat",
-            attribute: "operatingMode",
-            reporting: {min: "10_SECONDS", max: "MAX", change: null},
-            description: "Bosch-specific operating mode (overrides system mode)",
-            lookup: {schedule: 0x00, manual: 0x01, pause: 0x05},
-            zigbeeCommandOptions: manufacturerOptions,
-        }),
-    windowDetection: () =>
-        m.binary<"hvacThermostat", BoschHvacThermostat>({
-            name: "window_detection",
-            cluster: "hvacThermostat",
-            attribute: "windowDetection",
-            description: "Enable/disable window open (Lo.) mode",
-            valueOn: ["ON", 0x01],
-            valueOff: ["OFF", 0x00],
-            zigbeeCommandOptions: manufacturerOptions,
-        }),
-    boostHeating: () =>
-        m.binary<"hvacThermostat", BoschHvacThermostat>({
-            name: "boost_heating",
-            cluster: "hvacThermostat",
-            attribute: "boostHeating",
-            reporting: {min: "10_SECONDS", max: "MAX", change: null, attribute: "boostHeating"},
-            description: "Activate boost heating (5 min. on TRV)",
-            valueOn: ["ON", 0x01],
-            valueOff: ["OFF", 0x00],
-            zigbeeCommandOptions: manufacturerOptions,
-        }),
-    childLock: () =>
-        m.binary({
-            name: "child_lock",
-            cluster: "hvacUserInterfaceCfg",
-            attribute: "keypadLockout",
-            description: "Enables/disables physical input on the device",
-            valueOn: ["LOCK", 0x01],
-            valueOff: ["UNLOCK", 0x00],
-        }),
-    displayOntime: () =>
-        m.numeric<"hvacUserInterfaceCfg", BoschHvacUserInterfaceCfg>({
-            name: "display_ontime",
-            cluster: "hvacUserInterfaceCfg",
-            attribute: "displayOntime",
-            description: "Sets the display on-time",
-            valueMin: 5,
-            valueMax: 30,
-            unit: "s",
-            zigbeeCommandOptions: manufacturerOptions,
-        }),
-    displayBrightness: () =>
-        m.numeric<"hvacUserInterfaceCfg", BoschHvacUserInterfaceCfg>({
-            name: "display_brightness",
-            cluster: "hvacUserInterfaceCfg",
-            attribute: "displayBrightness",
-            description: "Sets brightness of the display",
-            valueMin: 0,
-            valueMax: 10,
-            zigbeeCommandOptions: manufacturerOptions,
-        }),
-    valveAdaptProcess: (): ModernExtend => {
-        const adaptationStatus: KeyValue = {
-            none: 0x00,
-            ready_to_calibrate: 0x01,
-            calibration_in_progress: 0x02,
-            error: 0x03,
-            success: 0x04,
-        };
-        const exposes: Expose[] = [
-            e
-                .binary("valve_adapt_process", ea.ALL, true, false)
-                .withLabel("Trigger adaptation process")
-                .withDescription('Trigger the valve adaptation process. Only possible when adaptation status is "ready_to_calibrate" or "error".')
-                .withCategory("config"),
-        ];
-        const fromZigbee = [
-            {
-                cluster: "hvacThermostat",
-                type: ["attributeReport", "readResponse"],
-                convert: (model, msg, publish, options, meta) => {
-                    const result: KeyValue = {};
-                    if (msg.data.valveAdaptStatus !== undefined) {
-                        if (msg.data.valveAdaptStatus === adaptationStatus.calibration_in_progress) {
-                            result.valve_adapt_process = true;
-                        } else {
-                            result.valve_adapt_process = false;
-                        }
-                    }
-                    return result;
-                },
-            } satisfies Fz.Converter<"hvacThermostat", BoschHvacThermostat, ["attributeReport", "readResponse"]>,
-        ];
-        const toZigbee: Tz.Converter[] = [
-            {
-                key: ["valve_adapt_process"],
-                convertSet: async (entity, key, value, meta) => {
-                    if (value === true) {
-                        const adaptStatus = utils.getFromLookup(meta.state.valve_adapt_status, adaptationStatus);
-                        switch (adaptStatus) {
-                            case adaptationStatus.ready_to_calibrate:
-                            case adaptationStatus.error:
-                                await entity.command<"hvacThermostat", "calibrateValve", BoschHvacThermostat>(
-                                    "hvacThermostat",
-                                    "calibrateValve",
-                                    {},
-                                    manufacturerOptions,
-                                );
-                                break;
-                            default:
-                                throw new Error("Valve adaptation process not possible right now.");
-                        }
-                    }
-                    return {state: {valve_adapt_process: value}};
-                },
-                convertGet: async (entity, key, meta) => {
-                    await entity.read<"hvacThermostat", BoschHvacThermostat>("hvacThermostat", ["valveAdaptStatus"], manufacturerOptions);
-                },
-            },
-        ];
-        return {
-            exposes,
-            fromZigbee,
-            toZigbee,
-            isModernExtend: true,
-        };
-    },
-    heatingDemand: (): ModernExtend => {
-        const fromZigbee = [
-            {
-                cluster: "hvacThermostat",
-                type: ["attributeReport", "readResponse"],
-                convert: (model, msg, publish, options, meta) => {
-                    const result: KeyValue = {};
-                    if (msg.data.heatingDemand !== undefined) {
-                        const demand = msg.data.heatingDemand as number;
-                        result.pi_heating_demand = demand;
-                        result.running_state = demand > 0 ? "heat" : "idle";
-                    }
-                    return result;
-                },
-            } satisfies Fz.Converter<"hvacThermostat", BoschHvacThermostat, ["attributeReport", "readResponse"]>,
-        ];
-        const toZigbee: Tz.Converter[] = [
-            {
-                key: ["pi_heating_demand"],
-                convertSet: async (entity, key, value, meta) => {
-                    if (key === "pi_heating_demand") {
-                        let demand = utils.toNumber(value, key);
-                        demand = utils.numberWithinRange(demand, 0, 100);
-                        await entity.write<"hvacThermostat", BoschHvacThermostat>("hvacThermostat", {heatingDemand: demand}, manufacturerOptions);
-                        return {state: {pi_heating_demand: demand}};
-                    }
-                },
-                convertGet: async (entity, key, meta) => {
-                    await entity.read<"hvacThermostat", BoschHvacThermostat>("hvacThermostat", ["heatingDemand"], manufacturerOptions);
-                },
-            },
-            {
-                key: ["running_state"],
-                convertGet: async (entity, key, meta) => {
-                    await entity.read<"hvacThermostat", BoschHvacThermostat>("hvacThermostat", ["heatingDemand"], manufacturerOptions);
-                },
-            },
-        ];
-        return {
-            fromZigbee,
-            toZigbee,
-            isModernExtend: true,
-        };
-    },
-    ignoreDst: (): ModernExtend => {
-        const fromZigbee = [
-            {
-                cluster: "genTime",
-                type: "read",
-                convert: async (model, msg, publish, options, meta) => {
-                    if ("dstStart" in msg.data && "dstEnd" in msg.data && "dstShift" in msg.data) {
-                        const response = {
-                            dstStart: {attribute: 0x0003, status: Zcl.Status.SUCCESS, value: 0x00},
-                            dstEnd: {attribute: 0x0004, status: Zcl.Status.SUCCESS, value: 0x00},
-                            dstShift: {attribute: 0x0005, status: Zcl.Status.SUCCESS, value: 0x00},
-                        };
-                        await msg.endpoint.readResponse(msg.cluster, msg.meta.zclTransactionSequenceNumber, response);
-                    }
-                },
-            } satisfies Fz.Converter<"genTime", undefined, "read">,
-        ];
-        return {
-            fromZigbee,
-            isModernExtend: true,
-        };
-    },
-    smokeAlarm: (): ModernExtend => {
-        const smokeAlarm = {
-            OFF: 0x0000,
-            ON: 0x3c00, // 15360 or 46080 works
-        };
-        const burglarAlarm = {
-            OFF: 0x0001,
-            ON: 0xb401, // 46081
-        };
-        const exposes: Expose[] = [
-            e.binary("smoke", ea.STATE, true, false).withDescription("Indicates whether the device detected smoke"),
-            e
-                .binary("test", ea.STATE, true, false)
-                .withDescription("Indicates whether the device is currently performing a test")
-                .withCategory("diagnostic"),
-            e.binary("alarm_smoke", ea.ALL, true, false).withDescription("Toggle the smoke alarm siren").withCategory("config"),
-            e.binary("alarm_burglar", ea.ALL, true, false).withDescription("Toggle the burglar alarm siren").withCategory("config"),
-        ];
-        const fromZigbee = [
-            {
-                cluster: "ssIasZone",
-                type: ["commandStatusChangeNotification", "attributeReport", "readResponse"],
-                convert: (model, msg, publish, options, meta) => {
-                    const zoneStatus = "zonestatus" in msg.data ? msg.data.zonestatus : msg.data.zoneStatus;
-                    if (zoneStatus !== undefined) {
-                        return {
-                            smoke: (zoneStatus & 1) > 0,
-                            alarm_smoke: (zoneStatus & (1 << 1)) > 0,
-                            battery_low: (zoneStatus & (1 << 3)) > 0,
-                            supervision_reports: (zoneStatus & (1 << 4)) > 0,
-                            restore_reports: (zoneStatus & (1 << 5)) > 0,
-                            alarm_burglar: (zoneStatus & (1 << 7)) > 0,
-                            test: (zoneStatus & (1 << 8)) > 0,
-                            alarm_silenced: (zoneStatus & (1 << 11)) > 0,
-                        };
-                    }
-                },
-            } satisfies Fz.Converter<"ssIasZone", undefined, ["commandStatusChangeNotification", "attributeReport", "readResponse"]>,
-        ];
-        const toZigbee: Tz.Converter[] = [
-            {
-                key: ["alarm_smoke", "alarm_burglar"],
-                convertSet: async (entity, key, value, meta) => {
-                    if (key === "alarm_smoke") {
-                        let transformedValue = "OFF";
-                        if (value === true) {
-                            transformedValue = "ON";
-                        }
-                        const index = utils.getFromLookup(transformedValue, smokeAlarm);
-                        await entity.command<"ssIasZone", "boschSmokeAlarmSiren", BoschSmokeAlarmSiren>(
-                            "ssIasZone",
-                            "boschSmokeAlarmSiren",
-                            {data: index},
-                            manufacturerOptions,
-                        );
-                        return {state: {alarm_smoke: value}};
-                    }
-                    if (key === "alarm_burglar") {
-                        let transformedValue = "OFF";
-                        if (value === true) {
-                            transformedValue = "ON";
-                        }
-                        const index = utils.getFromLookup(transformedValue, burglarAlarm);
-                        await entity.command<"ssIasZone", "boschSmokeAlarmSiren", BoschSmokeAlarmSiren>(
-                            "ssIasZone",
-                            "boschSmokeAlarmSiren",
-                            {data: index},
-                            manufacturerOptions,
-                        );
-                        return {state: {alarm_burglar: value}};
-                    }
-                },
-                convertGet: async (entity, key, meta) => {
-                    switch (key) {
-                        case "alarm_smoke":
-                        case "alarm_burglar":
-                        case "zone_status":
-                            await entity.read("ssIasZone", ["zoneStatus"]);
-                            break;
-                        default:
-                            throw new Error(`Unhandled key boschExtend.smokeAlarm.toZigbee.convertGet ${key}`);
-                    }
-                },
-            },
-        ];
-        return {
-            exposes,
-            fromZigbee,
-            toZigbee,
-            isModernExtend: true,
-        };
-    },
     broadcastAlarm: (): ModernExtend => {
         const sirenState = {
             smoke_off: 0x0000,
@@ -990,7 +605,6 @@ export const definitions: DefinitionWithExtend[] = [
             boschBsirExtend.deviceState(),
             boschBsirExtend.alarmControl(),
             boschBsirExtend.iasZoneStatus(),
-            boschBsirExtend.battery(),
             boschBsirExtend.alarmMode(),
             boschBsirExtend.sirenVolume(),
             boschBsirExtend.sirenDuration(),
@@ -1000,56 +614,28 @@ export const definitions: DefinitionWithExtend[] = [
             boschBsirExtend.primaryPowerSource(),
             boschBsirExtend.currentPowerSource(),
             boschBsirExtend.solarPanelVoltage(),
+            boschGeneralExtend.batteryWithPercentageAndLowStatus({
+                percentageReportingConfig: {min: "MIN", max: "MAX", change: 1},
+            }),
         ],
         ota: true,
     },
     {
         zigbeeModel: ["RBSH-WS-ZB-EU"],
-        model: "BWA-1",
+        model: "BSEN-W",
         vendor: "Bosch",
-        description: "Smart water alarm",
+        description: "Water alarm (formerly known as BWA-1)",
         extend: [
-            m.deviceAddCustomCluster("boschSpecific", {
-                ID: 0xfcac,
-                manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
-                attributes: {
-                    alarmOnMotion: {
-                        ID: 0x0003,
-                        type: Zcl.DataType.BOOLEAN,
-                    },
-                },
-                commands: {},
-                commandsResponse: {},
-            }),
-            m.iasZoneAlarm({
-                zoneType: "water_leak",
-                zoneAttributes: ["alarm_1", "tamper"],
-            }),
-            m.battery({
-                percentage: true,
-                lowStatus: true,
-            }),
-            m.binary<"boschSpecific", BoschSpecificBwa1>({
-                name: "alarm_on_motion",
-                cluster: "boschSpecific",
-                attribute: "alarmOnMotion",
-                description: "Toggle audible alarm on motion",
-                valueOn: ["ON", 0x01],
-                valueOff: ["OFF", 0x00],
-                zigbeeCommandOptions: manufacturerOptions,
-                entityCategory: "config",
-            }),
-            m.bindCluster({
-                cluster: "genPollCtrl",
-                clusterType: "input",
-            }),
+            boschGeneralSensorDeviceExtend.customIasZoneCluster(),
+            boschWaterAlarmExtend.changedSensitivityLevel(),
+            boschWaterAlarmExtend.waterAlarmCluster(),
+            boschGeneralExtend.handleRenamedCustomCluster("boschSpecific", "boschWaterAlarm"),
+            boschWaterAlarmExtend.waterAndTamperAlarm(),
+            boschWaterAlarmExtend.muteAlarmControl(),
+            boschWaterAlarmExtend.alarmOnMotion(),
+            boschWaterAlarmExtend.testMode(),
+            boschGeneralExtend.batteryWithPercentageAndLowStatus(),
         ],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await endpoint.read("genPowerCfg", ["batteryPercentageRemaining"]);
-            await endpoint.read("ssIasZone", ["zoneStatus"]);
-            await endpoint.read<"boschSpecific", BoschSpecificBwa1>("boschSpecific", ["alarmOnMotion"], manufacturerOptions);
-        },
         ota: true,
     },
     {
@@ -1058,46 +644,13 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Bosch",
         description: "Smoke alarm II",
         extend: [
-            m.deviceAddCustomCluster("ssIasZone", {
-                ID: Zcl.Clusters.ssIasZone.ID,
-                attributes: {},
-                commands: {
-                    boschSmokeAlarmSiren: {
-                        ID: 0x80,
-                        parameters: [{name: "data", type: Zcl.DataType.UINT16}],
-                    },
-                },
-                commandsResponse: {},
-            }),
-            boschExtend.smokeAlarm(),
-            m.battery({
-                percentage: true,
-                lowStatus: false,
-            }),
-            m.enumLookup({
-                name: "sensitivity",
-                cluster: "ssIasZone",
-                attribute: "currentZoneSensitivityLevel",
-                description: "Sensitivity of the smoke detector",
-                lookup: {
-                    low: 0x00,
-                    medium: 0x01,
-                    high: 0x02,
-                },
-                entityCategory: "config",
-            }),
-            boschExtend.broadcastAlarm(),
-            m.bindCluster({
-                cluster: "genPollCtrl",
-                clusterType: "input",
-            }),
+            boschSmokeAlarmExtend.enforceDefaultSensitivityLevel(),
+            boschGeneralSensorDeviceExtend.customIasZoneCluster(),
+            boschSmokeAlarmExtend.smokeAlarmAndButtonPushes(),
+            boschSmokeAlarmExtend.alarmControl(),
+            boschSmokeAlarmExtend.testMode(),
+            boschSmokeAlarmExtend.battery(),
         ],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await endpoint.read("genPowerCfg", ["batteryPercentageRemaining"]);
-            await endpoint.read("ssIasZone", ["zoneStatus"]);
-            await endpoint.read("ssIasZone", ["currentZoneSensitivityLevel"]);
-        },
     },
     {
         zigbeeModel: [
@@ -1150,310 +703,81 @@ export const definitions: DefinitionWithExtend[] = [
         model: "BTH-RA",
         vendor: "Bosch",
         description: "Radiator thermostat II",
-        meta: {
-            overrideHaDiscoveryPayload: (payload) => {
-                // Override climate discovery
-                // https://github.com/Koenkk/zigbee2mqtt/pull/23075#issue-2355829475
-                if (payload.mode_command_topic?.endsWith("/system_mode")) {
-                    payload.mode_command_topic = payload.mode_command_topic.substring(0, payload.mode_command_topic.lastIndexOf("/system_mode"));
-                    payload.mode_command_template =
-                        "{% set values = " +
-                        `{ 'auto':'schedule','heat':'manual','off':'pause'} %}` +
-                        `{"operating_mode": "{{ values[value] if value in values.keys() else 'pause' }}"}`;
-                    payload.mode_state_template =
-                        "{% set values = " +
-                        `{'schedule':'auto','manual':'heat','pause':'off'} %}` +
-                        `{% set value = value_json.operating_mode %}{{ values[value] if value in values.keys() else 'off' }}`;
-                    payload.modes = ["off", "heat", "auto"];
-                }
-            },
-        },
-        exposes: [
-            e
-                .climate()
-                .withLocalTemperature(
-                    ea.STATE_GET,
-                    "Temperature used by the heating algorithm. " +
-                        "This is the temperature measured on the device (by default) or the remote temperature (if set within the last 30 min).",
-                )
-                .withLocalTemperatureCalibration(-5, 5, 0.1)
-                .withSetpoint("occupied_heating_setpoint", 5, 30, 0.5)
-                .withSystemMode(["heat"])
-                .withRunningState(["idle", "heat"], ea.STATE_GET),
-            e.pi_heating_demand().withAccess(ea.ALL),
-        ],
-        fromZigbee: [fz.thermostat],
-        toZigbee: [
-            tz.thermostat_system_mode,
-            tz.thermostat_occupied_heating_setpoint,
-            tz.thermostat_local_temperature_calibration,
-            tz.thermostat_local_temperature,
-            tz.thermostat_keypad_lockout,
-        ],
         extend: [
-            boschExtend.hvacThermostatCluster(),
-            boschExtend.hvacUserInterfaceCfgCluster(),
-            m.battery({
-                percentage: true,
-                lowStatus: false,
-            }),
-            boschExtend.operatingMode(),
-            boschExtend.windowDetection(),
-            boschExtend.boostHeating(),
-            m.numeric<"hvacThermostat", BoschHvacThermostat>({
-                name: "remote_temperature",
-                cluster: "hvacThermostat",
-                attribute: "remoteTemperature",
-                description: "Input for remote temperature sensor. Required at least every 30 min. to prevent fallback to internal sensor!",
-                valueMin: 0.0,
-                valueMax: 35.0,
-                valueStep: 0.01,
-                unit: "°C",
-                scale: 100,
-                zigbeeCommandOptions: manufacturerOptions,
-            }),
-            m.enumLookup({
-                name: "setpoint_change_source",
-                cluster: "hvacThermostat",
-                attribute: "setpointChangeSource",
-                reporting: {min: "10_SECONDS", max: "MAX", change: null},
-                description: "Source of the current setpoint temperature",
-                lookup: {manual: 0x00, schedule: 0x01, externally: 0x02},
-                access: "STATE_GET",
-            }),
-            boschExtend.childLock(),
-            boschExtend.displayOntime(),
-            boschExtend.displayBrightness(),
-            m.enumLookup<"hvacUserInterfaceCfg", BoschHvacUserInterfaceCfg>({
-                name: "display_orientation",
-                cluster: "hvacUserInterfaceCfg",
-                attribute: "displayOrientation",
-                description: "Sets orientation of the display",
-                lookup: {normal: 0x00, flipped: 0x01},
-                zigbeeCommandOptions: manufacturerOptions,
-            }),
-            m.enumLookup<"hvacUserInterfaceCfg", BoschHvacUserInterfaceCfg>({
-                name: "displayed_temperature",
-                cluster: "hvacUserInterfaceCfg",
-                attribute: "displayedTemperature",
-                description: "Temperature displayed on the TRV",
-                lookup: {target: 0x00, measured: 0x01},
-                zigbeeCommandOptions: manufacturerOptions,
-            }),
-            m.enumLookup<"hvacThermostat", BoschHvacThermostat>({
-                name: "valve_adapt_status",
-                cluster: "hvacThermostat",
-                attribute: "valveAdaptStatus",
-                reporting: {min: "10_SECONDS", max: "MAX", change: null},
-                description: "Specifies the current status of the valve adaptation",
-                lookup: {
-                    none: 0x00,
-                    ready_to_calibrate: 0x01,
-                    calibration_in_progress: 0x02,
-                    error: 0x03,
-                    success: 0x04,
-                },
-                zigbeeCommandOptions: manufacturerOptions,
-                access: "STATE_GET",
-            }),
-            boschExtend.valveAdaptProcess(),
-            boschExtend.heatingDemand(),
-            boschExtend.ignoreDst(),
-            m.bindCluster({
-                cluster: "genPollCtrl",
-                clusterType: "input",
-            }),
+            boschThermostatExtend.customThermostatCluster(),
+            boschThermostatExtend.customUserInterfaceCfgCluster(),
+            boschThermostatExtend.raThermostat(),
+            boschThermostatExtend.setpointChangeSource({enableReporting: true}),
+            boschThermostatExtend.operatingMode({enableReporting: true}),
+            boschThermostatExtend.windowOpenMode({enableReporting: true}),
+            boschThermostatExtend.boostHeating({enableReporting: true}),
+            boschThermostatExtend.remoteTemperature(),
+            boschThermostatExtend.childLock(),
+            boschThermostatExtend.displayBrightness(),
+            boschThermostatExtend.displaySwitchOnDuration(),
+            boschThermostatExtend.displayOrientation(),
+            boschThermostatExtend.displayedTemperature(),
+            boschThermostatExtend.valveAdaptation(),
+            boschThermostatExtend.errorState({enableReporting: true}),
+            boschGeneralExtend.batteryWithPercentageAndLowStatus(),
         ],
         ota: true,
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["hvacThermostat", "hvacUserInterfaceCfg"]);
-            await reporting.thermostatTemperature(endpoint);
-            await reporting.thermostatOccupiedHeatingSetpoint(endpoint, {
-                min: constants.repInterval.SECONDS_10,
-                max: constants.repInterval.HOUR,
-                change: 50,
-            });
-            await reporting.thermostatKeypadLockMode(endpoint);
-            await endpoint.configureReporting<"hvacThermostat", BoschHvacThermostat>(
-                "hvacThermostat",
-                [
-                    {
-                        attribute: "heatingDemand",
-                        minimumReportInterval: constants.repInterval.SECONDS_10,
-                        maximumReportInterval: constants.repInterval.MAX,
-                        reportableChange: null,
-                    },
-                ],
-                manufacturerOptions,
-            );
-            await endpoint.read("genPowerCfg", ["batteryPercentageRemaining"]);
-            await endpoint.read("hvacThermostat", ["localTemperatureCalibration", "setpointChangeSource"]);
-            await endpoint.read<"hvacThermostat", BoschHvacThermostat>(
-                "hvacThermostat",
-                ["operatingMode", "heatingDemand", "valveAdaptStatus", "remoteTemperature", "windowDetection", "boostHeating"],
-                manufacturerOptions,
-            );
-            await endpoint.read("hvacUserInterfaceCfg", ["keypadLockout"]);
-            await endpoint.read<"hvacUserInterfaceCfg", BoschHvacUserInterfaceCfg>(
-                "hvacUserInterfaceCfg",
-                ["displayOrientation", "displayedTemperature", "displayOntime", "displayBrightness"],
-                manufacturerOptions,
-            );
-        },
     },
     {
         zigbeeModel: ["RBSH-RTH0-BAT-ZB-EU"],
         model: "BTH-RM",
         vendor: "Bosch",
-        description: "Room thermostat II (Battery model)",
-        exposes: [
-            e
-                .climate()
-                .withLocalTemperature()
-                .withSetpoint("occupied_heating_setpoint", 4.5, 30, 0.5)
-                .withSetpoint("occupied_cooling_setpoint", 4.5, 30, 0.5)
-                .withLocalTemperatureCalibration(-5, 5, 0.1)
-                .withSystemMode(["off", "heat", "cool"])
-                .withRunningState(["idle", "heat", "cool"]),
-        ],
-        fromZigbee: [fz.thermostat, fz.hvac_user_interface],
-        toZigbee: [
-            tz.thermostat_system_mode,
-            tz.thermostat_running_state,
-            tz.thermostat_occupied_heating_setpoint,
-            tz.thermostat_occupied_cooling_setpoint,
-            tz.thermostat_programming_operation_mode, // NOTE: Only 0x0 & 0x1 supported
-            tz.thermostat_local_temperature_calibration,
-            tz.thermostat_local_temperature,
-            tz.thermostat_temperature_setpoint_hold,
-            tz.thermostat_temperature_display_mode,
-        ],
+        description: "Room thermostat II",
         extend: [
-            boschExtend.hvacThermostatCluster(),
-            boschExtend.hvacUserInterfaceCfgCluster(),
-            m.battery({
-                voltageToPercentage: {min: 4400, max: 6400},
-                percentage: true,
-                voltage: true,
-                lowStatus: false,
-                voltageReporting: true,
-                percentageReporting: false,
-            }),
-            m.humidity(),
-            boschExtend.operatingMode(),
-            boschExtend.windowDetection(),
-            boschExtend.boostHeating(),
-            boschExtend.childLock(),
-            boschExtend.displayOntime(),
-            boschExtend.displayBrightness(),
-            m.bindCluster({
-                cluster: "genPollCtrl",
-                clusterType: "input",
-            }),
+            boschGeneralExtend.handleZclVersionReadRequest(),
+            boschThermostatExtend.customThermostatCluster(),
+            boschThermostatExtend.customUserInterfaceCfgCluster(),
+            boschThermostatExtend.customSystemMode(),
+            boschThermostatExtend.operatingMode(),
+            boschThermostatExtend.rmThermostat(),
+            boschThermostatExtend.setpointChangeSource(),
+            boschThermostatExtend.humidity(),
+            boschThermostatExtend.cableSensorMode(),
+            boschThermostatExtend.cableSensorTemperature(),
+            boschThermostatExtend.windowOpenMode(),
+            boschThermostatExtend.boostHeating(),
+            boschThermostatExtend.childLock(),
+            boschThermostatExtend.displayBrightness(),
+            boschThermostatExtend.displaySwitchOnDuration(),
+            boschThermostatExtend.activityLedState(),
+            boschThermostatExtend.errorState(),
+            boschThermostatExtend.rmBattery(),
         ],
         ota: true,
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["hvacThermostat", "hvacUserInterfaceCfg"]);
-            await reporting.thermostatSystemMode(endpoint);
-            await reporting.thermostatRunningState(endpoint);
-            await reporting.thermostatTemperature(endpoint);
-            await reporting.thermostatOccupiedHeatingSetpoint(endpoint, {
-                min: constants.repInterval.SECONDS_10,
-                max: constants.repInterval.HOUR,
-                change: 50,
-            });
-            await reporting.thermostatOccupiedCoolingSetpoint(endpoint, {
-                min: constants.repInterval.SECONDS_10,
-                max: constants.repInterval.HOUR,
-                change: 50,
-            });
-            await reporting.thermostatKeypadLockMode(endpoint);
-            await endpoint.read("genPowerCfg", ["batteryVoltage"]);
-            await endpoint.read("hvacThermostat", ["localTemperatureCalibration"]);
-            await endpoint.read<"hvacThermostat", BoschHvacThermostat>(
-                "hvacThermostat",
-                ["operatingMode", "windowDetection", "boostHeating"],
-                manufacturerOptions,
-            );
-            await endpoint.read("hvacUserInterfaceCfg", ["keypadLockout"]);
-            await endpoint.read<"hvacUserInterfaceCfg", BoschHvacUserInterfaceCfg>(
-                "hvacUserInterfaceCfg",
-                ["displayOntime", "displayBrightness"],
-                manufacturerOptions,
-            );
-        },
     },
     {
         zigbeeModel: ["RBSH-RTH0-ZB-EU"],
         model: "BTH-RM230Z",
         vendor: "Bosch",
         description: "Room thermostat II 230V",
-        exposes: [
-            e
-                .climate()
-                .withLocalTemperature()
-                .withSetpoint("occupied_heating_setpoint", 4.5, 30, 0.5)
-                .withSetpoint("occupied_cooling_setpoint", 4.5, 30, 0.5)
-                .withLocalTemperatureCalibration(-5, 5, 0.1)
-                .withSystemMode(["off", "heat", "cool"])
-                .withRunningState(["idle", "heat", "cool"]),
-        ],
-        fromZigbee: [fz.thermostat, fz.hvac_user_interface],
-        toZigbee: [
-            tz.thermostat_system_mode,
-            tz.thermostat_running_state,
-            tz.thermostat_occupied_heating_setpoint,
-            tz.thermostat_occupied_cooling_setpoint,
-            tz.thermostat_programming_operation_mode, // NOTE: Only 0x0 & 0x1 supported
-            tz.thermostat_local_temperature_calibration,
-            tz.thermostat_local_temperature,
-            tz.thermostat_temperature_setpoint_hold,
-            tz.thermostat_temperature_display_mode,
-        ],
         extend: [
-            boschExtend.hvacThermostatCluster(),
-            boschExtend.hvacUserInterfaceCfgCluster(),
-            m.humidity(),
-            boschExtend.operatingMode(),
-            boschExtend.windowDetection(),
-            boschExtend.boostHeating(),
-            boschExtend.childLock(),
-            boschExtend.displayOntime(),
-            boschExtend.displayBrightness(),
+            boschGeneralExtend.handleZclVersionReadRequest(),
+            boschThermostatExtend.customThermostatCluster(),
+            boschThermostatExtend.customUserInterfaceCfgCluster(),
+            boschThermostatExtend.relayState(),
+            boschThermostatExtend.customSystemMode(),
+            boschThermostatExtend.operatingMode(),
+            boschThermostatExtend.rmThermostat(),
+            boschThermostatExtend.setpointChangeSource(),
+            boschThermostatExtend.humidity(),
+            boschThermostatExtend.heaterType(),
+            boschThermostatExtend.valveType(),
+            boschThermostatExtend.cableSensorMode(),
+            boschThermostatExtend.cableSensorTemperature(),
+            boschThermostatExtend.windowOpenMode(),
+            boschThermostatExtend.boostHeating(),
+            boschThermostatExtend.childLock(),
+            boschThermostatExtend.displayBrightness(),
+            boschThermostatExtend.displaySwitchOnDuration(),
+            boschThermostatExtend.activityLedState(),
+            boschThermostatExtend.errorState(),
         ],
         ota: true,
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["hvacThermostat", "hvacUserInterfaceCfg"]);
-            await reporting.thermostatSystemMode(endpoint);
-            await reporting.thermostatRunningState(endpoint);
-            await reporting.thermostatTemperature(endpoint);
-            await reporting.thermostatOccupiedHeatingSetpoint(endpoint, {
-                min: constants.repInterval.SECONDS_10,
-                max: constants.repInterval.HOUR,
-                change: 50,
-            });
-            await reporting.thermostatOccupiedCoolingSetpoint(endpoint, {
-                min: constants.repInterval.SECONDS_10,
-                max: constants.repInterval.HOUR,
-                change: 50,
-            });
-            await reporting.thermostatKeypadLockMode(endpoint);
-            await endpoint.read("hvacThermostat", ["localTemperatureCalibration"]);
-            await endpoint.read<"hvacThermostat", BoschHvacThermostat>(
-                "hvacThermostat",
-                ["operatingMode", "windowDetection", "boostHeating"],
-                manufacturerOptions,
-            );
-            await endpoint.read("hvacUserInterfaceCfg", ["keypadLockout"]);
-            await endpoint.read<"hvacUserInterfaceCfg", BoschHvacUserInterfaceCfg>(
-                "hvacUserInterfaceCfg",
-                ["displayOntime", "displayBrightness"],
-                manufacturerOptions,
-            );
-        },
     },
     {
         zigbeeModel: ["Champion"],
@@ -1567,7 +891,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Bosch",
         description: "Motion detector",
         extend: [
-            boschBsenExtend.customIasZoneCluster(),
+            boschGeneralSensorDeviceExtend.customIasZoneCluster(),
             boschBsenExtend.changedCheckinInterval(),
             boschBsenExtend.tamperAndOccupancyAlarm(),
             boschBsenExtend.battery(),
@@ -1583,13 +907,13 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Bosch",
         description: "Smart plug compact (type F plug)",
         extend: [
-            boschGeneralExtend.customSeMeteringCluster(),
+            boschGeneralEnergyDeviceExtend.customMeteringCluster(),
             boschSmartPlugExtend.smartPlugCluster(),
             boschGeneralExtend.handleRenamedCustomCluster("boschSpecific", "boschEnergyDevice"),
             boschSmartPlugExtend.onOff(),
-            boschGeneralExtend.autoOff(),
+            boschGeneralEnergyDeviceExtend.autoOff(),
             boschSmartPlugExtend.electricityMeter(),
-            boschGeneralExtend.resetEnergyMeters(),
+            boschGeneralEnergyDeviceExtend.resetEnergyMeters(),
         ],
         ota: true,
         whiteLabel: [
@@ -1604,14 +928,14 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Smart plug compact [+M]",
         extend: [
             boschGeneralExtend.handleZclVersionReadRequest(),
-            boschGeneralExtend.customSeMeteringCluster(),
+            boschGeneralEnergyDeviceExtend.customMeteringCluster(),
             boschSmartPlugExtend.smartPlugCluster(),
             boschSmartPlugExtend.onOff(),
-            boschGeneralExtend.autoOff(),
+            boschGeneralEnergyDeviceExtend.autoOff(),
             boschSmartPlugExtend.ledBrightness(),
             boschSmartPlugExtend.energySavingMode(),
             boschSmartPlugExtend.electricityMeter({producedEnergy: true}),
-            boschGeneralExtend.resetEnergyMeters(),
+            boschGeneralEnergyDeviceExtend.resetEnergyMeters(),
         ],
     },
     {
@@ -1625,7 +949,7 @@ export const definitions: DefinitionWithExtend[] = [
             boschDoorWindowContactExtend.reportContactState(),
             boschDoorWindowContactExtend.reportButtonActions(),
             boschDoorWindowContactExtend.breakFunctionality(),
-            boschDoorWindowContactExtend.battery(),
+            boschGeneralExtend.batteryWithPercentageAndLowStatus(),
         ],
         ota: true,
     },
@@ -1641,7 +965,7 @@ export const definitions: DefinitionWithExtend[] = [
             boschDoorWindowContactExtend.reportButtonActions(),
             boschDoorWindowContactExtend.vibrationDetection(),
             boschDoorWindowContactExtend.breakFunctionality(),
-            boschDoorWindowContactExtend.battery(),
+            boschGeneralExtend.batteryWithPercentageAndLowStatus(),
         ],
     },
     {
@@ -1655,7 +979,7 @@ export const definitions: DefinitionWithExtend[] = [
             boschDoorWindowContactExtend.reportContactState(),
             boschDoorWindowContactExtend.reportButtonActions({doublePressSupported: true}),
             boschDoorWindowContactExtend.breakFunctionality(),
-            boschDoorWindowContactExtend.battery(),
+            boschGeneralExtend.batteryWithPercentageAndLowStatus(),
         ],
     },
     {
@@ -1740,7 +1064,7 @@ export const definitions: DefinitionWithExtend[] = [
                 switchTypeLookup: boschBmctRzSettings.switchTypes,
             }),
             boschBmctExtend.childLock(),
-            boschGeneralExtend.autoOff(),
+            boschGeneralEnergyDeviceExtend.autoOff(),
             boschBmctExtend.pulseLength({
                 updateDeviceMode: true,
                 deviceModesLookup: boschBmctRzSettings.deviceModes,
@@ -1830,8 +1154,8 @@ export const definitions: DefinitionWithExtend[] = [
             boschGeneralExtend.handleRenamedCustomCluster("boschSpecific", "boschEnergyDevice"),
             boschGeneralExtend.handleZclVersionReadRequest(),
             boschBmctExtend.slzExtends(),
-            boschGeneralExtend.customSeMeteringCluster(),
-            boschGeneralExtend.resetEnergyMeters(),
+            boschGeneralEnergyDeviceExtend.customMeteringCluster(),
+            boschGeneralEnergyDeviceExtend.resetEnergyMeters(),
         ],
         ota: true,
         configure: async (device, coordinatorEndpoint) => {

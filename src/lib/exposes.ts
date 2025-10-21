@@ -701,7 +701,8 @@ export class Climate extends Base {
                 .withValueMin(0)
                 .withValueMax(100)
                 .withUnit("%")
-                .withDescription("Position of the valve (= demanded heat) where 0% is fully closed and 100% is fully open"),
+                .withDescription("Position of the valve (= demanded heat) where 0% is fully closed and 100% is fully open")
+                .withAccess(access),
         );
         return this;
     }
@@ -713,7 +714,8 @@ export class Climate extends Base {
                 .withValueMin(0)
                 .withValueMax(100)
                 .withUnit("%")
-                .withDescription("Position of the valve (= demanded cooling) where 0% is fully closed and 100% is fully open"),
+                .withDescription("Position of the valve (= demanded cooling) where 0% is fully closed and 100% is fully open")
+                .withAccess(access),
         );
         return this;
     }
@@ -1324,13 +1326,6 @@ export const presets = {
     tilt: () => new Binary("tilt", access.STATE, true, false).withDescription("Indicates whether the device detected tilt"),
     voc: () => new Numeric("voc", access.STATE).withLabel("VOC").withUnit("µg/m³").withDescription("Measured VOC value"),
     voc_index: () => new Numeric("voc_index", access.STATE).withLabel("VOC index").withDescription("VOC index"),
-    pi_heating_demand: () =>
-        new Numeric("pi_heating_demand", access.STATE)
-            .withLabel("PI heating demand")
-            .withValueMin(0)
-            .withValueMax(100)
-            .withUnit("%")
-            .withDescription("Position of the valve (= demanded heat) where 0% is fully closed and 100% is fully open"),
     voltage: () => new Numeric("voltage", access.STATE).withUnit("V").withDescription("Measured electrical potential value"),
     voltage_phase_b: () =>
         new Numeric("voltage_phase_b", access.STATE)
@@ -1374,7 +1369,8 @@ export const presets = {
             .withState("window_detection", true, "Enables/disables window detection on the device", access.STATE_SET),
     window_detection_bool: (access: number = a.ALL) =>
         new Binary("window_detection", access, true, false).withDescription("Enables/disables window detection on the device").withCategory("config"),
-    window_open: () => new Binary("window_open", access.STATE, true, false).withDescription("Indicates if window is open").withCategory("diagnostic"),
+    window_open: (access: number = a.STATE) =>
+        new Binary("window_open", access, true, false).withDescription("Indicates if window is open").withCategory("diagnostic"),
     moving: () => new Binary("moving", access.STATE, true, false).withDescription("Indicates if the device is moving"),
     x_axis: () => new Numeric("x_axis", access.STATE).withDescription("Accelerometer X value"),
     y_axis: () => new Numeric("y_axis", access.STATE).withDescription("Accelerometer Y value"),

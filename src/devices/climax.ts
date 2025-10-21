@@ -56,7 +56,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "PSM-29ZBSR",
         vendor: "Climax",
         description: "Power plug",
-        fromZigbee: [fz.on_off, fz.metering, fz.ignore_basic_report],
+        fromZigbee: [fz.on_off, fz.metering],
         toZigbee: [tz.on_off, tz.ignore_transition],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -85,7 +85,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.temperature(), e.humidity()],
     },
     {
-        zigbeeModel: ["SRACBP5_00.00.03.06TC", "SRAC_00.00.00.16TC", "SRACBP5_00.00.05.10TC"],
+        zigbeeModel: ["SRACBP5_00.00.03.06TC", "SRAC_00.00.00.16TC", "SRACBP5_00.00.05.10TC", "SRACB_00.00.03.07TC"],
         model: "SRAC-23B-ZBSR",
         vendor: "Climax",
         description: "Smart siren",

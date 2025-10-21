@@ -1808,6 +1808,9 @@ export const definitions: DefinitionWithExtend[] = [
             lumi.lumiModernExtend.fp1eSpatialLearning(),
             lumi.lumiModernExtend.fp1eRestartDevice(),
             m.identify(),
+
+            lumi.lumiModernExtend.fp1eAIInterference(),
+            lumi.lumiModernExtend.fp1eAdaptiveSensitivity(),
         ],
     },
     {
@@ -1911,14 +1914,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZNCZ04LM",
         description: "Mi smart plug EU",
         vendor: "Xiaomi",
-        fromZigbee: [
-            fz.on_off,
-            lumi.fromZigbee.lumi_power,
-            lumi.fromZigbee.lumi_specific,
-            fz.ignore_occupancy_report,
-            fz.ignore_illuminance_report,
-            fz.ignore_time_read,
-        ],
+        fromZigbee: [fz.on_off, lumi.fromZigbee.lumi_power, lumi.fromZigbee.lumi_specific, fz.ignore_occupancy_report, fz.ignore_illuminance_report],
         toZigbee: [
             tz.on_off,
             lumi.toZigbee.lumi_power,
@@ -2222,6 +2218,7 @@ export const definitions: DefinitionWithExtend[] = [
             lumi.toZigbee.lumi_heartbeat_indicator,
             lumi.toZigbee.lumi_linkage_alarm,
         ],
+        ota: true,
         exposes: [
             e.smoke().withAccess(ea.STATE_GET),
             e.numeric("smoke_density", ea.STATE_GET).withDescription("Value of smoke concentration"),
@@ -2447,12 +2444,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Roller shade driver E1",
         vendor: "Aqara",
         whiteLabel: [{vendor: "Aqara", model: "RSD-M01"}],
-        fromZigbee: [
-            lumi.fromZigbee.lumi_curtain_position,
-            lumi.fromZigbee.lumi_curtain_status,
-            fz.ignore_basic_report,
-            lumi.fromZigbee.lumi_specific,
-        ],
+        fromZigbee: [lumi.fromZigbee.lumi_curtain_position, lumi.fromZigbee.lumi_curtain_status, lumi.fromZigbee.lumi_specific],
         ota: true,
         toZigbee: [lumi.toZigbee.lumi_curtain_position_state, lumi.toZigbee.lumi_curtain_battery, lumi.toZigbee.lumi_curtain_charging_status],
         exposes: [
@@ -2653,7 +2645,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZNMS13LM",
         description: "Smart door lock S2 Pro",
         vendor: "Aqara",
-        fromZigbee: [lumi.fromZigbee.lumi_door_lock_report, fz.ignore_basic_report],
+        fromZigbee: [lumi.fromZigbee.lumi_door_lock_report],
         toZigbee: [],
         exposes: [
             e.binary("state", ea.STATE, "UNLOCK", "LOCK"),
@@ -2685,7 +2677,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZNMS11LM",
         description: "Smart door lock",
         vendor: "Aqara",
-        fromZigbee: [lumi.fromZigbee.lumi_door_lock_report, fz.ignore_basic_report],
+        fromZigbee: [lumi.fromZigbee.lumi_door_lock_report],
         toZigbee: [],
         exposes: [
             e.binary("state", ea.STATE, "UNLOCK", "LOCK"),
@@ -3971,6 +3963,7 @@ export const definitions: DefinitionWithExtend[] = [
                 endpointNames: ["top", "bottom"],
             }),
             lumiAction({
+                actionLookup: {hold: 0, single: 1, double: 2, release: 255},
                 endpointNames: ["top", "bottom"],
                 extraActions: ["slider_single", "slider_double", "slider_hold", "slider_up", "slider_down"],
             }),
@@ -3998,6 +3991,7 @@ export const definitions: DefinitionWithExtend[] = [
                 endpointNames: ["top", "center", "bottom"],
             }),
             lumiAction({
+                actionLookup: {hold: 0, single: 1, double: 2, release: 255},
                 endpointNames: ["top", "center", "bottom"],
                 extraActions: ["slider_single", "slider_double", "slider_hold", "slider_up", "slider_down"],
             }),
@@ -4591,6 +4585,17 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TH-S04D",
         vendor: "Aqara",
         description: "Climate Sensor W100",
+        fromZigbee: [lumi.fromZigbee.w100_0844_req, lumi.fromZigbee.pmtsd_from_w100],
+        toZigbee: [lumi.toZigbee.pmtsd_to_w100, lumi.toZigbee.thermostat_mode],
+        exposes: [
+            e.action(["data_request"]).withDescription("W100 Requesting PMTSD Data via 08000844 Request"),
+            e.text("data", ea.STATE).withDescription("Timestamp+Most Recent PMTSD Values Sent by W100"),
+            e
+                .binary("mode", ea.ALL, "ON", "OFF")
+                .withDescription(
+                    "On: Enable thermostat mode. Buttons send encrypted payloads and middle line is enabled. Off: Disable thermostat mode. Buttons send actions and middle line is disabled.",
+                ),
+        ],
         extend: [
             lumiZigbeeOTA(),
             m.temperature(),
@@ -4790,8 +4795,10 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Radiator thermostat W600",
         extend: [
             m.thermostat({
-                setpoints: {occupiedHeatingSetpoint: {min: 5, max: 30, step: 0.5}},
-                localTemperatureCalibration: true,
+                setpoints: {
+                    values: {occupiedHeatingSetpoint: {min: 5, max: 30, step: 0.5}},
+                },
+                localTemperatureCalibration: {values: true},
                 temperatureSetpointHold: true,
                 temperatureSetpointHoldDuration: true,
                 setpointsLimit: {
@@ -4899,12 +4906,14 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Floor heating thermostat W500",
         extend: [
             m.thermostat({
-                setpoints: {occupiedHeatingSetpoint: {min: 5, max: 40, step: 0.5}},
-                localTemperatureCalibration: true,
+                setpoints: {values: {occupiedHeatingSetpoint: {min: 5, max: 40, step: 0.5}}},
+                localTemperatureCalibration: {values: true},
                 temperatureSetpointHold: true,
                 temperatureSetpointHoldDuration: true,
-                systemMode: ["off", "heat"],
-                runningState: ["idle", "heat", "cool", "fan_only"],
+                systemMode: {values: ["off", "heat"]},
+                runningState: {
+                    values: ["idle", "heat", "cool", "fan_only"],
+                },
                 setpointsLimit: {
                     maxHeatSetpointLimit: {min: 5, max: 30, step: 0.5},
                     minHeatSetpointLimit: {min: 5, max: 30, step: 0.5},
@@ -5001,6 +5010,7 @@ export const definitions: DefinitionWithExtend[] = [
             await endpoint.read("manuSpecificLumi", [0x019a], {manufacturerCode: manufacturerCode}); // Read detection range
         },
         extend: [
+            lumi.lumiModernExtend.lumiPreventLeave(),
             lumi.lumiModernExtend.lumiBattery({
                 voltageToPercentage: {min: 2850, max: 3000},
                 voltageAttribute: 0x0017, // Attribute: 23
@@ -5017,6 +5027,9 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Presence detection sensor type",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
+
+            lumi.lumiModernExtend.fp1eAIInterference(),
+            lumi.lumiModernExtend.fp1eAdaptiveSensitivity(),
 
             m.numeric({
                 name: "absence_delay_timer",

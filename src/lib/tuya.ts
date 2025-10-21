@@ -59,6 +59,39 @@ export const dataTypes = {
     bitmap: 5, // [ 1,2,4 bytes ] as bits
 };
 
+export const M8ProTuyaWeatherCondition = {
+    sunny: 100,
+    heavy_rain: 101,
+    cloudy: 102,
+    sandstorm: 103,
+    light_snow: 104,
+    snow: 105,
+    freezing_fog: 106,
+    rainstorm: 107,
+    shower: 108,
+    dust: 109,
+    spit: 112,
+    sleet: 113,
+    yin: 114,
+    freezing_rain: 115,
+    rain: 118,
+    fog: 121,
+    heavy_shower: 123,
+    heavy_snow: 124,
+    heavy_downpour: 125,
+    blizzard: 126,
+    hailstone: 127,
+    snow_shower: 130,
+    haze: 140,
+    thunder_shower: 143,
+};
+
+export enum TuyaWeatherID {
+    Temperature = 0x01,
+    Humidity = 0x02,
+    Condition = 0x03,
+}
+
 export function convertBufferToNumber(chunks: Buffer | number[]) {
     let value = 0;
     for (let i = 0; i < chunks.length; i++) {
@@ -288,8 +321,9 @@ const tuyaExposes = {
             .withDescription("External switch type"),
     backlightModeLowMediumHigh: () => e.enum("backlight_mode", ea.ALL, ["low", "medium", "high"]).withDescription("Intensity of the backlight"),
     backlightModeOffNormalInverted: () => e.enum("backlight_mode", ea.ALL, ["off", "normal", "inverted"]).withDescription("Mode of the backlight"),
-    backlightModeOffOn: () => e.binary("backlight_mode", ea.ALL, "ON", "OFF").withDescription("Mode of the backlight"),
-    indicatorMode: () => e.enum("indicator_mode", ea.ALL, ["off", "off/on", "on/off", "on"]).withDescription("LED indicator mode"),
+    backlightModeOffOn: () => e.binary("backlight_mode", ea.ALL, "ON", "OFF").withDescription("Mode of the backlight").withCategory("config"),
+    indicatorMode: () =>
+        e.enum("indicator_mode", ea.ALL, ["off", "off/on", "on/off", "on"]).withDescription("LED indicator mode").withCategory("config"),
     indicatorModeNoneRelayPos: () => e.enum("indicator_mode", ea.ALL, ["none", "relay", "pos"]).withDescription("Mode of the indicator light"),
     powerOutageMemory: () => e.enum("power_outage_memory", ea.ALL, ["on", "off", "restore"]).withDescription("Recover state after power outage"),
     batteryState: () => e.enum("battery_state", ea.STATE, ["low", "medium", "high"]).withDescription("State of the battery"),
@@ -299,6 +333,7 @@ const tuyaExposes = {
             .withDescription("Do not disturb mode, when enabled this function will keep the light OFF after a power outage"),
     colorPowerOnBehavior: () =>
         e.enum("color_power_on_behavior", ea.STATE_SET, ["initial", "previous", "customized"]).withDescription("Power on behavior state"),
+    powerOnBehavior: () => e.enum("power_on_behavior", ea.ALL, ["off", "on", "previous"]).withDescription("Power on behavior state"),
     switchMode: () =>
         e.enum("switch_mode", ea.STATE_SET, ["switch", "scene"]).withDescription("Sets the mode of the switch to act as a switch or as a scene"),
     switchMode2: () =>
@@ -2124,7 +2159,7 @@ const tuyaModernExtend = {
             respondToMcuVersionResponse?: true;
             mcuVersionRequestOnConfigure?: true;
             forceTimeUpdates?: true;
-            timeStart?: "2000" | "off";
+            timeStart?: "2000" | "1970";
         } = {},
     ): ModernExtend {
         const {
@@ -2137,7 +2172,7 @@ const tuyaModernExtend = {
             // Allow force updating for device with a very bad clock
             // Every hour when a message is received the time will be updated.
             forceTimeUpdates = false,
-            timeStart = "1970",
+            timeStart = "off",
             // Disable by default as with many Tuya devices it doesn't work well.
             // https://github.com/Koenkk/zigbee2mqtt/issues/28367#issuecomment-3363460429
             respondToMcuVersionResponse = false,
@@ -2551,7 +2586,7 @@ const tuyaModernExtend = {
             switchType?: boolean;
             switchTypeCurtain?: boolean;
             backlightModeLowMediumHigh?: boolean;
-            indicatorMode?: boolean;
+            indicatorMode?: boolean | ((manufacturerName: string) => boolean);
             indicatorModeNoneRelayPos?: boolean;
             backlightModeOffNormalInverted?: boolean;
             backlightModeOffOn?: boolean;
@@ -2564,11 +2599,12 @@ const tuyaModernExtend = {
             inchingSwitch?: boolean;
         } = {},
     ): ModernExtend => {
+        const {indicatorMode = false} = args;
         const exposes: (Expose | DefinitionExposesFunction)[] = args.endpoints
             ? args.endpoints.map((ee) => e.switch().withEndpoint(ee))
             : [e.switch()];
         // biome-ignore lint/suspicious/noExplicitAny: generic
-        const fromZigbee: Fz.Converter<any, any, any>[] = [fz.on_off, fz.ignore_basic_report];
+        const fromZigbee: Fz.Converter<any, any, any>[] = [fz.on_off];
         const toZigbee: Tz.Converter[] = [];
         if (args.onOffCountdown) {
             fromZigbee.push(tuyaFz.on_off_countdown);
@@ -2625,9 +2661,13 @@ const tuyaModernExtend = {
             exposes.push(tuyaExposes.backlightModeOffNormalInverted());
             toZigbee.push(tuyaTz.backlight_indicator_mode_1);
         }
-        if (args.indicatorMode) {
+        if (indicatorMode) {
             fromZigbee.push(tuyaFz.indicator_mode);
-            exposes.push(tuyaExposes.indicatorMode());
+            if (typeof indicatorMode === "function") {
+                exposes.push((d) => (indicatorMode(d.manufacturerName) ? [tuyaExposes.indicatorMode()] : []));
+            } else {
+                exposes.push(tuyaExposes.indicatorMode());
+            }
             toZigbee.push(tuyaTz.backlight_indicator_mode_1);
         }
         if (args.indicatorModeNoneRelayPos) {
@@ -2752,6 +2792,137 @@ const tuyaModernExtend = {
             expose: e.child_lock(),
             ...args,
         });
+    },
+    tuyaWeatherForecast(
+        args: {includeCurrentWeather?: boolean; numberOfForecastDays?: number; correctForNegativeValues?: boolean} = {},
+    ): ModernExtend {
+        const {includeCurrentWeather = true, numberOfForecastDays = 3, correctForNegativeValues = false} = args;
+
+        const tz_fileds = includeCurrentWeather ? ["temperature_0", "humidity_0", "condition_0"] : [];
+
+        for (let i = 0; i < numberOfForecastDays; ++i) {
+            tz_fileds.push(`temperature_${i}`);
+            tz_fileds.push(`humidity_${i}`);
+            tz_fileds.push(`condition_${i}`);
+        }
+
+        function _vCorr(val: number): number {
+            if (correctForNegativeValues && val < 1) {
+                return val - 1;
+            }
+            return val;
+        }
+
+        function _prepareTuyaWeatherSyncPayload(meta: Fz.Meta | Tz.Meta, numberOfForecastDays: number, includeCurrentWeather: boolean): Buffer {
+            let bOffset = 0;
+            const buffer = Buffer.alloc(6 + (includeCurrentWeather ? 6 : 1) + numberOfForecastDays * 6);
+
+            buffer.writeUInt8(0x11, bOffset++);
+            buffer.writeUInt8(0, bOffset++);
+            buffer.writeUInt8(0x12, bOffset++);
+            buffer.writeUInt8(numberOfForecastDays, bOffset++);
+            buffer.writeUInt8(0x13, bOffset++);
+
+            const weather_values: Record<TuyaWeatherID, number[]> = {1: [], 2: [], 3: []};
+
+            if (includeCurrentWeather) {
+                buffer.writeUInt8(0x1, bOffset++);
+                weather_values[TuyaWeatherID.Temperature].push(
+                    "temperature_0" in meta.state ? (_vCorr(meta.state["temperature_0"] as number) as number) : 0,
+                );
+                weather_values[TuyaWeatherID.Humidity].push("humidity_0" in meta.state ? (meta.state["humidity_0"] as number) : 0);
+                weather_values[TuyaWeatherID.Condition].push(
+                    "condition_0" in meta.state ? M8ProTuyaWeatherCondition[meta.state["condition_0"] as keyof typeof M8ProTuyaWeatherCondition] : 0,
+                );
+            } else {
+                buffer.writeUInt8(0x0, bOffset++);
+            }
+
+            for (let i = 1; i <= numberOfForecastDays; ++i) {
+                weather_values[TuyaWeatherID.Temperature].push(
+                    `temperature_${i}` in meta.state ? (_vCorr(meta.state[`temperature_${i}`] as number) as number) : 0,
+                );
+                weather_values[TuyaWeatherID.Humidity].push(`humidity_${i}` in meta.state ? (meta.state[`humidity${i}`] as number) : 0);
+                weather_values[TuyaWeatherID.Condition].push(
+                    `condition_${i}` in meta.state
+                        ? M8ProTuyaWeatherCondition[meta.state[`condition_${i}`] as keyof typeof M8ProTuyaWeatherCondition]
+                        : 0,
+                );
+            }
+
+            for (const id of [1, 2, 3]) {
+                buffer.writeUInt8(id, bOffset++);
+                for (const j of weather_values[id as TuyaWeatherID]) {
+                    if (id === TuyaWeatherID.Temperature) {
+                        buffer.writeInt16BE(j, bOffset);
+                        bOffset += 2;
+                    } else if (id === TuyaWeatherID.Humidity) {
+                        buffer.writeInt16BE(j, bOffset);
+                        bOffset += 2;
+                    } else if (id === TuyaWeatherID.Condition) {
+                        buffer.writeUInt8(j, bOffset++);
+                    }
+                }
+            }
+            buffer.writeUInt8(0, bOffset++);
+            return buffer;
+        }
+
+        const fzConverter: Fz.Converter<"manuSpecificTuya", undefined, ["commandTuyaWeatherRequest"]> = {
+            type: ["commandTuyaWeatherRequest"],
+            cluster: "manuSpecificTuya",
+            convert: (model, msg, publish, options, meta) => {
+                if (msg.type === "commandTuyaWeatherRequest") {
+                    // Although the parameter is specified as "Data length" in the documentation, some devices
+                    // send values in this field that don't correspond to the rest of packet data. Relying on this
+                    // field would lead to parsing errors in those cases, thus it's required to search for constant flags.
+                    let bOffset = 0;
+                    const buffer = msg.data.payload;
+                    const _length = buffer.readUInt16LE(bOffset);
+                    bOffset += 2;
+                    const _version_number = buffer.readUInt8(bOffset++);
+                    const _location_type = buffer.readUInt8(bOffset++);
+                    const weather_request = [];
+
+                    let nextField = buffer.readUInt8(bOffset++);
+
+                    while (nextField !== 0x12 && nextField !== 0x13) {
+                        weather_request.push(nextField);
+                        nextField = buffer.readUInt8(bOffset++);
+                    }
+
+                    const number_of_forecast_days = nextField === 0x12 ? buffer.readUInt8(bOffset++) : 0;
+                    const _current_weather_flag = nextField === 0x12 ? buffer.readUInt8(bOffset++) : 0;
+                    const include_current_weather = buffer.readUInt8(bOffset++) !== 0;
+
+                    const pld = _prepareTuyaWeatherSyncPayload(meta, number_of_forecast_days, include_current_weather);
+
+                    msg.endpoint.command("manuSpecificTuya", "tuyaWeatherSync", {payload: pld});
+                }
+            },
+        };
+
+        const tzConverter: Tz.Converter = {
+            key: tz_fileds,
+            convertSet: (entity, key, value, meta) => {
+                meta.state[key] = value;
+
+                const pld = _prepareTuyaWeatherSyncPayload(meta, numberOfForecastDays, includeCurrentWeather);
+
+                entity.command("manuSpecificTuya", "tuyaWeatherSync", {payload: pld});
+
+                return {state: {[key]: value}};
+            },
+        };
+
+        const result: ModernExtend = {
+            configure: [],
+            isModernExtend: true,
+            fromZigbee: [fzConverter],
+            toZigbee: [tzConverter],
+        };
+
+        return result;
     },
 };
 export {tuyaModernExtend as modernExtend};

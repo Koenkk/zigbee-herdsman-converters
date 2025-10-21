@@ -3,6 +3,11 @@ import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as constants from "../lib/constants";
 import * as exposes from "../lib/exposes";
+import {
+    addCustomClusterHeimanSpecificAirQuality,
+    addCustomClusterHeimanSpecificInfraRedRemote,
+    addCustomClusterHeimanSpecificScenes,
+} from "../lib/heiman";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as tuya from "../lib/tuya";
@@ -413,6 +418,15 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.gas(), e.battery_low(), e.tamper()],
     },
     {
+        zigbeeModel: ["HY0022"],
+        model: "HS1CG_H",
+        vendor: "Heiman",
+        description: "Smart combustible gas sensor",
+        fromZigbee: [fz.ias_gas_alarm_1],
+        toZigbee: [],
+        exposes: [e.gas(), e.battery_low(), e.tamper()],
+    },
+    {
         zigbeeModel: ["RH3070"],
         model: "HS1CG",
         vendor: "Heiman",
@@ -564,7 +578,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "HS2WD-E",
         vendor: "Heiman",
         description: "Smart siren",
-        fromZigbee: [fz.battery, fz.ignore_basic_report, fz.ias_wd],
+        fromZigbee: [fz.battery, fz.ias_wd],
         toZigbee: [tz.warning, tz.ias_max_duration],
         meta: {disableDefaultResponse: true},
         configure: async (device, coordinatorEndpoint) => {
@@ -672,6 +686,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "HS2SS",
         vendor: "Heiman",
         description: "Smart scene switch",
+        extend: [addCustomClusterHeimanSpecificScenes()],
         fromZigbee: [fz.battery, fz.heiman_scenes],
         exposes: [e.battery(), e.action(["cinema", "at_home", "sleep", "go_out", "repast"])],
         toZigbee: [],
@@ -793,6 +808,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "HS2AQ-EM",
         vendor: "Heiman",
         description: "Air quality monitor",
+        extend: [addCustomClusterHeimanSpecificAirQuality()],
         fromZigbee: [fz.battery, fz.temperature, fz.humidity, fz.pm25, fz.heiman_hcho, fz.heiman_air_quality],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint) => {
@@ -891,6 +907,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "HS2IRC",
         vendor: "Heiman",
         description: "Smart IR Control",
+        extend: [addCustomClusterHeimanSpecificInfraRedRemote()],
         fromZigbee: [fz.battery, fz.heiman_ir_remote],
         toZigbee: [tz.heiman_ir_remote],
         exposes: [e.battery()],
@@ -909,7 +926,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "HS2SW1A/HS2SW1A-N",
         vendor: "Heiman",
         description: "Smart switch - 1 gang with neutral wire",
-        fromZigbee: [fz.ignore_basic_report, fz.on_off, fz.device_temperature],
+        fromZigbee: [fz.on_off, fz.device_temperature],
         toZigbee: [tz.on_off],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -928,7 +945,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "HS2SW2A/HS2SW2A-N",
         vendor: "Heiman",
         description: "Smart switch - 2 gang with neutral wire",
-        fromZigbee: [fz.ignore_basic_report, fz.on_off, fz.device_temperature],
+        fromZigbee: [fz.on_off, fz.device_temperature],
         toZigbee: [tz.on_off],
         endpoint: (device) => {
             return {left: 1, right: 2};
@@ -950,7 +967,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "HS2SW3A/HS2SW3A-N",
         vendor: "Heiman",
         description: "Smart switch - 3 gang with neutral wire",
-        fromZigbee: [fz.ignore_basic_report, fz.on_off, fz.device_temperature],
+        fromZigbee: [fz.on_off, fz.device_temperature],
         toZigbee: [tz.on_off],
         endpoint: (device) => {
             return {left: 1, center: 2, right: 3};
@@ -1016,7 +1033,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "HS2DB",
         vendor: "Heiman",
         description: "Smart doorbell button",
-        fromZigbee: [fz.battery, fz.heiman_doorbell_button, fz.ignore_basic_report],
+        fromZigbee: [fz.battery, fz.heiman_doorbell_button],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -1030,7 +1047,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "HS2SS-E_V03",
         vendor: "Heiman",
         description: "Smart doorbell button",
-        fromZigbee: [fz.battery, fz.heiman_doorbell_button, fz.ignore_basic_report],
+        fromZigbee: [fz.battery, fz.heiman_doorbell_button],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);

@@ -271,7 +271,7 @@ const sprutModernExtend = {
             cluster: "genBinaryOutput",
             attribute: "presentValue",
             description: "Controls green activity LED",
-            reporting: {attribute: "presentValue", min: "MIN", max: "MAX", change: 1},
+            reporting: {min: "MIN", max: "MAX", change: 1},
             valueOn: [true, 1],
             valueOff: [false, 0],
             access: "ALL",
