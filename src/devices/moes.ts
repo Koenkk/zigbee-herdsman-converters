@@ -1228,9 +1228,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZC-HM",
         vendor: "Moes",
         description: "Carbon monoxide alarm",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [e.carbon_monoxide(), e.co(), tuya.exposes.selfTestResult(), e.battery(), tuya.exposes.silence()],
         meta: {
             tuyaDatapoints: [
@@ -1331,8 +1329,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Moes",
         description: "Star ring - smart curtain switch",
         options: [exposes.options.invert_cover()],
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.cover_position().setAccess("position", ea.STATE_SET),
             e.enum("calibration", ea.STATE_SET, ["START", "END"]).withDescription("Calibration"),

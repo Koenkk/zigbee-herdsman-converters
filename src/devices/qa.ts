@@ -244,7 +244,6 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [tuya.fz.power_on_behavior_1, fz.TS110E_switch_type, fz.TS110E, fz.on_off],
         toZigbee: [tz.TS110E_light_onoff_brightness, tuya.tz.power_on_behavior_1, tz.TS110E_options],
         exposes: [e.power_on_behavior(), tuya.exposes.switchType()],
-        configure: tuya.configureMagicPacket,
     },
     {
         fingerprint: tuya.fingerprint("TS110E", ["_TZ3210_tkkb1ym8"]),
@@ -260,6 +259,5 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [tuya.fz.power_on_behavior_1, fz.TS110E_switch_type, fz.TS110E, fz.on_off],
         toZigbee: [tz.TS110E_light_onoff_brightness, tuya.tz.power_on_behavior_1, tz.TS110E_options],
         exposes: [e.power_on_behavior(), tuya.exposes.switchType()],
-        configure: tuya.configureMagicPacket,
     },
 ];

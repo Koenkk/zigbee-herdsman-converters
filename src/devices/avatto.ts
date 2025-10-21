@@ -239,9 +239,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZDMS16-US-W2",
         vendor: "AVATTO",
         description: "Zigbee 2 channels dimmer",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             tuya.exposes.lightBrightnessWithMinMax().withEndpoint("l1"),
             tuya.exposes.countdown().withEndpoint("l1"),
@@ -278,9 +276,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZDMS16-1",
         vendor: "AVATTO",
         description: "Zigbee Module 1 channel Dimmer",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             tuya.exposes.lightBrightnessWithMinMax(),
             tuya.exposes.countdown(),
@@ -304,9 +300,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZDMS16-2",
         vendor: "AVATTO",
         description: "Zigbee Module 2 channels Dimmer",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             tuya.exposes.lightBrightnessWithMinMax().withEndpoint("l1"),
             tuya.exposes.countdown().withEndpoint("l1"),
