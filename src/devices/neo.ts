@@ -68,7 +68,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Motion, temperature & humidity sensor",
         fromZigbee: [legacy.fz.neo_nas_pd07, fz.ignore_tuya_set_time],
         toZigbee: [legacy.tz.neo_nas_pd07],
-        extend: [tuya.modernExtend.tuyaBase({timeStart: "2000", mcuVersionRequestOnConfigure: true})],
+        extend: [tuya.modernExtend.tuyaBase({mcuVersionRequestOnConfigure: true})],
         exposes: [
             e.occupancy(),
             e.humidity(),

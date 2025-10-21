@@ -418,6 +418,15 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.gas(), e.battery_low(), e.tamper()],
     },
     {
+        zigbeeModel: ["HY0022"],
+        model: "HS1CG_H",
+        vendor: "Heiman",
+        description: "Smart combustible gas sensor",
+        fromZigbee: [fz.ias_gas_alarm_1],
+        toZigbee: [],
+        exposes: [e.gas(), e.battery_low(), e.tamper()],
+    },
+    {
         zigbeeModel: ["RH3070"],
         model: "HS1CG",
         vendor: "Heiman",
