@@ -661,16 +661,14 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SLC631",
         vendor: "OWON",
         description: "ZigBee SLC631 Smart Plug with IAS Zone",
-        fromZigbee: [fz.on_off, fzLocal.ias_zone_alarm_dual],
-        toZigbee: [tz.on_off],
-        exposes: [
-            e.switch().withEndpoint("l1").withDescription("Relay 1"),
-            e.switch().withEndpoint("l2").withDescription("Relay 2"),
-            e.switch().withEndpoint("l3").withDescription("Relay 3"),
-            e.binary("alarm_1", ea.STATE, true, false).withDescription("IAS zone alarm 1"),
-            e.binary("alarm_2", ea.STATE, true, false).withDescription("IAS zone alarm 2"),
-            e.battery_low(),
-            e.tamper(),
+        extend: [
+            m.onOff({endpointNames: ["l1"], description: "Relay 1"}),
+            m.onOff({endpointNames: ["l2"], description: "Relay 2"}),
+            m.onOff({endpointNames: ["l3"], description: "Relay 3"}),
+            m.iasZoneAlarm({
+                zoneType: "contact",
+                zoneAttributes: ["alarm_1", "alarm_2", "tamper", "battery_low"],
+            }),
         ],
         endpoint: (device) => {
             return {l1: 1, l2: 2, l3: 3};
