@@ -84,8 +84,9 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZM25R1",
         vendor: "Zemismart",
         description: "Tubular motor",
-        fromZigbee: [legacy.fromZigbee.tuya_cover, tuya.fz.datapoints],
-        toZigbee: [legacy.toZigbee.tuya_cover_control, tuya.tz.datapoints],
+        fromZigbee: [legacy.fromZigbee.tuya_cover],
+        toZigbee: [legacy.toZigbee.tuya_cover_control],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.cover_position().setAccess("position", ea.STATE_SET),
             e.enum("motor_direction", ea.STATE_SET, ["normal", "reversed"]).withDescription("Motor direction").withCategory("config"),

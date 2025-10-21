@@ -1774,9 +1774,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0601_illuminance_temperature_humidity_sensor_2",
         vendor: "Tuya",
         description: "Illuminance sensor",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [e.illuminance(), e.temperature(), e.humidity()],
         meta: {
             tuyaDatapoints: [
@@ -1834,9 +1832,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0601_gas_sensor_1",
         vendor: "Tuya",
         description: "Gas sensor",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [e.gas(), tuya.exposes.selfTest(), tuya.exposes.selfTestResult(), tuya.exposes.faultAlarm(), tuya.exposes.silence()],
         meta: {
             tuyaDatapoints: [
@@ -1853,9 +1849,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0601_gas_sensor_2",
         vendor: "Tuya",
         description: "Gas sensor",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.gas(),
             tuya.exposes.gasValue().withUnit("LEL"),
@@ -1898,9 +1892,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0601_gas_sensor_3",
         vendor: "Tuya",
         description: "Gas sensor",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [e.gas(), tuya.exposes.selfTest(), tuya.exposes.selfTestResult(), tuya.exposes.faultAlarm(), tuya.exposes.silence()],
         meta: {
             tuyaDatapoints: [
@@ -1915,9 +1907,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0601_gas_sensor_4", // _TZE200_mby4kbtq looks like TS0601_gas_sensor_2
         vendor: "Tuya",
         description: "Gas sensor",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.gas(),
             tuya.exposes.gasValue().withUnit("LEL"),
@@ -1976,9 +1966,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "R3 Smart Switch",
         vendor: "Tuya",
         description: "Circuit Breaker/Switch",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [e.switch()],
         meta: {
             tuyaDatapoints: [[16, "state", tuya.valueConverter.onOff]],
@@ -2382,11 +2370,10 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0202_2",
         vendor: "Tuya",
         description: "Motion sensor with scene switch",
-        fromZigbee: [tuya.fz.datapoints, fz.ias_occupancy_alarm_1, fz.battery],
-        toZigbee: [tuya.tz.datapoints],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             await reporting.batteryPercentageRemaining(endpoint);
             await reporting.batteryVoltage(endpoint);
         },
@@ -2692,9 +2679,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0601_soil",
         vendor: "Tuya",
         description: "Soil sensor",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [e.temperature(), e.soil_moisture(), tuya.exposes.temperatureUnit(), e.battery(), tuya.exposes.batteryState()],
         meta: {
             tuyaDatapoints: [
@@ -2711,9 +2696,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0601_soil_2",
         vendor: "Tuya",
         description: "Soil sensor",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.soil_moisture(),
             e.numeric("temperature", ea.STATE).withUnit("°C").withValueMin(-10).withValueMax(60).withDescription("Soil temperature"),
@@ -2793,9 +2776,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0601_soil_3",
         vendor: "Tuya",
         description: "Soil sensor",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [e.temperature(), e.soil_moisture(), tuya.exposes.temperatureUnit(), e.battery(), tuya.exposes.batteryState()],
         meta: {
             tuyaDatapoints: [
@@ -2876,9 +2857,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0601_dimmer_1_gang_1",
         vendor: "Tuya",
         description: "1 gang smart dimmer",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: (device, options) => {
             const exps: Expose[] = [
                 tuya.exposes.lightBrightnessWithMinMax(),
@@ -2930,9 +2909,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0601_dimmer_1_gang_2",
         vendor: "Tuya",
         description: "1 gang smart dimmer",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             tuya.exposes.lightBrightness(),
             tuya.exposes.countdown(),
@@ -2957,9 +2934,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0601_dimmer_1_gang_3",
         vendor: "Tuya",
         description: "1 gang smart dimmer",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [tuya.exposes.lightBrightness(), e.voltage(), e.current(), e.power(), e.child_lock(), tuya.exposes.backlightModeOffOn()],
         meta: {
             tuyaDatapoints: [
@@ -3053,9 +3028,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0601_dimmer_3",
         vendor: "Tuya",
         description: "3 gang smart dimmer",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             tuya.exposes.lightBrightnessWithMinMax().withEndpoint("l1"),
             tuya.exposes.lightBrightnessWithMinMax().withEndpoint("l2"),
@@ -3108,9 +3081,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0601_dimmer_4",
         vendor: "Tuya",
         description: "2 gang smart dimmer module",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             tuya.exposes.lightBrightnessWithMinMax().withEndpoint("l1"),
             tuya.exposes.lightBrightnessWithMinMax().withEndpoint("l2"),
@@ -3175,9 +3146,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0601_dimmer_5",
         vendor: "Tuya",
         description: "1 gang smart dimmer module",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             tuya.exposes.lightBrightnessWithMinMax(),
             e.enum("power_on_behavior", ea.STATE_SET, ["off", "on", "previous"]),
@@ -3229,9 +3198,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0601_dimmer_knob",
         vendor: "Tuya",
         description: "Zigbee smart knob dimmer",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             tuya.exposes.lightBrightness().withMinBrightness().setAccess("min_brightness", ea.STATE_SET),
             tuya.exposes.lightType(),
@@ -3518,9 +3485,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.exposes.switch().withEndpoint("l3"),
             tuya.exposes.switch().withEndpoint("l4"),
         ],
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         whiteLabel: [
             tuya.whitelabel("ZYXH", "TY-04Z", "4 gang switch", ["_TZE204_iik0pquw"]),
             {vendor: "Norklmes", model: "MKS-CM-W5"},
@@ -3549,9 +3514,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0601_switch_5_gang",
         vendor: "Tuya",
         description: "5 gang switch",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             tuya.exposes.switch().withEndpoint("l1"),
             tuya.exposes.switch().withEndpoint("l2"),
@@ -3589,10 +3552,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0601_switch_6_gang",
         vendor: "Tuya",
         description: "6 gang switch",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         configure: async (device, coordinatorEndpoint) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff"]);
             device.powerSource = "Mains (single phase)";
@@ -3682,9 +3643,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.power_on_behavior().withAccess(ea.STATE_SET),
             tuya.exposes.backlightModeOffOn().withAccess(ea.STATE_SET),
         ],
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         meta: {
             tuyaDatapoints: [
                 [1, "state", tuya.valueConverter.onOff],
@@ -3730,9 +3689,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Tuya",
         description: "2 gang switch",
         exposes: [e.switch().withEndpoint("l1").setAccess("state", ea.STATE_SET), e.switch().withEndpoint("l2").setAccess("state", ea.STATE_SET)],
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         meta: {
             multiEndpoint: true,
             tuyaDatapoints: [
@@ -3780,9 +3737,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "MG-ZG03W",
         vendor: "Tuya",
         description: "3 gang switch",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.switch().withEndpoint("l1").setAccess("state", ea.STATE_SET),
             e.switch().withEndpoint("l2").setAccess("state", ea.STATE_SET),
@@ -5350,8 +5305,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0601_cover_6",
         vendor: "Tuya",
         description: "Cover motor",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.text("work_state", ea.STATE),
             e.cover_position().setAccess("position", ea.STATE_SET),
@@ -5446,9 +5400,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0601_cover_8",
         vendor: "Tuya",
         description: "Cover motor",
-        configure: tuya.configureMagicPacket,
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         options: [exposes.options.invert_cover()],
         exposes: [
             e.cover_position().setAccess("position", ea.STATE_SET),
@@ -5618,9 +5570,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZM79E-DT",
         vendor: "Tervix",
         description: "Pro Line Zigbee curtain motor",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.text("work_state", ea.STATE),
             e.cover_position().setAccess("position", ea.STATE_SET),
@@ -6146,8 +6096,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0601_cover_4",
         vendor: "Tuya",
         description: "Cover",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.cover_position().setAccess("position", ea.STATE_SET),
             e.enum("motor_direction", ea.STATE_SET, ["normal", "reversed"]).withDescription("Set the motor direction"),
@@ -7555,9 +7504,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0601_smoke_1",
         vendor: "Tuya",
         description: "Smoke sensor",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [e.smoke(), e.tamper(), e.battery_low()],
         meta: {
             tuyaDatapoints: [
@@ -7573,9 +7520,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0601_smoke_6",
         vendor: "Tuya",
         description: "Smoke sensor",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [e.smoke(), e.tamper(), tuya.exposes.batteryState()],
         meta: {
             tuyaDatapoints: [
@@ -7639,9 +7584,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0601_smoke_3",
         description: "Photoelectric smoke detector",
         whiteLabel: [{vendor: "KnockautX", model: "SMOAL024"}],
-        configure: tuya.configureMagicPacket,
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [e.smoke(), tuya.exposes.batteryState()],
         meta: {
             tuyaDatapoints: [
@@ -7665,8 +7608,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0601_smoke_4",
         vendor: "Tuya",
         description: "Smoke sensor",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [e.smoke(), e.battery(), tuya.exposes.batteryState()],
         meta: {
             tuyaDatapoints: [
@@ -7681,9 +7623,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0601_smoke_5",
         vendor: "Tuya",
         description: "Smoke sensor",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.smoke(),
             e.tamper(),
@@ -7867,9 +7807,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0601_din_1",
         vendor: "Tuya",
         description: "Zigbee DIN energy meter",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             tuya.exposes.switch(),
             e.ac_frequency(),
@@ -7914,9 +7852,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "RMDZB-1PNL63",
         vendor: "TNCE",
         description: "Zigbee DIN single phase energy meter",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             tuya.exposes.switch(),
             e.energy(),
@@ -8039,9 +7975,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "STB3L-125-ZJ",
         vendor: "SUTON",
         description: "Zigbee DIN RCBO energy meter",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             tuya.exposes.switch(),
             e.energy(),
@@ -8205,9 +8139,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0601_din_2",
         vendor: "Tuya",
         description: "Zigbee DIN energy meter",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             tuya.exposes.switch(),
             e.energy(),
@@ -8273,9 +8205,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0601_din_3",
         vendor: "Tuya",
         description: "Zigbee DIN energy meter",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         whiteLabel: [{vendor: "XOCA", model: "DAC2161C"}],
         exposes: [
             tuya.exposes.switch(),
@@ -9121,8 +9051,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "_TZE284_6kijc7nd",
         vendor: "Tervix",
         description: "Tervix Zigbee thermostat",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             // Weekly Schedule (Datapoint 48) - Placeholder
             // The schedule is a raw 168-byte array (7 days x 24 bytes/day):
@@ -9849,12 +9778,10 @@ export const definitions: DefinitionWithExtend[] = [
         },
         description: "Garage door opener",
         configure: async (device, coordinatorEndpoint) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genBasic"]);
         },
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.binary("state", ea.STATE_SET, true, false).withDescription("Trigger the door movement"),
             e
@@ -9930,12 +9857,10 @@ export const definitions: DefinitionWithExtend[] = [
         model: "MIR-HE200-TY",
         vendor: "Tuya",
         description: "Human presence sensor with fall function",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await tuya.sendDataPointEnum(endpoint, legacy.dataPoints.trsfTumbleSwitch, 0);
-            await tuya.configureMagicPacket(device, coordinatorEndpoint);
         },
         exposes: [
             e.illuminance(),
@@ -10493,8 +10418,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZY-M100-S_1",
         vendor: "Tuya",
         description: "Mini human breathe sensor",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         whiteLabel: [tuya.whitelabel("Wenzhi", "WZ-M100-W", "Human presence sensor", ["_TZE204_e5m9c5hl"])],
         exposes: [
             e.illuminance(),
@@ -10542,8 +10466,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZY-M100-S_2",
         vendor: "Tuya",
         description: "Mini human breathe sensor",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.illuminance(),
             e.presence(),
@@ -10675,8 +10598,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZG-205ZL",
         vendor: "Tuya",
         description: "24Ghz/5.8GHz human presence sensor",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.presence(),
             e.enum("motion_state", ea.STATE, ["none", "large", "small", "static"]).withDescription("Motion state"),
@@ -10916,9 +10838,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZG-227ZL",
         vendor: "Tuya",
         description: "Temperature & humidity LCD sensor",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.temperature(),
             e.humidity(),
@@ -10947,10 +10867,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "S8",
         vendor: "SODA",
         description: "S8 premium window handle",
-        extend: [],
-        toZigbee: [tuya.tz.datapoints],
-        fromZigbee: [tuya.fz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.battery(),
             e.battery_low(),
@@ -11131,9 +11048,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZG-102Z",
         vendor: "Tuya",
         description: "Door sensor",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [e.contact(), e.battery()],
         meta: {
             tuyaDatapoints: [
@@ -11148,9 +11063,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZG-102ZL",
         vendor: "Tuya",
         description: "Luminance door sensor",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.contact(),
             e.illuminance().withUnit("lx"),
@@ -11207,9 +11120,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZG-225Z",
         vendor: "Tuya",
         description: "Gas sensor",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.gas(),
             tuya.exposes.gasValue().withUnit("ppm"),
@@ -11256,8 +11167,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZG-204ZL",
         vendor: "Tuya",
         description: "Luminance motion sensor",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.occupancy(),
             e.illuminance().withUnit("lx"),
@@ -11314,8 +11224,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZG-205Z/A",
         vendor: "Tuya",
         description: "5.8Ghz/24Ghz Human presence sensor",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.presence(),
             e.enum("motion_state", ea.STATE, ["none", "small", "medium", "large", "far", "near"]).withDescription("State of the motion"),
@@ -11431,8 +11340,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZG-204ZM",
         vendor: "Tuya",
         description: "PIR 24Ghz human presence sensor",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.presence(),
             e.enum("motion_state", ea.STATE, ["none", "large", "small", "static"]).withDescription("Motion state"),
@@ -11630,9 +11538,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0601_3_phase_clamp_meter",
         vendor: "Tuya",
         description: "3-phase clamp power meter",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         whiteLabel: [
             {vendor: "MatSee Plus", model: "PC321-Z-TY"},
             {vendor: "OWON", model: "PC321-Z-TY"},
@@ -11685,9 +11591,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0601_3_phase_clamp_meter_relay",
         vendor: "Tuya",
         description: "3-phase clamp power meter with relay",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         whiteLabel: [{vendor: "Wenzhou Taiye Electric", model: "TAC7361C BI"}],
         exposes: [
             e.switch().setAccess("state", ea.STATE_SET),
@@ -11823,9 +11727,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0601_fan_switch",
         vendor: "Tuya",
         description: "Fan switch",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             tuya.exposes.switch(),
             e.power_on_behavior(["off", "on"]).withAccess(ea.STATE_SET),
@@ -11864,9 +11766,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0601_fan_and_light_switch",
         vendor: "Tuya",
         description: "Fan & light switch",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.binary("status_indication", ea.STATE_SET, "ON", "OFF").withDescription("Light switch"),
             tuya.exposes.switch(),
@@ -11903,9 +11803,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0601_fan_5_levels_and_light_switch",
         vendor: "Tuya",
         description: "Fan with 5 levels & light switch",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.binary("status_indication", ea.STATE_SET, "ON", "OFF").withDescription("Light switch"),
             tuya.exposes.switch(),
@@ -12200,9 +12098,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0601_switch_4_gang_2",
         vendor: "Tuya",
         description: "4 gang switch with backlight",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             tuya.exposes.switch().withEndpoint("l1"),
             tuya.exposes.switch().withEndpoint("l2"),
@@ -12231,8 +12127,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Tuya",
         description: "Curtain/blind switch",
         options: [exposes.options.invert_cover()],
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.cover_position().setAccess("position", ea.STATE_SET),
             e.enum("calibration", ea.STATE_SET, ["START", "END"]).withDescription("Calibration"),
@@ -12310,8 +12205,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Tuya",
         description: "Curtain/blind switch with 1 Gang switch",
         options: [exposes.options.invert_cover()],
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.cover_position().setAccess("position", ea.STATE_SET),
             tuya.exposes.switch().withEndpoint("l1"),
@@ -12365,8 +12259,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Tuya",
         description: "Curtain/blind switch with 2 Gang switch",
         options: [exposes.options.invert_cover()],
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.cover_position().setAccess("position", ea.STATE_SET),
             tuya.exposes.switch().withEndpoint("l1"),
@@ -12422,9 +12315,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Tuya",
         description: "Smart energy monitor for 1P+N system",
         ota: true,
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.voltage(),
             e.power(),
@@ -12464,9 +12355,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SPM02",
         vendor: "Tuya",
         description: "Smart energy monitor for 3P+N system",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             tuya.exposes.voltageWithPhase("X"),
             tuya.exposes.voltageWithPhase("Y"),
@@ -12499,9 +12388,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SPM01V2",
         vendor: "Tuya",
         description: "Smart energy monitor for 1P+N system",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.voltage(),
             e.power(),
@@ -12577,9 +12464,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SPM02V2",
         vendor: "Tuya",
         description: "Smart energy monitor for 3P+N system",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             tuya.exposes.voltageWithPhase("a"),
             tuya.exposes.voltageWithPhase("b"),
@@ -12717,9 +12602,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SPM01V2.5",
         vendor: "Tuya",
         description: "Smart energy monitor for 1P+N system",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.voltage(),
             e.power(),
@@ -12793,9 +12676,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SPM02V2.5",
         vendor: "Tuya",
         description: "Smart energy monitor for 3P+N system",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             tuya.exposes.voltageWithPhase("a"),
             tuya.exposes.voltageWithPhase("b"),
@@ -12885,9 +12766,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SPM02V3",
         vendor: "Tuya",
         description: "Smart energy monitor for 3P+N system",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             tuya.exposes.voltageWithPhase("a"),
             tuya.exposes.voltageWithPhase("b"),
@@ -12954,9 +12833,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SDM01",
         vendor: "Tuya",
         description: "Smart energy monitor for 3P+N system",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         whiteLabel: [tuya.whitelabel("Nous", "D4Z", "Smart energy monitor for 3P+N system", ["_TZE204_loejka0i"])],
         exposes: [
             tuya.exposes.voltageWithPhase("a"),
@@ -13016,9 +12893,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SDM01V1.5",
         vendor: "Tuya",
         description: "Smart energy monitor for 3P+N system",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             tuya.exposes.voltageWithPhase("a"),
             tuya.exposes.voltageWithPhase("b"),
@@ -13085,9 +12960,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SDM02V1",
         vendor: "Tuya",
         description: "Smart energy monitor for 2P+N system",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             tuya.exposes.voltageWithPhase("l1"),
             tuya.exposes.voltageWithPhase("l2"),
@@ -13173,9 +13046,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0601_switch_8",
         vendor: "Tuya",
         description: "ZYXH 8 gang switch",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             tuya.exposes.switch().withEndpoint("l1"),
             tuya.exposes.switch().withEndpoint("l2"),
@@ -13209,9 +13080,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0601_switch_8_2",
         vendor: "Tuya",
         description: "8 gang switch",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             tuya.exposes.switch().withEndpoint("l1"),
             tuya.exposes.switch().withEndpoint("l2"),
@@ -13262,9 +13131,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0601_switch_10",
         vendor: "Tuya",
         description: "10 gang switch",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [...Array.from({length: 10}, (_, i) => tuya.exposes.switch().withEndpoint(`l${i + 1}`))],
         endpoint: (device) => {
             return {
@@ -13303,9 +13170,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0601_switch_12",
         vendor: "Tuya",
         description: "ZXYH 12 gang switch",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [...Array.from({length: 12}, (_, i) => tuya.exposes.switch().withEndpoint(`l${i + 1}`))],
         endpoint: (device) => {
             return {
@@ -13443,8 +13308,9 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Tuya",
         description: "Zigbee fingerbot plus",
         whiteLabel: [tuya.whitelabel("Adaprox", "TS0001_fingerbot_1", "Zigbee fingerbot plus", ["_TZ3210_dse8ogfy"])],
-        fromZigbee: [fz.on_off, tuya.fz.datapoints],
-        toZigbee: [tz.on_off, tuya.tz.datapoints],
+        fromZigbee: [fz.on_off],
+        toZigbee: [tz.on_off],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.switch(),
             e.battery(),
@@ -13456,7 +13322,6 @@ export const definitions: DefinitionWithExtend[] = [
             e.binary("touch", ea.STATE_SET, "ON", "OFF").withDescription("Touch control"),
         ],
         configure: async (device, coordinatorEndpoint) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
         },
         meta: {
@@ -13495,9 +13360,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SWS6TZ-WHITE",
         vendor: "Tuya",
         description: "6 gang wall switch",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.switch().withEndpoint("l1"),
             e.switch().withEndpoint("l2"),
@@ -13694,9 +13557,9 @@ export const definitions: DefinitionWithExtend[] = [
         model: "M9-zigbee-SL",
         vendor: "Tuya",
         description: "Smart Switch (4 gang + 4 scene) with neutral wire and motion sensing",
-        fromZigbee: [tuya.fz.datapoints, fz.ias_occupancy_only_alarm_2, tuya.fz.indicator_mode],
-        toZigbee: [tuya.tz.datapoints, tuya.tz.power_on_behavior_1, tuya.tz.backlight_indicator_mode_1],
-        configure: tuya.configureMagicPacket,
+        fromZigbee: [fz.ias_occupancy_only_alarm_2, tuya.fz.indicator_mode],
+        toZigbee: [tuya.tz.power_on_behavior_1, tuya.tz.backlight_indicator_mode_1],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             ...[1, 2, 3, 4, 5, 6, 7, 8].map((i) => tuya.exposes.switch().withEndpoint(`l${i}`)),
             ...[1, 2, 3, 4, 5, 6, 7, 8].map((i) => e.power_on_behavior().withAccess(ea.STATE_SET).withEndpoint(`l${i}`)),
@@ -13775,8 +13638,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "YXZBRB58",
         vendor: "Tuya",
         description: "Smart human presence sensor",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.illuminance(),
             e.presence(),
@@ -13837,8 +13699,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0601_light",
         vendor: "Tuya",
         description: "Light",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [tuya.exposes.lightBrightness(), e.power_on_behavior().withAccess(ea.STATE_SET)],
         meta: {
             tuyaDatapoints: [
@@ -13860,8 +13721,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "YXZBSL",
         vendor: "Tuya",
         description: "Smart siren",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.binary("alarm", ea.STATE_SET, "ON", "OFF").withDescription("Turn the light of the alarm ON/OFF"),
             e.enum("type", ea.STATE_SET, ["sound", "light", "sound+light", "normal"]).withDescription("Alarm type"),
@@ -13956,9 +13816,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZYXH",
         vendor: "Tuya",
         description: "24 gang switch",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [...Array.from(Array(24).keys()).map((ep) => tuya.exposes.switch().withEndpoint(`l${ep + 1}`))],
         endpoint: (device) => {
             return {
@@ -14023,9 +13881,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZY-M100-24G",
         vendor: "Tuya",
         description: "24G MmWave radar human presence motion sensor",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.enum("state", ea.STATE, ["none", "presence", "move"]).withDescription("Presence state"),
             e.presence(),
@@ -14082,9 +13938,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZY-M100-24GV2",
         vendor: "Tuya",
         description: "24G MmWave radar human presence motion sensor",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.enum("state", ea.STATE, ["none", "presence", "move"]).withDescription("Presence state sensor"),
             e.presence().withDescription("Occupancy"),
@@ -14133,9 +13987,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZY-M100-24GV3",
         vendor: "Tuya",
         description: "24G MmWave radar human presence motion sensor (added distance switch)",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: (device, options) => {
             const exps = [
                 e.enum("state", ea.STATE, ["none", "presence", "move"]).withDescription("Presence state sensor"),
@@ -14247,8 +14099,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "CTL-R1-TY-Zigbee",
         vendor: "Tuya",
         description: "24G radar human presence motion sensor.",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.illuminance().withUnit("lx"),
             e.presence(),
@@ -14357,9 +14208,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Tuya", "MTG235-ZB-RL", "24G Human presence sensor with relay", ["_TZE204_clrdrnya", "_TZE200_clrdrnya"]),
             tuya.whitelabel("QA", "QASZ24R", "mmWave 24 Ghz sensor with relay", ["_TZE284_4qznlkbu"]),
         ],
-        configure: tuya.configureMagicPacket,
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.presence(),
             e.illuminance(),
@@ -14826,9 +14675,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "NAS-PS09B2",
         vendor: "NEO",
         description: "Human presence sensor",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.occupancy(),
             e.enum("human_motion_state", ea.STATE, ["none", "small", "large"]).withDescription("Human Motion State"),
@@ -15030,9 +14877,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "THS317-ET-TY",
         vendor: "Tuya",
         description: "Temperature sensor with probe",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [e.temperature(), e.battery()],
         whiteLabel: [tuya.whitelabel("OWON", "THS317-ET-EY", "Temperature sensor with probe", ["_TZE200_01fvxamo"])],
         meta: {
@@ -16127,8 +15972,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "RT_ZCZ03Z",
         vendor: "Tuya",
         description: "Human presence sensor 24G",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.illuminance(),
             e.presence(),
@@ -16512,9 +16356,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "PN6",
         vendor: "ZSVIOT",
         description: "6-way controller",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             tuya.exposes.switch(),
             tuya.exposes.switchMode2().withEndpoint("l1_l2").withLabel("1-2 channels"),
@@ -16566,9 +16408,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "PN16",
         vendor: "ZSVIOT",
         description: "16-way controller",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.power_on_behavior(["off", "on", "previous"]).withAccess(ea.STATE_SET),
             tuya.exposes.switch().withEndpoint("all"),
@@ -16674,9 +16514,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZG-103Z",
         vendor: "Tuya",
         description: "Vibration sensor",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.vibration(),
             e.tilt(),
@@ -16719,8 +16557,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZG-302ZM",
         vendor: "HOBEIAN",
         description: "Motion sensing switch",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.presence(),
             e.binary("switch1", ea.STATE_SET, "ON", "OFF").withDescription("Switch1"),
@@ -16813,9 +16650,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZG-303Z",
         vendor: "HOBEIAN",
         description: "Soil moisture sensor",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.enum("water_warning", ea.STATE, ["none", "alarm"]).withDescription("Water shortage warning"),
             e.temperature(),
@@ -16859,10 +16694,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0601_din_4",
         vendor: "Tuya",
         description: "Din rail switch with power monitoring and threshold settings",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         configure: async (device, coordinatorEndpoint) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             // Required to get the device to start reporting
             await device.getEndpoint(1).command("manuSpecificTuya", "dataQuery", {});
         },
@@ -16907,9 +16740,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZA03",
         vendor: "Tuya",
         description: "Siren alarm",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.binary("alarm", ea.STATE_SET, "ON", "OFF").withDescription("Sound the alarm"),
             e.enum("volume", ea.STATE_SET, ["low", "medium", "high", "mute"]),
@@ -17015,10 +16846,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZY_HPS01",
         vendor: "Tuya",
         description: "mmWave radar 5.8GHz",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
-        extend: [],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         whiteLabel: [tuya.whitelabel("Nova Digital", "ZTS-MM", "mmWave radar 5.8GHz", ["_TZE204_lbbg34rj"])],
         exposes: [
             e.illuminance().withUnit("lx"),
@@ -17092,8 +16920,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZPIR-10",
         vendor: "Tuya",
         description: "Treatlife human presence sensor",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [e.occupancy(), e.battery(), e.illuminance()],
         meta: {
             tuyaDatapoints: [
@@ -17648,9 +17475,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "GX03",
         vendor: "GIEX",
         description: "GIEX 2 zone watering timer",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.binary("valve_1", ea.STATE_SET, "ON", "OFF").withDescription("Switch state"),
             e
@@ -17702,9 +17527,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "PJ3201A",
         vendor: "Dongguan Pinjia Technology Co.,LTD.",
         description: "Human Presence Sensor",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.presence().withDescription("Indicates whether the device detected presence. Will be true also when movement (occupancy) is detected."),
             e
@@ -18448,9 +18271,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ATMS10013Z3",
         vendor: "Ourtop",
         description: "Zigbee 3 Phase Meter",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         whiteLabel: [{vendor: "Ourtop", model: "ATMS100133Z"}],
         exposes: [
             e.energy(),
@@ -18495,9 +18316,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZG-WK-DA-Wh-Zigbee",
         vendor: "Tuya",
         description: "Wall thermostat with humidity sensor",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.humidity(),
             e.child_lock(),
@@ -18749,8 +18568,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZBN-JT-63",
         vendor: "Tuya",
         description: "Din rail switch with power monitoring",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             tuya.exposes.switch(),
             e.numeric("power", ea.STATE).withDescription("power").withUnit("W").withDescription("Instantaneous measured power"),
@@ -18876,9 +18694,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZG-102ZM",
         vendor: "HOBEIAN",
         description: "Vibration sensor",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.vibration(),
             e.contact(),
@@ -18906,8 +18722,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZG-204ZV",
         vendor: "HOBEIAN",
         description: "Millimeter wave motion detection",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.presence(),
             e.illuminance(),
@@ -18963,9 +18778,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZG-223Z",
         vendor: "HOBEIAN",
         description: "Rainwater detection sensor",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.enum("rainwater", ea.STATE, ["none", "raining"]).withDescription("Sensor rainwater status"),
             e.illuminance(),
@@ -19103,9 +18916,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "CS-201Z",
         vendor: "COOLO",
         description: "Soil moisture sensor",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.dry(),
             e.temperature(),
@@ -19259,8 +19070,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0601_knob_dimmer_switch",
         vendor: "Tuya",
         description: "Dimmer knob with two lights",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tzLocal.TS0601_knob_dimmer_switch_group_id, tuya.tz.datapoints],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        toZigbee: [tzLocal.TS0601_knob_dimmer_switch_group_id],
         exposes: [
             e.switch(),
             e.switch().withEndpoint("l1"),
@@ -19296,7 +19107,6 @@ export const definitions: DefinitionWithExtend[] = [
         },
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             await endpoint.command("genBasic", "tuyaSetup", {}, {disableDefaultResponse: true});
         },
         endpoint: (device) => ({
@@ -19310,9 +19120,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "HY607W-3A",
         vendor: "Tuya",
         description: "Thermostat for gas boiler",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.climate().withLocalTemperature(ea.STATE).withSetpoint("occupied_heating_setpoint", 5, 35, 0.5, ea.STATE_SET),
             e
@@ -19368,8 +19176,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZG-204ZH",
         vendor: "HOBEIAN",
         description: "PIR 24Ghz human presence sensor",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.presence(),
             e.illuminance(),
@@ -19489,8 +19296,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Tongou",
         description: "Zigbee energy meter (transformer clamp)",
         whiteLabel: [tuya.whitelabel("Tongou", "TOSA1-01WXJAT2A", "Smart energy meter, two wire", ["_TZE284_4hdbt6rn"])],
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.energy(),
             e.voltage(),
@@ -19942,8 +19748,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZG-204ZK",
         vendor: "HOBEIAN",
         description: "24Ghz human presence sensor",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.presence(),
             e.illuminance(),
@@ -19997,8 +19802,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZG-204ZE",
         vendor: "HOBEIAN",
         description: "10G mw motion detection",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.presence(),
 

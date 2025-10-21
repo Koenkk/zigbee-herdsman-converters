@@ -15,9 +15,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "E12",
         vendor: "NOUS",
         description: "Zigbee carbon monoxide (CO) sensor",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.carbon_monoxide(),
             e.numeric("carbon_monoxide_value", ea.STATE).withUnit("ppm").withDescription("Current CO concentration"),
@@ -184,9 +182,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "E9",
         vendor: "Nous",
         description: "Zigbee gas sensor",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.binary("gas", ea.STATE, "ON", "OFF").withDescription("Gas detection state (ON = Gas detected)"),
             e.binary("preheat", ea.STATE, "ON", "OFF").withDescription("Sensor is preheating"),
