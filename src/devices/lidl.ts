@@ -404,7 +404,6 @@ export const definitions: DefinitionWithExtend[] = [
             }
         },
         configure: async (device, coordinatorEndpoint) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
 
             // set reporting interval of genOnOff to max to "disable" it

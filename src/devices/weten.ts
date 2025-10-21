@@ -21,9 +21,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "WETEN",
         description: "Remote Control PCI E Card for PC",
         whiteLabel: [{vendor: "Weten", model: "Tuya PRO"}],
-
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.switch().setAccess("state", ea.STATE_SET),
             e.enum("restart_mode", ea.STATE_SET, ["restart", "force restart", "–"]).withDescription("Restart Mode"),
