@@ -1,5 +1,16 @@
 # Changelog
 
+## [25.51.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.51.0...v25.51.1) (2025-10-21)
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3000_q8r0bbvy` as Tuya TS0001_power https://github.com/Koenkk/zigbee2mqtt/issues/28314 ([4b16788](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4b167881faa037435fa4a4f1b62e677a1b38450d))
+* **ignore:** Tuya TS011F_plug_1: fix indicator mode https://github.com/Koenkk/zigbee2mqtt/issues/28729 ([044f76c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/044f76c9fea978fe0bac4c32cc8a3b4c39d5a73a))
+* MultIr: update model from `MIR-IL100-ZB` to `MIR-IL100` ([#10453](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10453)) ([8cf3d6c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8cf3d6c84cce8741ceae9d9ee4167ac174f568d8))
+* Tuya: disable `manuSpecificTuya.mcuSyncTime` for devices which don't need it ([#10448](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10448)) ([0f93e8c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0f93e8cdefcc7039f30db436150111b96b9548d9))
+* Tuya: migrate datapoint converters to modernExtend ([#10454](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10454)) ([297f254](https://github.com/Koenkk/zigbee-herdsman-converters/commit/297f254624b1e1a0d7932efece3d7aec3370762d))
+
 ## [25.51.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.50.0...v25.51.0) (2025-10-20)
 
 
