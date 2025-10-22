@@ -14,4 +14,48 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: [],
         exposes: [e.carbon_monoxide(), e.battery()],
     },
+    {
+        fingerprint: [
+            { modelID: 'Alarm_SD_Device', manufacturerName: 'Fireangel' }
+        ],
+        model: 'ZBCO-AE-10X-EUR',
+        vendor: 'FireAngel',
+        description: 'FireAngel CO alarm',
+        fromZigbee: [
+            fz.ias_carbon_monoxide_alarm_1,
+            {
+                cluster: 'ssIasZone',
+                type: 'commandStatusChangeNotification',
+                convert: (model, msg, publish, options, meta) => {
+                    const zoneStatus = msg.data.zonestatus;
+                    const testActive = !!(zoneStatus & (1 << 5)) || !!(zoneStatus & (1 << 9));
+
+                    if (lastTestTimeout) clearTimeout(lastTestTimeout);
+
+                    if (testActive) {
+                        lastTestTimeout = setTimeout(() => publish({ test: false }), 8000);
+                    }
+
+                    return { test: testActive };
+                }
+            }
+        ],
+        toZigbee: [],
+        exposes: [
+            e.binary('alarm', ea.STATE, true, false).withDescription('CO alarm active'),
+            e.binary('test', ea.STATE, true, false).withDescription('Self-test in progress'),
+            e.binary('carbon_monoxide', ea.STATE, true, false),
+            e.binary('tamper', ea.STATE, true, false),
+            e.binary('battery_low', ea.STATE, true, false)
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const ep = device.getEndpoint(1);
+            try {
+                await ep.bind('ssIasZone', coordinatorEndpoint);
+                await ep.bind('ssIasWd', coordinatorEndpoint);
+            } catch (err) {
+                console.error(`Failed to configure ${device.ieeeAddr}: ${err}`);
+            }
+        }
+    },
 ];
