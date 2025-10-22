@@ -527,6 +527,7 @@ function localActionExtend(args: LocalActionExtendArgs = {}): ModernExtend {
             cluster: "genMultistateInput",
             type: ["attributeReport", "readResponse"],
             convert: (model, msg, publish, options, meta) => {
+                if (utils.hasAlreadyProcessedMessage(msg, model)) return;
                 const value = msg.data.presentValue;
                 //logger.logger.info('msg.data: ' + data[attribute]);
                 if (value === 300) return {action: "N/A"};
