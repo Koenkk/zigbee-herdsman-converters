@@ -660,7 +660,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["SLC631"],
         model: "SLC631",
         vendor: "OWON",
-        description: "ZigBee SLC631 Smart Plug with IAS Zone",
+        description: "ZigBee SLC631 Smart Plug with IAS Zone (alarm_1 reserved, alarm_2 indicates doorbell press)",
         extend: [
             m.onOff({endpointNames: ["l1"], description: "Relay 1"}),
             m.onOff({endpointNames: ["l2"], description: "Relay 2"}),
