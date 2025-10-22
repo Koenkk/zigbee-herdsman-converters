@@ -2192,18 +2192,6 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0201-z-SlD",
         vendor: "Slacky-DIY",
         description: "Tuya temperature and humidity sensor with custom Firmware",
-        //        configure: async (device, coordinatorEndpoint, logger) => {
-        //            const endpoint = device.getEndpoint(1);
-        //            await endpoint.read("msTemperatureMeasurement", [attrSensorReadPeriod]);
-        //            await endpoint.read("msTemperatureMeasurement", [attrTemperatureOffset]);
-        //            await endpoint.read("msTemperatureMeasurement", [attrTemperatureOnOff]);
-        //            await endpoint.read("msTemperatureMeasurement", [attrTemperatureLow]);
-        //            await endpoint.read("msTemperatureMeasurement", [attrTemperatureHigh]);
-        //            await endpoint.read("msRelativeHumidity", [attrHumidityOffset]);
-        //            await endpoint.read("msRelativeHumidity", [attrHumidityOnOff]);
-        //            await endpoint.read("msRelativeHumidity", [attrHumidityLow]);
-        //            await endpoint.read("msRelativeHumidity", [attrHumidityHigh]);
-        //        },
         extend: [
             m.deviceEndpoints({
                 endpoints: {
