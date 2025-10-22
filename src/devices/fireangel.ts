@@ -3,6 +3,9 @@ import * as exposes from "../lib/exposes";
 import type {DefinitionWithExtend} from "../lib/types";
 
 const e = exposes.presets;
+const ea = exposes.access;
+
+let lastTestTimeout;
 
 export const definitions: DefinitionWithExtend[] = [
     {
