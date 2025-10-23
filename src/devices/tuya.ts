@@ -1284,34 +1284,7 @@ export const definitions: DefinitionWithExtend[] = [
 
             e.numeric("daily_consumption", ea.STATE).withUnit("m³").withDescription("Daily water consumption").withValueMin(0).withValueStep(0.001),
 
-            e
-                .enum("report_period", ea.ALL, [
-                    "1h",
-                    "2h",
-                    "3h",
-                    "4h",
-                    "5h",
-                    "6h",
-                    "7h",
-                    "8h",
-                    "9h",
-                    "10h",
-                    "11h",
-                    "12h",
-                    "13h",
-                    "14h",
-                    "15h",
-                    "16h",
-                    "17h",
-                    "18h",
-                    "19h",
-                    "20h",
-                    "21h",
-                    "22h",
-                    "23h",
-                    "24h",
-                ])
-                .withDescription("Data report period (1–24 hours)"),
+            e.enum('report_period', ea.ALL, ['1h','2h','3h','4h','6h','8h','12h','24h']).withDescription('Report period (1h–24h)'),
 
             e
                 .numeric("frozen_time", ea.STATE_SET)
@@ -1342,7 +1315,9 @@ export const definitions: DefinitionWithExtend[] = [
                 [1, "water_consumed", tuya.valueConverter.divideBy1000],
                 [2, "month_consumption", tuya.valueConverter.divideBy1000],
                 [3, "daily_consumption", tuya.valueConverter.divideBy1000],
-                [4, "report_period", tuya.valueConverter.raw],
+                [4, 'report_period', tuya.valueConverterBasic.lookup({
+                    '1h': 0, '2h': 1, '3h': 2, '4h': 3, '6h': 4, '8h': 5, '12h': 6, '24h': 7,
+                })],
                 [6, "frozen_time", tuya.valueConverter.raw],
                 [16, "meter_id", tuya.valueConverter.raw],
                 [18, "reverse_water_consumed", tuya.valueConverter.divideBy1000],
