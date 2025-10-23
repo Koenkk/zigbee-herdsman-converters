@@ -41,7 +41,7 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: [{modelID: "Alarm_SD_Device", manufacturerName: "Fireangel"}],
         model: "ZBCO-AE-10X-EUR",
         vendor: "FireAngel",
-        description: "FireAngel CO alarm",
+        description: "CO alarm",
         fromZigbee: [fz.ias_carbon_monoxide_alarm_1, fzLocal.fireangel_co_test],
         toZigbee: [],
         exposes: [
