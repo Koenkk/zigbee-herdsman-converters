@@ -1896,7 +1896,13 @@ export const definitions: DefinitionWithExtend[] = [
             m.poll({
                 key: "measurement",
                 defaultIntervalSeconds: 600,
-                option: exposes.options.measurement_poll_interval(),
+                option: exposes.options
+                    .measurement_poll_interval()
+                    .withDescription(
+                        "Some attributes do not support reporting and are polled instead. " +
+                            "The default poll interval for these is 600 seconds. Set to -1 to disable polling. " +
+                            "Polled attributes are those marked as read-only at https://github.com/fairecasoimeme/Zlinky_TIC/",
+                    ),
                 poll: async (device, options) => {
                     const endpoint = device.getEndpoint(1);
                     const measurement_poll_chunk = options?.measurement_poll_chunk ? options.measurement_poll_chunk : 4;
