@@ -1278,58 +1278,50 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Ultrasonic water meter",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
-            // Total water consumption (DP1)
-            e
-                .numeric("water_consumed", ea.STATE)
-                .withUnit("m³")
-                .withDescription("Total water consumption")
-                .withValueMin(0)
-                .withValueStep(0.001),
+            e.numeric("water_consumed", ea.STATE).withUnit("m³").withDescription("Total water consumption").withValueMin(0).withValueStep(0.001),
 
-            // Monthly consumption (DP2)
-            e
-                .numeric("month_consumption", ea.STATE)
-                .withUnit("m³")
-                .withDescription("Monthly water consumption")
-                .withValueMin(0)
-                .withValueStep(0.001),
+            e.numeric("month_consumption", ea.STATE).withUnit("m³").withDescription("Monthly water consumption").withValueMin(0).withValueStep(0.001),
 
-            // Daily consumption (DP3)
-            e
-                .numeric("daily_consumption", ea.STATE)
-                .withUnit("m³")
-                .withDescription("Daily water consumption")
-                .withValueMin(0)
-                .withValueStep(0.001),
+            e.numeric("daily_consumption", ea.STATE).withUnit("m³").withDescription("Daily water consumption").withValueMin(0).withValueStep(0.001),
 
-            // Report period setting (DP4) - configurable
             e
-                .numeric("report_period", ea.ALL)
-                .withUnit("h")
-                .withDescription("Data report period (1–24 hours, step 1h)")
-                .withValueMin(1)
-                .withValueMax(24)
-                .withValueStep(1),
+                .enum("report_period", ea.ALL, [
+                    "1h",
+                    "2h",
+                    "3h",
+                    "4h",
+                    "5h",
+                    "6h",
+                    "7h",
+                    "8h",
+                    "9h",
+                    "10h",
+                    "11h",
+                    "12h",
+                    "13h",
+                    "14h",
+                    "15h",
+                    "16h",
+                    "17h",
+                    "18h",
+                    "19h",
+                    "20h",
+                    "21h",
+                    "22h",
+                    "23h",
+                    "24h",
+                ])
+                .withDescription("Data report period (1–24 hours)"),
 
-            // Warning status (DP5)
-            e
-                .binary("warning", ea.STATE, true, false)
-                .withDescription("Warning status (leakage/low battery/etc)"),
-
-            // Frozen time setting (DP6) - configurable
             e
                 .numeric("frozen_time", ea.STATE_SET)
                 .withUnit("hour")
-                .withDescription("Month and daily frozen time (0-23)")
+                .withDescription("Month and daily frozen time (0–23)")
                 .withValueMin(0)
                 .withValueMax(23),
 
-            // Meter ID (DP16) - read-only
-            e
-                .text("meter_id", ea.STATE)
-                .withDescription("Meter identification number"),
+            e.text("meter_id", ea.STATE).withDescription("Meter identification number"),
 
-            // Reverse water consumption (DP18)
             e
                 .numeric("reverse_water_consumed", ea.STATE)
                 .withUnit("m³")
@@ -1337,26 +1329,13 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMin(0)
                 .withValueStep(0.001),
 
-            // Instantaneous flow rate (DP21)
-            e
-                .numeric("flow_rate", ea.STATE)
-                .withUnit("m³/h")
-                .withDescription("Instantaneous water flow rate")
-                .withValueMin(0)
-                .withValueStep(0.001),
+            e.numeric("flow_rate", ea.STATE).withUnit("m³/h").withDescription("Instantaneous water flow rate").withValueMin(0).withValueStep(0.001),
 
-            // Working temperature (DP22)
-            e
-                .temperature()
-                .withDescription("Working temperature"),
+            e.temperature().withDescription("Working temperature"),
 
-            // Power supply voltage (DP26)
-            e
-                .voltage()
-                .withDescription("Power supply voltage"),
+            e.voltage().withDescription("Power supply voltage"),
 
-            // Optional: Add battery if device is battery-powered
-            // e.battery().withDescription("Battery percentage"),
+            e.binary("fault", ea.STATE, true, false).withDescription("Fault alarm bitmap"),
         ],
         meta: {
             tuyaDatapoints: [
@@ -1364,16 +1343,15 @@ export const definitions: DefinitionWithExtend[] = [
                 [2, "month_consumption", tuya.valueConverter.divideBy1000],
                 [3, "daily_consumption", tuya.valueConverter.divideBy1000],
                 [4, "report_period", tuya.valueConverter.raw],
-                [5, "warning", tuya.valueConverter.trueFalse1],
                 [6, "frozen_time", tuya.valueConverter.raw],
                 [16, "meter_id", tuya.valueConverter.raw],
                 [18, "reverse_water_consumed", tuya.valueConverter.divideBy1000],
                 [21, "flow_rate", tuya.valueConverter.divideBy1000],
                 [22, "temperature", tuya.valueConverter.divideBy100],
                 [26, "voltage", tuya.valueConverter.divideBy100],
+                [5, "fault", tuya.valueConverter.raw],
             ],
         },
-        // Optional: Add device-specific options
         options: [
             exposes.options.precision("water_consumed"),
             exposes.options.calibration("water_consumed"),
