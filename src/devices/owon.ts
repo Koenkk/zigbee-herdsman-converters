@@ -185,6 +185,20 @@ const fzLocal = {
             return result;
         },
     } satisfies Fz.Converter<"fallDetectionOwon", OwonFallDetection, ["attributeReport", "readResponse"]>,
+
+    ias_zone_alarm_dual: {
+        cluster: "ssIasZone",
+        type: "commandStatusChangeNotification",
+        convert: (model, msg, publish, options, meta) => {
+            const zoneStatus = msg.data.zonestatus;
+            return {
+                alarm_1: (zoneStatus & 1) > 0,
+                alarm_2: (zoneStatus & 2) > 0,
+                tamper: (zoneStatus & 4) > 0,
+                battery_low: (zoneStatus & 8) > 0,
+            };
+        },
+    } satisfies Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification">,
 };
 
 const tzLocal = {
@@ -640,6 +654,36 @@ export const definitions: DefinitionWithExtend[] = [
             await endpoint.bind("ssIasZone", coordinatorEndpoint);
             await endpoint.bind("genBasic", coordinatorEndpoint);
             await endpoint.bind("fallDetectionOwon", coordinatorEndpoint);
+        },
+    },
+    {
+        zigbeeModel: ["SLC631"],
+        model: "SLC631",
+        vendor: "OWON",
+        description: "ZigBee SLC631 Smart Plug with IAS Zone (alarm_1 reserved, alarm_2 indicates doorbell press)",
+        extend: [
+            m.onOff({endpointNames: ["l1"], description: "Relay 1"}),
+            m.onOff({endpointNames: ["l2"], description: "Relay 2"}),
+            m.onOff({endpointNames: ["l3"], description: "Relay 3"}),
+            m.iasZoneAlarm({
+                zoneType: "contact",
+                zoneAttributes: ["alarm_1", "alarm_2", "tamper", "battery_low"],
+            }),
+        ],
+        endpoint: (device) => {
+            return {l1: 1, l2: 2, l3: 3};
+        },
+        configure: async (device, coordinatorEndpoint) => {
+            for (const epId of [1, 2, 3]) {
+                const ep = device.getEndpoint(epId);
+                if (ep) {
+                    await reporting.bind(ep, coordinatorEndpoint, ["genOnOff"]);
+                    await reporting.onOff(ep);
+                }
+            }
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["ssIasZone"]);
+            await endpoint.write("ssIasZone", {16: {value: coordinatorEndpoint.deviceIeeeAddress, type: 0xf0}});
         },
     },
 ];
