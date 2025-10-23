@@ -47,9 +47,9 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [
             e.binary("alarm", ea.STATE, true, false).withDescription("CO alarm active"),
             e.binary("test", ea.STATE, true, false).withDescription("Self-test in progress"),
-            e.binary("carbon_monoxide", ea.STATE, true, false),
-            e.binary("tamper", ea.STATE, true, false),
-            e.binary("battery_low", ea.STATE, true, false),
+            e.carbon_monoxide(),
+            e.tamper(),
+            e.battery_low(),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const ep = device.getEndpoint(1);
