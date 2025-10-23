@@ -1,5 +1,21 @@
 # Changelog
 
+## [25.52.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.51.1...v25.52.0) (2025-10-23)
+
+
+### Features
+
+* **add:** QS-Zigbee-SEC02-Mod, THERM_SLACKY_DIY_R0B, THERM_SLACKY_DIY_R0A ([#10455](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10455)) ([311ed0c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/311ed0c1d708003292affc11d1655576a5a3feb0))
+* **add:** ZBCO-AE-10X-EUR ([#10462](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10462)) ([020f89d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/020f89d605208fc24ee363cdd71ea350f889d470))
+
+
+### Bug Fixes
+
+* Apply suggested fixes from Biome ([#10481](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10481)) ([5e5cdd3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5e5cdd362c0a405b1de304624e291b397c709619))
+* Bosch: remove duplicate definition of `initTestMode` command in `ssIasZone` ([#10480](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10480)) ([683cb7e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/683cb7e773e7b0b46aa531644ce994284bdc022c))
+* Candeo C210: fix commands always timing out ([#10474](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10474)) ([66e5d7a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/66e5d7a6283b92548dd53b7936e6bab1330bffa3))
+* **detect:** Detect `_TZ3000_wn65ixz9` as Tuya TS0001_repeater ([#10473](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10473)) ([394a5d1](https://github.com/Koenkk/zigbee-herdsman-converters/commit/394a5d11009bcde66f285df596860d049bcad601))
+
 ## [25.51.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.51.0...v25.51.1) (2025-10-21)
 
 
