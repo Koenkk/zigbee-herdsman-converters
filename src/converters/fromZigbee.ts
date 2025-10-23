@@ -5547,3 +5547,21 @@ export const TS110E_switch_type: Fz.Converter<"genLevelCtrl", undefined, ["attri
         return result;
     },
 };
+export const fireangel_co_test: Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification"> = {
+    cluster: "ssIasZone",
+    type: "commandStatusChangeNotification",
+    convert: (model, msg, publish, options, meta) => {
+        const zoneStatus = msg.data.zonestatus;
+        const testActive = !!(zoneStatus & (1 << 5)) || !!(zoneStatus & (1 << 9));
+
+        const lastTestTimeout = globalStore.getValue(msg.endpoint, "lastTestTimeout");
+        if (lastTestTimeout) clearTimeout(lastTestTimeout);
+
+        if (testActive) {
+            const timeout = setTimeout(() => publish({test: false}), 8000);
+            globalStore.putValue(msg.endpoint, "lastTestTimeout", timeout);
+        }
+
+        return {test: testActive};
+    },
+};

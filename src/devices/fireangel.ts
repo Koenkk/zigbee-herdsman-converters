@@ -5,8 +5,6 @@ import type {DefinitionWithExtend} from "../lib/types";
 const e = exposes.presets;
 const ea = exposes.access;
 
-let lastTestTimeout;
-
 export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["Alarm_SD_Device"],
@@ -22,25 +20,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZBCO-AE-10X-EUR",
         vendor: "FireAngel",
         description: "FireAngel CO alarm",
-        fromZigbee: [
-            fz.ias_carbon_monoxide_alarm_1,
-            {
-                cluster: "ssIasZone",
-                type: "commandStatusChangeNotification",
-                convert: (model, msg, publish, options, meta) => {
-                    const zoneStatus = msg.data.zonestatus;
-                    const testActive = !!(zoneStatus & (1 << 5)) || !!(zoneStatus & (1 << 9));
-
-                    if (lastTestTimeout) clearTimeout(lastTestTimeout);
-
-                    if (testActive) {
-                        lastTestTimeout = setTimeout(() => publish({test: false}), 8000);
-                    }
-
-                    return {test: testActive};
-                },
-            },
-        ],
+        fromZigbee: [fz.ias_carbon_monoxide_alarm_1, fz.fireangel_co_test],
         toZigbee: [],
         exposes: [
             e.binary("alarm", ea.STATE, true, false).withDescription("CO alarm active"),
