@@ -343,7 +343,6 @@ export const boschGeneralEnergyDeviceExtend = {
 //endregion
 
 //region Generally used Bosch functionality on sensor devices
-
 export const boschGeneralSensorDeviceExtend = {
     testMode: (args: {
         testModeDescription: string;
