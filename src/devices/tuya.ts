@@ -1278,7 +1278,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Ultrasonic water meter",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
-            // Water consumption sensor
+            // Total water consumption (DP1)
             e
                 .numeric("water_consumed", ea.STATE)
                 .withUnit("m³")
@@ -1286,7 +1286,58 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMin(0)
                 .withValueStep(0.001),
 
-            // Flow rate sensor
+            // Monthly consumption (DP2)
+            e
+                .numeric("month_consumption", ea.STATE)
+                .withUnit("m³")
+                .withDescription("Monthly water consumption")
+                .withValueMin(0)
+                .withValueStep(0.001),
+
+            // Daily consumption (DP3)
+            e
+                .numeric("daily_consumption", ea.STATE)
+                .withUnit("m³")
+                .withDescription("Daily water consumption")
+                .withValueMin(0)
+                .withValueStep(0.001),
+
+            // Report period setting (DP4) - configurable
+            e
+                .numeric("report_period", ea.ALL)
+                .withUnit("h")
+                .withDescription("Data report period (1–24 hours, step 1h)")
+                .withValueMin(1)
+                .withValueMax(24)
+                .withValueStep(1),
+
+            // Warning status (DP5)
+            e
+                .binary("warning", ea.STATE, true, false)
+                .withDescription("Warning status (leakage/low battery/etc)"),
+
+            // Frozen time setting (DP6) - configurable
+            e
+                .numeric("frozen_time", ea.STATE_SET)
+                .withUnit("hour")
+                .withDescription("Month and daily frozen time (0-23)")
+                .withValueMin(0)
+                .withValueMax(23),
+
+            // Meter ID (DP16) - read-only
+            e
+                .text("meter_id", ea.STATE)
+                .withDescription("Meter identification number"),
+
+            // Reverse water consumption (DP18)
+            e
+                .numeric("reverse_water_consumed", ea.STATE)
+                .withUnit("m³")
+                .withDescription("Reverse flow water consumption")
+                .withValueMin(0)
+                .withValueStep(0.001),
+
+            // Instantaneous flow rate (DP21)
             e
                 .numeric("flow_rate", ea.STATE)
                 .withUnit("m³/h")
@@ -1294,15 +1345,29 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMin(0)
                 .withValueStep(0.001),
 
-            // Temperature sensor
-            e.temperature(),
+            // Working temperature (DP22)
+            e
+                .temperature()
+                .withDescription("Working temperature"),
 
-            // Voltage monitoring
-            e.voltage(),
+            // Power supply voltage (DP26)
+            e
+                .voltage()
+                .withDescription("Power supply voltage"),
+
+            // Optional: Add battery if device is battery-powered
+            // e.battery().withDescription("Battery percentage"),
         ],
         meta: {
             tuyaDatapoints: [
                 [1, "water_consumed", tuya.valueConverter.divideBy1000],
+                [2, "month_consumption", tuya.valueConverter.divideBy1000],
+                [3, "daily_consumption", tuya.valueConverter.divideBy1000],
+                [4, "report_period", tuya.valueConverter.raw],
+                [5, "warning", tuya.valueConverter.trueFalse1],
+                [6, "frozen_time", tuya.valueConverter.raw],
+                [16, "meter_id", tuya.valueConverter.raw],
+                [18, "reverse_water_consumed", tuya.valueConverter.divideBy1000],
                 [21, "flow_rate", tuya.valueConverter.divideBy1000],
                 [22, "temperature", tuya.valueConverter.divideBy100],
                 [26, "voltage", tuya.valueConverter.divideBy100],
@@ -1312,8 +1377,14 @@ export const definitions: DefinitionWithExtend[] = [
         options: [
             exposes.options.precision("water_consumed"),
             exposes.options.calibration("water_consumed"),
+            exposes.options.precision("month_consumption"),
+            exposes.options.calibration("month_consumption"),
+            exposes.options.precision("daily_consumption"),
+            exposes.options.calibration("daily_consumption"),
             exposes.options.precision("flow_rate"),
             exposes.options.calibration("flow_rate"),
+            exposes.options.precision("reverse_water_consumed"),
+            exposes.options.calibration("reverse_water_consumed"),
             exposes.options.precision("temperature"),
             exposes.options.calibration("temperature"),
         ],
