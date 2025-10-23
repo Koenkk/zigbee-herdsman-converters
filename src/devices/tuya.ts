@@ -1288,7 +1288,7 @@ export const definitions: DefinitionWithExtend[] = [
 
             e
                 .numeric("frozen_time", ea.STATE_SET)
-                .withUnit("hour")
+                .withUnit("h")
                 .withDescription("Month and daily frozen time (0–23)")
                 .withValueMin(0)
                 .withValueMax(23),
