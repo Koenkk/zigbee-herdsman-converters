@@ -1894,7 +1894,7 @@ export const definitions: DefinitionWithExtend[] = [
         ota: {manufacturerName: "LiXee"}, // TODO: not sure if it's set properly in device
         extend: [
             m.poll({
-                key: "interval",
+                key: "measurement",
                 defaultIntervalSeconds: 600,
                 option: exposes.options.measurement_poll_interval(),
                 poll: async (device, options) => {
