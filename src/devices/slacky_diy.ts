@@ -502,7 +502,7 @@ function localActionExtend(args: LocalActionExtendArgs = {}): ModernExtend {
     const {
         localAction = ["hold", "single", "double", "triple", "quadruple", "quintuple", "release"],
         reporting = true,
-        reportingConfig = {min: 0, max: 65000, change: 0},
+        reportingConfig = {min: 10, max: 0, change: 1},
         endpointNames = undefined,
     } = args;
     let actions: string[] = localAction;
