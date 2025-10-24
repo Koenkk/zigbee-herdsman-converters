@@ -8,7 +8,6 @@ import {
     boschDoorWindowContactExtend,
     boschGeneralEnergyDeviceExtend,
     boschGeneralExtend,
-    boschGeneralSensorDeviceExtend,
     boschSmartPlugExtend,
     boschSmokeAlarmExtend,
     boschThermostatExtend,
@@ -626,7 +625,6 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Bosch",
         description: "Water alarm (formerly known as BWA-1)",
         extend: [
-            boschGeneralSensorDeviceExtend.customIasZoneCluster(),
             boschWaterAlarmExtend.changedSensitivityLevel(),
             boschWaterAlarmExtend.waterAlarmCluster(),
             boschGeneralExtend.handleRenamedCustomCluster("boschSpecific", "boschWaterAlarm"),
@@ -645,7 +643,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Smoke alarm II",
         extend: [
             boschSmokeAlarmExtend.enforceDefaultSensitivityLevel(),
-            boschGeneralSensorDeviceExtend.customIasZoneCluster(),
+            boschSmokeAlarmExtend.customIasZoneCluster(),
             boschSmokeAlarmExtend.smokeAlarmAndButtonPushes(),
             boschSmokeAlarmExtend.alarmControl(),
             boschSmokeAlarmExtend.testMode(),
@@ -891,7 +889,6 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Bosch",
         description: "Motion detector",
         extend: [
-            boschGeneralSensorDeviceExtend.customIasZoneCluster(),
             boschBsenExtend.changedCheckinInterval(),
             boschBsenExtend.tamperAndOccupancyAlarm(),
             boschBsenExtend.battery(),
