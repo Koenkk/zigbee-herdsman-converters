@@ -838,4 +838,36 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         configure: tuya.configureMagicPacket,
     },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_3mzb0sdz"]),
+        model: "ZM16B",
+        vendor: "Zemismart",
+        description: "Tubular motor",
+        whiteLabel: [tuya.whitelabel("Zemismart", "ZM16B", "Tubular motor", ["_TZE284_3mzb0sdz"])],
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEventSetTime,
+        configure: tuya.configureMagicPacket,
+        options: [options.invert_cover()],
+        exposes: [
+            e.cover_position().setAccess("position", access.STATE_SET),
+            e.enum("motor_direction", access.STATE_SET, ["forward", "back"]).withDescription("Motor direction"),
+            e.enum("border", access.STATE_SET, ["up", "down", "up_delete", "down_delete", "remove_top_bottom"]).withDescription("Limit setting"),
+            //e.enum("work_state", access.STATE, ["opening", "closing"]).withDescription("Cover state"),
+            //e.numeric("position_best", access.STATE_SET).withValueMin(0).withValueMax(100).withUnit("%").withDescription("Best position"),
+            e.battery(),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "state", tuya.valueConverterBasic.lookup({OPEN: tuya.enum(0), STOP: tuya.enum(1), CLOSE: tuya.enum(2)})],
+                //[3, "work_state", tuya.valueConverter.raw],
+                [9, 'position', tuya.valueConverter.coverPosition], // Percent control - set position (0-100)
+                [8, 'position', tuya.valueConverter.coverPositionInverted], // Percent state - current position (0-100)
+                [11, "motor_direction", tuya.valueConverterBasic.lookup({forward: tuya.enum(0), back: tuya.enum(1)})],
+                [13, 'battery', tuya.valueConverter.raw],
+                [16, "border", tuya.valueConverterBasic.lookup({up: tuya.enum(0),down: tuya.enum(1), up_delete: tuya.enum(2), down_delete: tuya.enum(3), remove_top_bottom: tuya.enum(4)})],
+                //[19, "position_best", tuya.valueConverter.raw],
+            ],
+        },
+    },
 ];
