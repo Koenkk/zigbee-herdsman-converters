@@ -2070,7 +2070,6 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZ3000_rgpqqmbj",
             "_TZ3000_8nyaanzb",
             "_TZ3000_iy2c3n6p",
-            "_TZ3000_qlmnxmac",
             "_TZ3000_sgb0xhwn",
         ]),
         model: "TS011F_2_gang_wall",
@@ -4036,7 +4035,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint("TS011F", ["_TZ3000_bep7ccew", "_TZ3000_gazjngjl"]),
+        fingerprint: tuya.fingerprint("TS011F", ["_TZ3000_bep7ccew", "_TZ3000_gazjngjl", "_TZ3000_qlmnxmac"]),
         model: "TS011F_2_gang_power",
         vendor: "Tuya",
         description: "2 gang socket with power monitoring and USB",
@@ -4044,6 +4043,22 @@ export const definitions: DefinitionWithExtend[] = [
             tuyaMagicPacket(),
             m.deviceEndpoints({
                 endpoints: {left: 1, right: 2},
+                multiEndpointSkip: ["current", "voltage", "power", "energy"],
+            }),
+            m.onOff({powerOnBehavior: false, endpointNames: ["left", "right"]}),
+            m.identify(),
+            m.electricityMeter(),
+        ],
+    },
+    {
+        fingerprint: tuya.fingerprint("TS011F", ["_TZ3000_qlmnxmac"]),
+        model: "TS011F_2_gang_power",
+        vendor: "Tuya",
+        description: "2 gang socket with power monitoring",
+        extend: [
+            tuyaMagicPacket(),
+            m.deviceEndpoints({
+                endpoints: {left: 2, right: 1},
                 multiEndpointSkip: ["current", "voltage", "power", "energy"],
             }),
             m.onOff({powerOnBehavior: false, endpointNames: ["left", "right"]}),
