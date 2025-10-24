@@ -1286,21 +1286,7 @@ export const definitions: DefinitionWithExtend[] = [
 
             e.enum("report_period", ea.ALL, ["1h", "2h", "3h", "4h", "6h", "8h", "12h", "24h"]).withDescription("Report period (1h–24h)"),
 
-            e
-                .numeric("frozen_time", ea.STATE_SET)
-                .withUnit("h")
-                .withDescription("Month and daily frozen time (0–23)")
-                .withValueMin(0)
-                .withValueMax(23),
-
-            e.text("meter_id", ea.STATE).withDescription("Meter identification number"),
-
-            e
-                .numeric("reverse_water_consumed", ea.STATE)
-                .withUnit("m³")
-                .withDescription("Reverse flow water consumption")
-                .withValueMin(0)
-                .withValueStep(0.001),
+            e.text("meter_id", ea.STATE).withDescription("Meter identification S\N"),
 
             e.numeric("flow_rate", ea.STATE).withUnit("m³/h").withDescription("Instantaneous water flow rate").withValueMin(0).withValueStep(0.001),
 
@@ -1308,13 +1294,12 @@ export const definitions: DefinitionWithExtend[] = [
 
             e.voltage().withDescription("Power supply voltage"),
 
-            e.binary("fault", ea.STATE, true, false).withDescription("Fault alarm bitmap"),
+            e.enum('fault', ea.STATE, ['empty_pipe', 'no_fault'])
+            .withDescription('Fault status'),
         ],
         meta: {
             tuyaDatapoints: [
                 [1, "water_consumed", tuya.valueConverter.divideBy1000],
-                [2, "month_consumption", tuya.valueConverter.divideBy1000],
-                [3, "daily_consumption", tuya.valueConverter.divideBy1000],
                 [
                     4,
                     "report_period",
@@ -1329,26 +1314,21 @@ export const definitions: DefinitionWithExtend[] = [
                         "24h": 7,
                     }),
                 ],
-                [6, "frozen_time", tuya.valueConverter.raw],
                 [16, "meter_id", tuya.valueConverter.raw],
-                [18, "reverse_water_consumed", tuya.valueConverter.divideBy1000],
                 [21, "flow_rate", tuya.valueConverter.divideBy1000],
                 [22, "temperature", tuya.valueConverter.divideBy100],
                 [26, "voltage", tuya.valueConverter.divideBy100],
-                [5, "fault", tuya.valueConverter.raw],
+                [5, 'fault', tuya.valueConverterBasic.lookup({
+                'empty_pipe': 6144,
+                'no_fault': 0,
+                })],
             ],
         },
         options: [
             exposes.options.precision("water_consumed"),
             exposes.options.calibration("water_consumed"),
-            exposes.options.precision("month_consumption"),
-            exposes.options.calibration("month_consumption"),
-            exposes.options.precision("daily_consumption"),
-            exposes.options.calibration("daily_consumption"),
             exposes.options.precision("flow_rate"),
             exposes.options.calibration("flow_rate"),
-            exposes.options.precision("reverse_water_consumed"),
-            exposes.options.calibration("reverse_water_consumed"),
             exposes.options.precision("temperature"),
             exposes.options.calibration("temperature"),
         ],
