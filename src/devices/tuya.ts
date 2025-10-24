@@ -1286,7 +1286,7 @@ export const definitions: DefinitionWithExtend[] = [
 
             e.enum("report_period", ea.ALL, ["1h", "2h", "3h", "4h", "6h", "8h", "12h", "24h"]).withDescription("Report period (1h–24h)"),
 
-            e.text("meter_id", ea.STATE).withDescription("Meter identification S\N"),
+            e.text("meter_id", ea.STATE).withDescription("Meter identification SN"),
 
             e.numeric("flow_rate", ea.STATE).withUnit("m³/h").withDescription("Instantaneous water flow rate").withValueMin(0).withValueStep(0.001),
 
@@ -1294,8 +1294,7 @@ export const definitions: DefinitionWithExtend[] = [
 
             e.voltage().withDescription("Power supply voltage"),
 
-            e.enum('fault', ea.STATE, ['empty_pipe', 'no_fault'])
-            .withDescription('Fault status'),
+            e.enum("fault", ea.STATE, ["empty_pipe", "no_fault"]).withDescription("Fault status"),
         ],
         meta: {
             tuyaDatapoints: [
@@ -1318,10 +1317,14 @@ export const definitions: DefinitionWithExtend[] = [
                 [21, "flow_rate", tuya.valueConverter.divideBy1000],
                 [22, "temperature", tuya.valueConverter.divideBy100],
                 [26, "voltage", tuya.valueConverter.divideBy100],
-                [5, 'fault', tuya.valueConverterBasic.lookup({
-                'empty_pipe': 6144,
-                'no_fault': 0,
-                })],
+                [
+                    5,
+                    "fault",
+                    tuya.valueConverterBasic.lookup({
+                        empty_pipe: 6144,
+                        no_fault: 0,
+                    }),
+                ],
             ],
         },
         options: [
