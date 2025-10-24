@@ -1640,7 +1640,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["Dongle-M_ZBRouter"],
         model: "ZBDongle-M",
         vendor: "SONOFF",
-        description: "Sonoff Dongle Max MG24 (EFR32MG24) with router firmware",
+        description: "Dongle Max MG24 (EFR32MG24) with router firmware",
         fromZigbee: [fz.linkquality_from_basic],
         toZigbee: [],
         extend: [m.forcePowerSource({powerSource: "Mains (single phase)"})],
