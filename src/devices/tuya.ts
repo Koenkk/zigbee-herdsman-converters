@@ -19526,11 +19526,12 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_3regm3h6"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_3regm3h6", "_TZE204_0hcjew5p"]),
         model: "_TZE204_3regm3h6",
         vendor: "Tuya",
         description: "Smart thermostat for electric radiator with pilot wire",
         extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "1970"})],
+        whiteLabel: [tuya.whitelabel("THALEOS", "TH-P1Z", "Smart thermostat for electric heater", ["_TZE204_0hcjew5p"])],
         exposes: [
             e.binary("state", ea.STATE_SET, "ON", "OFF").withDescription("Turn the heater on or off").withCategory("config"),
             e.child_lock(),
