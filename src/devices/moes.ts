@@ -1628,7 +1628,7 @@ export const definitions: DefinitionWithExtend[] = [
             e
                 .enum("running_mode", ea.STATE, ["standby", "comfort", "comfort_1", "comfort_2", "eco", "antifrost"])
                 .withDescription("Current running mode"),
-            e.numeric("night_led_config", ea.STATE_SET).withDescription("Night LED configuration"),
+            //e.numeric("night_led_config", ea.STATE_SET).withDescription("Night LED configuration"),
         ],
         meta: {
             tuyaDatapoints: [
@@ -1738,7 +1738,7 @@ export const definitions: DefinitionWithExtend[] = [
                         antifrost: tuya.enum(5),
                     }),
                 ],
-                [114, "night_led_config", tuya.valueConverter.raw],
+                //[114, "night_led_config", tuya.valueConverter.raw],
             ],
         },
     },
