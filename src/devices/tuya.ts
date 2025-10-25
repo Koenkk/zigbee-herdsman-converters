@@ -19690,43 +19690,43 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_ilzkxrav"]),
-        model: 'TWC-R01',
-        vendor: 'Thaleos',
-        description: 'Smart thermostat for electric heater with pilot wire',
-    	extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        model: "TWC-R01",
+        vendor: "Thaleos",
+        description: "Smart thermostat for electric heater with pilot wire",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         onEvent: tuya.onEventSetTime,
         configure: tuya.configureMagicPacket,
         exposes: [
             e.pilot_wire_mode(),
-    		e
-    			.numeric('local_temperature_calibration', ea.STATE_SET)
-    			.withUnit('°C')
-    			.withValueMin(-8)
-    			.withValueMax(8)
-    			.withValueStep(0.5)
-    			.withDescription('Set temperature calibration'),
-    		e.binary("eco_mode", ea.STATE_SET, "ON", "OFF").withDescription("Enables/disables the weekly program."),
-    		e.open_window(),
-    		e.open_window_temperature(),
-    		e.local_temperature(),
-    		e.power(),
-    		e.voltage(),
-    		e.current(),
-    		e.energy(),
-    		e.numeric("energy_today", ea.STATE).withUnit("kWh").withDescription("Energy consumed today"),
-    		e.numeric("energy_yesterday", ea.STATE).withUnit("kWh").withDescription("Energy consumed yesterday"),
-    		e
-    			.enum("device_mode_type", ea.STATE, ["four", "six"])
-    			.withDescription("Indicates the actual pilot wire mode of the thermostat")
-    			.withCategory("diagnostic"),
+            e
+                .numeric("local_temperature_calibration", ea.STATE_SET)
+                .withUnit("°C")
+                .withValueMin(-8)
+                .withValueMax(8)
+                .withValueStep(0.5)
+                .withDescription("Set temperature calibration"),
+            e.binary("eco_mode", ea.STATE_SET, "ON", "OFF").withDescription("Enables/disables the weekly program."),
+            e.open_window(),
+            e.open_window_temperature(),
+            e.local_temperature(),
+            e.power(),
+            e.voltage(),
+            e.current(),
+            e.energy(),
+            e.numeric("energy_today", ea.STATE).withUnit("kWh").withDescription("Energy consumed today"),
+            e.numeric("energy_yesterday", ea.STATE).withUnit("kWh").withDescription("Energy consumed yesterday"),
+            e
+                .enum("device_mode_type", ea.STATE, ["four", "six"])
+                .withDescription("Indicates the actual pilot wire mode of the thermostat")
+                .withCategory("diagnostic"),
         ],
         meta: {
             tuyaDatapoints: [
                 [
-    				2, 
-    				"pilot_wire_mode",
+                    2,
+                    "pilot_wire_mode",
                     tuya.valueConverterBasic.lookup({
                         comfort: tuya.enum(0),
                         eco: tuya.enum(1),
@@ -19737,31 +19737,31 @@ export const definitions: DefinitionWithExtend[] = [
                         program: tuya.enum(6),
                     }),
                 ],
-    			[11, "power", tuya.valueConverter.raw],
-    			[16, "local_temperature", tuya.valueConverter.divideBy10],
-    			[19, "local_temperature_calibration", tuya.valueConverter.localTempCalibration2],
-    			[20, "fault", tuya.valueConverter.raw],
-    			[40, "eco_mode", tuya.valueConverter.onOff],
-    			[101, "week_program", tuya.valueConverter.raw],
-    			[102, "work_state", tuya.valueConverter.raw],
-    			[103, "week_program_1", tuya.valueConverter.raw],
-    			[104, "week_program_2", tuya.valueConverter.raw],
-    			[105, "week_program_3", tuya.valueConverter.raw],
-    			[106, "week_program_4", tuya.valueConverter.raw],
-    			[107, "week_program_5", tuya.valueConverter.raw],
-    			[108, "week_program_6", tuya.valueConverter.raw],
-    			[109, "week_program_7", tuya.valueConverter.raw],
-    			[110, 'open_window', tuya.valueConverter.onOff],
-    			[111, 'open_window_temperature', tuya.valueConverter.raw],
-    			[112, 'window_time', tuya.valueConverter.raw],
-    			[113, 'window_timeout', tuya.valueConverter.raw],
-    			[114, "device_mode_type", tuya.valueConverterBasic.lookup({ four: tuya.enum(4), six: tuya.enum(6), }),],
-    			[115, "voltage", tuya.valueConverter.divideBy10],
-    			[116, "current", tuya.valueConverter.divideBy1000],
-    			[117, "energy", tuya.valueConverter.raw],
-    			[119, "energy_today", tuya.valueConverter.raw],
-    			[120, "energy_yesterday", tuya.valueConverter.raw],
-    		],
+                [11, "power", tuya.valueConverter.raw],
+                [16, "local_temperature", tuya.valueConverter.divideBy10],
+                [19, "local_temperature_calibration", tuya.valueConverter.localTempCalibration2],
+                [20, "fault", tuya.valueConverter.raw],
+                [40, "eco_mode", tuya.valueConverter.onOff],
+                [101, "week_program", tuya.valueConverter.raw],
+                [102, "work_state", tuya.valueConverter.raw],
+                [103, "week_program_1", tuya.valueConverter.raw],
+                [104, "week_program_2", tuya.valueConverter.raw],
+                [105, "week_program_3", tuya.valueConverter.raw],
+                [106, "week_program_4", tuya.valueConverter.raw],
+                [107, "week_program_5", tuya.valueConverter.raw],
+                [108, "week_program_6", tuya.valueConverter.raw],
+                [109, "week_program_7", tuya.valueConverter.raw],
+                [110, "open_window", tuya.valueConverter.onOff],
+                [111, "open_window_temperature", tuya.valueConverter.raw],
+                [112, "window_time", tuya.valueConverter.raw],
+                [113, "window_timeout", tuya.valueConverter.raw],
+                [114, "device_mode_type", tuya.valueConverterBasic.lookup({four: tuya.enum(4), six: tuya.enum(6)})],
+                [115, "voltage", tuya.valueConverter.divideBy10],
+                [116, "current", tuya.valueConverter.divideBy1000],
+                [117, "energy", tuya.valueConverter.raw],
+                [119, "energy_today", tuya.valueConverter.raw],
+                [120, "energy_yesterday", tuya.valueConverter.raw],
+            ],
         },
     },
     {
