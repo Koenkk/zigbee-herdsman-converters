@@ -46,7 +46,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.electricityMeter({threePhase: true, tariffs: true})],
         ota: true,
         endpoint: (device) => ({default: 2}),
-    };
+    },
     {
         zigbeeModel: ["REXZB-111"],
         model: "REXZB-111",
