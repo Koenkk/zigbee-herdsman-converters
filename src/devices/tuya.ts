@@ -9535,7 +9535,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.illuminance()],
     },
     {
-        fingerprint: tuya.fingerprint("TS0222", ["_TZ3000_8uxxzz4b", "_TZ3000_hy6ncvmw", "_TZ3000_9kbbfeho", "_TZ3000_l6rsaipj"]),
+        fingerprint: tuya.fingerprint("TS0222", ["_TZ3000_8uxxzz4b", "_TZ3000_9kbbfeho", "_TZ3000_l6rsaipj"]),
         model: "TS0222_light",
         vendor: "Tuya",
         description: "Light sensor",
@@ -9558,7 +9558,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.illuminance()],
     },
     {
-        fingerprint: tuya.fingerprint("TS0222", ["_TYZB01_4mdqxxnn", "_TYZB01_m6ec2pgj", "_TZ3000_do6txrcw", "_TZ3000_7kscdesh"]),
+        fingerprint: tuya.fingerprint("TS0222", ["_TYZB01_4mdqxxnn", "_TYZB01_m6ec2pgj", "_TZ3000_do6txrcw", "_TZ3000_7kscdesh", "_TZ3000_hy6ncvmw"]),
         model: "TS0222",
         vendor: "Tuya",
         description: "Light intensity sensor",
