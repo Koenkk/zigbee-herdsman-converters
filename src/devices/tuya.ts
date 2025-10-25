@@ -2563,7 +2563,7 @@ export const definitions: DefinitionWithExtend[] = [
                 "_TZ3000_n0lphcok",
                 "_TZ3000_r80pzsb9",
             ]),
-            ...tuya.fingerprint("TS0001", ["_TZ3000_n0lphcok"]),
+            ...tuya.fingerprint("TS0001", ["_TZ3000_n0lphcok", "_TZ3000_wn65ixz9"]),
         ],
         model: "TS0207_repeater",
         vendor: "Tuya",
