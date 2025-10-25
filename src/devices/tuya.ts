@@ -1144,6 +1144,7 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: [],
         whiteLabel: [
             {vendor: "CR Smart Home", model: "TS0203"},
+            {vendor: "Wing", model: "TS0203"},
             {vendor: "Tuya", model: "iH-F001"},
             {vendor: "Tesla Smart", model: "TSL-SEN-DOOR"},
             {vendor: "Cleverio", model: "SS100"},
