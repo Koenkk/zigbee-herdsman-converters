@@ -302,4 +302,13 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {multiEndpoint: true},
         whiteLabel: [{vendor: "EGLO", model: "900116"}],
     },
+    {
+        zigbeeModel: ["EZMB-RGB-TW-CLB"],
+        model: "EZMB-RGB-TW-CLB",
+        vendor: "AwoX",
+        description: "RGB LED mountable Light with color temperature",
+        extend: [m.deviceEndpoints({"endpoints":{"1":1,"3":3}}), m.light({"colorTemp":{"range":[153,370]},"color":{"modes":["xy","hs"],"enhancedHue":true}}), m.commandsOnOff(), m.commandsLevelCtrl(), m.commandsColorCtrl()],
+        meta: {multiEndpoint: true},
+        whiteLabel: [{vendor: "EGLO", model: "300685"}],
+    },
 ];
