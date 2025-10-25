@@ -1880,7 +1880,7 @@ interface MeterArgs {
     producedEnergy?: false | true | (MultiplierDivisor & Partial<ReportingConfigWithoutAttribute>);
     acFrequency?: false | true | (MultiplierDivisor & Partial<ReportingConfigWithoutAttribute>);
     powerFactor?: boolean;
-    tariffs?: boolean; 
+    tariffs?: boolean;
     // biome-ignore lint/suspicious/noExplicitAny: generic
     fzElectricalMeasurement?: Fz.Converter<"haElectricalMeasurement", any, any>;
 }
@@ -2171,7 +2171,7 @@ function genericMeter(args: MeterArgs = {}) {
         delete configureLookup.seMetering.produced_energy_tier_1;
         delete configureLookup.seMetering.produced_energy_tier_2;
     }
-    
+
     if (args.cluster === "both") {
         if (args.power !== false) exposes.push(e.power().withAccess(ea.STATE_GET));
         if (args.voltage !== false) exposes.push(e.voltage().withAccess(ea.STATE_GET));
@@ -2182,14 +2182,16 @@ function genericMeter(args: MeterArgs = {}) {
         if (args.producedEnergy !== false) exposes.push(e.produced_energy().withAccess(ea.STATE_GET));
         if (args.tariffs === true) {
             exposes.push(
-                e.numeric('energy_tier_1', ea.STATE_GET).withUnit('kWh')
-                    .withDescription('Energy consumed in tariff 1 (peak/high) - OBIS 1.8.1'),
-                e.numeric('energy_tier_2', ea.STATE_GET).withUnit('kWh')
-                    .withDescription('Energy consumed in tariff 2 (off-peak/low) - OBIS 1.8.2'),
-                e.numeric('produced_energy_tier_1', ea.STATE_GET).withUnit('kWh')
-                    .withDescription('Energy produced in tariff 1 (peak/high) - OBIS 2.8.1'),
-                e.numeric('produced_energy_tier_2', ea.STATE_GET).withUnit('kWh')
-                    .withDescription('Energy produced in tariff 2 (off-peak/low) - OBIS 2.8.2')
+                e.numeric("energy_tier_1", ea.STATE_GET).withUnit("kWh").withDescription("Energy consumed in tariff 1 (peak/high) - OBIS 1.8.1"),
+                e.numeric("energy_tier_2", ea.STATE_GET).withUnit("kWh").withDescription("Energy consumed in tariff 2 (off-peak/low) - OBIS 1.8.2"),
+                e
+                    .numeric("produced_energy_tier_1", ea.STATE_GET)
+                    .withUnit("kWh")
+                    .withDescription("Energy produced in tariff 1 (peak/high) - OBIS 2.8.1"),
+                e
+                    .numeric("produced_energy_tier_2", ea.STATE_GET)
+                    .withUnit("kWh")
+                    .withDescription("Energy produced in tariff 2 (off-peak/low) - OBIS 2.8.2"),
             );
         }
         fromZigbee = [args.fzElectricalMeasurement ?? fz.electrical_measurement, args.fzMetering ?? fz.metering];
@@ -2214,14 +2216,16 @@ function genericMeter(args: MeterArgs = {}) {
         if (args.producedEnergy !== false) exposes.push(e.produced_energy().withAccess(ea.STATE_GET));
         if (args.tariffs === true) {
             exposes.push(
-                e.numeric('energy_tier_1', ea.STATE_GET).withUnit('kWh')
-                    .withDescription('Energy consumed in tariff 1 (peak/high) - OBIS 1.8.1'),
-                e.numeric('energy_tier_2', ea.STATE_GET).withUnit('kWh')
-                    .withDescription('Energy consumed in tariff 2 (off-peak/low) - OBIS 1.8.2'),
-                e.numeric('produced_energy_tier_1', ea.STATE_GET).withUnit('kWh')
-                    .withDescription('Energy produced in tariff 1 (peak/high) - OBIS 2.8.1'),
-                e.numeric('produced_energy_tier_2', ea.STATE_GET).withUnit('kWh')
-                    .withDescription('Energy produced in tariff 2 (off-peak/low) - OBIS 2.8.2')
+                e.numeric("energy_tier_1", ea.STATE_GET).withUnit("kWh").withDescription("Energy consumed in tariff 1 (peak/high) - OBIS 1.8.1"),
+                e.numeric("energy_tier_2", ea.STATE_GET).withUnit("kWh").withDescription("Energy consumed in tariff 2 (off-peak/low) - OBIS 1.8.2"),
+                e
+                    .numeric("produced_energy_tier_1", ea.STATE_GET)
+                    .withUnit("kWh")
+                    .withDescription("Energy produced in tariff 1 (peak/high) - OBIS 2.8.1"),
+                e
+                    .numeric("produced_energy_tier_2", ea.STATE_GET)
+                    .withUnit("kWh")
+                    .withDescription("Energy produced in tariff 2 (off-peak/low) - OBIS 2.8.2"),
             );
         }
         fromZigbee = [args.fzMetering ?? fz.metering];
