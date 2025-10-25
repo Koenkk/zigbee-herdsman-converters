@@ -1568,7 +1568,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Smart Thermostat For Pilot Wire Heating Radiator", // Description of the device, copy from vendor site. (only used for documentation and startup logging)
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
-        onEvent: [tuya.onEventSetLocalTime],
+        //onEvent: [tuya.onEventSetLocalTime],
         configure: [tuya.configureMagicPacket],
         exposes: [
             e
