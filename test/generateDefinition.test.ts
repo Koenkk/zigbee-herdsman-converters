@@ -190,7 +190,6 @@ export default {
     vendor: '',
     description: 'Automatically generated definition',
     extend: [m.deviceEndpoints({"endpoints":{"1":1,"2":2}}), m.temperature({"endpointNames":["1","2"]}), m.onOff({"powerOnBehavior":false})],
-    meta: {"multiEndpoint":true},
 };
             `,
         });
