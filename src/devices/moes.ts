@@ -1554,22 +1554,11 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [
-            {
-                // The model ID from: Device with modelID 'TS0601' is not supported
-                // You may need to add \u0000 at the end of the name in some cases
-                modelID: "TS0601",
-                // The manufacturer name from: Device with modelID 'TS0601' is not supported.
-                manufacturerName: "_TZE204_x9usygq1",
-            },
-        ],
-        model: "ZHT-PT01-M-MS", // Update this with the real model of the device (written on the device itself or product page)
-        vendor: "Moes", // Update this with the real vendor of the device (written on the device itself or product page)
-        description: "Smart Thermostat For Pilot Wire Heating Radiator", // Description of the device, copy from vendor site. (only used for documentation and startup logging)
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        //onEvent: [tuya.onEventSetLocalTime],
-        //configure: [tuya.configureMagicPacket],
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_x9usygq1"]),
+        model: "ZHT-PT01-M-MS",
+        vendor: "Moes",
+        description: "Smart thermostat for pilot wire heating radiator",
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "1970"})],
         exposes: [
             e
                 .climate()
@@ -1582,36 +1571,11 @@ export const definitions: DefinitionWithExtend[] = [
                 .enum("mode", ea.STATE_SET, ["standby", "comfort", "comfort_1", "comfort_2", "eco", "antifrost", "program", "thermostat"])
                 .withDescription("Working mode"),
             e.window_open(),
-            /*
-        e
-            .temperature()
-            .withDescription('Current temperature'),
-        */
-            /*
-        e
-            .binary('window_state', ea.STATE, 'close', 'open')
-            .withDescription('Window status (open/close)'),
-        */
-            e
-                .binary("fault", ea.STATE, "DETECTED", "NOT_DETECTED")
-                .withDescription("Fault status"),
+            e.binary("fault", ea.STATE, "DETECTED", "NOT_DETECTED").withDescription("Fault status"),
             e.window_detection(),
             e.child_lock(),
             e.enum("temp_unit_convert", ea.STATE_SET, ["c", "f"]).withDescription("Temperature unit"),
-            /*
-        e
-            .numeric('temp_set', ea.STATE_SET)
-            .withUnit('°C')
-            .withValueMin(5)
-            .withValueMax(30)
-            .withDescription('Set temperature'),
-        */
-            e
-                .numeric("lower_temp", ea.STATE_SET)
-                .withUnit("°C")
-                .withValueMin(5)
-                .withValueMax(30)
-                .withDescription("Set min temperature"),
+            e.numeric("lower_temp", ea.STATE_SET).withUnit("°C").withValueMin(5).withValueMax(30).withDescription("Set min temperature"),
             e.numeric("upper_temp", ea.STATE_SET).withUnit("°C").withValueMin(5).withValueMax(30).withDescription("Set max temperature"),
             e.numeric("electricity_statistics", ea.STATE).withUnit("kWh").withDescription("Electricity usage statistics"),
             e.numeric("boost_duration", ea.STATE_SET).withUnit("min").withValueMin(0).withValueMax(120).withDescription("Boost mode duration"),
@@ -1628,7 +1592,6 @@ export const definitions: DefinitionWithExtend[] = [
             e
                 .enum("running_mode", ea.STATE, ["standby", "comfort", "comfort_1", "comfort_2", "eco", "antifrost"])
                 .withDescription("Current running mode"),
-            //e.numeric("night_led_config", ea.STATE_SET).withDescription("Night LED configuration"),
         ],
         meta: {
             tuyaDatapoints: [
@@ -1669,19 +1632,7 @@ export const definitions: DefinitionWithExtend[] = [
                         thermostat: tuya.enum(7),
                     }),
                 ],
-                //[16, 'temp_current', tuya.valueConverter.divideBy10],
                 [16, "local_temperature", tuya.valueConverter.divideBy10],
-                //[16, 'temperature', tuya.valueConverter.divideBy10],
-                /*
-            [
-                17,
-                'window_state',
-                tuya.valueConverterBasic.lookup({
-                    close: tuya.enum(0),
-                    open: tuya.enum(1),
-                }),
-            ],
-            */
                 [
                     17,
                     "window_open",
@@ -1705,7 +1656,6 @@ export const definitions: DefinitionWithExtend[] = [
                         f: tuya.enum(1),
                     }),
                 ],
-                //[50, 'temp_set', tuya.valueConverter.divideBy10],
                 [50, "current_heating_setpoint", tuya.valueConverter.divideBy10],
                 [65, "week_program_1", tuya.valueConverter.raw],
                 [66, "week_program_2", tuya.valueConverter.raw],
@@ -1738,7 +1688,6 @@ export const definitions: DefinitionWithExtend[] = [
                         antifrost: tuya.enum(5),
                     }),
                 ],
-                //[114, "night_led_config", tuya.valueConverter.raw],
             ],
         },
     },
