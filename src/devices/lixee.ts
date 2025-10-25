@@ -1806,7 +1806,8 @@ export const definitions: DefinitionWithExtend[] = [
                 .numeric("measurement_poll_chunk", ea.SET)
                 .withValueMin(1)
                 .withDescription(
-                    "During the poll, request multiple exposes to the Zlinky at once for reducing Zigbee network overload. Too much request at once could exceed device limit. Requires Z2M restart. Default: 4",
+                    "Number of attributes requested from the ZLinky in each poll to reduce Zigbee network load. " +
+                        "Requesting too many at once may exceed the device's limit and cause read errors. Requires Z2M restart. Default: 4.",
                 ),
             e
                 .text("tic_command_whitelist", ea.SET)
@@ -1894,9 +1895,15 @@ export const definitions: DefinitionWithExtend[] = [
         ota: {manufacturerName: "LiXee"}, // TODO: not sure if it's set properly in device
         extend: [
             m.poll({
-                key: "interval",
+                key: "measurement",
                 defaultIntervalSeconds: 600,
-                option: exposes.options.measurement_poll_interval(),
+                option: exposes.options
+                    .measurement_poll_interval()
+                    .withDescription(
+                        "Some attributes do not support reporting and are polled instead. " +
+                            "The default poll interval for these is 600 seconds. Set to -1 to disable polling. " +
+                            "Polled attributes are those marked as read-only at https://github.com/fairecasoimeme/Zlinky_TIC/",
+                    ),
                 poll: async (device, options) => {
                     const endpoint = device.getEndpoint(1);
                     const measurement_poll_chunk = options?.measurement_poll_chunk ? options.measurement_poll_chunk : 4;
