@@ -68,12 +68,8 @@ export const definitions: DefinitionWithExtend[] = [
         configure: async (device, coordinatorEndpoint, logger) => {
           const endpoint = device.getEndpoint(2);
     
-          try {
-            await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering']);
-          } catch (error) {
-            // Binding can fail but device may still work
-          }
-    
+          await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering']);
+         
           await reporting.readMeteringMultiplierDivisor(endpoint).catch(() => {});
     
           const meteringAttributes = [
