@@ -2581,7 +2581,7 @@ const tuyaModernExtend = {
     tuyaOnOff: (
         args: {
             endpoints?: string[];
-            powerOutageMemory?: boolean;
+            powerOutageMemory?: boolean | ((manufacturerName: string) => boolean);
             powerOnBehavior2?: boolean;
             switchType?: boolean;
             switchTypeCurtain?: boolean;
@@ -2593,9 +2593,9 @@ const tuyaModernExtend = {
             electricalMeasurements?: boolean;
             // biome-ignore lint/suspicious/noExplicitAny: generic
             electricalMeasurementsFzConverter?: Fz.Converter<"haElectricalMeasurement", undefined, any>;
-            childLock?: boolean;
+            childLock?: boolean | ((manufacturerName: string) => boolean);
             switchMode?: boolean;
-            onOffCountdown?: boolean;
+            onOffCountdown?: boolean | ((manufacturerName: string) => boolean);
             inchingSwitch?: boolean;
         } = {},
     ): ModernExtend => {
