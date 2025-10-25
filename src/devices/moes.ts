@@ -1569,7 +1569,7 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         //onEvent: [tuya.onEventSetLocalTime],
-        configure: [tuya.configureMagicPacket],
+        //configure: [tuya.configureMagicPacket],
         exposes: [
             e
                 .climate()
