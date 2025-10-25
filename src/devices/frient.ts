@@ -97,7 +97,6 @@ export const definitions: DefinitionWithExtend[] = [
             }]).catch(() => {});
           }
         },
-      },
     },
     {
         zigbeeModel: ["REXZB-111"],
