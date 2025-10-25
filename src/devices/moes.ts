@@ -1618,7 +1618,12 @@ export const definitions: DefinitionWithExtend[] = [
             e.numeric("elec_statistics_day", ea.STATE).withDescription("Daily energy usage"),
             e.numeric("elec_statistics_month", ea.STATE).withDescription("Monthly energy usage"),
             e.numeric("elec_statistics_year", ea.STATE).withDescription("Annual energy usage"),
-            e.numeric("window_keep_time", ea.STATE_SET).withUnit("min").withValueMin(0).withValueMax(120).withDescription("Time window should be kept open"),
+            e
+                .numeric("window_keep_time", ea.STATE_SET)
+                .withUnit("min")
+                .withValueMin(0)
+                .withValueMax(120)
+                .withDescription("Time window should be kept open"),
             e.enum("fault", ea.STATE, ["e1", "e2"]).withDescription("Fault alarm (e1, e2)"),
             e
                 .enum("running_mode", ea.STATE, ["standby", "comfort", "comfort_1", "comfort_2", "eco", "antifrost"])
