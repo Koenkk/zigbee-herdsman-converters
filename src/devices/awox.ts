@@ -314,7 +314,6 @@ export const definitions: DefinitionWithExtend[] = [
             m.commandsLevelCtrl(),
             m.commandsColorCtrl(),
         ],
-        meta: {multiEndpoint: true},
         whiteLabel: [{vendor: "EGLO", model: "300685"}],
     },
 ];
