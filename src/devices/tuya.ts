@@ -19694,10 +19694,6 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Thaleos",
         description: "Smart thermostat for electric heater with pilot wire",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime,
-        configure: tuya.configureMagicPacket,
         exposes: [
             e.pilot_wire_mode(),
             e
