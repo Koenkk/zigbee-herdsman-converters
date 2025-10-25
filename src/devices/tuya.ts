@@ -1278,37 +1278,55 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Ultrasonic water meter",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
-            // Water consumption sensor
-            e
-                .numeric("water_consumed", ea.STATE)
-                .withUnit("m³")
-                .withDescription("Total water consumption")
-                .withValueMin(0)
-                .withValueStep(0.001),
+            e.numeric("water_consumed", ea.STATE).withUnit("m³").withDescription("Total water consumption").withValueMin(0).withValueStep(0.001),
 
-            // Flow rate sensor
-            e
-                .numeric("flow_rate", ea.STATE)
-                .withUnit("m³/h")
-                .withDescription("Instantaneous water flow rate")
-                .withValueMin(0)
-                .withValueStep(0.001),
+            e.numeric("month_consumption", ea.STATE).withUnit("m³").withDescription("Monthly water consumption").withValueMin(0).withValueStep(0.001),
 
-            // Temperature sensor
-            e.temperature(),
+            e.numeric("daily_consumption", ea.STATE).withUnit("m³").withDescription("Daily water consumption").withValueMin(0).withValueStep(0.001),
 
-            // Voltage monitoring
-            e.voltage(),
+            e.enum("report_period", ea.ALL, ["1h", "2h", "3h", "4h", "6h", "8h", "12h", "24h"]).withDescription("Report period (1h–24h)"),
+
+            e.text("meter_id", ea.STATE).withDescription("Meter identification SN"),
+
+            e.numeric("flow_rate", ea.STATE).withUnit("m³/h").withDescription("Instantaneous water flow rate").withValueMin(0).withValueStep(0.001),
+
+            e.temperature().withDescription("Working temperature"),
+
+            e.voltage().withDescription("Power supply voltage"),
+
+            e.enum("fault", ea.STATE, ["empty_pipe", "no_fault"]).withDescription("Fault status"),
         ],
         meta: {
             tuyaDatapoints: [
                 [1, "water_consumed", tuya.valueConverter.divideBy1000],
+                [
+                    4,
+                    "report_period",
+                    tuya.valueConverterBasic.lookup({
+                        "1h": 0,
+                        "2h": 1,
+                        "3h": 2,
+                        "4h": 3,
+                        "6h": 4,
+                        "8h": 5,
+                        "12h": 6,
+                        "24h": 7,
+                    }),
+                ],
+                [16, "meter_id", tuya.valueConverter.raw],
                 [21, "flow_rate", tuya.valueConverter.divideBy1000],
                 [22, "temperature", tuya.valueConverter.divideBy100],
                 [26, "voltage", tuya.valueConverter.divideBy100],
+                [
+                    5,
+                    "fault",
+                    tuya.valueConverterBasic.lookup({
+                        empty_pipe: 6144,
+                        no_fault: 0,
+                    }),
+                ],
             ],
         },
-        // Optional: Add device-specific options
         options: [
             exposes.options.precision("water_consumed"),
             exposes.options.calibration("water_consumed"),
