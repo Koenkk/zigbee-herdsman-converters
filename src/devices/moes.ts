@@ -1758,4 +1758,5 @@ export const definitions: DefinitionWithExtend[] = [
             [114, 'night_led_config', tuya.valueConverter.raw],
         ],
     },
+    },
 ];
