@@ -7370,7 +7370,7 @@ export const definitions: DefinitionWithExtend[] = [
                 await reporting.activePower(endpoint, {change: 10});
             }
 
-            const acCurrentDivisor = !["_TZ3000_typdpbpg", "_TZ3000_cicwjqth"].includes(device.manufacturerName) ? 2000 : 1000;
+            const acCurrentDivisor = ["_TZ3000_typdpbpg"].includes(device.manufacturerName) ? 2000 : 1000;
             endpoint.saveClusterAttributeKeyValue("haElectricalMeasurement", {
                 acCurrentDivisor,
                 acCurrentMultiplier: 1,
