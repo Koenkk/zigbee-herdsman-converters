@@ -1624,7 +1624,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMin(0)
                 .withValueMax(120)
                 .withDescription("Time window should be kept open"),
-            e.enum("fault", ea.STATE, ["e1", "e2"]).withDescription("Fault alarm (e1, e2)"),
+            e.enum("fault_alarm", ea.STATE, ["e1", "e2"]).withDescription("Fault alarm (e1, e2)"),
             e
                 .enum("running_mode", ea.STATE, ["standby", "comfort", "comfort_1", "comfort_2", "eco", "antifrost"])
                 .withDescription("Current running mode"),
