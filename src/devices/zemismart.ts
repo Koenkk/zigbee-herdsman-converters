@@ -843,10 +843,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZM16B",
         vendor: "Zemismart",
         description: "Tubular motor",
-        //whiteLabel: [tuya.whitelabel("Zemismart", "ZM16B", "Tubular motor", ["_TZE284_3mzb0sdz"])],
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         options: [exposes.options.invert_cover()],
         exposes: [
             e.cover_position().setAccess("position", ea.STATE_SET),
