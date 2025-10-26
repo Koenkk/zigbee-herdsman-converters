@@ -36,8 +36,8 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        zigbeeModel: ["MIR-IL100-ZB"],
-        model: "MIR-IL100-ZB",
+        zigbeeModel: ["MIR-IL100"],
+        model: "MIR-IL100",
         vendor: "MultIR",
         description: "PIR sensor",
         extend: [

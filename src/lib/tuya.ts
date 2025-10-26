@@ -2159,7 +2159,7 @@ const tuyaModernExtend = {
             respondToMcuVersionResponse?: true;
             mcuVersionRequestOnConfigure?: true;
             forceTimeUpdates?: true;
-            timeStart?: "2000" | "off";
+            timeStart?: "2000" | "1970";
         } = {},
     ): ModernExtend {
         const {
@@ -2172,7 +2172,7 @@ const tuyaModernExtend = {
             // Allow force updating for device with a very bad clock
             // Every hour when a message is received the time will be updated.
             forceTimeUpdates = false,
-            timeStart = "1970",
+            timeStart = "off",
             // Disable by default as with many Tuya devices it doesn't work well.
             // https://github.com/Koenkk/zigbee2mqtt/issues/28367#issuecomment-3363460429
             respondToMcuVersionResponse = false,
@@ -2581,7 +2581,7 @@ const tuyaModernExtend = {
     tuyaOnOff: (
         args: {
             endpoints?: string[];
-            powerOutageMemory?: boolean;
+            powerOutageMemory?: boolean | ((manufacturerName: string) => boolean);
             powerOnBehavior2?: boolean;
             switchType?: boolean;
             switchTypeCurtain?: boolean;
@@ -2593,9 +2593,9 @@ const tuyaModernExtend = {
             electricalMeasurements?: boolean;
             // biome-ignore lint/suspicious/noExplicitAny: generic
             electricalMeasurementsFzConverter?: Fz.Converter<"haElectricalMeasurement", undefined, any>;
-            childLock?: boolean;
+            childLock?: boolean | ((manufacturerName: string) => boolean);
             switchMode?: boolean;
-            onOffCountdown?: boolean;
+            onOffCountdown?: boolean | ((manufacturerName: string) => boolean);
             inchingSwitch?: boolean;
         } = {},
     ): ModernExtend => {

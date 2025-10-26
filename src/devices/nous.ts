@@ -15,9 +15,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "E12",
         vendor: "NOUS",
         description: "Zigbee carbon monoxide (CO) sensor",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.carbon_monoxide(),
             e.numeric("carbon_monoxide_value", ea.STATE).withUnit("ppm").withDescription("Current CO concentration"),
@@ -90,7 +88,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Temperature and humidity sensor with clock",
         fromZigbee: [legacy.fz.nous_lcd_temperature_humidity_sensor, fz.ignore_tuya_set_time],
         toZigbee: [legacy.tz.nous_lcd_temperature_humidity_sensor],
-        extend: [tuya.modernExtend.tuyaBase({forceTimeUpdates: true})],
+        extend: [tuya.modernExtend.tuyaBase({forceTimeUpdates: true, timeStart: "1970"})],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genBasic"]);
@@ -143,7 +141,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Temperature & humidity LCD sensor",
         fromZigbee: [legacy.fz.nous_lcd_temperature_humidity_sensor, fz.ignore_tuya_set_time],
         toZigbee: [legacy.tz.nous_lcd_temperature_humidity_sensor],
-        extend: [tuya.modernExtend.tuyaBase({forceTimeUpdates: true, bindBasicOnConfigure: true})],
+        extend: [tuya.modernExtend.tuyaBase({forceTimeUpdates: true, bindBasicOnConfigure: true, timeStart: "1970"})],
         exposes: [
             e.temperature(),
             e.humidity(),
@@ -184,9 +182,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "E9",
         vendor: "Nous",
         description: "Zigbee gas sensor",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.binary("gas", ea.STATE, "ON", "OFF").withDescription("Gas detection state (ON = Gas detected)"),
             e.binary("preheat", ea.STATE, "ON", "OFF").withDescription("Sensor is preheating"),

@@ -10,9 +10,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SNT858Z",
         vendor: "Soanalarm",
         description: "Soil moisture sensor",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [e.temperature(), e.soil_moisture(), tuya.exposes.temperatureUnit(), e.battery()],
         meta: {
             tuyaDatapoints: [

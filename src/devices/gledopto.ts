@@ -1239,9 +1239,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "GL-SPI-206P",
         vendor: "Gledopto",
         description: "SPI pixel controller RGBCCT/RGBW/RGB",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tzLocal.glspi206p_brightness_color, tzLocal.glspi206p_music, tzLocal.glspi206p_music, tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        toZigbee: [tzLocal.glspi206p_brightness_color, tzLocal.glspi206p_music, tzLocal.glspi206p_music],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.light_colorhs(),
             e.numeric("brightness", exposes.access.STATE_SET).withValueMin(0).withValueMax(1000),

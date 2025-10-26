@@ -8,9 +8,6 @@ importers:
 
   .:
     dependencies:
-      buffer-crc32:
-        specifier: ^1.0.0
-        version: 1.0.0
       iconv-lite:
         specifier: ^0.7.0
         version: 0.7.0
@@ -18,15 +15,12 @@ importers:
         specifier: ^7.7.3
         version: 7.7.3
       zigbee-herdsman:
-        specifier: ^6.3.1
-        version: 6.3.1
+        specifier: ^6.3.2
+        version: 6.3.2
     devDependencies:
       '@biomejs/biome':
         specifier: ^2.2.6
         version: 2.2.6
-      '@types/buffer-crc32':
-        specifier: ^0.2.4
-        version: 0.2.4
       '@types/node':
         specifier: ^24.8.1
         version: 24.8.1
@@ -455,9 +449,6 @@ packages:
   '@ts-morph/common@0.28.1':
     resolution: {integrity: sha512-W74iWf7ILp1ZKNYXY5qbddNaml7e9Sedv5lvU1V8lftlitkc9Pq1A+jlH23ltDgWYeZFFEqGCD1Ies9hqu3O+g==}
 
-  '@types/buffer-crc32@0.2.4':
-    resolution: {integrity: sha512-GSrhSZOK1/wazf2CjDp3CVJQKWzSc5Ugq3NyZ/RQqg1MWtmA9mAT6i6LzGKhzcRxDOl8aLB+AzvObDSlrMpvLw==}
-
   '@types/chai@5.2.2':
     resolution: {integrity: sha512-8kB30R7Hwqf40JPiKhVzodJs2Qc1ZJ5zuT3uzw5Hq/dhNCl3G3l83jfpdI1e20BP348+fV7VIL/+FxaXkqBmWg==}
 
@@ -545,10 +536,6 @@ packages:
 
   brace-expansion@2.0.2:
     resolution: {integrity: sha512-Jt0vHyM+jmUBqojB7E1NIYadt0vI0Qxjxd2TErW94wDz+E2LAm5vKMXXwg6ZZBTHPuUlDgQHKXvjGBdfcF1ZDQ==}
-
-  buffer-crc32@1.0.0:
-    resolution: {integrity: sha512-Db1SbgBS/fg/392AblrMJk97KggmvYhr4pB5ZIMTWtaivCPMWLkmb7m21cJvpvgK+J3nsU2CmmixNBZx4vFj/w==}
-    engines: {node: '>=8.0.0'}
 
   cac@6.7.14:
     resolution: {integrity: sha512-b6Ilus+c3RrdDk+JhLKUAQfzzgLEPy6wcXqS7f/xe1EETvsDP6GORG7SFuOs6cID5YkqchW/LXZbX5bc8j7ZcQ==}
@@ -1064,8 +1051,8 @@ packages:
     resolution: {integrity: sha512-si7QWI6zUMq56bESFvagtmzMdGOtoxfR+Sez11Mobfc7tm+VkUckk9bW2UeffTGVUbOksxmSw0AA2gs8g71NCQ==}
     engines: {node: '>=12'}
 
-  zigbee-herdsman@6.3.1:
-    resolution: {integrity: sha512-4XaEf8acw4z0mKxOjpHgEtWB7mEk//RJnJZKUGuj4PiFSN3bv34HcQ+EEObJF51vxegh5ABAZaOtbKVP20/SMw==}
+  zigbee-herdsman@6.3.2:
+    resolution: {integrity: sha512-35qPU1KoADQrgIol/pWulVKRj8jFpuogtPWjisHSlss3dvzlj5yg5wBdw9/qpcDxNShtKMtj1K28io5KMmRsAw==}
 
   zigbee-on-host@0.1.13:
     resolution: {integrity: sha512-mL7s9ic7J85YI7wOG1/QlbRYE3haFzIHqgnM2+xLmjj8CazjhmGjop9TCfuY2JXyDI9ss7bNCLxuI9n6M+TXug==}
@@ -1335,10 +1322,6 @@ snapshots:
       path-browserify: 1.0.1
       tinyglobby: 0.2.15
 
-  '@types/buffer-crc32@0.2.4':
-    dependencies:
-      '@types/node': 24.8.1
-
   '@types/chai@5.2.2':
     dependencies:
       '@types/deep-eql': 4.0.2
@@ -1446,8 +1429,6 @@ snapshots:
   brace-expansion@2.0.2:
     dependencies:
       balanced-match: 1.0.2
-
-  buffer-crc32@1.0.0: {}
 
   cac@6.7.14: {}
 
@@ -1956,7 +1937,7 @@ snapshots:
       string-width: 5.1.2
       strip-ansi: 7.1.0
 
-  zigbee-herdsman@6.3.1:
+  zigbee-herdsman@6.3.2:
     dependencies:
       '@date-fns/tz': 1.4.1
       '@serialport/bindings-cpp': 13.0.1
