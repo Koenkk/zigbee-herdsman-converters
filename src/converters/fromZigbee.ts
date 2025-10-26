@@ -1474,7 +1474,7 @@ export const command_stop: Fz.Converter<"genLevelCtrl", undefined, ["commandStop
         if (hasAlreadyProcessedMessage(msg, model)) return;
         if (options.simulated_brightness) {
             clearInterval(globalStore.getValue(msg.endpoint, "simulated_brightness_timer"));
-            globalStore.putValue(msg.endpoint, "simulated_brightness_timer", undefined);
+            globalStore.clearValue(msg.endpoint, "simulated_brightness_timer");
         }
 
         const payload = {action: postfixWithEndpointName("brightness_stop", msg, model, meta)};
