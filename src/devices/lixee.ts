@@ -1746,7 +1746,7 @@ function getCurrentConfig(device: Zh.Device, options: KeyValue) {
     }
 
     // Filter exposed attributes with user whitelist
-    if (options?.tic_command_whitelist != null) {
+    if (options?.tic_command_whitelist) {
         // @ts-expect-error ignore
         const tic_commands_str = options.tic_command_whitelist.toUpperCase();
         if (tic_commands_str !== "ALL") {
@@ -1811,7 +1811,7 @@ export const definitions: DefinitionWithExtend[] = [
                 ),
             e
                 .text("tic_command_whitelist", ea.SET)
-                .withDescription("List of TIC commands to be exposed (separated by comma). Reconfigure device after change. Default: all"),
+                .withDescription("Comma-separated list of TIC commands to expose. Requires Z2M restart. Default: all"),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
