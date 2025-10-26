@@ -321,8 +321,9 @@ const tuyaExposes = {
             .withDescription("External switch type"),
     backlightModeLowMediumHigh: () => e.enum("backlight_mode", ea.ALL, ["low", "medium", "high"]).withDescription("Intensity of the backlight"),
     backlightModeOffNormalInverted: () => e.enum("backlight_mode", ea.ALL, ["off", "normal", "inverted"]).withDescription("Mode of the backlight"),
-    backlightModeOffOn: () => e.binary("backlight_mode", ea.ALL, "ON", "OFF").withDescription("Mode of the backlight"),
-    indicatorMode: () => e.enum("indicator_mode", ea.ALL, ["off", "off/on", "on/off", "on"]).withDescription("LED indicator mode"),
+    backlightModeOffOn: () => e.binary("backlight_mode", ea.ALL, "ON", "OFF").withDescription("Mode of the backlight").withCategory("config"),
+    indicatorMode: () =>
+        e.enum("indicator_mode", ea.ALL, ["off", "off/on", "on/off", "on"]).withDescription("LED indicator mode").withCategory("config"),
     indicatorModeNoneRelayPos: () => e.enum("indicator_mode", ea.ALL, ["none", "relay", "pos"]).withDescription("Mode of the indicator light"),
     powerOutageMemory: () => e.enum("power_outage_memory", ea.ALL, ["on", "off", "restore"]).withDescription("Recover state after power outage"),
     batteryState: () => e.enum("battery_state", ea.STATE, ["low", "medium", "high"]).withDescription("State of the battery"),
@@ -332,6 +333,7 @@ const tuyaExposes = {
             .withDescription("Do not disturb mode, when enabled this function will keep the light OFF after a power outage"),
     colorPowerOnBehavior: () =>
         e.enum("color_power_on_behavior", ea.STATE_SET, ["initial", "previous", "customized"]).withDescription("Power on behavior state"),
+    powerOnBehavior: () => e.enum("power_on_behavior", ea.ALL, ["off", "on", "previous"]).withDescription("Power on behavior state"),
     switchMode: () =>
         e.enum("switch_mode", ea.STATE_SET, ["switch", "scene"]).withDescription("Sets the mode of the switch to act as a switch or as a scene"),
     switchMode2: () =>
@@ -2157,7 +2159,7 @@ const tuyaModernExtend = {
             respondToMcuVersionResponse?: true;
             mcuVersionRequestOnConfigure?: true;
             forceTimeUpdates?: true;
-            timeStart?: "2000" | "off";
+            timeStart?: "2000" | "1970";
         } = {},
     ): ModernExtend {
         const {
@@ -2170,7 +2172,7 @@ const tuyaModernExtend = {
             // Allow force updating for device with a very bad clock
             // Every hour when a message is received the time will be updated.
             forceTimeUpdates = false,
-            timeStart = "1970",
+            timeStart = "off",
             // Disable by default as with many Tuya devices it doesn't work well.
             // https://github.com/Koenkk/zigbee2mqtt/issues/28367#issuecomment-3363460429
             respondToMcuVersionResponse = false,
@@ -2579,24 +2581,25 @@ const tuyaModernExtend = {
     tuyaOnOff: (
         args: {
             endpoints?: string[];
-            powerOutageMemory?: boolean;
+            powerOutageMemory?: boolean | ((manufacturerName: string) => boolean);
             powerOnBehavior2?: boolean;
             switchType?: boolean;
             switchTypeCurtain?: boolean;
             backlightModeLowMediumHigh?: boolean;
-            indicatorMode?: boolean;
+            indicatorMode?: boolean | ((manufacturerName: string) => boolean);
             indicatorModeNoneRelayPos?: boolean;
             backlightModeOffNormalInverted?: boolean;
             backlightModeOffOn?: boolean;
             electricalMeasurements?: boolean;
             // biome-ignore lint/suspicious/noExplicitAny: generic
             electricalMeasurementsFzConverter?: Fz.Converter<"haElectricalMeasurement", undefined, any>;
-            childLock?: boolean;
+            childLock?: boolean | ((manufacturerName: string) => boolean);
             switchMode?: boolean;
-            onOffCountdown?: boolean;
+            onOffCountdown?: boolean | ((manufacturerName: string) => boolean);
             inchingSwitch?: boolean;
         } = {},
     ): ModernExtend => {
+        const {indicatorMode = false} = args;
         const exposes: (Expose | DefinitionExposesFunction)[] = args.endpoints
             ? args.endpoints.map((ee) => e.switch().withEndpoint(ee))
             : [e.switch()];
@@ -2658,9 +2661,13 @@ const tuyaModernExtend = {
             exposes.push(tuyaExposes.backlightModeOffNormalInverted());
             toZigbee.push(tuyaTz.backlight_indicator_mode_1);
         }
-        if (args.indicatorMode) {
+        if (indicatorMode) {
             fromZigbee.push(tuyaFz.indicator_mode);
-            exposes.push(tuyaExposes.indicatorMode());
+            if (typeof indicatorMode === "function") {
+                exposes.push((d) => (indicatorMode(d.manufacturerName) ? [tuyaExposes.indicatorMode()] : []));
+            } else {
+                exposes.push(tuyaExposes.indicatorMode());
+            }
             toZigbee.push(tuyaTz.backlight_indicator_mode_1);
         }
         if (args.indicatorModeNoneRelayPos) {

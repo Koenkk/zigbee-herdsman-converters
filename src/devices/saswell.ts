@@ -28,6 +28,7 @@ export const definitions: DefinitionWithExtend[] = [
                 "_TZE200_gd4rvykv",
                 "_TZE200_exfrnlow",
                 "_TZE200_9m4kmbfu",
+                "_TZE284_9m4kmbfu",
                 "_TZE200_3yp57tby",
                 "_TZE200_7p8ugv8d",
                 "_TZE284_3yp57tby",
@@ -57,7 +58,7 @@ export const definitions: DefinitionWithExtend[] = [
             legacy.tz.saswell_thermostat_anti_scaling,
             legacy.tz.tuya_thermostat_weekly_schedule,
         ],
-        extend: [tuya.modernExtend.tuyaBase({bindBasicOnConfigure: true})],
+        extend: [tuya.modernExtend.tuyaBase({bindBasicOnConfigure: true, timeStart: "1970"})],
         meta: {
             thermostat: {
                 weeklyScheduleMaxTransitions: 4,

@@ -101,4 +101,11 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Tilt and lift blinds motor",
         extend: [m.windowCovering({controls: ["lift", "tilt"]}), m.battery(), m.identify()],
     },
+    {
+        zigbeeModel: ["1871215B"],
+        model: "1871215B",
+        vendor: "Somfy",
+        description: "Connected plug E type with power monitoring",
+        extend: [m.onOff(), m.electricityMeter()],
+    },
 ];

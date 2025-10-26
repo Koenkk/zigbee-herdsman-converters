@@ -11,6 +11,58 @@ const ea = exposes.access;
 
 export const definitions: DefinitionWithExtend[] = [
     {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_sonkaxrd"]),
+        model: "E12",
+        vendor: "NOUS",
+        description: "Zigbee carbon monoxide (CO) sensor",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.carbon_monoxide(),
+            e.numeric("carbon_monoxide_value", ea.STATE).withUnit("ppm").withDescription("Current CO concentration"),
+            e.binary("self_checking", ea.ALL, true, false).withDescription("Triggers self-checking process"),
+            e.enum("checking_result", ea.STATE, ["ok", "error"]).withDescription("Result of self-checking"),
+            e.binary("preheat", ea.ALL, "ON", "OFF").withDescription("Sensor preheating status"),
+            e.binary("fault", ea.ALL, true, false).withDescription("Sensor fault indicator"),
+            e.numeric("lifecycle", ea.STATE).withUnit("days").withDescription("Sensor service life or usage counter"),
+            e.battery().withDescription("Battery level in %"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "carbon_monoxide", tuya.valueConverter.trueFalse1],
+                [2, "carbon_monoxide_value", tuya.valueConverter.raw],
+                [8, "self_checking", tuya.valueConverter.trueFalse0],
+                [9, "checking_result", tuya.valueConverterBasic.lookup({0: "ok", 1: "error"})],
+                [10, "preheat", tuya.valueConverterBasic.lookup({0: "OFF", 1: "ON"})],
+                [11, "fault", tuya.valueConverter.trueFalse1],
+                [12, "lifecycle", tuya.valueConverter.raw],
+                [14, "battery", tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_1di7ujzp"]),
+        model: "E13",
+        vendor: "NOUS",
+        description: "Zigbee water leak sensor with sound alarm",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.water_leak(),
+            e.battery(),
+            e.enum("working_mode", ea.ALL, ["normal", "silent", "test"]).withDescription("Operational mode of the device"),
+            e.text("status", ea.STATE).withDescription("Device status"),
+            e.enum("alarm_ringtone", ea.ALL, ["tone_1", "tone_2", "tone_3"]).withDescription("Alarm ringtone"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "water_leak", tuya.valueConverter.trueFalse0],
+                [4, "battery", tuya.valueConverter.raw],
+                [101, "working_mode", tuya.valueConverterBasic.lookup({0: "normal", 1: "silent", 2: "test"})],
+                [102, "status", tuya.valueConverter.raw],
+                [103, "alarm_ringtone", tuya.valueConverterBasic.lookup({0: "tone_1", 1: "tone_2", 2: "tone_3"})],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0201", ["_TZ3000_lbtpiody"]),
         model: "E5",
         vendor: "Nous",
@@ -36,7 +88,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Temperature and humidity sensor with clock",
         fromZigbee: [legacy.fz.nous_lcd_temperature_humidity_sensor, fz.ignore_tuya_set_time],
         toZigbee: [legacy.tz.nous_lcd_temperature_humidity_sensor],
-        extend: [tuya.modernExtend.tuyaBase({forceTimeUpdates: true})],
+        extend: [tuya.modernExtend.tuyaBase({forceTimeUpdates: true, timeStart: "1970"})],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genBasic"]);
@@ -89,7 +141,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Temperature & humidity LCD sensor",
         fromZigbee: [legacy.fz.nous_lcd_temperature_humidity_sensor, fz.ignore_tuya_set_time],
         toZigbee: [legacy.tz.nous_lcd_temperature_humidity_sensor],
-        extend: [tuya.modernExtend.tuyaBase({forceTimeUpdates: true, bindBasicOnConfigure: true})],
+        extend: [tuya.modernExtend.tuyaBase({forceTimeUpdates: true, bindBasicOnConfigure: true, timeStart: "1970"})],
         exposes: [
             e.temperature(),
             e.humidity(),
@@ -130,9 +182,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "E9",
         vendor: "Nous",
         description: "Zigbee gas sensor",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.binary("gas", ea.STATE, "ON", "OFF").withDescription("Gas detection state (ON = Gas detected)"),
             e.binary("preheat", ea.STATE, "ON", "OFF").withDescription("Sensor is preheating"),

@@ -15,17 +15,21 @@ const ea = exposes.access;
 //const NS = "zhc:slacky_diy";
 
 const ppmReporting = {min: 10, max: 300, change: 0.000001};
-const batteryReporting = {min: 3600, max: 0, change: 0};
+const batteryReporting = {min: 3600, max: 21600, change: 0};
 const temperatureReporting = {min: 10, max: 3600, change: 10};
 const humidityReporting = {min: 10, max: 3600, change: 10};
 
 const model_r01 = "THERM_SLACKY_DIY_R01";
+//const model_r02 = "THERM_SLACKY_DIY_R02";
 const model_r03 = "THERM_SLACKY_DIY_R03";
 const model_r04 = "THERM_SLACKY_DIY_R04";
+//const model_r05 = "THERM_SLACKY_DIY_R05";
 const model_r06 = "THERM_SLACKY_DIY_R06";
 const model_r07 = "THERM_SLACKY_DIY_R07";
 const model_r08 = "THERM_SLACKY_DIY_R08";
 const model_r09 = "THERM_SLACKY_DIY_R09";
+//const model_r0a = "THERM_SLACKY_DIY_R0A";
+const model_r0b = "THERM_SLACKY_DIY_R0B";
 
 const attrThermSensorUser = 0xf000;
 const attrThermFrostProtect = 0xf001;
@@ -41,6 +45,7 @@ const attrThermInversion = 0xf00a;
 const attrThermEcoModeCoolTemperature = 0xf00b;
 const attrThermExtTemperatureCalibration = 0xf00c;
 const attrThermModeKeyLock = 0xf00d;
+const attrThermManufName = 0xf00e;
 const attrFanCtrlControl = 0xf000;
 
 const switchSensorUsed = ["Inner (IN)", "All (AL)", "Outer (OU)"];
@@ -76,13 +81,18 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
             if (msg.data[attrThermSensorUser] !== undefined) {
-                const lookup = {0: "Inner (IN)", 1: "All (AL)", 2: "Outer (OU)"};
-                result.sensor = utils.getFromLookup(msg.data[attrThermSensorUser], lookup);
+                const lookup2 = {0: "Inner (IN)", 1: "Outer (OU)"};
+                const lookup3 = {0: "Inner (IN)", 1: "All (AL)", 2: "Outer (OU)"};
+                if (model.model === model_r0b) {
+                    result.sensor = utils.getFromLookup(msg.data[attrThermSensorUser], lookup2);
+                } else {
+                    result.sensor = utils.getFromLookup(msg.data[attrThermSensorUser], lookup3);
+                }
             }
             if (msg.data.minSetpointDeadBand !== undefined) {
                 //logger.info(`Model: ${model.model}`, NS);
                 let data: number;
-                if (model.model === model_r06 || model.model === model_r09) {
+                if (model.model === model_r06 || model.model === model_r09 || model.model === model_r0b) {
                     data = msg.data.minSetpointDeadBand / 10;
                     result.hysteresis_temperature = data;
                 } else {
@@ -114,8 +124,13 @@ const fzLocal = {
                 result.frost_protect_on_off = msg.data[attrThermFrostProtectOnOff] === 1 ? "On" : "Off";
             }
             if (msg.data[attrThermLevel] !== undefined) {
-                const lookup = {0: "Off", 1: "Low", 2: "Medium", 3: "High"};
-                result.brightness_level = utils.getFromLookup(msg.data[attrThermLevel], lookup);
+                if (model.model === model_r0b) {
+                    const lookup_sleep = {0: "Off", 1: "Dim", 2: "On"};
+                    result.screen_sleep_mode = utils.getFromLookup(msg.data[attrThermLevel], lookup_sleep);
+                } else {
+                    const lookup = {0: "Off", 1: "Low", 2: "Medium", 3: "High"};
+                    result.brightness_level = utils.getFromLookup(msg.data[attrThermLevel], lookup);
+                }
             }
             if (msg.data[attrThermSound] !== undefined) {
                 result.sound = msg.data[attrThermSound] === 1 ? "On" : "Off";
@@ -139,7 +154,7 @@ const fzLocal = {
     } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
     thermostat_schedule: {
         cluster: "hvacThermostat",
-        type: ["commandSetWeeklySchedule"],
+        type: ["commandSetWeeklySchedule", "commandGetWeeklyScheduleRsp"],
         convert: (model, msg, publish, options, meta) => {
             const {data} = msg;
 
@@ -150,7 +165,7 @@ const fzLocal = {
             const daysOfWeek = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
             return Object.fromEntries(daysOfWeekNums.map((d) => [`schedule_${daysOfWeek[d]}`, schedule]));
         },
-    } satisfies Fz.Converter<"hvacThermostat", undefined, ["commandSetWeeklySchedule"]>,
+    } satisfies Fz.Converter<"hvacThermostat", undefined, ["commandSetWeeklySchedule", "commandGetWeeklyScheduleRsp"]>,
     fancontrol_control: {
         cluster: "hvacFanCtrl",
         type: ["attributeReport", "readResponse"],
@@ -193,12 +208,15 @@ const tzLocal = {
         key: ["sensor"],
 
         convertSet: async (entity, key, value, meta) => {
-            const endpoint = meta.device.getEndpoint(1);
-            const lookup = {"Inner (IN)": 0, "All (AL)": 1, "Outer (OU)": 2};
-            await endpoint.write("hvacThermostat", {[attrThermSensorUser]: {value: utils.getFromLookup(value, lookup), type: 0x30}});
-            return {
-                state: {[key]: value},
-            };
+            //const endpoint = meta.device.getEndpoint(1);
+            const lookup2 = {"Inner (IN)": 0, "Outer (OU)": 1};
+            const lookup3 = {"Inner (IN)": 0, "All (AL)": 1, "Outer (OU)": 2};
+            if ((meta.mapped as Definition).model === model_r0b) {
+                await entity.write("hvacThermostat", {[attrThermSensorUser]: {value: utils.getFromLookup(value, lookup2), type: 0x30}});
+            } else {
+                await entity.write("hvacThermostat", {[attrThermSensorUser]: {value: utils.getFromLookup(value, lookup3), type: 0x30}});
+            }
+            return {readAfterWriteTime: 250, state: {sensor: value}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read("hvacThermostat", [attrThermSensorUser]);
@@ -232,7 +250,7 @@ const tzLocal = {
         key: ["frost_protect"],
         convertSet: async (entity, key, value, meta) => {
             utils.assertNumber(value);
-            if (!utils.isInRange(0, 10, Number(value))) throw new Error(`Invalid value: ${value} (expected ${0} to ${10})`);
+            //if (!utils.isInRange(0, 10, Number(value))) throw new Error(`Invalid value: ${value} (expected ${0} to ${10})`);
             const frost_protect = Number(Math.round(value)) * 100;
             await entity.write("hvacThermostat", {[attrThermFrostProtect]: {value: frost_protect, type: 0x29}});
             return {readAfterWriteTime: 250, state: {frost_protect: value}};
@@ -245,7 +263,7 @@ const tzLocal = {
         key: ["heat_protect"],
         convertSet: async (entity, key, value, meta) => {
             utils.assertNumber(value);
-            if (!utils.isInRange(25, 70, Number(value))) throw new Error(`Invalid value: ${value} (expected ${25} to ${70})`);
+            //if (!utils.isInRange(25, 70, Number(value))) throw new Error(`Invalid value: ${value} (expected ${25} to ${70})`);
             const heat_protect = Number(Math.round(value)) * 100;
             await entity.write("hvacThermostat", {[attrThermHeatProtect]: {value: heat_protect, type: 0x29}});
             return {readAfterWriteTime: 250, state: {heat_protect: value}};
@@ -258,7 +276,7 @@ const tzLocal = {
         key: ["setpoint_raise_lower"],
         convertSet: async (entity, key, value, meta) => {
             utils.assertNumber(value);
-            if (!utils.isInRange(-5, 5, Number(value))) throw new Error(`Invalid value: ${value} (expected ${-5} to ${5})`);
+            //if (!utils.isInRange(-5, 5, Number(value))) throw new Error(`Invalid value: ${value} (expected ${-5} to ${5})`);
             const setpoint_raise_lower = Number(Math.fround(value)) * 10; //Step 0.1°C. 5°C - 50, 1°C - 10 etc.
             await entity.command("hvacThermostat", "setpointRaiseLower", {mode: 0, amount: setpoint_raise_lower});
             return {readAfterWriteTime: 250, state: {setpoint_raise_lower: value}};
@@ -290,7 +308,7 @@ const tzLocal = {
         key: ["eco_mode_cool_temperature"],
         convertSet: async (entity, key, value, meta) => {
             utils.assertNumber(value);
-            if (!utils.isInRange(5, 45, Number(value))) throw new Error(`Invalid value: ${value} (expected ${5} to ${45})`);
+            //if (!utils.isInRange(5, 45, Number(value))) throw new Error(`Invalid value: ${value} (expected ${5} to ${45})`);
             const eco_mode_cool_temperature = Number(Math.round(value)) * 100;
             await entity.write("hvacThermostat", {[attrThermEcoModeCoolTemperature]: {value: eco_mode_cool_temperature, type: 0x29}});
             return {readAfterWriteTime: 250, state: {eco_mode_cool_temperature: value}};
@@ -303,7 +321,7 @@ const tzLocal = {
         key: ["eco_mode_heat_temperature"],
         convertSet: async (entity, key, value, meta) => {
             utils.assertNumber(value);
-            if (!utils.isInRange(5, 45, Number(value))) throw new Error(`Invalid value: ${value} (expected ${5} to ${45})`);
+            //if (!utils.isInRange(5, 45, Number(value))) throw new Error(`Invalid value: ${value} (expected ${5} to ${45})`);
             const eco_mode_heat_temperature = Number(Math.round(value)) * 100;
             await entity.write("hvacThermostat", {[attrThermEcoModeHeatTemperature]: {value: eco_mode_heat_temperature, type: 0x29}});
             return {readAfterWriteTime: 250, state: {eco_mode_heat_temperature: value}};
@@ -341,6 +359,18 @@ const tzLocal = {
             const lookup = {Off: 0, Low: 1, Medium: 2, High: 3};
             await entity.write("hvacThermostat", {[attrThermLevel]: {value: utils.getFromLookup(value, lookup), type: 0x30}});
             return {state: {brightness_level: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read("hvacThermostat", [attrThermLevel]);
+        },
+    } satisfies Tz.Converter,
+    thermostat_screen_sleep_mode: {
+        key: ["screen_sleep_mode"],
+        convertSet: async (entity, key, value, meta) => {
+            //utils.assertNumber(value);
+            const lookup = {Off: 0, Dim: 1, On: 2};
+            await entity.write("hvacThermostat", {[attrThermLevel]: {value: utils.getFromLookup(value, lookup), type: 0x30}});
+            return {state: {screen_sleep_mode: value}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read("hvacThermostat", [attrThermLevel]);
@@ -392,13 +422,24 @@ const tzLocal = {
         key: ["external_temperature_calibration"],
         convertSet: async (entity, key, value, meta) => {
             utils.assertNumber(value);
-            if (!utils.isInRange(-9, 9, Number(value))) throw new Error(`Invalid value: ${value} (expected ${-9} to ${9})`);
+            //if (!utils.isInRange(-9, 9, Number(value))) throw new Error(`Invalid value: ${value} (expected ${-9} to ${9})`);
             const external_temperature_calibration = Number(Math.round(value)) * 10;
             await entity.write("hvacThermostat", {[attrThermExtTemperatureCalibration]: {value: external_temperature_calibration, type: 0x28}});
             return {readAfterWriteTime: 250, state: {external_temperature_calibration: value}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read("hvacThermostat", [attrThermExtTemperatureCalibration]);
+        },
+    } satisfies Tz.Converter,
+    thermostat_manuf_name: {
+        key: ["manuf_name"],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = {r0: 0, r1: 1, r2: 2, r3: 3, r4: 4, r5: 5, r6: 6, r7: 7, r8: 8, r9: 9, r10: 10, r11: 11};
+            await entity.write("hvacThermostat", {[attrThermManufName]: {value: utils.getFromLookup(value, lookup), type: 0x30}});
+            return {state: {manuf_name: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read("hvacThermostat", [attrThermManufName]);
         },
     } satisfies Tz.Converter,
 };
@@ -439,14 +480,71 @@ const localToZigbeeThermostat = [
     tzLocal.thermostat_eco_mode_heat_temperature,
     tzLocal.thermostat_frost_protect_onoff,
     tzLocal.thermostat_brightness_level,
+    tzLocal.thermostat_screen_sleep_mode,
     tzLocal.thermostat_sound,
     tzLocal.thermostat_inversion,
     tzLocal.thermostat_schedule_mode,
     tzLocal.thermostat_settings_reset,
     tzLocal.thermostat_ext_temperature_calibration,
     tzLocal.thermostat_mode_child_lock,
+    tzLocal.thermostat_manuf_name,
     tzLocal.fancontrol_control,
 ];
+
+interface LocalActionExtendArgs {
+    localAction?: string[]; //("hold" | "single" | "double" | "triple" | "quadruple" | "quintuple" | "release")[];
+    reporting?: boolean;
+    reportingConfig?: m.ReportingConfigWithoutAttribute;
+    endpointNames?: string[];
+}
+
+function localActionExtend(args: LocalActionExtendArgs = {}): ModernExtend {
+    const {
+        localAction = ["hold", "single", "double", "triple", "quadruple", "quintuple", "release"],
+        reporting = true,
+        reportingConfig = {min: 10, max: 0, change: 1},
+        endpointNames = undefined,
+    } = args;
+    let actions: string[] = localAction;
+
+    if (endpointNames) {
+        actions = localAction.flatMap((c) => endpointNames.map((e) => `${c}_${e}`));
+    }
+    const exposes: Expose[] = [e.enum("action", ea.STATE, actions)];
+
+    const actionPayloadLookup: {[key: number]: string} = {
+        0: "hold",
+        1: "single",
+        2: "double",
+        3: "triple",
+        4: "quadruple",
+        5: "quintuple",
+        255: "release",
+    };
+
+    const fromZigbee = [
+        {
+            cluster: "genMultistateInput",
+            type: ["attributeReport", "readResponse"],
+            convert: (model, msg, publish, options, meta) => {
+                if (utils.hasAlreadyProcessedMessage(msg, model)) return;
+                const value = msg.data.presentValue;
+                //logger.logger.info('msg.data: ' + data[attribute]);
+                if (value === 300) return {action: "N/A"};
+                const payload = {action: utils.postfixWithEndpointName(actionPayloadLookup[value], msg, model, meta)};
+                return payload;
+            },
+        } satisfies Fz.Converter<"genMultistateInput", undefined, ["attributeReport", "readResponse"]>,
+    ];
+    const result: ModernExtend = {exposes, fromZigbee, isModernExtend: true};
+    if (reporting)
+        result.configure = [
+            m.setupConfigureForBinding("genMultistateInput", "output", endpointNames),
+            m.setupConfigureForReporting("genMultistateInput", "presentValue", {config: reportingConfig, access: ea.GET, endpointNames}),
+        ];
+
+    return result;
+}
 
 async function configureCommon(device: Zh.Device, coordinatorEndpoint: Zh.Endpoint, definition: Definition) {
     //logger.info(definition.model, NS);
@@ -516,7 +614,7 @@ async function configureCommon(device: Zh.Device, coordinatorEndpoint: Zh.Endpoi
     await endpoint1.configureReporting("hvacThermostat", payload_min);
     const payload_max = [{attribute: {ID: 0x0016, type: 0x29}, minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0}];
     await endpoint1.configureReporting("hvacThermostat", payload_max);
-    if (definition.model !== model_r01 && definition.model !== model_r06) {
+    if (definition.model !== model_r01 && definition.model !== model_r06 && definition.model !== model_r0b) {
         const payload_outdoor = [{attribute: {ID: 0x0001, type: 0x29}, minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0}];
         await endpoint1.configureReporting("hvacThermostat", payload_outdoor);
     }
@@ -1978,35 +2076,137 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
     },
     {
+        zigbeeModel: ["Tuya_Thermostat_r0A"],
+        model: "THERM_SLACKY_DIY_R0A",
+        vendor: "Slacky-DIY",
+        description: "Tuya Thermostat for Floor Heating with custom Firmware",
+        endpoint: (device) => {
+            return {day: 1, night: 2};
+        },
+        fromZigbee: localFromZigbeeThermostat,
+        toZigbee: localToZigbeeThermostat,
+        configure: configureCommon,
+        exposes: [
+            e.binary("child_lock", ea.ALL, "Lock", "Unlock").withDescription("Enables/disables physical input on the device"),
+            e.programming_operation_mode(["setpoint", "schedule"]).withDescription("Setpoint or Schedule mode"),
+            e.enum("sensor", ea.ALL, switchSensorUsed).withDescription("Select temperature sensor to use"),
+            e
+                .numeric("deadzone_temperature", ea.ALL)
+                .withDescription("The delta between local_temperature and current_heating_setpoint to trigger activity")
+                .withUnit("°C")
+                .withValueMin(1)
+                .withValueMax(5)
+                .withValueStep(1),
+            e
+                .numeric("min_heat_setpoint_limit", ea.ALL)
+                .withUnit("°C")
+                .withDescription("Minimum Heating set point limit")
+                .withValueMin(0)
+                .withValueMax(20)
+                .withValueStep(1),
+            e
+                .numeric("max_heat_setpoint_limit", ea.ALL)
+                .withDescription("Maximum Heating set point limit")
+                .withUnit("°C")
+                .withValueMin(20)
+                .withValueMax(50)
+                .withValueStep(1),
+            e
+                .numeric("heat_protect", ea.ALL)
+                .withUnit("°C")
+                .withDescription("Protection against maximum heating temperature")
+                .withValueMin(25)
+                .withValueMax(70)
+                .withValueStep(1),
+            e.binary("eco_mode", ea.ALL, "On", "Off").withDescription("On/Off Eco Mode"),
+            e
+                .climate()
+                .withLocalTemperature()
+                .withSetpoint("occupied_heating_setpoint", 1, 50, 1)
+                .withLocalTemperatureCalibration(-9, 9, 1)
+                .withSystemMode(["off", "heat"])
+                .withRunningState(["idle", "heat"], ea.STATE)
+                .withWeeklySchedule(["heat"], ea.ALL),
+            e.text("schedule_monday", ea.STATE).withDescription("Schedule for the working week"),
+            e.text("schedule_saturday", ea.STATE).withDescription("Saturday's schedule"),
+            e.text("schedule_sunday", ea.STATE).withDescription("Sunday's schedule"),
+        ],
+        meta: {},
+        ota: true,
+    },
+    {
+        zigbeeModel: ["Tuya_Thermostat_r0B"],
+        model: "THERM_SLACKY_DIY_R0B",
+        vendor: "Slacky-DIY",
+        description: "Tuya Thermostat for Floor Heating with custom Firmware",
+        endpoint: (device) => {
+            return {day: 1, night: 2};
+        },
+        fromZigbee: localFromZigbeeThermostat,
+        toZigbee: localToZigbeeThermostat,
+        configure: configureCommon,
+        // Should be empty, unless device can be controlled (e.g. lights, switches).
+        exposes: [
+            e.binary("child_lock", ea.ALL, "LOCK", "UNLOCK").withDescription("Enables/disables physical input on the device"),
+            e.programming_operation_mode(["setpoint", "schedule"]).withDescription("Setpoint or Schedule mode"),
+            e.enum("sensor", ea.ALL, ["Inner (IN)", "Outer (OU)"]).withDescription("Select temperature sensor to use"),
+            e.enum("screen_sleep_mode", ea.ALL, ["Off", "Dim", "On"]).withDescription("Screen sleep mode of brightness"),
+            e
+                .numeric("hysteresis_temperature", ea.ALL)
+                .withDescription("The delta between local_temperature and current_heating_setpoint to trigger activity")
+                .withUnit("°C")
+                .withValueMin(0.5)
+                .withValueMax(5)
+                .withValueStep(0.5),
+            e
+                .numeric("min_heat_setpoint_limit", ea.ALL)
+                .withUnit("°C")
+                .withDescription("Minimum Heating set point limit")
+                .withValueMin(1)
+                .withValueMax(5)
+                .withValueStep(0.5),
+            e
+                .numeric("max_heat_setpoint_limit", ea.ALL)
+                .withDescription("Maximum Heating set point limit")
+                .withUnit("°C")
+                .withValueMin(35)
+                .withValueMax(50)
+                .withValueStep(0.5),
+            e
+                .climate()
+                .withLocalTemperature()
+                .withSetpoint("occupied_heating_setpoint", 1, 50, 1)
+                .withLocalTemperatureCalibration(-9, 9, 1)
+                .withSystemMode(["off", "heat"])
+                .withRunningState(["idle", "heat"], ea.STATE)
+                .withWeeklySchedule(["heat"], ea.ALL),
+            e.text("schedule_monday", ea.STATE).withDescription("Schedule for the working week"),
+            e.text("schedule_saturday", ea.STATE).withDescription("Saturday's schedule"),
+            e.text("schedule_sunday", ea.STATE).withDescription("Sunday's schedule"),
+        ],
+        meta: {},
+        ota: true,
+    },
+    {
         zigbeeModel: ["TS0201-z-SlD"],
         model: "TS0201-z-SlD",
         vendor: "Slacky-DIY",
         description: "Tuya temperature and humidity sensor with custom Firmware",
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await endpoint.read("msTemperatureMeasurement", [attrSensorReadPeriod]);
-            await endpoint.read("msTemperatureMeasurement", [attrTemperatureOffset]);
-            await endpoint.read("msTemperatureMeasurement", [attrTemperatureOnOff]);
-            await endpoint.read("msTemperatureMeasurement", [attrTemperatureLow]);
-            await endpoint.read("msTemperatureMeasurement", [attrTemperatureHigh]);
-            await endpoint.read("msRelativeHumidity", [attrHumidityOffset]);
-            await endpoint.read("msRelativeHumidity", [attrHumidityOnOff]);
-            await endpoint.read("msRelativeHumidity", [attrHumidityLow]);
-            await endpoint.read("msRelativeHumidity", [attrHumidityHigh]);
-        },
         extend: [
+            m.deviceEndpoints({
+                endpoints: {
+                    "1": 1,
+                    "2": 2,
+                },
+            }),
             m.battery({
                 voltage: true,
                 voltageReporting: true,
                 percentageReportingConfig: batteryReporting,
                 voltageReportingConfig: batteryReporting,
             }),
-            m.temperature({
-                reporting: temperatureReporting,
-            }),
-            m.humidity({
-                reporting: humidityReporting,
-            }),
+            m.temperature({reporting: temperatureReporting}),
+            m.humidity({reporting: humidityReporting}),
             m.numeric({
                 name: "temperature_offset",
                 cluster: "msTemperatureMeasurement",
@@ -2034,7 +2234,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: attrSensorReadPeriod, type: 0x21},
                 unit: "Sec",
-                valueMin: 5,
+                valueMin: 15,
                 valueMax: 600,
                 valueStep: 1,
                 description: "Sensors reading period",
@@ -2069,6 +2269,14 @@ export const definitions: DefinitionWithExtend[] = [
                 scale: 100,
                 description: "Temperature high turn-on limit",
             }),
+            m.enumLookup({
+                name: "temperature_actions",
+                endpointName: "1",
+                lookup: {heat: 0, cool: 1},
+                cluster: "genOnOffSwitchCfg",
+                attribute: "switchActions",
+                description: "Heat or cool",
+            }),
             m.binary({
                 name: "enabling_humidity_control",
                 cluster: "msRelativeHumidity",
@@ -2100,11 +2308,12 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Humidity high turn-on limit",
             }),
             m.enumLookup({
-                name: "switch_actions",
-                lookup: {off: 0, on: 1},
+                name: "humidity_actions",
+                endpointName: "2",
+                lookup: {wet: 0, dry: 1},
                 cluster: "genOnOffSwitchCfg",
                 attribute: "switchActions",
-                description: "Actions switch",
+                description: "Wet or dry",
             }),
         ],
         ota: true,
@@ -2296,6 +2505,70 @@ export const definitions: DefinitionWithExtend[] = [
             }),
         ],
         meta: {},
+        ota: true,
+    },
+    {
+        zigbeeModel: ["QS-Zigbee-SEC02-Mod"],
+        model: "QS-Zigbee-SEC02-Mod",
+        vendor: "Svetomaniya",
+        description: "Smart light switch module 2 gang",
+        extend: [
+            m.deviceEndpoints({endpoints: {"1": 1, "2": 2}}),
+            m.onOff({powerOnBehavior: true, endpointNames: ["1", "2"]}),
+            m.commandsOnOff({endpointNames: ["1", "2"]}),
+            localActionExtend({endpointNames: ["1", "2"]}),
+            m.enumLookup({
+                name: "switch_actions",
+                endpointName: "1",
+                lookup: {off: 0, on: 1},
+                cluster: "genOnOffSwitchCfg",
+                attribute: "switchActions",
+                description: "Actions switch 1",
+            }),
+            m.enumLookup({
+                name: "switch_actions",
+                endpointName: "2",
+                lookup: {off: 0, on: 1},
+                cluster: "genOnOffSwitchCfg",
+                attribute: "switchActions",
+                description: "Actions switch 2",
+            }),
+            m.enumLookup({
+                name: "switch_type",
+                endpointName: "1",
+                lookup: {toggle: 0, momentary: 1, multifunction: 2},
+                cluster: "genOnOffSwitchCfg",
+                attribute: {ID: 0xf000, type: 0x30},
+                description: "Switch 1 type",
+            }),
+            m.enumLookup({
+                name: "switch_type",
+                endpointName: "2",
+                lookup: {toggle: 0, momentary: 1, multifunction: 2},
+                cluster: "genOnOffSwitchCfg",
+                attribute: {ID: 0xf000, type: 0x30},
+                description: "Switch 2 type",
+            }),
+            m.enumLookup({
+                name: "operation_mode",
+                endpointName: "1",
+                lookup: {control_relay: 0, decoupled: 1},
+                cluster: "genOnOffSwitchCfg",
+                attribute: {ID: 0xf001, type: 0x30},
+                reporting: {min: 0, max: 65000, change: 0},
+                description: "Relay 1 decoupled",
+            }),
+            m.enumLookup({
+                name: "operation_mode",
+                endpointName: "2",
+                lookup: {control_relay: 0, decoupled: 1},
+                cluster: "genOnOffSwitchCfg",
+                attribute: {ID: 0xf001, type: 0x30},
+                reporting: {min: 0, max: 65000, change: 0},
+                description: "Relay 2 decoupled",
+            }),
+        ],
+        meta: {multiEndpoint: true},
         ota: true,
     },
 ];

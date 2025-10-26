@@ -2,11 +2,8 @@ import assert from "node:assert";
 import crypto from "node:crypto";
 import {readFileSync} from "node:fs";
 import path from "node:path";
-
-import crc32 from "buffer-crc32";
-
+import {crc32} from "node:zlib";
 import {Zcl} from "zigbee-herdsman";
-
 import {logger} from "./logger";
 import type {Ota, Zh} from "./types";
 
@@ -327,7 +324,7 @@ function validateSilabsEbl(data: Buffer): void {
             assert(data.readUInt8(position2) === EBL_PADDING, "Image padding contains invalid bytes");
         }
 
-        const calculatedCrc32 = crc32.unsigned(data.subarray(0, position));
+        const calculatedCrc32 = crc32(data.subarray(0, position));
 
         assert(calculatedCrc32 === VALID_SILABS_CRC, "Image CRC-32 is invalid");
 
@@ -345,11 +342,8 @@ function validateSilabsGbl(data: Buffer): void {
     assert(gblEndTagIndex > 16, "Not a valid GBL image"); // after HEADER, just because...
 
     const gblEnd = gblEndTagIndex + 12; // tag + length + crc32 (4*3)
-    // TODO: nodejs >= v20.15.0, remove dep buffer-crc32
-    //       import {crc32} from 'zlib';
-    //       const calculatedCrc32 = crc32(data.subarray(0, gblEnd));
     // ignore possible padding
-    const calculatedCrc32 = crc32.unsigned(data.subarray(0, gblEnd));
+    const calculatedCrc32 = crc32(data.subarray(0, gblEnd));
 
     assert(calculatedCrc32 === VALID_SILABS_CRC, "Image CRC-32 is invalid");
 }

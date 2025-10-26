@@ -125,6 +125,7 @@ const OUTPUT_EXTENDERS: Extender[] = [
 function generateSource(definition: DefinitionWithZigbeeModel, generatedExtend: GeneratedExtend[]): string {
     const imports = [...new Set(generatedExtend.map((e) => e.lib ?? "modernExtend"))];
     const importsStr = imports.map((e) => `import * as ${e === "modernExtend" ? "m" : e} from 'zigbee-herdsman-converters/lib/${e}';`).join("\n");
+    const meta = definition.meta ? `\n    meta: ${JSON.stringify(definition.meta)},` : "";
     return `${importsStr}
 
 export default {
@@ -132,8 +133,7 @@ export default {
     model: '${definition.model}',
     vendor: '${definition.vendor}',
     description: 'Automatically generated definition',
-    extend: [${generatedExtend.map((e) => `${e.lib ?? "m"}.${e.getSource()}`).join(", ")}],
-    meta: ${JSON.stringify(definition.meta || {})},
+    extend: [${generatedExtend.map((e) => `${e.lib ?? "m"}.${e.getSource()}`).join(", ")}],${meta}
 };
 `;
 }
@@ -233,10 +233,6 @@ export async function generateDefinition(device: Zh.Device): Promise<{externalDe
         extend: extenders,
         generated: true,
     };
-
-    if (multiEndpoint) {
-        definition.meta = {multiEndpoint};
-    }
 
     const externalDefinitionSource = generateSource(definition, generatedExtend);
     return {externalDefinitionSource, definition};
@@ -365,7 +361,7 @@ async function extenderBinaryInput(device: Zh.Device, endpoints: Zh.Endpoint[]):
             name: await getClusterAttributeValue(endpoint, "genBinaryInput", "description", description),
             cluster: "genBinaryInput",
             attribute: "presentValue",
-            reporting: {attribute: "presentValue", min: "MIN", max: "MAX", change: 1},
+            reporting: {min: "MIN", max: "MAX", change: 1},
             valueOn: ["ON", 1],
             valueOff: ["OFF", 0],
             description: description,
@@ -385,7 +381,7 @@ async function extenderBinaryOutput(device: Zh.Device, endpoints: Zh.Endpoint[])
             name: await getClusterAttributeValue(endpoint, "genBinaryOutput", "description", description),
             cluster: "genBinaryOutput",
             attribute: "presentValue",
-            reporting: {attribute: "presentValue", min: "MIN", max: "MAX", change: 1},
+            reporting: {min: "MIN", max: "MAX", change: 1},
             valueOn: ["ON", 1],
             valueOff: ["OFF", 0],
             description: description,
