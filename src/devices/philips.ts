@@ -756,6 +756,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light()],
     },
     {
+        zigbeeModel: ["LWA033"],
+        model: "9290038561",
+        vendor: "Philips",
+        description: "Hue White A60 E27 1100 lumen",
+        extend: [philips.m.light()],
+    },
+    {
         zigbeeModel: ["LCT026", "7602031P7", "7602031U7", "7602031PU", "7602031J6", "915005822501", "915005822001"],
         model: "7602031P7",
         vendor: "Philips",

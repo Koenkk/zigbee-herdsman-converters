@@ -368,11 +368,25 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.light({colorTemp: {range: [153, 556]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
     {
+        zigbeeModel: ["BB 287 C"],
+        model: "BB 287 C",
+        vendor: "Innr",
+        description: "Smart Bulb Colour E27 1210lm",
+        extend: [m.light({colorTemp: {range: [153, 556]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+    },
+    {
         zigbeeModel: ["BY 285 C"],
         model: "BY 285 C",
         vendor: "Innr",
         description: "B22 bulb RGBW",
         extend: [m.light({colorTemp: {range: [153, 555]}, color: {modes: ["xy", "hs"], applyRedFix: true}, turnsOffAtBrightness1: true})],
+    },
+    {
+        zigbeeModel: ["BB 282 C"],
+        model: "BB 282 C",
+        vendor: "Innr",
+        description: "B22 bulb RGBW",
+        extend: [m.light({colorTemp: {range: [153, 556]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
     {
         zigbeeModel: ["BY 286 C"],
