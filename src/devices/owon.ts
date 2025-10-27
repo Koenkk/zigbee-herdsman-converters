@@ -652,12 +652,11 @@ export const definitions: DefinitionWithExtend[] = [
             m.onOff({ endpointNames: ["l1", "l2", "l3"] }),
             m.iasZoneAlarm({
                 zoneType: "contact",
-                zoneAttributes: ["alarm_2"], // 门铃触发
+                zoneAttributes: ["alarm_2"], 
             }),
         ],
         endpoint: (device) => ({ l1: 1, l2: 2, l3: 3 }),
         configure: async (device, coordinatorEndpoint) => {
-            // 单独绑定 IAS Zone cluster 到端点 2
             const ep2 = device.getEndpoint(2);
             if (ep2) {
                 await reporting.bind(ep2, coordinatorEndpoint, ["ssIasZone"]);
