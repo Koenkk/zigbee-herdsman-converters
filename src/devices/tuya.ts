@@ -9280,60 +9280,61 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [tuya.modernExtend.tuyaBase({timeStart: "2000"})],
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE284_agcxaw3f']),
-        model: 'BOT-R15W',
-        vendor: 'Tuya',
-        description: 'Beok wall thermostat (battery powered)',
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_agcxaw3f"]),
+        model: "BOT-R15W",
+        vendor: "Tuya",
+        description: "Beok wall thermostat (battery powered)",
         extend: [
             tuya.modernExtend.tuyaBase({
                 dp: true,
                 respondToMcuVersionResponse: true,
-                timeStart: '1970',
+                timeStart: "1970",
             }),
         ],
         exposes: [
             e.child_lock(),
-            e.climate()
-                .withSystemMode(['off', 'heat'], ea.STATE_SET)
-                .withPreset(['manual', 'auto', 'mixed', 'away'])
-                .withSetpoint('current_heating_setpoint', 5, 35, 0.5, ea.STATE_SET)
-                .withRunningState(['idle', 'heat'], ea.STATE)
+            e
+                .climate()
+                .withSystemMode(["off", "heat"], ea.STATE_SET)
+                .withPreset(["manual", "auto", "mixed", "away"])
+                .withSetpoint("current_heating_setpoint", 5, 35, 0.5, ea.STATE_SET)
+                .withRunningState(["idle", "heat"], ea.STATE)
                 .withLocalTemperature(ea.STATE)
                 .withLocalTemperatureCalibration(-9.9, 9.9, 0.1, ea.STATE_SET),
-            e.binary('frost_protection', ea.STATE_SET, 'ON', 'OFF')
-                .withDescription('Antifreeze function'),
-            e.max_temperature_limit()
-                .withUnit('°C')
+            e.binary("frost_protection", ea.STATE_SET, "ON", "OFF").withDescription("Antifreeze function"),
+            e
+                .max_temperature_limit()
+                .withUnit("°C")
                 .withValueMin(15)
                 .withValueMax(90)
                 .withValueStep(0.5)
-                .withPreset('default', 60, 'Default value')
-                .withDescription('Maximum upper temperature'),
-            e.numeric('temperature_delta', ea.STATE_SET)
-                .withUnit('°C')
+                .withPreset("default", 60, "Default value")
+                .withDescription("Maximum upper temperature"),
+            e
+                .numeric("temperature_delta", ea.STATE_SET)
+                .withUnit("°C")
                 .withValueMax(10)
                 .withValueMin(0.5)
                 .withValueStep(0.5)
-                .withPreset('default', 1, 'Default value')
-                .withDescription('Delta between local temp and setpoint to trigger heat'),
-            e.binary('factory_reset', ea.STATE_SET, 'ON', 'OFF')
-                .withDescription('Full factory reset, use with caution!'),
+                .withPreset("default", 1, "Default value")
+                .withDescription("Delta between local temp and setpoint to trigger heat"),
+            e.binary("factory_reset", ea.STATE_SET, "ON", "OFF").withDescription("Full factory reset, use with caution!"),
             e.battery(),
         ],
         meta: {
             tuyaDatapoints: [
-                [1, 'system_mode', tuya.valueConverterBasic.lookup({heat: true, off: false})],
-                [2, 'current_heating_setpoint', tuya.valueConverter.divideBy10],
-                [3, 'local_temperature', tuya.valueConverter.divideBy10],
-                [4, 'preset', tuya.valueConverterBasic.lookup({manual: tuya.enum(0), auto: tuya.enum(1), mixed: tuya.enum(2), away: tuya.enum(3)})],
-                [9, 'child_lock', tuya.valueConverter.lockUnlock],
-                [15, 'max_temperature_limit', tuya.valueConverter.divideBy10],
-                [19, 'local_temperature_calibration', tuya.valueConverter.localTempCalibration3],
-                [101, 'running_state', tuya.valueConverterBasic.lookup({heat: tuya.enum(1), idle: tuya.enum(0)})],
-                [102, 'frost_protection', tuya.valueConverter.onOff],
-                [103, 'factory_reset', tuya.valueConverter.onOff],
-                [107, 'temperature_delta', tuya.valueConverter.divideBy10],
-                [113, 'battery', tuya.valueConverter.raw],
+                [1, "system_mode", tuya.valueConverterBasic.lookup({heat: true, off: false})],
+                [2, "current_heating_setpoint", tuya.valueConverter.divideBy10],
+                [3, "local_temperature", tuya.valueConverter.divideBy10],
+                [4, "preset", tuya.valueConverterBasic.lookup({manual: tuya.enum(0), auto: tuya.enum(1), mixed: tuya.enum(2), away: tuya.enum(3)})],
+                [9, "child_lock", tuya.valueConverter.lockUnlock],
+                [15, "max_temperature_limit", tuya.valueConverter.divideBy10],
+                [19, "local_temperature_calibration", tuya.valueConverter.localTempCalibration3],
+                [101, "running_state", tuya.valueConverterBasic.lookup({heat: tuya.enum(1), idle: tuya.enum(0)})],
+                [102, "frost_protection", tuya.valueConverter.onOff],
+                [103, "factory_reset", tuya.valueConverter.onOff],
+                [107, "temperature_delta", tuya.valueConverter.divideBy10],
+                [113, "battery", tuya.valueConverter.raw],
             ],
         },
     },
