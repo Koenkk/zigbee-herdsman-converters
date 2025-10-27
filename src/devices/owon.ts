@@ -1,10 +1,10 @@
-import { Zcl } from "zigbee-herdsman";
+import {Zcl} from "zigbee-herdsman";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import type { DefinitionWithExtend, Fz, KeyValue, Tz } from "../lib/types";
+import type {DefinitionWithExtend, Fz, KeyValue, Tz} from "../lib/types";
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -185,7 +185,6 @@ const fzLocal = {
             return result;
         },
     } satisfies Fz.Converter<"fallDetectionOwon", OwonFallDetection, ["attributeReport", "readResponse"]>,
-
 };
 
 const tzLocal = {
@@ -193,37 +192,37 @@ const tzLocal = {
     PC321_clearMetering: {
         key: ["clear_metering"],
         convertSet: async (entity, key, value, meta) => {
-            await entity.command(0xffe0, 0x00, {}, { disableDefaultResponse: true });
+            await entity.command(0xffe0, 0x00, {}, {disableDefaultResponse: true});
         },
     } satisfies Tz.Converter,
 
     owonFds315SetFallSettings: {
         key: ["fall_detection_settings"],
         convertSet: async (entity, key, value, meta) => {
-            const mapping: Record<number, { id: number; type: number }> = {
-                0: { id: 0x0100, type: 0x29 },
-                1: { id: 0x0101, type: 0x29 },
-                2: { id: 0x0102, type: 0x29 },
-                3: { id: 0x0103, type: 0x29 },
-                4: { id: 0x0108, type: 0x29 },
-                5: { id: 0x0109, type: 0x29 },
-                6: { id: 0x010c, type: 0x21 },
-                7: { id: 0x010d, type: 0x21 },
-                8: { id: 0x010e, type: 0x21 },
+            const mapping: Record<number, {id: number; type: number}> = {
+                0: {id: 0x0100, type: 0x29},
+                1: {id: 0x0101, type: 0x29},
+                2: {id: 0x0102, type: 0x29},
+                3: {id: 0x0103, type: 0x29},
+                4: {id: 0x0108, type: 0x29},
+                5: {id: 0x0109, type: 0x29},
+                6: {id: 0x010c, type: 0x21},
+                7: {id: 0x010d, type: 0x21},
+                8: {id: 0x010e, type: 0x21},
             };
 
             const strValue = String(value);
             const values = strValue?.split(",").map(Number);
             if (values.length !== 9) throw new Error("Incorrect number of values.");
 
-            const payload: Record<number, { value: number; type: number }> = {};
+            const payload: Record<number, {value: number; type: number}> = {};
             values.forEach((val, idx) => {
-                const { id, type } = mapping[idx];
-                payload[id] = { value: val, type };
+                const {id, type} = mapping[idx];
+                payload[id] = {value: val, type};
             });
 
-            await entity.write<"fallDetectionOwon", OwonFallDetection>("fallDetectionOwon", payload, { manufacturerCode: 0x113c });
-            return { state: { fall_detection_settings: value } };
+            await entity.write<"fallDetectionOwon", OwonFallDetection>("fallDetectionOwon", payload, {manufacturerCode: 0x113c});
+            return {state: {fall_detection_settings: value}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read<"fallDetectionOwon", OwonFallDetection>(
@@ -239,7 +238,7 @@ const tzLocal = {
                     "rightFallDetectionRange",
                     "frontFallDetectionRange",
                 ],
-                { manufacturerCode: 0x113c },
+                {manufacturerCode: 0x113c},
             );
         },
     } satisfies Tz.Converter,
@@ -251,29 +250,29 @@ export const definitions: DefinitionWithExtend[] = [
         model: "WSP402",
         vendor: "OWON",
         description: "Smart plug",
-        extend: [m.onOff(), m.electricityMeter({ cluster: "metering" })],
+        extend: [m.onOff(), m.electricityMeter({cluster: "metering"})],
     },
     {
         zigbeeModel: ["WSP403-E"],
         model: "WSP403",
         vendor: "OWON",
-        whiteLabel: [{ vendor: "Oz Smart Things", model: "WSP403" }],
+        whiteLabel: [{vendor: "Oz Smart Things", model: "WSP403"}],
         description: "Smart plug",
-        extend: [m.onOff(), m.electricityMeter({ cluster: "metering" }), m.forcePowerSource({ powerSource: "Mains (single phase)" })],
+        extend: [m.onOff(), m.electricityMeter({cluster: "metering"}), m.forcePowerSource({powerSource: "Mains (single phase)"})],
     },
     {
         zigbeeModel: ["WSP404"],
         model: "WSP404",
         vendor: "OWON",
         description: "Smart plug",
-        extend: [m.onOff(), m.electricityMeter({ cluster: "metering" })],
+        extend: [m.onOff(), m.electricityMeter({cluster: "metering"})],
     },
     {
         zigbeeModel: ["CB432"],
         model: "CB432",
         vendor: "OWON",
         description: "32A/63A power circuit breaker",
-        extend: [m.onOff(), m.electricityMeter({ cluster: "metering" })],
+        extend: [m.onOff(), m.electricityMeter({cluster: "metering"})],
     },
     {
         zigbeeModel: ["PIR313-E", "PIR313"],
@@ -327,7 +326,7 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ["hvacThermostat"]);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
-            await reporting.thermostatTemperature(endpoint, { min: 60, max: 600, change: 0.1 });
+            await reporting.thermostatTemperature(endpoint, {min: 60, max: 600, change: 0.1});
             await reporting.thermostatSystemMode(endpoint);
             await reporting.thermostatAcLouverPosition(endpoint);
         },
@@ -385,7 +384,7 @@ export const definitions: DefinitionWithExtend[] = [
                 device.save();
             }
         },
-        meta: { publishDuplicateTransaction: true },
+        meta: {publishDuplicateTransaction: true},
         exposes: [
             e.current(),
             e.power(),
@@ -477,11 +476,11 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ["hvacThermostat"]);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
             await reporting.thermostatOccupiedCoolingSetpoint(endpoint);
-            await reporting.thermostatTemperature(endpoint, { min: 60, max: 600, change: 0.1 });
+            await reporting.thermostatTemperature(endpoint, {min: 60, max: 600, change: 0.1});
             await reporting.thermostatSystemMode(endpoint);
             await reporting.thermostatRunningMode(endpoint);
             await reporting.thermostatRunningState(endpoint);
-            await reporting.humidity(endpoint, { min: 60, max: 600, change: 1 });
+            await reporting.humidity(endpoint, {min: 60, max: 600, change: 1});
             await reporting.thermostatKeypadLockMode(endpoint);
 
             await endpoint.read("hvacThermostat", [
@@ -498,7 +497,7 @@ export const definitions: DefinitionWithExtend[] = [
 
             const endpoint2 = device.getEndpoint(2);
             await reporting.bind(endpoint2, coordinatorEndpoint, ["msOccupancySensing"]);
-            await reporting.occupancy(endpoint2, { min: 1, max: 600, change: 1 });
+            await reporting.occupancy(endpoint2, {min: 1, max: 600, change: 1});
             await endpoint2.read("msOccupancySensing", ["occupancy"]);
         },
     },
@@ -530,10 +529,10 @@ export const definitions: DefinitionWithExtend[] = [
             const binds = ["genBasic", "genIdentify", "genGroups", "genScenes", "genOnOff", "hvacThermostat", "msRelativeHumidity"];
 
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
-            await reporting.thermostatOccupiedHeatingSetpoint(endpoint, { min: 0, max: 3600, change: 10 });
-            await reporting.thermostatTemperature(endpoint, { min: 0, max: 3600, change: 10 });
-            await reporting.humidity(endpoint, { min: 0, max: 3600, change: 10 });
-            await reporting.thermostatSystemMode(endpoint, { min: 0, max: 3600 });
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint, {min: 0, max: 3600, change: 10});
+            await reporting.thermostatTemperature(endpoint, {min: 0, max: 3600, change: 10});
+            await reporting.humidity(endpoint, {min: 0, max: 3600, change: 10});
+            await reporting.thermostatSystemMode(endpoint, {min: 0, max: 3600});
             await reporting.thermostatRunningState(endpoint);
             await endpoint.read("hvacThermostat", ["systemMode", "runningState", "occupiedHeatingSetpoint", "localTemp"]);
             await endpoint.read("msRelativeHumidity", ["measuredValue"]);
@@ -579,21 +578,21 @@ export const definitions: DefinitionWithExtend[] = [
         model: "PIR313-P",
         vendor: "OWON",
         description: "Motion sensor",
-        extend: [m.battery(), m.iasZoneAlarm({ zoneType: "occupancy", zoneAttributes: ["alarm_1", "battery_low", "tamper"] })],
+        extend: [m.battery(), m.iasZoneAlarm({zoneType: "occupancy", zoneAttributes: ["alarm_1", "battery_low", "tamper"]})],
     },
     {
         zigbeeModel: ["DWS312"],
         model: "DWS312",
         vendor: "OWON",
         description: "Door/window sensor",
-        extend: [m.battery(), m.iasZoneAlarm({ zoneType: "contact", zoneAttributes: ["alarm_1", "battery_low", "tamper"] })],
+        extend: [m.battery(), m.iasZoneAlarm({zoneType: "contact", zoneAttributes: ["alarm_1", "battery_low", "tamper"]})],
     },
     {
         zigbeeModel: ["SPM915"],
         model: "SPM915",
         vendor: "OWON",
         description: "Sleeping pad monitor",
-        extend: [m.battery(), m.iasZoneAlarm({ zoneType: "contact", zoneAttributes: ["alarm_1", "battery_low", "tamper"] })],
+        extend: [m.battery(), m.iasZoneAlarm({zoneType: "contact", zoneAttributes: ["alarm_1", "battery_low", "tamper"]})],
     },
     {
         zigbeeModel: ["FDS315"],
@@ -605,19 +604,19 @@ export const definitions: DefinitionWithExtend[] = [
                 ID: 0xfd00,
                 manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
                 attributes: {
-                    status: { ID: 0x0000, type: Zcl.DataType.ENUM8 },
-                    breathing_rate: { ID: 0x0002, type: Zcl.DataType.UINT8 },
-                    location_x: { ID: 0x0003, type: Zcl.DataType.INT16 },
-                    location_y: { ID: 0x0004, type: Zcl.DataType.INT16 },
-                    bedUpperLeftX: { ID: 0x0100, type: Zcl.DataType.INT16 },
-                    bedUpperLeftY: { ID: 0x0101, type: Zcl.DataType.INT16 },
-                    bedLowerRightX: { ID: 0x0102, type: Zcl.DataType.INT16 },
-                    bedLowerRightY: { ID: 0x0103, type: Zcl.DataType.INT16 },
-                    doorCenterX: { ID: 0x0108, type: Zcl.DataType.INT16 },
-                    doorCenterY: { ID: 0x0109, type: Zcl.DataType.INT16 },
-                    leftFallDetectionRange: { ID: 0x010c, type: Zcl.DataType.UINT16 },
-                    rightFallDetectionRange: { ID: 0x010d, type: Zcl.DataType.UINT16 },
-                    frontFallDetectionRange: { ID: 0x010e, type: Zcl.DataType.UINT16 },
+                    status: {ID: 0x0000, type: Zcl.DataType.ENUM8},
+                    breathing_rate: {ID: 0x0002, type: Zcl.DataType.UINT8},
+                    location_x: {ID: 0x0003, type: Zcl.DataType.INT16},
+                    location_y: {ID: 0x0004, type: Zcl.DataType.INT16},
+                    bedUpperLeftX: {ID: 0x0100, type: Zcl.DataType.INT16},
+                    bedUpperLeftY: {ID: 0x0101, type: Zcl.DataType.INT16},
+                    bedLowerRightX: {ID: 0x0102, type: Zcl.DataType.INT16},
+                    bedLowerRightY: {ID: 0x0103, type: Zcl.DataType.INT16},
+                    doorCenterX: {ID: 0x0108, type: Zcl.DataType.INT16},
+                    doorCenterY: {ID: 0x0109, type: Zcl.DataType.INT16},
+                    leftFallDetectionRange: {ID: 0x010c, type: Zcl.DataType.UINT16},
+                    rightFallDetectionRange: {ID: 0x010d, type: Zcl.DataType.UINT16},
+                    frontFallDetectionRange: {ID: 0x010e, type: Zcl.DataType.UINT16},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -649,23 +648,22 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "OWON",
         description: "Smart plug with doorbell press indicator",
         extend: [
-            m.onOff({ endpointNames: ["l1", "l2", "l3"] }),
+            m.onOff({endpointNames: ["l1", "l2", "l3"]}),
             m.iasZoneAlarm({
                 zoneType: "contact",
                 zoneAttributes: ["alarm_2"], // 门铃触发
             }),
         ],
-        endpoint: (device) => ({ l1: 1, l2: 2, l3: 3 }),
+        endpoint: (device) => ({l1: 1, l2: 2, l3: 3}),
         configure: async (device, coordinatorEndpoint) => {
             // 单独绑定 IAS Zone cluster 到端点 2
             const ep2 = device.getEndpoint(2);
             if (ep2) {
                 await reporting.bind(ep2, coordinatorEndpoint, ["ssIasZone"]);
                 await ep2.write("ssIasZone", {
-                    16: { value: coordinatorEndpoint.deviceIeeeAddress, type: 0xf0 },
+                    16: {value: coordinatorEndpoint.deviceIeeeAddress, type: 0xf0},
                 });
             }
         },
     },
-
 ];
