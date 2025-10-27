@@ -1,5 +1,21 @@
 # Changelog
 
+## [25.55.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.54.0...v25.55.0) (2025-10-27)
+
+
+### Features
+
+* **add:** 929003808601 ([#10539](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10539)) ([c5cd802](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c5cd802be74deedfd5ca73dccffae7eafab8820c))
+* **add:** BOT-R15W ([#10537](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10537)) ([b1496d1](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b1496d18419bedc6ef44d4904e18a607bf05d180))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3000_qorepo2x` as Tuya TS0001_power https://github.com/Koenkk/zigbee2mqtt/issues/29202 ([7e56f60](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7e56f600150b72ba5921eb72311476fdcf3ad44e))
+* **detect:** Detect `_TZE284_6fk3gewc` as WETEN PCI E https://github.com/Koenkk/zigbee-herdsman-converters/issues/10538 ([5a01a59](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5a01a593aff8354a265929f2ccfe116b3e12b964))
+* **ignore:** bump the minor-patch group with 2 updates ([#10534](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10534)) ([38f4c79](https://github.com/Koenkk/zigbee-herdsman-converters/commit/38f4c799ca8ac94a205a910c0fe8a51dc6352f83))
+* Improve store ([#10529](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10529)) ([4c4a6ab](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4c4a6abfe0a24dd15bf3ec5a7161d742400630eb))
+
 ## [25.54.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.53.0...v25.54.0) (2025-10-26)
 
 
