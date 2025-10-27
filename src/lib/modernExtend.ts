@@ -350,11 +350,11 @@ export interface BatteryArgs {
     percentage?: boolean;
     voltage?: boolean;
     lowStatus?: boolean;
-    percentageReportingConfig?: ReportingConfigWithoutAttribute;
+    percentageReportingConfig?: false | ReportingConfigWithoutAttribute;
     percentageReporting?: boolean;
-    voltageReportingConfig?: ReportingConfigWithoutAttribute;
+    voltageReportingConfig?: false | ReportingConfigWithoutAttribute;
     voltageReporting?: boolean;
-    lowStatusReportingConfig?: ReportingConfigWithoutAttribute;
+    lowStatusReportingConfig?: false | ReportingConfigWithoutAttribute;
 }
 export function battery(args: BatteryArgs = {}): ModernExtend {
     const {
@@ -1880,10 +1880,12 @@ interface MeterArgs {
     producedEnergy?: false | true | (MultiplierDivisor & Partial<ReportingConfigWithoutAttribute>);
     acFrequency?: false | true | (MultiplierDivisor & Partial<ReportingConfigWithoutAttribute>);
     powerFactor?: boolean;
+    tariffs?: boolean;
     // biome-ignore lint/suspicious/noExplicitAny: generic
     fzElectricalMeasurement?: Fz.Converter<"haElectricalMeasurement", any, any>;
 }
 function genericMeter(args: MeterArgs = {}) {
+    const {tariffs = false} = args;
     if (args.cluster !== "electrical") {
         const divisors = new Set([
             args.cluster === "metering" && isObject(args.power) ? args.power?.divisor : false,
@@ -2056,6 +2058,34 @@ function genericMeter(args: MeterArgs = {}) {
                 forced: isObject(args.producedEnergy) ? args.producedEnergy : (false as const),
                 change: 0.1,
             },
+            energy_tier_1: {
+                attribute: "currentTier1SummDelivered" as const,
+                divisor: "divisor",
+                multiplier: "multiplier",
+                forced: false,
+                change: 0.1,
+            },
+            energy_tier_2: {
+                attribute: "currentTier2SummDelivered" as const,
+                divisor: "divisor",
+                multiplier: "multiplier",
+                forced: false,
+                change: 0.1,
+            },
+            produced_energy_tier_1: {
+                attribute: "currentTier1SummReceived" as const,
+                divisor: "divisor",
+                multiplier: "multiplier",
+                forced: false,
+                change: 0.1,
+            },
+            produced_energy_tier_2: {
+                attribute: "currentTier2SummReceived" as const,
+                divisor: "divisor",
+                multiplier: "multiplier",
+                forced: false,
+                change: 0.1,
+            },
             status: {
                 attribute: "status" as const,
                 change: 1,
@@ -2136,6 +2166,12 @@ function genericMeter(args: MeterArgs = {}) {
     if (args.extendedStatus === false) {
         delete configureLookup.seMetering.extended_status;
     }
+    if (tariffs === false) {
+        delete configureLookup.seMetering.energy_tier_1;
+        delete configureLookup.seMetering.energy_tier_2;
+        delete configureLookup.seMetering.produced_energy_tier_1;
+        delete configureLookup.seMetering.produced_energy_tier_2;
+    }
 
     if (args.cluster === "both") {
         if (args.power !== false) exposes.push(e.power().withAccess(ea.STATE_GET));
@@ -2145,6 +2181,20 @@ function genericMeter(args: MeterArgs = {}) {
         if (args.current !== false) exposes.push(e.current().withAccess(ea.STATE_GET));
         if (args.energy !== false) exposes.push(e.energy().withAccess(ea.STATE_GET));
         if (args.producedEnergy !== false) exposes.push(e.produced_energy().withAccess(ea.STATE_GET));
+        if (tariffs === true) {
+            exposes.push(
+                e.numeric("energy_tier_1", ea.STATE_GET).withUnit("kWh").withDescription("Energy consumed in tariff 1 (peak/high) - OBIS 1.8.1"),
+                e.numeric("energy_tier_2", ea.STATE_GET).withUnit("kWh").withDescription("Energy consumed in tariff 2 (off-peak/low) - OBIS 1.8.2"),
+                e
+                    .numeric("produced_energy_tier_1", ea.STATE_GET)
+                    .withUnit("kWh")
+                    .withDescription("Energy produced in tariff 1 (peak/high) - OBIS 2.8.1"),
+                e
+                    .numeric("produced_energy_tier_2", ea.STATE_GET)
+                    .withUnit("kWh")
+                    .withDescription("Energy produced in tariff 2 (off-peak/low) - OBIS 2.8.2"),
+            );
+        }
         fromZigbee = [args.fzElectricalMeasurement ?? fz.electrical_measurement, args.fzMetering ?? fz.metering];
         const useMeteringForPower = args.power !== false && args.power?.cluster === "metering";
         toZigbee = [
@@ -2165,6 +2215,20 @@ function genericMeter(args: MeterArgs = {}) {
         if (args.power !== false) exposes.push(e.power().withAccess(ea.STATE_GET));
         if (args.energy !== false) exposes.push(e.energy().withAccess(ea.STATE_GET));
         if (args.producedEnergy !== false) exposes.push(e.produced_energy().withAccess(ea.STATE_GET));
+        if (tariffs === true) {
+            exposes.push(
+                e.numeric("energy_tier_1", ea.STATE_GET).withUnit("kWh").withDescription("Energy consumed in tariff 1 (peak/high) - OBIS 1.8.1"),
+                e.numeric("energy_tier_2", ea.STATE_GET).withUnit("kWh").withDescription("Energy consumed in tariff 2 (off-peak/low) - OBIS 1.8.2"),
+                e
+                    .numeric("produced_energy_tier_1", ea.STATE_GET)
+                    .withUnit("kWh")
+                    .withDescription("Energy produced in tariff 1 (peak/high) - OBIS 2.8.1"),
+                e
+                    .numeric("produced_energy_tier_2", ea.STATE_GET)
+                    .withUnit("kWh")
+                    .withDescription("Energy produced in tariff 2 (off-peak/low) - OBIS 2.8.2"),
+            );
+        }
         fromZigbee = [args.fzMetering ?? fz.metering];
         toZigbee = [tz.metering_power, tz.currentsummdelivered, tz.currentsummreceived];
         delete configureLookup.haElectricalMeasurement;
@@ -2505,7 +2569,7 @@ export interface EnumLookupArgs<Cl extends string | number, Custom extends TCust
     zigbeeCommandOptions?: {manufacturerCode?: number; disableDefaultResponse?: boolean};
     access?: "STATE" | "STATE_GET" | "STATE_SET" | "SET" | "ALL";
     endpointName?: string;
-    reporting?: ReportingConfigWithoutAttribute;
+    reporting?: false | ReportingConfigWithoutAttribute;
     entityCategory?: "config" | "diagnostic";
     label?: string;
 }
@@ -2724,7 +2788,7 @@ export interface BinaryArgs<Cl extends string | number, Custom extends TCustomCl
     description: string;
     zigbeeCommandOptions?: {manufacturerCode: number};
     endpointName?: string;
-    reporting?: false | ReportingConfig<Cl, Custom>;
+    reporting?: false | ReportingConfigWithoutAttribute;
     access?: "STATE" | "STATE_GET" | "STATE_SET" | "SET" | "ALL";
     label?: string;
     entityCategory?: "config" | "diagnostic";
@@ -3056,10 +3120,29 @@ export function bindCluster(args: {cluster: string | number; clusterType: "input
     return {configure, isModernExtend: true};
 }
 
+interface Description {
+    description: string;
+}
+
 interface MinMaxStep {
     min: number;
     max: number;
     step: number;
+}
+
+interface ValuesWithModernExtendConfiguration<T> {
+    values: T;
+    fromZigbee?: Partial<{
+        skip: boolean;
+    }>;
+    toZigbee?: Partial<{
+        skip: boolean;
+    }>;
+    configure?: Partial<{
+        skip: boolean;
+        reporting: false | ReportingConfigWithoutAttribute;
+        access: Access;
+    }>;
 }
 
 const SETPOINT_LOOKUP = {
@@ -3077,68 +3160,136 @@ const SETPOINT_LIMIT_LOOKUP = {
 } as const;
 
 export interface ThermostatArgs {
-    localTemperatureCalibration?: true | MinMaxStep;
-    setpoints?: Partial<Record<keyof typeof SETPOINT_LOOKUP, MinMaxStep>>;
+    localTemperature?: Partial<ValuesWithModernExtendConfiguration<Description>>;
+    localTemperatureCalibration?: Omit<ValuesWithModernExtendConfiguration<true | MinMaxStep>, "fromZigbee">;
+    setpoints?: Omit<ValuesWithModernExtendConfiguration<Partial<Record<keyof typeof SETPOINT_LOOKUP, MinMaxStep>>>, "fromZigbee">;
     setpointsLimit?: Partial<Record<keyof typeof SETPOINT_LIMIT_LOOKUP, MinMaxStep>>;
-    systemMode?: Array<"off" | "heat" | "cool" | "auto" | "dry" | "fan_only" | "sleep" | "emergency_heating">;
-    runningState?: Array<"idle" | "heat" | "cool" | "fan_only">;
+    systemMode?: Omit<
+        ValuesWithModernExtendConfiguration<Array<"off" | "heat" | "cool" | "auto" | "dry" | "fan_only" | "sleep" | "emergency_heating">>,
+        "fromZigbee"
+    >;
+    runningState?: Omit<ValuesWithModernExtendConfiguration<Array<"idle" | "heat" | "cool" | "fan_only">>, "fromZigbee">;
     runningMode?: Array<"off" | "cool" | "heat">;
     fanMode?: Array<"off" | "low" | "medium" | "high" | "on" | "auto" | "smart">;
-    piHeatingDemand?: true;
+    piHeatingDemand?: Omit<ValuesWithModernExtendConfiguration<true | Access>, "fromZigbee">;
     temperatureSetpointHold?: true;
     temperatureSetpointHoldDuration?: true;
 }
 
 export function thermostat(args: ThermostatArgs = {}): ModernExtend {
     const {
-        localTemperatureCalibration = false,
-        setpoints = {},
+        localTemperature = undefined,
+        localTemperatureCalibration = undefined,
+        setpoints = undefined,
         setpointsLimit = {},
         systemMode = undefined,
         runningState = undefined,
         runningMode = undefined,
-        piHeatingDemand = false,
+        fanMode = undefined,
+        piHeatingDemand = undefined,
         temperatureSetpointHold = false,
         temperatureSetpointHoldDuration = false,
-        fanMode = undefined,
     } = args;
 
     const repConfigChange0: ReportingConfigWithoutAttribute = {min: "MIN", max: "1_HOUR", change: 0};
     const repConfigChange10: ReportingConfigWithoutAttribute = {min: "MIN", max: "1_HOUR", change: 10};
 
-    const expose = e.climate().withLocalTemperature();
-    const exposes: Expose[] = [expose];
-    const fromZigbee = [fz.thermostat];
-    const toZigbee = [tz.thermostat_local_temperature];
-    const configure: Configure[] = [
-        setupConfigureForBinding("hvacThermostat", "input"),
-        setupConfigureForReporting("hvacThermostat", "localTemp", {config: repConfigChange10, access: ea.STATE_GET}),
-    ];
+    const exposes: Expose[] = <Expose[]>[];
+    const fromZigbee = [];
+    const toZigbee = [];
+    const configure: Configure[] = <Configure[]>[];
 
-    if (localTemperatureCalibration) {
-        const {min, max, step} = localTemperatureCalibration === true ? {min: -12.8, max: 12.8, step: 0.1} : localTemperatureCalibration;
-        expose.withLocalTemperatureCalibration(min, max, step);
-        toZigbee.push(tz.thermostat_local_temperature_calibration);
+    const expose = e.climate().withLocalTemperature(undefined, localTemperature?.values?.description ?? undefined);
+    exposes.push(expose);
+
+    if (!localTemperature?.fromZigbee?.skip) {
+        fromZigbee.push(fz.thermostat);
     }
 
-    for (const key of Object.keys(setpoints) as Array<keyof typeof SETPOINT_LOOKUP>) {
-        const {min, max, step} = setpoints[key];
+    if (!localTemperature?.toZigbee?.skip) {
+        toZigbee.push(tz.thermostat_local_temperature);
+    }
+
+    if (!localTemperature?.configure?.skip) {
+        configure.push(
+            setupConfigureForBinding("hvacThermostat", "input"),
+            setupConfigureForReporting("hvacThermostat", "localTemp", {
+                config: localTemperature?.configure?.reporting ?? repConfigChange10,
+                access: localTemperature?.configure?.access ?? ea.STATE_GET,
+            }),
+        );
+    }
+
+    if (localTemperatureCalibration) {
+        const {min, max, step} =
+            localTemperatureCalibration.values === true ? {min: -12.8, max: 12.8, step: 0.1} : localTemperatureCalibration.values;
+        expose.withLocalTemperatureCalibration(min, max, step);
+
+        if (!localTemperatureCalibration.toZigbee?.skip) {
+            toZigbee.push(tz.thermostat_local_temperature_calibration);
+        }
+
+        if (!localTemperatureCalibration.configure?.skip) {
+            configure.push(
+                setupConfigureForReporting("hvacThermostat", "localTemperatureCalibration", {
+                    config: localTemperatureCalibration.configure?.reporting ?? false,
+                    access: localTemperatureCalibration.configure?.access ?? ea.STATE_GET,
+                }),
+            );
+        }
+    }
+
+    for (const key of Object.keys(setpoints.values) as Array<keyof typeof SETPOINT_LOOKUP>) {
+        const {min, max, step} = setpoints.values[key];
         const {property, tzConverter} = SETPOINT_LOOKUP[key];
         expose.withSetpoint(property, min, max, step);
-        toZigbee.push(tzConverter);
-        configure.push(setupConfigureForReporting("hvacThermostat", key, {config: repConfigChange10, access: ea.STATE_GET}));
+
+        if (!setpoints.toZigbee?.skip) {
+            toZigbee.push(tzConverter);
+        }
+
+        if (!setpoints.configure?.skip) {
+            configure.push(
+                setupConfigureForReporting("hvacThermostat", key, {
+                    config: setpoints.configure?.reporting ?? repConfigChange10,
+                    access: setpoints.configure?.access ?? ea.STATE_GET,
+                }),
+            );
+        }
     }
 
     if (systemMode) {
-        expose.withSystemMode(args.systemMode);
-        toZigbee.push(tz.thermostat_system_mode);
-        configure.push(setupConfigureForReporting("hvacThermostat", "systemMode", {config: repConfigChange0, access: ea.STATE_GET}));
+        expose.withSystemMode(systemMode.values);
+
+        if (!systemMode.toZigbee?.skip) {
+            toZigbee.push(tz.thermostat_system_mode);
+        }
+
+        if (!systemMode.configure?.skip) {
+            configure.push(
+                setupConfigureForReporting("hvacThermostat", "systemMode", {
+                    config: systemMode.configure?.reporting ?? repConfigChange0,
+                    access: systemMode.configure?.access ?? ea.STATE_GET,
+                }),
+            );
+        }
     }
 
     if (runningState) {
-        expose.withRunningState(runningState);
-        toZigbee.push(tz.thermostat_running_state);
-        configure.push(setupConfigureForReporting("hvacThermostat", "runningState", {config: repConfigChange0, access: ea.STATE_GET}));
+        expose.withRunningState(runningState.values);
+
+        if (!runningState.toZigbee?.skip) {
+            toZigbee.push(tz.thermostat_running_state);
+        }
+
+        if (!runningState.configure?.skip) {
+            configure.push(
+                setupConfigureForReporting("hvacThermostat", "runningState", {
+                    config: runningState.configure?.reporting ?? repConfigChange0,
+                    access: runningState.configure?.access ?? ea.STATE_GET,
+                }),
+            );
+        }
     }
 
     if (runningMode) {
@@ -3157,9 +3308,20 @@ export function thermostat(args: ThermostatArgs = {}): ModernExtend {
     }
 
     if (piHeatingDemand) {
-        expose.withPiHeatingDemand();
-        toZigbee.push(tz.thermostat_pi_heating_demand);
-        configure.push(setupConfigureForReporting("hvacThermostat", "pIHeatingDemand", {config: repConfigChange0, access: ea.STATE_GET}));
+        expose.withPiHeatingDemand(piHeatingDemand.values !== true ? piHeatingDemand.values : undefined);
+
+        if (!piHeatingDemand.toZigbee?.skip) {
+            toZigbee.push(tz.thermostat_pi_heating_demand);
+        }
+
+        if (!piHeatingDemand.configure?.skip) {
+            configure.push(
+                setupConfigureForReporting("hvacThermostat", "pIHeatingDemand", {
+                    config: piHeatingDemand.configure?.reporting ?? repConfigChange0,
+                    access: piHeatingDemand.configure?.access ?? ea.STATE_GET,
+                }),
+            );
+        }
     }
 
     if (temperatureSetpointHold) {
@@ -3181,6 +3343,7 @@ export function thermostat(args: ThermostatArgs = {}): ModernExtend {
                 .withDescription("Period in minutes for which the setpoint hold will be active (65535 - forever)"),
         );
         toZigbee.push(tz.thermostat_temperature_setpoint_hold_duration);
+        configure.push(setupConfigureForReading("hvacThermostat", ["tempSetpointHoldDuration"]));
     }
 
     for (const key of Object.keys(setpointsLimit) as Array<keyof typeof SETPOINT_LIMIT_LOOKUP>) {

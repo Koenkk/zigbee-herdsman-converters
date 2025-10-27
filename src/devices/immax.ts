@@ -405,8 +405,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "07505L",
         vendor: "Immax",
         description: "Neo smart keypad",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.action(["disarm", "arm_home", "arm_away", "sos"]),
             e.battery(),

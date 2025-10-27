@@ -1580,7 +1580,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["ZG9101SAC-HP"],
         model: "ZG9101SAC-HP",
         vendor: "Sunricher",
-        description: "ZigBee AC phase-cut dimmer",
+        description: "Zigbee AC phase-cut dimmer",
         extend: [m.light({configureReporting: true})],
     },
     {
@@ -1594,7 +1594,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["Micro Smart Dimmer", "SM311", "HK-SL-RDIM-A", "HK-SL-DIM-EU-A"],
         model: "ZG2835RAC",
         vendor: "Sunricher",
-        description: "ZigBee knob smart dimmer",
+        description: "Zigbee knob smart dimmer",
         extend: [m.light({configureReporting: true}), m.electricityMeter()],
         whiteLabel: [
             {vendor: "YPHIX", model: "50208695"},
@@ -1605,14 +1605,14 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["HK-SL-DIM-AU-R-A"],
         model: "HK-SL-DIM-AU-R-A",
         vendor: "Sunricher",
-        description: "ZigBee knob smart dimmer",
+        description: "Zigbee knob smart dimmer",
         extend: [m.identify(), m.electricityMeter(), m.light({configureReporting: true}), sunricher.extend.externalSwitchType()],
     },
     {
         zigbeeModel: ["ZG2835"],
         model: "ZG2835",
         vendor: "Sunricher",
-        description: "ZigBee knob smart dimmer",
+        description: "Zigbee knob smart dimmer",
         fromZigbee: [fz.command_on, fz.command_off, fz.command_move_to_level],
         exposes: [e.action(["on", "off", "brightness_move_to_level"])],
         toZigbee: [],
@@ -1654,7 +1654,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["SR-ZG9040A-S"],
         model: "SR-ZG9040A-S",
         vendor: "Sunricher",
-        description: "ZigBee AC phase-cut dimmer single-line",
+        description: "Zigbee AC phase-cut dimmer single-line",
         extend: [m.light({configureReporting: true})],
     },
     {

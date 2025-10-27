@@ -68,7 +68,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Motion, temperature & humidity sensor",
         fromZigbee: [legacy.fz.neo_nas_pd07, fz.ignore_tuya_set_time],
         toZigbee: [legacy.tz.neo_nas_pd07],
-        extend: [tuya.modernExtend.tuyaBase({timeStart: "2000", mcuVersionRequestOnConfigure: true})],
+        extend: [tuya.modernExtend.tuyaBase({mcuVersionRequestOnConfigure: true})],
         exposes: [
             e.occupancy(),
             e.humidity(),
@@ -97,9 +97,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "NAS-AB06B2",
         vendor: "NEO",
         description: "Outdoor solar alarm",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.enum("alarm_state", ea.STATE, ["alarm_sound", "alarm_light", "alarm_sound_light", "normal"]).withDescription("Alarm status"),
             e.binary("alarm_switch", ea.STATE_SET, "ON", "OFF").withDescription("Enable alarm"),
@@ -345,9 +343,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "NAS-STH02B2",
         vendor: "NEO",
         description: "Soil moisture, temperature, and ec",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.numeric("ec", ea.STATE).withUnit("µS/cm").withValueMin(0).withValueMax(20000).withDescription("Soil electrical conductivity"),
             e.enum("fertility", ea.STATE, ["normal", "lower", "low", "middle", "high", "higher"]).withDescription("Soil fertility"),
@@ -440,9 +436,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "NAS-PS10B2",
         vendor: "NEO",
         description: "Human presence sensor",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.presence(),
             e.enum("human_motion_state", ea.STATE, ["none", "small", "large"]).withDescription("Human Motion State"),

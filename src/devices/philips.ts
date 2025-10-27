@@ -41,6 +41,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
     {
+        zigbeeModel: ["929003736501_01", "929003736501_02"],
+        model: "929003736501",
+        vendor: "Philips",
+        description: "Hue Datura LED ceiling panel large round",
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+    },
+    {
         zigbeeModel: ["929003810901_01", "929003810901_02", "929003810901_03"],
         model: "929003810901",
         vendor: "Philips",
@@ -134,6 +141,13 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Philips",
         description: "Hue white ambiance",
         extend: [philips.m.light({colorTemp: {range: [222, 454]}})],
+    },
+    {
+        zigbeeModel: ["LTA019"],
+        model: "929003853901",
+        vendor: "Philips",
+        description: "Hue white ambiance and color E26",
+        extend: [philips.m.light({colorTemp: {range: [50, 1000]}})],
     },
     {
         zigbeeModel: ["LCA012"],
@@ -493,17 +507,14 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: undefined}})],
     },
     {
-        zigbeeModel: ["LCD009"],
+        zigbeeModel: ["LCD009", "LCD010", "LCD011"],
         model: "8720169264151",
         vendor: "Philips",
-        description: "Hue Slim recessed light S 90mm black",
-        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
-    },
-    {
-        zigbeeModel: ["LCD011"],
-        model: "8720169264274",
-        vendor: "Philips",
-        description: "Hue Slim recessed light 170mm black",
+        description: "Hue Slim recessed light 90mm (Black)",
+        whiteLabel: [
+            {model: "8720169264212", vendor: "Philips", description: "Hue Slim recessed light 170mm (White)", fingerprint: [{modelID: "LCD010"}]},
+            {model: "8720169264274", vendor: "Philips", description: "Hue Slim recessed light 170mm (Black)", fingerprint: [{modelID: "LCD011"}]},
+        ],
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
     {
@@ -742,6 +753,13 @@ export const definitions: DefinitionWithExtend[] = [
         model: "8719514343320",
         vendor: "Philips",
         description: "Hue white A67 bulb E26 with Bluetooth (1600 Lumen)",
+        extend: [philips.m.light()],
+    },
+    {
+        zigbeeModel: ["LWA033"],
+        model: "9290038561",
+        vendor: "Philips",
+        description: "Hue White A60 E27 1100 lumen",
         extend: [philips.m.light()],
     },
     {

@@ -678,7 +678,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Schneider Electric",
         description: "Micro module dimmer",
         ota: true,
-        extend: [m.light({configureReporting: true, levelConfig: {}})],
+        extend: [m.light({powerOnBehavior: false, configureReporting: true, levelConfig: {}})],
         fromZigbee: [fz.wiser_lighting_ballast_configuration],
         toZigbee: [tz.ballast_config, tz.wiser_dimmer_mode],
         exposes: [
@@ -1807,7 +1807,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription("The temperature format displayed on the thermostat screen"),
             e
                 .climate()
-                .withSetpoint("occupied_heating_setpoint", 4, 30, 0.5)
+                .withSetpoint("occupied_heating_setpoint", 0, 40, 0.5)
                 .withLocalTemperature()
                 .withSystemMode(["off", "heat"])
                 .withRunningState(["idle", "heat"])
@@ -1941,6 +1941,86 @@ export const definitions: DefinitionWithExtend[] = [
             m.identify(),
             m.onOff({powerOnBehavior: false}),
             m.commandsOnOff({endpointNames: ["switch_sw"]}),
+        ],
+    },
+    {
+        zigbeeModel: ["MEG5779"],
+        model: "MEG5779",
+        vendor: "Schneider Electric",
+        description: "Merten Connected Room Temperature Controller",
+        extend: [
+            m.thermostat({
+                setpoints: {
+                    values: {
+                        occupiedHeatingSetpoint: {min: 4, max: 30, step: 0.5},
+                        unoccupiedHeatingSetpoint: {min: 4, max: 30, step: 0.5},
+                        occupiedCoolingSetpoint: {min: 4, max: 30, step: 0.5},
+                        unoccupiedCoolingSetpoint: {min: 4, max: 30, step: 0.5},
+                    },
+                },
+                setpointsLimit: {
+                    maxHeatSetpointLimit: {min: 4, max: 30, step: 0.5},
+                    minHeatSetpointLimit: {min: 4, max: 30, step: 0.5},
+                    maxCoolSetpointLimit: {min: 4, max: 30, step: 0.5},
+                    minCoolSetpointLimit: {min: 4, max: 30, step: 0.5},
+                },
+                systemMode: {
+                    values: ["off", "heat", "cool"],
+                },
+                piHeatingDemand: {
+                    values: ea.ALL,
+                },
+            }),
+            m.numeric({
+                name: "display_brightness_active",
+                cluster: "hvacUserInterfaceCfg",
+                attribute: {ID: 0xe000, type: Zcl.DataType.UINT8},
+                description: "Sets brightness of the temperature display during active state",
+                entityCategory: "config",
+                unit: "%",
+                valueMin: 0,
+                valueMax: 100,
+                valueStep: 1,
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+            }),
+            m.numeric({
+                name: "display_brightness_inactive",
+                cluster: "hvacUserInterfaceCfg",
+                attribute: {ID: 0xe001, type: Zcl.DataType.UINT8},
+                description: "Sets brightness of the temperature display during inactive state",
+                entityCategory: "config",
+                unit: "%",
+                valueMin: 0,
+                valueMax: 100,
+                valueStep: 1,
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+            }),
+            m.numeric({
+                name: "display_active_timeout",
+                cluster: "hvacUserInterfaceCfg",
+                attribute: {ID: 0xe002, type: Zcl.DataType.UINT16},
+                description: "Sets timeout of the temperature display active state",
+                entityCategory: "config",
+                unit: "seconds",
+                valueMin: 5,
+                valueMax: 600,
+                valueStep: 5,
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+            }),
+            m.enumLookup({
+                name: "temperature_display_mode",
+                lookup: {celsius: 0, fahrenheit: 1},
+                cluster: "hvacUserInterfaceCfg",
+                attribute: "tempDisplayMode",
+                description: "The unit of the temperature displayed on the device screen.",
+            }),
+            m.enumLookup({
+                name: "keypadLockout",
+                lookup: {unlock: 0, lock1: 1},
+                cluster: "hvacUserInterfaceCfg",
+                attribute: "keypadLockout",
+                description: "Enables/disables physical input on the device.",
+            }),
         ],
     },
     {

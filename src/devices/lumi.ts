@@ -2218,6 +2218,7 @@ export const definitions: DefinitionWithExtend[] = [
             lumi.toZigbee.lumi_heartbeat_indicator,
             lumi.toZigbee.lumi_linkage_alarm,
         ],
+        ota: true,
         exposes: [
             e.smoke().withAccess(ea.STATE_GET),
             e.numeric("smoke_density", ea.STATE_GET).withDescription("Value of smoke concentration"),
@@ -3623,6 +3624,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.battery(),
             e.power_outage_count(),
             e.device_temperature(),
+            e.local_temperature().withAccess(ea.STATE),
             e.schedule(),
             e
                 .schedule_settings()
@@ -3962,6 +3964,7 @@ export const definitions: DefinitionWithExtend[] = [
                 endpointNames: ["top", "bottom"],
             }),
             lumiAction({
+                actionLookup: {hold: 0, single: 1, double: 2, release: 255},
                 endpointNames: ["top", "bottom"],
                 extraActions: ["slider_single", "slider_double", "slider_hold", "slider_up", "slider_down"],
             }),
@@ -3989,6 +3992,7 @@ export const definitions: DefinitionWithExtend[] = [
                 endpointNames: ["top", "center", "bottom"],
             }),
             lumiAction({
+                actionLookup: {hold: 0, single: 1, double: 2, release: 255},
                 endpointNames: ["top", "center", "bottom"],
                 extraActions: ["slider_single", "slider_double", "slider_hold", "slider_up", "slider_down"],
             }),
@@ -4792,8 +4796,10 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Radiator thermostat W600",
         extend: [
             m.thermostat({
-                setpoints: {occupiedHeatingSetpoint: {min: 5, max: 30, step: 0.5}},
-                localTemperatureCalibration: true,
+                setpoints: {
+                    values: {occupiedHeatingSetpoint: {min: 5, max: 30, step: 0.5}},
+                },
+                localTemperatureCalibration: {values: true},
                 temperatureSetpointHold: true,
                 temperatureSetpointHoldDuration: true,
                 setpointsLimit: {
@@ -4901,12 +4907,14 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Floor heating thermostat W500",
         extend: [
             m.thermostat({
-                setpoints: {occupiedHeatingSetpoint: {min: 5, max: 40, step: 0.5}},
-                localTemperatureCalibration: true,
+                setpoints: {values: {occupiedHeatingSetpoint: {min: 5, max: 40, step: 0.5}}},
+                localTemperatureCalibration: {values: true},
                 temperatureSetpointHold: true,
                 temperatureSetpointHoldDuration: true,
-                systemMode: ["off", "heat"],
-                runningState: ["idle", "heat", "cool", "fan_only"],
+                systemMode: {values: ["off", "heat"]},
+                runningState: {
+                    values: ["idle", "heat", "cool", "fan_only"],
+                },
                 setpointsLimit: {
                     maxHeatSetpointLimit: {min: 5, max: 30, step: 0.5},
                     minHeatSetpointLimit: {min: 5, max: 30, step: 0.5},

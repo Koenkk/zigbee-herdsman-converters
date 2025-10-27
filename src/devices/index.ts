@@ -31,6 +31,7 @@ import {definitions as blaupunkt} from "./blaupunkt";
 import {definitions as blitzwolf} from "./blitzwolf";
 import {definitions as bosch} from "./bosch";
 import {definitions as bouffaloLab} from "./bouffalo_lab";
+import {definitions as box} from "./box";
 import {definitions as brimate} from "./brimate";
 import {definitions as brunHolding} from "./brun_holding";
 import {definitions as bseed} from "./bseed";
@@ -321,6 +322,7 @@ import {definitions as tuya} from "./tuya";
 import {definitions as ubisys} from "./ubisys";
 import {definitions as uhome} from "./uhome";
 import {definitions as universalElectronicsInc} from "./universal_electronics_inc";
+import {definitions as vav} from "./vav";
 import {definitions as vbled} from "./vbled";
 import {definitions as vesternet} from "./vesternet";
 import {definitions as viessmann} from "./viessmann";
@@ -386,6 +388,7 @@ const definitions: DefinitionWithExtend[] = [
     ...blitzwolf,
     ...bosch,
     ...bouffaloLab,
+    ...box,
     ...brimate,
     ...brunHolding,
     ...bseed,
@@ -674,6 +677,7 @@ const definitions: DefinitionWithExtend[] = [
     ...ubisys,
     ...uhome,
     ...universalElectronicsInc,
+    ...vav,
     ...vbled,
     ...vesternet,
     ...viessmann,

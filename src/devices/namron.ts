@@ -201,7 +201,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["4512733"],
         model: "4512733",
         vendor: "Namron",
-        description: "ZigBee dimmer 2-pol 400W",
+        description: "Zigbee dimmer 2-pol 400W",
         extend: [m.light({configureReporting: true})],
     },
     {
@@ -216,7 +216,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["1402755"],
         model: "1402755",
         vendor: "Namron",
-        description: "ZigBee LED dimmer",
+        description: "Zigbee LED dimmer",
         extend: [m.light({configureReporting: true})],
     },
     {
@@ -317,7 +317,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["1402769"],
         model: "1402769",
         vendor: "Namron",
-        description: "ZigBee LED dimmer",
+        description: "Zigbee LED dimmer",
         extend: [m.light({configureReporting: true}), m.forcePowerSource({powerSource: "Mains (single phase)"})],
         ota: true,
     },

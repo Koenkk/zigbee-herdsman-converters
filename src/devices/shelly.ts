@@ -50,7 +50,8 @@ const shellyModernExtend = {
         const refresh = async (endpoint: any) => {
             await endpoint.write("shellyWiFiSetupCluster", {actionCode: 0}, SHELLY_OPTIONS);
             await endpoint.read("shellyWiFiSetupCluster", ["status", "ip", "enabled", "dhcp", "ssid"], SHELLY_OPTIONS);
-            await endpoint.read("shellyWiFiSetupCluster", ["staticIp", "netMask", "gateway", "nameServer"], SHELLY_OPTIONS);
+            await endpoint.read("shellyWiFiSetupCluster", ["staticIp", "netMask"], SHELLY_OPTIONS);
+            await endpoint.read("shellyWiFiSetupCluster", ["gateway", "nameServer"], SHELLY_OPTIONS);
         };
 
         const exposes: Expose[] = [
@@ -141,26 +142,46 @@ const shellyModernExtend = {
                     assertObject<KeyValue>(value);
                     const ep = determineEndpoint(entity, meta, "shellyWiFiSetupCluster");
 
-                    // Write first batch
                     const attr1 = {
                         enabled: value.enabled === true,
                         ssid: value.ssid || "",
-                        password: value.password || "",
                     };
                     await ep.write("shellyWiFiSetupCluster", attr1, SHELLY_OPTIONS);
 
-                    // Write second batch batch
                     const attr2 = {
-                        staticIp: value.static_ip || "",
-                        netMask: value.net_mask || "",
-                        gateway: value.gateway || "",
-                        nameServer: value.name_server || "",
+                        password: value.password || "",
                     };
                     await ep.write("shellyWiFiSetupCluster", attr2, SHELLY_OPTIONS);
 
-                    // Apply config
-                    const attr3 = {actionCode: 1};
+                    const attr3 = {
+                        staticIp: value.static_ip || "",
+                        netMask: value.net_mask || "",
+                    };
                     await ep.write("shellyWiFiSetupCluster", attr3, SHELLY_OPTIONS);
+
+                    const attr4 = {
+                        gateway: value.gateway || "",
+                        nameServer: value.name_server || "",
+                    };
+                    await ep.write("shellyWiFiSetupCluster", attr4, SHELLY_OPTIONS);
+
+                    const attr5 = {
+                        actionCode: 1,
+                    };
+                    await ep.write("shellyWiFiSetupCluster", attr5, SHELLY_OPTIONS);
+
+                    return {
+                        state: {
+                            wifi_config: {
+                                enabled: attr1.enabled,
+                                ssid: attr1.ssid === "" ? undefined : attr1.ssid,
+                                static_ip: attr3.staticIp === "" ? undefined : attr3.staticIp,
+                                net_mask: attr3.netMask === "" ? undefined : attr3.netMask,
+                                gateway: attr4.gateway === "" ? undefined : attr4.gateway,
+                                name_server: attr4.nameServer === "" ? undefined : attr4.nameServer,
+                            },
+                        },
+                    };
                 },
             },
         ];
@@ -210,6 +231,17 @@ export const definitions: DefinitionWithExtend[] = [
         description: "1PM Gen 4",
         extend: [
             m.onOff({powerOnBehavior: false}),
+            m.electricityMeter({producedEnergy: true, acFrequency: true}),
+            ...shellyModernExtend.shellyCustomClusters(),
+            shellyModernExtend.shellyWiFiSetup(),
+        ],
+    },
+    {
+        zigbeeModel: ["EM Mini"],
+        model: "S4EM-001PXCEU16",
+        vendor: "Shelly",
+        description: "EM Mini Gen4",
+        extend: [
             m.electricityMeter({producedEnergy: true, acFrequency: true}),
             ...shellyModernExtend.shellyCustomClusters(),
             shellyModernExtend.shellyWiFiSetup(),
@@ -282,5 +314,12 @@ export const definitions: DefinitionWithExtend[] = [
             ...shellyModernExtend.shellyCustomClusters(),
             shellyModernExtend.shellyWiFiSetup(),
         ],
+    },
+    {
+        fingerprint: [{modelID: "Ecowitt WS90", manufacturerName: "Shelly"}],
+        model: "WS90",
+        vendor: "Shelly",
+        description: "Weather station",
+        extend: [m.battery(), m.illuminance(), m.temperature(), m.pressure(), m.humidity()],
     },
 ];
