@@ -651,7 +651,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.onOff({endpointNames: ["l1", "l2", "l3"]}),
             m.iasZoneAlarm({
                 zoneType: "contact",
-                zoneAttributes: ["alarm_2"], 
+                zoneAttributes: ["alarm_2"],
             }),
         ],
         endpoint: (device) => ({l1: 1, l2: 2, l3: 3}),
