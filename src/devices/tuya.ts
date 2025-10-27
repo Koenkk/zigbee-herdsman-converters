@@ -4556,6 +4556,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZ3000_g92baclx",
             "_TZ3000_qlai3277",
             "_TZ3000_qaabwu5c",
+            "_TZ3000_qorepo2x",
             "_TZ3000_ikuxinvo",
             "_TZ3000_hzlsaltw",
             "_TZ3000_jsfzkftc",
