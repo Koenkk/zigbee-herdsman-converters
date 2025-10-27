@@ -3624,7 +3624,6 @@ export const definitions: DefinitionWithExtend[] = [
             e.battery(),
             e.power_outage_count(),
             e.device_temperature(),
-            e.local_temperature().withAccess(ea.STATE),
             e.schedule(),
             e
                 .schedule_settings()
