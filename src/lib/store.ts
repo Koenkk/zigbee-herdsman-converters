@@ -24,10 +24,7 @@ export function hasValue(entity: Zh.Endpoint | Zh.Group | Zh.Device | string, ke
     const entityKey = getEntityKey(entity);
     const entry = store.get(entityKey);
 
-    // TODO: behavior change => if key exists, return true
     return entry !== undefined && key in entry;
-    // previous behavior:
-    // return entry?.[key] !== undefined;
 }
 
 // biome-ignore lint/suspicious/noExplicitAny: generic
@@ -35,12 +32,9 @@ export function getValue(entity: Zh.Endpoint | Zh.Group | Zh.Device | string, ke
     const entityKey = getEntityKey(entity);
     const entry = store.get(entityKey);
 
-    // TODO: behavior change => if key exists, return its value
     if (entry !== undefined && key in entry) {
         return entry[key];
     }
-    // previous behavior:
-    // return entry?.[key] ?? fallback;
 
     return fallback;
 }
