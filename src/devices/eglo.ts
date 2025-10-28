@@ -7,6 +7,14 @@ const e = exposes.presets;
 const ea = exposes.access;
 
 export const definitions: DefinitionWithExtend[] = [
+   {
+    zigbeeModel: ['EZMB-RGB-TW-CLB'],
+    model: 'EZMB-RGB-TW-CLB',
+    vendor: 'AwoX',
+    description: 'Automatically generated definition',
+    extend: [m.deviceEndpoints({"endpoints":{"1":1,"3":3}}), m.light({"colorTemp":{"range":[153,370]},"color":{"modes":["xy","hs"],"enhancedHue":true}}), m.commandsOnOff(), m.commandsLevelCtrl(), m.commandsColorCtrl()],
+    meta: {"multiEndpoint":true},
+    },
     {
         zigbeeModel: ["EBF_RGB_Zm_CLP"],
         model: "900091",
@@ -14,6 +22,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "ROVITO-Z ceiling light",
         extend: [m.light({colorTemp: {range: [153, 370]}, color: true})],
     },
+    
     {
         zigbeeModel: ["ESMLFzm_w6_TW"],
         model: "12242",
