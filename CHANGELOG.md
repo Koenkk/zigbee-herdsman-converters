@@ -1,5 +1,27 @@
 # Changelog
 
+## [25.56.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.55.0...v25.56.0) (2025-10-28)
+
+
+### Features
+
+* **add:** _TZ3000_knoj8lpk ([#10553](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10553)) ([cd47116](https://github.com/Koenkk/zigbee-herdsman-converters/commit/cd4711661dea54bd8ba084dbd5aedbc37f889442))
+* **add:** _TZ3000_mhhxxjrs ([#10554](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10554)) ([df06c3f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/df06c3ff74836d6c24e2433ea53770e5a9fa441a))
+* **add:** 9290038552 ([#10548](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10548)) ([f7bd802](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f7bd802e940ee11a2a4ae0e6ebfaa8ca9a6e9261))
+* **add:** SLC631 ([#10429](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10429)) ([e3763c2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e3763c2283e05ac1407154e2f999dcdaafe36b8c))
+* **add:** SNZB-02DR2 ([#10546](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10546)) ([7f81dfa](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7f81dfabfd9c844a56f84c935a007a0b603b875c))
+* Tuya TS0001_switch_module: expose indicator mode ([#10555](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10555)) ([2122cd2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2122cd25e59cbbb0237f6a2a68e4a47d8a51f7c0))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3000_5bpeda8u` as Tuya SH-SC07 ([#10549](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10549)) ([36f3a2b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/36f3a2b859b6b5b25c2cfe7fcd7072702b64a6ce))
+* **detect:** Detect `_TZ3000_i9oy2rdq` as Tuya WHD02 https://github.com/Koenkk/zigbee-herdsman-converters/issues/10505 ([b6d10f0](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b6d10f0744cc80687361b72c4c6c91947eeb3eaa))
+* **detect:** Detect `_TZ3000_ma3mhpx2` as Tuya TS0001_switch_1_gang https://github.com/Koenkk/zigbee2mqtt/issues/29201 ([3af4b2f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3af4b2fd3331aac786124b44c5408735ec8fcd0f))
+* **detect:** Detect `_TZ3000_mh9px7cq` as iHseno _TZ3000_mh9px7cq ([#10545](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10545)) ([6038bea](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6038beafbf2c08ea5d3cec0abf0e18e2f557791b))
+* **detect:** Detect `_TZE284_fwondbzy` as Tuya TS0601_smart_human_presence_sensor_1 https://github.com/Koenkk/zigbee2mqtt/issues/29321 ([8537f77](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8537f77a85e0d5e23cc79ca942047ae09941f46c))
+* **detect:** Detect `_TZE284_pcdmj88b` as Tuya TS0601_thermostat_4 https://github.com/Koenkk/zigbee2mqtt/issues/29333 ([75c4194](https://github.com/Koenkk/zigbee-herdsman-converters/commit/75c419465bf4107600baa9fdc698c59b94845310))
+
 ## [25.55.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.54.0...v25.55.0) (2025-10-27)
 
 
