@@ -1623,6 +1623,7 @@ export const definitions: DefinitionWithExtend[] = [
                 unit: "%",
             }),
         ],
+        ota:true,
     },
     {
         fingerprint: [
