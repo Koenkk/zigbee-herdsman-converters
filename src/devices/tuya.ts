@@ -2045,6 +2045,7 @@ export const definitions: DefinitionWithExtend[] = [
                 "_TZ3000_kycczpw8",
                 "_TZ3000_46t1rvdu",
                 "_TZ3000_bhcpnvud",
+                "_TZ3000_i9oy2rdq",
             ]),
             ...tuya.fingerprint("TS000F", [
                 "_TZ3000_hktqahrq",
