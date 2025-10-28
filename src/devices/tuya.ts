@@ -6556,15 +6556,11 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", [
-            "_TZE200_p3dbf6qs" /* model: 'ME167_1', vendor: 'AVATTO' */,
-        ]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_p3dbf6qs" /* model: 'ME167_1', vendor: 'AVATTO' */]),
         model: "TS0601_thermostat_5",
         vendor: "Tuya",
         description: "Thermostatic radiator valve",
-        whiteLabel: [
-            tuya.whitelabel("AVATTO", "ME167_1", "Thermostatic radiator valve", ["_TZE200_p3dbf6qs"]),
-        ],
+        whiteLabel: [tuya.whitelabel("AVATTO", "ME167_1", "Thermostatic radiator valve", ["_TZE200_p3dbf6qs"])],
         extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
         exposes: [
             e.child_lock(),
