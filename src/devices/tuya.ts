@@ -10359,6 +10359,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE200_ztc6ggyl",
             "_TZE200_sgpeacqp",
             "_TZE204_fwondbzy",
+            "_TZE284_fwondbzy",
         ]),
         model: "TS0601_smart_human_presence_sensor_1",
         vendor: "Tuya",
