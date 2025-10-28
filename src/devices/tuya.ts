@@ -6477,7 +6477,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_pcdmj88b"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_pcdmj88b", "_TZE284_pcdmj88b"]),
         model: "TS0601_thermostat_4",
         vendor: "Tuya",
         description: "Thermostatic radiator valve",
