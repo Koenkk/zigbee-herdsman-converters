@@ -12113,7 +12113,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0001", ["_TZ3000_bmqxalil", "_TZ3000_w1tcofu8"]),
+        fingerprint: tuya.fingerprint("TS0001", ["_TZ3000_bmqxalil", "_TZ3000_w1tcofu8", "_TZ3000_ma3mhpx2"]),
         model: "TS0001_switch_1_gang",
         vendor: "Tuya",
         description: "1-Gang switch with backlight",
