@@ -6563,7 +6563,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Tuya",
         description: "Thermostatic radiator valve",
         whiteLabel: [
-            tuya.whitelabel("AVATTO", "ME167", "Thermostatic radiator valve", ["_TZE200_p3dbf6qs"]),
+            tuya.whitelabel("AVATTO", "ME167_1", "Thermostatic radiator valve", ["_TZE200_p3dbf6qs"]),
         ],
         extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
         exposes: [
