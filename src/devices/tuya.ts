@@ -1214,7 +1214,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_vuwtqx0t", "_TZE200_vuwtqx0t"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_vuwtqx0t"]),
         model: "TS0601_water_valve",
         vendor: "Tuya",
         description: "Ultrasonic water meter valve",
@@ -1259,6 +1259,129 @@ export const definitions: DefinitionWithExtend[] = [
                 [21, "flow_rate", tuya.valueConverter.divideBy1000],
                 [22, "temperature", tuya.valueConverter.divideBy100],
                 [26, "voltage", tuya.valueConverter.divideBy100],
+            ],
+        },
+        // Optional: Add device-specific options
+        options: [
+            exposes.options.precision("water_consumed"),
+            exposes.options.calibration("water_consumed"),
+            exposes.options.precision("flow_rate"),
+            exposes.options.calibration("flow_rate"),
+            exposes.options.precision("temperature"),
+            exposes.options.calibration("temperature"),
+        ],
+    },
+        {
+            fingerprint: [
+        {
+            modelID: 'TS0601',
+            manufacturerName: '_TZE284_vuwtqx0t',
+        },
+    ],
+    model: 'TS0601_water_valve',
+    vendor: 'Tuya',
+    description: 'Ultrasonic water meter valve',
+    extend: [],
+    fromZigbee: [tuya.fz.datapoints],
+    // toZigbee: [tuya.tz.datapoints],
+    toZigbee: [tzdatapoints],
+    onEvent: tuya.onEventSetTime,
+    configure: tuya.configureMagicPacket,
+    exposes: [
+        e.numeric('water_consumed', ea.STATE).withUnit("L").withDescription('Total water consumed').withValueMin(0).withValueStep(0.001),
+
+        // Need to fix this month and daily consumption - currently shows as JSON
+        e.numeric('month_consumption', ea.STATE).withUnit("L").withDescription('month consumption').withValueMin(0).withValueStep(0.001),
+        e.numeric('daily_consumption', ea.STATE).withUnit("L").withDescription('daily consumption').withValueMin(0).withValueStep(0.001),
+
+        // Not sure what this does or how to change it
+        // e.numeric('month_and_daily_frozen_set', ea.STATE).withDescription('Month Daily Frozen Set'),
+
+        //  I can't seem to get this to work - when i try to change the value i get an error in zigbee2mqtt, stuck on 1 Hour
+        e.enum('report_period', ea.STATE_SET, ['1h', '2h', '3h', '4h', '6h', '8h', '12h', '24h']).withDescription('Report period'),
+        // e.text('warning', ea.STATE),  // FIX THIS - BITMAP -> fault types
+
+        // These are attempts at getting the valve open/closed switch and the autoclean switch working together.
+        e.binary('state', ea.STATE_SET, 'ON', 'OFF').withDescription('Valve position'),
+
+        // Autoclean switch - deactivated because I dont know how to get it working independently to the valve open/close switch
+        e.binary('auto_clean', ea.STATE_SET, 'ON', 'OFF').withDescription('Auto Clean'),
+        
+        // Note sure what this does - it wasnt in the tuya DP's extracted from the IOT portal?
+        // e.text('something', ea.STATE).withDescription('Something'),
+        // e.text('meter_id', ea.STATE).withDescription('Meter ID (ID of device)'),
+        // Reverse consumption and instantaneous flow are appearing as JSON, in tuya they are a Base 64 but I dont know how to get it to show correctly
+        // e.numeric('reverse_water_consumption', ea.STATE).withDescription('reverse water flow'),
+        
+        e.numeric('flow_rate', ea.STATE).withUnit("L/h").withDescription('Instantaneous water flow rate'),
+        //e.numeric('instantaneous_flow_rate', ea.STATE).withDescription('Inst flow rate'),
+        
+        e.temperature().withDescription('Water Temperature'),
+        e.numeric('battery_voltage', ea.STATE).withUnit("V").withDescription('Voltage Battery'),
+        ],
+
+    meta: {
+        tuyaDatapoints: [
+            [1, "water_consumed", tuya.valueConverter.raw],  // dtype number
+            // DP2 - month_consumption
+            [
+                2, 'month_consumption', {
+                    from: (v) => {
+                        const buf = Buffer.isBuffer(v) ? v : Buffer.from(v || []);
+                        if (buf.length >= 8) {
+                            const value = (buf.readUInt8(4) << 24) +
+                                          (buf.readUInt8(5) << 16) +
+                                          (buf.readUInt8(6) << 8) +
+                                          buf.readUInt8(7);
+                            return value;
+                        }
+                        return 0;
+                    },
+                }
+            ],
+            
+            // DP3 - daily_consumption
+            [
+                3, 'daily_consumption', {
+                    from: (v) => {
+                        const buf = Buffer.isBuffer(v) ? v : Buffer.from(v || []);
+                        if (buf.length >= 8) {
+                            const value = (buf.readUInt8(4) << 24) +
+                                          (buf.readUInt8(5) << 16) +
+                                          (buf.readUInt8(6) << 8) +
+                                          buf.readUInt8(7);
+                            return value;
+                        }
+                        return 0;
+                    },
+                }
+            ],
+            [4,'report_period', tuya.valueConverterBasic.lookup({'1h': tuya.enum(0), '2h': tuya.enum(1), '3h': tuya.enum(2),
+                                                                '4h': tuya.enum(3), '6h': tuya.enum(4), '8h': tuya.enum(5),
+                                                                '12h': tuya.enum(6), '24h': tuya.enum(7)
+                                                            })],   // dtype 4 - enum
+            //[5,'warning', tuya.dataTypes.enum], // bitmap,
+            //[6,'month_and_daily_frozen_set', tuya.valueConverter.raw],  // dtype 0 - raw
+            //[13,'state', tuya.valueConverter.onOff],   // Bool   VALVE OPEN CLOSE
+            [13, "state", tuya.valueConverter.onOffNotStrict],
+            [14,'auto_clean', tuya.valueConverter.onOff],   // Bool   AUTOCLEAN SW -  DISABLED  UNTILL I CAN FIGURE IT OUT
+            //[15,'something', tuya.valueConverter.raw],   // dtype 0 - raw  - No idea what this does?
+            //[16,'meter_id', tuya.valueConverter.raw],  //dtype 3 - raw   METER ID
+            //[18,'reverse_water_consumption', tuya.valueConverter.raw],   // dtype 0 - raw
+            [
+                21, 'flow_rate', {
+                    from: (v) => {
+                        const buf = Buffer.isBuffer(v) ? v : Buffer.from(v || []);
+                        if (buf.length >= 4) {
+                            const value = buf.readUInt32BE(0);
+                            return value;
+                        }
+                        return 0;
+                    },
+                },
+            ],
+            [22,'temperature', tuya.valueConverter.divideBy100],
+            [26,'battery_voltage', tuya.valueConverter.divideBy100],
             ],
         },
         // Optional: Add device-specific options
