@@ -1161,8 +1161,8 @@ const fzKeyActionEvent: Fz.Converter<"customClusterFC12", undefined, ["attribute
     convert: (model, msg, publish, options, meta) => {
         // defensively read endpoint and value (msg shapes can vary)
         const endpoint = Number((msg?.endpoint && (msg.endpoint.ID ?? msg.endpoint)) ?? 0);
-    const data = msg?.data as KeyActionEventData | undefined;
-    const value = Number((data?.keyActionEvent ?? data?.["keyActionEvent"] ?? 0));
+        const data = msg?.data as KeyActionEventData | undefined;
+        const value = Number(data?.keyActionEvent ?? data?.["keyActionEvent"] ?? 0);
         const eventMap: Record<number, string> = {1: "single", 2: "double", 3: "long", 4: "triple"};
         const ev = eventMap[value];
         if (ev) {
