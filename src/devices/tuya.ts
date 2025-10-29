@@ -20372,7 +20372,7 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
-     {
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_65gzcss7"]),
         model: "ZS-302Z",
         vendor: "Arteco",
