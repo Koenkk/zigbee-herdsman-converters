@@ -7339,7 +7339,6 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("BSEED", "TS011F_plug_1_2", "Wall-mounted electrical EU/FR/UK socket with power monitoring", [
                 "_TZ3000_4ux0ondb",
                 "_TZ3000_b28wrpvx",
-                "_TZ3000_2uollq9d",
             ]),
             tuya.whitelabel("BSEED", "_TZ3210_5ct6e7ye", "Wall-mounted electrical EU/FR/UK socket with power monitoring and USB", [
                 "_TZ3210_5ct6e7ye",
@@ -7438,6 +7437,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: [
+            {modelID: "TS011F", applicationVersion: 192, priority: -1},
             {modelID: "TS011F", applicationVersion: 160, priority: -1},
             {modelID: "TS011F", applicationVersion: 100, priority: -1},
             {modelID: "TS011F", applicationVersion: 69, priority: -1},
@@ -7454,6 +7454,7 @@ export const definitions: DefinitionWithExtend[] = [
             {vendor: "BlitzWolf", model: "BW-SHP15"},
             {vendor: "AVATTO", model: "MIUCOT10Z"},
             {vendor: "NEO", model: "PLUG-001SPB2"},
+            tuya.whitelabel("BSEED", "TS011F_plug_3_1", "Wall-mounted electrical EU/FR/UK socket with power monitoring", ["_TZ3000_2uollq9d"]),
         ],
         ota: true,
         extend: [
@@ -7464,7 +7465,7 @@ export const definitions: DefinitionWithExtend[] = [
                 childLock: true,
             }),
             tuya.modernExtend.electricityMeasurementPoll({
-                metering: (device) => [100, 160].includes(device.applicationVersion) || ["1.0.5\u0000"].includes(device.softwareBuildID), // polling for energy
+                metering: (device) => [100, 160, 192].includes(device.applicationVersion) || ["1.0.5\u0000"].includes(device.softwareBuildID), // polling for energy
             }),
         ],
         configure: async (device, coordinatorEndpoint) => {
