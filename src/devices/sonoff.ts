@@ -1138,7 +1138,31 @@ const sonoffExtend = {
         };
     },
 };
-
+const sonoffExtendFc12 = {
+    addCustomClusterFC12: () => m.deviceAddCustomCluster("customClusterFC12", {
+        ID: 0xfc12,
+        attributes: {
+            keyActionEvent: { ID: 0x0000, type: 0x20 }, // UINT8
+        },
+        commands: {},
+        commandsResponse: {},
+    }),
+};
+const fzKeyActionEvent = {
+    cluster: 'customClusterFC12',
+    type: ['attributeReport', 'readResponse'],
+    convert: (model: any, msg: any, publish: any, options: any, meta: any) => {
+        // defensively read endpoint and value (msg shapes can vary)
+        const endpoint = Number((msg && msg.endpoint && (msg.endpoint.ID ?? msg.endpoint)) ?? 0);
+        const value = Number((msg && msg.data && (msg.data['keyActionEvent'] ?? msg.data.keyActionEvent)) ?? 0);
+        const eventMap: Record<number, string> = {1: 'single', 2: 'double', 3: 'long', 4: 'triple'};
+        const ev = eventMap[value];
+        if (ev) {
+            return { action: `btn${endpoint}_${ev}` };
+        }
+        return {};
+    },
+};
 export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["NSPanelP-Router"],
@@ -1690,6 +1714,32 @@ export const definitions: DefinitionWithExtend[] = [
                 voltageReportingConfig: {min: 3600, max: 7200, change: 0},
             }),
         ],
+        ota: true,
+    },
+    {
+        zigbeeModel: ['SNZB-01M'],
+        model: 'SNZB-01M',
+        vendor: 'SONOFF',
+        description: 'Four-way Wireless buttons',
+        fromZigbee: [fzKeyActionEvent],
+        exposes: [
+            e.action([
+                'btn1_single', 'btn1_double', 'btn1_long', 'btn1_triple',
+                'btn2_single', 'btn2_double', 'btn2_long', 'btn2_triple',
+                'btn3_single', 'btn3_double', 'btn3_long', 'btn3_triple',
+                'btn4_single', 'btn4_double', 'btn4_long', 'btn4_triple',
+            ]),
+        ],
+        extend: [
+            m.battery({
+                percentageReportingConfig: { min: 1620, max: 1740, change: 2 },
+                percentage: true,
+                percentageReporting: true,
+            }),
+            m.deviceEndpoints({ endpoints: { btn1: 1, btn2: 2, btn3: 3, btn4: 4 } }),
+            sonoffExtendFc12.addCustomClusterFC12(),
+        ],
+        meta: { multiEndpoint: true },
         ota: true,
     },
     {
