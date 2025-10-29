@@ -970,4 +970,12 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.light({colorTemp: {range: [153, 556]}})],
         ota: true,
     },
-];
+   {
+    zigbeeModel: ['RB 287 C'],
+    model: 'RB 287 C',
+    vendor: 'innr',
+    description: 'White and colour E27 1210lm smart bulb',
+    extend: [m.light({"colorTemp":{"range":[153,556]},"color":{"modes":["xy","hs"],"enhancedHue":true}})],
+    meta: {},
+    ota: true,
+},
