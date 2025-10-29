@@ -1999,29 +1999,62 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Window sensor with 3-state opening (DP101), optional alarm, battery",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
-            // DP101 → enum; device reports 0=open, 1=closed, 2=tilted (note swapped 0/1).
+            e.enum("opening_state", ea.STATE, ["open", "closed", "tilted"]).withDescription("Opening state (Tuya DP101)"),
+            e.binary("alarm_state", ea.STATE_SET, true, false).withDescription("Alarm was triggered."),
+            e.binary("setup_mode", ea.STATE_SET, true, false).withDescription("Set mode status"),
+            e.binary("alarm_siren", ea.STATE_SET, true, false).withDescription("Activate the siren when the alarm is triggered."),
             e
-                .enum("opening_state", ea.STATE, ["open", "closed", "tilted"])
-                .withDescription("Opening state (Tuya DP101)"),
-            // Some firmware variants expose an alarm bit (commonly DP16).
+                .numeric("alarm_siren_duration", ea.STATE_SET)
+                .withDescription("Duration of the alarm siren.")
+                .withValueMin(5)
+                .withValueMax(180)
+                .withValueStep(1),
+            e.numeric("vibration", ea.STATE).withDescription("Value of vibration."),
             e
-                .binary("alarm", ea.STATE, true, false)
-                .withDescription("Alarm (Tuya DP16; some FW variants may use DP10/13)"),
+                .numeric("vibration_limit", ea.STATE_SET)
+                .withDescription("Limit at which a vibration is reported.")
+                .withValueMin(0)
+                .withValueMax(100)
+                .withValueStep(1),
+            e.binary("vibration_sirene", ea.STATE_SET, true, false).withDescription("Activate the siren when vibrating."),
+            e
+                .numeric("vibration_sirene_duration", ea.STATE_SET)
+                .withDescription("Duration of the vibrating siren.")
+                .withValueMin(5)
+                .withValueMax(180)
+                .withValueStep(1),
+            e.binary("close_signal", ea.STATE_SET, true, false).withDescription("Enable sound when closing the window."),
+            e
+                .numeric("transmission_power", ea.STATE_SET)
+                .withDescription("Transmission power 11-19. High value > battery consumption.")
+                .withValueMin(11)
+                .withValueMax(19)
+                .withValueStep(1),
+            e.binary("magnetic_status", ea.STATE, true, false).withDescription("Magnetic status."),
             e.battery(),
         ],
         meta: {
-            // Datapoints from logs:
-            //  - 101: 0=open, 1=closed, 2=tilted
-            //  - 16 : alarm (boolean) — optional by firmware
-            //  - 102: battery percentage (0..100)
             tuyaDatapoints: [
-                [101, "opening_state", tuya.valueConverterBasic.lookup({open: 0, closed: 1, tilted: 2})],
-                // Alarm: primary DP16; some FW-Versions uses 10/13
-                [10, "alarm", tuya.valueConverter.raw],
-                [13, "alarm", tuya.valueConverter.raw],
-                [16, "alarm", tuya.valueConverter.raw],
-                // Battery: primary DP102; DP2 as fallback for other batches
-                [102, "battery", tuya.valueConverter.raw],
+                [
+                    101,
+                    "opening_state",
+                    tuya.valueConverterBasic.lookup({
+                        open: 0,
+                        closed: 1,
+                        tilted: 2,
+                    }),
+                ],
+                [16, "alarm_state", tuya.valueConverter.raw],
+                [107, "setup_mode", tuya.valueConverter.raw],
+                [103, "alarm_siren", tuya.valueConverter.raw],
+                [109, "alarm_siren_duration", tuya.valueConverter.raw],
+                [102, "vibration", tuya.valueConverter.raw],
+                [106, "vibration_limit", tuya.valueConverter.raw],
+                [110, "vibration_sirene_duration", tuya.valueConverter.raw],
+                [108, "vibration_sirene", tuya.valueConverter.raw],
+                [104, "close_signal", tuya.valueConverter.raw],
+                [105, "transmission_power", tuya.valueConverter.raw],
+                [111, "magnetic_status", tuya.valueConverter.raw],
                 [2, "battery", tuya.valueConverter.raw],
             ],
         },
