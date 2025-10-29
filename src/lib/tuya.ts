@@ -2526,9 +2526,16 @@ const tuyaModernExtend = {
             ...args,
         });
     },
-    tuyaLight(args?: modernExtend.LightArgs & {minBrightness?: "none" | "attribute" | "command"; switchType?: boolean}) {
+    tuyaLight(
+        args?: modernExtend.LightArgs & {
+            minBrightness?: "none" | "attribute" | "command";
+            switchType?: boolean;
+            doNotDisturb?: boolean;
+            colorPowerOnBehavior?: boolean;
+        },
+    ): ModernExtend {
         // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
-        args = {minBrightness: "none", powerOnBehavior: false, switchType: false, ...args};
+        args = {minBrightness: "none", powerOnBehavior: false, switchType: false, doNotDisturb: true, colorPowerOnBehavior: true, ...args};
         if (args.colorTemp) {
             args.colorTemp = {startup: false, ...args.colorTemp};
         }
@@ -2539,8 +2546,11 @@ const tuyaModernExtend = {
         const result = modernExtend.light({...args, powerOnBehavior: false});
 
         result.fromZigbee.push(tuyaFz.brightness);
-        result.toZigbee.push(tuyaTz.do_not_disturb);
-        result.exposes.push(tuyaExposes.doNotDisturb());
+
+        if (args.doNotDisturb) {
+            result.toZigbee.push(tuyaTz.do_not_disturb);
+            result.exposes.push(tuyaExposes.doNotDisturb());
+        }
 
         if (args.powerOnBehavior) {
             result.fromZigbee.push(tuyaFz.power_on_behavior_2);
@@ -2569,7 +2579,7 @@ const tuyaModernExtend = {
             );
         }
 
-        if (args.color) {
+        if (args.color && args.colorPowerOnBehavior) {
             result.toZigbee.push(tuyaTz.color_power_on_behavior);
             result.exposes.push(tuyaExposes.colorPowerOnBehavior());
         }
@@ -2581,7 +2591,7 @@ const tuyaModernExtend = {
     tuyaOnOff: (
         args: {
             endpoints?: string[];
-            powerOutageMemory?: boolean;
+            powerOutageMemory?: boolean | ((manufacturerName: string) => boolean);
             powerOnBehavior2?: boolean;
             switchType?: boolean;
             switchTypeCurtain?: boolean;
@@ -2593,9 +2603,9 @@ const tuyaModernExtend = {
             electricalMeasurements?: boolean;
             // biome-ignore lint/suspicious/noExplicitAny: generic
             electricalMeasurementsFzConverter?: Fz.Converter<"haElectricalMeasurement", undefined, any>;
-            childLock?: boolean;
+            childLock?: boolean | ((manufacturerName: string) => boolean);
             switchMode?: boolean;
-            onOffCountdown?: boolean;
+            onOffCountdown?: boolean | ((manufacturerName: string) => boolean);
             inchingSwitch?: boolean;
         } = {},
     ): ModernExtend => {
