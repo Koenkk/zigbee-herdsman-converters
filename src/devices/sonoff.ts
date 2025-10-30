@@ -8,7 +8,7 @@ import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as tuya from "../lib/tuya";
-import type {DefinitionWithExtend, Fz, KeyValue, ModernExtend, Tz} from "../lib/types";
+import type {DefinitionWithExtend, Expose, Fz, KeyValue, ModernExtend, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
 
 const {ewelinkAction, ewelinkBattery} = ewelinkModernExtend;
@@ -143,8 +143,11 @@ const tzLocal = {
     } satisfies Tz.Converter,
 };
 
-type EntityCategoryArgs = {
-    entityCategory?: "config" | "diagnostic";
+type ExternalSwitchTypeCfgAgs = {
+    endpointNames?: string[];
+};
+type ExternalInchingAgs = {
+    endpointNames?: string[];
 };
 
 export interface SonoffEwelink {
@@ -214,38 +217,46 @@ const sonoffExtend = {
             },
             commandsResponse: {},
         }),
-    inchingControlSet: (args: EntityCategoryArgs = {}): ModernExtend => {
-        const {entityCategory} = args;
-
+    inchingControlSet: (args: ExternalInchingAgs = {}): ModernExtend => {
+        const {endpointNames = undefined} = args;
         const clusterName = "customClusterEwelink";
         const commandName = "protocolData";
-        let exposes = e
-            .composite("inching_control_set", "inching_control_set", ea.SET)
-            .withDescription(
-                "Device Inching function Settings. The device will automatically turn off (turn on) " +
-                    "after each turn on (turn off) for a specified period of time.",
-            )
-            .withFeature(e.binary("inching_control", ea.SET, "ENABLE", "DISABLE").withDescription("Enable/disable inching function."))
-            .withFeature(
-                e
-                    .numeric("inching_time", ea.SET)
-                    .withDescription("Delay time for executing a inching action.")
-                    .withUnit("seconds")
-                    .withValueMin(0.5)
-                    .withValueMax(3599.5)
-                    .withValueStep(0.5),
-            )
-            .withFeature(e.binary("inching_mode", ea.SET, "ON", "OFF").withDescription("Set inching off or inching on mode.").withValueToggle("ON"));
-
-        if (entityCategory) exposes = exposes.withCategory(entityCategory);
+        const exposes = utils.exposeEndpoints(
+            e
+                .composite("inching_control_set", "inching_control_set", ea.SET)
+                .withDescription(
+                    "Device Inching function Settings. The device will automatically turn off (turn on) " +
+                        "after each turn on (turn off) for a specified period of time.",
+                )
+                .withFeature(e.binary("inching_control", ea.SET, "ENABLE", "DISABLE").withDescription("Enable/disable inching function."))
+                .withFeature(
+                    e
+                        .numeric("inching_time", ea.SET)
+                        .withDescription("Delay time for executing a inching action.")
+                        .withUnit("seconds")
+                        .withValueMin(0.5)
+                        .withValueMax(3599.5)
+                        .withValueStep(0.5),
+                )
+                .withFeature(
+                    e.binary("inching_mode", ea.SET, "ON", "OFF").withDescription("Set inching off or inching on mode.").withValueToggle("ON"),
+                ),
+            endpointNames,
+        );
 
         const toZigbee: Tz.Converter[] = [
             {
                 key: ["inching_control_set"],
                 convertSet: async (entity, key, value, meta) => {
-                    const inchingControl: string = "inching_control";
-                    const inchingTime: string = "inching_time";
-                    const inchingMode: string = "inching_mode";
+                    let inchingControl = "inching_control";
+                    let inchingTime = "inching_time";
+                    let inchingMode = "inching_mode";
+
+                    if (meta.endpoint_name) {
+                        inchingControl = `inching_control_${meta.endpoint_name}`;
+                        inchingTime = `inching_time_${meta.endpoint_name}`;
+                        inchingMode = `inching_mode_${meta.endpoint_name}`;
+                    }
 
                     const tmpTime = Number(Math.round(Number((value[inchingTime as keyof typeof value] * 2).toFixed(1))).toFixed(1));
 
@@ -263,7 +274,11 @@ const sonoffExtend = {
                         payloadValue[4] |= 0x01;
                     }
 
-                    payloadValue[5] = 0x00; // Channel
+                    if (meta.endpoint_name === "l2") {
+                        payloadValue[5] = 0x01; // Channel 2
+                    } else {
+                        payloadValue[5] = 0x00; // Channel 1
+                    }
 
                     payloadValue[6] = tmpTime & 0xff; // Timeout
                     payloadValue[7] = (tmpTime >> 8) & 0xff;
@@ -287,7 +302,7 @@ const sonoffExtend = {
             },
         ];
         return {
-            exposes: [exposes],
+            exposes: exposes,
             fromZigbee: [],
             toZigbee,
             isModernExtend: true,
@@ -659,19 +674,19 @@ const sonoffExtend = {
             isModernExtend: true,
         };
     },
-    externalSwitchTriggerMode: (args: EntityCategoryArgs = {}): ModernExtend => {
-        const {entityCategory} = args;
-
+    externalSwitchTriggerMode: (args: ExternalSwitchTypeCfgAgs = {}): ModernExtend => {
         const clusterName = "customClusterEwelink" as const;
         const attributeName = "externalTriggerMode" as const;
-        let exposes = e
-            .enum("external_trigger_mode", ea.ALL, ["edge", "pulse", "following(off)", "following(on)"])
-            .withDescription(
-                "External trigger mode, which can be one of edge, pulse, " +
-                    "following(off), following(on). The appropriate triggering mode can be selected according to the type of " +
-                    "external switch to achieve a better use experience.",
-            );
-        if (entityCategory) exposes = exposes.withCategory(entityCategory);
+        const {endpointNames = undefined} = args;
+        const description: string =
+            "External trigger mode, which can be one of edge, pulse, " +
+            "following(off), following(on). The appropriate triggering mode can be selected according to the type of " +
+            "external switch to achieve a better use experience.";
+
+        const exposes: Expose[] = utils.exposeEndpoints(
+            e.enum("external_trigger_mode", ea.ALL, ["edge", "pulse", "following(off)", "following(on)"]).withDescription(description),
+            endpointNames,
+        );
 
         const fromZigbee = [
             {
@@ -712,7 +727,7 @@ const sonoffExtend = {
             },
         ];
         return {
-            exposes: [exposes],
+            exposes: exposes,
             fromZigbee,
             toZigbee,
             isModernExtend: true,
@@ -2398,8 +2413,8 @@ export const definitions: DefinitionWithExtend[] = [
                 valueOff: [false, 0],
                 valueOn: [true, 1],
             }),
-            sonoffExtend.externalSwitchTriggerMode({entityCategory: "config"}),
-            sonoffExtend.inchingControlSet({entityCategory: "config"}),
+            sonoffExtend.externalSwitchTriggerMode(),
+            sonoffExtend.inchingControlSet(),
         ],
         ota: true,
         configure: async (device, coordinatorEndpoint) => {
@@ -2685,7 +2700,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "The motor's current operating status, such as forward rotation, reverse rotation, and stop.",
                 access: "STATE_GET",
             }),
-            sonoffExtend.externalSwitchTriggerMode({entityCategory: "config"}),
+            sonoffExtend.externalSwitchTriggerMode(),
         ],
         ota: true,
         configure: async (device, coordinatorEndpoint) => {
@@ -2695,6 +2710,159 @@ export const definitions: DefinitionWithExtend[] = [
                 ["radioPower", 0x0016, 0x5012, 0x5013],
                 defaultResponseOptions,
             );
+        },
+    },
+    {
+        zigbeeModel: ["MINI-ZB2GS"],
+        model: "MINI-ZB2GS",
+        vendor: "SONOFF",
+        description: "Zigbee dual-channel smart switch",
+        exposes: [],
+        ota: true,
+        extend: [
+            m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
+            m.commandsOnOff({commands: ["toggle"], endpointNames: ["l1", "l2"]}),
+            m.onOff({endpointNames: ["l1", "l2"]}),
+            sonoffExtend.addCustomClusterEwelink(),
+            sonoffExtend.externalSwitchTriggerMode({endpointNames: ["l1", "l2"]}),
+            sonoffExtend.detachRelayModeControl(2),
+            sonoffExtend.inchingControlSet({endpointNames: ["l1", "l2"]}),
+            m.binary<"customClusterEwelink", SonoffEwelink>({
+                name: "network_indicator",
+                cluster: "customClusterEwelink",
+                attribute: "networkLed",
+                description: "Network indicator settings, turn off/on the blue online status network indicator.",
+                valueOff: [false, 0],
+                valueOn: [true, 1],
+            }),
+            m.binary<"customClusterEwelink", SonoffEwelink>({
+                name: "turbo_mode",
+                cluster: "customClusterEwelink",
+                attribute: "radioPower",
+                description: "Enable/disable Radio power turbo mode",
+                entityCategory: "config",
+                valueOff: [false, 0x09],
+                valueOn: [true, 0x14],
+            }),
+            m.binary<"customClusterEwelink", SonoffEwelink>({
+                name: "delayed_power_on_state_channel_1",
+                cluster: "customClusterEwelink",
+                attribute: "delayedPowerOnState",
+                description: "Delayed Power-on State(Channel 1)",
+                entityCategory: "config",
+                valueOff: [false, 0],
+                valueOn: [true, 1],
+                endpointName: "l1",
+            }),
+            m.binary<"customClusterEwelink", SonoffEwelink>({
+                name: "delayed_power_on_state_channel_2",
+                cluster: "customClusterEwelink",
+                attribute: "delayedPowerOnState",
+                description: "Delayed Power-on State(Channel 2)",
+                entityCategory: "config",
+                valueOff: [false, 0],
+                valueOn: [true, 1],
+                endpointName: "l2",
+            }),
+            m.numeric<"customClusterEwelink", SonoffEwelink>({
+                name: "delayed_power_on_time",
+                cluster: "customClusterEwelink",
+                attribute: "delayedPowerOnTime",
+                description: "Delayed Power-on time",
+                entityCategory: "config",
+                valueMin: 0.5,
+                valueMax: 3599.5,
+                valueStep: 0.5,
+                unit: "seconds",
+                scale: 2,
+                endpointNames: ["l1", "l2"],
+            }),
+        ],
+
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint1 = device.getEndpoint(1);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ["genOnOff", "customClusterEwelink"]);
+            await reporting.onOff(endpoint1, {min: 1, max: 1800, change: 0});
+            await endpoint1.read("genOnOff", [0x0000, 0x4003], defaultResponseOptions);
+            await endpoint1.read("customClusterEwelink", [0x0014, 0x0015, 0x0016, 0x0019], defaultResponseOptions);
+            await endpoint1.configureReporting<"customClusterEwelink", SonoffEwelink>("customClusterEwelink", [
+                {attribute: "externalTriggerMode", minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 1},
+            ]);
+            const endpoint2 = device.getEndpoint(2);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ["genOnOff", "customClusterEwelink"]);
+            await reporting.onOff(endpoint2, {min: 1, max: 1800, change: 0});
+            await endpoint2.read("genOnOff", [0x0000, 0x4003], defaultResponseOptions);
+            await endpoint1.read("customClusterEwelink", [0x0014, 0x0015, 0x0016], defaultResponseOptions);
+            await endpoint2.configureReporting<"customClusterEwelink", SonoffEwelink>("customClusterEwelink", [
+                {attribute: "externalTriggerMode", minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 1},
+            ]);
+        },
+    },
+    {
+        zigbeeModel: ["MINI-ZB2GS-L"],
+        model: "MINI-ZB2GS-L",
+        vendor: "SONOFF",
+        description: "Zigbee dual-channel smart switch",
+        exposes: [],
+        ota: true,
+        extend: [
+            m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
+            m.commandsOnOff({commands: ["toggle"], endpointNames: ["l1", "l2"]}),
+            m.onOff({endpointNames: ["l1", "l2"]}),
+            sonoffExtend.addCustomClusterEwelink(),
+            sonoffExtend.externalSwitchTriggerMode({endpointNames: ["l1", "l2"]}),
+            sonoffExtend.detachRelayModeControl(2),
+            m.binary<"customClusterEwelink", SonoffEwelink>({
+                name: "delayed_power_on_state_channel_1",
+                cluster: "customClusterEwelink",
+                attribute: "delayedPowerOnState",
+                description: "Delayed Power-on State(Channel 1)",
+                entityCategory: "config",
+                valueOff: [false, 0],
+                valueOn: [true, 1],
+                endpointName: "l1",
+            }),
+            m.binary<"customClusterEwelink", SonoffEwelink>({
+                name: "delayed_power_on_state_channel_2",
+                cluster: "customClusterEwelink",
+                attribute: "delayedPowerOnState",
+                description: "Delayed Power-on State(Channel 2)",
+                entityCategory: "config",
+                valueOff: [false, 0],
+                valueOn: [true, 1],
+                endpointName: "l2",
+            }),
+            m.numeric<"customClusterEwelink", SonoffEwelink>({
+                name: "delayed_power_on_time",
+                cluster: "customClusterEwelink",
+                attribute: "delayedPowerOnTime",
+                description: "Delayed Power-on time",
+                entityCategory: "config",
+                valueMin: 0.5,
+                valueMax: 3599.5,
+                valueStep: 0.5,
+                unit: "seconds",
+                scale: 2,
+                endpointNames: ["l1", "l2"],
+            }),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint1 = device.getEndpoint(1);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ["genOnOff", "customClusterEwelink"]);
+            await reporting.onOff(endpoint1, {min: 1, max: 1800, change: 0});
+            await endpoint1.read("genOnOff", [0x0000, 0x4003], defaultResponseOptions);
+            await endpoint1.read("customClusterEwelink", [0x0014, 0x0015, 0x0016, 0x0019], defaultResponseOptions);
+            await endpoint1.configureReporting<"customClusterEwelink", SonoffEwelink>("customClusterEwelink", [
+                {attribute: "externalTriggerMode", minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 1},
+            ]);
+            const endpoint2 = device.getEndpoint(2);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ["genOnOff", "customClusterEwelink"]);
+            await reporting.onOff(endpoint2, {min: 1, max: 1800, change: 0});
+            await endpoint2.read("genOnOff", [0x0000, 0x4003], defaultResponseOptions);
+            await endpoint1.read("customClusterEwelink", [0x0014, 0x0015, 0x0016], defaultResponseOptions);
+            await endpoint2.configureReporting<"customClusterEwelink", SonoffEwelink>("customClusterEwelink", [
+                {attribute: "externalTriggerMode", minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 1},
+            ]);
         },
     },
 ];
