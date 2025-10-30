@@ -1279,26 +1279,78 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.numeric("water_consumed", ea.STATE).withUnit("m³").withDescription("Total water consumption").withValueMin(0).withValueStep(0.001),
-
             e.numeric("month_consumption", ea.STATE).withUnit("m³").withDescription("Monthly water consumption").withValueMin(0).withValueStep(0.001),
-
             e.numeric("daily_consumption", ea.STATE).withUnit("m³").withDescription("Daily water consumption").withValueMin(0).withValueStep(0.001),
-
-            e.enum("report_period", ea.ALL, ["1h", "2h", "3h", "4h", "6h", "8h", "12h", "24h"]).withDescription("Report period (1h–24h)"),
-
-            e.text("meter_id", ea.STATE).withDescription("Meter identification SN"),
-
-            e.numeric("flow_rate", ea.STATE).withUnit("m³/h").withDescription("Instantaneous water flow rate").withValueMin(0).withValueStep(0.001),
-
-            e.temperature().withDescription("Working temperature"),
-
-            e.voltage().withDescription("Power supply voltage"),
-
+            e.numeric("flow_rate", ea.STATE).withUnit("m³/h").withDescription("Instantaneous flow rate").withValueMin(0).withValueStep(0.001),
+            e
+                .numeric("reverse_water_consumed", ea.STATE)
+                .withUnit("m³")
+                .withDescription("Reverse water consumption")
+                .withValueMin(0)
+                .withValueStep(0.001),
+            e.enum("report_period", ea.STATE_SET, ["1h", "2h", "3h", "4h", "6h", "8h", "12h", "24h"]).withDescription("Report period"),
+            e.text("meter_id", ea.STATE).withDescription("Meter identification number"),
+            e.temperature(),
+            e.voltage(),
             e.enum("fault", ea.STATE, ["empty_pipe", "no_fault"]).withDescription("Fault status"),
         ],
         meta: {
             tuyaDatapoints: [
                 [1, "water_consumed", tuya.valueConverter.divideBy1000],
+                [
+                    2,
+                    "month_consumption",
+                    {
+                        from: (value, meta) => {
+                            const buffer = Buffer.from(value);
+                            if (buffer.length >= 8) {
+                                try {
+                                    const uintValue = buffer.slice(-4).readUInt32BE(0);
+                                    return uintValue / 1000;
+                                } catch (_error) {
+                                    return null;
+                                }
+                            }
+                            return null;
+                        },
+                    },
+                ],
+                [
+                    3,
+                    "daily_consumption",
+                    {
+                        from: (value, meta) => {
+                            const buffer = Buffer.from(value);
+                            if (buffer.length >= 8) {
+                                try {
+                                    const uintValue = buffer.slice(-4).readUInt32BE(0);
+                                    return uintValue / 1000;
+                                } catch (_error) {
+                                    return null;
+                                }
+                            }
+                            return null;
+                        },
+                    },
+                ],
+                [
+                    21,
+                    "flow_rate",
+                    {
+                        from: (value, meta) => {
+                            const buffer = Buffer.from(value);
+                            if (buffer.length >= 4) {
+                                try {
+                                    const uintValue = buffer.slice(-4).readUInt32BE(0);
+                                    return uintValue / 1000;
+                                } catch (_error) {
+                                    return null;
+                                }
+                            }
+                            return null;
+                        },
+                    },
+                ],
                 [
                     4,
                     "report_period",
@@ -1313,25 +1365,41 @@ export const definitions: DefinitionWithExtend[] = [
                         "24h": 7,
                     }),
                 ],
+                [5, "fault", tuya.valueConverterBasic.lookup({empty_pipe: 6144, no_fault: 0})],
                 [16, "meter_id", tuya.valueConverter.raw],
-                [21, "flow_rate", tuya.valueConverter.divideBy1000],
+                [
+                    18,
+                    "reverse_water_consumed",
+                    {
+                        from: (value, meta) => {
+                            const buffer = Buffer.from(value);
+                            if (buffer.length >= 4) {
+                                try {
+                                    const uintValue = buffer.readUInt32BE(0);
+                                    return uintValue / 1000;
+                                } catch (_error) {
+                                    return null;
+                                }
+                            }
+                            return null;
+                        },
+                    },
+                ],
                 [22, "temperature", tuya.valueConverter.divideBy100],
                 [26, "voltage", tuya.valueConverter.divideBy100],
-                [
-                    5,
-                    "fault",
-                    tuya.valueConverterBasic.lookup({
-                        empty_pipe: 6144,
-                        no_fault: 0,
-                    }),
-                ],
             ],
         },
         options: [
             exposes.options.precision("water_consumed"),
             exposes.options.calibration("water_consumed"),
+            exposes.options.precision("month_consumption"),
+            exposes.options.calibration("month_consumption"),
+            exposes.options.precision("daily_consumption"),
+            exposes.options.calibration("daily_consumption"),
             exposes.options.precision("flow_rate"),
             exposes.options.calibration("flow_rate"),
+            exposes.options.precision("reverse_water_consumed"),
+            exposes.options.calibration("reverse_water_consumed"),
             exposes.options.precision("temperature"),
             exposes.options.calibration("temperature"),
         ],
