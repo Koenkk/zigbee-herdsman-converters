@@ -1999,7 +1999,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Window sensor with 3-state opening (DP101), optional alarm, battery",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
-            e.enum("opening_state", ea.STATE, ["open", "closed", "tilted"]).withDescription("Opening state (Tuya DP101)"),
+            e.enum("opening_state", ea.STATE, ["open", "closed", "tilted"]).withDescription("Opening state"),
             e.binary("alarm_state", ea.STATE_SET, true, false).withDescription("Alarm was triggered."),
             e.binary("setup_mode", ea.STATE_SET, true, false).withDescription("Set mode status"),
             e.binary("alarm_siren", ea.STATE_SET, true, false).withDescription("Activate the siren when the alarm is triggered."),
