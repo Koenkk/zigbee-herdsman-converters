@@ -2904,7 +2904,10 @@ export const definitions: DefinitionWithExtend[] = [
                 [5, "temperature", tuya.valueConverter.divideBy10],
                 [9, "temperature_unit", tuya.valueConverter.temperatureUnit],
                 [14, "battery_state", tuya.valueConverter.batteryState],
-                [15, "battery", tuya.valueConverterBasic.scale(6, 60, 0, 100)], //device reports back false scaling
+                // https://github.com/Koenkk/zigbee-herdsman-converters/pull/8449
+                // [15, "battery", tuya.valueConverterBasic.scale(6, 60, 0, 100)], //device reports back false scaling
+                // https://github.com/Koenkk/zigbee2mqtt/issues/26215#issuecomment-3466490289
+                [15, "battery", tuya.valueConverter.raw],
             ],
         },
         whiteLabel: [
