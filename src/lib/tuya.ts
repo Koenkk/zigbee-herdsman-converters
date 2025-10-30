@@ -2614,7 +2614,6 @@ const tuyaModernExtend = {
         const {indicatorMode = false} = args;
         const {powerOutageMemory = false} = args;
         const {childLock = false} = args;
-        const {onOffCountdown = false} = args;
         const exposes: (Expose | DefinitionExposesFunction)[] = args.endpoints
             ? args.endpoints.map((ee) => e.switch().withEndpoint(ee))
             : [e.switch()];
@@ -2628,11 +2627,6 @@ const tuyaModernExtend = {
                 exposes.push(...args.endpoints.map((ee) => tuyaExposes.countdown().withAccess(ea.ALL).withEndpoint(ee)));
             } else {
                 exposes.push(tuyaExposes.countdown().withAccess(ea.ALL));
-            }
-            if (typeof onOffCountdown === "function") {
-                exposes.push((d) => (onOffCountdown(d.manufacturerName) ? [tuyaExposes.onOffCountdown()] : []));
-            } else {
-                exposes.push(tuyaExposes.countdown());
             }
         } else {
             toZigbee.push(tz.on_off);
