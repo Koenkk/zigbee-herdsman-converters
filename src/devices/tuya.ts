@@ -1296,99 +1296,72 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         meta: {
             tuyaDatapoints: [
-                [1, "water_consumed", tuya.valueConverter.divideBy1000],
-                [
-                    2,
-                    "month_consumption",
-                    {
-                        from: (value, meta) => {
-                            const buffer = Buffer.from(value);
-                            if (buffer.length >= 8) {
-                                try {
-                                    const uintValue = buffer.slice(-4).readUInt32BE(0);
-                                    return uintValue / 1000;
-                                } catch (error) {
-                                    return null;
-                                }
-                            }
+            [1, 'water_consumed', tuya.valueConverter.divideBy1000],
+            [2, 'month_consumption', {
+                from: (value, meta) => {
+                    const buffer = Buffer.from(value);
+                    if (buffer.length >= 8) {
+                        try {
+                            const uintValue = buffer.slice(-4).readUInt32BE(0);
+                            return uintValue / 1000;
+                        } catch (_error) {
                             return null;
-                        },
-                    },
-                ],
-                [
-                    3,
-                    "daily_consumption",
-                    {
-                        from: (value, meta) => {
-                            const buffer = Buffer.from(value);
-                            if (buffer.length >= 8) {
-                                try {
-                                    const uintValue = buffer.slice(-4).readUInt32BE(0);
-                                    return uintValue / 1000;
-                                } catch (error) {
-                                    return null;
-                                }
-                            }
+                        }
+                    }
+                    return null;
+                },
+            }],
+            [3, 'daily_consumption', {
+                from: (value, meta) => {
+                    const buffer = Buffer.from(value);
+                    if (buffer.length >= 8) {
+                        try {
+                            const uintValue = buffer.slice(-4).readUInt32BE(0);
+                            return uintValue / 1000;
+                        } catch (_error) {
                             return null;
-                        },
-                    },
-                ],
-                [
-                    21,
-                    "flow_rate",
-                    {
-                        from: (value, meta) => {
-                            const buffer = Buffer.from(value);
-                            if (buffer.length >= 4) {
-                                try {
-                                    const uintValue = buffer.slice(-4).readUInt32BE(0);
-                                    return uintValue / 1000;
-                                } catch (error) {
-                                    return null;
-                                }
-                            }
+                        }
+                    }
+                    return null;
+                },
+            }],
+            [21, 'flow_rate', {
+                from: (value, meta) => {
+                    const buffer = Buffer.from(value);
+                    if (buffer.length >= 4) {
+                        try {
+                            const uintValue = buffer.slice(-4).readUInt32BE(0);
+                            return uintValue / 1000;
+                        } catch (_error) {
                             return null;
-                        },
-                    },
-                ],
-                [
-                    4,
-                    "report_period",
-                    tuya.valueConverterBasic.lookup({
-                        "1h": 0,
-                        "2h": 1,
-                        "3h": 2,
-                        "4h": 3,
-                        "6h": 4,
-                        "8h": 5,
-                        "12h": 6,
-                        "24h": 7,
-                    }),
-                ],
-                [5, "fault", tuya.valueConverterBasic.lookup({empty_pipe: 6144, no_fault: 0})],
-                [16, "meter_id", tuya.valueConverter.raw],
-                [
-                    18,
-                    "reverse_water_consumed",
-                    {
-                        from: (value, meta) => {
-                            const buffer = Buffer.from(value);
-                            if (buffer.length >= 4) {
-                                try {
-                                    const uintValue = buffer.readUInt32BE(0);
-                                    return uintValue / 1000;
-                                } catch (error) {
-                                    return null;
-                                }
-                            }
+                        }
+                    }
+                    return null;
+                },
+            }],
+            [4, 'report_period', tuya.valueConverterBasic.lookup({
+                '1h': 0, '2h': 1, '3h': 2, '4h': 3, '6h': 4, '8h': 5, '12h': 6, '24h': 7,
+            })],
+            [5, 'fault', tuya.valueConverterBasic.lookup({empty_pipe: 6144, no_fault: 0})],
+            [16, 'meter_id', tuya.valueConverter.raw],
+            [18, 'reverse_water_consumed', {
+                from: (value, meta) => {
+                    const buffer = Buffer.from(value);
+                    if (buffer.length >= 4) {
+                        try {
+                            const uintValue = buffer.readUInt32BE(0);
+                            return uintValue / 1000;
+                        } catch (_error) {
                             return null;
-                        },
-                    },
-                ],
-                [22, "temperature", tuya.valueConverter.divideBy100],
-                [26, "voltage", tuya.valueConverter.divideBy100],
-            ],
-        },
+                        }
+                    }
+                    return null;
+                },
+            }],
+            [22, 'temperature', tuya.valueConverter.divideBy100],
+            [26, 'voltage', tuya.valueConverter.divideBy100],
+        ],
+    },
         options: [
             exposes.options.precision("water_consumed"),
             exposes.options.calibration("water_consumed"),
