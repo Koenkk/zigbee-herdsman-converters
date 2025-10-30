@@ -2612,6 +2612,9 @@ const tuyaModernExtend = {
         } = {},
     ): ModernExtend => {
         const {indicatorMode = false} = args;
+        const {powerOutageMemory = false} = args;
+        const {childLock = false} = args;
+        const {onOffCountdown = false} = args;
         const exposes: (Expose | DefinitionExposesFunction)[] = args.endpoints
             ? args.endpoints.map((ee) => e.switch().withEndpoint(ee))
             : [e.switch()];
@@ -2626,14 +2629,23 @@ const tuyaModernExtend = {
             } else {
                 exposes.push(tuyaExposes.countdown().withAccess(ea.ALL));
             }
+            if (typeof onOffCountdown === "function") {
+                exposes.push((d) => (onOffCountdown(d.manufacturerName) ? [tuyaExposes.onOffCountdown()] : []));
+            } else {
+                exposes.push(tuyaExposes.countdown());
+            }
         } else {
             toZigbee.push(tz.on_off);
         }
-        if (args.powerOutageMemory) {
+        if (powerOutageMemory) {
             // Legacy, powerOnBehavior is preferred
             fromZigbee.push(tuyaFz.power_outage_memory);
             toZigbee.push(tuyaTz.power_on_behavior_1);
-            exposes.push(tuyaExposes.powerOutageMemory());
+            if (typeof powerOutageMemory === "function") {
+                exposes.push((d) => (powerOutageMemory(d.manufacturerName) ? [tuyaExposes.powerOutageMemory()] : []));
+            } else {
+                exposes.push(tuyaExposes.powerOutageMemory());
+            }
         } else if (args.powerOnBehavior2) {
             fromZigbee.push(tuyaFz.power_on_behavior_2);
             toZigbee.push(tuyaTz.power_on_behavior_2);
@@ -2675,12 +2687,12 @@ const tuyaModernExtend = {
         }
         if (indicatorMode) {
             fromZigbee.push(tuyaFz.indicator_mode);
+            toZigbee.push(tuyaTz.backlight_indicator_mode_1);
             if (typeof indicatorMode === "function") {
                 exposes.push((d) => (indicatorMode(d.manufacturerName) ? [tuyaExposes.indicatorMode()] : []));
             } else {
                 exposes.push(tuyaExposes.indicatorMode());
             }
-            toZigbee.push(tuyaTz.backlight_indicator_mode_1);
         }
         if (args.indicatorModeNoneRelayPos) {
             fromZigbee.push(tuyaFz.indicator_mode_none_relay_pos);
@@ -2691,10 +2703,14 @@ const tuyaModernExtend = {
             fromZigbee.push(args.electricalMeasurementsFzConverter || fz.electrical_measurement, fz.metering);
             exposes.push(e.power(), e.current(), e.voltage(), e.energy());
         }
-        if (args.childLock) {
+        if (childLock) {
             fromZigbee.push(tuyaFz.child_lock);
             toZigbee.push(tuyaTz.child_lock);
-            exposes.push(e.child_lock());
+            if (typeof childLock === "function") {
+                exposes.push((d) => (childLock(d.manufacturerName) ? [e.child_lock()] : []));
+            } else {
+                exposes.push(e.child_lock());
+            }
         }
 
         if (args.switchMode) {
