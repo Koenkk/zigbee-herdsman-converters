@@ -19860,11 +19860,12 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_k7p2q5d9"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_k7p2q5d9", "_TZE284_65gzcss7"]),
         model: "ZS-300Z",
         vendor: "Arteco",
         description: "Soil moisture sensor",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        whiteLabel: [tuya.whitelabel("Arteco", "ZS-302Z", "Soil moisture sensor", ["_TZE284_65gzcss7"])],
         exposes: [
             e.enum("water_warning", ea.STATE, ["none", "alarm"]).withDescription("Water shortage warning"),
             e.enum("battery_state", ea.STATE, ["low", "middle", "high"]).withDescription("low: 16.67%, middle:16.68-83.33%, high: 83.34-100%"),
