@@ -1,5 +1,34 @@
 # Changelog
 
+## [25.57.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.56.0...v25.57.0) (2025-10-30)
+
+
+### Features
+
+* **add:** 1245920 ([#10565](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10565)) ([ba31e96](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ba31e96a42d2c00b5a6d47907824f11fcd6a24af))
+* **add:** 5042148P9 ([#10585](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10585)) ([2188a94](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2188a94c03a83b267497be9af15f074bec06503d))
+* **add:** Dongle-LMG21 ([#10581](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10581)) ([e4d43af](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e4d43af4330a415dfda890df8d9bdf3efa09f12f))
+* **add:** MINI-ZB2GS, MINI-ZB2GS-L ([#10459](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10459)) ([5ac5358](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5ac53581581f985b17713fd7d98373ca64213734))
+* **add:** SSWM10-ZB ([#10567](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10567)) ([d6deb58](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d6deb58c1f2ca6a73f72b2ef64f9afd5d7f1d94c))
+* **add:** ZS-302Z https://github.com/Koenkk/zigbee2mqtt/issues/29340 ([4f3e12d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4f3e12dc0311e9ca6671e6fa93c4617e4c83497b))
+* Tuya TZE284_6teua268: improve integration ([#10573](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10573)) ([1347053](https://github.com/Koenkk/zigbee-herdsman-converters/commit/134705344c8f61d4fb04ff935eedd72e79b38aa2))
+
+
+### Bug Fixes
+
+* AVATTO ME167_1 `_TZE200_p3dbf6qs`: fix weekly schedule day mapping ([#10561](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10561)) ([5f15214](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5f15214f2f6dd7fc70a44773e4eda0a0de55f497))
+* **detect:** Detect `_TZ3000_wijoqjk1` as Tuya TS0001_switch_1_gang ([#10570](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10570)) ([dd0c9f3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/dd0c9f395757cac982d28d44ee457c9eb62ab10c))
+* **detect:** Detect `_TZE204_vvvtcehj` as Roximo CRTZ01 ([#10587](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10587)) ([f117e5e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f117e5e8649f809f48c189ac2c8dc0376c08a57d))
+* **detect:** Detect `_TZE284_loejka0i` as Nous D4Z https://github.com/Koenkk/zigbee2mqtt/issues/29346 ([739ec39](https://github.com/Koenkk/zigbee-herdsman-converters/commit/739ec39a09aa60fcb0b004ee7fdc098ab196b86f))
+* Fix duplicate poll when interval option changes https://github.com/Koenkk/zigbee-herdsman-converters/issues/10520 ([760310e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/760310efe819930d8a6c09408989fb657f338b6a))
+* **ignore:** Improve TS0601_water_meter ([#10578](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10578)) ([f825b72](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f825b7205493a479d0e1a9a9faaacad26e1385c0))
+* LiXee ZLinky: rename misspelt SMAXSN attributes ([#10582](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10582)) ([4d64351](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4d64351de58c1891cc4715089e55585c57467192))
+* Moes ZG-101ZD: fix actions missing ([#10562](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10562)) ([e5ae316](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e5ae3160490078fb446eba9a94387b1ff4103842))
+* Philips Datura: refactor models in devices list ([#10559](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10559)) ([5c7050e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5c7050e63c52d609c5749a300080b437781295ed))
+* Tuya TS0601_soil_3: fix battery % https://github.com/Koenkk/zigbee2mqtt/issues/26215 ([fa523a5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/fa523a5f8c0ad96b0c86822201ce8e7216c71881))
+* Tuya ZG-204ZK and ZG-204ZM: various fixes ([#10584](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10584)) ([6d3ad6e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6d3ad6e89d6f596bb68e26083c6e0a5f7fa8b211))
+* Zemismart ZMO-606-S2: improve integration ([#10586](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10586)) ([c232758](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c232758d7cbe307a730dd2ef6ab001f1f64ecc38))
+
 ## [25.56.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.55.0...v25.56.0) (2025-10-28)
 
 
