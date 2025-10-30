@@ -11448,7 +11448,7 @@ export const definitions: DefinitionWithExtend[] = [
             e
                 .numeric("static_detection_distance", ea.STATE_SET)
                 .withValueMin(0)
-                .withValueMax(10)
+                .withValueMax(6)
                 .withValueStep(0.01)
                 .withUnit("m")
                 .withDescription("Static detection distance"),
@@ -19848,7 +19848,6 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.presence(),
-            e.illuminance(),
             e.battery(),
             e
                 .numeric("fading_time", ea.STATE_SET)
@@ -19860,7 +19859,7 @@ export const definitions: DefinitionWithExtend[] = [
             e
                 .numeric("static_detection_distance", ea.STATE_SET)
                 .withValueMin(0)
-                .withValueMax(10)
+                .withValueMax(5)
                 .withValueStep(0.01)
                 .withUnit("m")
                 .withDescription("Static detection distance"),
@@ -19883,7 +19882,6 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {
             tuyaDatapoints: [
                 [1, "presence", tuya.valueConverter.trueFalse1],
-                [106, "illuminance", tuya.valueConverter.raw],
                 [102, "fading_time", tuya.valueConverter.raw],
                 [4, "static_detection_distance", tuya.valueConverter.divideBy100],
                 [2, "static_detection_sensitivity", tuya.valueConverter.raw],
