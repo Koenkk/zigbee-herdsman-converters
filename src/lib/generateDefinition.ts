@@ -234,10 +234,6 @@ export async function generateDefinition(device: Zh.Device): Promise<{externalDe
         generated: true,
     };
 
-    if (multiEndpoint) {
-        definition.meta = {multiEndpoint};
-    }
-
     const externalDefinitionSource = generateSource(definition, generatedExtend);
     return {externalDefinitionSource, definition};
 }

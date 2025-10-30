@@ -626,7 +626,7 @@ export const numericAttributes2Payload = async (
                             try {
                                 await callback();
                                 payload.operation_mode = newMode;
-                                globalStore.putValue(meta.device, "opModeSwitchTask", null);
+                                globalStore.clearValue(meta.device, "opModeSwitchTask");
                             } catch {
                                 // do nothing when callback fails
                             }
@@ -3723,7 +3723,7 @@ export const fromZigbee = {
 
                     // Stop any existing timer cause vibration detected
                     clearTimeout(globalStore.getValue(msg.endpoint, "vibration_timer", null));
-                    globalStore.putValue(msg.endpoint, "vibration_timer", null);
+                    globalStore.clearValue(msg.endpoint, "vibration_timer");
 
                     // Set new timer to publish no_vibration message
                     if (timeout !== 0) {
@@ -4173,7 +4173,7 @@ export const fromZigbee = {
             if (state === 0) {
                 const timer = setTimeout(() => {
                     publish({action: "hold"});
-                    globalStore.putValue(msg.endpoint, "timer", null);
+                    globalStore.clearValue(msg.endpoint, "timer");
                     globalStore.putValue(msg.endpoint, "hold", Date.now());
                     const holdTimer = setTimeout(() => {
                         globalStore.putValue(msg.endpoint, "hold", false);
@@ -4191,7 +4191,7 @@ export const fromZigbee = {
 
                 if (globalStore.getValue(msg.endpoint, "timer")) {
                     clearTimeout(globalStore.getValue(msg.endpoint, "timer"));
-                    globalStore.putValue(msg.endpoint, "timer", null);
+                    globalStore.clearValue(msg.endpoint, "timer");
                     publish({action: "single"});
                 }
             } else {

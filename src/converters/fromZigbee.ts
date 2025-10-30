@@ -800,7 +800,27 @@ export const metering: Fz.Converter<"seMetering", undefined, ["attributeReport",
             const property = postfixWithEndpointName("produced_energy", msg, model, meta);
             payload[property] = value * (factor ?? 1);
         }
-
+        // Support for tariff-based energy measurements (e.g., P1/OBIS smart meters)
+        if (msg.data.currentTier1SummDelivered !== undefined) {
+            const value = msg.data.currentTier1SummDelivered;
+            const property = postfixWithEndpointName("energy_tier_1", msg, model, meta);
+            payload[property] = value * (factor ?? 1);
+        }
+        if (msg.data.currentTier2SummDelivered !== undefined) {
+            const value = msg.data.currentTier2SummDelivered;
+            const property = postfixWithEndpointName("energy_tier_2", msg, model, meta);
+            payload[property] = value * (factor ?? 1);
+        }
+        if (msg.data.currentTier1SummReceived !== undefined) {
+            const value = msg.data.currentTier1SummReceived;
+            const property = postfixWithEndpointName("produced_energy_tier_1", msg, model, meta);
+            payload[property] = value * (factor ?? 1);
+        }
+        if (msg.data.currentTier2SummReceived !== undefined) {
+            const value = msg.data.currentTier2SummReceived;
+            const property = postfixWithEndpointName("produced_energy_tier_2", msg, model, meta);
+            payload[property] = value * (factor ?? 1);
+        }
         return payload;
     },
 };
@@ -1474,7 +1494,7 @@ export const command_stop: Fz.Converter<"genLevelCtrl", undefined, ["commandStop
         if (hasAlreadyProcessedMessage(msg, model)) return;
         if (options.simulated_brightness) {
             clearInterval(globalStore.getValue(msg.endpoint, "simulated_brightness_timer"));
-            globalStore.putValue(msg.endpoint, "simulated_brightness_timer", undefined);
+            globalStore.clearValue(msg.endpoint, "simulated_brightness_timer");
         }
 
         const payload = {action: postfixWithEndpointName("brightness_stop", msg, model, meta)};
