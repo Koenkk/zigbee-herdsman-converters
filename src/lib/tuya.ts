@@ -2275,7 +2275,9 @@ const tuyaModernExtend = {
                                     event.data.device.endpoints[0]
                                         .command("manuSpecificTuya", "dataQuery", {})
                                         .catch((error) => logger.error(`Failed to query '${event.data.device.ieeeAddr}' on interval (${error})`, NS));
-                                    setTimer();
+                                    if (globalStore.getValue(event.data.device.ieeeAddr, "query_interval") === timer) {
+                                        setTimer();
+                                    }
                                 }, queryIntervalSeconds * 1000);
                                 globalStore.putValue(event.data.device.ieeeAddr, "query_interval", timer);
                             };

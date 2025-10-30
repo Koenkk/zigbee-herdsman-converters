@@ -682,7 +682,9 @@ export function poll(args: {
                             } catch (error) {
                                 logger.debug(`Poll of '${event.data.device.ieeeAddr}' failed (${error})`, NS);
                             }
-                            setTimer();
+                            if (globalStore.getValue(event.data.device.ieeeAddr, args.key) === timer) {
+                                setTimer();
+                            }
                         }, seconds * 1000);
                         globalStore.putValue(event.data.device.ieeeAddr, args.key, timer);
                     };
