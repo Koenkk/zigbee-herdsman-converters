@@ -63,6 +63,21 @@ interface SonoffSnzb02wd {
     commands: never;
     commandResponses: never;
 }
+
+interface SonoffSnzb02dr2 {
+    attributes: {
+        comfortTemperatureMax: number;
+        comfortTemperatureMin: number;
+        comfortHumidityMin: number;
+        comfortHumidityMax: number;
+        temperatureUnits: number;
+        temperatureCalibration: number;
+        humidityCalibration: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
 interface SonoffTrvzb {
     attributes: {
         childLock: number;
@@ -1550,6 +1565,111 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
+        zigbeeModel: ["SNZB-02DR2"],
+        model: "SNZB-02DR2",
+        vendor: "SONOFF",
+        description: "Temperature and humidity sensor with display and relay control",
+        extend: [
+            m.deviceAddCustomCluster("customSonoffSnzb02dr2", {
+                ID: 0xfc11,
+                attributes: {
+                    comfortTemperatureMax: {ID: 0x0003, type: Zcl.DataType.INT16},
+                    comfortTemperatureMin: {ID: 0x0004, type: Zcl.DataType.INT16},
+                    comfortHumidityMin: {ID: 0x0005, type: Zcl.DataType.UINT16},
+                    comfortHumidityMax: {ID: 0x0006, type: Zcl.DataType.UINT16},
+                    temperatureUnits: {ID: 0x0007, type: Zcl.DataType.UINT16},
+                    temperatureCalibration: {ID: 0x2003, type: Zcl.DataType.INT16},
+                    humidityCalibration: {ID: 0x2004, type: Zcl.DataType.INT16},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            m.battery({voltage: true, voltageReporting: true}),
+            m.temperature(),
+            m.humidity(),
+            m.bindCluster({cluster: "genPollCtrl", clusterType: "input"}),
+            m.numeric<"customSonoffSnzb02dr2", SonoffSnzb02dr2>({
+                name: "comfort_temperature_min",
+                cluster: "customSonoffSnzb02dr2",
+                attribute: "comfortTemperatureMin",
+                description:
+                    "Minimum temperature that is considered comfortable. The device will display ❄️ when the temperature is lower than this value. Note: wake up the device by pressing the button on the back before changing this value.",
+                valueMin: -10,
+                valueMax: 60,
+                scale: 100,
+                valueStep: 0.1,
+                unit: "°C",
+            }),
+            m.numeric<"customSonoffSnzb02dr2", SonoffSnzb02dr2>({
+                name: "comfort_temperature_max",
+                cluster: "customSonoffSnzb02dr2",
+                attribute: "comfortTemperatureMax",
+                description:
+                    "Maximum temperature that is considered comfortable. The device will display 🔥 when the temperature is higher than this value. Note: wake up the device by pressing the button on the back before changing this value.",
+                valueMin: -10,
+                valueMax: 60,
+                scale: 100,
+                valueStep: 0.1,
+                unit: "°C",
+            }),
+            m.numeric<"customSonoffSnzb02dr2", SonoffSnzb02dr2>({
+                name: "comfort_humidity_min",
+                cluster: "customSonoffSnzb02dr2",
+                attribute: "comfortHumidityMin",
+                description:
+                    "Minimum relative humidity that is considered comfortable. The device will display ☀️ when the humidity is lower than this value. Note: wake up the device by pressing the button on the back before changing this value.",
+                valueMin: 5,
+                valueMax: 95,
+                scale: 100,
+                valueStep: 0.1,
+                unit: "%",
+            }),
+            m.numeric<"customSonoffSnzb02dr2", SonoffSnzb02dr2>({
+                name: "comfort_humidity_max",
+                cluster: "customSonoffSnzb02dr2",
+                attribute: "comfortHumidityMax",
+                description:
+                    "Maximum relative humidity that is considered comfortable. The device will display 💧 when the humidity is higher than this value. Note: wake up the device by pressing the button on the back before changing this value.",
+                valueMin: 5,
+                valueMax: 95,
+                scale: 100,
+                valueStep: 0.1,
+                unit: "%",
+            }),
+            m.enumLookup<"customSonoffSnzb02dr2", SonoffSnzb02dr2>({
+                name: "temperature_units",
+                lookup: {celsius: 0, fahrenheit: 1},
+                cluster: "customSonoffSnzb02dr2",
+                attribute: "temperatureUnits",
+                description:
+                    "The unit of the temperature displayed on the device screen. Note: wake up the device by pressing the button on the back before changing this value.",
+            }),
+            m.numeric<"customSonoffSnzb02dr2", SonoffSnzb02dr2>({
+                name: "temperature_calibration",
+                cluster: "customSonoffSnzb02dr2",
+                attribute: "temperatureCalibration",
+                description: "Offset to add/subtract to the reported temperature",
+                valueMin: -50,
+                valueMax: 50,
+                scale: 100,
+                valueStep: 0.1,
+                unit: "°C",
+            }),
+            m.numeric<"customSonoffSnzb02dr2", SonoffSnzb02dr2>({
+                name: "humidity_calibration",
+                cluster: "customSonoffSnzb02dr2",
+                attribute: "humidityCalibration",
+                description: "Offset to add/subtract to the reported relative humidity",
+                valueMin: -50,
+                valueMax: 50,
+                scale: 100,
+                valueStep: 0.1,
+                unit: "%",
+            }),
+        ],
+        ota: true,
+    },
+    {
         fingerprint: [
             {
                 type: "EndDevice",
@@ -1634,6 +1754,15 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.linkquality_from_basic, fzLocal.router_config],
         toZigbee: [],
         exposes: [e.numeric("light_indicator_level", ea.STATE).withDescription("Brightness of the indicator light").withAccess(ea.STATE)],
+        extend: [m.forcePowerSource({powerSource: "Mains (single phase)"})],
+    },
+    {
+        zigbeeModel: ["Dongle-M_ZBRouter"],
+        model: "ZBDongle-M",
+        vendor: "SONOFF",
+        description: "Dongle Max MG24 (EFR32MG24) with router firmware",
+        fromZigbee: [fz.linkquality_from_basic],
+        toZigbee: [],
         extend: [m.forcePowerSource({powerSource: "Mains (single phase)"})],
     },
     {

@@ -1228,9 +1228,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZC-HM",
         vendor: "Moes",
         description: "Carbon monoxide alarm",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [e.carbon_monoxide(), e.co(), tuya.exposes.selfTestResult(), e.battery(), tuya.exposes.silence()],
         meta: {
             tuyaDatapoints: [
@@ -1331,8 +1329,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Moes",
         description: "Star ring - smart curtain switch",
         options: [exposes.options.invert_cover()],
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.cover_position().setAccess("position", ea.STATE_SET),
             e.enum("calibration", ea.STATE_SET, ["START", "END"]).withDescription("Calibration"),
@@ -1553,6 +1550,144 @@ export const definitions: DefinitionWithExtend[] = [
                 [9, "position", tuya.valueConverter.coverPositionInverted],
                 [8, "position", tuya.valueConverter.coverPositionInverted],
                 [11, "motor_direction", tuya.valueConverterBasic.lookup({forward: tuya.enum(0), back: tuya.enum(1)})],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_x9usygq1"]),
+        model: "ZHT-PT01-M-MS",
+        vendor: "Moes",
+        description: "Smart thermostat for pilot wire heating radiator",
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "1970"})],
+        exposes: [
+            e
+                .climate()
+                .withSetpoint("current_heating_setpoint", 5, 30, 0.5, ea.STATE_SET)
+                .withLocalTemperature(ea.STATE)
+                .withPreset(["off", "comfort", "comfort_1", "comfort_2", "eco", "antifrost", "program", "thermostat"])
+                .withSystemMode(["off", "heat", "auto"], ea.STATE)
+                .withLocalTemperatureCalibration(-10, 10, 0.1, ea.STATE_SET),
+            e
+                .enum("mode", ea.STATE_SET, ["standby", "comfort", "comfort_1", "comfort_2", "eco", "antifrost", "program", "thermostat"])
+                .withDescription("Working mode"),
+            e.window_open(),
+            e.binary("fault", ea.STATE, "DETECTED", "NOT_DETECTED").withDescription("Fault status"),
+            e.window_detection(),
+            e.child_lock(),
+            e.enum("temp_unit_convert", ea.STATE_SET, ["c", "f"]).withDescription("Temperature unit"),
+            e.numeric("lower_temp", ea.STATE_SET).withUnit("°C").withValueMin(5).withValueMax(30).withDescription("Set min temperature"),
+            e.numeric("upper_temp", ea.STATE_SET).withUnit("°C").withValueMin(5).withValueMax(30).withDescription("Set max temperature"),
+            e.numeric("electricity_statistics", ea.STATE).withUnit("kWh").withDescription("Electricity usage statistics"),
+            e.numeric("boost_duration", ea.STATE_SET).withUnit("min").withValueMin(0).withValueMax(120).withDescription("Boost mode duration"),
+            e.numeric("elec_statistics_day", ea.STATE).withDescription("Daily energy usage"),
+            e.numeric("elec_statistics_month", ea.STATE).withDescription("Monthly energy usage"),
+            e.numeric("elec_statistics_year", ea.STATE).withDescription("Annual energy usage"),
+            e
+                .numeric("window_keep_time", ea.STATE_SET)
+                .withUnit("min")
+                .withValueMin(0)
+                .withValueMax(120)
+                .withDescription("Time window should be kept open"),
+            e.enum("fault_alarm", ea.STATE, ["e1", "e2"]).withDescription("Fault alarm (e1, e2)"),
+            e
+                .enum("running_mode", ea.STATE, ["standby", "comfort", "comfort_1", "comfort_2", "eco", "antifrost"])
+                .withDescription("Current running mode"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [
+                    2,
+                    "mode",
+                    tuya.valueConverterBasic.lookup({
+                        standby: tuya.enum(0),
+                        comfort: tuya.enum(1),
+                        comfort_1: tuya.enum(2),
+                        comfort_2: tuya.enum(3),
+                        eco: tuya.enum(4),
+                        antifrost: tuya.enum(5),
+                        program: tuya.enum(6),
+                        thermostat: tuya.enum(7),
+                    }),
+                ],
+                [
+                    2,
+                    "system_mode",
+                    tuya.valueConverterBasic.lookup({
+                        off: tuya.enum(0),
+                        auto: tuya.enum(6),
+                        heat: tuya.enum(7),
+                    }),
+                ],
+                [
+                    2,
+                    "preset",
+                    tuya.valueConverterBasic.lookup({
+                        off: tuya.enum(0),
+                        comfort: tuya.enum(1),
+                        comfort_1: tuya.enum(2),
+                        comfort_2: tuya.enum(3),
+                        eco: tuya.enum(4),
+                        antifrost: tuya.enum(5),
+                        program: tuya.enum(6),
+                        thermostat: tuya.enum(7),
+                    }),
+                ],
+                [16, "local_temperature", tuya.valueConverter.divideBy10],
+                [
+                    17,
+                    "window_open",
+                    tuya.valueConverterBasic.lookup({
+                        close: tuya.enum(0),
+                        open: tuya.enum(1),
+                    }),
+                ],
+                [18, "lower_temp", tuya.valueConverter.divideBy10],
+                [19, "temp_correction", tuya.valueConverter.divideBy10],
+                [19, "local_temperature_calibration", tuya.valueConverter.divideBy10],
+                [20, "fault", tuya.valueConverter.raw],
+                [29, "window_detection", tuya.valueConverter.onOff],
+                [34, "upper_temp", tuya.valueConverter.divideBy10],
+                [39, "child_lock", tuya.valueConverter.lockUnlock],
+                [
+                    46,
+                    "temp_unit_convert",
+                    tuya.valueConverterBasic.lookup({
+                        c: tuya.enum(0),
+                        f: tuya.enum(1),
+                    }),
+                ],
+                [50, "current_heating_setpoint", tuya.valueConverter.divideBy10],
+                [65, "week_program_1", tuya.valueConverter.raw],
+                [66, "week_program_2", tuya.valueConverter.raw],
+                [67, "week_program_3", tuya.valueConverter.raw],
+                [68, "week_program_4", tuya.valueConverter.raw],
+                [69, "week_program_5", tuya.valueConverter.raw],
+                [70, "week_program_6", tuya.valueConverter.raw],
+                [71, "week_program_7", tuya.valueConverter.raw],
+                [101, "vacation_duration", tuya.valueConverter.raw],
+                [102, "boost_duration", tuya.valueConverter.raw],
+                [103, "electricity_statistics", tuya.valueConverter.raw],
+                [104, "elec_statistics_day", tuya.valueConverter.raw],
+                [105, "elec_statistics_month", tuya.valueConverter.raw],
+                [106, "elec_statistics_year", tuya.valueConverter.raw],
+                [107, "average_power", tuya.valueConverter.raw],
+                [108, "air_pressure_index", tuya.valueConverter.raw],
+                [109, "support_features", tuya.valueConverter.raw],
+                [110, "window_keep_time", tuya.valueConverter.raw],
+                [111, "app_features", tuya.valueConverter.raw],
+                [112, "switch_diff", tuya.valueConverter.raw],
+                [
+                    113,
+                    "running_mode",
+                    tuya.valueConverterBasic.lookup({
+                        standby: tuya.enum(0),
+                        comfort: tuya.enum(1),
+                        comfort_1: tuya.enum(2),
+                        comfort_2: tuya.enum(3),
+                        eco: tuya.enum(4),
+                        antifrost: tuya.enum(5),
+                    }),
+                ],
             ],
         },
     },

@@ -311,8 +311,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "E25-230",
         vendor: "ENGO",
         description: "Smart thermostat",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.binary("state", ea.STATE_SET, "ON", "OFF").withDescription("Turn the thermostat ON/OFF"),
             e
