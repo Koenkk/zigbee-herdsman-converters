@@ -14075,7 +14075,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_vmcgja59"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_vmcgja59", "_TZE284_vmcgja59"]),
         model: "ZYXH",
         vendor: "Tuya",
         description: "24 gang switch",
