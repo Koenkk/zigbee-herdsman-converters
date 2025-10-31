@@ -4429,14 +4429,26 @@ export const definitions: DefinitionWithExtend[] = [
                 fingerprint: [{modelID: "lumi.light.agl001"}, {modelID: "lumi.light.agl002"}],
             },
         ],
-        extend: [lumiLight({colorTemp: true, color: true, colorTempRange: [111, 500], powerOutageMemory: "light"}), lumiZigbeeOTA()],
+        extend: [
+            lumiLight({colorTemp: true, color: true, colorTempRange: [111, 500]}),
+            lumiPowerOnBehavior({lookup: {off: 0, on: 1, reverse: 2, restore: 3}}),
+            m.identify(),
+            m.forcePowerSource({powerSource: "Mains (single phase)"}),
+            lumiZigbeeOTA(),
+        ],
     },
     {
         zigbeeModel: ["lumi.light.agl004"],
         model: "T2_E27_CCT",
         vendor: "Aqara",
         description: "E27 led bulb",
-        extend: [lumiLight({colorTemp: true, colorTempRange: [111, 500], powerOutageMemory: "light"}), lumiZigbeeOTA()],
+        extend: [
+            lumiLight({colorTemp: true, colorTempRange: [153, 370]}),
+            lumiPowerOnBehavior({lookup: {off: 0, on: 1, reverse: 2, restore: 3}}),
+            m.identify(),
+            m.forcePowerSource({powerSource: "Mains (single phase)"}),
+            lumiZigbeeOTA(),
+        ],
     },
     {
         zigbeeModel: ["lumi.switch.agl010"],
