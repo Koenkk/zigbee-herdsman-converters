@@ -4362,6 +4362,6 @@ export const definitions: DefinitionWithExtend[] = [
         model: "8720169371477",
         vendor: "Philips",
         description: "Hue Festavia Globe Outdoor",
-        extend: [philips.m.light({"colorTemp":{"range":[50,1000]},"color":{"modes":["xy","hs"],"enhancedHue":true}})],
-    }
+        extend: [philips.m.light({colorTemp: {range: [50, 1000]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+    },
 ];
