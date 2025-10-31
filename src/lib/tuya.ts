@@ -2611,9 +2611,7 @@ const tuyaModernExtend = {
             inchingSwitch?: boolean;
         } = {},
     ): ModernExtend => {
-        const {indicatorMode = false} = args;
-        const {powerOutageMemory = false} = args;
-        const {childLock = false} = args;
+        const {indicatorMode = false, powerOutageMemory = false, childLock = false} = args;
         const exposes: (Expose | DefinitionExposesFunction)[] = args.endpoints
             ? args.endpoints.map((ee) => e.switch().withEndpoint(ee))
             : [e.switch()];
