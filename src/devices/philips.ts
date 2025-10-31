@@ -4357,4 +4357,11 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Hue White ambiance Milliskin (square)",
         extend: [philips.m.light({colorTemp: {range: [153, 454]}})],
     },
+    {
+        zigbeeModel: ["LCX029"],
+        model: "8720169371477",
+        vendor: "Philips",
+        description: "Hue Festavia Globe Outdoor",
+        extend: [philips.m.light({"colorTemp":{"range":[50,1000]},"color":{"modes":["xy","hs"],"enhancedHue":true}})],
+    }
 ];
