@@ -91,6 +91,7 @@ const IAS_EXPOSE_LOOKUP = {
     alarm_2: e.binary("alarm_2", ea.STATE, true, false).withDescription("Indicates whether IAS Zone alarm 2 is active"),
     tamper: e.binary("tamper", ea.STATE, true, false).withDescription("Indicates whether the device is tampered").withCategory("diagnostic"),
     rain: e.binary("rain", ea.STATE, true, false).withDescription("Indicates whether the device detected rainfall"),
+    pressure: e.binary("pressure", ea.STATE, true, false).withDescription("Indicates whether the device detected pressure"),
     battery_low: e
         .binary("battery_low", ea.STATE, true, false)
         .withDescription("Indicates whether the battery of the device is almost empty")
@@ -1605,6 +1606,7 @@ export type IasZoneType =
     | "smoke"
     | "water_leak"
     | "rain"
+    | "pressure"
     | "carbon_monoxide"
     | "sos"
     | "vibration"
