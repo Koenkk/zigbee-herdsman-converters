@@ -38,6 +38,6 @@ export const definitions: DefinitionWithExtend[] = [
         model: "BW-IS9",
         vendor: "BlitzWolf",
         description: "ZigBee Water Leak Sensor",
-        extend: [m.battery(), m.iasZoneAlarm({"zoneType":"generic","zoneAttributes":["alarm_1","alarm_2","tamper","battery_low"]})],
+        extend: [m.battery(), m.iasZoneAlarm({zoneType: "generic", zoneAttributes: ["alarm_1", "alarm_2", "tamper", "battery_low"]})],
     },
 ];
