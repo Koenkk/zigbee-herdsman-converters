@@ -19937,18 +19937,18 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Smart thermostat for electric heater with pilot wire",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
-            e.pilot_wire_mode(),
-            e
-                .numeric("local_temperature_calibration", ea.STATE_SET)
-                .withUnit("°C")
-                .withValueMin(-8)
-                .withValueMax(8)
-                .withValueStep(0.5)
-                .withDescription("Set temperature calibration"),
+    		e
+    			.climate()
+    			.withLocalTemperature(ea.STATE)
+    			.withLocalTemperatureCalibration(-8, 8, 0.5, ea.STATE_SET)
+    			.withPreset(["comfort", "eco", "antifrost", "off", "comfort_1", "comfort_2"]),	
+    		e
+    			.enum("mode", ea.STATE, ["comfort", "eco", "antifrost", "off", "comfort_1", "comfort_2"])
+    			.withDescription("Current running mode")
+    			.withCategory("diagnostic"),
             e.binary("eco_mode", ea.STATE_SET, "ON", "OFF").withDescription("Enables/disables the weekly program."),
             e.open_window(),
             e.open_window_temperature(),
-            e.local_temperature(),
             e.power(),
             e.voltage(),
             e.current(),
@@ -19962,19 +19962,30 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         meta: {
             tuyaDatapoints: [
-                [
-                    2,
-                    "pilot_wire_mode",
-                    tuya.valueConverterBasic.lookup({
-                        comfort: tuya.enum(0),
-                        eco: tuya.enum(1),
-                        antifrost: tuya.enum(2),
-                        off: tuya.enum(3),
-                        "comfort_-1": tuya.enum(4),
-                        "comfort_-2": tuya.enum(5),
-                        program: tuya.enum(6),
-                    }),
-                ],
+    			[
+    				2,
+    				"mode",
+    				tuya.valueConverterBasic.lookup({
+    					comfort: tuya.enum(0),
+    					eco: tuya.enum(1),
+    					antifrost: tuya.enum(2),
+    					off: tuya.enum(3),
+    					comfort_1: tuya.enum(4),
+    					comfort_2: tuya.enum(5),
+    				}),
+    			],
+    			[
+    				2,
+    				"preset",
+    				tuya.valueConverterBasic.lookup({
+    					comfort: tuya.enum(0),
+    					eco: tuya.enum(1),
+    					antifrost: tuya.enum(2),
+    					off: tuya.enum(3),
+    					comfort_1: tuya.enum(4),
+    					comfort_2: tuya.enum(5),
+    				}),
+    			],
                 [11, "power", tuya.valueConverter.raw],
                 [16, "local_temperature", tuya.valueConverter.divideBy10],
                 [19, "local_temperature_calibration", tuya.valueConverter.localTempCalibration2],
