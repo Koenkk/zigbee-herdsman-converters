@@ -16,7 +16,7 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_6fk3gewc"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_6fk3gewc", "_TZE284_6fk3gewc"]),
         model: "PCI E",
         vendor: "WETEN",
         description: "Remote Control PCI E Card for PC",

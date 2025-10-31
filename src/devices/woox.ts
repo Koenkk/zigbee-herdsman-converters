@@ -26,7 +26,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "R9077",
         vendor: "Woox",
         description: "RGB+CCT LED",
-        extend: [tuya.modernExtend.tuyaLight({colorTemp: {range: undefined}, color: true})],
+        extend: [tuya.modernExtend.tuyaLight({colorTemp: {range: undefined}, color: true, doNotDisturb: false, colorPowerOnBehavior: false})],
         meta: {applyRedFix: true},
     },
     {
