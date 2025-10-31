@@ -1525,7 +1525,7 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: tuya.fingerprint("TS0203", ["_TZ3000_pjb1ua0m"]),
         model: "C3007",
         vendor: "Tuya",
-        description: "Pressure Pad Sensor",
+        description: "Pressure pad sensor",
         extend: [
             m.iasZoneAlarm({
                 zoneType: "pressure",
