@@ -7339,7 +7339,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("BSEED", "TS011F_plug_1_2", "Wall-mounted electrical EU/FR/UK socket with power monitoring", [
                 "_TZ3000_4ux0ondb",
                 "_TZ3000_b28wrpvx",
-		"_TZ3000_2uollq9d",
+                "_TZ3000_2uollq9d",
             ]),
             tuya.whitelabel("BSEED", "_TZ3210_5ct6e7ye", "Wall-mounted electrical EU/FR/UK socket with power monitoring and USB", [
                 "_TZ3210_5ct6e7ye",
