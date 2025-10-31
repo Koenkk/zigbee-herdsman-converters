@@ -1166,7 +1166,7 @@ const fzKeyActionEvent: Fz.Converter<"customClusterFC12", undefined, ["attribute
         const eventMap: Record<number, string> = {1: "single", 2: "double", 3: "long", 4: "triple"};
         const ev = eventMap[value];
         if (ev) {
-            return {action: `btn${endpoint}_${ev}`};
+            return {action: `${ev}_button_${endpoint}`};
         }
         return {};
     },
@@ -1847,34 +1847,32 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fzKeyActionEvent],
         exposes: [
             e.action([
-                "btn1_single",
-                "btn1_double",
-                "btn1_long",
-                "btn1_triple",
-                "btn2_single",
-                "btn2_double",
-                "btn2_long",
-                "btn2_triple",
-                "btn3_single",
-                "btn3_double",
-                "btn3_long",
-                "btn3_triple",
-                "btn4_single",
-                "btn4_double",
-                "btn4_long",
-                "btn4_triple",
+                "single_button_1",
+                "double_button_1",
+                "long_button_1",
+                "triple_button_1",
+                "single_button_2",
+                "double_button_2",
+                "long_button_2",
+                "triple_button_2",
+                "single_button_3",
+                "double_button_3",
+                "long_button_3",
+                "triple_button_3",
+                "single_button_4",
+                "double_button_4",
+                "long_button_4",
+                "triple_button_4",
             ]),
         ],
         extend: [
             m.battery({
-                percentageReportingConfig: {min: 1620, max: 1740, change: 2},
                 percentage: true,
                 percentageReporting: true,
             }),
             m.deviceEndpoints({endpoints: {btn1: 1, btn2: 2, btn3: 3, btn4: 4}}),
             sonoffExtendFc12.addCustomClusterFC12(),
         ],
-        meta: {multiEndpoint: true},
         ota: true,
     },
     {
