@@ -100,7 +100,25 @@ interface SonoffTrvzb {
     commandResponses: never;
 }
 
+interface SonoffSnzb01m {
+    attributes: {
+        keyActionEvent: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
 const fzLocal = {
+    key_action_event: {
+        cluster: "customSonoffSnzb01m",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            if ("keyActionEvent" in msg.data) {
+                const event = utils.getFromLookup(msg.data.keyActionEvent, {1: "single", 2: "double", 3: "long", 4: "triple"});
+                return {action: `${event}_button_${msg.endpoint.ID}`};
+            }
+        },
+    } satisfies Fz.Converter<"customSonoffSnzb01m", SonoffSnzb01m, ["attributeReport", "readResponse"]>,
     router_config: {
         cluster: "genLevelCtrl",
         type: ["attributeReport", "readResponse"],
@@ -1139,39 +1157,6 @@ const sonoffExtend = {
     },
 };
 
-const sonoffExtendFc12 = {
-    addCustomClusterFC12: () =>
-        m.deviceAddCustomCluster("customClusterFC12", {
-            ID: 0xfc12,
-            attributes: {
-                keyActionEvent: {ID: 0x0000, type: 0x20}, // UINT8
-            },
-            commands: {},
-            commandsResponse: {},
-        }),
-};
-interface KeyActionEventData {
-    keyActionEvent?: number;
-    [key: string]: unknown;
-}
-
-const fzKeyActionEvent: Fz.Converter<"customClusterFC12", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "customClusterFC12",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        // defensively read endpoint and value (msg shapes can vary)
-        const endpoint = Number((msg?.endpoint && (msg.endpoint.ID ?? msg.endpoint)) ?? 0);
-        const data = msg?.data as KeyActionEventData | undefined;
-        const value = Number(data?.keyActionEvent ?? data?.["keyActionEvent"] ?? 0);
-        const eventMap: Record<number, string> = {1: "single", 2: "double", 3: "long", 4: "triple"};
-        const ev = eventMap[value];
-        if (ev) {
-            return {action: `${ev}_button_${endpoint}`};
-        }
-        return {};
-    },
-};
-
 export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["NSPanelP-Router"],
@@ -1843,8 +1828,8 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["SNZB-01M"],
         model: "SNZB-01M",
         vendor: "SONOFF",
-        description: "Four-way Wireless buttons",
-        fromZigbee: [fzKeyActionEvent],
+        description: "Four-way wireless button",
+        fromZigbee: [fzLocal.key_action_event],
         exposes: [
             e.action([
                 "single_button_1",
@@ -1866,12 +1851,15 @@ export const definitions: DefinitionWithExtend[] = [
             ]),
         ],
         extend: [
-            m.battery({
-                percentage: true,
-                percentageReporting: true,
+            m.battery({percentage: true, percentageReporting: true}),
+            m.deviceAddCustomCluster("customSonoffSnzb01m", {
+                ID: 0xfc12,
+                attributes: {
+                    keyActionEvent: {ID: 0x0000, type: Zcl.DataType.UINT8},
+                },
+                commands: {},
+                commandsResponse: {},
             }),
-            m.deviceEndpoints({endpoints: {btn1: 1, btn2: 2, btn3: 3, btn4: 4}}),
-            sonoffExtendFc12.addCustomClusterFC12(),
         ],
         ota: true,
     },
