@@ -2159,7 +2159,7 @@ const tuyaModernExtend = {
             respondToMcuVersionResponse?: true;
             mcuVersionRequestOnConfigure?: true;
             forceTimeUpdates?: true;
-            timeStart?: "2000" | "off";
+            timeStart?: "2000" | "1970";
         } = {},
     ): ModernExtend {
         const {
@@ -2172,7 +2172,7 @@ const tuyaModernExtend = {
             // Allow force updating for device with a very bad clock
             // Every hour when a message is received the time will be updated.
             forceTimeUpdates = false,
-            timeStart = "1970",
+            timeStart = "off",
             // Disable by default as with many Tuya devices it doesn't work well.
             // https://github.com/Koenkk/zigbee2mqtt/issues/28367#issuecomment-3363460429
             respondToMcuVersionResponse = false,
@@ -2275,7 +2275,9 @@ const tuyaModernExtend = {
                                     event.data.device.endpoints[0]
                                         .command("manuSpecificTuya", "dataQuery", {})
                                         .catch((error) => logger.error(`Failed to query '${event.data.device.ieeeAddr}' on interval (${error})`, NS));
-                                    setTimer();
+                                    if (globalStore.getValue(event.data.device.ieeeAddr, "query_interval") === timer) {
+                                        setTimer();
+                                    }
                                 }, queryIntervalSeconds * 1000);
                                 globalStore.putValue(event.data.device.ieeeAddr, "query_interval", timer);
                             };
@@ -2526,9 +2528,16 @@ const tuyaModernExtend = {
             ...args,
         });
     },
-    tuyaLight(args?: modernExtend.LightArgs & {minBrightness?: "none" | "attribute" | "command"; switchType?: boolean}) {
+    tuyaLight(
+        args?: modernExtend.LightArgs & {
+            minBrightness?: "none" | "attribute" | "command";
+            switchType?: boolean;
+            doNotDisturb?: boolean;
+            colorPowerOnBehavior?: boolean;
+        },
+    ): ModernExtend {
         // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
-        args = {minBrightness: "none", powerOnBehavior: false, switchType: false, ...args};
+        args = {minBrightness: "none", powerOnBehavior: false, switchType: false, doNotDisturb: true, colorPowerOnBehavior: true, ...args};
         if (args.colorTemp) {
             args.colorTemp = {startup: false, ...args.colorTemp};
         }
@@ -2539,8 +2548,11 @@ const tuyaModernExtend = {
         const result = modernExtend.light({...args, powerOnBehavior: false});
 
         result.fromZigbee.push(tuyaFz.brightness);
-        result.toZigbee.push(tuyaTz.do_not_disturb);
-        result.exposes.push(tuyaExposes.doNotDisturb());
+
+        if (args.doNotDisturb) {
+            result.toZigbee.push(tuyaTz.do_not_disturb);
+            result.exposes.push(tuyaExposes.doNotDisturb());
+        }
 
         if (args.powerOnBehavior) {
             result.fromZigbee.push(tuyaFz.power_on_behavior_2);
@@ -2569,7 +2581,7 @@ const tuyaModernExtend = {
             );
         }
 
-        if (args.color) {
+        if (args.color && args.colorPowerOnBehavior) {
             result.toZigbee.push(tuyaTz.color_power_on_behavior);
             result.exposes.push(tuyaExposes.colorPowerOnBehavior());
         }
@@ -2581,24 +2593,25 @@ const tuyaModernExtend = {
     tuyaOnOff: (
         args: {
             endpoints?: string[];
-            powerOutageMemory?: boolean;
+            powerOutageMemory?: boolean | ((manufacturerName: string) => boolean);
             powerOnBehavior2?: boolean;
             switchType?: boolean;
             switchTypeCurtain?: boolean;
             backlightModeLowMediumHigh?: boolean;
-            indicatorMode?: boolean;
+            indicatorMode?: boolean | ((manufacturerName: string) => boolean);
             indicatorModeNoneRelayPos?: boolean;
             backlightModeOffNormalInverted?: boolean;
             backlightModeOffOn?: boolean;
             electricalMeasurements?: boolean;
             // biome-ignore lint/suspicious/noExplicitAny: generic
             electricalMeasurementsFzConverter?: Fz.Converter<"haElectricalMeasurement", undefined, any>;
-            childLock?: boolean;
+            childLock?: boolean | ((manufacturerName: string) => boolean);
             switchMode?: boolean;
-            onOffCountdown?: boolean;
+            onOffCountdown?: boolean | ((manufacturerName: string) => boolean);
             inchingSwitch?: boolean;
         } = {},
     ): ModernExtend => {
+        const {indicatorMode = false} = args;
         const exposes: (Expose | DefinitionExposesFunction)[] = args.endpoints
             ? args.endpoints.map((ee) => e.switch().withEndpoint(ee))
             : [e.switch()];
@@ -2660,9 +2673,13 @@ const tuyaModernExtend = {
             exposes.push(tuyaExposes.backlightModeOffNormalInverted());
             toZigbee.push(tuyaTz.backlight_indicator_mode_1);
         }
-        if (args.indicatorMode) {
+        if (indicatorMode) {
             fromZigbee.push(tuyaFz.indicator_mode);
-            exposes.push(tuyaExposes.indicatorMode());
+            if (typeof indicatorMode === "function") {
+                exposes.push((d) => (indicatorMode(d.manufacturerName) ? [tuyaExposes.indicatorMode()] : []));
+            } else {
+                exposes.push(tuyaExposes.indicatorMode());
+            }
             toZigbee.push(tuyaTz.backlight_indicator_mode_1);
         }
         if (args.indicatorModeNoneRelayPos) {

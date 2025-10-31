@@ -45,7 +45,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["HK-LN-DIM-A"],
         model: "HK-LN-DIM-A",
         vendor: "LED-Trading",
-        description: "ZigBee AC phase-cut dimmer",
+        description: "Zigbee AC phase-cut dimmer",
         extend: [m.light({configureReporting: true})],
     },
     {

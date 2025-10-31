@@ -44,11 +44,17 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.light({configureReporting: true}), m.electricityMeter()],
     },
     {
-        fingerprint: [{modelID: "CoDIMZ 98425033", manufacturerName: "Nordtronic A/S"}],
         zigbeeModel: ["CoDIMZ 98425033"],
         model: "98425033",
         vendor: "Nordtronic",
         description: "Ceiling mounted zigbee micro smart dimmer",
         extend: [m.light({configureReporting: true}), m.electricityMeter(), sunricher.extend.externalSwitchType()],
+    },
+    {
+        zigbeeModel: ["DINDimZ 98425034"],
+        model: "98425034",
+        vendor: "Nordtronic",
+        description: "Zigbee din rail smart dimmer",
+        extend: [m.light({configureReporting: true}), m.electricityMeter()],
     },
 ];

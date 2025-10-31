@@ -72,7 +72,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Essentials",
         description: "Thermostat Zigbee smart home",
         ota: true,
-        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "1970"})],
         exposes: [
             e.battery(),
             e.battery_low(),

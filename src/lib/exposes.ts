@@ -1339,7 +1339,7 @@ export const presets = {
             .withDescription("Measured electrical potential value on phase C"),
     water_leak: () => new Binary("water_leak", access.STATE, true, false).withDescription("Indicates whether the device detected a water leak"),
     pilot_wire_mode: (values = ["comfort", "eco", "frost_protection", "off", "comfort_-1", "comfort_-2"]) =>
-        new Enum("pilot_wire_mode", access.ALL, ["comfort", "eco", "frost_protection", "off", "comfort_-1", "comfort_-2"]).withDescription(
+        new Enum("pilot_wire_mode", access.ALL, values).withDescription(
             "Controls the target temperature of the heater, with respect to the temperature set on that heater. Possible values: comfort (target temperature = heater set temperature) eco (target temperature = heater set temperature - 3.5°C), frost_protection (target temperature = 7 to 8°C), off (heater stops heating), and the less commonly used comfort_-1 (target temperature = heater set temperature - 1°C), comfort_-2 (target temperature = heater set temperature - 2°C),.",
         ),
     rain: () => new Binary("rain", access.STATE, true, false).withDescription("Indicates whether the device detected rainfall"),
