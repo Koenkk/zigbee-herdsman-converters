@@ -1486,6 +1486,25 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [tuya.whitelabel("Linkoze", "LKDSZ001", "Door sensor with scene switch", ["_TZ3210_jowhpxop"])],
     },
     {
+        fingerprint: tuya.fingerprint("TS0203", ["_TZ3000_pjb1ua0m"]),
+        model: "C3007",
+        vendor: "Tuya",
+        description: "Pressure Pad Sensor",
+        extend: [
+            m.iasZoneAlarm({
+                zoneType: "pressure",
+                zoneAttributes: ["alarm_1", "battery_low"],
+            }),
+            m.battery({voltage: true}),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg"]);
+            await reporting.batteryPercentageRemaining(endpoint);
+            await reporting.batteryVoltage(endpoint);
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0021", ["_TZ3210_3ulg9kpo"]),
         model: "LKWSZ211",
         vendor: "Linkoze",
