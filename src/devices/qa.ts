@@ -93,7 +93,11 @@ export const definitions: DefinitionWithExtend[] = [
         model: "QARZ1DC",
         vendor: "QA",
         description: "1 channel switch",
-        extend: [tuya.modernExtend.tuyaMagicPacket(), m.deviceEndpoints({endpoints: {l1: 1}}), tuya.modernExtend.tuyaOnOff({endpoints: ["l1"]})],
+        extend: [
+            tuya.modernExtend.tuyaMagicPacket(),
+            m.deviceEndpoints({endpoints: {l1: 1}}),
+            tuya.modernExtend.tuyaOnOff({endpoints: ["l1"]}),
+        ],
     },
     {
         fingerprint: tuya.fingerprint("TS0001", ["_TZ3000_gtdswg8k", "_TZ3000_qh6qjuan"]),
@@ -254,7 +258,6 @@ export const definitions: DefinitionWithExtend[] = [
             e.numeric("action_4", ea.STATE).withDescription("Scene 4"),
             e.numeric("action_5", ea.STATE).withDescription("Scene 5"),
             e.numeric("action_6", ea.STATE).withDescription("Scene 6"),
-            // Backlight brightness control (0-99%)
             e
                 .numeric("backlight_brightness", ea.ALL)
                 .withValueMin(0)
@@ -265,19 +268,18 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {
             multiEndpoint: true,
             tuyaDatapoints: [
-                [24, "state_l1", tuya.valueConverter.onOff],
-                [25, "state_l2", tuya.valueConverter.onOff],
-                [26, "state_l3", tuya.valueConverter.onOff],
-                [27, "state_l4", tuya.valueConverter.onOff],
-                [28, "state_l5", tuya.valueConverter.onOff],
-                [29, "state_l6", tuya.valueConverter.onOff],
                 [7, "action_1", tuya.valueConverter.raw],
                 [8, "action_2", tuya.valueConverter.raw],
                 [9, "action_3", tuya.valueConverter.raw],
                 [10, "action_4", tuya.valueConverter.raw],
                 [11, "action_5", tuya.valueConverter.raw],
                 [12, "action_6", tuya.valueConverter.raw],
-                // Backlight brightness datapoint
+                [24, "state_l1", tuya.valueConverter.onOff],
+                [25, "state_l2", tuya.valueConverter.onOff],
+                [26, "state_l3", tuya.valueConverter.onOff],
+                [27, "state_l4", tuya.valueConverter.onOff],
+                [28, "state_l5", tuya.valueConverter.onOff],
+                [29, "state_l6", tuya.valueConverter.onOff],
                 [101, "backlight_brightness", tuya.valueConverter.raw],
             ],
         },
@@ -290,7 +292,10 @@ export const definitions: DefinitionWithExtend[] = [
         model: "QADZ1",
         vendor: "QA",
         description: "Dimmer 1 channel",
-        extend: [m.light({powerOnBehavior: false, configureReporting: true, effect: false}), tuya.modernExtend.tuyaMagicPacket()],
+        extend: [
+            tuya.modernExtend.tuyaMagicPacket(),
+            m.light({powerOnBehavior: false, configureReporting: true, effect: false}),
+        ],
         fromZigbee: [tuya.fz.power_on_behavior_1, fz.TS110E_switch_type, fz.TS110E, fz.on_off],
         toZigbee: [tz.TS110E_light_onoff_brightness, tuya.tz.power_on_behavior_1, tz.TS110E_options],
         exposes: [e.power_on_behavior(), tuya.exposes.switchType()],
