@@ -16672,7 +16672,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_ncti2pro", "_TZE204_l8xiyymq", "_TZE284_l8xiyymq"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_ncti2pro", "_TZE204_l8xiyymq", "_TZE284_l8xiyymq", "_TZE284_zeldawjv"]),
         model: "PN6",
         vendor: "ZSVIOT",
         description: "6-way controller",
@@ -16721,8 +16721,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [114, "switch_mode_l3_l4", tuya.valueConverter.switchMode2],
                 [115, "switch_mode_l5_l6", tuya.valueConverter.switchMode2],
             ],
-        },
-        whiteLabel: [tuya.whitelabel("QA", "QARZ6DIN", "6 channel din module", ["_TZE284_zeldawjv"])],
+        }
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_zqq3cipq", "_TZE284_zqq3cipq"]),
