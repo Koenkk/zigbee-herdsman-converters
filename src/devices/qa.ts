@@ -96,7 +96,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [tuya.modernExtend.tuyaMagicPacket(), m.deviceEndpoints({endpoints: {l1: 1}}), tuya.modernExtend.tuyaOnOff({endpoints: ["l1"]})],
     },
     {
-        fingerprint: tuya.fingerprint("TS0001", ["_TZ3000_gtdswg8k"]),
+        fingerprint: tuya.fingerprint("TS0001", ["_TZ3000_gtdswg8k", "_TZ3000_qh6qjuan"]),
         model: "QARZDC1LR",
         vendor: "QA",
         description: "1 channel long range switch",
@@ -107,7 +107,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint("TS0002", ["_TZ3000_rfjctviq", "_TZ3210_pdnwpnz5"]),
+        fingerprint: tuya.fingerprint("TS0002", ["_TZ3000_rfjctviq", "_TZ3210_pdnwpnz5", "_TZ3210_a2erlvb8", "_TZ3000_yxmafzmd"]),
         model: "QARZ2LR",
         vendor: "QA",
         description: "2 channel long range switch",
@@ -119,7 +119,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint("TS0003", ["_TZ3000_zeuulson"]),
+        fingerprint: tuya.fingerprint("TS0003", ["_TZ3000_zeuulson", "_TZ33000_d9yfgzur"]),
         model: "QARZ3LR",
         vendor: "QA",
         description: "3 channel long range switch",
@@ -233,6 +233,56 @@ export const definitions: DefinitionWithExtend[] = [
             // Reports itself as battery which is not correct: https://github.com/Koenkk/zigbee2mqtt/issues/6190
             device.powerSource = "Mains (single phase)";
             device.save();
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_ms97nkyy"]),
+        model: "QAT44Z6",
+        vendor: "QA",
+        description: "6 channel scene switch",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.switch().withEndpoint("l1"),
+            e.switch().withEndpoint("l2"),
+            e.switch().withEndpoint("l3"),
+            e.switch().withEndpoint("l4"),
+            e.switch().withEndpoint("l5"),
+            e.switch().withEndpoint("l6"),
+            e.numeric("action_1", ea.STATE).withDescription("Scene 1"),
+            e.numeric("action_2", ea.STATE).withDescription("Scene 2"),
+            e.numeric("action_3", ea.STATE).withDescription("Scene 3"),
+            e.numeric("action_4", ea.STATE).withDescription("Scene 4"),
+            e.numeric("action_5", ea.STATE).withDescription("Scene 5"),
+            e.numeric("action_6", ea.STATE).withDescription("Scene 6"),
+            // Backlight brightness control (0-99%)
+            e
+                .numeric("backlight_brightness", ea.ALL)
+                .withValueMin(0)
+                .withValueMax(99)
+                .withDescription("Backlight brightness (0-99)")
+                .withUnit("%"),
+        ],
+        meta: {
+            multiEndpoint: true,
+            tuyaDatapoints: [
+                [24, "state_l1", tuya.valueConverter.onOff],
+                [25, "state_l2", tuya.valueConverter.onOff],
+                [26, "state_l3", tuya.valueConverter.onOff],
+                [27, "state_l4", tuya.valueConverter.onOff],
+                [28, "state_l5", tuya.valueConverter.onOff],
+                [29, "state_l6", tuya.valueConverter.onOff],
+                [7, "action_1", tuya.valueConverter.raw],
+                [8, "action_2", tuya.valueConverter.raw],
+                [9, "action_3", tuya.valueConverter.raw],
+                [10, "action_4", tuya.valueConverter.raw],
+                [11, "action_5", tuya.valueConverter.raw],
+                [12, "action_6", tuya.valueConverter.raw],
+                // Backlight brightness datapoint
+                [101, "backlight_brightness", tuya.valueConverter.raw],
+            ],
+        },
+        endpoint: (device) => {
+            return {l1: 1, l2: 1, l3: 1, l4: 1, l5: 1, l6: 1};
         },
     },
     {
