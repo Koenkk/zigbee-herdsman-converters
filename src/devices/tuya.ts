@@ -1292,7 +1292,24 @@ export const definitions: DefinitionWithExtend[] = [
             e.text("meter_id", ea.STATE).withDescription("Meter identification number"),
             e.temperature(),
             e.voltage(),
-            e.enum("fault", ea.STATE, ["empty_pipe", "no_fault"]).withDescription("Fault status"),
+            e
+                .enum("fault", ea.STATE, [
+                    "no_fault",
+                    "battery_alarm",
+                    "magnetism_alarm",
+                    "cover_alarm",
+                    "credit_alarm",
+                    "switch_gaps_alarm",
+                    "meter_body_alarm",
+                    "abnormal_water_alarm",
+                    "arrearage_alarm",
+                    "overflow_alarm",
+                    "revflow_alarm",
+                    "over_pre_alarm",
+                    "empty_pipe_alarm",
+                    "transducer_alarm",
+                ])
+                .withDescription("Fault status"),
         ],
         meta: {
             tuyaDatapoints: [
@@ -1365,7 +1382,26 @@ export const definitions: DefinitionWithExtend[] = [
                         "24h": 7,
                     }),
                 ],
-                [5, "fault", tuya.valueConverterBasic.lookup({empty_pipe: 6144, no_fault: 0})],
+                [
+                    5,
+                    "fault",
+                    tuya.valueConverterBasic.lookup({
+                        0: "no_fault",
+                        1: "battery_alarm",
+                        2: "magnetism_alarm",
+                        4: "cover_alarm",
+                        8: "credit_alarm",
+                        16: "switch_gaps_alarm",
+                        32: "meter_body_alarm",
+                        64: "abnormal_water_alarm",
+                        128: "arrearage_alarm",
+                        256: "overflow_alarm",
+                        512: "revflow_alarm",
+                        1024: "over_pre_alarm",
+                        2048: "empty_pipe_alarm",
+                        4096: "transducer_alarm",
+                    }),
+                ],
                 [16, "meter_id", tuya.valueConverter.raw],
                 [
                     18,
@@ -1484,6 +1520,19 @@ export const definitions: DefinitionWithExtend[] = [
             tuyaDatapoints: [[101, "action", tuya.valueConverterBasic.lookup({single: 0, double: 1, hold: 2})]],
         },
         whiteLabel: [tuya.whitelabel("Linkoze", "LKDSZ001", "Door sensor with scene switch", ["_TZ3210_jowhpxop"])],
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0203", ["_TZ3000_pjb1ua0m"]),
+        model: "C3007",
+        vendor: "Tuya",
+        description: "Pressure pad sensor",
+        extend: [
+            m.iasZoneAlarm({
+                zoneType: "pressure",
+                zoneAttributes: ["alarm_1", "battery_low"],
+            }),
+            m.battery({voltage: true}),
+        ],
     },
     {
         fingerprint: tuya.fingerprint("TS0021", ["_TZ3210_3ulg9kpo"]),
@@ -6288,6 +6337,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE200_kds0pmmv",
             "_TZE200_py4cm3he" /* model: 'TV06-Zigbee', vendor: 'Tuya' */,
             "_TZE200_wsbfwodu" /* model: 'HA-08 THERMO', vendor: 'AlecoAir' */,
+            "_TZE200_x9axofse" /* model: 'ZTRV-ZX-TV02', vendor: 'Moes' */,
         ]),
         model: "TV02-Zigbee",
         vendor: "Tuya",
@@ -6302,6 +6352,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Moes", "TV01-ZB", "Thermostat radiator valve", ["_TZE200_e9ba97vf"]),
             tuya.whitelabel("AlecoAir", "HA-08_THERMO", "Thermostat radiator valve", ["_TZE200_wsbfwodu"]),
             tuya.whitelabel("GIEX", "TV06", "Thermostat radiator valve", ["_TZE200_py4cm3he"]),
+            tuya.whitelabel("Moes", "ZTRV-ZX-TV02", "Thermostat radiator valve", ["_TZE200_x9axofse"]),
         ],
         ota: true,
         extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true, timeStart: "1970"})],
@@ -7616,6 +7667,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: [
+            {modelID: "TS011F", applicationVersion: 192, priority: -1},
             {modelID: "TS011F", applicationVersion: 160, priority: -1},
             {modelID: "TS011F", applicationVersion: 100, priority: -1},
             {modelID: "TS011F", applicationVersion: 69, priority: -1},
@@ -7632,6 +7684,7 @@ export const definitions: DefinitionWithExtend[] = [
             {vendor: "BlitzWolf", model: "BW-SHP15"},
             {vendor: "AVATTO", model: "MIUCOT10Z"},
             {vendor: "NEO", model: "PLUG-001SPB2"},
+            tuya.whitelabel("BSEED", "TS011F_plug_3_1", "Wall-mounted electrical EU/FR/UK socket with power monitoring", ["_TZ3000_2uollq9d"]),
         ],
         ota: true,
         extend: [
@@ -7642,7 +7695,7 @@ export const definitions: DefinitionWithExtend[] = [
                 childLock: true,
             }),
             tuya.modernExtend.electricityMeasurementPoll({
-                metering: (device) => [100, 160].includes(device.applicationVersion) || ["1.0.5\u0000"].includes(device.softwareBuildID), // polling for energy
+                metering: (device) => [100, 160, 192].includes(device.applicationVersion) || ["1.0.5\u0000"].includes(device.softwareBuildID), // polling for energy
             }),
         ],
         configure: async (device, coordinatorEndpoint) => {
@@ -11599,7 +11652,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["ZG-204ZM"],
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_2aaelwxk", "_TZE200_kb5noeto", "_TZE200_tyffvoij"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_2aaelwxk", "_TZE200_kb5noeto", "_TZE200_tyffvoij", "_TZE200_yflzeeqj"]),
         model: "ZG-204ZM",
         vendor: "Tuya",
         description: "PIR 24Ghz human presence sensor",
@@ -14075,7 +14128,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_vmcgja59"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_vmcgja59", "_TZE284_vmcgja59"]),
         model: "ZYXH",
         vendor: "Tuya",
         description: "24 gang switch",
@@ -14469,7 +14522,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Tuya", "MTG275-ZB-RL", "2.4G/5.8G MmWave radar human presence motion sensor", ["_TZE204_dtzziy1e"]),
             tuya.whitelabel("Tuya", "MTG035-ZB-RL", "Human presence sensor with relay", ["_TZE204_pfayrzcw"]),
             tuya.whitelabel("Tuya", "MTG235-ZB-RL", "24G Human presence sensor with relay", ["_TZE204_clrdrnya", "_TZE200_clrdrnya"]),
-            tuya.whitelabel("QA", "QASZ24R", "mmWave 24 Ghz sensor with relay", ["_TZE284_4qznlkbu"]),
+            tuya.whitelabel("QA", "QASZ24R", "mmWave 24 Ghz sensor with relay", ["_TZE284_4qznlkbu", "_TZE204_clrdrnya"]),
         ],
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
@@ -16619,7 +16672,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_ncti2pro", "_TZE204_l8xiyymq", "_TZE284_l8xiyymq"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_ncti2pro", "_TZE204_l8xiyymq", "_TZE284_l8xiyymq", "_TZE284_zeldawjv"]),
         model: "PN6",
         vendor: "ZSVIOT",
         description: "6-way controller",
