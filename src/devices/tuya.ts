@@ -11097,7 +11097,11 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [ez.learn_ir_code(), ez.learned_ir_code(), ez.ir_code_to_send()],
         whiteLabel: [
             tuya.whitelabel("Tuya", "UFO-R4Z", "Universal smart IR remote control", ["_TZ3290_rlkmy85q4pzoxobl"]),
-            tuya.whitelabel("QA", "QAIRZPRO", "Infrared hub pro", ["_TZ3290_jxvzqatwgsaqzx1u", "_TZ3290_lypnqvlem5eq1ree", "_TZ3290_7v1k4vufotpowp9z"]),
+            tuya.whitelabel("QA", "QAIRZPRO", "Infrared hub pro", [
+                "_TZ3290_jxvzqatwgsaqzx1u",
+                "_TZ3290_lypnqvlem5eq1ree",
+                "_TZ3290_7v1k4vufotpowp9z",
+            ]),
             tuya.whitelabel("Zemismart", "ZM-18-USB", "Universal smart IR remote control", ["_TZ3290_uc8lwbi2"]),
             tuya.whitelabel("Zemismart", "ZXMIR-02", "Universal smart IR remote control", ["_TZ3290_8xzb2ghn"]),
         ],

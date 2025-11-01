@@ -123,7 +123,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint("TS0002", ["_TZ3000_rfjctviq","_TZ3210_pdnwpnz5","_TZ3210_a2erlvb8", "_TZ3000_yxmafzmd"]),
+        fingerprint: tuya.fingerprint("TS0002", ["_TZ3000_rfjctviq", "_TZ3210_pdnwpnz5", "_TZ3210_a2erlvb8", "_TZ3000_yxmafzmd"]),
         model: "QARZ2LR",
         vendor: "QA",
         description: "2 channel long range switch",
@@ -257,9 +257,9 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "QA",
         description: "Dimmer 1 channel",
         extend: [
-           tuya.modernExtend.tuyaMagicPacket(),
-           m.deviceEndpoints({endpoints: {l1: 1}}),
-           m.light({powerOnBehavior: false ,configureReporting: true, effect: false}),
+            tuya.modernExtend.tuyaMagicPacket(),
+            m.deviceEndpoints({endpoints: {l1: 1}}),
+            m.light({powerOnBehavior: false, configureReporting: true, effect: false}),
         ],
         fromZigbee: [tuya.fz.power_on_behavior_1, fz.TS110E_switch_type, fz.TS110E, fz.on_off],
         toZigbee: [tz.TS110E_light_onoff_brightness, tuya.tz.power_on_behavior_1, tz.TS110E_options],
@@ -301,11 +301,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.numeric("action_4", ea.STATE).withDescription("Scene 4"),
             e.numeric("action_5", ea.STATE).withDescription("Scene 5"),
             e.numeric("action_6", ea.STATE).withDescription("Scene 6"),
-            e.numeric("backlight_brightness", ea.ALL)
-                .withValueMin(0)
-                .withValueMax(99)
-                .withDescription("Backlight brightness (0-99)")
-                .withUnit("%"),
+            e.numeric("backlight_brightness", ea.ALL).withValueMin(0).withValueMax(99).withDescription("Backlight brightness (0-99)").withUnit("%"),
         ],
         meta: {
             multiEndpoint: true,
