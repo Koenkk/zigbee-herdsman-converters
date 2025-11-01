@@ -42,9 +42,10 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["EMIZB-151"],
         model: "EMIZB-151",
         vendor: "Frient",
-        description: "HAN P1 power-meter sensor",
-        extend: [m.electricityMeter({threePhase: true})],
+        description: "Electricity Meter Interface 2 P1",
+        extend: [m.electricityMeter({threePhase: true, tariffs: true})],
         ota: true,
+        endpoint: (device) => ({default: 2}),
     },
     {
         zigbeeModel: ["REXZB-111"],

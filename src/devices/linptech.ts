@@ -81,9 +81,9 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ES1ZZ(TY)",
         vendor: "Linptech",
         description: "mmWave Presence sensor",
-        fromZigbee: [fz.ias_occupancy_alarm_1, fzLocal.TS0225, fzLocal.TS0225_illuminance, tuya.fz.datapoints],
-        toZigbee: [tzLocal.TS0225, tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        fromZigbee: [fz.ias_occupancy_alarm_1, fzLocal.TS0225, fzLocal.TS0225_illuminance],
+        toZigbee: [tzLocal.TS0225],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.occupancy().withDescription("Presence state"),
             e.illuminance().withUnit("lx"),
