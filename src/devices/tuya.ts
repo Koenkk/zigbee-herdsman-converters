@@ -20679,73 +20679,61 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
 
-    
-{
-    fingerprint: tuya.fingerprint("TS0601", ["_TZE284_waa352qv"]),
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_waa352qv"]),
         model: "_TZE284_waa352qvi Test",
         vendor: "Tuya",
         description: "Shutter-Test",
-	options: [exposes.options.invert_cover()],
+        options: [exposes.options.invert_cover()],
 
-     fromZigbee: [
-		 tuya.fz.datapoints,
-		 fz.tuya_cover_options,
-		],
+        fromZigbee: [tuya.fz.datapoints, fz.tuya_cover_options],
 
-    toZigbee: [
-		tuya.tz.datapoints,
-	       ],
+        toZigbee: [tuya.tz.datapoints],
 
-
-    	onEvent: tuya.onEventSetTime, // Add this if you are getting no converter for 'commandMcuSyncTime'
+        onEvent: tuya.onEventSetTime, // Add this if you are getting no converter for 'commandMcuSyncTime'
         configure: async (device, coordinatorEndpoint) => {
-        const endpoint = device.getEndpoint(1);
-        await tuya.configureMagicPacket(device, coordinatorEndpoint);
-        await endpoint.command("manuSpecificTuya", "mcuVersionRequest", {seq: 0x0002});
-        await endpoint.command("manuSpecificTuya", "dataQuery", {});
-        await reporting.bind(endpoint, coordinatorEndpoint, ["genBasic", "genTime", "manuSpecificTuya"]);
-	await reporting.currentPositionLiftPercentage(endpoint);
+            const endpoint = device.getEndpoint(1);
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+            await endpoint.command("manuSpecificTuya", "mcuVersionRequest", {seq: 0x0002});
+            await endpoint.command("manuSpecificTuya", "dataQuery", {});
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genBasic", "genTime", "manuSpecificTuya"]);
+            await reporting.currentPositionLiftPercentage(endpoint);
+        },
+
+        exposes: [
+            // Here you should put all functionality that your device exposes
+            e
+                .enum("display_brightness", ea.STATE_SET, ["high", "medium", "off"])
+                .withDescription("Display brightness"),
+            e.cover_position().setAccess("position", ea.STATE_SET),
+            e.binary("child_lock", ea.STATE_SET, "ON", "OFF").withDescription("Child Lock"),
+            e.enum("calibration", ea.STATE_SET, ["START", "END"]).withDescription("Calibration"),
+            e
+                .binary("direction", ea.STATE_SET, "ON", "OFF")
+                .withDescription("Inverts the cover direction"),
+
+            //    e.enum("motor_direction", ea.STATE_SET, ["forward", "back"]).withDescription("Motor direction"),
+        ],
+
+        meta: {
+            // All datapoints go in here
+            tuyaDatapoints: [
+                [1, "state", tuya.valueConverterBasic.lookup({CLOSE: tuya.enum(1), STOP: tuya.enum(0), OPEN: tuya.enum(2)})],
+                [2, "position", tuya.valueConverter.coverPositionInverted],
+                [3, "calibration", tuya.valueConverterBasic.lookup({START: tuya.enum(0), END: tuya.enum(1)})],
+                [5, "direction", tuya.valueConverter.onOff],
+                [102, "display_brightness", tuya.valueConverterBasic.lookup({high: tuya.enum(0), medium: tuya.enum(1), off: tuya.enum(2)})],
+                [103, "child_lock", tuya.valueConverter.onOff],
+
+                //            [5, "motor_direction",tuya.valueConverterBasic.lookup({forward: tuya.enum(0),back: tuya.enum(1),}),],
+            ],
+        },
+
+        extend: [
+            // A preferred new way of extending functionality.
+            tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"}),
+        ],
+
+        whiteLabel: [tuya.whitelabel("6.1Gen-series", "Curry Smarter", "Curtain/blind switch", ["_TZE284_waa352qv"])],
     },
-
-
-exposes: [
-        // Here you should put all functionality that your device exposes
-    e.enum("display_brightness", ea.STATE_SET, ["high", "medium", "off"]).withDescription("Display brightness"),
-    e.cover_position().setAccess("position", ea.STATE_SET),
-    e.binary("child_lock", ea.STATE_SET, "ON", "OFF").withDescription("Child Lock"),
-    e.enum("calibration", ea.STATE_SET, ["START", "END"]).withDescription("Calibration"),
-    e.binary("direction", ea.STATE_SET, "ON", "OFF").withDescription("Inverts the cover direction"),
-
-//    e.enum("motor_direction", ea.STATE_SET, ["forward", "back"]).withDescription("Motor direction"),
-    ],
-
-    meta: {
-        // All datapoints go in here
-        tuyaDatapoints: [
-
-
-	    [1, "state", tuya.valueConverterBasic.lookup({CLOSE: tuya.enum(1),STOP: tuya.enum(0),OPEN: tuya.enum(2),}),],
-	    [2, "position", tuya.valueConverter.coverPositionInverted],
-	    [3, "calibration", tuya.valueConverterBasic.lookup({START: tuya.enum(0),END: tuya.enum(1), }),],
-            [5, "direction",tuya.valueConverter.onOff],
-	    [102, "display_brightness", tuya.valueConverterBasic.lookup({high: tuya.enum(0),medium: tuya.enum(1),off: tuya.enum(2),}),],
-	    [103, "child_lock", tuya.valueConverter.onOff],
-
-//            [5, "motor_direction",tuya.valueConverterBasic.lookup({forward: tuya.enum(0),back: tuya.enum(1),}),],
-    ]},
-
-    extend: [
-        // A preferred new way of extending functionality.
-	tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})
-    ],
-
- whiteLabel: [
-            tuya.whitelabel("6.1Gen-series", "Curry Smarter", "Curtain/blind switch", ["_TZE284_waa352qv"]),
-	    ],
-
-},
-
-
-
-    
 ];
