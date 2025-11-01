@@ -104,7 +104,7 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: tuya.fingerprint("TS000F", ["_TZ3210_pdnwpnz5"]),
         model: "QARZ2",
         vendor: "QA",
-        description: "1 channel switch",
+        description: "2 channel switch",
         meta: {multiEndpoint: true},
         extend: [
             tuya.modernExtend.tuyaMagicPacket(),
@@ -183,7 +183,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint("TS0003", ["_TZ3000_pmsxmttq", "_TZ3000_0q5fjqgw", "_TZ3000_lubfc1t5"]),
+        fingerprint: tuya.fingerprint("TS0003", ["_TZ3000_pmsxmttq", "_TZ3000_0q5fjqgw"]),
         model: "QAT42Z3H",
         vendor: "QA",
         description: "3 channel wall switch",
