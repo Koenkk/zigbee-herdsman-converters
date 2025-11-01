@@ -13,7 +13,6 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "EGLO",
         description: "MASSIGNANO-Z ceiling light",
         extend: [
-            meta: {multiEndpoint: true},
             m.light({colorTemp: {range: [153, 370]}, color: {modes: ["xy", "hs"], enhancedHue: true}}),
             m.commandsOnOff(),
             m.commandsLevelCtrl(),
