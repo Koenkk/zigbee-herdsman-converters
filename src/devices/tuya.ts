@@ -11081,6 +11081,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZ3290_uc8lwbi2",
             "_TZ3290_nba3knpsarkawgnt",
             "_TZ3290_8xzb2ghn",
+            "_TZ3290_j37rooaxrcdcqo5n",
         ]),
         model: "ZS06",
         vendor: "Tuya",
@@ -11097,7 +11098,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [ez.learn_ir_code(), ez.learned_ir_code(), ez.ir_code_to_send()],
         whiteLabel: [
             tuya.whitelabel("Tuya", "UFO-R4Z", "Universal smart IR remote control", ["_TZ3290_rlkmy85q4pzoxobl"]),
-            tuya.whitelabel("QA", "QAIRZPRO", "Infrared hub pro", ["_TZ3290_jxvzqatwgsaqzx1u", "_TZ3290_lypnqvlem5eq1ree"]),
+            tuya.whitelabel("QA", "QAIRZPRO", "Infrared hub pro", ["_TZ3290_jxvzqatwgsaqzx1u", "_TZ3290_lypnqvlem5eq1ree", "_TZ3290_j37rooaxrcdcqo5n", "_TZ3290_7v1k4vufotpowp9z"]),
             tuya.whitelabel("Zemismart", "ZM-18-USB", "Universal smart IR remote control", ["_TZ3290_uc8lwbi2"]),
             tuya.whitelabel("Zemismart", "ZXMIR-02", "Universal smart IR remote control", ["_TZ3290_8xzb2ghn"]),
         ],
@@ -11657,6 +11658,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Tuya",
         description: "PIR 24Ghz human presence sensor",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        configure: tuya.configureMagicPacket,
         exposes: [
             e.presence(),
             e.enum("motion_state", ea.STATE, ["none", "large", "small", "static"]).withDescription("Motion state"),
@@ -11699,7 +11701,8 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {
             tuyaDatapoints: [
                 [1, "presence", tuya.valueConverter.trueFalse1],
-                [106, "illuminance", tuya.valueConverter.raw],
+                [2, "static_detection_sensitivity", tuya.valueConverter.raw],
+                [4, "static_detection_distance", tuya.valueConverter.divideBy100],
                 [
                     101,
                     "motion_state",
@@ -11711,8 +11714,7 @@ export const definitions: DefinitionWithExtend[] = [
                     }),
                 ],
                 [102, "fading_time", tuya.valueConverter.raw],
-                [4, "static_detection_distance", tuya.valueConverter.divideBy100],
-                [2, "static_detection_sensitivity", tuya.valueConverter.raw],
+                [106, "illuminance", tuya.valueConverter.raw],
                 [107, "indicator", tuya.valueConverter.onOff],
                 [121, "battery", tuya.valueConverter.raw],
                 [
