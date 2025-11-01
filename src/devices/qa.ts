@@ -144,7 +144,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: tuya.fingerprint('TS0601', ['_TZE204_ncti2pro']),
-        model: 'QARZ6D',
+        model: 'QARZ6DIN',
         vendor: 'QA',
         description: '6 channel din module',
         fromZigbee: [tuya.fz.datapoints],
