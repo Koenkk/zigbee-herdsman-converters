@@ -20690,7 +20690,7 @@ export const definitions: DefinitionWithExtend[] = [
 
         toZigbee: [tuya.tz.datapoints],
 
-        onEvent: tuya.onEventSetTime, // Add this if you are getting no converter for 'commandMcuSyncTime'
+        // onEvent: tuya.onEventSetTime, // Add this if you are getting no converter for 'commandMcuSyncTime'
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
