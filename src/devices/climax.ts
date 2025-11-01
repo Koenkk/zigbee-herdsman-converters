@@ -69,6 +69,22 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.switch(), e.power(), e.energy()],
     },
     {
+        zigbeeModel: ["PSMP5_00.00.03.12TC"],
+        model: "PSM-29ZBS",
+        vendor: "Climax",
+        description: "Power plug",
+        fromZigbee: [fz.on_off, fz.metering],
+        toZigbee: [tz.on_off, tz.ignore_transition],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "seMetering"]);
+            await reporting.onOff(endpoint);
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+            await reporting.instantaneousDemand(endpoint, {min: 10, change: 2});
+        },
+        exposes: [e.switch(), e.power(), e.energy()],
+    },
+    {
         zigbeeModel: ["RS_00.00.02.06TC"],
         model: "RS-23ZBS",
         vendor: "Climax",
