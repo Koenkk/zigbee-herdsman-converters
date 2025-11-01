@@ -240,10 +240,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "QAT44Z6",
         vendor: "QA",
         description: "6 channel scene switch",
-        whiteLabel: [{vendor: "QA", model: "QAT42ZT6"}],
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.switch().withEndpoint("l1"),
             e.switch().withEndpoint("l2"),
