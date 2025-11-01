@@ -1292,7 +1292,24 @@ export const definitions: DefinitionWithExtend[] = [
             e.text("meter_id", ea.STATE).withDescription("Meter identification number"),
             e.temperature(),
             e.voltage(),
-            e.enum("fault", ea.STATE, ["empty_pipe", "no_fault"]).withDescription("Fault status"),
+            e
+                .enum("fault", ea.STATE, [
+                    "no_fault",
+                    "battery_alarm",
+                    "magnetism_alarm",
+                    "cover_alarm",
+                    "credit_alarm",
+                    "switch_gaps_alarm",
+                    "meter_body_alarm",
+                    "abnormal_water_alarm",
+                    "arrearage_alarm",
+                    "overflow_alarm",
+                    "revflow_alarm",
+                    "over_pre_alarm",
+                    "empty_pipe_alarm",
+                    "transducer_alarm",
+                ])
+                .withDescription("Fault status"),
         ],
         meta: {
             tuyaDatapoints: [
@@ -1365,7 +1382,26 @@ export const definitions: DefinitionWithExtend[] = [
                         "24h": 7,
                     }),
                 ],
-                [5, "fault", tuya.valueConverterBasic.lookup({empty_pipe: 6144, no_fault: 0})],
+                [
+                    5,
+                    "fault",
+                    tuya.valueConverterBasic.lookup({
+                        0: "no_fault",
+                        1: "battery_alarm",
+                        2: "magnetism_alarm",
+                        4: "cover_alarm",
+                        8: "credit_alarm",
+                        16: "switch_gaps_alarm",
+                        32: "meter_body_alarm",
+                        64: "abnormal_water_alarm",
+                        128: "arrearage_alarm",
+                        256: "overflow_alarm",
+                        512: "revflow_alarm",
+                        1024: "over_pre_alarm",
+                        2048: "empty_pipe_alarm",
+                        4096: "transducer_alarm",
+                    }),
+                ],
                 [16, "meter_id", tuya.valueConverter.raw],
                 [
                     18,
@@ -1484,6 +1520,19 @@ export const definitions: DefinitionWithExtend[] = [
             tuyaDatapoints: [[101, "action", tuya.valueConverterBasic.lookup({single: 0, double: 1, hold: 2})]],
         },
         whiteLabel: [tuya.whitelabel("Linkoze", "LKDSZ001", "Door sensor with scene switch", ["_TZ3210_jowhpxop"])],
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0203", ["_TZ3000_pjb1ua0m"]),
+        model: "C3007",
+        vendor: "Tuya",
+        description: "Pressure pad sensor",
+        extend: [
+            m.iasZoneAlarm({
+                zoneType: "pressure",
+                zoneAttributes: ["alarm_1", "battery_low"],
+            }),
+            m.battery({voltage: true}),
+        ],
     },
     {
         fingerprint: tuya.fingerprint("TS0021", ["_TZ3210_3ulg9kpo"]),
@@ -6288,6 +6337,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE200_kds0pmmv",
             "_TZE200_py4cm3he" /* model: 'TV06-Zigbee', vendor: 'Tuya' */,
             "_TZE200_wsbfwodu" /* model: 'HA-08 THERMO', vendor: 'AlecoAir' */,
+            "_TZE200_x9axofse" /* model: 'ZTRV-ZX-TV02', vendor: 'Moes' */,
         ]),
         model: "TV02-Zigbee",
         vendor: "Tuya",
@@ -6302,6 +6352,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Moes", "TV01-ZB", "Thermostat radiator valve", ["_TZE200_e9ba97vf"]),
             tuya.whitelabel("AlecoAir", "HA-08_THERMO", "Thermostat radiator valve", ["_TZE200_wsbfwodu"]),
             tuya.whitelabel("GIEX", "TV06", "Thermostat radiator valve", ["_TZE200_py4cm3he"]),
+            tuya.whitelabel("Moes", "ZTRV-ZX-TV02", "Thermostat radiator valve", ["_TZE200_x9axofse"]),
         ],
         ota: true,
         extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true, timeStart: "1970"})],
@@ -7616,6 +7667,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: [
+            {modelID: "TS011F", applicationVersion: 192, priority: -1},
             {modelID: "TS011F", applicationVersion: 160, priority: -1},
             {modelID: "TS011F", applicationVersion: 100, priority: -1},
             {modelID: "TS011F", applicationVersion: 69, priority: -1},
@@ -7632,6 +7684,7 @@ export const definitions: DefinitionWithExtend[] = [
             {vendor: "BlitzWolf", model: "BW-SHP15"},
             {vendor: "AVATTO", model: "MIUCOT10Z"},
             {vendor: "NEO", model: "PLUG-001SPB2"},
+            tuya.whitelabel("BSEED", "TS011F_plug_3_1", "Wall-mounted electrical EU/FR/UK socket with power monitoring", ["_TZ3000_2uollq9d"]),
         ],
         ota: true,
         extend: [
@@ -7642,7 +7695,7 @@ export const definitions: DefinitionWithExtend[] = [
                 childLock: true,
             }),
             tuya.modernExtend.electricityMeasurementPoll({
-                metering: (device) => [100, 160].includes(device.applicationVersion) || ["1.0.5\u0000"].includes(device.softwareBuildID), // polling for energy
+                metering: (device) => [100, 160, 192].includes(device.applicationVersion) || ["1.0.5\u0000"].includes(device.softwareBuildID), // polling for energy
             }),
         ],
         configure: async (device, coordinatorEndpoint) => {
@@ -14075,7 +14128,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_vmcgja59"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_vmcgja59", "_TZE284_vmcgja59"]),
         model: "ZYXH",
         vendor: "Tuya",
         description: "24 gang switch",
@@ -19927,6 +19980,89 @@ export const definitions: DefinitionWithExtend[] = [
                 [118, "comfort_temperature", tuya.valueConverter.divideBy10],
                 [119, "antifrost_temperature", tuya.valueConverter.divideBy10],
                 [120, "light", tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_ilzkxrav"]),
+        model: "TWC-R01",
+        vendor: "Thaleos",
+        description: "Smart thermostat for electric heater with pilot wire",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e
+                .climate()
+                .withLocalTemperature(ea.STATE)
+                .withLocalTemperatureCalibration(-8, 8, 0.5, ea.STATE_SET)
+                .withPreset(["comfort", "eco", "antifrost", "off", "comfort_1", "comfort_2"]),
+            e
+                .enum("mode", ea.STATE, ["comfort", "eco", "antifrost", "off", "comfort_1", "comfort_2"])
+                .withDescription("Current running mode")
+                .withCategory("diagnostic"),
+            e.binary("eco_mode", ea.STATE_SET, "ON", "OFF").withDescription("Enables/disables the weekly program."),
+            e.open_window(),
+            e.open_window_temperature(),
+            e.power(),
+            e.voltage(),
+            e.current(),
+            e.energy(),
+            e.numeric("energy_today", ea.STATE).withUnit("kWh").withDescription("Energy consumed today"),
+            e.numeric("energy_yesterday", ea.STATE).withUnit("kWh").withDescription("Energy consumed yesterday"),
+            e
+                .enum("device_mode_type", ea.STATE, ["four", "six"])
+                .withDescription("Indicates the actual pilot wire mode of the thermostat")
+                .withCategory("diagnostic"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [
+                    2,
+                    "mode",
+                    tuya.valueConverterBasic.lookup({
+                        comfort: tuya.enum(0),
+                        eco: tuya.enum(1),
+                        antifrost: tuya.enum(2),
+                        off: tuya.enum(3),
+                        comfort_1: tuya.enum(4),
+                        comfort_2: tuya.enum(5),
+                    }),
+                ],
+                [
+                    2,
+                    "preset",
+                    tuya.valueConverterBasic.lookup({
+                        comfort: tuya.enum(0),
+                        eco: tuya.enum(1),
+                        antifrost: tuya.enum(2),
+                        off: tuya.enum(3),
+                        comfort_1: tuya.enum(4),
+                        comfort_2: tuya.enum(5),
+                    }),
+                ],
+                [11, "power", tuya.valueConverter.raw],
+                [16, "local_temperature", tuya.valueConverter.divideBy10],
+                [19, "local_temperature_calibration", tuya.valueConverter.localTempCalibration2],
+                [20, "fault", tuya.valueConverter.raw],
+                [40, "eco_mode", tuya.valueConverter.onOff],
+                [101, "week_program", tuya.valueConverter.raw],
+                [102, "work_state", tuya.valueConverter.raw],
+                [103, "week_program_1", tuya.valueConverter.raw],
+                [104, "week_program_2", tuya.valueConverter.raw],
+                [105, "week_program_3", tuya.valueConverter.raw],
+                [106, "week_program_4", tuya.valueConverter.raw],
+                [107, "week_program_5", tuya.valueConverter.raw],
+                [108, "week_program_6", tuya.valueConverter.raw],
+                [109, "week_program_7", tuya.valueConverter.raw],
+                [110, "open_window", tuya.valueConverter.onOff],
+                [111, "open_window_temperature", tuya.valueConverter.raw],
+                [112, "window_time", tuya.valueConverter.raw],
+                [113, "window_timeout", tuya.valueConverter.raw],
+                [114, "device_mode_type", tuya.valueConverterBasic.lookup({four: tuya.enum(4), six: tuya.enum(6)})],
+                [115, "voltage", tuya.valueConverter.divideBy10],
+                [116, "current", tuya.valueConverter.divideBy1000],
+                [117, "energy", tuya.valueConverter.raw],
+                [119, "energy_today", tuya.valueConverter.raw],
+                [120, "energy_yesterday", tuya.valueConverter.raw],
             ],
         },
     },
