@@ -20743,7 +20743,7 @@ exposes: [
             tuya.whitelabel("6.1Gen-series", "Curry Smarter", "Curtain/blind switch", ["_TZE284_waa352qv"]),
 	    ],
 
-};
+},
 
 
 
