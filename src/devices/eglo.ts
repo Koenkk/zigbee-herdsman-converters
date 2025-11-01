@@ -18,7 +18,6 @@ export const definitions: DefinitionWithExtend[] = [
             m.commandsLevelCtrl(),
             m.commandsColorCtrl(),
         ],
-        meta: {multiEndpoint: true},
     },
     {
         zigbeeModel: ["EBF_RGB_Zm_CLP"],
