@@ -16722,6 +16722,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [115, "switch_mode_l5_l6", tuya.valueConverter.switchMode2],
             ],
         },
+        whiteLabel: [tuya.whitelabel("QA", "QARZ6DIN", "6 channel din module", ["_TZE284_zeldawjv"])],
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_zqq3cipq", "_TZE284_zqq3cipq"]),

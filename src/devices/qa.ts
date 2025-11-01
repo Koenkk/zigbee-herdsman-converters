@@ -143,43 +143,6 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_ncti2pro"]),
-        model: "QARZ6DIN",
-        vendor: "QA",
-        description: "6 channel din module",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: async (device, coordinatorEndpoint) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint);
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff"]);
-            device.powerSource = "Mains (single phase)";
-            device.save();
-        },
-        exposes: [
-            e.switch().withEndpoint("l1"),
-            e.switch().withEndpoint("l2"),
-            e.switch().withEndpoint("l3"),
-            e.switch().withEndpoint("l4"),
-            e.switch().withEndpoint("l5"),
-            e.switch().withEndpoint("l6"),
-        ],
-        endpoint: (device) => {
-            return {l1: 1, l2: 1, l3: 1, l4: 1, l5: 1, l6: 1};
-        },
-        meta: {
-            multiEndpoint: true,
-            tuyaDatapoints: [
-                [1, "state_l1", tuya.valueConverter.onOff],
-                [2, "state_l2", tuya.valueConverter.onOff],
-                [3, "state_l3", tuya.valueConverter.onOff],
-                [4, "state_l4", tuya.valueConverter.onOff],
-                [5, "state_l5", tuya.valueConverter.onOff],
-                [6, "state_l6", tuya.valueConverter.onOff],
-            ],
-        },
-    },
-    {
         fingerprint: tuya.fingerprint("TS0001", ["_TZ3000_dov0a3p1"]),
         model: "QAT42Z1H",
         vendor: "QA",
