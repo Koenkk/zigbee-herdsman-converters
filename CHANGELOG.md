@@ -1,5 +1,17 @@
 # Changelog
 
+## [25.59.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.58.0...v25.59.0) (2025-11-01)
+
+
+### Features
+
+* **add:** QAT44Z6 ([#10619](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10619)) ([1febaa5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1febaa5be7ccce2b1731b381c6948279e851f7aa))
+
+
+### Bug Fixes
+
+* **ignore:** Code for disable the onOffCountdown for Tuya  ([#10618](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10618)) ([b386513](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b3865138615e7bef5b5bf260b38edc7e008258cc))
+
 ## [25.58.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.57.0...v25.58.0) (2025-10-31)
 
 
