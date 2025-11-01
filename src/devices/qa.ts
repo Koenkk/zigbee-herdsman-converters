@@ -288,7 +288,6 @@ export const definitions: DefinitionWithExtend[] = [
         description: "QA 6CH scene switch",
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime,
         configure: tuya.configureMagicPacket,
         exposes: [
             e.switch().withEndpoint("l1"),
