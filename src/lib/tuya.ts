@@ -2611,17 +2611,19 @@ const tuyaModernExtend = {
             inchingSwitch?: boolean;
         } = {},
     ): ModernExtend => {
-        const {indicatorMode = false, powerOutageMemory = false, childLock = false} = args;
+        const {onOffCountdown = false, indicatorMode = false, powerOutageMemory = false, childLock = false} = args;
         const exposes: (Expose | DefinitionExposesFunction)[] = args.endpoints
             ? args.endpoints.map((ee) => e.switch().withEndpoint(ee))
             : [e.switch()];
         // biome-ignore lint/suspicious/noExplicitAny: generic
         const fromZigbee: Fz.Converter<any, any, any>[] = [fz.on_off];
         const toZigbee: Tz.Converter[] = [];
-        if (args.onOffCountdown) {
+        if (onOffCountdown) {
             fromZigbee.push(tuyaFz.on_off_countdown);
             toZigbee.push(tuyaTz.on_off_countdown);
-            if (args.endpoints) {
+            if (typeof onOffCountdown === "function") {
+                exposes.push((d) => (onOffCountdown(d.manufacturerName) ? [tuyaExposes.countdown()] : []));
+            } else if (args.endpoints) {
                 exposes.push(...args.endpoints.map((ee) => tuyaExposes.countdown().withAccess(ea.ALL).withEndpoint(ee)));
             } else {
                 exposes.push(tuyaExposes.countdown().withAccess(ea.ALL));
