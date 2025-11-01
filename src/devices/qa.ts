@@ -93,11 +93,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "QARZ1DC",
         vendor: "QA",
         description: "1 channel switch",
-        extend: [
-            tuya.modernExtend.tuyaMagicPacket(),
-            m.deviceEndpoints({endpoints: {l1: 1}}),
-            tuya.modernExtend.tuyaOnOff({endpoints: ["l1"]}),
-        ],
+        extend: [tuya.modernExtend.tuyaMagicPacket(), m.deviceEndpoints({endpoints: {l1: 1}}), tuya.modernExtend.tuyaOnOff({endpoints: ["l1"]})],
     },
     {
         fingerprint: tuya.fingerprint("TS0001", ["_TZ3000_gtdswg8k", "_TZ3000_qh6qjuan"]),
@@ -258,12 +254,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.numeric("action_4", ea.STATE).withDescription("Scene 4"),
             e.numeric("action_5", ea.STATE).withDescription("Scene 5"),
             e.numeric("action_6", ea.STATE).withDescription("Scene 6"),
-            e
-                .numeric("backlight_brightness", ea.ALL)
-                .withValueMin(0)
-                .withValueMax(99)
-                .withDescription("Backlight brightness (0-99)")
-                .withUnit("%"),
+            e.numeric("backlight_brightness", ea.ALL).withValueMin(0).withValueMax(99).withDescription("Backlight brightness (0-99)").withUnit("%"),
         ],
         meta: {
             multiEndpoint: true,
@@ -292,10 +283,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "QADZ1",
         vendor: "QA",
         description: "Dimmer 1 channel",
-        extend: [
-            tuya.modernExtend.tuyaMagicPacket(),
-            m.light({powerOnBehavior: false, configureReporting: true, effect: false}),
-        ],
+        extend: [tuya.modernExtend.tuyaMagicPacket(), m.light({powerOnBehavior: false, configureReporting: true, effect: false})],
         fromZigbee: [tuya.fz.power_on_behavior_1, fz.TS110E_switch_type, fz.TS110E, fz.on_off],
         toZigbee: [tz.TS110E_light_onoff_brightness, tuya.tz.power_on_behavior_1, tz.TS110E_options],
         exposes: [e.power_on_behavior(), tuya.exposes.switchType()],
