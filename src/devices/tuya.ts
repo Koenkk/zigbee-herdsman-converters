@@ -11077,6 +11077,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZ3290_7v1k4vufotpowp9z",
             "_TZ3290_rlkmy85q4pzoxobl",
             "_TZ3290_jxvzqatwgsaqzx1u",
+            "_TZ3290_j37rooaxrcdcqo5n",
             "_TZ3290_lypnqvlem5eq1ree",
             "_TZ3290_uc8lwbi2",
             "_TZ3290_nba3knpsarkawgnt",
@@ -11652,7 +11653,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["ZG-204ZM"],
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_2aaelwxk", "_TZE200_kb5noeto", "_TZE200_tyffvoij"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_2aaelwxk", "_TZE200_kb5noeto", "_TZE200_tyffvoij", "_TZE200_yflzeeqj"]),
         model: "ZG-204ZM",
         vendor: "Tuya",
         description: "PIR 24Ghz human presence sensor",
@@ -14522,7 +14523,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Tuya", "MTG275-ZB-RL", "2.4G/5.8G MmWave radar human presence motion sensor", ["_TZE204_dtzziy1e"]),
             tuya.whitelabel("Tuya", "MTG035-ZB-RL", "Human presence sensor with relay", ["_TZE204_pfayrzcw"]),
             tuya.whitelabel("Tuya", "MTG235-ZB-RL", "24G Human presence sensor with relay", ["_TZE204_clrdrnya", "_TZE200_clrdrnya"]),
-            tuya.whitelabel("QA", "QASZ24R", "mmWave 24 Ghz sensor with relay", ["_TZE284_4qznlkbu"]),
+            tuya.whitelabel("QA", "QASZ24R", "mmWave 24 Ghz sensor with relay", ["_TZE284_4qznlkbu", "_TZE204_clrdrnya"]),
         ],
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
