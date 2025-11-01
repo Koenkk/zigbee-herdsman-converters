@@ -188,7 +188,7 @@ export const definitions: DefinitionWithExtend[] = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genBasic", "genPowerCfg", "hvacThermostat"]);
             await reporting.batteryPercentageRemaining(endpoint);
-            await reporting.humidityPercentage(endpoint);
+            await reporting.humidity(endpoint);
             await reporting.thermostatTemperature(endpoint);
         },
         exposes: [
