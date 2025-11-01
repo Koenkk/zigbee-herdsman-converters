@@ -5,7 +5,6 @@ import * as legacy from "../lib/legacy";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as tuya from "../lib/tuya";
-import * as utils from "../lib/utils";
 import type {DefinitionWithExtend} from "../lib/types";
 
 const e = exposes.presets;
