@@ -2325,7 +2325,6 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Aqara",
         description: "Shutter Switch H2 EU",
         extend: [
-            m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3, "4": 4, "21": 21}}),
             m.windowCovering({controls: ["lift", "tilt"]}),
             m.electricityMeter(),
             m.numeric({
@@ -2338,7 +2337,6 @@ export const definitions: DefinitionWithExtend[] = [
                 endpointNames: ["21"],
             }),
         ],
-        meta: {multiEndpoint: true},
     },
     {
         zigbeeModel: ["lumi.curtain"],
