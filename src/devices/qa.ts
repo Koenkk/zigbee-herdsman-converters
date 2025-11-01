@@ -113,7 +113,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: tuya.fingerprint("TS0001", ["_TZ3000_gtdswg8k", "_TZ3000_qh6qjuan"]),
-        model: "QARZ1LR",
+        model: "QARZDC1LR",
         vendor: "QA",
         description: "1 channel long range switch",
         extend: [
