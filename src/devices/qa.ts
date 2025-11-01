@@ -203,7 +203,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint("TS0003", ["_TZ3000_pmsxmttq", "_TZ3000_0q5fjqgw", "_TZ3000_lubfc1t5"]),
+        fingerprint: tuya.fingerprint("TS0003", ["_TZ3000_pmsxmttq", "_TZ3000_0q5fjqgw"]),
         model: "QAT42Z3H",
         vendor: "QA",
         description: "3 channel wall switch",
