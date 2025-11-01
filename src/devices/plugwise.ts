@@ -177,4 +177,28 @@ export const definitions: DefinitionWithExtend[] = [
                 .withSystemMode(["off", "auto"], ea.ALL),
         ],
     },
+    {
+        zigbeeModel: ["170-01"],
+        model: "170-01",
+        vendor: "Plugwise",
+        description: "Emma Pro thermostat",
+        fromZigbee: [fz.thermostat, fz.temperature, fz.battery, fz.humidity],
+        toZigbee: [tz.thermostat_system_mode, tz.thermostat_occupied_heating_setpoint],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genBasic", "genPowerCfg", "hvacThermostat"]);
+            await reporting.batteryPercentageRemaining(endpoint);
+            await reporting.humidityPercentage(endpoint);
+            await reporting.thermostatTemperature(endpoint);
+        },
+        exposes: [
+            e.battery(),
+            e.humidity(),
+            e
+                .climate()
+                .withSetpoint("occupied_heating_setpoint", 5, 30, 0.5, ea.ALL)
+                .withLocalTemperature(ea.STATE)
+                .withSystemMode(["off", "auto"], ea.ALL),
+        ],
+    },
 ];
