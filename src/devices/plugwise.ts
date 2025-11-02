@@ -1,9 +1,8 @@
 import {Zcl} from "zigbee-herdsman";
-
-import * as m from "../lib/modernExtend";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
+import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import type {DefinitionWithExtend, Fz, KeyValue, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
@@ -161,13 +160,13 @@ export const definitions: DefinitionWithExtend[] = [
         model: "158-01",
         vendor: "Plugwise",
         description: "Lisa zone thermostat",
-        extend: [m.thermostat(), m.battery()]
+        extend: [m.thermostat(), m.battery()],
     },
     {
         zigbeeModel: ["170-01"],
         model: "170-01",
         vendor: "Plugwise",
         description: "Emma Pro thermostat",
-        extend: [m.thermostat(), m.battery(), m.humidity()]
+        extend: [m.thermostat(), m.battery(), m.humidity()],
     },
 ];
