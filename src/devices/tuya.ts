@@ -5704,15 +5704,15 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [
             e.presence().withDescription("Human presence detected"),
             e.battery().withDescription("Battery percentage"),
-            e.enum("pir_sensitivity", ea.STATE_SET, ["low", "middle", "high"]).withDescription("PIR sensor sensitivity"),
-            e.enum("pir_time", ea.STATE_SET, ["15s", "30s", "60s"]).withDescription("PIR delay time in seconds"),
+            e.enum("sensitivity", ea.STATE_SET, ["low", "middle", "high"]).withDescription("Sensor sensitivity"),
+            e.enum("delay_time", ea.STATE_SET, ["15s", "30s", "60s"]).withDescription("Delay time in seconds"),
         ],
         meta: {
             tuyaDatapoints: [
                 [1, "presence", tuya.valueConverter.trueFalse0],
                 [4, "battery", tuya.valueConverter.raw],
-                [9, "pir_sensitivity", tuya.valueConverterBasic.lookup({low: 0, middle: 1, high: 2})],
-                [10, "pir_time", tuya.valueConverterBasic.lookup({"15s": 0, "30s": 1, "60s": 2})],
+                [9, "sensitivity", tuya.valueConverterBasic.lookup({low: 0, middle: 1, high: 2})],
+                [10, "delay_time", tuya.valueConverterBasic.lookup({"15s": 0, "30s": 1, "60s": 2})],
             ],
         },
     },
