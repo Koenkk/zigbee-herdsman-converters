@@ -1,5 +1,23 @@
 # Changelog
 
+## [25.60.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.59.0...v25.60.0) (2025-11-02)
+
+
+### Features
+
+* **add:** _TZE284_cwyqwqbf ([#10630](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10630)) ([3a475b6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3a475b629cc8c89a30c5be8b8a0584f0e04d6d99))
+* **add:** 170-01 ([#10611](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10611)) ([b4d06e3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b4d06e3e42e71d9cf4806d8069b7728afbf7628b))
+* **add:** 300686 ([#10599](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10599)) ([40ccaac](https://github.com/Koenkk/zigbee-herdsman-converters/commit/40ccaac5723c4e0789bf12f970cda429c4995936))
+* **add:** 929004610602 ([#10628](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10628)) ([1ad1ba4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1ad1ba489bc7aba1bf352756607c7a61bd07806f))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZE200_cpmgn2cf` as Tuya TS0601_thermostat_2 ([#10631](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10631)) ([a3c7187](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a3c71877af5a8c5c1a1a9cf193587272164019a2))
+* Eurotronic SPZB0001: fix exposed setpoint https://github.com/Koenkk/zigbee2mqtt/issues/29372 ([0cb650b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0cb650ba4b01a8a736509758f629f2bb438273db))
+* iHsenso_TS0601_human_presence: rename PIR settings to sensitivity and delay_time ([#10625](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10625)) ([cd26776](https://github.com/Koenkk/zigbee-herdsman-converters/commit/cd267766cb699d344657bb271c337a1c601f7e16))
+* Tuya: fix various plugs detected as TS011F_plug_3 with polling instead of TS011F_plug_1 https://github.com/Koenkk/zigbee2mqtt/issues/29399 ([72888f8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/72888f84e72a2e3c04df5fd97eafd7ad7610aec4))
+
 ## [25.59.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.58.0...v25.59.0) (2025-11-01)
 
 
