@@ -2300,7 +2300,9 @@ function genericMeter(args: MeterArgs = {}) {
         result.configure = [
             async (device, coordinatorEndpoint) => {
                 for (const [cluster, properties] of Object.entries(configureLookup)) {
-                    for (const endpoint of getEndpointsWithCluster(device, cluster, "input")) {
+                    const endpoints = getEndpointsWithCluster(device, cluster, "input");
+                    logger_1.logger.debug(`Configure: cluster=${cluster} endpoints=${endpoints.length} device=${device.ieeeAddr}`, "zhc:configure");
+                    for (const endpoint of endpoints) {
                         const items: ReportingConfig<typeof cluster>[] = [];
                         for (const property of Object.values(properties)) {
                             let change = property.change;
@@ -2342,7 +2344,33 @@ function genericMeter(args: MeterArgs = {}) {
                             items.push({attribute: property.attribute, min, max, change});
                         }
                         if (items.length) {
-                            await setupAttributes(endpoint, coordinatorEndpoint, cluster, items);
+                            try {
+                                logger_1.logger.debug(`Setting up ${items.length} attributes for ${device.ieeeAddr}/${endpoint.ID} cluster=${cluster}`, "zhc:setupattribute");
+                                await setupAttributes(endpoint, coordinatorEndpoint, cluster, items);
+                                logger_1.logger.debug(`Setup attributes OK for ${device.ieeeAddr}/${endpoint.ID} cluster=${cluster}`, "zhc:setupattribute");
+                            }
+                            catch (e) {
+                                logger_1.logger.warning(`Setup attributes failed for ${device.ieeeAddr}/${endpoint.ID} cluster=${cluster}: ${e}`, "zhc:setupattribute");
+                            }
+                        }
+                    }
+                }
+                if (args.tariffs) {
+                    const tariffAttributes = [
+                        'currentTier1SummDelivered',
+                        'currentTier2SummDelivered',
+                        'currentTier1SummReceived',
+                        'currentTier2SummReceived'
+                    ];
+                    const seEndpoints = getEndpointsWithCluster(device, 'seMetering', 'input');
+                    logger_1.logger.debug(`Tariff read: seMetering endpoints=${seEndpoints.length} device=${device.ieeeAddr}`, "zhc:electricitymeter");
+                    for (const endpoint of seEndpoints) {
+                        try {
+                            logger_1.logger.debug(`Reading tariff attributes for ${device.ieeeAddr}/${endpoint.ID}`, "zhc:electricitymeter");
+                            await endpoint.read('seMetering', tariffAttributes);
+                            logger_1.logger.debug(`Read tariff attributes OK for ${device.ieeeAddr}/${endpoint.ID}`, "zhc:electricitymeter");
+                        } catch (error) {
+                            logger_1.logger.warning(`Failed to read tariff attributes for ${device.ieeeAddr}/${endpoint.ID}: ${error}`, "zhc:electricitymeter");
                         }
                     }
                 }
