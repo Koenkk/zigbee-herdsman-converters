@@ -788,7 +788,16 @@ const tzLocal = {
             }
             if (modeValue >= 0 && modeValue <= 3) {
                 await entity.write("genOnOff", {tuyaBacklightMode: modeValue});
-                return {state: {backlight_mode: utils.getFromLookup(modeValue, {0: "red_when_on", 1: "pink_when_on", 2: "red_on_blue_off", 3: "pink_on_blue_off"})}};
+                return {
+                    state: {
+                        backlight_mode: utils.getFromLookup(modeValue, {
+                            0: "red_when_on",
+                            1: "pink_when_on",
+                            2: "red_on_blue_off",
+                            3: "pink_on_blue_off",
+                        }),
+                    },
+                };
             }
         },
     } satisfies Tz.Converter,
@@ -8974,7 +8983,9 @@ export const definitions: DefinitionWithExtend[] = [
             e.switch().withEndpoint("low").withDescription("Fan speed: low"),
             e.switch().withEndpoint("medium").withDescription("Fan speed: medium"),
             e.switch().withEndpoint("high").withDescription("Fan speed: high"),
-            e.enum("backlight_mode", ea.ALL, ["red_when_on", "pink_when_on", "red_on_blue_off", "pink_on_blue_off"]).withDescription("Backlight color mode"),
+            e
+                .enum("backlight_mode", ea.ALL, ["red_when_on", "pink_when_on", "red_on_blue_off", "pink_on_blue_off"])
+                .withDescription("Backlight color mode"),
         ],
         endpoint: (device) => {
             return {lights: 1, high: 2, low: 3, medium: 4};
