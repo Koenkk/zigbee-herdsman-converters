@@ -774,9 +774,13 @@ const tzLocal = {
             };
             let modeValue: number;
             if (typeof value === "string") {
-                modeValue = Number(backlightLookup[value.toLowerCase()]);
-                if (isNaN(modeValue) && /^\d+$/.test(value)) {
+                const lookupValue = backlightLookup[value.toLowerCase()];
+                if (lookupValue !== undefined) {
+                    modeValue = Number(lookupValue);
+                } else if (/^\d+$/.test(value)) {
                     modeValue = Number(value);
+                } else {
+                    return;
                 }
             } else {
                 utils.assertNumber(value);
