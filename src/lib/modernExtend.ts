@@ -2353,10 +2353,10 @@ function genericMeter(args: MeterArgs = {}) {
                         "currentTier2SummDelivered",
                         "currentTier1SummReceived",
                         "currentTier2SummReceived",
-                    ];
+                    ] as const;
                     const seEndpoints = getEndpointsWithCluster(device, "seMetering", "input");
                     for (const endpoint of seEndpoints) {
-                        await endpoint.read("seMetering", tariffAttributes);
+                        await endpoint.read<"seMetering">("seMetering", tariffAttributes as unknown as ClusterOrRawAttributeKeys<"seMetering">);
                     }
                 }
             },
