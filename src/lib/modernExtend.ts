@@ -2343,10 +2343,7 @@ function genericMeter(args: MeterArgs = {}) {
                             items.push({attribute: property.attribute, min, max, change});
                         }
                         if (items.length) {
-                            try {
-                                await setupAttributes(endpoint, coordinatorEndpoint, cluster, items);
-                            } catch (e) {
-                            }
+                            await setupAttributes(endpoint, coordinatorEndpoint, cluster, items);
                         }
                     }
                 }
@@ -2359,10 +2356,7 @@ function genericMeter(args: MeterArgs = {}) {
                     ];
                     const seEndpoints = getEndpointsWithCluster(device, "seMetering", "input");
                     for (const endpoint of seEndpoints) {
-                        try {
-                            await endpoint.read("seMetering", tariffAttributes);
-                        } catch (error) {
-                        }
+                        await endpoint.read("seMetering", tariffAttributes);
                     }
                 }
             },
