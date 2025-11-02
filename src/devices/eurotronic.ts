@@ -40,6 +40,7 @@ export const definitions: DefinitionWithExtend[] = [
             e
                 .climate()
                 .withSetpoint("occupied_heating_setpoint", 5, 30, 0.5)
+                .withSetpoint("current_heating_setpoint", 5, 30, 0.5)
                 .withLocalTemperature()
                 .withSystemMode(["off", "auto", "heat"])
                 .withRunningState(["idle", "heat"])
