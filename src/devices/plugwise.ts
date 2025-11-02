@@ -1,5 +1,6 @@
 import {Zcl} from "zigbee-herdsman";
 
+import * as m from "../lib/modernExtend";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
@@ -160,45 +161,13 @@ export const definitions: DefinitionWithExtend[] = [
         model: "158-01",
         vendor: "Plugwise",
         description: "Lisa zone thermostat",
-        fromZigbee: [fz.thermostat, fz.temperature, fz.battery],
-        toZigbee: [tz.thermostat_system_mode, tz.thermostat_occupied_heating_setpoint],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genBasic", "genPowerCfg", "hvacThermostat"]);
-            await reporting.batteryPercentageRemaining(endpoint);
-            await reporting.thermostatTemperature(endpoint);
-        },
-        exposes: [
-            e.battery(),
-            e
-                .climate()
-                .withSetpoint("occupied_heating_setpoint", 5, 30, 0.5, ea.ALL)
-                .withLocalTemperature(ea.STATE)
-                .withSystemMode(["off", "auto"], ea.ALL),
-        ],
+        extend: [m.thermostat(), m.battery()]
     },
     {
         zigbeeModel: ["170-01"],
         model: "170-01",
         vendor: "Plugwise",
         description: "Emma Pro thermostat",
-        fromZigbee: [fz.thermostat, fz.temperature, fz.battery, fz.humidity],
-        toZigbee: [tz.thermostat_system_mode, tz.thermostat_occupied_heating_setpoint],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genBasic", "genPowerCfg", "hvacThermostat"]);
-            await reporting.batteryPercentageRemaining(endpoint);
-            await reporting.humidity(endpoint);
-            await reporting.thermostatTemperature(endpoint);
-        },
-        exposes: [
-            e.battery(),
-            e.humidity(),
-            e
-                .climate()
-                .withSetpoint("occupied_heating_setpoint", 5, 30, 0.5, ea.ALL)
-                .withLocalTemperature(ea.STATE)
-                .withSystemMode(["off", "auto"], ea.ALL),
-        ],
+        extend: [m.thermostat(), m.battery(), m.humidity()]
     },
 ];
