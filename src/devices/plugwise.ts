@@ -160,13 +160,26 @@ export const definitions: DefinitionWithExtend[] = [
         model: "158-01",
         vendor: "Plugwise",
         description: "Lisa zone thermostat",
-        extend: [m.thermostat(), m.battery()],
+        extend: [
+            m.thermostat({
+                setpoints: {values: {occupiedHeatingSetpoint: {min: 0, max: 30, step: 0.5}}},
+                systemMode: {values: ["off", "auto"]},
+            }),
+            m.battery(),
+        ],
     },
     {
         zigbeeModel: ["170-01"],
         model: "170-01",
         vendor: "Plugwise",
         description: "Emma Pro thermostat",
-        extend: [m.thermostat(), m.battery(), m.humidity()],
+        extend: [
+            m.thermostat({
+                setpoints: {values: {occupiedHeatingSetpoint: {min: 0, max: 30, step: 0.5}}},
+                systemMode: {values: ["off", "auto"]},
+            }),
+            m.battery(),
+            m.humidity(),
+        ],
     },
 ];
