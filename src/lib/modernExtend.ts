@@ -3166,7 +3166,7 @@ const SETPOINT_LIMIT_LOOKUP = {
 export interface ThermostatArgs {
     localTemperature?: Partial<ValuesWithModernExtendConfiguration<Description>>;
     localTemperatureCalibration?: Omit<ValuesWithModernExtendConfiguration<true | MinMaxStep>, "fromZigbee">;
-    setpoints?: Omit<ValuesWithModernExtendConfiguration<Partial<Record<keyof typeof SETPOINT_LOOKUP, MinMaxStep>>>, "fromZigbee">;
+    setpoints: Omit<ValuesWithModernExtendConfiguration<Partial<Record<keyof typeof SETPOINT_LOOKUP, MinMaxStep>>>, "fromZigbee">;
     setpointsLimit?: Partial<Record<keyof typeof SETPOINT_LIMIT_LOOKUP, MinMaxStep>>;
     systemMode?: Omit<
         ValuesWithModernExtendConfiguration<Array<"off" | "heat" | "cool" | "auto" | "dry" | "fan_only" | "sleep" | "emergency_heating">>,
@@ -3180,11 +3180,11 @@ export interface ThermostatArgs {
     temperatureSetpointHoldDuration?: true;
 }
 
-export function thermostat(args: ThermostatArgs = {}): ModernExtend {
+export function thermostat(args: ThermostatArgs): ModernExtend {
     const {
         localTemperature = undefined,
         localTemperatureCalibration = undefined,
-        setpoints = undefined,
+        setpoints,
         setpointsLimit = {},
         systemMode = undefined,
         runningState = undefined,
