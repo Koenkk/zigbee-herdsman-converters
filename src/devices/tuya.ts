@@ -762,6 +762,32 @@ const tzLocal = {
             });
         },
     } satisfies Tz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    TS0004_backlight_mode: {
+        key: ["backlight_mode"],
+        convertSet: async (entity, key, value, meta) => {
+            const backlightLookup: KeyValueString = {
+                red_when_on: "0",
+                pink_when_on: "1",
+                red_on_blue_off: "2",
+                pink_on_blue_off: "3",
+            };
+            let modeValue: number;
+            if (typeof value === "string") {
+                modeValue = Number(backlightLookup[value.toLowerCase()]);
+                if (isNaN(modeValue) && /^\d+$/.test(value)) {
+                    modeValue = Number(value);
+                }
+            } else {
+                utils.assertNumber(value);
+                modeValue = value;
+            }
+            if (modeValue >= 0 && modeValue <= 3) {
+                await entity.write("genOnOff", {tuyaBacklightMode: modeValue});
+                return {state: {backlight_mode: utils.getFromLookup(modeValue, {0: "red_when_on", 1: "pink_when_on", 2: "red_on_blue_off", 3: "pink_on_blue_off"})}};
+            }
+        },
+    } satisfies Tz.Converter,
 };
 
 const fzLocal = {
@@ -1005,6 +1031,17 @@ const fzLocal = {
             }
         },
     } satisfies Fz.Converter<"manuSpecificTuyaE001", undefined, "raw">,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    TS0004_backlight_mode: {
+        cluster: "genOnOff",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.tuyaBacklightMode !== undefined) {
+                const backlightLookup: KeyValue = {0: "red_when_on", 1: "pink_when_on", 2: "red_on_blue_off", 3: "pink_on_blue_off"};
+                return {backlight_mode: backlightLookup[msg.data.tuyaBacklightMode]};
+            }
+        },
+    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -8919,6 +8956,31 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ["genOnOff"]);
             await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ["genOnOff"]);
             await reporting.bind(device.getEndpoint(4), coordinatorEndpoint, ["genOnOff"]);
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0004", ["_TZ3000_ncb6mkx8"]),
+        model: "TS0004_fan_light_switch",
+        vendor: "Tuya",
+        description: "Fan and light controller with 3 speeds",
+        fromZigbee: [fz.on_off, fzLocal.TS0004_backlight_mode],
+        toZigbee: [tz.on_off, tzLocal.TS0004_backlight_mode],
+        exposes: [
+            e.switch().withEndpoint("lights").withDescription("Light control"),
+            e.switch().withEndpoint("low").withDescription("Fan speed: low"),
+            e.switch().withEndpoint("medium").withDescription("Fan speed: medium"),
+            e.switch().withEndpoint("high").withDescription("Fan speed: high"),
+            e.enum("backlight_mode", ea.ALL, ["red_when_on", "pink_when_on", "red_on_blue_off", "pink_on_blue_off"]).withDescription("Backlight color mode"),
+        ],
+        endpoint: (device) => {
+            return {lights: 1, high: 2, low: 3, medium: 4};
+        },
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+            for (const ID of [1, 2, 3, 4]) {
+                await reporting.bind(device.getEndpoint(ID), coordinatorEndpoint, ["genOnOff"]);
+            }
         },
     },
     {
