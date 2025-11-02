@@ -7672,7 +7672,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: [
-            {modelID: "TS011F", applicationVersion: 192, priority: -1},
+            {modelID: "TS011F", applicationVersion: 192, manufacturerName: "_TZ3000_2uollq9d", priority: -1},
             {modelID: "TS011F", applicationVersion: 160, priority: -1},
             {modelID: "TS011F", applicationVersion: 100, priority: -1},
             {modelID: "TS011F", applicationVersion: 69, priority: -1},
