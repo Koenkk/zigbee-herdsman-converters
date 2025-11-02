@@ -1764,7 +1764,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_vvmbj46n", "_TZE284_vvmbj46n", "_TZE200_w6n8jeuu"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_vvmbj46n", "_TZE284_vvmbj46n", "_TZE200_w6n8jeuu", "_TZE284_cwyqwqbf"]),
         model: "ZTH05Z",
         vendor: "Tuya",
         description: "Temperature and humidity sensor",
@@ -1859,7 +1859,10 @@ export const definitions: DefinitionWithExtend[] = [
                 [20, "humidity_sensitivity", tuya.valueConverter.raw],
             ],
         },
-        whiteLabel: [tuya.whitelabel("ONENUO", "TH05Z", "Temperature & humidity sensor with clock and humidity display", ["_TZE200_vvmbj46n"])],
+        whiteLabel: [
+            tuya.whitelabel("ONENUO", "TH05Z", "Temperature & humidity sensor with clock and humidity display", ["_TZE200_vvmbj46n"]),
+            tuya.whitelabel("Tuya", "TZE284_cwyqwqbf", "Temperature & humidity sensor with LCD clock", ["_TZE284_cwyqwqbf"]),
+        ],
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_nvups4nh"]),
