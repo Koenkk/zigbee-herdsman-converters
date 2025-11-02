@@ -43,7 +43,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "EMIZB-151",
         vendor: "Frient",
         description: "Electricity Meter Interface 2 P1",
-        extend: [m.electricityMeter({threePhase: true, producedEnergy: true, tariffs: true })],
+        extend: [m.electricityMeter({threePhase: true, producedEnergy: true, tariffs: true})],
         ota: true,
         endpoint: (device) => ({default: 2}),
     },
