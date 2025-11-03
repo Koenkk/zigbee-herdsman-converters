@@ -74,7 +74,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Climax",
         description: "Power plug",
         fromZigbee: [fz.on_off, fz.metering],
-        extend: [m.onOff(), m.electricityMeter()],
+        extend: [m.onOff({powerOnBehavior: false}), m.electricityMeter()],
     },
     {
         zigbeeModel: ["RS_00.00.02.06TC"],
