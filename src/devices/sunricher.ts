@@ -1385,13 +1385,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.battery(),
             m.commandsOnOff({commands: ["on", "off"]}),
             m.commandsLevelCtrl({
-                commands: [
-                    "brightness_step_up",
-                    "brightness_step_down",
-                    "brightness_move_up",
-                    "brightness_move_down",
-                    "brightness_stop",
-                ],
+                commands: ["brightness_step_up", "brightness_step_down", "brightness_move_up", "brightness_move_down", "brightness_stop"],
             }),
             m.commandsScenes({commands: ["recall", "store"]}),
         ],
