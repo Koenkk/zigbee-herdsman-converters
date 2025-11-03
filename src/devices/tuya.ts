@@ -14680,7 +14680,7 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
         exposes: [
-            e.occupancy(),
+            e.occupancy(), // create new custom binary sensor "occupancy" based on "presence"
             e.enum("presence", ea.STATE, ["none", "presence", "motion"]).withDescription("Presence state"),
             e.illuminance().withDescription("Measured illuminance"),
             e
