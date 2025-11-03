@@ -13,13 +13,11 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "AwoX",
         description: "RGB LED mountable Light with color temperature",
         extend: [
-            m.deviceEndpoints({endpoints: {"1": 1, "3": 3}}),
             m.light({colorTemp: {range: [153, 370]}, color: {modes: ["xy", "hs"], enhancedHue: true}}),
             m.commandsOnOff(),
             m.commandsLevelCtrl(),
             m.commandsColorCtrl(),
         ],
-        meta: {multiEndpoint: true},
     },
     {
         zigbeeModel: ["EBF_RGB_Zm_CLP"],
