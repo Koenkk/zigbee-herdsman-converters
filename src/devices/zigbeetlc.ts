@@ -322,9 +322,9 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
     },
     {
-        zigbeeModel: ['MC-z'],
-        model: 'MC-z',
-        vendor: 'ZBeacon',
+        zigbeeModel: ["MC-z"],
+        model: "MC-z",
+        vendor: "ZBeacon",
         description: "Temperature & Humidity Sensor (pvxx/ZigbeeTLc)",
         extend: [
             m.temperature({reporting: {min: "10_SECONDS", max: "1_HOUR", change: 10}}),
