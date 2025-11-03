@@ -392,17 +392,6 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint("TS0003", ["_TZ3000_aknpkt02"]),
-        model: "ZMO-606-S2",
-        vendor: "Zemismart",
-        description: "Smart 2 gangs switch with outlet",
-        extend: [
-            m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3}}),
-            tuya.modernExtend.tuyaOnOff({powerOutageMemory: true, indicatorMode: true, onOffCountdown: true, endpoints: ["l1", "l2", "l3"]}),
-        ],
-        configure: tuya.configureMagicPacket,
-    },
-    {
         fingerprint: tuya.fingerprint("TS011F", ["_TZ3000_b1q8kwmh"]),
         model: "ZMO-606-20A",
         vendor: "Zemismart",
