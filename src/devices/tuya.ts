@@ -14757,13 +14757,10 @@ export const definitions: DefinitionWithExtend[] = [
                     1,
                     null,
                     {
-                        from: (v: number) => {
-                            const states = {0: "none", 1: "presence", 2: "motion"};
-                            return {
-                                occupancy: v !== 0,
-                                presence: states[v] || "none",
-                            };
-                        },
+                        from: (v: number) => ({
+                            occupancy: v !== 0,
+                            presence: v === 0 ? "none" : v === 1 ? "presence" : "motion",
+                        }),
                     },
                 ],
                 [3, "min_distance", tuya.valueConverter.divideBy10],
@@ -14773,7 +14770,7 @@ export const definitions: DefinitionWithExtend[] = [
                     101 + i,
                     `gate_enable_${String(i + 1).padStart(2, "0")}`,
                     tuya.valueConverterBasic.lookup({disable: tuya.enum(0), enable: tuya.enum(1)}),
-                ]),
+                ]) as TuYaDataPoint[]),
                 [112, "configuration_gate", tuya.valueConverter.raw],
                 [113, "motion_threshold", tuya.valueConverter.raw],
                 [114, "presence_threshold", tuya.valueConverter.raw],
