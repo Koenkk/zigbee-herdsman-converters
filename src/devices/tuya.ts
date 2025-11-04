@@ -766,39 +766,19 @@ const tzLocal = {
     TS0004_backlight_mode: {
         key: ["backlight_mode"],
         convertSet: async (entity, key, value, meta) => {
-            const backlightLookup: KeyValueString = {
-                red_when_on: "0",
-                pink_when_on: "1",
-                red_on_blue_off: "2",
-                pink_on_blue_off: "3",
+            const lookup = {red_when_on: 0, pink_when_on: 1, red_on_blue_off: 2, pink_on_blue_off: 3};
+            const modeValue = utils.getFromLookup(value, lookup);
+            await entity.write("genOnOff", {tuyaBacklightMode: modeValue});
+            return {
+                state: {
+                    backlight_mode: utils.getFromLookup(modeValue, {
+                        0: "red_when_on",
+                        1: "pink_when_on",
+                        2: "red_on_blue_off",
+                        3: "pink_on_blue_off",
+                    }),
+                },
             };
-            let modeValue: number;
-            if (typeof value === "string") {
-                const lookupValue = backlightLookup[value.toLowerCase()];
-                if (lookupValue !== undefined) {
-                    modeValue = Number(lookupValue);
-                } else if (/^\d+$/.test(value)) {
-                    modeValue = Number(value);
-                } else {
-                    return;
-                }
-            } else {
-                utils.assertNumber(value);
-                modeValue = value;
-            }
-            if (modeValue >= 0 && modeValue <= 3) {
-                await entity.write("genOnOff", {tuyaBacklightMode: modeValue});
-                return {
-                    state: {
-                        backlight_mode: utils.getFromLookup(modeValue, {
-                            0: "red_when_on",
-                            1: "pink_when_on",
-                            2: "red_on_blue_off",
-                            3: "pink_on_blue_off",
-                        }),
-                    },
-                };
-            }
         },
     } satisfies Tz.Converter,
 };
