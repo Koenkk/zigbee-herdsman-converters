@@ -1377,6 +1377,20 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
+        zigbeeModel: ["ZGRC-KEY-044"],
+        model: "SR-ZG2868EK7-DIM",
+        vendor: "Sunricher",
+        description: " ZigBee handheld diming remote, 4 scenes",
+        extend: [
+            m.battery(),
+            m.commandsOnOff({commands: ["on", "off"]}),
+            m.commandsLevelCtrl({
+                commands: ["brightness_step_up", "brightness_step_down", "brightness_move_up", "brightness_move_down", "brightness_stop"],
+            }),
+            m.commandsScenes({commands: ["recall", "store"]}),
+        ],
+    },
+    {
         zigbeeModel: ["HK-SL-DIM-US-A"],
         model: "HK-SL-DIM-US-A",
         vendor: "Sunricher",

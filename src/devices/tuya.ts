@@ -6209,6 +6209,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE200_eevqq1uv",
             "_TZE204_ejh6owwz",
             "_TZE200_ba69l9ol",
+            "_TZE200_68nvbi09",
         ]),
         model: "TS0601_cover_3",
         vendor: "Tuya",
@@ -6224,7 +6225,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.binary("motor_fault", ea.STATE, true, false),
         ],
         whiteLabel: [
-            tuya.whitelabel("Zemismart", "ZM16EL-03/33", "Cover motor", ["_TZE200_68nvbio9"]),
+            tuya.whitelabel("Zemismart", "ZM16EL-03/33", "Cover motor", ["_TZE200_68nvbio9", "_TZE200_68nvbi09"]),
             tuya.whitelabel("Zemismart", "ZM25EL", "Cover motor", ["_TZE200_pw7mji0l"]),
             tuya.whitelabel("Zemismart", "ZM85EL-2Z", "Roman Rod I type U curtains track", ["_TZE200_cf1sl3tj", "_TZE200_nw1r9hp6"]),
             tuya.whitelabel("Hiladuo", "B09M3R35GC", "Motorized roller shade", ["_TZE200_9p5xmj5r"]),
@@ -7600,7 +7601,7 @@ export const definitions: DefinitionWithExtend[] = [
 
                 // Conditional features
                 powerOutageMemory: (manufacturerName) => manufacturerName !== "_TZ3000_cicwjqth",
-                indicatorMode: (manufacturerName) => manufacturerName === "_TZ3000_ww6drja5",
+                indicatorMode: (manufacturerName) => manufacturerName !== "_TZ3000_ww6drja5",
                 childLock: (manufacturerName) => manufacturerName !== "_TZ3000_cicwjqth",
                 onOffCountdown: (manufacturerName) => manufacturerName !== "_TZ3000_cicwjqth",
             }),
@@ -11704,7 +11705,8 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {
             tuyaDatapoints: [
                 [1, "presence", tuya.valueConverter.trueFalse1],
-                [106, "illuminance", tuya.valueConverter.raw],
+                [2, "static_detection_sensitivity", tuya.valueConverter.raw],
+                [4, "static_detection_distance", tuya.valueConverter.divideBy100],
                 [
                     101,
                     "motion_state",
@@ -11716,8 +11718,7 @@ export const definitions: DefinitionWithExtend[] = [
                     }),
                 ],
                 [102, "fading_time", tuya.valueConverter.raw],
-                [4, "static_detection_distance", tuya.valueConverter.divideBy100],
-                [2, "static_detection_sensitivity", tuya.valueConverter.raw],
+                [106, "illuminance", tuya.valueConverter.raw],
                 [107, "indicator", tuya.valueConverter.onOff],
                 [121, "battery", tuya.valueConverter.raw],
                 [
@@ -11834,7 +11835,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Tuya",
         description: "2 channel dimmer",
         whiteLabel: [tuya.whitelabel("Nedis", "ZBWD20RD", "SmartLife Triac Dimmer", ["_TZ3210_mt5xjoy6"])],
-        fromZigbee: [fz.TS110E, fz.TS110E_light_type, tuya.fz.power_on_behavior_1, fz.on_off],
+        fromZigbee: [fz.TS110E, fz.TS110E_switch_type, tuya.fz.power_on_behavior_1, fz.on_off],
         toZigbee: [tz.TS110E_onoff_brightness, tz.TS110E_options, tuya.tz.power_on_behavior_1, tz.light_brightness_move],
         meta: {multiEndpoint: true},
         exposes: [
@@ -20757,6 +20758,61 @@ export const definitions: DefinitionWithExtend[] = [
                 [1, "vibration", tuya.valueConverter.trueFalse1],
                 [101, "sensitivity", tuya.valueConverter.raw],
                 [103, "buzzer_mute", tuya.valueConverter.onOff],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_fodv6bkr"]),
+        model: "RM28-LE",
+        vendor: "Ronco",
+        description: "Zigbee roller shade motor",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        options: [exposes.options.invert_cover()],
+        exposes: [
+            e.battery(),
+            e.cover_position().setAccess("position", ea.STATE_SET),
+            e.enum("reverse_direction", ea.STATE_SET, ["forward", "back"]).withDescription("Reverse the motor direction"),
+            e.text("work_state", ea.STATE),
+            e.enum("click_control", ea.STATE_SET, ["up", "down"]).withDescription("Single motor steps"),
+            e.enum("border", ea.STATE_SET, ["up", "down", "up_delete", "down_delete", "remove_top_bottom"]),
+            e.binary("motor_fault", ea.STATE, true, false),
+        ],
+        meta: {
+            // All datapoints go in here
+            tuyaDatapoints: [
+                [
+                    1,
+                    "state",
+                    tuya.valueConverterBasic.lookup({
+                        OPEN: tuya.enum(0),
+                        STOP: tuya.enum(1),
+                        CLOSE: tuya.enum(2),
+                    }),
+                ],
+                [2, "position", tuya.valueConverter.coverPosition],
+                [3, "position", tuya.valueConverter.coverPosition],
+                [5, "reverse_direction", tuya.valueConverterBasic.lookup({forward: tuya.enum(0), back: tuya.enum(1)})],
+                [
+                    7,
+                    "work_state",
+                    tuya.valueConverterBasic.lookup((options) =>
+                        options.invert_cover ? {opening: tuya.enum(1), closing: tuya.enum(0)} : {opening: tuya.enum(0), closing: tuya.enum(1)},
+                    ),
+                ],
+                [12, "motor_fault", tuya.valueConverter.trueFalse1],
+                [13, "battery", tuya.valueConverter.raw],
+                [
+                    16,
+                    "border",
+                    tuya.valueConverterBasic.lookup({
+                        up: tuya.enum(0),
+                        down: tuya.enum(1),
+                        up_delete: tuya.enum(2),
+                        down_delete: tuya.enum(3),
+                        remove_top_bottom: tuya.enum(4),
+                    }),
+                ],
+                [20, "click_control", tuya.valueConverterBasic.lookup({up: tuya.enum(0), down: tuya.enum(1)})],
             ],
         },
     },

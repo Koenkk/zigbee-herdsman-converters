@@ -1,5 +1,41 @@
 # Changelog
 
+## [25.62.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.61.0...v25.62.0) (2025-11-04)
+
+
+### Features
+
+* **add:** PSM-29ZBS ([#10621](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10621)) ([458590c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/458590cbcf1179a15940e3cdd62c9c58109345c6))
+* **add:** RM28-LE ([#10652](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10652)) ([5c2cbfa](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5c2cbfae7883d7ee2d3d9384be764b240e88bfee))
+* MultIR MIR-IL100: expose illuminance ([#10657](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10657)) ([a30a81f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a30a81f107cb79eac0272dc6c047b657fd5491a2))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZE200_68nvbi09` as Zemismart ZM16EL-03/33 https://github.com/Koenkk/zigbee2mqtt/issues/28655 ([0f773c8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0f773c8564d001a6a6fd2dcae1232a740ab03f29))
+* PTVO: check meta property and supports genMultistateInput ([#10654](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10654)) ([ecc5042](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ecc504290587c15dfcba8a491dacf13c1e8e2fb6))
+* Tuya TS011F_plug_1: fix indicator mode missing https://github.com/Koenkk/zigbee2mqtt/issues/29447 ([1a02ba1](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1a02ba1da2122279c901d7d286b5e50438bf1327))
+* Tuya TS110E_2gang_2: fix switch type ([#10658](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10658)) ([f3aa06c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f3aa06c9ff5eb10fd43b6c12b1baf7351c0956a5))
+
+## [25.61.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.60.0...v25.61.0) (2025-11-03)
+
+
+### Features
+
+* **add:** BW-IS9 ([#10591](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10591)) ([e4cec77](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e4cec77d9ab07f942efaff98359bee35edd77874))
+* **add:** DOM-Z-105P https://github.com/Koenkk/zigbee2mqtt/issues/29383 ([519935f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/519935fa01d6ec89ec02b7af53c4f8e14d7efb60))
+* **add:** MC-z ([#10645](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10645)) ([8dac679](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8dac67982d50569ef430f7eac6a07d3563eeba97))
+* **add:** SR-ZG2868EK7-DIM ([#10640](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10640)) ([d9f2910](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d9f291080791c88d75fc6e9674c479f80044fbeb))
+* Frient EMIZB-151: expose produced energy ([#10634](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10634)) ([e8aa606](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e8aa6064beaa9f38902fa58c13e2e10898b0c74f))
+
+
+### Bug Fixes
+
+* Add step size to transition https://github.com/Nerivec/zigbee2mqtt-windfront/issues/320 ([b78a4a1](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b78a4a1028c8ca0d8cdf39a9f1ee419f9ea15e9d))
+* Eurotronic SPZB0001: expose `current_heating_setpoint` before  `occupied_heating_setpoint`  ([#10641](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10641)) ([ecb5c57](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ecb5c5736e7f4d9da779eaf2fd4f4daa56d2f3d4))
+* **ignore:** bump the minor-patch group with 3 updates ([#10637](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10637)) ([9b30308](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9b303080e99d7946f954617481cd50badf615dcf))
+* **ignore:** fix typo https://github.com/Koenkk/zigbee2mqtt.io/pull/4357 ([6f5f6da](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6f5f6da7701e7e859aadc83b7904716ec9493894))
+
 ## [25.60.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.59.0...v25.60.0) (2025-11-02)
 
 
