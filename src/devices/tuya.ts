@@ -20601,23 +20601,21 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-    fingerprint: [
-        { modelID: 'TS0601', manufacturerName: '_TZE200_fodv6bkr' },
-    ],
+        fingerprint: [{modelID: "TS0601", manufacturerName: "_TZE200_fodv6bkr"}],
 
-    model: 'RM28-LE',
-    vendor: 'Ronco',
-    description: 'Ronco RM28-LE Zigbee Roller Shade Motor',
-    icon: '/device_icons/RM28-LE.png',
+        model: "RM28-LE",
+        vendor: "Ronco",
+        description: "Ronco RM28-LE Zigbee Roller Shade Motor",
+        icon: "/device_icons/RM28-LE.png",
 
-    extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         options: [exposes.options.invert_cover()],
         exposes: [
             e.battery(),
             e.cover_position().setAccess("position", ea.STATE_SET),
             e.enum("reverse_direction", ea.STATE_SET, ["forward", "back"]).withDescription("Reverse the motor direction"),
             e.text("work_state", ea.STATE),
-			e.enum("click_control", ea.STATE_SET, ["up", "down"]).withDescription("Single motor steps"),
+            e.enum("click_control", ea.STATE_SET, ["up", "down"]).withDescription("Single motor steps"),
             e.enum("border", ea.STATE_SET, ["up", "down", "up_delete", "down_delete", "remove_top_bottom"]),
             e.binary("motor_fault", ea.STATE, true, false),
         ],
@@ -20643,13 +20641,13 @@ export const definitions: DefinitionWithExtend[] = [
                         back: tuya.enum(1),
                     }),
                 ],
-				[
-					7,
-					"work_state",
-					tuya.valueConverterBasic.lookup((options) =>
-						options.invert_cover ? {opening: tuya.enum(1), closing: tuya.enum(0)} : {opening: tuya.enum(0), closing: tuya.enum(1)},
-					),
-				],
+                [
+                    7,
+                    "work_state",
+                    tuya.valueConverterBasic.lookup((options) =>
+                        options.invert_cover ? {opening: tuya.enum(1), closing: tuya.enum(0)} : {opening: tuya.enum(0), closing: tuya.enum(1)},
+                    ),
+                ],
                 [12, "motor_fault", tuya.valueConverter.trueFalse1],
                 [13, "battery", tuya.valueConverter.raw],
                 [
