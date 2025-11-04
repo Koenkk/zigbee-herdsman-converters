@@ -20600,4 +20600,77 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
+    {
+    fingerprint: [
+        { modelID: 'TS0601', manufacturerName: '_TZE200_fodv6bkr' },
+    ],
+
+    model: 'RM28-LE',
+    vendor: 'Ronco',
+    description: 'Ronco RM28-LE Zigbee Roller Shade Motor',
+    
+    extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        options: [exposes.options.invert_cover()],
+        exposes: [
+            e.battery(),
+            e.cover_position().setAccess("position", ea.STATE_SET),
+            e.enum("reverse_direction", ea.STATE_SET, ["forward", "back"]).withDescription("Reverse the motor direction"),
+            e.text("work_state", ea.STATE),
+			e.enum("click_control", ea.STATE_SET, ["up", "down"]).withDescription("Single motor steps"),
+            e.enum("border", ea.STATE_SET, ["up", "down", "up_delete", "down_delete", "remove_top_bottom"]),
+            e.binary("motor_fault", ea.STATE, true, false),
+        ],
+        meta: {
+            // All datapoints go in here
+            tuyaDatapoints: [
+                [
+                    1,
+                    "state",
+                    tuya.valueConverterBasic.lookup({
+                        OPEN: tuya.enum(0),
+                        STOP: tuya.enum(1),
+                        CLOSE: tuya.enum(2),
+                    }),
+                ],
+                [2, "position", tuya.valueConverter.coverPosition],
+                [3, "position", tuya.valueConverter.coverPosition],
+                [
+                    5,
+                    "reverse_direction",
+                    tuya.valueConverterBasic.lookup({
+                        forward: tuya.enum(0),
+                        back: tuya.enum(1),
+                    }),
+                ],
+				[
+					7,
+					"work_state",
+					tuya.valueConverterBasic.lookup((options) =>
+						options.invert_cover ? {opening: tuya.enum(1), closing: tuya.enum(0)} : {opening: tuya.enum(0), closing: tuya.enum(1)},
+					),
+				],
+                [12, "motor_fault", tuya.valueConverter.trueFalse1],
+                [13, "battery", tuya.valueConverter.raw],
+                [
+                    16,
+                    "border",
+                    tuya.valueConverterBasic.lookup({
+                        up: tuya.enum(0),
+                        down: tuya.enum(1),
+                        up_delete: tuya.enum(2),
+                        down_delete: tuya.enum(3),
+                        remove_top_bottom: tuya.enum(4),
+                    }),
+                ],
+                [
+                    20,
+                    "click_control",
+                    tuya.valueConverterBasic.lookup({
+                        up: tuya.enum(0),
+                        down: tuya.enum(1),
+                    }),
+                ],
+            ],
+        },
+    };
 ];
