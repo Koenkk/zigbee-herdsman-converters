@@ -1163,7 +1163,7 @@ const singlePhaseData = [
         att: "activePowerMax",
         reportable: true,
         onlyProducer: false,
-        exposes: e.numeric("SMAXN", ea.STATE).withUnit("VA").withProperty("active_power_max").withDescription("Apparent power delivered peak"),
+        exposes: e.numeric("SMAXSN", ea.STATE).withUnit("VA").withProperty("active_power_max").withDescription("Apparent power delivered peak"),
     },
     {
         cluster: clustersDef._0x0B04,
@@ -1177,7 +1177,7 @@ const singlePhaseData = [
         att: "drawnVAMaxN1",
         reportable: false,
         onlyProducer: false,
-        exposes: e.numeric("SMAXN-1", ea.STATE).withUnit("VA").withProperty("drawn_v_a_max_n1").withDescription("Apparent power max. draw-off n-1"),
+        exposes: e.numeric("SMAXSN-1", ea.STATE).withUnit("VA").withProperty("drawn_v_a_max_n1").withDescription("Apparent power max. draw-off n-1"),
     },
 ].map((x) => {
     return {...x, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.standard};
@@ -1190,7 +1190,7 @@ const threePhasesData = [
         reportable: true,
         onlyProducer: false,
         exposes: e
-            .numeric("SMAXN1", ea.STATE)
+            .numeric("SMAXSN1", ea.STATE)
             .withUnit("VA")
             .withProperty("active_power_max")
             .withDescription("Apparent power delivered peak (phase 1)"),
@@ -1201,7 +1201,7 @@ const threePhasesData = [
         reportable: true,
         onlyProducer: false,
         exposes: e
-            .numeric("SMAXN2", ea.STATE)
+            .numeric("SMAXSN2", ea.STATE)
             .withUnit("VA")
             .withProperty("active_power_max_ph_b")
             .withDescription("Apparent power delivered peak (phase 2)"),
@@ -1212,7 +1212,7 @@ const threePhasesData = [
         reportable: true,
         onlyProducer: false,
         exposes: e
-            .numeric("SMAXN3", ea.STATE)
+            .numeric("SMAXSN3", ea.STATE)
             .withUnit("VA")
             .withProperty("active_power_max_ph_c")
             .withDescription("Apparent power delivered peak (phase 3)"),
@@ -1317,7 +1317,7 @@ const threePhasesData = [
         reportable: false,
         onlyProducer: false,
         exposes: e
-            .numeric("SMAXN1-1", ea.STATE)
+            .numeric("SMAXSN1-1", ea.STATE)
             .withUnit("VA")
             .withProperty("drawn_v_a_max_n1")
             .withDescription("Apparent power max. draw-off n-1 (phase 1)"),
@@ -1328,7 +1328,7 @@ const threePhasesData = [
         reportable: false,
         onlyProducer: false,
         exposes: e
-            .numeric("SMAXN2-1", ea.STATE)
+            .numeric("SMAXSN2-1", ea.STATE)
             .withUnit("VA")
             .withProperty("drawn_v_a_max_n1_p2")
             .withDescription("Apparent power max. draw-off n-1 (phase 2)"),
@@ -1339,7 +1339,7 @@ const threePhasesData = [
         reportable: false,
         onlyProducer: false,
         exposes: e
-            .numeric("SMAXN3-1", ea.STATE)
+            .numeric("SMAXSN3-1", ea.STATE)
             .withUnit("VA")
             .withProperty("drawn_v_a_max_n1_p3")
             .withDescription("Apparent power max. draw-off n-1 (phase 3)"),
