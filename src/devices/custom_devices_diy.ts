@@ -223,8 +223,11 @@ function ptvoAddStandardExposes(endpoint: Zh.Endpoint, expose: Expose[], options
     if (endpoint.supportsInputCluster("genPowerCfg")) {
         deviceOptions.expose_battery = true;
     }
-    if (endpoint.supportsInputCluster("genMultistateInput") || endpoint.supportsOutputCluster("genMultistateInput")
-        || endpoint.clusters.hasOwnProperty('genMultistateInput')) {
+    if (
+        endpoint.supportsInputCluster("genMultistateInput") ||
+        endpoint.supportsOutputCluster("genMultistateInput") ||
+        Object.hasOwn(endpoint.clusters, "genMultistateInput")
+    ) {
         deviceOptions.expose_action = true;
     }
 }
