@@ -1,7 +1,8 @@
 import {Zcl, ZSpec} from "zigbee-herdsman";
 import * as exposes from "../lib/exposes";
+import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
-import type {Configure, DefinitionWithExtend, Expose, Fz, KeyValue, ModernExtend, Tz} from "../lib/types";
+import type {Configure, DefinitionWithExtend, Expose, Fz, KeyValue, ModernExtend, Tz, Zh} from "../lib/types";
 import {assertObject, determineEndpoint} from "../lib/utils";
 
 const e = exposes.presets;
@@ -9,6 +10,8 @@ const ea = exposes.access;
 
 const SHELLY_ENDPOINT_ID = 239;
 const SHELLY_OPTIONS = {profileId: ZSpec.CUSTOM_SHELLY_PROFILE_ID};
+
+const NS = "zhc:shelly";
 
 const shellyModernExtend = {
     shellyCustomClusters(): ModernExtend[] {
@@ -44,6 +47,313 @@ const shellyModernExtend = {
                 commandsResponse: {},
             }),
         ];
+    },
+    shellyRPCSetup(features: string[] = []): ModernExtend {
+        // Set helper variables
+        const shellyRPCBugFixed = false; // For firmware 20250819-150402/ga0def2d
+
+        const featureDev = features.includes("Dev");
+        const featurePowerstripUI = features.includes("PowerstripUI");
+
+        // Generic helper functions
+        const sleepMsec = async (s: number) => {
+            return await new Promise((resolve) => setTimeout(resolve, s));
+        };
+
+        const debugLog = (message: string) => {
+            if (!featureDev) {
+                return;
+            }
+            logger.warning(message, NS);
+        };
+
+        const validateTime = (value: string) => {
+            const hhmmRegex = /^([01][0-9]|2[0-3]):[0-5][0-9]$/;
+            if (value === undefined || !value.match(hhmmRegex)) {
+                throw new Error(`Invalid time "${value}"`);
+            }
+        };
+
+        // RPC helper functions
+        let rpcSending = false;
+
+        const rpcSendRaw = async (endpoint: Zh.Endpoint | Zh.Group, message: string) => {
+            // Since RPC messages require multiple writes to complete, we have to make sure
+            // we're not interleaving them accidentally. This is good enough for now, at least
+            // until the RPC receive firmware bug is fixed by Shelly.
+            while (rpcSending) {
+                await sleepMsec(200);
+            }
+            try {
+                rpcSending = true;
+                const splitBytes = 40;
+
+                debugLog(">>> shellyRPC write TxCtl");
+                const txCtl = {
+                    txCtl: message.length,
+                };
+                await endpoint.write("shellyRPCCluster", txCtl, SHELLY_OPTIONS);
+                // FIXME Why does this below cause TS2353 while the above line is fine?
+                //await endpoint.write("shellyRPCCluster", {txCtl: message.length}, SHELLY_OPTIONS);
+                debugLog(`>>> TxCtl: ${txCtl.txCtl}`);
+
+                debugLog(">>> shellyRPC write Data");
+                let dataToSend = message;
+                while (dataToSend.length > 0) {
+                    const data = {
+                        data: dataToSend.substring(0, splitBytes),
+                    };
+                    dataToSend = dataToSend.substring(splitBytes);
+                    await endpoint.write("shellyRPCCluster", data, SHELLY_OPTIONS);
+                    debugLog(`>>> Data: ${data.data}`);
+                }
+            } finally {
+                rpcSending = false;
+            }
+        };
+
+        const rpcSend = async (endpoint: Zh.Endpoint | Zh.Group, method: string, params: object = undefined) => {
+            const command = {
+                id: 1, // We can't read replies anyway so don't care for now
+                method: method,
+                params: params,
+            };
+            return await rpcSendRaw(endpoint, JSON.stringify(command));
+        };
+
+        // biome-ignore lint/suspicious/noExplicitAny: generic
+        const rpcReceive = async (endpoint: any, key: string) => {
+            debugLog(`||| shellyRPC rpcReceive(${key})`);
+            if (key === "rpcRxCtl") {
+                debugLog(">>> shellyRPC read RxCtl");
+                // FIXME Below line causes TS2322 string not assignable to type number when endpoint is not type any. Why/how to fix?
+                const result = await endpoint.read("shellyRPCCluster", ["rxCtl"], SHELLY_OPTIONS);
+                debugLog(`<<< RxCtl: ${JSON.stringify(result)}`);
+            } else if (key === "rpcData") {
+                debugLog(">>> shellyRPC read Data");
+                const result = await endpoint.read("shellyRPCCluster", ["data"], {...SHELLY_OPTIONS, timeout: 1000, disableDefaultResponse: false});
+                debugLog(`<<< Data: ${JSON.stringify(result)}`);
+            }
+        };
+
+        // Features for exposes
+        const featurePercentage = (name: string, label: string) => {
+            return e.numeric(name, ea.STATE_SET).withValueMin(0).withValueMax(100).withValueStep(1).withLabel(label).withUnit("%");
+        };
+
+        const featureButtonEnabled = (id: number) => {
+            return e.binary(`switch${id}`, ea.STATE_SET, "momentary", "detached").withLabel(`Endpoint: ${id + 1}`);
+        };
+
+        const exposes: Expose[] = [];
+        const exposesDev: Expose[] = [
+            e
+                .text("rpcTx", ea.STATE_SET)
+                .withLabel("TX Data")
+                .withDescription("See https://shelly-api-docs.shelly.cloud/gen2/Devices/Gen4/ShellyPowerStripG4"),
+            e.text("rpcRxCtl", ea.STATE_GET).withLabel("RxCtl").withDescription("RX bytes available").withCategory("diagnostic"),
+            e.text("rpcData", ea.STATE_GET).withLabel("Data").withDescription("RX Data").withCategory("diagnostic"),
+        ];
+        const exposesPowerstripUI: Expose[] = [
+            e
+                .enum("ledMode", ea.STATE_SET, ["off", "switch", "power"])
+                .withLabel("LED Mode")
+                .withDescription("Controls the behaviour of the LED rings around the sockets")
+                .withCategory("config"),
+            e
+                .composite("ledColors", "ledColors", ea.ALL)
+                .withFeature(featurePercentage("onR", "Red (on)"))
+                .withFeature(featurePercentage("onG", "Green (on)"))
+                .withFeature(featurePercentage("onB", "Blue (on)"))
+                .withFeature(featurePercentage("onBrightness", "Brightness (on)"))
+                .withFeature(featurePercentage("offR", "Red (off)"))
+                .withFeature(featurePercentage("offG", "Green (off)"))
+                .withFeature(featurePercentage("offB", "Blue (off)"))
+                .withFeature(featurePercentage("offBrightness", "Brightness (off)"))
+                .withLabel("LED colors in 'switch' mode")
+                .withCategory("config"),
+            featurePercentage("ledPowerBrightness", "LED brightness in 'power' mode").withCategory("config"),
+            e
+                .composite("ledNightMode", "ledNightMode", ea.ALL)
+                .withFeature(e.binary("enable", ea.STATE_SET, true, false))
+                .withFeature(featurePercentage("brightness", "Brightness"))
+                .withFeature(e.text("from", ea.STATE_SET).withLabel("Active from").withDescription("hh:mm"))
+                .withFeature(e.text("until", ea.STATE_SET).withLabel("Active until").withDescription("hh:mm"))
+                .withLabel("LED night mode")
+                .withDescription("Adjust LED brightness during night time")
+                .withCategory("config"),
+            e
+                .composite("buttonsEnabled", "buttonsEnabled", ea.ALL)
+                .withFeature(featureButtonEnabled(0))
+                .withFeature(featureButtonEnabled(1))
+                .withFeature(featureButtonEnabled(2))
+                .withFeature(featureButtonEnabled(3))
+                .withLabel("Buttons enabled")
+                .withCategory("config"),
+        ];
+
+        // biome-ignore lint/suspicious/noExplicitAny: generic
+        const fromZigbee: Fz.Converter<any, any, any>[] = [
+            {
+                cluster: "shellyRPCCluster",
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    const state: KeyValue = {};
+
+                    // Diagnostic data
+                    if (msg.data.rxCtl !== undefined) {
+                        state.rpcRxCtl = msg.data.rxCtl;
+                        state.rpcData = "";
+                    }
+                    if (msg.data.data !== undefined) state.rpcData = meta.state.rpcData + msg.data.data;
+
+                    return state;
+                },
+            },
+        ];
+
+        const toZigbee: Tz.Converter[] = [];
+        const toZigbeeDev: Tz.Converter[] = [
+            {
+                key: ["rpcRxCtl", "rpcData"],
+                convertGet: async (entity, key, meta) => {
+                    const ep = determineEndpoint(entity, meta, "shellyRPCCluster");
+                    await rpcReceive(ep, key);
+                },
+            },
+            {
+                key: ["rpcTx"],
+                convertSet: async (entity, key, value, meta) => {
+                    debugLog(`>>> toZigbee.convertSet(${key}): ${value}`);
+                    const ep = determineEndpoint(entity, meta, "shellyRPCCluster");
+                    await rpcSendRaw(ep, value as string);
+                    await rpcReceive(ep, "RPCrx");
+                    if (shellyRPCBugFixed) {
+                        await rpcReceive(ep, "rpcData");
+                    } else {
+                        return {state: {rpcData: "[Refresh for response]"}};
+                    }
+                },
+            },
+        ];
+        const toZigbeePowerstripUI: Tz.Converter[] = [
+            {
+                key: ["ledMode"],
+                convertSet: async (entity, key, value, meta) => {
+                    const ep = determineEndpoint(entity, meta, "shellyRPCCluster");
+                    await rpcSend(ep, "POWERSTRIP_UI.SetConfig", {
+                        config: {
+                            leds: {
+                                mode: value,
+                            },
+                        },
+                    });
+                },
+            },
+            {
+                key: ["ledColors"],
+                convertSet: async (entity, key, value, meta) => {
+                    assertObject<KeyValue>(value);
+                    const ep = determineEndpoint(entity, meta, "shellyRPCCluster");
+                    await rpcSend(ep, "POWERSTRIP_UI.SetConfig", {
+                        config: {
+                            leds: {
+                                colors: {
+                                    "switch:0": {
+                                        on: {
+                                            rgb: [value.onR ?? 0, value.onG ?? 0, value.onB ?? 0],
+                                            brightness: value.onBrightness ?? 0,
+                                        },
+                                        off: {
+                                            rgb: [value.offR ?? 0, value.offG ?? 0, value.offB ?? 0],
+                                            brightness: value.offBrightness ?? 0,
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    });
+                },
+            },
+            {
+                key: ["ledPowerBrightness"],
+                convertSet: async (entity, key, value, meta) => {
+                    const ep = determineEndpoint(entity, meta, "shellyRPCCluster");
+                    await rpcSend(ep, "POWERSTRIP_UI.SetConfig", {
+                        config: {
+                            leds: {
+                                colors: {
+                                    power: {
+                                        brightness: (value as number) ?? 0,
+                                    },
+                                },
+                            },
+                        },
+                    });
+                },
+            },
+            {
+                key: ["ledNightMode"],
+                convertSet: async (entity, key, value, meta) => {
+                    assertObject<KeyValue>(value);
+                    validateTime(value.from as string);
+                    validateTime(value.until as string);
+                    const ep = determineEndpoint(entity, meta, "shellyRPCCluster");
+                    await rpcSend(ep, "POWERSTRIP_UI.SetConfig", {
+                        config: {
+                            leds: {
+                                night_mode: {
+                                    enable: value.enable,
+                                    brightness: value.brightness,
+                                    active_between: [value.from, value.until],
+                                },
+                            },
+                        },
+                    });
+                },
+            },
+            {
+                key: ["buttonsEnabled"],
+                convertSet: async (entity, key, value, meta) => {
+                    assertObject<KeyValue>(value);
+                    const ep = determineEndpoint(entity, meta, "shellyRPCCluster");
+                    await rpcSend(ep, "POWERSTRIP_UI.SetConfig", {
+                        config: {
+                            controls: {
+                                "switch:0": {
+                                    in_mode: value.switch0,
+                                },
+                                "switch:1": {
+                                    in_mode: value.switch1,
+                                },
+                                "switch:2": {
+                                    in_mode: value.switch2,
+                                },
+                                "switch:3": {
+                                    in_mode: value.switch3,
+                                },
+                            },
+                        },
+                    });
+                },
+            },
+        ];
+
+        const configure: Configure[] = [
+            async (device, coordinatorEndpoint, definition) => {
+                // Nothing to do here
+            },
+        ];
+
+        if (featureDev) {
+            exposes.push(...exposesDev);
+            toZigbee.push(...toZigbeeDev);
+        }
+        if (featurePowerstripUI) {
+            exposes.push(...exposesPowerstripUI);
+            toZigbee.push(...toZigbeePowerstripUI);
+        }
+        return {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
     },
     shellyWiFiSetup(): ModernExtend {
         // biome-ignore lint/suspicious/noExplicitAny: generic
@@ -300,6 +610,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.onOff({powerOnBehavior: false, endpointNames: ["1", "2", "3", "4"]}),
             m.electricityMeter({endpointNames: ["1", "2", "3", "4"]}),
             ...shellyModernExtend.shellyCustomClusters(),
+            shellyModernExtend.shellyRPCSetup(["PowerstripUI"]),
             shellyModernExtend.shellyWiFiSetup(),
         ],
     },
