@@ -14680,8 +14680,8 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
         exposes: [
-            e.occupancy(), // create new custom binary sensor "occupancy" based on "presence"
-            e.enum("presence", ea.STATE, ["none", "presence", "motion"]).withDescription("Presence state"),
+            e.presence(), // create custom "presence" binary sensor based on (presence) "state"
+            e.enum("state", ea.STATE, ["none", "presence", "move"]).withDescription("Presence state"), // change to "state", change to "move"
             e.illuminance().withDescription("Measured illuminance"),
             e
                 .numeric("min_distance", ea.STATE_SET)
@@ -14704,7 +14704,7 @@ export const definitions: DefinitionWithExtend[] = [
                     .withDescription(`Distance gate ${i + 1} enable`),
             ),
             e.numeric("configuration_gate", ea.STATE_SET).withValueMin(1).withValueMax(11).withDescription("Select gate for threshold config"),
-            e.numeric("motion_threshold", ea.STATE_SET).withValueMin(0).withValueMax(99).withDescription("Configure motion detection threshold"),
+            e.numeric("move_threshold", ea.STATE_SET).withValueMin(0).withValueMax(99).withDescription("Configure motion detection threshold"),
             e.numeric("presence_threshold", ea.STATE_SET).withValueMin(0).withValueMax(99).withDescription("Configure presence detection threshold"),
             e.numeric("nearest_target_gate", ea.STATE).withValueMin(0).withValueMax(11).withDescription("Nearest active gate"),
             e.numeric("target_countdown", ea.STATE).withValueMin(0).withValueMax(3600).withUnit("s").withDescription("Target timeout countdown"),
@@ -14734,7 +14734,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription("Environmental background noise collection status"),
             e.enum("device_control", ea.STATE_SET, ["no_action", "restart", "reset_param"]).withDescription("Device control commands"),
             e.enum("presence_sensitivity", ea.STATE_SET, ["high", "medium", "low", "custom"]).withDescription("Presence sensitivity"),
-            e.enum("motion_sensitivity", ea.STATE_SET, ["high", "medium", "low", "custom"]).withDescription("Motion sensitivity"),
+            e.enum("move_sensitivity", ea.STATE_SET, ["high", "medium", "low", "custom"]).withDescription("Motion sensitivity"),
             e
                 .enum("scene_mode", ea.STATE_SET, [
                     "custom", // more fitting and same as in the app
@@ -14747,7 +14747,7 @@ export const definitions: DefinitionWithExtend[] = [
                 ])
                 .withDescription("Scene mode preset"),
             e.binary("illuminance_report", ea.STATE_SET, "on", "off").withDescription("Illuminance reporting toggle"),
-            e.binary("motion_detect", ea.STATE_SET, "on", "off").withDescription("Motion detection toggle"),
+            e.binary("move_detect", ea.STATE_SET, "on", "off").withDescription("Motion detection toggle"),
             e.binary("distance_report", ea.STATE_SET, "on", "off").withDescription("Distance reporting toggle"),
             e.binary("speed_report", ea.STATE_SET, "on", "off").withDescription("Speed reporting toggle"),
         ],
@@ -14758,8 +14758,8 @@ export const definitions: DefinitionWithExtend[] = [
                     null,
                     {
                         from: (v: number) => ({
-                            occupancy: v !== 0,
-                            presence: v === 0 ? "none" : v === 1 ? "presence" : "motion",
+                            presence: v !== 0,
+                            state: v === 0 ? "none" : v === 1 ? "presence" : "move",
                         }),
                     },
                 ],
@@ -14778,7 +14778,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [110, "gate_enable_10", tuya.valueConverterBasic.lookup({disable: tuya.enum(0), enable: tuya.enum(1)})],
                 [111, "gate_enable_11", tuya.valueConverterBasic.lookup({disable: tuya.enum(0), enable: tuya.enum(1)})],
                 [112, "configuration_gate", tuya.valueConverter.raw],
-                [113, "motion_threshold", tuya.valueConverter.raw],
+                [113, "move_threshold", tuya.valueConverter.raw],
                 [114, "presence_threshold", tuya.valueConverter.raw],
                 [115, "nearest_target_gate", tuya.valueConverter.raw],
                 [116, "target_countdown", tuya.valueConverter.raw],
@@ -14806,7 +14806,7 @@ export const definitions: DefinitionWithExtend[] = [
                 ],
                 [
                     127,
-                    "motion_sensitivity",
+                    "move_sensitivity",
                     tuya.valueConverterBasic.lookup({high: tuya.enum(0), medium: tuya.enum(1), low: tuya.enum(2), custom: tuya.enum(3)}),
                 ],
                 [
@@ -14823,7 +14823,7 @@ export const definitions: DefinitionWithExtend[] = [
                     }),
                 ],
                 [129, "illuminance_report", tuya.valueConverterBasic.lookup({off: tuya.enum(0), on: tuya.enum(1)})],
-                [130, "motion_detect", tuya.valueConverterBasic.lookup({off: tuya.enum(0), on: tuya.enum(1)})],
+                [130, "move_detect", tuya.valueConverterBasic.lookup({off: tuya.enum(0), on: tuya.enum(1)})],
                 [131, "distance_report", tuya.valueConverterBasic.lookup({off: tuya.enum(0), on: tuya.enum(1)})],
                 [132, "speed_report", tuya.valueConverterBasic.lookup({off: tuya.enum(0), on: tuya.enum(1)})],
             ],
