@@ -7600,7 +7600,7 @@ export const definitions: DefinitionWithExtend[] = [
 
                 // Conditional features
                 powerOutageMemory: (manufacturerName) => manufacturerName !== "_TZ3000_cicwjqth",
-                indicatorMode: (manufacturerName) => manufacturerName === "_TZ3000_ww6drja5",
+                indicatorMode: (manufacturerName) => manufacturerName !== "_TZ3000_ww6drja5",
                 childLock: (manufacturerName) => manufacturerName !== "_TZ3000_cicwjqth",
                 onOffCountdown: (manufacturerName) => manufacturerName !== "_TZ3000_cicwjqth",
             }),
