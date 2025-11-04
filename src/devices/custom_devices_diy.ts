@@ -147,7 +147,7 @@ const fzLocal = {
 };
 
 function ptvoGetMetaOption(device: Zh.Device | DummyDevice, key: string, defaultValue: unknown) {
-    if (!utils.isDummyDevice(device)) {
+    if (!utils.isDummyDevice(device) && device.meta) {
         const value = device.meta[key];
         if (value === undefined) {
             return defaultValue;
@@ -223,7 +223,8 @@ function ptvoAddStandardExposes(endpoint: Zh.Endpoint, expose: Expose[], options
     if (endpoint.supportsInputCluster("genPowerCfg")) {
         deviceOptions.expose_battery = true;
     }
-    if (endpoint.supportsInputCluster("genMultistateInput") || endpoint.supportsOutputCluster("genMultistateInput")) {
+    if (endpoint.supportsInputCluster("genMultistateInput") || endpoint.supportsOutputCluster("genMultistateInput")
+        || endpoint.clusters.hasOwnProperty('genMultistateInput')) {
         deviceOptions.expose_action = true;
     }
 }
