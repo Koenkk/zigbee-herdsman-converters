@@ -42,7 +42,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "PIR sensor",
         extend: [
             m.battery(),
-			m.illuminance(),
+            m.illuminance(),
             m.iasZoneAlarm({
                 zoneType: "occupancy",
                 zoneAttributes: ["alarm_1", "tamper", "battery_low"],
