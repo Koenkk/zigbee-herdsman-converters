@@ -14681,7 +14681,9 @@ export const definitions: DefinitionWithExtend[] = [
         configure: tuya.configureMagicPacket,
         exposes: [
             e.presence(), // create custom "presence" binary sensor based on (presence) "state"
-            e.enum("state", ea.STATE, ["none", "presence", "move"]).withDescription("Presence state"), // change to "state", change to "move"
+            e
+                .enum("state", ea.STATE, ["none", "presence", "move"])
+                .withDescription("Presence state"), // change to "state", change to "move"
             e.illuminance().withDescription("Measured illuminance"),
             e
                 .numeric("min_distance", ea.STATE_SET)
