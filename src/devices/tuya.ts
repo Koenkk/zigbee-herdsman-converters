@@ -2304,6 +2304,9 @@ export const definitions: DefinitionWithExtend[] = [
                 color: true,
             }),
         ],
+        meta: {
+            moveToLevelWithOnOffDisable: true,
+        },
     },
     {
         zigbeeModel: ["SM0001"],
