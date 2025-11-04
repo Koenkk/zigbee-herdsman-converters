@@ -20604,8 +20604,7 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_fodv6bkr"]),
         model: "RM28-LE",
         vendor: "Ronco",
-        description: "Ronco RM28-LE Zigbee Roller Shade Motor",
-
+        description: "Zigbee roller shade motor",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         options: [exposes.options.invert_cover()],
         exposes: [
@@ -20631,14 +20630,7 @@ export const definitions: DefinitionWithExtend[] = [
                 ],
                 [2, "position", tuya.valueConverter.coverPosition],
                 [3, "position", tuya.valueConverter.coverPosition],
-                [
-                    5,
-                    "reverse_direction",
-                    tuya.valueConverterBasic.lookup({
-                        forward: tuya.enum(0),
-                        back: tuya.enum(1),
-                    }),
-                ],
+                [5, "reverse_direction", tuya.valueConverterBasic.lookup({forward: tuya.enum(0), back: tuya.enum(1)})],
                 [
                     7,
                     "work_state",
@@ -20659,14 +20651,7 @@ export const definitions: DefinitionWithExtend[] = [
                         remove_top_bottom: tuya.enum(4),
                     }),
                 ],
-                [
-                    20,
-                    "click_control",
-                    tuya.valueConverterBasic.lookup({
-                        up: tuya.enum(0),
-                        down: tuya.enum(1),
-                    }),
-                ],
+                [20, "click_control", tuya.valueConverterBasic.lookup({up: tuya.enum(0), down: tuya.enum(1)})],
             ],
         },
     },
