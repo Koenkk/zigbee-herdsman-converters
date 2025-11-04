@@ -69,6 +69,13 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.switch(), e.power(), e.energy()],
     },
     {
+        zigbeeModel: ["PSMP5_00.00.03.12TC"],
+        model: "PSM-29ZBS",
+        vendor: "Climax",
+        description: "Power plug",
+        extend: [m.onOff({powerOnBehavior: false}), m.electricityMeter({current: false, voltage: false})],
+    },
+    {
         zigbeeModel: ["RS_00.00.02.06TC"],
         model: "RS-23ZBS",
         vendor: "Climax",
