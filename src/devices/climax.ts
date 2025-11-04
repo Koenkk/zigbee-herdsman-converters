@@ -73,7 +73,6 @@ export const definitions: DefinitionWithExtend[] = [
         model: "PSM-29ZBS",
         vendor: "Climax",
         description: "Power plug",
-        fromZigbee: [fz.on_off, fz.metering],
         extend: [m.onOff({powerOnBehavior: false}), m.electricityMeter({current: false, voltage: false})],
     },
     {
