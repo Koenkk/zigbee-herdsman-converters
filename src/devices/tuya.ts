@@ -14677,14 +14677,12 @@ export const definitions: DefinitionWithExtend[] = [
         model: "MTD285-ZB",
         vendor: "Wenzhi",
         description: "24GHz mmWave human presence sensor",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
-            e.presence(), // create custom "presence" binary sensor based on (presence) "state"
+            e.presence(),
             e
-                .enum("state", ea.STATE, ["none", "presence", "move"]) // change to "state" and
-                .withDescription("Presence state"), // change all "motion" to "move" match the other similar devices
+                .enum("state", ea.STATE, ["none", "presence", "move"])
+                .withDescription("Presence state"),
             e.illuminance().withDescription("Measured illuminance"),
             e
                 .numeric("min_distance", ea.STATE_SET)
